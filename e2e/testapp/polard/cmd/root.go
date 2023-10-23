@@ -62,9 +62,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/itsdevbear/bolaris/beacon/prysm"
-	evmv1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/evm/v1alpha1"
 	evmconfig "github.com/itsdevbear/bolaris/cosmos/config"
-	signinglib "github.com/itsdevbear/bolaris/cosmos/lib/signing"
 	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
 )
 
@@ -89,8 +87,7 @@ func NewRootCmd() *cobra.Command {
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 				&prysm.Service{},
 			),
-			depinject.Provide(
-				signinglib.ProvideNoopGetSigners[*evmv1alpha1.WrappedPayloadEnvelope]),
+			depinject.Provide(),
 		),
 		&interfaceRegistry,
 		&appCodec,

@@ -53,8 +53,6 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
-	evmv1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/evm/v1alpha1"
-	signinglib "github.com/itsdevbear/bolaris/cosmos/lib/signing"
 	polarruntime "github.com/itsdevbear/bolaris/cosmos/runtime"
 	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
@@ -127,9 +125,7 @@ func NewPolarisApp(
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
 			MakeAppConfig(bech32Prefix),
-			depinject.Provide(
-				signinglib.ProvideNoopGetSigners[*evmv1alpha1.WrappedPayloadEnvelope],
-			),
+			depinject.Provide(),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
@@ -244,10 +240,6 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	if err := server.RegisterSwaggerAPI(
 		apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger,
 	); err != nil {
-		panic(err)
-	}
-
-	if err := app.Polaris.SetupServices(apiSvr.ClientCtx); err != nil {
 		panic(err)
 	}
 }

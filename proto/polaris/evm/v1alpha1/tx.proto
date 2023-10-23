@@ -28,9 +28,6 @@ option go_package = "github.com/itsdevbear/bolaris/cosmos/x/evm/types";
 // Msg defines the x/evm Msg service.
 service MsgService {
   option (cosmos.msg.v1.service) = true;
-
-  // ProcessPayloadEnvelope defines a method to process CL paylods.
-  rpc ProcessPayloadEnvelope(WrappedPayloadEnvelope) returns (WrappedPayloadEnvelopeResponse);
 }
 
 // WrappedPayloadEnvelope encapsulates an Ethereum transaction as an SDK message.

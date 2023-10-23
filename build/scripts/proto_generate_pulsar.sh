@@ -32,9 +32,11 @@ protoc_install_gopulsar() {
 protoc_install_gopulsar
 
 echo "Cleaning API directory"
+mkdir -p cosmos/api
 (cd cosmos/api; find ./ -type f \( -iname \*.pulsar.go -o -iname \*.pb.go -o -iname \*.cosmos_orm.go -o -iname \*.pb.gw.go \) -delete; find . -empty -type d -delete; cd ../../..)
 
 echo "Generating API module"
 (cd proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
 
-mv api cosmos/
+cp -r api cosmos
+rm -rf api

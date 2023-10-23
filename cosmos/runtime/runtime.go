@@ -23,12 +23,9 @@ package runtime
 import (
 	"time"
 
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
-
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
@@ -37,10 +34,7 @@ import (
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	"github.com/itsdevbear/bolaris/cosmos/abci/ve"
 	"github.com/itsdevbear/bolaris/cosmos/config"
-	antelib "github.com/itsdevbear/bolaris/cosmos/lib/ante"
-	libtx "github.com/itsdevbear/bolaris/cosmos/lib/tx"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
-	evmtypes "github.com/itsdevbear/bolaris/cosmos/x/evm/types"
 )
 
 // EVMKeeper is an interface that defines the methods needed for the EVM setup.
@@ -129,9 +123,6 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore) error {
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
 
-	// Set the ante handler to nil, since it is not needed.
-	app.SetAnteHandler(antelib.NewAnteHandler())
-
 	// Create the vote extensions handler that will be used to extend and verify
 	// vote extensions (i.e. oracle data).
 	voteExtensionsHandler := ve.NewVoteExtensionHandler(
@@ -141,16 +132,6 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore) error {
 	)
 	app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
 	app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
-
-	return nil
-}
-
-// SetupServices initializes and registers the services with Polaris.
-// It takes a client context as an argument and returns an error if the setup fails.
-func (p *Polaris) SetupServices(clientCtx client.Context) error {
-	// Initialize the miner with a new execution payload serializer.
-	p.WrappedMiner.Init(libtx.NewSerializer[interfaces.ExecutionData](
-		clientCtx.TxConfig, evmtypes.WrapPayload))
 
 	return nil
 }

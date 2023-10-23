@@ -44,9 +44,9 @@ for dir in $proto_dirs; do
 done
 
 # move proto files to the right places
+pwd
 cp -r github.com/itsdevbear/bolaris/* ../
-rm -rf pkg.berachain.dev
-
+rm -rf github.com
 cd ../
 
 ./build/scripts/proto_generate_pulsar.sh
