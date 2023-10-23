@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2023, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
+syntax = "proto3";
+package polaris.evm.v1alpha1;
+
+import "cosmos/msg/v1/msg.proto";
+
+option go_package = "pkg.berachain.dev/polaris/cosmos/x/evm/types";
+
+// Msg defines the x/evm Msg service.
+service MsgService {
+  option (cosmos.msg.v1.service) = true;
+
+  // ProcessPayloadEnvelope defines a method to process CL paylods.
+  rpc ProcessPayloadEnvelope(WrappedPayloadEnvelope) returns (WrappedPayloadEnvelopeResponse);
+}
+
+// WrappedPayloadEnvelope encapsulates an Ethereum transaction as an SDK message.
+message WrappedPayloadEnvelope {
+  // data is inner transaction data of the Ethereum transaction.
+  bytes data = 1;
+}
+
+// WrappedPayloadEnvelopeResponse defines the block response.
+message WrappedPayloadEnvelopeResponse {}
+
+// Status represents the status of a transaction.
+enum Status {
+  // STATUS_REVERT_UNSPECIFIED indicates that the transaction reverted.
+  STATUS_REVERT_UNSPECIFIED = 0;
+  // STATUS_SUCCESS indicates that the transaction completed successfully.
+  STATUS_SUCCESS = 1;
+  // STATUS_NOT_INCLUDED indicates that the transaction was not included in the
+  // `evm` block, due to an critical error.
+  STATUS_NOT_INCLUDED = 2;
+}
