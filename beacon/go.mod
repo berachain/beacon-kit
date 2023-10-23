@@ -1,4 +1,4 @@
-module pkg.berachain.dev/polaris/beacon
+module github.com/itsdevbear/bolaris/beacon
 
 go 1.21
 

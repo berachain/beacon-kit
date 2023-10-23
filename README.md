@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/berachain/polaris" target="_blank">
     <img src="https://codecov.io/gh/berachain/polaris/branch/main/graph/badge.svg?token=5SYYGUS8GW"/> 
   </a>
-  <a href="https://pkg.go.dev/pkg.berachain.dev/polaris" target="_blank">
-    <img src="https://pkg.go.dev/badge/pkg.berachain.dev/polaris.svg" alt="Go Reference">
+  <a href="https://pkg.go.dev/github.com/itsdevbear/bolaris" target="_blank">
+    <img src="https://pkg.go.dev/badge/github.com/itsdevbear/bolaris.svg" alt="Go Reference">
   </a>
   <a href="https://t.me/polaris_devs" target="_blank">
     <img alt="Telegram Chat" src="https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fpolaris_devs">

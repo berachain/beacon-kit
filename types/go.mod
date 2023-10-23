@@ -1,3 +1,3 @@
-module pkg.berachain.dev/polaris/types
+module github.com/itsdevbear/bolaris/types
 
 go 1.21

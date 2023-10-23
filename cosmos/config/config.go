@@ -26,7 +26,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"pkg.berachain.dev/polaris/cosmos/config/flags"
+	"github.com/itsdevbear/bolaris/cosmos/config/flags"
 )
 
 // Config is the main configuration struct for the Polaris chain.

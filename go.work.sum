@@ -744,6 +744,12 @@ github.com/iris-contrib/jade v1.1.4/go.mod h1:EDqR+ur9piDl6DUgs6qRrlfzmlx/D5Uybo
 github.com/iris-contrib/schema v0.0.1/go.mod h1:urYA3uvUNG1TIIjOSCzHr9/LmbQo8LrOcOqfqxa4hXw=
 github.com/iris-contrib/schema v0.0.6 h1:CPSBLyx2e91H2yJzPuhGuifVRnZBBJ3pCOMbOvPZaTw=
 github.com/iris-contrib/schema v0.0.6/go.mod h1:iYszG0IOsuIsfzjymw1kMzTL8YQcCWlm65f3wX8J5iA=
+github.com/itsdevbear/bolaris/contracts v0.0.0-20230919154905-0c53dfe1360a/go.mod h1:pkgCryQfjPpCfmHJ7hEv6/0PoTwgG6uDc0cIQpMEBYg=
+github.com/itsdevbear/bolaris/contracts v0.0.0-20230928142528-23cc5f141354/go.mod h1:aM6e6GYmu5YPNUWGs0Qy3pL8N5MsRHO3QvcUruwF2Rc=
+github.com/itsdevbear/bolaris/cosmos v0.0.0-20231007233125-8af23216be65/go.mod h1:pdtZOZgwQTMcs04WLEWVrsg/Y0SVAqCZftIQ6cWVkgo=
+github.com/itsdevbear/bolaris/eth v0.0.0-20230928142528-23cc5f141354/go.mod h1:eI+YNq3Nc4J9Di6RyZNOif5ejWGHmWfxRi/dS8gSE6A=
+github.com/itsdevbear/bolaris/lib v0.0.0-20230919154905-0c53dfe1360a/go.mod h1:Qe/PmVj+gplJrsJsmdcWFTHw+DyraM67wk9nqFMnHmk=
+github.com/itsdevbear/bolaris/lib v0.0.0-20230928142528-23cc5f141354/go.mod h1:PyX74/6+6XhSJ9gXmE/xFYp1gZCcQ36suVk8hh4s36M=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jbenet/go-temp-err-catcher v0.1.0 h1:zpb3ZH6wIE8Shj2sKS+khgRvf7T7RABoLk/+KKHggpk=
@@ -1363,11 +1369,7 @@ moul.io/http2curl/v2 v2.3.0/go.mod h1:RW4hyBjTWSYDOxapodpNEtX0g5Eb16sxklBqmd2RHc
 nhooyr.io/websocket v1.8.7/go.mod h1:B70DZP8IakI65RVQ51MsWP/8jndNma26DVA/nFSCgW0=
 nullprogram.com/x/optparse v1.0.0 h1:xGFgVi5ZaWOnYdac2foDT3vg0ZZC9ErXFV57mr4OHrI=
 pkg.berachain.dev/polaris/contracts v0.0.0-20230919154905-0c53dfe1360a/go.mod h1:pkgCryQfjPpCfmHJ7hEv6/0PoTwgG6uDc0cIQpMEBYg=
-pkg.berachain.dev/polaris/contracts v0.0.0-20230928142528-23cc5f141354/go.mod h1:aM6e6GYmu5YPNUWGs0Qy3pL8N5MsRHO3QvcUruwF2Rc=
-pkg.berachain.dev/polaris/cosmos v0.0.0-20231007233125-8af23216be65/go.mod h1:pdtZOZgwQTMcs04WLEWVrsg/Y0SVAqCZftIQ6cWVkgo=
-pkg.berachain.dev/polaris/eth v0.0.0-20230928142528-23cc5f141354/go.mod h1:eI+YNq3Nc4J9Di6RyZNOif5ejWGHmWfxRi/dS8gSE6A=
 pkg.berachain.dev/polaris/lib v0.0.0-20230919154905-0c53dfe1360a/go.mod h1:Qe/PmVj+gplJrsJsmdcWFTHw+DyraM67wk9nqFMnHmk=
-pkg.berachain.dev/polaris/lib v0.0.0-20230928142528-23cc5f141354/go.mod h1:PyX74/6+6XhSJ9gXmE/xFYp1gZCcQ36suVk8hh4s36M=
 rsc.io/binaryregexp v0.2.0 h1:HfqmD5MEmC0zvwBuF187nq9mdnXjXsSivRiXN7SmRkE=
 rsc.io/pdf v0.1.1 h1:k1MczvYDUvJBe93bYd7wrZLLUEcLZAuF824/I4e5Xr4=
 rsc.io/quote/v3 v3.1.0 h1:9JKUTTIUgS6kzR9mK1YuGKv6Nl+DijDNIc0ghT58FaY=

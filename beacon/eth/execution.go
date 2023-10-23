@@ -40,8 +40,8 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"pkg.berachain.dev/polaris/beacon/log"
-	"pkg.berachain.dev/polaris/beacon/prysm"
+	"github.com/itsdevbear/bolaris/beacon/log"
+	"github.com/itsdevbear/bolaris/beacon/prysm"
 )
 
 type (

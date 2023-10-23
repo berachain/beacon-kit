@@ -25,9 +25,9 @@ import (
 	"cosmossdk.io/depinject"
 	store "cosmossdk.io/store/types"
 
-	"pkg.berachain.dev/polaris/beacon/prysm"
-	modulev1alpha1 "pkg.berachain.dev/polaris/cosmos/api/polaris/evm/module/v1alpha1"
-	"pkg.berachain.dev/polaris/cosmos/x/evm/keeper"
+	"github.com/itsdevbear/bolaris/beacon/prysm"
+	modulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/evm/module/v1alpha1"
+	"github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.

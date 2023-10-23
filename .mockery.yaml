@@ -3,7 +3,7 @@ mockname: "{{.InterfaceNameCamel}}"
 filename: "{{.InterfaceNameSnake}}.go"
 outpkg: "mocks"
 packages:
-  pkg.berachain.dev/polaris/cosmos/config:
+  github.com/itsdevbear/bolaris/cosmos/config:
     config:
       recursive: True
       with-expecter: true

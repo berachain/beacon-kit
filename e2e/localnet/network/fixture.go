@@ -34,7 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 
-	"pkg.berachain.dev/polaris/eth/crypto"
+	"github.com/itsdevbear/bolaris/eth/crypto"
 )
 
 const (

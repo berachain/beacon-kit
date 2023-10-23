@@ -32,7 +32,6 @@ run:
   # Default: 1m
   timeout: 3m
 
-
 # This file contains only configs which differ from defaults.
 # All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 linters-settings:
@@ -96,7 +95,6 @@ linters-settings:
     # Default: 40
     statements: 50
 
-
   gci:
     sections:
       - standard # Standard section: captures all standard packages.
@@ -106,7 +104,7 @@ linters-settings:
       - Prefix(github.com/cosmos/cosmos-sdk
       - Prefix(github.com/ethereum/go-ethereum
       - Prefix(pkg.berachain.dev
-      - Prefix(pkg.berachain.dev/polaris
+      - Prefix(github.com/itsdevbear/bolaris
       - blank
       - dot
     skip-generated: true
@@ -179,7 +177,7 @@ linters-settings:
   nolintlint:
     # Exclude following linters from requiring an explanation.
     # Default: []
-    allow-no-explanation: [ funlen, gocognit, lll ]
+    allow-no-explanation: [funlen, gocognit, lll]
     # Enable to require an explanation of nonzero length after each nolint directive.
     # Default: false
     require-explanation: true

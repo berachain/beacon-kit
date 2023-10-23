@@ -32,7 +32,7 @@ import (
 
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 
-	localnet "pkg.berachain.dev/polaris/e2e/localnet/network"
+	localnet "github.com/itsdevbear/bolaris/e2e/localnet/network"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

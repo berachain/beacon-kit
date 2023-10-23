@@ -56,7 +56,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	evmtypes "pkg.berachain.dev/polaris/cosmos/x/evm/types"
+	evmtypes "github.com/itsdevbear/bolaris/cosmos/x/evm/types"
 )
 
 var (

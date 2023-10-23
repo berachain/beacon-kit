@@ -1,4 +1,4 @@
-module pkg.berachain.dev/polaris/contracts
+module github.com/itsdevbear/bolaris/contracts
 
 go 1.21
 

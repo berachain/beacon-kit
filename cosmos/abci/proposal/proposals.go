@@ -29,7 +29,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"pkg.berachain.dev/polaris/cosmos/abci/ve"
+	"github.com/itsdevbear/bolaris/cosmos/abci/ve"
 )
 
 const (

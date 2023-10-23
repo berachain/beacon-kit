@@ -24,8 +24,8 @@ import (
 	"context"
 	"fmt"
 
-	"pkg.berachain.dev/polaris/beacon/prysm"
-	evmtypes "pkg.berachain.dev/polaris/cosmos/x/evm/types"
+	"github.com/itsdevbear/bolaris/beacon/prysm"
+	evmtypes "github.com/itsdevbear/bolaris/cosmos/x/evm/types"
 )
 
 func (k *Keeper) ProcessPayloadEnvelope(

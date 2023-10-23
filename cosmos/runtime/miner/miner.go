@@ -39,8 +39,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"pkg.berachain.dev/polaris/beacon/eth"
-	"pkg.berachain.dev/polaris/beacon/prysm"
+	"github.com/itsdevbear/bolaris/beacon/eth"
+	"github.com/itsdevbear/bolaris/beacon/prysm"
 )
 
 // emptyHash is a common.Hash initialized to all zeros.

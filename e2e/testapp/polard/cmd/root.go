@@ -61,11 +61,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	"pkg.berachain.dev/polaris/beacon/prysm"
-	evmv1alpha1 "pkg.berachain.dev/polaris/cosmos/api/polaris/evm/v1alpha1"
-	evmconfig "pkg.berachain.dev/polaris/cosmos/config"
-	signinglib "pkg.berachain.dev/polaris/cosmos/lib/signing"
-	testapp "pkg.berachain.dev/polaris/e2e/testapp"
+	"github.com/itsdevbear/bolaris/beacon/prysm"
+	evmv1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/evm/v1alpha1"
+	evmconfig "github.com/itsdevbear/bolaris/cosmos/config"
+	signinglib "github.com/itsdevbear/bolaris/cosmos/lib/signing"
+	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.

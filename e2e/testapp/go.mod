@@ -1,4 +1,4 @@
-module pkg.berachain.dev/polaris/e2e/testapp
+module github.com/itsdevbear/bolaris/e2e/testapp
 
 go 1.21
 
@@ -15,7 +15,7 @@ require (
 	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
-	pkg.berachain.dev/polaris/cosmos v0.0.0-20231012162131-c1edabdcf30e
+	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231012162131-c1edabdcf30e
 )
 
 require (
@@ -271,9 +271,9 @@ require (
 	gotest.tools/v3 v3.5.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
-	pkg.berachain.dev/polaris/contracts v0.0.0-20231010191645-a5ed99983be4 // indirect
-	pkg.berachain.dev/polaris/eth v0.0.0-20231010191645-a5ed99983be4 // indirect
-	pkg.berachain.dev/polaris/lib v0.0.0-20231010191645-a5ed99983be4 // indirect
+	github.com/itsdevbear/bolaris/contracts v0.0.0-20231010191645-a5ed99983be4 // indirect
+	github.com/itsdevbear/bolaris/eth v0.0.0-20231010191645-a5ed99983be4 // indirect
+	github.com/itsdevbear/bolaris/lib v0.0.0-20231010191645-a5ed99983be4 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )

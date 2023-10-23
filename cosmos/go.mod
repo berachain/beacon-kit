@@ -1,4 +1,4 @@
-module pkg.berachain.dev/polaris/cosmos
+module github.com/itsdevbear/bolaris/cosmos
 
 go 1.21
 

@@ -6,7 +6,7 @@ package polaris.abci.v1;
 // import "google/api/annotations.proto";
 // import "google/protobuf/timestamp.proto";
 
-option go_package = "pkg.berachain.dev/polaris/cosmos/abci/ve/types";
+option go_package = "github.com/itsdevbear/bolaris/cosmos/abci/ve/types";
 
 // ForkChoiceExtension defines the vote extension structure for oracle prices.
 message ForkChoiceExtension {

@@ -26,7 +26,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	cosmlib "pkg.berachain.dev/polaris/cosmos/lib"
+	cosmlib "github.com/itsdevbear/bolaris/cosmos/lib"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

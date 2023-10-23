@@ -30,7 +30,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"pkg.berachain.dev/polaris/cosmos/runtime/miner"
+	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
 )
 
 // VoteExtensionHandler is a handler that extends a vote with the oracle's

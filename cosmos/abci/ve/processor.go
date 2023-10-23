@@ -33,8 +33,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"pkg.berachain.dev/polaris/beacon/prysm"
-	"pkg.berachain.dev/polaris/cosmos/runtime/miner"
+	"github.com/itsdevbear/bolaris/beacon/prysm"
+	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
 )
 
 type Processor struct {

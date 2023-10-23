@@ -36,12 +36,12 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	gethrpc "github.com/ethereum/go-ethereum/rpc"
 
-	tbindings "pkg.berachain.dev/polaris/contracts/bindings/testing"
-	localnet "pkg.berachain.dev/polaris/e2e/localnet/network"
+	tbindings "github.com/itsdevbear/bolaris/contracts/bindings/testing"
+	localnet "github.com/itsdevbear/bolaris/e2e/localnet/network"
 
+	. "github.com/itsdevbear/bolaris/e2e/localnet/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	. "pkg.berachain.dev/polaris/e2e/localnet/utils"
 )
 
 var _ = Describe("JSON RPC tests", func() {
