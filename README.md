@@ -1,4 +1,4 @@
-<h1 align="center"> Polaris Monorepo ❄️🔭 </h1>
+<h1 align="center"> 🅱️olaris Monorepo ❄️🔭 </h1>
 
 ![](./docs/web/public/bear_banner.png)
 
@@ -21,44 +21,9 @@
   </a>
 </div>
 
-
-
-## What is Polaris?
-
-Introducing Polaris, the revolutionary framework designed to simplify the integration of an Ethereum Virtual Machine (EVM) into your application. Polaris is built with a clean, easy-to-integrate API that eliminates the need for developers to spend time hacking together their own EVM integration solutions. Our framework is highly modular, allowing you to choose the components that best fit your needs and integrate an EVM environment into virtually any application.
-
-Polaris is built with several core principles in mind:
-
-1. **Modularity**: Each component is developed as a distinct package, complete with thorough testing, documentation, and benchmarking. You can use these components individually or combine them to create innovative EVM integrations.
-2. **Configurability**: We want Polaris to be accessible to as many teams and use cases as possible. To support this, our framework is highly configurable, allowing you to tailor it to your specific needs.
-3. **Performance**: In today's competitive crypto landscape, performance is key. Polaris is optimized to deliver the highest levels of performance and efficiency.
-4. **Contributor Friendliness**: We believe that open collaboration is key to driving innovation in blockchain development. While Polaris is currently licensed under BUSL-1.1, we plan to adjust our licensing to support contributor-based schemes as we approach production readiness.
-5. **Memes**: If ur PR doesn't have a meme in it like idk sry bro, gg wp glhf.
-
-## Documentation
-
-If you want to build on top of Polaris, take a look at our [documentation](http://polaris.berachain.dev/).
-If you want to help contribute to the framework, check out the [Framework Specs](./specs/).
-
-## Directory Structure
-
-> Polaris utilizes [go workspaces](https://go.dev/doc/tutorial/workspaces) to break up the repository into logical sections, helping to reduce cognitive overhead.
-
-<pre>
-🔭 Polaris 🔭
-├── <a href="./contracts">contracts</a>: Contracts and bindings for Polaris (and hosts).
-├── <a href="./docs">docs</a>: Documentation for Polaris.
-├── <a href="./cosmos">cosmos</a>: Polaris integrated into a Cosmos-SDK based chain.
-├── <a href="./e2e">e2e</a>: End-to-end testing utilities.
-├── <a href="./eth">eth</a>: The Core of the Polaris Ethereum Framework.
-├── <a href="./lib">lib</a>: A collection of libraries used throughout the repo.
-├── <a href="./tools">tools</a>: Package for holding tooling deps.
-</pre>
-
-
 ## Build & Test
 
-[Golang 1.20+](https://go.dev/doc/install) and [Foundry](https://book.getfoundry.sh/getting-started/installation) are required for Polaris.
+[Golang 1.21+](https://go.dev/doc/install) and [Foundry](https://book.getfoundry.sh/getting-started/installation) are required for Polaris.
 
 1. Install [go 1.21+ from the official site](https://go.dev/dl/) or the method of your choice. Ensure that your `GOPATH` and `GOBIN` environment variables are properly set up by using the following commands:
 

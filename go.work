@@ -5,7 +5,6 @@ use (
 	./build/tools
 	./contracts
 	./cosmos
-	./e2e/localnet
 	./e2e/testapp
 	./types
 )
