@@ -26,6 +26,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
@@ -79,12 +80,9 @@ func (m *Miner) Init(serializer EnvelopeSerializer) {
 func (m *Miner) BuildVoteExtension(ctx sdk.Context, _ int64) ([]byte, error) {
 	var data interfaces.ExecutionData
 	var err error
-	fmt.Println("PRE BUILD VOTE EXTENSION")
-	if data, err = m.buildBlock(ctx); err != nil {
+	if data, err = m.BuildBlock(ctx); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("POST BUILD VOTE EXTENSION")
 
 	return data.MarshalSSZ()
 }
@@ -139,9 +137,73 @@ func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	return nil
 }
 
+var once sync.Once
+
+func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) {
+	// Reference: https://hackmd.io/@danielrachi/engine_api#Block-Building
+	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
+
+	var random [32]byte
+	if _, err := rand.Read(random[:]); err != nil {
+		return nil, err
+	}
+
+	attrs, err := payloadattribute.New(&pb.PayloadAttributesV2{
+		Timestamp:             uint64(time.Now().Unix()),
+		SuggestedFeeRecipient: m.etherbase.Bytes(),
+		Withdrawals:           nil,
+		PrevRandao:            append([]byte{}, random[:]...),
+	})
+	if err != nil {
+		fmt.Println("attribute erorr")
+		return nil, err
+	}
+
+	once.Do(func() {
+		m.getForkchoiceFromExecutionClient(ctx)
+	})
+
+	// Trigger the execution client to begin building the block, and update
+	// the proposers forkchoice state accordingly.
+	payloadID, _, err := m.EngineAPI.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
+	if err != nil {
+		m.logger.Error("failed to get forkchoice updated", "err", err)
+		return nil, err
+	}
+
+	// Get the Payload From the Execution Client
+	builtPayload, _, _, err := builder.GetPayload(
+		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()))
+	if err != nil {
+		m.logger.Error("failed to get payload", "err", err)
+		return nil, err
+	}
+
+	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
+
+	// Go and include the builtPayload on the BeaconBlock
+	return builtPayload, nil
+}
+
+func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
+	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
+	_, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(builtPayload.ParentHash()))
+	if err != nil {
+		m.logger.Error("failed to validate block", "err", err)
+		return err
+	}
+
+	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
+	m.curForkchoiceState.FinalizedBlockHash = builtPayload.BlockHash()
+	m.curForkchoiceState.SafeBlockHash = builtPayload.BlockHash()
+	// m.logger.Info("successfully validated block", "block", builtPayload.BlockHash())
+	// m.getForkchoiceFromExecutionClient(ctx)
+	return nil
+}
+
 // buildBlock builds and submits a payload, it also waits for the txs
 // to resolve from the underying worker.
-func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
+func (m *Miner) BuildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
 	var (
 		err error
@@ -175,6 +237,8 @@ func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 			return nil, err
 		}
 		// the proposer updates it's forkchoice and then
+		// I think this needs to actually happen in FinalizeBlock and everyone should
+		// update forkchoice together?
 		payloadID, _, err = m.EngineAPI.ForkchoiceUpdated(ctx,
 			m.curForkchoiceState, attrs)
 		if err != nil {
@@ -185,11 +249,9 @@ func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 	}
 
 	// builds a payload
-	builtPayload, _, valid, err := builder.GetPayload(
+	builtPayload, _, _, err := builder.GetPayload(
 		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()),
 	)
-
-	fmt.Println(builtPayload, "BUILT PAYLOAD", valid, err)
 	if err != nil {
 		fmt.Println("PAYLOAD ERROR", err)
 		return nil, err
@@ -199,7 +261,8 @@ func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 	if err != nil {
 		fmt.Println("NEW PAYLOAD ERROR", err)
 	}
-	fmt.Println("PAYLOAD HASH", hash)
+	fmt.Println("PAYLOAD HASH", hash, "cosmos block height", ctx.BlockHeight(), "PayloadID", payloadID,
+		"payload block number", builtPayload.BlockNumber())
 	// finalizedHash := m.finalizedBlockHash(builtPayload.BlockNumber())
 	// if finalizedHash == nil {
 	// 	fmt.Println("EMPTY FINALIZED HASH")
@@ -227,7 +290,7 @@ func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 		"head", common.Bytes2Hex(m.curForkchoiceState.HeadBlockHash),
 		"safe", common.Bytes2Hex(m.curForkchoiceState.SafeBlockHash),
 	)
-	time.Sleep(2 * time.Second)
+	// time.Sleep(*time.Second)
 	// _, _, err = b.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3)) //nolint:gomnd // okay for now.
 	_, _, err = builder.EngineCaller.ForkchoiceUpdated(ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3))
 	fmt.Println("UPDATE ERROR", err)

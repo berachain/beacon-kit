@@ -3,6 +3,7 @@ module github.com/itsdevbear/bolaris/e2e/testapp
 go 1.21
 
 replace (
+	github.com/cockroachdb/pebble => github.com/cockroachdb/pebble v0.0.0-20230928194634-aa077af62593
 	github.com/itsdevbear/bolaris/beacon => ../../beacon
 	github.com/itsdevbear/bolaris/cosmos => ../../cosmos
 

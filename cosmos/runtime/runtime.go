@@ -21,8 +21,6 @@
 package runtime
 
 import (
-	"time"
-
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -32,7 +30,6 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/eth"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
-	"github.com/itsdevbear/bolaris/cosmos/abci/ve"
 	"github.com/itsdevbear/bolaris/cosmos/config"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
 	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
@@ -114,25 +111,27 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.
 
 	// Create the proposal handler that will be used to fill proposals with
 	// transactions and oracle data.
-	proposalHandler := proposal.NewProposalHandler(
-		p.logger,
-		baseapp.NoOpPrepareProposal(),
-		baseapp.NoOpProcessProposal(),
-		ve.NewDefaultValidateVoteExtensionsFn(app.ChainID(), vs),
-		ve.NewProcessor(p.WrappedMiner, ek, p.logger).ProcessCommitInfo,
-	)
-	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
-	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
+	// proposalHandler := proposal.NewProposalHandler(
+	// 	p.logger,
+	// 	baseapp.NoOpPrepareProposal(),
+	// 	baseapp.NoOpProcessProposal(),
+	// 	ve.NewDefaultValidateVoteExtensionsFn(app.ChainID(), vs),
+	// 	ve.NewProcessor(p.WrappedMiner, ek, p.logger).ProcessCommitInfo,
+	// )
 
-	// Create the vote extensions handler that will be used to extend and verify
-	// vote extensions (i.e. oracle data).
-	voteExtensionsHandler := ve.NewVoteExtensionHandler(
-		p.logger,
-		time.Second,
-		p.WrappedMiner,
-	)
-	app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
-	app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
+	proposalHandler := proposal.NewProposalHandler2(p.WrappedMiner)
+	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
+	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
+
+	// // Create the vote extensions handler that will be used to extend and verify
+	// // vote extensions (i.e. oracle data).
+	// voteExtensionsHandler := ve.NewVoteExtensionHandler(
+	// 	p.logger,
+	// 	time.Second,
+	// 	p.WrappedMiner,
+	// )
+	// app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
+	// app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
 
 	return nil
 }

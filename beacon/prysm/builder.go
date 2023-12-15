@@ -22,9 +22,7 @@ package prysm
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -70,35 +68,45 @@ func (b *Builder) BlockValidation(
 	// adding it to the local canonical chain. the Forkchoice update can then check to see if
 	// everything is gucci gang.
 	// This should probably be ran in prepare proposal in order to reject the proposal if
-	// the node receives a payload that produces a bad block and/or errors.
-	latestValidHash, err := b.NewPayload(ctx, payload, nil, nil)
-	if err != nil {
-		return nil, err
+	// // the node receives a payload that produces a bad block and/or errors.
+	// latestValidHash, err := b.NewPayload(ctx, payload, nil, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// fmt.Println("BLOCK VALIDATION")
+	// fmt.Println("latestValidHash: ", common.BytesToHash(latestValidHash).Hex())
+	// // fc, err := b.Keeper.LatestForkChoice(ctx)
+	// if fc == nil || err != nil {
+	// 	return nil, err
+	// }
+
+	fc := &enginev1.ForkchoiceState{
+		HeadBlockHash:      payload.BlockHash(),
+		SafeBlockHash:      payload.BlockHash(),
+		FinalizedBlockHash: payload.BlockHash(),
 	}
 
-	fmt.Println("BLOCK VALIDATION")
-	fmt.Println("latestValidHash: ", common.BytesToHash(latestValidHash).Hex())
-	fc, err := b.Keeper.LatestForkChoice(ctx)
-	if fc == nil || err != nil {
-		fc = &enginev1.ForkchoiceState{
-			HeadBlockHash:      latestValidHash,
-			SafeBlockHash:      latestValidHash,
-			FinalizedBlockHash: latestValidHash,
-		}
-	} else {
-		fc = &enginev1.ForkchoiceState{
-			HeadBlockHash: latestValidHash,
-			// The two below are technically incorrect? These should be set later imo.
-			// Should we set head block hash in prepare proposal?
-			// Then update safe and finalized in end block / beginning of the following block?
-			SafeBlockHash:      fc.SafeBlockHash,
-			FinalizedBlockHash: fc.FinalizedBlockHash,
-		}
-	}
+	// if fc == nil {
+	// 	fc = &enginev1.ForkchoiceState{
+	// 		HeadBlockHash:      latestValidHash,
+	// 		SafeBlockHash:      latestValidHash,
+	// 		FinalizedBlockHash: latestValidHash,
+	// 	}
+	// } else {
+	// 	fc = &enginev1.ForkchoiceState{
+	// 		HeadBlockHash: latestValidHash,
+	// 		// The two below are technically incorrect? These should be set later imo.
+	// 		// Should we set head block hash in prepare proposal?
+	// 		// Then update safe and finalized in end block / beginning of the following block?
+	// 		SafeBlockHash:      fc.SafeBlockHash,
+	// 		FinalizedBlockHash: fc.FinalizedBlockHash,
+	// 	}
+	// }
 
 	// b.Keeper.SetLatestForkChoice(ctx, fc)
 
-	_, _, err = b.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3)) //nolint:gomnd // okay for now.
+	_, _, err := b.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3)) //nolint:gomnd // okay for now.
 
-	return latestValidHash, err
+	return payload.BlockHash(), err
 }
