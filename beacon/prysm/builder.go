@@ -22,13 +22,21 @@ package prysm
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
+type EVMKeeper interface {
+	LatestForkChoice(ctx context.Context) (*enginev1.ForkchoiceState, error)
+	SetLatestForkChoice(ctx context.Context, fc *enginev1.ForkchoiceState) error
+}
+
 type Builder struct {
+	Keeper EVMKeeper
 	EngineCaller
 }
 
@@ -36,7 +44,7 @@ func (b *Builder) BlockProposal(
 	_ context.Context, _ interfaces.ExecutionData, _ payloadattribute.Attributer,
 ) (interfaces.ExecutionData, error) {
 	// payloadID, latestValidHash, err := b.BlockValidation(ctx, payload)
-	// if err != nil {
+	// if err != nil e
 	// 	return nil, err
 	// }
 	// if latestValidHash == nil {
@@ -50,7 +58,7 @@ func (b *Builder) BlockProposal(
 
 // BlockValidation builds a payload from the provided execution data, and submits it to
 // the execution client. It then submits a forkchoice update with the updated
-// valid hash returned by the execution client.
+// valid hash returned by the execution client.1
 // This should be called by a node when it receives Execution Data as part of
 // beacon chain consensus.
 // receives payload -> get latestValidHash from our execution client -> forkchoice locally.
@@ -58,7 +66,7 @@ func (b *Builder) BlockValidation(
 	ctx context.Context, payload interfaces.ExecutionData,
 ) ([]byte, error) {
 	// pull the lastest valid hash from the execution node.
-	// this payload should have been p2p'd to this node, calling NewPayload will execute it
+	// this payload should have been p2p'd to this node, callinpro NewPayload will execute it
 	// adding it to the local canonical chain. the Forkchoice update can then check to see if
 	// everything is gucci gang.
 	// This should probably be ran in prepare proposal in order to reject the proposal if
@@ -68,14 +76,29 @@ func (b *Builder) BlockValidation(
 		return nil, err
 	}
 
-	_, _, err = b.ForkchoiceUpdated(ctx, &enginev1.ForkchoiceState{
-		HeadBlockHash: latestValidHash,
-		// The two below are technically incorrect? These should be set later imo.
-		// Should we set head block hash in prepare proposal?
-		// Then update safe and finalized in end block / beginning of the following block?
-		SafeBlockHash:      latestValidHash,
-		FinalizedBlockHash: latestValidHash,
-	}, payloadattribute.EmptyWithVersion(3)) //nolint:gomnd // okay for now.
+	fmt.Println("BLOCK VALIDATION")
+	fmt.Println("latestValidHash: ", common.BytesToHash(latestValidHash).Hex())
+	fc, err := b.Keeper.LatestForkChoice(ctx)
+	if fc == nil || err != nil {
+		fc = &enginev1.ForkchoiceState{
+			HeadBlockHash:      latestValidHash,
+			SafeBlockHash:      latestValidHash,
+			FinalizedBlockHash: latestValidHash,
+		}
+	} else {
+		fc = &enginev1.ForkchoiceState{
+			HeadBlockHash: latestValidHash,
+			// The two below are technically incorrect? These should be set later imo.
+			// Should we set head block hash in prepare proposal?
+			// Then update safe and finalized in end block / beginning of the following block?
+			SafeBlockHash:      fc.SafeBlockHash,
+			FinalizedBlockHash: fc.FinalizedBlockHash,
+		}
+	}
+
+	// b.Keeper.SetLatestForkChoice(ctx, fc)
+
+	_, _, err = b.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3)) //nolint:gomnd // okay for now.
 
 	return latestValidHash, err
 }

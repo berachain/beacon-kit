@@ -35,6 +35,7 @@ import (
 	"github.com/itsdevbear/bolaris/cosmos/abci/ve"
 	"github.com/itsdevbear/bolaris/cosmos/config"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
+	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
 
 // EVMKeeper is an interface that defines the methods needed for the EVM setup.
@@ -108,7 +109,7 @@ func MustNew(appOpts servertypes.AppOptions, logger log.Logger) *Polaris {
 // Build is a function that sets up the Polaris struct.
 // It takes a BaseApp and an EVMKeeper as arguments.
 // It returns an error if the setup fails.
-func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore) error {
+func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.Keeper) error {
 	app.SetMempool(mempool.NoOpMempool{})
 
 	// Create the proposal handler that will be used to fill proposals with
@@ -118,7 +119,7 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore) error {
 		baseapp.NoOpPrepareProposal(),
 		baseapp.NoOpProcessProposal(),
 		ve.NewDefaultValidateVoteExtensionsFn(app.ChainID(), vs),
-		ve.NewProcessor(p.WrappedMiner, p.logger).ProcessCommitInfo,
+		ve.NewProcessor(p.WrappedMiner, ek, p.logger).ProcessCommitInfo,
 	)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())

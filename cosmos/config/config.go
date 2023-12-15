@@ -23,9 +23,10 @@ package config
 import (
 	"time"
 
+	"github.com/spf13/cobra"
+
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/spf13/cobra"
 
 	"github.com/itsdevbear/bolaris/cosmos/config/flags"
 )

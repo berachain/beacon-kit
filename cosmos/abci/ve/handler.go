@@ -22,6 +22,7 @@ package ve
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"cosmossdk.io/log"
@@ -100,6 +101,8 @@ func (h *VoteExtensionHandler) ExtendVoteHandler() sdk.ExtendVoteHandler {
 
 			return &cometabci.ResponseExtendVote{VoteExtension: []byte{}}, nil
 		}
+
+		fmt.Println("VOTE EXTENSION", bz, "EXTEND VOTE HANDLER")
 
 		h.logger.Info(
 			"extending vote with oracle prices",

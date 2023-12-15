@@ -27,10 +27,12 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/itsdevbear/bolaris/beacon/prysm"
 	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
+
+var LatestForkChoiceKey = []byte("latestForkChoice")
 
 type (
 	Keeper struct {
@@ -54,4 +56,29 @@ func NewKeeper(
 // Logger returns a module-specific logger.
 func (k *Keeper) Logger(ctx context.Context) log.Logger {
 	return sdk.UnwrapSDKContext(ctx).Logger().With(types.ModuleName)
+}
+
+// Forkchoice Updates
+
+func (k *Keeper) LatestForkChoice(ctx context.Context) (*enginev1.ForkchoiceState, error) {
+	bz := sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey).Get(LatestForkChoiceKey)
+	if bz == nil {
+		return nil, nil
+	}
+
+	var state enginev1.ForkchoiceState
+	if err := state.UnmarshalJSON(bz); err != nil {
+		return nil, err
+	}
+	return &state, nil
+}
+
+func (k *Keeper) SetLatestForkChoice(ctx context.Context, state *enginev1.ForkchoiceState) error {
+	bz, err := state.MarshalJSON()
+	if err != nil {
+		return err
+	}
+
+	sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey).Set(LatestForkChoiceKey, bz)
+	return nil
 }

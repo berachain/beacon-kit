@@ -22,9 +22,9 @@
 package miner
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -79,9 +79,12 @@ func (m *Miner) Init(serializer EnvelopeSerializer) {
 func (m *Miner) BuildVoteExtension(ctx sdk.Context, _ int64) ([]byte, error) {
 	var data interfaces.ExecutionData
 	var err error
+	fmt.Println("PRE BUILD VOTE EXTENSION")
 	if data, err = m.buildBlock(ctx); err != nil {
 		return nil, err
 	}
+
+	fmt.Println("POST BUILD VOTE EXTENSION")
 
 	return data.MarshalSSZ()
 }
@@ -104,6 +107,38 @@ func (m *Miner) finalizedBlockHash(number uint64) *common.Hash {
 	return nil
 }
 
+func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
+	var latestBlock *pb.ExecutionBlock
+	var err error
+	latestBlock, err = m.EngineAPI.LatestExecutionBlock(ctx)
+	if err != nil {
+		m.logger.Error("failed to get block number", "err", err)
+	}
+
+	m.curForkchoiceState.HeadBlockHash = latestBlock.Hash.Bytes()
+	m.logger.Info("forkchoice state", "head", latestBlock.Header.Hash())
+
+	safe, err := m.EngineAPI.LatestSafeBlock(ctx)
+	if err != nil {
+		m.logger.Error("failed to get safe block", "err", err)
+		safe = latestBlock
+	}
+
+	m.curForkchoiceState.SafeBlockHash = safe.Hash.Bytes()
+
+	final, err := m.EngineAPI.LatestFinalizedBlock(ctx)
+	m.logger.Info("forkchoice state", "finalized", safe.Hash)
+	if err != nil {
+		m.logger.Error("failed to get final block", "err", err)
+		final = latestBlock
+	}
+
+	m.curForkchoiceState.FinalizedBlockHash = final.Hash.Bytes()
+	m.logger.Info("forkchoice state", "finalized", final.Hash)
+
+	return nil
+}
+
 // buildBlock builds and submits a payload, it also waits for the txs
 // to resolve from the underying worker.
 func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
@@ -119,15 +154,8 @@ func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 	// ALL THIS CODE DOES IS FORCES RESETTING TO THE LATEST EXECUTION BLOCK
 	// CALLS JSON RPC with "latest" block param
 	{
-		var latestBlock *pb.ExecutionBlock
-		latestBlock, err = m.EngineAPI.LatestExecutionBlock(ctx)
-		if err != nil {
-			m.logger.Error("failed to get block number", "err", err)
-		}
-
-		if !bytes.Equal(m.curForkchoiceState.HeadBlockHash, latestBlock.Hash.Bytes()) {
-			finalizedHash := m.finalizedBlockHash(latestBlock.Number.Uint64())
-			m.setCurrentState(latestBlock.Hash.Bytes(), finalizedHash.Bytes())
+		if err := m.getForkchoiceFromExecutionClient(ctx); err != nil {
+			return nil, err
 		}
 
 		// tstamp := sCtx.BlockTime()
@@ -143,9 +171,10 @@ func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 			PrevRandao:            append([]byte{}, random[:]...),
 		})
 		if err != nil {
+			fmt.Println("attribute erorr")
 			return nil, err
 		}
-
+		// the proposer updates it's forkchoice and then
 		payloadID, _, err = m.EngineAPI.ForkchoiceUpdated(ctx,
 			m.curForkchoiceState, attrs)
 		if err != nil {
@@ -155,30 +184,65 @@ func (m *Miner) buildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
 		time.Sleep(2500 * time.Millisecond) //nolint:gomnd // temp.
 	}
 
-	builtPayload, _, _, err := builder.GetPayload(
+	// builds a payload
+	builtPayload, _, valid, err := builder.GetPayload(
 		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()),
 	)
+
+	fmt.Println(builtPayload, "BUILT PAYLOAD", valid, err)
 	if err != nil {
+		fmt.Println("PAYLOAD ERROR", err)
 		return nil, err
 	}
 
-	finalizedHash := builtPayload.BlockHash()
+	hash, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(m.curForkchoiceState.FinalizedBlockHash))
+	if err != nil {
+		fmt.Println("NEW PAYLOAD ERROR", err)
+	}
+	fmt.Println("PAYLOAD HASH", hash)
+	// finalizedHash := m.finalizedBlockHash(builtPayload.BlockNumber())
+	// if finalizedHash == nil {
+	// 	fmt.Println("EMPTY FINALIZED HASH")
+	// 	finalizedHash = new(common.Hash)
+	// 	x := common.BytesToHash(builtPayload.BlockHash())
+	// 	finalizedHash = &x
+	// 	m.curForkchoiceState.HeadBlockHash = finalizedHash.Bytes()
+	// }
+	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
 	// finalizedHash, when there is epochs, could be in the past. But since
 	// we are finalizing every block, the builtPayload and the finalized Hash are the same.
-	m.setCurrentState(builtPayload.BlockHash(), finalizedHash)
 
-	// _, _, err = builder.BlockValidation(ctx, builtPayload)
+	// // finalizedHash := builtPayload.BlockHash()
+	// fmt.Println("finalizedHash", common.Bytes2Hex(finalizedHash))
+	// fmt.Println("payload()", common.Bytes2Hex(builtPayload.BlockHash()))
+	// m.setCurrentState(builtPayload.BlockHash(), finalizedHash)
+
+	if err != nil {
+		fmt.Println("ERROR", err)
+		return nil, err
+	}
+
+	fmt.Println(
+		"finalized", common.Bytes2Hex(m.curForkchoiceState.FinalizedBlockHash),
+		"head", common.Bytes2Hex(m.curForkchoiceState.HeadBlockHash),
+		"safe", common.Bytes2Hex(m.curForkchoiceState.SafeBlockHash),
+	)
+	time.Sleep(2 * time.Second)
+	// _, _, err = b.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3)) //nolint:gomnd // okay for now.
+	_, _, err = builder.EngineCaller.ForkchoiceUpdated(ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3))
+	fmt.Println("UPDATE ERROR", err)
+	// _, err = builder.BlockValidation(ctx, builtPayload)
 	return builtPayload, err
 }
 
-// setCurrentState sets the current forkchoice state.
-func (m *Miner) setCurrentState(headHash, finalizedHash []byte) {
-	m.curForkchoiceState = &pb.ForkchoiceState{
-		HeadBlockHash:      headHash,
-		SafeBlockHash:      headHash,
-		FinalizedBlockHash: finalizedHash,
-	}
-}
+// // setCurrentState sets the current forkchoice state.
+// func (m *Miner) setCurrentState(headHash, finalizedHash []byte) {
+// 	m.curForkchoiceState = &pb.ForkchoiceState{
+// 		HeadBlockHash:      headHash,
+// 		SafeBlockHash:      finalizedHash,
+// 		FinalizedBlockHash: finalizedHash,
+// 	}
+// }
 
 // // constructPayloadArgs builds a payload to submit to the miner.
 // func (m *Miner) constructPayloadArgs(

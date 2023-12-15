@@ -182,7 +182,7 @@ func NewPolarisApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Setup Polaris Runtime.
-	if err := app.Polaris.Build(app.BaseApp, app.StakingKeeper); err != nil {
+	if err := app.Polaris.Build(app.BaseApp, app.StakingKeeper, app.EVMKeeper); err != nil {
 		panic(err)
 	}
 

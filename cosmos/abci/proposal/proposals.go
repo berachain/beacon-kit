@@ -182,6 +182,7 @@ func (h *ProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 
 			// Validate the vote extensions included in the proposal.
 			extInfo := cometabci.ExtendedCommitInfo{}
+			fmt.Println("VE", req.Txs[OracleInfoIndex], req.Txs)
 			if err := extInfo.Unmarshal(req.Txs[OracleInfoIndex]); err != nil {
 				h.logger.Error("failed to unmarshal commit info", "err", err)
 				return &cometabci.ResponseProcessProposal{Status: cometabci.ResponseProcessProposal_REJECT},

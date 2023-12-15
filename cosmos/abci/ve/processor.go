@@ -23,6 +23,7 @@ package ve
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -35,18 +36,21 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/prysm"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
+	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
 
 type Processor struct {
 	logger log.Logger
 
-	miner *miner.Miner
+	keeper *evmkeeper.Keeper
+	miner  *miner.Miner
 }
 
-func NewProcessor(miner *miner.Miner, logger log.Logger) *Processor {
+func NewProcessor(miner *miner.Miner, keeper *evmkeeper.Keeper, logger log.Logger) *Processor {
 	return &Processor{
 		logger: logger,
 		miner:  miner,
+		keeper: keeper,
 	}
 }
 
@@ -65,12 +69,12 @@ func (h *Processor) ProcessCommitInfo(ctx context.Context, height int64,
 
 		if err := h.ValidateOracleVoteExtension(ctx, vote.VoteExtension,
 			uint64(height)); err != nil {
-			// h.logger.Error(
-			// 	"failed to validate oracle vote extension",
-			// 	"height", height,
-			// 	"validator", address.String(),
-			// 	"err", err,
-			// )
+			h.logger.Error(
+				"failed to validate oracle vote extension",
+				"height", height,
+				"validator", address.String(),
+				"err", err,
+			)
 
 			return err
 		}
@@ -80,10 +84,11 @@ func (h *Processor) ProcessCommitInfo(ctx context.Context, height int64,
 
 func (h *Processor) ValidateOracleVoteExtension(
 	ctx context.Context, voteExtension []byte, height uint64) error {
-	builder := (&prysm.Builder{EngineCaller: h.miner})
+	builder := (&prysm.Builder{EngineCaller: h.miner, Keeper: h.keeper})
 
 	payload := new(enginev1.ExecutionPayloadCapellaWithValue)
 	payload.Payload = new(enginev1.ExecutionPayloadCapella)
+	fmt.Println("VE", voteExtension, "VALIDATOE ORACLE VOTE EXTENSION")
 	if err := payload.Payload.UnmarshalSSZ(voteExtension); err != nil {
 		h.logger.Error(
 			"failed to unmarshal vote extension",
@@ -108,6 +113,9 @@ func (h *Processor) ValidateOracleVoteExtension(
 
 	// TODO: switch evmtypes.WrappedPayloadEnvelope to just use the proto type
 	// from prysm.
+	_ = builder
+	_ = data
+	time.Sleep(1000)
 	_, err = builder.BlockValidation(ctx, data)
 	if err != nil {
 		return fmt.Errorf("failed to validate payload: %w", err)

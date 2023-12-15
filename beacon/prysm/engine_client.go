@@ -126,6 +126,9 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 	// if result.ValidationError != "" {
 	// 	// log.(errors.New(result.ValidationError)).Error("Got a validation error in newPayload")
 	// }
+
+	fmt.Println("STATUS", result.Status)
+
 	switch result.Status {
 	case pb.PayloadStatus_INVALID_BLOCK_HASH:
 		return nil, execution.ErrInvalidBlockHashPayloadStatus
@@ -205,6 +208,7 @@ func (s *Service) ForkchoiceUpdated(
 	resp := result.Status
 	switch resp.Status {
 	case pb.PayloadStatus_SYNCING:
+		fmt.Println("STATUS", result.Status)
 		return nil, nil, execution.ErrAcceptedSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.LatestValidHash, execution.ErrInvalidPayloadStatus
@@ -432,6 +436,40 @@ func (s *Service) LatestExecutionBlock(ctx context.Context) (*pb.ExecutionBlock,
 		result,
 		execution.ExecutionBlockByNumberMethod,
 		"latest",
+		false, /* no full transaction objects */
+	)
+	return result, handleRPCError(err)
+}
+
+// LatestExecutionBlock fetches the latest execution engine block by calling
+// eth_blockByNumber via JSON-RPC.
+func (s *Service) LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, error) {
+	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.LatestExecutionBlock")
+	defer span.End()
+
+	result := &pb.ExecutionBlock{}
+	err := s.rpcClient.CallContext(
+		ctx,
+		result,
+		execution.ExecutionBlockByNumberMethod,
+		"safe",
+		false, /* no full transaction objects */
+	)
+	return result, handleRPCError(err)
+}
+
+// LatestExecutionBlock fetches the latest execution engine block by calling
+// eth_blockByNumber via JSON-RPC.
+func (s *Service) LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock, error) {
+	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.LatestExecutionBlock")
+	defer span.End()
+
+	result := &pb.ExecutionBlock{}
+	err := s.rpcClient.CallContext(
+		ctx,
+		result,
+		execution.ExecutionBlockByNumberMethod,
+		"finalized",
 		false, /* no full transaction objects */
 	)
 	return result, handleRPCError(err)

@@ -73,5 +73,7 @@ type EngineCaller interface {
 
 type ExecutionBlockCaller interface {
 	LatestExecutionBlock(context.Context) (*pb.ExecutionBlock, error)
+	LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock, error)
+	LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 	HeaderByNumber(ctx context.Context, number *big.Int) (*types.HeaderInfo, error)
 }
