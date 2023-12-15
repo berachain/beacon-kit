@@ -25,4 +25,4 @@ if [ -z "$LOGLEVEL" ]; then
     LOGLEVEL="info"
 fi
 
-polard start --log_level $LOGLEVEL --minimum-gas-prices=0.0001abera --api.enable --home "$HOMEDIR"
+./bin/polard start --pruning=nothing "$TRACE" --log_level $LOGLEVEL --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home "$HOMEDIR" --polaris.execution-client.jwt-secret-path "$JWTSECRETPATH" --polaris.execution-client.rpc-dial-url "$DIALURL"

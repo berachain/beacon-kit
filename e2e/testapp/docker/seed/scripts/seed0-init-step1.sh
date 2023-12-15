@@ -56,6 +56,8 @@ jq '.app_state["gov"]["params"]["expedited_voting_period"]="240s"' "$GENESIS" >"
 jq '.app_state["gov"]["constitution"]="Honey is money."' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
 jq '.consensus["params"]["block"]["max_gas"]="30000000"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
 jq '.app_state["mint"]["params"]["mint_denom"]="abera"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
+jq '.consensus["params"]["abci"]["vote_extensions_enable_height"] = "2"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
+
 polard config set client chain-id $CHAINID --home "$HOMEDIR"
 polard config set client keyring-backend $KEYRING --home "$HOMEDIR"
 

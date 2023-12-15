@@ -43,14 +43,13 @@ WORKDIR /workdir
 
 # Copy the go.mod and go.sum files for each module
 COPY ./contracts/go.sum ./contracts/go.mod ./contracts/
+COPY ./beacon/go.sum ./beacon/go.mod ./beacon/
 COPY ./cosmos/go.sum ./cosmos/go.mod ./cosmos/
-COPY ./eth/go.sum ./eth/go.mod ./eth/
-COPY ./lib/go.sum ./lib/go.mod ./lib/
 COPY ./e2e/testapp/go.sum ./e2e/testapp/go.mod ./e2e/testapp/
 
 # Link via workspace
 RUN go work init
-RUN go work use ./contracts ./cosmos ./eth ./lib ./e2e/testapp
+RUN go work use ./contracts ./beacon ./cosmos ./e2e/testapp
 
 # Download the go module dependencies
 RUN go mod download

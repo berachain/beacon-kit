@@ -22,7 +22,6 @@ package eth
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -110,16 +109,18 @@ func NewRemoteExecutionClient(
 }
 
 func loadJWTSecret(filepath string) ([]byte, error) {
-	if data, err := os.ReadFile(filepath); err == nil {
-		jwtSecret := common.FromHex(strings.TrimSpace(string(data)))
-		if len(jwtSecret) == 32 { //nolint:gomnd // false positive.
-			// log.Info("Loaded JWT secret file", "path", filepath, "crc32",
-			// ("%#x", crc32.ChecksumIEEE(jwtSecret))
-			return jwtSecret, nil
-		}
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, err
 	}
-	// log.Error("Invalid JWT secret", "path", filepath, "length", len(jwtSecret))
-	return nil, errors.New("invalid JWT secret")
+
+	jwtSecret := common.FromHex(strings.TrimSpace(string(data)))
+	if len(jwtSecret) == 32 { //nolint:gomnd // false positive.
+		fmt.Println("Loaded JWT secret file", "path", filepath, "crc32")
+		// ("%#x", crc32.ChecksumIEEE(jwtSecret))
+		return jwtSecret, nil
+	}
+	return nil, fmt.Errorf("failed to load JWT secret from %s", filepath)
 }
 
 // Initializes an RPC connection with authentication headers.

@@ -25,6 +25,7 @@ import (
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 
 	"github.com/itsdevbear/bolaris/cosmos/config/flags"
 )
@@ -106,4 +107,13 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 	}
 
 	return conf, nil
+}
+
+// AddExecutionClientFlags implements servertypes.ModuleInitFlags interface.
+func AddExecutionClientFlags(startCmd *cobra.Command) {
+	defaultCfg := DefaultConfig().ExecutionClient
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.JWTSecretPath, "path to the execution client secret")
+	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.RPCRetries, "rpc retries")
+	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.RPCTimeout, "rpc timeout")
 }

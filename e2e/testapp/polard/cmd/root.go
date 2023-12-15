@@ -170,6 +170,8 @@ func initCometBFTConfig() *cmtcfg.Config {
 	consensus.TimeoutPrecommit = time.Second * 1
 	consensus.TimeoutCommit = time.Second * 1
 
+	consensus
+
 	// Disable the indexer
 	cfg.TxIndex.Indexer = "null"
 	return cfg
@@ -246,6 +248,7 @@ func initRootCmd(
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
+	evmconfig.AddExecutionClientFlags(startCmd)
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.
