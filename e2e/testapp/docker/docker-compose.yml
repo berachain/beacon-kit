@@ -43,11 +43,26 @@ services:
       localnet:
         ipv4_address: 192.168.10.10
 
+
+  # Other nodes will use reth0 as their bootnode
+  # enode://c58ccefeae4d769d0212d0e9d44aa0a5bc49765d472e758ce16fe9518acb74e576a522a783677ad370f3c3a4991f831a89e0dc02ac18667dd824eb5931d3fca5@192.168.10.11:30303
   reth0:
     container_name: polard-reth0
     image: ghcr.io/paradigmxyz/reth
-    command: |
-      node --http.api eth,net,txpool,rpc,web3 --chain /root/ethgen/genesis.json --http --authrpc.jwtsecret /root/ethgen/jwt.hex --http.port 8545 --authrpc.port 8551 --http.corsdomain "*" --authrpc.addr 192.168.10.11
+    command: >
+      node --http.api eth,net,txpool,rpc,web3
+      --chain /root/ethgen/genesis.json
+      --http
+      --authrpc.jwtsecret /root/ethgen/jwt.hex
+      --http.port 8545
+      --authrpc.port 8551
+      --http.corsdomain "*"
+      --authrpc.addr 192.168.10.11
+      --discovery.addr 192.168.10.11
+      --discovery.port 30303
+      --addr 192.168.10.11
+      --port 30303
+      --p2p-secret-key /root/ethgen/p2p-secret-0.key
     volumes:
       - type: bind
         source: ./ethgen
@@ -58,6 +73,7 @@ services:
     ports:
       - "8545:8545"
       - "8551:8551"
+      - "30303:30303"
 
   node1:
     container_name: polard-node1
@@ -81,11 +97,25 @@ services:
       localnet:
         ipv4_address: 192.168.10.12
 
+  # enode://0b5632872cfca278b2a0403c9d691789a198f6950cd7bbee1b7aaa2f2afa55330a5daafe955a90f2ae510b40049d4b20bc1f0b0f4c7b017391664e9521692da3@192.168.10.13:40303
   reth1:
     container_name: polard-reth1
     image: ghcr.io/paradigmxyz/reth
-    command: |
-      node --http.api eth,net,txpool,rpc,web3 --chain /root/ethgen/genesis.json --http --authrpc.jwtsecret /root/ethgen/jwt.hex --http.port 9545 --authrpc.port 9551 --http.corsdomain "*" --authrpc.addr 192.168.10.13
+    command: >
+      node --http.api eth,net,txpool,rpc,web3
+      --chain /root/ethgen/genesis.json
+      --http
+      --authrpc.jwtsecret /root/ethgen/jwt.hex
+      --http.port 9545
+      --authrpc.port 9551
+      --http.corsdomain "*"
+      --authrpc.addr 192.168.10.13
+      --discovery.addr 192.168.10.13
+      --discovery.port 40303
+      --addr 192.168.10.13
+      --port 40303
+      --p2p-secret-key /root/ethgen/p2p-secret-1.key
+      --bootnodes enode://c58ccefeae4d769d0212d0e9d44aa0a5bc49765d472e758ce16fe9518acb74e576a522a783677ad370f3c3a4991f831a89e0dc02ac18667dd824eb5931d3fca5@192.168.10.11:30303
     volumes:
       - type: bind
         source: ./ethgen
@@ -95,6 +125,7 @@ services:
         ipv4_address: 192.168.10.13
     ports:
       - "9551:9951"
+      - "40303:40303"
 
   node2:
     container_name: polard-node2
@@ -118,11 +149,25 @@ services:
       localnet:
         ipv4_address: 192.168.10.14
 
+
+  # enode://3d356b2c6425336a48f42a401081addaa5c1643c7bfb9df5e3792228383a4b14ad699ab13ecfedcaf60fcd6bd62c6149736e4e5e03635375215f0d770dc74c1f@192.168.10.15:50303
   reth2:
     container_name: polard-reth2
     image: ghcr.io/paradigmxyz/reth
-    command: |
-      node --http.api eth,net,txpool,rpc,web3 --chain /root/ethgen/genesis.json --http --authrpc.jwtsecret /root/ethgen/jwt.hex --http.port 10545 --authrpc.port 10551 --http.corsdomain "*" --authrpc.addr 192.168.10.15
+    command: >
+      node --http.api eth,net,txpool,rpc,web3
+      --chain /root/ethgen/genesis.json
+      --http
+      --authrpc.jwtsecret /root/ethgen/jwt.hex
+      --http.corsdomain "*"
+      --http.addr 192.168.10.15
+      --authrpc.addr 192.168.10.15
+      --discovery.addr 192.168.10.15
+      --discovery.port 50303
+      --addr 192.168.10.15
+      --port 50303
+      --p2p-secret-key /root/ethgen/p2p-secret-2.key
+      --bootnodes enode://c58ccefeae4d769d0212d0e9d44aa0a5bc49765d472e758ce16fe9518acb74e576a522a783677ad370f3c3a4991f831a89e0dc02ac18667dd824eb5931d3fca5@192.168.10.11:30303
     volumes:
       - type: bind
         source: ./ethgen
@@ -133,6 +178,8 @@ services:
     ports:
       - "10545:8545"
       - "10551:8551"
+      - "50303:50303"
+
 
   node3:
     container_name: polard-node3
@@ -156,12 +203,24 @@ services:
       localnet:
         ipv4_address: 192.168.10.16
 
+  # enode://fef1c19f87dd4c1221538c380715d88f3de6809a86738546a7738bb36094365e9fed49fe30e0411217b3eacca120afa2bb0d5cd6e29643abd61b261585bb68b2@192.168.10.17:60303
   reth3:
     container_name: polard-reth3
     image: ghcr.io/paradigmxyz/reth
-    command: |
-      node --http.api eth,net,txpool,rpc,web3 --chain /root/ethgen/genesis.json --http --authrpc.jwtsecret /root/ethgen/jwt.hex --http.port 11545 --authrpc.port 11551 --http.corsdomain "*" --authrpc.addr 192.168.10.17
-    volumes:
+    command: >
+      node --http.api eth,net,txpool,rpc,web3
+      --chain /root/ethgen/genesis.json
+      --http
+      --authrpc.jwtsecret /root/ethgen/jwt.hex
+      --http.corsdomain "*"
+      --authrpc.addr 192.168.10.17
+      --discovery.addr 192.168.10.17
+      --discovery.port 60303
+      --addr 192.168.10.17
+      --port 60303
+      --p2p-secret-key /root/ethgen/p2p-secret-3.key
+      --bootnodes enode://c58ccefeae4d769d0212d0e9d44aa0a5bc49765d472e758ce16fe9518acb74e576a522a783677ad370f3c3a4991f831a89e0dc02ac18667dd824eb5931d3fca5@192.168.10.11:30303
+    volumes: 
       - type: bind
         source: ./ethgen
         target: /root/ethgen
@@ -171,6 +230,7 @@ services:
     ports:
       - "11545:8545"
       - "11551:8551"
+      - "60303:60303"
 
 networks:
   localnet:
