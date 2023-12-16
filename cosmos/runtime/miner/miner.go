@@ -223,16 +223,24 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 
 func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
 	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
+	// todo parentBlockRoot should maybe be beacOn?
 	_, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(builtPayload.ParentHash()))
+	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
 	if err != nil {
-		m.logger.Error("failed to validate block", "err", err)
+		// We need to resync.
+		var attrs payloadattribute.Attributer
+		attrs, _ = payloadattribute.New(&pb.PayloadAttributesV2{})
+		_, _, err := m.EngineAPI.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
+		if err != nil {
+			m.logger.Error("failed to get forkchoice updated", "err", err)
+			return err
+		}
+
 		return err
 	}
-
-	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
 	m.curForkchoiceState.FinalizedBlockHash = builtPayload.BlockHash()
 	m.curForkchoiceState.SafeBlockHash = builtPayload.BlockHash()
-	// m.logger.Info("successfully validated block", "block", builtPayload.BlockHash())
+	m.logger.Info("successfully validated block", "block", builtPayload.BlockHash())
 	// m.getForkchoiceFromExecutionClient(ctx)
 	return nil
 }
