@@ -22,12 +22,15 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/prysm"
+	"github.com/itsdevbear/bolaris/cosmos/x/evm/store"
 	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -39,6 +42,7 @@ type (
 		// consensusAPI is the consensus API
 		executionClient prysm.EngineCaller
 		storeKey        storetypes.StoreKey
+		forkchoiceState *enginev1.ForkchoiceState
 	}
 )
 
@@ -58,27 +62,21 @@ func (k *Keeper) Logger(ctx context.Context) log.Logger {
 	return sdk.UnwrapSDKContext(ctx).Logger().With(types.ModuleName)
 }
 
-// Forkchoice Updates
-
-func (k *Keeper) LatestForkChoice(ctx context.Context) (*enginev1.ForkchoiceState, error) {
-	bz := sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey).Get(LatestForkChoiceKey)
-	if bz == nil {
-		return nil, nil
-	}
-
-	var state enginev1.ForkchoiceState
-	if err := state.UnmarshalJSON(bz); err != nil {
-		return nil, err
-	}
-	return &state, nil
+func (k *Keeper) UpdateHoodForkChoice(forkchoiceState *enginev1.ForkchoiceState) {
+	k.forkchoiceState = forkchoiceState
 }
 
-func (k *Keeper) SetLatestForkChoice(ctx context.Context, state *enginev1.ForkchoiceState) error {
-	bz, err := state.MarshalJSON()
-	if err != nil {
-		return err
+func (k *Keeper) EndBlock(ctx context.Context) error {
+	if k.forkchoiceState == nil {
+		return nil
 	}
-
-	sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey).Set(LatestForkChoiceKey, bz)
+	genesisStore := store.NewGenesis(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
+	fmt.Println("GENESIS", genesisStore.Retrieve().Hex())
 	return nil
+	// return k.SetLatestForkChoice(ctx, k.forkchoiceState)
+}
+
+func (k *Keeper) RetrieveGenesis(ctx context.Context) common.Hash {
+	genesisStore := store.NewGenesis(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
+	return genesisStore.Retrieve()
 }

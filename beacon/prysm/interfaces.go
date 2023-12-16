@@ -76,4 +76,5 @@ type ExecutionBlockCaller interface {
 	LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 	LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 	HeaderByNumber(ctx context.Context, number *big.Int) (*types.HeaderInfo, error)
+	EarliestBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 }

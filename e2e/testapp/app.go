@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
 
 	"cosmossdk.io/depinject"
@@ -55,6 +56,8 @@ import (
 
 	polarruntime "github.com/itsdevbear/bolaris/cosmos/runtime"
 	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -201,6 +204,19 @@ func NewPolarisApp(
 	if err := app.Load(loadLatest); err != nil {
 		panic(err)
 	}
+
+	app.CommitMultiStore()
+	// ctx := context.Background()
+
+	// sdj
+	// ctx := sdk.Context{}.
+	// WithMultiStore().
+	// WithGasMeter(storetypes.NewInfiniteGasMeter()).
+	// WithEventManager(sdk.NewEventManager())
+
+	ctx := sdk.NewContext(app.BaseApp.CommitMultiStore(), cmtproto.Header{}, false, log.NewNopLogger())
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter()).WithEventManager(sdk.NewEventManager())
+	app.Polaris.SyncEL(ctx)
 
 	return app
 }

@@ -25,7 +25,7 @@ import (
 )
 
 // Precommit runs on the Cosmos-SDK lifecycle Precommit().
-func (k *Keeper) Precommit(_ context.Context) error {
+func (k *Keeper) Precommit(ctx context.Context) error {
 	// Verify that the EVM block was written.
 	// 	// TODO: Set/GetHead to set and get the canonical head.
 	// 	blockNum := uint64(sdk.UnwrapSDKContext(ctx).BlockHeight())
@@ -46,6 +46,7 @@ func (k *Keeper) Precommit(_ context.Context) error {
 	// 			),
 	// 		)
 	// 	}
+	// k.SetLatestForkChoice(ctx, k.forkchoiceState)
 	return nil
 }
 

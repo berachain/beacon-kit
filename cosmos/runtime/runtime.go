@@ -21,6 +21,8 @@
 package runtime
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -88,8 +90,6 @@ func New(
 		return nil, err
 	}
 
-	p.WrappedMiner = miner.New(p.ExecutionClient.EngineAPI, p.logger)
-
 	return p, nil
 }
 
@@ -108,6 +108,7 @@ func MustNew(appOpts servertypes.AppOptions, logger log.Logger) *Polaris {
 // It returns an error if the setup fails.
 func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.Keeper) error {
 	app.SetMempool(mempool.NoOpMempool{})
+	p.WrappedMiner = miner.New(p.ExecutionClient.EngineAPI, ek, p.logger)
 
 	// Create the proposal handler that will be used to fill proposals with
 	// transactions and oracle data.
@@ -123,6 +124,10 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 
+	// if err := p.WrappedMiner.SyncEl(context.Background()); err != nil {
+	// 	return err
+	// }
+
 	// // Create the vote extensions handler that will be used to extend and verify
 	// // vote extensions (i.e. oracle data).
 	// voteExtensionsHandler := ve.NewVoteExtensionHandler(
@@ -134,4 +139,8 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.
 	// app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
 
 	return nil
+}
+
+func (p *Polaris) SyncEL(ctx context.Context) error {
+	return p.WrappedMiner.SyncEl(ctx)
 }

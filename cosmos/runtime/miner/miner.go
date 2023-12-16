@@ -26,7 +26,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
@@ -42,6 +41,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/eth"
 	"github.com/itsdevbear/bolaris/beacon/prysm"
+	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
 
 // emptyHash is a common.Hash initialized to all zeros.
@@ -56,6 +56,7 @@ type EnvelopeSerializer interface {
 // Miner implements the baseapp.TxSelector interface.
 type Miner struct {
 	eth.EngineAPI
+	ek                 *evmkeeper.Keeper
 	serializer         EnvelopeSerializer
 	etherbase          common.Address
 	curForkchoiceState *pb.ForkchoiceState
@@ -64,11 +65,12 @@ type Miner struct {
 }
 
 // New produces a cosmos miner from a geth miner.
-func New(gm eth.EngineAPI, logger log.Logger) *Miner {
+func New(gm eth.EngineAPI, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
 	return &Miner{
 		EngineAPI:          gm,
 		curForkchoiceState: &pb.ForkchoiceState{},
 		logger:             logger,
+		ek:                 ek,
 	}
 }
 
@@ -137,11 +139,49 @@ func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	return nil
 }
 
-var once sync.Once
+func (m *Miner) SyncEl(ctx context.Context) error {
+	// Trigger the execution client to begin building the block, and update
+	// the proposers forkchoice state accordingly.
+
+	// TODO `block` needs to come from the latest blocked stored IAVL tree
+	// on the consensus client.
+	// block, _ := m.EngineAPI.EarliestBlock(ctx)
+
+	m.getForkchoiceFromExecutionClient(ctx)
+	genesisHash := m.ek.RetrieveGenesis(ctx)
+	m.logger.Info("waiting for execution layer to sync")
+	for {
+		var err error
+		var attrs payloadattribute.Attributer
+		attrs, _ = payloadattribute.New(&pb.PayloadAttributesV2{})
+		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.HeadBlockHash))
+		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.SafeBlockHash))
+		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.FinalizedBlockHash))
+		fmt.Println(common.Bytes2Hex(genesisHash.Bytes()))
+		// fc := &pb.ForkchoiceState{
+		// 	HeadBlockHash:      genesisHash.Bytes(),
+		// 	SafeBlockHash:      genesisHash.Bytes(),
+		// 	FinalizedBlockHash: genesisHash.Bytes(),
+		// }
+		fc := m.curForkchoiceState
+		payloadID, lastValidHash, err := m.EngineAPI.ForkchoiceUpdated(ctx, fc, attrs)
+		if err == nil {
+			break
+		}
+		m.curForkchoiceState = fc
+		m.logger.Info("waiting for execution layer to sync", "error", err)
+		m.logger.Info("waiting for execution layer to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
+		time.Sleep(1 * time.Second)
+	}
+
+	return nil
+}
 
 func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) {
 	// Reference: https://hackmd.io/@danielrachi/engine_api#Block-Building
 	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
+	m.logger.Info("entering build-block-v2")
+	defer m.logger.Info("exiting build-block-v2")
 
 	var random [32]byte
 	if _, err := rand.Read(random[:]); err != nil {
@@ -158,10 +198,6 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 		fmt.Println("attribute erorr")
 		return nil, err
 	}
-
-	once.Do(func() {
-		m.getForkchoiceFromExecutionClient(ctx)
-	})
 
 	// Trigger the execution client to begin building the block, and update
 	// the proposers forkchoice state accordingly.
