@@ -152,8 +152,6 @@ func (m *Miner) SyncEl(ctx context.Context) error {
 	m.logger.Info("waiting for execution layer to sync")
 	for {
 		var err error
-		var attrs payloadattribute.Attributer
-		attrs, _ = payloadattribute.New(&pb.PayloadAttributesV2{})
 		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.HeadBlockHash))
 		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.SafeBlockHash))
 		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.FinalizedBlockHash))
@@ -164,7 +162,7 @@ func (m *Miner) SyncEl(ctx context.Context) error {
 		// 	FinalizedBlockHash: genesisHash.Bytes(),
 		// }
 		fc := m.curForkchoiceState
-		payloadID, lastValidHash, err := m.EngineAPI.ForkchoiceUpdated(ctx, fc, attrs)
+		payloadID, lastValidHash, err := m.EngineAPI.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
 		if err == nil {
 			break
 		}
@@ -201,11 +199,18 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 
 	// Trigger the execution client to begin building the block, and update
 	// the proposers forkchoice state accordingly.
+
 	payloadID, _, err := m.EngineAPI.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
 	if err != nil {
 		m.logger.Error("failed to get forkchoice updated", "err", err)
 		return nil, err
 	}
+
+	// TODO: this should be something that is 80% of proposal timeout, or so?
+	// TODO: maybe this should be some sort of event that we wait for?
+	// But the TLDR is that we need to wait for the execution client to
+	// build the payload before we can include it in the beacon block.
+	time.Sleep(2000 * time.Millisecond) //nolint:gomnd // temp.
 
 	// Get the Payload From the Execution Client
 	builtPayload, _, _, err := builder.GetPayload(
@@ -215,6 +220,8 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 		return nil, err
 	}
 
+	// This CL node's execution client head is now at the head of this
+	// payload, so we can update our forkchoice state accordingly.
 	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
 
 	// Go and include the builtPayload on the BeaconBlock
@@ -224,13 +231,13 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
 	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
 	// todo parentBlockRoot should maybe be beacOn?
-	_, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(builtPayload.ParentHash()))
+	// _, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(builtPayload.ParentHash()))
+	_, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(m.curForkchoiceState.FinalizedBlockHash))
 	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
 	if err != nil {
 		// We need to resync.
-		var attrs payloadattribute.Attributer
-		attrs, _ = payloadattribute.New(&pb.PayloadAttributesV2{})
-		_, _, err := m.EngineAPI.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
+		fmt.Println("ERROR", err, "RESYNCING")
+		_, _, err := m.EngineAPI.ForkchoiceUpdated(ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3))
 		if err != nil {
 			m.logger.Error("failed to get forkchoice updated", "err", err)
 			return err

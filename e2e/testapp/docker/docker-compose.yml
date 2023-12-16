@@ -54,6 +54,7 @@ services:
       --chain /root/ethgen/genesis.json
       --http
       --authrpc.jwtsecret /root/ethgen/jwt.hex
+      --http.addr 192.168.10.11
       --http.port 8545
       --authrpc.port 8551
       --http.corsdomain "*"
@@ -106,6 +107,7 @@ services:
       --chain /root/ethgen/genesis.json
       --http
       --authrpc.jwtsecret /root/ethgen/jwt.hex
+      --http.addr 127.0.0.1
       --http.port 9545
       --authrpc.port 9551
       --http.corsdomain "*"
@@ -124,6 +126,7 @@ services:
       localnet:
         ipv4_address: 192.168.10.13
     ports:
+      - "9545:9545"
       - "9551:9551"
       - "40303:40303"
 
