@@ -148,7 +148,7 @@ func (m *Miner) SyncEl(ctx context.Context) error {
 
 	m.getForkchoiceFromExecutionClient(ctx)
 	genesisHash := m.ek.RetrieveGenesis(ctx)
-	m.logger.Info("waiting for execution layer to sync")
+	m.logger.Info("waiting for execution client to finish sync")
 	for {
 		var err error
 		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.HeadBlockHash))
@@ -166,8 +166,8 @@ func (m *Miner) SyncEl(ctx context.Context) error {
 			break
 		}
 		m.curForkchoiceState = fc
-		m.logger.Info("waiting for execution layer to sync", "error", err)
-		m.logger.Info("waiting for execution layer to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
+		m.logger.Info("waiting for execution client to sync", "error", err)
+		m.logger.Info("waiting for execution client to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
 		time.Sleep(1 * time.Second)
 	}
 

@@ -42,6 +42,7 @@ import (
 const (
 	defaultEndpointRetries    = 50
 	defaultEndpointRetryDelay = 1 * time.Second
+	jwtLength                 = 32
 )
 
 // NewAuthenticatedEthClient creates a new remote execution client.
@@ -58,7 +59,7 @@ func NewAuthenticatedEthClient(
 	)
 
 	// Load the JWT secret from the provided path.
-	if jwtSecret, err = loadJWTSecret(jwtSecretPath); err != nil {
+	if jwtSecret, err = loadJWTSecret(jwtSecretPath, logger); err != nil {
 		return nil, err
 	}
 
@@ -71,23 +72,23 @@ func NewAuthenticatedEthClient(
 		return nil, err
 	}
 
-	// Attempt to connect to the execution layer and retrieve the chain ID.
+	// Attempt to connect to the execution client and retrieve the chain ID.
 	// Retry up to 100 times, with a 1-second delay between each attempt.
 	for i := 0; i < defaultEndpointRetries; func() { i++; time.Sleep(defaultEndpointRetryDelay) }() {
-		logger.Info("waiting for connection to execution layer", "dial-url", dialURL)
+		logger.Info("waiting for connection to execution client", "dial-url", dialURL)
 		ethClient = ethclient.NewClient(client)
 		chainID, err = ethClient.ChainID(ctx)
 		if err != nil {
 			continue
 		}
 		// Log the successful connection and the chain ID.
-		logger.Info("Successfully connected to execution layer", "ChainID", chainID)
+		logger.Info("Successfully connected to execution client", "ChainID", chainID)
 		break
 	}
 
 	// If the connection still fails after 100 attempts, return an error.
 	if client == nil || err != nil {
-		return nil, fmt.Errorf("failed to establish connection to execution layer: %w", err)
+		return nil, fmt.Errorf("failed to establish connection to execution client: %w", err)
 	}
 
 	return ethClient, nil
@@ -95,7 +96,7 @@ func NewAuthenticatedEthClient(
 
 // loadJWTSecret reads the JWT secret from a file and returns it.
 // It returns an error if the file cannot be read or if the JWT secret is not valid.
-func loadJWTSecret(filepath string) ([]byte, error) {
+func loadJWTSecret(filepath string, logger log.Logger) ([]byte, error) {
 	// Read the file.
 	data, err := os.ReadFile(filepath)
 	if err != nil {
@@ -105,17 +106,16 @@ func loadJWTSecret(filepath string) ([]byte, error) {
 
 	// Convert the data to a JWT secret.
 	jwtSecret := common.FromHex(strings.TrimSpace(string(data)))
+
 	// Check if the JWT secret is valid.
-	if len(jwtSecret) == 32 { //nolint:gomnd // false positive.
-		// Log that the JWT secret file has been loaded.
-		// TODO: remove println.
-		fmt.Println("Loaded JWT secret file", "path", filepath, "crc32")
-		// ("%#x", crc32.ChecksumIEEE(jwtSecret))
-		// Return the JWT secret.
-		return jwtSecret, nil
+	if len(jwtSecret) != jwtLength {
+		// Return an error if the JWT secret is not valid.
+		return nil, fmt.Errorf("failed to load jwt secret from %s", filepath)
 	}
-	// Return an error if the JWT secret is not valid.
-	return nil, fmt.Errorf("failed to load JWT secret from %s", filepath)
+
+	logger.Info("loaded exeuction client jwt secret file", "path", filepath, "crc32")
+	return jwtSecret, nil
+
 }
 
 // newRPCClientWithAuth initializes an RPC connection with authentication headers.

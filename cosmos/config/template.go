@@ -38,7 +38,7 @@ rpc-timeout = "{{ .Polaris.ExecutionClient.RPCTimeout }}"
 # Number of retries before shutting down consensus client.
 rpc-retries = "{{.Polaris.ExecutionClient.RPCRetries}}"
 
-# Path to the execution layer JWT-secret
+# Path to the execution client JWT-secret
 jwt-secret-path = "{{.Polaris.ExecutionClient.JWTSecretPath}}"
 `
 )
