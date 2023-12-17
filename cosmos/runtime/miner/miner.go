@@ -39,7 +39,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/itsdevbear/bolaris/beacon/eth"
 	"github.com/itsdevbear/bolaris/beacon/prysm"
 	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
@@ -55,7 +54,7 @@ type EnvelopeSerializer interface {
 
 // Miner implements the baseapp.TxSelector interface.
 type Miner struct {
-	eth.EngineAPI
+	prysm.EngineAPI
 	ek                 *evmkeeper.Keeper
 	serializer         EnvelopeSerializer
 	etherbase          common.Address
@@ -65,7 +64,7 @@ type Miner struct {
 }
 
 // New produces a cosmos miner from a geth miner.
-func New(gm eth.EngineAPI, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
+func New(gm prysm.EngineAPI, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
 	return &Miner{
 		EngineAPI:          gm,
 		curForkchoiceState: &pb.ForkchoiceState{},

@@ -78,3 +78,15 @@ type ExecutionBlockCaller interface {
 	HeaderByNumber(ctx context.Context, number *big.Int) (*types.HeaderInfo, error)
 	EarliestBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 }
+
+type (
+	EngineAPI interface {
+		EngineCaller
+		ExecutionBlockCaller
+	}
+)
+
+// ExecutionClient represents the execution layer client.
+type ExecutionClient struct {
+	EngineAPI
+}

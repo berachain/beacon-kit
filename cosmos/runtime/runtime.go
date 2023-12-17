@@ -29,8 +29,10 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
+	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/itsdevbear/bolaris/beacon/eth"
+	"github.com/itsdevbear/bolaris/beacon/prysm"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	"github.com/itsdevbear/bolaris/cosmos/config"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
@@ -40,7 +42,7 @@ import (
 // EVMKeeper is an interface that defines the methods needed for the EVM setup.
 type EVMKeeper interface {
 	// Setup initializes the EVM keeper.
-	Setup(*eth.ExecutionClient) error
+	Setup(*prysm.Service) error
 }
 
 // CosmosApp is an interface that defines the methods needed for the Cosmos setup.
@@ -55,10 +57,8 @@ type CosmosApp interface {
 }
 
 // Polaris is a struct that wraps the Polaris struct from the polar package.
-// It also includes wrapped versions of the Geth Miner and TxPool.
 type Polaris struct {
-	*eth.ExecutionClient
-
+	*prysm.Service
 	// WrappedMiner is a wrapped version of the Miner component.
 	WrappedMiner *miner.Miner
 	// logger is the underlying logger supplied by the sdk.
@@ -82,9 +82,12 @@ func New(
 		return nil, err
 	}
 	// Connect to the execution client.
-	p.ExecutionClient, err = eth.NewRemoteExecutionClient(
+	var ethClient *ethclient.Client
+	ethClient, err = eth.NewAuthenticatedEthClient(
 		cfg.ExecutionClient.RPCDialURL, cfg.ExecutionClient.JWTSecretPath, logger,
 	)
+
+	p.Service = prysm.NewEngineClientService(ethClient)
 
 	if err != nil {
 		return nil, err
@@ -108,7 +111,7 @@ func MustNew(appOpts servertypes.AppOptions, logger log.Logger) *Polaris {
 // It returns an error if the setup fails.
 func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.Keeper) error {
 	app.SetMempool(mempool.NoOpMempool{})
-	p.WrappedMiner = miner.New(p.ExecutionClient.EngineAPI, ek, p.logger)
+	p.WrappedMiner = miner.New(p.Service, ek, p.logger)
 
 	// Create the proposal handler that will be used to fill proposals with
 	// transactions and oracle data.
