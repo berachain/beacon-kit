@@ -22,6 +22,7 @@ package store
 
 import (
 	"cosmossdk.io/store"
+
 	"github.com/ethereum/go-ethereum/common"
 )
 

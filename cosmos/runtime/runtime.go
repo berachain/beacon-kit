@@ -29,6 +29,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
+
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/itsdevbear/bolaris/beacon/eth"

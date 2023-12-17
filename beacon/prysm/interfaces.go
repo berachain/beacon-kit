@@ -63,12 +63,8 @@ type EngineCaller interface {
 	) (*pb.PayloadIDBytes, []byte, error)
 	GetPayload(ctx context.Context, payloadID [8]byte,
 		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
-	ExchangeTransitionConfiguration(
-		ctx context.Context, cfg *pb.TransitionConfiguration,
-	) error
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 		withTxs bool) (*pb.ExecutionBlock, error)
-	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
 }
 
 type ExecutionBlockCaller interface {

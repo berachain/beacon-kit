@@ -39,10 +39,15 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/log"
 )
 
+const (
+	defaultEndpointRetries    = 50
+	defaultEndpointRetryDelay = 1 * time.Second
+)
+
 // NewAuthenticatedEthClient creates a new remote execution client.
 func NewAuthenticatedEthClient(
-	dialURL, jwtSecretPath string,
-	logger log.Logger) (*ethclient.Client, error) {
+	dialURL, jwtSecretPath string, logger log.Logger,
+) (*ethclient.Client, error) {
 	ctx := context.Background()
 	var (
 		client  *rpc.Client
@@ -50,28 +55,36 @@ func NewAuthenticatedEthClient(
 		err     error
 	)
 
+	// Load the JWT secret from the provided path.
 	jwtSecret, err := loadJWTSecret(jwtSecretPath)
 	if err != nil {
 		return nil, err
 	}
 
+	// Create a new Prysm endpoint with the dialURL and the loaded JWT secret.
 	endpoint := newPrysmEndpoint(dialURL, jwtSecret)
+
+	// Attempt to establish a new RPC client with authentication.
 	client, err = newRPCClientWithAuth(ctx, nil, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	var ethClient *ethclient.Client
-	for i := 0; i < 100; func() { i++; time.Sleep(time.Second) }() {
+	// Attempt to connect to the execution layer and retrieve the chain ID.
+	// Retry up to 100 times, with a 1-second delay between each attempt.
+	for i := 0; i < defaultEndpointRetries; func() { i++; time.Sleep(defaultEndpointRetryDelay) }() {
 		logger.Info("waiting for connection to execution layer", "dial-url", dialURL)
 		ethClient = ethclient.NewClient(client)
 		chainID, err = ethClient.ChainID(ctx)
 		if err != nil {
 			continue
 		}
+		// Log the successful connection and the chain ID.
 		logger.Info("Successfully connected to execution layer", "ChainID", chainID)
 		break
 	}
+	// If the connection still fails after 100 attempts, return an error.
 	if client == nil || err != nil {
 		return nil, fmt.Errorf("failed to establish connection to execution layer: %w", err)
 	}

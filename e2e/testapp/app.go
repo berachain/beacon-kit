@@ -25,7 +25,6 @@ import (
 	"os"
 	"path/filepath"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
 
 	"cosmossdk.io/depinject"
@@ -33,6 +32,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -43,6 +44,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -56,8 +58,6 @@ import (
 
 	polarruntime "github.com/itsdevbear/bolaris/cosmos/runtime"
 	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 //nolint:gochecknoinits // from sdk.

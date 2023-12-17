@@ -24,15 +24,18 @@ import (
 	"context"
 	"fmt"
 
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/itsdevbear/bolaris/beacon/prysm"
 	"github.com/itsdevbear/bolaris/cosmos/x/evm/store"
 	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 var LatestForkChoiceKey = []byte("latestForkChoice")
