@@ -18,24 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package keeper
+package store
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/store"
 
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/store"
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) error {
-	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	genesisStore.Store(data.Eth1GenesisHash)
+type Genesis struct {
+	store store.KVStore
+}
+
+func NewGenesis(store store.KVStore) *Genesis {
+	return &Genesis{
+		store: store,
+	}
+}
+
+func (f *Genesis) Store(eth1GenesisHash string) error {
+	f.store.Set([]byte("eth1_genesis_hash"), []byte(eth1GenesisHash))
 	return nil
 }
 
-func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	return &types.GenesisState{
-		Eth1GenesisHash: genesisStore.Retrieve().Hex(),
-	}
+func (f *Genesis) Retrieve() common.Hash {
+	bz := f.store.Get([]byte("eth1_genesis_hash"))
+	return common.HexToHash(string(bz))
 }
