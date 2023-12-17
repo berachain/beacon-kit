@@ -50,14 +50,15 @@ func NewAuthenticatedEthClient(
 ) (*ethclient.Client, error) {
 	ctx := context.Background()
 	var (
-		client  *rpc.Client
-		chainID *big.Int
-		err     error
+		jwtSecret []byte
+		client    *rpc.Client
+		ethClient *ethclient.Client
+		chainID   *big.Int
+		err       error
 	)
 
 	// Load the JWT secret from the provided path.
-	jwtSecret, err := loadJWTSecret(jwtSecretPath)
-	if err != nil {
+	if jwtSecret, err = loadJWTSecret(jwtSecretPath); err != nil {
 		return nil, err
 	}
 
@@ -65,12 +66,11 @@ func NewAuthenticatedEthClient(
 	endpoint := newPrysmEndpoint(dialURL, jwtSecret)
 
 	// Attempt to establish a new RPC client with authentication.
-	client, err = newRPCClientWithAuth(ctx, nil, endpoint)
-	if err != nil {
+
+	if client, err = newRPCClientWithAuth(ctx, nil, endpoint); err != nil {
 		return nil, err
 	}
 
-	var ethClient *ethclient.Client
 	// Attempt to connect to the execution layer and retrieve the chain ID.
 	// Retry up to 100 times, with a 1-second delay between each attempt.
 	for i := 0; i < defaultEndpointRetries; func() { i++; time.Sleep(defaultEndpointRetryDelay) }() {
@@ -84,6 +84,7 @@ func NewAuthenticatedEthClient(
 		logger.Info("Successfully connected to execution layer", "ChainID", chainID)
 		break
 	}
+
 	// If the connection still fails after 100 attempts, return an error.
 	if client == nil || err != nil {
 		return nil, fmt.Errorf("failed to establish connection to execution layer: %w", err)
