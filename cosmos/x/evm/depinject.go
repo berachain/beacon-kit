@@ -25,7 +25,7 @@ import (
 	"cosmossdk.io/depinject"
 	store "cosmossdk.io/store/types"
 
-	"github.com/itsdevbear/bolaris/beacon/prysm"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/evm/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
@@ -45,7 +45,7 @@ type DepInjectInput struct {
 	Config    *modulev1alpha1.Module
 	Key       *store.KVStoreKey
 
-	ExecutionClient prysm.EngineCaller
+	ExecutionClient execution.EngineCaller
 }
 
 // DepInjectOutput is the output for the dep inject framework.

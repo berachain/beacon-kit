@@ -32,8 +32,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/ethclient"
 
-	"github.com/itsdevbear/bolaris/beacon/eth"
-	"github.com/itsdevbear/bolaris/beacon/prysm"
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	authethclient "github.com/itsdevbear/bolaris/beacon/execution/eth"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	"github.com/itsdevbear/bolaris/cosmos/config"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
@@ -43,12 +43,13 @@ import (
 // EVMKeeper is an interface that defines the methods needed for the EVM setup.
 type EVMKeeper interface {
 	// Setup initializes the EVM keeper.
-	Setup(*prysm.Service) error
+	Setup(*execution.Service) error
 }
 
 // CosmosApp is an interface that defines the methods needed for the Cosmos setup.
 type CosmosApp interface {
 	SetPrepareProposal(sdk.PrepareProposalHandler)
+	baseapp.ProposalTxVerifier
 	SetMempool(mempool.Mempool)
 	SetAnteHandler(sdk.AnteHandler)
 	SetExtendVoteHandler(sdk.ExtendVoteHandler)
@@ -59,7 +60,7 @@ type CosmosApp interface {
 
 // Polaris is a struct that wraps the Polaris struct from the polar package.
 type Polaris struct {
-	*prysm.Service
+	*execution.Service
 	// WrappedMiner is a wrapped version of the Miner component.
 	WrappedMiner *miner.Miner
 	// logger is the underlying logger supplied by the sdk.
@@ -84,11 +85,11 @@ func New(
 	}
 	// Connect to the execution client.
 	var ethClient *ethclient.Client
-	ethClient, err = eth.NewAuthenticatedEthClient(
+	ethClient, err = authethclient.NewAuthenticatedEthClient(
 		cfg.ExecutionClient.RPCDialURL, cfg.ExecutionClient.JWTSecretPath, logger,
 	)
 
-	p.Service = prysm.NewEngineClientService(ethClient)
+	p.Service = execution.NewEngineClientService(ethClient)
 
 	if err != nil {
 		return nil, err
@@ -111,7 +112,10 @@ func MustNew(appOpts servertypes.AppOptions, logger log.Logger) *Polaris {
 // It takes a BaseApp and an EVMKeeper as arguments.
 // It returns an error if the setup fails.
 func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.Keeper) error {
-	app.SetMempool(mempool.NoOpMempool{})
+	// todo use `vs` later?
+	_ = vs
+	mempool := mempool.NewSenderNonceMempool()
+	app.SetMempool(mempool)
 	p.WrappedMiner = miner.New(p.Service, ek, p.logger)
 
 	// Create the proposal handler that will be used to fill proposals with
@@ -124,7 +128,9 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.
 	// 	ve.NewProcessor(p.WrappedMiner, ek, p.logger).ProcessCommitInfo,
 	// )
 
-	proposalHandler := proposal.NewProposalHandler2(p.WrappedMiner)
+	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mempool, app)
+	proposalHandler := proposal.NewProposalHandler2(p.WrappedMiner,
+		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler())
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 

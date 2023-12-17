@@ -37,27 +37,42 @@ import (
 const PayloadPosition = 0
 
 type ProposalHandler2 struct {
-	miner *miner.Miner
+	prepareProposal sdk.PrepareProposalHandler
+	processProposal sdk.ProcessProposalHandler
+	miner           *miner.Miner
 }
 
-func NewProposalHandler2(miner *miner.Miner) *ProposalHandler2 {
-	return &ProposalHandler2{miner: miner}
+func NewProposalHandler2(
+	miner *miner.Miner,
+	prepareProposal sdk.PrepareProposalHandler,
+	processProposal sdk.ProcessProposalHandler,
+) *ProposalHandler2 {
+	return &ProposalHandler2{
+		miner:           miner,
+		prepareProposal: prepareProposal,
+		processProposal: processProposal,
+	}
 }
 
 func (h *ProposalHandler2) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
-	var resp abci.ResponsePrepareProposal
 	logger := ctx.Logger().With("module", "prepare-proposal")
-
 	// Build the block on the execution layer.
-	payload, err := h.miner.BuildBlockV2(ctx)
 	// TODO: manage the different type of engine API errors.
+	payload, err := h.miner.BuildBlockV2(ctx)
 	if err != nil {
 		logger.Error("failed to build block", "err", err)
 		return nil, err
 	}
 
+	// Run the remainder of the prepare proposal handler.
+	resp, err := h.prepareProposal(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Marshal the payload.
 	bz, err := payload.MarshalSSZ()
 	if err != nil {
 		return nil, err
@@ -65,7 +80,7 @@ func (h *ProposalHandler2) PrepareProposalHandler(
 
 	// Inject the payload into the proposal.
 	resp.Txs = append([][]byte{bz}, resp.Txs...)
-	return &resp, nil
+	return resp, nil
 }
 
 func (h *ProposalHandler2) ProcessProposalHandler(
@@ -75,6 +90,8 @@ func (h *ProposalHandler2) ProcessProposalHandler(
 
 	// Extract the marshalled payload from the proposal
 	bz := req.Txs[PayloadPosition]
+	req.Txs = req.Txs[1:]
+
 	if bz == nil {
 		logger.Error("payload missing from proposal")
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
@@ -89,15 +106,16 @@ func (h *ProposalHandler2) ProcessProposalHandler(
 	data, err := blocks.WrappedExecutionPayloadCapella(
 		payload.Payload, blocks.PayloadValueToGwei(payload.Value),
 	)
+
 	if err != nil {
 		logger.Error("failed to wrap payload", "err", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 	}
 
-	if err := h.miner.ValidateBlock(ctx, data); err != nil {
+	if err = h.miner.ValidateBlock(ctx, data); err != nil {
 		logger.Error("failed to validate block", "err", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 	}
 
-	return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}, nil
+	return h.processProposal(ctx, req)
 }

@@ -67,13 +67,11 @@ func NewAuthenticatedEthClient(
 	endpoint := newPrysmEndpoint(dialURL, jwtSecret)
 
 	// Attempt to establish a new RPC client with authentication.
-
 	if client, err = newRPCClientWithAuth(ctx, nil, endpoint); err != nil {
 		return nil, err
 	}
 
 	// Attempt to connect to the execution client and retrieve the chain ID.
-	// Retry up to 100 times, with a 1-second delay between each attempt.
 	for i := 0; i < defaultEndpointRetries; func() { i++; time.Sleep(defaultEndpointRetryDelay) }() {
 		logger.Info("waiting for connection to execution client", "dial-url", dialURL)
 		ethClient = ethclient.NewClient(client)
@@ -115,7 +113,6 @@ func loadJWTSecret(filepath string, logger log.Logger) ([]byte, error) {
 
 	logger.Info("loaded exeuction client jwt secret file", "path", filepath, "crc32")
 	return jwtSecret, nil
-
 }
 
 // newRPCClientWithAuth initializes an RPC connection with authentication headers.

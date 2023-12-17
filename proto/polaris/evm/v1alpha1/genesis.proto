@@ -9,5 +9,5 @@ option go_package = "github.com/itsdevbear/bolaris/cosmos/x/evm/types";
 // predefined CurrencyPairGeneses
 message GenesisState {
   // NextID is the next ID to be used for a CurrencyPair
-  bytes eth1_genesis_hash = 1 [(gogoproto.customname) = "Eth1GenesisHash"];
+  string eth1_genesis_hash = 1 [(gogoproto.customname) = "Eth1GenesisHash"];
 }

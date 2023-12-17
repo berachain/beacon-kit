@@ -21,14 +21,28 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/store"
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
 )
 
+var GenesisHashKey = []byte("eth1_genesis_hash")
+
 func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) error {
-	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	genesisStore.Store(data.Eth1GenesisHash)
+	fmt.Println("CALLING INIT GENESIS", data.Eth1GenesisHash)
+	fmt.Println("CALLING INIT GENESIS", []byte(data.Eth1GenesisHash))
+	ctx.KVStore(k.storeKey).Set(GenesisHashKey, []byte(data.Eth1GenesisHash))
 	return nil
+}
+
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+	bingBong := common.Bytes2Hex(ctx.KVStore(k.storeKey).Get(GenesisHashKey))
+	fmt.Println("RETRIEVE GENESIS IN EXPORT GENESIS", bingBong)
+	return &types.GenesisState{
+		Eth1GenesisHash: bingBong,
+	}
 }

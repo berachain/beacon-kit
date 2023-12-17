@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package prysm
+package execution
 
 import (
 	"bytes"
@@ -61,14 +61,13 @@ const (
 var ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
 
 type Service struct {
-	*ethclient.Client
-	rpcClient RPCClient
+	ec *ethclient.Client
 }
 
+// NewEngineClientService creates a new engine client service.
 func NewEngineClientService(ethclient *ethclient.Client) *Service {
 	return &Service{
-		Client:    ethclient,
-		rpcClient: ethclient.Client(),
+		ec: ethclient,
 	}
 }
 
@@ -89,7 +88,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 		if !ok {
 			return nil, errors.New("execution data must be a Bellatrix or Capella execution payload")
 		}
-		err := s.rpcClient.CallContext(ctx, result, execution.NewPayloadMethod, payloadPb)
+		err := s.ec.Client().CallContext(ctx, result, execution.NewPayloadMethod, payloadPb)
 		if err != nil {
 			return nil, handleRPCError(err)
 		}
@@ -98,7 +97,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 		if !ok {
 			return nil, errors.New("execution data must be a Capella execution payload")
 		}
-		err := s.rpcClient.CallContext(ctx, result, execution.NewPayloadMethodV2, payloadPb)
+		err := s.ec.Client().CallContext(ctx, result, execution.NewPayloadMethodV2, payloadPb)
 		if err != nil {
 			return nil, handleRPCError(err)
 		}
@@ -107,7 +106,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 		if !ok {
 			return nil, errors.New("execution data must be a Deneb execution payload")
 		}
-		err := s.rpcClient.CallContext(ctx,
+		err := s.ec.Client().CallContext(ctx,
 			result, execution.NewPayloadMethodV3, payloadPb, versionedHashes, parentBlockRoot,
 		)
 		if err != nil {
@@ -162,7 +161,7 @@ func (s *Service) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.rpcClient.CallContext(ctx, result, execution.ForkchoiceUpdatedMethod, state, a)
+		err = s.ec.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethod, state, a)
 		if err != nil {
 			return nil, nil, handleRPCError(err)
 		}
@@ -171,7 +170,7 @@ func (s *Service) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.rpcClient.CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV2, state, a)
+		err = s.ec.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV2, state, a)
 		if err != nil {
 			return nil, nil, handleRPCError(err)
 		}
@@ -180,7 +179,7 @@ func (s *Service) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.rpcClient.CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV3, state, a)
+		err = s.ec.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV3, state, a)
 		if err != nil {
 			return nil, nil, handleRPCError(err)
 		}
@@ -233,7 +232,7 @@ func (s *Service) GetPayload(ctx context.Context, payloadID [8]byte, slot primit
 
 	// if slots.ToEpoch(slot) >= params.BeaconConfig().DenebForkEpoch {
 	// 	result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-	// 	err := s.rpcClient.CallContext(ctx, result, execution.GetPayloadMethodV3,
+	// 	err := s.ec.Client().CallContext(ctx, result, execution.GetPayloadMethodV3,
 	// 		pb.PayloadIDBytes(payloadID))
 	// 	if err != nil {
 	// 		return nil, nil, false, handleRPCError(err)
@@ -248,7 +247,7 @@ func (s *Service) GetPayload(ctx context.Context, payloadID [8]byte, slot primit
 
 	// if slots.ToEpoch(slot) >= params.BeaconConfig().CapellaForkEpoch {
 	result := &pb.ExecutionPayloadCapellaWithValue{}
-	err := s.rpcClient.CallContext(ctx, result, execution.GetPayloadMethodV2,
+	err := s.ec.Client().CallContext(ctx, result, execution.GetPayloadMethodV2,
 		pb.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, handleRPCError(err)
@@ -262,7 +261,7 @@ func (s *Service) GetPayload(ctx context.Context, payloadID [8]byte, slot primit
 	// }
 
 	// result := &pb.ExecutionPayload{}
-	// err := s.rpcClient.CallContext(ctx, result, execution.GetPayloadMethod,
+	// err := s.ec.Client().CallContext(ctx, result, execution.GetPayloadMethod,
 	// 	pb.PayloadIDBytes(payloadID),
 	// )
 	// if err != nil {
@@ -282,7 +281,7 @@ func (s *Service) LatestExecutionBlock(ctx context.Context) (*pb.ExecutionBlock,
 	defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.rpcClient.CallContext(
+	err := s.ec.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -299,7 +298,7 @@ func (s *Service) LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, erro
 	defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.rpcClient.CallContext(
+	err := s.ec.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -316,7 +315,7 @@ func (s *Service) EarliestBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 	// defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.rpcClient.CallContext(
+	err := s.ec.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -333,7 +332,7 @@ func (s *Service) LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock,
 	defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.rpcClient.CallContext(
+	err := s.ec.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -350,7 +349,7 @@ func (s *Service) ExecutionBlockByHash(ctx context.Context, hash common.Hash, wi
 	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.ExecutionBlockByHash")
 	defer span.End()
 	result := &pb.ExecutionBlock{}
-	err := s.rpcClient.CallContext(ctx, result, execution.ExecutionBlockByHashMethod, hash, withTxs)
+	err := s.ec.Client().CallContext(ctx, result, execution.ExecutionBlockByHashMethod, hash, withTxs)
 	return result, handleRPCError(err)
 }
 
@@ -377,7 +376,7 @@ func (s *Service) ExecutionBlocksByHashes(ctx context.Context, hashes []common.H
 		})
 		execBlks = append(execBlks, blk)
 	}
-	ioErr := s.rpcClient.BatchCall(elems)
+	ioErr := s.ec.Client().BatchCall(elems)
 	if ioErr != nil {
 		return nil, ioErr
 	}
@@ -393,7 +392,7 @@ func (s *Service) ExecutionBlocksByHashes(ctx context.Context, hashes []common.H
 func (s *Service) HeaderByHash(ctx context.Context, hash common.Hash,
 ) (*types.HeaderInfo, error) {
 	var hdr *types.HeaderInfo
-	err := s.rpcClient.CallContext(ctx, &hdr,
+	err := s.ec.Client().CallContext(ctx, &hdr,
 		execution.ExecutionBlockByHashMethod, hash, false /* no transactions */)
 	if err == nil && hdr == nil {
 		err = ethereum.NotFound
@@ -405,7 +404,7 @@ func (s *Service) HeaderByHash(ctx context.Context, hash common.Hash,
 func (s *Service) HeaderByNumber(ctx context.Context, number *big.Int,
 ) (*types.HeaderInfo, error) {
 	var hdr *types.HeaderInfo
-	err := s.rpcClient.CallContext(ctx, &hdr,
+	err := s.ec.Client().CallContext(ctx, &hdr,
 		execution.ExecutionBlockByNumberMethod, toBlockNumArg(number), false /* no transactions */)
 	if err == nil && hdr == nil {
 		err = ethereum.NotFound
@@ -421,7 +420,7 @@ func (s *Service) GetPayloadBodiesByHash(
 	defer span.End()
 
 	result := make([]*pb.ExecutionPayloadBodyV1, 0)
-	err := s.rpcClient.CallContext(ctx, &result,
+	err := s.ec.Client().CallContext(ctx, &result,
 		execution.GetPayloadBodiesByHashV1, executionBlockHashes)
 
 	for i, item := range result {
@@ -443,7 +442,7 @@ func (s *Service) GetPayloadBodiesByRange(
 	defer span.End()
 
 	result := make([]*pb.ExecutionPayloadBodyV1, 0)
-	err := s.rpcClient.CallContext(ctx, &result,
+	err := s.ec.Client().CallContext(ctx, &result,
 		execution.GetPayloadBodiesByRangeV1, start, count)
 
 	for i, item := range result {

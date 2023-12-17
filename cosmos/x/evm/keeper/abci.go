@@ -22,10 +22,17 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Precommit runs on the Cosmos-SDK lifecycle Precommit().
-func (k *Keeper) Precommit(ctx context.Context) error {
+func (k *Keeper) EndBlock(ctx context.Context) error {
+	sCtx := sdk.UnwrapSDKContext(ctx)
+	bingBong := sCtx.KVStore(k.storeKey).Get(GenesisHashKey)
+	fmt.Println("RETRIEVE GENESIS IN PRECOMMIT", bingBong)
+
 	// Verify that the EVM block was written.
 	// 	// TODO: Set/GetHead to set and get the canonical head.
 	// 	blockNum := uint64(sdk.UnwrapSDKContext(ctx).BlockHeight())

@@ -25,7 +25,6 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
@@ -39,7 +38,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/itsdevbear/bolaris/beacon/prysm"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 )
 
@@ -54,7 +53,7 @@ type EnvelopeSerializer interface {
 
 // Miner implements the baseapp.TxSelector interface.
 type Miner struct {
-	prysm.EngineAPI
+	execution.EngineAPI
 	ek                 *evmkeeper.Keeper
 	serializer         EnvelopeSerializer
 	etherbase          common.Address
@@ -64,7 +63,7 @@ type Miner struct {
 }
 
 // New produces a cosmos miner from a geth miner.
-func New(gm prysm.EngineAPI, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
+func New(gm execution.EngineAPI, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
 	return &Miner{
 		EngineAPI:          gm,
 		curForkchoiceState: &pb.ForkchoiceState{},
@@ -78,33 +77,24 @@ func (m *Miner) Init(serializer EnvelopeSerializer) {
 	m.serializer = serializer
 }
 
-func (m *Miner) BuildVoteExtension(ctx sdk.Context, _ int64) ([]byte, error) {
-	var data interfaces.ExecutionData
-	var err error
-	if data, err = m.BuildBlock(ctx); err != nil {
-		return nil, err
-	}
+// TODO: leverage this potentially later.
+// // finalizedBlockHash returns the block hash of the finalized block corresponding to the given
+// // number or nil if doesn't exist in the chain.
+// func (m *Miner) finalizedBlockHash(number uint64) *common.Hash {
+// 	var finalizedNumber = number
+// 	// The code below is basically faking only updating the finalized block once per epoch.
+// 	// if number%devEpochLength == 0 {
+// 	// } else {
+// 	// 	finalizedNumber = (number - 1) / devEpochLength * devEpochLength
+// 	// }
 
-	return data.MarshalSSZ()
-}
-
-// finalizedBlockHash returns the block hash of the finalized block corresponding to the given
-// number or nil if doesn't exist in the chain.
-func (m *Miner) finalizedBlockHash(number uint64) *common.Hash {
-	var finalizedNumber = number
-	// The code below is basically faking only updating the finalized block once per epoch.
-	// if number%devEpochLength == 0 {
-	// } else {
-	// 	finalizedNumber = (number - 1) / devEpochLength * devEpochLength
-	// }
-
-	if finalizedBlock, err := m.EngineAPI.HeaderByNumber(context.Background(),
-		big.NewInt(int64(finalizedNumber))); finalizedBlock != nil && err == nil {
-		fh := finalizedBlock.Hash
-		return &fh
-	}
-	return nil
-}
+// 	if finalizedBlock, err := m.EngineAPI.HeaderByNumber(context.Background(),
+// 		big.NewInt(int64(finalizedNumber))); finalizedBlock != nil && err == nil {
+// 		fh := finalizedBlock.Hash
+// 		return &fh
+// 	}
+// 	return nil
+// }
 
 func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	var latestBlock *pb.ExecutionBlock
@@ -112,6 +102,7 @@ func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	latestBlock, err = m.EngineAPI.LatestExecutionBlock(ctx)
 	if err != nil {
 		m.logger.Error("failed to get block number", "err", err)
+		return err
 	}
 
 	m.curForkchoiceState.HeadBlockHash = latestBlock.Hash.Bytes()
@@ -147,14 +138,14 @@ func (m *Miner) SyncEl(ctx context.Context) error {
 	// block, _ := m.EngineAPI.EarliestBlock(ctx)
 
 	m.getForkchoiceFromExecutionClient(ctx)
-	genesisHash := m.ek.RetrieveGenesis(ctx)
+	// genesisHash := m.ek.RetrieveGenesis(ctx)
 	m.logger.Info("waiting for execution client to finish sync")
 	for {
 		var err error
 		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.HeadBlockHash))
 		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.SafeBlockHash))
 		fmt.Println(common.Bytes2Hex(m.curForkchoiceState.FinalizedBlockHash))
-		fmt.Println(common.Bytes2Hex(genesisHash.Bytes()))
+		// fmt.Println(common.Bytes2Hex(genesisHash.Bytes()))
 		// fc := &pb.ForkchoiceState{
 		// 	HeadBlockHash:      genesisHash.Bytes(),
 		// 	SafeBlockHash:      genesisHash.Bytes(),
@@ -176,7 +167,7 @@ func (m *Miner) SyncEl(ctx context.Context) error {
 
 func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) {
 	// Reference: https://hackmd.io/@danielrachi/engine_api#Block-Building
-	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
+	// builder := (&execution.Builder{EngineCaller: m.EngineAPI.(*execution.Service)})
 	m.logger.Info("entering build-block-v2")
 	defer m.logger.Info("exiting build-block-v2")
 
@@ -212,7 +203,7 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 	time.Sleep(2000 * time.Millisecond) //nolint:gomnd // temp.
 
 	// Get the Payload From the Execution Client
-	builtPayload, _, _, err := builder.GetPayload(
+	builtPayload, _, _, err := m.GetPayload(
 		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()))
 	if err != nil {
 		m.logger.Error("failed to get payload", "err", err)
@@ -228,10 +219,10 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 }
 
 func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
-	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
+	// builder := (&execution.Builder{EngineCaller: m.EngineAPI.(*execution.Service)})
 	// todo parentBlockRoot should maybe be beacOn?
 	// _, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(builtPayload.ParentHash()))
-	_, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(m.curForkchoiceState.FinalizedBlockHash))
+	_, err := m.NewPayload(ctx, builtPayload, nil, (*common.Hash)(m.curForkchoiceState.FinalizedBlockHash))
 	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
 	if err != nil {
 		// We need to resync.
@@ -250,128 +241,3 @@ func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.Execution
 	// m.getForkchoiceFromExecutionClient(ctx)
 	return nil
 }
-
-// buildBlock builds and submits a payload, it also waits for the txs
-// to resolve from the underying worker.
-func (m *Miner) BuildBlock(ctx sdk.Context) (interfaces.ExecutionData, error) {
-	builder := (&prysm.Builder{EngineCaller: m.EngineAPI.(*prysm.Service)})
-	var (
-		err error
-		// envelope *engine.ExecutionPayloadEnvelope
-		// sCtx = sdk.UnwrapSDKContext(ctx)
-	)
-
-	var payloadID *pb.PayloadIDBytes
-	// Reset to CurrentBlock in case of the chain was rewound
-	// ALL THIS CODE DOES IS FORCES RESETTING TO THE LATEST EXECUTION BLOCK
-	// CALLS JSON RPC with "latest" block param
-	{
-		if err := m.getForkchoiceFromExecutionClient(ctx); err != nil {
-			return nil, err
-		}
-
-		// tstamp := sCtx.BlockTime()
-		var random [32]byte
-		if _, err = rand.Read(random[:]); err != nil {
-			return nil, err
-		}
-		var attrs payloadattribute.Attributer
-		attrs, err = payloadattribute.New(&pb.PayloadAttributesV2{
-			Timestamp:             uint64(time.Now().Unix()),
-			SuggestedFeeRecipient: m.etherbase.Bytes(),
-			Withdrawals:           nil,
-			PrevRandao:            append([]byte{}, random[:]...),
-		})
-		if err != nil {
-			fmt.Println("attribute erorr")
-			return nil, err
-		}
-		// the proposer updates it's forkchoice and then
-		// I think this needs to actually happen in FinalizeBlock and everyone should
-		// update forkchoice together?
-		payloadID, _, err = m.EngineAPI.ForkchoiceUpdated(ctx,
-			m.curForkchoiceState, attrs)
-		if err != nil {
-			m.logger.Error("failed to get forkchoice updated", "err", err)
-		}
-		// TODO: this should be something that is 80% of proposal timeout, or so?
-		time.Sleep(2500 * time.Millisecond) //nolint:gomnd // temp.
-	}
-
-	// builds a payload
-	builtPayload, _, _, err := builder.GetPayload(
-		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()),
-	)
-	if err != nil {
-		fmt.Println("PAYLOAD ERROR", err)
-		return nil, err
-	}
-
-	hash, err := builder.NewPayload(ctx, builtPayload, nil, (*common.Hash)(m.curForkchoiceState.FinalizedBlockHash))
-	if err != nil {
-		fmt.Println("NEW PAYLOAD ERROR", err)
-	}
-	fmt.Println("PAYLOAD HASH", hash, "cosmos block height", ctx.BlockHeight(), "PayloadID", payloadID,
-		"payload block number", builtPayload.BlockNumber())
-	// finalizedHash := m.finalizedBlockHash(builtPayload.BlockNumber())
-	// if finalizedHash == nil {
-	// 	fmt.Println("EMPTY FINALIZED HASH")
-	// 	finalizedHash = new(common.Hash)
-	// 	x := common.BytesToHash(builtPayload.BlockHash())
-	// 	finalizedHash = &x
-	// 	m.curForkchoiceState.HeadBlockHash = finalizedHash.Bytes()
-	// }
-	m.curForkchoiceState.HeadBlockHash = builtPayload.BlockHash()
-	// finalizedHash, when there is epochs, could be in the past. But since
-	// we are finalizing every block, the builtPayload and the finalized Hash are the same.
-
-	// // finalizedHash := builtPayload.BlockHash()
-	// fmt.Println("finalizedHash", common.Bytes2Hex(finalizedHash))
-	// fmt.Println("payload()", common.Bytes2Hex(builtPayload.BlockHash()))
-	// m.setCurrentState(builtPayload.BlockHash(), finalizedHash)
-
-	if err != nil {
-		fmt.Println("ERROR", err)
-		return nil, err
-	}
-
-	fmt.Println(
-		"finalized", common.Bytes2Hex(m.curForkchoiceState.FinalizedBlockHash),
-		"head", common.Bytes2Hex(m.curForkchoiceState.HeadBlockHash),
-		"safe", common.Bytes2Hex(m.curForkchoiceState.SafeBlockHash),
-	)
-	// time.Sleep(*time.Second)
-	// _, _, err = b.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3)) //nolint:gomnd // okay for now.
-	_, _, err = builder.EngineCaller.ForkchoiceUpdated(ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3))
-	fmt.Println("UPDATE ERROR", err)
-	// _, err = builder.BlockValidation(ctx, builtPayload)
-	return builtPayload, err
-}
-
-// // setCurrentState sets the current forkchoice state.
-// func (m *Miner) setCurrentState(headHash, finalizedHash []byte) {
-// 	m.curForkchoiceState = &pb.ForkchoiceState{
-// 		HeadBlockHash:      headHash,
-// 		SafeBlockHash:      finalizedHash,
-// 		FinalizedBlockHash: finalizedHash,
-// 	}
-// }
-
-// // constructPayloadArgs builds a payload to submit to the miner.
-// func (m *Miner) constructPayloadArgs(
-// 	ctx sdk.Context, parent *types.Block) *miner.BuildPayloadArgs {
-// 	// etherbase, err := m.Etherbase(ctx)
-// 	// if err != nil {
-// 	// 	ctx.Logger().Error("failed to get etherbase", "err", err)
-// 	// 	return nil
-// 	// }
-
-// 	return &miner.BuildPayloadArgs{
-// 		Timestamp: parent.Header().Time + 2, //nolint:gomnd // todo fix this arbitrary number.
-// 		// FeeRecipient: etherbase,
-// 		Random:      common.Hash{}, /* todo: generated random */
-// 		Withdrawals: make(types.Withdrawals, 0),
-// 		BeaconRoot:  &emptyHash,
-// 		Parent:      parent.Hash(),
-// 	}
-// }

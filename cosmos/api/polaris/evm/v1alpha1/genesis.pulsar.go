@@ -89,8 +89,8 @@ func (x *fastReflection_GenesisState) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if len(x.Eth1GenesisHash) != 0 {
-		value := protoreflect.ValueOfBytes(x.Eth1GenesisHash)
+	if x.Eth1GenesisHash != "" {
+		value := protoreflect.ValueOfString(x.Eth1GenesisHash)
 		if !f(fd_GenesisState_eth1_genesis_hash, value) {
 			return
 		}
@@ -111,7 +111,7 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "polaris.evm.v1alpha1.GenesisState.eth1_genesis_hash":
-		return len(x.Eth1GenesisHash) != 0
+		return x.Eth1GenesisHash != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: polaris.evm.v1alpha1.GenesisState"))
@@ -129,7 +129,7 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "polaris.evm.v1alpha1.GenesisState.eth1_genesis_hash":
-		x.Eth1GenesisHash = nil
+		x.Eth1GenesisHash = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: polaris.evm.v1alpha1.GenesisState"))
@@ -148,7 +148,7 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 	switch descriptor.FullName() {
 	case "polaris.evm.v1alpha1.GenesisState.eth1_genesis_hash":
 		value := x.Eth1GenesisHash
-		return protoreflect.ValueOfBytes(value)
+		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: polaris.evm.v1alpha1.GenesisState"))
@@ -170,7 +170,7 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "polaris.evm.v1alpha1.GenesisState.eth1_genesis_hash":
-		x.Eth1GenesisHash = value.Bytes()
+		x.Eth1GenesisHash = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: polaris.evm.v1alpha1.GenesisState"))
@@ -207,7 +207,7 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "polaris.evm.v1alpha1.GenesisState.eth1_genesis_hash":
-		return protoreflect.ValueOfBytes(nil)
+		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: polaris.evm.v1alpha1.GenesisState"))
@@ -370,7 +370,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Eth1GenesisHash", wireType)
 				}
-				var byteLen int
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -380,25 +380,23 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					byteLen |= int(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if byteLen < 0 {
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + byteLen
+				postIndex := iNdEx + intStringLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Eth1GenesisHash = append(x.Eth1GenesisHash[:0], dAtA[iNdEx:postIndex]...)
-				if x.Eth1GenesisHash == nil {
-					x.Eth1GenesisHash = []byte{}
-				}
+				x.Eth1GenesisHash = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -456,7 +454,7 @@ type GenesisState struct {
 	unknownFields protoimpl.UnknownFields
 
 	// NextID is the next ID to be used for a CurrencyPair
-	Eth1GenesisHash []byte `protobuf:"bytes,1,opt,name=eth1_genesis_hash,json=eth1GenesisHash,proto3" json:"eth1_genesis_hash,omitempty"`
+	Eth1GenesisHash string `protobuf:"bytes,1,opt,name=eth1_genesis_hash,json=eth1GenesisHash,proto3" json:"eth1_genesis_hash,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -479,11 +477,11 @@ func (*GenesisState) Descriptor() ([]byte, []int) {
 	return file_polaris_evm_v1alpha1_genesis_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GenesisState) GetEth1GenesisHash() []byte {
+func (x *GenesisState) GetEth1GenesisHash() string {
 	if x != nil {
 		return x.Eth1GenesisHash
 	}
-	return nil
+	return ""
 }
 
 var File_polaris_evm_v1alpha1_genesis_proto protoreflect.FileDescriptor
@@ -496,7 +494,7 @@ var file_polaris_evm_v1alpha1_genesis_proto_rawDesc = []byte{
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x22, 0x4f, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74, 0x61, 0x74, 0x65,
 	0x12, 0x3f, 0x0a, 0x11, 0x65, 0x74, 0x68, 0x31, 0x5f, 0x67, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73,
-	0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x13, 0xe2, 0xde, 0x1f,
+	0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x13, 0xe2, 0xde, 0x1f,
 	0x0f, 0x45, 0x74, 0x68, 0x31, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x48, 0x61, 0x73, 0x68,
 	0x52, 0x0f, 0x65, 0x74, 0x68, 0x31, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x48, 0x61, 0x73,
 	0x68, 0x42, 0xcd, 0x01, 0x0a, 0x18, 0x63, 0x6f, 0x6d, 0x2e, 0x70, 0x6f, 0x6c, 0x61, 0x72, 0x69,

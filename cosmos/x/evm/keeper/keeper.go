@@ -22,7 +22,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -31,11 +30,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/itsdevbear/bolaris/beacon/prysm"
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/store"
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 )
 
 var LatestForkChoiceKey = []byte("latestForkChoice")
@@ -43,7 +38,7 @@ var LatestForkChoiceKey = []byte("latestForkChoice")
 type (
 	Keeper struct {
 		// consensusAPI is the consensus API
-		executionClient prysm.EngineCaller
+		executionClient execution.EngineCaller
 		storeKey        storetypes.StoreKey
 		forkchoiceState *enginev1.ForkchoiceState
 	}
@@ -51,7 +46,7 @@ type (
 
 // NewKeeper creates new instances of the polaris Keeper.
 func NewKeeper(
-	executionClient prysm.EngineCaller,
+	executionClient execution.EngineCaller,
 	storeKey storetypes.StoreKey,
 ) *Keeper {
 	return &Keeper{
@@ -62,24 +57,9 @@ func NewKeeper(
 
 // Logger returns a module-specific logger.
 func (k *Keeper) Logger(ctx context.Context) log.Logger {
-	return sdk.UnwrapSDKContext(ctx).Logger().With(types.ModuleName)
+	return sdk.UnwrapSDKContext(ctx).Logger()
 }
 
 func (k *Keeper) UpdateHoodForkChoice(forkchoiceState *enginev1.ForkchoiceState) {
 	k.forkchoiceState = forkchoiceState
-}
-
-func (k *Keeper) EndBlock(ctx context.Context) error {
-	if k.forkchoiceState == nil {
-		return nil
-	}
-	genesisStore := store.NewGenesis(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
-	fmt.Println("GENESIS", genesisStore.Retrieve().Hex())
-	return nil
-	// return k.SetLatestForkChoice(ctx, k.forkchoiceState)
-}
-
-func (k *Keeper) RetrieveGenesis(ctx context.Context) common.Hash {
-	genesisStore := store.NewGenesis(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
-	return genesisStore.Retrieve()
 }
