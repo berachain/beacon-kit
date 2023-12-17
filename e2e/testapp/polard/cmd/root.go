@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -165,10 +166,12 @@ func NewRootCmd() *cobra.Command {
 func initCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
-	consensus.TimeoutPropose = time.Second * 6
-	consensus.TimeoutPrevote = time.Second * 6
-	consensus.TimeoutPrecommit = time.Second * 6
-	consensus.TimeoutCommit = time.Second * 6
+	consensus.TimeoutPropose = time.Second * 7
+	consensus.TimeoutPrevote = time.Second * 7
+	consensus.TimeoutPrecommit = time.Second * 7
+	consensus.TimeoutCommit = time.Second * 2
+
+	fmt.Println("REE")
 
 	// Disable the indexer
 	cfg.TxIndex.Indexer = "null"

@@ -207,7 +207,7 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 	// TODO: maybe this should be some sort of event that we wait for?
 	// But the TLDR is that we need to wait for the execution client to
 	// build the payload before we can include it in the beacon block.
-	time.Sleep(4000 * time.Millisecond) //nolint:gomnd // temp.
+	time.Sleep(5000 * time.Millisecond) //nolint:gomnd // temp.
 
 	// Get the Payload From the Execution Client
 	builtPayload, _, _, err := m.EngineAPI.GetPayload(
