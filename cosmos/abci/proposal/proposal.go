@@ -35,25 +35,25 @@ import (
 // to sync up and the consensus client shouldn't join the validator set yet.
 const PayloadPosition = 0
 
-type ProposalHandler2 struct {
+type Handler struct {
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 	miner           *miner.Miner
 }
 
-func NewProposalHandler2(
+func NewHandler(
 	miner *miner.Miner,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
-) *ProposalHandler2 {
-	return &ProposalHandler2{
+) *Handler {
+	return &Handler{
 		miner:           miner,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
 	}
 }
 
-func (h *ProposalHandler2) PrepareProposalHandler(
+func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
 	logger := ctx.Logger().With("module", "prepare-proposal")
@@ -82,7 +82,7 @@ func (h *ProposalHandler2) PrepareProposalHandler(
 	return resp, nil
 }
 
-func (h *ProposalHandler2) ProcessProposalHandler(
+func (h *Handler) ProcessProposalHandler(
 	ctx sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
 	logger := ctx.Logger().With("module", "process-proposal")

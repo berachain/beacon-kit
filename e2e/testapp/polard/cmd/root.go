@@ -166,10 +166,10 @@ func NewRootCmd() *cobra.Command {
 func initCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
-	consensus.TimeoutPropose = time.Second * 7
-	consensus.TimeoutPrevote = time.Second * 7
-	consensus.TimeoutPrecommit = time.Second * 7
-	consensus.TimeoutCommit = time.Second * 2
+	consensus.TimeoutPropose = time.Second * 3
+	consensus.TimeoutPrevote = time.Second * 3
+	consensus.TimeoutPrecommit = time.Second * 3
+	consensus.TimeoutCommit = time.Second * 1
 
 	fmt.Println("REE")
 

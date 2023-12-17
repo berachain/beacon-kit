@@ -3,7 +3,6 @@ go 1.21
 use (
 	./beacon
 	./build/tools
-	./contracts
 	./cosmos
 	./e2e/testapp
 	./types

@@ -24,7 +24,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/network"
 	"github.com/prysmaticlabs/prysm/v4/network/authorization"
 
-	"github.com/itsdevbear/bolaris/beacon/log"
+	"cosmossdk.io/log"
 )
 
 type Option func(s *Eth1Client) error
@@ -61,6 +61,8 @@ func WithHeaders(headers []string) Option {
 	}
 }
 
+// WithRequiredChainID is an option to set the required
+// chain ID for the Eth1Client.
 func WithRequiredChainID(chainID uint64) Option {
 	return func(s *Eth1Client) error {
 		s.cfg.chainID = chainID

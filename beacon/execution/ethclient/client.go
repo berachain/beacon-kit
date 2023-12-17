@@ -31,10 +31,10 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/network"
 	"github.com/prysmaticlabs/prysm/v4/network/authorization"
 
+	"cosmossdk.io/log"
+
 	"github.com/ethereum/go-ethereum/ethclient"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
-
-	"github.com/itsdevbear/bolaris/beacon/log"
 )
 
 // backOffPeriod is the time to wait before trying to reconnect with the eth1 node.

@@ -18,12 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package log
+package execution
 
-type Logger interface {
-	// Info takes a message and a set of key/value pairs and logs with level INFO.
-	// The key of the tuple must be a string.
-	Info(msg string, keyVals ...any)
-	Error(msg string, keyVals ...any)
-	// Warn(msg string, keyVals ...any)
-}
+import "github.com/pkg/errors"
+
+var ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")

@@ -25,9 +25,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
+	"cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/beacon/log"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // loadJWTSecret reads the JWT secret from a file and returns it.

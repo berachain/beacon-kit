@@ -41,7 +41,7 @@ import (
 // EVMKeeper is an interface that defines the methods needed for the EVM setup.
 type EVMKeeper interface {
 	// Setup initializes the EVM keeper.
-	Setup(*execution.Service) error
+	Setup(execution.EngineCaller) error
 }
 
 // CosmosApp is an interface that defines the methods needed for the Cosmos setup.
@@ -58,7 +58,7 @@ type CosmosApp interface {
 
 // Polaris is a struct that wraps the Polaris struct from the polar package.
 type Polaris struct {
-	*execution.Service
+	execution.EngineCaller
 	// WrappedMiner is a wrapped version of the Miner component.
 	WrappedMiner *miner.Miner
 	// logger is the underlying logger supplied by the sdk.
@@ -82,7 +82,7 @@ func New(
 		return nil, err
 	}
 
-	// p.Service = execution.NewEngineClientService(ethClient)
+	// p.Service = execution.NewEngineCaller(ethClient)
 	jwtSecert, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func New(
 		return nil, err
 	}
 
-	p.Service = execution.NewEngineClientService(eth1Client)
+	p.EngineCaller = execution.NewEngineCaller(eth1Client)
 
 	return p, nil
 }
@@ -122,7 +122,7 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.
 	_ = vs
 	mempool := mempool.NewSenderNonceMempool()
 	app.SetMempool(mempool)
-	p.WrappedMiner = miner.New(p.Service, ek, p.logger)
+	p.WrappedMiner = miner.New(p.EngineCaller, ek, p.logger)
 
 	// Create the proposal handler that will be used to fill proposals with
 	// transactions and oracle data.
@@ -135,7 +135,7 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.
 	// )
 
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mempool, app)
-	proposalHandler := proposal.NewProposalHandler2(p.WrappedMiner,
+	proposalHandler := proposal.NewHandler(p.WrappedMiner,
 		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler())
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)

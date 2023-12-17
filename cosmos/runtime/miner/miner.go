@@ -53,7 +53,7 @@ type EnvelopeSerializer interface {
 
 // Miner implements the baseapp.TxSelector interface.
 type Miner struct {
-	EngineAPI
+	execution.EngineCaller
 	ek                 *evmkeeper.Keeper
 	serializer         EnvelopeSerializer
 	etherbase          common.Address
@@ -62,17 +62,10 @@ type Miner struct {
 	logger log.Logger
 }
 
-type EngineAPI interface {
-	execution.EngineCaller
-	LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, error)
-	LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock, error)
-	LatestExecutionBlock(ctx context.Context) (*pb.ExecutionBlock, error)
-}
-
 // New produces a cosmos miner from a geth miner.
-func New(gm EngineAPI, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
+func New(gm execution.EngineCaller, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
 	return &Miner{
-		EngineAPI:          gm,
+		EngineCaller:       gm,
 		curForkchoiceState: &pb.ForkchoiceState{},
 		logger:             logger,
 		ek:                 ek,
@@ -106,7 +99,7 @@ func (m *Miner) Init(serializer EnvelopeSerializer) {
 func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	var latestBlock *pb.ExecutionBlock
 	var err error
-	latestBlock, err = m.EngineAPI.LatestExecutionBlock(ctx)
+	latestBlock, err = m.EngineCaller.LatestExecutionBlock(ctx)
 	if err != nil {
 		m.logger.Error("failed to get block number", "err", err)
 		return err
@@ -115,7 +108,7 @@ func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	m.curForkchoiceState.HeadBlockHash = latestBlock.Hash.Bytes()
 	m.logger.Info("forkchoice state", "head", latestBlock.Header.Hash())
 
-	safe, err := m.EngineAPI.LatestSafeBlock(ctx)
+	safe, err := m.EngineCaller.LatestSafeBlock(ctx)
 	if err != nil {
 		m.logger.Error("failed to get safe block", "err", err)
 		safe = latestBlock
@@ -123,7 +116,7 @@ func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 
 	m.curForkchoiceState.SafeBlockHash = safe.Hash.Bytes()
 
-	final, err := m.EngineAPI.LatestFinalizedBlock(ctx)
+	final, err := m.EngineCaller.LatestFinalizedBlock(ctx)
 	m.logger.Info("forkchoice state", "finalized", safe.Hash)
 	if err != nil {
 		m.logger.Error("failed to get final block", "err", err)
@@ -159,7 +152,7 @@ func (m *Miner) SyncEl(ctx context.Context) error {
 		// 	FinalizedBlockHash: genesisHash.Bytes(),
 		// }
 		fc := m.curForkchoiceState
-		payloadID, lastValidHash, err := m.EngineAPI.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
+		payloadID, lastValidHash, err := m.EngineCaller.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
 		if err == nil {
 			break
 		}
@@ -197,7 +190,7 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 	// Trigger the execution client to begin building the block, and update
 	// the proposers forkchoice state accordingly.
 
-	payloadID, _, err := m.EngineAPI.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
+	payloadID, _, err := m.EngineCaller.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
 	if err != nil {
 		m.logger.Error("failed to get forkchoice updated", "err", err)
 		return nil, err
@@ -207,10 +200,10 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 	// TODO: maybe this should be some sort of event that we wait for?
 	// But the TLDR is that we need to wait for the execution client to
 	// build the payload before we can include it in the beacon block.
-	time.Sleep(5000 * time.Millisecond) //nolint:gomnd // temp.
+	time.Sleep(1000 * time.Millisecond) //nolint:gomnd // temp.
 
 	// Get the Payload From the Execution Client
-	builtPayload, _, _, err := m.EngineAPI.GetPayload(
+	builtPayload, _, _, err := m.EngineCaller.GetPayload(
 		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()))
 	if err != nil {
 		m.logger.Error("failed to get payload", "err", err)
@@ -226,7 +219,8 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 }
 
 func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
-	lastValidHash, _ := m.NewPayload(ctx, builtPayload, nil, nil) // last param here is nil pre-Deneb. must be specified post.
+	// last param here is nil pre-Deneb. must be specified post.
+	lastValidHash, _ := m.NewPayload(ctx, builtPayload, nil, nil)
 	fmt.Println("LAST VALID HASH FOUND ON ETH ONE", common.Bytes2Hex(lastValidHash))
 
 	// TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
@@ -234,15 +228,20 @@ func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.Execution
 	m.curForkchoiceState.FinalizedBlockHash = builtPayload.BlockHash()
 	m.curForkchoiceState.SafeBlockHash = builtPayload.BlockHash()
 
-	// The blind finalization is "sorta safe" cause we will get an STATUS_INVALID From the forkchoice update
+	// The blind finalization is "sorta safe" cause we will get an STATUS_INVALID
+	// From the forkchoice update
 	// if it is deemed ot break the rules of the execution layer.
 	// still needs to be addressed of course.
-	_, _, err := m.EngineAPI.ForkchoiceUpdated(ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3))
+	_, _, err := m.EngineCaller.ForkchoiceUpdated(
+		ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3), //
+	)
 	if err != nil {
 		m.logger.Error("failed to get forkchoice updated", "err", err)
 		return err
 	}
 
-	m.logger.Info("successfully validated execution layer block", "hash", common.Bytes2Hex(builtPayload.BlockHash()))
+	m.logger.Info(
+		"successfully validated execution layer block", "hash", common.Bytes2Hex(builtPayload.BlockHash()),
+	)
 	return nil
 }
