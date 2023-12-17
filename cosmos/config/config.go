@@ -47,6 +47,8 @@ type Client struct {
 	RPCRetries uint64
 	// JWTSecretPath is the path to the JWT secret.
 	JWTSecretPath string
+	// RequiredChainID is the chain id that the consensus client must be connected to.
+	RequiredChainID uint64
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
@@ -66,10 +68,11 @@ func SetupCosmosConfig() {
 func DefaultConfig() *Config {
 	return &Config{
 		ExecutionClient: Client{
-			RPCDialURL:    "http://localhost:8551",
-			RPCTimeout:    time.Second * 3, //nolint:gomnd // default config.
-			RPCRetries:    3,               //nolint:gomnd // default config.
-			JWTSecretPath: "../reth/jwt.hex",
+			RPCDialURL:      "http://localhost:8551",
+			RPCTimeout:      time.Second * 3, //nolint:gomnd // default config.
+			RPCRetries:      3,               //nolint:gomnd // default config.
+			JWTSecretPath:   "../reth/jwt.hex",
+			RequiredChainID: 7, //nolint:gomnd // default config.
 		},
 	}
 }
@@ -100,10 +103,19 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 	if conf.ExecutionClient.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
 		return nil, err
 	}
-	if conf.ExecutionClient.RPCTimeout, err = parser.GetTimeDuration(flags.RPCTimeout); err != nil {
+	if conf.ExecutionClient.RPCTimeout, err = parser.GetTimeDuration(
+		flags.RPCTimeout,
+	); err != nil {
 		return nil, err
 	}
-	if conf.ExecutionClient.JWTSecretPath, err = parser.GetString(flags.JWTSecretPath); err != nil {
+	if conf.ExecutionClient.JWTSecretPath, err = parser.GetString(
+		flags.JWTSecretPath,
+	); err != nil {
+		return nil, err
+	}
+	if conf.ExecutionClient.RequiredChainID, err = parser.GetUint64(
+		flags.RequiredChainID,
+	); err != nil {
 		return nil, err
 	}
 
@@ -113,8 +125,10 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 // AddExecutionClientFlags implements servertypes.ModuleInitFlags interface.
 func AddExecutionClientFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig().ExecutionClient
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.JWTSecretPath, "path to the execution client secret")
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.JWTSecretPath,
+		"path to the execution client secret")
 	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.RPCDialURL, "rpc dial url")
 	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.RPCRetries, "rpc retries")
 	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.RequiredChainID, "required chain id")
 }

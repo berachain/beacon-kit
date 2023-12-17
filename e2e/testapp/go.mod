@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
 	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231023044153-56b3b6f3e081
-	github.com/prysmaticlabs/prysm/v4 v4.1.0
+	github.com/prysmaticlabs/prysm/v4 v4.1.1
 )
 
 require (

@@ -6,7 +6,7 @@ require (
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/holiman/uint256 v1.2.3
 	github.com/pkg/errors v0.9.1
-	github.com/prysmaticlabs/prysm/v4 v4.1.0
+	github.com/prysmaticlabs/prysm/v4 v4.1.1
 	go.opencensus.io v0.24.0
 	google.golang.org/protobuf v1.31.0
 )

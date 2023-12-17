@@ -216,7 +216,9 @@ func NewPolarisApp(
 
 	ctx := sdk.NewContext(app.BaseApp.CommitMultiStore(), cmtproto.Header{}, false, log.NewNopLogger())
 	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter()).WithEventManager(sdk.NewEventManager())
-	app.Polaris.SyncEL(ctx)
+	if err := app.Polaris.SyncEL(ctx); err != nil {
+		panic(err)
+	}
 
 	return app
 }

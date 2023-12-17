@@ -18,12 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package log
+package eth
 
-type Logger interface {
-	// Info takes a message and a set of key/value pairs and logs with level INFO.
-	// The key of the tuple must be a string.
-	Info(msg string, keyVals ...any)
-	Error(msg string, keyVals ...any)
-	// Warn(msg string, keyVals ...any)
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/itsdevbear/bolaris/beacon/log"
+)
+
+// loadJWTSecret reads the JWT secret from a file and returns it.
+// It returns an error if the file cannot be read or if the JWT secret is not valid.
+func LoadJWTSecret(filepath string, logger log.Logger) ([]byte, error) {
+	// Read the file.
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		// Return an error if the file cannot be read.
+		return nil, err
+	}
+
+	// Convert the data to a JWT secret.
+	jwtSecret := common.FromHex(strings.TrimSpace(string(data)))
+
+	// Check if the JWT secret is valid.
+	if len(jwtSecret) != jwtLength {
+		// Return an error if the JWT secret is not valid.
+		return nil, fmt.Errorf("failed to load jwt secret from %s", filepath)
+	}
+
+	logger.Info("loaded exeuction client jwt secret file", "path", filepath, "crc32")
+	return jwtSecret, nil
 }

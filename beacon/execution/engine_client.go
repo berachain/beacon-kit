@@ -41,6 +41,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+	"github.com/prysmaticlabs/prysm/v4/time/slots"
 	"go.opencensus.io/trace"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -48,10 +49,20 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
+
+	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
 )
+
+// TODO:UNHACK THIS REEEE
+// NEED PROPER FORK MANAGEMENT IN THE CONFIG.
+func init() {
+	beacon := params.BeaconConfig()
+	beacon.DenebForkEpoch = 1000000000
+	beacon.CapellaForkEpoch = 0
+	params.OverrideBeaconConfig(beacon)
+}
 
 const (
 	// Defines the seconds before timing out engine endpoints with non-block execution semantics.
@@ -61,14 +72,39 @@ const (
 var ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
 
 type Service struct {
-	ec *ethclient.Client
+	ec *eth.Eth1Client
 }
 
 // NewEngineClientService creates a new engine client service.
-func NewEngineClientService(ethclient *ethclient.Client) *Service {
+func NewEngineClientService(ethclient *eth.Eth1Client) *Service {
 	return &Service{
 		ec: ethclient,
 	}
+}
+
+// ExecutionPayloadReconstructor defines a service that can reconstruct a full beacon
+// block with an execution payload from a signed beacon block and a connection
+// to an execution client's engine API.
+type PayloadReconstructor interface {
+	ReconstructFullBlock(
+		ctx context.Context, blindedBlock interfaces.ReadOnlySignedBeaconBlock,
+	) (interfaces.SignedBeaconBlock, error)
+	ReconstructFullBellatrixBlockBatch(
+		ctx context.Context, blindedBlocks []interfaces.ReadOnlySignedBeaconBlock,
+	) ([]interfaces.SignedBeaconBlock, error)
+}
+
+// EngineCaller defines a client that can interact with an Ethereum
+// execution node's engine service via JSON-RPC.
+type EngineCaller interface {
+	NewPayload(ctx context.Context, payload interfaces.ExecutionData,
+		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
+	ForkchoiceUpdated(
+		ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
+	) (*pb.PayloadIDBytes, []byte, error)
+	GetPayload(ctx context.Context, payloadId [8]byte,
+		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
+	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
 }
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
@@ -88,7 +124,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 		if !ok {
 			return nil, errors.New("execution data must be a Bellatrix or Capella execution payload")
 		}
-		err := s.ec.Client().CallContext(ctx, result, execution.NewPayloadMethod, payloadPb)
+		err := s.ec.Client.Client().CallContext(ctx, result, execution.NewPayloadMethod, payloadPb)
 		if err != nil {
 			return nil, handleRPCError(err)
 		}
@@ -97,7 +133,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 		if !ok {
 			return nil, errors.New("execution data must be a Capella execution payload")
 		}
-		err := s.ec.Client().CallContext(ctx, result, execution.NewPayloadMethodV2, payloadPb)
+		err := s.ec.Client.Client().CallContext(ctx, result, execution.NewPayloadMethodV2, payloadPb)
 		if err != nil {
 			return nil, handleRPCError(err)
 		}
@@ -106,7 +142,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 		if !ok {
 			return nil, errors.New("execution data must be a Deneb execution payload")
 		}
-		err := s.ec.Client().CallContext(ctx,
+		err := s.ec.Client.Client().CallContext(ctx,
 			result, execution.NewPayloadMethodV3, payloadPb, versionedHashes, parentBlockRoot,
 		)
 		if err != nil {
@@ -139,15 +175,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 func (s *Service) ForkchoiceUpdated(
 	ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*pb.PayloadIDBytes, []byte, error) {
-	// ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.ForkchoiceUpdated")
-	// defer span.End()
-	// start := time.Now()
-	// // defer func() {
-	// // 	forkchoiceUpdatedLatency.Observe(float64(time.Since(start).Milliseconds()))
-	// }()
-
-	d := time.Now().Add(time.Duration(
-		params.BeaconConfig().ExecutionEngineTimeoutValue) * time.Second)
+	d := time.Now().Add(time.Duration(params.BeaconConfig().ExecutionEngineTimeoutValue) * time.Second)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 	result := &execution.ForkchoiceUpdatedResponse{}
@@ -161,7 +189,7 @@ func (s *Service) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.ec.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethod, state, a)
+		err = s.ec.Client.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethod, state, a)
 		if err != nil {
 			return nil, nil, handleRPCError(err)
 		}
@@ -170,7 +198,7 @@ func (s *Service) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.ec.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV2, state, a)
+		err = s.ec.Client.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV2, state, a)
 		if err != nil {
 			return nil, nil, handleRPCError(err)
 		}
@@ -179,98 +207,80 @@ func (s *Service) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.ec.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV3, state, a)
+		err = s.ec.Client.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV3, state, a)
 		if err != nil {
 			return nil, nil, handleRPCError(err)
 		}
 	default:
-		return nil, nil, fmt.Errorf("unknown payload attribute version: %d", attrs.Version())
+		return nil, nil, fmt.Errorf("unknown payload attribute version: %v", attrs.Version())
 	}
 
 	if result.Status == nil {
 		return nil, nil, execution.ErrNilResponse
 	}
 	// if result.ValidationError != "" {
-	// 	// log.WithError(errors.New(result.ValidationError)).Error("Got a validation error in
-	// 	//  forkChoiceUpdated")
+	// 	// log.WithError(errors.New(result.ValidationError)).Error("Got a
+	// validation error in forkChoiceUpdated")
 	// }
-
 	resp := result.Status
 	switch resp.Status {
+	case pb.PayloadStatus_ACCEPTED:
 	case pb.PayloadStatus_SYNCING:
 		return nil, nil, execution.ErrAcceptedSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.LatestValidHash, execution.ErrInvalidPayloadStatus
-	case pb.PayloadStatus_ACCEPTED: // handle something with how this accepted means reorg?
-		return result.PayloadId, resp.LatestValidHash, nil
 	case pb.PayloadStatus_VALID:
 		return result.PayloadId, resp.LatestValidHash, nil
-	case pb.PayloadStatus_INVALID_BLOCK_HASH:
-		return nil, nil, execution.ErrInvalidBlockHashPayloadStatus
 	case pb.PayloadStatus_UNKNOWN:
 		return nil, nil, execution.ErrUnknownPayloadStatus
-	default:
-		return nil, nil, execution.ErrUnknownPayloadStatus
+	case pb.PayloadStatus_INVALID_BLOCK_HASH:
+		return nil, nil, execution.ErrInvalidBlockHashPayloadStatus
 	}
+	return nil, nil, execution.ErrUnknownPayloadStatus
 }
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
 // It returns the execution data as well as the blobs bundle.
-func (s *Service) GetPayload(ctx context.Context, payloadID [8]byte, slot primitives.Slot) (
-	interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
-	// ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.GetPayload")
-	// defer span.End()
-	// start := time.Now()
-	// defer func() {
-	// 	getPayloadLatency.Observe(float64(time.Since(start).Milliseconds()))
-	// }()
-
-	_ = slot
+func (s *Service) GetPayload(ctx context.Context, payloadId [8]byte, slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
 	d := time.Now().Add(defaultEngineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 
-	// if slots.ToEpoch(slot) >= params.BeaconConfig().DenebForkEpoch {
-	// 	result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-	// 	err := s.ec.Client().CallContext(ctx, result, execution.GetPayloadMethodV3,
-	// 		pb.PayloadIDBytes(payloadID))
-	// 	if err != nil {
-	// 		return nil, nil, false, handleRPCError(err)
-	// 	}
-	// 	ed, err := blocks.WrappedExecutionPayloadDeneb(result.Payload,
-	// 		blocks.PayloadValueToGwei(result.Value))
-	// 	if err != nil {
-	// 		return nil, nil, false, err
-	// 	}
-	// 	return ed, result.BlobsBundle, result.ShouldOverrideBuilder, nil
-	// }
+	if slots.ToEpoch(slot) >= params.BeaconConfig().DenebForkEpoch {
+		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
+		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadId))
+		if err != nil {
+			return nil, nil, false, handleRPCError(err)
+		}
+		ed, err := blocks.WrappedExecutionPayloadDeneb(result.Payload, blocks.PayloadValueToGwei(result.Value))
+		if err != nil {
+			return nil, nil, false, err
+		}
+		return ed, result.BlobsBundle, result.ShouldOverrideBuilder, nil
+	}
 
-	// if slots.ToEpoch(slot) >= params.BeaconConfig().CapellaForkEpoch {
-	result := &pb.ExecutionPayloadCapellaWithValue{}
-	err := s.ec.Client().CallContext(ctx, result, execution.GetPayloadMethodV2,
-		pb.PayloadIDBytes(payloadID))
+	if slots.ToEpoch(slot) >= params.BeaconConfig().CapellaForkEpoch {
+		result := &pb.ExecutionPayloadCapellaWithValue{}
+		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadId))
+		if err != nil {
+			return nil, nil, false, handleRPCError(err)
+		}
+		ed, err := blocks.WrappedExecutionPayloadCapella(result.Payload, blocks.PayloadValueToGwei(result.Value))
+		if err != nil {
+			return nil, nil, false, err
+		}
+		return ed, nil, false, nil
+	}
+
+	result := &pb.ExecutionPayload{}
+	err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadId))
 	if err != nil {
 		return nil, nil, false, handleRPCError(err)
 	}
-	ed, err := blocks.WrappedExecutionPayloadCapella(result.Payload,
-		blocks.PayloadValueToGwei(result.Value))
+	ed, err := blocks.WrappedExecutionPayload(result)
 	if err != nil {
 		return nil, nil, false, err
 	}
-	// return ed, nil, false, nil
-	// }
-
-	// result := &pb.ExecutionPayload{}
-	// err := s.ec.Client().CallContext(ctx, result, execution.GetPayloadMethod,
-	// 	pb.PayloadIDBytes(payloadID),
-	// )
-	// if err != nil {
-	// 	return nil, nil, false, handleRPCError(err)
-	// }
-	// ed, err := blocks.WrappedExecutionPayload(result)
-	// if err != nil {
-	// 	return nil, nil, false, err
-	// }
 	return ed, nil, false, nil
 }
 
@@ -281,7 +291,7 @@ func (s *Service) LatestExecutionBlock(ctx context.Context) (*pb.ExecutionBlock,
 	defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.ec.Client().CallContext(
+	err := s.ec.Client.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -298,7 +308,7 @@ func (s *Service) LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, erro
 	defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.ec.Client().CallContext(
+	err := s.ec.Client.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -315,7 +325,7 @@ func (s *Service) EarliestBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 	// defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.ec.Client().CallContext(
+	err := s.ec.Client.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -332,7 +342,7 @@ func (s *Service) LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock,
 	defer span.End()
 
 	result := &pb.ExecutionBlock{}
-	err := s.ec.Client().CallContext(
+	err := s.ec.Client.Client().CallContext(
 		ctx,
 		result,
 		execution.ExecutionBlockByNumberMethod,
@@ -349,7 +359,7 @@ func (s *Service) ExecutionBlockByHash(ctx context.Context, hash common.Hash, wi
 	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.ExecutionBlockByHash")
 	defer span.End()
 	result := &pb.ExecutionBlock{}
-	err := s.ec.Client().CallContext(ctx, result, execution.ExecutionBlockByHashMethod, hash, withTxs)
+	err := s.ec.Client.Client().CallContext(ctx, result, execution.ExecutionBlockByHashMethod, hash, withTxs)
 	return result, handleRPCError(err)
 }
 
@@ -376,7 +386,7 @@ func (s *Service) ExecutionBlocksByHashes(ctx context.Context, hashes []common.H
 		})
 		execBlks = append(execBlks, blk)
 	}
-	ioErr := s.ec.Client().BatchCall(elems)
+	ioErr := s.ec.Client.Client().BatchCall(elems)
 	if ioErr != nil {
 		return nil, ioErr
 	}
@@ -392,7 +402,7 @@ func (s *Service) ExecutionBlocksByHashes(ctx context.Context, hashes []common.H
 func (s *Service) HeaderByHash(ctx context.Context, hash common.Hash,
 ) (*types.HeaderInfo, error) {
 	var hdr *types.HeaderInfo
-	err := s.ec.Client().CallContext(ctx, &hdr,
+	err := s.ec.Client.Client().CallContext(ctx, &hdr,
 		execution.ExecutionBlockByHashMethod, hash, false /* no transactions */)
 	if err == nil && hdr == nil {
 		err = ethereum.NotFound
@@ -404,7 +414,7 @@ func (s *Service) HeaderByHash(ctx context.Context, hash common.Hash,
 func (s *Service) HeaderByNumber(ctx context.Context, number *big.Int,
 ) (*types.HeaderInfo, error) {
 	var hdr *types.HeaderInfo
-	err := s.ec.Client().CallContext(ctx, &hdr,
+	err := s.ec.Client.Client().CallContext(ctx, &hdr,
 		execution.ExecutionBlockByNumberMethod, toBlockNumArg(number), false /* no transactions */)
 	if err == nil && hdr == nil {
 		err = ethereum.NotFound
@@ -420,7 +430,7 @@ func (s *Service) GetPayloadBodiesByHash(
 	defer span.End()
 
 	result := make([]*pb.ExecutionPayloadBodyV1, 0)
-	err := s.ec.Client().CallContext(ctx, &result,
+	err := s.ec.Client.Client().CallContext(ctx, &result,
 		execution.GetPayloadBodiesByHashV1, executionBlockHashes)
 
 	for i, item := range result {
@@ -442,7 +452,7 @@ func (s *Service) GetPayloadBodiesByRange(
 	defer span.End()
 
 	result := make([]*pb.ExecutionPayloadBodyV1, 0)
-	err := s.ec.Client().CallContext(ctx, &result,
+	err := s.ec.Client.Client().CallContext(ctx, &result,
 		execution.GetPayloadBodiesByRangeV1, start, count)
 
 	for i, item := range result {

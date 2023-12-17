@@ -33,7 +33,6 @@ import (
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
 // to sync up and the consensus client shouldn't join the validator set yet.
-
 const PayloadPosition = 0
 
 type ProposalHandler2 struct {

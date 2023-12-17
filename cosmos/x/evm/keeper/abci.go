@@ -22,39 +22,11 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/store"
 )
 
 // Precommit runs on the Cosmos-SDK lifecycle Precommit().
-func (k *Keeper) EndBlock(ctx context.Context) error {
-	sCtx := sdk.UnwrapSDKContext(ctx)
-
-	fmt.Println("RETRIEVE GENESIS IN PRECOMMIT", store.NewGenesis(sCtx.KVStore(k.storeKey)).Retrieve())
-
-	// Verify that the EVM block was written.
-	// 	// TODO: Set/GetHead to set and get the canonical head.
-	// 	blockNum := uint64(sdk.UnwrapSDKContext(ctx).BlockHeight())
-	// 	block := k.executionClient.Eth.GetBlockByNumber(blockNum)
-	// // The code block is performing a verification check on the EVM block.
-	// It first checks if the EVM block
-	// // is nil, which means that the block was not successfully written. If it is
-	//  nil, it throws a panic
-	// // with an error message indicating the failure at the specific block number.
-	// 	if block == nil {
-	// 		panic(
-	// 			fmt.Sprintf("EVM BLOCK FAILURE AT BLOCK %d", blockNum),
-	// 		)
-	// 	} else if block.NumberU64() != blockNum {
-	// 		panic(
-	// 			fmt.Sprintf(
-	// 				"EVM BLOCK [%d] DOES NOT MATCH COMET BLOCK [%d]", block.NumberU64(), blockNum,
-	// 			),
-	// 		)
-	// 	}
-	// k.SetLatestForkChoice(ctx, k.forkchoiceState)
+func (k *Keeper) EndBlock(_ context.Context) error {
+	// sCtx := sdk.UnwrapSDKContext(ctx)
 	return nil
 }
 

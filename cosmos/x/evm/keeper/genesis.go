@@ -27,10 +27,11 @@ import (
 	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
 )
 
-func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) error {
+func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	genesisStore.Store(data.Eth1GenesisHash)
-	return nil
+	if err := genesisStore.Store(data.Eth1GenesisHash); err != nil {
+		panic(err)
+	}
 }
 
 func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {

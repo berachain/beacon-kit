@@ -30,10 +30,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 
-	"github.com/ethereum/go-ethereum/ethclient"
-
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	authethclient "github.com/itsdevbear/bolaris/beacon/execution/eth"
+	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	"github.com/itsdevbear/bolaris/cosmos/config"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
@@ -83,17 +81,25 @@ func New(
 	if err != nil {
 		return nil, err
 	}
-	// Connect to the execution client.
-	var ethClient *ethclient.Client
-	ethClient, err = authethclient.NewAuthenticatedEthClient(
-		cfg.ExecutionClient.RPCDialURL, cfg.ExecutionClient.JWTSecretPath, logger,
-	)
 
-	p.Service = execution.NewEngineClientService(ethClient)
-
+	// p.Service = execution.NewEngineClientService(ethClient)
+	jwtSecert, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
 	if err != nil {
 		return nil, err
 	}
+
+	opts := []eth.Option{
+		eth.WithHTTPEndpointAndJWTSecret(cfg.ExecutionClient.RPCDialURL, jwtSecert),
+		eth.WithLogger(logger),
+		eth.WithRequiredChainID(cfg.ExecutionClient.RequiredChainID),
+	}
+
+	eth1Client, err := eth.NewEth1Client(context.Background(), opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	p.Service = execution.NewEngineClientService(eth1Client)
 
 	return p, nil
 }
