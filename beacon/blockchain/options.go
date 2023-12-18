@@ -50,6 +50,7 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
+// WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider for the Service.
 func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
 	return func(s *Service) error {
 		s.fcsp = fcsp
@@ -57,6 +58,7 @@ func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
 	}
 }
 
+// WithEngineCaller is an option to set the EngineCaller for the Service.
 func WithEngineCaller(ec execution.EngineCaller) Option {
 	return func(s *Service) error {
 		s.engine = ec

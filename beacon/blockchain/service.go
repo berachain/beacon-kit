@@ -105,6 +105,10 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 	// 	return nil, err
 	// }
 
+	// // TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
+	// // The blind finalization is "sorta safe" cause we will get an STATUS_INVALID From the forkchoice update
+	// // if it is deemed ot break the rules of the execution layer.
+	// // still needs to be addressed of course.
 	fcs := &enginev1.ForkchoiceState{
 		HeadBlockHash:      arg.headHash,
 		SafeBlockHash:      arg.headHash, // currSafeBlk[:],

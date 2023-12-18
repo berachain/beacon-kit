@@ -27,17 +27,48 @@ package forkchoice
 
 import (
 	"context"
+	"time"
 
+	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-func (m *Service) boostrapForkChoiceHacky(ctx context.Context) *enginev1.ForkchoiceState {
+func (m *Service) SyncEl(ctx context.Context) error {
+	// Trigger the execution client to begin building the block, and update
+	// the proposers forkchoice state accordingly.
+
+	// TODO `block` needs to come from the latest blocked stored IAVL tree
+	// on the consensus client.
+	// block, _ := m.EngineCaller.EarliestBlock(ctx)
+
+	m.getForkchoiceFromExecutionClient(ctx)
+	// genesisHash := m.ek.RetrieveGenesis(ctx)
+	m.logger.Info("waiting for execution client to finish sync")
+	for {
+		var err error
+		fc := m.curForkchoiceState
+		payloadID, lastValidHash, err := m.EngineCaller.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
+		if err == nil {
+			break
+		}
+
+		m.curForkchoiceState = fc
+		m.logger.Info("waiting for execution client to sync", "error", err)
+		m.logger.Info("waiting for execution client to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
+		time.Sleep(1 * time.Second)
+	}
+
+	return nil
+}
+
+// TODO DEPRECATE ME
+func (m *Service) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	var latestBlock *enginev1.ExecutionBlock
 	var err error
 	latestBlock, err = m.EngineCaller.LatestExecutionBlock(ctx)
 	if err != nil {
 		m.logger.Error("failed to get block number", "err", err)
-		return nil
+		return err
 	}
 
 	m.curForkchoiceState.HeadBlockHash = latestBlock.Hash.Bytes()
@@ -61,5 +92,5 @@ func (m *Service) boostrapForkChoiceHacky(ctx context.Context) *enginev1.Forkcho
 	m.curForkchoiceState.FinalizedBlockHash = final.Hash.Bytes()
 	m.logger.Info("forkchoice state", "finalized", final.Hash)
 
-	return m.curForkchoiceState
+	return nil
 }

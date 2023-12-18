@@ -27,7 +27,6 @@
 package forkchoice
 
 import (
-	"context"
 	"crypto/rand"
 	"errors"
 	"time"
@@ -73,68 +72,6 @@ func New(gm execution.EngineCaller, bk *blockchain.Service, ek *BeaconKeeper.Kee
 		ek:                 ek,
 		bk:                 bk,
 	}
-}
-
-// TODO DEPRECATE ME
-func (m *Service) getForkchoiceFromExecutionClient(ctx context.Context) error {
-	var latestBlock *pb.ExecutionBlock
-	var err error
-	latestBlock, err = m.EngineCaller.LatestExecutionBlock(ctx)
-	if err != nil {
-		m.logger.Error("failed to get block number", "err", err)
-		return err
-	}
-
-	m.curForkchoiceState.HeadBlockHash = latestBlock.Hash.Bytes()
-	m.logger.Info("forkchoice state", "head", latestBlock.Header.Hash())
-
-	safe, err := m.EngineCaller.LatestSafeBlock(ctx)
-	if err != nil {
-		m.logger.Error("failed to get safe block", "err", err)
-		safe = latestBlock
-	}
-
-	m.curForkchoiceState.SafeBlockHash = safe.Hash.Bytes()
-
-	final, err := m.EngineCaller.LatestFinalizedBlock(ctx)
-	m.logger.Info("forkchoice state", "finalized", safe.Hash)
-	if err != nil {
-		m.logger.Error("failed to get final block", "err", err)
-		final = latestBlock
-	}
-
-	m.curForkchoiceState.FinalizedBlockHash = final.Hash.Bytes()
-	m.logger.Info("forkchoice state", "finalized", final.Hash)
-
-	return nil
-}
-
-func (m *Service) SyncEl(ctx context.Context) error {
-	// Trigger the execution client to begin building the block, and update
-	// the proposers forkchoice state accordingly.
-
-	// TODO `block` needs to come from the latest blocked stored IAVL tree
-	// on the consensus client.
-	// block, _ := m.EngineCaller.EarliestBlock(ctx)
-
-	m.getForkchoiceFromExecutionClient(ctx)
-	// genesisHash := m.ek.RetrieveGenesis(ctx)
-	m.logger.Info("waiting for execution client to finish sync")
-	for {
-		var err error
-		fc := m.curForkchoiceState
-		payloadID, lastValidHash, err := m.EngineCaller.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
-		if err == nil {
-			break
-		}
-
-		m.curForkchoiceState = fc
-		m.logger.Info("waiting for execution client to sync", "error", err)
-		m.logger.Info("waiting for execution client to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
-		time.Sleep(1 * time.Second)
-	}
-
-	return nil
 }
 
 func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) {
@@ -225,40 +162,11 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 }
 
 func (m *Service) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
-	// // NewPayload calls "InsertBlockWithoutSetHead"
-	// lastValidHash, _ := m.NewPayload(ctx, builtPayload, []common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
-	// fmt.Println("LAST VALID HASH FOUND ON ETH ONE", common.Bytes2Hex(lastValidHash))
 	payload, err := m.bk.ProcessBlock(ctx, ctx.HeaderInfo(), builtPayload)
 	if err != nil {
 		return err
 	}
 	m.cachedPayload = payload
-	// // TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
-	// // The blind finalization is "sorta safe" cause we will get an STATUS_INVALID From the forkchoice update
-	// // if it is deemed ot break the rules of the execution layer.
-	// // still needs to be addressed of course.
-	// fc := &pb.ForkchoiceState{
-	// 	HeadBlockHash:      builtPayload.BlockHash(),
-	// 	SafeBlockHash:      builtPayload.BlockHash(),
-	// 	FinalizedBlockHash: builtPayload.BlockHash(),
-	// }
-
-	// attrs, err := m.getPayloadAttributes(ctx)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// // Update forkchoice and start building the next block.
-	// m.cachedPayload, _, err = m.EngineCaller.ForkchoiceUpdated(ctx, fc, attrs)
-	// if errors.Is(err, prysmexecution.ErrAcceptedSyncingPayloadStatus) {
-	// 	// retry as we are waiting for the import?
-	// }
-	// if err != nil {
-	// 	m.logger.Error("failed to get forkchoice updated", "err", err)
-	// 	return err
-	// }
-
-	// m.logger.Info("successfully validated execution layer block", "hash", common.Bytes2Hex(builtPayload.BlockHash()))
 	return nil
 }
 
