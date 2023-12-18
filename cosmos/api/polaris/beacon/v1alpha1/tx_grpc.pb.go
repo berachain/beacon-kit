@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: polaris/evm/v1alpha1/tx.proto
+// source: polaris/beacon/v1alpha1/tx.proto
 
-package evmv1alpha1
+package beaconv1alpha1
 
 import (
 	grpc "google.golang.org/grpc"
@@ -59,9 +59,9 @@ func RegisterMsgServiceServer(s grpc.ServiceRegistrar, srv MsgServiceServer) {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var MsgService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "polaris.evm.v1alpha1.MsgService",
+	ServiceName: "polaris.beacon.v1alpha1.MsgService",
 	HandlerType: (*MsgServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams:     []grpc.StreamDesc{},
-	Metadata:    "polaris/evm/v1alpha1/tx.proto",
+	Metadata:    "polaris/beacon/v1alpha1/tx.proto",
 }

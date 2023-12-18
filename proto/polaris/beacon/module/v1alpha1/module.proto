@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package polaris.beacon.module.v1alpha1;
+
+import "cosmos/app/v1alpha1/module.proto";
+
+// Module is the config object of the evm module.
+message Module {
+  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/itsdevbear/bolaris/cosmos/x/beacon"};
+}

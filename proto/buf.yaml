@@ -12,9 +12,9 @@ lint:
     - FILE_LOWER_SNAKE_CASE
   ignore_only:
     RPC_REQUEST_STANDARD_NAME:
-      - polaris/evm/v1alpha1
+      - polaris/beacon/v1alpha1
     RPC_RESPONSE_STANDARD_NAME:
-      - polaris/evm/v1alpha1
+      - polaris/beacon/v1alpha1
 
 breaking:
   use:

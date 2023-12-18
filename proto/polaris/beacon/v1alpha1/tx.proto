@@ -1,11 +1,11 @@
 syntax = "proto3";
-package polaris.evm.v1alpha1;
+package polaris.beacon.v1alpha1;
 
 import "cosmos/msg/v1/msg.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/cosmos/x/evm/types";
+option go_package = "github.com/itsdevbear/bolaris/cosmos/x/beacon/types";
 
-// Msg defines the x/evm Msg service.
+// Msg defines the x/beacon Msg service.
 service MsgService {
   option (cosmos.msg.v1.service) = true;
 }

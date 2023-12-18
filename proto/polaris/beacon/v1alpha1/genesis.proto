@@ -1,9 +1,9 @@
 syntax = "proto3";
-package polaris.evm.v1alpha1;
+package polaris.beacon.v1alpha1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/cosmos/x/evm/types";
+option go_package = "github.com/itsdevbear/bolaris/cosmos/x/beacon/types";
 
 // GenesisState is the genesis-state for the x/oracle module, it takes a set of
 // predefined CurrencyPairGeneses

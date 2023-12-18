@@ -39,12 +39,11 @@ import (
 	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
-	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
 	"github.com/itsdevbear/bolaris/types/config"
 )
 
-// EVMKeeper is an interface that defines the methods needed for the EVM setup.
-type EVMKeeper interface {
+// BeaconKeeper is an interface that defines the methods needed for the EVM setup.
+type BeaconKeeper interface {
 	// Setup initializes the EVM keeper.
 	Setup(execution.EngineCaller) error
 }
@@ -125,9 +124,9 @@ func MustNew(appOpts servertypes.AppOptions, logger log.Logger) *Polaris {
 }
 
 // Build is a function that sets up the Polaris struct.
-// It takes a BaseApp and an EVMKeeper as arguments.
+// It takes a BaseApp and an BeaconKeeper as arguments.
 // It returns an error if the setup fails.
-func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *evmkeeper.Keeper) error {
+func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *BeaconKeeper.Keeper) error {
 	// todo use `vs` later?
 	_ = vs
 	mempool := mempool.NewSenderNonceMempool()

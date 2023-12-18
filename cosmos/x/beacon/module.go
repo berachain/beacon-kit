@@ -40,11 +40,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
+	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
+	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
 )
 
-// ConsensusVersion defines the current x/evm module consensus version.
+// ConsensusVersion defines the current x/beacon module consensus version.
 const ConsensusVersion = 1
 
 var (

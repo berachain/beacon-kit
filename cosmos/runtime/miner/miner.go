@@ -44,7 +44,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
+	BeaconKeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
 
 // emptyHash is a common.Hash initialized to all zeros.
@@ -59,7 +59,7 @@ type EnvelopeSerializer interface {
 // Miner implements the baseapp.TxSelector interface.
 type Miner struct {
 	execution.EngineCaller
-	ek                 *evmkeeper.Keeper
+	ek                 *BeaconKeeper.Keeper
 	serializer         EnvelopeSerializer
 	etherbase          common.Address
 	curForkchoiceState *pb.ForkchoiceState
@@ -68,7 +68,7 @@ type Miner struct {
 }
 
 // New produces a cosmos miner from a geth miner.
-func New(gm execution.EngineCaller, ek *evmkeeper.Keeper, logger log.Logger) *Miner {
+func New(gm execution.EngineCaller, ek *BeaconKeeper.Keeper, logger log.Logger) *Miner {
 	return &Miner{
 		EngineCaller:       gm,
 		curForkchoiceState: &pb.ForkchoiceState{},

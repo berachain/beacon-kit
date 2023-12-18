@@ -23,25 +23,50 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper
+package evm
 
 import (
+	"encoding/json"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/store"
-	"github.com/itsdevbear/bolaris/cosmos/x/evm/types"
+	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
 )
 
-func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
-	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	if err := genesisStore.Store(data.Eth1GenesisHash); err != nil {
-		panic(err)
-	}
+// DefaultGenesis returns default genesis state as raw bytes for the evm
+// module.
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesis())
 }
 
-func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	return &types.GenesisState{
-		Eth1GenesisHash: genesisStore.Retrieve().Hex(),
-	}
+// ValidateGenesis performs genesis state validation for the evm module.
+func (AppModuleBasic) ValidateGenesis(
+	_ codec.JSONCodec,
+	_ client.TxEncodingConfig,
+	_ json.RawMessage,
+) error {
+	return nil
+}
+
+// InitGenesis performs genesis initialization for the evm module. It returns
+// no validator updates.
+func (am AppModule) InitGenesis(
+	ctx sdk.Context,
+	cdc codec.JSONCodec,
+	bz json.RawMessage,
+) []abci.ValidatorUpdate {
+	var gs types.GenesisState
+	cdc.MustUnmarshalJSON(bz, &gs)
+	am.keeper.InitGenesis(ctx, gs)
+	return []abci.ValidatorUpdate{}
+}
+
+// ExportGenesis returns the exported genesis state as raw bytes for the evm
+// module.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
 }

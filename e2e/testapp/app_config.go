@@ -62,8 +62,8 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	evmmodulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/evm/module/v1alpha1"
-	evmtypes "github.com/itsdevbear/bolaris/cosmos/x/evm/types"
+	evmmodulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/beacon/module/v1alpha1"
+	beacontypes "github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
 
 	_ "cosmossdk.io/x/evidence"                       // import for side-effects
 	_ "cosmossdk.io/x/upgrade"                        // import for side-effects
@@ -78,7 +78,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/mint"           // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/slashing"       // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/staking"        // import for side-effects
-	_ "github.com/itsdevbear/bolaris/cosmos/x/evm"    // import for side-effects
+	_ "github.com/itsdevbear/bolaris/cosmos/x/beacon" // import for side-effects
 )
 
 var (
@@ -94,7 +94,7 @@ var (
 			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
 		{Account: govtypes.ModuleName,
 			Permissions: []string{authtypes.Burner}},
-		{Account: evmtypes.ModuleName,
+		{Account: beacontypes.ModuleName,
 			Permissions: []string{authtypes.Minter, authtypes.Burner}},
 	}
 
@@ -131,7 +131,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 					// CanWithdrawInvariant invariant.
 					// NOTE: staking module is required if HistoricalEntries param > 0
 					PrepareCheckStaters: []string{
-						evmtypes.ModuleName,
+						beacontypes.ModuleName,
 					},
 					PreBlockers: []string{
 						upgradetypes.ModuleName,
@@ -148,7 +148,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 						crisistypes.ModuleName,
 						govtypes.ModuleName,
 						stakingtypes.ModuleName,
-						evmtypes.ModuleName,
+						beacontypes.ModuleName,
 						genutiltypes.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
@@ -175,7 +175,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 						upgradetypes.ModuleName,
 						vestingtypes.ModuleName,
 						consensustypes.ModuleName,
-						evmtypes.ModuleName,
+						beacontypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis module order
 					// is equal to the init genesis order
@@ -250,7 +250,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 				Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
 			},
 			{
-				Name:   evmtypes.ModuleName,
+				Name:   beacontypes.ModuleName,
 				Config: appconfig.WrapAny(&evmmodulev1alpha1.Module{}),
 			},
 		},

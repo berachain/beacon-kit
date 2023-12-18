@@ -62,7 +62,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	polarruntime "github.com/itsdevbear/bolaris/cosmos/runtime"
-	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
+	BeaconKeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -108,7 +108,7 @@ type SimApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// polaris required keeper
-	EVMKeeper *evmkeeper.Keeper
+	BeaconKeeper *BeaconKeeper.Keeper
 }
 
 // NewPolarisApp returns a reference to an initialized SimApp.
@@ -181,7 +181,7 @@ func NewPolarisApp(
 		&app.UpgradeKeeper,
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
-		&app.EVMKeeper,
+		&app.BeaconKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -190,7 +190,7 @@ func NewPolarisApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Setup Polaris Runtime.
-	if err := app.Polaris.Build(app.BaseApp, app.StakingKeeper, app.EVMKeeper); err != nil {
+	if err := app.Polaris.Build(app.BaseApp, app.StakingKeeper, app.BeaconKeeper); err != nil {
 		panic(err)
 	}
 
