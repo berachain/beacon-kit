@@ -26,8 +26,6 @@
 package proposal
 
 import (
-	"fmt"
-
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -95,10 +93,11 @@ func (h *Handler) ProcessProposalHandler(
 	logger := ctx.Logger().With("module", "process-proposal")
 
 	// Extract the marshalled payload from the proposal
-	fmt.Println("REQ", req)
+	if len(req.Txs) == 0 {
+		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+	}
 	bz := req.Txs[PayloadPosition]
 	req.Txs = req.Txs[1:]
-	fmt.Println("BZ", bz)
 
 	if bz == nil {
 		logger.Error("payload missing from proposal")
@@ -107,7 +106,7 @@ func (h *Handler) ProcessProposalHandler(
 	payload := new(enginev1.ExecutionPayloadCapellaWithValue)
 	payload.Payload = new(enginev1.ExecutionPayloadCapella)
 	if err := payload.Payload.UnmarshalSSZ(bz); err != nil {
-		logger.Error("failed to unmarshal payload", "err", err)
+		logger.Error("payload in beacon block could not be unmarshalled", "err", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 	}
 	// todo handle hardforks without needing codechange.
@@ -120,7 +119,6 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 	}
 
-	fmt.Println("VALIDATING BLOCK")
 	if err = h.forkchoiceService.ValidateBlock(ctx, data); err != nil {
 		logger.Error("failed to validate block", "err", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil

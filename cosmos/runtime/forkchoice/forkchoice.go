@@ -30,7 +30,6 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
-	"fmt"
 	"time"
 
 	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
@@ -129,7 +128,6 @@ func (m *Service) SyncEl(ctx context.Context) error {
 			break
 		}
 
-		fmt.Println("PAYLOAD ID")
 		m.curForkchoiceState = fc
 		m.logger.Info("waiting for execution client to sync", "error", err)
 		m.logger.Info("waiting for execution client to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
@@ -197,7 +195,7 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 	builtPayload, _, _, err := m.EngineCaller.GetPayload(
 		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()))
 	if err != nil {
-		m.logger.Error("failed to get previosuly queued payload", "err", err, "payloadID", payloadID)
+		m.logger.Error("failed to get previously queued payload", "err", err, "payloadID", payloadID)
 		return nil, err
 	}
 

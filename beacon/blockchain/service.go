@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package blockchain
 
 import (
@@ -7,16 +32,19 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/core/header"
-	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/config"
-	v1 "github.com/itsdevbear/bolaris/types/v1"
 	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+
+	"cosmossdk.io/core/header"
+	"cosmossdk.io/log"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types/config"
+	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
 // var defaultLatestValidHash = bytesutil.PadTo([]byte{0xff}, 32)
@@ -79,7 +107,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 
 	fcs := &enginev1.ForkchoiceState{
 		HeadBlockHash:      arg.headHash,
-		SafeBlockHash:      arg.headHash, //currSafeBlk[:],
+		SafeBlockHash:      arg.headHash, // currSafeBlk[:],
 		FinalizedBlockHash: arg.headHash, // currFinalizedBlk[:],
 	}
 	// We want to start building the next block as part of this forkchoice update.
@@ -187,17 +215,14 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 	return payloadID, nil
 }
 
-// It returns true if the EL has returned VALID for the block
+// It returns true if the EL has returned VALID for the block.
 func (s *Service) notifyNewPayload(ctx context.Context, preStateVersion int,
 	preStateHeader interfaces.ExecutionData, blk interfaces.ReadOnlySignedBeaconBlock) (bool, error) {
-	fmt.Println("NOTIFY NEW PAYLOAD")
-	fmt.Println("ENGINE NIL", s.engine)
-	fmt.Println("PALYOAD NIL", preStateHeader)
 	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader, []common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
 }
 
-// validateExecutionOnBlock notifies the engine of the incoming block execution payload and returns true if the payload is valid
+// validateExecutionOnBlock notifies the engine of the incoming block execution payload and returns true if the payload is valid.
 func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int, header interfaces.ExecutionData, signed interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte) (bool, error) {
 	isValidPayload, err := s.notifyNewPayload(ctx, ver, header, signed)
 	if err != nil {
