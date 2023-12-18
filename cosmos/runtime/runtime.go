@@ -38,9 +38,9 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
-	"github.com/itsdevbear/bolaris/cosmos/config"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
 	evmkeeper "github.com/itsdevbear/bolaris/cosmos/x/evm/keeper"
+	"github.com/itsdevbear/bolaris/types/config"
 )
 
 // EVMKeeper is an interface that defines the methods needed for the EVM setup.

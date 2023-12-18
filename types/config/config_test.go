@@ -29,7 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	sgconfig "github.com/itsdevbear/bolaris/cosmos/config"
+	sgconfig "github.com/itsdevbear/bolaris/types/config"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

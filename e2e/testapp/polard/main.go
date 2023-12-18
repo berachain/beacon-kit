@@ -32,9 +32,9 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/itsdevbear/bolaris/cosmos/config"
 	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
 	"github.com/itsdevbear/bolaris/e2e/testapp/polard/cmd"
+	"github.com/itsdevbear/bolaris/types/config"
 )
 
 func main() {

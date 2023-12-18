@@ -3,7 +3,7 @@ mockname: "{{.InterfaceNameCamel}}"
 filename: "{{.InterfaceNameSnake}}.go"
 outpkg: "mocks"
 packages:
-  github.com/itsdevbear/bolaris/cosmos/config:
+  github.com/itsdevbear/bolaris/types/config:
     config:
       recursive: True
       with-expecter: true

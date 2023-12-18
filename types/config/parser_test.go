@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/itsdevbear/bolaris/cosmos/config/mocks"
+	"github.com/itsdevbear/bolaris/types/config/mocks"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -41,7 +41,7 @@ import (
 
 func TestConfig(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "cosmos/config")
+	RunSpecs(t, "types/config")
 }
 
 var _ = Describe("Parser", func() {

@@ -28,7 +28,7 @@ package execution
 import (
 	"cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/cosmos/config"
+	"github.com/itsdevbear/bolaris/types/config"
 )
 
 type Option func(*engineCaller) error

@@ -67,8 +67,8 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	evmconfig "github.com/itsdevbear/bolaris/cosmos/config"
 	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
+	evmconfig "github.com/itsdevbear/bolaris/types/config"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.

@@ -58,7 +58,7 @@ import (
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
-	"github.com/itsdevbear/bolaris/cosmos/config"
+	"github.com/itsdevbear/bolaris/types/config"
 )
 
 const (
