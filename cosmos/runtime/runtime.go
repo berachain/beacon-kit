@@ -39,6 +39,7 @@ import (
 	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
+	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 	"github.com/itsdevbear/bolaris/types/config"
 )
 
@@ -126,7 +127,7 @@ func MustNew(appOpts servertypes.AppOptions, logger log.Logger) *Polaris {
 // Build is a function that sets up the Polaris struct.
 // It takes a BaseApp and an BeaconKeeper as arguments.
 // It returns an error if the setup fails.
-func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *BeaconKeeper.Keeper) error {
+func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeeper.Keeper) error {
 	// todo use `vs` later?
 	_ = vs
 	mempool := mempool.NewSenderNonceMempool()
