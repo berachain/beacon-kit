@@ -4,8 +4,6 @@ go 1.21
 
 replace (
 	github.com/cockroachdb/pebble => github.com/cockroachdb/pebble v0.0.0-20230928194634-aa077af62593
-	github.com/itsdevbear/bolaris/beacon => ../../beacon
-	github.com/itsdevbear/bolaris/cosmos => ../../cosmos
 
 	// Required at the moment until a bug in the comsos-sdk is fixed.
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -16,8 +14,9 @@ require (
 	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
-	github.com/itsdevbear/bolaris/beacon v0.0.0-20231023044153-56b3b6f3e081
-	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231023044153-56b3b6f3e081
+	github.com/itsdevbear/bolaris/beacon v0.0.0-20231218004434-3a750e39d523
+	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231218004434-3a750e39d523
+	github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523
 )
 
 require (
@@ -78,6 +77,7 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
+	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
@@ -112,7 +112,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/getsentry/sentry-go v0.25.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
