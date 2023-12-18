@@ -91,7 +91,7 @@ func DefaultBeaconConfig() Beacon {
 		AltairForkEpoch:    0,
 		BellatrixForkEpoch: 0,
 		CapellaForkEpoch:   0,
-		DenebForkEpoch:     primitives.Epoch(10000000000),
+		DenebForkEpoch:     primitives.Epoch(4294967295), //nolint:gomnd // default config.
 	}
 }
 

@@ -5,7 +5,6 @@ go 1.21
 require (
 	cosmossdk.io/log v1.2.1
 	github.com/ethereum/go-ethereum v1.13.5
-	github.com/holiman/uint256 v1.2.3
 	github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/prysm/v4 v4.1.1
@@ -110,6 +109,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.1.0 // indirect
 	github.com/herumi/bls-eth-go-binary v0.0.0-20210917013441-d37c07cfda4e // indirect
+	github.com/holiman/uint256 v1.2.3 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

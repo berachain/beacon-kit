@@ -246,6 +246,7 @@ services:
       --authrpc.jwtsecret /root/ethgen/jwt.hex
       --http.corsdomain "*"
       --http.port 11545
+      --http.addr 192.168.10.17
       --authrpc.port 11551
       --authrpc.addr 192.168.10.17
       --discovery.addr 192.168.10.17

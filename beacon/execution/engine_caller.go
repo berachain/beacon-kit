@@ -33,7 +33,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/holiman/uint256"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution/types"
@@ -77,7 +76,7 @@ type EngineCaller interface {
 	ForkchoiceUpdated(
 		ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
 	) (*pb.PayloadIDBytes, []byte, error)
-	GetPayload(ctx context.Context, payloadId [8]byte,
+	GetPayload(ctx context.Context, payloadID [8]byte,
 		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
 
@@ -99,7 +98,7 @@ type engineCaller struct {
 
 // NewEngineCaller creates a new engine client engineCaller.
 // It takes an Eth1Client as an argument and returns a pointer to an engineCaller.
-func NewEngineCaller(ethclient *eth.Eth1Client, opts ...Option) *engineCaller {
+func NewEngineCaller(ethclient *eth.Eth1Client, opts ...Option) EngineCaller {
 	ec := &engineCaller{
 		ec: ethclient,
 	}
@@ -248,14 +247,14 @@ func (s *engineCaller) ForkchoiceUpdated(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
 // It returns the execution data as well as the blobs bundle.
-func (s *engineCaller) GetPayload(ctx context.Context, payloadId [8]byte, slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
+func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte, slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
 	d := time.Now().Add(defaultEngineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 
 	if slots.ToEpoch(slot) >= s.beaconCfg.DenebForkEpoch {
 		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadId))
+		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -268,7 +267,7 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadId [8]byte, slot p
 
 	if slots.ToEpoch(slot) >= s.beaconCfg.CapellaForkEpoch {
 		result := &pb.ExecutionPayloadCapellaWithValue{}
-		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadId))
+		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -280,7 +279,7 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadId [8]byte, slot p
 	}
 
 	result := &pb.ExecutionPayload{}
-	err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadId))
+	err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
@@ -938,18 +937,6 @@ type httpTimeoutError interface {
 func isTimeout(e error) bool {
 	t, ok := e.(httpTimeoutError) //nolint:errorlint // from prysm.
 	return ok && t.Timeout()
-}
-
-func tDStringToUint256(td string) (*uint256.Int, error) {
-	b, err := hexutil.DecodeBig(td)
-	if err != nil {
-		return nil, err
-	}
-	i, overflows := uint256.FromBig(b)
-	if overflows {
-		return nil, errors.New("total difficulty overflowed")
-	}
-	return i, nil
 }
 
 func buildEmptyExecutionPayload(v int) (proto.Message, error) {
