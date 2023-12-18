@@ -35,10 +35,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 
+	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
-	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
+	"github.com/itsdevbear/bolaris/cosmos/runtime/forkchoice"
 	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 	"github.com/itsdevbear/bolaris/types/config"
 )
@@ -63,9 +64,9 @@ type CosmosApp interface {
 
 // Polaris is a struct that wraps the Polaris struct from the polar package.
 type Polaris struct {
+	cfg *config.Config
 	execution.EngineCaller
-	// WrappedMiner is a wrapped version of the Miner component.
-	WrappedMiner *miner.Miner
+	ForkChoiceSelector *forkchoice.Service
 	// logger is the underlying logger supplied by the sdk.
 	logger log.Logger
 }
@@ -86,6 +87,8 @@ func New(
 	if err != nil {
 		return nil, err
 	}
+
+	p.cfg = cfg
 
 	// p.Service = execution.NewEngineCaller(ethClient)
 	jwtSecert, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
@@ -132,7 +135,15 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 	_ = vs
 	mempool := mempool.NewSenderNonceMempool()
 	app.SetMempool(mempool)
-	p.WrappedMiner = miner.New(p.EngineCaller, ek, p.logger)
+	// Create the blockchain service that will be used to process blocks.
+	chainOpts := []blockchain.Option{
+		blockchain.WithBeaconConfig(&p.cfg.BeaconConfig),
+		blockchain.WithLogger(p.logger),
+		blockchain.WithForkChoiceStoreProvider(ek),
+		blockchain.WithEngineCaller(p.EngineCaller),
+	}
+	bk := blockchain.NewService(chainOpts...)
+	p.ForkChoiceSelector = forkchoice.New(p.EngineCaller, bk, ek, p.logger)
 
 	// Create the proposal handler that will be used to fill proposals with
 	// transactions and oracle data.
@@ -145,7 +156,7 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 	// )
 
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mempool, app)
-	proposalHandler := proposal.NewHandler(p.WrappedMiner,
+	proposalHandler := proposal.NewHandler(p.ForkChoiceSelector,
 		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler())
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
@@ -168,5 +179,5 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 }
 
 func (p *Polaris) SyncEL(ctx context.Context) error {
-	return p.WrappedMiner.SyncEl(ctx)
+	return p.ForkChoiceSelector.SyncEl(ctx)
 }

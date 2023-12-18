@@ -28,24 +28,22 @@ package keeper
 import (
 	"context"
 
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/cosmos/x/beacon/store"
+	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
 var LatestForkChoiceKey = []byte("latestForkChoice")
 
 type (
 	Keeper struct {
-		// consensusAPI is the consensus API
 		executionClient execution.EngineCaller
 		storeKey        storetypes.StoreKey
-		forkchoiceState *enginev1.ForkchoiceState
 	}
 )
 
@@ -65,6 +63,7 @@ func (k *Keeper) Logger(ctx context.Context) log.Logger {
 	return sdk.UnwrapSDKContext(ctx).Logger()
 }
 
-func (k *Keeper) UpdateHoodForkChoice(forkchoiceState *enginev1.ForkchoiceState) {
-	k.forkchoiceState = forkchoiceState
+// Setup initializes the polaris keeper.
+func (k *Keeper) ForkChoiceStore(ctx context.Context) v1.ForkChoiceStore {
+	return store.NewForkchoice(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
 }

@@ -1,0 +1,8 @@
+syntax = "proto3";
+package types.v1;
+
+// import "gogoproto/gogo.proto";
+option go_package = "github.com/itsdevbear/bolaris/types/v1";
+
+// BeaconBlockData defines the data of a beacon block that is injected by the proposer.
+message BeaconBlockData {}

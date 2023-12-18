@@ -26,6 +26,8 @@
 package proposal
 
 import (
+	"fmt"
+
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -33,7 +35,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/itsdevbear/bolaris/cosmos/runtime/miner"
+	"github.com/itsdevbear/bolaris/cosmos/runtime/forkchoice"
 )
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
@@ -41,20 +43,20 @@ import (
 const PayloadPosition = 0
 
 type Handler struct {
-	prepareProposal sdk.PrepareProposalHandler
-	processProposal sdk.ProcessProposalHandler
-	miner           *miner.Miner
+	prepareProposal   sdk.PrepareProposalHandler
+	processProposal   sdk.ProcessProposalHandler
+	forkchoiceService *forkchoice.Service
 }
 
 func NewHandler(
-	miner *miner.Miner,
+	forkchoiceService *forkchoice.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
-		miner:           miner,
-		prepareProposal: prepareProposal,
-		processProposal: processProposal,
+		forkchoiceService: forkchoiceService,
+		prepareProposal:   prepareProposal,
+		processProposal:   processProposal,
 	}
 }
 
@@ -64,7 +66,7 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 	// Build the block on the execution layer.
 	// TODO: manage the different type of engine API errors.
-	payload, err := h.miner.BuildBlockV2(ctx)
+	payload, err := h.forkchoiceService.BuildBlockV2(ctx)
 	if err != nil {
 		logger.Error("failed to build block", "err", err)
 		return nil, err
@@ -93,8 +95,10 @@ func (h *Handler) ProcessProposalHandler(
 	logger := ctx.Logger().With("module", "process-proposal")
 
 	// Extract the marshalled payload from the proposal
+	fmt.Println("REQ", req)
 	bz := req.Txs[PayloadPosition]
 	req.Txs = req.Txs[1:]
+	fmt.Println("BZ", bz)
 
 	if bz == nil {
 		logger.Error("payload missing from proposal")
@@ -116,7 +120,8 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 	}
 
-	if err = h.miner.ValidateBlock(ctx, data); err != nil {
+	fmt.Println("VALIDATING BLOCK")
+	if err = h.forkchoiceService.ValidateBlock(ctx, data); err != nil {
 		logger.Error("failed to validate block", "err", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 	}

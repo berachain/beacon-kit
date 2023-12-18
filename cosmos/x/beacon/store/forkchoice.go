@@ -34,6 +34,8 @@ import (
 // Forkchoice represents the fork choice rule in the blockchain.
 type Forkchoice struct {
 	store store.KVStore
+
+	lastValidHead [32]byte
 }
 
 // NewForkchoice creates a new instance of Forkchoice.
@@ -75,4 +77,15 @@ func (f *Forkchoice) GetFinalizedBlockHash() ([32]byte, error) {
 	var finalizedBlockHash [32]byte
 	copy(finalizedBlockHash[:], bz)
 	return finalizedBlockHash, nil
+}
+
+// SetLastValidHead sets the last valid head in the store.
+func (f *Forkchoice) SetLastValidHead(lastValidHead [32]byte) error {
+	f.lastValidHead = lastValidHead
+	return nil
+}
+
+// GetLastValidHead retrieves the last valid head from the store.
+func (f *Forkchoice) GetLastValidHead() [32]byte {
+	return f.lastValidHead
 }

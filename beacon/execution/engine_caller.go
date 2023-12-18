@@ -123,6 +123,7 @@ func (s *engineCaller) NewPayload(
 	// 	) * time.Second)
 	// ctx, cancel := context.WithDeadline(ctx, d)
 	// defer cancel()
+	s.logger.Info("NewPayload called")
 	result := &pb.PayloadStatus{}
 
 	switch payload.Proto().(type) {
@@ -158,6 +159,7 @@ func (s *engineCaller) NewPayload(
 	default:
 		return nil, errors.New("unknown execution data type")
 	}
+
 	if result.ValidationError != "" {
 		s.logger.Error("Got a validation error in newPayload", "err", errors.New(result.ValidationError))
 	}
@@ -186,7 +188,7 @@ func (s *engineCaller) ForkchoiceUpdated(
 	// ctx, cancel := context.WithDeadline(ctx, d)
 	// defer cancel()
 	result := &execution.ForkchoiceUpdatedResponse{}
-
+	s.logger.Info("ForkchoiceUpdated called")
 	if attrs == nil {
 		return nil, nil, errors.New("nil payload attributer")
 	}
@@ -251,7 +253,7 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte, slot p
 	d := time.Now().Add(defaultEngineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
-
+	s.logger.Info("GetPayload called")
 	if slots.ToEpoch(slot) >= s.beaconCfg.DenebForkEpoch {
 		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))

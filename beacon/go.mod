@@ -3,6 +3,7 @@ module github.com/itsdevbear/bolaris/beacon
 go 1.21
 
 require (
+	cosmossdk.io/core v0.11.0
 	cosmossdk.io/log v1.2.1
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523
@@ -16,7 +17,6 @@ require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1 // indirect
 	cosmossdk.io/api v0.7.2 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/errors v1.0.0 // indirect
 	cosmossdk.io/math v1.2.0 // indirect

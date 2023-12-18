@@ -23,10 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package blockchain
 
-func DefaultGenesis() *GenesisState {
-	return &GenesisState{
-		Eth1GenesisHash: "0x02695991f35ff9eec997c7fdfbc5dbd2fd908f6453e3a34aff27d9c49888459a",
+import (
+	"cosmossdk.io/log"
+
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types/config"
+)
+
+type Option func(*Service) error
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *Service) error {
+		s.beaconCfg = beaconCfg
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *Service) error {
+		s.logger = logger
+		return nil
+	}
+}
+
+func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
+	return func(s *Service) error {
+		s.fcsp = fcsp
+		return nil
+	}
+}
+
+func WithEngineCaller(ec execution.EngineCaller) Option {
+	return func(s *Service) error {
+		s.engine = ec
+		return nil
 	}
 }
