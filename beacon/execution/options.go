@@ -18,19 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package flags
+package execution
 
-const (
-	// Execution Client
-	RPCDialURL      = "polaris.execution-client.rpc-dial-url"
-	RPCTimeout      = "polaris.execution-client.rpc-timeout"
-	RPCRetries      = "polaris.execution-client.rpc-retries"
-	JWTSecretPath   = "polaris.execution-client.jwt-secret-path" //nolint:gosec // false positive.
-	RequiredChainID = "polaris.execution-client.required-chain-id"
-
-	// Beacon Config
-	AltairForkEpoch    = "polaris.beacon-config.altair-fork-epoch"
-	BellatrixForkEpoch = "polaris.beacon-config.bellatrix-fork-epoch"
-	CapellaForkEpoch   = "polaris.beacon-config.capella-fork-epoch"
-	DenebForkEpoch     = "polaris.beacon-config.deneb-fork-epoch"
+import (
+	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/cosmos/config"
 )
+
+type Option func(*engineCaller) error
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *engineCaller) error {
+		s.beaconCfg = beaconCfg
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *engineCaller) error {
+		s.logger = logger
+		return nil
+	}
+}

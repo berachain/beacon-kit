@@ -189,7 +189,6 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 
 	// Trigger the execution client to begin building the block, and update
 	// the proposers forkchoice state accordingly.
-
 	payloadID, _, err := m.EngineCaller.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
 	if err != nil {
 		m.logger.Error("failed to get forkchoice updated", "err", err)
@@ -200,7 +199,7 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 	// TODO: maybe this should be some sort of event that we wait for?
 	// But the TLDR is that we need to wait for the execution client to
 	// build the payload before we can include it in the beacon block.
-	time.Sleep(1000 * time.Millisecond) //nolint:gomnd // temp.
+	time.Sleep(3000 * time.Millisecond) //nolint:gomnd // temp.
 
 	// Get the Payload From the Execution Client
 	builtPayload, _, _, err := m.EngineCaller.GetPayload(
@@ -219,8 +218,7 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 }
 
 func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
-	// last param here is nil pre-Deneb. must be specified post.
-	lastValidHash, _ := m.NewPayload(ctx, builtPayload, nil, nil)
+	lastValidHash, _ := m.NewPayload(ctx, builtPayload, nil, nil) // last param here is nil pre-Deneb. must be specified post.
 	fmt.Println("LAST VALID HASH FOUND ON ETH ONE", common.Bytes2Hex(lastValidHash))
 
 	// TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
@@ -228,20 +226,15 @@ func (m *Miner) ValidateBlock(ctx sdk.Context, builtPayload interfaces.Execution
 	m.curForkchoiceState.FinalizedBlockHash = builtPayload.BlockHash()
 	m.curForkchoiceState.SafeBlockHash = builtPayload.BlockHash()
 
-	// The blind finalization is "sorta safe" cause we will get an STATUS_INVALID
-	// From the forkchoice update
+	// The blind finalization is "sorta safe" cause we will get an STATUS_INVALID From the forkchoice update
 	// if it is deemed ot break the rules of the execution layer.
 	// still needs to be addressed of course.
-	_, _, err := m.EngineCaller.ForkchoiceUpdated(
-		ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3), //
-	)
+	_, _, err := m.EngineCaller.ForkchoiceUpdated(ctx, m.curForkchoiceState, payloadattribute.EmptyWithVersion(3))
 	if err != nil {
 		m.logger.Error("failed to get forkchoice updated", "err", err)
 		return err
 	}
 
-	m.logger.Info(
-		"successfully validated execution layer block", "hash", common.Bytes2Hex(builtPayload.BlockHash()),
-	)
+	m.logger.Info("successfully validated execution layer block", "hash", common.Bytes2Hex(builtPayload.BlockHash()))
 	return nil
 }

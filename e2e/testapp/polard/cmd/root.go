@@ -23,13 +23,12 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -86,7 +85,7 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-				&execution.Service{},
+				execution.NewEngineCaller(nil),
 			),
 			depinject.Provide(),
 		),
@@ -166,12 +165,10 @@ func NewRootCmd() *cobra.Command {
 func initCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
-	consensus.TimeoutPropose = time.Second * 3
-	consensus.TimeoutPrevote = time.Second * 3
-	consensus.TimeoutPrecommit = time.Second * 3
+	consensus.TimeoutPropose = time.Second * 5
+	consensus.TimeoutPrevote = time.Second * 5
+	consensus.TimeoutPrecommit = time.Second * 5
 	consensus.TimeoutCommit = time.Second * 1
-
-	fmt.Println("REE")
 
 	// Disable the indexer
 	cfg.TxIndex.Indexer = "null"

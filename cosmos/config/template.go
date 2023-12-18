@@ -40,5 +40,18 @@ rpc-retries = "{{.Polaris.ExecutionClient.RPCRetries}}"
 
 # Path to the execution client JWT-secret
 jwt-secret-path = "{{.Polaris.ExecutionClient.JWTSecretPath}}"
+
+[polaris.beacon-config]
+# Altair fork epoch
+altair-fork-epoch = {{.Polaris.BeaconConfig.AltairForkEpoch}}
+
+# Bellatrix fork epoch
+bellatrix-fork-epoch = {{.Polaris.BeaconConfig.BellatrixForkEpoch}}
+
+# Capella fork epoch
+capella-fork-epoch = {{.Polaris.BeaconConfig.CapellaForkEpoch}}
+
+# Deneb fork epoch
+deneb-fork-epoch = {{.Polaris.BeaconConfig.DenebForkEpoch}}
 `
 )

@@ -99,7 +99,12 @@ func New(
 		return nil, err
 	}
 
-	p.EngineCaller = execution.NewEngineCaller(eth1Client)
+	engineCallerOpts := []execution.Option{
+		execution.WithBeaconConfig(&cfg.BeaconConfig),
+		execution.WithLogger(logger),
+	}
+
+	p.EngineCaller = execution.NewEngineCaller(eth1Client, engineCallerOpts...)
 
 	return p, nil
 }

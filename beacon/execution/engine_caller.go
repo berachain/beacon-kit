@@ -34,7 +34,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution/types"
 	"github.com/prysmaticlabs/prysm/v4/config/features"
 	fieldparams "github.com/prysmaticlabs/prysm/v4/config/fieldparams"
-	"github.com/prysmaticlabs/prysm/v4/config/params"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
@@ -54,21 +53,16 @@ import (
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
+	"github.com/itsdevbear/bolaris/cosmos/config"
 )
-
-// TODO:UNHACK THIS REEEE
-// NEED PROPER FORK MANAGEMENT IN THE CONFIG.
-func init() {
-	beacon := params.BeaconConfig()
-	beacon.DenebForkEpoch = 1000000000
-	beacon.CapellaForkEpoch = 0
-	params.OverrideBeaconConfig(beacon)
-}
 
 const (
 	// Defines the seconds before timing out engine endpoints with non-block execution semantics.
 	defaultEngineTimeout = time.Second
 )
+
+// zeroHash32 is a zeroed 32-byte array.
+var zeroHash32 [32]byte
 
 // EngineCaller defines a client that can interact with an Ethereum
 // execution node's engine engineCaller via JSON-RPC.
@@ -93,16 +87,25 @@ var _ EngineCaller = (*engineCaller)(nil)
 
 // engineCaller is a struct that holds a pointer to an Eth1Client.
 type engineCaller struct {
-	logger log.Logger
-	ec     *eth.Eth1Client
+	beaconCfg *config.Beacon
+	logger    log.Logger
+	ec        *eth.Eth1Client
 }
 
 // NewEngineCaller creates a new engine client engineCaller.
 // It takes an Eth1Client as an argument and returns a pointer to an engineCaller.
-func NewEngineCaller(ethclient *eth.Eth1Client) *engineCaller {
-	return &engineCaller{
+func NewEngineCaller(ethclient *eth.Eth1Client, opts ...Option) *engineCaller {
+	ec := &engineCaller{
 		ec: ethclient,
 	}
+
+	for _, opt := range opts {
+		if err := opt(ec); err != nil {
+			panic(err)
+		}
+	}
+
+	return ec
 }
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
@@ -110,12 +113,12 @@ func (s *engineCaller) NewPayload(
 	ctx context.Context, payload interfaces.ExecutionData,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
-	d := time.Now().Add(
-		time.Duration(
-			params.BeaconConfig().ExecutionEngineTimeoutValue,
-		) * time.Second)
-	ctx, cancel := context.WithDeadline(ctx, d)
-	defer cancel()
+	// d := time.Now().Add	(
+	// 	time.Duration(
+	// 		s.beaconCfg.ExecutionEngineTimeoutValue,
+	// 	) * time.Second)
+	// ctx, cancel := context.WithDeadline(ctx, d)
+	// defer cancel()
 	result := &pb.PayloadStatus{}
 
 	switch payload.Proto().(type) {
@@ -175,9 +178,9 @@ func (s *engineCaller) NewPayload(
 func (s *engineCaller) ForkchoiceUpdated(
 	ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*pb.PayloadIDBytes, []byte, error) {
-	d := time.Now().Add(time.Duration(params.BeaconConfig().ExecutionEngineTimeoutValue) * time.Second)
-	ctx, cancel := context.WithDeadline(ctx, d)
-	defer cancel()
+	// d := time.Now().Add(time.Duration(s.beaconCfg.ExecutionEngineTimeoutValue) * time.Second)
+	// ctx, cancel := context.WithDeadline(ctx, d)
+	// defer cancel()
 	result := &execution.ForkchoiceUpdatedResponse{}
 
 	if attrs == nil {
@@ -245,7 +248,7 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadId [8]byte, slot p
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 
-	if slots.ToEpoch(slot) >= params.BeaconConfig().DenebForkEpoch {
+	if slots.ToEpoch(slot) >= s.beaconCfg.DenebForkEpoch {
 		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadId))
 		if err != nil {
@@ -258,7 +261,7 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadId [8]byte, slot p
 		return ed, result.BlobsBundle, result.ShouldOverrideBuilder, nil
 	}
 
-	if slots.ToEpoch(slot) >= params.BeaconConfig().CapellaForkEpoch {
+	if slots.ToEpoch(slot) >= s.beaconCfg.CapellaForkEpoch {
 		result := &pb.ExecutionPayloadCapellaWithValue{}
 		err := s.ec.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadId))
 		if err != nil {
@@ -487,7 +490,7 @@ func (s *engineCaller) ReconstructFullBlock(
 
 	// If the payload header has a block hash of 0x0, it means we are pre-merge and should
 	// simply return the block with an empty execution payload.
-	if bytes.Equal(header.BlockHash(), params.BeaconConfig().ZeroHash[:]) {
+	if bytes.Equal(header.BlockHash(), zeroHash32[:]) {
 		var payload protoreflect.ProtoMessage
 		payload, err = buildEmptyExecutionPayload(blindedBlock.Version())
 		if err != nil {
@@ -538,7 +541,7 @@ func (s *engineCaller) ReconstructFullBellatrixBlockBatch(
 		}
 		// Determine if the block is pre-merge or post-merge. Depending on the result,
 		// we will ask the execution engine for the full payload.
-		if bytes.Equal(header.BlockHash(), params.BeaconConfig().ZeroHash[:]) {
+		if bytes.Equal(header.BlockHash(), zeroHash32[:]) {
 			zeroExecPayloads = append(zeroExecPayloads, i)
 		} else {
 			executionBlockHash := common.BytesToHash(header.BlockHash())
@@ -636,7 +639,7 @@ func (s *engineCaller) retrievePayloadsFromExecutionHashes(
 	// blinded block.
 	for sliceIdx, realIdx := range validExecPayloads {
 		var payload interfaces.ExecutionData
-		x]
+		bblock := blindedBlocks[realIdx]
 		//nolint:nestif // from prysm.
 		if features.Get().EnableOptionalEngineMethods {
 			b := payloadBodies[sliceIdx]

@@ -23,6 +23,7 @@ package config
 import (
 	"time"
 
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/spf13/cobra"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -35,6 +36,23 @@ import (
 type Config struct {
 	// ExecutionClient is the configuration for the execution client.
 	ExecutionClient Client
+
+	// BeaconConfig is the configuration for the fork epochs.
+	BeaconConfig Beacon
+}
+
+// DefaultConfig returns the default configuration for a polaris chain.
+func DefaultConfig() *Config {
+	return &Config{
+		ExecutionClient: Client{
+			RPCDialURL:      "http://localhost:8551",
+			RPCTimeout:      time.Second * 3, //nolint:gomnd // default config.
+			RPCRetries:      3,               //nolint:gomnd // default config.
+			JWTSecretPath:   "../reth/jwt.hex",
+			RequiredChainID: 7, //nolint:gomnd // default config.
+		},
+		BeaconConfig: DefaultBeaconConfig(),
+	}
 }
 
 // Client is the configuration struct for the execution client.
@@ -51,6 +69,27 @@ type Client struct {
 	RequiredChainID uint64
 }
 
+type Beacon struct {
+	// AltairForkEpoch is used to represent the assigned fork epoch for altair.
+	AltairForkEpoch primitives.Epoch
+	// BellatrixForkEpoch is used to represent the assigned fork epoch for bellatrix.
+	BellatrixForkEpoch primitives.Epoch
+	// CapellaForkEpoch is used to represent the assigned fork epoch for capella.
+	CapellaForkEpoch primitives.Epoch
+	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
+	DenebForkEpoch primitives.Epoch
+}
+
+// DefaultBeaconConfig returns the default fork configuration.
+func DefaultBeaconConfig() Beacon {
+	return Beacon{
+		AltairForkEpoch:    0,
+		BellatrixForkEpoch: 0,
+		CapellaForkEpoch:   0,
+		DenebForkEpoch:     primitives.Epoch(10000000000),
+	}
+}
+
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
 // semantics of etheruem.
 func SetupCosmosConfig() {
@@ -62,19 +101,6 @@ func SetupCosmosConfig() {
 	config.SetCoinType(60) //nolint:gomnd // its okay.
 	config.SetPurpose(sdk.Purpose)
 	config.Seal()
-}
-
-// DefaultConfig returns the default configuration for a polaris chain.
-func DefaultConfig() *Config {
-	return &Config{
-		ExecutionClient: Client{
-			RPCDialURL:      "http://localhost:8551",
-			RPCTimeout:      time.Second * 3, //nolint:gomnd // default config.
-			RPCRetries:      3,               //nolint:gomnd // default config.
-			JWTSecretPath:   "../reth/jwt.hex",
-			RequiredChainID: 7, //nolint:gomnd // default config.
-		},
-	}
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
@@ -115,6 +141,30 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 	}
 	if conf.ExecutionClient.RequiredChainID, err = parser.GetUint64(
 		flags.RequiredChainID,
+	); err != nil {
+		return nil, err
+	}
+
+	if conf.BeaconConfig.AltairForkEpoch, err = parser.GetEpoch(
+		flags.AltairForkEpoch,
+	); err != nil {
+		return nil, err
+	}
+
+	if conf.BeaconConfig.BellatrixForkEpoch, err = parser.GetEpoch(
+		flags.BellatrixForkEpoch,
+	); err != nil {
+		return nil, err
+	}
+
+	if conf.BeaconConfig.CapellaForkEpoch, err = parser.GetEpoch(
+		flags.CapellaForkEpoch,
+	); err != nil {
+		return nil, err
+	}
+
+	if conf.BeaconConfig.DenebForkEpoch, err = parser.GetEpoch(
+		flags.DenebForkEpoch,
 	); err != nil {
 		return nil, err
 	}
