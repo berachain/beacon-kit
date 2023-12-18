@@ -35,6 +35,7 @@ import (
 	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	"cosmossdk.io/core/header"
@@ -77,12 +78,25 @@ type notifyForkchoiceUpdateArg struct {
 	headHash []byte
 }
 
-func (s *Service) ProcessBlock(ctx context.Context, block header.Info, header interfaces.ExecutionData) (*enginev1.PayloadIDBytes, error) {
-	// pid, err := s.notifyForkchoiceUpdate(ctx, uint64(block.Height), &notifyForkchoiceUpdateArg{
-	// 	headHash: headHash,
-	// })
-	// fmt.Println(pid, err)
+func (s *Service) ProposeNewFinalBlock(ctx context.Context, beaconBlock header.Info, payloadID *enginev1.PayloadIDBytes) (interfaces.ExecutionData, error) {
+	// Ensure that the payload we want to finalize is the same as the one we have queued.
+	builtPayload, _, _, err := s.engine.GetPayload(
+		ctx, *payloadID, primitives.Slot(beaconBlock.Height),
+	)
+	if err != nil {
+		s.logger.Error("failed to get previously queued payload", "err", err, "payloadID", payloadID)
+		return nil, err
+	}
 
+	// We start by setting the head of our execution client to the
+	// latest block that we have seen
+	s.notifyForkchoiceUpdate(ctx, uint64(beaconBlock.Height), &notifyForkchoiceUpdateArg{
+		headHash: builtPayload.BlockHash(),
+	})
+	return builtPayload, nil
+}
+
+func (s *Service) ProcessBlock(ctx context.Context, block header.Info, header interfaces.ExecutionData) (*enginev1.PayloadIDBytes, error) {
 	_, err := s.validateExecutionOnBlock(ctx, 0, header, nil, [32]byte{})
 	if err != nil {
 		return nil, err
@@ -116,7 +130,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 	}
 	// We want to start building the next block as part of this forkchoice update.
 	nextSlot := slot + 1 // Cache payload ID for next slot proposer.
-	attrs, err := s.getPayloadAttributes(ctx, nextSlot)
+	attrs, err := s.getPayloadAttributes(ctx, nextSlot, uint64(time.Now().Unix()))
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +206,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 		default:
 			// log.WithError(err).Error(ErrUndefinedExecutionEngineError)
 			s.logger.Error("undefined execution engine error", "err", err)
-			return nil, nil
+			return nil, errors.New("undefined execution engine error")
 		}
 	}
 	// forkchoiceUpdatedValidNodeCount.Inc()
@@ -233,8 +247,6 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int, header 
 		return false, err
 		// return false, s.handleInvalidExecutionError(ctx, err, blockRoot, signed.Block().ParentRoot())
 	}
-
-	fmt.Println("POST NOTIFY NEW PAYLOAD", isValidPayload)
 	// if signed.Version() < version.Capella && isValidPayload {
 	// 	if err := s.validateMergeTransitionBlock(ctx, ver, header, signed); err != nil {
 	// 		return isValidPayload, err
@@ -243,7 +255,12 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int, header 
 	return isValidPayload, nil
 }
 
-func (s *Service) getPayloadAttributes(ctx context.Context, slot uint64) (payloadattribute.Attributer, error) {
+// Temporary TODO Deprecate
+func (s *Service) GetPayloadAttributes(ctx context.Context, slot, timestamp uint64) (payloadattribute.Attributer, error) {
+	return s.getPayloadAttributes(ctx, slot, timestamp)
+}
+
+func (s *Service) getPayloadAttributes(ctx context.Context, slot, timestamp uint64) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
 	var random [32]byte
 	if _, err := rand.Read(random[:]); err != nil {
@@ -251,7 +268,7 @@ func (s *Service) getPayloadAttributes(ctx context.Context, slot uint64) (payloa
 	}
 
 	return payloadattribute.New(&enginev1.PayloadAttributesV2{
-		Timestamp:             uint64(time.Now().Unix()),
+		Timestamp:             timestamp,
 		SuggestedFeeRecipient: s.etherbase.Bytes(),
 		Withdrawals:           nil,
 		PrevRandao:            append([]byte{}, random[:]...),

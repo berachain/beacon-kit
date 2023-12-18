@@ -62,7 +62,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	polarruntime "github.com/itsdevbear/bolaris/cosmos/runtime"
-	BeaconKeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
+	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -108,7 +108,7 @@ type SimApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// polaris required keeper
-	BeaconKeeper *BeaconKeeper.Keeper
+	BeaconKeeper *beaconkeeper.Keeper
 }
 
 // NewPolarisApp returns a reference to an initialized SimApp.

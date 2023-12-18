@@ -27,50 +27,37 @@
 package forkchoice
 
 import (
-	"crypto/rand"
-	"errors"
 	"time"
 
-	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	"cosmossdk.io/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	BeaconKeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
+	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
 
 // Service implements the baseapp.TxSelector interface.
 type Service struct {
 	execution.EngineCaller
-	logger    log.Logger
-	ek        *BeaconKeeper.Keeper
-	etherbase common.Address
-	bk        *blockchain.Service
-
-	// TODO DEPRECATE ME
-	curForkchoiceState *pb.ForkchoiceState
-
+	logger log.Logger
+	ek     *beaconkeeper.Keeper
+	bk     *blockchain.Service
 	// TODO: handle this better with a proper LRU cache.
 	cachedPayload *pb.PayloadIDBytes
 }
 
 // New produces a cosmos forker from a geth forker.
-func New(gm execution.EngineCaller, bk *blockchain.Service, ek *BeaconKeeper.Keeper, logger log.Logger) *Service {
+func New(gm execution.EngineCaller, bk *blockchain.Service, ek *beaconkeeper.Keeper, logger log.Logger) *Service {
 	return &Service{
-		EngineCaller:       gm,
-		curForkchoiceState: &pb.ForkchoiceState{},
-		logger:             logger,
-		ek:                 ek,
-		bk:                 bk,
+		EngineCaller: gm,
+		logger:       logger,
+		ek:           ek,
+		bk:           bk,
 	}
 }
 
@@ -79,39 +66,42 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 	// builder := (&execution.Builder{EngineCaller: m.EngineCaller.(*execution.Service)})
 	m.logger.Info("entering build-block-v2")
 	defer m.logger.Info("exiting build-block-v2")
-
-	attrs, err := m.getPayloadAttributes(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: SHOULD THIS BE LATEST OR FINALIZED????
-	// IN THEORY LATEST MEANS THAT THE PROPOSER CAN APPEND ARBITRARY BLOCKS
-	// AND SET THE CANONICAL CHAIN TO WHATEVER IT WANTS (i.e) could
-	// apply a deep deep reorg?
-	// On the flip side, if we force LatestFinalizedBlock(), we can
-	// at the Consensus Layer ensure the reorg will always be 1 deep.
-	b, err := m.EngineCaller.LatestFinalizedBlock(ctx)
-	if err != nil {
-		m.logger.Error("failed to get block number", "err", err)
-	}
-
-	// We start by setting the head of our execution client to the
-	// latest block that we have seen.
-	zeroHash := [32]byte{}
-	fc := &pb.ForkchoiceState{
-		HeadBlockHash:      b.Hash.Bytes(),
-		SafeBlockHash:      zeroHash[:],
-		FinalizedBlockHash: zeroHash[:],
-	}
-
 	var payloadID *pb.PayloadIDBytes
+
+	// EDGE CASE
 	if m.cachedPayload == nil {
 		m.logger.Info("No cached payload found, building new payload")
 		// Trigger the execution client to begin building the block, and update
 		// the proposers forkchoice state accordingly. By setting the HeadBlockHash
 		// to the last finalized block that we have seen, we are telling the execution client
 		// to begin building a block on top of that block.
+
+		// TODO: SHOULD THIS BE LATEST OR FINALIZED????
+		// IN THEORY LATEST MEANS THAT THE PROPOSER CAN APPEND ARBITRARY BLOCKS
+		// AND SET THE CANONICAL CHAIN TO WHATEVER IT WANTS (i.e) could
+		// apply a deep deep reorg?
+		// On the flip side, if we force LatestFinalizedBlock(), we can
+		// at the Consensus Layer ensure the reorg will always be 1 deep.
+		b, err := m.EngineCaller.LatestFinalizedBlock(ctx)
+		if err != nil {
+			m.logger.Error("failed to get block number", "err", err)
+		}
+
+		attrs, err := m.bk.GetPayloadAttributes(
+			ctx, uint64(ctx.BlockHeight()), uint64(ctx.BlockTime().Unix()),
+		)
+		if err != nil {
+			m.logger.Error("failed to get payload attributes", "err", err)
+		}
+
+		// We start by setting the head of our execution client to the
+		// latest block that we have seen.
+		zeroHash := [32]byte{}
+		fc := &pb.ForkchoiceState{
+			HeadBlockHash:      b.Hash.Bytes(),
+			SafeBlockHash:      zeroHash[:],
+			FinalizedBlockHash: zeroHash[:],
+		}
 		payloadID, _, err = m.EngineCaller.ForkchoiceUpdated(ctx, fc, attrs)
 		if err != nil {
 			m.logger.Error("failed to get forkchoice updated", "err", err)
@@ -126,38 +116,12 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 	} else {
 		payloadID = m.cachedPayload
 	}
-	m.logger.Info("calling getPayload", "id", payloadID)
 
-	// Get the Payload From the Execution Client
-	builtPayload, _, _, err := m.EngineCaller.GetPayload(
-		ctx, *payloadID, primitives.Slot(ctx.BlockHeight()))
+	builtPayload, err := m.bk.ProposeNewFinalBlock(ctx, ctx.HeaderInfo(), payloadID)
 	if err != nil {
-		m.logger.Error("failed to get previously queued payload", "err", err, "payloadID", payloadID)
 		return nil, err
 	}
 
-	// This CL node's execution client head is now at the head of this
-	// payload, so we can update our forkchoice state accordingly.
-	var latestValidHash []byte
-	_, latestValidHash, err = m.EngineCaller.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
-	if errors.Is(err, prysmexecution.ErrInvalidPayloadStatus) {
-		// If we
-		m.logger.Error("invalid payload, proposing last valid", "err", err)
-		fc := &pb.ForkchoiceState{
-			HeadBlockHash:      latestValidHash,
-			SafeBlockHash:      zeroHash[:],
-			FinalizedBlockHash: zeroHash[:],
-		}
-		_, _, err2 := m.EngineCaller.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
-		if err2 != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		m.logger.Error("failed to get forkchoice updated", "err", err)
-		return nil, err
-	}
-
-	// Go and include the builtPayload on the BeaconBlock
 	return builtPayload, nil
 }
 
@@ -168,19 +132,4 @@ func (m *Service) ValidateBlock(ctx sdk.Context, builtPayload interfaces.Executi
 	}
 	m.cachedPayload = payload
 	return nil
-}
-
-func (m *Service) getPayloadAttributes(ctx sdk.Context) (payloadattribute.Attributer, error) {
-	// TODO: modularize andn make better.
-	var random [32]byte
-	if _, err := rand.Read(random[:]); err != nil {
-		return nil, err
-	}
-
-	return payloadattribute.New(&pb.PayloadAttributesV2{
-		Timestamp:             uint64(time.Now().Unix()),
-		SuggestedFeeRecipient: m.etherbase.Bytes(),
-		Withdrawals:           nil,
-		PrevRandao:            append([]byte{}, random[:]...),
-	})
 }
