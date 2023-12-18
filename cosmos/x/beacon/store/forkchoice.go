@@ -26,36 +26,53 @@
 package store
 
 import (
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-	"google.golang.org/protobuf/proto"
+	"errors"
 
 	"cosmossdk.io/store"
 )
 
+// Forkchoice represents the fork choice rule in the blockchain.
 type Forkchoice struct {
 	store store.KVStore
 }
 
+// NewForkchoice creates a new instance of Forkchoice.
 func NewForkchoice(store store.KVStore) *Forkchoice {
 	return &Forkchoice{
 		store: store,
 	}
 }
 
-func (f *Forkchoice) Store(fcs *enginev1.ForkchoiceState) error {
-	bz, err := proto.Marshal(fcs)
-	if err != nil {
-		return err
-	}
-	f.store.Set([]byte("forkchoice"), bz)
+// SetSafeBlockHash sets the safe block hash in the store.
+func (f *Forkchoice) SetSafeBlockHash(safeBlockHash [32]byte) error {
+	f.store.Set([]byte("forkchoice_safe"), safeBlockHash[:])
 	return nil
 }
 
-func (f *Forkchoice) Retrieve() (*enginev1.ForkchoiceState, error) {
-	bz := f.store.Get([]byte("forkchoice"))
-	fcs := &enginev1.ForkchoiceState{}
-	if err := proto.Unmarshal(bz, fcs); err != nil {
-		return nil, err
+// GetSafeBlockHash retrieves the safe block hash from the store.
+func (f *Forkchoice) GetSafeBlockHash() ([32]byte, error) {
+	bz := f.store.Get([]byte("forkchoice_safe"))
+	if bz == nil {
+		return [32]byte{}, errors.New("safe block hash not found")
 	}
-	return fcs, nil
+	var safeBlockHash [32]byte
+	copy(safeBlockHash[:], bz)
+	return safeBlockHash, nil
+}
+
+// SetFinalizedBlockHash sets the finalized block hash in the store.
+func (f *Forkchoice) SetFinalizedBlockHash(finalizedBlockHash [32]byte) error {
+	f.store.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
+	return nil
+}
+
+// GetFinalizedBlockHash retrieves the finalized block hash from the store.
+func (f *Forkchoice) GetFinalizedBlockHash() ([32]byte, error) {
+	bz := f.store.Get([]byte("forkchoice_finalized"))
+	if bz == nil {
+		return [32]byte{}, errors.New("finalized block hash not found")
+	}
+	var finalizedBlockHash [32]byte
+	copy(finalizedBlockHash[:], bz)
+	return finalizedBlockHash, nil
 }
