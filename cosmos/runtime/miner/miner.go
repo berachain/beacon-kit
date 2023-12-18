@@ -82,25 +82,6 @@ func (m *Miner) Init(serializer EnvelopeSerializer) {
 	m.serializer = serializer
 }
 
-// TODO: leverage this potentially later.
-// // finalizedBlockHash returns the block hash of the finalized block corresponding to the given
-// // number or nil if doesn't exist in the chain.
-// func (m *Miner) finalizedBlockHash(number uint64) *common.Hash {
-// 	var finalizedNumber = number
-// 	// The code below is basically faking only updating the finalized block once per epoch.
-// 	// if number%devEpochLength == 0 {
-// 	// } else {
-// 	// 	finalizedNumber = (number - 1) / devEpochLength * devEpochLength
-// 	// }
-
-// 	if finalizedBlock, err := m.EngineCaller.HeaderByNumber(context.Background(),
-// 		big.NewInt(int64(finalizedNumber))); finalizedBlock != nil && err == nil {
-// 		fh := finalizedBlock.Hash
-// 		return &fh
-// 	}
-// 	return nil
-// }
-
 func (m *Miner) getForkchoiceFromExecutionClient(ctx context.Context) error {
 	var latestBlock *pb.ExecutionBlock
 	var err error
@@ -192,9 +173,31 @@ func (m *Miner) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error) 
 		return nil, err
 	}
 
+	// TODO: SHOULD THIS BE LATEST OR FINALIZED????
+	// IN THEORY LATEST MEANS THAT THE PROPOSER CAN APPEND ARBITRARY BLOCKS
+	// AND SET THE CANONICAL CHAIN TO WHATEVER IT WANTS (i.e) could
+	// apply a deep deep reorg?
+	// On the flip side, if we force LatestFinalizedBlock(), we can
+	// at the Consensus Layer ensure the reorg will always be 1 deep.
+	b, err := m.EngineCaller.LatestFinalizedBlock(ctx)
+	if err != nil {
+		m.logger.Error("failed to get block number", "err", err)
+	}
+
+	// We start by setting the head of our execution client to the
+	// latest block that we have seen.
+	zeroHash := [32]byte{}
+	fc := &pb.ForkchoiceState{
+		HeadBlockHash:      b.Hash.Bytes(),
+		SafeBlockHash:      zeroHash[:],
+		FinalizedBlockHash: zeroHash[:],
+	}
+
 	// Trigger the execution client to begin building the block, and update
-	// the proposers forkchoice state accordingly.
-	payloadID, _, err := m.EngineCaller.ForkchoiceUpdated(ctx, m.curForkchoiceState, attrs)
+	// the proposers forkchoice state accordingly. By setting the HeadBlockHash
+	// to the last finalized block that we have seen, we are telling the execution client
+	// to begin building a block on top of that block.
+	payloadID, _, err := m.EngineCaller.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
 		m.logger.Error("failed to get forkchoice updated", "err", err)
 		return nil, err
