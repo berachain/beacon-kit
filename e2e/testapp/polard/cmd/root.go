@@ -28,7 +28,6 @@ import (
 	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -62,6 +61,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	evmconfig "github.com/itsdevbear/bolaris/cosmos/config"
 	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
 )

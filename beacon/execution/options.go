@@ -22,6 +22,7 @@ package execution
 
 import (
 	"cosmossdk.io/log"
+
 	"github.com/itsdevbear/bolaris/cosmos/config"
 )
 
