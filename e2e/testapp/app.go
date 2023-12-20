@@ -61,6 +61,7 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
+	"github.com/itsdevbear/bolaris/cosmos/abci/preblock"
 	polarruntime "github.com/itsdevbear/bolaris/cosmos/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
@@ -193,6 +194,10 @@ func NewPolarisApp(
 	if err := app.Polaris.Build(app.BaseApp, app.StakingKeeper, app.BeaconKeeper); err != nil {
 		panic(err)
 	}
+
+	app.SetPreBlocker(
+		preblock.NewBeaconPreBlockHandler(app.Logger(), app.BeaconKeeper).PreBlocker(),
+	)
 
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {

@@ -27,8 +27,10 @@
 package forkchoice
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -82,7 +84,11 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 		// apply a deep deep reorg?
 		// On the flip side, if we force LatestFinalizedBlock(), we can
 		// at the Consensus Layer ensure the reorg will always be 1 deep.
-		b, err := m.EngineCaller.LatestFinalizedBlock(ctx)
+		fcs := m.ek.ForkChoiceStore(ctx)
+
+		// fcs := m.ek.ForkChoiceStore(ctx)
+
+		blk, err := m.EngineCaller.LatestExecutionBlock(ctx)
 		if err != nil {
 			m.logger.Error("failed to get block number", "err", err)
 		}
@@ -90,46 +96,65 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 		attrs, err := m.bk.GetPayloadAttributes(
 			ctx, uint64(ctx.BlockHeight()), uint64(ctx.BlockTime().Unix()),
 		)
-		if err != nil {
+		if attrs == nil || err != nil {
 			m.logger.Error("failed to get payload attributes", "err", err)
+			return nil, err
 		}
 
 		// We start by setting the head of our execution client to the
 		// latest block that we have seen.
-		zeroHash := [32]byte{}
+		// var sbh []byte = common.Hash(fcs.GetSafeBlockHash()).Bytes()
+		// var fbh []byte = common.Hash(fcs.GetFinalizedBlockHash()).Bytes()
 		fc := &pb.ForkchoiceState{
-			HeadBlockHash:      b.Hash.Bytes(),
-			SafeBlockHash:      zeroHash[:],
-			FinalizedBlockHash: zeroHash[:],
+			HeadBlockHash:      blk.Hash.Bytes(),
+			SafeBlockHash:      common.Hash(fcs.GetSafeBlockHash()).Bytes(),
+			FinalizedBlockHash: common.Hash(fcs.GetFinalizedBlockHash()).Bytes(),
 		}
+
+		fmt.Println("FORKCHOICE IN BB")
+		fmt.Println(common.Bytes2Hex(fc.HeadBlockHash))
+		fmt.Println(common.Bytes2Hex(fc.SafeBlockHash))
+		fmt.Println(common.Bytes2Hex(fc.FinalizedBlockHash))
+		m.logger.Info("attrs", "attrs", attrs)
 		payloadID, _, err = m.EngineCaller.ForkchoiceUpdated(ctx, fc, attrs)
 		if err != nil {
 			m.logger.Error("failed to get forkchoice updated", "err", err)
 			return nil, err
 		}
+		m.logger.Info("building payload", "payloadID", payloadID)
 
 		// TODO: this should be something that is 80% of proposal timeout, or so?
 		// TODO: maybe this should be some sort of event that we wait for?
 		// But the TLDR is that we need to wait for the execution client to
 		// build the payload before we can include it in the beacon block.
-		time.Sleep(8000 * time.Millisecond) //nolint:gomnd // temp.
 	} else {
+		m.logger.Info("cached payload found, using cached payload")
 		payloadID = m.cachedPayload
 	}
 
-	builtPayload, err := m.bk.ProposeNewFinalBlock(ctx, ctx.HeaderInfo(), payloadID)
+	time.Sleep(6000 * time.Millisecond) //nolint:gomnd // temp.
+
+	fmt.Println("PROPOSING BLOCK")
+	_, builtPayload, err := m.bk.ProposeNewFinalBlock(ctx, ctx.HeaderInfo(), payloadID)
 	if err != nil {
 		return nil, err
 	}
+	time.Sleep(1 * time.Second)
 
 	return builtPayload, nil
 }
 
 func (m *Service) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
 	payload, err := m.bk.ProcessBlock(ctx, ctx.HeaderInfo(), builtPayload)
+	fmt.Println("ERROR IN VALIDATE BLOCK", err)
 	if err != nil {
 		return err
 	}
+	fmt.Println("PAYLOAD IS NIL", payload)
+	if payload == nil {
+		return fmt.Errorf("payload is nil")
+	}
+	m.logger.Info("SETTING CACHED PAYLOAD", m.cachedPayload)
 	m.cachedPayload = payload
 	return nil
 }

@@ -27,6 +27,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/store"
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
@@ -37,6 +38,12 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	if err := genesisStore.Store(data.Eth1GenesisHash); err != nil {
 		panic(err)
 	}
+
+	hash := common.HexToHash(data.Eth1GenesisHash)
+
+	fcs := store.NewForkchoice(ctx.KVStore(k.storeKey))
+	fcs.SetSafeBlockHash([32]byte(hash))
+	fcs.SetFinalizedBlockHash([32]byte(hash))
 }
 
 func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {

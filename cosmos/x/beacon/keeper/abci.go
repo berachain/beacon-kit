@@ -27,11 +27,15 @@ package keeper
 
 import (
 	"context"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Precommit runs on the Cosmos-SDK lifecycle Precommit().
-func (k *Keeper) EndBlock(_ context.Context) error {
+func (k *Keeper) EndBlock(ctx context.Context) error {
 	// sCtx := sdk.UnwrapSDKContext(ctx)
+	hash := k.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	k.Logger(ctx).Info("EndBlock", "finalized_exec_hash", common.BytesToHash(hash[:]).Hex())
 	return nil
 }
 

@@ -135,6 +135,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 					},
 					PreBlockers: []string{
 						upgradetypes.ModuleName,
+						beacontypes.ModuleName,
 					},
 					BeginBlockers: []string{
 						minttypes.ModuleName,

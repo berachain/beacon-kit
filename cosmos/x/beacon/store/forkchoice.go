@@ -26,8 +26,6 @@
 package store
 
 import (
-	"errors"
-
 	"cosmossdk.io/store"
 )
 
@@ -46,43 +44,40 @@ func NewForkchoice(store store.KVStore) *Forkchoice {
 }
 
 // SetSafeBlockHash sets the safe block hash in the store.
-func (f *Forkchoice) SetSafeBlockHash(safeBlockHash [32]byte) error {
+func (f *Forkchoice) SetSafeBlockHash(safeBlockHash [32]byte) {
 	f.store.Set([]byte("forkchoice_safe"), safeBlockHash[:])
-	return nil
 }
 
 // GetSafeBlockHash retrieves the safe block hash from the store.
-func (f *Forkchoice) GetSafeBlockHash() ([32]byte, error) {
+func (f *Forkchoice) GetSafeBlockHash() [32]byte {
 	bz := f.store.Get([]byte("forkchoice_safe"))
 	if bz == nil {
-		return [32]byte{}, errors.New("safe block hash not found")
+		return [32]byte{}
 	}
 	var safeBlockHash [32]byte
 	copy(safeBlockHash[:], bz)
-	return safeBlockHash, nil
+	return safeBlockHash
 }
 
 // SetFinalizedBlockHash sets the finalized block hash in the store.
-func (f *Forkchoice) SetFinalizedBlockHash(finalizedBlockHash [32]byte) error {
+func (f *Forkchoice) SetFinalizedBlockHash(finalizedBlockHash [32]byte) {
 	f.store.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
-	return nil
 }
 
 // GetFinalizedBlockHash retrieves the finalized block hash from the store.
-func (f *Forkchoice) GetFinalizedBlockHash() ([32]byte, error) {
+func (f *Forkchoice) GetFinalizedBlockHash() [32]byte {
 	bz := f.store.Get([]byte("forkchoice_finalized"))
 	if bz == nil {
-		return [32]byte{}, errors.New("finalized block hash not found")
+		return [32]byte{}
 	}
 	var finalizedBlockHash [32]byte
 	copy(finalizedBlockHash[:], bz)
-	return finalizedBlockHash, nil
+	return finalizedBlockHash
 }
 
 // SetLastValidHead sets the last valid head in the store.
-func (f *Forkchoice) SetLastValidHead(lastValidHead [32]byte) error {
+func (f *Forkchoice) SetLastValidHead(lastValidHead [32]byte) {
 	f.lastValidHead = lastValidHead
-	return nil
 }
 
 // GetLastValidHead retrieves the last valid head from the store.

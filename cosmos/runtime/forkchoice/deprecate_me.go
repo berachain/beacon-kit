@@ -27,10 +27,6 @@ package forkchoice
 
 import (
 	"context"
-	"time"
-
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (m *Service) SyncEl(ctx context.Context) error {
@@ -38,60 +34,25 @@ func (m *Service) SyncEl(ctx context.Context) error {
 	// the proposers forkchoice state accordingly.
 
 	// TODO `block` needs to come from the latest blocked stored IAVL tree
-	// on the consensus client.
-	// block, _ := m.EngineCaller.EarliestBlock(ctx)
-	// genesisHash := m.ek.RetrieveGenesis(ctx)
-	m.logger.Info("waiting for execution client to finish sync")
-	for {
-		fc, err := m.getForkchoiceFromExecutionClient(ctx)
-		if err != nil {
-			m.logger.Error("failed to get forkchoice state", "err", err)
-			return err
-		}
-		payloadID, lastValidHash, err := m.EngineCaller.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
-		if err == nil {
-			break
-		}
+	// // on the consensus client.
+	// // block, _ := m.EngineCaller.EarliestBlock(ctx)
+	// // genesisHash := m.ek.RetrieveGenesis(ctx)
+	// m.logger.Info("waiting for execution client to finish sync")
+	// for {
+	// 	fc, err := m.getForkchoiceFromExecutionClient(ctx)
+	// 	if err != nil {
+	// 		m.logger.Error("failed to get forkchoice state", "err", err)
+	// 		return err
+	// 	}
+	// 	payloadID, lastValidHash, err := m.EngineCaller.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
+	// 	if err == nil {
+	// 		break
+	// 	}
 
-		m.logger.Info("waiting for execution client to sync", "error", err)
-		m.logger.Info("waiting for execution client to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
-		time.Sleep(1 * time.Second)
-	}
+	// 	m.logger.Info("waiting for execution client to sync", "error", err)
+	// 	m.logger.Info("waiting for execution client to sync", "payloadID", payloadID, "lastValidHash", lastValidHash)
+	// 	time.Sleep(1 * time.Second)
+	// }
 
 	return nil
-}
-
-// TODO DEPRECATE ME
-func (m *Service) getForkchoiceFromExecutionClient(ctx context.Context) (*enginev1.ForkchoiceState, error) {
-	curForkchoiceState := &enginev1.ForkchoiceState{}
-	var latestBlock *enginev1.ExecutionBlock
-	var err error
-	latestBlock, err = m.EngineCaller.LatestExecutionBlock(ctx)
-	if err != nil {
-		m.logger.Error("failed to get block number", "err", err)
-		return nil, err
-	}
-
-	curForkchoiceState.HeadBlockHash = latestBlock.Hash.Bytes()
-	m.logger.Info("forkchoice state", "head", latestBlock.Header.Hash())
-
-	safe, err := m.EngineCaller.LatestSafeBlock(ctx)
-	if err != nil {
-		m.logger.Error("failed to get safe block", "err", err)
-		safe = latestBlock
-	}
-
-	curForkchoiceState.SafeBlockHash = safe.Hash.Bytes()
-
-	final, err := m.EngineCaller.LatestFinalizedBlock(ctx)
-	m.logger.Info("forkchoice state", "finalized", safe.Hash)
-	if err != nil {
-		m.logger.Error("failed to get final block", "err", err)
-		final = latestBlock
-	}
-
-	curForkchoiceState.FinalizedBlockHash = final.Hash.Bytes()
-	m.logger.Info("forkchoice state", "finalized", final.Hash)
-
-	return curForkchoiceState, nil
 }
