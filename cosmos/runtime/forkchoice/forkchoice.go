@@ -29,6 +29,7 @@ package forkchoice
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -78,13 +79,7 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 
 	fcs := m.ek.ForkChoiceStore(ctx)
 
-	// blk, err := m.EngineCaller.LatestExecutionBlock(ctx)
-	// if err != nil {
-	// 	m.logger.Error("failed to get block number", "err", err)
-	// }
-
-	blk := fcs.GetFinalizedBlockHash()
-	payload, err := m.bk.BuildNewBlock(ctx, ctx.HeaderInfo(), blk[:])
+	payload, err := m.bk.BuildNewBlock(ctx, ctx.HeaderInfo(), common.Hash(fcs.GetFinalizedBlockHash()).Bytes())
 	if err != nil {
 		m.logger.Error("failed to build new block", "err", err)
 		return nil, err

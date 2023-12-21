@@ -27,6 +27,7 @@ package forkchoice
 
 import (
 	"context"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
@@ -60,14 +61,14 @@ func (m *Service) WaitforExecutionClientSync(ctx context.Context) error {
 
 	m.logger.Info("execution client is synced", "current_block", sp.CurrentBlock)
 
-	// blk, err := m.EngineCaller.BlockByNumber(ctx, big.NewInt(int64(sp.CurrentBlock)))
-	// if err != nil {
-	// 	m.logger.Error("failed to get block by number", "err", err)
-	// 	return err
-	// }
+	blk, err := m.EngineCaller.BlockByNumber(ctx, big.NewInt(int64(sp.CurrentBlock)))
+	if err != nil {
+		m.logger.Error("failed to get block by number", "err", err)
+		return err
+	}
 
 	fc := &enginev1.ForkchoiceState{
-		HeadBlockHash:      common.Hash(m.ek.ForkChoiceStore(ctx).GetSafeBlockHash()).Bytes(),
+		HeadBlockHash:      blk.Hash().Bytes(),
 		SafeBlockHash:      common.Hash(m.ek.ForkChoiceStore(ctx).GetSafeBlockHash()).Bytes(),
 		FinalizedBlockHash: common.Hash(m.ek.ForkChoiceStore(ctx).GetFinalizedBlockHash()).Bytes(),
 	}
