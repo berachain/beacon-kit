@@ -179,5 +179,5 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 }
 
 func (p *Polaris) SyncEL(ctx context.Context) error {
-	return p.ForkChoiceSelector.SyncEl(ctx)
+	return p.ForkChoiceSelector.WaitforExecutionClientSync(ctx)
 }

@@ -28,9 +28,7 @@ package forkchoice
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -68,80 +66,79 @@ func (m *Service) BuildBlockV2(ctx sdk.Context) (interfaces.ExecutionData, error
 	// builder := (&execution.Builder{EngineCaller: m.EngineCaller.(*execution.Service)})
 	m.logger.Info("entering build-block-v2")
 	defer m.logger.Info("exiting build-block-v2")
-	var payloadID *pb.PayloadIDBytes
+	// var payloadID *pb.PayloadIDBytes
 
 	// EDGE CASE
-	if m.cachedPayload == nil {
-		m.logger.Info("No cached payload found, building new payload")
-		// Trigger the execution client to begin building the block, and update
-		// the proposers forkchoice state accordingly. By setting the HeadBlockHash
-		// to the last finalized block that we have seen, we are telling the execution client
-		// to begin building a block on top of that block.
+	// if m.cachedPayload == nil {
+	m.logger.Info("No cached payload found, building new payload")
+	// Trigger the execution client to begin building the block, and update
+	// the proposers forkchoice state accordingly. By setting the HeadBlockHash
+	// to the last finalized block that we have seen, we are telling the execution client
+	// to begin building a block on top of that block.
 
-		// TODO: SHOULD THIS BE LATEST OR FINALIZED????
-		// IN THEORY LATEST MEANS THAT THE PROPOSER CAN APPEND ARBITRARY BLOCKS
-		// AND SET THE CANONICAL CHAIN TO WHATEVER IT WANTS (i.e) could
-		// apply a deep deep reorg?
-		// On the flip side, if we force LatestFinalizedBlock(), we can
-		// at the Consensus Layer ensure the reorg will always be 1 deep.
-		fcs := m.ek.ForkChoiceStore(ctx)
+	fcs := m.ek.ForkChoiceStore(ctx)
 
-		// fcs := m.ek.ForkChoiceStore(ctx)
+	// blk, err := m.EngineCaller.LatestExecutionBlock(ctx)
+	// if err != nil {
+	// 	m.logger.Error("failed to get block number", "err", err)
+	// }
 
-		blk, err := m.EngineCaller.LatestExecutionBlock(ctx)
-		if err != nil {
-			m.logger.Error("failed to get block number", "err", err)
-		}
-
-		attrs, err := m.bk.GetPayloadAttributes(
-			ctx, uint64(ctx.BlockHeight()), uint64(ctx.BlockTime().Unix()),
-		)
-		if attrs == nil || err != nil {
-			m.logger.Error("failed to get payload attributes", "err", err)
-			return nil, err
-		}
-
-		// We start by setting the head of our execution client to the
-		// latest block that we have seen.
-		// var sbh []byte = common.Hash(fcs.GetSafeBlockHash()).Bytes()
-		// var fbh []byte = common.Hash(fcs.GetFinalizedBlockHash()).Bytes()
-		fc := &pb.ForkchoiceState{
-			HeadBlockHash:      blk.Hash.Bytes(),
-			SafeBlockHash:      common.Hash(fcs.GetSafeBlockHash()).Bytes(),
-			FinalizedBlockHash: common.Hash(fcs.GetFinalizedBlockHash()).Bytes(),
-		}
-
-		fmt.Println("FORKCHOICE IN BB")
-		fmt.Println(common.Bytes2Hex(fc.HeadBlockHash))
-		fmt.Println(common.Bytes2Hex(fc.SafeBlockHash))
-		fmt.Println(common.Bytes2Hex(fc.FinalizedBlockHash))
-		m.logger.Info("attrs", "attrs", attrs)
-		payloadID, _, err = m.EngineCaller.ForkchoiceUpdated(ctx, fc, attrs)
-		if err != nil {
-			m.logger.Error("failed to get forkchoice updated", "err", err)
-			return nil, err
-		}
-		m.logger.Info("building payload", "payloadID", payloadID)
-
-		// TODO: this should be something that is 80% of proposal timeout, or so?
-		// TODO: maybe this should be some sort of event that we wait for?
-		// But the TLDR is that we need to wait for the execution client to
-		// build the payload before we can include it in the beacon block.
-	} else {
-		m.logger.Info("cached payload found, using cached payload")
-		payloadID = m.cachedPayload
-	}
-
-	time.Sleep(6000 * time.Millisecond) //nolint:gomnd // temp.
-
-	fmt.Println("PROPOSING BLOCK")
-	_, builtPayload, err := m.bk.ProposeNewFinalBlock(ctx, ctx.HeaderInfo(), payloadID)
+	blk := fcs.GetFinalizedBlockHash()
+	payload, err := m.bk.BuildNewBlock(ctx, ctx.HeaderInfo(), blk[:])
 	if err != nil {
+		m.logger.Error("failed to build new block", "err", err)
 		return nil, err
 	}
-	time.Sleep(1 * time.Second)
 
-	return builtPayload, nil
+	// attrs, err := m.bk.GetPayloadAttributes(
+	// 	ctx, uint64(ctx.BlockHeight()), uint64(ctx.BlockTime().Unix()),
+	// )
+	// if attrs == nil || err != nil {
+	// 	m.logger.Error("failed to get payload attributes", "err", err)
+	// 	return nil, err
+	// }
+
+	// // We start by setting the head of our execution client to the
+	// // latest block that we have seen.
+	// // var sbh []byte = common.Hash(fcs.GetSafeBlockHash()).Bytes()
+	// // var fbh []byte = common.Hash(fcs.GetFinalizedBlockHash()).Bytes()
+	// fc := &pb.ForkchoiceState{
+	// 	HeadBlockHash:      blk.Hash.Bytes(),
+	// 	SafeBlockHash:      common.Hash(fcs.GetSafeBlockHash()).Bytes(),
+	// 	FinalizedBlockHash: common.Hash(fcs.GetFinalizedBlockHash()).Bytes(),
+	// }
+
+	// fmt.Println("FORKCHOICE IN BB")
+	// fmt.Println(common.Bytes2Hex(fc.HeadBlockHash))
+	// fmt.Println(common.Bytes2Hex(fc.SafeBlockHash))
+	// fmt.Println(common.Bytes2Hex(fc.FinalizedBlockHash))
+	// m.logger.Info("attrs", "attrs", attrs)
+	// payloadID, _, err = m.EngineCaller.ForkchoiceUpdated(ctx, fc, attrs)
+	// if err != nil {
+	// 	m.logger.Error("failed to get forkchoice updated", "err", err)
+	// 	return nil, err
+	// }
+	// m.logger.Info("building payload", "payloadID", payloadID)
+
+	// TODO: this should be something that is 80% of proposal timeout, or so?
+	// TODO: maybe this should be some sort of event that we wait for?
+	// But the TLDR is that we need to wait for the execution client to
+	// build the payload before we can include it in the beacon block.
+	// } else {
+	// 	m.logger.Info("cached payload found, using cached payload")
+	// 	payloadID = m.cachedPayload
+	// }
+
+	// time.Sleep(6000 * time.Millisecond) //nolint:gomnd // temp.
+
+	// fmt.Println("PROPOSING BLOCK")
+	// _, builtPayload, err := m.bk.ProposeNewFinalBlock(ctx, ctx.HeaderInfo(), payloadID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// time.Sleep(1 * time.Second)
+
+	return payload, nil
 }
 
 func (m *Service) ValidateBlock(ctx sdk.Context, builtPayload interfaces.ExecutionData) error {
