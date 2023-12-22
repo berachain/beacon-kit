@@ -105,22 +105,33 @@ func (s *Service) ProposeNewFinalBlock(ctx context.Context,
 	return payloadIDNew, builtPayload, nil
 }
 
-func (s *Service) ProcessBlock(ctx context.Context,
+func (s *Service) ProcessExecutionData(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
 	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header, nil, [32]byte{})
 	if err != nil {
-		s.logger.Error("failed to validate execution on block", "err", err)
-		return nil, err
+		if !errors.Is(err, engine.ErrSyncingPayloadStatus) {
+			s.logger.Error("failed to validate execution on block", "err", err)
+			return nil, err
+		}
 	} else if !isValidPayload {
 		s.logger.Error("invalid payload")
 		return nil, errors.New("invalid payload")
 	}
 
-	// if err != nil {
-	return s.notifyForkchoiceUpdate(ctx, uint64(block.Height), &notifyForkchoiceUpdateArg{
+retry:
+	_, err = s.notifyForkchoiceUpdate(ctx, uint64(block.Height), &notifyForkchoiceUpdateArg{
 		headHash: header.BlockHash(),
 	}, true)
+	if err != nil {
+		if errors.Is(err, engine.ErrSyncingPayloadStatus) {
+			s.logger.Info("execution client returned status_syncing, retrying....")
+			time.Sleep(1 * time.Second)
+			goto retry
+		}
+		s.logger.Error("failed to notify forkchoice update", "err", err)
+	}
+	return nil, err
 }
 
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
@@ -156,7 +167,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	payloadID, _, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
 		switch err {
-		case prysmexecution.ErrAcceptedSyncingPayloadStatus:
+		case engine.ErrSyncingPayloadStatus:
 			// forkchoiceUpdatedOptimisticNodeCount.Inc()
 			// log.WithFields(logrus.Fields{
 			// 	"headSlot":                  headBlk.Slot(),
@@ -164,44 +175,11 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			// 	"finalizedPayloadBlockHash": fmt.Sprintf("%#x", bytesutil.Trunc(finalizedHash[:])),
 			// }).Info("Called fork choice updated with optimistic block")
 			s.logger.Error("called fork choice updated with optimistic block (syncing or accepted)", "headSlot", slot)
-			return payloadID, nil
+			return payloadID, err
+		case engine.ErrAcceptedPayloadStatus:
+			return payloadID, err
 		case prysmexecution.ErrInvalidPayloadStatus:
 			s.logger.Error("invalid payload status", "err", err)
-			// // forkchoiceUpdatedInvalidNodeCount.Inc()
-			// // headRoot := arg.headRoot
-			// if len(lastValidHash) == 0 {
-			// 	lastValidHash = defaultLatestValidHash
-			// }
-			// // // invalidRoots, err := s.cfg.ForkChoiceStore.SetOptimisticToInvalid(ctx,
-			// headRoot, headBlk.ParentRoot(), bytesutil.ToBytes32(lastValidHash))
-			// if err != nil {
-			// 	log.WithError(err).Error("Could not set head root to invalid")
-			// 	return nil, nil
-			// }
-			// if err := s.removeInvalidBlockAndState(ctx, invalidRoots); err != nil {
-			// 	log.WithError(err).Error("Could not remove invalid block and state")
-			// 	return nil, nil
-			// }
-
-			// r, err := s.cfg.ForkChoiceStore.Head(ctx)
-			// if err != nil {
-			// 	log.WithFields(logrus.Fields{
-			// 		"slot":                 headBlk.Slot(),
-			// 		"blockRoot":            fmt.Sprintf("%#x", bytesutil.Trunc(headRoot[:])),
-			// 		"invalidChildrenCount": len(invalidRoots),
-			// 	}).Warn("Pruned invalid blocks, could not update head root")
-			// 	return nil, invalidBlock{error: ErrInvalidPayload, root: arg.headRoot, invalidAncestorRoots: invalidRoots}
-			// }
-			// b, err := s.getBlock(ctx, r)
-			// if err != nil {
-			// 	log.WithError(err).Error("Could not get head block")
-			// 	return nil, nil
-			// }
-			// st, err := s.cfg.StateGen.StateByRoot(ctx, r)
-			// if err != nil {
-			// 	log.WithError(err).Error("Could not get head state")
-			// 	return nil, nil
-			// }
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
 			var pid *enginev1.PayloadIDBytes
 			pid, err = s.notifyForkchoiceUpdate(ctx, slot, &notifyForkchoiceUpdateArg{

@@ -166,7 +166,8 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mempool, app)
 	proposalHandler := proposal.NewHandler(bk,
-		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler())
+		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler(),
+		p.blocksyncer)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 

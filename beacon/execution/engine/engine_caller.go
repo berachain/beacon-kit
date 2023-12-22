@@ -88,6 +88,7 @@ type Caller interface {
 	LatestExecutionBlock(ctx context.Context) (*pb.ExecutionBlock, error)
 	SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error)
 	BlockByNumber(ctx context.Context, number *big.Int) (*gethcoretypes.Block, error)
+	BlockByHash(ctx context.Context, hash common.Hash) (*gethcoretypes.Block, error)
 }
 
 // Caller is implemented by engineCaller.

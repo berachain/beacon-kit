@@ -34,27 +34,32 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	consensus_types "github.com/itsdevbear/bolaris/beacon/consensus-types"
+	block_sync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
 )
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
 // to sync up and the consensus client shouldn't join the validator set yet.
 const PayloadPosition = 0
 
+// Handler is a struct that handles the proposal process.
 type Handler struct {
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 	beaconChain     *blockchain.Service
+	blockSync       *block_sync.BlockSync
 }
 
 func NewHandler(
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
+	blockSync *block_sync.BlockSync,
 ) *Handler {
 	return &Handler{
 		beaconChain:     beaconChain,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
+		blockSync:       blockSync,
 	}
 }
 
@@ -99,15 +104,17 @@ func (h *Handler) ProcessProposalHandler(
 	bz := req.Txs[PayloadPosition]
 	req.Txs = req.Txs[1:]
 
+	// Unmarshal the payload.
 	data, err := consensus_types.BytesToExecutionData(bz, math.Gwei(0), 3)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	if _, err = h.beaconChain.ProcessBlock(ctx, ctx.HeaderInfo(), data); err != nil {
+	if _, err = h.beaconChain.ProcessExecutionData(ctx, ctx.HeaderInfo(), data); err != nil {
 		logger.Error("failed to validate block", "err", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
+	// Run the remainder of the proposal.
 	return h.processProposal(ctx, req)
 }
