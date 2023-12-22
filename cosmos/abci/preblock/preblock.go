@@ -1,16 +1,43 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package preblock
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/prysmaticlabs/prysm/v4/math"
 
 	"cosmossdk.io/log"
+
 	cometabci "github.com/cometbft/cometbft/abci/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
+
+	consensus_types "github.com/itsdevbear/bolaris/beacon/consensus-types"
 	v1 "github.com/itsdevbear/bolaris/types/v1"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 type BeaconKeeper interface {
@@ -51,22 +78,13 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		)
 
 		beaconBlockData := req.Txs[0] // todo modularize.
-		payload := new(enginev1.ExecutionPayloadCapellaWithValue)
-		payload.Payload = new(enginev1.ExecutionPayloadCapella)
-		if err := payload.Payload.UnmarshalSSZ(beaconBlockData); err != nil {
+
+		// todo handle hardforks without needing codechange.
+		data, err := consensus_types.BytesToExecutionData(beaconBlockData, math.Gwei(0), 3)
+		if err != nil {
 			h.logger.Error("payload in beacon block could not be unmarshalled", "err", err)
 			return nil, err
 		}
-		// todo handle hardforks without needing codechange.
-		data, err := blocks.WrappedExecutionPayloadCapella(
-			payload.Payload, blocks.PayloadValueToGwei(payload.Value),
-		)
-		if err != nil {
-			h.logger.Error("failed to wrap payload", "err", err)
-			return nil, err
-		}
-
-		fmt.Println("Beacon Root is Processing", "execution_block_hash", common.BytesToHash(data.BlockHash()))
 
 		// Finalize the block that is being proposed.
 		store := h.keeper.ForkChoiceStore(ctx)

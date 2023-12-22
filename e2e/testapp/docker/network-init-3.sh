@@ -26,7 +26,6 @@
 CONTAINER0="polard-node0"
 CONTAINER1="polard-node1"
 CONTAINER2="polard-node2"
-CONTAINER3="polard-node3"
 
 HOMEDIR="/.polard"
 SCRIPTS="/scripts"
@@ -36,18 +35,16 @@ mkdir ./temp
 mkdir ./temp/seed0
 mkdir ./temp/seed1
 mkdir ./temp/seed2
-mkdir ./temp/seed3
 touch ./temp/genesis.json
 
 # init step 1 
 docker exec $CONTAINER0 bash -c "$SCRIPTS/seed0-init-step1.sh"
 docker exec $CONTAINER1 bash -c "$SCRIPTS/seed1-init-step1.sh seed-1"
 docker exec $CONTAINER2 bash -c "$SCRIPTS/seed1-init-step1.sh seed-2"
-docker exec $CONTAINER3 bash -c "$SCRIPTS/seed1-init-step1.sh seed-3"
 
 # copy genesis.json from seed-0 to seed-1
 docker cp $CONTAINER0:$HOMEDIR/config/genesis.json ./temp/genesis.json
-docker cp ./temp/genesis.json $CONTAINER1:$HOMEDIR/config/genesis.json
+docker cp ./temp/genesis.json $CONTAINER1:$HOMEDIR/config/genesis.jso
 
 # init step 2
 docker exec $CONTAINER1 bash -c "$SCRIPTS/seed1-init-step2.sh seed-1"
@@ -55,27 +52,14 @@ docker exec $CONTAINER1 bash -c "$SCRIPTS/seed1-init-step2.sh seed-1"
 # copy genesis.json from seed-1 to seed-2
 docker cp $CONTAINER1:$HOMEDIR/config/genesis.json ./temp/genesis.json
 docker cp ./temp/genesis.json $CONTAINER2:$HOMEDIR/config/genesis.json
+ls
 
-# init step 2
-docker exec $CONTAINER2 bash -c "$SCRIPTS/seed2-init-step2.sh seed-2"
-
-# copy genesis.json from seed-2 to seed-3
+# copy genesis.json from seed-2 to seed-0
 docker cp $CONTAINER2:$HOMEDIR/config/genesis.json ./temp/genesis.json
-docker cp ./temp/genesis.json $CONTAINER3:$HOMEDIR/config/genesis.json
-
-# init step 2
-docker exec $CONTAINER3 bash -c "$SCRIPTS/seed1-init-step2.sh seed-3"
-
-
-# copy genesis.json from seed-3 to seed-0
-docker cp $CONTAINER3:$HOMEDIR/config/genesis.json ./temp/genesis.json
-docker cp ./temp/genesis.json $CONTAINER0:$HOMEDIR/config/genesis.json
-
+docker cp ./temp/genesis.json $CONTAINER0:$HOMEDIR/config/genesis.jsongene
 # copy gentx
 docker cp $CONTAINER1:$HOMEDIR/config/gentx ./temp
-docker cp $CONTAINER2:$HOMEDIR/config/gentx ./temp
-docker cp $CONTAINER3:$HOMEDIR/config/gentx ./temp
-docker cp ./temp/gentx $CONTAINER0:$HOMEDIR/config
+docker cp ./temp/gentx $CONTAINER0:$HOMEDIR/config 
 
 # init step 2
 docker exec $CONTAINER0 bash -c "$SCRIPTS/seed0-init-step2.sh"
@@ -84,13 +68,12 @@ docker exec $CONTAINER0 bash -c "$SCRIPTS/seed0-init-step2.sh"
 docker cp $CONTAINER0:$HOMEDIR/config/genesis.json ./temp/genesis.json
 docker cp ./temp/genesis.json $CONTAINER1:$HOMEDIR/config/genesis.json
 docker cp ./temp/genesis.json $CONTAINER2:$HOMEDIR/config/genesis.json
-docker cp ./temp/genesis.json $CONTAINER3:$HOMEDIR/config/genesis.json
 
 # start
 # docker exec -it $CONTAINER0 bash -c "$SCRIPTS/seed-start.sh"
 # docker exec -it $CONTAINER1 bash -c "$SCRIPTS/seed-start.sh"
 # docker exec -it $CONTAINER2 bash -c "$SCRIPTS/seed-start.sh"
-# docker exec -it $CONTAINER3 bash -c "$SCRIPTS/seed-start.sh"
+# docker exec -it $CONTAINER2 bash -c "$SCRIPTS/seed-start.sh"
 
 # docker exec -it polard-node0 bash -c "/scripts/seed-start.sh"
 # docker exec -it polard-node1 bash -c "/scripts/seed-start.sh"

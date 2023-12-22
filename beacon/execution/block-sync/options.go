@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package block_sync
 
 import (
 	"cosmossdk.io/log"
@@ -31,11 +31,11 @@ import (
 	"github.com/itsdevbear/bolaris/types/config"
 )
 
-type Option func(*engineCaller) error
+type Option func(*BlockSync) error
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineCaller) error {
+	return func(s *BlockSync) error {
 		s.beaconCfg = beaconCfg
 		return nil
 	}
@@ -43,8 +43,24 @@ func WithBeaconConfig(beaconCfg *config.Beacon) Option {
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithLogger(logger log.Logger) Option {
-	return func(s *engineCaller) error {
+	return func(s *BlockSync) error {
 		s.logger = logger
+		return nil
+	}
+}
+
+// WithHeadSubscriber is an option to set the head subscriber for the Eth1Client.
+func WithHeadSubscriber(subscriber HeadSubscriber) Option {
+	return func(s *BlockSync) error {
+		s.headSubscriber = subscriber
+		return nil
+	}
+}
+
+// WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider for the Service.
+func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
+	return func(s *BlockSync) error {
+		s.fcsp = fcsp
 		return nil
 	}
 }

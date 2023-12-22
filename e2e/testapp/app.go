@@ -113,8 +113,6 @@ type SimApp struct {
 }
 
 // NewPolarisApp returns a reference to an initialized SimApp.
-//
-
 func NewPolarisApp(
 	logger log.Logger,
 	db dbm.DB,
@@ -141,26 +139,6 @@ func NewPolarisApp(
 				// supply the logger
 				logger,
 				polaris,
-				//
-				// AUTH
-				//
-				// For providing a custom function required in auth to generate custom account types
-				// add it below. By default the auth module uses simulation.RandomGenesisAccounts.
-				//
-				// authtypes.RandomGenesisAccountsFn(simulation.RandomGenesisAccounts),
-
-				// For providing a custom a base account type add it below.
-				// By default the auth module uses authtypes.ProtoBaseAccount().
-				//
-				// func() sdk.AccountI { return authtypes.ProtoBaseAccount() },
-
-				//
-				// MINT
-				//
-
-				// For providing a custom inflation function for x/mint add here your
-				// custom function that implements the minttypes.InflationCalculationFn
-				// interface.
 			),
 		)
 	)
@@ -215,20 +193,12 @@ func NewPolarisApp(
 		panic(err)
 	}
 
-	app.CommitMultiStore()
-	// ctx := context.Background()
-
-	// sdj
-	// ctx := sdk.Context{}.
-	// WithMultiStore().
-	// WithGasMeter(storetypes.NewInfiniteGasMeter()).
-	// WithEventManager(sdk.NewEventManager())
-
 	ctx := sdk.NewContext(
 		app.BaseApp.CommitMultiStore(), cmtproto.Header{}, false, log.NewNopLogger(),
 	)
+
 	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter()).
-		WithEventManager(sdk.NewEventManager())
+		WithEventManager(sdk.NewEventManager()).WithBlockHeight(ctx.MultiStore().LatestVersion())
 	if err := app.Polaris.SyncEL(ctx); err != nil {
 		panic(err)
 	}

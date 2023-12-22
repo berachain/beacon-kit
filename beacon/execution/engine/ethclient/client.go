@@ -155,6 +155,7 @@ func (s *Eth1Client) pollConnectionStatus(ctx context.Context) {
 // Forces to retry an execution client connection.
 func (s *Eth1Client) RetryExecutionClientConnection(ctx context.Context, _ error) {
 	// s.runError = errors.Wrap(err, "retryExecutionClientConnection")
+	s.logger.Error("retrying execution client connection...")
 	s.updateConnectedETH1(false)
 	// Back off for a while before redialing.
 	time.Sleep(backOffPeriod)

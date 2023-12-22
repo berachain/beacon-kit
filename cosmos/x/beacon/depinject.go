@@ -30,7 +30,7 @@ import (
 	"cosmossdk.io/depinject"
 	store "cosmossdk.io/store/types"
 
-	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/beacon/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
@@ -50,7 +50,7 @@ type DepInjectInput struct {
 	Config    *modulev1alpha1.Module
 	Key       *store.KVStoreKey
 
-	ExecutionClient execution.EngineCaller
+	ExecutionClient engine.Caller
 }
 
 // DepInjectOutput is the output for the dep inject framework.

@@ -222,7 +222,7 @@ services:
   # enode://fef1c19f87dd4c1221538c380715d88f3de6809a86738546a7738bb36094365e9fed49fe30e0411217b3eacca120afa2bb0d5cd6e29643abd61b261585bb68b2@192.168.10.17:60303
   reth3:
     container_name: polard-reth3
-    # image: ethereum/client-go:stable
+    # image: ethereum/client-go:stab
     # environment:
     #   - GETH_GRAPHQL_VHOSTS=*
     # command: > 

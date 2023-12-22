@@ -23,9 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package engine
 
-// We have to wait for the execution client to finish syncing before we can start
-// processing it.
-type ExecutionLayerSync struct {
+import (
+	"cosmossdk.io/log"
+
+	"github.com/itsdevbear/bolaris/types/config"
+)
+
+type Option func(*engineCaller) error
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *engineCaller) error {
+		s.beaconCfg = beaconCfg
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *engineCaller) error {
+		s.logger = logger
+		return nil
+	}
 }

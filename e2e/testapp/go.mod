@@ -21,6 +21,7 @@ require (
 	github.com/itsdevbear/bolaris/beacon v0.0.0-20231218004434-3a750e39d523
 	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231218004434-3a750e39d523
 	github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523
+	golang.org/x/sync v0.4.0
 )
 
 require (
@@ -185,6 +186,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mitchellh/pointerstructure v1.2.1 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -247,7 +249,6 @@ require (
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

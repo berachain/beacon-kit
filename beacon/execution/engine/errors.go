@@ -23,8 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package engine
 
 import "github.com/pkg/errors"
 
-var ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
+var (
+	ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
+	// ErrAcceptedSyncingPayloadStatus when the status of the payload is syncing or accepted.
+	ErrSyncingPayloadStatus  = errors.New("payload status is SYNCING")
+	ErrAcceptedPayloadStatus = errors.New("payload status is ACCEPTED")
+)

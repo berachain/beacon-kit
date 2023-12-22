@@ -36,10 +36,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
+	block_sync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
-	"github.com/itsdevbear/bolaris/cosmos/runtime/forkchoice"
 	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 	"github.com/itsdevbear/bolaris/types/config"
 )
@@ -47,7 +47,7 @@ import (
 // BeaconKeeper is an interface that defines the methods needed for the EVM setup.
 type BeaconKeeper interface {
 	// Setup initializes the EVM keeper.
-	Setup(execution.EngineCaller) error
+	Setup(engine.Caller) error
 }
 
 // CosmosApp is an interface that defines the methods needed for the Cosmos setup.
@@ -65,8 +65,8 @@ type CosmosApp interface {
 // Polaris is a struct that wraps the Polaris struct from the polar package.
 type Polaris struct {
 	cfg *config.Config
-	execution.EngineCaller
-	ForkChoiceSelector *forkchoice.Service
+	engine.Caller
+	blocksyncer *block_sync.BlockSync
 	// logger is the underlying logger supplied by the sdk.
 	logger log.Logger
 }
@@ -90,7 +90,7 @@ func New(
 
 	p.cfg = cfg
 
-	// p.Service = execution.NewEngineCaller(ethClient)
+	// p.Service = engine.NewCaller(ethClient)
 	jwtSecert, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
 	if err != nil {
 		return nil, err
@@ -107,12 +107,12 @@ func New(
 		return nil, err
 	}
 
-	engineCallerOpts := []execution.Option{
-		execution.WithBeaconConfig(&cfg.BeaconConfig),
-		execution.WithLogger(logger),
+	engineCallerOpts := []engine.Option{
+		engine.WithBeaconConfig(&cfg.BeaconConfig),
+		engine.WithLogger(logger),
 	}
 
-	p.EngineCaller = execution.NewEngineCaller(eth1Client, engineCallerOpts...)
+	p.Caller = engine.NewCaller(eth1Client, engineCallerOpts...)
 
 	return p, nil
 }
@@ -140,10 +140,19 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 		blockchain.WithBeaconConfig(&p.cfg.BeaconConfig),
 		blockchain.WithLogger(p.logger),
 		blockchain.WithForkChoiceStoreProvider(ek),
-		blockchain.WithEngineCaller(p.EngineCaller),
+		blockchain.WithEngineCaller(p.Caller),
 	}
 	bk := blockchain.NewService(chainOpts...)
-	p.ForkChoiceSelector = forkchoice.New(p.EngineCaller, bk, ek, p.logger)
+	blockSyncOpts := []block_sync.Option{
+		block_sync.WithBeaconConfig(&p.cfg.BeaconConfig),
+		block_sync.WithLogger(p.logger),
+		block_sync.WithHeadSubscriber(p.Caller),
+		block_sync.WithForkChoiceStoreProvider(ek),
+	}
+	p.blocksyncer = block_sync.New(blockSyncOpts...)
+	p.blocksyncer.Start(context.TODO())
+
+	// p.ForkChoiceSelector = forkchoice.New(p.Caller, bk, ek, p.logger)
 
 	// Create the proposal handler that will be used to fill proposals with
 	// transactions and oracle data.
@@ -156,7 +165,7 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 	// )
 
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mempool, app)
-	proposalHandler := proposal.NewHandler(p.ForkChoiceSelector,
+	proposalHandler := proposal.NewHandler(bk,
 		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler())
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
@@ -179,5 +188,5 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 }
 
 func (p *Polaris) SyncEL(ctx context.Context) error {
-	return p.ForkChoiceSelector.WaitforExecutionClientSync(ctx)
+	return p.blocksyncer.WaitforExecutionClientSync(ctx)
 }

@@ -29,7 +29,6 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
-	"fmt"
 	"time"
 
 	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
@@ -43,7 +42,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/types/config"
 	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
@@ -59,7 +58,7 @@ type Service struct {
 	etherbase common.Address
 	logger    log.Logger
 	fcsp      ForkChoiceStoreProvider
-	engine    execution.EngineCaller
+	engine    engine.Caller
 }
 
 func NewService(opts ...Option) *Service {
@@ -78,7 +77,9 @@ type notifyForkchoiceUpdateArg struct {
 	headHash []byte
 }
 
-func (s *Service) ProposeNewFinalBlock(ctx context.Context, beaconBlock header.Info, payloadID *enginev1.PayloadIDBytes) (*enginev1.PayloadIDBytes, interfaces.ExecutionData, error) {
+func (s *Service) ProposeNewFinalBlock(ctx context.Context,
+	beaconBlock header.Info, payloadID *enginev1.PayloadIDBytes,
+) (*enginev1.PayloadIDBytes, interfaces.ExecutionData, error) {
 	// Ensure that the payload we want to finalize is the same as the one we have queued.
 	builtPayload, _, _, err := s.engine.GetPayload(
 		ctx, *payloadID, primitives.Slot(beaconBlock.Height),
@@ -91,9 +92,10 @@ func (s *Service) ProposeNewFinalBlock(ctx context.Context, beaconBlock header.I
 
 	// We start by setting the head of our execution client to the
 	// latest block that we have seen
-	payloadIDNew, err := s.notifyForkchoiceUpdate(ctx, uint64(beaconBlock.Height), &notifyForkchoiceUpdateArg{
-		headHash: builtPayload.BlockHash(),
-	}, false)
+	payloadIDNew, err := s.notifyForkchoiceUpdate(ctx, uint64(beaconBlock.Height),
+		&notifyForkchoiceUpdateArg{
+			headHash: builtPayload.BlockHash(),
+		}, false)
 
 	if err != nil {
 		s.logger.Error("failed to notify forkchoice update", "err", err)
@@ -103,7 +105,9 @@ func (s *Service) ProposeNewFinalBlock(ctx context.Context, beaconBlock header.I
 	return payloadIDNew, builtPayload, nil
 }
 
-func (s *Service) ProcessBlock(ctx context.Context, block header.Info, header interfaces.ExecutionData) (*enginev1.PayloadIDBytes, error) {
+func (s *Service) ProcessBlock(ctx context.Context,
+	block header.Info, header interfaces.ExecutionData,
+) (*enginev1.PayloadIDBytes, error) {
 	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header, nil, [32]byte{})
 	if err != nil {
 		s.logger.Error("failed to validate execution on block", "err", err)
@@ -119,12 +123,14 @@ func (s *Service) ProcessBlock(ctx context.Context, block header.Info, header in
 	}, true)
 }
 
-func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *notifyForkchoiceUpdateArg, withAttrs bool) (*enginev1.PayloadIDBytes, error) {
+func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
+	slot uint64, arg *notifyForkchoiceUpdateArg, withAttrs bool,
+) (*enginev1.PayloadIDBytes, error) {
 	// currSafeBlk := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	// currFinalizedBlk := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 
 	// // TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
-	// // The blind finalization is "sorta safe" cause we will get an STATUS_INVALID From the forkchoice update
+	// // The blind finalization is "sota safe" cause we will get an STATUS_INVALID From the forkchoice update
 	// // if it is deemed ot break the rules of the execution layer.
 	// // still needs to be addressed of course.
 	fc := &enginev1.ForkchoiceState{
@@ -132,12 +138,6 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 		SafeBlockHash:      arg.headHash,
 		FinalizedBlockHash: arg.headHash,
 	}
-
-	fmt.Println("FORKCHOICE IN PROCESS PROPOSALFROM DISK")
-	fmt.Println(common.Bytes2Hex(fc.HeadBlockHash))
-	fmt.Println(common.Bytes2Hex(fc.SafeBlockHash))
-	fmt.Println(common.Bytes2Hex(fc.FinalizedBlockHash))
-	time.Sleep(1 * time.Second)
 
 	// We want to start building the next block as part of this forkchoice update.
 	nextSlot := slot + 1 // Cache payload ID for next slot proposer.
@@ -153,8 +153,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 		attrs = payloadattribute.EmptyWithVersion(3)
 	}
 
-	payloadID, lastValidHash, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
-	fmt.Println(lastValidHash)
+	payloadID, _, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
 		switch err {
 		case prysmexecution.ErrAcceptedSyncingPayloadStatus:
@@ -173,7 +172,8 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 			// if len(lastValidHash) == 0 {
 			// 	lastValidHash = defaultLatestValidHash
 			// }
-			// // // invalidRoots, err := s.cfg.ForkChoiceStore.SetOptimisticToInvalid(ctx, headRoot, headBlk.ParentRoot(), bytesutil.ToBytes32(lastValidHash))
+			// // // invalidRoots, err := s.cfg.ForkChoiceStore.SetOptimisticToInvalid(ctx,
+			// headRoot, headBlk.ParentRoot(), bytesutil.ToBytes32(lastValidHash))
 			// if err != nil {
 			// 	log.WithError(err).Error("Could not set head root to invalid")
 			// 	return nil, nil
@@ -202,9 +202,9 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 			// 	log.WithError(err).Error("Could not get head state")
 			// 	return nil, nil
 			// }
-			fmt.Println("INVALID PAYLOAD STATUS")
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
-			pid, err := s.notifyForkchoiceUpdate(ctx, slot, &notifyForkchoiceUpdateArg{
+			var pid *enginev1.PayloadIDBytes
+			pid, err = s.notifyForkchoiceUpdate(ctx, slot, &notifyForkchoiceUpdateArg{
 				headHash: previousHead[:],
 			}, withAttrs)
 
@@ -258,12 +258,15 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, slot uint64, arg *
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) notifyNewPayload(ctx context.Context, preStateVersion int,
 	preStateHeader interfaces.ExecutionData, blk interfaces.ReadOnlySignedBeaconBlock) (bool, error) {
-	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader, []common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
+	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
+		[]common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
 }
 
-// validateExecutionOnBlock notifies the engine of the incoming block execution payload and returns true if the payload is valid.
-func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int, header interfaces.ExecutionData, signed interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte) (bool, error) {
+// validateExecutionOnBlock notifies the engine of the incoming block execution payload and
+// returns true if the payload is valid.
+func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int,
+	header interfaces.ExecutionData, signed interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte) (bool, error) {
 	isValidPayload, err := s.notifyNewPayload(ctx, ver, header, signed)
 	if err != nil {
 		return false, err
@@ -278,11 +281,13 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int, header 
 }
 
 // Temporary TODO Deprecate
-func (s *Service) GetPayloadAttributes(ctx context.Context, slot, timestamp uint64) (payloadattribute.Attributer, error) {
+func (s *Service) GetPayloadAttributes(ctx context.Context,
+	slot, timestamp uint64) (payloadattribute.Attributer, error) {
 	return s.getPayloadAttributes(ctx, slot, timestamp)
 }
 
-func (s *Service) getPayloadAttributes(ctx context.Context, slot, timestamp uint64) (payloadattribute.Attributer, error) {
+func (s *Service) getPayloadAttributes(ctx context.Context,
+	slot, timestamp uint64) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
 	var random [32]byte
 	if _, err := rand.Read(random[:]); err != nil {

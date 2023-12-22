@@ -27,6 +27,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -35,12 +36,14 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
+	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -59,6 +62,7 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
@@ -66,7 +70,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
 	evmconfig "github.com/itsdevbear/bolaris/types/config"
 )
@@ -90,7 +94,7 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-				execution.NewEngineCaller(nil),
+				engine.NewCaller(nil),
 			),
 			depinject.Provide(),
 		),
@@ -170,10 +174,10 @@ func NewRootCmd() *cobra.Command {
 func initCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
-	consensus.TimeoutPropose = time.Second * 4
-	consensus.TimeoutPrevote = time.Second * 4
-	consensus.TimeoutPrecommit = time.Second * 4
-	consensus.TimeoutCommit = time.Second * 4
+	consensus.TimeoutPropose = time.Second * 8
+	consensus.TimeoutPrevote = time.Second * 8
+	consensus.TimeoutPrecommit = time.Second * 8
+	consensus.TimeoutCommit = time.Second * 8
 
 	// Disable the indexer
 	cfg.TxIndex.Indexer = "null"
@@ -237,7 +241,11 @@ func initRootCmd(
 		snapshot.Cmd(newApp),
 	)
 
-	server.AddCommands(rootCmd, testapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
+	AddCommands(rootCmd, testapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags, server.StartCmdOptions{
+		PostSetup: func(svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error {
+			return nil
+		},
+	})
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
@@ -252,6 +260,38 @@ func initRootCmd(
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 	evmconfig.AddExecutionClientFlags(startCmd)
+}
+
+// add server commands.
+func AddCommands(rootCmd *cobra.Command, defaultNodeHome string,
+	appCreator servertypes.AppCreator, appExport servertypes.AppExporter,
+	addStartFlags servertypes.ModuleInitFlags, opts server.StartCmdOptions) {
+	cometCmd := &cobra.Command{
+		Use:     "comet",
+		Aliases: []string{"cometbft", "tendermint"},
+		Short:   "CometBFT subcommands",
+	}
+
+	cometCmd.AddCommand(
+		server.ShowNodeIDCmd(),
+		server.ShowValidatorCmd(),
+		server.ShowAddressCmd(),
+		server.VersionCmd(),
+		cmtcmd.ResetAllCmd,
+		cmtcmd.ResetStateCmd,
+		server.BootstrapStateCmd(appCreator),
+	)
+
+	startCmd := server.StartCmdWithOptions(appCreator, defaultNodeHome, opts)
+	addStartFlags(startCmd)
+
+	rootCmd.AddCommand(
+		startCmd,
+		cometCmd,
+		server.ExportCmd(appExport, defaultNodeHome),
+		version.NewVersionCommand(),
+		server.NewRollbackCmd(appCreator, defaultNodeHome),
+	)
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.

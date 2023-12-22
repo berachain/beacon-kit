@@ -28,7 +28,7 @@ package blockchain
 import (
 	"cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/types/config"
 )
 
@@ -58,8 +58,8 @@ func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
 	}
 }
 
-// WithEngineCaller is an option to set the EngineCaller for the Service.
-func WithEngineCaller(ec execution.EngineCaller) Option {
+// WithEngineCaller is an option to set the Caller for the Service.
+func WithEngineCaller(ec engine.Caller) Option {
 	return func(s *Service) error {
 		s.engine = ec
 		return nil

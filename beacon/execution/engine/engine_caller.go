@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package engine
 
 import (
 	"bytes"
@@ -57,7 +57,7 @@ import (
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 
-	eth "github.com/itsdevbear/bolaris/beacon/execution/ethclient"
+	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/config"
 )
 
@@ -69,9 +69,9 @@ const (
 // zeroHash32 is a zeroed 32-byte array.
 var zeroHash32 [32]byte
 
-// EngineCaller defines a client that can interact with an Ethereum
+// Caller defines a client that can interact with an Ethereum
 // execution node's engine engineCaller via JSON-RPC.
-type EngineCaller interface {
+type Caller interface {
 	NewPayload(ctx context.Context, payload interfaces.ExecutionData,
 		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
 	ForkchoiceUpdated(
@@ -79,7 +79,8 @@ type EngineCaller interface {
 	) (*pb.PayloadIDBytes, []byte, error)
 	GetPayload(ctx context.Context, payloadID [8]byte,
 		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
-	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
+	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
+		withTxs bool) (*pb.ExecutionBlock, error)
 
 	// TODO: THESE NEED OT BE REMOVED
 	LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, error)
@@ -89,8 +90,8 @@ type EngineCaller interface {
 	BlockByNumber(ctx context.Context, number *big.Int) (*gethcoretypes.Block, error)
 }
 
-// EngineCaller is implemented by engineCaller.
-var _ EngineCaller = (*engineCaller)(nil)
+// Caller is implemented by engineCaller.
+var _ Caller = (*engineCaller)(nil)
 
 // engineCaller is a struct that holds a pointer to an Eth1Client.
 type engineCaller struct {
@@ -99,9 +100,9 @@ type engineCaller struct {
 	logger    log.Logger
 }
 
-// NewEngineCaller creates a new engine client engineCaller.
+// NewCaller creates a new engine client engineCaller.
 // It takes an Eth1Client as an argument and returns a pointer to an engineCaller.
-func NewEngineCaller(ethclient *eth.Eth1Client, opts ...Option) EngineCaller {
+func NewCaller(ethclient *eth.Eth1Client, opts ...Option) Caller {
 	ec := &engineCaller{
 		Eth1Client: ethclient,
 	}
@@ -126,7 +127,6 @@ func (s *engineCaller) NewPayload(
 	// 	) * time.Second)
 	// ctx, cancel := context.WithDeadline(ctx, d)
 	// defer cancel()
-	s.logger.Info("NewPayload called")
 	result := &pb.PayloadStatus{}
 
 	switch payload.Proto().(type) {
@@ -135,7 +135,8 @@ func (s *engineCaller) NewPayload(
 		if !ok {
 			return nil, errors.New("execution data must be a Bellatrix or Capella execution payload")
 		}
-		err := s.Eth1Client.Client.Client().CallContext(ctx, result, execution.NewPayloadMethod, payloadPb)
+		err := s.Eth1Client.Client.Client().CallContext(ctx, result,
+			execution.NewPayloadMethod, payloadPb)
 		if err != nil {
 			return nil, s.handleRPCError(err)
 		}
@@ -144,7 +145,8 @@ func (s *engineCaller) NewPayload(
 		if !ok {
 			return nil, errors.New("execution data must be a Capella execution payload")
 		}
-		err := s.Eth1Client.Client.Client().CallContext(ctx, result, execution.NewPayloadMethodV2, payloadPb)
+		err := s.Eth1Client.Client.Client().CallContext(ctx, result,
+			execution.NewPayloadMethodV2, payloadPb)
 		if err != nil {
 			return nil, s.handleRPCError(err)
 		}
@@ -164,18 +166,17 @@ func (s *engineCaller) NewPayload(
 	}
 
 	if result.ValidationError != "" {
-		s.logger.Error("Got a validation error in newPayload", "err", errors.New(result.ValidationError))
+		s.logger.Error("Got a validation error in newPayload", "err",
+			errors.New(result.ValidationError))
 	}
 
 	switch result.Status {
 	case pb.PayloadStatus_INVALID_BLOCK_HASH:
 		return nil, execution.ErrInvalidBlockHashPayloadStatus
 	case pb.PayloadStatus_ACCEPTED:
-		fmt.Println("ACCEPTED")
-		return nil, execution.ErrAcceptedSyncingPayloadStatus
+		return nil, ErrAcceptedPayloadStatus
 	case pb.PayloadStatus_SYNCING:
-		fmt.Println("SYCING")
-		return nil, execution.ErrAcceptedSyncingPayloadStatus
+		return nil, ErrSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
 		return result.LatestValidHash, execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
@@ -205,7 +206,8 @@ func (s *engineCaller) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.Eth1Client.Client.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethod, state, a)
+		err = s.Eth1Client.Client.Client().CallContext(ctx, result,
+			execution.ForkchoiceUpdatedMethod, state, a)
 		if err != nil {
 			return nil, nil, s.handleRPCError(err)
 		}
@@ -214,7 +216,8 @@ func (s *engineCaller) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.Eth1Client.Client.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV2, state, a)
+		err = s.Eth1Client.Client.Client().CallContext(ctx, result,
+			execution.ForkchoiceUpdatedMethodV2, state, a)
 		if err != nil {
 			return nil, nil, s.handleRPCError(err)
 		}
@@ -223,7 +226,8 @@ func (s *engineCaller) ForkchoiceUpdated(
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.Eth1Client.Client.Client().CallContext(ctx, result, execution.ForkchoiceUpdatedMethodV3, state, a)
+		err = s.Eth1Client.Client.Client().CallContext(ctx, result,
+			execution.ForkchoiceUpdatedMethodV3, state, a)
 		if err != nil {
 			return nil, nil, s.handleRPCError(err)
 		}
@@ -235,16 +239,15 @@ func (s *engineCaller) ForkchoiceUpdated(
 		return nil, nil, execution.ErrNilResponse
 	}
 	if result.ValidationError != "" {
-		s.logger.Error("Got validation error in forkChoiceUpdated", "err", errors.New(result.ValidationError))
+		s.logger.Error("Got validation error in forkChoiceUpdated", "err",
+			errors.New(result.ValidationError))
 	}
 	resp := result.Status
 	switch resp.Status {
 	case pb.PayloadStatus_ACCEPTED:
-		fmt.Println("ACCEPTED")
-		return nil, nil, execution.ErrAcceptedSyncingPayloadStatus
+		return nil, nil, ErrAcceptedPayloadStatus
 	case pb.PayloadStatus_SYNCING:
-		fmt.Println("SYCING")
-		return nil, nil, execution.ErrAcceptedSyncingPayloadStatus
+		return nil, nil, ErrSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.LatestValidHash, execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
@@ -259,18 +262,20 @@ func (s *engineCaller) ForkchoiceUpdated(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
 // It returns the execution data as well as the blobs bundle.
-func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte, slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
+func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte,
+	slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
 	d := time.Now().Add(defaultEngineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
-	s.logger.Info("GetPayload called")
 	if slots.ToEpoch(slot) >= s.beaconCfg.DenebForkEpoch {
 		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-		err := s.Eth1Client.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))
+		err := s.Eth1Client.Client.Client().CallContext(ctx,
+			result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
-		ed, err := blocks.WrappedExecutionPayloadDeneb(result.Payload, blocks.PayloadValueToGwei(result.Value))
+		ed, err := blocks.WrappedExecutionPayloadDeneb(result.Payload,
+			blocks.PayloadValueToGwei(result.Value))
 		if err != nil {
 			return nil, nil, false, err
 		}
@@ -279,11 +284,13 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte, slot p
 
 	if slots.ToEpoch(slot) >= s.beaconCfg.CapellaForkEpoch {
 		result := &pb.ExecutionPayloadCapellaWithValue{}
-		err := s.Eth1Client.Client.Client().CallContext(ctx, result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadID))
+		err := s.Eth1Client.Client.Client().CallContext(ctx,
+			result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
-		ed, err := blocks.WrappedExecutionPayloadCapella(result.Payload, blocks.PayloadValueToGwei(result.Value))
+		ed, err := blocks.WrappedExecutionPayloadCapella(result.Payload,
+			blocks.PayloadValueToGwei(result.Value))
 		if err != nil {
 			return nil, nil, false, err
 		}
@@ -291,7 +298,8 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte, slot p
 	}
 
 	result := &pb.ExecutionPayload{}
-	err := s.Eth1Client.Client.Client().CallContext(ctx, result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadID))
+	err := s.Eth1Client.Client.Client().CallContext(ctx,
+		result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
@@ -384,7 +392,8 @@ func (s *engineCaller) ExecutionBlockByHash(ctx context.Context, hash common.Has
 
 // ExecutionBlocksByHashes fetches a batch of execution engine blocks by hash by calling
 // eth_blockByHash via JSON-RPC.
-func (s *engineCaller) ExecutionBlocksByHashes(ctx context.Context, hashes []common.Hash, withTxs bool,
+func (s *engineCaller) ExecutionBlocksByHashes(ctx context.Context,
+	hashes []common.Hash, withTxs bool,
 ) ([]*pb.ExecutionBlock, error) {
 	_, span := trace.StartSpan(ctx, "powchain.engine-api-client.ExecutionBlocksByHashes")
 	defer span.End()

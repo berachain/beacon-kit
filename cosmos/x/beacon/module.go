@@ -120,8 +120,8 @@ func (am AppModule) IsAppModule() {}
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(registrar grpc.ServiceRegistrar) error {
-	types.RegisterMsgServiceServer(registrar, am.keeper)
+func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
+	// types.RegisterMsgServiceServer(registrar, am.keeper)
 	return nil
 }
 

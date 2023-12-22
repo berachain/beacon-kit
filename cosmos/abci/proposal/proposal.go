@@ -26,14 +26,14 @@
 package proposal
 
 import (
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/prysmaticlabs/prysm/v4/math"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/itsdevbear/bolaris/cosmos/runtime/forkchoice"
+	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	consensus_types "github.com/itsdevbear/bolaris/beacon/consensus-types"
 )
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
@@ -41,20 +41,20 @@ import (
 const PayloadPosition = 0
 
 type Handler struct {
-	prepareProposal   sdk.PrepareProposalHandler
-	processProposal   sdk.ProcessProposalHandler
-	forkchoiceService *forkchoice.Service
+	prepareProposal sdk.PrepareProposalHandler
+	processProposal sdk.ProcessProposalHandler
+	beaconChain     *blockchain.Service
 }
 
 func NewHandler(
-	forkchoiceService *forkchoice.Service,
+	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
-		forkchoiceService: forkchoiceService,
-		prepareProposal:   prepareProposal,
-		processProposal:   processProposal,
+		beaconChain:     beaconChain,
+		prepareProposal: prepareProposal,
+		processProposal: processProposal,
 	}
 }
 
@@ -64,7 +64,7 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 	// Build the block on the execution layer.
 	// TODO: manage the different type of engine API errors.
-	payload, err := h.forkchoiceService.BuildBlockV2(ctx)
+	payload, err := h.beaconChain.BuildNextBlock(ctx, ctx.HeaderInfo() /* slot */)
 	if err != nil {
 		logger.Error("failed to build block", "err", err)
 		return nil, err
@@ -99,29 +99,14 @@ func (h *Handler) ProcessProposalHandler(
 	bz := req.Txs[PayloadPosition]
 	req.Txs = req.Txs[1:]
 
-	if bz == nil {
-		logger.Error("payload missing from proposal")
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
-	}
-	payload := new(enginev1.ExecutionPayloadCapellaWithValue)
-	payload.Payload = new(enginev1.ExecutionPayloadCapella)
-	if err := payload.Payload.UnmarshalSSZ(bz); err != nil {
-		logger.Error("payload in beacon block could not be unmarshalled", "err", err)
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
-	}
-	// todo handle hardforks without needing codechange.
-	data, err := blocks.WrappedExecutionPayloadCapella(
-		payload.Payload, blocks.PayloadValueToGwei(payload.Value),
-	)
-
+	data, err := consensus_types.BytesToExecutionData(bz, math.Gwei(0), 3)
 	if err != nil {
-		logger.Error("failed to wrap payload", "err", err)
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	if err = h.forkchoiceService.ValidateBlock(ctx, data); err != nil {
+	if _, err = h.beaconChain.ProcessBlock(ctx, ctx.HeaderInfo(), data); err != nil {
 		logger.Error("failed to validate block", "err", err)
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
+		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
 	return h.processProposal(ctx, req)
