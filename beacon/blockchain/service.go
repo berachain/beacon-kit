@@ -120,10 +120,17 @@ func (s *Service) ProcessExecutionData(ctx context.Context,
 		return nil, errors.New("invalid payload")
 	}
 
+	return s.notifyForkchoiceUpdateWithSyncingRetry(
+		ctx, uint64(block.Height), &notifyForkchoiceUpdateArg{
+			headHash: header.BlockHash(),
+		}, true)
+}
+
+func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
+	ctx context.Context, slot uint64, arg *notifyForkchoiceUpdateArg, withAttrs bool,
+) (*enginev1.PayloadIDBytes, error) {
 retry:
-	_, err = s.notifyForkchoiceUpdate(ctx, uint64(block.Height), &notifyForkchoiceUpdateArg{
-		headHash: header.BlockHash(),
-	}, true)
+	payloadID, err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
 	if err != nil {
 		if errors.Is(err, engine.ErrSyncingPayloadStatus) {
 			s.logger.Info("execution client returned status_syncing, retrying....")
@@ -132,7 +139,7 @@ retry:
 		}
 		s.logger.Error("failed to notify forkchoice update", "err", err)
 	}
-	return nil, err
+	return payloadID, err
 }
 
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
@@ -143,8 +150,6 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	// TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
 	// The blind finalization is "sota safe" cause we will get an STATUS_INVALID From the
 	// forkchoice update
-	// if it is deemed ot break the rules of the execution layer.
-	// still needs to be addressed of course.
 	fc := &enginev1.ForkchoiceState{
 		HeadBlockHash:      arg.headHash,
 		SafeBlockHash:      arg.headHash,
@@ -152,7 +157,8 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	}
 
 	// We want to start building the next block as part of this forkchoice update.
-	nextSlot := slot + 1 // Cache payload ID for next slot proposer.
+	// nextSlot := slot + 1 // Cache payload ID for next slot proposer.
+	nextSlot := slot
 	var attrs payloadattribute.Attributer
 	var err error
 	if withAttrs {

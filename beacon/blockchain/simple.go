@@ -35,6 +35,8 @@ import (
 	"cosmossdk.io/core/header"
 )
 
+const payloadBuildDelay = 2
+
 func (s *Service) BuildNextBlock(ctx context.Context,
 	beaconBlock header.Info) (interfaces.ExecutionData, error) {
 	// The goal here is to build a payload whose parent is the previously
@@ -47,7 +49,7 @@ func (s *Service) BuildNextBlock(ctx context.Context,
 // buildNewBlockOnTopOf builds a new block on top of an existing head of the execution client.
 func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	beaconBlock header.Info, headHash []byte) (interfaces.ExecutionData, error) {
-	payloadIDNew, err := s.notifyForkchoiceUpdate(
+	payloadIDNew, err := s.notifyForkchoiceUpdateWithSyncingRetry(
 		ctx, uint64(beaconBlock.Height),
 		&notifyForkchoiceUpdateArg{
 			headHash: headHash,
@@ -60,7 +62,7 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	}
 
 	// todo we need to wait for the forkchoice to update?
-	time.Sleep(1 * time.Second)
+	time.Sleep(payloadBuildDelay * time.Second)
 
 	payload, _, _, err := s.engine.GetPayload(
 		ctx, [8]byte(payloadIDNew[:]), primitives.Slot(beaconBlock.Height),

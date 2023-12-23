@@ -67,8 +67,8 @@ func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
 	logger := ctx.Logger().With("module", "prepare-proposal")
-	// Build the block on the execution layer.
-	// TODO: manage the different type of engine API errors.
+
+	// We begin by building a block on the execution client.
 	payload, err := h.beaconChain.BuildNextBlock(ctx, ctx.HeaderInfo() /* slot */)
 	if err != nil {
 		logger.Error("failed to build block", "err", err)
@@ -110,9 +110,12 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
+	// If we get any sort of error from the execution client, we bubble it up and reject the proposal,
+	// as we do not want to write a block finalization to the consensus layer that is invalid.
 	if _, err = h.beaconChain.ProcessExecutionData(ctx, ctx.HeaderInfo(), data); err != nil {
 		logger.Error("failed to validate block", "err", err)
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
+
+		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
 	}
 
 	// Run the remainder of the proposal.

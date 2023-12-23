@@ -95,3 +95,19 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		return &sdk.ResponsePreBlock{}, nil
 	}
 }
+
+// The block number issue comes from when process proposal runs, marks the block as finalized
+// on the execution layer.
+// Then we kill the consensus client before the IAVL tree is written to, what happens is
+// then on the next block,
+// a new payload is created and we get the bad root has stuff.
+
+// heuristic wise, we need to finalize on the iavl tree first?
+// we need to make sure the iavl tree is written to before we finalize on the execution
+// layer?
+// we also probably need to store full payloads on the beacon chain to ensure that if we
+//  get a scenario
+// where this is corruption or some sort of desync, we can rebuild the execution chain
+// from the execution
+// payloads on the beacon chain!
+// potential solution -> we need to finalize on the iavl tree first
