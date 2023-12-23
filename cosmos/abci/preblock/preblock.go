@@ -111,3 +111,10 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 // from the execution
 // payloads on the beacon chain!
 // potential solution -> we need to finalize on the iavl tree first
+
+// by keeping the execution payloads on the beacon chain, I think that in theory we can rebuild
+// a full execution chain with nothing but newPayload() calls?
+
+// TLDR DO NOT FORKCHOICE UPDATE TO FINALIZE THE BLOCK BUILT IN A CONSENSUS BLOCK, UNTIL THAT
+// CONSENSUS LAYER BLOCK IS FULLY COMMITTED ELSE YOU OPEN UP THE POSSIBILITY OF THE EXECUTION
+// CLIENT SKIPPING AHEAD OF THE CONSENSUS CLIENT AND THEN ITS GG.
