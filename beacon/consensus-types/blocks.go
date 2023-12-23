@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus_types
+package consensustypes
 
 import (
 	"errors"
@@ -35,7 +35,8 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
-// BytesToExecutionData converts a byte array to an ExecutionData object based on the requested version.
+// BytesToExecutionData converts a byte array to an ExecutionData object based on
+// the requested version.
 func BytesToExecutionData(bz []byte, value math.Gwei,
 	requestedVersion int) (interfaces.ExecutionData, error) {
 	if bz == nil {

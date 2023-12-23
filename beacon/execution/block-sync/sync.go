@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package block_sync
+package blocksync
 
 import (
 	"bytes"
@@ -38,6 +38,7 @@ import (
 	"cosmossdk.io/log"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/types/config"
@@ -64,7 +65,10 @@ type BlockSync struct {
 func New(opts ...Option) *BlockSync {
 	b := &BlockSync{}
 	for _, opt := range opts {
-		opt(b)
+		err := opt(b)
+		if err != nil {
+			panic(err)
+		}
 	}
 	return b
 }
@@ -74,7 +78,7 @@ func (b *BlockSync) Start(ctx context.Context) {
 	go b.loop(ctx)
 }
 
-func (b *BlockSync) loop(ctx context.Context) {
+func (b *BlockSync) loop(_ context.Context) {
 	// ch := make(chan *types.Header)
 	// b.headSubscriber.SubscribeNewHead(ctx, ch)
 	// for {
@@ -94,11 +98,12 @@ func (b *BlockSync) WaitforExecutionClientSync(ctx context.Context) error {
 	if bytes.Equal(blk[:], (common.Hash{}).Bytes()) {
 		blk = b.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 		if bytes.Equal(blk[:], (common.Hash{}).Bytes()) {
-			blk_, err := b.headSubscriber.BlockByNumber(ctx, new(big.Int))
+			var blk2 *types.Block
+			blk2, err = b.headSubscriber.BlockByNumber(ctx, new(big.Int))
 			if err != nil {
 				return err
 			}
-			blk = [32]byte(blk_.Hash())
+			blk = [32]byte(blk2.Hash())
 		}
 	}
 
@@ -113,7 +118,9 @@ func (b *BlockSync) WaitforExecutionClientSync(ctx context.Context) error {
 		"safe", common.Bytes2Hex(fc.SafeBlockHash),
 		"finalized", common.Bytes2Hex(fc.FinalizedBlockHash))
 retry:
-	_, latestValidHash, err := b.headSubscriber.ForkchoiceUpdated(ctx, fc, payloadattribute.EmptyWithVersion(3))
+	_, latestValidHash, err := b.headSubscriber.ForkchoiceUpdated(
+		ctx, fc, payloadattribute.EmptyWithVersion(3), //nolint:gomnd // its okay.
+	)
 	if err != nil {
 		if errors.Is(err, engine.ErrSyncingPayloadStatus) {
 			b.logger.Info("payload on sync is acepted or syncing, retrying....",

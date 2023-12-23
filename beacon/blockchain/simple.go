@@ -37,8 +37,9 @@ import (
 
 func (s *Service) BuildNextBlock(ctx context.Context,
 	beaconBlock header.Info) (interfaces.ExecutionData, error) {
-	// The goal here is to build a payload whose parent is the previously finalized block, such that, if this
-	// payload is accepted, it will be the next finalized block in the chain.
+	// The goal here is to build a payload whose parent is the previously
+	// finalized block, such that, if this payload is accepted, it will be
+	// the next finalized block in the chain.
 	sbh := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	return s.buildNewBlockOnTopOf(ctx, beaconBlock, sbh[:])
 }
@@ -46,9 +47,13 @@ func (s *Service) BuildNextBlock(ctx context.Context,
 // buildNewBlockOnTopOf builds a new block on top of an existing head of the execution client.
 func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	beaconBlock header.Info, headHash []byte) (interfaces.ExecutionData, error) {
-	payloadIDNew, err := s.notifyForkchoiceUpdate(ctx, uint64(beaconBlock.Height), &notifyForkchoiceUpdateArg{
-		headHash: headHash,
-	}, true)
+	payloadIDNew, err := s.notifyForkchoiceUpdate(
+		ctx, uint64(beaconBlock.Height),
+		&notifyForkchoiceUpdateArg{
+			headHash: headHash,
+		},
+		true,
+	)
 
 	if err != nil {
 		return nil, err
@@ -57,6 +62,8 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	// todo we need to wait for the forkchoice to update?
 	time.Sleep(1 * time.Second)
 
-	payload, _, _, err := s.engine.GetPayload(ctx, [8]byte(payloadIDNew[:]), primitives.Slot(beaconBlock.Height))
+	payload, _, _, err := s.engine.GetPayload(
+		ctx, [8]byte(payloadIDNew[:]), primitives.Slot(beaconBlock.Height),
+	)
 	return payload, err
 }

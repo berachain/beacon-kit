@@ -72,7 +72,8 @@ func NewService(opts ...Option) *Service {
 	return s
 }
 
-// notifyForkchoiceUpdateArg is the argument for the forkchoice update notification `notifyForkchoiceUpdate`.
+// notifyForkchoiceUpdateArg is the argument for the forkchoice
+// update notification `notifyForkchoiceUpdate`.
 type notifyForkchoiceUpdateArg struct {
 	headHash []byte
 }
@@ -108,7 +109,7 @@ func (s *Service) ProposeNewFinalBlock(ctx context.Context,
 func (s *Service) ProcessExecutionData(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
-	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header, nil, [32]byte{})
+	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header /*, nil, [32]byte{}*/)
 	if err != nil {
 		if !errors.Is(err, engine.ErrSyncingPayloadStatus) {
 			s.logger.Error("failed to validate execution on block", "err", err)
@@ -139,11 +140,11 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 ) (*enginev1.PayloadIDBytes, error) {
 	// currSafeBlk := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	// currFinalizedBlk := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-
-	// // TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
-	// // The blind finalization is "sota safe" cause we will get an STATUS_INVALID From the forkchoice update
-	// // if it is deemed ot break the rules of the execution layer.
-	// // still needs to be addressed of course.
+	// TODO FIX, rn we are just blindly finalizing whatever the proposer has sent us.
+	// The blind finalization is "sota safe" cause we will get an STATUS_INVALID From the
+	// forkchoice update
+	// if it is deemed ot break the rules of the execution layer.
+	// still needs to be addressed of course.
 	fc := &enginev1.ForkchoiceState{
 		HeadBlockHash:      arg.headHash,
 		SafeBlockHash:      arg.headHash,
@@ -161,12 +162,12 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			return nil, err
 		}
 	} else {
-		attrs = payloadattribute.EmptyWithVersion(3)
+		attrs = payloadattribute.EmptyWithVersion(3) //nolint:gomnd // TODO fix.
 	}
 
 	payloadID, _, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
-		switch err {
+		switch err { //nolint:errorlint // okay for now.
 		case engine.ErrSyncingPayloadStatus:
 			// forkchoiceUpdatedOptimisticNodeCount.Inc()
 			// log.WithFields(logrus.Fields{
@@ -174,7 +175,10 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			// 	"headPayloadBlockHash":      fmt.Sprintf("%#x", bytesutil.Trunc(headPayload.BlockHash())),
 			// 	"finalizedPayloadBlockHash": fmt.Sprintf("%#x", bytesutil.Trunc(finalizedHash[:])),
 			// }).Info("Called fork choice updated with optimistic block")
-			s.logger.Error("called fork choice updated with optimistic block (syncing or accepted)", "headSlot", slot)
+			s.logger.Error(
+				"called fork choice updated with optimistic block (syncing or accepted)",
+				"headSlot", slot,
+			)
 			return payloadID, err
 		case engine.ErrAcceptedPayloadStatus:
 			return payloadID, err
@@ -201,7 +205,8 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			// 	"newHeadRoot":          fmt.Sprintf("%#x", bytesutil.Trunc(r[:])),
 			// }).Warn("Pruned invalid blocks")
 			return pid, errors.New("invalid payload")
-			// return pid, invalidBlock{error: ErrInvalidPayload, root: arg.headRoot, invalidAncestorRoots: invalidRoots}
+			// return pid, invalidBlock{error: ErrInvalidPayload,
+			//root: arg.headRoot, invalidAncestorRoots: invalidRoots}
 
 		default:
 			// log.WithError(err).Error(ErrUndefinedExecutionEngineError)
@@ -234,8 +239,9 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 }
 
 // It returns true if the EL has returned VALID for the block.
-func (s *Service) notifyNewPayload(ctx context.Context, preStateVersion int,
-	preStateHeader interfaces.ExecutionData, blk interfaces.ReadOnlySignedBeaconBlock) (bool, error) {
+func (s *Service) notifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
+	preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+) (bool, error) {
 	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
 		[]common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
@@ -244,11 +250,13 @@ func (s *Service) notifyNewPayload(ctx context.Context, preStateVersion int,
 // validateExecutionOnBlock notifies the engine of the incoming block execution payload and
 // returns true if the payload is valid.
 func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int,
-	header interfaces.ExecutionData, signed interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte) (bool, error) {
-	isValidPayload, err := s.notifyNewPayload(ctx, ver, header, signed)
+	header interfaces.ExecutionData,
+	/*,signed interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte*/) (bool, error) {
+	isValidPayload, err := s.notifyNewPayload(ctx, ver, header /*, signed*/)
 	if err != nil {
 		return false, err
-		// return false, s.handleInvalidExecutionError(ctx, err, blockRoot, signed.Block().ParentRoot())
+		// return false, s.handleInvalidExecutionError(ctx, err, blockRoot,
+		// signed.Block().ParentRoot())
 	}
 	// if signed.Version() < version.Capella && isValidPayload {
 	// 	if err := s.validateMergeTransitionBlock(ctx, ver, header, signed); err != nil {
@@ -258,14 +266,8 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int,
 	return isValidPayload, nil
 }
 
-// Temporary TODO Deprecate
-func (s *Service) GetPayloadAttributes(ctx context.Context,
-	slot, timestamp uint64) (payloadattribute.Attributer, error) {
-	return s.getPayloadAttributes(ctx, slot, timestamp)
-}
-
-func (s *Service) getPayloadAttributes(ctx context.Context,
-	slot, timestamp uint64) (payloadattribute.Attributer, error) {
+func (s *Service) getPayloadAttributes(_ context.Context,
+	_ /*slot*/, timestamp uint64) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
 	var random [32]byte
 	if _, err := rand.Read(random[:]); err != nil {

@@ -36,7 +36,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	block_sync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
+	blocksync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
@@ -66,7 +66,7 @@ type CosmosApp interface {
 type Polaris struct {
 	cfg *config.Config
 	engine.Caller
-	blocksyncer *block_sync.BlockSync
+	blocksyncer *blocksync.BlockSync
 	// logger is the underlying logger supplied by the sdk.
 	logger log.Logger
 }
@@ -143,13 +143,13 @@ func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeep
 		blockchain.WithEngineCaller(p.Caller),
 	}
 	bk := blockchain.NewService(chainOpts...)
-	blockSyncOpts := []block_sync.Option{
-		block_sync.WithBeaconConfig(&p.cfg.BeaconConfig),
-		block_sync.WithLogger(p.logger),
-		block_sync.WithHeadSubscriber(p.Caller),
-		block_sync.WithForkChoiceStoreProvider(ek),
+	blockSyncOpts := []blocksync.Option{
+		blocksync.WithBeaconConfig(&p.cfg.BeaconConfig),
+		blocksync.WithLogger(p.logger),
+		blocksync.WithHeadSubscriber(p.Caller),
+		blocksync.WithForkChoiceStoreProvider(ek),
 	}
-	p.blocksyncer = block_sync.New(blockSyncOpts...)
+	p.blocksyncer = blocksync.New(blockSyncOpts...)
 	p.blocksyncer.Start(context.TODO())
 
 	// p.ForkChoiceSelector = forkchoice.New(p.Caller, bk, ek, p.logger)

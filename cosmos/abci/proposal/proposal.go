@@ -33,8 +33,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	consensus_types "github.com/itsdevbear/bolaris/beacon/consensus-types"
-	block_sync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
+	consensustypes "github.com/itsdevbear/bolaris/beacon/consensus-types"
+	blocksync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
 )
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
@@ -46,14 +46,14 @@ type Handler struct {
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 	beaconChain     *blockchain.Service
-	blockSync       *block_sync.BlockSync
+	blockSync       *blocksync.BlockSync
 }
 
 func NewHandler(
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
-	blockSync *block_sync.BlockSync,
+	blockSync *blocksync.BlockSync,
 ) *Handler {
 	return &Handler{
 		beaconChain:     beaconChain,
@@ -105,7 +105,7 @@ func (h *Handler) ProcessProposalHandler(
 	req.Txs = req.Txs[1:]
 
 	// Unmarshal the payload.
-	data, err := consensus_types.BytesToExecutionData(bz, math.Gwei(0), 3)
+	data, err := consensustypes.BytesToExecutionData(bz, math.Gwei(0), 3) //nolint:gomnd // fix
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}

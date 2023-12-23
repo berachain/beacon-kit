@@ -36,7 +36,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	consensus_types "github.com/itsdevbear/bolaris/beacon/consensus-types"
+	consensustypes "github.com/itsdevbear/bolaris/beacon/consensus-types"
 	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
@@ -80,7 +80,8 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		beaconBlockData := req.Txs[0] // todo modularize.
 
 		// todo handle hardforks without needing codechange.
-		data, err := consensus_types.BytesToExecutionData(beaconBlockData, math.Gwei(0), 3)
+		data, err := consensustypes.BytesToExecutionData(
+			beaconBlockData, math.Gwei(0), 3) //nolint:gomnd // fix later.
 		if err != nil {
 			h.logger.Error("payload in beacon block could not be unmarshalled", "err", err)
 			return nil, err
