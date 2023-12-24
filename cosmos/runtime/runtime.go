@@ -39,6 +39,8 @@ import (
 	blocksync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/cosmos/abci/commit"
+	"github.com/itsdevbear/bolaris/cosmos/abci/preblock"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 	"github.com/itsdevbear/bolaris/types/config"
@@ -59,6 +61,9 @@ type CosmosApp interface {
 	SetExtendVoteHandler(sdk.ExtendVoteHandler)
 	SetProcessProposal(sdk.ProcessProposalHandler)
 	SetVerifyVoteExtensionHandler(sdk.VerifyVoteExtensionHandler)
+	PreBlocker() sdk.PreBlocker
+	SetPreBlocker(sdk.PreBlocker)
+	SetPrepareCheckStater(sdk.PrepareCheckStater)
 	ChainID() string
 }
 
@@ -83,36 +88,10 @@ func New(
 	}
 
 	// Read the configuration from the cosmos app options
-	cfg, err := config.ReadConfigFromAppOpts(appOpts)
+	p.cfg, err = config.ReadConfigFromAppOpts(appOpts)
 	if err != nil {
 		return nil, err
 	}
-
-	p.cfg = cfg
-
-	// p.Service = engine.NewCaller(ethClient)
-	jwtSecert, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
-	if err != nil {
-		return nil, err
-	}
-
-	opts := []eth.Option{
-		eth.WithHTTPEndpointAndJWTSecret(cfg.ExecutionClient.RPCDialURL, jwtSecert),
-		eth.WithLogger(logger),
-		eth.WithRequiredChainID(cfg.ExecutionClient.RequiredChainID),
-	}
-
-	eth1Client, err := eth.NewEth1Client(context.Background(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	engineCallerOpts := []engine.Option{
-		engine.WithBeaconConfig(&cfg.BeaconConfig),
-		engine.WithLogger(logger),
-	}
-
-	p.Caller = engine.NewCaller(eth1Client, engineCallerOpts...)
 
 	return p, nil
 }
@@ -130,60 +109,71 @@ func MustNew(appOpts servertypes.AppOptions, logger log.Logger) *Polaris {
 // Build is a function that sets up the Polaris struct.
 // It takes a BaseApp and an BeaconKeeper as arguments.
 // It returns an error if the setup fails.
-func (p *Polaris) Build(app CosmosApp, vs baseapp.ValidatorStore, ek *beaconkeeper.Keeper) error {
-	// todo use `vs` later?
-	_ = vs
-	mempool := mempool.NewSenderNonceMempool()
-	app.SetMempool(mempool)
+func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
+	mp := mempool.NewSenderNonceMempool()
+	app.SetMempool(mp)
+
+	jwtSecret, err := eth.LoadJWTSecret(p.cfg.ExecutionClient.JWTSecretPath, p.logger)
+	if err != nil {
+		return err
+	}
+
+	opts := []eth.Option{
+		eth.WithHTTPEndpointAndJWTSecret(p.cfg.ExecutionClient.RPCDialURL, jwtSecret),
+		eth.WithLogger(p.logger),
+		eth.WithRequiredChainID(p.cfg.ExecutionClient.RequiredChainID),
+	}
+
+	eth1Client, err := eth.NewEth1Client(context.Background(), opts...)
+	if err != nil {
+		return err
+	}
+
+	engineCallerOpts := []engine.Option{
+		engine.WithBeaconConfig(&p.cfg.BeaconConfig),
+		engine.WithLogger(p.logger),
+	}
+
+	p.Caller = engine.NewCaller(eth1Client, engineCallerOpts...)
+
 	// Create the blockchain service that will be used to process blocks.
 	chainOpts := []blockchain.Option{
 		blockchain.WithBeaconConfig(&p.cfg.BeaconConfig),
 		blockchain.WithLogger(p.logger),
-		blockchain.WithForkChoiceStoreProvider(ek),
+		blockchain.WithForkChoiceStoreProvider(bk),
 		blockchain.WithEngineCaller(p.Caller),
 	}
-	bk := blockchain.NewService(chainOpts...)
+	blkChain := blockchain.NewService(chainOpts...)
 	blockSyncOpts := []blocksync.Option{
 		blocksync.WithBeaconConfig(&p.cfg.BeaconConfig),
 		blocksync.WithLogger(p.logger),
 		blocksync.WithHeadSubscriber(p.Caller),
-		blocksync.WithForkChoiceStoreProvider(ek),
+		blocksync.WithForkChoiceStoreProvider(bk),
 	}
 	p.blocksyncer = blocksync.New(blockSyncOpts...)
 	p.blocksyncer.Start(context.TODO())
 
-	// p.ForkChoiceSelector = forkchoice.New(p.Caller, bk, ek, p.logger)
-
-	// Create the proposal handler that will be used to fill proposals with
-	// transactions and oracle data.
-	// proposalHandler := proposal.NewProposalHandler(
-	// 	p.logger,
-	// 	baseapp.NoOpPrepareProposal(),
-	// 	baseapp.NoOpProcessProposal(),
-	// 	ve.NewDefaultValidateVoteExtensionsFn(app.ChainID(), vs),
-	// 	ve.NewProcessor(p.WrappedMiner, ek, p.logger).ProcessCommitInfo,
-	// )
-
-	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mempool, app)
-	proposalHandler := proposal.NewHandler(bk,
+	// Build Proposal Handler
+	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mp, app)
+	proposalHandler := proposal.NewHandler(blkChain,
 		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler(),
 		p.blocksyncer)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 
-	// if err := p.WrappedMiner.SyncEl(context.Background()); err != nil {
-	// 	return err
-	// }
+	// Build PreBlock Handler
+	app.SetPreBlocker(
+		preblock.NewBeaconPreBlockHandler(p.logger, bk, nil).PreBlocker(),
+	)
 
-	// // Create the vote extensions handler that will be used to extend and verify
-	// // vote extensions (i.e. oracle data).
-	// voteExtensionsHandler := ve.NewVoteExtensionHandler(
-	// 	p.logger,
-	// 	time.Second,
-	// 	p.WrappedMiner,
-	// )
-	// app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
-	// app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
+	fn := func(ctx sdk.Context) {}
+	// Build PrepareCheckStater
+	app.SetPrepareCheckStater(
+		commit.NewBeaconPrepareCheckStateHandler(
+			p.logger, bk, blkChain, fn,
+			// func(ctx sdk.Context) { _ = app.ModuleManager.PrepareCheckState },
+		).PrepareCheckStater(),
+	)
 
 	return nil
 }

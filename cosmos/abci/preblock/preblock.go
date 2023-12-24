@@ -53,6 +53,8 @@ type BeaconPreBlockHandler struct {
 	// keeper is the keeper for the oracle module. This is utilized to write
 	// oracle data to state.
 	keeper BeaconKeeper
+
+	childHandler sdk.PreBlocker
 }
 
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
@@ -60,10 +62,12 @@ type BeaconPreBlockHandler struct {
 func NewBeaconPreBlockHandler(
 	logger log.Logger,
 	beaconKeeper BeaconKeeper,
+	childHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
-		logger: logger,
-		keeper: beaconKeeper,
+		logger:       logger,
+		keeper:       beaconKeeper,
+		childHandler: childHandler,
 	}
 }
 
@@ -93,6 +97,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		store.SetSafeBlockHash([32]byte(data.BlockHash()))
 		store.SetLastValidHead([32]byte(data.BlockHash()))
 		return &sdk.ResponsePreBlock{}, nil
+		// return h.childHandler(ctx, req) // TODO: uncomment this.
 	}
 }
 
@@ -118,3 +123,8 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 // TLDR DO NOT FORKCHOICE UPDATE TO FINALIZE THE BLOCK BUILT IN A CONSENSUS BLOCK, UNTIL THAT
 // CONSENSUS LAYER BLOCK IS FULLY COMMITTED ELSE YOU OPEN UP THE POSSIBILITY OF THE EXECUTION
 // CLIENT SKIPPING AHEAD OF THE CONSENSUS CLIENT AND THEN ITS GG.
+
+// As an extra safety check we could in theory call the execution layer in PreBlocker to make sure
+// that the block we are about to commits parent block is the current finalized block but this
+// isn't very modular if we ever decide to change the consensus mechanism. But it would
+// be a nice safety mechanism in the context of single slot finality.

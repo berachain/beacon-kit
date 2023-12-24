@@ -42,17 +42,23 @@ func (s *Service) BuildNextBlock(ctx context.Context,
 	// The goal here is to build a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain.
-	sbh := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	return s.buildNewBlockOnTopOf(ctx, beaconBlock, sbh[:])
+	lastFinalizedBlock := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	return s.buildNewBlockOnTopOf(ctx, beaconBlock, lastFinalizedBlock[:])
 }
 
 // buildNewBlockOnTopOf builds a new block on top of an existing head of the execution client.
 func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	beaconBlock header.Info, headHash []byte) (interfaces.ExecutionData, error) {
+	// NOTE: We do not touch our safe or finalized blocks at the execution layer
+	// here.
+	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	payloadIDNew, err := s.notifyForkchoiceUpdateWithSyncingRetry(
 		ctx, uint64(beaconBlock.Height),
 		&notifyForkchoiceUpdateArg{
-			headHash: headHash,
+			headHash:  headHash,
+			safeHash:  safeHash[:],
+			finalHash: finalHash[:],
 		},
 		true,
 	)
@@ -68,4 +74,22 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 		ctx, [8]byte(payloadIDNew[:]), primitives.Slot(beaconBlock.Height),
 	)
 	return payload, err
+}
+
+// FinalizeBlock marks the block as finalized on the execution layer.
+func (s *Service) FinalizeBlock(
+	ctx context.Context, beaconBlock header.Info, toFinalize []byte,
+) error {
+	_, err := s.notifyForkchoiceUpdateWithSyncingRetry(
+		ctx, uint64(beaconBlock.Height),
+		&notifyForkchoiceUpdateArg{
+			headHash:  toFinalize,
+			safeHash:  toFinalize,
+			finalHash: toFinalize,
+		},
+		false, // todo: maybe we can store a cache of payloadIDs and
+		// beginb uilding a new payoad here
+		// OR we abstract away payload building into its own async thingy.
+	)
+	return err
 }

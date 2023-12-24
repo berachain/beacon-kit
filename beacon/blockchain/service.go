@@ -34,7 +34,6 @@ import (
 	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	"cosmossdk.io/core/header"
@@ -72,40 +71,6 @@ func NewService(opts ...Option) *Service {
 	return s
 }
 
-// notifyForkchoiceUpdateArg is the argument for the forkchoice
-// update notification `notifyForkchoiceUpdate`.
-type notifyForkchoiceUpdateArg struct {
-	headHash []byte
-}
-
-func (s *Service) ProposeNewFinalBlock(ctx context.Context,
-	beaconBlock header.Info, payloadID *enginev1.PayloadIDBytes,
-) (*enginev1.PayloadIDBytes, interfaces.ExecutionData, error) {
-	// Ensure that the payload we want to finalize is the same as the one we have queued.
-	builtPayload, _, _, err := s.engine.GetPayload(
-		ctx, *payloadID, primitives.Slot(beaconBlock.Height),
-	)
-	time.Sleep(1 * time.Second)
-	if err != nil {
-		s.logger.Error("failed to get previously queued payload", "err", err, "payloadID", payloadID)
-		return nil, nil, err
-	}
-
-	// We start by setting the head of our execution client to the
-	// latest block that we have seen
-	payloadIDNew, err := s.notifyForkchoiceUpdate(ctx, uint64(beaconBlock.Height),
-		&notifyForkchoiceUpdateArg{
-			headHash: builtPayload.BlockHash(),
-		}, false)
-
-	if err != nil {
-		s.logger.Error("failed to notify forkchoice update", "err", err)
-		return nil, nil, err
-	}
-	s.logger.Info("notified forkchoice update", "building new payloadID", payloadIDNew)
-	return payloadIDNew, builtPayload, nil
-}
-
 func (s *Service) ProcessExecutionData(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
@@ -120,9 +85,15 @@ func (s *Service) ProcessExecutionData(ctx context.Context,
 		return nil, errors.New("invalid payload")
 	}
 
+	// Forkchoice our execution client's head to be the block that we validated as correct
+	// above. NOTE: we do not touch our safe or finalized hashes here.
+	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	return s.notifyForkchoiceUpdateWithSyncingRetry(
 		ctx, uint64(block.Height), &notifyForkchoiceUpdateArg{
-			headHash: header.BlockHash(),
+			headHash:  header.BlockHash(),
+			safeHash:  safe[:],
+			finalHash: finalized[:],
 		}, true)
 }
 
@@ -152,8 +123,8 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	// forkchoice update
 	fc := &enginev1.ForkchoiceState{
 		HeadBlockHash:      arg.headHash,
-		SafeBlockHash:      arg.headHash,
-		FinalizedBlockHash: arg.headHash,
+		SafeBlockHash:      arg.safeHash,
+		FinalizedBlockHash: arg.finalHash,
 	}
 
 	// We want to start building the next block as part of this forkchoice update.
@@ -170,7 +141,6 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	} else {
 		attrs = payloadattribute.EmptyWithVersion(3) //nolint:gomnd // TODO fix.
 	}
-
 	payloadID, _, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
 		switch err { //nolint:errorlint // okay for now.
