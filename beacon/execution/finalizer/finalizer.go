@@ -86,7 +86,7 @@ func (f *Finalizer) run(ctx context.Context) {
 			return
 		case <-f.signal:
 			f.lrMu.Lock()
-			// This is safe, since there will never been a signal on the channel
+			// This is safe, since there will never be a signal on the channel
 			// unless there is a request in the queue.
 			copiedLr := *f.latestRequest
 			f.latestRequest = nil
