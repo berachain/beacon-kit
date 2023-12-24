@@ -34,6 +34,16 @@ import (
 
 const defaultBufferSize = 256
 
+// TODO: maybe we want to create some sort of filter that ensures that we call the sync every
+// X blocks or so?
+// I'm thinking the issue that could arise from the current optimizations, is that by the time
+// CometBFT kicks into Consensus Mode from Replay mode, the execution client might not be
+// fully sync'd yet
+// and then if we just so happen to be chosen to propose a block shortly there after, we may run
+// into problems.
+// so TLDR, maybe we only discard sync requests if they are within X blocks (maybe 64 blocks)
+// of the previous one?
+
 // NewFinalizationRequest creates a new FinalizationRequest with the provided
 // blockHash and beaconBlock.
 // blockHash is the hash of the block to be finalized.
