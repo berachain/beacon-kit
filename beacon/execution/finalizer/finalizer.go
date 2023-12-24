@@ -86,6 +86,9 @@ func (f *Finalizer) run(ctx context.Context) {
 		case r := <-f.req:
 			var cancelCtx context.Context
 			cancelCtx, f.cancelFunc = context.WithCancel(ctx)
+			// todo: this gorountine might get kind of nasty when we need to sync
+			// a really old chain. We should figure out a way to make this nicer
+			// when running in replay mode.
 			go f.processFinalizationRequest(cancelCtx, r)
 		}
 	}
