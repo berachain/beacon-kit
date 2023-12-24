@@ -85,10 +85,10 @@ func (s *Service) FinalizeBlockAsync(
 
 // FinalizeBlock marks the block as finalized on the execution layer.
 func (s *Service) FinalizeBlock(
-	ctx context.Context, beaconBlock header.Info, toFinalize []byte,
+	ctx context.Context, slot uint64, toFinalize []byte,
 ) error {
 	_, err := s.notifyForkchoiceUpdateWithSyncingRetry(
-		ctx, uint64(beaconBlock.Height),
+		ctx, slot,
 		&notifyForkchoiceUpdateArg{
 			headHash:  toFinalize,
 			safeHash:  toFinalize,

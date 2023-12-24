@@ -27,24 +27,21 @@ package finalizer
 
 import (
 	"context"
+	"sync"
 
 	"cosmossdk.io/core/header"
 )
 
-// TODO: make this not hte blockchain service.
-type Enginecaller interface {
-	FinalizeBlock(ctx context.Context, beaconBlock header.Info, blockHash []byte) error
-}
+const defaultBufferSize = 256
 
-type FinalizationRequest struct {
-	blockHash   []byte
-	beaconBlock header.Info
-}
-
+// NewFinalizationRequest creates a new FinalizationRequest with the provided
+// blockHash and beaconBlock.
+// blockHash is the hash of the block to be finalized.
+// beaconBlock is the header information of the beacon block.
 func NewFinalizationRequest(blockHash []byte, beaconBlock header.Info) *FinalizationRequest {
 	return &FinalizationRequest{
-		blockHash:   blockHash,
-		beaconBlock: beaconBlock,
+		blockHash: blockHash,
+		slot:      uint64(beaconBlock.Height),
 	}
 }
 
@@ -57,17 +54,16 @@ type Finalizer struct {
 	// req is a queue of finalization requests, this allows us
 	// to decouple the finalization of execution layer blocks
 	// from the ABCI lifecycle.
-	req chan *FinalizationRequest
-
-	// cancelFunc is used to cancel the previous finalization request.
-	cancelFunc context.CancelFunc
+	signal        chan struct{}
+	latestRequest *FinalizationRequest
+	lrMu          sync.Mutex
 }
 
 // New creates a new Finalizer with the provided Enginecaller.
 func New(engineCaller Enginecaller) *Finalizer {
 	return &Finalizer{
 		engineCaller: engineCaller,
-		req:          make(chan *FinalizationRequest),
+		signal:       make(chan struct{}, defaultBufferSize),
 	}
 }
 
@@ -80,16 +76,22 @@ func (f *Finalizer) Start(ctx context.Context) {
 // and processes them.
 func (f *Finalizer) run(ctx context.Context) {
 	for {
+		// We acquire the lock to prevent messinesses between emptying the queue in
+		// `RequestionFinalization` and the above `select` statement. This lock ensures
+		// that if we are about to push a new request onto the channel, we will wait
+		// to ensure we are going to get the latest request, opposed to consuming a
+		// slightly older one that is going to be replaced momentarily.
 		select {
 		case <-ctx.Done():
 			return
-		case r := <-f.req:
-			var cancelCtx context.Context
-			cancelCtx, f.cancelFunc = context.WithCancel(ctx)
-			// todo: this gorountine might get kind of nasty when we need to sync
-			// a really old chain. We should figure out a way to make this nicer
-			// when running in replay mode.
-			go f.processFinalizationRequest(cancelCtx, r)
+		case <-f.signal:
+			f.lrMu.Lock()
+			// This is safe, since there will never been a signal on the channel
+			// unless there is a request in the queue.
+			copiedLr := *f.latestRequest
+			f.latestRequest = nil
+			f.lrMu.Unlock()
+			f.processFinalizationRequest(ctx, &copiedLr)
 		}
 	}
 }
@@ -102,19 +104,18 @@ func (f *Finalizer) RequestFinalization(blockHash []byte, beaconBlock header.Inf
 	// We should probably add some safety checks to this finalization requestor
 	// to prevent making calls to the execution client that would result in
 	// bad things happening.
-	if f.cancelFunc != nil {
-		f.cancelFunc()
+	f.lrMu.Lock()
+	f.latestRequest = NewFinalizationRequest(blockHash, beaconBlock)
+	// We clear out the channel to ensure that we are only ever processing the
+	// latest request.
+	for len(f.signal) > 0 {
+		<-f.signal
 	}
-
-	// Clear the channel since we always want to use the latest request.
-	for len(f.req) > 0 {
-		<-f.req
-	}
-
-	f.req <- &FinalizationRequest{blockHash: blockHash, beaconBlock: beaconBlock}
+	f.lrMu.Unlock()
+	f.signal <- struct{}{}
 }
 
 func (f *Finalizer) processFinalizationRequest(ctx context.Context, r *FinalizationRequest) {
 	// The finalization process can be cancelled by calling the cancel function of the context.
-	_ = f.engineCaller.FinalizeBlock(ctx, r.beaconBlock, r.blockHash)
+	_ = f.engineCaller.FinalizeBlock(ctx, r.slot, r.blockHash)
 }
