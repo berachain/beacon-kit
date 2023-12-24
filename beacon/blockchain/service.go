@@ -42,6 +42,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/itsdevbear/bolaris/beacon/execution/finalizer"
 	"github.com/itsdevbear/bolaris/types/config"
 	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
@@ -58,6 +59,7 @@ type Service struct {
 	logger    log.Logger
 	fcsp      ForkChoiceStoreProvider
 	engine    engine.Caller
+	finalizer *finalizer.Finalizer
 }
 
 func NewService(opts ...Option) *Service {
@@ -67,7 +69,8 @@ func NewService(opts ...Option) *Service {
 			s.logger.Error("Failed to apply option", "error", err)
 		}
 	}
-
+	s.finalizer = finalizer.New(s)
+	s.finalizer.Start(context.Background())
 	return s
 }
 
@@ -152,7 +155,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			// 	"finalizedPayloadBlockHash": fmt.Sprintf("%#x", bytesutil.Trunc(finalizedHash[:])),
 			// }).Info("Called fork choice updated with optimistic block")
 			s.logger.Error(
-				"called fork choice updated with optimistic block (syncing or accepted)",
+				"called fork choice updated with optimistic block:syncing",
 				"headSlot", slot,
 			)
 			return payloadID, err

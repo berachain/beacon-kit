@@ -118,22 +118,23 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 		return err
 	}
 
+	// Create the eth1 client that will be used to interact with the execution client.
 	opts := []eth.Option{
 		eth.WithHTTPEndpointAndJWTSecret(p.cfg.ExecutionClient.RPCDialURL, jwtSecret),
 		eth.WithLogger(p.logger),
 		eth.WithRequiredChainID(p.cfg.ExecutionClient.RequiredChainID),
 	}
-
 	eth1Client, err := eth.NewEth1Client(context.Background(), opts...)
 	if err != nil {
 		return err
 	}
 
+	// Engine Caller wraps the eth1 client and provides the interface for the
+	// blockchain service to interact with the execution client.
 	engineCallerOpts := []engine.Option{
 		engine.WithBeaconConfig(&p.cfg.BeaconConfig),
 		engine.WithLogger(p.logger),
 	}
-
 	p.Caller = engine.NewCaller(eth1Client, engineCallerOpts...)
 
 	// Create the blockchain service that will be used to process blocks.
@@ -144,6 +145,8 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 		blockchain.WithEngineCaller(p.Caller),
 	}
 	blkChain := blockchain.NewService(chainOpts...)
+
+	// Block Syncer
 	blockSyncOpts := []blocksync.Option{
 		blocksync.WithBeaconConfig(&p.cfg.BeaconConfig),
 		blocksync.WithLogger(p.logger),

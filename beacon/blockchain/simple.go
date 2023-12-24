@@ -76,6 +76,13 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	return payload, err
 }
 
+func (s *Service) FinalizeBlockAsync(
+	_ context.Context, beaconBlock header.Info, toFinalize []byte,
+) error {
+	s.finalizer.RequestFinalization(toFinalize, beaconBlock)
+	return nil
+}
+
 // FinalizeBlock marks the block as finalized on the execution layer.
 func (s *Service) FinalizeBlock(
 	ctx context.Context, beaconBlock header.Info, toFinalize []byte,

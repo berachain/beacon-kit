@@ -197,7 +197,6 @@ func (s *engineCaller) ForkchoiceUpdated(
 	// ctx, cancel := context.WithDeadline(ctx, d)
 	// defer cancel()
 	result := &execution.ForkchoiceUpdatedResponse{}
-	s.logger.Info("ForkchoiceUpdated called")
 	if attrs == nil {
 		return nil, nil, errors.New("nil payload attributer")
 	}
