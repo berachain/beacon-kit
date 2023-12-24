@@ -1,13 +1,12 @@
-module github.com/itsdevbear/bolaris/e2e/testapp
+module github.com/itsdevbear/bolaris/app
 
 go 1.21
 
 replace (
 	github.com/cockroachdb/pebble => github.com/cockroachdb/pebble v0.0.0-20230928194634-aa077af62593
-	github.com/itsdevbear/bolaris/beacon => ../../beacon
-	github.com/itsdevbear/bolaris/cosmos => ../../cosmos
-
-	github.com/itsdevbear/bolaris/types => ../../types
+	github.com/itsdevbear/bolaris/beacon => ../beacon
+	github.com/itsdevbear/bolaris/cosmos => ../cosmos
+	github.com/itsdevbear/bolaris/types => ../types
 
 	// Required at the moment until a bug in the comsos-sdk is fixed.
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -18,9 +17,9 @@ require (
 	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
-	github.com/itsdevbear/bolaris/beacon v0.0.0-20231218004434-3a750e39d523
-	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231218004434-3a750e39d523
-	github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523
+	github.com/itsdevbear/bolaris/beacon v0.0.0-20231224032054-25c5914efe28
+	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231224032054-25c5914efe28
+	github.com/itsdevbear/bolaris/types v0.0.0-20231224032054-25c5914efe28
 	golang.org/x/sync v0.4.0
 )
 
@@ -186,7 +185,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mitchellh/pointerstructure v1.2.1 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -233,7 +231,6 @@ require (
 	github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
-	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/uber/jaeger-client-go v2.25.0+incompatible // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/urfave/cli/v2 v2.25.7 // indirect

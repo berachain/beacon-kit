@@ -71,7 +71,7 @@ IMAGE_VERSION ?= v0.0.0
 BASE_IMAGE ?= polard/base:$(IMAGE_VERSION)
 
 # Docker Paths
-BASE_DOCKER_PATH = ./e2e/testapp/docker
+BASE_DOCKER_PATH = ./app/docker
 EXEC_DOCKER_PATH = $(BASE_DOCKER_PATH)/base.Dockerfile
 LOCAL_DOCKER_PATH = $(BASE_DOCKER_PATH)/local/Dockerfile
 SEED_DOCKER_PATH =  $(BASE_DOCKER_PATH)/seed/Dockerfile
@@ -155,7 +155,7 @@ mockery:
 #################
 
 start:
-	@./e2e/testapp/entrypoint.sh
+	@./app/entrypoint.sh
 
 #################
 #     unit      #

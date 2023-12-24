@@ -15,19 +15,27 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ARG GO_VERSION
-ARG GOARCH=amd64
+ARG GOARCH=arm64
 ARG GOOS=linux
+ARG POLARD_VERSION=v0.0.0
 
+#######################################################
+###         Stage 1 - Build Smart Contracts         ###
+#######################################################
 
 # Use the latest foundry image
-FROM polard/base:v0.0.0 as basepolard
+FROM polard/base:${POLARD_VERSION} as localpolard
 
-RUN apk add --no-cache bash jq sed curl
+RUN apk add --no-cache bash jq
 
 WORKDIR /
 
-COPY ./e2e/testapp/docker/seed/scripts scripts/
+# Copy over the local information
+COPY ./app/docker/local/docker-init.sh /docker-init.sh
+COPY ./app/docker/local/config /config
 
-RUN chmod +x scripts/*
+# Set the hom directory
+ENV HOME /
+WORKDIR $HOME
 
-CMD ["sh", "-c", "sleep infinity"]
+CMD ["bash", "docker-init.sh"]

@@ -584,8 +584,8 @@ github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANyt
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
-github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523 h1:83+VbS1SBjLh11mu/csH/VbqQwtFnqj/pwJynxMcbHw=
-github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523/go.mod h1:bffgKbIMNx2bB70m41MhR/aIKxkAVV6YdNopcnKgwNw=
+github.com/itsdevbear/bolaris/types v0.0.0-20231224032054-25c5914efe28 h1:ZZLxXj2/iOemz7ANnKeIIlMwl1Q/8gbPRKXoGYOP8cM=
+github.com/itsdevbear/bolaris/types v0.0.0-20231224032054-25c5914efe28/go.mod h1:9ib7Ef7x9FlCIQ28hF16klZSBb4ntU6Mxbq7BtYhYrs=
 github.com/jackpal/go-nat-pmp v1.0.2 h1:KzKSgb7qkJvOUTqYl9/Hg/me3pWgBmERKrTGD7BdWus=
 github.com/jackpal/go-nat-pmp v1.0.2/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jcmturner/gofork v1.0.0/go.mod h1:MK8+TM0La+2rjBD4jE12Kj1pCCxK7d2LK/UM3ncEo0o=

@@ -6,7 +6,7 @@ require (
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/log v1.2.1
 	github.com/ethereum/go-ethereum v1.13.5
-	github.com/itsdevbear/bolaris/types v0.0.0-20231218004434-3a750e39d523
+	github.com/itsdevbear/bolaris/types v0.0.0-20231224032054-25c5914efe28
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/prysm/v4 v4.1.1
 	go.opencensus.io v0.24.0
@@ -38,7 +38,6 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
-	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v0.0.0-20231101195458-481da04154d6 // indirect
@@ -75,7 +74,6 @@ require (
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fjl/memsize v0.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/getsentry/sentry-go v0.25.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect

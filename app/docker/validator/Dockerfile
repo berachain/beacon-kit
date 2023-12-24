@@ -24,7 +24,7 @@ RUN apk add --no-cache bash jq
 
 WORKDIR /
 
-COPY ./e2e/testapp/docker/validator/scripts scripts/
+COPY ./app/docker/validator/scripts scripts/
 
 RUN chmod +x scripts/*
 

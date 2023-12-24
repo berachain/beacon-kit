@@ -34,8 +34,8 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
-	"github.com/itsdevbear/bolaris/e2e/testapp/polard/cmd"
+	testapp "github.com/itsdevbear/bolaris/app"
+	"github.com/itsdevbear/bolaris/app/polard/cmd"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -43,7 +43,7 @@ import (
 
 func TestCmd(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "e2e/testapp/polard/cmd")
+	RunSpecs(t, "app/polard/cmd")
 }
 
 var _ = Describe("Init command", func() {

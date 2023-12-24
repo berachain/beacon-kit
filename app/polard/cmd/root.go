@@ -70,8 +70,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
+	testapp "github.com/itsdevbear/bolaris/app"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	testapp "github.com/itsdevbear/bolaris/e2e/testapp"
 	evmconfig "github.com/itsdevbear/bolaris/types/config"
 )
 

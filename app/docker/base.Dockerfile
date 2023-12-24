@@ -24,7 +24,7 @@ ARG GOOS=linux
 ARG NAME=polaris-cosmos
 ARG APP_NAME=polard
 ARG DB_BACKEND=pebbledb
-ARG CMD_PATH=./e2e/testapp/polard
+ARG CMD_PATH=./app/polard
 ARG FOUNDRY_DIR=contracts
 
 #######################################################
@@ -45,11 +45,11 @@ WORKDIR /workdir
 COPY ./beacon/go.sum ./beacon/go.mod ./beacon/
 COPY ./cosmos/go.sum ./cosmos/go.mod ./cosmos/
 COPY ./types/go.sum ./types/go.mod ./types/
-COPY ./e2e/testapp/go.sum ./e2e/testapp/go.mod ./e2e/testapp/
+COPY ./app/go.sum ./app/go.mod ./app/
 
 # Link via workspace
 RUN go work init
-RUN go work use ./beacon ./cosmos ./types ./e2e/testapp
+RUN go work use ./beacon ./cosmos ./types ./app
 
 # Download the go module dependencies
 RUN go mod download
