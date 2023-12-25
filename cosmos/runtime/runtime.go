@@ -69,6 +69,7 @@ type CosmosApp interface {
 	PreBlocker() sdk.PreBlocker
 	SetPreBlocker(sdk.PreBlocker)
 	SetPrepareCheckStater(sdk.PrepareCheckStater)
+	SetPrecommitHandler(sdk.Precommiter)
 	ChainID() string
 }
 
