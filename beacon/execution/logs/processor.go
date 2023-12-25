@@ -27,6 +27,7 @@ package logs
 
 import (
 	"context"
+	"log"
 	"math/big"
 
 	"cosmossdk.io/errors"
@@ -42,6 +43,7 @@ import (
 
 // Processor is responsible for processing logs fr.
 type Processor struct {
+	logger     *log.Logger
 	eth1Client *eth.Eth1Client
 	handlers   map[common.Address]callback.LogHandler
 }

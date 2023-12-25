@@ -29,6 +29,8 @@ import (
 	"context"
 	"math/big"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -42,18 +44,15 @@ func (s *StakingCallbacks) ABIEvents() map[string]abi.Event {
 	return x.Events
 }
 
-func (s *StakingCallbacks) Delegate(_ context.Context,
+func (s *StakingCallbacks) Delegate(ctx context.Context,
 	validator common.Hash, amount *big.Int) error {
-	_ = validator
-	_ = amount
+	sdk.UnwrapSDKContext(ctx).Logger().Info("CALLED DELEGATE", "valhash", validator, "amt", amount)
 	// fmt.Println("CALLED DELEGATE", validator, amount)
 	return nil
 }
 
-func (s *StakingCallbacks) Undelegate(_ context.Context,
+func (s *StakingCallbacks) Undelegate(ctx context.Context,
 	validator string, amount *big.Int) error {
-	_ = validator
-	_ = amount
-	// fmt.Println("CALLED UNDELEGATE", validator, amount)
+	sdk.UnwrapSDKContext(ctx).Logger().Info("CALLED UNDELEGATE", "valhash", validator, "amt", amount)
 	return nil
 }

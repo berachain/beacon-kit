@@ -27,12 +27,14 @@ package commit
 
 import (
 	"context"
+	"math/big"
 
 	"cosmossdk.io/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
@@ -45,6 +47,7 @@ type BeaconPrepareCheckStateHandler struct {
 	beaconKeeper BeaconKeeper
 	beaconChain  *blockchain.Service
 	childHandler sdk.PrepareCheckStater
+	logProcessor *logs.Processor
 }
 
 func NewBeaconPrepareCheckStateHandler(
@@ -52,12 +55,14 @@ func NewBeaconPrepareCheckStateHandler(
 	beaconKeeper BeaconKeeper,
 	beaconChain *blockchain.Service,
 	childHandler sdk.PrepareCheckStater,
+	logProcessor *logs.Processor,
 ) *BeaconPrepareCheckStateHandler {
 	return &BeaconPrepareCheckStateHandler{
 		logger:       logger,
 		beaconKeeper: beaconKeeper,
 		beaconChain:  beaconChain,
 		childHandler: childHandler,
+		logProcessor: logProcessor,
 	}
 }
 
@@ -67,6 +72,11 @@ func (h *BeaconPrepareCheckStateHandler) PrepareCheckStater() sdk.PrepareCheckSt
 		finalHash := fcs.GetFinalizedBlockHash()
 		if err := h.beaconChain.FinalizeBlockAsync(ctx, ctx.HeaderInfo(), finalHash[:]); err != nil {
 			h.logger.Error("failed to finalize block", "err", err)
+			panic(err)
+		}
+
+		// TODO THIS IS HACK
+		if err := h.logProcessor.ProcessETH1Block(ctx, big.NewInt((ctx.BlockHeight()))); err != nil {
 			panic(err)
 		}
 	}

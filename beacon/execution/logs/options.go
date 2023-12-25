@@ -26,6 +26,8 @@
 package logs
 
 import (
+	"log"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
@@ -47,6 +49,14 @@ func WithEthClient(eth1Client *eth.Eth1Client) Option {
 func WithHandlers(handlers map[common.Address]callback.LogHandler) Option {
 	return func(p *Processor) error {
 		p.handlers = handlers
+		return nil
+	}
+}
+
+// WithLogger is an Option that sets the logger for the Processor.
+func WithLogger(logger *log.Logger) Option {
+	return func(p *Processor) error {
+		p.logger = logger
 		return nil
 	}
 }

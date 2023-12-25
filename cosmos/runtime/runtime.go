@@ -35,10 +35,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/itsdevbear/bolaris/app/contracts"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	blocksync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	"github.com/itsdevbear/bolaris/cosmos/abci/commit"
 	"github.com/itsdevbear/bolaris/cosmos/abci/preblock"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
@@ -157,6 +162,26 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	p.blocksyncer = blocksync.New(blockSyncOpts...)
 	p.blocksyncer.Start(context.TODO())
 
+	handlers := make(map[common.Address]callback.LogHandler)
+	// // Build Log Handlers
+	// for _, handler := range p.cfg.ExecutionClient.LogHandlers {
+	// 	handlers[handler.ContractAddress] = handler
+	// }
+
+	sc := &contracts.StakingCallbacks{}
+	handlers[common.HexToAddress(
+		"0x18Df82C7E422A42D47345Ed86B0E935E9718eBda",
+	)], _ = callback.NewFrom(sc)
+	// Build Log Processor
+	logProcessorOpts := []logs.Option{
+		logs.WithEthClient(eth1Client),
+		logs.WithHandlers(handlers),
+	}
+	logProcessor, err := logs.NewProcessor(logProcessorOpts...)
+	if err != nil {
+		return err
+	}
+
 	// Build Proposal Handler
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mp, app)
 	proposalHandler := proposal.NewHandler(blkChain,
@@ -174,7 +199,7 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	// Build PrepareCheckStater
 	app.SetPrepareCheckStater(
 		commit.NewBeaconPrepareCheckStateHandler(
-			p.logger, bk, blkChain, fn,
+			p.logger, bk, blkChain, fn, logProcessor,
 			// func(ctx sdk.Context) { _ = app.ModuleManager.PrepareCheckState },
 		).PrepareCheckStater(),
 	)
