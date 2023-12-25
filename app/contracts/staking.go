@@ -35,8 +35,7 @@ import (
 
 // var _ Handler = (*StakingCallbacks)(nil)
 
-type StakingCallbacks struct {
-}
+type StakingCallbacks struct{}
 
 func (s *StakingCallbacks) ABIEvents() map[string]abi.Event {
 	x, _ := StakingMetaData.GetAbi()

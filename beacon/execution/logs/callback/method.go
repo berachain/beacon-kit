@@ -34,15 +34,13 @@ type logSig common.Hash
 
 // method attaches a specific abi.Event to a golang struct to process it.
 type method struct {
-	// rcvr is the receiver of the method's executable. This is the stateful precompile
-	// that implements the respective precompile method.
+	// rcvr is the receiver of the method's executable.
 	rcvr Handler
 
-	// abiMethod is the ABI `Methods` struct corresponding to this precompile's executable.
+	// abiEvent is the abi.Event corresponding to this methods executable.
 	abiEvent abi.Event
 
-	// execute is the precompile's executable which will execute the logic of the implemented
-	// ABI method.
+	// execute is the executable which will execute when `abiEvent` is seen.
 	execute reflect.Method
 }
 

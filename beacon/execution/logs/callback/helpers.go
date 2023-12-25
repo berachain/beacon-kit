@@ -27,8 +27,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-// This function matches each Go implementation of the precompile to the ABI's respective function.
-// It searches for the ABI function in the Go precompile contract and performs basic validation on
+// This function matches each Go implementation to the ABI's respective function.
+// It searches for the ABI function in the go struct and performs basic validation on
 // the implemented function.
 func buildIdsToMethods(si Handler, contractImpl reflect.Value) (map[logSig]*method, error) {
 	contractEventsABI := si.ABIEvents()
@@ -77,7 +77,7 @@ func tryMatchInputs(implMethod reflect.Method, abiMethod abi.Event) bool {
 	abiMethodNumIn := len(abiMethod.Inputs)
 	implMethodNumIn := implMethod.Type.NumIn()
 
-	// First two args of Go precompile implementation are the receiver contract and the Context, so
+	// First two args of handler implementation are the receiver contract and the Context, so
 	// verify that the ABI method has exactly 2 fewer inputs than the implementation method.
 	if implMethodNumIn-2 != abiMethodNumIn {
 		return false
@@ -88,7 +88,7 @@ func tryMatchInputs(implMethod reflect.Method, abiMethod abi.Event) bool {
 		return true
 	}
 
-	// Validate that the precompile input args types match ABI input arg types, excluding the
+	// Validate that the input args types match ABI input arg types, excluding the
 	// first two args (receiver contract and Context). // We also need to handle topics
 	// separately, since they should all be common.Hash
 	var i = 2

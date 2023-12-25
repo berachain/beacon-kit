@@ -27,8 +27,6 @@ package logs
 
 import "github.com/ethereum/go-ethereum/accounts/abi"
 
-// Handler is the interface for all stateful precompiled contracts, which must
-// expose their ABI methods and precompile methods for stateful execution.
 type Handler interface {
 	// Registrable
 
