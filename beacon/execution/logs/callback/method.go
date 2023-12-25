@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2023, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
+package callback
+
+import (
+	"context"
+	"reflect"
+
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+)
+
+// methodID is a fixed length byte array that represents the method ID of a precompile method.
+type methodID common.Hash
+
+// method is a struct that contains the required information for the EVM to execute a stateful
+// precompiled contract method.
+type method struct {
+	// rcvr is the receiver of the method's executable. This is the stateful precompile
+	// that implements the respective precompile method.
+	rcvr CallbackHandler
+
+	// abiMethod is the ABI `Methods` struct corresponding to this precompile's executable.
+	abiEvent abi.Event
+
+	// execute is the precompile's executable which will execute the logic of the implemented
+	// ABI method.
+	execute reflect.Method
+}
+
+// newMethod creates and returns a new `method` with the given abiMethod, abiSig, and executable.
+func newMethod(
+	rcvr CallbackHandler, abiMethod abi.Event, execute reflect.Method,
+) *method {
+	return &method{
+		rcvr:     rcvr,
+		abiEvent: abiMethod,
+		execute:  execute,
+	}
+}
+
+// Call executes the precompile's executable with the given context and input arguments.
+func (m *method) Call(ctx context.Context, log types.Log) error {
+	// Unpack the args from the input, if any exist.
+	topics := log.Topics
+	unpackedArgs, err := m.abiEvent.Inputs.Unpack(log.Data)
+	if err != nil {
+		return err
+	}
+
+	// Convert topics to common.Hash
+	reflectedUnpackedArgs := make([]reflect.Value, 0, (len(topics)-1)+len(unpackedArgs))
+	for _, topic := range topics[1:] {
+		reflectedUnpackedArgs = append(reflectedUnpackedArgs, reflect.ValueOf(topic))
+	}
+
+	// Convert the unpacked args to reflect values.
+	for _, unpacked := range unpackedArgs {
+		reflectedUnpackedArgs = append(reflectedUnpackedArgs, reflect.ValueOf(unpacked))
+	}
+
+	// Call the executable the reflected values.
+	results := m.execute.Func.Call(
+		append(
+			[]reflect.Value{
+				reflect.ValueOf(m.rcvr),
+				reflect.ValueOf(ctx),
+			},
+			reflectedUnpackedArgs...,
+		),
+	)
+
+	// Check if the results contain an error.
+	if len(results) > 0 {
+		var ok bool
+		if err, ok = results[0].Interface().(error); ok {
+			return err
+		}
+	}
+	return nil
+}

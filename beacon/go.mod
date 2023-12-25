@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	cosmossdk.io/core v0.11.0
+	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/itsdevbear/bolaris/types v0.0.0-20231224032054-25c5914efe28
@@ -18,7 +19,6 @@ require (
 	cosmossdk.io/api v0.7.2 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
-	cosmossdk.io/errors v1.0.0 // indirect
 	cosmossdk.io/math v1.2.0 // indirect
 	cosmossdk.io/store v1.0.1 // indirect
 	cosmossdk.io/x/tx v0.12.0 // indirect

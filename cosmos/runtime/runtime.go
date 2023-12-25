@@ -132,10 +132,11 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	// Engine Caller wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
 	engineCallerOpts := []engine.Option{
+		engine.WithEth1Client(eth1Client),
 		engine.WithBeaconConfig(&p.cfg.BeaconConfig),
 		engine.WithLogger(p.logger),
 	}
-	p.Caller = engine.NewCaller(eth1Client, engineCallerOpts...)
+	p.Caller = engine.NewCaller(engineCallerOpts...)
 
 	// Create the blockchain service that will be used to process blocks.
 	chainOpts := []blockchain.Option{

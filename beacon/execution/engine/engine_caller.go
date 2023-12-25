@@ -103,11 +103,8 @@ type engineCaller struct {
 
 // NewCaller creates a new engine client engineCaller.
 // It takes an Eth1Client as an argument and returns a pointer to an engineCaller.
-func NewCaller(ethclient *eth.Eth1Client, opts ...Option) Caller {
-	ec := &engineCaller{
-		Eth1Client: ethclient,
-	}
-
+func NewCaller(opts ...Option) Caller {
+	ec := &engineCaller{}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
 			panic(err)

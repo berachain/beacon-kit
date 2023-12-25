@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// # Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -22,39 +22,54 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-
-package engine
+//
+// nolint:* // testing file.
+package main
 
 import (
-	"cosmossdk.io/log"
+	"context"
+	"math/big"
 
-	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/config"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+
+	"github.com/itsdevbear/bolaris/app/contracts"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 )
 
-// Option is a function type that takes a pointer to an engineCaller and returns an error.
-type Option func(*engineCaller) error
+func main() {
+	ssc := &contracts.StakingCallbacks{}
 
-// WithEth1Client is a function that returns an Option.
-func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineCaller) error {
-		s.Eth1Client = eth1Client
-		return nil
-	}
-}
+	sf := callback.NewCallbackFactory()
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineCaller) error {
-		s.beaconCfg = beaconCfg
-		return nil
+	sc, err := sf.Build(ssc)
+	if err != nil {
+		panic(err)
 	}
-}
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *engineCaller) error {
-		s.logger = logger
-		return nil
+	ethclient, err := ethclient.Dial("http://localhost:8545")
+	if err != nil {
+		panic(err)
 	}
+
+	logs, err := ethclient.FilterLogs(context.Background(), ethereum.FilterQuery{
+		Addresses: []common.Address{common.HexToAddress("0xB0ce0be267f1B1db9b30CD3E61DF1C6937129A84")},
+		FromBlock: big.NewInt(135),
+		ToBlock:   big.NewInt(1000),
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	for _, log := range logs {
+		// Handle the log
+		err = sc.HandleLog(context.Background(), log)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	_ = sc
 }

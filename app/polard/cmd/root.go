@@ -94,7 +94,7 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-				engine.NewCaller(nil),
+				engine.NewCaller(),
 			),
 			depinject.Provide(),
 		),

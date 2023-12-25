@@ -23,38 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package contracts
 
-import (
-	"cosmossdk.io/log"
-
-	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/config"
-)
-
-// Option is a function type that takes a pointer to an engineCaller and returns an error.
-type Option func(*engineCaller) error
-
-// WithEth1Client is a function that returns an Option.
-func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineCaller) error {
-		s.Eth1Client = eth1Client
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineCaller) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *engineCaller) error {
-		s.logger = logger
-		return nil
-	}
-}
+//go:generate abigen --pkg contracts --abi ../../contracts/out/Staking.sol/Staking.abi.json --bin ../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking
