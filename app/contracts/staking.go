@@ -30,29 +30,40 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 )
 
-// var _ Handler = (*StakingCallbacks)(nil)
-
-type StakingCallbacks struct{}
+// TODO: figure out if we can skip this, I feel as if we can?
+//
+// The is_valid_merkle_branch() checks to ensure that it's not possible to fake a deposit in
+// the process_deposit() function. The eth1data.deposit_root from the deposit contract has
+// been agreed by the beacon chain and includes all pending deposits visible to the beacon
+// chain. The deposit itself contains a Merkle proof that it is included in that root. The
+// state.eth1_deposit_index counter ensures that deposits are processed in order. In short,
+// the proposer provides leaf and branch, but neither index nor root.
+type StakingCallbacks struct {
+	stakingtypes.MsgServer
+}
 
 func (s *StakingCallbacks) ABIEvents() map[string]abi.Event {
 	x, _ := StakingMetaData.GetAbi()
 	return x.Events
 }
 
-func (s *StakingCallbacks) Delegate(ctx context.Context,
-	validator common.Hash, amount *big.Int) error {
-	sdk.UnwrapSDKContext(ctx).Logger().Info("CALLED DELEGATE", "valhash", validator, "amt", amount)
-	// fmt.Println("CALLED DELEGATE", validator, amount)
+func (s *StakingCallbacks) Delegate(
+	ctx context.Context, operatorAddress string, amount *big.Int,
+) error {
+	sdk.UnwrapSDKContext(ctx).Logger().Info("delegating from execution layer",
+		"operatorAddress", operatorAddress, "amt", amount)
 	return nil
 }
 
-func (s *StakingCallbacks) Undelegate(ctx context.Context,
-	validator string, amount *big.Int) error {
-	sdk.UnwrapSDKContext(ctx).Logger().Info("CALLED UNDELEGATE", "valhash", validator, "amt", amount)
+func (s *StakingCallbacks) Undelegate(
+	ctx context.Context, operatorAddress string, amount *big.Int,
+) error {
+	sdk.UnwrapSDKContext(ctx).Logger().Info("undelegating from execution layer",
+		"operatorAddress", operatorAddress, "amt", amount)
 	return nil
 }

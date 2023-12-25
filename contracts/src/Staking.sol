@@ -33,36 +33,36 @@ contract Staking {
 
     /**
      * @dev Emitted by the staking module when `amount` tokens are delegated to
-     * `validator`
-     * @param validator The validator operator address
+     * `operatorAddress`
+     * @param operatorAddress The validator operator address
      * @param amount The amount of tokens delegated
      */
-    event Delegate(string indexed validator, uint256 amount);
+    event Delegate(string operatorAddress, uint256 amount);
 
     /**
      * @dev Emitted by the staking module when `amount` tokens are unbonded from `validator`
-     * @param validator The validator operator address
+     * @param operatorAddress The validator operator address
      * @param amount The amount of tokens unbonded
      */
-    event Undelegate(string validator, uint256 amount);
+    event Undelegate(string operatorAddress, uint256 amount);
 
     ////////////////////////////////////// WRITE METHODS //////////////////////////////////////////
 
     /**
-     * @dev msg.sender delegates the `amount` of tokens to `validatorAddress`
-     * @param validatorAddress The validator operator address
+     * @dev msg.sender delegates the `amount` of tokens to `operatorAddress`
+     * @param operatorAddress The validator operator address
      * @param amount The amount of tokens to delegate
      */
-    function delegateFn(string calldata validatorAddress, uint256 amount) external {
-        emit Delegate(validatorAddress, amount);
+    function delegateFn(string calldata operatorAddress, uint256 amount) external {
+        emit Delegate(operatorAddress, amount);
     }
 
     /**
-     * @dev msg.sender undelegates the `amount` of tokens from `validatorAddress`
-     * @param validatorAddress The validator operator address
+     * @dev msg.sender undelegates the `amount` of tokens from `operatorAddress`
+     * @param operatorAddress The validator operator address
      * @param amount The amount of tokens to undelegate
      */
-    function undelegateFn(string calldata validatorAddress, uint256 amount) external {
-        emit Undelegate(validatorAddress, amount);
+    function undelegateFn(string calldata operatorAddress, uint256 amount) external {
+        emit Undelegate(operatorAddress, amount);
     }
 }

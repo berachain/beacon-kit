@@ -163,10 +163,6 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	p.blocksyncer.Start(context.TODO())
 
 	handlers := make(map[common.Address]callback.LogHandler)
-	// // Build Log Handlers
-	// for _, handler := range p.cfg.ExecutionClient.LogHandlers {
-	// 	handlers[handler.ContractAddress] = handler
-	// }
 
 	sc := &contracts.StakingCallbacks{}
 	handlers[common.HexToAddress(
