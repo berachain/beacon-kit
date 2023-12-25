@@ -105,7 +105,6 @@ define docker-build-helper
 	docker build \
 	--build-arg GO_VERSION=$(GO_VERSION) \
 	--platform linux/$(ARCH) \
-	--build-arg PRECOMPILE_CONTRACTS_DIR=$(CONTRACTS_DIR) \
 	--build-arg GOOS=linux \
 	--build-arg GOARCH=$(ARCH) \
 	-f $(1) \

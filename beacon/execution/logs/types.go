@@ -27,9 +27,9 @@ package logs
 
 import "github.com/ethereum/go-ethereum/accounts/abi"
 
-// CallbackHandler is the interface for all stateful precompiled contracts, which must
+// Handler is the interface for all stateful precompiled contracts, which must
 // expose their ABI methods and precompile methods for stateful execution.
-type CallbackHandler interface {
+type Handler interface {
 	// Registrable
 
 	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.

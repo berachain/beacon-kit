@@ -27,14 +27,13 @@ package contracts
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// var _ CallbackHandler = (*StakingCallbacks)(nil)
+// var _ Handler = (*StakingCallbacks)(nil)
 
 type StakingCallbacks struct {
 }
@@ -46,12 +45,16 @@ func (s *StakingCallbacks) ABIEvents() map[string]abi.Event {
 
 func (s *StakingCallbacks) Delegate(_ context.Context,
 	validator common.Hash, amount *big.Int) error {
-	fmt.Println("CALLED DELEGATE", validator, amount)
+	_ = validator
+	_ = amount
+	// fmt.Println("CALLED DELEGATE", validator, amount)
 	return nil
 }
 
 func (s *StakingCallbacks) Undelegate(_ context.Context,
 	validator string, amount *big.Int) error {
-	fmt.Println("CALLED UNDELEGATE", validator, amount)
+	_ = validator
+	_ = amount
+	// fmt.Println("CALLED UNDELEGATE", validator, amount)
 	return nil
 }

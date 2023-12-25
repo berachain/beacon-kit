@@ -29,10 +29,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 )
 
+// Option is a function that applies a specific configuration to the Processor.
 type Option func(*Processor) error
 
+// WithEthClient is an Option that sets the Ethereum client for the Processor.
 func WithEthClient(eth1Client *eth.Eth1Client) Option {
 	return func(p *Processor) error {
 		p.eth1Client = eth1Client
@@ -40,9 +43,10 @@ func WithEthClient(eth1Client *eth.Eth1Client) Option {
 	}
 }
 
-func WithContractAddr(contractAddr common.Address) Option {
+// WithContractAddr is an Option that sets the contract address for the Processor.
+func WithHandlers(handlers map[common.Address]callback.LogHandler) Option {
 	return func(p *Processor) error {
-		p.contractAddr = contractAddr
+		p.handlers = handlers
 		return nil
 	}
 }

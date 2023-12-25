@@ -21,72 +21,90 @@
 package callback
 
 import (
+	"errors"
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-// this function finds the ABI method that matches the given impl method. It returns the key in the
-// ABI methods map that matches the impl method.
-func FindMatchingABIMethod(
-	implMethod reflect.Method, precompileABI map[string]abi.Event,
-) (string, error) {
-	for i := len(implMethod.Name) - 1; i >= 1; i-- {
-		// try to match the substring of the impl method name to a ABI method name
-		var matchedAbiEvent *abi.Event
-		for name := range precompileABI {
-			abiMethod := precompileABI[name]
-			if implMethod.Name == abiMethod.RawName {
-				if tryMatchInputs(implMethod, &abiMethod) {
-					matchedAbiEvent = &abiMethod // we have a match
-					break
-				}
-			}
+// This function matches each Go implementation of the precompile to the ABI's respective function.
+// It searches for the ABI function in the Go precompile contract and performs basic validation on
+// the implemented function.
+func buildIdsToMethods(si Handler, contractImpl reflect.Value) (map[logSig]*method, error) {
+	contractEventsABI := si.ABIEvents()
+	contractImplType := contractImpl.Type()
+	idsToMethods := make(map[logSig]*method)
+	for m := 0; m < contractImplType.NumMethod(); m++ {
+		implMethod := contractImplType.Method(m)
+		eventName := findMatchingEvent(implMethod, contractEventsABI)
+		if eventName == "" {
+			continue // nothing in the abi matches our go method.
 		}
 
-		// no match found, try again with a smaller substring
-		if matchedAbiEvent == nil {
-			implMethod.Name = implMethod.Name[:i]
-			continue
-		}
-
-		return matchedAbiEvent.Name, nil
+		method := newMethod(si, contractEventsABI[eventName], implMethod)
+		idsToMethods[logSig(contractEventsABI[eventName].ID)] = method
 	}
 
-	return "", nil
+	// verify that every abi method has a corresponding precompile implementation
+	for _, abiMethod := range contractEventsABI {
+		if _, found := idsToMethods[logSig(abiMethod.ID)]; !found {
+			return nil, errors.New("error finding method for event")
+		}
+	}
+
+	return idsToMethods, nil
+}
+
+// findMatchingEvent finds the ABI method that matches the given impl method. It returns the
+// key in the ABI methods map that matches the impl method.
+func findMatchingEvent(
+	implMethod reflect.Method, eventABI map[string]abi.Event,
+) string {
+	// try to match the impl method name to a ABI event name
+	for _, abiMethod := range eventABI {
+		if implMethod.Name == abiMethod.RawName {
+			if tryMatchInputs(implMethod, abiMethod) {
+				return abiMethod.Name // we have a match
+			}
+		}
+	}
+	return ""
 }
 
 // tryMatchInputs returns true iff the argument types match between the Go implementation and the
 // ABI method.
-func tryMatchInputs(implMethod reflect.Method, abiMethod *abi.Event) bool {
+func tryMatchInputs(implMethod reflect.Method, abiMethod abi.Event) bool {
 	abiMethodNumIn := len(abiMethod.Inputs)
+	implMethodNumIn := implMethod.Type.NumIn()
 
 	// First two args of Go precompile implementation are the receiver contract and the Context, so
 	// verify that the ABI method has exactly 2 fewer inputs than the implementation method.
-	if implMethod.Type.NumIn()-2 != abiMethodNumIn {
+	if implMethodNumIn-2 != abiMethodNumIn {
 		return false
 	}
 
 	// If the function does not take any inputs, no need to check.
-	if abiMethodNumIn > 0 {
-		// Validate that the precompile input args types match ABI input arg types, excluding the
-		// first two args (receiver contract and Context).
-		// Handle topics separately, since they should all be common.Hash
-		var i = 2
-		for ; i < len(abiMethod.Inputs); i++ {
-			if !abiMethod.Inputs[i].Indexed {
-				break
-			}
-		}
+	if abiMethodNumIn == 0 {
+		return true
+	}
 
-		for ; i < implMethod.Type.NumIn(); i++ {
-			implMethodParamType := implMethod.Type.In(i)
-			abiMethodParamType := abiMethod.Inputs[i-2].Type.GetType()
-			if validateArg(
-				reflect.New(implMethodParamType).Elem(), reflect.New(abiMethodParamType).Elem(),
-			) != nil {
-				return false
-			}
+	// Validate that the precompile input args types match ABI input arg types, excluding the
+	// first two args (receiver contract and Context). // We also need to handle topics
+	// separately, since they should all be common.Hash
+	var i = 2
+	for ; i < implMethodNumIn; i++ {
+		if !abiMethod.Inputs[i-2].Indexed {
+			break
+		}
+	}
+
+	for ; i < implMethodNumIn; i++ {
+		implMethodParamType := implMethod.Type.In(i)
+		abiMethodParamType := abiMethod.Inputs[i-2].Type.GetType()
+		if validateArg(
+			reflect.New(implMethodParamType).Elem(), reflect.New(abiMethodParamType).Elem(),
+		) != nil {
+			return false
 		}
 	}
 

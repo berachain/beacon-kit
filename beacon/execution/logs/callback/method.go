@@ -29,15 +29,14 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// methodID is a fixed length byte array that represents the method ID of a precompile method.
-type methodID common.Hash
+// logSig is a fixed length byte array that represents the method ID of a precompile method.
+type logSig common.Hash
 
-// method is a struct that contains the required information for the EVM to execute a stateful
-// precompiled contract method.
+// method attaches a specific abi.Event to a golang struct to process it.
 type method struct {
 	// rcvr is the receiver of the method's executable. This is the stateful precompile
 	// that implements the respective precompile method.
-	rcvr CallbackHandler
+	rcvr Handler
 
 	// abiMethod is the ABI `Methods` struct corresponding to this precompile's executable.
 	abiEvent abi.Event
@@ -47,18 +46,18 @@ type method struct {
 	execute reflect.Method
 }
 
-// newMethod creates and returns a new `method` with the given abiMethod, abiSig, and executable.
+// newMethod creates and returns a new `method` with the given abiEvent, and executable.
 func newMethod(
-	rcvr CallbackHandler, abiMethod abi.Event, execute reflect.Method,
+	rcvr Handler, abiEvent abi.Event, execute reflect.Method,
 ) *method {
 	return &method{
 		rcvr:     rcvr,
-		abiEvent: abiMethod,
+		abiEvent: abiEvent,
 		execute:  execute,
 	}
 }
 
-// Call executes the precompile's executable with the given context and input arguments.
+// Call executes the corresponding method attached to a specific log.
 func (m *method) Call(ctx context.Context, log types.Log) error {
 	// Unpack the args from the input, if any exist.
 	topics := log.Topics

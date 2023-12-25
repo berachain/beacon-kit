@@ -23,7 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 //
-// nolint:* // testing file.
+
+// nolint
+//
+//nolint:nolintlint // testing file.
 package main
 
 import (
@@ -41,9 +44,7 @@ import (
 func main() {
 	ssc := &contracts.StakingCallbacks{}
 
-	sf := callback.NewCallbackFactory()
-
-	sc, err := sf.Build(ssc)
+	sc, err := callback.NewFrom(ssc)
 	if err != nil {
 		panic(err)
 	}

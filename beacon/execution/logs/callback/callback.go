@@ -23,14 +23,19 @@ package callback
 import (
 	"context"
 	"errors"
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// CallbackHandler is the interface for all stateful precompiled contracts, which must
+type LogHandler interface {
+	HandleLog(ctx context.Context, log types.Log) error
+}
+
+// Handler is the interface for all stateful precompiled contracts, which must
 // expose their ABI methods and precompile methods for stateful execution.
-type CallbackHandler interface {
+type Handler interface {
 	// Registrable
 
 	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.
@@ -39,27 +44,33 @@ type CallbackHandler interface {
 	ABIEvents() map[string]abi.Event
 }
 
-// wrappedCallbackHandler is a container for running wrappedCallbackHandler and precompiled contracts.
-type wrappedCallbackHandler struct {
-	// CallbackHandler is the base precompile implementation.
-	CallbackHandler
-	idsToMethods map[methodID]*method
+// wrappedHandler is a container for running wrappedHandler and precompiled contracts.
+type wrappedHandler struct {
+	// Handler is the base precompile implementation.
+	Handler
+	idsToMethods map[logSig]*method
 }
 
-// New creates and returns a new `wrappedCallbackHandler` with the given method ids
+// New creates and returns a new `wrappedHandler` with the given method ids
 // precompile functions map.
-func New(
-	si CallbackHandler, idsToMethods map[methodID]*method,
-) (*wrappedCallbackHandler, error) {
-	return &wrappedCallbackHandler{
-		CallbackHandler: si,
-		idsToMethods:    idsToMethods,
+func NewFrom(
+	si Handler,
+) (LogHandler, error) {
+	idsToMethods, err := buildIdsToMethods(si, reflect.ValueOf(si))
+	if err != nil {
+		return nil, err
+	}
+
+	return &wrappedHandler{
+		Handler:      si,
+		idsToMethods: idsToMethods,
 	}, nil
 }
 
-func (sc *wrappedCallbackHandler) HandleLog(ctx context.Context, log types.Log) error {
+// HandleLog calls the function that matches the given log's signature.
+func (sc *wrappedHandler) HandleLog(ctx context.Context, log types.Log) error {
 	// Extract the method ID from the input and load the method.
-	method, found := sc.idsToMethods[methodID(log.Topics[0].Bytes())]
+	method, found := sc.idsToMethods[logSig(log.Topics[0].Bytes())]
 	if !found {
 		return errors.New("method not found")
 	}

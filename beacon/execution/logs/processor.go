@@ -33,23 +33,25 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 )
 
 // type Contract
 
 // Processor is responsible for processing logs fr.
 type Processor struct {
-	eth1Client   *eth.Eth1Client
-	contractAddr common.Address
+	eth1Client *eth.Eth1Client
+	handlers   map[common.Address]callback.LogHandler
 }
 
 // NewProcessor creates a new instance of Processor with the provided options.
 // It applies each option to the Processor and returns an error if any of the options fail.
 func NewProcessor(opts ...Option) (*Processor, error) {
-	s := &Processor{}
+	s := &Processor{
+		handlers: make(map[common.Address]callback.LogHandler),
+	}
 	for _, opt := range opts {
 		if err := opt(s); err != nil {
 			return nil, err
@@ -60,26 +62,45 @@ func NewProcessor(opts ...Option) (*Processor, error) {
 
 // ProcessETH1Block processes logs from the provided eth1 block.
 func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
+	// TODO: add safety check here? Check if Safe/Finalized before processing?
+
+	// Gather all the addresses we have handlers for.
+	addresses := make([]common.Address, 0)
+	for addr := range s.handlers {
+		addresses = append(addresses, addr)
+	}
+
+	// Create a filter query for the block, to acquire all logs from contracts
+	// that we care about.
 	query := ethereum.FilterQuery{
-		Addresses: []common.Address{
-			s.contractAddr,
-		},
+		Addresses: addresses,
 		FromBlock: blkNum,
 		ToBlock:   blkNum,
 	}
 
+	// Gather all the logs from this block.
 	logs, err := s.eth1Client.FilterLogs(ctx, query)
 	if err != nil {
 		return err
 	}
 
+	// Process each log.
 	for i, filterLog := range logs {
-		// ignore logs that are not of the required block number
+		// Skip logs that are not from the block we are processing.
+		// This should never happen, but defensively check anyway.
 		if filterLog.BlockNumber != blkNum.Uint64() {
 			continue
 		}
 
-		if err = s.ProcessLog(ctx, &logs[i]); err != nil {
+		// Skip logs that are not from the addresses we care about.
+		// This should never happen, but defensively check anyway.
+		handler, found := s.handlers[filterLog.Address]
+		if !found {
+			continue
+		}
+
+		// Process the log with the handler.
+		if err = handler.HandleLog(ctx, logs[i]); err != nil {
 			return errors.Wrap(err, "could not process log")
 		}
 	}
@@ -88,14 +109,6 @@ func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error
 	// 	if err := s.processChainStartFromBlockNum(ctx, blkNum); err != nil {
 	// 		return err
 	// 	}
-	// }
-	return nil
-}
-
-func (s *Processor) ProcessLog(ctx context.Context, log *types.Log) error {
-	_ = ctx
-	// if log.Address == s.depositContractAddr {
-	// 	return s.processDepositLog(ctx, log)
 	// }
 	return nil
 }
