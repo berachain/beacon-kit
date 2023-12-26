@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package config_test
 
 import (
 	"math/big"
@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
+	"github.com/itsdevbear/bolaris/types/config"
 	"github.com/itsdevbear/bolaris/types/config/mocks"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -45,12 +46,12 @@ func TestConfig(t *testing.T) {
 }
 
 var _ = Describe("Parser", func() {
-	var parser *AppOptionsParser
+	var parser *config.AppOptionsParser
 	var appOpts *mocks.AppOptions
 
 	BeforeEach(func() {
 		appOpts = new(mocks.AppOptions)
-		parser = NewAppOptionsParser(appOpts)
+		parser = config.NewAppOptionsParser(appOpts)
 	})
 
 	It("should set and retrieve a string option", func() {

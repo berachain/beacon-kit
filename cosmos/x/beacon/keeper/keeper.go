@@ -38,7 +38,7 @@ import (
 	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
-var LatestForkChoiceKey = []byte("latestForkChoice")
+var LatestForkChoiceKey = []byte("latestForkChoice") //nolint:gochecknoglobals // fix later.
 
 type (
 	Keeper struct {

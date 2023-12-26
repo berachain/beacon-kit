@@ -67,7 +67,7 @@ const (
 )
 
 // zeroHash32 is a zeroed 32-byte array.
-var zeroHash32 [32]byte
+var zeroHash32 [32]byte //nolint:gochecknoglobals // constant.
 
 // Caller defines a client that can interact with an Ethereum
 // execution node's engine engineCaller via JSON-RPC.
@@ -163,12 +163,12 @@ func (s *engineCaller) NewPayload(
 		return nil, errors.New("unknown execution data type")
 	}
 
-	if result.ValidationError != "" {
+	if result.GetValidationError() != "" {
 		s.logger.Error("Got a validation error in newPayload", "err",
-			errors.New(result.ValidationError))
+			errors.New(result.GetValidationError()))
 	}
 
-	switch result.Status {
+	switch result.GetStatus() {
 	case pb.PayloadStatus_INVALID_BLOCK_HASH:
 		return nil, execution.ErrInvalidBlockHashPayloadStatus
 	case pb.PayloadStatus_ACCEPTED:
@@ -176,9 +176,9 @@ func (s *engineCaller) NewPayload(
 	case pb.PayloadStatus_SYNCING:
 		return nil, ErrSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
-		return result.LatestValidHash, execution.ErrInvalidPayloadStatus
+		return result.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
-		return result.LatestValidHash, nil
+		return result.GetLatestValidHash(), nil
 	case pb.PayloadStatus_UNKNOWN:
 		return nil, execution.ErrUnknownPayloadStatus
 	default:
@@ -240,15 +240,15 @@ func (s *engineCaller) ForkchoiceUpdated(
 			errors.New(result.ValidationError))
 	}
 	resp := result.Status
-	switch resp.Status {
+	switch resp.GetStatus() {
 	case pb.PayloadStatus_ACCEPTED:
 		return nil, nil, ErrAcceptedPayloadStatus
 	case pb.PayloadStatus_SYNCING:
 		return nil, nil, ErrSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
-		return nil, resp.LatestValidHash, execution.ErrInvalidPayloadStatus
+		return nil, resp.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
-		return result.PayloadId, resp.LatestValidHash, nil
+		return result.PayloadId, resp.GetLatestValidHash(), nil
 	case pb.PayloadStatus_UNKNOWN:
 		return nil, nil, execution.ErrUnknownPayloadStatus
 	case pb.PayloadStatus_INVALID_BLOCK_HASH:
@@ -271,12 +271,12 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte,
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
-		ed, err := blocks.WrappedExecutionPayloadDeneb(result.Payload,
-			blocks.PayloadValueToGwei(result.Value))
+		ed, err := blocks.WrappedExecutionPayloadDeneb(result.GetPayload(),
+			blocks.PayloadValueToGwei(result.GetValue()))
 		if err != nil {
 			return nil, nil, false, err
 		}
-		return ed, result.BlobsBundle, result.ShouldOverrideBuilder, nil
+		return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
 	}
 
 	if slots.ToEpoch(slot) >= s.beaconCfg.CapellaForkEpoch {
@@ -286,8 +286,8 @@ func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte,
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
-		ed, err := blocks.WrappedExecutionPayloadCapella(result.Payload,
-			blocks.PayloadValueToGwei(result.Value))
+		ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
+			blocks.PayloadValueToGwei(result.GetValue()))
 		if err != nil {
 			return nil, nil, false, err
 		}
@@ -824,7 +824,7 @@ func fullPayloadFromPayloadBody(
 			ExtraData:     header.ExtraData(),
 			BaseFeePerGas: header.BaseFeePerGas(),
 			BlockHash:     header.BlockHash(),
-			Transactions:  body.Transactions,
+			Transactions:  body.GetTransactions(),
 		})
 	case version.Capella:
 		return blocks.WrappedExecutionPayloadCapella(&pb.ExecutionPayloadCapella{
@@ -841,8 +841,8 @@ func fullPayloadFromPayloadBody(
 			ExtraData:     header.ExtraData(),
 			BaseFeePerGas: header.BaseFeePerGas(),
 			BlockHash:     header.BlockHash(),
-			Transactions:  body.Transactions,
-			Withdrawals:   body.Withdrawals,
+			Transactions:  body.GetTransactions(),
+			Withdrawals:   body.GetWithdrawals(),
 		}, 0) // We can't get the block value and don't care about the
 		// block value for this instance
 	case version.Deneb:
@@ -871,8 +871,8 @@ func fullPayloadFromPayloadBody(
 				ExtraData:     header.ExtraData(),
 				BaseFeePerGas: header.BaseFeePerGas(),
 				BlockHash:     header.BlockHash(),
-				Transactions:  body.Transactions,
-				Withdrawals:   body.Withdrawals,
+				Transactions:  body.GetTransactions(),
+				Withdrawals:   body.GetWithdrawals(),
 				ExcessBlobGas: ebg,
 				BlobGasUsed:   bgu,
 			}, 0) // We can't get the block value and don't care about the

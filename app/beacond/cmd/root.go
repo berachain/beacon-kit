@@ -406,7 +406,7 @@ func appExport(
 	return testApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
-var tempDir = func() string {
+var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
 	dir, err := os.MkdirTemp("", "beacond")
 	if err != nil {
 		dir = testapp.DefaultNodeHome

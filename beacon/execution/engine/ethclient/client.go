@@ -42,14 +42,11 @@ import (
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 
-// backOffPeriod is the time to wait before trying to reconnect with the eth1 node.
-var (
-	backOffPeriod = 10 * time.Second
-)
-
 const (
 	// jwtLength is the length of the JWT token.
 	jwtLength = 32
+	// backOffPeriod is the time to wait before trying to reconnect with the eth1 node.
+	backOffPeriod = 10
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
@@ -126,7 +123,7 @@ func (s *Eth1Client) setupExecutionClientConnections(
 // Every N seconds, defined as a backoffPeriod, attempts to re-establish an execution client
 // connection and if this does not work, we fallback to the next endpoint if defined.
 func (s *Eth1Client) pollConnectionStatus(ctx context.Context) {
-	ticker := time.NewTicker(backOffPeriod)
+	ticker := time.NewTicker(backOffPeriod * time.Second)
 	defer ticker.Stop()
 	for {
 		select {

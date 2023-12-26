@@ -22,12 +22,12 @@ ARG GOOS=linux
 # Use the latest foundry image
 FROM beacond/base:v0.0.0 as basebeacond
 
-RUN apk add --no-cache bash jq sed curl
-
+RUN set -eux; \
+    apk add --no-cache bash jq sed curl
 WORKDIR /
 
 COPY ./app/docker/seed/scripts scripts/
 
 RUN chmod +x scripts/*
 
-CMD ["sh", "-c", "sleep infinity"]
+CMD ["/bin/bash", "-c", "sleep infinity"]

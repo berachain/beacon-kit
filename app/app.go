@@ -38,8 +38,6 @@ import (
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -49,7 +47,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -76,7 +73,7 @@ func init() {
 }
 
 // DefaultNodeHome default home directories for the application daemon.
-var DefaultNodeHome string
+var DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
 
 var (
 	_ runtime.AppI            = (*SimApp)(nil)
@@ -185,16 +182,6 @@ func NewPolarisApp(
 
 	// Load the app.
 	if err := app.Load(loadLatest); err != nil {
-		panic(err)
-	}
-
-	ctx := sdk.NewContext(
-		app.BaseApp.CommitMultiStore(), cmtproto.Header{}, false, log.NewNopLogger(),
-	)
-
-	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter()).
-		WithEventManager(sdk.NewEventManager()).WithBlockHeight(ctx.MultiStore().LatestVersion())
-	if err := app.Polaris.SyncEL(ctx); err != nil {
 		panic(err)
 	}
 

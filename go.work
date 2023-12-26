@@ -1,9 +1,0 @@
-go 1.21
-
-use (
-	./app
-	./beacon
-	./build/tools
-	./cosmos
-	./types
-)

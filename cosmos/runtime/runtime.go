@@ -39,7 +39,6 @@ import (
 
 	"github.com/itsdevbear/bolaris/app/contracts"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	blocksync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
@@ -76,7 +75,6 @@ type CosmosApp interface {
 type Polaris struct {
 	cfg *config.Config
 	engine.Caller
-	blocksyncer *blocksync.BlockSync
 	// logger is the underlying logger supplied by the sdk.
 	logger log.Logger
 }
@@ -152,16 +150,6 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	}
 	blkChain := blockchain.NewService(chainOpts...)
 
-	// Block Syncer
-	blockSyncOpts := []blocksync.Option{
-		blocksync.WithBeaconConfig(&p.cfg.BeaconConfig),
-		blocksync.WithLogger(p.logger),
-		blocksync.WithHeadSubscriber(p.Caller),
-		blocksync.WithForkChoiceStoreProvider(bk),
-	}
-	p.blocksyncer = blocksync.New(blockSyncOpts...)
-	p.blocksyncer.Start(context.TODO())
-
 	handlers := make(map[common.Address]callback.LogHandler)
 
 	sc := &contracts.StakingCallbacks{}
@@ -181,8 +169,7 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	// Build Proposal Handler
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mp, app)
 	proposalHandler := proposal.NewHandler(blkChain,
-		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler(),
-		p.blocksyncer)
+		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler())
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 
@@ -200,10 +187,5 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 		).PrepareCheckStater(),
 	)
 
-	return nil
-}
-
-func (p *Polaris) SyncEL(ctx context.Context) error {
-	// return p.blocksyncer.WaitforExecutionClientSync(ctx)
 	return nil
 }

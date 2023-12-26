@@ -34,7 +34,6 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	consensustypes "github.com/itsdevbear/bolaris/beacon/consensus-types"
-	blocksync "github.com/itsdevbear/bolaris/beacon/execution/block-sync"
 )
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
@@ -46,20 +45,17 @@ type Handler struct {
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 	beaconChain     *blockchain.Service
-	blockSync       *blocksync.BlockSync
 }
 
 func NewHandler(
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
-	blockSync *blocksync.BlockSync,
 ) *Handler {
 	return &Handler{
 		beaconChain:     beaconChain,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
-		blockSync:       blockSync,
 	}
 }
 

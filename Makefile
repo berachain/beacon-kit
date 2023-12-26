@@ -247,7 +247,7 @@ forge-lint:
 # golangci-lint #
 #################
 
-golangci_version=v1.55.1
+golangci_version=v1.55.2
 
 golangci-install:
 	@echo "--> Installing golangci-lint $(golangci_version)"
@@ -326,19 +326,8 @@ buf-lint:
 ###                             Dependencies                                ###
 ###############################################################################
 
-sync: |
-	@for module in $(MODULES); do \
-		echo "Running go mod download in $$module"; \
-		(cd $$module && go mod download) || exit 1; \
-	done
-	@echo "Running go mod sync"
-	@go work sync
-
 tidy: |
-	@for module in $(MODULES); do \
-		echo "Running go mod tidy in $$module"; \
-		(cd $$module && go mod tidy) || exit 1; \
-	done
+	go mod tidy
 
 repo-rinse: |
 	git clean -xfd

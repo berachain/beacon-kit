@@ -53,14 +53,21 @@ func DefaultBeaconConfig() Beacon {
 
 // ActiveForkVersion returns the active fork version for a given slot.
 func (c *Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
-	if epoch >= c.AltairForkEpoch {
-		return (version.Altair)
+	if epoch >= c.DenebForkEpoch {
+		return version.Deneb
 	}
-	if epoch >= c.BellatrixForkEpoch {
-		return (version.Bellatrix)
-	}
+
 	if epoch >= c.CapellaForkEpoch {
-		return (version.Capella)
+		return version.Capella
 	}
-	return (version.Deneb)
+
+	if epoch >= c.BellatrixForkEpoch {
+		return version.Bellatrix
+	}
+
+	if epoch >= c.AltairForkEpoch {
+		return version.Altair
+	}
+
+	return (version.Phase0)
 }

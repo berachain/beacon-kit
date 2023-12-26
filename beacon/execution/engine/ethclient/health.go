@@ -34,7 +34,7 @@ import (
 )
 
 // healthCheckPeriod defines the time interval for periodic health checks.
-var healthCheckPeriod = 5 * time.Second
+const healthCheckPeriod = 5 * time.Second
 
 // ConnectedETH1 returns the connection status of the Ethereum 1 client.
 func (s *Eth1Client) ConnectedETH1() bool {

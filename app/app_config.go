@@ -81,42 +81,39 @@ import (
 	_ "github.com/itsdevbear/bolaris/cosmos/x/beacon" // import for side-effects
 )
 
-var (
-	// module account permissions.
-	moduleAccPerms = []*authmodulev1.ModuleAccountPermission{
-		{Account: authtypes.FeeCollectorName},
-		{Account: distrtypes.ModuleName},
-		{Account: minttypes.ModuleName,
-			Permissions: []string{authtypes.Minter}},
-		{Account: stakingtypes.BondedPoolName,
-			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
-		{Account: stakingtypes.NotBondedPoolName,
-			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
-		{Account: govtypes.ModuleName,
-			Permissions: []string{authtypes.Burner}},
-		{Account: beacontypes.ModuleName,
-			Permissions: []string{authtypes.Minter, authtypes.Burner}},
-	}
-
-	// blocked account addresses.
-	blockAccAddrs = []string{
-		authtypes.FeeCollectorName,
-		distrtypes.ModuleName,
-		minttypes.ModuleName,
-		stakingtypes.BondedPoolName,
-		stakingtypes.NotBondedPoolName,
-		// We allow the following module accounts to receive funds:
-		// govtypes.ModuleName
-	}
-
-	// application configuration (used by depinject).
-	AppConfig = MakeAppConfig("")
-)
-
 // MakeAppConfig for making an application configuration.
 //
 //nolint:funlen // long config
 func MakeAppConfig(bech32Prefix string) depinject.Config {
+	var (
+		// module account permissions.
+		moduleAccPerms = []*authmodulev1.ModuleAccountPermission{
+			{Account: authtypes.FeeCollectorName},
+			{Account: distrtypes.ModuleName},
+			{Account: minttypes.ModuleName,
+				Permissions: []string{authtypes.Minter}},
+			{Account: stakingtypes.BondedPoolName,
+				Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
+			{Account: stakingtypes.NotBondedPoolName,
+				Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
+			{Account: govtypes.ModuleName,
+				Permissions: []string{authtypes.Burner}},
+			{Account: beacontypes.ModuleName,
+				Permissions: []string{authtypes.Minter, authtypes.Burner}},
+		}
+
+		// blocked account addresses.
+		blockAccAddrs = []string{
+			authtypes.FeeCollectorName,
+			distrtypes.ModuleName,
+			minttypes.ModuleName,
+			stakingtypes.BondedPoolName,
+			stakingtypes.NotBondedPoolName,
+			// We allow the following module accounts to receive funds:
+			// govtypes.ModuleName
+		}
+	)
+
 	if len(bech32Prefix) == 0 {
 		bech32Prefix = "cosmos"
 	}

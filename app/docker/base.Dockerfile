@@ -19,7 +19,7 @@
 #######################################################
 
 ARG GO_VERSION=1.21.5
-ARG RUNNER_IMAGE="gcr.io/distroless/static-debian11"
+ARG RUNNER_IMAGE=alpine
 ARG BUILD_TAGS="netgo,ledger,muslc"
 ARG GOARCH=amd64
 ARG GOOS=linux
@@ -51,14 +51,7 @@ RUN set -eux; \
 WORKDIR /workdir
 
 # Copy the go.mod and go.sum files for each module
-COPY ./beacon/go.sum ./beacon/go.mod ./beacon/
-COPY ./cosmos/go.sum ./cosmos/go.mod ./cosmos/
-COPY ./types/go.sum ./types/go.mod ./types/
-COPY ./app/go.sum ./app/go.mod ./app/
-
-# Link via workspace
-RUN go work init
-RUN go work use ./beacon ./cosmos ./types ./app
+COPY ./go.mod ./go.sum ./
 
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
