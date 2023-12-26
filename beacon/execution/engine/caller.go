@@ -46,11 +46,6 @@ import (
 	"go.opencensus.io/trace"
 )
 
-const (
-	// Defines the seconds before timing out engine endpoints with non-block execution semantics.
-	defaultEngineTimeout = time.Second
-)
-
 // Caller defines a client that can interact with an Ethereum
 // execution node's engine engineCaller via JSON-RPC.
 type Caller interface {
@@ -71,8 +66,9 @@ var _ Caller = (*engineCaller)(nil)
 // engineCaller is a struct that holds a pointer to an Eth1Client.
 type engineCaller struct {
 	*eth.Eth1Client
-	beaconCfg *config.Beacon
-	logger    log.Logger
+	engineTimeout uint64
+	beaconCfg     *config.Beacon
+	logger        log.Logger
 }
 
 // NewCaller creates a new engine client engineCaller.
@@ -93,12 +89,12 @@ func (s *engineCaller) NewPayload(
 	ctx context.Context, payload interfaces.ExecutionData,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
-	// d := time.Now().Add	(
-	// 	time.Duration(
-	// 		s.beaconCfg.ExecutionEngineTimeoutValue,
-	// 	) * time.Second)
-	// ctx, cancel := context.WithDeadline(ctx, d)
-	// defer cancel()
+	d := time.Now().Add(
+		time.Duration(
+			s.engineTimeout,
+		) * time.Second)
+	ctx, cancel := context.WithDeadline(ctx, d)
+	defer cancel()
 	result := &pb.PayloadStatus{}
 
 	switch payload.Proto().(type) {
@@ -164,9 +160,12 @@ func (s *engineCaller) NewPayload(
 func (s *engineCaller) ForkchoiceUpdated(
 	ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*pb.PayloadIDBytes, []byte, error) {
-	// d := time.Now().Add(time.Duration(s.beaconCfg.ExecutionEngineTimeoutValue) * time.Second)
-	// ctx, cancel := context.WithDeadline(ctx, d)
-	// defer cancel()
+	d := time.Now().Add(
+		time.Duration(
+			s.engineTimeout,
+		) * time.Second)
+	ctx, cancel := context.WithDeadline(ctx, d)
+	defer cancel()
 	result := &execution.ForkchoiceUpdatedResponse{}
 	if attrs == nil {
 		return nil, nil, errors.New("nil payload attributer")
@@ -233,9 +232,13 @@ func (s *engineCaller) ForkchoiceUpdated(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
 // It returns the execution data as well as the blobs bundle.
-func (s *engineCaller) GetPayload(ctx context.Context, payloadID [8]byte,
-	slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
-	d := time.Now().Add(defaultEngineTimeout)
+func (s *engineCaller) GetPayload(
+	ctx context.Context, payloadID [8]byte, slot primitives.Slot,
+) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
+	d := time.Now().Add(
+		time.Duration(
+			s.engineTimeout,
+		) * time.Second)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 	if slots.ToEpoch(slot) >= s.beaconCfg.DenebForkEpoch {

@@ -58,3 +58,11 @@ func WithLogger(logger log.Logger) Option {
 		return nil
 	}
 }
+
+// WithEngineTimeout is an option to set the timeout for the engine.
+func WithEngineTimeout(engineTimeout uint64) Option {
+	return func(s *engineCaller) error {
+		s.engineTimeout = engineTimeout
+		return nil
+	}
+}

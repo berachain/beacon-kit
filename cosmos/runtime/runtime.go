@@ -138,6 +138,7 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 		engine.WithEth1Client(eth1Client),
 		engine.WithBeaconConfig(&p.cfg.BeaconConfig),
 		engine.WithLogger(p.logger),
+		engine.WithEngineTimeout(p.cfg.ExecutionClient.RPCTimeout),
 	}
 	p.Caller = engine.NewCaller(engineCallerOpts...)
 

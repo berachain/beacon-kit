@@ -53,14 +53,14 @@ const (
 type Eth1Client struct {
 	*ethclient.Client
 	connectedETH1 bool
-	cfg           *Eth1ClientConfig
+	cfg           *eth1ClientConfig
 	ctx           context.Context
 	rpcClient     *gethRPC.Client
 	logger        log.Logger
 }
 
-// Eth1ClientConfig is a struct that holds the configuration for the Ethereum 1 client.
-type Eth1ClientConfig struct {
+// eth1ClientConfig is a struct that holds the configuration for the Ethereum 1 client.
+type eth1ClientConfig struct {
 	chainID          uint64
 	headers          []string
 	currHTTPEndpoint network.Endpoint
@@ -70,7 +70,7 @@ type Eth1ClientConfig struct {
 func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 	c := &Eth1Client{
 		ctx: ctx,
-		cfg: &Eth1ClientConfig{},
+		cfg: &eth1ClientConfig{},
 	}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {

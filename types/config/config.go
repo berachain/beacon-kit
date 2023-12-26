@@ -26,8 +26,6 @@
 package config
 
 import (
-	"time"
-
 	"github.com/spf13/cobra"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -50,8 +48,8 @@ func DefaultConfig() *Config {
 	return &Config{
 		ExecutionClient: Client{
 			RPCDialURL:      "http://localhost:8551",
-			RPCTimeout:      time.Second * 3, //nolint:gomnd // default config.
-			RPCRetries:      3,               //nolint:gomnd // default config.
+			RPCTimeout:      5, //nolint:gomnd // default config.
+			RPCRetries:      3, //nolint:gomnd // default config.
 			JWTSecretPath:   "../reth/jwt.hex",
 			RequiredChainID: 7, //nolint:gomnd // default config.
 		},
@@ -64,7 +62,7 @@ type Client struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
 	// RPCTimeout is the RPC timeout for execution client requests.
-	RPCTimeout time.Duration
+	RPCTimeout uint64
 	// RPCRetries is the number of retries before shutting down consensus client.
 	RPCRetries uint64
 	// JWTSecretPath is the path to the JWT secret.
@@ -112,7 +110,7 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 	if conf.ExecutionClient.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
 		return nil, err
 	}
-	if conf.ExecutionClient.RPCTimeout, err = parser.GetTimeDuration(
+	if conf.ExecutionClient.RPCTimeout, err = parser.GetUint64(
 		flags.RPCTimeout,
 	); err != nil {
 		return nil, err
@@ -162,6 +160,6 @@ func AddExecutionClientFlags(startCmd *cobra.Command) {
 		"path to the execution client secret")
 	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.RPCDialURL, "rpc dial url")
 	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.RPCRetries, "rpc retries")
-	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.RPCTimeout, "rpc timeout")
 	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.RequiredChainID, "required chain id")
 }
