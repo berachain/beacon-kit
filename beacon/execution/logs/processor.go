@@ -34,6 +34,7 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
@@ -60,6 +61,27 @@ func NewProcessor(opts ...Option) (*Processor, error) {
 		}
 	}
 	return s, nil
+}
+
+// ProcessSafeETH1Block processes logs from an eth1 block, but before doing so
+// it checks if the block is safe to process.
+func (s *Processor) ProcessSafeETH1Block(ctx context.Context, blkNum *big.Int) error {
+	// Get the safe block number from the eth1 client.
+	// TODO do we want to come up with a heuristic around when we check the execution client,
+	// vs when we check the forkchoice store.
+	safeBlock, err := s.eth1Client.BlockByNumber(ctx, big.NewInt(int64(rpc.SafeBlockNumber)))
+	if err != nil {
+		return err
+	}
+
+	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
+	if safeBlock.Number().Cmp(blkNum) < 0 {
+		return errors.Wrapf(
+			ErrProcessingUnsafeBlock, "safe block %d is behind block %d", safeBlock.Number(), blkNum,
+		)
+	}
+
+	return s.ProcessETH1Block(ctx, safeBlock.Number())
 }
 
 // ProcessETH1Block processes logs from the provided eth1 block.
