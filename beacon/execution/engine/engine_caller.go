@@ -54,7 +54,6 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
@@ -81,14 +80,6 @@ type Caller interface {
 		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 		withTxs bool) (*pb.ExecutionBlock, error)
-
-	// TODO: THESE NEED OT BE REMOVED
-	LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, error)
-	LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock, error)
-	LatestExecutionBlock(ctx context.Context) (*pb.ExecutionBlock, error)
-	SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error)
-	BlockByNumber(ctx context.Context, number *big.Int) (*gethcoretypes.Block, error)
-	BlockByHash(ctx context.Context, hash common.Hash) (*gethcoretypes.Block, error)
 }
 
 // Caller is implemented by engineCaller.
@@ -319,57 +310,6 @@ func (s *engineCaller) LatestExecutionBlock(ctx context.Context) (*pb.ExecutionB
 		result,
 		execution.ExecutionBlockByNumberMethod,
 		"latest",
-		false, /* no full transaction objects */
-	)
-	return result, s.handleRPCError(err)
-}
-
-// LatestExecutionBlock fetches the latest execution engine block by calling
-// eth_blockByNumber via JSON-RPC.
-func (s *engineCaller) LatestSafeBlock(ctx context.Context) (*pb.ExecutionBlock, error) {
-	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.LatestExecutionBlock")
-	defer span.End()
-
-	result := &pb.ExecutionBlock{}
-	err := s.Eth1Client.Client.Client().CallContext(
-		ctx,
-		result,
-		execution.ExecutionBlockByNumberMethod,
-		"safe",
-		false, /* no full transaction objects */
-	)
-	return result, s.handleRPCError(err)
-}
-
-// LatestExecutionBlock fetches the latest execution engine block by calling
-// eth_blockByNumber via JSON-RPC.
-func (s *engineCaller) EarliestBlock(ctx context.Context) (*pb.ExecutionBlock, error) {
-	// ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.LatestExecutionBlock")
-	// defer span.End()
-
-	result := &pb.ExecutionBlock{}
-	err := s.Eth1Client.Client.Client().CallContext(
-		ctx,
-		result,
-		execution.ExecutionBlockByNumberMethod,
-		"earliest",
-		false, /* no full transaction objects */
-	)
-	return result, s.handleRPCError(err)
-}
-
-// LatestExecutionBlock fetches the latest execution engine block by calling
-// eth_blockByNumber via JSON-RPC.
-func (s *engineCaller) LatestFinalizedBlock(ctx context.Context) (*pb.ExecutionBlock, error) {
-	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.LatestExecutionBlock")
-	defer span.End()
-
-	result := &pb.ExecutionBlock{}
-	err := s.Eth1Client.Client.Client().CallContext(
-		ctx,
-		result,
-		execution.ExecutionBlockByNumberMethod,
-		"finalized",
 		false, /* no full transaction objects */
 	)
 	return result, s.handleRPCError(err)
