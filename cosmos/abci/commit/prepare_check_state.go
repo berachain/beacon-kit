@@ -27,7 +27,6 @@ package commit
 
 import (
 	"context"
-	"math/big"
 
 	"cosmossdk.io/log"
 
@@ -73,22 +72,22 @@ func NewBeaconPrepareCheckStateHandler(
 
 // Also lets explore instead of finalizing the block async, we finalize it synchonrously
 // but allow for some sort of --fast-sync flag, which will call some sort of forkchoice
-// update at node start, to begin syncing' the execution client to the head block, specified
+// update at node start, to begin syncing' the execution client to the  head block, specified
 // as part of the --fast-sync command?
 func (h *BeaconPrepareCheckStateHandler) PrepareCheckStater() sdk.PrepareCheckStater {
 	return func(ctx sdk.Context) {
-		fcs := h.beaconKeeper.ForkChoiceStore(ctx)
-		finalHash := fcs.GetFinalizedBlockHash()
-		if err := h.beaconChain.FinalizeBlockAsync(ctx, ctx.HeaderInfo(), finalHash[:]); err != nil {
-			h.logger.Error("failed to finalize block", "err", err)
-			panic(err)
-		}
+		// fcs := h.beaconKeeper.ForkChoiceStore(ctx)
+		// finalHash := fcs.GetFinalizedBlockHash()
+		// if err := h.beaconChain.FinalizeBlockAsync(ctx, ctx.HeaderInfo(), finalHash[:]); err != nil {
+		// 	h.logger.Error("failed to finalize block", "err", err)
+		// 	panic(err)
+		// }
 
 		// TODO THIS IS HACK and needs to be moved to either preblock of block n+1 or precommit of
 		// this block, cause we can't perform db writes in prepare check state, since the block
-		// was just committed.
-		if err := h.logProcessor.ProcessETH1Block(ctx, big.NewInt((ctx.BlockHeight()))); err != nil {
-			panic(err)
-		}
+		// // was just committed.
+		// if err := h.logProcessor.ProcessETH1Block(ctx, big.NewInt((ctx.BlockHeight()))); err != nil {
+		// 	panic(err)
+		// }
 	}
 }

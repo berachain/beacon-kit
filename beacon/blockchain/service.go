@@ -31,7 +31,7 @@ import (
 	"errors"
 	"time"
 
-	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
@@ -48,7 +48,8 @@ import (
 	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
-// var defaultLatestValidHash = bytesutil.PadTo([]byte{0xff}, 32)
+// var defaultLatestValidHash = bytesutil.PadTo([]byte{0xff}, 32).
+const forkchoiceBackoff = 500 * time.Millisecond
 
 type ForkChoiceStoreProvider interface {
 	ForkChoiceStore(ctx context.Context) v1.ForkChoiceStore
@@ -80,7 +81,7 @@ func (s *Service) ProcessExecutionData(ctx context.Context,
 ) (*enginev1.PayloadIDBytes, error) {
 	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header /*, nil, [32]byte{}*/)
 	if err != nil {
-		if !errors.Is(err, engine.ErrSyncingPayloadStatus) {
+		if !errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
 			s.logger.Error("failed to validate execution on block", "err", err)
 			return nil, err
 		}
@@ -107,9 +108,9 @@ func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
 retry:
 	payloadID, err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
 	if err != nil {
-		if errors.Is(err, engine.ErrSyncingPayloadStatus) {
-			s.logger.Info("execution client returned status_syncing, retrying....")
-			time.Sleep(1 * time.Second)
+		if errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
+			s.logger.Info("retrying forkchoice update", "reason", err)
+			time.Sleep(forkchoiceBackoff)
 			goto retry
 		}
 		s.logger.Error("failed to notify forkchoice update", "err", err)
@@ -148,21 +149,9 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	payloadID, _, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
 		switch err { //nolint:errorlint // okay for now.
-		case engine.ErrSyncingPayloadStatus:
-			// forkchoiceUpdatedOptimisticNodeCount.Inc()
-			// log.WithFields(logrus.Fields{
-			// 	"headSlot":                  headBlk.Slot(),
-			// 	"headPayloadBlockHash":      fmt.Sprintf("%#x", bytesutil.Trunc(headPayload.BlockHash())),
-			// 	"finalizedPayloadBlockHash": fmt.Sprintf("%#x", bytesutil.Trunc(finalizedHash[:])),
-			// }).Info("Called fork choice updated with optimistic block")
-			s.logger.Error(
-				"called fork choice updated with optimistic block:syncing",
-				"headSlot", slot,
-			)
+		case execution.ErrAcceptedSyncingPayloadStatus:
 			return payloadID, err
-		case engine.ErrAcceptedPayloadStatus:
-			return payloadID, err
-		case prysmexecution.ErrInvalidPayloadStatus:
+		case execution.ErrInvalidPayloadStatus:
 			s.logger.Error("invalid payload status", "err", err)
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
 			var pid *enginev1.PayloadIDBytes

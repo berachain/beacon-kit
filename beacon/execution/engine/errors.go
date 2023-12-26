@@ -37,10 +37,8 @@ import (
 
 var (
 	// ErrHTTPTimeout returns true if the error is a http.Client timeout error.
-	ErrHTTPTimeout           = errors.New("timeout from http.Client")
-	ErrEmptyBlockHash        = errors.New("block hash is empty 0x0000...000")
-	ErrSyncingPayloadStatus  = errors.New("payload status is SYNCING")
-	ErrAcceptedPayloadStatus = errors.New("payload status is ACCEPTED")
+	ErrHTTPTimeout    = errors.New("timeout from http.Client")
+	ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
 )
 
 // Handles errors received from the RPC server according to the specification.

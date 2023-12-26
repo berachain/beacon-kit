@@ -141,10 +141,8 @@ func (s *engineCaller) NewPayload(
 	switch result.GetStatus() {
 	case pb.PayloadStatus_INVALID_BLOCK_HASH:
 		return nil, execution.ErrInvalidBlockHashPayloadStatus
-	case pb.PayloadStatus_ACCEPTED:
-		return nil, ErrAcceptedPayloadStatus
-	case pb.PayloadStatus_SYNCING:
-		return nil, ErrSyncingPayloadStatus
+	case pb.PayloadStatus_ACCEPTED, pb.PayloadStatus_SYNCING:
+		return nil, execution.ErrAcceptedSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
 		return result.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
@@ -214,10 +212,8 @@ func (s *engineCaller) ForkchoiceUpdated(
 	}
 	resp := result.Status
 	switch resp.GetStatus() {
-	case pb.PayloadStatus_ACCEPTED:
-		return nil, nil, ErrAcceptedPayloadStatus
-	case pb.PayloadStatus_SYNCING:
-		return nil, nil, ErrSyncingPayloadStatus
+	case pb.PayloadStatus_ACCEPTED, pb.PayloadStatus_SYNCING:
+		return nil, nil, execution.ErrAcceptedSyncingPayloadStatus
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
