@@ -86,7 +86,7 @@ func (h *BeaconPrepareCheckStateHandler) PrepareCheckStater() sdk.PrepareCheckSt
 
 		// TODO THIS IS HACK and needs to be moved to either preblock of block n+1 or precommit of
 		// this block, cause we can't perform db writes in prepare check state, since the block
-		// was just comitted.
+		// was just committed.
 		if err := h.logProcessor.ProcessETH1Block(ctx, big.NewInt((ctx.BlockHeight()))); err != nil {
 			panic(err)
 		}
