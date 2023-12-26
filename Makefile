@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 include build/scripts/cosmos.mk build/scripts/constants.mk
 
-
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
 

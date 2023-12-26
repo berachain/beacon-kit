@@ -1,0 +1,13 @@
+assets/
+build/
+bin/
+docs/
+networks/
+proto/
+tools/
+.github/
+.git/
+.vscode/
+go.work
+go.work.sum
+*.md
