@@ -46,7 +46,7 @@ const (
 	// jwtLength is the length of the JWT token.
 	jwtLength = 32
 	// backOffPeriod is the time to wait before trying to reconnect with the eth1 node.
-	backOffPeriod = 10
+	backOffPeriod = 5
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
@@ -84,8 +84,14 @@ func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 
 // Start the powchain service's main event loop.
 func (s *Eth1Client) Start(ctx context.Context) {
-	if err := s.setupExecutionClientConnections(s.ctx, s.cfg.currHTTPEndpoint); err != nil {
-		s.logger.Error("could not connect to execution endpoint", "err", err)
+	for {
+		if err := s.setupExecutionClientConnections(s.ctx, s.cfg.currHTTPEndpoint); err != nil {
+			s.logger.Info("Waiting for connection to execution client...",
+				"dial-url", logs.MaskCredentialsLogging(s.cfg.currHTTPEndpoint.Url))
+			time.Sleep(backOffPeriod * time.Second)
+			continue
+		}
+		break
 	}
 
 	// Start the health check loop.
@@ -193,7 +199,5 @@ func (s *Eth1Client) newRPCClientWithAuth(
 		headers.Set(keyValue[0], strings.Join(keyValue[1:], "="))
 	}
 
-	s.logger.Info("connecting to execution client...", "dial-url",
-		logs.MaskCredentialsLogging(endpoint.Url))
 	return network.NewExecutionRPCClient(ctx, endpoint, headers)
 }
