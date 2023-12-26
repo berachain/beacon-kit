@@ -20,7 +20,7 @@ ARG GOOS=linux
 
 
 # Use the latest foundry image
-FROM polard/base:v0.0.0 as basepolard
+FROM beacond/base:v0.0.0 as basebeacond
 
 RUN apk add --no-cache bash jq sed curl
 

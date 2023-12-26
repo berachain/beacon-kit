@@ -18,7 +18,7 @@ ARG GO_VERSION
 ARG GOARCH=amd64
 ARG GOOS=linux
 
-FROM polard/base:v0.0.0 as basepolard
+FROM beacond/base:v0.0.0 as basebeacond
 
 RUN apk add --no-cache bash jq
 

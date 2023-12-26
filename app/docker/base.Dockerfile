@@ -19,25 +19,34 @@
 #######################################################
 
 ARG GO_VERSION=1.21.5
+ARG RUNNER_IMAGE="gcr.io/distroless/static-debian11"
+ARG BUILD_TAGS="netgo,ledger,muslc"
 ARG GOARCH=amd64
 ARG GOOS=linux
-ARG NAME=polaris-cosmos
-ARG APP_NAME=polard
+ARG NAME=beacond
+ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
-ARG CMD_PATH=./app/polard
+ARG CMD_PATH=./app/beacond
 ARG FOUNDRY_DIR=contracts
 
 #######################################################
 ###         Stage 1 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine as builder
+FROM golang:${GO_VERSION}-alpine3.18 as builder
+
+ARG GIT_VERSION
+ARG GIT_COMMIT
+ARG BUILD_TAGS
+
+RUN apk add --no-cache \
+    ca-certificates \
+    build-base \
+    linux-headers
 
 # Setup some alpine stuff that nobody really knows how or why it works.
-# Like if ur reading this and u dunno just ask the devops guy or something.
 RUN set -eux; \
-    apk add git linux-headers ca-certificates build-base
-
+    apk add --no-cache git linux-headers ca-certificates build-base
 # Set the working directory
 WORKDIR /workdir
 
@@ -52,7 +61,9 @@ RUN go work init
 RUN go work use ./beacon ./cosmos ./types ./app
 
 # Download the go module dependencies
-RUN go mod download
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
+    go mod download
 
 # Copy the rest of the source code
 COPY . .
@@ -65,20 +76,20 @@ ARG APP_NAME
 ARG DB_BACKEND
 ARG CMD_PATH
 
-# Build Executable
-RUN VERSION=$(echo $(git describe --tags) | sed 's/^v//') && \
-    COMMIT=$(git log -1 --format='%H') && \
+# Build beacond
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
     env GOOS=${GOOS} GOARCH=${GOARCH} && \
     env NAME=${NAME} DB_BACKEND=${DB_BACKEND} && \
     env APP_NAME=${APP_NAME} && \
     go build \
     -mod=readonly \
-    -tags "netgo,ledger,muslc" \
-    -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=$NAME \
-    -X github.com/cosmos/cosmos-sdk/version.AppName=$APP_NAME \
-    -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
-    -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT \
-    -X github.com/cosmos/cosmos-sdk/version.BuildTags='netgo,ledger,muslc' \
+    -tags ${BUILD_TAGS} \
+    -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=${NAME} \
+    -X github.com/cosmos/cosmos-sdk/version.AppName=${APP_NAME} \
+    -X github.com/cosmos/cosmos-sdk/version.Version=${GIT_VERSION} \
+    -X github.com/cosmos/cosmos-sdk/version.Commit=${GIT_COMMIT} \
+    -X github.com/cosmos/cosmos-sdk/version.BuildTags=${BUILD_TAGS} \
     -X github.com/cosmos/cosmos-sdk/types.DBBackend=$DB_BACKEND \
     -w -s -linkmode=external -extldflags '-Wl,-z,muldefs -static'" \
     -trimpath \
@@ -89,7 +100,7 @@ RUN VERSION=$(echo $(git describe --tags) | sed 's/^v//') && \
 ###        Stage 2 - Prepare the Final Image        ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine
+FROM ${RUNNER_IMAGE}
 
 # Build args
 ARG APP_NAME

@@ -23,12 +23,12 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-CONTAINER0="polard-node0"
-CONTAINER1="polard-node1"
-CONTAINER2="polard-node2"
-CONTAINER3="polard-node3"
+CONTAINER0="beacond-node0"
+CONTAINER1="beacond-node1"
+CONTAINER2="beacond-node2"
+CONTAINER3="beacond-node3"
 
-HOMEDIR="/.polard"
+HOMEDIR="/.beacond"
 SCRIPTS="/scripts"
 
 rm -rf ./temp
@@ -92,7 +92,7 @@ docker cp ./temp/genesis.json $CONTAINER3:$HOMEDIR/config/genesis.json
 # docker exec -it $CONTAINER2 bash -c "$SCRIPTS/seed-start.sh"
 # docker exec -it $CONTAINER3 bash -c "$SCRIPTS/seed-start.sh"
 
-# docker exec -it polard-node0 bash -c "/scripts/seed-start.sh"
-# docker exec -it polard-node1 bash -c "/scripts/seed-start.sh"
-# docker exec -it polard-node2 bash -c "/scripts/seed-start.sh"
-# docker exec -it polard-node3 bash -c "/scripts/seed-start.sh"
+# docker exec -it beacond-node0 bash -c "/scripts/seed-start.sh"
+# docker exec -it beacond-node1 bash -c "/scripts/seed-start.sh"
+# docker exec -it beacond-node2 bash -c "/scripts/seed-start.sh"
+# docker exec -it beacond-node3 bash -c "/scripts/seed-start.sh"

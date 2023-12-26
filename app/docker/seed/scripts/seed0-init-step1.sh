@@ -36,7 +36,7 @@ if [ -z "$LOGLEVEL" ]; then
     LOGLEVEL="info"
 fi
 if [ -z "$HOMEDIR" ]; then
-    HOMEDIR="/.polard"
+    HOMEDIR="/.beacond"
 fi
 
 KEY1="seed-0"
@@ -46,7 +46,7 @@ GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 
 
-polard init $MONIKER1 -o --chain-id $CHAINID --home "$HOMEDIR"
+beacond init $MONIKER1 -o --chain-id $CHAINID --home "$HOMEDIR"
 
 jq '.app_state["staking"]["params"]["bond_denom"]="abera"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
 jq '.app_state["crisis"]["constant_fee"]["denom"]="abera"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
@@ -63,14 +63,14 @@ jq '.consensus["params"]["block"]["max_gas"]="30000000"' "$GENESIS" >"$TMP_GENES
 jq '.app_state["mint"]["params"]["mint_denom"]="abera"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
 jq '.consensus["params"]["abci"]["vote_extensions_enable_height"] = "2"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS";
 
-polard config set client chain-id $CHAINID --home "$HOMEDIR"
-polard config set client keyring-backend $KEYRING --home "$HOMEDIR"
+beacond config set client chain-id $CHAINID --home "$HOMEDIR"
+beacond config set client keyring-backend $KEYRING --home "$HOMEDIR"
 
-polard keys add $KEY1 --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
+beacond keys add $KEY1 --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
 
-polard genesis add-genesis-account $KEY1 100000000000000000000000000abera,100000000000000000000000000stgusdc --keyring-backend $KEYRING --home "$HOMEDIR"
+beacond genesis add-genesis-account $KEY1 100000000000000000000000000abera,100000000000000000000000000stgusdc --keyring-backend $KEYRING --home "$HOMEDIR"
 
-polard genesis gentx $KEY1 1000000000000000000000abera --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" \
+beacond genesis gentx $KEY1 1000000000000000000000abera --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" \
     --moniker="seed-0" \
     --identity="identity of seed-0" \
     --details="This is seed-0" \

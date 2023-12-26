@@ -36,7 +36,7 @@ if [ -z "$LOGLEVEL" ]; then
     LOGLEVEL="info"
 fi
 if [ -z "$HOMEDIR" ]; then
-    HOMEDIR="/.polard"
+    HOMEDIR="/.beacond"
 fi
 
 KEY="$1"
@@ -46,8 +46,8 @@ GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 
 
-polard init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR"
+beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR"
 
-polard config set client keyring-backend $KEYRING --home "$HOMEDIR"
+beacond config set client keyring-backend $KEYRING --home "$HOMEDIR"
 
-polard keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
+beacond keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"

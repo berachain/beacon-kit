@@ -17,14 +17,14 @@
 ARG GO_VERSION
 ARG GOARCH=arm64
 ARG GOOS=linux
-ARG POLARD_VERSION=v0.0.0
+ARG beacond_VERSION=v0.0.0
 
 #######################################################
 ###         Stage 1 - Build Smart Contracts         ###
 #######################################################
 
 # Use the latest foundry image
-FROM polard/base:${POLARD_VERSION} as localpolard
+FROM beacond/base:${beacond_VERSION} as localbeacond
 
 RUN apk add --no-cache bash jq
 

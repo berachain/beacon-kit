@@ -72,7 +72,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, ".polard")
+	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
 }
 
 // DefaultNodeHome default home directories for the application daemon.

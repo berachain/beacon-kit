@@ -33,7 +33,7 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
 	testapp "github.com/itsdevbear/bolaris/app"
-	"github.com/itsdevbear/bolaris/app/polard/cmd"
+	"github.com/itsdevbear/bolaris/app/beacond/cmd"
 	"github.com/itsdevbear/bolaris/types/config"
 )
 

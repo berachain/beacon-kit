@@ -118,7 +118,7 @@ func NewRootCmd() *cobra.Command {
 		WithViper("") // In simapp, we don't use any prefix for env variables.
 
 	rootCmd := &cobra.Command{
-		Use:   "polard",
+		Use:   "beacond",
 		Short: "polaris sample app",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
@@ -407,7 +407,7 @@ func appExport(
 }
 
 var tempDir = func() string {
-	dir, err := os.MkdirTemp("", "polard")
+	dir, err := os.MkdirTemp("", "beacond")
 	if err != nil {
 		dir = testapp.DefaultNodeHome
 	}

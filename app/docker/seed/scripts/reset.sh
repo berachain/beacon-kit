@@ -24,7 +24,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if [ -z "$HOMEDIR" ]; then
-    HOMEDIR="/.polard"
+    HOMEDIR="/.beacond"
 fi
 
 rm -rf $HOMEDIR

@@ -30,14 +30,14 @@ if [ -z "$KEYRING" ]; then
     KEYRING="test"
 fi
 if [ -z "$HOMEDIR" ]; then
-    HOMEDIR="/.polard"
+    HOMEDIR="/.beacond"
 fi
 
 KEY="$1"
 
-polard genesis add-genesis-account $KEY 100000000000000000000000000abera,100000000000000000000000000stgusdc --keyring-backend $KEYRING --home "$HOMEDIR"
+beacond genesis add-genesis-account $KEY 100000000000000000000000000abera,100000000000000000000000000stgusdc --keyring-backend $KEYRING --home "$HOMEDIR"
 
-polard genesis gentx $KEY 1000000000000000000000abera --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" \
+beacond genesis gentx $KEY 1000000000000000000000abera --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" \
     --moniker="$KEY" \
     --identity="identity of $KEY" \
     --details="This is $KEY" \

@@ -25,7 +25,7 @@
 
 KEY1="val0"
 KEYRING="test"
-HOMEDIR="/.polard"
+HOMEDIR="/.beacond"
 VAL_JSON="$HOMEDIR/config/validator.json"
 
 # Generating a JSON string (https://stackoverflow.com/a/48470227)
@@ -49,4 +49,4 @@ validator_json_string=$(
 # Creating the JSON file
 echo $validator_json_string > $VAL_JSON
 
-polard tx staking create-validator $VAL_JSON --from $KEY1 --home "$HOMEDIR"
+beacond tx staking create-validator $VAL_JSON --from $KEY1 --home "$HOMEDIR"

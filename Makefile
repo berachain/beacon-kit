@@ -66,9 +66,9 @@ proto-build:
 DOCKER_TYPE ?= base
 ARCH ?= arm64
 GO_VERSION ?= 1.21.5
-IMAGE_NAME ?= polard
+IMAGE_NAME ?= beacond
 IMAGE_VERSION ?= v0.0.0
-BASE_IMAGE ?= polard/base:$(IMAGE_VERSION)
+BASE_IMAGE ?= beacond/base:$(IMAGE_VERSION)
 
 # Docker Paths
 BASE_DOCKER_PATH = ./app/docker
@@ -76,7 +76,7 @@ EXEC_DOCKER_PATH = $(BASE_DOCKER_PATH)/base.Dockerfile
 LOCAL_DOCKER_PATH = $(BASE_DOCKER_PATH)/local/Dockerfile
 SEED_DOCKER_PATH =  $(BASE_DOCKER_PATH)/seed/Dockerfile
 VAL_DOCKER_PATH =  $(BASE_DOCKER_PATH)/validator/Dockerfile
-LOCALNET_CLIENT_PATH = ./e2e/precompile/polard
+LOCALNET_CLIENT_PATH = ./e2e/precompile/beacond
 LOCALNET_DOCKER_PATH = $(LOCALNET_CLIENT_PATH)/Dockerfile
 
 # Image Build
@@ -105,6 +105,8 @@ define docker-build-helper
 	docker build \
 	--build-arg GO_VERSION=$(GO_VERSION) \
 	--platform linux/$(ARCH) \
+	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
+	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
 	--build-arg GOOS=linux \
 	--build-arg GOARCH=$(ARCH) \
 	-f $(1) \
@@ -150,7 +152,7 @@ mockery:
 ###############################################################################
 
 #################
-#    polard     #
+#    beacond     #
 #################
 
 start:

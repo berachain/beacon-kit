@@ -27,15 +27,15 @@ version: "3.3"
 
 services:
   node0:
-    container_name: polard-node0
-    image: "polard/seed:v0.0.0"
+    container_name: beacond-node0
+    image: "beacond/seed:v0.0.0"
     ports:
       - "26656-26658:26656-26658"
       - "9090-9091:9090-9091"
     environment:
       - ID=0
       - CHAINID=berachain-localnet-666
-      - DIALURL=http://polard-reth0:8551
+      - DIALURL=http://beacond-reth0:8551
       - JWTSECRETPATH=/root/ethgen/jwt.hex
     volumes:
       - type: bind
@@ -52,7 +52,7 @@ services:
   # Other nodes will use reth0 as their bootnode
   # enode://c58ccefeae4d769d0212d0e9d44aa0a5bc49765d472e758ce16fe9518acb74e576a522a783677ad370f3c3a4991f831a89e0dc02ac18667dd824eb5931d3fca5@192.168.10.11:30303
   reth0:
-    container_name: polard-reth0
+    container_name: beacond-reth0
     image: ghcr.io/paradigmxyz/reth
     command: >
       node --http.api eth,net,txpool,rpc,web3
@@ -84,15 +84,15 @@ services:
       - "30303:30303"
 
   node1:
-    container_name: polard-node1
-    image: "polard/seed:v0.0.0"
+    container_name: beacond-node1
+    image: "beacond/seed:v0.0.0"
     ports:
       - "36656-36658:26656-26658"
       - "10090-10091:9090-9091"
     environment:
       - ID=1
       - CHAINID=berachain-localnet-666
-      - DIALURL=http://polard-reth1:9551
+      - DIALURL=http://beacond-reth1:9551
       - JWTSECRETPATH=/root/ethgen/jwt.hex
     volumes:
       - type: bind
@@ -107,7 +107,7 @@ services:
 
   # enode://0b5632872cfca278b2a0403c9d691789a198f6950cd7bbee1b7aaa2f2afa55330a5daafe955a90f2ae510b40049d4b20bc1f0b0f4c7b017391664e9521692da3@192.168.10.13:40303
   reth1:
-    container_name: polard-reth1
+    container_name: beacond-reth1
     image: ghcr.io/paradigmxyz/reth
     command: >
       node --http.api eth,net,txpool,rpc,web3
@@ -140,15 +140,15 @@ services:
       - "40303:40303"
 
   node2:
-    container_name: polard-node2
-    image: "polard/seed:v0.0.0"
+    container_name: beacond-node2
+    image: "beacond/seed:v0.0.0"
     ports:
       - "46656-46658:26656-26658"
       - "11090-11091:9090-9091"
     environment:
       - ID=2
       - CHAINID=berachain-localnet-666
-      - DIALURL=http://polard-reth2:10551
+      - DIALURL=http://beacond-reth2:10551
       - JWTSECRETPATH=/root/ethgen/jwt.hex
     volumes:
       - type: bind
@@ -164,7 +164,7 @@ services:
 
   # enode://3d356b2c6425336a48f42a401081addaa5c1643c7bfb9df5e3792228383a4b14ad699ab13ecfedcaf60fcd6bd62c6149736e4e5e03635375215f0d770dc74c1f@192.168.10.15:50303
   reth2:
-    container_name: polard-reth2
+    container_name: beacond-reth2
     image: ghcr.io/paradigmxyz/reth
     command: >
       node --http.api eth,net,txpool,rpc,web3
@@ -198,8 +198,8 @@ services:
 
 
   node3:
-    container_name: polard-node3
-    image: "polard/seed:v0.0.0"
+    container_name: beacond-node3
+    image: "beacond/seed:v0.0.0"
     ports:
       - "56665-56667:26656-26658"
       - "12096-12097:9090-9091"
@@ -221,7 +221,7 @@ services:
 
   # enode://fef1c19f87dd4c1221538c380715d88f3de6809a86738546a7738bb36094365e9fed49fe30e0411217b3eacca120afa2bb0d5cd6e29643abd61b261585bb68b2@192.168.10.17:60303
   reth3:
-    container_name: polard-reth3
+    container_name: beacond-reth3
     # image: ethereum/client-go:stab
     # environment:
     #   - GETH_GRAPHQL_VHOSTS=*
