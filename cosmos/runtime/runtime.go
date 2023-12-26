@@ -204,5 +204,6 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 }
 
 func (p *Polaris) SyncEL(ctx context.Context) error {
-	return p.blocksyncer.WaitforExecutionClientSync(ctx)
+	// return p.blocksyncer.WaitforExecutionClientSync(ctx)
+	return nil
 }

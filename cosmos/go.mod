@@ -39,7 +39,8 @@ require (
 require github.com/rs/zerolog v1.31.0 // indirect
 
 require (
-	github.com/itsdevbear/bolaris/beacon v0.0.0-20231224032054-25c5914efe28
+	github.com/itsdevbear/bolaris/app v0.0.0-20231226044620-820356d53b5c
+	github.com/itsdevbear/bolaris/beacon v0.0.0-20231226044620-820356d53b5c
 	github.com/itsdevbear/bolaris/types v0.0.0-20231224032054-25c5914efe28
 	github.com/prysmaticlabs/prysm/v4 v4.1.1
 )

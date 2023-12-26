@@ -37,8 +37,9 @@ import (
 
 // BytesToExecutionData converts a byte array to an ExecutionData object based on
 // the requested version.
-func BytesToExecutionData(bz []byte, value math.Gwei,
-	requestedVersion int) (interfaces.ExecutionData, error) {
+func BytesToExecutionData(
+	bz []byte, value math.Gwei, requestedVersion int,
+) (interfaces.ExecutionData, error) {
 	if bz == nil {
 		return nil, errors.New("nil execution data")
 	}

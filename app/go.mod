@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
-	github.com/itsdevbear/bolaris/beacon v0.0.0-20231224032054-25c5914efe28
+	github.com/itsdevbear/bolaris/beacon v0.0.0-20231226044620-820356d53b5c
 	github.com/itsdevbear/bolaris/cosmos v0.0.0-20231224032054-25c5914efe28
 	github.com/itsdevbear/bolaris/types v0.0.0-20231224032054-25c5914efe28
 	golang.org/x/sync v0.5.0

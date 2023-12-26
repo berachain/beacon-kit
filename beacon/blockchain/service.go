@@ -34,6 +34,7 @@ import (
 	prysmexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	"cosmossdk.io/core/header"
@@ -142,7 +143,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			return nil, err
 		}
 	} else {
-		attrs = payloadattribute.EmptyWithVersion(3) //nolint:gomnd // TODO fix.
+		attrs = payloadattribute.EmptyWithVersion(s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)))
 	}
 	payloadID, _, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {

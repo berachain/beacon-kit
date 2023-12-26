@@ -33,6 +33,7 @@ import (
 	"time"
 
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	"cosmossdk.io/log"
@@ -119,7 +120,7 @@ func (b *BlockSync) WaitforExecutionClientSync(ctx context.Context) error {
 		"finalized", common.Bytes2Hex(fc.FinalizedBlockHash))
 retry:
 	_, latestValidHash, err := b.headSubscriber.ForkchoiceUpdated(
-		ctx, fc, payloadattribute.EmptyWithVersion(3), //nolint:gomnd // its okay.
+		ctx, fc, payloadattribute.EmptyWithVersion(b.beaconCfg.ActiveForkVersion(primitives.Epoch(0))),
 	)
 	if err != nil {
 		if errors.Is(err, engine.ErrSyncingPayloadStatus) {

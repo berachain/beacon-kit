@@ -28,7 +28,6 @@ package config
 import (
 	"time"
 
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/spf13/cobra"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -72,27 +71,6 @@ type Client struct {
 	JWTSecretPath string
 	// RequiredChainID is the chain id that the consensus client must be connected to.
 	RequiredChainID uint64
-}
-
-type Beacon struct {
-	// AltairForkEpoch is used to represent the assigned fork epoch for altair.
-	AltairForkEpoch primitives.Epoch
-	// BellatrixForkEpoch is used to represent the assigned fork epoch for bellatrix.
-	BellatrixForkEpoch primitives.Epoch
-	// CapellaForkEpoch is used to represent the assigned fork epoch for capella.
-	CapellaForkEpoch primitives.Epoch
-	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
-	DenebForkEpoch primitives.Epoch
-}
-
-// DefaultBeaconConfig returns the default fork configuration.
-func DefaultBeaconConfig() Beacon {
-	return Beacon{
-		AltairForkEpoch:    0,
-		BellatrixForkEpoch: 0,
-		CapellaForkEpoch:   0,
-		DenebForkEpoch:     primitives.Epoch(4294967295), //nolint:gomnd // default config.
-	}
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
