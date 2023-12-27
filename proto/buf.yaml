@@ -30,7 +30,7 @@ deps:
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
   - buf.build/googleapis/googleapis
-  - buf.build/cosmos/cosmos-sdk:v0.50.0
+  - buf.build/cosmos/cosmos-sdk
 
 breaking:
   use:
