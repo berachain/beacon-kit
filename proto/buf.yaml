@@ -23,9 +23,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# This module represents buf.build/cosmos/cosmos-sdk
+# This module represents buf.build/itsdevbear/bolaris
 version: v1
-name: buf.build/cosmos/cosmos-sdk
+name: buf.build/itsdevbear/bolaris
 deps:
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
