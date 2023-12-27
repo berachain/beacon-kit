@@ -46,20 +46,6 @@ import (
 	"go.opencensus.io/trace"
 )
 
-// Caller defines a client that can interact with an Ethereum
-// execution node's engine engineCaller via JSON-RPC.
-type Caller interface {
-	NewPayload(ctx context.Context, payload interfaces.ExecutionData,
-		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
-	ForkchoiceUpdated(
-		ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
-	) (*pb.PayloadIDBytes, []byte, error)
-	GetPayload(ctx context.Context, payloadID [8]byte,
-		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
-	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
-		withTxs bool) (*pb.ExecutionBlock, error)
-}
-
 // Caller is implemented by engineCaller.
 var _ Caller = (*engineCaller)(nil)
 

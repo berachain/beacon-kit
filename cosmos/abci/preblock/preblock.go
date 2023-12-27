@@ -27,6 +27,7 @@ package preblock
 
 import (
 	"context"
+	"errors"
 
 	"github.com/prysmaticlabs/prysm/v4/math"
 
@@ -82,6 +83,9 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		)
 
 		beaconBlockData := req.Txs[0] // todo modularize.
+		if len(beaconBlockData) == 0 {
+			return &sdk.ResponsePreBlock{}, errors.New("payload in beacon block is empty")
+		}
 
 		// todo handle hardforks without needing codechange.
 		data, err := consensustypes.BytesToExecutionData(
@@ -91,14 +95,19 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return nil, err
 		}
 
-		// Finalize the block that is being proposed.
-		store := h.keeper.ForkChoiceStore(ctx)
-		store.SetFinalizedBlockHash([32]byte(data.BlockHash()))
-		store.SetSafeBlockHash([32]byte(data.BlockHash()))
-		store.SetLastValidHead([32]byte(data.BlockHash()))
+		h.markBlockAsFinalized(ctx, data.BlockHash())
+
 		return &sdk.ResponsePreBlock{}, nil
 		// return h.childHandler(ctx, req) // TODO: uncomment this.
 	}
+}
+
+func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash []byte) {
+	store := h.keeper.ForkChoiceStore(ctx)
+	blockHash32 := [32]byte(blockHash)
+	store.SetFinalizedBlockHash(blockHash32)
+	store.SetSafeBlockHash(blockHash32)
+	store.SetLastValidHead(blockHash32)
 }
 
 // The block number issue comes from when process proposal runs, marks the block as finalized

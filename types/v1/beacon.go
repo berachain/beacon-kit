@@ -23,28 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
-
-import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
-)
-
-type Service struct {
-	engine.Caller
-	payloadCache *cache.ProposerPayloadIDsCache
-}
-
-// NewService returns a new instance of the execution service.
-func NewService(opts ...Option) *Service {
-	ec := &Service{
-		payloadCache: cache.NewProposerPayloadIDsCache(),
-	}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			panic(err)
-		}
-	}
-
-	return ec
-}
+package v1

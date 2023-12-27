@@ -25,26 +25,14 @@
 
 package execution
 
-import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
-)
+import "github.com/itsdevbear/bolaris/beacon/execution/engine"
 
-type Service struct {
-	engine.Caller
-	payloadCache *cache.ProposerPayloadIDsCache
-}
+type Option func(*Service) error
 
-// NewService returns a new instance of the execution service.
-func NewService(opts ...Option) *Service {
-	ec := &Service{
-		payloadCache: cache.NewProposerPayloadIDsCache(),
+// WithEngineTimeout sets the timeout for the engine RPC calls.
+func WithEngineCaller(engine engine.Caller) Option {
+	return func(s *Service) error {
+		s.Caller = engine
+		return nil
 	}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			panic(err)
-		}
-	}
-
-	return ec
 }

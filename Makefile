@@ -122,11 +122,12 @@ endef
 ###############################################################################
 
 generate:
-	@$(MAKE) abigen-install moq-install mockery
+	@$(MAKE) abigen-install moq-install mockery 
 	@for module in $(MODULES); do \
 		echo "Running go generate in $$module"; \
 		(cd $$module && go generate ./...) || exit 1; \
 	done
+	@$(MAKE) sszgen
 
 abigen-install:
 	@echo "--> Installing abigen"
@@ -321,6 +322,21 @@ buf-lint:
 	@buf lint --error-format=json $(protoDir)
 
 
+#################
+#    sszgen    #
+#################
+
+sszgen-install:
+	@echo "--> Installing sszgen"
+	@go install github.com/prysmaticlabs/fastssz/sszgen
+
+
+SSZ_STRUCTS=BeaconBlockData
+
+sszgen:
+	@$(MAKE) sszgen-install
+	@echo "--> Running sszgen on all structs with ssz tags"
+	@sszgen -path ./types/v1/ -objs ${SSZ_STRUCTS}
 ###############################################################################
 ###                             Dependencies                                ###
 ###############################################################################

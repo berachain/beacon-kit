@@ -76,7 +76,7 @@ func NewService(opts ...Option) *Service {
 	return s
 }
 
-func (s *Service) ProcessExecutionData(ctx context.Context,
+func (s *Service) ProcessReceivedExecutionData(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
 	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header /*, nil, [32]byte{}*/)
@@ -86,8 +86,7 @@ func (s *Service) ProcessExecutionData(ctx context.Context,
 			return nil, err
 		}
 	} else if !isValidPayload {
-		s.logger.Error("invalid payload")
-		return nil, errors.New("invalid payload")
+		return nil, execution.ErrInvalidPayloadStatus
 	}
 
 	// Forkchoice our execution client's head to be the block that we validated as correct
@@ -218,8 +217,8 @@ func (s *Service) notifyNewPayload(ctx context.Context /*preStateVersion*/, _ in
 
 // validateExecutionOnBlock notifies the engine of the incoming block execution payload and
 // returns true if the payload is valid.
-func (s *Service) validateExecutionOnBlock(ctx context.Context, ver int,
-	header interfaces.ExecutionData,
+func (s *Service) validateExecutionOnBlock(
+	ctx context.Context, ver int, header interfaces.ExecutionData,
 	/*,signed interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte*/) (bool, error) {
 	isValidPayload, err := s.notifyNewPayload(ctx, ver, header /*, signed*/)
 	if err != nil {

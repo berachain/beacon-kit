@@ -218,7 +218,7 @@ func initAppConfig() (string, interface{}) {
 		Polaris: *evmconfig.DefaultConfig(),
 	}
 
-	customAppTemplate := serverconfig.DefaultConfigTemplate + evmconfig.PolarisConfigTemplate
+	customAppTemplate := serverconfig.DefaultConfigTemplate + evmconfig.ConfigTemplate
 
 	return customAppTemplate, customAppConfig
 }

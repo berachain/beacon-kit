@@ -37,8 +37,9 @@ import (
 
 const payloadBuildDelay = 2
 
-func (s *Service) BuildNextBlock(ctx context.Context,
-	beaconBlock header.Info) (interfaces.ExecutionData, error) {
+func (s *Service) BuildNextBlock(
+	ctx context.Context, beaconBlock header.Info,
+) (interfaces.ExecutionData, error) {
 	// The goal here is to build a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain.

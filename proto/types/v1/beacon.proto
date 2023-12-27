@@ -26,8 +26,12 @@
 syntax = "proto3";
 package types.v1;
 
-// import "gogoproto/gogo.proto";
+import "gogoproto/gogo.proto";
+
 option go_package = "github.com/itsdevbear/bolaris/types/v1";
 
 // BeaconBlockData defines the data of a beacon block that is injected by the proposer.
-message BeaconBlockData {}
+message BeaconBlockData {
+  // 32 byte root of the parent block.
+  bytes bing_bong = 1 [(gogoproto.moretags) = "ssz-size:\"32\""];
+}

@@ -25,7 +25,7 @@
 
 syntax = "proto3";
 
-package polaris.beacon.module.v1alpha1;
+package beacon.module.v1alpha1;
 
 import "cosmos/app/v1alpha1/module.proto";
 

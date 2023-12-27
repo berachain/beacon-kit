@@ -31,7 +31,7 @@ import (
 	store "cosmossdk.io/store/types"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	modulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/polaris/beacon/module/v1alpha1"
+	modulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/beacon/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
 
