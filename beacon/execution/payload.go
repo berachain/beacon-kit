@@ -34,22 +34,80 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-func (s *EngineNotifier) getPayloadAttributes(_ context.Context,
-	_ /*slot*/ primitives.Slot, timestamp uint64) (payloadattribute.Attributer, error) {
+func (s *EngineNotifier) getPayloadAttributes(
+	_ context.Context, slot primitives.Slot, timestamp uint64,
+) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
+	requestedVersion := s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot))
+	emptyAttri := payloadattribute.EmptyWithVersion(requestedVersion)
 
 	// TODO: this is a hack to fill the PrevRandao field. It is not verifiable or safe
 	// or anything, it's literally just to get basic functionality.
 	var random [32]byte
 	if _, err := rand.Read(random[:]); err != nil {
-		return nil, err
+		return emptyAttri, err
 	}
 
-	// TODO: need to support multiple fork versions.
+	// // TODO: need to support multiple fork versions.
+	// if requestedVersion != 3 { //
+	// 	s.logger.Error("Could not get payload attribute due to unknown state version")
+	// 	return emptyAttri, nil
+	// }
+
 	return payloadattribute.New(&enginev1.PayloadAttributesV2{
 		Timestamp:             timestamp,
 		SuggestedFeeRecipient: s.etherbase.Bytes(),
 		Withdrawals:           nil,
 		PrevRandao:            append([]byte{}, random[:]...),
 	})
+	// var attr payloadattribute.Attributer
+	// switch requestedVersion {
+	// case version.Deneb:
+	// 	withdrawals, err := st.ExpectedWithdrawals()
+	// 	if err != nil {
+	// 		// log.WithError(err).Error("Could not get expected withdrawals to get payload attribute")
+	// 		return emptyAttri, err
+	// 	}
+	// 	attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
+	// 		Timestamp:             uint64(t.Unix()),
+	// 		PrevRandao:            prevRando,
+	// 		SuggestedFeeRecipient: val.FeeRecipient[:],
+	// 		Withdrawals:           withdrawals,
+	// 		ParentBeaconBlockRoot: headRoot,
+	// 	})
+	// 	if err != nil {
+	// 		log.WithError(err).Error("Could not get payload attribute")
+	// 		return false, emptyAttri
+	// 	}
+	// case version.Capella:
+	// 	withdrawals, err := st.ExpectedWithdrawals()
+	// 	if err != nil {
+	// 		log.WithError(err).Error("Could not get expected withdrawals to get payload attribute")
+	// 		return false, emptyAttri
+	// 	}
+	// 	attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
+	// 		Timestamp:             uint64(t.Unix()),
+	// 		PrevRandao:            prevRando,
+	// 		SuggestedFeeRecipient: val.FeeRecipient[:],
+	// 		Withdrawals:           withdrawals,
+	// 	})
+	// 	if err != nil {
+	// 		log.WithError(err).Error("Could not get payload attribute")
+	// 		return false, emptyAttri
+	// 	}
+	// case version.Bellatrix:
+	// 	attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
+	// 		Timestamp:             uint64(t.Unix()),
+	// 		PrevRandao:            prevRando,
+	// 		SuggestedFeeRecipient: val.FeeRecipient[:],
+	// 	})
+	// 	if err != nil {
+	// 		log.WithError(err).Error("Could not get payload attribute")
+	// 		return false, emptyAttri
+	// 	}
+	// default:
+	// 	log.WithField("vers
+	// on", version).Error("Could not get payload attribute due to unknown state version")
+	// 	return false, emptyAttri
+	// }
 }

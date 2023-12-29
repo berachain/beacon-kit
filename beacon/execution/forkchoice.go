@@ -77,6 +77,7 @@ func (s *EngineNotifier) notifyForkchoiceUpdate(ctx context.Context,
 	var attrs payloadattribute.Attributer
 	var err error
 	if withAttrs {
+		// todo: handle version.
 		attrs, err = s.getPayloadAttributes(ctx, nextSlot, uint64(time.Now().Unix()))
 		if err != nil {
 			s.logger.Error("failed to get payload attributes in notifyForkchoiceUpdated", "err", err)

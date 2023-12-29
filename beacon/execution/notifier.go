@@ -87,6 +87,21 @@ func (s *EngineNotifier) NotifyForkchoiceUpdate(
 func (s *EngineNotifier) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
 	preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
 ) (bool, error) {
+	// var lastValidHash []byte
+	// if blk.Version() >= version.Deneb {
+	// 	var versionedHashes []common.Hash
+	// 	versionedHashes, err = kzgCommitmentsToVersionedHashes(blk.Block().Body())
+	// 	if err != nil {
+	// 		return false, errors.Wrap(err, "could not get versioned hashes to feed the engine")
+	// 	}
+	// 	pr := common.Hash(blk.Block().ParentRoot())
+	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload
+	//			(ctx, payload, versionedHashes, &pr)
+	// } else {
+	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload(ctx, payload,
+	// []common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
+	// }
+
 	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
 		[]common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
