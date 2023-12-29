@@ -28,10 +28,8 @@ package logs
 import "github.com/ethereum/go-ethereum/accounts/abi"
 
 type Handler interface {
-	// Registrable
-
-	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.
-	// NOTE: this can be directly loaded from the `Events` field of a Go-Ethereum ABI struct,
+	// ABIEvents() should return a map of Ethereum event names to abi `Event`.
+	// NOTE: this can be directly loaded from the `Events` field of an ABI struct,
 	// which can be built for a solidity library, interface, or contract.
 	ABIEvents() map[string]abi.Event
 }

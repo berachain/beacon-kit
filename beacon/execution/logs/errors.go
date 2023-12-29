@@ -28,5 +28,5 @@ package logs
 import "errors"
 
 var (
-	ErrProcessingUnsafeBlock = errors.New("cannot process unsafe block")
+	ErrProcessingUnfinalizedBlock = errors.New("cannot process unsafe block")
 )

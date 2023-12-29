@@ -65,23 +65,23 @@ func NewProcessor(opts ...Option) (*Processor, error) {
 
 // ProcessSafeETH1Block processes logs from an eth1 block, but before doing so
 // it checks if the block is safe to process.
-func (s *Processor) ProcessSafeETH1Block(ctx context.Context, blkNum *big.Int) error {
+func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.Int) error {
 	// Get the safe block number from the eth1 client.
 	// TODO do we want to come up with a heuristic around when we check the execution client,
 	// vs when we check the forkchoice store.
-	safeBlock, err := s.eth1Client.BlockByNumber(ctx, big.NewInt(int64(rpc.SafeBlockNumber)))
+	finalBlock, err := s.eth1Client.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
 	if err != nil {
 		return err
 	}
 
 	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
-	if safeBlock.Number().Cmp(blkNum) < 0 {
+	if finalBlock.Number().Cmp(blkNum) < 0 {
 		return errors.Wrapf(
-			ErrProcessingUnsafeBlock, "safe block %d is behind block %d", safeBlock.Number(), blkNum,
+			ErrProcessingUnfinalizedBlock, "safe block %d is behind block %d", finalBlock.Number(), blkNum,
 		)
 	}
 
-	return s.ProcessETH1Block(ctx, safeBlock.Number())
+	return s.ProcessETH1Block(ctx, finalBlock.Number())
 }
 
 // ProcessETH1Block processes logs from the provided eth1 block.
