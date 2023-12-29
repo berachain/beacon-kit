@@ -31,8 +31,11 @@ import (
 	"github.com/itsdevbear/bolaris/types/config"
 )
 
+// Option is a function type that takes a pointer to a Service and returns an error.
 type Option func(*Service) error
 
+// WithEngineNotifier is a function that returns an Option.
+// It sets the EngineNotifier of the Service to the provided EngineNotifier.
 func WithEngineNotifier(en EngineNotifier) Option {
 	return func(s *Service) error {
 		s.en = en

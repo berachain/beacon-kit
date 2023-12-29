@@ -26,24 +26,32 @@
 package blockchain
 
 import (
-	"cosmossdk.io/log"
+	"context"
 
-	"github.com/itsdevbear/bolaris/types/config"
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        EngineNotifier
+type ForkChoiceStoreProvider interface {
+	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
+type EngineNotifier interface {
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context, slot primitives.Slot,
+		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry bool,
+	) (*enginev1.PayloadIDBytes, error)
+	// NotifyNewPayload notifies the execution client of a new payload.
+	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
+		preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+	) (bool, error)
+
+	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
+	GetBuiltPayload(
+		ctx context.Context, slot primitives.Slot,
+	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
 }

@@ -25,25 +25,4 @@
 
 package blockchain
 
-import (
-	"cosmossdk.io/log"
-
-	"github.com/itsdevbear/bolaris/types/config"
-)
-
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        EngineNotifier
-}
-
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}
+const payloadBuildDelay = 2

@@ -40,8 +40,6 @@ import (
 	"cosmossdk.io/core/header"
 )
 
-const payloadBuildDelay = 2
-
 func (s *Service) BuildNextBlock(
 	ctx context.Context, slot primitives.Slot, time uint64,
 ) (interfaces.BeaconKitBlock, error) {
@@ -94,6 +92,8 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
+	// We must first notify the execution client we have received a new payload. We ask
+	// the execution client to try to insert this payload to check it's validity.
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
 	if err != nil {
 		if !errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
@@ -105,7 +105,8 @@ func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 	}
 
 	// Forkchoice our execution client's head to be the block that we validated as correct
-	// above. NOTE: we do not touch our safe or finalized hashes here.
+	// above. We also lazily update our finalized and safe block hashes to be the same as
+	// what is currently on the beacon chain.
 	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	return s.en.NotifyForkchoiceUpdate(
