@@ -8,8 +8,8 @@
 export VERSION := $(shell echo $(shell git describe --tags --always --match "v*") | sed 's/^v//')
 export COMMIT := $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
-OUT_DIR ?= $(CURDIR)/bin
-BINDIR ?= $(GOPATH)/bin
+OUT_DIR ?= $(CURDIR)/build/bin
+BINDIR ?= $(GOPATH)/build/bin
 TESTAPP_DIR = ./app
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
