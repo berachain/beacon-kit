@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+package types
 
 type ForkChoiceStore interface {
 	SetSafeBlockHash(safeBlockHash [32]byte)

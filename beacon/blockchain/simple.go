@@ -29,7 +29,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 
 	"cosmossdk.io/core/header"
@@ -38,24 +39,33 @@ import (
 const payloadBuildDelay = 2
 
 func (s *Service) BuildNextBlock(
-	ctx context.Context, beaconBlock header.Info,
-) (interfaces.ExecutionData, error) {
+	ctx context.Context, slot primitives.Slot, time uint64,
+) (interfaces.BeaconKitBlock, error) {
 	// The goal here is to build a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain.
 	lastFinalizedBlock := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	return s.buildNewBlockOnTopOf(ctx, beaconBlock, lastFinalizedBlock[:])
+	executionData, err := s.buildNewBlockOnTopOf(ctx, slot, lastFinalizedBlock[:])
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a new block with the payload.
+	return consensusv1.NewBaseBeaconKitBlock(
+		slot, time, executionData,
+		s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)),
+	)
 }
 
 // buildNewBlockOnTopOf builds a new block on top of an existing head of the execution client.
 func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
-	beaconBlock header.Info, headHash []byte) (interfaces.ExecutionData, error) {
+	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
 	// NOTE: We do not touch our safe or finalized blocks at the execution layer
 	// here.
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	payloadIDNew, err := s.notifyForkchoiceUpdateWithSyncingRetry(
-		ctx, uint64(beaconBlock.Height),
+		ctx, slot,
 		&notifyForkchoiceUpdateArg{
 			headHash:  headHash,
 			safeHash:  safeHash[:],
@@ -72,7 +82,7 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	time.Sleep(payloadBuildDelay * time.Second)
 
 	payload, _, _, err := s.engine.GetPayload(
-		ctx, [8]byte(payloadIDNew[:]), primitives.Slot(beaconBlock.Height),
+		ctx, [8]byte(payloadIDNew[:]), slot,
 	)
 	return payload, err
 }
@@ -89,7 +99,7 @@ func (s *Service) FinalizeBlock(
 	ctx context.Context, slot uint64, toFinalize []byte,
 ) error {
 	_, err := s.notifyForkchoiceUpdateWithSyncingRetry(
-		ctx, slot,
+		ctx, primitives.Slot(slot),
 		&notifyForkchoiceUpdateArg{
 			headHash:  toFinalize,
 			safeHash:  toFinalize,

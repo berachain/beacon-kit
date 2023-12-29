@@ -32,7 +32,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	v1 "github.com/itsdevbear/bolaris/types/v1"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
@@ -64,22 +64,15 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// We begin by building a block on the execution client.
-	payload, err := h.beaconChain.BuildNextBlock(ctx, ctx.HeaderInfo() /* slot */)
+	block, err := h.beaconChain.BuildNextBlock(
+		ctx, primitives.Slot(req.Height), uint64(req.Time.UTC().Unix()),
+	)
 	if err != nil {
 		logger.Error("failed to build block", "err", err)
 		return nil, err
 	}
 
-	// TODO: get version from beaconconfig.
-	version := 3
-	// Create a new block with the payload.
-	block, err := v1.NewBaseBeaconKitBlock(
-		primitives.Slot(ctx.BlockHeight()),
-		uint64(ctx.BlockTime().UTC().Unix()), payload, version)
-	if err != nil {
-		logger.Error("failed to create block", "err", err)
-	}
-
+	// Marshal the block into bytes.
 	bz, err := block.Marshal()
 	if err != nil {
 		logger.Error("failed to marshal block", "err", err)
@@ -91,7 +84,7 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
-	// Inject the payload into the proposal.
+	// Inject the beacon kit block into the proposal.
 	resp.Txs = append([][]byte{bz}, resp.Txs...)
 	return resp, nil
 }
@@ -108,7 +101,7 @@ func (h *Handler) ProcessProposalHandler(
 	bz := req.Txs[PayloadPosition]
 	req.Txs = req.Txs[1:]
 
-	block := &v1.BaseBeaconKitBlock{}
+	block := &consensusv1.BaseBeaconKitBlock{}
 	err := block.Unmarshal(bz)
 	if err != nil {
 		logger.Error("failed to unmarshal block", "err", err)

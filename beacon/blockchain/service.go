@@ -44,15 +44,15 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/beacon/execution/finalizer"
+	"github.com/itsdevbear/bolaris/types"
 	"github.com/itsdevbear/bolaris/types/config"
-	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
 // var defaultLatestValidHash = bytesutil.PadTo([]byte{0xff}, 32).
 const forkchoiceBackoff = 500 * time.Millisecond
 
 type ForkChoiceStoreProvider interface {
-	ForkChoiceStore(ctx context.Context) v1.ForkChoiceStore
+	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
 }
 
 type Service struct {
@@ -94,7 +94,7 @@ func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	return s.notifyForkchoiceUpdateWithSyncingRetry(
-		ctx, uint64(block.Height), &notifyForkchoiceUpdateArg{
+		ctx, primitives.Slot(block.Height), &notifyForkchoiceUpdateArg{
 			headHash:  header.BlockHash(),
 			safeHash:  safe[:],
 			finalHash: finalized[:],
@@ -102,7 +102,7 @@ func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 }
 
 func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
-	ctx context.Context, slot uint64, arg *notifyForkchoiceUpdateArg, withAttrs bool,
+	ctx context.Context, slot primitives.Slot, arg *notifyForkchoiceUpdateArg, withAttrs bool,
 ) (*enginev1.PayloadIDBytes, error) {
 retry:
 	payloadID, err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
@@ -118,7 +118,7 @@ retry:
 }
 
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
-	slot uint64, arg *notifyForkchoiceUpdateArg, withAttrs bool,
+	slot primitives.Slot, arg *notifyForkchoiceUpdateArg, withAttrs bool,
 ) (*enginev1.PayloadIDBytes, error) {
 	// currSafeBlk := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	// currFinalizedBlk := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
@@ -235,7 +235,7 @@ func (s *Service) validateExecutionOnBlock(
 }
 
 func (s *Service) getPayloadAttributes(_ context.Context,
-	_ /*slot*/, timestamp uint64) (payloadattribute.Attributer, error) {
+	_ /*slot*/ primitives.Slot, timestamp uint64) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
 	var random [32]byte
 	if _, err := rand.Read(random[:]); err != nil {

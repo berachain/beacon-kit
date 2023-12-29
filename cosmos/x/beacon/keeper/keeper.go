@@ -35,7 +35,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/store"
-	v1 "github.com/itsdevbear/bolaris/types/v1"
+	"github.com/itsdevbear/bolaris/types"
 )
 
 var LatestForkChoiceKey = []byte("latestForkChoice") //nolint:gochecknoglobals // fix later.
@@ -64,6 +64,6 @@ func (k *Keeper) Logger(ctx context.Context) log.Logger {
 }
 
 // Setup initializes the polaris keeper.
-func (k *Keeper) ForkChoiceStore(ctx context.Context) v1.ForkChoiceStore {
+func (k *Keeper) ForkChoiceStore(ctx context.Context) types.ForkChoiceStore {
 	return store.NewForkchoice(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
 }

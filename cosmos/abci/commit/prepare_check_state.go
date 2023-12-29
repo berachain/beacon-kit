@@ -34,11 +34,11 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	v1 "github.com/itsdevbear/bolaris/types/v1"
+	"github.com/itsdevbear/bolaris/types"
 )
 
 type BeaconKeeper interface {
-	ForkChoiceStore(ctx context.Context) v1.ForkChoiceStore
+	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
 }
 
 type BeaconPrepareCheckStateHandler struct {

@@ -35,11 +35,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v1 "github.com/itsdevbear/bolaris/types/v1"
+	"github.com/itsdevbear/bolaris/types"
+	v1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 )
 
 type BeaconKeeper interface {
-	ForkChoiceStore(ctx context.Context) v1.ForkChoiceStore
+	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
 }
 
 // BeaconPreBlockHandler is responsible for aggregating oracle data from each
@@ -93,7 +95,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 // extractBeaconBlockFromRequest extracts the beacon block from the request.
 func (h *BeaconPreBlockHandler) extractBeaconBlockFromRequest(
 	req *cometabci.RequestFinalizeBlock,
-) (v1.BeaconKitBlock, error) {
+) (interfaces.BeaconKitBlock, error) {
 	beaconBlockData := req.Txs[0] // todo modularize.
 	if len(beaconBlockData) == 0 {
 		return nil, errors.New("payload in beacon block is empty")

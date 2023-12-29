@@ -24,11 +24,11 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package types.v1;
+package types.consensus.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/v1";
+option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
 
 // GenericBeaconKitBlock defines the data of a beacon block that is injected by the proposer.
 message BaseBeaconKitBlock {

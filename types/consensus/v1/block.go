@@ -26,12 +26,13 @@
 package v1
 
 import (
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
-var _ BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
+// BaseBeaconKitBlock implements the BeaconKitBlock interface.
+var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
 
 // NewBaseBeaconKitBlock creates a new beacon block.
 func NewBaseBeaconKitBlock(
@@ -39,7 +40,7 @@ func NewBaseBeaconKitBlock(
 	time uint64,
 	executionData interfaces.ExecutionData,
 	version int,
-) (*BaseBeaconKitBlock, error) {
+) (interfaces.BeaconKitBlock, error) {
 	execData, err := executionData.MarshalSSZ()
 	if err != nil {
 		return nil, err
@@ -59,6 +60,7 @@ func NewBaseBeaconKitBlock(
 	}, nil
 }
 
+// IsNil checks if the BaseBeaconKitBlock is nil or not.
 func (b *BaseBeaconKitBlock) IsNil() bool {
 	return b == nil
 }

@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+package interfaces
 
 import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
@@ -31,13 +31,20 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
+// ExecutionData is the interface for the execution data of a block.
+type ExecutionData = interfaces.ExecutionData
+
+// BeaconKitBlock is the interface for a beacon block.
 type BeaconKitBlock interface {
 	ReadOnlyBeaconKitBlock
 	// SetExecutionData sets the execution data of the block.
 	SetExecutionData(executionData interfaces.ExecutionData) error
 }
 
+// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconKitBlock interface {
+	Marshal() ([]byte, error)
+	Unmarshal([]byte) error
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
