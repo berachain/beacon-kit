@@ -30,4 +30,4 @@ if [ -z "$LOGLEVEL" ]; then
     LOGLEVEL="info"
 fi
 
-./build/binbeacond start --pruning=nothing "$TRACE" --log_level $LOGLEVEL --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home "$HOMEDIR" --polaris.execution-client.jwt-secret-path "$JWTSECRETPATH" --polaris.execution-client.rpc-dial-url "$DIALURL"
+./build/bin/beacond start --pruning=nothing "$TRACE" --log_level $LOGLEVEL --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home "$HOMEDIR" --polaris.execution-client.jwt-secret-path "$JWTSECRETPATH" --polaris.execution-client.rpc-dial-url "$DIALURL"
