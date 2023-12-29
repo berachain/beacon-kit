@@ -23,18 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package finalizer
+package logs
 
 import (
-	"context"
+	"log"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/beacon/logs/callback"
 )
 
-// TODO: make this not hte blockchain service.
-type Enginecaller interface {
-	FinalizeBlock(ctx context.Context, slot uint64, blockHash []byte) error
+// Option is a function that applies a specific configuration to the Processor.
+type Option func(*Processor) error
+
+// WithEthClient is an Option that sets the Ethereum client for the Processor.
+func WithEthClient(eth1Client *eth.Eth1Client) Option {
+	return func(p *Processor) error {
+		p.eth1Client = eth1Client
+		return nil
+	}
 }
 
-type FinalizationRequest struct {
-	blockHash []byte
-	slot      uint64
+// WithContractAddr is an Option that sets the contract address for the Processor.
+func WithHandlers(handlers map[common.Address]callback.LogHandler) Option {
+	return func(p *Processor) error {
+		p.handlers = handlers
+		return nil
+	}
+}
+
+// WithLogger is an Option that sets the logger for the Processor.
+func WithLogger(logger *log.Logger) Option {
+	return func(p *Processor) error {
+		p.logger = logger
+		return nil
+	}
 }

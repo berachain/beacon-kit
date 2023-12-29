@@ -23,12 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package execution
 
-// notifyForkchoiceUpdateArg is the argument for the forkchoice
+// NotifyForkchoiceUpdateArg is the argument for the forkchoice
 // update notification `notifyForkchoiceUpdate`.
-type notifyForkchoiceUpdateArg struct {
+type NotifyForkchoiceUpdateArg struct {
 	headHash  []byte
 	safeHash  []byte
 	finalHash []byte
+}
+
+// NewNotifyForkchoiceUpdateArg creates a new NotifyForkchoiceUpdateArg.
+func NewNotifyForkchoiceUpdateArg(
+	headHash []byte,
+	safeHash []byte,
+	finalHash []byte,
+) *NotifyForkchoiceUpdateArg {
+	return &NotifyForkchoiceUpdateArg{
+		headHash:  headHash,
+		safeHash:  safeHash,
+		finalHash: finalHash,
+	}
 }

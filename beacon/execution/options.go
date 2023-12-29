@@ -25,14 +25,43 @@
 
 package execution
 
-import "github.com/itsdevbear/bolaris/beacon/execution/engine"
+import (
+	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/itsdevbear/bolaris/types/config"
+)
 
-type Option func(*Service) error
+type Option func(*EngineNotifier) error
 
-// WithEngineTimeout sets the timeout for the engine RPC calls.
-func WithEngineCaller(engine engine.Caller) Option {
-	return func(s *Service) error {
-		s.Caller = engine
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *EngineNotifier) error {
+		s.beaconCfg = beaconCfg
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *EngineNotifier) error {
+		s.logger = logger
+		return nil
+	}
+}
+
+// WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider
+// for the EngineNotifier.
+func WithForkChoiceStoreProvider(fcsp forkchoiceStoreProvider) Option {
+	return func(s *EngineNotifier) error {
+		s.fcsp = fcsp
+		return nil
+	}
+}
+
+// WithEngineCaller is an option to set the Caller for the EngineNotifier.
+func WithEngineCaller(ec engine.Caller) Option {
+	return func(s *EngineNotifier) error {
+		s.engine = ec
 		return nil
 	}
 }

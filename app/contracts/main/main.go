@@ -38,7 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/itsdevbear/bolaris/app/contracts"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	"github.com/itsdevbear/bolaris/beacon/logs/callback"
 	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 

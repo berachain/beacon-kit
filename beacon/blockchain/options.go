@@ -34,6 +34,13 @@ import (
 
 type Option func(*Service) error
 
+func WithEngineNotifier(en EngineNotifier) Option {
+	return func(s *Service) error {
+		s.en = en
+		return nil
+	}
+}
+
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithBeaconConfig(beaconCfg *config.Beacon) Option {
 	return func(s *Service) error {

@@ -33,7 +33,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/logs"
 	"github.com/itsdevbear/bolaris/types"
 )
 

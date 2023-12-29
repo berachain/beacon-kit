@@ -40,10 +40,11 @@ import (
 
 	"github.com/itsdevbear/bolaris/app/contracts"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	"github.com/itsdevbear/bolaris/beacon/logs"
+	"github.com/itsdevbear/bolaris/beacon/logs/callback"
 	"github.com/itsdevbear/bolaris/cosmos/abci/commit"
 	"github.com/itsdevbear/bolaris/cosmos/abci/preblock"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
@@ -143,12 +144,19 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	}
 	p.Caller = engine.NewCaller(engineCallerOpts...)
 
+	notifierOpts := []execution.Option{
+		execution.WithBeaconConfig(&p.cfg.BeaconConfig),
+		execution.WithLogger(p.logger),
+		execution.WithForkChoiceStoreProvider(bk),
+	}
+	en := execution.New(notifierOpts...)
+
 	// Create the blockchain service that will be used to process blocks.
 	chainOpts := []blockchain.Option{
 		blockchain.WithBeaconConfig(&p.cfg.BeaconConfig),
 		blockchain.WithLogger(p.logger),
 		blockchain.WithForkChoiceStoreProvider(bk),
-		blockchain.WithEngineCaller(p.Caller),
+		blockchain.WithEngineNotifier(en),
 	}
 	blkChain := blockchain.NewService(chainOpts...)
 

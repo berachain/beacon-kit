@@ -38,7 +38,7 @@ import (
 	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	"github.com/itsdevbear/bolaris/beacon/logs/callback"
 )
 
 // type Contract

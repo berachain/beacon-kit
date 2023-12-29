@@ -30,9 +30,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
+	prsymexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -67,13 +68,12 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
-	payloadIDNew, err := s.notifyForkchoiceUpdateWithSyncingRetry(
+	payloadIDNew, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
-		&notifyForkchoiceUpdateArg{
-			headHash:  headHash,
-			safeHash:  safeHash[:],
-			finalHash: finalHash[:],
-		},
+		execution.NewNotifyForkchoiceUpdateArg(
+			headHash, safeHash[:], finalHash[:],
+		),
+		true,
 		true,
 	)
 
@@ -94,49 +94,23 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
-	isValidPayload, err := s.notifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
+	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
 	if err != nil {
-		if !errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
+		if !errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
 			s.logger.Error("failed to validate execution on block", "err", err)
 			return nil, err
 		}
 	} else if !isValidPayload {
-		return nil, execution.ErrInvalidPayloadStatus
+		return nil, prsymexecution.ErrInvalidPayloadStatus
 	}
 
 	// Forkchoice our execution client's head to be the block that we validated as correct
 	// above. NOTE: we do not touch our safe or finalized hashes here.
 	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
-	return s.notifyForkchoiceUpdateWithSyncingRetry(
-		ctx, primitives.Slot(block.Height), &notifyForkchoiceUpdateArg{
-			headHash:  header.BlockHash(),
-			safeHash:  safe[:],
-			finalHash: finalized[:],
-		}, true)
-}
-
-func (s *Service) FinalizeBlockAsync(
-	_ context.Context, beaconBlock header.Info, toFinalize []byte,
-) error {
-	s.finalizer.RequestFinalization(toFinalize, beaconBlock)
-	return nil
-}
-
-// FinalizeBlock marks the block as finalized on the execution layer.
-func (s *Service) FinalizeBlock(
-	ctx context.Context, slot uint64, toFinalize []byte,
-) error {
-	_, err := s.notifyForkchoiceUpdateWithSyncingRetry(
-		ctx, primitives.Slot(slot),
-		&notifyForkchoiceUpdateArg{
-			headHash:  toFinalize,
-			safeHash:  toFinalize,
-			finalHash: toFinalize,
-		},
-		false, // todo: maybe we can store a cache of payloadIDs and
-		// beginb uilding a new payoad here
-		// OR we abstract away payload building into its own async thingy.
-	)
-	return err
+	return s.en.NotifyForkchoiceUpdate(
+		ctx, primitives.Slot(block.Height),
+		execution.NewNotifyForkchoiceUpdateArg(
+			header.BlockHash(), safe[:], finalized[:],
+		), true, true)
 }

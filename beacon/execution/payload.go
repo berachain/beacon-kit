@@ -26,25 +26,30 @@
 package execution
 
 import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
+	"context"
+	"crypto/rand"
+
+	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type Service struct {
-	engine.Caller
-	payloadCache *cache.ProposerPayloadIDsCache
-}
+func (s *EngineNotifier) getPayloadAttributes(_ context.Context,
+	_ /*slot*/ primitives.Slot, timestamp uint64) (payloadattribute.Attributer, error) {
+	// TODO: modularize andn make better.
 
-// NewService returns a new instance of the execution service.
-func NewService(opts ...Option) *Service {
-	ec := &Service{
-		payloadCache: cache.NewProposerPayloadIDsCache(),
-	}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			panic(err)
-		}
+	// TODO: this is a hack to fill the PrevRandao field. It is not verifiable or safe
+	// or anything, it's literally just to get basic functionality.
+	var random [32]byte
+	if _, err := rand.Read(random[:]); err != nil {
+		return nil, err
 	}
 
-	return ec
+	// TODO: need to support multiple fork versions.
+	return payloadattribute.New(&enginev1.PayloadAttributesV2{
+		Timestamp:             timestamp,
+		SuggestedFeeRecipient: s.etherbase.Bytes(),
+		Withdrawals:           nil,
+		PrevRandao:            append([]byte{}, random[:]...),
+	})
 }
