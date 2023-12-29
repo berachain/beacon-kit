@@ -46,7 +46,9 @@ func (s *Service) BuildNextBlock(
 ) (interfaces.BeaconKitBlock, error) {
 	// The goal here is to build a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
-	// the next finalized block in the chain.
+	// the next finalized block in the chain. A byproduct of this design
+	// is that we get the nice property of lazily propogate the finalized
+	// and safe block hashes to the execution client.
 	lastFinalizedBlock := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	executionData, err := s.buildNewBlockOnTopOf(ctx, slot, lastFinalizedBlock[:])
 	if err != nil {
@@ -88,10 +90,11 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	return payload, err
 }
 
+// ValidateProposedBeaconBlock validates a proposed beacon block.
 func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
-	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header /*, nil, [32]byte{}*/)
+	isValidPayload, err := s.notifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
 	if err != nil {
 		if !errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
 			s.logger.Error("failed to validate execution on block", "err", err)

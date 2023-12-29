@@ -188,25 +188,6 @@ func (s *Service) notifyNewPayload(ctx context.Context /*preStateVersion*/, _ in
 	return lastValidHash != nil, err
 }
 
-// validateExecutionOnBlock notifies the engine of the incoming block execution payload and
-// returns true if the payload is valid.
-func (s *Service) validateExecutionOnBlock(
-	ctx context.Context, ver int, header interfaces.ExecutionData,
-	/*,signed interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte*/) (bool, error) {
-	isValidPayload, err := s.notifyNewPayload(ctx, ver, header /*, signed*/)
-	if err != nil {
-		return false, err
-		// return false, s.handleInvalidExecutionError(ctx, err, blockRoot,
-		// signed.Block().ParentRoot())
-	}
-	// if signed.Version() < version.Capella && isValidPayload {
-	// 	if err := s.validateMergeTransitionBlock(ctx, ver, header, signed); err != nil {
-	// 		return isValidPayload, err
-	// 	}
-	// }
-	return isValidPayload, nil
-}
-
 func (s *Service) getPayloadAttributes(_ context.Context,
 	_ /*slot*/ primitives.Slot, timestamp uint64) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
