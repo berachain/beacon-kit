@@ -37,7 +37,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
-	"cosmossdk.io/core/header"
 	"cosmossdk.io/log"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -74,31 +73,6 @@ func NewService(opts ...Option) *Service {
 	s.finalizer = finalizer.New(s)
 	s.finalizer.Start(context.Background())
 	return s
-}
-
-func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
-	block header.Info, header interfaces.ExecutionData,
-) (*enginev1.PayloadIDBytes, error) {
-	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header /*, nil, [32]byte{}*/)
-	if err != nil {
-		if !errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
-			s.logger.Error("failed to validate execution on block", "err", err)
-			return nil, err
-		}
-	} else if !isValidPayload {
-		return nil, execution.ErrInvalidPayloadStatus
-	}
-
-	// Forkchoice our execution client's head to be the block that we validated as correct
-	// above. NOTE: we do not touch our safe or finalized hashes here.
-	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
-	return s.notifyForkchoiceUpdateWithSyncingRetry(
-		ctx, primitives.Slot(block.Height), &notifyForkchoiceUpdateArg{
-			headHash:  header.BlockHash(),
-			safeHash:  safe[:],
-			finalHash: finalized[:],
-		}, true)
 }
 
 func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
@@ -177,7 +151,6 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			//root: arg.headRoot, invalidAncestorRoots: invalidRoots}
 
 		default:
-			// log.WithError(err).Error(ErrUndefinedExecutionEngineError)
 			s.logger.Error("undefined execution engine error", "err", err)
 			return nil, errors.New("undefined execution engine error")
 		}
@@ -237,11 +210,15 @@ func (s *Service) validateExecutionOnBlock(
 func (s *Service) getPayloadAttributes(_ context.Context,
 	_ /*slot*/ primitives.Slot, timestamp uint64) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
+
+	// TODO: this is a hack to fill the PrevRandao field. It is not verifiable or safe
+	// or anything, it's literally just to get basic functionality.
 	var random [32]byte
 	if _, err := rand.Read(random[:]); err != nil {
 		return nil, err
 	}
 
+	// TODO: need to support multiple fork versions.
 	return payloadattribute.New(&enginev1.PayloadAttributesV2{
 		Timestamp:             timestamp,
 		SuggestedFeeRecipient: s.etherbase.Bytes(),

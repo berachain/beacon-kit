@@ -42,8 +42,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
-	"github.com/prysmaticlabs/prysm/v4/time/slots"
-	"go.opencensus.io/trace"
 )
 
 // Caller is implemented by engineCaller.
@@ -223,7 +221,7 @@ func (s *engineCaller) GetPayload(
 		) * time.Second)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
-	if slots.ToEpoch(slot) >= s.beaconCfg.DenebForkEpoch {
+	if primitives.Epoch(slot) >= s.beaconCfg.DenebForkEpoch {
 		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
 			result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))
@@ -238,7 +236,7 @@ func (s *engineCaller) GetPayload(
 		return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
 	}
 
-	if slots.ToEpoch(slot) >= s.beaconCfg.CapellaForkEpoch {
+	if primitives.Epoch(slot) >= s.beaconCfg.CapellaForkEpoch {
 		result := &pb.ExecutionPayloadCapellaWithValue{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
 			result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadID))
@@ -270,8 +268,6 @@ func (s *engineCaller) GetPayload(
 // eth_blockByHash via JSON-RPC.
 func (s *engineCaller) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
 ) (*pb.ExecutionBlock, error) {
-	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.ExecutionBlockByHash")
-	defer span.End()
 	result := &pb.ExecutionBlock{}
 	err := s.Eth1Client.Client.Client().CallContext(
 		ctx, result, execution.ExecutionBlockByHashMethod, hash, withTxs)

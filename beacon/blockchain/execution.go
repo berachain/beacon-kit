@@ -27,11 +27,14 @@ package blockchain
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	"cosmossdk.io/core/header"
 )
@@ -83,6 +86,31 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 		ctx, [8]byte(payloadIDNew[:]), slot,
 	)
 	return payload, err
+}
+
+func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
+	block header.Info, header interfaces.ExecutionData,
+) (*enginev1.PayloadIDBytes, error) {
+	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header /*, nil, [32]byte{}*/)
+	if err != nil {
+		if !errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
+			s.logger.Error("failed to validate execution on block", "err", err)
+			return nil, err
+		}
+	} else if !isValidPayload {
+		return nil, execution.ErrInvalidPayloadStatus
+	}
+
+	// Forkchoice our execution client's head to be the block that we validated as correct
+	// above. NOTE: we do not touch our safe or finalized hashes here.
+	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
+	return s.notifyForkchoiceUpdateWithSyncingRetry(
+		ctx, primitives.Slot(block.Height), &notifyForkchoiceUpdateArg{
+			headHash:  header.BlockHash(),
+			safeHash:  safe[:],
+			finalHash: finalized[:],
+		}, true)
 }
 
 func (s *Service) FinalizeBlockAsync(
