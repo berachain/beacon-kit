@@ -23,4 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blocks
+syntax = "proto3";
+package types.v1;
+
+// import "gogoproto/gogo.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/types/v1";
+
+// GenericBeaconKitBlock defines the data of a beacon block that is injected by the proposer.
+message BaseBeaconKitBlock {
+  uint64 slot = 1;
+  bytes exec_data = 2;
+  uint64 value = 3;
+  uint64 version = 4;
+}

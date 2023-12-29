@@ -29,15 +29,12 @@ import (
 	"context"
 	"errors"
 
-	"github.com/prysmaticlabs/prysm/v4/math"
-
 	"cosmossdk.io/log"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	consensustypes "github.com/itsdevbear/bolaris/beacon/consensus-types"
 	v1 "github.com/itsdevbear/bolaris/types/v1"
 )
 
@@ -84,14 +81,19 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		beaconBlockData := req.Txs[0] // todo modularize.
 		if len(beaconBlockData) == 0 {
-			return &sdk.ResponsePreBlock{}, errors.New("payload in beacon block is empty")
+			return nil, errors.New("payload in beacon block is empty")
 		}
 
-		// todo handle hardforks without needing codechange.
-		data, err := consensustypes.BytesToExecutionData(
-			beaconBlockData, math.Gwei(0), 3) //nolint:gomnd // fix later.
+		block := &v1.BaseBeaconKitBlock{}
+		err := block.Unmarshal(beaconBlockData)
 		if err != nil {
-			h.logger.Error("payload in beacon block could not be unmarshalled", "err", err)
+			h.logger.Error("failed to unmarshal block", "err", err)
+			return nil, err
+		}
+
+		// Extract the execution data from the block.
+		data, err := block.ExecutionData()
+		if err != nil {
 			return nil, err
 		}
 
