@@ -26,11 +26,11 @@ import (
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/core/types"
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
 type LogHandler interface {
-	HandleLog(ctx context.Context, log types.Log) error
+	HandleLog(ctx context.Context, log *evmv1.Log) error
 }
 
 // Handler is the interface for all stateful precompiled contracts, which must
@@ -68,9 +68,9 @@ func NewFrom(
 }
 
 // HandleLog calls the function that matches the given log's signature.
-func (sc *wrappedHandler) HandleLog(ctx context.Context, log types.Log) error {
+func (sc *wrappedHandler) HandleLog(ctx context.Context, log *evmv1.Log) error {
 	// Extract the method ID from the input and load the method.
-	method, found := sc.idsToMethods[logSig(log.Topics[0].Bytes())]
+	method, found := sc.idsToMethods[logSig(log.Topics[0])]
 	if !found {
 		return errors.New("method not found")
 	}

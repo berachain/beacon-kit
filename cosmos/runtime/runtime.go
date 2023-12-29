@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	cometabci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -174,17 +175,20 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 
+	// TODO: use a real child preblocker.
+	fn := func(sdk.Context, *cometabci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+		return &sdk.ResponsePreBlock{}, nil
+	}
+
 	// Build PreBlock Handler
 	app.SetPreBlocker(
-		preblock.NewBeaconPreBlockHandler(p.logger, bk, nil).PreBlocker(),
+		preblock.NewBeaconPreBlockHandler(p.logger, bk, fn).PreBlocker(),
 	)
 
-	fn := func(ctx sdk.Context) {}
 	// Build PrepareCheckStater
 	app.SetPrepareCheckStater(
 		commit.NewBeaconPrepareCheckStateHandler(
-			p.logger, bk, blkChain, fn, logProcessor,
-			// func(ctx sdk.Context) { _ = app.ModuleManager.PrepareCheckState },
+			p.logger, bk, blkChain, func(ctx sdk.Context) {}, logProcessor,
 		).PrepareCheckStater(),
 	)
 

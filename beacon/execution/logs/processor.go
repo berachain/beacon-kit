@@ -35,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
@@ -84,10 +85,10 @@ func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.I
 	return s.ProcessETH1Block(ctx, finalBlock.Number())
 }
 
-// ProcessETH1Block processes logs from the provided eth1 block.
-func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
-	// TODO: add safety check here? Check if Safe/Finalized before processing?
-
+// GatherLogsFromEth1Block gathers all the logs from the provided eth1 block.
+func (s *Processor) GatherLogsFromEth1Block(
+	ctx context.Context, blkNum *big.Int,
+) (evmv1.Logs, error) {
 	// Gather all the addresses we have handlers for.
 	addresses := make([]common.Address, 0)
 	for addr := range s.handlers {
@@ -103,7 +104,20 @@ func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error
 	}
 
 	// Gather all the logs from this block.
-	logs, err := s.eth1Client.FilterLogs(ctx, query)
+	ethLogs, err := s.eth1Client.FilterLogs(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the logs to our own type.
+	logs := evmv1.LogsFromGethLogs(ethLogs)
+	return logs, nil
+}
+
+// ProcessETH1Block processes logs from the provided eth1 block.
+func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
+	// Gather all the logs from this block.
+	logs, err := s.GatherLogsFromEth1Block(ctx, blkNum)
 	if err != nil {
 		return err
 	}
@@ -118,7 +132,7 @@ func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error
 
 		// Skip logs that are not from the addresses we care about.
 		// This should never happen, but defensively check anyway.
-		handler, found := s.handlers[filterLog.Address]
+		handler, found := s.handlers[common.Address(filterLog.Address)]
 		if !found {
 			continue
 		}

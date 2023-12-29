@@ -26,7 +26,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
 // logSig is a fixed length byte array that represents the method ID of a precompile method.
@@ -56,7 +56,7 @@ func newMethod(
 }
 
 // Call executes the corresponding method attached to a specific log.
-func (m *method) Call(ctx context.Context, log types.Log) error {
+func (m *method) Call(ctx context.Context, log *evmv1.Log) error {
 	// Unpack the args from the input, if any exist.
 	topics := log.Topics
 	unpackedArgs, err := m.abiEvent.Inputs.Unpack(log.Data)

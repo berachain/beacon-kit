@@ -86,9 +86,17 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return nil, err
 		}
 
+		// Since the proposal passed, we want to mark the execution block as finalized.
 		h.markBlockAsFinalized(ctx, beaconBlock.ExecutionData().BlockHash())
-		return &sdk.ResponsePreBlock{}, nil
-		// return h.childHandler(ctx, req) // TODO: uncomment this.
+
+		// Since the block is finalized, we can process the logs emitted by the
+		// execution layer and perform the desired state transitions on
+		// the beacon chain.
+		if err = h.processLogs(ctx, beaconBlock); err != nil {
+			return nil, err
+		}
+
+		return h.childHandler(ctx, req)
 	}
 }
 
@@ -117,6 +125,14 @@ func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash 
 	store.SetFinalizedBlockHash(blockHash32)
 	store.SetSafeBlockHash(blockHash32)
 	store.SetLastValidHead(blockHash32)
+}
+
+func (h *BeaconPreBlockHandler) processLogs(
+	_ sdk.Context, _ interfaces.BeaconKitBlock,
+) error {
+	// TODO do we need to do this after BeginBlock? i.e calling staking functions
+	// between EndBlock N-1 and BeginBlock N might cause problems?
+	return nil
 }
 
 // The block number issue comes from when process proposal runs, marks the block as finalized

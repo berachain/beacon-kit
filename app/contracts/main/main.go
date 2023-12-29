@@ -39,6 +39,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/app/contracts"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
 func main() {
@@ -66,7 +67,7 @@ func main() {
 
 	for _, log := range logs {
 		// Handle the log
-		err = sc.HandleLog(context.Background(), log)
+		err = sc.HandleLog(context.Background(), evmv1.NewLogFromGethLog(log))
 		if err != nil {
 			panic(err)
 		}

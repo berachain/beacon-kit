@@ -60,8 +60,6 @@ func (s *Service) BuildNextBlock(
 // buildNewBlockOnTopOf builds a new block on top of an existing head of the execution client.
 func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
-	// NOTE: We do not touch our safe or finalized blocks at the execution layer
-	// here.
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	payloadIDNew, err := s.notifyForkchoiceUpdateWithSyncingRetry(
