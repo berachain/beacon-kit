@@ -76,7 +76,7 @@ func NewService(opts ...Option) *Service {
 	return s
 }
 
-func (s *Service) ProcessReceivedExecutionData(ctx context.Context,
+func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
 	isValidPayload, err := s.validateExecutionOnBlock(ctx, 0, header /*, nil, [32]byte{}*/)

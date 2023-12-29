@@ -23,18 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.v1;
+package v1
 
-import "gogoproto/gogo.proto";
+import (
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v4/math"
+)
 
-option go_package = "github.com/itsdevbear/bolaris/types/v1";
+type BeaconKitBlock interface {
+	ReadOnlyBeaconKitBlock
+	// SetExecutionData sets the execution data of the block.
+	SetExecutionData(executionData interfaces.ExecutionData) error
+}
 
-// GenericBeaconKitBlock defines the data of a beacon block that is injected by the proposer.
-message BaseBeaconKitBlock {
-  uint64 slot = 1 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
-  uint64 time = 2;
-  uint64 value = 3 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/math.Gwei"];
-  uint64 version = 4;
-  bytes exec_data = 5;
+type ReadOnlyBeaconKitBlock interface {
+	GetSlot() primitives.Slot
+	// ProposerAddress() []byte
+	IsNil() bool
+	GetValue() math.Gwei
+	// ExecutionData returns the execution data of the block.
+	ExecutionData() interfaces.ExecutionData
 }

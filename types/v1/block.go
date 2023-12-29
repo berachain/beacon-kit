@@ -27,34 +27,40 @@ package v1
 
 import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
-// BeaconKitBlock is an interface for beacon blocks.
-type BeaconKitBlock interface {
-	// SetExecutionData sets the execution data of the block.
-	SetExecutionData(executionData interfaces.ExecutionData) error
-	// ExecutionData returns the execution data of the block.
-	ExecutionData() (interfaces.ExecutionData, error)
-}
-
-// Ensure BaseBeaconKitBlock implements BeaconKitBlock interface.
 var _ BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
 
+// NewBaseBeaconKitBlock creates a new beacon block.
 func NewBaseBeaconKitBlock(
+	slot primitives.Slot,
+	time uint64,
 	executionData interfaces.ExecutionData,
-	value math.Gwei,
 	version int,
 ) (*BaseBeaconKitBlock, error) {
 	execData, err := executionData.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
+
+	value, err := executionData.ValueInGwei()
+	if err != nil {
+		return nil, err
+	}
+
 	return &BaseBeaconKitBlock{
+		Slot:     slot,
+		Time:     time,
 		ExecData: execData,
-		Value:    uint64(value),
+		Value:    math.Gwei(value),
 		Version:  uint64(version),
 	}, nil
+}
+
+func (b *BaseBeaconKitBlock) IsNil() bool {
+	return b == nil
 }
 
 // SetExecutionData sets the execution data of the block.
@@ -65,6 +71,8 @@ func (b *BaseBeaconKitBlock) SetExecutionData(executionData interfaces.Execution
 }
 
 // ExecutionData returns the execution data of the block.
-func (b *BaseBeaconKitBlock) ExecutionData() (interfaces.ExecutionData, error) {
-	return BytesToExecutionData(b.ExecData, math.Gwei(b.Value), int(b.Version))
+func (b *BaseBeaconKitBlock) ExecutionData() interfaces.ExecutionData {
+	// Safe to ignore the error since we successfully marshalled the data before.
+	data, _ := BytesToExecutionData(b.ExecData, b.Value, int(b.Version))
+	return data
 }

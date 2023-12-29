@@ -25,18 +25,27 @@
 
 package types
 
-import cometabci "github.com/cometbft/cometbft/abci/types"
+import (
+	"time"
+
+	cometabci "github.com/cometbft/cometbft/abci/types"
+)
 
 // WrappedABCIRequest provides methods to attach and detach BeaconKitBlock.
 // It also provides a method to get the height of the block.
 type WrappedABCIRequest interface {
 	AttachBeaconKitBlock(tx []byte)
 	DettachBeaconKitBlock() []byte
+	GetHeight() int64
+	GetTime() time.Time
+	GetProposerAddress() []byte
 }
+
+var _ WrappedABCIRequest = (*WrappedRequestFinalizeBlock)(nil)
 
 // WrappedRequestFinalizeBlock wraps the RequestFinalizeBlock struct from the cometabci package.
 type WrappedRequestFinalizeBlock struct {
-	req *cometabci.RequestFinalizeBlock
+	*cometabci.RequestFinalizeBlock
 }
 
 // FromRequestFinalizeBlock creates a new WrappedRequestFinalizeBlock
@@ -44,19 +53,24 @@ type WrappedRequestFinalizeBlock struct {
 func FromRequestFinalizeBlock(
 	req *cometabci.RequestFinalizeBlock,
 ) *WrappedRequestFinalizeBlock {
-	return &WrappedRequestFinalizeBlock{req: req}
+	return &WrappedRequestFinalizeBlock{RequestFinalizeBlock: req}
 }
 
 // AttachBeaconKitBlock attaches a BeaconKitBlock to the WrappedRequestFinalizeBlock.
 func (w *WrappedRequestFinalizeBlock) AttachBeaconKitBlock(tx []byte) {
-	w.req.Txs = append([][]byte{tx}, w.req.Txs...)
+	w.RequestFinalizeBlock.Txs = append([][]byte{tx}, w.RequestFinalizeBlock.Txs...)
 }
 
 // DettachBeaconKitBlock detaches a BeaconKitBlock from the WrappedRequestFinalizeBlock.
 func (w *WrappedRequestFinalizeBlock) DettachBeaconKitBlock() []byte {
-	tx := w.req.Txs[0]
-	w.req.Txs = w.req.Txs[1:]
+	tx := w.RequestFinalizeBlock.Txs[0]
+	w.RequestFinalizeBlock.Txs = w.RequestFinalizeBlock.Txs[1:]
 	return tx
+}
+
+// Txs returns the transactions in the WrappedRequestFinalizeBlock.
+func (w *WrappedRequestFinalizeBlock) Txs() [][]byte {
+	return w.RequestFinalizeBlock.Txs
 }
 
 // WrappedResponsePrepareProposal wraps the ResponsePrepareProposal struct

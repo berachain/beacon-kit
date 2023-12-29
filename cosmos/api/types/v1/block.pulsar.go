@@ -4,6 +4,7 @@ package typesv1
 import (
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -15,18 +16,20 @@ import (
 var (
 	md_BaseBeaconKitBlock           protoreflect.MessageDescriptor
 	fd_BaseBeaconKitBlock_slot      protoreflect.FieldDescriptor
-	fd_BaseBeaconKitBlock_exec_data protoreflect.FieldDescriptor
+	fd_BaseBeaconKitBlock_time      protoreflect.FieldDescriptor
 	fd_BaseBeaconKitBlock_value     protoreflect.FieldDescriptor
 	fd_BaseBeaconKitBlock_version   protoreflect.FieldDescriptor
+	fd_BaseBeaconKitBlock_exec_data protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_types_v1_block_proto_init()
 	md_BaseBeaconKitBlock = File_types_v1_block_proto.Messages().ByName("BaseBeaconKitBlock")
 	fd_BaseBeaconKitBlock_slot = md_BaseBeaconKitBlock.Fields().ByName("slot")
-	fd_BaseBeaconKitBlock_exec_data = md_BaseBeaconKitBlock.Fields().ByName("exec_data")
+	fd_BaseBeaconKitBlock_time = md_BaseBeaconKitBlock.Fields().ByName("time")
 	fd_BaseBeaconKitBlock_value = md_BaseBeaconKitBlock.Fields().ByName("value")
 	fd_BaseBeaconKitBlock_version = md_BaseBeaconKitBlock.Fields().ByName("version")
+	fd_BaseBeaconKitBlock_exec_data = md_BaseBeaconKitBlock.Fields().ByName("exec_data")
 }
 
 var _ protoreflect.Message = (*fastReflection_BaseBeaconKitBlock)(nil)
@@ -100,9 +103,9 @@ func (x *fastReflection_BaseBeaconKitBlock) Range(f func(protoreflect.FieldDescr
 			return
 		}
 	}
-	if len(x.ExecData) != 0 {
-		value := protoreflect.ValueOfBytes(x.ExecData)
-		if !f(fd_BaseBeaconKitBlock_exec_data, value) {
+	if x.Time != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Time)
+		if !f(fd_BaseBeaconKitBlock_time, value) {
 			return
 		}
 	}
@@ -115,6 +118,12 @@ func (x *fastReflection_BaseBeaconKitBlock) Range(f func(protoreflect.FieldDescr
 	if x.Version != uint64(0) {
 		value := protoreflect.ValueOfUint64(x.Version)
 		if !f(fd_BaseBeaconKitBlock_version, value) {
+			return
+		}
+	}
+	if len(x.ExecData) != 0 {
+		value := protoreflect.ValueOfBytes(x.ExecData)
+		if !f(fd_BaseBeaconKitBlock_exec_data, value) {
 			return
 		}
 	}
@@ -135,12 +144,14 @@ func (x *fastReflection_BaseBeaconKitBlock) Has(fd protoreflect.FieldDescriptor)
 	switch fd.FullName() {
 	case "types.v1.BaseBeaconKitBlock.slot":
 		return x.Slot != uint64(0)
-	case "types.v1.BaseBeaconKitBlock.exec_data":
-		return len(x.ExecData) != 0
+	case "types.v1.BaseBeaconKitBlock.time":
+		return x.Time != uint64(0)
 	case "types.v1.BaseBeaconKitBlock.value":
 		return x.Value != uint64(0)
 	case "types.v1.BaseBeaconKitBlock.version":
 		return x.Version != uint64(0)
+	case "types.v1.BaseBeaconKitBlock.exec_data":
+		return len(x.ExecData) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.v1.BaseBeaconKitBlock"))
@@ -159,12 +170,14 @@ func (x *fastReflection_BaseBeaconKitBlock) Clear(fd protoreflect.FieldDescripto
 	switch fd.FullName() {
 	case "types.v1.BaseBeaconKitBlock.slot":
 		x.Slot = uint64(0)
-	case "types.v1.BaseBeaconKitBlock.exec_data":
-		x.ExecData = nil
+	case "types.v1.BaseBeaconKitBlock.time":
+		x.Time = uint64(0)
 	case "types.v1.BaseBeaconKitBlock.value":
 		x.Value = uint64(0)
 	case "types.v1.BaseBeaconKitBlock.version":
 		x.Version = uint64(0)
+	case "types.v1.BaseBeaconKitBlock.exec_data":
+		x.ExecData = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.v1.BaseBeaconKitBlock"))
@@ -184,15 +197,18 @@ func (x *fastReflection_BaseBeaconKitBlock) Get(descriptor protoreflect.FieldDes
 	case "types.v1.BaseBeaconKitBlock.slot":
 		value := x.Slot
 		return protoreflect.ValueOfUint64(value)
-	case "types.v1.BaseBeaconKitBlock.exec_data":
-		value := x.ExecData
-		return protoreflect.ValueOfBytes(value)
+	case "types.v1.BaseBeaconKitBlock.time":
+		value := x.Time
+		return protoreflect.ValueOfUint64(value)
 	case "types.v1.BaseBeaconKitBlock.value":
 		value := x.Value
 		return protoreflect.ValueOfUint64(value)
 	case "types.v1.BaseBeaconKitBlock.version":
 		value := x.Version
 		return protoreflect.ValueOfUint64(value)
+	case "types.v1.BaseBeaconKitBlock.exec_data":
+		value := x.ExecData
+		return protoreflect.ValueOfBytes(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.v1.BaseBeaconKitBlock"))
@@ -215,12 +231,14 @@ func (x *fastReflection_BaseBeaconKitBlock) Set(fd protoreflect.FieldDescriptor,
 	switch fd.FullName() {
 	case "types.v1.BaseBeaconKitBlock.slot":
 		x.Slot = value.Uint()
-	case "types.v1.BaseBeaconKitBlock.exec_data":
-		x.ExecData = value.Bytes()
+	case "types.v1.BaseBeaconKitBlock.time":
+		x.Time = value.Uint()
 	case "types.v1.BaseBeaconKitBlock.value":
 		x.Value = value.Uint()
 	case "types.v1.BaseBeaconKitBlock.version":
 		x.Version = value.Uint()
+	case "types.v1.BaseBeaconKitBlock.exec_data":
+		x.ExecData = value.Bytes()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.v1.BaseBeaconKitBlock"))
@@ -243,12 +261,14 @@ func (x *fastReflection_BaseBeaconKitBlock) Mutable(fd protoreflect.FieldDescrip
 	switch fd.FullName() {
 	case "types.v1.BaseBeaconKitBlock.slot":
 		panic(fmt.Errorf("field slot of message types.v1.BaseBeaconKitBlock is not mutable"))
-	case "types.v1.BaseBeaconKitBlock.exec_data":
-		panic(fmt.Errorf("field exec_data of message types.v1.BaseBeaconKitBlock is not mutable"))
+	case "types.v1.BaseBeaconKitBlock.time":
+		panic(fmt.Errorf("field time of message types.v1.BaseBeaconKitBlock is not mutable"))
 	case "types.v1.BaseBeaconKitBlock.value":
 		panic(fmt.Errorf("field value of message types.v1.BaseBeaconKitBlock is not mutable"))
 	case "types.v1.BaseBeaconKitBlock.version":
 		panic(fmt.Errorf("field version of message types.v1.BaseBeaconKitBlock is not mutable"))
+	case "types.v1.BaseBeaconKitBlock.exec_data":
+		panic(fmt.Errorf("field exec_data of message types.v1.BaseBeaconKitBlock is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.v1.BaseBeaconKitBlock"))
@@ -264,12 +284,14 @@ func (x *fastReflection_BaseBeaconKitBlock) NewField(fd protoreflect.FieldDescri
 	switch fd.FullName() {
 	case "types.v1.BaseBeaconKitBlock.slot":
 		return protoreflect.ValueOfUint64(uint64(0))
-	case "types.v1.BaseBeaconKitBlock.exec_data":
-		return protoreflect.ValueOfBytes(nil)
+	case "types.v1.BaseBeaconKitBlock.time":
+		return protoreflect.ValueOfUint64(uint64(0))
 	case "types.v1.BaseBeaconKitBlock.value":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "types.v1.BaseBeaconKitBlock.version":
 		return protoreflect.ValueOfUint64(uint64(0))
+	case "types.v1.BaseBeaconKitBlock.exec_data":
+		return protoreflect.ValueOfBytes(nil)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.v1.BaseBeaconKitBlock"))
@@ -342,15 +364,18 @@ func (x *fastReflection_BaseBeaconKitBlock) ProtoMethods() *protoiface.Methods {
 		if x.Slot != 0 {
 			n += 1 + runtime.Sov(uint64(x.Slot))
 		}
-		l = len(x.ExecData)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
+		if x.Time != 0 {
+			n += 1 + runtime.Sov(uint64(x.Time))
 		}
 		if x.Value != 0 {
 			n += 1 + runtime.Sov(uint64(x.Value))
 		}
 		if x.Version != 0 {
 			n += 1 + runtime.Sov(uint64(x.Version))
+		}
+		l = len(x.ExecData)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -381,6 +406,13 @@ func (x *fastReflection_BaseBeaconKitBlock) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
+		if len(x.ExecData) > 0 {
+			i -= len(x.ExecData)
+			copy(dAtA[i:], x.ExecData)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.ExecData)))
+			i--
+			dAtA[i] = 0x2a
+		}
 		if x.Version != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.Version))
 			i--
@@ -391,12 +423,10 @@ func (x *fastReflection_BaseBeaconKitBlock) ProtoMethods() *protoiface.Methods {
 			i--
 			dAtA[i] = 0x18
 		}
-		if len(x.ExecData) > 0 {
-			i -= len(x.ExecData)
-			copy(dAtA[i:], x.ExecData)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.ExecData)))
+		if x.Time != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Time))
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0x10
 		}
 		if x.Slot != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.Slot))
@@ -472,10 +502,10 @@ func (x *fastReflection_BaseBeaconKitBlock) ProtoMethods() *protoiface.Methods {
 					}
 				}
 			case 2:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ExecData", wireType)
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Time", wireType)
 				}
-				var byteLen int
+				x.Time = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -485,26 +515,11 @@ func (x *fastReflection_BaseBeaconKitBlock) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					byteLen |= int(b&0x7F) << shift
+					x.Time |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if byteLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + byteLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.ExecData = append(x.ExecData[:0], dAtA[iNdEx:postIndex]...)
-				if x.ExecData == nil {
-					x.ExecData = []byte{}
-				}
-				iNdEx = postIndex
 			case 3:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
@@ -543,6 +558,40 @@ func (x *fastReflection_BaseBeaconKitBlock) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
+			case 5:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ExecData", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.ExecData = append(x.ExecData[:0], dAtA[iNdEx:postIndex]...)
+				if x.ExecData == nil {
+					x.ExecData = []byte{}
+				}
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -623,9 +672,10 @@ type BaseBeaconKitBlock struct {
 	unknownFields protoimpl.UnknownFields
 
 	Slot     uint64 `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty"`
-	ExecData []byte `protobuf:"bytes,2,opt,name=exec_data,json=execData,proto3" json:"exec_data,omitempty"`
+	Time     uint64 `protobuf:"varint,2,opt,name=time,proto3" json:"time,omitempty"`
 	Value    uint64 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
 	Version  uint64 `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+	ExecData []byte `protobuf:"bytes,5,opt,name=exec_data,json=execData,proto3" json:"exec_data,omitempty"`
 }
 
 func (x *BaseBeaconKitBlock) Reset() {
@@ -655,11 +705,11 @@ func (x *BaseBeaconKitBlock) GetSlot() uint64 {
 	return 0
 }
 
-func (x *BaseBeaconKitBlock) GetExecData() []byte {
+func (x *BaseBeaconKitBlock) GetTime() uint64 {
 	if x != nil {
-		return x.ExecData
+		return x.Time
 	}
-	return nil
+	return 0
 }
 
 func (x *BaseBeaconKitBlock) GetValue() uint64 {
@@ -676,27 +726,45 @@ func (x *BaseBeaconKitBlock) GetVersion() uint64 {
 	return 0
 }
 
+func (x *BaseBeaconKitBlock) GetExecData() []byte {
+	if x != nil {
+		return x.ExecData
+	}
+	return nil
+}
+
 var File_types_v1_block_proto protoreflect.FileDescriptor
 
 var file_types_v1_block_proto_rawDesc = []byte{
 	0x0a, 0x14, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x76, 0x31, 0x2f, 0x62, 0x6c, 0x6f, 0x63, 0x6b,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x08, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x76, 0x31,
-	0x22, 0x75, 0x0a, 0x12, 0x42, 0x61, 0x73, 0x65, 0x42, 0x65, 0x61, 0x63, 0x6f, 0x6e, 0x4b, 0x69,
-	0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x12, 0x0a, 0x04, 0x73, 0x6c, 0x6f, 0x74, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x73, 0x6c, 0x6f, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x65, 0x78,
-	0x65, 0x63, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x08, 0x65,
-	0x78, 0x65, 0x63, 0x44, 0x61, 0x74, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
-	0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x18, 0x0a,
-	0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x07,
-	0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x42, 0x7e, 0x0a, 0x0c, 0x63, 0x6f, 0x6d, 0x2e, 0x74,
-	0x79, 0x70, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x50, 0x72,
-	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x21, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b,
-	0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x76, 0x31,
-	0x3b, 0x74, 0x79, 0x70, 0x65, 0x73, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x54, 0x58, 0x58, 0xaa, 0x02,
-	0x08, 0x54, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x08, 0x54, 0x79, 0x70, 0x65,
-	0x73, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x14, 0x54, 0x79, 0x70, 0x65, 0x73, 0x5c, 0x56, 0x31, 0x5c,
-	0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x09, 0x54, 0x79,
-	0x70, 0x65, 0x73, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x81, 0x02, 0x0a, 0x12, 0x42, 0x61, 0x73, 0x65, 0x42,
+	0x65, 0x61, 0x63, 0x6f, 0x6e, 0x4b, 0x69, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x59, 0x0a,
+	0x04, 0x73, 0x6c, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x42, 0x45, 0xfa, 0xde, 0x1f,
+	0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x72, 0x79, 0x73,
+	0x6d, 0x61, 0x74, 0x69, 0x63, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x70, 0x72, 0x79, 0x73, 0x6d, 0x2f,
+	0x76, 0x34, 0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2d, 0x74, 0x79, 0x70,
+	0x65, 0x73, 0x2f, 0x70, 0x72, 0x69, 0x6d, 0x69, 0x74, 0x69, 0x76, 0x65, 0x73, 0x2e, 0x53, 0x6c,
+	0x6f, 0x74, 0x52, 0x04, 0x73, 0x6c, 0x6f, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x12, 0x45, 0x0a, 0x05,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x42, 0x2f, 0xfa, 0xde, 0x1f,
+	0x2b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x72, 0x79, 0x73,
+	0x6d, 0x61, 0x74, 0x69, 0x63, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x70, 0x72, 0x79, 0x73, 0x6d, 0x2f,
+	0x76, 0x34, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x47, 0x77, 0x65, 0x69, 0x52, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x04, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x1b, 0x0a,
+	0x09, 0x65, 0x78, 0x65, 0x63, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0c,
+	0x52, 0x08, 0x65, 0x78, 0x65, 0x63, 0x44, 0x61, 0x74, 0x61, 0x42, 0x7e, 0x0a, 0x0c, 0x63, 0x6f,
+	0x6d, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x42, 0x6c, 0x6f, 0x63,
+	0x6b, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x21, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
+	0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73,
+	0x2f, 0x76, 0x31, 0x3b, 0x74, 0x79, 0x70, 0x65, 0x73, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x54, 0x58,
+	0x58, 0xaa, 0x02, 0x08, 0x54, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x08, 0x54,
+	0x79, 0x70, 0x65, 0x73, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x14, 0x54, 0x79, 0x70, 0x65, 0x73, 0x5c,
+	0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
+	0x09, 0x54, 0x79, 0x70, 0x65, 0x73, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (

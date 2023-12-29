@@ -79,29 +79,34 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			"height", req.Height,
 		)
 
-		beaconBlockData := req.Txs[0] // todo modularize.
-		if len(beaconBlockData) == 0 {
-			return nil, errors.New("payload in beacon block is empty")
-		}
-
-		block := &v1.BaseBeaconKitBlock{}
-		err := block.Unmarshal(beaconBlockData)
-		if err != nil {
-			h.logger.Error("failed to unmarshal block", "err", err)
-			return nil, err
-		}
-
-		// Extract the execution data from the block.
-		data, err := block.ExecutionData()
+		beaconBlock, err := h.extractBeaconBlockFromRequest(req)
 		if err != nil {
 			return nil, err
 		}
 
-		h.markBlockAsFinalized(ctx, data.BlockHash())
-
+		h.markBlockAsFinalized(ctx, beaconBlock.ExecutionData().BlockHash())
 		return &sdk.ResponsePreBlock{}, nil
 		// return h.childHandler(ctx, req) // TODO: uncomment this.
 	}
+}
+
+// extractBeaconBlockFromRequest extracts the beacon block from the request.
+func (h *BeaconPreBlockHandler) extractBeaconBlockFromRequest(
+	req *cometabci.RequestFinalizeBlock,
+) (v1.BeaconKitBlock, error) {
+	beaconBlockData := req.Txs[0] // todo modularize.
+	if len(beaconBlockData) == 0 {
+		return nil, errors.New("payload in beacon block is empty")
+	}
+
+	block := &v1.BaseBeaconKitBlock{}
+	err := block.Unmarshal(beaconBlockData)
+	if err != nil {
+		h.logger.Error("failed to unmarshal block", "err", err)
+		return nil, err
+	}
+
+	return block, nil
 }
 
 func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash []byte) {

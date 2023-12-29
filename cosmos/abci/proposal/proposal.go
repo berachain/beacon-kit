@@ -26,9 +26,8 @@
 package proposal
 
 import (
-	"github.com/prysmaticlabs/prysm/v4/math"
-
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -71,10 +70,12 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
-	value := 0
+	// TODO: get version from beaconconfig.
 	version := 3
 	// Create a new block with the payload.
-	block, err := v1.NewBaseBeaconKitBlock(payload, math.Gwei(value), version)
+	block, err := v1.NewBaseBeaconKitBlock(
+		primitives.Slot(ctx.BlockHeight()),
+		uint64(ctx.BlockTime().UTC().Unix()), payload, version)
 	if err != nil {
 		logger.Error("failed to create block", "err", err)
 	}
@@ -113,15 +114,12 @@ func (h *Handler) ProcessProposalHandler(
 		logger.Error("failed to unmarshal block", "err", err)
 	}
 
-	// Extract the execution data from the block.
-	data, err := block.ExecutionData()
-	if err != nil {
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
-	}
-
-	// If we get any sort of error from the execution client, we bubble it up and reject the proposal,
-	// as we do not want to write a block finalization to the consensus layer that is invalid.
-	if _, err = h.beaconChain.ProcessReceivedExecutionData(ctx, ctx.HeaderInfo(), data); err != nil {
+	// If we get any sort of error from the execution client, we bubble
+	// it up and reject the proposal, as we do not want to write a block
+	// finalization to the consensus layer that is invalid.
+	if _, err = h.beaconChain.ValidateProposedBeaconBlock(
+		ctx, ctx.HeaderInfo(), block.ExecutionData(),
+	); err != nil {
 		logger.Error("failed to validate block", "err", err)
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
