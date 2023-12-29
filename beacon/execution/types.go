@@ -25,6 +25,16 @@
 
 package execution
 
+import (
+	"context"
+
+	"github.com/itsdevbear/bolaris/types"
+)
+
+type forkchoiceStoreProvider interface {
+	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+}
+
 // NotifyForkchoiceUpdateArg is the argument for the forkchoice
 // update notification `notifyForkchoiceUpdate`.
 type NotifyForkchoiceUpdateArg struct {

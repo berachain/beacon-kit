@@ -61,6 +61,16 @@ func (s *EngineNotifier) notifyForkchoiceUpdate(ctx context.Context,
 		FinalizedBlockHash: arg.finalHash,
 	}
 
+	// Cache payloads if we get a payloadID in our response.
+	var payloadID *enginev1.PayloadIDBytes
+	defer func() {
+		if payloadID != nil {
+			// TODO: support building on multiple heads as a safety fallback feature.
+			// Right now root is just empty bytes.
+			s.payloadCache.SetProposerAndPayloadIDs(slot, 0, [8]byte(*payloadID), [32]byte{})
+		}
+	}()
+
 	// We want to start building the next block as part of this forkchoice update.
 	// nextSlot := slot + 1 // Cache payload ID for next slot proposer.
 	nextSlot := slot
@@ -75,7 +85,7 @@ func (s *EngineNotifier) notifyForkchoiceUpdate(ctx context.Context,
 	} else {
 		attrs = payloadattribute.EmptyWithVersion(s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)))
 	}
-	payloadID, _, err := s.engine.ForkchoiceUpdated(ctx, fc, attrs)
+	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
 		switch err { //nolint:errorlint // okay for now.
 		case execution.ErrAcceptedSyncingPayloadStatus:
@@ -83,8 +93,7 @@ func (s *EngineNotifier) notifyForkchoiceUpdate(ctx context.Context,
 		case execution.ErrInvalidPayloadStatus:
 			s.logger.Error("invalid payload status", "err", err)
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
-			var pid *enginev1.PayloadIDBytes
-			pid, err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
+			payloadID, err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
 				headHash: previousHead[:],
 			}, withAttrs)
 
@@ -102,7 +111,7 @@ func (s *EngineNotifier) notifyForkchoiceUpdate(ctx context.Context,
 			// 	"invalidChildrenCount": len(invalidRoots),
 			// 	"newHeadRoot":          fmt.Sprintf("%#x", bytesutil.Trunc(r[:])),
 			// }).Warn("Pruned invalid blocks")
-			return pid, errors.New("invalid payload")
+			return payloadID, errors.New("invalid payload")
 			// return pid, invalidBlock{error: ErrInvalidPayload,
 			//root: arg.headRoot, invalidAncestorRoots: invalidRoots}
 

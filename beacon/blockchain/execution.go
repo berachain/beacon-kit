@@ -68,7 +68,7 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
-	payloadIDNew, err := s.en.NotifyForkchoiceUpdate(
+	_, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
 			headHash, safeHash[:], finalHash[:],
@@ -84,8 +84,8 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	// todo we need to wait for the forkchoice to update?
 	time.Sleep(payloadBuildDelay * time.Second)
 
-	payload, _, _, err := s.engine.GetPayload(
-		ctx, [8]byte(payloadIDNew[:]), slot,
+	payload, _, _, err := s.en.GetBuiltPayload(
+		ctx, slot,
 	)
 	return payload, err
 }

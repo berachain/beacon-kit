@@ -34,7 +34,6 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/types"
 	"github.com/itsdevbear/bolaris/types/config"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
@@ -54,13 +53,17 @@ type EngineNotifier interface {
 	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
 		preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
 	) (bool, error)
+
+	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
+	GetBuiltPayload(
+		ctx context.Context, slot primitives.Slot,
+	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
 }
 
 type Service struct {
 	beaconCfg *config.Beacon
 	logger    log.Logger
 	fcsp      ForkChoiceStoreProvider
-	engine    engine.Caller
 	en        EngineNotifier
 }
 

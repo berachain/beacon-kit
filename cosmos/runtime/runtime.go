@@ -148,6 +148,7 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 		execution.WithBeaconConfig(&p.cfg.BeaconConfig),
 		execution.WithLogger(p.logger),
 		execution.WithForkChoiceStoreProvider(bk),
+		execution.WithEngineCaller(p.Caller),
 	}
 	en := execution.New(notifierOpts...)
 

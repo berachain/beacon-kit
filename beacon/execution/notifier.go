@@ -27,12 +27,12 @@ package execution
 
 import (
 	"context"
+	"errors"
 
 	"cosmossdk.io/log"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/types"
 	"github.com/itsdevbear/bolaris/types/config"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
@@ -40,20 +40,24 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type forkchoiceStoreProvider interface {
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
-}
-
+// EngineNotifier is responsible for delivering beacon chain notifications to
+// the execution client.
 type EngineNotifier struct {
-	engine.Caller
+	// engine gives the notifier access to the engine api of the execution client.
+	engine engine.Caller
+	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.ProposerPayloadIDsCache
-	beaconCfg    *config.Beacon
-	etherbase    common.Address
-	logger       log.Logger
-	fcsp         forkchoiceStoreProvider
-	engine       engine.Caller
+	// beaconCfg is the beacon chain configuration.
+	beaconCfg *config.Beacon
+	// etherbase is the address to which block rewards are sent.
+	etherbase common.Address
+	// logger is the logger for the service.
+	logger log.Logger
+	// fcsp is the fork choice store provider.
+	fcsp forkchoiceStoreProvider
 }
 
+// New creates a new EngineNotifier with the provided options.
 func New(opts ...Option) *EngineNotifier {
 	ec := &EngineNotifier{
 		payloadCache: cache.NewProposerPayloadIDsCache(),
@@ -67,6 +71,7 @@ func New(opts ...Option) *EngineNotifier {
 	return ec
 }
 
+// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (s *EngineNotifier) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
 	withAttrs, withRetry bool,
@@ -77,6 +82,7 @@ func (s *EngineNotifier) NotifyForkchoiceUpdate(
 	return s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
 }
 
+// NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *EngineNotifier) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
 	preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
@@ -84,4 +90,17 @@ func (s *EngineNotifier) NotifyNewPayload(ctx context.Context /*preStateVersion*
 	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
 		[]common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
+}
+
+// GetBuiltPayload returns the payload and blobs bundle for the given slot.
+func (s *EngineNotifier) GetBuiltPayload(
+	ctx context.Context, slot primitives.Slot,
+) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+	_, payloadID, found := s.payloadCache.GetProposerPayloadIDs(
+		slot, [32]byte{}, // TODO: support building on multiple heads as a safety fallback feature.
+	)
+	if !found {
+		return nil, nil, false, errors.New("payload not found")
+	}
+	return s.engine.GetPayload(ctx, payloadID, slot)
 }
