@@ -34,7 +34,7 @@ import (
 
 	testapp "github.com/itsdevbear/bolaris/app"
 	"github.com/itsdevbear/bolaris/app/beacond/cmd"
-	"github.com/itsdevbear/bolaris/types/config"
+	"github.com/itsdevbear/bolaris/config"
 )
 
 func main() {

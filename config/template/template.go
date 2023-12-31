@@ -23,46 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package template
 
-import (
-	"cosmossdk.io/log"
+const (
+	ConfigTemplate = `
+###############################################################################
+###                                 Polaris                                 ###
+###############################################################################
+# General Polaris settings
+[polaris]
 
-	"github.com/itsdevbear/bolaris/config"
+[beacon-kit.execution-client]
+# HTTP url of the execution client JSON-RPC endpoint.
+rpc-dial-url = "{{ .Polaris.ExecutionClient.RPCDialURL }}"
+
+# RPC timeout for execution client requests.
+rpc-timeout = "{{ .Polaris.ExecutionClient.RPCTimeout }}"
+
+# Number of retries before shutting down consensus client.
+rpc-retries = "{{.Polaris.ExecutionClient.RPCRetries}}"
+
+# Path to the execution client JWT-secret
+jwt-secret-path = "{{.Polaris.ExecutionClient.JWTSecretPath}}"
+
+[beacon-kit.beacon-config]
+# Altair fork epoch
+altair-fork-epoch = {{.Polaris.BeaconConfig.AltairForkEpoch}}
+
+# Bellatrix fork epoch
+bellatrix-fork-epoch = {{.Polaris.BeaconConfig.BellatrixForkEpoch}}
+
+# Capella fork epoch
+capella-fork-epoch = {{.Polaris.BeaconConfig.CapellaForkEpoch}}
+
+# Deneb fork epoch
+deneb-fork-epoch = {{.Polaris.BeaconConfig.DenebForkEpoch}}
+`
 )
-
-// Option is a function type that takes a pointer to a Service and returns an error.
-type Option func(*Service) error
-
-// WithEngineNotifier is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
-func WithEngineNotifier(en ExecutionService) Option {
-	return func(s *Service) error {
-		s.en = en
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *Service) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *Service) error {
-		s.logger = logger
-		return nil
-	}
-}
-
-// WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider for the Service.
-func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
-	return func(s *Service) error {
-		s.fcsp = fcsp
-		return nil
-	}
-}

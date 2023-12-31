@@ -28,7 +28,7 @@ package execution
 import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/types/config"
+	"github.com/itsdevbear/bolaris/config"
 )
 
 type Option func(*Service) error

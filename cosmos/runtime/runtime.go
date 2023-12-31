@@ -47,11 +47,11 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/initial-sync/status/eth1"
 	"github.com/itsdevbear/bolaris/beacon/logs"
 	"github.com/itsdevbear/bolaris/beacon/logs/callback"
+	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/cosmos/abci/commit"
 	"github.com/itsdevbear/bolaris/cosmos/abci/preblock"
 	proposal "github.com/itsdevbear/bolaris/cosmos/abci/proposal"
 	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
-	"github.com/itsdevbear/bolaris/types/config"
 )
 
 // BeaconKeeper is an interface that defines the methods needed for the EVM setup.

@@ -72,7 +72,10 @@ import (
 
 	testapp "github.com/itsdevbear/bolaris/app"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	evmconfig "github.com/itsdevbear/bolaris/types/config"
+
+	beaconcmd "github.com/itsdevbear/bolaris/cmd/beacon"
+	beaconconfig "github.com/itsdevbear/bolaris/config"
+	beacontemplate "github.com/itsdevbear/bolaris/config/template"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.
@@ -191,7 +194,7 @@ func initAppConfig() (string, interface{}) {
 
 	type CustomAppConfig struct {
 		serverconfig.Config
-		Polaris evmconfig.Config `mapstructure:"polaris"`
+		Polaris beaconconfig.Config `mapstructure:"polaris"`
 	}
 
 	// Optionally allow the chain developer to overwrite the SDK's default
@@ -215,10 +218,10 @@ func initAppConfig() (string, interface{}) {
 
 	customAppConfig := CustomAppConfig{
 		Config:  *srvCfg,
-		Polaris: *evmconfig.DefaultConfig(),
+		Polaris: *beaconconfig.DefaultConfig(),
 	}
 
-	customAppTemplate := serverconfig.DefaultConfigTemplate + evmconfig.ConfigTemplate
+	customAppTemplate := serverconfig.DefaultConfigTemplate + beacontemplate.ConfigTemplate
 
 	return customAppTemplate, customAppConfig
 }
@@ -259,7 +262,7 @@ func initRootCmd(
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
-	evmconfig.AddExecutionClientFlags(startCmd)
+	beaconcmd.AddBeaconKitFlags(startCmd)
 }
 
 // add server commands.

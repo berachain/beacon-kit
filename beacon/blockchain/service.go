@@ -28,7 +28,7 @@ package blockchain
 import (
 	"cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/types/config"
+	"github.com/itsdevbear/bolaris/config"
 )
 
 type Service struct {

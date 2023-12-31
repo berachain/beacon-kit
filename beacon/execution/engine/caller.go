@@ -33,7 +33,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/config"
+	"github.com/itsdevbear/bolaris/config"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"

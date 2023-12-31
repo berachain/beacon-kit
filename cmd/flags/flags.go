@@ -23,40 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package flags
 
 const (
-	ConfigTemplate = `
-###############################################################################
-###                                 Polaris                                 ###
-###############################################################################
-# General Polaris settings
-[polaris]
+	// Execution Client.
+	RPCDialURL      = "beacon-kit.execution-client.rpc-dial-url"
+	RPCTimeout      = "beacon-kit.execution-client.rpc-timeout"
+	RPCRetries      = "beacon-kit.execution-client.rpc-retries"
+	JWTSecretPath   = "beacon-kit.execution-client.jwt-secret-path" //nolint:gosec // false positive.
+	RequiredChainID = "beacon-kit.execution-client.required-chain-id"
 
-[polaris.execution-client]
-# HTTP url of the execution client JSON-RPC endpoint.
-rpc-dial-url = "{{ .Polaris.ExecutionClient.RPCDialURL }}"
-
-# RPC timeout for execution client requests.
-rpc-timeout = "{{ .Polaris.ExecutionClient.RPCTimeout }}"
-
-# Number of retries before shutting down consensus client.
-rpc-retries = "{{.Polaris.ExecutionClient.RPCRetries}}"
-
-# Path to the execution client JWT-secret
-jwt-secret-path = "{{.Polaris.ExecutionClient.JWTSecretPath}}"
-
-[polaris.beacon-config]
-# Altair fork epoch
-altair-fork-epoch = {{.Polaris.BeaconConfig.AltairForkEpoch}}
-
-# Bellatrix fork epoch
-bellatrix-fork-epoch = {{.Polaris.BeaconConfig.BellatrixForkEpoch}}
-
-# Capella fork epoch
-capella-fork-epoch = {{.Polaris.BeaconConfig.CapellaForkEpoch}}
-
-# Deneb fork epoch
-deneb-fork-epoch = {{.Polaris.BeaconConfig.DenebForkEpoch}}
-`
+	// Beacon Config.
+	AltairForkEpoch    = "beacon-kit.beacon-config.altair-fork-epoch"
+	BellatrixForkEpoch = "beacon-kit.beacon-config.bellatrix-fork-epoch"
+	CapellaForkEpoch   = "beacon-kit.beacon-config.capella-fork-epoch"
+	DenebForkEpoch     = "beacon-kit.beacon-config.deneb-fork-epoch"
 )

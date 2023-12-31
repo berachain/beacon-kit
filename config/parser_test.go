@@ -33,8 +33,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/itsdevbear/bolaris/types/config"
-	"github.com/itsdevbear/bolaris/types/config/mocks"
+	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/config/mocks"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
