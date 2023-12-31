@@ -40,9 +40,9 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-// EngineNotifier is responsible for delivering beacon chain notifications to
+// Service is responsible for delivering beacon chain notifications to
 // the execution client.
-type EngineNotifier struct {
+type Service struct {
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
 	// payloadCache is used to track currently building payload IDs for a given slot.
@@ -57,9 +57,9 @@ type EngineNotifier struct {
 	fcsp forkchoiceStoreProvider
 }
 
-// New creates a new EngineNotifier with the provided options.
-func New(opts ...Option) *EngineNotifier {
-	ec := &EngineNotifier{
+// New creates a new Service with the provided options.
+func New(opts ...Option) *Service {
+	ec := &Service{
 		payloadCache: cache.NewProposerPayloadIDsCache(),
 	}
 	for _, opt := range opts {
@@ -72,7 +72,7 @@ func New(opts ...Option) *EngineNotifier {
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (s *EngineNotifier) NotifyForkchoiceUpdate(
+func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
 	withAttrs, withRetry bool,
 ) (*enginev1.PayloadIDBytes, error) {
@@ -84,7 +84,7 @@ func (s *EngineNotifier) NotifyForkchoiceUpdate(
 
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
-func (s *EngineNotifier) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
+func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
 	preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
 ) (bool, error) {
 	// var lastValidHash []byte
@@ -108,7 +108,7 @@ func (s *EngineNotifier) NotifyNewPayload(ctx context.Context /*preStateVersion*
 }
 
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.
-func (s *EngineNotifier) GetBuiltPayload(
+func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	_, payloadID, found := s.payloadCache.GetProposerPayloadIDs(

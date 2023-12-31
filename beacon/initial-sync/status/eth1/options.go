@@ -23,27 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package eth1
 
-import (
-	"cosmossdk.io/log"
+import "cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/types/config"
-)
+type Option func(*SyncStatus) error
 
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
+func WithEthClient(eth1client ethClient) Option {
+	return func(s *SyncStatus) error {
+		s.eth1client = eth1client
+		return nil
+	}
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *SyncStatus) error {
+		s.logger = logger
+		return nil
 	}
-	return s
 }

@@ -43,6 +43,8 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
+	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/beacon/initial-sync/status/eth1"
 	"github.com/itsdevbear/bolaris/beacon/logs"
 	"github.com/itsdevbear/bolaris/beacon/logs/callback"
 	"github.com/itsdevbear/bolaris/cosmos/abci/commit"
@@ -177,10 +179,28 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 		return err
 	}
 
+	ethSyncStatusOpts := []eth1.Option{
+		eth1.WithEthClient(eth1Client),
+		eth1.WithLogger(p.logger),
+	}
+
+	ethSyncStatus := eth1.NewSyncStatus(ethSyncStatusOpts...)
+	_ = ethSyncStatus
+	syncServiceOpts := []initialsync.Option{
+		initialsync.WithExecutionSyncStatus(ethSyncStatus),
+		initialsync.WithLogger(p.logger),
+	}
+
+	// Build Sync Service
+	syncService := initialsync.NewService(syncServiceOpts...)
+
 	// Build Proposal Handler
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(mp, app)
-	proposalHandler := proposal.NewHandler(blkChain,
-		defaultProposalHandler.PrepareProposalHandler(), defaultProposalHandler.ProcessProposalHandler())
+	proposalHandler := proposal.NewHandler(
+		blkChain,
+		defaultProposalHandler.PrepareProposalHandler(),
+		defaultProposalHandler.ProcessProposalHandler(),
+	)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 
@@ -191,7 +211,7 @@ func (p *Polaris) Build(app CosmosApp, bk *beaconkeeper.Keeper) error {
 
 	// Build PreBlock Handler
 	app.SetPreBlocker(
-		preblock.NewBeaconPreBlockHandler(p.logger, bk, fn).PreBlocker(),
+		preblock.NewBeaconPreBlockHandler(p.logger, bk, syncService, fn).PreBlocker(),
 	)
 
 	// Build PrepareCheckStater

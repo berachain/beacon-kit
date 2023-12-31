@@ -23,27 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package initialsync
 
-import (
-	"cosmossdk.io/log"
+import "context"
 
-	"github.com/itsdevbear/bolaris/types/config"
-)
-
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
-}
-
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
+type BlockchainSyncStatus interface {
+	Syncing(ctx context.Context) (bool, error)
 }

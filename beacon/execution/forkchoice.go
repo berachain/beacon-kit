@@ -36,7 +36,7 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-func (s *EngineNotifier) notifyForkchoiceUpdateWithSyncingRetry(
+func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
 ) (*enginev1.PayloadIDBytes, error) {
 retry:
@@ -52,7 +52,7 @@ retry:
 	return payloadID, err
 }
 
-func (s *EngineNotifier) notifyForkchoiceUpdate(ctx context.Context,
+func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
 ) (*enginev1.PayloadIDBytes, error) {
 	fc := &enginev1.ForkchoiceState{

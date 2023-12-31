@@ -23,27 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package runtime
 
-import (
-	"cosmossdk.io/log"
+import "github.com/prysmaticlabs/prysm/v4/runtime"
 
-	"github.com/itsdevbear/bolaris/types/config"
-)
+// Option is a function that modifies the BeaconKitRuntime.
+type Option func(*BeaconKitRuntime) error
 
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
-}
-
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
+// WithService is an Option that registers a service with the BeaconKitRuntime's service registry.
+func WithService(svc runtime.Service) Option {
+	// The function returns an Option that, when called, registers the service and returns nil.
+	return func(r *BeaconKitRuntime) error {
+		return r.serviceRegistry.RegisterService(svc)
 	}
-	return s
 }

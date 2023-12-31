@@ -23,27 +23,53 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package eth1
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/types/config"
+	"github.com/ethereum/go-ethereum"
 )
 
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
+// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
+type ethClient interface {
+	ethereum.ChainSyncReader
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
+// SyncStatus is a struct that holds the logger and the eth1client.
+type SyncStatus struct {
+	logger     log.Logger
+	eth1client ethClient
+}
+
+// NewSyncStatus is a constructor function for SyncStatus. It takes an ethClient as an argument.
+func NewSyncStatus(opts ...Option) *SyncStatus {
+	ss := &SyncStatus{}
 	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
+		if err := opt(ss); err != nil {
+			panic(err)
 		}
 	}
-	return s
+	return ss
+}
+
+// Syncing is a method of SyncStatus that returns the sync status of the execution client.
+func (s *SyncStatus) Syncing(ctx context.Context) (bool, error) {
+	sp, err := s.eth1client.SyncProgress(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	// A nil response indicates that the client is not syncing.
+	if sp == nil {
+		return false, nil
+	}
+
+	s.logger.Error("Syncing Execution Client",
+		"currentBlock", sp.CurrentBlock,
+		"highestBlock", sp.HighestBlock)
+
+	return sp == nil, nil
 }

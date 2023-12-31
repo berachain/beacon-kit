@@ -86,7 +86,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     -X github.com/cosmos/cosmos-sdk/types.DBBackend=$DB_BACKEND \
     -w -s -linkmode=external -extldflags '-Wl,-z,muldefs -static'" \
     -trimpath \
-    -o /workdir/bin/ \
+    -o /workdir/build/bin/ \
     ${CMD_PATH}
 
 #######################################################
@@ -99,4 +99,4 @@ FROM ${RUNNER_IMAGE}
 ARG APP_NAME
 
 # Copy over built executable into a fresh container.
-COPY --from=builder /workdir/bin/${APP_NAME} /bin/
+COPY --from=builder /workdir/build/bin/${APP_NAME} /bin/

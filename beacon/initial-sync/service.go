@@ -23,27 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package initialsync
 
-import (
-	"cosmossdk.io/log"
+import "cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/types/config"
-)
-
+// Service is responsible for tracking the synchornization status
+// of both the beacon and execution chains.
 type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
+	logger          log.Logger
+	beaconStatus    BlockchainSyncStatus
+	executionStatus BlockchainSyncStatus
 }
 
 func NewService(opts ...Option) *Service {
 	s := &Service{}
 	for _, opt := range opts {
 		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
+			panic(err)
 		}
 	}
 	return s
+}
+
+func (s *Service) BeaconSyncStatus() BlockchainSyncStatus {
+	return s.beaconStatus
+}
+
+func (s *Service) ExecutionSyncStatus() BlockchainSyncStatus {
+	return s.executionStatus
 }

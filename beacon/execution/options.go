@@ -31,11 +31,11 @@ import (
 	"github.com/itsdevbear/bolaris/types/config"
 )
 
-type Option func(*EngineNotifier) error
+type Option func(*Service) error
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *EngineNotifier) error {
+	return func(s *Service) error {
 		s.beaconCfg = beaconCfg
 		return nil
 	}
@@ -43,24 +43,24 @@ func WithBeaconConfig(beaconCfg *config.Beacon) Option {
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithLogger(logger log.Logger) Option {
-	return func(s *EngineNotifier) error {
+	return func(s *Service) error {
 		s.logger = logger
 		return nil
 	}
 }
 
 // WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider
-// for the EngineNotifier.
+// for the Service.
 func WithForkChoiceStoreProvider(fcsp forkchoiceStoreProvider) Option {
-	return func(s *EngineNotifier) error {
+	return func(s *Service) error {
 		s.fcsp = fcsp
 		return nil
 	}
 }
 
-// WithEngineCaller is an option to set the Caller for the EngineNotifier.
+// WithEngineCaller is an option to set the Caller for the Service.
 func WithEngineCaller(ec engine.Caller) Option {
-	return func(s *EngineNotifier) error {
+	return func(s *Service) error {
 		s.engine = ec
 		return nil
 	}

@@ -34,7 +34,7 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-func (s *EngineNotifier) getPayloadAttributes(
+func (s *Service) getPayloadAttributes(
 	_ context.Context, slot primitives.Slot, timestamp uint64,
 ) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.

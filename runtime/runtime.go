@@ -23,27 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package runtime
 
-import (
-	"cosmossdk.io/log"
+import "github.com/prysmaticlabs/prysm/v4/runtime"
 
-	"github.com/itsdevbear/bolaris/types/config"
-)
-
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
+// BeaconKitRuntime is a struct that holds the service registry.
+type BeaconKitRuntime struct {
+	serviceRegistry *runtime.ServiceRegistry
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
+// NewBeaconKitRuntime creates a new BeaconKitRuntime and applies the provided options.
+func NewBeaconKitRuntime(opts ...Option) *BeaconKitRuntime {
+	bkr := &BeaconKitRuntime{
+		serviceRegistry: runtime.NewServiceRegistry(),
+	}
+
 	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
+		if err := opt(bkr); err != nil {
+			panic(err)
 		}
 	}
-	return s
+
+	return bkr
+}
+
+// StartServices starts all services in the BeaconKitRuntime's service registry.
+func (r *BeaconKitRuntime) StartServices() {
+	r.serviceRegistry.StartAll()
+}
+
+// StopServices stops all services in the BeaconKitRuntime's service registry.
+func (r *BeaconKitRuntime) StopServices() {
+	r.serviceRegistry.StopAll()
 }

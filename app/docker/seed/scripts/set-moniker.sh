@@ -24,7 +24,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if [ -z "$HOMEDIR" ]; then
-    HOMEDIR="/.beacond"
+    HOMEDIR="/root/.beacond"
 fi
 CONFIG_TOML=$HOMEDIR/config/config.toml
 

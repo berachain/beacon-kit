@@ -40,13 +40,14 @@ import (
 	"cosmossdk.io/core/header"
 )
 
+// BuildNextBlock constructs the next block in the blockchain.
 func (s *Service) BuildNextBlock(
 	ctx context.Context, slot primitives.Slot, time uint64,
 ) (interfaces.BeaconKitBlock, error) {
 	// The goal here is to build a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
-	// is that we get the nice property of lazily propogate the finalized
+	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	lastFinalizedBlock := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	executionData, err := s.buildNewBlockOnTopOf(ctx, slot, lastFinalizedBlock[:])
@@ -61,7 +62,7 @@ func (s *Service) BuildNextBlock(
 	)
 }
 
-// buildNewBlockOnTopOf builds a new block on top of an existing head of the execution client.
+// buildNewBlockOnTopOf constructs a new block on top of an existing head of the execution client.
 func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
@@ -79,7 +80,7 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 		return nil, err
 	}
 
-	// todo we need to wait for the forkchoice to update?
+	// TODO: Do we need to wait for the forkchoice to update?
 	time.Sleep(payloadBuildDelay * time.Second)
 
 	payload, _, _, err := s.en.GetBuiltPayload(
@@ -88,25 +89,20 @@ func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
 	return payload, err
 }
 
-// ValidateProposedBeaconBlock validates a proposed beacon block.
+// ValidateProposedBeaconBlock checks the validity of a proposed beacon block.
 func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
 	block header.Info, header interfaces.ExecutionData,
 ) (*enginev1.PayloadIDBytes, error) {
-	// We must first notify the execution client we have received a new payload. We ask
-	// the execution client to try to insert this payload to check it's validity.
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
 	if err != nil {
 		if !errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
-			s.logger.Error("failed to validate execution on block", "err", err)
+			s.logger.Error("Failed to validate execution on block", "error", err)
 			return nil, err
 		}
 	} else if !isValidPayload {
 		return nil, prsymexecution.ErrInvalidPayloadStatus
 	}
 
-	// Forkchoice our execution client's head to be the block that we validated as correct
-	// above. We also lazily update our finalized and safe block hashes to be the same as
-	// what is currently on the beacon chain.
 	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	return s.en.NotifyForkchoiceUpdate(

@@ -27,7 +27,7 @@ CONTAINER0="beacond-node0"
 CONTAINER1="beacond-node1"
 CONTAINER2="beacond-node2"
 
-HOMEDIR="/.beacond"
+HOMEDIR="/root/.beacond"
 SCRIPTS="/scripts"
 
 rm -rf ./temp

@@ -28,6 +28,7 @@ package preblock
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/log"
 
@@ -35,6 +36,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/types"
 	v1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
@@ -55,6 +57,10 @@ type BeaconPreBlockHandler struct {
 	keeper BeaconKeeper
 
 	childHandler sdk.PreBlocker
+
+	// syncStatus is the service that is responsible for determining if the
+	// node is currently syncing.
+	syncStatus *initialsync.Service
 }
 
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
@@ -62,11 +68,13 @@ type BeaconPreBlockHandler struct {
 func NewBeaconPreBlockHandler(
 	logger log.Logger,
 	beaconKeeper BeaconKeeper,
+	syncService *initialsync.Service,
 	childHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
 		logger:       logger,
 		keeper:       beaconKeeper,
+		syncStatus:   syncService,
 		childHandler: childHandler,
 	}
 }
@@ -80,6 +88,9 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			"executing the pre-finalize block hook",
 			"height", req.Height,
 		)
+
+		x, err2 := h.syncStatus.ExecutionSyncStatus().Syncing(ctx)
+		h.logger.Error(fmt.Sprintf("syncing: %v", x), "err", err2)
 
 		beaconBlock, err := h.extractBeaconBlockFromRequest(req)
 		if err != nil {

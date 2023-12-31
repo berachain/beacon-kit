@@ -36,7 +36,7 @@ if [ -z "$LOGLEVEL" ]; then
     LOGLEVEL="info"
 fi
 if [ -z "$HOMEDIR" ]; then
-    HOMEDIR="/.beacond"
+    HOMEDIR="/root/.beacond"
 fi
 
 KEY1="seed-0"

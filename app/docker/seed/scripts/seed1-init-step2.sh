@@ -30,7 +30,7 @@ if [ -z "$KEYRING" ]; then
     KEYRING="test"
 fi
 if [ -z "$HOMEDIR" ]; then
-    HOMEDIR="/.beacond"
+    HOMEDIR="/root/.beacond"
 fi
 
 KEY="$1"

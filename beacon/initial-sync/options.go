@@ -23,27 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package initialsync
 
-import (
-	"cosmossdk.io/log"
+import "cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/types/config"
-)
+// Option is a function that modifies the Service.
+type Option func(*Service) error
 
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
+// WithBeaconSyncStatus is an Option that sets the beacon
+// synchronization status of the Service.
+func WithBeaconSyncStatus(status BlockchainSyncStatus) Option {
+	return func(r *Service) error {
+		r.beaconStatus = status
+		return nil
+	}
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
+// WithExecutionSyncStatus is an Option that sets the execution
+// synchronization status of the Service.
+func WithExecutionSyncStatus(status BlockchainSyncStatus) Option {
+	return func(r *Service) error {
+		r.executionStatus = status
+		return nil
 	}
-	return s
+}
+
+// WithLogger is an Option that sets the logger of the Service.
+func WithLogger(logger log.Logger) Option {
+	return func(r *Service) error {
+		r.logger = logger
+		return nil
+	}
 }

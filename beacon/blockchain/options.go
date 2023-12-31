@@ -35,8 +35,8 @@ import (
 type Option func(*Service) error
 
 // WithEngineNotifier is a function that returns an Option.
-// It sets the EngineNotifier of the Service to the provided EngineNotifier.
-func WithEngineNotifier(en EngineNotifier) Option {
+// It sets the Service of the Service to the provided Service.
+func WithEngineNotifier(en ExecutionService) Option {
 	return func(s *Service) error {
 		s.en = en
 		return nil

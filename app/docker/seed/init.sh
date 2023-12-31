@@ -29,7 +29,7 @@ MONIKER="brickchain"
 KEYRING="test"
 KEYALGO="secp256k1"
 LOGLEVEL="info"
-HOMEDIR="data/.beacond"
+HOMEDIR="data/root/.beacond"
 TRACE=""
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
@@ -66,5 +66,5 @@ else
     beacond genesis validate-genesis --home "$HOMEDIR"
 
     beacond start --pruning=nothing "$TRACE" --log_level $LOGLEVEL --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home "$HOMEDIR"
-    beacond start --pruning=nothing '' --log_level info --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home data/.beacond
+    beacond start --pruning=nothing '' --log_level info --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home data/root/.beacond
 fi
