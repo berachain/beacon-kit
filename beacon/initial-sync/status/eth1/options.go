@@ -29,13 +29,6 @@ import "cosmossdk.io/log"
 
 type Option func(*SyncStatus) error
 
-func WithEthClient(eth1client ethClient) Option {
-	return func(s *SyncStatus) error {
-		s.eth1client = eth1client
-		return nil
-	}
-}
-
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithLogger(logger log.Logger) Option {
 	return func(s *SyncStatus) error {

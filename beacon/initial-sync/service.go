@@ -25,14 +25,36 @@
 
 package initialsync
 
-import "cosmossdk.io/log"
+import (
+	"bytes"
+	"context"
+	"math/big"
+
+	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/types"
+)
+
+type Status int
+
+const (
+	StatusWaiting = Status(iota) //nolint:errname // initial status of the service.
+	StatusBeaconAhead
+	StatusExecutionAhead
+	StatusSynced
+)
+
+type ForkChoiceStoreProvider interface {
+	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+}
 
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
 type Service struct {
-	logger          log.Logger
-	beaconStatus    BlockchainSyncStatus
-	executionStatus BlockchainSyncStatus
+	logger    log.Logger
+	ethClient ethClient
+	fcsp      ForkChoiceStoreProvider
 }
 
 func NewService(opts ...Option) *Service {
@@ -46,7 +68,32 @@ func NewService(opts ...Option) *Service {
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
+func (s *Service) Start() {
+	// go func() {
+	// 	ticker := time.NewTicker(8 * time.Second)
+	// 	defer ticker.Stop()
+	// 	for {
+	// 		select {
+	// 		case <-ticker.C:
+	// 			ctx := context.Background()
+	// 			status, err := s.CheckSyncStatus(ctx)
+	// 			if err != nil {
+	// 				s.logger.Error("Error checking sync status", "err", err)
+	// 				continue
+	// 			}
+
+	// 			switch status {
+	// 			case StatusBeaconAhead:
+	// 				s.logger.Info("Beacon chain is ahead of execution chain")
+	// 			case StatusExecutionAhead:
+	// 				s.logger.Info("Execution chain is ahead of beacon chain")
+	// 			case StatusSynced:
+	// 				s.logger.Info("Beacon and execution chains are synced")
+	// 			}
+	// 		}
+	// 	}
+	// }()
+}
 
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
@@ -55,10 +102,46 @@ func (s *Service) Stop() error { return nil }
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error { return nil }
 
-func (s *Service) BeaconSyncStatus() BlockchainSyncStatus {
-	return s.beaconStatus
-}
+// CheckSyncStatus returns the current relative sync status of the beacon and execution.
+func (s *Service) CheckSyncStatus(ctx context.Context) Status {
+	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 
-func (s *Service) ExecutionSyncStatus() BlockchainSyncStatus {
-	return s.executionStatus
+	// Get the latest finalized block from the execution chain.
+	elFinalized, _ := s.ethClient.HeaderByNumber(
+		ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+	if elFinalized == nil {
+		s.logger.Info("execution chain is waiting for a finalized block 😚")
+		return StatusWaiting
+	} else if bytes.Equal(elFinalized.Hash().Bytes(), finalHash[:]) {
+		// If the beacon chain and the execution chain have the same finalized block,
+		// then they are synced.
+		s.logger.Info(
+			"beacon and execution chains are synced ✅",
+			"finalized_hash", common.BytesToHash(finalHash[:]),
+		)
+		return StatusSynced
+	}
+
+	// Otherwise we need to check if the beacon chain is ahead of the execution chain.
+	// Get the latest finalized block from the beacon chain.
+	clFinalized, _ := s.ethClient.HeaderByHash(ctx, common.BytesToHash(finalHash[:]))
+	if clFinalized == nil || clFinalized.Number.Uint64() > elFinalized.Number.Uint64() {
+		s.logger.Info(
+			"block finalization on the beacon chain is ahead of the execution chain",
+			"finalized_beacon", clFinalized.Hash(),
+			"finalized_beacon_num", clFinalized.Number.Uint64(),
+			"finalized_execution", elFinalized.Hash(),
+			"finalized_execution_num", elFinalized.Number.Uint64(),
+		)
+		return StatusBeaconAhead
+	}
+
+	s.logger.Info(
+		"block finalization on the execution chain is ahead of the beacon chain",
+		"finalized_beacon", clFinalized.Hash(),
+		"finalized_beacon_num", clFinalized.Number.Uint64(),
+		"finalized_execution", elFinalized.Hash(),
+		"finalized_execution_num", elFinalized.Number.Uint64(),
+	)
+	return StatusExecutionAhead
 }

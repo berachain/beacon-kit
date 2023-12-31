@@ -36,7 +36,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
-	"github.com/itsdevbear/bolaris/beacon/initial-sync/status/eth1"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/types"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
@@ -117,15 +116,11 @@ func NewDefaultBeaconKitRuntime(
 	}
 
 	chainService := blockchain.NewService(chainOpts...)
-	ethSyncStatusOpts := []eth1.Option{
-		eth1.WithEthClient(eth1Client),
-		eth1.WithLogger(logger),
-	}
 
-	ethSyncStatus := eth1.NewSyncStatus(ethSyncStatusOpts...)
 	syncServiceOpts := []initialsync.Option{
-		initialsync.WithExecutionSyncStatus(ethSyncStatus),
 		initialsync.WithLogger(logger),
+		initialsync.WithEthClient(eth1Client),
+		initialsync.WithForkChoiceStoreProvider(fcsp),
 	}
 
 	// Build Sync Service

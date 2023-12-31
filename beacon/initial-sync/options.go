@@ -25,25 +25,28 @@
 
 package initialsync
 
-import "cosmossdk.io/log"
+import (
+	"context"
+	"math/big"
+
+	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+)
 
 // Option is a function that modifies the Service.
 type Option func(*Service) error
 
-// WithBeaconSyncStatus is an Option that sets the beacon
-// synchronization status of the Service.
-func WithBeaconSyncStatus(status BlockchainSyncStatus) Option {
-	return func(r *Service) error {
-		r.beaconStatus = status
-		return nil
-	}
+// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
+type ethClient interface {
+	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
+	HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error)
 }
 
-// WithExecutionSyncStatus is an Option that sets the execution
-// synchronization status of the Service.
-func WithExecutionSyncStatus(status BlockchainSyncStatus) Option {
-	return func(r *Service) error {
-		r.executionStatus = status
+// WithEthClient is an Option that sets the ethClient of the Service.
+func WithEthClient(ethClient ethClient) Option {
+	return func(s *Service) error {
+		s.ethClient = ethClient
 		return nil
 	}
 }
@@ -51,7 +54,16 @@ func WithExecutionSyncStatus(status BlockchainSyncStatus) Option {
 // WithLogger is an Option that sets the logger of the Service.
 func WithLogger(logger log.Logger) Option {
 	return func(r *Service) error {
-		r.logger = logger
+		r.logger = logger.With("module", "beacon-kit-sync")
+		return nil
+	}
+}
+
+// WithForkChoiceStoreProvider is an Option that sets the ForkChoiceStoreProvider
+// of the Service.
+func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
+	return func(r *Service) error {
+		r.fcsp = fcsp
 		return nil
 	}
 }

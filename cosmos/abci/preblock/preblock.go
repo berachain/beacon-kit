@@ -28,7 +28,6 @@ package preblock
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cosmossdk.io/log"
 
@@ -89,8 +88,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			"height", req.Height,
 		)
 
-		x, err2 := h.syncStatus.ExecutionSyncStatus().Syncing(ctx)
-		h.logger.Error(fmt.Sprintf("syncing: %v", x), "err", err2)
+		h.syncStatus.CheckSyncStatus(ctx)
 
 		beaconBlock, err := h.extractBeaconBlockFromRequest(req)
 		if err != nil {

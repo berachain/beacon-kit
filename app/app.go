@@ -235,6 +235,8 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	); err != nil {
 		panic(err)
 	}
+
+	app.BeaconKitRunner.StartServices()
 }
 
 // Close shuts down the application.

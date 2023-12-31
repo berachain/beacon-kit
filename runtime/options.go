@@ -46,7 +46,7 @@ func WithService(svc runtime.Service) Option {
 // WithLogger is an Option that sets the logger of the BeaconKitRuntime.
 func WithLogger(logger log.Logger) Option {
 	return func(r *BeaconKitRuntime) error {
-		r.logger = logger
+		r.logger = logger.With("module", "beacon-kit-runtime")
 		return nil
 	}
 }
