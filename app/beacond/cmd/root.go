@@ -71,7 +71,6 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	testapp "github.com/itsdevbear/bolaris/app"
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 
 	beaconcmd "github.com/itsdevbear/bolaris/cmd/beacon"
 	beaconconfig "github.com/itsdevbear/bolaris/config"
@@ -97,7 +96,6 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-				engine.NewCaller(),
 			),
 			depinject.Provide(),
 		),
@@ -360,7 +358,7 @@ func newApp(
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	return testapp.NewPolarisApp(
+	return testapp.NewBeaconKitApp(
 		logger, db, traceStore, true,
 		"",
 		appOpts,
@@ -397,13 +395,13 @@ func appExport(
 
 	var testApp *testapp.SimApp
 	if height != -1 {
-		testApp = testapp.NewPolarisApp(logger, db, traceStore, false, "", appOpts)
+		testApp = testapp.NewBeaconKitApp(logger, db, traceStore, false, "", appOpts)
 
 		if err := testApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		testApp = testapp.NewPolarisApp(logger, db, traceStore, true, "", appOpts)
+		testApp = testapp.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
 	}
 
 	return testApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)

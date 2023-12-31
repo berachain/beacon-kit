@@ -25,7 +25,10 @@
 
 package runtime
 
-import "github.com/prysmaticlabs/prysm/v4/runtime"
+import (
+	"cosmossdk.io/log"
+	"github.com/prysmaticlabs/prysm/v4/runtime"
+)
 
 // Option is a function that modifies the BeaconKitRuntime.
 type Option func(*BeaconKitRuntime) error
@@ -34,6 +37,25 @@ type Option func(*BeaconKitRuntime) error
 func WithService(svc runtime.Service) Option {
 	// The function returns an Option that, when called, registers the service and returns nil.
 	return func(r *BeaconKitRuntime) error {
-		return r.serviceRegistry.RegisterService(svc)
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		return r.services.RegisterService(svc)
+	}
+}
+
+// WithLogger is an Option that sets the logger of the BeaconKitRuntime.
+func WithLogger(logger log.Logger) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.logger = logger
+		return nil
+	}
+}
+
+// WithForkChoiceStoreProvider is an Option that sets the ForkChoiceStoreProvider
+// of the BeaconKitRuntime.
+func WithForkChoiceStoreProvider(fscp ForkChoiceStoreProvider) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.fscp = fscp
+		return nil
 	}
 }

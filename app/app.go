@@ -26,6 +26,7 @@
 package testapp
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -58,8 +59,9 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
-	polarruntime "github.com/itsdevbear/bolaris/cosmos/runtime"
+	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
+	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -85,7 +87,6 @@ var (
 // capabilities aren't needed for testing.
 type SimApp struct {
 	*runtime.App
-	*polarruntime.Polaris
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	txConfig          client.TxConfig
@@ -105,11 +106,12 @@ type SimApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// polaris required keeper
-	BeaconKeeper *beaconkeeper.Keeper
+	BeaconKeeper    *beaconkeeper.Keeper
+	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
 }
 
-// NewPolarisApp returns a reference to an initialized SimApp.
-func NewPolarisApp(
+// NewBeaconKitApp returns a reference to an initialized SimApp.
+func NewBeaconKitApp(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
@@ -119,11 +121,7 @@ func NewPolarisApp(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	var (
-		polaris = polarruntime.MustNew(appOpts, logger)
-		app     = &SimApp{
-			Polaris: polaris,
-		}
-
+		app        = &SimApp{}
 		appBuilder *runtime.AppBuilder
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
@@ -134,7 +132,6 @@ func NewPolarisApp(
 				appOpts,
 				// supply the logger
 				logger,
-				polaris,
 			),
 		)
 	)
@@ -164,13 +161,26 @@ func NewPolarisApp(
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// Setup Polaris Runtime.
-	if err := app.Polaris.Build(app.BaseApp, app.BeaconKeeper); err != nil {
+	/**** Start of BeaconKit Configuration ****/
+	beaconCfg, err := beaconkitconfig.ReadConfigFromAppOpts(appOpts)
+	if err != nil {
 		panic(err)
 	}
 
+	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
+		context.Background(), beaconCfg, app.BeaconKeeper, app.Logger(),
+	); err != nil {
+		panic(err)
+	}
+
+	if err = app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
+		panic(err)
+	}
+
+	/**** End of BeaconKit Configuration ****/
+
 	// register streaming services
-	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
+	if err = app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		panic(err)
 	}
 
@@ -181,7 +191,7 @@ func NewPolarisApp(
 	app.RegisterUpgradeHandlers()
 
 	// Load the app.
-	if err := app.Load(loadLatest); err != nil {
+	if err = app.Load(loadLatest); err != nil {
 		panic(err)
 	}
 

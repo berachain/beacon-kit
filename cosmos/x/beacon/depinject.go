@@ -30,7 +30,6 @@ import (
 	"cosmossdk.io/depinject"
 	store "cosmossdk.io/store/types"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/beacon/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 )
@@ -49,8 +48,6 @@ type DepInjectInput struct {
 	ModuleKey depinject.OwnModuleKey
 	Config    *modulev1alpha1.Module
 	Key       *store.KVStoreKey
-
-	ExecutionClient engine.Caller
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -64,7 +61,6 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
-		in.ExecutionClient,
 		in.Key,
 	)
 	m := NewAppModule(k)

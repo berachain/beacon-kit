@@ -107,6 +107,9 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return nil, err
 		}
 
+		if h.childHandler == nil {
+			return &sdk.ResponsePreBlock{}, nil
+		}
 		return h.childHandler(ctx, req)
 	}
 }

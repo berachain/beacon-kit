@@ -33,7 +33,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/store"
 	"github.com/itsdevbear/bolaris/types"
 )
@@ -42,19 +41,16 @@ var LatestForkChoiceKey = []byte("latestForkChoice") //nolint:gochecknoglobals /
 
 type (
 	Keeper struct {
-		executionClient engine.Caller
-		storeKey        storetypes.StoreKey
+		storeKey storetypes.StoreKey
 	}
 )
 
 // NewKeeper creates new instances of the polaris Keeper.
 func NewKeeper(
-	executionClient engine.Caller,
 	storeKey storetypes.StoreKey,
 ) *Keeper {
 	return &Keeper{
-		executionClient: executionClient,
-		storeKey:        storeKey,
+		storeKey: storeKey,
 	}
 }
 

@@ -45,6 +45,16 @@ func NewService(opts ...Option) *Service {
 	return s
 }
 
+// Start spawns any goroutines required by the service.
+func (s *Service) Start() {}
+
+// Stop terminates all goroutines belonging to the service,
+// blocking until they are all terminated.
+func (s *Service) Stop() error { return nil }
+
+// Status returns error if the service is not considered healthy.
+func (s *Service) Status() error { return nil }
+
 func (s *Service) BeaconSyncStatus() BlockchainSyncStatus {
 	return s.beaconStatus
 }

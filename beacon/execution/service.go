@@ -71,6 +71,16 @@ func New(opts ...Option) *Service {
 	return ec
 }
 
+// Start spawns any goroutines required by the service.
+func (s *Service) Start() {}
+
+// Stop terminates all goroutines belonging to the service,
+// blocking until they are all terminated.
+func (s *Service) Stop() error { return nil }
+
+// Status returns error if the service is not considered healthy.
+func (s *Service) Status() error { return nil }
+
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,

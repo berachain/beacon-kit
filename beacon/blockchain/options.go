@@ -34,9 +34,9 @@ import (
 // Option is a function type that takes a pointer to a Service and returns an error.
 type Option func(*Service) error
 
-// WithEngineNotifier is a function that returns an Option.
+// WithExecutionService is a function that returns an Option.
 // It sets the Service of the Service to the provided Service.
-func WithEngineNotifier(en ExecutionService) Option {
+func WithExecutionService(en ExecutionService) Option {
 	return func(s *Service) error {
 		s.en = en
 		return nil
