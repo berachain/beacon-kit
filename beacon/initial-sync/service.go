@@ -122,26 +122,36 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 		return StatusSynced
 	}
 
+	fields := []any{
+		"finalized_execution", elFinalized.Hash(),
+		"finalized_execution_num", elFinalized.Number.Uint64(),
+	}
+
 	// Otherwise we need to check if the beacon chain is ahead of the execution chain.
 	// Get the latest finalized block from the beacon chain.
 	clFinalized, _ := s.ethClient.HeaderByHash(ctx, common.BytesToHash(finalHash[:]))
 	if clFinalized == nil || clFinalized.Number.Uint64() > elFinalized.Number.Uint64() {
+		// Prevent nil pointer dereference.
+		if clFinalized != nil {
+			fields = append([]any{
+				"finalized_beacon", clFinalized.Hash(),
+				"finalized_beacon_num", clFinalized.Number.Uint64(),
+			}, fields...)
+		}
+
 		s.logger.Info(
 			"block finalization on the beacon chain is ahead of the execution chain",
-			"finalized_beacon", clFinalized.Hash(),
-			"finalized_beacon_num", clFinalized.Number.Uint64(),
-			"finalized_execution", elFinalized.Hash(),
-			"finalized_execution_num", elFinalized.Number.Uint64(),
+			fields...,
 		)
 		return StatusBeaconAhead
 	}
 
 	s.logger.Info(
 		"block finalization on the execution chain is ahead of the beacon chain",
-		"finalized_beacon", clFinalized.Hash(),
-		"finalized_beacon_num", clFinalized.Number.Uint64(),
-		"finalized_execution", elFinalized.Hash(),
-		"finalized_execution_num", elFinalized.Number.Uint64(),
+		append([]any{
+			"finalized_beacon", clFinalized.Hash(),
+			"finalized_beacon_num", clFinalized.Number.Uint64(),
+		}, fields...)...,
 	)
 	return StatusExecutionAhead
 }
