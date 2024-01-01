@@ -27,6 +27,7 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/runtime/dispatch"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
@@ -56,6 +57,14 @@ func WithLogger(logger log.Logger) Option {
 func WithForkChoiceStoreProvider(fscp ForkChoiceStoreProvider) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
+		return nil
+	}
+}
+
+// WithDispatcher is an Option that sets the GrandCentralDispatch of the BeaconKitRuntime.
+func WithDispatcher(dispatcher *dispatch.GrandCentralDispatch) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.dispatcher = dispatcher
 		return nil
 	}
 }

@@ -34,6 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/dispatch"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
@@ -45,22 +46,30 @@ import (
 type Service struct {
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// payloadCache is used to track currently building payload IDs for a given slot.
-	payloadCache *cache.ProposerPayloadIDsCache
 	// beaconCfg is the beacon chain configuration.
 	beaconCfg *config.Beacon
 	// etherbase is the address to which block rewards are sent.
 	etherbase common.Address
 	// logger is the logger for the service.
 	logger log.Logger
+
+	// Forkchoice Related Fields
+	//
 	// fcsp is the fork choice store provider.
 	fcsp forkchoiceStoreProvider
+	// payloadCache is used to track currently building payload IDs for a given slot.
+	payloadCache *cache.ProposerPayloadIDsCache
+	// fcd is the forkchoice dispatch queue. Anytime a forkchoice update is sent to the
+	// execution client, it must be sent through this queue to ensure that the ordering
+	// of forkchoice updates is respected.
+	fcd *dispatch.SingleDispatchQueue
 }
 
 // New creates a new Service with the provided options.
 func New(opts ...Option) *Service {
 	ec := &Service{
 		payloadCache: cache.NewProposerPayloadIDsCache(),
+		fcd:          dispatch.NewSingleDispatchQueue(),
 	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
@@ -86,10 +95,20 @@ func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
 	withAttrs, withRetry bool,
 ) (*enginev1.PayloadIDBytes, error) {
-	if withRetry {
-		return s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
-	}
-	return s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
+	var (
+		payloadIDBytes *enginev1.PayloadIDBytes
+		err            error
+	)
+
+	// Push the forkchoice request to the forkchoice dispatcher.
+	s.fcd.AsyncAndWait(func() {
+		if withRetry {
+			payloadIDBytes, err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
+		}
+		payloadIDBytes, err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
+	})
+
+	return payloadIDBytes, err
 }
 
 // NotifyNewPayload notifies the execution client of a new payload.

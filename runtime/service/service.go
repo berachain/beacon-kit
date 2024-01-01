@@ -23,53 +23,46 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth1
+package service
 
-import (
-	"context"
+// import (
+// 	"reflect"
 
-	"cosmossdk.io/log"
+// 	"cosmossdk.io/log"
 
-	"github.com/ethereum/go-ethereum"
-)
+// 	"github.com/itsdevbear/bolaris/runtime/dispatch"
+// )
 
-// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
-type ethClient interface {
-	ethereum.ChainSyncReader
-}
+// type BaseService struct {
+// 	logger   log.Logger
+// 	gcd      *dispatch.GrandCentralDispatch
+// 	channels []chan dispatch.Event
+// }
 
-// SyncStatus is a struct that holds the logger and the eth1client.
-type SyncStatus struct {
-	logger     log.Logger
-	eth1client ethClient
-}
+// // NewBaseService creates a new BaseService and applies the provided options.
+// func NewBaseService(
+// 	gcd *dispatch.GrandCentralDispatch,
+// 	logger log.Logger,
+// ) *BaseService {
+// 	return &BaseService{
+// 		gcd:    gcd,
+// 		logger: logger,
+// 	}
+// }
 
-// NewSyncStatus is a constructor function for SyncStatus. It takes an ethClient as an argument.
-func NewSyncStatus(opts ...Option) *SyncStatus {
-	ss := &SyncStatus{}
-	for _, opt := range opts {
-		if err := opt(ss); err != nil {
-			panic(err)
-		}
-	}
-	return ss
-}
+// // Logger returns the logger instance of the BaseService.
+// func (s *BaseService) Logger() log.Logger {
+// 	return s.logger
+// }
 
-// Syncing is a method of SyncStatus that returns the sync status of the execution client.
-func (s *SyncStatus) Syncing(ctx context.Context) (bool, error) {
-	sp, err := s.eth1client.SyncProgress(ctx)
-	if err != nil {
-		return false, err
-	}
+// // DispatchEvent sends a value to the feed associated with the provided key.
+// func (s *BaseService) DispatchEvent(value dispatch.Event) int {
+// 	return s.gcd.Dispatch(value)
+// }
 
-	// A nil response indicates that the client is not syncing.
-	if sp == nil {
-		return false, nil
-	}
-
-	s.logger.Error("Syncing Execution Client",
-		"currentBlock", sp.CurrentBlock,
-		"highestBlock", sp.HighestBlock)
-
-	return sp == nil, nil
-}
+// // SubscribeToEvent subscribes a channel to the feed associated with the provided key.
+// func (s *BaseService) SubscribeToEvent(key string, eventType reflect.Type) {
+// 	channel := make(chan dispatch.Event)
+// 	s.channels = append(s.channels, channel)
+// 	s.gcd.Subscribe(key, channel)
+// }

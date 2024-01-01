@@ -37,16 +37,18 @@ import (
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/dispatch"
 	"github.com/itsdevbear/bolaris/types"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
 // BeaconKitRuntime is a struct that holds the service registry.
 type BeaconKitRuntime struct {
-	mu       sync.Mutex
-	logger   log.Logger
-	fscp     ForkChoiceStoreProvider
-	services *runtime.ServiceRegistry
+	mu         sync.Mutex
+	logger     log.Logger
+	fscp       ForkChoiceStoreProvider
+	services   *runtime.ServiceRegistry
+	dispatcher *dispatch.GrandCentralDispatch
 }
 
 type ForkChoiceStoreProvider interface {
@@ -72,59 +74,57 @@ func NewBeaconKitRuntime(opts ...Option) (*BeaconKitRuntime, error) {
 func NewDefaultBeaconKitRuntime(
 	ctx context.Context, cfg *config.Config, fcsp ForkChoiceStoreProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
+	// Build the service dispatcher.
+	gcd, err := dispatch.NewGrandCentralDispatch(
+		dispatch.WithLogger(logger),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	jwtSecret, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create the eth1 client that will be used to interact with the execution client.
-	opts := []eth.Option{
+	eth1Client, err := eth.NewEth1Client(
+		ctx,
 		eth.WithHTTPEndpointAndJWTSecret(cfg.ExecutionClient.RPCDialURL, jwtSecret),
 		eth.WithLogger(logger),
 		eth.WithRequiredChainID(cfg.ExecutionClient.RequiredChainID),
-	}
-
-	eth1Client, err := eth.NewEth1Client(ctx, opts...)
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Engine Caller wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
-	engineCallerOpts := []engine.Option{
-		engine.WithEth1Client(eth1Client),
+	engineCaller := engine.NewCaller(engine.WithEth1Client(eth1Client),
 		engine.WithBeaconConfig(&cfg.BeaconConfig),
 		engine.WithLogger(logger),
-		engine.WithEngineTimeout(cfg.ExecutionClient.RPCTimeout),
-	}
-	engineCaller := engine.NewCaller(engineCallerOpts...)
+		engine.WithEngineTimeout(cfg.ExecutionClient.RPCTimeout))
 
-	executionOpts := []execution.Option{
+	// Build the execution service.
+	executionService := execution.New(
 		execution.WithBeaconConfig(&cfg.BeaconConfig),
 		execution.WithLogger(logger),
 		execution.WithForkChoiceStoreProvider(fcsp),
-		execution.WithEngineCaller(engineCaller),
-	}
-	executionService := execution.New(executionOpts...)
+		execution.WithEngineCaller(engineCaller))
 
 	// Build the blockchain service
-	chainOpts := []blockchain.Option{
+	chainService := blockchain.NewService(
 		blockchain.WithBeaconConfig(&cfg.BeaconConfig),
 		blockchain.WithLogger(logger),
 		blockchain.WithForkChoiceStoreProvider(fcsp),
 		blockchain.WithExecutionService(executionService),
-	}
+	)
 
-	chainService := blockchain.NewService(chainOpts...)
-
-	syncServiceOpts := []initialsync.Option{
+	// Build the sync service.
+	syncService := initialsync.NewService(
 		initialsync.WithLogger(logger),
 		initialsync.WithEthClient(eth1Client),
-		initialsync.WithForkChoiceStoreProvider(fcsp),
-	}
-
-	// Build Sync Service
-	syncService := initialsync.NewService(syncServiceOpts...)
+		initialsync.WithForkChoiceStoreProvider(fcsp))
 
 	return NewBeaconKitRuntime([]Option{
 		WithService(syncService),
@@ -132,6 +132,7 @@ func NewDefaultBeaconKitRuntime(
 		WithService(chainService),
 		WithLogger(logger),
 		WithForkChoiceStoreProvider(fcsp),
+		WithDispatcher(gcd),
 	}...)
 }
 
