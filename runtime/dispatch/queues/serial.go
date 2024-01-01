@@ -23,83 +23,70 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package dispatch
+package queues
 
 import (
 	"sync"
 	"time"
 )
 
-// Single dispatch queue.
-var _ Queue = (*SingleDispatchQueue)(nil)
-
-// SingleDispatchQueue is a dispatch queue that dispatches a single item at a time.
-// It respects the order of items added to the queue and will always
-// process the freshest item that was MOST recently added to the queue.
-type SingleDispatchQueue struct {
-	mu       sync.Mutex
-	item     chan WorkItem
+// SerialQueue is a serialized queue for dispatching work items.
+type SerialQueue struct {
+	queue    chan WorkItem  // Channel for dispatching work items.
 	wg       sync.WaitGroup // WaitGroup for tracking in-flight work items.
 	stopChan chan struct{}  // Channel for signaling stop.
+	stopped  bool           // Flag indicating if the queue has been stopped.
+	mu       sync.Mutex     // Mutex for protecting stopped flag.
 }
 
-// NewSingleDispatchQueue creates a new SingleDispatchQueue.
-func NewSingleDispatchQueue() *SingleDispatchQueue {
-	q := &SingleDispatchQueue{
-		item:     make(chan WorkItem, 1),
+// NewSerialDispatchQueue creates a new Queue and starts its worker goroutine.
+func NewSerialDispatchQueue() *SerialQueue {
+	q := &SerialQueue{
+		queue:    make(chan WorkItem),
 		stopChan: make(chan struct{}),
 	}
+
 	go func() {
 		for {
 			select {
 			case <-q.stopChan:
 				return
-			// No race condition exists between case item, ok := <-q.item in NewSingleDispatchQueue
-			// and the q.item <- item in Async. The select statement in NewSingleDispatchQueue
-			// listens for incoming items on the q.item channel in a separate goroutine and thus
-			// the operation is not affected by the mutex lock in Async.
-			case item, ok := <-q.item:
-				if ok {
+			case item := <-q.queue:
+				if item != nil {
 					item()
 					q.wg.Done()
 				}
 			}
 		}
 	}()
+
 	return q
 }
 
 // Async adds a work item to the queue to be executed asynchronously.
-func (q *SingleDispatchQueue) Async(item WorkItem) {
+func (q *SerialQueue) Async(execute WorkItem) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	// Remove the currently pending item before
-	// adding the new one to the channel.
-	select {
-	case <-q.item:
-		// Decrement the WaitGroup as corresponding wg.Add(1) from the item
-		// that is being removed from the channel is never called.
-		q.wg.Done()
-	default:
+	if q.stopped {
+		panic("Queue has been stopped")
 	}
 
-	// Push the new item.
 	q.wg.Add(1)
-	q.item <- item
+	q.queue <- execute
 }
 
 // AsyncAfter adds a work item to the queue to be executed after a specified duration.
-func (q *SingleDispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
+func (q *SerialQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
 	q.wg.Add(1)
 	go func() {
 		time.Sleep(deadline)
-		q.Async(execute)
+		q.queue <- execute
 	}()
 }
 
 // Sync adds a work item to the queue and waits for its execution to complete.
-func (q *SingleDispatchQueue) Sync(execute WorkItem) {
+func (q *SerialQueue) Sync(execute WorkItem) {
 	done := make(chan struct{})
 	q.Async(func() {
 		execute()
@@ -108,9 +95,35 @@ func (q *SingleDispatchQueue) Sync(execute WorkItem) {
 	<-done
 }
 
-// AsyncAndWait adds a work item to the queue to be executed asynchronously
-// and waits for its execution to complete.
-func (q *SingleDispatchQueue) AsyncAndWait(execute WorkItem) {
+// AsyncAndWait adds a work item to the queue and waits for all work items to complete.
+func (q *SerialQueue) AsyncAndWait(execute WorkItem) {
 	q.Async(execute)
+	q.wg.Wait()
+}
+
+// Stop stops the queue, preventing new work items from being added and waits for all
+// in-flight work items to complete.
+func (q *SerialQueue) Stop() {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	if q.stopped {
+		return
+	}
+
+	q.stopped = true
+
+	// Close the queue channel to stop receiving new tasks
+	close(q.queue)
+
+	// Drain the queue
+	for range q.queue {
+		q.wg.Done()
+	}
+
+	// Stop the worker
+	close(q.stopChan)
+
+	// Wait for all tasks to complete
 	q.wg.Wait()
 }

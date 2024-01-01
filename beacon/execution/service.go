@@ -34,7 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/dispatch"
+	"github.com/itsdevbear/bolaris/runtime/dispatch/queues"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
@@ -62,14 +62,14 @@ type Service struct {
 	// fcd is the forkchoice dispatch queue. Anytime a forkchoice update is sent to the
 	// execution client, it must be sent through this queue to ensure that the ordering
 	// of forkchoice updates is respected.
-	fcd *dispatch.SingleDispatchQueue
+	fcd *queues.SingleDispatchQueue
 }
 
 // New creates a new Service with the provided options.
 func New(opts ...Option) *Service {
 	ec := &Service{
 		payloadCache: cache.NewProposerPayloadIDsCache(),
-		fcd:          dispatch.NewSingleDispatchQueue(),
+		fcd:          queues.NewSingleDispatchQueue(),
 	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {

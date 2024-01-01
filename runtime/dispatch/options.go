@@ -42,7 +42,7 @@ func WithDispatchQueue(key string, q Queue) Option {
 // WithLogger sets the logger of the GrandCentralDispatch.
 func WithLogger(logger log.Logger) Option {
 	return func(gcd *GrandCentralDispatch) error {
-		gcd.logger = logger
+		gcd.logger = logger.With("module", "beacon-kit-gcd")
 		return nil
 	}
 }

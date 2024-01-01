@@ -30,16 +30,28 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/runtime/dispatch/queues"
 )
 
-const Global = "global"
+// GlobalQueueID is the identifier for the global queue.
+const GlobalQueueID = "global"
 
+// QueueType represents the type of a queue.
+type QueueType string
+
+// Constants for the different types of queues.
 const (
-	QueueTypeSingle = "single"
-	QueueTypeSerial = "serial"
-	QueueTypeConcur = "concurrent"
+	// QueueTypeSingle represents a single queue.
+	QueueTypeSingle QueueType = "single"
+
+	// QueueTypeSerial represents a serial queue.
+	QueueTypeSerial QueueType = "serial"
+
+	// QueueTypeConcur represents a concurrent queue.
+	QueueTypeConcur QueueType = "concurrent"
 )
 
+// GrandCentralDispatch is a structure that holds the mutex, logger and queues.
 type GrandCentralDispatch struct {
 	mu     sync.Mutex
 	logger log.Logger
@@ -57,7 +69,7 @@ func NewGrandCentralDispatch(opts ...Option) (*GrandCentralDispatch, error) {
 	}
 
 	// We create a global queue
-	gcd.queues[Global] = NewSerialQueue()
+	gcd.queues[GlobalQueueID] = queues.NewSerialDispatchQueue()
 
 	for _, opt := range opts {
 		if err := opt(gcd); err != nil {
@@ -69,7 +81,7 @@ func NewGrandCentralDispatch(opts ...Option) (*GrandCentralDispatch, error) {
 }
 
 // Dispatch sends a value to the feed associated with the provided key.
-func (gcd *GrandCentralDispatch) CreateQueue(style, id string) Queue {
+func (gcd *GrandCentralDispatch) CreateQueue(queueType QueueType, id string) Queue {
 	gcd.mu.Lock()
 	defer gcd.mu.Unlock()
 
@@ -80,11 +92,11 @@ func (gcd *GrandCentralDispatch) CreateQueue(style, id string) Queue {
 	}
 
 	var queue Queue
-	switch style {
+	switch queueType {
 	case QueueTypeSingle:
-		queue = NewSingleDispatchQueue()
+		queue = queues.NewSingleDispatchQueue()
 	case QueueTypeSerial:
-		queue = NewSerialQueue()
+		queue = queues.NewSerialDispatchQueue()
 	case QueueTypeConcur:
 		panic("not implemented")
 		// queue = NewConcurrentDispatchQueue()
@@ -92,6 +104,7 @@ func (gcd *GrandCentralDispatch) CreateQueue(style, id string) Queue {
 		panic("unknown queue type")
 	}
 
+	gcd.logger.Info("instantiated new queue", "id", id, "type", queueType)
 	gcd.queues[id] = queue
 	return queue
 }
@@ -101,7 +114,7 @@ func (gcd *GrandCentralDispatch) GetQueue(id string) Queue {
 	// Get the feed from the map.
 	queue, ok := gcd.queues[id]
 	if !ok {
-		gcd.queues[id] = NewSerialQueue()
+		return nil
 	}
 	return queue
 }

@@ -23,18 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package dispatch_test
+package queues_test
 
 import (
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/runtime/dispatch"
+	"github.com/itsdevbear/bolaris/runtime/dispatch/queues"
 )
 
 func TestDispatchQueue(t *testing.T) {
-	q := dispatch.NewSerialQueue()
+	q := queues.NewSerialDispatchQueue()
 
 	// Test Async
 	wg := &sync.WaitGroup{}
@@ -74,7 +74,7 @@ func TestDispatchQueue(t *testing.T) {
 }
 
 func TestDispatchQueue_Stop(t *testing.T) {
-	q := dispatch.NewSerialQueue()
+	q := queues.NewSerialDispatchQueue()
 
 	// Add some items to the queue
 	for i := 0; i < 10; i++ {
