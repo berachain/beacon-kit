@@ -241,8 +241,6 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 
 // Close shuts down the application.
 func (app *SimApp) Close() error {
-	// if pl := app.Polaris; pl != nil {
-	// 	return pl.Close()
-	// }
+	app.BeaconKitRunner.StopServices()
 	return app.BaseApp.Close()
 }

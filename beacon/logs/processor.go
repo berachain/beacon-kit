@@ -27,8 +27,9 @@ package logs
 
 import (
 	"context"
-	"log"
 	"math/big"
+
+	"cosmossdk.io/log"
 
 	"cosmossdk.io/errors"
 
@@ -45,7 +46,7 @@ import (
 
 // Processor is responsible for processing logs fr.
 type Processor struct {
-	logger     *log.Logger
+	logger     log.Logger
 	eth1Client *eth.Eth1Client
 	handlers   map[common.Address]callback.LogHandler
 }
@@ -64,7 +65,7 @@ func NewProcessor(opts ...Option) (*Processor, error) {
 	return s, nil
 }
 
-// ProcessSafeETH1Block processes logs from an eth1 block, but before doing so
+// ProcessFinalizedETH1Block processes logs from an eth1 block, but before doing so
 // it checks if the block is safe to process.
 func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.Int) error {
 	// Get the safe block number from the eth1 client.

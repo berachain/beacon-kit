@@ -26,39 +26,48 @@
 package notify
 
 import (
+	"cosmossdk.io/log"
+
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/itsdevbear/bolaris/runtime/dispatch"
 )
 
-// EventHandler is the interface that wraps the basic Handle method.
-type EventHandler interface {
-	HandleNotification(event interface{})
-}
-
-// eventHandlerQueuePair is a struct that holds an event handler and a queue ID.
-type eventHandlerQueuePair struct {
-	// handler is an object that implements the EventHandler interface.
-	handler EventHandler
-	// queueID is a string that identifies a dispatch queue.
-	queueID string
-}
-
+// Service represents the BeaconKit notification service. It is used to register
+// event feeds and handlers, and dispatch events to the handlers.
+// It leverages GrandCentralDispatch to dispatch events to handlers.
 type Service struct {
-	running  bool
-	feeds    map[string]*event.Feed
+	// running is a boolean that indicates whether the service is running or not.
+	running bool
+
+	// logger is an instance of the logger.
+	logger log.Logger
+
+	// feeds is a map that holds the event feeds.
+	feeds map[string]*event.Feed
+
+	// handlers is a map that holds the event handler queue pairs.
 	handlers map[string][]eventHandlerQueuePair
-	dispatch *dispatch.GrandCentralDispatch
-	stop     chan struct{}
+
+	// dispatch is an instance of GrandCentralDispatch.
+	gcd GrandCentralDispatch
+
+	// stop is a channel that is used to stop the service.
+	stop chan struct{}
 }
 
 // NewService creates a new Service.
-func NewService(dispatch *dispatch.GrandCentralDispatch) *Service {
-	return &Service{
+func NewService(opts ...Option) *Service {
+	s := &Service{
 		feeds:    make(map[string]*event.Feed),
 		handlers: make(map[string][]eventHandlerQueuePair),
-		dispatch: dispatch,
 		stop:     make(chan struct{}),
 	}
+
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			panic(err)
+		}
+	}
+	return s
 }
 
 // Start spawns any goroutines required by the service.
@@ -81,7 +90,7 @@ func (s *Service) Start() {
 					select {
 					case event := <-ch:
 						// Use the dispatch queue to call the handler's Handle method asynchronously
-						s.dispatch.GetQueue(pair.queueID).Async(func() {
+						s.gcd.GetQueue(pair.queueID).Async(func() {
 							pair.handler.HandleNotification(event)
 						})
 					case <-subscription.Err():
@@ -99,6 +108,7 @@ func (s *Service) Start() {
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
 func (s *Service) Stop() error {
+	s.logger.Info("stopping service...")
 	close(s.stop)
 	s.running = false
 	return nil

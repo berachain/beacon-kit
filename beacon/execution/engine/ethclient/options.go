@@ -53,7 +53,7 @@ func WithHTTPEndpointAndJWTSecret(endpointString string, secret []byte) Option {
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithLogger(logger log.Logger) Option {
 	return func(s *Eth1Client) error {
-		s.logger = logger
+		s.logger = logger.With("module", "beacon-kit-execution")
 		return nil
 	}
 }

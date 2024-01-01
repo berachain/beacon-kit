@@ -38,6 +38,7 @@ import (
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/dispatch"
+	"github.com/itsdevbear/bolaris/runtime/notify"
 	"github.com/itsdevbear/bolaris/types"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
@@ -74,16 +75,17 @@ func NewBeaconKitRuntime(opts ...Option) (*BeaconKitRuntime, error) {
 func NewDefaultBeaconKitRuntime(
 	ctx context.Context, cfg *config.Config, fcsp ForkChoiceStoreProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
+	// Get JWT Secret for eth1 connection.
+	jwtSecret, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
 		dispatch.WithLogger(logger),
 		dispatch.WithDispatchQueue("dispatch.forkchoice", dispatch.QueueTypeSerial),
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	jwtSecret, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +100,12 @@ func NewDefaultBeaconKitRuntime(
 	if err != nil {
 		return nil, err
 	}
+
+	// Build the Notification Service.
+	notificationService := notify.NewService(
+		notify.WithGCD(gcd),
+		notify.WithLogger(logger),
+	)
 
 	// Engine Caller wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
@@ -129,14 +137,16 @@ func NewDefaultBeaconKitRuntime(
 		initialsync.WithEthClient(eth1Client),
 		initialsync.WithForkChoiceStoreProvider(fcsp))
 
-	return NewBeaconKitRuntime([]Option{
+	// Pass all the services and options into the BeaconKitRuntime.
+	return NewBeaconKitRuntime(
 		WithService(syncService),
 		WithService(executionService),
 		WithService(chainService),
+		WithService(notificationService),
 		WithLogger(logger),
 		WithForkChoiceStoreProvider(fcsp),
 		WithDispatcher(gcd),
-	}...)
+	)
 }
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
@@ -146,9 +156,11 @@ func (r *BeaconKitRuntime) StartServices() {
 
 // StopServices stops all services in the BeaconKitRuntime's service registry.
 func (r *BeaconKitRuntime) StopServices() {
+	r.logger.Info("stopping all services")
 	r.services.StopAll()
 }
 
+// FetchService retrieves a service from the BeaconKitRuntime's service registry.
 func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 	return r.services.FetchService(service)
 }

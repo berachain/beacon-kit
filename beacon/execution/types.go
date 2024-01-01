@@ -28,11 +28,21 @@ package execution
 import (
 	"context"
 
+	"github.com/itsdevbear/bolaris/runtime/dispatch"
 	"github.com/itsdevbear/bolaris/types"
 )
 
+// forkchoiceStoreProvider is an interface that wraps the basic ForkChoiceStore method.
 type forkchoiceStoreProvider interface {
+	// ForkChoiceStore returns a fork choice store in the provided context.
 	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+}
+
+// GrandCentralDispatch is an interface that wraps the basic GetQueue method.
+// It is used to retrieve a dispatch queue by its ID.
+type GrandCentralDispatch interface {
+	// GetQueue returns a queue with the provided ID.
+	GetQueue(id string) dispatch.Queue
 }
 
 // NotifyForkchoiceUpdateArg is the argument for the forkchoice

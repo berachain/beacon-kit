@@ -32,11 +32,10 @@ import (
 	"cosmossdk.io/log"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/dispatch"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -58,17 +57,17 @@ type Service struct {
 	// fcsp is the fork choice store provider.
 	fcsp forkchoiceStoreProvider
 	// payloadCache is used to track currently building payload IDs for a given slot.
-	payloadCache *cache.ProposerPayloadIDsCache
+	payloadCache *cache.PayloadIDCache
 	// fcd is the forkchoice dispatch queue. Anytime a forkchoice update is sent to the
 	// execution client, it must be sent through this queue to ensure that the ordering
 	// of forkchoice updates is respected.
-	gcd *dispatch.GrandCentralDispatch
+	gcd GrandCentralDispatch
 }
 
 // New creates a new Service with the provided options.
 func New(opts ...Option) *Service {
 	ec := &Service{
-		payloadCache: cache.NewProposerPayloadIDsCache(),
+		payloadCache: cache.NewPayloadIDCache(),
 	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
@@ -84,7 +83,10 @@ func (s *Service) Start() {}
 
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
-func (s *Service) Stop() error { return nil }
+func (s *Service) Stop() error {
+	s.logger.Info("stopping service...")
+	return nil
+}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error { return nil }
@@ -139,9 +141,10 @@ func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ in
 func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	_, payloadID, found := s.payloadCache.GetProposerPayloadIDs(
+	payloadID, found := s.payloadCache.PayloadID(
 		slot, [32]byte{}, // TODO: support building on multiple heads as a safety fallback feature.
 	)
+
 	if !found {
 		return nil, nil, false, errors.New("payload not found")
 	}

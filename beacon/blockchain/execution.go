@@ -67,7 +67,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(ctx context.Context,
 	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
-	_, err := s.en.NotifyForkchoiceUpdate(
+	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
 			headHash, safeHash[:], finalHash[:],
@@ -77,6 +77,11 @@ func (s *Service) buildNewPayloadAtSlotWithParent(ctx context.Context,
 	)
 
 	if err != nil {
+		s.logger.Error("Failed to notify forkchoice update",
+			"finalized_hash", finalHash,
+			"safe_hash", safeHash,
+			"head_hash", headHash,
+			"error", err)
 		return nil, err
 	}
 
@@ -86,6 +91,10 @@ func (s *Service) buildNewPayloadAtSlotWithParent(ctx context.Context,
 	payload, _, _, err := s.en.GetBuiltPayload(
 		ctx, slot,
 	)
+	if err != nil {
+		s.logger.Error("Failed to get built payload", "error", err, "payload_id", payloadIDBytes)
+		return nil, err
+	}
 	return payload, err
 }
 

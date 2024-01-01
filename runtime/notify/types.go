@@ -23,40 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package notify
 
-import (
-	"cosmossdk.io/log"
+import "github.com/itsdevbear/bolaris/runtime/dispatch"
 
-	"github.com/itsdevbear/bolaris/config"
-)
-
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
+// GrandCentralDispatch is an interface that wraps the basic GetQueue method.
+// It is used to retrieve a dispatch queue by its ID.
+type GrandCentralDispatch interface {
+	// GetQueue returns a queue with the provided ID.
+	GetQueue(id string) dispatch.Queue
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
+// EventHandler is the interface that wraps the basic Handle method.
+type EventHandler interface {
+	HandleNotification(event interface{})
 }
 
-// Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.logger.Info("stopping service...")
-	return nil
+// eventHandlerQueuePair is a struct that holds an event handler and a queue ID.
+type eventHandlerQueuePair struct {
+	// handler is an object that implements the EventHandler interface.
+	handler EventHandler
+	// queueID is a string that identifies a dispatch queue.
+	queueID string
 }
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }

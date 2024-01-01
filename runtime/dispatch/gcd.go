@@ -104,7 +104,7 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 		panic("unknown queue type")
 	}
 
-	gcd.logger.Info("instantiated new queue", "id", id, "type", queueType)
+	gcd.logger.Info("intialized new dispatch queue", "id", id, "type", queueType)
 	gcd.queues[id] = queue
 	return queue
 }

@@ -26,7 +26,7 @@
 package logs
 
 import (
-	"log"
+	"cosmossdk.io/log"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -54,9 +54,9 @@ func WithHandlers(handlers map[common.Address]callback.LogHandler) Option {
 }
 
 // WithLogger is an Option that sets the logger for the Processor.
-func WithLogger(logger *log.Logger) Option {
+func WithLogger(logger log.Logger) Option {
 	return func(p *Processor) error {
-		p.logger = logger
+		p.logger = logger.With("module", "beacon-kit-log-processor")
 		return nil
 	}
 }

@@ -23,40 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package notify
 
-import (
-	"cosmossdk.io/log"
+import "cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/config"
-)
+type Option func(*Service) error
 
-type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
-	en        ExecutionService
-}
-
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
+// WithGCD is an option to set the GrandCentralDispatch for the Service.
+func WithGCD(gcd GrandCentralDispatch) Option {
+	return func(s *Service) error {
+		s.gcd = gcd
+		return nil
 	}
-	return s
 }
 
-// Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.logger.Info("stopping service...")
-	return nil
+// WithLogger is an option to set the logger for the Service.
+func WithLogger(logger log.Logger) Option {
+	return func(s *Service) error {
+		s.logger = logger.With("module", "beacon-kit-notify")
+		return nil
+	}
 }
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }
