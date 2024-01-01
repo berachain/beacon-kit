@@ -75,7 +75,7 @@ func (q *SingleDispatchQueue) Async(item WorkItem) {
 	// adding the new one to the channel.
 	select {
 	case <-q.item:
-		// Decrement the WaitGroup as corresponding wg.Add(1) from the item
+		// Decrement the WaitGroup as the corresponding wg.Add(1) from the item
 		// that is being removed from the channel is never called.
 		q.wg.Done()
 	default:

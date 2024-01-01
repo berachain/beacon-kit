@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/dispatch"
 )
 
 type Option func(*Service) error
@@ -62,6 +63,14 @@ func WithForkChoiceStoreProvider(fcsp forkchoiceStoreProvider) Option {
 func WithEngineCaller(ec engine.Caller) Option {
 	return func(s *Service) error {
 		s.engine = ec
+		return nil
+	}
+}
+
+// WithGCD is an option to set the GrandCentralDispatch for the Service.
+func WithGCD(gcd *dispatch.GrandCentralDispatch) Option {
+	return func(s *Service) error {
+		s.gcd = gcd
 		return nil
 	}
 }

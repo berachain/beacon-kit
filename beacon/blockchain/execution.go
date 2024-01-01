@@ -50,7 +50,7 @@ func (s *Service) BuildNextBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	lastFinalizedBlock := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	executionData, err := s.buildNewBlockOnTopOf(ctx, slot, lastFinalizedBlock[:])
+	executionData, err := s.buildNewPayloadAtSlotWithParent(ctx, slot, lastFinalizedBlock[:])
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (s *Service) BuildNextBlock(
 }
 
 // buildNewBlockOnTopOf constructs a new block on top of an existing head of the execution client.
-func (s *Service) buildNewBlockOnTopOf(ctx context.Context,
+func (s *Service) buildNewPayloadAtSlotWithParent(ctx context.Context,
 	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()

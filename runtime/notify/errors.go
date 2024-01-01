@@ -23,26 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package dispatch
+package notify
 
-import (
-	"cosmossdk.io/log"
+import "errors"
+
+var (
+	// ErrFeedNotFound is returned when a feed is not found.
+	ErrFeedNotFound = errors.New("feed not found")
+
+	// ErrRegisterFeedServiceStarted is returned when a feed is
+	// attempted to be registered after the service has started.
+	ErrRegisterFeedServiceStarted = errors.New(
+		"cannot register feed after service has started")
+
+	// ErrRegisterHandlerServiceStarted is returned when a handler
+	// is attempted to be registered after the service has started.
+	ErrRegisterHandlerServiceStarted = errors.New(
+		"cannot register handler after service has started")
 )
-
-type Option func(*GrandCentralDispatch) error
-
-// WithDispatchQueue adds a feed to the GrandCentralDispatch.
-func WithDispatchQueue(key string, q QueueType) Option {
-	return func(gcd *GrandCentralDispatch) error {
-		gcd.CreateQueue(key, q)
-		return nil
-	}
-}
-
-// WithLogger sets the logger of the GrandCentralDispatch.
-func WithLogger(logger log.Logger) Option {
-	return func(gcd *GrandCentralDispatch) error {
-		gcd.logger = logger.With("module", "beacon-kit-gcd")
-		return nil
-	}
-}

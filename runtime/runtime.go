@@ -77,6 +77,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
 		dispatch.WithLogger(logger),
+		dispatch.WithDispatchQueue("dispatch.forkchoice", dispatch.QueueTypeSerial),
 	)
 	if err != nil {
 		return nil, err
@@ -110,7 +111,9 @@ func NewDefaultBeaconKitRuntime(
 		execution.WithBeaconConfig(&cfg.BeaconConfig),
 		execution.WithLogger(logger),
 		execution.WithForkChoiceStoreProvider(fcsp),
-		execution.WithEngineCaller(engineCaller))
+		execution.WithEngineCaller(engineCaller),
+		execution.WithGCD(gcd),
+	)
 
 	// Build the blockchain service
 	chainService := blockchain.NewService(

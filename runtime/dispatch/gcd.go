@@ -81,13 +81,13 @@ func NewGrandCentralDispatch(opts ...Option) (*GrandCentralDispatch, error) {
 }
 
 // Dispatch sends a value to the feed associated with the provided key.
-func (gcd *GrandCentralDispatch) CreateQueue(queueType QueueType, id string) Queue {
+func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Queue {
 	gcd.mu.Lock()
 	defer gcd.mu.Unlock()
 
 	// Check to make sure the queue doesn't already exist.
-	_, ok := gcd.queues[id]
-	if !ok {
+	_, found := gcd.queues[id]
+	if found {
 		panic(fmt.Sprintf("queue already exists: %s", id))
 	}
 
