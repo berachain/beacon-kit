@@ -222,7 +222,7 @@ out
 **/temp/
 
 # hardhat
-**/cache/
+cache/
 
 # integration testing coverage
 coverage-test-unit-cover.txt

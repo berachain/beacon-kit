@@ -26,8 +26,10 @@
 package blockchain
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/itsdevbear/bolaris/beacon/execution"
@@ -35,9 +37,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	prsymexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-
-	"cosmossdk.io/core/header"
+	"golang.org/x/sync/errgroup"
 )
 
 // BuildNextBlock constructs the next block in the blockchain.
@@ -98,25 +98,104 @@ func (s *Service) buildNewPayloadAtSlotWithParent(ctx context.Context,
 	return payload, err
 }
 
-// ValidateProposedBeaconBlock checks the validity of a proposed beacon block.
-func (s *Service) ValidateProposedBeaconBlock(ctx context.Context,
-	block header.Info, header interfaces.ExecutionData,
-) (*enginev1.PayloadIDBytes, error) {
-	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
-	if err != nil {
-		if !errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
-			s.logger.Error("Failed to validate execution on block", "error", err)
-			return nil, err
+func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBlock) error {
+	// If we get any sort of error from the execution client, we bubble
+	// it up and reject the proposal, as we do not want to write a block
+	// finalization to the consensus layer that is invalid.
+
+	// TODO: Do we need to wait for the forkchoice to update?
+	eg, _ := errgroup.WithContext(ctx)
+
+	// var postState state.BeaconState
+	eg.Go(func() error {
+		err := s.validateStateTransition(ctx, block)
+		if err != nil {
+			s.logger.Error("failed to validate state transition", "error", err)
+			return err
+			// return errors.Wrapf(err, "failed to validate consensus state transition function")
 		}
-	} else if !isValidPayload {
-		return nil, prsymexecution.ErrInvalidPayloadStatus
+		return nil
+	})
+
+	var isValidPayload bool
+	eg.Go(func() error {
+		var err error
+		if isValidPayload, err = s.validateExecutionOnBlock(
+			ctx, block.ExecutionData(),
+		); err != nil {
+			s.logger.Error("failed to notify engine of new payload", "error", err)
+			return err
+		}
+		return nil
+	})
+
+	// Wait for the goroutines to finish.
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
-	finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
-	return s.en.NotifyForkchoiceUpdate(
-		ctx, primitives.Slot(block.Height),
-		execution.NewNotifyForkchoiceUpdateArg(
-			header.BlockHash(), safe[:], finalized[:],
-		), true, true)
+	s.logger.Info("Validation complete", "isValidPayload", isValidPayload)
+
+	if err := s.postBlockProcess(
+		ctx, block /*blockCopy, blockRoot, postState,*/, isValidPayload,
+	); err != nil {
+		// err := errors.Wrap(err, "could not process block")
+		// tracing.AnnotateError(span, err)
+		return err
+	}
+
+	return nil
+}
+
+// validateStateTransition validates the state transition of a given block.
+// TODO: add more rules and modularize, I am unsure if this is the best / correct place for this.
+// It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
+// but maybe not the most extensible.
+func (s *Service) validateStateTransition(
+	ctx context.Context, block interfaces.BeaconKitBlock,
+) error {
+	parentHash := block.ExecutionData().ParentHash()
+	finalizedHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	if !bytes.Equal(finalizedHash[:], parentHash) {
+		return fmt.Errorf(
+			"parent block with hash %x is not finalized, expected finalized hash %x",
+			parentHash, finalizedHash,
+		)
+	}
+	return nil
+}
+
+// ValidateProposedBeaconBlock checks the validity of a proposed beacon block.
+func (s *Service) validateExecutionOnBlock(ctx context.Context, header interfaces.ExecutionData,
+) (bool, error) {
+	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
+	if err != nil && errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
+		s.logger.Error("Failed to validate execution on block", "error", err)
+		return isValidPayload, err
+	} else if err != nil || !isValidPayload {
+		return isValidPayload, prsymexecution.ErrInvalidPayloadStatus
+	}
+	return isValidPayload, nil
+}
+
+func (s *Service) postBlockProcess(
+	ctx context.Context, block interfaces.BeaconKitBlock, isValidPayload bool,
+) error {
+	// todo: don't get slot off the execution data incase it's incorrect somehow.
+	_ = isValidPayload
+	slot := primitives.Slot(block.ExecutionData().BlockNumber())
+	headRoot := []byte{} // todo: get from forkchoice store. (stops proposer from double choicing)
+	if !bytes.Equal(block.ExecutionData().StateRoot(), headRoot) {
+		finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+		safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
+		_, err := s.en.NotifyForkchoiceUpdate(
+			ctx, slot,
+			execution.NewNotifyForkchoiceUpdateArg(
+				block.ExecutionData().BlockHash(), safe[:], finalized[:],
+			), true, true)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

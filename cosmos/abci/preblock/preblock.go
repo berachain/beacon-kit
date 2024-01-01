@@ -124,7 +124,7 @@ func (h *BeaconPreBlockHandler) extractBeaconBlockFromRequest(
 	block := &v1.BaseBeaconKitBlock{}
 	err := block.Unmarshal(beaconBlockData)
 	if err != nil {
-		h.logger.Error("failed to unmarshal block", "err", err)
+		h.logger.Error("failed to unmarshal block", "error", err)
 		return nil, err
 	}
 

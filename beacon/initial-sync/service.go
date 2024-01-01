@@ -78,7 +78,7 @@ func (s *Service) Start() {
 	// 			ctx := context.Background()
 	// 			status, err := s.CheckSyncStatus(ctx)
 	// 			if err != nil {
-	// 				s.logger.Error("Error checking sync status", "err", err)
+	// 				s.logger.Error("Error checking sync status", "error", err)
 	// 				continue
 	// 			}
 

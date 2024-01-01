@@ -47,7 +47,7 @@ retry:
 			time.Sleep(forkchoiceBackoff)
 			goto retry
 		}
-		s.logger.Error("failed to notify forkchoice update", "err", err)
+		s.logger.Error("failed to notify forkchoice update", "error", err)
 	}
 	return payloadID, err
 }
@@ -80,7 +80,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 		// todo: handle version.
 		attrs, err = s.getPayloadAttributes(ctx, nextSlot, uint64(time.Now().Unix()))
 		if err != nil {
-			s.logger.Error("failed to get payload attributes in notifyForkchoiceUpdated", "err", err)
+			s.logger.Error("failed to get payload attributes in notifyForkchoiceUpdated", "error", err)
 			return nil, err
 		}
 	} else {
@@ -92,7 +92,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 		case execution.ErrAcceptedSyncingPayloadStatus:
 			return payloadID, err
 		case execution.ErrInvalidPayloadStatus:
-			s.logger.Error("invalid payload status", "err", err)
+			s.logger.Error("invalid payload status", "error", err)
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
 			payloadID, err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
 				headHash: previousHead[:],
@@ -117,7 +117,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			//root: arg.headRoot, invalidAncestorRoots: invalidRoots}
 
 		default:
-			s.logger.Error("undefined execution engine error", "err", err)
+			s.logger.Error("undefined execution engine error", "error", err)
 			return nil, err
 		}
 	}

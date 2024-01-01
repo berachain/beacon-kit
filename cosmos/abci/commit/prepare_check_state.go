@@ -79,7 +79,7 @@ func (h *BeaconPrepareCheckStateHandler) PrepareCheckStater() sdk.PrepareCheckSt
 		// fcs := h.beaconKeeper.ForkChoiceStore(ctx)
 		// finalHash := fcs.GetFinalizedBlockHash()
 		// if err := h.beaconChain.FinalizeBlockAsync(ctx, ctx.HeaderInfo(), finalHash[:]); err != nil {
-		// 	h.logger.Error("failed to finalize block", "err", err)
+		// 	h.logger.Error("failed to finalize block", "error", err)
 		// 	panic(err)
 		// }
 

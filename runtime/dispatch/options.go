@@ -31,7 +31,7 @@ import (
 
 type Option func(*GrandCentralDispatch) error
 
-// WithDispatchQueue adds a feed to the GrandCentralDispatch.
+// WithDispatchQueue adds a queue to the GrandCentralDispatch.
 func WithDispatchQueue(key string, q QueueType) Option {
 	return func(gcd *GrandCentralDispatch) error {
 		gcd.CreateQueue(key, q)

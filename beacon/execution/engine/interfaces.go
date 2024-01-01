@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
@@ -38,6 +39,8 @@ import (
 // Caller defines a client that can interact with an Ethereum
 // execution node's engine engineCaller via JSON-RPC.
 type Caller interface {
+	// Engine API Related Methods
+	//
 	// NewPayload creates a new payload for the Ethereum execution node.
 	NewPayload(ctx context.Context, payload interfaces.ExecutionData,
 		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
@@ -51,4 +54,9 @@ type Caller interface {
 	// ExecutionBlockByHash retrieves the execution block by its hash.
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 		withTxs bool) (*pb.ExecutionBlock, error)
+
+	// Eth Namespace Methods
+	//
+	// BlockByHash retrieves the block by its hash.
+	HeaderByHash(ctx context.Context, hash common.Hash) (*gethcoretypes.Header, error)
 }

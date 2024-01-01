@@ -72,7 +72,7 @@ func (s *Eth1Client) connectionHealthLoop(ctx context.Context) {
 			if _, err := s.Client.ChainID(ctx); err != nil {
 				s.logger.Error("eth1 connection health check failed",
 					"dial-url", logs.MaskCredentialsLogging(s.cfg.currHTTPEndpoint.Url),
-					"err", err,
+					"error", err,
 				)
 				s.pollConnectionStatus(ctx)
 			}

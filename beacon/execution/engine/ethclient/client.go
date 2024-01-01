@@ -138,7 +138,7 @@ func (s *Eth1Client) pollConnectionStatus(ctx context.Context) {
 				logs.MaskCredentialsLogging(s.cfg.currHTTPEndpoint.Url))
 			currClient := s.rpcClient
 			if err := s.setupExecutionClientConnections(ctx, s.cfg.currHTTPEndpoint); err != nil {
-				s.logger.Error("Could not connect to execution client endpoint", "err", err)
+				s.logger.Error("Could not connect to execution client endpoint", "error", err)
 				continue
 			}
 			// Close previous client, if connection was successful.

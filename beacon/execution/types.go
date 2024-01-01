@@ -48,8 +48,11 @@ type GrandCentralDispatch interface {
 // NotifyForkchoiceUpdateArg is the argument for the forkchoice
 // update notification `notifyForkchoiceUpdate`.
 type NotifyForkchoiceUpdateArg struct {
-	headHash  []byte
-	safeHash  []byte
+	// headHash is the hash of the head block we are building ontop of.=
+	headHash []byte
+	// safeHash is the hash of the last safe block.
+	safeHash []byte
+	// finalHash is the hash of the last finalized block.
 	finalHash []byte
 }
 

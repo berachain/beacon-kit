@@ -68,14 +68,14 @@ func (h *Handler) PrepareProposalHandler(
 		ctx, primitives.Slot(req.Height), uint64(req.Time.UTC().Unix()),
 	)
 	if err != nil {
-		logger.Error("failed to build block", "err", err)
+		logger.Error("failed to build block", "error", err)
 		return nil, err
 	}
 
 	// Marshal the block into bytes.
 	bz, err := block.Marshal()
 	if err != nil {
-		logger.Error("failed to marshal block", "err", err)
+		logger.Error("failed to marshal block", "error", err)
 	}
 
 	// Run the remainder of the prepare proposal handler.
@@ -104,16 +104,16 @@ func (h *Handler) ProcessProposalHandler(
 	block := &consensusv1.BaseBeaconKitBlock{}
 	err := block.Unmarshal(bz)
 	if err != nil {
-		logger.Error("failed to unmarshal block", "err", err)
+		logger.Error("failed to unmarshal block", "error", err)
 	}
 
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	if _, err = h.beaconChain.ValidateProposedBeaconBlock(
-		ctx, ctx.HeaderInfo(), block.ExecutionData(),
+	if err = h.beaconChain.ReceiveBlock(
+		ctx, block,
 	); err != nil {
-		logger.Error("failed to validate block", "err", err)
+		logger.Error("failed to validate block", "error", err)
 
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
