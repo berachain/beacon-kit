@@ -221,8 +221,5 @@ out
 # docker test
 **/temp/
 
-# hardhat
-cache/
-
 # integration testing coverage
 coverage-test-unit-cover.txt
