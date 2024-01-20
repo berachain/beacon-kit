@@ -45,6 +45,7 @@ type ExecutionService interface {
 		ctx context.Context, slot primitives.Slot,
 		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry bool,
 	) (*enginev1.PayloadIDBytes, error)
+
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
 		preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/

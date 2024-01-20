@@ -63,8 +63,9 @@ func (s *Service) BuildNextBlock(
 }
 
 // buildNewBlockOnTopOf constructs a new block on top of an existing head of the execution client.
-func (s *Service) buildNewPayloadAtSlotWithParent(ctx context.Context,
-	slot primitives.Slot, headHash []byte) (interfaces.ExecutionData, error) {
+func (s *Service) buildNewPayloadAtSlotWithParent(
+	ctx context.Context, slot primitives.Slot, headHash []byte,
+) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
