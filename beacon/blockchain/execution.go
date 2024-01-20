@@ -102,9 +102,12 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBl
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
+	var (
+		eg, groupCtx   = errgroup.WithContext(ctx)
+		isValidPayload bool
+	)
 
 	// TODO: Do we need to wait for the forkchoice to update?
-	eg, groupCtx := errgroup.WithContext(ctx)
 
 	// var postState state.BeaconState
 	eg.Go(func() error {
@@ -117,7 +120,6 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBl
 		return nil
 	})
 
-	var isValidPayload bool
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
