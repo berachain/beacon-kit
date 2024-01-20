@@ -104,11 +104,11 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBl
 	// finalization to the consensus layer that is invalid.
 
 	// TODO: Do we need to wait for the forkchoice to update?
-	eg, _ := errgroup.WithContext(ctx)
+	eg, groupCtx := errgroup.WithContext(ctx)
 
 	// var postState state.BeaconState
 	eg.Go(func() error {
-		err := s.validateStateTransition(ctx, block)
+		err := s.validateStateTransition(groupCtx, block)
 		if err != nil {
 			s.logger.Error("failed to validate state transition", "error", err)
 			return err
@@ -121,7 +121,7 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBl
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			ctx, block.ExecutionData(),
+			groupCtx, block.ExecutionData(),
 		); err != nil {
 			s.logger.Error("failed to notify engine of new payload", "error", err)
 			return err
