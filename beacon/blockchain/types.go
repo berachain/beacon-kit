@@ -35,7 +35,7 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type ForkChoiceStoreProvider interface {
+type forkChoiceStoreProvider interface {
 	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
 }
 

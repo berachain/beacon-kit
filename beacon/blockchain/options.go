@@ -60,7 +60,7 @@ func WithLogger(logger log.Logger) Option {
 }
 
 // WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider for the Service.
-func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
+func WithForkChoiceStoreProvider(fcsp forkChoiceStoreProvider) Option {
 	return func(s *Service) error {
 		s.fcsp = fcsp
 		return nil

@@ -34,7 +34,7 @@ import (
 type Service struct {
 	beaconCfg *config.Beacon
 	logger    log.Logger
-	fcsp      ForkChoiceStoreProvider
+	fcsp      forkChoiceStoreProvider
 	en        ExecutionService
 }
 
