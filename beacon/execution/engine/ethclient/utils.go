@@ -39,6 +39,7 @@ import (
 // It returns an error if the file cannot be read or if the JWT secret is not valid.
 func LoadJWTSecret(filepath string, logger log.Logger) ([]byte, error) {
 	// Read the file.
+	//#nosec:G304 // false positive.
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		// Return an error if the file cannot be read.
