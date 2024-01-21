@@ -5,12 +5,11 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
-
-	_ "github.com/cosmos/gogoproto/gogoproto"
-	proto "github.com/cosmos/gogoproto/proto"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -25,7 +24,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState is the genesis-state for the x/oracle module, it takes a set of
-// predefined CurrencyPairGeneses.
+// predefined CurrencyPairGeneses
 type GenesisState struct {
 	// NextID is the next ID to be used for a CurrencyPair
 	Eth1GenesisHash string `protobuf:"bytes,1,opt,name=eth1_genesis_hash,json=eth1GenesisHash,proto3" json:"eth1_genesis_hash,omitempty"`

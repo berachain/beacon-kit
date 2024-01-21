@@ -25,11 +25,13 @@
 
 package types
 
+import "github.com/ethereum/go-ethereum/common"
+
 type ForkChoiceStore interface {
-	SetSafeBlockHash(safeBlockHash [32]byte)
-	GetSafeBlockHash() [32]byte
-	SetFinalizedBlockHash(finalizedBlockHash [32]byte)
-	GetFinalizedBlockHash() [32]byte
-	SetLastValidHead(lastValidHead [32]byte)
-	GetLastValidHead() [32]byte
+	SetSafeBlockHash(safeBlockHash common.Hash)
+	GetSafeBlockHash() common.Hash
+	SetFinalizedBlockHash(finalizedBlockHash common.Hash)
+	GetFinalizedBlockHash() common.Hash
+	SetLastValidHead(lastValidHead common.Hash)
+	GetLastValidHead() common.Hash
 }

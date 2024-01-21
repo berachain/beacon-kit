@@ -32,6 +32,7 @@ import (
 	"cosmossdk.io/log"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -96,7 +97,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		}
 
 		// Since the proposal passed, we want to mark the execution block as finalized.
-		h.markBlockAsFinalized(ctx, beaconBlock.ExecutionData().BlockHash())
+		h.markBlockAsFinalized(ctx, common.Hash(beaconBlock.ExecutionData().BlockHash()))
 
 		// Since the block is finalized, we can process the logs emitted by the
 		// execution layer and perform the desired state transitions on
@@ -131,12 +132,11 @@ func (h *BeaconPreBlockHandler) extractBeaconBlockFromRequest(
 	return block, nil
 }
 
-func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash []byte) {
+func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash common.Hash) {
 	store := h.keeper.ForkChoiceStore(ctx)
-	blockHash32 := [32]byte(blockHash)
-	store.SetFinalizedBlockHash(blockHash32)
-	store.SetSafeBlockHash(blockHash32)
-	store.SetLastValidHead(blockHash32)
+	store.SetFinalizedBlockHash(blockHash)
+	store.SetSafeBlockHash(blockHash)
+	store.SetLastValidHead(blockHash)
 }
 
 func (h *BeaconPreBlockHandler) processLogs(
