@@ -67,7 +67,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 		if payloadID != nil {
 			// TODO: support building on multiple heads as a safety fallback feature.
 			// Right now root is just empty bytes.
-			s.payloadCache.Set(slot, [32]byte{}, [8]byte(*payloadID))
+			s.payloadCache.Set(slot, [32]byte(arg.headHash), *payloadID)
 		}
 	}()
 

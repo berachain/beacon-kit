@@ -68,6 +68,8 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 ) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
+
+	// check to see if there is a payload ready?
 	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
