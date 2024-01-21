@@ -56,9 +56,9 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
 ) (*primitives.PayloadID, error) {
 	fc := &enginev1.ForkchoiceState{
-		HeadBlockHash:      arg.headHash,
-		SafeBlockHash:      arg.safeHash,
-		FinalizedBlockHash: arg.finalHash,
+		HeadBlockHash:      arg.headHash.Bytes(),
+		SafeBlockHash:      arg.safeHash.Bytes(),
+		FinalizedBlockHash: arg.finalHash.Bytes(),
 	}
 
 	// Cache payloads if we get a payloadID in our response.
@@ -95,7 +95,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			s.logger.Error("invalid payload status", "error", err)
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
 			payloadID, err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
-				headHash: previousHead[:],
+				headHash: previousHead,
 			}, withAttrs)
 
 			if err != nil {

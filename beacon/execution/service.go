@@ -120,7 +120,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetBuiltPayload(
-	ctx context.Context, slot primitives.Slot, headHash [32]byte,
+	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	payloadID, found := s.payloadCache.PayloadID(
 		slot, headHash, // TODO: support building on multiple heads as a safety fallback feature.
