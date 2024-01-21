@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
@@ -50,7 +51,7 @@ func (s *Service) BuildNextBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	lastFinalizedBlock := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	executionData, err := s.buildNewPayloadAtSlotWithParent(ctx, slot, lastFinalizedBlock[:])
+	executionData, err := s.buildNewPayloadAtSlotWithParent(ctx, slot, lastFinalizedBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -64,14 +65,16 @@ func (s *Service) BuildNextBlock(
 
 // buildNewBlockOnTopOf constructs a new block on top of an existing head of the execution client.
 func (s *Service) buildNewPayloadAtSlotWithParent(
-	ctx context.Context, slot primitives.Slot, headHash []byte,
+	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, error) {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
+
+	// check to see if there is a payload ready?
 	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
-			headHash, safeHash[:], finalHash[:],
+			headHash, safeHash, finalHash,
 		),
 		true,
 		true,
@@ -90,7 +93,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	time.Sleep(payloadBuildDelay * time.Second)
 
 	payload, _, _, err := s.en.GetBuiltPayload(
-		ctx, slot,
+		ctx, slot, headHash,
 	)
 	if err != nil {
 		s.logger.Error("Failed to get built payload", "error", err, "payload_id", payloadIDBytes)
@@ -194,7 +197,7 @@ func (s *Service) postBlockProcess(
 		_, err := s.en.NotifyForkchoiceUpdate(
 			ctx, slot,
 			execution.NewNotifyForkchoiceUpdateArg(
-				block.ExecutionData().BlockHash(), safe[:], finalized[:],
+				common.BytesToHash(block.ExecutionData().BlockHash()), safe, finalized,
 			), true, true)
 		if err != nil {
 			return err

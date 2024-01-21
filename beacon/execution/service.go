@@ -103,27 +103,27 @@ func (s *Service) NotifyForkchoiceUpdate(
 	withAttrs, withRetry bool,
 ) (*primitives.PayloadID, error) {
 	var (
-		payloadIDBytes *primitives.PayloadID
-		err            error
+		pid *primitives.PayloadID
+		err error
 	)
 
 	// Push the forkchoice request to the forkchoice dispatcher.
 	s.gcd.GetQueue(forkchoiceDispatchQueue).AsyncAndWait(func() {
 		if withRetry {
-			payloadIDBytes, err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
+			pid, err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
 		}
-		payloadIDBytes, err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
+		pid, err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
 	})
 
-	return payloadIDBytes, err
+	return pid, err
 }
 
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetBuiltPayload(
-	ctx context.Context, slot primitives.Slot,
+	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	payloadID, found := s.payloadCache.PayloadID(
-		slot, [32]byte{}, // TODO: support building on multiple heads as a safety fallback feature.
+		slot, headHash, // TODO: support building on multiple heads as a safety fallback feature.
 	)
 
 	if !found {

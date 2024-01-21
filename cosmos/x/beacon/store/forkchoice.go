@@ -27,13 +27,14 @@ package store
 
 import (
 	"cosmossdk.io/store"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Forkchoice represents the fork choice rule in the blockchain.
 type Forkchoice struct {
 	store store.KVStore
 
-	lastValidHead [32]byte
+	lastValidHead common.Hash
 }
 
 // NewForkchoice creates a new instance of Forkchoice.
@@ -44,43 +45,43 @@ func NewForkchoice(store store.KVStore) *Forkchoice {
 }
 
 // SetSafeBlockHash sets the safe block hash in the store.
-func (f *Forkchoice) SetSafeBlockHash(safeBlockHash [32]byte) {
+func (f *Forkchoice) SetSafeBlockHash(safeBlockHash common.Hash) {
 	f.store.Set([]byte("forkchoice_safe"), safeBlockHash[:])
 }
 
 // GetSafeBlockHash retrieves the safe block hash from the store.
-func (f *Forkchoice) GetSafeBlockHash() [32]byte {
+func (f *Forkchoice) GetSafeBlockHash() common.Hash {
 	bz := f.store.Get([]byte("forkchoice_safe"))
 	if bz == nil {
-		return [32]byte{}
+		return common.Hash{}
 	}
-	var safeBlockHash [32]byte
+	var safeBlockHash common.Hash
 	copy(safeBlockHash[:], bz)
 	return safeBlockHash
 }
 
 // SetFinalizedBlockHash sets the finalized block hash in the store.
-func (f *Forkchoice) SetFinalizedBlockHash(finalizedBlockHash [32]byte) {
+func (f *Forkchoice) SetFinalizedBlockHash(finalizedBlockHash common.Hash) {
 	f.store.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
 }
 
 // GetFinalizedBlockHash retrieves the finalized block hash from the store.
-func (f *Forkchoice) GetFinalizedBlockHash() [32]byte {
+func (f *Forkchoice) GetFinalizedBlockHash() common.Hash {
 	bz := f.store.Get([]byte("forkchoice_finalized"))
 	if bz == nil {
-		return [32]byte{}
+		return common.Hash{}
 	}
-	var finalizedBlockHash [32]byte
+	var finalizedBlockHash common.Hash
 	copy(finalizedBlockHash[:], bz)
 	return finalizedBlockHash
 }
 
 // SetLastValidHead sets the last valid head in the store.
-func (f *Forkchoice) SetLastValidHead(lastValidHead [32]byte) {
+func (f *Forkchoice) SetLastValidHead(lastValidHead common.Hash) {
 	f.lastValidHead = lastValidHead
 }
 
 // GetLastValidHead retrieves the last valid head from the store.
-func (f *Forkchoice) GetLastValidHead() [32]byte {
+func (f *Forkchoice) GetLastValidHead() common.Hash {
 	return f.lastValidHead
 }

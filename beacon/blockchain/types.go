@@ -28,6 +28,7 @@ package blockchain
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
@@ -53,6 +54,6 @@ type ExecutionService interface {
 
 	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
 	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot,
+		ctx context.Context, slot primitives.Slot, headHash common.Hash,
 	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
 }

@@ -28,6 +28,7 @@ package execution
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/runtime/dispatch"
 	"github.com/itsdevbear/bolaris/types"
 )
@@ -49,18 +50,18 @@ type GrandCentralDispatch interface {
 // update notification `notifyForkchoiceUpdate`.
 type NotifyForkchoiceUpdateArg struct {
 	// headHash is the hash of the head block we are building ontop of.=
-	headHash []byte
+	headHash common.Hash
 	// safeHash is the hash of the last safe block.
-	safeHash []byte
+	safeHash common.Hash
 	// finalHash is the hash of the last finalized block.
-	finalHash []byte
+	finalHash common.Hash
 }
 
 // NewNotifyForkchoiceUpdateArg creates a new NotifyForkchoiceUpdateArg.
 func NewNotifyForkchoiceUpdateArg(
-	headHash []byte,
-	safeHash []byte,
-	finalHash []byte,
+	headHash common.Hash,
+	safeHash common.Hash,
+	finalHash common.Hash,
 ) *NotifyForkchoiceUpdateArg {
 	return &NotifyForkchoiceUpdateArg{
 		headHash:  headHash,

@@ -54,6 +54,5 @@ var _ = Describe("Configuration", func() {
 		hdPath := params.String()
 
 		Expect(hdPath).To(Equal("m/44'/60'/0'/0/0"))
-		Expect(hdPath).To(Equal(60))
 	})
 })
