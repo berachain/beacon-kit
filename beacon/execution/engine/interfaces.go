@@ -47,7 +47,7 @@ type Caller interface {
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
 		ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
-	) (*pb.PayloadIDBytes, []byte, error)
+	) (*primitives.PayloadID, []byte, error)
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(ctx context.Context, payloadID [8]byte,
 		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
