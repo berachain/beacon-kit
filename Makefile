@@ -155,6 +155,8 @@ mockery:
 #    beacond     #
 #################
 
+# TODO: add start-erigon, start-besu and start-nethermind
+
 start:
 	@./app/entrypoint.sh
 
