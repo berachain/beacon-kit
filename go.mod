@@ -11,6 +11,8 @@ require (
 	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
 	github.com/bufbuild/buf v1.28.1
+	github.com/cosmos/cosmos-proto v1.0.0-beta.3
+	github.com/cosmos/cosmos-sdk v0.50.3
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.10
 	github.com/golangci/golangci-lint v1.55.2
@@ -38,8 +40,6 @@ require (
 	cosmossdk.io/x/tx v0.13.0 // indirect
 	github.com/cometbft/cometbft v0.38.2
 	github.com/cosmos/cosmos-db v1.0.0
-	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.50.3
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/golang/mock v1.6.0 // indirect
