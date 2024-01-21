@@ -7,7 +7,7 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 require (
 	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508
-	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
 	github.com/bufbuild/buf v1.28.1
