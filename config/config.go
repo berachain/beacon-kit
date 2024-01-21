@@ -30,6 +30,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/cmd/flags"
+	"github.com/spf13/cobra"
 )
 
 // Config is the main configuration struct for the Polaris chain.
@@ -98,6 +99,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	return readConfigFromAppOptsParser(AppOptionsParser{AppOptions: opts})
 }
 
+// TODO: cleanup parsing logic.
 func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 	var err error
 	conf := &Config{}
@@ -149,4 +151,15 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 	}
 
 	return conf, nil
+}
+
+// AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
+func AddBeaconKitFlags(startCmd *cobra.Command) {
+	defaultCfg := DefaultConfig().ExecutionClient
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.JWTSecretPath,
+		"path to the execution client secret")
+	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.RPCRetries, "rpc retries")
+	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.RequiredChainID, "required chain id")
 }

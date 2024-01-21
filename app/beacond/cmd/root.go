@@ -72,7 +72,6 @@ import (
 
 	testapp "github.com/itsdevbear/bolaris/app"
 
-	beaconcmd "github.com/itsdevbear/bolaris/cmd/beacon"
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 	beacontemplate "github.com/itsdevbear/bolaris/config/template"
 )
@@ -260,7 +259,7 @@ func initRootCmd(
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
-	beaconcmd.AddBeaconKitFlags(startCmd)
+	beaconconfig.AddBeaconKitFlags(startCmd)
 }
 
 // add server commands.
