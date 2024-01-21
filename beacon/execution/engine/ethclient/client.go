@@ -87,7 +87,7 @@ func (s *Eth1Client) Start(ctx context.Context) {
 	for {
 		if err := s.setupExecutionClientConnections(s.ctx, s.cfg.currHTTPEndpoint); err != nil {
 			s.logger.Info("Waiting for connection to execution client...",
-				"dial-url", logs.MaskCredentialsLogging(s.cfg.currHTTPEndpoint.Url))
+				"dial-url", logs.MaskCredentialsLogging(s.cfg.currHTTPEndpoint.Url), "err", err)
 			time.Sleep(backOffPeriod * time.Second)
 			continue
 		}
