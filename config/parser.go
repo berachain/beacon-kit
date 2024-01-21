@@ -39,6 +39,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// TODO: Move this to a common package for parsing utils.
+
 // baseTen is for the big.Int string conversation.
 const baseTen = 10
 
