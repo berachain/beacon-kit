@@ -18,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.21.5
+ARG GO_VERSION=1.21.6
 ARG RUNNER_IMAGE=alpine
 ARG BUILD_TAGS="netgo,ledger,muslc"
 ARG GOARCH=amd64

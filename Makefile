@@ -64,7 +64,7 @@ proto-build:
 # Variables
 DOCKER_TYPE ?= base
 ARCH ?= arm64
-GO_VERSION ?= 1.21.5
+GO_VERSION ?= 1.21.6
 IMAGE_NAME ?= beacond
 IMAGE_VERSION ?= v0.0.0
 BASE_IMAGE ?= beacond/base:$(IMAGE_VERSION)
