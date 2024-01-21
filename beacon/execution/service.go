@@ -62,12 +62,15 @@ type Service struct {
 	// execution client, it must be sent through this queue to ensure that the ordering
 	// of forkchoice updates is respected.
 	gcd GrandCentralDispatch
+
+	stopCh chan *struct{}
 }
 
 // New creates a new Service with the provided options.
 func New(opts ...Option) *Service {
 	ec := &Service{
 		payloadCache: cache.NewPayloadIDCache(),
+		stopCh:       make(chan *struct{}),
 	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
@@ -79,12 +82,15 @@ func New(opts ...Option) *Service {
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
+func (s *Service) Start() {
+	go s.loop()
+}
 
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
 func (s *Service) Stop() error {
 	s.logger.Info("stopping service...")
+	<-s.stopCh
 	return nil
 }
 

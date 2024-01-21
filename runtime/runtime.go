@@ -43,7 +43,8 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
-// BeaconKitRuntime is a struct that holds the service registry.
+// BeaconKitRuntime is a struct that holds the
+// service registry.
 type BeaconKitRuntime struct {
 	mu         sync.Mutex
 	logger     log.Logger
@@ -56,8 +57,11 @@ type ForkChoiceStoreProvider interface {
 	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
 }
 
-// NewBeaconKitRuntime creates a new BeaconKitRuntime and applies the provided options.
-func NewBeaconKitRuntime(opts ...Option) (*BeaconKitRuntime, error) {
+// NewBeaconKitRuntime creates a new BeaconKitRuntime
+// and applies the provided options.
+func NewBeaconKitRuntime(
+	opts ...Option,
+) (*BeaconKitRuntime, error) {
 	bkr := &BeaconKitRuntime{
 		services: runtime.NewServiceRegistry(),
 	}
