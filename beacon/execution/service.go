@@ -32,9 +32,9 @@ import (
 	"cosmossdk.io/log"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/types/cache"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -83,7 +83,7 @@ func New(opts ...Option) *Service {
 
 // Start spawns any goroutines required by the service.
 func (s *Service) Start() {
-	go s.loop()
+	// go s.loop()
 }
 
 // Stop terminates all goroutines belonging to the service,

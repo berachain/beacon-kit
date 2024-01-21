@@ -158,6 +158,22 @@ mockery:
 start:
 	@./app/entrypoint.sh
 
+start-reth:
+	@rm -rf .tmp/eth-home
+	@docker run \
+	-p 8551:8551 \
+	-p 8545:8545 \
+	--rm -v $(PWD)/app:/app \
+	ghcr.io/paradigmxyz/reth node \
+	--chain ./app/eth-genesis.json \
+	--datadir .tmp/eth-home \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret ./app/jwt.hex
+	
+
 #################
 #     unit      #
 #################
