@@ -34,8 +34,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types/cache"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -101,9 +101,9 @@ func (s *Service) Status() error { return nil }
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
 	withAttrs, withRetry bool,
-) (*enginev1.PayloadIDBytes, error) {
+) (*primitives.PayloadID, error) {
 	var (
-		payloadIDBytes *enginev1.PayloadIDBytes
+		payloadIDBytes *primitives.PayloadID
 		err            error
 	)
 

@@ -141,7 +141,7 @@ func (s *engineCaller) NewPayload(
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineCaller) ForkchoiceUpdated(
 	ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
-) (*pb.PayloadIDBytes, []byte, error) {
+) (*primitives.PayloadID, []byte, error) {
 	d := time.Now().Add(
 		time.Duration(
 			s.engineTimeout,
@@ -201,7 +201,8 @@ func (s *engineCaller) ForkchoiceUpdated(
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
-		return result.PayloadId, resp.GetLatestValidHash(), nil
+		pid := primitives.PayloadID(*result.PayloadId)
+		return &pid, resp.GetLatestValidHash(), nil
 	case pb.PayloadStatus_UNKNOWN:
 		return nil, nil, execution.ErrUnknownPayloadStatus
 	case pb.PayloadStatus_INVALID_BLOCK_HASH:
@@ -224,7 +225,7 @@ func (s *engineCaller) GetPayload(
 	if primitives.Epoch(slot) >= s.beaconCfg.DenebForkEpoch {
 		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))
+			result, execution.GetPayloadMethodV3, primitives.PayloadID(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -239,7 +240,7 @@ func (s *engineCaller) GetPayload(
 	if primitives.Epoch(slot) >= s.beaconCfg.CapellaForkEpoch {
 		result := &pb.ExecutionPayloadCapellaWithValue{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadID))
+			result, execution.GetPayloadMethodV2, primitives.PayloadID(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -253,7 +254,7 @@ func (s *engineCaller) GetPayload(
 
 	result := &pb.ExecutionPayload{}
 	err := s.Eth1Client.Client.Client().CallContext(ctx,
-		result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadID))
+		result, execution.GetPayloadMethod, primitives.PayloadID(payloadID))
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
@@ -270,6 +271,6 @@ func (s *engineCaller) ExecutionBlockByHash(ctx context.Context, hash common.Has
 ) (*pb.ExecutionBlock, error) {
 	result := &pb.ExecutionBlock{}
 	err := s.Eth1Client.Client.Client().CallContext(
-		ctx, result, execution.ExecutionBlockByHashMethod, hash, withTxs)
+		ctx, result, "eth_getBlockByHash", hash, withTxs)
 	return result, s.handleRPCError(err)
 }

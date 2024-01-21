@@ -38,7 +38,7 @@ import (
 
 func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
-) (*enginev1.PayloadIDBytes, error) {
+) (*primitives.PayloadID, error) {
 retry:
 	payloadID, err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
 	if err != nil {
@@ -54,7 +54,7 @@ retry:
 
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
-) (*enginev1.PayloadIDBytes, error) {
+) (*primitives.PayloadID, error) {
 	fc := &enginev1.ForkchoiceState{
 		HeadBlockHash:      arg.headHash,
 		SafeBlockHash:      arg.safeHash,
@@ -62,7 +62,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	}
 
 	// Cache payloads if we get a payloadID in our response.
-	var payloadID *enginev1.PayloadIDBytes
+	var payloadID *primitives.PayloadID
 	defer func() {
 		if payloadID != nil {
 			// TODO: support building on multiple heads as a safety fallback feature.
