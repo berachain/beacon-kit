@@ -92,7 +92,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	time.Sleep(payloadBuildDelay * time.Second)
 
 	payload, _, _, err := s.en.GetBuiltPayload(
-		ctx, slot,
+		ctx, slot, [32]byte(headHash),
 	)
 	if err != nil {
 		s.logger.Error("Failed to get built payload", "error", err, "payload_id", payloadIDBytes)

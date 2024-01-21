@@ -44,7 +44,7 @@ type ExecutionService interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context, slot primitives.Slot,
 		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry bool,
-	) (*enginev1.PayloadIDBytes, error)
+	) (*primitives.PayloadID, error)
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
@@ -53,6 +53,6 @@ type ExecutionService interface {
 
 	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
 	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot,
+		ctx context.Context, slot primitives.Slot, headHash [32]byte,
 	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
 }
