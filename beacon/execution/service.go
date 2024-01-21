@@ -32,9 +32,9 @@ import (
 	"cosmossdk.io/log"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/types/cache"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -83,14 +83,14 @@ func New(opts ...Option) *Service {
 
 // Start spawns any goroutines required by the service.
 func (s *Service) Start() {
-	go s.loop()
+	// go s.loop()
 }
 
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
 func (s *Service) Stop() error {
 	s.logger.Info("stopping service...")
-	<-s.stopCh
+	// <-s.stopCh
 	return nil
 }
 
@@ -118,6 +118,20 @@ func (s *Service) NotifyForkchoiceUpdate(
 	return payloadIDBytes, err
 }
 
+// GetBuiltPayload returns the payload and blobs bundle for the given slot.
+func (s *Service) GetBuiltPayload(
+	ctx context.Context, slot primitives.Slot,
+) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+	payloadID, found := s.payloadCache.PayloadID(
+		slot, [32]byte{}, // TODO: support building on multiple heads as a safety fallback feature.
+	)
+
+	if !found {
+		return nil, nil, false, errors.New("payload not found")
+	}
+	return s.engine.GetPayload(ctx, payloadID, slot)
+}
+
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
@@ -141,18 +155,4 @@ func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ in
 	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
 		[]common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
-}
-
-// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetBuiltPayload(
-	ctx context.Context, slot primitives.Slot,
-) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.PayloadID(
-		slot, [32]byte{}, // TODO: support building on multiple heads as a safety fallback feature.
-	)
-
-	if !found {
-		return nil, nil, false, errors.New("payload not found")
-	}
-	return s.engine.GetPayload(ctx, payloadID, slot)
 }

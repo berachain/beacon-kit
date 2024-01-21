@@ -107,8 +107,11 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 
 	// Get the latest finalized block from the execution chain.
-	elFinalized, _ := s.ethClient.HeaderByNumber(
+	elFinalized, err := s.ethClient.HeaderByNumber(
 		ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+	if err != nil {
+		s.logger.Error("Error getting latest finalized block from execution chain", "error", err)
+	}
 	if elFinalized == nil {
 		s.logger.Info("execution chain is waiting for a finalized block 😚")
 		return StatusWaiting

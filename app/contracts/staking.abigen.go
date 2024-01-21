@@ -204,42 +204,42 @@ func (_Staking *StakingTransactorRaw) Transact(opts *bind.TransactOpts, method s
 
 // DelegateFn is a paid mutator transaction binding the contract method 0xb9da3dc2.
 //
-// Solidity: function delegateFn(string operatorAddress, uint256 amount) returns()
+// Solidity: function delegateFn(string operatorAddress, uint256 amount) returns().
 func (_Staking *StakingTransactor) DelegateFn(opts *bind.TransactOpts, operatorAddress string, amount *big.Int) (*types.Transaction, error) {
 	return _Staking.contract.Transact(opts, "delegateFn", operatorAddress, amount)
 }
 
 // DelegateFn is a paid mutator transaction binding the contract method 0xb9da3dc2.
 //
-// Solidity: function delegateFn(string operatorAddress, uint256 amount) returns()
+// Solidity: function delegateFn(string operatorAddress, uint256 amount) returns().
 func (_Staking *StakingSession) DelegateFn(operatorAddress string, amount *big.Int) (*types.Transaction, error) {
 	return _Staking.Contract.DelegateFn(&_Staking.TransactOpts, operatorAddress, amount)
 }
 
 // DelegateFn is a paid mutator transaction binding the contract method 0xb9da3dc2.
 //
-// Solidity: function delegateFn(string operatorAddress, uint256 amount) returns()
+// Solidity: function delegateFn(string operatorAddress, uint256 amount) returns().
 func (_Staking *StakingTransactorSession) DelegateFn(operatorAddress string, amount *big.Int) (*types.Transaction, error) {
 	return _Staking.Contract.DelegateFn(&_Staking.TransactOpts, operatorAddress, amount)
 }
 
 // UndelegateFn is a paid mutator transaction binding the contract method 0x0feae41b.
 //
-// Solidity: function undelegateFn(string operatorAddress, uint256 amount) returns()
+// Solidity: function undelegateFn(string operatorAddress, uint256 amount) returns().
 func (_Staking *StakingTransactor) UndelegateFn(opts *bind.TransactOpts, operatorAddress string, amount *big.Int) (*types.Transaction, error) {
 	return _Staking.contract.Transact(opts, "undelegateFn", operatorAddress, amount)
 }
 
 // UndelegateFn is a paid mutator transaction binding the contract method 0x0feae41b.
 //
-// Solidity: function undelegateFn(string operatorAddress, uint256 amount) returns()
+// Solidity: function undelegateFn(string operatorAddress, uint256 amount) returns().
 func (_Staking *StakingSession) UndelegateFn(operatorAddress string, amount *big.Int) (*types.Transaction, error) {
 	return _Staking.Contract.UndelegateFn(&_Staking.TransactOpts, operatorAddress, amount)
 }
 
 // UndelegateFn is a paid mutator transaction binding the contract method 0x0feae41b.
 //
-// Solidity: function undelegateFn(string operatorAddress, uint256 amount) returns()
+// Solidity: function undelegateFn(string operatorAddress, uint256 amount) returns().
 func (_Staking *StakingTransactorSession) UndelegateFn(operatorAddress string, amount *big.Int) (*types.Transaction, error) {
 	return _Staking.Contract.UndelegateFn(&_Staking.TransactOpts, operatorAddress, amount)
 }
@@ -320,9 +320,8 @@ type StakingDelegate struct {
 
 // FilterDelegate is a free log retrieval operation binding the contract event 0xe7e9c5a6880a7c4d7787acf85fb43d54e090f90ba1abec26d8d5d9cb9d1a0904.
 //
-// Solidity: event Delegate(string operatorAddress, uint256 amount)
+// Solidity: event Delegate(string operatorAddress, uint256 amount).
 func (_Staking *StakingFilterer) FilterDelegate(opts *bind.FilterOpts) (*StakingDelegateIterator, error) {
-
 	logs, sub, err := _Staking.contract.FilterLogs(opts, "Delegate")
 	if err != nil {
 		return nil, err
@@ -332,9 +331,8 @@ func (_Staking *StakingFilterer) FilterDelegate(opts *bind.FilterOpts) (*Staking
 
 // WatchDelegate is a free log subscription operation binding the contract event 0xe7e9c5a6880a7c4d7787acf85fb43d54e090f90ba1abec26d8d5d9cb9d1a0904.
 //
-// Solidity: event Delegate(string operatorAddress, uint256 amount)
+// Solidity: event Delegate(string operatorAddress, uint256 amount).
 func (_Staking *StakingFilterer) WatchDelegate(opts *bind.WatchOpts, sink chan<- *StakingDelegate) (event.Subscription, error) {
-
 	logs, sub, err := _Staking.contract.WatchLogs(opts, "Delegate")
 	if err != nil {
 		return nil, err
@@ -369,7 +367,7 @@ func (_Staking *StakingFilterer) WatchDelegate(opts *bind.WatchOpts, sink chan<-
 
 // ParseDelegate is a log parse operation binding the contract event 0xe7e9c5a6880a7c4d7787acf85fb43d54e090f90ba1abec26d8d5d9cb9d1a0904.
 //
-// Solidity: event Delegate(string operatorAddress, uint256 amount)
+// Solidity: event Delegate(string operatorAddress, uint256 amount).
 func (_Staking *StakingFilterer) ParseDelegate(log types.Log) (*StakingDelegate, error) {
 	event := new(StakingDelegate)
 	if err := _Staking.contract.UnpackLog(event, "Delegate", log); err != nil {
@@ -455,9 +453,8 @@ type StakingUndelegate struct {
 
 // FilterUndelegate is a free log retrieval operation binding the contract event 0x5e3b2166f1015d5880455f71c4745d2b76ed6139db23aef0d5eb6ae60592a309.
 //
-// Solidity: event Undelegate(string operatorAddress, uint256 amount)
+// Solidity: event Undelegate(string operatorAddress, uint256 amount).
 func (_Staking *StakingFilterer) FilterUndelegate(opts *bind.FilterOpts) (*StakingUndelegateIterator, error) {
-
 	logs, sub, err := _Staking.contract.FilterLogs(opts, "Undelegate")
 	if err != nil {
 		return nil, err
@@ -467,9 +464,8 @@ func (_Staking *StakingFilterer) FilterUndelegate(opts *bind.FilterOpts) (*Staki
 
 // WatchUndelegate is a free log subscription operation binding the contract event 0x5e3b2166f1015d5880455f71c4745d2b76ed6139db23aef0d5eb6ae60592a309.
 //
-// Solidity: event Undelegate(string operatorAddress, uint256 amount)
+// Solidity: event Undelegate(string operatorAddress, uint256 amount).
 func (_Staking *StakingFilterer) WatchUndelegate(opts *bind.WatchOpts, sink chan<- *StakingUndelegate) (event.Subscription, error) {
-
 	logs, sub, err := _Staking.contract.WatchLogs(opts, "Undelegate")
 	if err != nil {
 		return nil, err
@@ -504,7 +500,7 @@ func (_Staking *StakingFilterer) WatchUndelegate(opts *bind.WatchOpts, sink chan
 
 // ParseUndelegate is a log parse operation binding the contract event 0x5e3b2166f1015d5880455f71c4745d2b76ed6139db23aef0d5eb6ae60592a309.
 //
-// Solidity: event Undelegate(string operatorAddress, uint256 amount)
+// Solidity: event Undelegate(string operatorAddress, uint256 amount).
 func (_Staking *StakingFilterer) ParseUndelegate(log types.Log) (*StakingUndelegate, error) {
 	event := new(StakingUndelegate)
 	if err := _Staking.contract.UnpackLog(event, "Undelegate", log); err != nil {

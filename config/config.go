@@ -48,7 +48,7 @@ func DefaultConfig() *Config {
 			RPCDialURL:      "http://localhost:8551",
 			RPCTimeout:      5, //nolint:gomnd // default config.
 			RPCRetries:      3, //nolint:gomnd // default config.
-			JWTSecretPath:   "../reth/jwt.hex",
+			JWTSecretPath:   "./app/jwt.hex",
 			RequiredChainID: 7, //nolint:gomnd // default config.
 		},
 		BeaconConfig: DefaultBeaconConfig(),
