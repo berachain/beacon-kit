@@ -31,7 +31,7 @@ const (
 	RPCTimeout = "beacon-kit.execution-client.rpc-timeout"
 	RPCRetries = "beacon-kit.execution-client.rpc-retries"
 	//#nosec:G101 // false positive.
-	JWTSecretPath   = "beacon-kit.execution-client.jwt-secret-path" 
+	JWTSecretPath   = "beacon-kit.execution-client.jwt-secret-path"
 	RequiredChainID = "beacon-kit.execution-client.required-chain-id"
 
 	// Beacon Config.
