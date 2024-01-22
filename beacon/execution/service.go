@@ -123,12 +123,12 @@ func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	payloadID, found := s.payloadCache.PayloadID(
-		slot, headHash, // TODO: support building on multiple heads as a safety fallback feature.
+		slot, headHash,
 	)
-
 	if !found {
 		return nil, nil, false, errors.New("payload not found")
 	}
+
 	return s.engine.GetPayload(ctx, payloadID, slot)
 }
 

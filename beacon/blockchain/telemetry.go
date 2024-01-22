@@ -23,20 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package flags
+package blockchain
 
 const (
-	// Execution Client.
-	RPCDialURL = "beacon-kit.execution-client.rpc-dial-url"
-	RPCTimeout = "beacon-kit.execution-client.rpc-timeout"
-	RPCRetries = "beacon-kit.execution-client.rpc-retries"
-	//#nosec:G101 // false positive.
-	JWTSecretPath   = "beacon-kit.execution-client.jwt-secret-path"
-	RequiredChainID = "beacon-kit.execution-client.required-chain-id"
-
-	// Beacon Config.
-	AltairForkEpoch    = "beacon-kit.beacon-config.altair-fork-epoch"
-	BellatrixForkEpoch = "beacon-kit.beacon-config.bellatrix-fork-epoch"
-	CapellaForkEpoch   = "beacon-kit.beacon-config.capella-fork-epoch"
-	DenebForkEpoch     = "beacon-kit.beacon-config.deneb-fork-epoch"
+	MetricGetBuiltPayloadHit  = "beaconkit_blockchain_get_built_payload_hit"
+	MetricGetBuiltPayloadMiss = "beaconkit_blockchain_get_built_payload_miss"
 )

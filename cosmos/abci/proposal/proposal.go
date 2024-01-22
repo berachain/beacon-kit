@@ -63,10 +63,13 @@ func (h *Handler) PrepareProposalHandler(
 ) (*abci.ResponsePrepareProposal, error) {
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// We begin by building a block on the execution client.
-	block, err := h.beaconChain.BuildNextBlock(
+	// We start by requesting a block from the execution client. This may be from pulling
+	// a previously built payload from the local cache via `getPayload()` or it may be
+	// by asking for a forkchoice from the execution client, depending on timing.
+	block, err := h.beaconChain.GetOrBuildBlock(
 		ctx, primitives.Slot(req.Height), uint64(req.Time.UTC().Unix()),
 	)
+
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
 		return nil, err
