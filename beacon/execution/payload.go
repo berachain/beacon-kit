@@ -34,6 +34,7 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
+// TODO: this whole function is just a hacky patch, doesn't do anything significant.
 func (s *Service) getPayloadAttributes(
 	_ context.Context, slot primitives.Slot, timestamp uint64,
 ) (payloadattribute.Attributer, error) {
@@ -57,8 +58,10 @@ func (s *Service) getPayloadAttributes(
 	return payloadattribute.New(&enginev1.PayloadAttributesV2{
 		Timestamp:             timestamp,
 		SuggestedFeeRecipient: s.etherbase.Bytes(),
-		Withdrawals:           nil,
-		PrevRandao:            append([]byte{}, random[:]...),
+		// TODO: support withdrawls of BGT here.
+		Withdrawals: nil,
+		// TODO: we need to implement this correctly.
+		PrevRandao: append([]byte{}, random[:]...),
 	})
 	// var attr payloadattribute.Attributer
 	// switch requestedVersion {

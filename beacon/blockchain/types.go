@@ -44,7 +44,7 @@ type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, slot primitives.Slot,
-		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry bool,
+		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry, async bool,
 	) (*primitives.PayloadID, error)
 
 	// NotifyNewPayload notifies the execution client of a new payload.

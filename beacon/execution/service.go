@@ -98,17 +98,27 @@ func (s *Service) Stop() error {
 func (s *Service) Status() error { return nil }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+// TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
-	withAttrs, withRetry bool,
+	withAttrs, withRetry, async bool,
 ) (*primitives.PayloadID, error) {
 	var (
 		pid *primitives.PayloadID
 		err error
 	)
 
-	// Push the forkchoice request to the forkchoice dispatcher.
-	s.gcd.GetQueue(forkchoiceDispatchQueue).AsyncAndWait(func() {
+	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
+	// We receive a response from the execution client.
+	queue := s.gcd.GetQueue(forkchoiceDispatchQueue)
+	queueDispatchFn := queue.Sync
+	if async {
+		queueDispatchFn = queue.Async
+	}
+
+	// Dispatch in the selected manner.
+	queueDispatchFn(func() {
+		// TODO: we need to handle this whole retry thing better. It's ghetto af.
 		if withRetry {
 			pid, err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
 		}
@@ -123,12 +133,12 @@ func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	payloadID, found := s.payloadCache.PayloadID(
-		slot, headHash, // TODO: support building on multiple heads as a safety fallback feature.
+		slot, headHash,
 	)
-
 	if !found {
 		return nil, nil, false, errors.New("payload not found")
 	}
+
 	return s.engine.GetPayload(ctx, payloadID, slot)
 }
 
@@ -153,6 +163,6 @@ func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ in
 	// }
 
 	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
-		[]common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
+		[]common.Hash{}, &common.Hash{} /* TODO: empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
 }

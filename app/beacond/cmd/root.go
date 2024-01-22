@@ -213,6 +213,10 @@ func initAppConfig() (string, interface{}) {
 	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
 	srvCfg.IAVLCacheSize = 10000
 
+	srvCfg.Telemetry.Enabled = true
+	srvCfg.API.Enable = true
+	srvCfg.Telemetry.MetricsSink = "mem"
+
 	customAppConfig := CustomAppConfig{
 		Config:  *srvCfg,
 		Polaris: *beaconconfig.DefaultConfig(),

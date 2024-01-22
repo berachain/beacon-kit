@@ -26,6 +26,8 @@
 package proposal
 
 import (
+	"errors"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 
@@ -39,13 +41,14 @@ import (
 // to sync up and the consensus client shouldn't join the validator set yet.
 const PayloadPosition = 0
 
-// Handler is a struct that handles the proposal process.
+// Handler is a struct that encapsulates the necessary components to handle the proposal processes.
 type Handler struct {
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 	beaconChain     *blockchain.Service
 }
 
+// NewHandler creates a new instance of the Handler struct.
 func NewHandler(
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
@@ -63,10 +66,13 @@ func (h *Handler) PrepareProposalHandler(
 ) (*abci.ResponsePrepareProposal, error) {
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// We begin by building a block on the execution client.
-	block, err := h.beaconChain.BuildNextBlock(
+	// We start by requesting a block from the execution client. This may be from pulling
+	// a previously built payload from the local cache via `getPayload()` or it may be
+	// by asking for a forkchoice from the execution client, depending on timing.
+	block, err := h.beaconChain.GetOrBuildBlock(
 		ctx, primitives.Slot(req.Height), uint64(req.Time.UTC().Unix()),
 	)
+
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
 		return nil, err
@@ -94,30 +100,40 @@ func (h *Handler) ProcessProposalHandler(
 ) (*abci.ResponseProcessProposal, error) {
 	logger := ctx.Logger().With("module", "process-proposal")
 
-	// Extract the marshalled payload from the proposal
-	if len(req.Txs) == 0 {
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, nil
-	}
-	bz := req.Txs[PayloadPosition]
-	req.Txs = req.Txs[1:]
-
-	block := &consensusv1.BaseBeaconKitBlock{}
-	err := block.Unmarshal(bz)
+	// Extract the beacon kit block from the proposal and unmarshal it.
+	block, err := h.extractAndUnmarshalBlock(req)
 	if err != nil {
-		logger.Error("failed to unmarshal block", "error", err)
+		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	if err = h.beaconChain.ReceiveBlock(
+	if err = h.beaconChain.ProcessReceivedBlock(
 		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
-
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
 	// Run the remainder of the proposal.
 	return h.processProposal(ctx, req)
+}
+
+// extractAndUnmarshalBlock extracts the block from the proposal and unmarshals it.
+func (h *Handler) extractAndUnmarshalBlock(
+	req *abci.RequestProcessProposal,
+) (*consensusv1.BaseBeaconKitBlock, error) {
+	// Extract the marshalled payload from the proposal
+	if len(req.Txs) == 0 {
+		return nil, errors.New("no transactions in proposal")
+	}
+	bz := req.Txs[PayloadPosition]
+	req.Txs = req.Txs[1:]
+
+	block := &consensusv1.BaseBeaconKitBlock{}
+	if err := block.Unmarshal(bz); err != nil {
+		return nil, err
+	}
+	return block, nil
 }

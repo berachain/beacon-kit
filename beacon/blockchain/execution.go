@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -41,19 +42,38 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// BuildNextBlock constructs the next block in the blockchain.
-func (s *Service) BuildNextBlock(
+// GetOrBuildBlock( constructs the next block in the blockchain.
+func (s *Service) GetOrBuildBlock(
 	ctx context.Context, slot primitives.Slot, time uint64,
 ) (interfaces.BeaconKitBlock, error) {
-	// The goal here is to build a payload whose parent is the previously
+	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
-	lastFinalizedBlock := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	executionData, err := s.buildNewPayloadAtSlotWithParent(ctx, slot, lastFinalizedBlock)
-	if err != nil {
-		return nil, err
+	var (
+		err                error
+		executionData      interfaces.ExecutionData
+		lastFinalizedBlock = s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	)
+
+	// Attempt to get a previously built payload, otherwise we will trigger a payload to be build.
+	// Building a payload at this point is not ideal, as it will block the consensus client
+	// from proposing a block until the payload is built. However, this is a rare case, and
+	// we can optimize this later.
+	// TODO: 4844.
+	if executionData, _, _, err = s.en.GetBuiltPayload(
+		ctx, slot, lastFinalizedBlock,
+	); err != nil || executionData == nil {
+		// This branch represents a cache miss.
+		telemetry.IncrCounter(1, MetricGetBuiltPayloadMiss)
+		executionData, err = s.buildNewPayloadAtSlotWithParent(ctx, slot, lastFinalizedBlock)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// This branch represents a cache hit.
+		telemetry.IncrCounter(1, MetricGetBuiltPayloadHit)
 	}
 
 	// Create a new block with the payload.
@@ -70,7 +90,8 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 
-	// check to see if there is a payload ready?
+	// Notify the execution client of the new finalized and safe hashes, while also
+	// triggering a block to be built. We wait for the payload ID to be returned.
 	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
@@ -78,6 +99,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 		),
 		true,
 		true,
+		false,
 	)
 
 	if err != nil {
@@ -90,6 +112,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	}
 
 	// TODO: Do we need to wait for the forkchoice to update?
+	s.logger.Info("Waiting for payload to be built 😴", "payload_id", payloadIDBytes)
 	time.Sleep(payloadBuildDelay * time.Second)
 
 	payload, _, _, err := s.en.GetBuiltPayload(
@@ -102,7 +125,9 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	return payload, err
 }
 
-func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBlock) error {
+func (s *Service) ProcessReceivedBlock(
+	ctx context.Context, block interfaces.BeaconKitBlock,
+) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
@@ -112,6 +137,7 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBl
 	)
 
 	// TODO: Do we need to wait for the forkchoice to update?
+	// TODO: move the error group to use GCD.
 
 	// var postState state.BeaconState
 	eg.Go(func() error {
@@ -119,7 +145,6 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBl
 		if err != nil {
 			s.logger.Error("failed to validate state transition", "error", err)
 			return err
-			// return errors.Wrapf(err, "failed to validate consensus state transition function")
 		}
 		return nil
 	})
@@ -140,13 +165,9 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBl
 		return err
 	}
 
-	s.logger.Info("Validation complete", "isValidPayload", isValidPayload)
-
 	if err := s.postBlockProcess(
 		ctx, block /*blockCopy, blockRoot, postState,*/, isValidPayload,
 	); err != nil {
-		// err := errors.Wrap(err, "could not process block")
-		// tracing.AnnotateError(span, err)
 		return err
 	}
 
@@ -174,7 +195,7 @@ func (s *Service) validateStateTransition(
 // ValidateProposedBeaconBlock checks the validity of a proposed beacon block.
 func (s *Service) validateExecutionOnBlock(ctx context.Context, header interfaces.ExecutionData,
 ) (bool, error) {
-	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header /*, nil, [32]byte{}*/)
+	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)
 	if err != nil && errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
 		s.logger.Error("Failed to validate execution on block", "error", err)
 		return isValidPayload, err
@@ -187,21 +208,28 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, header interface
 func (s *Service) postBlockProcess(
 	ctx context.Context, block interfaces.BeaconKitBlock, isValidPayload bool,
 ) error {
-	// todo: don't get slot off the execution data incase it's incorrect somehow.
-	_ = isValidPayload
-	slot := primitives.Slot(block.ExecutionData().BlockNumber())
-	headRoot := []byte{} // todo: get from forkchoice store. (stops proposer from double choicing)
-	if !bytes.Equal(block.ExecutionData().StateRoot(), headRoot) {
-		finalized := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-		safe := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
-		_, err := s.en.NotifyForkchoiceUpdate(
-			ctx, slot,
-			execution.NewNotifyForkchoiceUpdateArg(
-				common.BytesToHash(block.ExecutionData().BlockHash()), safe, finalized,
-			), true, true)
-		if err != nil {
-			return err
-		}
+	if !isValidPayload {
+		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
+		return errors.New("invalid payload")
 	}
+	// TODO: don't get slot off the execution data incase it's incorrect somehow.
+	slot := primitives.Slot(block.ExecutionData().BlockNumber())
+
+	// We notify the execution client of the new block, and wait for it to return
+	// a payload ID. If the payload ID is nil, we return an error. One thing to notice here however
+	// is that we pass in `slot+1` to the execution client. We do this so that we can begin building
+	// the next block in the background while we are finalizing this block.
+	// We are okay pushing this asynchonous work to the execution client, as it is
+	_, err := s.en.NotifyForkchoiceUpdate(
+		ctx, slot+1,
+		execution.NewNotifyForkchoiceUpdateArg(
+			common.BytesToHash(block.ExecutionData().BlockHash()),
+			s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash(),
+			s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash(),
+		), true, true, false)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

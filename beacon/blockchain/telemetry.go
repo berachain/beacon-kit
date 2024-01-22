@@ -23,18 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper
+package blockchain
 
-import (
-	"context"
+const (
+	// MetricGetBuiltPayloadHit is used to count the number of times a built
+	// payload is successfully retrieved.
+	MetricGetBuiltPayloadHit = "beaconkit_blockchain_get_built_payload_hit"
+
+	// MetricGetBuiltPayloadMiss is used to count the number of times a built
+	// payload retrieval is attempted but not found.
+	MetricGetBuiltPayloadMiss = "beaconkit_blockchain_get_built_payload_miss"
+
+	// MetricReceivedInvalidPayload is used to count the number of times an
+	// invalid payload is received.
+	MetricReceivedInvalidPayload = "beaconkit_blockchain_received_invalid_payload"
 )
-
-// EndBlock runs on the Cosmos-SDK lifecycle EndBlock().
-func (k *Keeper) EndBlock(_ context.Context) error {
-	return nil
-}
-
-// PrepareCheckState runs on the Cosmos-SDK lifecycle PrepareCheckState().
-func (k *Keeper) PrepareCheckState(_ context.Context) error {
-	return nil
-}
