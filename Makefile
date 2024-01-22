@@ -122,7 +122,7 @@ endef
 ###############################################################################
 
 generate:
-	@$(MAKE) abigen-install moq-install mockery 
+	@$(MAKE) abigen-install mockery 
 	@for module in $(MODULES); do \
 		echo "Running go generate in $$module"; \
 		(cd $$module && go generate ./...) || exit 1; \
@@ -132,10 +132,6 @@ generate:
 abigen-install:
 	@echo "--> Installing abigen"
 	@go install github.com/ethereum/go-ethereum/cmd/abigen@latest
-
-moq-install:
-	@echo "--> Installing moq"
-	@go install github.com/matryer/moq@latest
 
 mockery-install:
 	@echo "--> Installing mockery"
@@ -378,7 +374,7 @@ SSZ_STRUCTS=BeaconBlockData
 sszgen:
 	@$(MAKE) sszgen-install
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/v1/ -objs ${SSZ_STRUCTS}
+	@sszgen -path ./types/consensus/v1/ -objs ${SSZ_STRUCTS}
 ###############################################################################
 ###                             Dependencies                                ###
 ###############################################################################
@@ -398,7 +394,7 @@ repo-rinse: |
 	forge-build forge-clean proto proto-build docker-build \
 	docker-build-base docker-build-local docker-build-seed \
 	docker-build-validator docker-build-localnet generate \
-	abigen-install moq-install mockery-install mockery \
+	abigen-install mockery-install mockery \
 	start test-unit test-unit-race test-unit-cover forge-test \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
 	test-hive-v test-localnet test-localnet-no-build format lint \

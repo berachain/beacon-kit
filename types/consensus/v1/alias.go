@@ -23,26 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build tools
-// +build tools
-
-// This is the canonical way to enforce dependency inclusion in go.mod for tools that are not directly involved in the build process.
-// See
-// https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
-
-package tools
-
-//nolint
+package v1
 
 import (
-	_ "github.com/bufbuild/buf/cmd/buf"
-	_ "github.com/cosmos/gosec/v2/cmd/gosec"
-	_ "github.com/ethereum/go-ethereum/cmd/abigen"
-	_ "github.com/ethereum/go-ethereum/rlp/rlpgen"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/google/addlicense"
-	_ "github.com/onsi/ginkgo/v2/ginkgo"
-	_ "github.com/prysmaticlabs/fastssz/sszgen"
-	_ "github.com/securego/gosec/v2/cmd/gosec"
-	_ "github.com/vektra/mockery/v2"
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
+)
+
+type (
+	// Slot is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot
+	// We have to do this to keep `sszgen` happy.
+	Slot = github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot
+	// Gwei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Gwei
+	// We have to do this to keep `sszgen` happy.
+	Gwei = github_com_prysmaticlabs_prysm_v4_math.Gwei
 )
