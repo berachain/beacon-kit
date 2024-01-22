@@ -136,6 +136,7 @@ func (s *Service) ProcessReceivedBlock(
 	)
 
 	// TODO: Do we need to wait for the forkchoice to update?
+	// TODO: move the error group to use GCD.
 
 	// var postState state.BeaconState
 	eg.Go(func() error {
@@ -164,13 +165,9 @@ func (s *Service) ProcessReceivedBlock(
 		return err
 	}
 
-	s.logger.Info("Validation complete", "isValidPayload", isValidPayload)
-
 	if err := s.postBlockProcess(
 		ctx, block /*blockCopy, blockRoot, postState,*/, isValidPayload,
 	); err != nil {
-		// err := errors.Wrap(err, "could not process block")
-		// tracing.AnnotateError(span, err)
 		return err
 	}
 
@@ -209,8 +206,12 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, header interface
 }
 
 func (s *Service) postBlockProcess(
-	ctx context.Context, block interfaces.BeaconKitBlock, _ /*isValidPayload*/ bool,
+	ctx context.Context, block interfaces.BeaconKitBlock, isValidPayload bool,
 ) error {
+	if !isValidPayload {
+		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
+		return errors.New("invalid payload")
+	}
 	// TODO: don't get slot off the execution data incase it's incorrect somehow.
 	slot := primitives.Slot(block.ExecutionData().BlockNumber())
 
