@@ -113,7 +113,7 @@ func (h *Handler) ProcessProposalHandler(
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	if err = h.beaconChain.ReceiveBlock(
+	if err = h.beaconChain.ProcessReceivedBlock(
 		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)

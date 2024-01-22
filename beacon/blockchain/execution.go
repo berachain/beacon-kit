@@ -124,7 +124,9 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	return payload, err
 }
 
-func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.BeaconKitBlock) error {
+func (s *Service) ProcessReceivedBlock(
+	ctx context.Context, block interfaces.BeaconKitBlock,
+) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
