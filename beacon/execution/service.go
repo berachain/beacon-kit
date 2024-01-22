@@ -100,7 +100,7 @@ func (s *Service) Status() error { return nil }
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
-	withAttrs, withRetry bool,
+	withAttrs, withRetry, async bool,
 ) (*primitives.PayloadID, error) {
 	var (
 		pid *primitives.PayloadID
@@ -109,7 +109,15 @@ func (s *Service) NotifyForkchoiceUpdate(
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
 	// We receive a response from the execution client.
-	s.gcd.GetQueue(forkchoiceDispatchQueue).Sync(func() {
+	queue := s.gcd.GetQueue(forkchoiceDispatchQueue)
+	queueDispatchFn := queue.Sync
+	if async {
+		queueDispatchFn = queue.Async
+	}
+
+	// Dispatch in the selected manner.
+	queueDispatchFn(func() {
+		// TODO: we need to handle this whole retry thing better. It's ghetto af.
 		if withRetry {
 			pid, err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
 		}

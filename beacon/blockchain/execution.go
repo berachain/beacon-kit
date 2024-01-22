@@ -89,7 +89,8 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
 
-	// check to see if there is a payload ready?
+	// Notify the execution client of the new finalized and safe hashes, while also
+	// triggering a block to be built. We wait for the payload ID to be returned.
 	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
@@ -97,6 +98,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 		),
 		true,
 		true,
+		false,
 	)
 
 	if err != nil {
@@ -214,13 +216,14 @@ func (s *Service) postBlockProcess(
 	// a payload ID. If the payload ID is nil, we return an error. One thing to notice here however
 	// is that we pass in `slot+1` to the execution client. We do this so that we can begin building
 	// the next block in the background while we are finalizing this block.
+	// We are okay pushing this asynchonous work to the execution client, as it is
 	_, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot+1,
 		execution.NewNotifyForkchoiceUpdateArg(
 			common.BytesToHash(block.ExecutionData().BlockHash()),
 			s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash(),
 			s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash(),
-		), true, true)
+		), true, true, true)
 	if err != nil {
 		return err
 	}
