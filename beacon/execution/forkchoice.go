@@ -36,6 +36,7 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
+// TODO: this function is dog and retries need to be managed better in general.
 func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
 ) (*primitives.PayloadID, error) {
@@ -65,8 +66,6 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	var payloadID *primitives.PayloadID
 	defer func() {
 		if payloadID != nil {
-			// TODO: support building on multiple heads as a safety fallback feature.
-			// Right now root is just empty bytes.
 			s.payloadCache.Set(slot, arg.headHash, *payloadID)
 		}
 	}()
@@ -86,19 +85,23 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	} else {
 		attrs = payloadattribute.EmptyWithVersion(s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)))
 	}
+	// TODO: remember and figure out what the middle param is.
 	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
+		// TODO: ensure this switch statement isn't fucked.
 		switch err { //nolint:errorlint // okay for now.
 		case execution.ErrAcceptedSyncingPayloadStatus:
 			return payloadID, err
 		case execution.ErrInvalidPayloadStatus:
 			s.logger.Error("invalid payload status", "error", err)
+			// TODO: Get last valid is kinda hood, its just a ptr in mem rn.
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
 			payloadID, err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
 				headHash: previousHead,
 			}, withAttrs)
 
 			if err != nil {
+				// TODO: if u hit here, you're cooked.
 				return nil, err // Returning err because it's recursive here.
 			}
 

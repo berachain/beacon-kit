@@ -98,6 +98,7 @@ func (s *Service) Stop() error {
 func (s *Service) Status() error { return nil }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+// TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
 	withAttrs, withRetry, async bool,
@@ -162,6 +163,6 @@ func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ in
 	// }
 
 	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
-		[]common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
+		[]common.Hash{}, &common.Hash{} /* TODO: empty version hashes and root before Deneb*/)
 	return lastValidHash != nil, err
 }

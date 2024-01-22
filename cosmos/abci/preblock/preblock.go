@@ -102,6 +102,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		// Since the block is finalized, we can process the logs emitted by the
 		// execution layer and perform the desired state transitions on
 		// the beacon chain.
+		// TODO: this is a no-op, need to handle + abstract into relayer correctly.
 		if err = h.processLogs(ctx, beaconBlock); err != nil {
 			return nil, err
 		}

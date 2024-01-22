@@ -61,6 +61,7 @@ func (s *Service) GetOrBuildBlock(
 	// Building a payload at this point is not ideal, as it will block the consensus client
 	// from proposing a block until the payload is built. However, this is a rare case, and
 	// we can optimize this later.
+	// TODO: 4844.
 	if executionData, _, _, err = s.en.GetBuiltPayload(
 		ctx, slot, lastFinalizedBlock,
 	); err != nil || executionData == nil {
@@ -144,7 +145,6 @@ func (s *Service) ProcessReceivedBlock(
 		if err != nil {
 			s.logger.Error("failed to validate state transition", "error", err)
 			return err
-			// return errors.Wrapf(err, "failed to validate consensus state transition function")
 		}
 		return nil
 	})
@@ -226,7 +226,7 @@ func (s *Service) postBlockProcess(
 			common.BytesToHash(block.ExecutionData().BlockHash()),
 			s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash(),
 			s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash(),
-		), true, true, true)
+		), true, true, false)
 	if err != nil {
 		return err
 	}
