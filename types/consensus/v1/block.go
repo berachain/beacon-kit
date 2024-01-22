@@ -27,8 +27,6 @@ package v1
 
 import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
 // BaseBeaconKitBlock implements the BeaconKitBlock interface.
@@ -36,7 +34,7 @@ var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
 
 // NewBaseBeaconKitBlock creates a new beacon block.
 func NewBaseBeaconKitBlock(
-	slot primitives.Slot,
+	slot Slot,
 	time uint64,
 	executionData interfaces.ExecutionData,
 	version int,
@@ -55,7 +53,7 @@ func NewBaseBeaconKitBlock(
 		Slot:     slot,
 		Time:     time,
 		ExecData: execData,
-		Value:    math.Gwei(value),
+		Value:    Gwei(value),
 		Version:  uint64(version),
 	}, nil
 }
