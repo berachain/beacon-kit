@@ -107,8 +107,9 @@ func (s *Service) NotifyForkchoiceUpdate(
 		err error
 	)
 
-	// Push the forkchoice request to the forkchoice dispatcher.
-	s.gcd.GetQueue(forkchoiceDispatchQueue).AsyncAndWait(func() {
+	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
+	// We receive a response from the execution client.
+	s.gcd.GetQueue(forkchoiceDispatchQueue).Sync(func() {
 		if withRetry {
 			pid, err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
 		}
