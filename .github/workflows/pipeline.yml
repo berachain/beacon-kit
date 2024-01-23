@@ -62,13 +62,13 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
-        with:
-          name: code-coverage-report
-          path: coverage-${{ matrix.args }}.txt
-          retention-days: 1
-        if: ${{ matrix.args == 'test-unit-cover' }}
+      # - name: Archive code coverage results
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: code-coverage-report
+      #     path: coverage-${{ matrix.args }}.txt
+      #     retention-days: 1
+      #   if: ${{ matrix.args == 'test-unit-cover' }}
 
   # TODO: Re-enable later.
   # codecov:
