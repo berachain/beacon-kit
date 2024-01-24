@@ -2,8 +2,11 @@ module github.com/itsdevbear/bolaris
 
 go 1.21
 
-// Required at the moment until a bug in the comsos-sdk is fixed.
-replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+replace (
+	// Required until bumped in the sdk.
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.38.5
+	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+)
 
 require (
 	cosmossdk.io/api v0.7.2
@@ -17,7 +20,7 @@ require (
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.28.1
-	github.com/cometbft/cometbft v0.38.4
+	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.50.4-0.20240119174318-d0c414eb6212
