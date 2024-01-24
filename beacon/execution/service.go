@@ -102,11 +102,8 @@ func (s *Service) Status() error { return nil }
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
 	withAttrs, withRetry, async bool,
-) (*primitives.PayloadID, error) {
-	var (
-		pid *primitives.PayloadID
-		err error
-	)
+) error {
+	var err error
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
 	// We receive a response from the execution client.
@@ -120,12 +117,12 @@ func (s *Service) NotifyForkchoiceUpdate(
 	queueDispatchFn(func() {
 		// TODO: we need to handle this whole retry thing better. It's ghetto af.
 		if withRetry {
-			pid, err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
+			err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
 		}
-		pid, err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
+		err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
 	})
 
-	return pid, err
+	return err
 }
 
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.

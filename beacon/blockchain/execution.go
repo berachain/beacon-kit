@@ -42,7 +42,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// GetOrBuildBlock( constructs the next block in the blockchain.
+// GetOrBuildBlock constructs the next block in the execution chain.
 func (s *Service) GetOrBuildBlock(
 	ctx context.Context, slot primitives.Slot, time uint64,
 ) (interfaces.BeaconKitBlock, error) {
@@ -92,7 +92,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 
 	// Notify the execution client of the new finalized and safe hashes, while also
 	// triggering a block to be built. We wait for the payload ID to be returned.
-	pid, err := s.en.NotifyForkchoiceUpdate(
+	err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
 			headHash, safeHash, finalHash,
@@ -101,8 +101,6 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 		true,
 		false,
 	)
-
-	s.logger.Info("building new payload", "id", pid, "slot", slot, "head_hash", headHash)
 
 	if err != nil {
 		s.logger.Error("Failed to notify forkchoice update",
@@ -245,16 +243,11 @@ func (s *Service) postBlockProcess(
 	// is that we pass in `slot+1` to the execution client. We do this so that we can begin building
 	// the next block in the background while we are finalizing this block.
 	// We are okay pushing this asynchonous work to the execution client, as it is
-	_, err := s.en.NotifyForkchoiceUpdate(
+	return s.en.NotifyForkchoiceUpdate(
 		ctx, slot+1,
 		execution.NewNotifyForkchoiceUpdateArg(
 			common.BytesToHash(block.ExecutionData().BlockHash()),
 			s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash(),
 			s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash(),
 		), true, true, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
