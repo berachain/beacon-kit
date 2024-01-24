@@ -37,6 +37,8 @@ import (
 )
 
 // TODO: this function is dog and retries need to be managed better in general.
+//
+//nolint:unparam // this fn is being refactored anyways.
 func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
 ) error {
