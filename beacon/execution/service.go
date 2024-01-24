@@ -95,7 +95,12 @@ func (s *Service) Stop() error {
 }
 
 // Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }
+func (s *Service) Status() error {
+	if !s.engine.ConnectedETH1() {
+		return ErrExecutionClientDisconnected
+	}
+	return nil
+}
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 // TODO: handle the bools better i.e attrs, retry, async.

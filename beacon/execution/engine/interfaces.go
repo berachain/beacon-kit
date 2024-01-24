@@ -39,6 +39,11 @@ import (
 // Caller defines a client that can interact with an Ethereum
 // execution node's engine engineCaller via JSON-RPC.
 type Caller interface {
+	// Generic Methods
+	//
+	// ConnectedETH1 returns true if the client is connected to the execution node.
+	ConnectedETH1() bool
+
 	// Engine API Related Methods
 	//
 	// NewPayload creates a new payload for the Ethereum execution node.
