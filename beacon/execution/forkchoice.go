@@ -37,12 +37,14 @@ import (
 )
 
 // TODO: this function is dog and retries need to be managed better in general.
+//
+//nolint:unparam // this fn is being refactored anyways.
 func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
-) (*primitives.PayloadID, error) {
+) error {
 retry:
-	payloadID, err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
-	if err != nil {
+
+	if err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs); err != nil {
 		if errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
 			s.logger.Info("retrying forkchoice update", "reason", err)
 			time.Sleep(forkchoiceBackoff)
@@ -50,59 +52,60 @@ retry:
 		}
 		s.logger.Error("failed to notify forkchoice update", "error", err)
 	}
-	return payloadID, err
+	return nil
 }
 
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
-) (*primitives.PayloadID, error) {
-	fc := &enginev1.ForkchoiceState{
-		HeadBlockHash:      arg.headHash.Bytes(),
-		SafeBlockHash:      arg.safeHash.Bytes(),
-		FinalizedBlockHash: arg.finalHash.Bytes(),
-	}
+) error {
+	var (
+		payloadID *primitives.PayloadID
+		attrs     payloadattribute.Attributer
+		err       error
+		fc        = &enginev1.ForkchoiceState{
+			HeadBlockHash:      arg.headHash.Bytes(),
+			SafeBlockHash:      arg.safeHash.Bytes(),
+			FinalizedBlockHash: arg.finalHash.Bytes(),
+		}
+	)
 
 	// Cache payloads if we get a payloadID in our response.
-	var payloadID *primitives.PayloadID
 	defer func() {
 		if payloadID != nil {
 			s.payloadCache.Set(slot, arg.headHash, *payloadID)
 		}
 	}()
 
-	// We want to start building the next block as part of this forkchoice update.
-	// nextSlot := slot + 1 // Cache payload ID for next slot proposer.
-	nextSlot := slot
-	var attrs payloadattribute.Attributer
-	var err error
+	// TODO: this withAttrs hack needs to be removed.
 	if withAttrs {
-		// todo: handle version.
-		attrs, err = s.getPayloadAttributes(ctx, nextSlot, uint64(time.Now().Unix()))
+		// TODO: handle versions properly.
+		attrs, err = s.getPayloadAttributes(ctx, slot, uint64(time.Now().Unix()))
 		if err != nil {
 			s.logger.Error("failed to get payload attributes in notifyForkchoiceUpdated", "error", err)
-			return nil, err
+			return err
 		}
 	} else {
 		attrs = payloadattribute.EmptyWithVersion(s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)))
 	}
+
 	// TODO: remember and figure out what the middle param is.
 	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
 		// TODO: ensure this switch statement isn't fucked.
 		switch err { //nolint:errorlint // okay for now.
 		case execution.ErrAcceptedSyncingPayloadStatus:
-			return payloadID, err
+			return err
 		case execution.ErrInvalidPayloadStatus:
 			s.logger.Error("invalid payload status", "error", err)
 			// TODO: Get last valid is kinda hood, its just a ptr in mem rn.
 			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
-			payloadID, err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
+			err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
 				headHash: previousHead,
 			}, withAttrs)
 
 			if err != nil {
 				// TODO: if u hit here, you're cooked.
-				return nil, err // Returning err because it's recursive here.
+				return err // Returning err because it's recursive here.
 			}
 
 			// if err := s.saveHead(ctx, r, b, st); err != nil {
@@ -115,13 +118,13 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			// 	"invalidChildrenCount": len(invalidRoots),
 			// 	"newHeadRoot":          fmt.Sprintf("%#x", bytesutil.Trunc(r[:])),
 			// }).Warn("Pruned invalid blocks")
-			return payloadID, errors.New("invalid payload")
+			return errors.New("invalid payload")
 			// return pid, invalidBlock{error: ErrInvalidPayload,
 			//root: arg.headRoot, invalidAncestorRoots: invalidRoots}
 
 		default:
 			s.logger.Error("undefined execution engine error", "error", err)
-			return nil, err
+			return err
 		}
 	}
 	// forkchoiceUpdatedValidNodeCount.Inc()
@@ -149,5 +152,5 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	//			"slot":      headBlk.Slot(),
 	//		}).Error("Received nil payload ID on VALID engine response")
 	//	}
-	return payloadID, nil
+	return nil
 }

@@ -42,7 +42,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// GetOrBuildBlock( constructs the next block in the blockchain.
+// GetOrBuildBlock constructs the next block in the execution chain.
 func (s *Service) GetOrBuildBlock(
 	ctx context.Context, slot primitives.Slot, time uint64,
 ) (interfaces.BeaconKitBlock, error) {
@@ -92,7 +92,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 
 	// Notify the execution client of the new finalized and safe hashes, while also
 	// triggering a block to be built. We wait for the payload ID to be returned.
-	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
+	err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
 			headHash, safeHash, finalHash,
@@ -111,18 +111,38 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 		return nil, err
 	}
 
-	// TODO: Do we need to wait for the forkchoice to update?
-	s.logger.Info("Waiting for payload to be built 😴", "payload_id", payloadIDBytes)
-	time.Sleep(payloadBuildDelay * time.Second)
+	return s.waitForPayload(ctx, payloadBuildDelay*time.Second, slot, headHash)
+}
 
-	payload, _, _, err := s.en.GetBuiltPayload(
-		ctx, slot, headHash,
-	)
+// waitForPayload waits for a payload to be built by the execution client.
+func (s *Service) waitForPayload(
+	ctx context.Context, delay time.Duration, slot primitives.Slot, headHash common.Hash,
+) (interfaces.ExecutionData, error) {
+	// Create a timer for the delay duration
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		// The context was cancelled before the timer expired
+		s.logger.Error(
+			"Context cancelled while waiting for payload", "slot", slot, "head_hash", headHash,
+		)
+		return nil, ctx.Err()
+	case <-timer.C:
+		// Hitting this case is basically the desired behaviour.
+		break
+	}
+
+	// If neither context cancellation nor timeout occurred, proceed to get the payload
+	payload, _, _, err := s.en.GetBuiltPayload(ctx, slot, headHash)
 	if err != nil {
-		s.logger.Error("Failed to get built payload", "error", err, "payload_id", payloadIDBytes)
+		s.logger.Error(
+			"Failed to get built payload", "error", err, "slot", slot, "head_hash", headHash,
+		)
 		return nil, err
 	}
-	return payload, err
+	return payload, nil
 }
 
 func (s *Service) ProcessReceivedBlock(
@@ -220,16 +240,11 @@ func (s *Service) postBlockProcess(
 	// is that we pass in `slot+1` to the execution client. We do this so that we can begin building
 	// the next block in the background while we are finalizing this block.
 	// We are okay pushing this asynchonous work to the execution client, as it is
-	_, err := s.en.NotifyForkchoiceUpdate(
+	return s.en.NotifyForkchoiceUpdate(
 		ctx, slot+1,
 		execution.NewNotifyForkchoiceUpdateArg(
 			common.BytesToHash(block.ExecutionData().BlockHash()),
 			s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash(),
 			s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash(),
 		), true, true, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
