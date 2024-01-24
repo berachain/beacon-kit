@@ -25,4 +25,102 @@
 
 package queues
 
-type ConcurrentQueue struct{}
+import (
+	"sync"
+	"time"
+)
+
+// ConcurrentQueue is a concurrent queue for dispatching work items.
+type ConcurrentQueue struct {
+	queue    chan WorkItem  // Channel for dispatching work items.
+	wg       sync.WaitGroup // WaitGroup for tracking in-flight work items.
+	stopChan chan struct{}  // Channel for signaling stop.
+	stopped  bool           // Flag indicating if the queue has been stopped.
+	mu       sync.Mutex     // Mutex for protecting stopped flag.
+}
+
+// NewConcurrentDispatchQueue creates a new Queue and starts its worker goroutines.
+func NewConcurrentDispatchQueue(workerCount int) *ConcurrentQueue {
+	q := &ConcurrentQueue{
+		queue:    make(chan WorkItem),
+		stopChan: make(chan struct{}),
+	}
+
+	for i := 0; i < workerCount; i++ {
+		go func() {
+			for {
+				select {
+				case <-q.stopChan:
+					return
+				case item := <-q.queue:
+					if item != nil {
+						item()
+						q.wg.Done()
+					}
+				}
+			}
+		}()
+	}
+
+	return q
+}
+
+// Async adds a work item to the queue to be executed asynchronously.
+func (q *ConcurrentQueue) Async(execute WorkItem) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	if q.stopped {
+		panic("Queue has been stopped")
+	}
+
+	q.wg.Add(1)
+	q.queue <- execute
+}
+
+// AsyncAfter adds a work item to the queue to be executed after a specified duration.
+func (q *ConcurrentQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
+	q.wg.Add(1)
+	go func() {
+		time.Sleep(deadline)
+		q.queue <- execute
+	}()
+}
+
+// Sync adds a work item to the queue and waits for its execution to complete.
+func (q *ConcurrentQueue) Sync(execute WorkItem) {
+	done := make(chan struct{})
+	q.Async(func() {
+		execute()
+		close(done)
+	})
+	<-done
+}
+
+// AsyncAndWait adds a work item to the queue and waits for all work items to complete.
+func (q *ConcurrentQueue) AsyncAndWait(execute WorkItem) {
+	q.Async(execute)
+	q.wg.Wait()
+}
+
+// Stop stops the queue, preventing new work items from being added and waits for all
+// in-flight work items to complete.
+func (q *ConcurrentQueue) Stop() {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	if q.stopped {
+		return
+	}
+
+	q.stopped = true
+
+	// Close the queue channel to stop receiving new tasks
+	close(q.queue)
+
+	// Stop the workers
+	close(q.stopChan)
+
+	// Wait for all tasks to complete
+	q.wg.Wait()
+}
