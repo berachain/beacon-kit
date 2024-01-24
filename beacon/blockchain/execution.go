@@ -92,7 +92,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 
 	// Notify the execution client of the new finalized and safe hashes, while also
 	// triggering a block to be built. We wait for the payload ID to be returned.
-	payloadIDBytes, err := s.en.NotifyForkchoiceUpdate(
+	pid, err := s.en.NotifyForkchoiceUpdate(
 		ctx, slot,
 		execution.NewNotifyForkchoiceUpdateArg(
 			headHash, safeHash, finalHash,
@@ -101,6 +101,8 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 		true,
 		false,
 	)
+
+	s.logger.Info("building new payload", "id", pid, "slot", slot, "head_hash", headHash)
 
 	if err != nil {
 		s.logger.Error("Failed to notify forkchoice update",
@@ -111,18 +113,41 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 		return nil, err
 	}
 
-	// TODO: Do we need to wait for the forkchoice to update?
-	s.logger.Info("Waiting for payload to be built 😴", "payload_id", payloadIDBytes)
-	time.Sleep(payloadBuildDelay * time.Second)
+	return s.waitForPayload(ctx, payloadBuildDelay*time.Second, slot, headHash)
+}
 
-	payload, _, _, err := s.en.GetBuiltPayload(
-		ctx, slot, headHash,
-	)
+// waitForPayload waits for a payload to be built by the execution client.
+func (s *Service) waitForPayload(
+	ctx context.Context, delay time.Duration, slot primitives.Slot, headHash common.Hash,
+) (interfaces.ExecutionData, error) {
+	// Create a timer for the delay duration
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		// The context was cancelled before the timer expired
+		s.logger.Error(
+			"Context cancelled while waiting for payload", "slot", slot, "head_hash", headHash,
+		)
+		return nil, ctx.Err()
+	case <-timer.C:
+		// The timer expired
+		s.logger.Error(
+			"Timeout reached while waiting for payload", "slot", slot, "head_hash", headHash,
+		)
+		break
+	}
+
+	// If neither context cancellation nor timeout occurred, proceed to get the payload
+	payload, _, _, err := s.en.GetBuiltPayload(ctx, slot, headHash)
 	if err != nil {
-		s.logger.Error("Failed to get built payload", "error", err, "payload_id", payloadIDBytes)
+		s.logger.Error(
+			"Failed to get built payload", "error", err, "slot", slot, "head_hash", headHash,
+		)
 		return nil, err
 	}
-	return payload, err
+	return payload, nil
 }
 
 func (s *Service) ProcessReceivedBlock(
