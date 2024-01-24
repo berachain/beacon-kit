@@ -58,28 +58,28 @@ retry:
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
 ) error {
-	fc := &enginev1.ForkchoiceState{
-		HeadBlockHash:      arg.headHash.Bytes(),
-		SafeBlockHash:      arg.safeHash.Bytes(),
-		FinalizedBlockHash: arg.finalHash.Bytes(),
-	}
+	var (
+		payloadID *primitives.PayloadID
+		attrs     payloadattribute.Attributer
+		err       error
+		fc        = &enginev1.ForkchoiceState{
+			HeadBlockHash:      arg.headHash.Bytes(),
+			SafeBlockHash:      arg.safeHash.Bytes(),
+			FinalizedBlockHash: arg.finalHash.Bytes(),
+		}
+	)
 
 	// Cache payloads if we get a payloadID in our response.
-	var payloadID *primitives.PayloadID
 	defer func() {
 		if payloadID != nil {
 			s.payloadCache.Set(slot, arg.headHash, *payloadID)
 		}
 	}()
 
-	// We want to start building the next block as part of this forkchoice update.
-	// nextSlot := slot + 1 // Cache payload ID for next slot proposer.
-	nextSlot := slot
-	var attrs payloadattribute.Attributer
-	var err error
+	// TODO: this withAttrs hack needs to be removed.
 	if withAttrs {
-		// todo: handle version.
-		attrs, err = s.getPayloadAttributes(ctx, nextSlot, uint64(time.Now().Unix()))
+		// TODO: handle versions properly.
+		attrs, err = s.getPayloadAttributes(ctx, slot, uint64(time.Now().Unix()))
 		if err != nil {
 			s.logger.Error("failed to get payload attributes in notifyForkchoiceUpdated", "error", err)
 			return err
@@ -87,6 +87,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	} else {
 		attrs = payloadattribute.EmptyWithVersion(s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)))
 	}
+
 	// TODO: remember and figure out what the middle param is.
 	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, attrs)
 	if err != nil {
