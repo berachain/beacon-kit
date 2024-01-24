@@ -130,10 +130,7 @@ func (s *Service) waitForPayload(
 		)
 		return nil, ctx.Err()
 	case <-timer.C:
-		// The timer expired
-		s.logger.Error(
-			"Timeout reached while waiting for payload", "slot", slot, "head_hash", headHash,
-		)
+		// Hitting this case is basically the desired behaviour.
 		break
 	}
 
