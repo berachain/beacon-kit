@@ -181,7 +181,5 @@ func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
 		panic(err)
 	}
 
-	// TODO: actually handle the result here.
-	syncService.CheckSyncStatus(ctx)
-	return nil
+	return syncService.CheckSyncStatusAndForkchoice(ctx)
 }

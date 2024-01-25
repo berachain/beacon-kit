@@ -39,7 +39,6 @@ import (
 type Status int
 
 const (
-	StatusUnknown = Status(-1)   //nolint:errname // initial status of the service.
 	StatusWaiting = Status(iota) //nolint:errname // initial status of the service.
 	StatusBeaconAhead
 	StatusExecutionAhead
@@ -182,6 +181,10 @@ func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
 	// If the beacon chain is ahead of the execution chain, we need to trigger a forkchoice
 	// update to get the execution chain to start syncing, otherwise we can just return.
 	if bss.status != StatusBeaconAhead {
+		s.logger.Info(
+			"skipping startup forkchoice update, beacon chain is not ahead",
+			"status", bss.status,
+		)
 		return nil
 	}
 
