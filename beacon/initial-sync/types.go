@@ -27,11 +27,20 @@ package initialsync
 
 import (
 	"context"
+	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
+
+// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
+type ethClient interface {
+	HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error)
+	HeaderByHash(ctx context.Context, hash common.Hash) (*ethtypes.Header, error)
+}
 
 // forkChoiceStoreProvider defines an interface for providing a ForkChoiceStore.
 type forkChoiceStoreProvider interface {
