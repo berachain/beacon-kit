@@ -39,6 +39,7 @@ import (
 type Status int
 
 const (
+	StatusUnknown = Status(-1)   //nolint:errname // initial status of the service.
 	StatusWaiting = Status(iota) //nolint:errname // initial status of the service.
 	StatusBeaconAhead
 	StatusExecutionAhead
@@ -77,6 +78,13 @@ func (s *Service) Stop() error { return nil }
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error { return nil }
 
+// CheckSyncStatus returns the current synchronization status of the beacon and execution chains.
+//
+// TODO, We need to add a handler than does the following after this function returns
+// `StatusBeaconAhead`.
+// 1. Fire off event to the dispatcher to trigger a fork choice
+// 2. Block here until it is sync'd.
+// 3. Return we are blessed.
 func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 	// First lets grab the beacon chains view of the last finalized execution layer block.
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
@@ -103,11 +111,7 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 		// We need to fork choice to find the latest finalized block. This is trigger the execution
 		// chain to start asking it's peers to help it sync and build the chain required for
 		// the following forkchoice.
-		// TODO:
-		// 1. Fire off event to the dispatcher to trigger a fork choice
-		// 2. Block here until it is sync'd.
-		// 3. Return we are blessed.
-		return StatusWaiting
+		return StatusBeaconAhead
 	}
 
 	// If clFinalized != nil, then we know that the beacon chain is at or behind the execution chain.
@@ -120,7 +124,7 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 		// your client is like kinda fucked up rn, because if this is the case then the above
 		// clFinalized call should've failed and a forkchoice should've been triggered.
 		s.logger.Error("Error getting latest finalized block from execution chain", "error", err)
-		return StatusWaiting
+		return StatusUnknown
 	}
 
 	// Once we reach here, we can confirm that the consensus layer and the execution
