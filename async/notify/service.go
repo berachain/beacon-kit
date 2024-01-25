@@ -28,7 +28,8 @@ package notify
 import (
 	"cosmossdk.io/log"
 
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/prysmaticlabs/prysm/v4/async/event"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/core/feed"
 )
 
 // Service represents the BeaconKit notification service. It is used to register
@@ -147,7 +148,7 @@ func (s *Service) RegisterHandler(name string, queueID string, handler EventHand
 }
 
 // Dispatch dispatches an event to all handlers associated with the provided key.
-func (s *Service) Dispatch(name string, event interface{}) {
+func (s *Service) Dispatch(name string, event *feed.Event) {
 	feed, ok := s.feeds[name]
 	if ok {
 		feed.Send(event)
