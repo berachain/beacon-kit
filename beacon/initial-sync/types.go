@@ -25,8 +25,25 @@
 
 package initialsync
 
-import "context"
+import (
+	"context"
 
-type BlockchainSyncStatus interface {
-	Syncing(ctx context.Context) (bool, error)
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+)
+
+// forkChoiceStoreProvider defines an interface for providing a ForkChoiceStore.
+type forkChoiceStoreProvider interface {
+	// ForkChoiceStore retrieves the ForkChoiceStore from the provided context.
+	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+}
+
+// executionService defines an interface for interacting with the execution client.
+type executionService interface {
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context, slot primitives.Slot,
+		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry, async bool,
+	) error
 }

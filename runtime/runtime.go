@@ -139,7 +139,9 @@ func NewDefaultBeaconKitRuntime(
 	syncService := initialsync.NewService(
 		initialsync.WithLogger(logger),
 		initialsync.WithEthClient(eth1Client),
-		initialsync.WithForkChoiceStoreProvider(fcsp))
+		initialsync.WithForkChoiceStoreProvider(fcsp),
+		initialsync.WithExecutionService(executionService),
+	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(

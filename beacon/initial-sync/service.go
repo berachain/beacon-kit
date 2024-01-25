@@ -33,7 +33,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 )
 
 type Status int
@@ -46,8 +46,10 @@ const (
 	StatusSynced
 )
 
-type ForkChoiceStoreProvider interface {
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+type BeaconSyncProgress struct {
+	status      Status
+	clFinalized common.Hash
+	elFinalized common.Hash
 }
 
 // Service is responsible for tracking the synchornization status
@@ -55,7 +57,8 @@ type ForkChoiceStoreProvider interface {
 type Service struct {
 	logger    log.Logger
 	ethClient ethClient
-	fcsp      ForkChoiceStoreProvider
+	fcsp      forkChoiceStoreProvider
+	es        executionService
 }
 
 func NewService(opts ...Option) *Service {
@@ -85,7 +88,7 @@ func (s *Service) Status() error { return nil }
 // 1. Fire off event to the dispatcher to trigger a fork choice
 // 2. Block here until it is sync'd.
 // 3. Return we are blessed.
-func (s *Service) CheckSyncStatus(ctx context.Context) Status {
+func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 	// First lets grab the beacon chains view of the last finalized execution layer block.
 	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
 
@@ -96,7 +99,7 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 	// starting up.
 	isBeaconGenesis := bytes.Equal(finalHash[:], common.Hash{}.Bytes())
 	if isBeaconGenesis {
-		return StatusSynced
+		return &BeaconSyncProgress{status: StatusSynced}
 	}
 
 	// The only other thing we can do before ABCI starts is to handle the case where the beacon
@@ -111,7 +114,7 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 		// We need to fork choice to find the latest finalized block. This is trigger the execution
 		// chain to start asking it's peers to help it sync and build the chain required for
 		// the following forkchoice.
-		return StatusBeaconAhead
+		return &BeaconSyncProgress{status: StatusBeaconAhead, clFinalized: finalHash}
 	}
 
 	// If clFinalized != nil, then we know that the beacon chain is at or behind the execution chain.
@@ -120,11 +123,10 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 	elFinalized, err := s.ethClient.HeaderByNumber(
 		ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
 	if err != nil || elFinalized == nil {
-		// If the execution chain doesn't have a finalized block, then we are in a weird state, and
-		// your client is like kinda fucked up rn, because if this is the case then the above
-		// clFinalized call should've failed and a forkchoice should've been triggered.
-		s.logger.Error("Error getting latest finalized block from execution chain", "error", err)
-		return StatusUnknown
+		// If we have something confirmed as finalized on the beacon chain, but we don't have
+		// anything confirmed as finalized on the execution chain, we need to forkchoice to find
+		// the latest finalized block.
+		return &BeaconSyncProgress{status: StatusBeaconAhead, clFinalized: finalHash}
 	}
 
 	// Once we reach here, we can confirm that the consensus layer and the execution
@@ -146,22 +148,54 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 			"beacon and execution chains are synced ✅",
 			"finalized_hash", common.BytesToHash(finalHash[:]),
 		)
-		return StatusSynced
+		return &BeaconSyncProgress{
+			status:      StatusSynced,
+			elFinalized: elFinalized.Hash(),
+			clFinalized: finalHash,
+		}
 	} else if clBlockNum.Cmp(elBlockNum) > 0 {
 		// The beacon chain is ahead of the execution chain.
-		return StatusBeaconAhead
+		return &BeaconSyncProgress{
+			status:      StatusBeaconAhead,
+			elFinalized: elFinalized.Hash(),
+			clFinalized: finalHash,
+		}
 	}
 
 	// By ruling out everything else, we can say the execution chain is ahead of the beacon chain.
 	// There is nothing really actionable to do here, as we need to just let the beacon chain
 	// keep syncing until it passes the execution chain head. Only then can we issue a forkchoice
 	// update to start syncing the execution chain again.
-	return StatusExecutionAhead
+	return &BeaconSyncProgress{
+		status:      StatusExecutionAhead,
+		elFinalized: elFinalized.Hash(),
+		clFinalized: finalHash,
+	}
 }
 
-func (*Service) RequestForkchoiceUpdate() error {
-	// TODO: this function needs to queue up a request for the execution service to
-	// notify the execution layer a forkchoice is required.
-	// TODO: wire up dispatcher.
-	return nil
+// CheckSyncStatusAndForkchoice is a helper function that calls CheckSyncStatus and then
+// triggers a forkchoice update if the beacon chain is ahead of the execution chain.
+func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
+	// First start by checking the sync status.
+	bss := s.CheckSyncStatus(ctx)
+
+	// If the beacon chain is ahead of the execution chain, we need to trigger a forkchoice
+	// update to get the execution chain to start syncing, otherwise we can just return.
+	if bss.status != StatusBeaconAhead {
+		return nil
+	}
+
+	// Begin triggering the forkchoice.
+	return s.es.NotifyForkchoiceUpdate(
+		context.Background(),
+		0, // todo: determine real slot.
+		execution.NewNotifyForkchoiceUpdateArg(
+			bss.clFinalized,
+			bss.clFinalized,
+			bss.clFinalized,
+		),
+		false, // todo: start building a payload here once we can determine the real slot.
+		true,
+		false,
+	)
 }

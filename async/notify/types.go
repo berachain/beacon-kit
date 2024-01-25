@@ -25,7 +25,9 @@
 
 package notify
 
-import "github.com/itsdevbear/bolaris/async/dispatch"
+import (
+	"github.com/itsdevbear/bolaris/async/dispatch"
+)
 
 // GrandCentralDispatch is an interface that wraps the basic GetQueue method.
 // It is used to retrieve a dispatch queue by its ID.
@@ -36,7 +38,7 @@ type GrandCentralDispatch interface {
 
 // EventHandler is the interface that wraps the basic Handle method.
 type EventHandler interface {
-	HandleNotification(event interface{})
+	HandleNotification(event any)
 }
 
 // eventHandlerQueuePair is a struct that holds an event handler and a queue ID.

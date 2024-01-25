@@ -148,8 +148,8 @@ func (s *Service) RegisterHandler(name string, queueID string, handler EventHand
 }
 
 // Dispatch dispatches an event to all handlers associated with the provided key.
-func (s *Service) Dispatch(name string, event *feed.Event) {
-	feed, ok := s.feeds[name]
+func (s *Service) Dispatch(feedName string, event *feed.Event) {
+	feed, ok := s.feeds[feedName]
 	if ok {
 		feed.Send(event)
 	}
