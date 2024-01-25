@@ -83,6 +83,21 @@ func TestDispatch(t *testing.T) {
 		}
 	}()
 
+	// Use a channel to wait for the event to be received
+	eventReceived := make(chan struct{})
+	go func() {
+		for {
+			handler.mu.Lock()
+			if len(handler.receivedEvents) > 0 {
+				handler.mu.Unlock()
+				close(eventReceived)
+				return
+			}
+			handler.mu.Unlock()
+			time.Sleep(10 * time.Millisecond)
+		}
+	}()
+
 	// Dispatch an event
 	var event = &feed.Event{
 		Type: 1,
@@ -90,9 +105,17 @@ func TestDispatch(t *testing.T) {
 	}
 	service.Dispatch(feedName, event)
 
-	time.Sleep(100 * time.Millisecond)
+	// Wait for the event to be received or timeout after 1 second
+	select {
+	case <-eventReceived:
+		// Event received
+	case <-time.After(1 * time.Second):
+		t.Fatal("Timed out waiting for event")
+	}
 
 	// Check if the handler received the event
+	handler.mu.Lock()
+	defer handler.mu.Unlock()
 	if len(handler.receivedEvents) != 1 {
 		t.Fatalf("Expected 1 event, got %d", len(handler.receivedEvents))
 	}
