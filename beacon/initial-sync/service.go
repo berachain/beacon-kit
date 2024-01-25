@@ -155,3 +155,10 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 	// By ruling out everythgin else, we can say the execution chain is ahead of the beacon chain.
 	return StatusExecutionAhead
 }
+
+func (*Service) RequestForkchoiceUpdate() error {
+	// TODO: this function needs to queue up a request for the execution service to
+	// notify the execution layer a forkchoice is required.
+	// TODO: wire up dispatcher.
+	return nil
+}
