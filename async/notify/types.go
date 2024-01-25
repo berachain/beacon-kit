@@ -25,7 +25,7 @@
 
 package notify
 
-import "github.com/itsdevbear/bolaris/runtime/dispatch"
+import "github.com/itsdevbear/bolaris/async/dispatch"
 
 // GrandCentralDispatch is an interface that wraps the basic GetQueue method.
 // It is used to retrieve a dispatch queue by its ID.

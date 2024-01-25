@@ -28,7 +28,7 @@ package dispatch
 import (
 	"time"
 
-	"github.com/itsdevbear/bolaris/runtime/dispatch/queues"
+	"github.com/itsdevbear/bolaris/async/dispatch/queues"
 )
 
 // Queue represents a queue of work items to be executed. It's interface is inspired by

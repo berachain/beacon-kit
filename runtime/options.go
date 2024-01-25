@@ -27,7 +27,7 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/runtime/dispatch"
+	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 

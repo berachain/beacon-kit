@@ -30,7 +30,7 @@ package service
 
 // 	"cosmossdk.io/log"
 
-// 	"github.com/itsdevbear/bolaris/runtime/dispatch"
+// 	"github.com/itsdevbear/bolaris/async/dispatch"
 // )
 
 // type BaseService struct {

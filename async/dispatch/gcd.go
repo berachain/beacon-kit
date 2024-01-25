@@ -30,7 +30,7 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/runtime/dispatch/queues"
+	"github.com/itsdevbear/bolaris/async/dispatch/queues"
 )
 
 // GlobalQueueID is the identifier for the global queue.
