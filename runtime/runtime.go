@@ -168,3 +168,17 @@ func (r *BeaconKitRuntime) StopServices() {
 func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 	return r.services.FetchService(service)
 }
+
+// InitialSyncCheck.
+func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
+	var (
+		syncService *initialsync.Service
+	)
+
+	if err := r.services.FetchService(&syncService); err != nil {
+		panic(err)
+	}
+
+	syncService.CheckSyncStatus(ctx)
+	return nil
+}
