@@ -106,7 +106,7 @@ func (s *Service) Status() error {
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
-	withAttrs, withRetry, async bool,
+	withAttrs, async bool,
 ) error {
 	var err error
 
@@ -121,9 +121,6 @@ func (s *Service) NotifyForkchoiceUpdate(
 	// Dispatch in the selected manner.
 	queueDispatchFn(func() {
 		// TODO: we need to handle this whole retry thing better. It's ghetto af.
-		if withRetry {
-			err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
-		}
 		err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
 	})
 

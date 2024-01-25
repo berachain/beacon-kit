@@ -98,7 +98,6 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 			headHash, safeHash, finalHash,
 		),
 		true,
-		true,
 		false,
 	)
 
@@ -246,5 +245,5 @@ func (s *Service) postBlockProcess(
 			common.BytesToHash(block.ExecutionData().BlockHash()),
 			s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash(),
 			s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash(),
-		), true, true, false)
+		), true, false)
 }
