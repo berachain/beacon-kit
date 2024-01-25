@@ -36,6 +36,25 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
+// TODO: this function is dog and retries need to be managed better in general.
+//
+//nolint:unparam // this fn is being refactored anyways.
+func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
+	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
+) error {
+retry:
+
+	if err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs); err != nil {
+		if errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
+			s.logger.Info("retrying forkchoice update", "reason", err)
+			time.Sleep(forkchoiceBackoff)
+			goto retry
+		}
+		s.logger.Error("failed to notify forkchoice update", "error", err)
+	}
+	return nil
+}
+
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 	slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
 ) error {
