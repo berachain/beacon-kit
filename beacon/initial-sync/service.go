@@ -152,7 +152,10 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 		return StatusBeaconAhead
 	}
 
-	// By ruling out everythgin else, we can say the execution chain is ahead of the beacon chain.
+	// By ruling out everything else, we can say the execution chain is ahead of the beacon chain.
+	// There is nothing really actionable to do here, as we need to just let the beacon chain
+	// keep syncing, until it passes the execution chain head. Only then can we issue a forkchoice
+	// update to start syncing the execution chain again.
 	return StatusExecutionAhead
 }
 
