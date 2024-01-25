@@ -107,7 +107,7 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 		// 1. Fire off event to the dispatcher to trigger a fork choice
 		// 2. Block here until it is sync'd.
 		// 3. Return we are blessed.
-		return StatusExecutionAhead
+		return StatusWaiting
 	}
 
 	// If clFinalized != nil, then we know that the beacon chain is at or behind the execution chain.
@@ -120,7 +120,7 @@ func (s *Service) CheckSyncStatus(ctx context.Context) Status {
 		// your client is like kinda fucked up rn, because if this is the case then the above
 		// clFinalized call should've failed and a forkchoice should've been triggered.
 		s.logger.Error("Error getting latest finalized block from execution chain", "error", err)
-		return StatusBeaconAhead
+		return StatusWaiting
 	}
 
 	// Once we reach here, we can confirm that the consensus layer and the execution
