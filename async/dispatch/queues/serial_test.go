@@ -30,7 +30,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/runtime/dispatch/queues"
+	"github.com/itsdevbear/bolaris/async/dispatch/queues"
 )
 
 func TestDispatchQueue(t *testing.T) {

@@ -23,46 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package dispatch
 
-// import (
-// 	"reflect"
+import (
+	"time"
 
-// 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/async/dispatch/queues"
+)
 
-// 	"github.com/itsdevbear/bolaris/async/dispatch"
-// )
+// Queue represents a queue of work items to be executed. It's interface is inspired by
+// Apple's Grand Central Dispatch (GCD) API.
+// https://developer.apple.com/documentation/dispatch/dispatchqueue
+type Queue interface {
+	Async(queues.WorkItem)
+	AsyncAfter(time.Duration, queues.WorkItem)
+	Sync(queues.WorkItem)
+	AsyncAndWait(queues.WorkItem)
+}
 
-// type BaseService struct {
-// 	logger   log.Logger
-// 	gcd      *dispatch.GrandCentralDispatch
-// 	channels []chan dispatch.Event
-// }
-
-// // NewBaseService creates a new BaseService and applies the provided options.
-// func NewBaseService(
-// 	gcd *dispatch.GrandCentralDispatch,
-// 	logger log.Logger,
-// ) *BaseService {
-// 	return &BaseService{
-// 		gcd:    gcd,
-// 		logger: logger,
-// 	}
-// }
-
-// // Logger returns the logger instance of the BaseService.
-// func (s *BaseService) Logger() log.Logger {
-// 	return s.logger
-// }
-
-// // DispatchEvent sends a value to the feed associated with the provided key.
-// func (s *BaseService) DispatchEvent(value dispatch.Event) int {
-// 	return s.gcd.Dispatch(value)
-// }
-
-// // SubscribeToEvent subscribes a channel to the feed associated with the provided key.
-// func (s *BaseService) SubscribeToEvent(key string, eventType reflect.Type) {
-// 	channel := make(chan dispatch.Event)
-// 	s.channels = append(s.channels, channel)
-// 	s.gcd.Subscribe(key, channel)
-// }
+// Event represents actions that occur during consensus. Listeners can
+// register callbacks with event handlers for specific event types.
+type Event interface {
+	Type() string
+	Source() any
+	Value() any
+}

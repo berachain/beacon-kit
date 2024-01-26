@@ -26,22 +26,11 @@
 package initialsync
 
 import (
-	"context"
-	"math/big"
-
 	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // Option is a function that modifies the Service.
 type Option func(*Service) error
-
-// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
-type ethClient interface {
-	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
-	HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error)
-}
 
 // WithEthClient is an Option that sets the ethClient of the Service.
 func WithEthClient(ethClient ethClient) Option {
@@ -61,9 +50,17 @@ func WithLogger(logger log.Logger) Option {
 
 // WithForkChoiceStoreProvider is an Option that sets the ForkChoiceStoreProvider
 // of the Service.
-func WithForkChoiceStoreProvider(fcsp ForkChoiceStoreProvider) Option {
+func WithForkChoiceStoreProvider(fcsp forkChoiceStoreProvider) Option {
 	return func(r *Service) error {
 		r.fcsp = fcsp
+		return nil
+	}
+}
+
+// WithExecutionService is an Option that sets the ExecutionService of the Service.
+func WithExecutionService(es executionService) Option {
+	return func(r *Service) error {
+		r.es = es
 		return nil
 	}
 }

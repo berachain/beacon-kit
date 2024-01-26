@@ -23,28 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package dispatch
+package cosmos
 
 import (
-	"time"
+	"context"
 
-	"github.com/itsdevbear/bolaris/runtime/dispatch/queues"
+	storetypes "cosmossdk.io/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Queue represents a queue of work items to be executed. It's interface is inspired by
-// Apple's Grand Central Dispatch (GCD) API.
-// https://developer.apple.com/documentation/dispatch/dispatchqueue
-type Queue interface {
-	Async(queues.WorkItem)
-	AsyncAfter(time.Duration, queues.WorkItem)
-	Sync(queues.WorkItem)
-	AsyncAndWait(queues.WorkItem)
-}
-
-// Event represents actions that occur during consensus. Listeners can
-// register callbacks with event handlers for specific event types.
-type Event interface {
-	Type() string
-	Source() any
-	Value() any
+func NewEmptyContextWithMS(ctx context.Context, ms storetypes.MultiStore) sdk.Context {
+	return sdk.Context{}.
+		WithContext(ctx).
+		WithMultiStore(ms).
+		WithEventManager(sdk.NewEventManager()).
+		WithGasMeter(storetypes.NewInfiniteGasMeter()).
+		WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 }

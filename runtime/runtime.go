@@ -31,14 +31,14 @@ import (
 
 	"cosmossdk.io/log"
 
+	"github.com/itsdevbear/bolaris/async/dispatch"
+	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/dispatch"
-	"github.com/itsdevbear/bolaris/runtime/notify"
 	"github.com/itsdevbear/bolaris/types"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
@@ -139,7 +139,9 @@ func NewDefaultBeaconKitRuntime(
 	syncService := initialsync.NewService(
 		initialsync.WithLogger(logger),
 		initialsync.WithEthClient(eth1Client),
-		initialsync.WithForkChoiceStoreProvider(fcsp))
+		initialsync.WithForkChoiceStoreProvider(fcsp),
+		initialsync.WithExecutionService(executionService),
+	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
@@ -167,4 +169,17 @@ func (r *BeaconKitRuntime) StopServices() {
 // FetchService retrieves a service from the BeaconKitRuntime's service registry.
 func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 	return r.services.FetchService(service)
+}
+
+// InitialSyncCheck.
+func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
+	var (
+		syncService *initialsync.Service
+	)
+
+	if err := r.services.FetchService(&syncService); err != nil {
+		panic(err)
+	}
+
+	return syncService.CheckSyncStatusAndForkchoice(ctx)
 }

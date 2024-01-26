@@ -62,6 +62,7 @@ import (
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
+	"github.com/itsdevbear/bolaris/types/cosmos"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -195,6 +196,12 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
+	// Initial check for execution client sync.
+	if err = app.BeaconKitRunner.InitialSyncCheck(
+		cosmos.NewEmptyContextWithMS(context.TODO(), app.CommitMultiStore()),
+	); err != nil {
+		panic(err)
+	}
 	return app
 }
 
@@ -235,7 +242,11 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	); err != nil {
 		panic(err)
 	}
+}
 
+// RegisterNodeService registers the node gRPC service on the app gRPC router.
+func (app *SimApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+	app.App.RegisterNodeService(clientCtx, cfg)
 	app.BeaconKitRunner.StartServices()
 }
 
