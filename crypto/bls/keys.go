@@ -39,16 +39,16 @@ const (
 	PrivKeySize = 32
 	// PubKeySize defines the length of the PubKey byte array.
 	PubKeySize = 48
-	// KeyType is the string constant for the secp256k1 algorithm.
-	KeyType = " bls12_381"
+	// KeyType is the string constant for the bls12_381 algorithm.
+	KeyType = "bls12_381"
 )
 
 // ===============================================================================================
 // Private Key
 // ===============================================================================================
 
-// PrivKey is a wrapper around the Ethereum secp256k1 private key type. This wrapper conforms to
-// crypotypes.Pubkey to allow for the use of the Ethereum secp256k1 private key type within the
+// PrivKey is a wrapper around the Ethereum bls12_381 private key type. This wrapper conforms to
+// crypotypes.Pubkey to allow for the use of the Ethereum bls12_381 private key type within the
 // Cosmos SDK.
 
 // Compile-time type assertion.
@@ -84,7 +84,7 @@ func (privKey PrivKey) Equals(other cryptotypes.LedgerPrivKey) bool {
 	return privKey.Type() == other.Type() && bytes.Equal(privKey.Bytes(), other.Bytes())
 }
 
-// Type returns eth_secp256k1.
+// Type returns eth_bls12_381.
 func (privKey PrivKey) Type() string {
 	return KeyType
 }
@@ -93,8 +93,8 @@ func (privKey PrivKey) Type() string {
 // Public Key
 // ===============================================================================================
 
-// Pubkey is a wrapper around the Ethereum secp256k1 public key type. This wrapper conforms to
-// crypotypes.Pubkey to allow for the use of the Ethereum secp256k1 public key type within the
+// Pubkey is a wrapper around the Ethereum bls12_381 public key type. This wrapper conforms to
+// crypotypes.Pubkey to allow for the use of the Ethereum bls12_381 public key type within the
 // Cosmos SDK.
 
 // Compile-time type assertion.
@@ -112,7 +112,7 @@ func (pubKey *PubKey) Bytes() []byte {
 	return pubKey.Key
 }
 
-// Type returns eth_secp256k1.
+// Type returns eth_bls12_381.
 func (pubKey *PubKey) Type() string {
 	return KeyType
 }
