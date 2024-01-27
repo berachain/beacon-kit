@@ -41,7 +41,7 @@ func (pubKey PubKey) VerifySignature(msg, sig []byte) bool {
 	}
 
 	pubK, _ := blst.PublicKeyFromBytes(pubKey.Key)
-	ok, err := blst.VerifySignature(pubKey.Key, [32]byte(msg[:32]), pubK)
+	ok, err := blst.VerifySignature(sig, [32]byte(msg[:32]), pubK)
 	if err != nil {
 		return false
 	}
