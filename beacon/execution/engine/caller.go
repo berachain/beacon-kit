@@ -225,7 +225,7 @@ func (s *engineCaller) GetPayload(
 	if primitives.Epoch(slot) >= s.beaconCfg.DenebForkEpoch {
 		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV3, primitives.PayloadID(payloadID))
+			result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -240,7 +240,7 @@ func (s *engineCaller) GetPayload(
 	if primitives.Epoch(slot) >= s.beaconCfg.CapellaForkEpoch {
 		result := &pb.ExecutionPayloadCapellaWithValue{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV2, primitives.PayloadID(payloadID))
+			result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -254,7 +254,7 @@ func (s *engineCaller) GetPayload(
 
 	result := &pb.ExecutionPayload{}
 	err := s.Eth1Client.Client.Client().CallContext(ctx,
-		result, execution.GetPayloadMethod, primitives.PayloadID(payloadID))
+		result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
