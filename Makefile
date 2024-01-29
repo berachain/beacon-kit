@@ -153,9 +153,11 @@ mockery:
 
 # TODO: add start-erigon and start-nethermind
 
+# Start beacond
 start:
 	@./app/entrypoint.sh
 
+# Start erigon node
 start-reth:
 	@rm -rf .tmp/eth-home
 	@docker run \
@@ -172,16 +174,15 @@ start-reth:
 	--authrpc.jwtsecret ./app/jwt.hex
 	--datadir .tmp/reth
 	
+# Init and start geth node
 start-geth:
-# Init geth node
+	rm -rf .tmp/geth
 	docker run \
 	--rm -v $(PWD)/app:/app \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
 	--datadir .tmp/geth \
 	./app/eth-genesis.json
-
-# Run geth node
 	docker run \
 	-p 8545:8545 \
 	-p 8551:8551 \
@@ -196,6 +197,7 @@ start-geth:
 	--authrpc.vhosts "*" \
 	--datadir .tmp/geth
 
+# Start nethermind node
 start-nethermind:
 	docker run \
 	-p 8545:8545 \
@@ -212,6 +214,7 @@ start-nethermind:
 	--Sync.PivotNumber 0 \
 	--Init.ChainSpecPath ../app/eth-nether-genesis.json
 
+# Start besu node
 start-besu:
 	docker run \
 	-p 30303:30303 \
@@ -229,7 +232,7 @@ start-besu:
 	--engine-rpc-port=8551 \
 	--engine-rpc-enabled \
 	--engine-host-allowlist="*" \
-	--engine-jwt-secret=../../app/jwt.hex \
+	--engine-jwt-secret=../../app/jwt.hex
 
 
 
