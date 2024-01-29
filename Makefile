@@ -196,12 +196,27 @@ start-geth:
 	--authrpc.vhosts "*" \
 	--datadir .tmp/geth
 
+start-nethermind:
+	docker run \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	-v $(PWD)/app:/app \
+	-v $(PWD)/.tmp:/.tmp \
+	nethermind/nethermind \
+	--JsonRpc.Port 8545 \
+	--JsonRpc.EngineEnabledModules "eth,net,engine" \
+	--JsonRpc.EnginePort 8551 \
+	--JsonRpc.EngineHost 0.0.0.0 \
+	--JsonRpc.Host 0.0.0.0 \
+	--JsonRpc.JwtSecretFile ../app/jwt.hex \
+	--Sync.PivotNumber 0 \
+	--Init.ChainSpecPath ../app/eth-nether-genesis.json
+
 start-besu:
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	-e BESU_RPC_HTTP_ENABLED=true \
 	-v $(PWD)/app:/app \
 	-v $(PWD)/.tmp:/.tmp \
 	hyperledger/besu:latest \
