@@ -151,7 +151,7 @@ mockery:
 #    beacond     #
 #################
 
-# TODO: add start-erigon, start-besu and start-nethermind
+# TODO: add start-erigon and start-nethermind
 
 start:
 	@./app/entrypoint.sh
@@ -195,6 +195,28 @@ start-geth:
 	--authrpc.jwtsecret ./app/jwt.hex \
 	--authrpc.vhosts "*" \
 	--datadir .tmp/geth
+
+start-besu:
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	-e BESU_RPC_HTTP_ENABLED=true \
+	-v $(PWD)/app:/app \
+	-v $(PWD)/.tmp:/.tmp \
+	hyperledger/besu:latest \
+	--data-path=.tmp/besu \
+	--genesis-file=../../app/eth-genesis.json \
+	--rpc-http-enabled \
+	--rpc-http-api=ETH,NET,ENGINE \
+	--host-allowlist="*" \
+	--rpc-http-cors-origins="all" \
+	--engine-rpc-port=8551 \
+	--engine-rpc-enabled \
+	--engine-host-allowlist="*" \
+	--engine-jwt-secret=../../app/jwt.hex \
+
+
 
 #################
 #     unit      #

@@ -19,7 +19,8 @@
       "mergeNetsplitBlock": 0,
       "shanghaiTime": 0,
       "terminalTotalDifficulty": 0,
-      "terminalTotalDifficultyPassed": true
+      "terminalTotalDifficultyPassed": true,
+      "ethash": {}
     },
     "coinbase": "0x0000000000000000000000000000000000000000",
     "difficulty": "0x20000",
