@@ -27,14 +27,14 @@ package store
 
 // Genesis Related Keys.
 const (
-	// Eth1GenesisHashKey is the key used to store the eth1 genesis hash.
+	// eth1GenesisHashKey is the key used to store the eth1 genesis hash.
 	eth1GenesisHashKey = "eth1_genesis_hash"
 )
 
 // Forkchoice Related Keys.
 const (
-	// ForkchoiceSafeKey is the key used to store the safe block hash.
-	forkchoiceSafeKey = "forkchoice_safe"
-	// ForkchoiceFinalizedKey is the key used to store the finalized block hash.
-	forkchoiceFinalizedKey = "forkchoice_finalized"
+	// forkchoiceSafeKey is the key used to store the safe block hash.
+	forkchoiceSafeKey = "fc_safe"
+	// forkchoiceFinalizedKey is the key used to store the finalized block hash.
+	forkchoiceFinalizedKey = "fc_finalized"
 )
