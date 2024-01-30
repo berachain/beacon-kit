@@ -33,6 +33,7 @@ func (s *BeaconStore) Slot() primitives.Slot {
 	return primitives.Slot(s.sdkCtx.BlockHeight())
 }
 
+// TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
 // Time returns the current time of the beacon chain in Unix timestamp format.
 func (s *BeaconStore) Time() uint64 {
 	return uint64(s.sdkCtx.BlockTime().Unix())
