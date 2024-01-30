@@ -42,9 +42,9 @@ type ethClient interface {
 	HeaderByHash(ctx context.Context, hash common.Hash) (*ethtypes.Header, error)
 }
 
-// BeaconStateProvider defines an interface for providing a ForkChoiceStore.
+// BeaconStateProvider is an interface that wraps the basic BeaconState method.
 type BeaconStateProvider interface {
-	// ForkChoiceStore retrieves the ForkChoiceStore from the provided context.
+	// BeaconState provides access to the underlying beacon state.
 	BeaconState(ctx context.Context) state.BeaconState
 }
 

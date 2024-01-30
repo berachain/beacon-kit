@@ -33,9 +33,9 @@ import (
 	"github.com/itsdevbear/bolaris/types/state"
 )
 
-// BeaconStateProvider is an interface that wraps the basic ForkChoiceStore method.
+// BeaconStateProvider is an interface that wraps the basic BeaconState method.
 type BeaconStateProvider interface {
-	// ForkChoiceStore returns a fork choice store in the provided context.
+	// BeaconState provides access to the underlying beacon state.
 	BeaconState(ctx context.Context) state.BeaconState
 }
 
