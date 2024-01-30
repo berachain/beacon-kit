@@ -26,8 +26,6 @@
 package evm
 
 import (
-	"context"
-
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -48,11 +46,9 @@ import (
 const ConsensusVersion = 1
 
 var (
-	_ appmodule.HasServices          = AppModule{}
-	_ appmodule.HasPrepareCheckState = AppModule{}
-	_ appmodule.HasEndBlocker        = AppModule{}
-	_ module.AppModule               = AppModule{}
-	_ module.AppModuleBasic          = AppModuleBasic{}
+	_ appmodule.HasServices = AppModule{}
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
 // ==============================================================================
@@ -69,7 +65,7 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the evm module's types on the given LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
-	// types.RegisterLegacyAminoCodec(cdc)
+	// x/beacon does not support amino.
 }
 
 // RegisterInterfaces registers the module's interface types.
@@ -127,13 +123,3 @@ func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
-
-// PrepareCheckState prepares the application state for a check.
-func (am AppModule) PrepareCheckState(_ context.Context) error {
-	return nil
-}
-
-// Precommit performs precommit operations.
-func (am AppModule) EndBlock(_ context.Context) error {
-	return nil
-}
