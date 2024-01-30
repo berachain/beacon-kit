@@ -28,7 +28,6 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,12 +36,13 @@ import (
 	"github.com/itsdevbear/bolaris/types/state"
 )
 
-type (
-	Keeper struct {
-		storeKey storetypes.StoreKey
-	}
-)
+// Keeper maintains the link to data storage and exposes access to the underlying
+// `BeaconState` methods for the x/beacon module.
+type Keeper struct {
+	storeKey storetypes.StoreKey
+}
 
+// Assert Keeper implements BeaconStateProvider interface.
 var _ state.BeaconStateProvider = &Keeper{}
 
 // NewKeeper creates new instances of the polaris Keeper.
@@ -52,11 +52,6 @@ func NewKeeper(
 	return &Keeper{
 		storeKey: storeKey,
 	}
-}
-
-// Logger returns a module-specific logger.
-func (k *Keeper) Logger(ctx context.Context) log.Logger {
-	return sdk.UnwrapSDKContext(ctx).Logger()
 }
 
 // BeaconState returns the beacon state struct initialized with a given
