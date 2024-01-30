@@ -30,6 +30,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// BeaconStore is a wrapper around KVStore that provides access
+// to all beacon related data.
 type BeaconStore struct {
 	store.KVStore
 

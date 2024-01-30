@@ -23,36 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package initialsync
+package state
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/state"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
-// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
-type ethClient interface {
-	HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error)
-	HeaderByHash(ctx context.Context, hash common.Hash) (*ethtypes.Header, error)
-}
-
-// BeaconStateProvider defines an interface for providing a ForkChoiceStore.
 type BeaconStateProvider interface {
-	// ForkChoiceStore retrieves the ForkChoiceStore from the provided context.
-	BeaconState(ctx context.Context) state.BeaconState
+	BeaconState(ctx context.Context) BeaconState
 }
 
-// executionService defines an interface for interacting with the execution client.
-type executionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, slot primitives.Slot,
-		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry, async bool,
-	) error
+type BeaconState interface {
+	ReadOnlyBeaconState
+	WriteOnlyBeaconState
+	// Slot() primitives.Slot
+	// Time() uint64
+	// Version() int
+}
+
+type ReadOnlyBeaconState interface {
+	ReadOnlyForkChoice
+	ReadOnlyGenesis
+}
+
+type WriteOnlyBeaconState interface {
+	WriteOnlyForkChoice
+	WriteOnlyGenesis
+}
+
+type WriteOnlyForkChoice interface {
+	SetLastValidHead(lastValidHead common.Hash)
+	SetSafeEth1BlockHash(safeBlockHash common.Hash)
+	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
+}
+
+type ReadOnlyForkChoice interface {
+	GetLastValidHead() common.Hash
+	GetSafeEth1BlockHash() common.Hash
+	GetFinalizedEth1BlockHash() common.Hash
+}
+
+type ReadOnlyGenesis interface {
+	GenesisEth1Hash() common.Hash
+}
+
+type WriteOnlyGenesis interface {
+	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
 }

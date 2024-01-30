@@ -54,8 +54,8 @@ type Service struct {
 
 	// Forkchoice Related Fields
 	//
-	// fcsp is the fork choice store provider.
-	fcsp forkchoiceStoreProvider
+	// bsp is the fork choice store provider.
+	bsp BeaconStateProvider
 	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.PayloadIDCache
 	// fcd is the forkchoice dispatch queue. Anytime a forkchoice update is sent to the

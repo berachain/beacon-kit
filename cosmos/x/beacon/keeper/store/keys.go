@@ -23,52 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package state
+package store
 
-import (
-	"context"
-
-	"github.com/ethereum/go-ethereum/common"
+// Genesis Related Keys.
+const (
+	// Eth1GenesisHashKey is the key used to store the eth1 genesis hash.
+	eth1GenesisHashKey = "eth1_genesis_hash"
 )
 
-type BeaconStateProvider interface {
-	BeaconState(ctx context.Context) BeaconState
-}
-
-type BeaconState interface {
-	ReadOnlyBeaconState
-	WriteOnlyBeaconState
-	// Slot() primitives.Slot
-	// Time() uint64
-	// Version() int
-}
-
-type ReadOnlyBeaconState interface {
-	ReadOnlyForkChoice
-	ReadOnlyGenesis
-}
-
-type WriteOnlyBeaconState interface {
-	WriteOnlyForkChoice
-	WriteOnlyGenesis
-}
-
-type WriteOnlyForkChoice interface {
-	SetLastValidHead(lastValidHead common.Hash)
-	SetSafeEth1BlockHash(safeBlockHash common.Hash)
-	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
-}
-
-type ReadOnlyForkChoice interface {
-	GetLastValidHead() common.Hash
-	GetSafeEth1BlockHash() common.Hash
-	GetFinalizedEth1BlockHash() common.Hash
-}
-
-type ReadOnlyGenesis interface {
-	GenesisEth1Hash() common.Hash
-}
-
-type WriteOnlyGenesis interface {
-	SetGenesisEth1Hash(genesisEth1Hash string)
-}
+// Forkchoice Related Keys.
+const (
+	// ForkchoiceSafeKey is the key used to store the safe block hash.
+	forkchoiceSafeKey = "forkchoice_safe"
+	// ForkchoiceFinalizedKey is the key used to store the finalized block hash.
+	forkchoiceFinalizedKey = "forkchoice_finalized"
+)

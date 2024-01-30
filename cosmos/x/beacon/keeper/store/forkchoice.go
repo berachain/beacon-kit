@@ -29,14 +29,26 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// SetLastValidHead sets the last valid head in the store.
+// TODO: Make this in-mem thing more robust.
+func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
+	s.lastValidHash = lastValidHead
+}
+
+// GetLastValidHead retrieves the last valid head from the store.
+// TODO: Make this in-mem thing more robust.
+func (s *BeaconStore) GetLastValidHead() common.Hash {
+	return s.lastValidHash
+}
+
 // SetSafeEth1BlockHash sets the safe block hash in the store.
 func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
-	s.Set([]byte("forkchoice_safe"), safeBlockHash[:])
+	s.Set([]byte(forkchoiceSafeKey), safeBlockHash[:])
 }
 
 // GetSafeEth1BlockHash retrieves the safe block hash from the store.
 func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
-	bz := s.Get([]byte("forkchoice_safe"))
+	bz := s.Get([]byte(forkchoiceSafeKey))
 	if bz == nil {
 		return common.Hash{}
 	}
@@ -47,26 +59,16 @@ func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
 func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
-	s.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
+	s.Set([]byte(forkchoiceFinalizedKey), finalizedBlockHash[:])
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
 func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
-	bz := s.Get([]byte("forkchoice_finalized"))
+	bz := s.Get([]byte(forkchoiceFinalizedKey))
 	if bz == nil {
 		return common.Hash{}
 	}
 	var finalizedBlockHash common.Hash
 	copy(finalizedBlockHash[:], bz)
 	return finalizedBlockHash
-}
-
-// SetLastValidHead sets the last valid head in the store.
-func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
-	s.lastValidHash = lastValidHead
-}
-
-// GetLastValidHead retrieves the last valid head from the store.
-func (s *BeaconStore) GetLastValidHead() common.Hash {
-	return s.lastValidHash
 }

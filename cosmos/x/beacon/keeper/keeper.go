@@ -34,11 +34,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper/store"
-	"github.com/itsdevbear/bolaris/state"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/types/state"
 )
-
-var LatestForkChoiceKey = []byte("latestForkChoice") //nolint:gochecknoglobals // fix later.
 
 type (
 	Keeper struct {
@@ -62,11 +59,8 @@ func (k *Keeper) Logger(ctx context.Context) log.Logger {
 	return sdk.UnwrapSDKContext(ctx).Logger()
 }
 
-// Setup initializes the polaris keeper.
+// BeaconState returns the beacon state struct initialized with a given
+// context and the store key for the x/beacon module.
 func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
-	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
-}
-
-func (k *Keeper) ForkChoiceStore(ctx context.Context) types.ForkChoiceStore {
 	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
 }

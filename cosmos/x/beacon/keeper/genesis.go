@@ -37,7 +37,7 @@ import (
 func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	beaconState := k.BeaconState(ctx)
 	hash := common.HexToHash(data.Eth1GenesisHash)
-	beaconState.SetGenesisEth1Hash(data.Eth1GenesisHash)
+	beaconState.SetGenesisEth1Hash(hash)
 	beaconState.SetSafeEth1BlockHash(hash)
 	beaconState.SetFinalizedEth1BlockHash(hash)
 }

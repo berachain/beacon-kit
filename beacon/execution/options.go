@@ -49,11 +49,11 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
-// WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider
+// WithBeaconStateProvider is an option to set the BeaconStateProvider
 // for the Service.
-func WithForkChoiceStoreProvider(fcsp forkchoiceStoreProvider) Option {
+func WithBeaconStateProvider(bsp BeaconStateProvider) Option {
 	return func(s *Service) error {
-		s.fcsp = fcsp
+		s.bsp = bsp
 		return nil
 	}
 }

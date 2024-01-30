@@ -29,10 +29,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash string) {
-	s.Set([]byte("eth1_genesis_hash"), []byte(eth1GenesisHash))
+// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
+func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
+	s.Set([]byte(eth1GenesisHashKey), eth1GenesisHash.Bytes())
 }
 
+// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
 func (s *BeaconStore) GenesisEth1Hash() common.Hash {
-	return common.HexToHash(string(s.Get([]byte("eth1_genesis_hash"))))
+	return common.BytesToHash(s.Get([]byte(eth1GenesisHashKey)))
 }
