@@ -26,32 +26,17 @@
 package store
 
 import (
-	"cosmossdk.io/store"
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Forkchoice represents the fork choice rule in the blockchain.
-type Forkchoice struct {
-	store store.KVStore
-
-	lastValidHead common.Hash
-}
-
-// NewForkchoice creates a new instance of Forkchoice.
-func NewForkchoice(store store.KVStore) *Forkchoice {
-	return &Forkchoice{
-		store: store,
-	}
-}
-
 // SetSafeEth1BlockHash sets the safe block hash in the store.
-func (f *Forkchoice) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
-	f.store.Set([]byte("forkchoice_safe"), safeBlockHash[:])
+func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
+	s.Set([]byte("forkchoice_safe"), safeBlockHash[:])
 }
 
 // GetSafeEth1BlockHash retrieves the safe block hash from the store.
-func (f *Forkchoice) GetSafeEth1BlockHash() common.Hash {
-	bz := f.store.Get([]byte("forkchoice_safe"))
+func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
+	bz := s.Get([]byte("forkchoice_safe"))
 	if bz == nil {
 		return common.Hash{}
 	}
@@ -61,13 +46,13 @@ func (f *Forkchoice) GetSafeEth1BlockHash() common.Hash {
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (f *Forkchoice) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
-	f.store.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
+func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
+	s.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
-func (f *Forkchoice) GetFinalizedEth1BlockHash() common.Hash {
-	bz := f.store.Get([]byte("forkchoice_finalized"))
+func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
+	bz := s.Get([]byte("forkchoice_finalized"))
 	if bz == nil {
 		return common.Hash{}
 	}
@@ -77,11 +62,11 @@ func (f *Forkchoice) GetFinalizedEth1BlockHash() common.Hash {
 }
 
 // SetLastValidHead sets the last valid head in the store.
-func (f *Forkchoice) SetLastValidHead(lastValidHead common.Hash) {
-	f.lastValidHead = lastValidHead
+func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
+	s.lastValidHash = lastValidHead
 }
 
 // GetLastValidHead retrieves the last valid head from the store.
-func (f *Forkchoice) GetLastValidHead() common.Hash {
-	return f.lastValidHead
+func (s *BeaconStore) GetLastValidHead() common.Hash {
+	return s.lastValidHash
 }

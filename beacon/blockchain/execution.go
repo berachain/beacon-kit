@@ -146,7 +146,8 @@ func (s *Service) waitForPayload(
 }
 
 func (s *Service) ProcessReceivedBlock(
-	ctx context.Context, block interfaces.BeaconKitBlock,
+	ctx context.Context,
+	block interfaces.BeaconKitBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block

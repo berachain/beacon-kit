@@ -23,50 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper
+package state
 
 import (
 	"context"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper/store"
-	"github.com/itsdevbear/bolaris/state"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-var LatestForkChoiceKey = []byte("latestForkChoice") //nolint:gochecknoglobals // fix later.
-
-type (
-	Keeper struct {
-		storeKey storetypes.StoreKey
-	}
-)
-
-var _ state.BeaconStateProvider = &Keeper{}
-
-// NewKeeper creates new instances of the polaris Keeper.
-func NewKeeper(
-	storeKey storetypes.StoreKey,
-) *Keeper {
-	return &Keeper{
-		storeKey: storeKey,
-	}
+type BeaconStateProvider interface {
+	BeaconState(ctx context.Context) BeaconState
 }
 
-// Logger returns a module-specific logger.
-func (k *Keeper) Logger(ctx context.Context) log.Logger {
-	return sdk.UnwrapSDKContext(ctx).Logger()
+type BeaconState interface {
+	ReadOnlyBeaconState
+	WriteOnlyBeaconState
+	// Slot() primitives.Slot
+	// Time() uint64
+	// Version() int
 }
 
-// Setup initializes the polaris keeper.
-func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
-	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
+type ReadOnlyBeaconState interface {
+	ReadOnlyForkChoice
+	ReadOnlyGenesis
 }
 
-func (k *Keeper) ForkChoiceStore(ctx context.Context) types.ForkChoiceStore {
-	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
+type WriteOnlyBeaconState interface {
+	WriteOnlyForkChoice
+	WriteOnlyGenesis
+}
+
+type WriteOnlyForkChoice interface {
+	SetLastValidHead(lastValidHead common.Hash)
+	SetSafeEth1BlockHash(safeBlockHash common.Hash)
+	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
+}
+
+type ReadOnlyForkChoice interface {
+	GetLastValidHead() common.Hash
+	GetSafeEth1BlockHash() common.Hash
+	GetFinalizedEth1BlockHash() common.Hash
+}
+
+type ReadOnlyGenesis interface {
+	GenesisEth1Hash() common.Hash
+}
+
+type WriteOnlyGenesis interface {
+	SetGenesisEth1Hash(genesisEth1Hash string)
 }

@@ -23,50 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper
+package store
 
 import (
-	"context"
-
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper/store"
-	"github.com/itsdevbear/bolaris/state"
-	"github.com/itsdevbear/bolaris/types"
+	"cosmossdk.io/store"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-var LatestForkChoiceKey = []byte("latestForkChoice") //nolint:gochecknoglobals // fix later.
+type BeaconStore struct {
+	store.KVStore
 
-type (
-	Keeper struct {
-		storeKey storetypes.StoreKey
+	// lastValidHash is the last valid head in the store.
+	lastValidHash common.Hash
+}
+
+// NewBeaconStore creates a new instance of BeaconStore.
+func NewBeaconStore(store store.KVStore) *BeaconStore {
+	return &BeaconStore{
+		KVStore: store,
 	}
-)
-
-var _ state.BeaconStateProvider = &Keeper{}
-
-// NewKeeper creates new instances of the polaris Keeper.
-func NewKeeper(
-	storeKey storetypes.StoreKey,
-) *Keeper {
-	return &Keeper{
-		storeKey: storeKey,
-	}
-}
-
-// Logger returns a module-specific logger.
-func (k *Keeper) Logger(ctx context.Context) log.Logger {
-	return sdk.UnwrapSDKContext(ctx).Logger()
-}
-
-// Setup initializes the polaris keeper.
-func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
-	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
-}
-
-func (k *Keeper) ForkChoiceStore(ctx context.Context) types.ForkChoiceStore {
-	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
 }
