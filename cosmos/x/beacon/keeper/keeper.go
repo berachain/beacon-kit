@@ -31,8 +31,10 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper/store"
+	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
 	"github.com/itsdevbear/bolaris/types/state"
 )
 
@@ -58,4 +60,22 @@ func NewKeeper(
 // context and the store key for the x/beacon module.
 func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
+}
+
+// InitGenesis initializes the genesis state of the beacon module.
+func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
+	beaconState := k.BeaconState(ctx)
+	hash := common.HexToHash(data.Eth1GenesisHash)
+
+	// At genesis, we assume that the genesis block is also safe and final.
+	beaconState.SetGenesisEth1Hash(hash)
+	beaconState.SetSafeEth1BlockHash(hash)
+	beaconState.SetFinalizedEth1BlockHash(hash)
+}
+
+// ExportGenesis exports the current state of the beacon module as genesis state.
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+	return &types.GenesisState{
+		Eth1GenesisHash: k.BeaconState(ctx).GenesisEth1Hash().Hex(),
+	}
 }
