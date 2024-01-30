@@ -129,11 +129,11 @@ func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // PrepareCheckState prepares the application state for a check.
-func (am AppModule) PrepareCheckState(ctx context.Context) error {
-	return am.keeper.PrepareCheckState(ctx)
+func (am AppModule) PrepareCheckState(_ context.Context) error {
+	return nil
 }
 
 // Precommit performs precommit operations.
-func (am AppModule) EndBlock(ctx context.Context) error {
-	return am.keeper.EndBlock(ctx)
+func (am AppModule) EndBlock(_ context.Context) error {
+	return nil
 }
