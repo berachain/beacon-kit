@@ -54,7 +54,7 @@ func (s *Service) GetOrBuildBlock(
 	var (
 		err                error
 		executionData      interfaces.ExecutionData
-		lastFinalizedBlock = s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+		lastFinalizedBlock = s.fcsp.ForkChoiceStore(ctx).GetFinalizedEth1BlockHash()
 	)
 
 	// Attempt to get a previously built payload, otherwise we will trigger a payload to be build.
@@ -87,8 +87,8 @@ func (s *Service) GetOrBuildBlock(
 func (s *Service) buildNewPayloadAtSlotWithParent(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, error) {
-	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
-	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash()
+	finalHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedEth1BlockHash()
+	safeHash := s.fcsp.ForkChoiceStore(ctx).GetSafeEth1BlockHash()
 
 	// Notify the execution client of the new finalized and safe hashes, while also
 	// triggering a block to be built. We wait for the payload ID to be returned.
@@ -202,7 +202,7 @@ func (s *Service) validateStateTransition(
 	ctx context.Context, block interfaces.BeaconKitBlock,
 ) error {
 	parentHash := block.ExecutionData().ParentHash()
-	finalizedHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash()
+	finalizedHash := s.fcsp.ForkChoiceStore(ctx).GetFinalizedEth1BlockHash()
 	if !bytes.Equal(finalizedHash[:], parentHash) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
@@ -244,7 +244,7 @@ func (s *Service) postBlockProcess(
 		ctx, slot+1,
 		execution.NewNotifyForkchoiceUpdateArg(
 			common.BytesToHash(block.ExecutionData().BlockHash()),
-			s.fcsp.ForkChoiceStore(ctx).GetSafeBlockHash(),
-			s.fcsp.ForkChoiceStore(ctx).GetFinalizedBlockHash(),
+			s.fcsp.ForkChoiceStore(ctx).GetSafeEth1BlockHash(),
+			s.fcsp.ForkChoiceStore(ctx).GetFinalizedEth1BlockHash(),
 		), true, true, false)
 }

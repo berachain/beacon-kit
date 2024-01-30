@@ -23,15 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package proposal
 
-import "github.com/ethereum/go-ethereum/common"
-
-type ForkChoiceStore interface {
-	SetSafeEth1BlockHash(safeBlockHash common.Hash)
-	GetSafeEth1BlockHash() common.Hash
-	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
-	GetFinalizedEth1BlockHash() common.Hash
-	SetLastValidHead(lastValidHead common.Hash)
-	GetLastValidHead() common.Hash
-}
+const (
+	// MetricKeyPrepareProposalTime is the metric key for prepare proposal time.
+	MetricKeyPrepareProposalTime = "beaconkit.prepare_proposal_time"
+	// MetricKeyProcessProposalTime is the metric key for process proposal time.
+	MetricKeyProcessProposalTime = "beaconkit.process_proposal_time"
+)

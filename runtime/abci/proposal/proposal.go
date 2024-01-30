@@ -27,10 +27,12 @@ package proposal
 
 import (
 	"errors"
+	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
@@ -64,6 +66,7 @@ func NewHandler(
 func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
+	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// We start by requesting a block from the execution client. This may be from pulling
@@ -98,6 +101,7 @@ func (h *Handler) PrepareProposalHandler(
 func (h *Handler) ProcessProposalHandler(
 	ctx sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
+	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
 	// Extract the beacon kit block from the proposal and unmarshal it.

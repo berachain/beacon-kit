@@ -44,13 +44,13 @@ func NewForkchoice(store store.KVStore) *Forkchoice {
 	}
 }
 
-// SetSafeBlockHash sets the safe block hash in the store.
-func (f *Forkchoice) SetSafeBlockHash(safeBlockHash common.Hash) {
+// SetSafeEth1BlockHash sets the safe block hash in the store.
+func (f *Forkchoice) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
 	f.store.Set([]byte("forkchoice_safe"), safeBlockHash[:])
 }
 
-// GetSafeBlockHash retrieves the safe block hash from the store.
-func (f *Forkchoice) GetSafeBlockHash() common.Hash {
+// GetSafeEth1BlockHash retrieves the safe block hash from the store.
+func (f *Forkchoice) GetSafeEth1BlockHash() common.Hash {
 	bz := f.store.Get([]byte("forkchoice_safe"))
 	if bz == nil {
 		return common.Hash{}
@@ -60,13 +60,13 @@ func (f *Forkchoice) GetSafeBlockHash() common.Hash {
 	return safeBlockHash
 }
 
-// SetFinalizedBlockHash sets the finalized block hash in the store.
-func (f *Forkchoice) SetFinalizedBlockHash(finalizedBlockHash common.Hash) {
+// SetFinalizedEth1BlockHash sets the finalized block hash in the store.
+func (f *Forkchoice) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
 	f.store.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
 }
 
-// GetFinalizedBlockHash retrieves the finalized block hash from the store.
-func (f *Forkchoice) GetFinalizedBlockHash() common.Hash {
+// GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
+func (f *Forkchoice) GetFinalizedEth1BlockHash() common.Hash {
 	bz := f.store.Get([]byte("forkchoice_finalized"))
 	if bz == nil {
 		return common.Hash{}

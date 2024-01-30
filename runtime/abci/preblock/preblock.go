@@ -135,8 +135,8 @@ func (h *BeaconPreBlockHandler) extractBeaconBlockFromRequest(
 
 func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash common.Hash) {
 	store := h.keeper.ForkChoiceStore(ctx)
-	store.SetFinalizedBlockHash(blockHash)
-	store.SetSafeBlockHash(blockHash)
+	store.SetFinalizedEth1BlockHash(blockHash)
+	store.SetSafeEth1BlockHash(blockHash)
 	store.SetLastValidHead(blockHash)
 }
 

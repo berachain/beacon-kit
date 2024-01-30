@@ -43,8 +43,8 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	hash := common.HexToHash(data.Eth1GenesisHash)
 
 	fcs := store.NewForkchoice(ctx.KVStore(k.storeKey))
-	fcs.SetSafeBlockHash(hash)
-	fcs.SetFinalizedBlockHash(hash)
+	fcs.SetSafeEth1BlockHash(hash)
+	fcs.SetFinalizedEth1BlockHash(hash)
 }
 
 func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
