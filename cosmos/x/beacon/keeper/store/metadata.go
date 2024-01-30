@@ -25,33 +25,15 @@
 
 package store
 
-import (
-	"context"
+import "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
-)
-
-// BeaconStore is a wrapper around a KVStore sdk.Context
-// that provides access to all beacon related data.
-type BeaconStore struct {
-	sdkCtx sdk.Context
-	store.KVStore
-
-	// lastValidHash is the last valid head in the store.
-	lastValidHash common.Hash
+// TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
+// Slot returns the current slot of the beacon chain by converting the block height to a slot.
+func (s *BeaconStore) Slot() primitives.Slot {
+	return primitives.Slot(s.sdkCtx.BlockHeight())
 }
 
-// NewBeaconStore creates a new instance of BeaconStore.
-func NewBeaconStore(
-	ctx context.Context,
-	storeKey storetypes.StoreKey,
-) *BeaconStore {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return &BeaconStore{
-		sdkCtx:  sdkCtx,
-		KVStore: sdkCtx.KVStore(storeKey),
-	}
+// Time returns the current time of the beacon chain in Unix timestamp format.
+func (s *BeaconStore) Time() uint64 {
+	return uint64(s.sdkCtx.BlockTime().Unix())
 }

@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
 type BeaconStateProvider interface {
@@ -38,8 +39,8 @@ type BeaconStateProvider interface {
 type BeaconState interface {
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
-	// Slot() primitives.Slot
-	// Time() uint64
+	Slot() primitives.Slot
+	Time() uint64
 	// Version() int
 }
 

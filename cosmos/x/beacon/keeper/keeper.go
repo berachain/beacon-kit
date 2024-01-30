@@ -59,7 +59,10 @@ func NewKeeper(
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key for the x/beacon module.
 func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
-	return store.NewBeaconStore(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
+	return store.NewBeaconStore(
+		ctx,
+		k.storeKey,
+	)
 }
 
 // InitGenesis initializes the genesis state of the beacon module.
