@@ -23,33 +23,53 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper
+package state
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/store"
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
-func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
-	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	if err := genesisStore.Store(data.Eth1GenesisHash); err != nil {
-		panic(err)
-	}
-
-	hash := common.HexToHash(data.Eth1GenesisHash)
-
-	fcs := store.NewForkchoice(ctx.KVStore(k.storeKey))
-	fcs.SetSafeEth1BlockHash(hash)
-	fcs.SetFinalizedEth1BlockHash(hash)
+type BeaconStateProvider interface {
+	BeaconState(ctx context.Context) BeaconState
 }
 
-func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	genesisStore := store.NewGenesis(ctx.KVStore(k.storeKey))
-	return &types.GenesisState{
-		Eth1GenesisHash: genesisStore.Retrieve().Hex(),
-	}
+type BeaconState interface {
+	ReadOnlyBeaconState
+	WriteOnlyBeaconState
+	Slot() primitives.Slot
+	Time() uint64
+	// Version() int
+}
+
+type ReadOnlyBeaconState interface {
+	ReadOnlyForkChoice
+	ReadOnlyGenesis
+}
+
+type WriteOnlyBeaconState interface {
+	WriteOnlyForkChoice
+	WriteOnlyGenesis
+}
+
+type WriteOnlyForkChoice interface {
+	SetLastValidHead(lastValidHead common.Hash)
+	SetSafeEth1BlockHash(safeBlockHash common.Hash)
+	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
+}
+
+type ReadOnlyForkChoice interface {
+	GetLastValidHead() common.Hash
+	GetSafeEth1BlockHash() common.Hash
+	GetFinalizedEth1BlockHash() common.Hash
+}
+
+type ReadOnlyGenesis interface {
+	GenesisEth1Hash() common.Hash
+}
+
+type WriteOnlyGenesis interface {
+	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
 }

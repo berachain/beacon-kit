@@ -23,15 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package store
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"context"
 
-type ForkChoiceStore interface {
-	SetSafeEth1BlockHash(safeBlockHash common.Hash)
-	GetSafeEth1BlockHash() common.Hash
-	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
-	GetFinalizedEth1BlockHash() common.Hash
-	SetLastValidHead(lastValidHead common.Hash)
-	GetLastValidHead() common.Hash
+	"cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
+)
+
+// BeaconStore is a wrapper around a KVStore sdk.Context
+// that provides access to all beacon related data.
+type BeaconStore struct {
+	sdkCtx sdk.Context
+	store.KVStore
+
+	// lastValidHash is the last valid head in the store.
+	lastValidHash common.Hash
+}
+
+// NewBeaconStore creates a new instance of BeaconStore.
+func NewBeaconStore(
+	ctx context.Context,
+	storeKey storetypes.StoreKey,
+) *BeaconStore {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return &BeaconStore{
+		sdkCtx:  sdkCtx,
+		KVStore: sdkCtx.KVStore(storeKey),
+	}
 }

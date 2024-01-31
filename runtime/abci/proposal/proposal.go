@@ -26,7 +26,6 @@
 package proposal
 
 import (
-	"errors"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -130,7 +129,7 @@ func (h *Handler) extractAndUnmarshalBlock(
 ) (*consensusv1.BaseBeaconKitBlock, error) {
 	// Extract the marshalled payload from the proposal
 	if len(req.Txs) == 0 {
-		return nil, errors.New("no transactions in proposal")
+		return nil, ErrNoBeaconBlockInProposal
 	}
 	bz := req.Txs[PayloadPosition]
 	req.Txs = req.Txs[1:]

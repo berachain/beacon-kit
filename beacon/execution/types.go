@@ -30,13 +30,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/types/state"
 )
 
-// forkchoiceStoreProvider is an interface that wraps the basic ForkChoiceStore method.
-type forkchoiceStoreProvider interface {
-	// ForkChoiceStore returns a fork choice store in the provided context.
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+// BeaconStateProvider is an interface that wraps the basic BeaconState method.
+type BeaconStateProvider interface {
+	// BeaconState provides access to the underlying beacon state.
+	BeaconState(ctx context.Context) state.BeaconState
 }
 
 // GrandCentralDispatch is an interface that wraps the basic GetQueue method.

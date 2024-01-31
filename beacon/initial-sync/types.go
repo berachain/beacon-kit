@@ -32,7 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
@@ -42,10 +42,10 @@ type ethClient interface {
 	HeaderByHash(ctx context.Context, hash common.Hash) (*ethtypes.Header, error)
 }
 
-// forkChoiceStoreProvider defines an interface for providing a ForkChoiceStore.
-type forkChoiceStoreProvider interface {
-	// ForkChoiceStore retrieves the ForkChoiceStore from the provided context.
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+// BeaconStateProvider is an interface that wraps the basic BeaconState method.
+type BeaconStateProvider interface {
+	// BeaconState provides access to the underlying beacon state.
+	BeaconState(ctx context.Context) state.BeaconState
 }
 
 // executionService defines an interface for interacting with the execution client.

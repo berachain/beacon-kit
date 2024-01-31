@@ -39,7 +39,7 @@ import (
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
@@ -48,13 +48,13 @@ import (
 type BeaconKitRuntime struct {
 	mu         sync.Mutex
 	logger     log.Logger
-	fscp       ForkChoiceStoreProvider
+	fscp       BeaconStateProvider
 	services   *runtime.ServiceRegistry
 	dispatcher *dispatch.GrandCentralDispatch
 }
 
-type ForkChoiceStoreProvider interface {
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+type BeaconStateProvider interface {
+	BeaconState(ctx context.Context) state.BeaconState
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -77,7 +77,7 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default services.
 func NewDefaultBeaconKitRuntime(
-	ctx context.Context, cfg *config.Config, fcsp ForkChoiceStoreProvider, logger log.Logger,
+	ctx context.Context, cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
@@ -122,7 +122,7 @@ func NewDefaultBeaconKitRuntime(
 	executionService := execution.New(
 		execution.WithBeaconConfig(&cfg.BeaconConfig),
 		execution.WithLogger(logger),
-		execution.WithForkChoiceStoreProvider(fcsp),
+		execution.WithBeaconStateProvider(bsp),
 		execution.WithEngineCaller(engineCaller),
 		execution.WithGCD(gcd),
 	)
@@ -131,7 +131,7 @@ func NewDefaultBeaconKitRuntime(
 	chainService := blockchain.NewService(
 		blockchain.WithBeaconConfig(&cfg.BeaconConfig),
 		blockchain.WithLogger(logger),
-		blockchain.WithForkChoiceStoreProvider(fcsp),
+		blockchain.WithBeaconStateProvider(bsp),
 		blockchain.WithExecutionService(executionService),
 	)
 
@@ -139,7 +139,7 @@ func NewDefaultBeaconKitRuntime(
 	syncService := initialsync.NewService(
 		initialsync.WithLogger(logger),
 		initialsync.WithEthClient(eth1Client),
-		initialsync.WithForkChoiceStoreProvider(fcsp),
+		initialsync.WithBeaconStateProvider(bsp),
 		initialsync.WithExecutionService(executionService),
 	)
 
@@ -150,7 +150,7 @@ func NewDefaultBeaconKitRuntime(
 		WithService(chainService),
 		WithService(notificationService),
 		WithLogger(logger),
-		WithForkChoiceStoreProvider(fcsp),
+		WithBeaconStateProvider(bsp),
 		WithDispatcher(gcd),
 	)
 }

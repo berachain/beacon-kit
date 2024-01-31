@@ -26,32 +26,29 @@
 package store
 
 import (
-	"cosmossdk.io/store"
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Forkchoice represents the fork choice rule in the blockchain.
-type Forkchoice struct {
-	store store.KVStore
-
-	lastValidHead common.Hash
+// SetLastValidHead sets the last valid head in the store.
+// TODO: Make this in-mem thing more robust.
+func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
+	s.lastValidHash = lastValidHead
 }
 
-// NewForkchoice creates a new instance of Forkchoice.
-func NewForkchoice(store store.KVStore) *Forkchoice {
-	return &Forkchoice{
-		store: store,
-	}
+// GetLastValidHead retrieves the last valid head from the store.
+// TODO: Make this in-mem thing more robust.
+func (s *BeaconStore) GetLastValidHead() common.Hash {
+	return s.lastValidHash
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
-func (f *Forkchoice) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
-	f.store.Set([]byte("forkchoice_safe"), safeBlockHash[:])
+func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
+	s.Set([]byte(forkchoiceSafeKey), safeBlockHash[:])
 }
 
 // GetSafeEth1BlockHash retrieves the safe block hash from the store.
-func (f *Forkchoice) GetSafeEth1BlockHash() common.Hash {
-	bz := f.store.Get([]byte("forkchoice_safe"))
+func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
+	bz := s.Get([]byte(forkchoiceSafeKey))
 	if bz == nil {
 		return common.Hash{}
 	}
@@ -61,27 +58,17 @@ func (f *Forkchoice) GetSafeEth1BlockHash() common.Hash {
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (f *Forkchoice) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
-	f.store.Set([]byte("forkchoice_finalized"), finalizedBlockHash[:])
+func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
+	s.Set([]byte(forkchoiceFinalizedKey), finalizedBlockHash[:])
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
-func (f *Forkchoice) GetFinalizedEth1BlockHash() common.Hash {
-	bz := f.store.Get([]byte("forkchoice_finalized"))
+func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
+	bz := s.Get([]byte(forkchoiceFinalizedKey))
 	if bz == nil {
 		return common.Hash{}
 	}
 	var finalizedBlockHash common.Hash
 	copy(finalizedBlockHash[:], bz)
 	return finalizedBlockHash
-}
-
-// SetLastValidHead sets the last valid head in the store.
-func (f *Forkchoice) SetLastValidHead(lastValidHead common.Hash) {
-	f.lastValidHead = lastValidHead
-}
-
-// GetLastValidHead retrieves the last valid head from the store.
-func (f *Forkchoice) GetLastValidHead() common.Hash {
-	return f.lastValidHead
 }

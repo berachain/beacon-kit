@@ -30,14 +30,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type forkChoiceStoreProvider interface {
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+type BeaconStateProvider interface {
+	BeaconState(ctx context.Context) state.BeaconState
 }
 
 type ExecutionService interface {

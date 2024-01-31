@@ -28,22 +28,24 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/store"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper/store"
+	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
+	"github.com/itsdevbear/bolaris/types/state"
 )
 
-var LatestForkChoiceKey = []byte("latestForkChoice") //nolint:gochecknoglobals // fix later.
+// Keeper maintains the link to data storage and exposes access to the underlying
+// `BeaconState` methods for the x/beacon module.
+type Keeper struct {
+	storeKey storetypes.StoreKey
+}
 
-type (
-	Keeper struct {
-		storeKey storetypes.StoreKey
-	}
-)
+// Assert Keeper implements BeaconStateProvider interface.
+var _ state.BeaconStateProvider = &Keeper{}
 
 // NewKeeper creates new instances of the polaris Keeper.
 func NewKeeper(
@@ -54,12 +56,29 @@ func NewKeeper(
 	}
 }
 
-// Logger returns a module-specific logger.
-func (k *Keeper) Logger(ctx context.Context) log.Logger {
-	return sdk.UnwrapSDKContext(ctx).Logger()
+// BeaconState returns the beacon state struct initialized with a given
+// context and the store key for the x/beacon module.
+func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
+	return store.NewBeaconStore(
+		ctx,
+		k.storeKey,
+	)
 }
 
-// Setup initializes the polaris keeper.
-func (k *Keeper) ForkChoiceStore(ctx context.Context) types.ForkChoiceStore {
-	return store.NewForkchoice(sdk.UnwrapSDKContext(ctx).KVStore(k.storeKey))
+// InitGenesis initializes the genesis state of the beacon module.
+func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
+	beaconState := k.BeaconState(ctx)
+	hash := common.HexToHash(data.Eth1GenesisHash)
+
+	// At genesis, we assume that the genesis block is also safe and final.
+	beaconState.SetGenesisEth1Hash(hash)
+	beaconState.SetSafeEth1BlockHash(hash)
+	beaconState.SetFinalizedEth1BlockHash(hash)
+}
+
+// ExportGenesis exports the current state of the beacon module as genesis state.
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+	return &types.GenesisState{
+		Eth1GenesisHash: k.BeaconState(ctx).GenesisEth1Hash().Hex(),
+	}
 }

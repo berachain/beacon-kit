@@ -37,13 +37,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
-	"github.com/itsdevbear/bolaris/types"
 	v1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/types/state"
 )
 
 type BeaconKeeper interface {
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+	BeaconState(ctx context.Context) state.BeaconState
 }
 
 // BeaconPreBlockHandler is responsible for aggregating oracle data from each
@@ -134,7 +134,7 @@ func (h *BeaconPreBlockHandler) extractBeaconBlockFromRequest(
 }
 
 func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash common.Hash) {
-	store := h.keeper.ForkChoiceStore(ctx)
+	store := h.keeper.BeaconState(ctx)
 	store.SetFinalizedEth1BlockHash(blockHash)
 	store.SetSafeEth1BlockHash(blockHash)
 	store.SetLastValidHead(blockHash)

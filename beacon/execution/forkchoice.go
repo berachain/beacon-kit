@@ -98,7 +98,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 		case execution.ErrInvalidPayloadStatus:
 			s.logger.Error("invalid payload status", "error", err)
 			// TODO: Get last valid is kinda hood, its just a ptr in mem rn.
-			previousHead := s.fcsp.ForkChoiceStore(ctx).GetLastValidHead()
+			previousHead := s.bsp.BeaconState(ctx).GetLastValidHead()
 			err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
 				headHash: previousHead,
 			}, withAttrs)

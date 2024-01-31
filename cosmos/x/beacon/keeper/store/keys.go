@@ -23,46 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package store
 
-import (
-	"cosmossdk.io/log"
-
-	"github.com/itsdevbear/bolaris/config"
+// Genesis Related Keys.
+const (
+	// eth1GenesisHashKey is the key used to store the eth1 genesis hash.
+	eth1GenesisHashKey = "eth1_genesis_hash"
 )
 
-// Option is a function type that takes a pointer to a Service and returns an error.
-type Option func(*Service) error
-
-// WithExecutionService is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) Option {
-	return func(s *Service) error {
-		s.en = en
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *Service) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *Service) error {
-		s.logger = logger.With("module", "beacon-kit-blockchain")
-		return nil
-	}
-}
-
-// WithBeaconStateProvider is an option to set the BeaconStateProvider for the Service.
-func WithBeaconStateProvider(bsp BeaconStateProvider) Option {
-	return func(s *Service) error {
-		s.bsp = bsp
-		return nil
-	}
-}
+// Forkchoice Related Keys.
+const (
+	// forkchoiceSafeKey is the key used to store the safe block hash.
+	forkchoiceSafeKey = "fc_safe"
+	// forkchoiceFinalizedKey is the key used to store the finalized block hash.
+	forkchoiceFinalizedKey = "fc_finalized"
+)
