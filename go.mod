@@ -34,7 +34,7 @@ require (
 	github.com/onsi/gomega v1.31.1
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44
-	github.com/prysmaticlabs/prysm/v4 v4.2.0
+	github.com/prysmaticlabs/prysm/v4 v4.2.1
 	github.com/securego/gosec/v2 v2.18.2
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0

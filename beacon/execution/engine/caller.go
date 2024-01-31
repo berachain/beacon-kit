@@ -230,7 +230,7 @@ func (s *engineCaller) GetPayload(
 			return nil, nil, false, s.handleRPCError(err)
 		}
 		ed, err := blocks.WrappedExecutionPayloadDeneb(result.GetPayload(),
-			blocks.PayloadValueToGwei(result.GetValue()))
+			blocks.PayloadValueToWei(result.GetValue()))
 		if err != nil {
 			return nil, nil, false, err
 		}
@@ -245,7 +245,7 @@ func (s *engineCaller) GetPayload(
 			return nil, nil, false, s.handleRPCError(err)
 		}
 		ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
-			blocks.PayloadValueToGwei(result.GetValue()))
+			blocks.PayloadValueToWei(result.GetValue()))
 		if err != nil {
 			return nil, nil, false, err
 		}

@@ -27,9 +27,11 @@ package v1
 
 import (
 	"errors"
+	"math/big"
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/math"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
@@ -70,7 +72,8 @@ func wrapExecutionPayloadCapella(bz []byte, value Gwei) (interfaces.ExecutionDat
 	if err := payload.UnmarshalSSZ(bz); err != nil {
 		return nil, err
 	}
-	return blocks.WrappedExecutionPayloadCapella(payload, value)
+	return blocks.WrappedExecutionPayloadCapella(payload,
+		math.Wei(new(big.Int).SetUint64(uint64(value))))
 }
 
 // wrapExecutionPayloadDeneb wraps a byte array and value into an ExecutionPayloadDeneb object.
@@ -79,5 +82,6 @@ func wrapExecutionPayloadDeneb(bz []byte, value Gwei) (interfaces.ExecutionData,
 	if err := payload.UnmarshalSSZ(bz); err != nil {
 		return nil, err
 	}
-	return blocks.WrappedExecutionPayloadDeneb(payload, value)
+	return blocks.WrappedExecutionPayloadDeneb(payload,
+		math.Wei(new(big.Int).SetUint64(uint64(value))))
 }
