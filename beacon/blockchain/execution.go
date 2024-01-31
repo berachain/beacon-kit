@@ -231,8 +231,9 @@ func (s *Service) postBlockProcess(
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-		return errors.New("invalid payload")
+		return ErrInvalidPayload
 	}
+
 	// TODO: don't get slot off the execution data incase it's incorrect somehow.
 	slot := primitives.Slot(block.ExecutionData().BlockNumber())
 

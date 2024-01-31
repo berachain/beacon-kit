@@ -157,12 +157,13 @@ mockery:
 start:
 	@./app/entrypoint.sh
 
-# Start erigon node
+# Start reth node
 start-reth:
 	@rm -rf .tmp/eth-home
 	@docker run \
-	-p 8551:8551 \
+	-p 30303:30303 \
 	-p 8545:8545 \
+	-p 8551:8551 \
 	--rm -v $(PWD)/app:/app \
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
@@ -184,6 +185,7 @@ start-geth:
 	--datadir .tmp/geth \
 	./app/eth-genesis.json
 	docker run \
+	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/app:/app \
@@ -200,6 +202,7 @@ start-geth:
 # Start nethermind node
 start-nethermind:
 	docker run \
+	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
 	-v $(PWD)/app:/app \
@@ -226,7 +229,7 @@ start-besu:
 	--data-path=.tmp/besu \
 	--genesis-file=../../app/eth-genesis.json \
 	--rpc-http-enabled \
-	--rpc-http-api=ETH,NET,ENGINE \
+	--rpc-http-api=ETH,NET,ENGINE,DEBUG,NET,WEB3 \
 	--host-allowlist="*" \
 	--rpc-http-cors-origins="all" \
 	--engine-rpc-port=8551 \

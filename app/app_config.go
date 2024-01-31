@@ -62,7 +62,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	evmmodulev1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/beacon/module/v1alpha1"
+	beaconv1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/beacon/module/v1alpha1"
 	beacontypes "github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
 
 	_ "cosmossdk.io/x/evidence"                       // import for side-effects
@@ -122,7 +122,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 			{
 				Name: runtime.ModuleName,
 				Config: appconfig.WrapAny(&runtimev1alpha1.Module{
-					AppName: "SimApp",
+					AppName: "BeaconApp",
 					// During begin block slashing happens after distr.BeginBlocker so that
 					// there is nothing left over in the validator fee pool, so as to keep the
 					// CanWithdrawInvariant invariant.
@@ -245,7 +245,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 			},
 			{
 				Name:   beacontypes.ModuleName,
-				Config: appconfig.WrapAny(&evmmodulev1alpha1.Module{}),
+				Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
 			},
 		},
 	}),
