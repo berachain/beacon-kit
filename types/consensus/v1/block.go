@@ -26,9 +26,17 @@
 package v1
 
 import (
+	"time"
+
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
+
+type ABCIRequest interface {
+	GetHeight() int64
+	GetTime() time.Time
+	GetTxs() [][]byte
+}
 
 // BaseBeaconKitBlock implements the BeaconKitBlock interface.
 var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
@@ -44,6 +52,22 @@ func NewBaseBeaconKitBlockFromState(
 		executionData,
 		version,
 	)
+}
+
+func NewReadOnlyBeaconKitBlockFromABCIRequest(
+	req ABCIRequest,
+	payloadPosition int,
+) (interfaces.ReadOnlyBeaconKitBlock, error) {
+	// Extract the marshalled payload from the proposal
+	txs := req.GetTxs()
+	if len(txs) == 0 {
+		return nil, ErrNoBeaconBlockInProposal
+	}
+	block := BaseBeaconKitBlock{}
+	if err := block.Unmarshal(txs[payloadPosition]); err != nil {
+		return nil, err
+	}
+	return &block, nil
 }
 
 // NewBaseBeaconKitBlock creates a new beacon block.

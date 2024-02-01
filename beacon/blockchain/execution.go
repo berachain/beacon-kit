@@ -148,7 +148,7 @@ func (s *Service) waitForPayload(
 
 func (s *Service) ProcessReceivedBlock(
 	ctx context.Context,
-	block interfaces.BeaconKitBlock,
+	block interfaces.ReadOnlyBeaconKitBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -201,7 +201,7 @@ func (s *Service) ProcessReceivedBlock(
 // It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
 // but maybe not the most extensible.
 func (s *Service) validateStateTransition(
-	ctx context.Context, block interfaces.BeaconKitBlock,
+	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock,
 ) error {
 	parentHash := block.ExecutionData().ParentHash()
 	finalizedHash := s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
@@ -228,7 +228,7 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, header interface
 }
 
 func (s *Service) postBlockProcess(
-	ctx context.Context, block interfaces.BeaconKitBlock, isValidPayload bool,
+	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock, isValidPayload bool,
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
