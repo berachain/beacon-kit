@@ -33,6 +33,8 @@ import (
 // BaseBeaconKitBlock implements the BeaconKitBlock interface.
 var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
 
+// BaseBeaconKitBlockFromState assembles a new beacon block
+// from the given state and execution data.
 func BaseBeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
 	executionData interfaces.ExecutionData,
