@@ -39,7 +39,7 @@ func (s *Service) getPayloadAttributes(
 	_ context.Context, slot primitives.Slot, timestamp uint64,
 ) (payloadattribute.Attributer, error) {
 	// TODO: modularize andn make better.
-	requestedVersion := s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot))
+	requestedVersion := s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
 	emptyAttri := payloadattribute.EmptyWithVersion(requestedVersion)
 
 	// TODO: this is a hack to fill the PrevRandao field. It is not verifiable or safe

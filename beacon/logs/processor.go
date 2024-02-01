@@ -111,7 +111,8 @@ func (s *Processor) GatherLogsFromEth1Block(
 	}
 
 	// Convert the logs to our own type.
-	logs := evmv1.LogsFromGethLogs(ethLogs)
+	// TODO: determine a way to not have to do this cause its a waste of CPU.
+	logs := evmv1.LogsFromEthLogs(ethLogs)
 	return logs, nil
 }
 

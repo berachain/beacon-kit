@@ -33,9 +33,9 @@ import (
 
 type Service struct {
 	beaconCfg *config.Beacon
-	logger    log.Logger
 	bsp       BeaconStateProvider
 	en        ExecutionService
+	logger    log.Logger
 }
 
 func NewService(opts ...Option) *Service {

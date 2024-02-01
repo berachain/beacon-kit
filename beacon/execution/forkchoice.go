@@ -46,11 +46,11 @@ retry:
 
 	if err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs); err != nil {
 		if errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
-			s.logger.Info("retrying forkchoice update", "reason", err)
+			s.Logger().Info("retrying forkchoice update", "reason", err)
 			time.Sleep(forkchoiceBackoff)
 			goto retry
 		}
-		s.logger.Error("failed to notify forkchoice update", "error", err)
+		s.Logger().Error("failed to notify forkchoice update", "error", err)
 	}
 	return nil
 }
@@ -81,11 +81,11 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 		// TODO: handle versions properly.
 		attrs, err = s.getPayloadAttributes(ctx, slot, uint64(time.Now().Unix()))
 		if err != nil {
-			s.logger.Error("failed to get payload attributes in notifyForkchoiceUpdated", "error", err)
+			s.Logger().Error("failed to get payload attributes in notifyForkchoiceUpdated", "error", err)
 			return err
 		}
 	} else {
-		attrs = payloadattribute.EmptyWithVersion(s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)))
+		attrs = payloadattribute.EmptyWithVersion(s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)))
 	}
 
 	// TODO: remember and figure out what the middle param is.
@@ -96,7 +96,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 		case execution.ErrAcceptedSyncingPayloadStatus:
 			return err
 		case execution.ErrInvalidPayloadStatus:
-			s.logger.Error("invalid payload status", "error", err)
+			s.Logger().Error("invalid payload status", "error", err)
 			// TODO: Get last valid is kinda hood, its just a ptr in mem rn.
 			previousHead := s.bsp.BeaconState(ctx).GetLastValidHead()
 			err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
@@ -123,7 +123,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			//root: arg.headRoot, invalidAncestorRoots: invalidRoots}
 
 		default:
-			s.logger.Error("undefined execution engine error", "error", err)
+			s.Logger().Error("undefined execution engine error", "error", err)
 			return err
 		}
 	}

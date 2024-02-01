@@ -30,10 +30,10 @@ import (
 	"context"
 	"math/big"
 
-	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 type Status int
@@ -54,14 +54,22 @@ type BeaconSyncProgress struct {
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
 type Service struct {
-	logger    log.Logger
+	service.BaseService
 	ethClient ethClient
 	bsp       BeaconStateProvider
 	es        executionService
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
+// NewService creates a new initial sync service from
+// a given base and provided options.
+func NewService(
+	base service.BaseService,
+	opts ...Option,
+) *Service {
+	s := &Service{
+		BaseService: base,
+	}
+
 	for _, opt := range opts {
 		if err := opt(s); err != nil {
 			panic(err)
@@ -143,7 +151,7 @@ func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 	) == 0 {
 		// The beacon chain and the execution chain are at the same number || The beacon chain is at
 		// most 1 block ahead of the execution chain.
-		s.logger.Info(
+		s.Logger().Info(
 			"beacon and execution chains are synced ✅",
 			"finalized_hash", common.BytesToHash(finalHash[:]),
 		)
@@ -181,7 +189,7 @@ func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
 	// If the beacon chain is ahead of the execution chain, we need to trigger a forkchoice
 	// update to get the execution chain to start syncing, otherwise we can just return.
 	if bss.status != StatusBeaconAhead {
-		s.logger.Info(
+		s.Logger().Info(
 			"skipping startup forkchoice update, beacon chain is not ahead",
 			"status", bss.status,
 		)

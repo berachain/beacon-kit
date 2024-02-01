@@ -25,10 +25,6 @@
 
 package initialsync
 
-import (
-	"cosmossdk.io/log"
-)
-
 // Option is a function that modifies the Service.
 type Option func(*Service) error
 
@@ -36,14 +32,6 @@ type Option func(*Service) error
 func WithEthClient(ethClient ethClient) Option {
 	return func(s *Service) error {
 		s.ethClient = ethClient
-		return nil
-	}
-}
-
-// WithLogger is an Option that sets the logger of the Service.
-func WithLogger(logger log.Logger) Option {
-	return func(r *Service) error {
-		r.logger = logger.With("module", "beacon-kit-sync")
 		return nil
 	}
 }

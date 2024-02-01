@@ -29,11 +29,9 @@ import (
 	"context"
 	"errors"
 
-	"cosmossdk.io/log"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
@@ -43,14 +41,11 @@ import (
 // Service is responsible for delivering beacon chain notifications to
 // the execution client.
 type Service struct {
+	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// beaconCfg is the beacon chain configuration.
-	beaconCfg *config.Beacon
 	// etherbase is the address to which block rewards are sent.
 	etherbase common.Address
-	// logger is the logger for the service.
-	logger log.Logger
 
 	// Forkchoice Related Fields
 	//
@@ -67,14 +62,17 @@ type Service struct {
 }
 
 // New creates a new Service with the provided options.
-func New(opts ...Option) *Service {
+func New(
+	base service.BaseService,
+	opts ...Option) *Service {
 	ec := &Service{
+		BaseService:  base,
 		payloadCache: cache.NewPayloadIDCache(),
 		stopCh:       make(chan *struct{}),
 	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
-			ec.logger.Error("Failed to apply option", "error", err)
+			ec.Logger().Error("Failed to apply option", "error", err)
 		}
 	}
 
@@ -89,7 +87,7 @@ func (s *Service) Start() {
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
 func (s *Service) Stop() error {
-	s.logger.Info("stopping service...")
+	s.Logger().Info("stopping service...")
 	// <-s.stopCh
 	return nil
 }

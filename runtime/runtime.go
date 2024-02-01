@@ -39,6 +39,7 @@ import (
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
@@ -79,6 +80,7 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	ctx context.Context, cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
+
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
 	if err != nil {
@@ -93,6 +95,8 @@ func NewDefaultBeaconKitRuntime(
 	if err != nil {
 		return nil, err
 	}
+
+	baseService := service.NewBaseService(&cfg.BeaconConfig, nil, logger)
 
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
@@ -120,8 +124,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the execution service.
 	executionService := execution.New(
-		execution.WithBeaconConfig(&cfg.BeaconConfig),
-		execution.WithLogger(logger),
+		baseService.WithName("execution"),
 		execution.WithBeaconStateProvider(bsp),
 		execution.WithEngineCaller(engineCaller),
 		execution.WithGCD(gcd),
@@ -137,7 +140,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the sync service.
 	syncService := initialsync.NewService(
-		initialsync.WithLogger(logger),
+		baseService.WithName("initial-sync"),
 		initialsync.WithEthClient(eth1Client),
 		initialsync.WithBeaconStateProvider(bsp),
 		initialsync.WithExecutionService(executionService),

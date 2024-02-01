@@ -25,35 +25,56 @@
 
 package service
 
-// import (
-// 	"reflect"
+import (
+	"cosmossdk.io/log"
 
-// 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/async/dispatch"
+	"github.com/itsdevbear/bolaris/config"
+)
 
-// 	"github.com/itsdevbear/bolaris/async/dispatch"
-// )
+// BaseService is a base service that provides common functionality for all services.
+type BaseService struct {
+	name      string
+	beaconCfg *config.Beacon
+	gcd       *dispatch.GrandCentralDispatch
+	logger    log.Logger
+}
 
-// type BaseService struct {
-// 	logger   log.Logger
-// 	gcd      *dispatch.GrandCentralDispatch
-// 	channels []chan dispatch.Event
-// }
+// NewBaseService creates a new BaseService and applies the provided options.
+func NewBaseService(
+	cfg *config.Beacon,
+	gcd *dispatch.GrandCentralDispatch,
+	logger log.Logger,
+) *BaseService {
+	return &BaseService{
+		gcd:       gcd,
+		logger:    logger,
+		beaconCfg: cfg,
+	}
+}
 
-// // NewBaseService creates a new BaseService and applies the provided options.
-// func NewBaseService(
-// 	gcd *dispatch.GrandCentralDispatch,
-// 	logger log.Logger,
-// ) *BaseService {
-// 	return &BaseService{
-// 		gcd:    gcd,
-// 		logger: logger,
-// 	}
-// }
+// Name returns the name of the BaseService.
+func (s *BaseService) Name() string {
+	return s.name
+}
 
-// // Logger returns the logger instance of the BaseService.
-// func (s *BaseService) Logger() log.Logger {
-// 	return s.logger
-// }
+// Logger returns the logger instance of the BaseService.
+// It is used for logging messages in a structured manner.
+func (s *BaseService) Logger() log.Logger {
+	return s.logger
+}
+
+// GCD returns the GrandCentralDispatch instance of the BaseService.
+// It is used for managing asynchronous tasks and dispatching events.
+func (s *BaseService) GCD() *dispatch.GrandCentralDispatch {
+	return s.gcd
+}
+
+// BeaconCfg returns the configuration settings of the beacon node from the BaseService.
+// It provides access to various configuration parameters used by the beacon node.
+func (s *BaseService) BeaconCfg() *config.Beacon {
+	return s.beaconCfg
+}
 
 // // DispatchEvent sends a value to the feed associated with the provided key.
 // func (s *BaseService) DispatchEvent(value dispatch.Event) int {
