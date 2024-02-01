@@ -1,6 +1,6 @@
 # beacon-kit 
 
-[![CI status](https://github.com/itsdevbear/bolaris/workflows/ci/badge.svg)][gh-ci]
+<!-- [![CI status](https://github.com/itsdevbear/bolaris/workflows/ci/badge.svg)][gh-ci] -->
 <!-- [![cargo-deny status](https://github.com/paradigmxyz/reth/workflows/deny/badge.svg)][gh-deny]
 [![Codecov](https://img.shields.io/codecov/c/github/paradigmxyz/reth?token=c24SDcMImE)][codecov] -->
 <!-- [![Telegram Chat][tg-badge]][tg-url] -->
