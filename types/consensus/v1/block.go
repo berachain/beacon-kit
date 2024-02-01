@@ -45,7 +45,7 @@ func BaseBeaconKitBlockFromState(
 	)
 }
 
-// NewReadOnlyBeaconKitBlockFromABCIRequest creates a
+// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
 // new read-only beacon block by extracting a marshalled
 // block out of an ABCI request.
 func ReadOnlyBeaconKitBlockFromABCIRequest(
@@ -64,7 +64,7 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	return &block, nil
 }
 
-// NewBaseBeaconKitBlock creates a new beacon block from
+// BaseBeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBaseBeaconKitBlock(
 	slot Slot,
