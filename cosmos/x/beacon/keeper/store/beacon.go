@@ -32,6 +32,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/config"
 )
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
@@ -39,6 +40,7 @@ import (
 type BeaconStore struct {
 	sdkCtx sdk.Context
 	store.KVStore
+	cfg *config.Beacon
 
 	// lastValidHash is the last valid head in the store.
 	lastValidHash common.Hash
@@ -48,10 +50,13 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
+	// TODO: should this be stored in on-chain params?
+	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return &BeaconStore{
 		sdkCtx:  sdkCtx,
 		KVStore: sdkCtx.KVStore(storeKey),
+		cfg:     cfg,
 	}
 }

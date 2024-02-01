@@ -95,6 +95,7 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+				&beaconconfig.Beacon{},
 			),
 			depinject.Provide(),
 		),

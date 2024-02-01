@@ -72,7 +72,7 @@ func (h *Handler) PrepareProposalHandler(
 	// a previously built payload from the local cache via `getPayload()` or it may be
 	// by asking for a forkchoice from the execution client, depending on timing.
 	block, err := h.beaconChain.GetOrBuildBlock(
-		ctx, primitives.Slot(req.Height), uint64(req.Time.UTC().Unix()),
+		ctx, primitives.Slot(req.Height),
 	)
 
 	if err != nil {

@@ -38,3 +38,10 @@ func (s *BeaconStore) Slot() primitives.Slot {
 func (s *BeaconStore) Time() uint64 {
 	return uint64(s.sdkCtx.BlockTime().Unix())
 }
+
+// Version returns the active fork version of the beacon chain based on the current slot.
+// It utilizes the beacon configuration to determine the active fork version.
+func (s *BeaconStore) Version() int {
+	// TODO: properly do the SlotsPerEpoch math.
+	return s.cfg.ActiveForkVersion(primitives.Epoch(s.Slot()))
+}

@@ -44,7 +44,7 @@ import (
 
 // GetOrBuildBlock constructs the next block in the execution chain.
 func (s *Service) GetOrBuildBlock(
-	ctx context.Context, slot primitives.Slot, time uint64,
+	ctx context.Context, slot primitives.Slot,
 ) (interfaces.BeaconKitBlock, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -52,9 +52,10 @@ func (s *Service) GetOrBuildBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	var (
+		beaconState        = s.bsp.BeaconState(ctx)
 		err                error
 		executionData      interfaces.ExecutionData
-		lastFinalizedBlock = s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
+		lastFinalizedBlock = beaconState.GetFinalizedEth1BlockHash()
 	)
 
 	// Attempt to get a previously built payload, otherwise we will trigger a payload to be build.
@@ -77,8 +78,8 @@ func (s *Service) GetOrBuildBlock(
 	}
 
 	// Create a new block with the payload.
-	return consensusv1.NewBaseBeaconKitBlock(
-		slot, time, executionData,
+	return consensusv1.NewBaseBeaconKitBlockFromState(
+		beaconState, executionData,
 		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
 	)
 }

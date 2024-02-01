@@ -27,10 +27,24 @@ package v1
 
 import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/types/state"
 )
 
 // BaseBeaconKitBlock implements the BeaconKitBlock interface.
 var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
+
+func NewBaseBeaconKitBlockFromState(
+	beaconState state.ReadOnlyBeaconState,
+	executionData interfaces.ExecutionData,
+	version int,
+) (interfaces.BeaconKitBlock, error) {
+	return NewBaseBeaconKitBlock(
+		beaconState.Slot(),
+		beaconState.Time(),
+		executionData,
+		version,
+	)
+}
 
 // NewBaseBeaconKitBlock creates a new beacon block.
 func NewBaseBeaconKitBlock(

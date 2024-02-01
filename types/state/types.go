@@ -39,14 +39,14 @@ type BeaconStateProvider interface {
 type BeaconState interface {
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
-	Slot() primitives.Slot
-	Time() uint64
-	// Version() int
+	Version() int
 }
 
 type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
+	Slot() primitives.Slot
+	Time() uint64
 }
 
 type WriteOnlyBeaconState interface {
