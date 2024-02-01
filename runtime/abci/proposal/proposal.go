@@ -123,6 +123,7 @@ func (h *Handler) ProcessProposalHandler(
 	}
 
 	// Run the remainder of the proposal.
+	// TODO: is removeBeaconBlockFromTxs even required? Check Slinky for reference.
 	return h.processProposal(ctx, h.removeBeaconBlockFromTxs(req))
 }
 
