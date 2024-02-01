@@ -174,12 +174,9 @@ func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 
 // InitialSyncCheck.
 func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
-	var (
-		syncService *initialsync.Service
-	)
-
+	var syncService *initialsync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
-		panic(err)
+		return err
 	}
 
 	return syncService.CheckSyncStatusAndForkchoice(ctx)
