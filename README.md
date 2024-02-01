@@ -1,7 +1,3 @@
-<h1 align="center"> BeaconKit </h1>
-
-<img src="./.github/assets/banner.png"></img>
-
 # beacon-kit 
 
 [![CI status](https://github.com/itsdevbear/bolaris/workflows/ci/badge.svg)][gh-ci]
