@@ -80,7 +80,6 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	ctx context.Context, cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := eth.LoadJWTSecret(cfg.ExecutionClient.JWTSecretPath, logger)
 	if err != nil {
@@ -132,8 +131,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the blockchain service
 	chainService := blockchain.NewService(
-		blockchain.WithBeaconConfig(&cfg.BeaconConfig),
-		blockchain.WithLogger(logger),
+		baseService.WithName("blockchain"),
 		blockchain.WithBeaconStateProvider(bsp),
 		blockchain.WithExecutionService(executionService),
 	)

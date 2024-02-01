@@ -26,23 +26,26 @@
 package blockchain
 
 import (
-	"cosmossdk.io/log"
-
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
+// Service is the blockchain service.
 type Service struct {
-	beaconCfg *config.Beacon
-	bsp       BeaconStateProvider
-	en        ExecutionService
-	logger    log.Logger
+	service.BaseService
+	bsp BeaconStateProvider
+	en  ExecutionService
 }
 
-func NewService(opts ...Option) *Service {
-	s := &Service{}
+// NewService returns a new Service.
+func NewService(
+	base service.BaseService,
+	opts ...Option) *Service {
+	s := &Service{
+		BaseService: base,
+	}
 	for _, opt := range opts {
 		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
+			s.Logger().Error("Failed to apply option", "error", err)
 		}
 	}
 	return s
@@ -54,7 +57,7 @@ func (s *Service) Start() {}
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
 func (s *Service) Stop() error {
-	s.logger.Info("stopping service...")
+	s.Logger().Info("stopping service...")
 	return nil
 }
 

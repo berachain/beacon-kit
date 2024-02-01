@@ -25,12 +25,6 @@
 
 package blockchain
 
-import (
-	"cosmossdk.io/log"
-
-	"github.com/itsdevbear/bolaris/config"
-)
-
 // Option is a function type that takes a pointer to a Service and returns an error.
 type Option func(*Service) error
 
@@ -39,22 +33,6 @@ type Option func(*Service) error
 func WithExecutionService(en ExecutionService) Option {
 	return func(s *Service) error {
 		s.en = en
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *Service) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *Service) error {
-		s.logger = logger.With("module", "beacon-kit-blockchain")
 		return nil
 	}
 }

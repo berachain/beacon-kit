@@ -85,7 +85,8 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			return err
 		}
 	} else {
-		attrs = payloadattribute.EmptyWithVersion(s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)))
+		attrs = payloadattribute.EmptyWithVersion(
+			s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)))
 	}
 
 	// TODO: remember and figure out what the middle param is.
