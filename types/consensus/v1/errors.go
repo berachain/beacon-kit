@@ -31,4 +31,8 @@ var (
 	// ErrNoBeaconBlockInProposal is an error for when
 	// there is no beacon block in a proposal.
 	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
+
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
 )
