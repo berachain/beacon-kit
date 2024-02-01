@@ -23,43 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package callback
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"context"
+
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	bsp BeaconStateProvider
-	en  ExecutionService
+// LogHandler represents a struct that has the ability to ingest
+// an ethereum log and handle it.
+type LogHandler interface {
+	HandleLog(ctx context.Context, log *evmv1.Log) error
 }
-
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}
-
-// Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.Logger().Info("stopping service...")
-	return nil
-}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }

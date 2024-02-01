@@ -57,6 +57,7 @@ func (s *StakingCallbacks) Delegate(
 ) error {
 	sdk.UnwrapSDKContext(ctx).Logger().Info("delegating from execution layer",
 		"operatorAddress", operatorAddress, "amt", amount)
+
 	return nil
 }
 

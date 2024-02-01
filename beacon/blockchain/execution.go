@@ -79,7 +79,7 @@ func (s *Service) GetOrBuildBlock(
 	// Create a new block with the payload.
 	return consensusv1.NewBaseBeaconKitBlock(
 		slot, time, executionData,
-		s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)),
+		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
 	)
 }
 
@@ -103,7 +103,7 @@ func (s *Service) buildNewPayloadAtSlotWithParent(
 	)
 
 	if err != nil {
-		s.logger.Error("Failed to notify forkchoice update",
+		s.Logger().Error("Failed to notify forkchoice update",
 			"finalized_hash", finalHash,
 			"safe_hash", safeHash,
 			"head_hash", headHash,
@@ -125,7 +125,7 @@ func (s *Service) waitForPayload(
 	select {
 	case <-ctx.Done():
 		// The context was cancelled before the timer expired
-		s.logger.Error(
+		s.Logger().Error(
 			"Context cancelled while waiting for payload", "slot", slot, "head_hash", headHash,
 		)
 		return nil, ctx.Err()
@@ -137,7 +137,7 @@ func (s *Service) waitForPayload(
 	// If neither context cancellation nor timeout occurred, proceed to get the payload
 	payload, _, _, err := s.en.GetBuiltPayload(ctx, slot, headHash)
 	if err != nil {
-		s.logger.Error(
+		s.Logger().Error(
 			"Failed to get built payload", "error", err, "slot", slot, "head_hash", headHash,
 		)
 		return nil, err
@@ -164,7 +164,7 @@ func (s *Service) ProcessReceivedBlock(
 	eg.Go(func() error {
 		err := s.validateStateTransition(groupCtx, block)
 		if err != nil {
-			s.logger.Error("failed to validate state transition", "error", err)
+			s.Logger().Error("failed to validate state transition", "error", err)
 			return err
 		}
 		return nil
@@ -175,7 +175,7 @@ func (s *Service) ProcessReceivedBlock(
 		if isValidPayload, err = s.validateExecutionOnBlock(
 			groupCtx, block.ExecutionData(),
 		); err != nil {
-			s.logger.Error("failed to notify engine of new payload", "error", err)
+			s.Logger().Error("failed to notify engine of new payload", "error", err)
 			return err
 		}
 		return nil
@@ -218,7 +218,7 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, header interface
 ) (bool, error) {
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)
 	if err != nil && errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
-		s.logger.Error("Failed to validate execution on block", "error", err)
+		s.Logger().Error("Failed to validate execution on block", "error", err)
 		return isValidPayload, err
 	} else if err != nil || !isValidPayload {
 		return isValidPayload, prsymexecution.ErrInvalidPayloadStatus

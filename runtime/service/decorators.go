@@ -23,43 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package service
 
-import (
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	bsp BeaconStateProvider
-	en  ExecutionService
-}
-
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
+// WithName sets the name of the BaseService.
+func (s BaseService) WithName(name string) BaseService {
+	s.logger = s.logger.With("service", name)
 	return s
 }
-
-// Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.Logger().Info("stopping service...")
-	return nil
-}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }

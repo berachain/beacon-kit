@@ -39,6 +39,7 @@ import (
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
@@ -94,6 +95,8 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
+	baseService := service.NewBaseService(&cfg.BeaconConfig, nil, logger)
+
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		ctx,
@@ -120,8 +123,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the execution service.
 	executionService := execution.New(
-		execution.WithBeaconConfig(&cfg.BeaconConfig),
-		execution.WithLogger(logger),
+		baseService.WithName("execution"),
 		execution.WithBeaconStateProvider(bsp),
 		execution.WithEngineCaller(engineCaller),
 		execution.WithGCD(gcd),
@@ -129,15 +131,14 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the blockchain service
 	chainService := blockchain.NewService(
-		blockchain.WithBeaconConfig(&cfg.BeaconConfig),
-		blockchain.WithLogger(logger),
+		baseService.WithName("blockchain"),
 		blockchain.WithBeaconStateProvider(bsp),
 		blockchain.WithExecutionService(executionService),
 	)
 
 	// Build the sync service.
 	syncService := initialsync.NewService(
-		initialsync.WithLogger(logger),
+		baseService.WithName("initial-sync"),
 		initialsync.WithEthClient(eth1Client),
 		initialsync.WithBeaconStateProvider(bsp),
 		initialsync.WithExecutionService(executionService),
@@ -173,12 +174,9 @@ func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 
 // InitialSyncCheck.
 func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
-	var (
-		syncService *initialsync.Service
-	)
-
+	var syncService *initialsync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
-		panic(err)
+		return err
 	}
 
 	return syncService.CheckSyncStatusAndForkchoice(ctx)

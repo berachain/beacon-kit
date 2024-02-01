@@ -42,8 +42,8 @@ func (logs Logs) ToGethLogs() []*ethtypes.Log {
 	return ethLogs
 }
 
-// LogsFromGethLogs converts a slice of pointers to Geth Log to Logs.
-func LogsFromGethLogs(ethlogs []ethtypes.Log) Logs {
+// LogsFromEthLogs converts a slice of pointers to Geth Log to Logs.
+func LogsFromEthLogs(ethlogs []ethtypes.Log) Logs {
 	logs := make(Logs, len(ethlogs))
 	for i, ethlog := range ethlogs {
 		logs[i] = NewLogFromGethLog(ethlog)
