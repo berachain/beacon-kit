@@ -34,7 +34,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-// UpgradeName defines the on-chain upgrade name for the sample SimApp upgrade
+// UpgradeName defines the on-chain upgrade name for the sample BeaconApp upgrade
 // from v047 to v050.
 //
 // NOTE: This upgrade defines a reference implementation of what an upgrade
@@ -42,7 +42,7 @@ import (
 // v0.47.x to v0.50.x.
 const UpgradeName = "v047-to-v050"
 
-func (app SimApp) RegisterUpgradeHandlers() {
+func (app BeaconApp) RegisterUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(

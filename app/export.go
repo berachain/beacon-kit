@@ -43,7 +43,7 @@ import (
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
-func (app *SimApp) ExportAppStateAndValidators(forZeroHeight bool,
+func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool,
 	jailAllowedAddrs, modulesToExport []string) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContext(true).WithBlockHeader(cmtproto.Header{Height: app.LastBlockHeight()})
@@ -81,7 +81,7 @@ func (app *SimApp) ExportAppStateAndValidators(forZeroHeight bool,
 //	in favor of export at a block height
 //
 //nolint:funlen,gocognit,gocyclo,cyclop // from sdk.
-func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
+func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
 
 	// check if there is a allowed address list

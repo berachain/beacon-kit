@@ -53,8 +53,8 @@ var _ = Describe("Init command", func() {
 		os.Stdout = os.NewFile(0, os.DevNull)
 		rootCmd := cmd.NewRootCmd()
 		rootCmd.SetArgs([]string{
-			"init",        // Test the init cmd
-			"simapp-test", // Moniker
+			"init",           // Test the init cmd
+			"BeaconApp-test", // Moniker
 			fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json
 		})
 

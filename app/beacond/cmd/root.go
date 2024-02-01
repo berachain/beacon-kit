@@ -115,7 +115,7 @@ func NewRootCmd() *cobra.Command {
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(testapp.DefaultNodeHome).
-		WithViper("") // In simapp, we don't use any prefix for env variables.
+		WithViper("") // In BeaconApp, we don't use any prefix for env variables.
 
 	rootCmd := &cobra.Command{
 		Use:   "beacond",
@@ -208,7 +208,7 @@ func initAppConfig() (string, interface{}) {
 	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
 	//   own app.toml to override, or use this default value.
 	//
-	// In simapp, we set the min gas prices to 0.
+	// In BeaconApp, we set the min gas prices to 0.
 	srvCfg.MinGasPrices = "0stake"
 	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
 	srvCfg.IAVLCacheSize = 10000
@@ -369,7 +369,7 @@ func newApp(
 	)
 }
 
-// appExport creates a new simapp (optionally at a given height) and exports state.
+// appExport creates a new BeaconApp (optionally at a given height) and exports state.
 func appExport(
 	logger log.Logger,
 	db dbm.DB,
@@ -396,7 +396,7 @@ func appExport(
 	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
 	appOpts = viperAppOpts
 
-	var testApp *testapp.SimApp
+	var testApp *testapp.BeaconApp
 	if height != -1 {
 		testApp = testapp.NewBeaconKitApp(logger, db, traceStore, false, "", appOpts)
 

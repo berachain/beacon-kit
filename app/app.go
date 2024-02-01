@@ -79,14 +79,14 @@ func init() {
 var DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
 
 var (
-	_ runtime.AppI            = (*SimApp)(nil)
-	_ servertypes.Application = (*SimApp)(nil)
+	_ runtime.AppI            = (*BeaconApp)(nil)
+	_ servertypes.Application = (*BeaconApp)(nil)
 )
 
-// SimApp extends an ABCI application, but with most of its parameters exported.
+// BeaconApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
-type SimApp struct {
+type BeaconApp struct {
 	*runtime.App
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
@@ -111,7 +111,7 @@ type SimApp struct {
 	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
 }
 
-// NewBeaconKitApp returns a reference to an initialized SimApp.
+// NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
 	logger log.Logger,
 	db dbm.DB,
@@ -120,9 +120,9 @@ func NewBeaconKitApp(
 	bech32Prefix string,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) *SimApp {
+) *BeaconApp {
 	var (
-		app        = &SimApp{}
+		app        = &BeaconApp{}
 		appBuilder *runtime.AppBuilder
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
@@ -206,17 +206,17 @@ func NewBeaconKitApp(
 }
 
 // Name returns the name of the App.
-func (app *SimApp) Name() string { return app.BaseApp.Name() }
+func (app *BeaconApp) Name() string { return app.BaseApp.Name() }
 
-// LegacyAmino returns SimApp's amino codec.
+// LegacyAmino returns BeaconApp's amino codec.
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *SimApp) LegacyAmino() *codec.LegacyAmino {
+func (app *BeaconApp) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
-func (app *SimApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
+func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	keys := make(map[string]*storetypes.KVStoreKey)
 	for _, k := range app.GetStoreKeys() {
 		if kv, ok := k.(*storetypes.KVStoreKey); ok {
@@ -228,13 +228,13 @@ func (app *SimApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 }
 
 // SimulationManager implements the SimulationApp interface.
-func (app *SimApp) SimulationManager() *module.SimulationManager {
+func (app *BeaconApp) SimulationManager() *module.SimulationManager {
 	return nil
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(
@@ -245,13 +245,13 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 }
 
 // RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (app *SimApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+func (app *BeaconApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
 	app.App.RegisterNodeService(clientCtx, cfg)
 	app.BeaconKitRunner.StartServices()
 }
 
 // Close shuts down the application.
-func (app *SimApp) Close() error {
+func (app *BeaconApp) Close() error {
 	app.BeaconKitRunner.StopServices()
 	return app.BaseApp.Close()
 }
