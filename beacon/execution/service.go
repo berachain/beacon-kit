@@ -64,7 +64,8 @@ type Service struct {
 // New creates a new Service with the provided options.
 func New(
 	base service.BaseService,
-	opts ...Option) *Service {
+	opts ...Option,
+) *Service {
 	ec := &Service{
 		BaseService:  base,
 		payloadCache: cache.NewPayloadIDCache(),
