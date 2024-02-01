@@ -22,33 +22,26 @@ package callback
 
 import (
 	"context"
-	"errors"
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
-type LogHandler interface {
-	HandleLog(ctx context.Context, log *evmv1.Log) error
-}
-
 // Handler is the interface for all stateful precompiled contracts, which must
 // expose their ABI methods and precompile methods for stateful execution.
 type Handler interface {
-	// Registrable
-
 	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.
 	// NOTE: this can be directly loaded from the `Events` field of a Go-Ethereum ABI struct,
 	// which can be built for a solidity library, interface, or contract.
 	ABIEvents() map[string]abi.Event
 }
 
-// wrappedHandler is a container for running wrappedHandler and precompiled contracts.
+// wrappedHandler is a container for running the underlying handler functions
+// and building.
 type wrappedHandler struct {
-	// Handler is the base precompile implementation.
-	Handler
-	idsToMethods map[logSig]*method
+	// sigsToFns is a map of log signatures to their corresponding handler fn.
+	sigsToFns map[logSig]*method
 }
 
 // New creates and returns a new `wrappedHandler` with the given method ids
@@ -56,24 +49,25 @@ type wrappedHandler struct {
 func NewFrom(
 	si Handler,
 ) (LogHandler, error) {
-	idsToMethods, err := buildIdsToMethods(si, reflect.ValueOf(si))
+	// We take all of the functions from the handler and build a map that
+	// maps an ethereum log to a corresponding function to handle it.
+	sigsToFns, err := buildIdsToMethods(si, reflect.ValueOf(si))
 	if err != nil {
 		return nil, err
 	}
 
 	return &wrappedHandler{
-		Handler:      si,
-		idsToMethods: idsToMethods,
+		sigsToFns: sigsToFns,
 	}, nil
 }
 
 // HandleLog calls the function that matches the given log's signature.
 func (sc *wrappedHandler) HandleLog(ctx context.Context, log *evmv1.Log) error {
 	// Extract the method ID from the input and load the method.
-	method, found := sc.idsToMethods[logSig(log.Topics[0])]
+	fn, found := sc.sigsToFns[logSig(log.Topics[0])]
 	if !found {
-		return errors.New("method not found")
+		return ErrHandlerFnNotFound
 	}
 
-	return method.Call(ctx, log)
+	return fn.Call(ctx, log)
 }
