@@ -39,7 +39,6 @@ type BeaconStateProvider interface {
 type BeaconState interface {
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
-	Version() int
 }
 
 type ReadOnlyBeaconState interface {
@@ -47,6 +46,7 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyGenesis
 	Slot() primitives.Slot
 	Time() uint64
+	Version() int
 }
 
 type WriteOnlyBeaconState interface {

@@ -26,6 +26,8 @@
 package interfaces
 
 import (
+	"time"
+
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/math"
@@ -51,4 +53,10 @@ type ReadOnlyBeaconKitBlock interface {
 	GetValue() math.Gwei
 	// ExecutionData returns the execution data of the block.
 	ExecutionData() interfaces.ExecutionData
+}
+
+type ABCIRequest interface {
+	GetHeight() int64
+	GetTime() time.Time
+	GetTxs() [][]byte
 }

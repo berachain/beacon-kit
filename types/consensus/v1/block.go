@@ -26,36 +26,30 @@
 package v1
 
 import (
-	"time"
-
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
 
-type ABCIRequest interface {
-	GetHeight() int64
-	GetTime() time.Time
-	GetTxs() [][]byte
-}
-
 // BaseBeaconKitBlock implements the BeaconKitBlock interface.
 var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
 
-func NewBaseBeaconKitBlockFromState(
+func BaseBeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
 	executionData interfaces.ExecutionData,
-	version int,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBaseBeaconKitBlock(
 		beaconState.Slot(),
 		beaconState.Time(),
 		executionData,
-		version,
+		beaconState.Version(),
 	)
 }
 
-func NewReadOnlyBeaconKitBlockFromABCIRequest(
-	req ABCIRequest,
+// NewReadOnlyBeaconKitBlockFromABCIRequest creates a
+// new read-only beacon block by extracting a marshalled
+// block out of an ABCI request.
+func ReadOnlyBeaconKitBlockFromABCIRequest(
+	req interfaces.ABCIRequest,
 	payloadPosition int,
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {
 	// Extract the marshalled payload from the proposal
@@ -70,7 +64,8 @@ func NewReadOnlyBeaconKitBlockFromABCIRequest(
 	return &block, nil
 }
 
-// NewBaseBeaconKitBlock creates a new beacon block.
+// NewBaseBeaconKitBlock creates a new beacon block from
+// the given slot, time, execution data, and version.
 func NewBaseBeaconKitBlock(
 	slot Slot,
 	time uint64,

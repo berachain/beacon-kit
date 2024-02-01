@@ -77,10 +77,9 @@ func (s *Service) GetOrBuildBlock(
 		telemetry.IncrCounter(1, MetricGetBuiltPayloadHit)
 	}
 
-	// Create a new block with the payload.
-	return consensusv1.NewBaseBeaconKitBlockFromState(
+	// Assemble a new block with the payload.
+	return consensusv1.BaseBeaconKitBlockFromState(
 		beaconState, executionData,
-		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
 	)
 }
 

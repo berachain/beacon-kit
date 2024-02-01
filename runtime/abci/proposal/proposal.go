@@ -105,7 +105,7 @@ func (h *Handler) ProcessProposalHandler(
 	logger := ctx.Logger().With("module", "process-proposal")
 
 	// Extract the beacon kit block from the proposal and unmarshal it.
-	block, err := consensusv1.NewReadOnlyBeaconKitBlockFromABCIRequest(
+	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
 		req, PayloadPosition,
 	)
 	if err != nil {
