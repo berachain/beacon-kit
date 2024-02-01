@@ -50,7 +50,7 @@ func BaseBeaconKitBlockFromState(
 // block out of an ABCI request.
 func ReadOnlyBeaconKitBlockFromABCIRequest(
 	req interfaces.ABCIRequest,
-	payloadPosition int,
+	bzIndex int,
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {
 	// Extract the marshalled payload from the proposal
 	txs := req.GetTxs()
@@ -58,7 +58,7 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 		return nil, ErrNoBeaconBlockInProposal
 	}
 	block := BaseBeaconKitBlock{}
-	if err := block.Unmarshal(txs[payloadPosition]); err != nil {
+	if err := block.Unmarshal(txs[bzIndex]); err != nil {
 		return nil, err
 	}
 	return &block, nil
