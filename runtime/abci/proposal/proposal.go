@@ -122,6 +122,24 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	// Run the remainder of the proposal.
-	return h.processProposal(ctx, req)
+	// Run the remainder of the proposal. We remove the beacon block from the proposal
+	// before passing it to the next handler.
+	return h.processProposal(ctx, h.removeBeaconBlockFromTxs(req))
+}
+
+// removeBeaconBlockFromTxs removes the beacon block from the proposal.
+// TODO: optimize this function to avoid the giga memory copy.
+func (h *Handler) removeBeaconBlockFromTxs(
+	req *abci.RequestProcessProposal,
+) *abci.RequestProcessProposal {
+	// Extract and remove the PayloadPosition'th tx from the proposal.
+	switch PayloadPosition {
+	case 0: // Then we can just clip the first element.
+		req.Txs = req.Txs[1:]
+	case len(req.Txs) - 1: // Then we can just clip the last element.
+		req.Txs = req.Txs[:len(req.Txs)-1]
+	default: // For any position in the middle, remove the element at PayloadPosition.
+		req.Txs = append(req.Txs[:PayloadPosition], req.Txs[PayloadPosition+1:]...)
+	}
+	return req
 }
