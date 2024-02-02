@@ -31,7 +31,6 @@ import (
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/math"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
@@ -73,7 +72,7 @@ func wrapExecutionPayloadCapella(bz []byte, value Gwei) (interfaces.ExecutionDat
 		return nil, err
 	}
 	return blocks.WrappedExecutionPayloadCapella(payload,
-		math.Wei(new(big.Int).SetUint64(uint64(value))))
+		Wei(new(big.Int).SetUint64(uint64(value))))
 }
 
 // wrapExecutionPayloadDeneb wraps a byte array and value into an ExecutionPayloadDeneb object.
@@ -83,5 +82,5 @@ func wrapExecutionPayloadDeneb(bz []byte, value Gwei) (interfaces.ExecutionData,
 		return nil, err
 	}
 	return blocks.WrappedExecutionPayloadDeneb(payload,
-		math.Wei(new(big.Int).SetUint64(uint64(value))))
+		Wei(new(big.Int).SetUint64(uint64(value))))
 }
