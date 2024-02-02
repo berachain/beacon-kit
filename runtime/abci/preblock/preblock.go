@@ -90,14 +90,10 @@ func NewBeaconPreBlockHandler(
 // the oracle data to the store.
 func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(ctx sdk.Context, req *cometabci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
-		h.logger.Info(
-			"executing the pre-finalize block hook",
-			"height", req.Height,
-		)
-
+		// TODO: we need to actually do something with the sync status.
 		h.syncStatus.CheckSyncStatus(ctx)
 
-		// TODO: make PayloadPosition not hardcoded.
+		// Extract the beacon block from the ABCI request.
 		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
 			req, h.cfg.BeaconKitBlockPosition,
 		)
@@ -116,9 +112,14 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return nil, err
 		}
 
+		// If there is no child handler, we are done, this preblocker
+		// does not modify any consensus params so we return an empty
+		// response.
 		if h.childHandler == nil {
 			return &sdk.ResponsePreBlock{}, nil
 		}
+
+		// Call the nested child handler.
 		return h.childHandler(ctx, req)
 	}
 }
