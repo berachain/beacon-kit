@@ -36,13 +36,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
-
-// TODO: make PayloadPosition not hardcoded.
-const PayloadPosition = 0
 
 type BeaconKeeper interface {
 	BeaconState(ctx context.Context) state.BeaconState
@@ -52,6 +50,8 @@ type BeaconKeeper interface {
 // validator and writing the oracle data into the store before any transactions
 // are executed/finalized for a given block.
 type BeaconPreBlockHandler struct {
+	cfg *config.Proposal
+
 	logger log.Logger
 
 	// keeper is the keeper for the oracle module. This is utilized to write
@@ -70,12 +70,14 @@ type BeaconPreBlockHandler struct {
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
 // is responsible for writing oracle data included in vote extensions to state.
 func NewBeaconPreBlockHandler(
+	cfg *config.Proposal,
 	logger log.Logger,
 	beaconKeeper BeaconKeeper,
 	syncService *initialsync.Service,
 	childHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
+		cfg:          cfg,
 		logger:       logger,
 		keeper:       beaconKeeper,
 		syncStatus:   syncService,
@@ -97,7 +99,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// TODO: make PayloadPosition not hardcoded.
 		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-			req, PayloadPosition,
+			req, h.cfg.BeaconKitBlockPosition,
 		)
 		if err != nil {
 			return nil, err
