@@ -66,6 +66,22 @@ func NewHandler(
 	}
 }
 
+// NewHandlerWithCustomPayloadPosition creates a new instance
+// of the Handler struct with a custom payload position.
+func NewHandlerWithCustomPayloadPosition(
+	beaconChain *blockchain.Service,
+	prepareProposal sdk.PrepareProposalHandler,
+	processProposal sdk.ProcessProposalHandler,
+	payloadPosition uint,
+) *Handler {
+	return &Handler{
+		prepareProposal: prepareProposal,
+		processProposal: processProposal,
+		beaconChain:     beaconChain,
+		payloadPosition: payloadPosition,
+	}
+}
+
 func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
@@ -127,12 +143,12 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Run the remainder of the proposal. We remove the beacon block from the proposal
 	// before passing it to the next handler.
-	return h.processProposal(ctx, h.removeBeaconBlockFromTxs(req))
+	return h.processProposal(ctx, h.RemoveBeaconBlockFromTxs(req))
 }
 
 // removeBeaconBlockFromTxs removes the beacon block from the proposal.
 // TODO: optimize this function to avoid the giga memory copy.
-func (h *Handler) removeBeaconBlockFromTxs(
+func (h *Handler) RemoveBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
 ) *abci.RequestProcessProposal {
 	req.Txs = removeAtIndex(req.Txs, int(h.payloadPosition))
