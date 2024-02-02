@@ -36,21 +36,6 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-type Status int
-
-const (
-	StatusWaiting = Status(iota) //nolint:errname // initial status of the service.
-	StatusBeaconAhead
-	StatusExecutionAhead
-	StatusSynced
-)
-
-type BeaconSyncProgress struct {
-	status      Status
-	clFinalized common.Hash
-	elFinalized common.Hash
-}
-
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
 type Service struct {

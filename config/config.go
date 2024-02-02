@@ -36,28 +36,31 @@ import (
 // Config is the main configuration struct for the Polaris chain.
 type Config struct {
 	// ExecutionClient is the configuration for the execution client.
-	ExecutionClient Client
+	ExecutionClient ExecutionClient
 
-	// BeaconConfig is the configuration for the fork epochs.
-	BeaconConfig Beacon
+	// Beacon is the configuration for the fork epochs.
+	Beacon Beacon
+
+	// Proposal is the configuration for the proposal handler.
+	Proposal Proposal
 }
 
 // DefaultConfig returns the default configuration for a polaris chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ExecutionClient: Client{
+		ExecutionClient: ExecutionClient{
 			RPCDialURL:      "http://localhost:8551",
 			RPCTimeout:      5, //nolint:gomnd // default config.
 			RPCRetries:      3, //nolint:gomnd // default config.
 			JWTSecretPath:   "./app/jwt.hex",
 			RequiredChainID: 7, //nolint:gomnd // default config.
 		},
-		BeaconConfig: DefaultBeaconConfig(),
+		Beacon: DefaultBeaconConfig(),
 	}
 }
 
 // Client is the configuration struct for the execution client.
-type Client struct {
+type ExecutionClient struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
 	// RPCTimeout is the RPC timeout for execution client requests.
@@ -126,26 +129,32 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.AltairForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.AltairForkEpoch, err = parser.GetEpoch(
 		flags.AltairForkEpoch,
 	); err != nil {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.BellatrixForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.BellatrixForkEpoch, err = parser.GetEpoch(
 		flags.BellatrixForkEpoch,
 	); err != nil {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.CapellaForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.CapellaForkEpoch, err = parser.GetEpoch(
 		flags.CapellaForkEpoch,
 	); err != nil {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.DenebForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.DenebForkEpoch, err = parser.GetEpoch(
 		flags.DenebForkEpoch,
+	); err != nil {
+		return nil, err
+	}
+
+	if conf.Proposal.BeaconKitBlockPosition, err = parser.GetUint(
+		flags.BeaconKitBlockPosition,
 	); err != nil {
 		return nil, err
 	}

@@ -62,6 +62,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	// Build and Register Prepare and Process Proposal Handlers.
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
 	proposalHandler := proposal.NewHandler(
+		&r.cfg.Proposal,
 		chainService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
@@ -71,7 +72,9 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 
 	// Build and Register Preblock Handler.
 	app.SetPreBlocker(
-		preblock.NewBeaconPreBlockHandler(r.logger, r.fscp, syncService, nil).PreBlocker(),
+		preblock.NewBeaconPreBlockHandler(
+			&r.cfg.Proposal, r.logger, r.fscp, syncService, nil,
+		).PreBlocker(),
 	)
 	return nil
 }

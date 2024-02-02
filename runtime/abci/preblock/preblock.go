@@ -36,12 +36,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
-
-const PayloadPosition = 0
 
 type BeaconKeeper interface {
 	BeaconState(ctx context.Context) state.BeaconState
@@ -51,6 +50,8 @@ type BeaconKeeper interface {
 // validator and writing the oracle data into the store before any transactions
 // are executed/finalized for a given block.
 type BeaconPreBlockHandler struct {
+	cfg *config.Proposal
+
 	logger log.Logger
 
 	// keeper is the keeper for the oracle module. This is utilized to write
@@ -69,12 +70,14 @@ type BeaconPreBlockHandler struct {
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
 // is responsible for writing oracle data included in vote extensions to state.
 func NewBeaconPreBlockHandler(
+	cfg *config.Proposal,
 	logger log.Logger,
 	beaconKeeper BeaconKeeper,
 	syncService *initialsync.Service,
 	childHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
+		cfg:          cfg,
 		logger:       logger,
 		keeper:       beaconKeeper,
 		syncStatus:   syncService,
@@ -87,15 +90,12 @@ func NewBeaconPreBlockHandler(
 // the oracle data to the store.
 func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(ctx sdk.Context, req *cometabci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
-		h.logger.Info(
-			"executing the pre-finalize block hook",
-			"height", req.Height,
-		)
-
+		// TODO: we need to actually do something with the sync status.
 		h.syncStatus.CheckSyncStatus(ctx)
 
+		// Extract the beacon block from the ABCI request.
 		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-			req, PayloadPosition,
+			req, h.cfg.BeaconKitBlockPosition,
 		)
 		if err != nil {
 			return nil, err
@@ -112,9 +112,14 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return nil, err
 		}
 
+		// If there is no child handler, we are done, this preblocker
+		// does not modify any consensus params so we return an empty
+		// response.
 		if h.childHandler == nil {
 			return &sdk.ResponsePreBlock{}, nil
 		}
+
+		// Call the nested child handler.
 		return h.childHandler(ctx, req)
 	}
 }

@@ -35,31 +35,30 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
-// to sync up and the consensus client shouldn't join the validator set yet.
-// TODO: also need to make payload position a config variable or something.
-const PayloadPosition = 0
-
 // Handler is a struct that encapsulates the necessary components to handle the proposal processes.
 type Handler struct {
+	cfg             *config.Proposal
+	beaconChain     *blockchain.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
-	beaconChain     *blockchain.Service
 }
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
+	cfg *config.Proposal,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
-		beaconChain:     beaconChain,
+		cfg:             cfg,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
+		beaconChain:     beaconChain,
 	}
 }
 
@@ -106,7 +105,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Extract the beacon kit block from the proposal and unmarshal it.
 	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-		req, PayloadPosition,
+		req, h.cfg.BeaconKitBlockPosition,
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
@@ -115,7 +114,7 @@ func (h *Handler) ProcessProposalHandler(
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	if err = h.beaconChain.ProcessReceivedBlock(
+	if err = h.beaconChain.ReceiveBeaconBlock(
 		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
@@ -124,22 +123,19 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Run the remainder of the proposal. We remove the beacon block from the proposal
 	// before passing it to the next handler.
-	return h.processProposal(ctx, h.removeBeaconBlockFromTxs(req))
+	return h.processProposal(ctx, h.RemoveBeaconBlockFromTxs(req))
 }
 
 // removeBeaconBlockFromTxs removes the beacon block from the proposal.
 // TODO: optimize this function to avoid the giga memory copy.
-func (h *Handler) removeBeaconBlockFromTxs(
+func (h *Handler) RemoveBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
 ) *abci.RequestProcessProposal {
-	// Extract and remove the PayloadPosition'th tx from the proposal.
-	switch PayloadPosition {
-	case 0: // Then we can just clip the first element.
-		req.Txs = req.Txs[1:]
-	case len(req.Txs) - 1: // Then we can just clip the last element.
-		req.Txs = req.Txs[:len(req.Txs)-1]
-	default: // For any position in the middle, remove the element at PayloadPosition.
-		req.Txs = append(req.Txs[:PayloadPosition], req.Txs[PayloadPosition+1:]...)
-	}
+	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconKitBlockPosition)
 	return req
+}
+
+// removeAtIndex removes an element at a given index from a slice.
+func removeAtIndex[T any](s []T, index uint) []T {
+	return append(s[:index], s[index+1:]...)
 }

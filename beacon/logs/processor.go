@@ -42,8 +42,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/logs/callback"
 )
 
-// type Contract
-
 // Processor is responsible for processing logs fr.
 type Processor struct {
 	logger     log.Logger
