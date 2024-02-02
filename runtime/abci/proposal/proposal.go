@@ -40,14 +40,14 @@ import (
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
 // to sync up and the consensus client shouldn't join the validator set yet.
-// TODO: also need to make payload position a config variable or something.
-const PayloadPosition = 0
+const DefaultPayloadPosition = uint(0)
 
 // Handler is a struct that encapsulates the necessary components to handle the proposal processes.
 type Handler struct {
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 	beaconChain     *blockchain.Service
+	payloadPosition uint
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -57,9 +57,12 @@ func NewHandler(
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
-		beaconChain:     beaconChain,
+
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
+		beaconChain:     beaconChain,
+		// TODO: also need to make payload position a config variable or something.
+		payloadPosition: DefaultPayloadPosition,
 	}
 }
 
@@ -106,7 +109,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Extract the beacon kit block from the proposal and unmarshal it.
 	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-		req, PayloadPosition,
+		req, h.payloadPosition,
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
@@ -132,17 +135,11 @@ func (h *Handler) ProcessProposalHandler(
 func (h *Handler) removeBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
 ) *abci.RequestProcessProposal {
-	// Extract and remove the PayloadPosition'th tx from the proposal.
-	txsLen := len(req.Txs)
-	switch PayloadPosition {
-	case 0: // Remove the first element
-		req.Txs = req.Txs[1:]
-	case txsLen - 1: // Remove the last element
-		req.Txs = req.Txs[:txsLen-1]
-	default: // Remove an element from the middle
-		// Shift elements to the left to overwrite the element at PayloadPosition
-		copy(req.Txs[PayloadPosition:], req.Txs[PayloadPosition+1:])
-		req.Txs = req.Txs[:txsLen-1] // Slice off the last element which is now duplicated
-	}
+	req.Txs = removeAtIndex(req.Txs, int(h.payloadPosition))
 	return req
+}
+
+// removeAtIndex removes an element at a given index from a slice.
+func removeAtIndex[T any](s []T, index int) []T {
+	return append(s[:index], s[index+1:]...)
 }
