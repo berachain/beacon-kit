@@ -30,3 +30,27 @@ Through utilizing the [Ethereum Engine API](https://github.com/ethereum/executio
 ## Why BeaconKit? 
 
 TODO: Talk about Polaris / Ethermint compatibility issue.
+
+## Running a Local Development Network
+
+**Prerequisites:**
+- [Docker](https://docs.docker.com/engine/install/)
+- [Golang 1.21.6+](https://go.dev/doc/install)
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
+
+Start by opening two terminals side-by-side:
+
+**Terminal 1**
+```bash
+# Start the sample BeaconKit Consensus Client:
+make start
+```
+
+**Terminal 2**
+```bash
+# Start an Ethereum Execution Client:
+make start-reth # or start-geth start-besu start-erigon start-nethermind
+```
+
+The account with `private-key=0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306` corresponding 
+with `address=0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4` is preloaded with the native EVM token.
