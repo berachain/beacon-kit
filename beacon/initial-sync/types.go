@@ -36,6 +36,29 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
+type (
+	// Status represents the synchronization status of the initial sync service.
+	Status int
+
+	// BeaconSyncStatus represents the synchronization status of the beacon chain.
+	BeaconSyncProgress struct {
+		status      Status
+		clFinalized common.Hash
+		elFinalized common.Hash
+	}
+)
+
+const (
+	// StatusWaiting indicates the initial status of the service, waiting for further actions.
+	StatusWaiting = Status(iota) //nolint:errname // initial status of the service.
+	// StatusBeaconAhead indicates that the beacon chain is ahead of the execution chain.
+	StatusBeaconAhead
+	// StatusExecutionAhead indicates that the execution chain is ahead of the beacon chain.
+	StatusExecutionAhead
+	// StatusSynced indicates that both the beacon and execution chains are synchronized.
+	StatusSynced
+)
+
 // ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
 type ethClient interface {
 	HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error)
