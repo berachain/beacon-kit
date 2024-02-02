@@ -100,3 +100,13 @@ ARG APP_NAME
 
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /bin/
+
+RUN apk add bash jq sed curl
+
+WORKDIR /
+
+COPY ./app/docker/seed/scripts scripts/
+
+RUN chmod +x scripts/*
+
+CMD ["sh", "-c", "sleep infinity"]
