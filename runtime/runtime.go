@@ -147,6 +147,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
+		WithConfig(cfg),
 		WithService(syncService),
 		WithService(executionService),
 		WithService(chainService),

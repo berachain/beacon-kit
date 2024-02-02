@@ -28,11 +28,20 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
+	"github.com/itsdevbear/bolaris/config"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
 // Option is a function that modifies the BeaconKitRuntime.
 type Option func(*BeaconKitRuntime) error
+
+// WithConfig is an Option that sets the configuration of the BeaconKitRuntime.
+func WithConfig(cfg *config.Config) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.cfg = cfg
+		return nil
+	}
+}
 
 // WithService is an Option that registers a service with the BeaconKitRuntime's service registry.
 func WithService(svc runtime.Service) Option {
