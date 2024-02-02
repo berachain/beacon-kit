@@ -14,7 +14,7 @@
 
 BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to create a flexible, customizable consensus layer tailored for Ethereum-based blockchains. The framework offers the most user-friendly way to build and operate an EVM blockchain, while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
 
-First there was EVM Compatibility; next, EVM Equivalence; and now with BeaconKit, we introduce **EVM Identicality**.
+First there was EVM Compatibility; then EVM Equivalence; and now with BeaconKit, **EVM Identicality**.
 
 ## Supported Execution Clients
 
