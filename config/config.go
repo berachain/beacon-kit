@@ -36,18 +36,19 @@ import (
 // Config is the main configuration struct for the Polaris chain.
 type Config struct {
 	// ExecutionClient is the configuration for the execution client.
-	ExecutionClient Client
+	ExecutionClient ExecutionClient
 
-	// BeaconConfig is the configuration for the fork epochs.
+	// Beacon is the configuration for the fork epochs.
 	Beacon Beacon
 
-	Proposal
+	// Proposal is the configuration for the proposal handler.
+	Proposal Proposal
 }
 
 // DefaultConfig returns the default configuration for a polaris chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ExecutionClient: Client{
+		ExecutionClient: ExecutionClient{
 			RPCDialURL:      "http://localhost:8551",
 			RPCTimeout:      5, //nolint:gomnd // default config.
 			RPCRetries:      3, //nolint:gomnd // default config.
@@ -59,7 +60,7 @@ func DefaultConfig() *Config {
 }
 
 // Client is the configuration struct for the execution client.
-type Client struct {
+type ExecutionClient struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
 	// RPCTimeout is the RPC timeout for execution client requests.
