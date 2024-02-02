@@ -23,25 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package v1
 
-import "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+import "errors"
 
-// TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
-// Slot returns the current slot of the beacon chain by converting the block height to a slot.
-func (s *BeaconStore) Slot() primitives.Slot {
-	return primitives.Slot(s.sdkCtx.BlockHeight())
-}
+var (
+	// ErrNoBeaconBlockInProposal is an error for when
+	// there is no beacon block in a proposal.
+	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
 
-// TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
-// Time returns the current time of the beacon chain in Unix timestamp format.
-func (s *BeaconStore) Time() uint64 {
-	return uint64(s.sdkCtx.BlockTime().Unix())
-}
-
-// Version returns the active fork version of the beacon chain based on the current slot.
-// It utilizes the beacon configuration to determine the active fork version.
-func (s *BeaconStore) Version() int {
-	// TODO: properly do the SlotsPerEpoch math.
-	return s.cfg.ActiveForkVersion(primitives.Epoch(s.Slot()))
-}
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
+)

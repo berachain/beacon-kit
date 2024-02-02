@@ -201,6 +201,9 @@ func (s *engineCaller) ForkchoiceUpdated(
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
+		if result.PayloadId == nil {
+			return nil, resp.GetLatestValidHash(), nil
+		}
 		pid := primitives.PayloadID(*result.PayloadId)
 		return &pid, resp.GetLatestValidHash(), nil
 	case pb.PayloadStatus_UNKNOWN:

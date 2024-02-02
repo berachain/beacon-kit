@@ -27,12 +27,51 @@ package v1
 
 import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/types/state"
 )
 
 // BaseBeaconKitBlock implements the BeaconKitBlock interface.
 var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
 
-// NewBaseBeaconKitBlock creates a new beacon block.
+// BaseBeaconKitBlockFromState assembles a new beacon block
+// from the given state and execution data.
+func BaseBeaconKitBlockFromState(
+	beaconState state.ReadOnlyBeaconState,
+	executionData interfaces.ExecutionData,
+) (interfaces.BeaconKitBlock, error) {
+	return NewBaseBeaconKitBlock(
+		beaconState.Slot(),
+		beaconState.Time(),
+		executionData,
+		beaconState.Version(),
+	)
+}
+
+// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
+// new read-only beacon block by extracting a marshalled
+// block out of an ABCI request.
+func ReadOnlyBeaconKitBlockFromABCIRequest(
+	req interfaces.ABCIRequest,
+	bzIndex uint,
+) (interfaces.ReadOnlyBeaconKitBlock, error) {
+	// Extract the marshalled payload from the proposal
+	txs := req.GetTxs()
+	lenTxs := len(txs)
+	if lenTxs == 0 {
+		return nil, ErrNoBeaconBlockInProposal
+	}
+	if bzIndex >= uint(len(txs)) {
+		return nil, ErrBzIndexOutOfBounds
+	}
+	block := BaseBeaconKitBlock{}
+	if err := block.Unmarshal(txs[bzIndex]); err != nil {
+		return nil, err
+	}
+	return &block, nil
+}
+
+// BaseBeaconKitBlock assembles a new beacon block from
+// the given slot, time, execution data, and version.
 func NewBaseBeaconKitBlock(
 	slot Slot,
 	time uint64,

@@ -30,7 +30,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
-// Beacon represents configuration options for the consensus layer.
 type Beacon struct {
 	// AltairForkEpoch is used to represent the assigned fork epoch for altair.
 	AltairForkEpoch primitives.Epoch
@@ -53,7 +52,7 @@ func DefaultBeaconConfig() Beacon {
 }
 
 // ActiveForkVersion returns the active fork version for a given slot.
-func (c *Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
+func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
 	if epoch >= c.DenebForkEpoch {
 		return version.Deneb
 	}

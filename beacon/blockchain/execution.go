@@ -44,7 +44,7 @@ import (
 
 // GetOrBuildBlock constructs the next block in the execution chain.
 func (s *Service) GetOrBuildBlock(
-	ctx context.Context, slot primitives.Slot, time uint64,
+	ctx context.Context, slot primitives.Slot,
 ) (interfaces.BeaconKitBlock, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -52,9 +52,10 @@ func (s *Service) GetOrBuildBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	var (
+		beaconState        = s.bsp.BeaconState(ctx)
 		err                error
 		executionData      interfaces.ExecutionData
-		lastFinalizedBlock = s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
+		lastFinalizedBlock = beaconState.GetFinalizedEth1BlockHash()
 	)
 
 	// Attempt to get a previously built payload, otherwise we will trigger a payload to be build.
@@ -76,10 +77,9 @@ func (s *Service) GetOrBuildBlock(
 		telemetry.IncrCounter(1, MetricGetBuiltPayloadHit)
 	}
 
-	// Create a new block with the payload.
-	return consensusv1.NewBaseBeaconKitBlock(
-		slot, time, executionData,
-		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+	// Assemble a new block with the payload.
+	return consensusv1.BaseBeaconKitBlockFromState(
+		beaconState, executionData,
 	)
 }
 
@@ -147,7 +147,7 @@ func (s *Service) waitForPayload(
 
 func (s *Service) ProcessReceivedBlock(
 	ctx context.Context,
-	block interfaces.BeaconKitBlock,
+	block interfaces.ReadOnlyBeaconKitBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -200,7 +200,7 @@ func (s *Service) ProcessReceivedBlock(
 // It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
 // but maybe not the most extensible.
 func (s *Service) validateStateTransition(
-	ctx context.Context, block interfaces.BeaconKitBlock,
+	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock,
 ) error {
 	parentHash := block.ExecutionData().ParentHash()
 	finalizedHash := s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
@@ -227,7 +227,7 @@ func (s *Service) validateExecutionOnBlock(ctx context.Context, header interface
 }
 
 func (s *Service) postBlockProcess(
-	ctx context.Context, block interfaces.BeaconKitBlock, isValidPayload bool,
+	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock, isValidPayload bool,
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)

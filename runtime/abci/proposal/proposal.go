@@ -40,6 +40,7 @@ import (
 
 // TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
 // to sync up and the consensus client shouldn't join the validator set yet.
+// TODO: also need to make payload position a config variable or something.
 const PayloadPosition = 0
 
 // Handler is a struct that encapsulates the necessary components to handle the proposal processes.
@@ -72,7 +73,7 @@ func (h *Handler) PrepareProposalHandler(
 	// a previously built payload from the local cache via `getPayload()` or it may be
 	// by asking for a forkchoice from the execution client, depending on timing.
 	block, err := h.beaconChain.GetOrBuildBlock(
-		ctx, primitives.Slot(req.Height), uint64(req.Time.UTC().Unix()),
+		ctx, primitives.Slot(req.Height),
 	)
 
 	if err != nil {
@@ -104,7 +105,9 @@ func (h *Handler) ProcessProposalHandler(
 	logger := ctx.Logger().With("module", "process-proposal")
 
 	// Extract the beacon kit block from the proposal and unmarshal it.
-	block, err := h.extractAndUnmarshalBlock(req)
+	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
+		req, PayloadPosition,
+	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
@@ -119,24 +122,24 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	// Run the remainder of the proposal.
-	return h.processProposal(ctx, req)
+	// Run the remainder of the proposal. We remove the beacon block from the proposal
+	// before passing it to the next handler.
+	return h.processProposal(ctx, h.removeBeaconBlockFromTxs(req))
 }
 
-// extractAndUnmarshalBlock extracts the block from the proposal and unmarshals it.
-func (h *Handler) extractAndUnmarshalBlock(
+// removeBeaconBlockFromTxs removes the beacon block from the proposal.
+// TODO: optimize this function to avoid the giga memory copy.
+func (h *Handler) removeBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
-) (*consensusv1.BaseBeaconKitBlock, error) {
-	// Extract the marshalled payload from the proposal
-	if len(req.Txs) == 0 {
-		return nil, ErrNoBeaconBlockInProposal
+) *abci.RequestProcessProposal {
+	// Extract and remove the PayloadPosition'th tx from the proposal.
+	switch PayloadPosition {
+	case 0: // Then we can just clip the first element.
+		req.Txs = req.Txs[1:]
+	case len(req.Txs) - 1: // Then we can just clip the last element.
+		req.Txs = req.Txs[:len(req.Txs)-1]
+	default: // For any position in the middle, remove the element at PayloadPosition.
+		req.Txs = append(req.Txs[:PayloadPosition], req.Txs[PayloadPosition+1:]...)
 	}
-	bz := req.Txs[PayloadPosition]
-	req.Txs = req.Txs[1:]
-
-	block := &consensusv1.BaseBeaconKitBlock{}
-	if err := block.Unmarshal(bz); err != nil {
-		return nil, err
-	}
-	return block, nil
+	return req
 }

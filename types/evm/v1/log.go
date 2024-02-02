@@ -33,11 +33,11 @@ import (
 // Logs is a slice of pointers to Log.
 type Logs []*Log
 
-// ToGethLogs converts Logs to a slice of pointers to Geth Log.
-func (logs Logs) ToGethLogs() []*ethtypes.Log {
+// ToEthLogs converts Logs to a slice of pointers to Geth Log.
+func (logs Logs) ToEthLogs() []*ethtypes.Log {
 	ethLogs := make([]*ethtypes.Log, len(logs))
 	for i := range logs {
-		ethLogs[i] = logs[i].ToGethLog()
+		ethLogs[i] = logs[i].ToEthLog()
 	}
 	return ethLogs
 }
@@ -51,8 +51,8 @@ func LogsFromEthLogs(ethlogs []ethtypes.Log) Logs {
 	return logs
 }
 
-// ToGethLog converts a protobuf Log to a Geth Log.
-func (log *Log) ToGethLog() *ethtypes.Log {
+// ToEthLog converts a protobuf Log to a Geth Log.
+func (log *Log) ToEthLog() *ethtypes.Log {
 	topics := make([]common.Hash, len(log.Topics))
 	for i, topic := range log.Topics {
 		topics[i] = common.BytesToHash(topic)

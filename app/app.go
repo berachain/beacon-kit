@@ -124,6 +124,8 @@ func NewBeaconKitApp(
 	var (
 		app        = &BeaconApp{}
 		appBuilder *runtime.AppBuilder
+		bkCfg      = beaconkitconfig.MustReadConfigFromAppOpts(appOpts)
+
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
 			MakeAppConfig(bech32Prefix),
@@ -133,6 +135,8 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
+				// supply the beacon config
+				&(bkCfg.BeaconConfig),
 			),
 		)
 	)
@@ -163,13 +167,9 @@ func NewBeaconKitApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	/**** Start of BeaconKit Configuration ****/
-	beaconCfg, err := beaconkitconfig.ReadConfigFromAppOpts(appOpts)
-	if err != nil {
-		panic(err)
-	}
-
+	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		context.Background(), beaconCfg, app.BeaconKeeper, app.Logger(),
+		context.Background(), bkCfg, app.BeaconKeeper, app.Logger(),
 	); err != nil {
 		panic(err)
 	}
