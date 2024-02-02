@@ -74,6 +74,6 @@ type BeaconStateProvider interface {
 type executionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig, withAttrs, withRetry, async bool,
+		ctx context.Context, fcuConfig *execution.FCUConfig, withAttrs bool,
 	) error
 }

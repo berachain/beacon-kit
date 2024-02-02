@@ -102,8 +102,6 @@ func (s *Service) buildNewPayloadForBlock(
 	err := s.en.NotifyForkchoiceUpdate(
 		ctx, fcuConfig,
 		true,
-		true,
-		false,
 	)
 
 	if err != nil {
