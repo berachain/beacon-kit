@@ -27,7 +27,6 @@ package preblock
 
 import (
 	"context"
-	"errors"
 
 	"cosmossdk.io/log"
 
@@ -37,10 +36,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
-	v1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
+
+const PayloadPosition = 0
 
 type BeaconKeeper interface {
 	BeaconState(ctx context.Context) state.BeaconState
@@ -56,6 +57,8 @@ type BeaconPreBlockHandler struct {
 	// oracle data to state.
 	keeper BeaconKeeper
 
+	// childHandler is the next pre-block handler in the chain. This is always
+	// nesting of the next pre-block handler into this handler.
 	childHandler sdk.PreBlocker
 
 	// syncStatus is the service that is responsible for determining if the
@@ -91,7 +94,9 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		h.syncStatus.CheckSyncStatus(ctx)
 
-		beaconBlock, err := h.extractBeaconBlockFromRequest(req)
+		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
+			req, PayloadPosition,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -114,25 +119,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	}
 }
 
-// extractBeaconBlockFromRequest extracts the beacon block from the request.
-func (h *BeaconPreBlockHandler) extractBeaconBlockFromRequest(
-	req *cometabci.RequestFinalizeBlock,
-) (interfaces.BeaconKitBlock, error) {
-	beaconBlockData := req.Txs[0] // todo modularize.
-	if len(beaconBlockData) == 0 {
-		return nil, errors.New("payload in beacon block is empty")
-	}
-
-	block := &v1.BaseBeaconKitBlock{}
-	err := block.Unmarshal(beaconBlockData)
-	if err != nil {
-		h.logger.Error("failed to unmarshal block", "error", err)
-		return nil, err
-	}
-
-	return block, nil
-}
-
 func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash common.Hash) {
 	store := h.keeper.BeaconState(ctx)
 	store.SetFinalizedEth1BlockHash(blockHash)
@@ -141,7 +127,7 @@ func (h *BeaconPreBlockHandler) markBlockAsFinalized(ctx sdk.Context, blockHash 
 }
 
 func (h *BeaconPreBlockHandler) processLogs(
-	_ sdk.Context, _ interfaces.BeaconKitBlock,
+	_ sdk.Context, _ interfaces.ReadOnlyBeaconKitBlock,
 ) error {
 	// TODO do we need to do this after BeginBlock? i.e calling staking functions
 	// between EndBlock N-1 and BeginBlock N might cause problems?

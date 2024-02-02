@@ -32,15 +32,20 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
+// BeaconStateProvider provides access to the current beacon state.
 type BeaconStateProvider interface {
+	// BeaconState returns the current beacon state based on the supplied context.
 	BeaconState(ctx context.Context) BeaconState
 }
 
+// BeaconState is the interface for the beacon state. It
+// is a combination of the read-only and write-only beacon state interfaces.
 type BeaconState interface {
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
 }
 
+// ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
@@ -49,15 +54,18 @@ type ReadOnlyBeaconState interface {
 	Version() int
 }
 
+// WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
 	WriteOnlyForkChoice
 	WriteOnlyGenesis
 }
 
+// Write Only Fork Choice.
 type WriteOnlyForkChoice interface {
-	SetLastValidHead(lastValidHead common.Hash)
+	// Write Only Fork Choice.
 	SetSafeEth1BlockHash(safeBlockHash common.Hash)
 	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
+	SetLastValidHead(lastValidHead common.Hash)
 }
 
 type ReadOnlyForkChoice interface {
