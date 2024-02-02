@@ -133,13 +133,16 @@ func (h *Handler) removeBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
 ) *abci.RequestProcessProposal {
 	// Extract and remove the PayloadPosition'th tx from the proposal.
+	txsLen := len(req.Txs)
 	switch PayloadPosition {
-	case 0: // Then we can just clip the first element.
+	case 0: // Remove the first element
 		req.Txs = req.Txs[1:]
-	case len(req.Txs) - 1: // Then we can just clip the last element.
-		req.Txs = req.Txs[:len(req.Txs)-1]
-	default: // For any position in the middle, remove the element at PayloadPosition.
-		req.Txs = append(req.Txs[:PayloadPosition], req.Txs[PayloadPosition+1:]...)
+	case txsLen - 1: // Remove the last element
+		req.Txs = req.Txs[:txsLen-1]
+	default: // Remove an element from the middle
+		// Shift elements to the left to overwrite the element at PayloadPosition
+		copy(req.Txs[PayloadPosition:], req.Txs[PayloadPosition+1:])
+		req.Txs = req.Txs[:txsLen-1] // Slice off the last element which is now duplicated
 	}
 	return req
 }

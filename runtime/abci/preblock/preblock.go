@@ -41,6 +41,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/state"
 )
 
+// TODO: make PayloadPosition not hardcoded.
 const PayloadPosition = 0
 
 type BeaconKeeper interface {
@@ -94,6 +95,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		h.syncStatus.CheckSyncStatus(ctx)
 
+		// TODO: make PayloadPosition not hardcoded.
 		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
 			req, PayloadPosition,
 		)
