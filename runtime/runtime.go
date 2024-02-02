@@ -96,7 +96,8 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
-	baseService := service.NewBaseService(&cfg.Beacon, nil, logger)
+	// Create the base service, we will the  create shallow copie for each service.
+	baseService := service.NewBaseService(&cfg.Beacon, gcd, logger)
 
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
@@ -127,7 +128,6 @@ func NewDefaultBeaconKitRuntime(
 		baseService.WithName("execution"),
 		execution.WithBeaconStateProvider(bsp),
 		execution.WithEngineCaller(engineCaller),
-		execution.WithGCD(gcd),
 	)
 
 	// Build the blockchain service

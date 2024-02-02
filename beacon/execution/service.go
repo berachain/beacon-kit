@@ -53,10 +53,6 @@ type Service struct {
 	bsp BeaconStateProvider
 	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.PayloadIDCache
-	// fcd is the forkchoice dispatch queue. Anytime a forkchoice update is sent to the
-	// execution client, it must be sent through this queue to ensure that the ordering
-	// of forkchoice updates is respected.
-	gcd GrandCentralDispatch
 
 	stopCh chan *struct{}
 }
@@ -110,7 +106,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 	var err error
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	s.gcd.GetQueue(forkchoiceDispatchQueue).Sync(func() {
+	s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
 		err = s.notifyForkchoiceUpdate(ctx, fcuConfig, withAttrs)
 	})
 
