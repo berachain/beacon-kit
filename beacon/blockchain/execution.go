@@ -48,22 +48,28 @@ func (s *Service) GetOrBuildBlock(
 	// and safe block hashes to the execution client.
 	var (
 		beaconState        = s.bsp.BeaconState(ctx)
-		err                error
 		executionData      interfaces.ExecutionData
 		lastFinalizedBlock = beaconState.GetFinalizedEth1BlockHash()
 	)
+
+	// Create a new empty block from the current state.
+	beaconBlock, err := consensusv1.NewEmptyBeaconKitBlockFromState(beaconState)
+	if err != nil {
+		return nil, err
+	}
 
 	// Attempt to get a previously built payload, otherwise we will trigger a payload to be build.
 	// Building a payload at this point is not ideal, as it will block the consensus client
 	// from proposing a block until the payload is built. However, this is a rare case, and
 	// we can optimize this later.
+	//
 	// TODO: 4844.
 	if executionData, _, _, err = s.en.GetBuiltPayload(
 		ctx, slot, lastFinalizedBlock,
 	); err != nil || executionData == nil {
 		// This branch represents a cache miss.
 		telemetry.IncrCounter(1, MetricGetBuiltPayloadMiss)
-		executionData, err = s.buildNewPayloadAtSlotWithParent(ctx, slot, lastFinalizedBlock)
+		executionData, err = s.buildNewPayloadForBlock(ctx, beaconBlock, lastFinalizedBlock)
 		if err != nil {
 			return nil, err
 		}
@@ -73,40 +79,38 @@ func (s *Service) GetOrBuildBlock(
 	}
 
 	// Assemble a new block with the payload.
-	return consensusv1.BaseBeaconKitBlockFromState(
-		beaconState, executionData,
-	)
+	if err = beaconBlock.AttachPayload(executionData); err != nil {
+		return nil, err
+	}
+
+	// Return the block.
+	return beaconBlock, nil
 }
 
-// buildNewBlockOnTopOf constructs a new block on top of an existing head of the execution client.
-func (s *Service) buildNewPayloadAtSlotWithParent(
-	ctx context.Context, slot primitives.Slot, headHash common.Hash,
+// buildNewPayloadForBlock begins building a new payload ontop of `headHash` for the given block,
+// and waits for the payload to be built by the execution client.
+func (s *Service) buildNewPayloadForBlock(
+	ctx context.Context, beaconBlock interfaces.BeaconKitBlock, headHash common.Hash,
 ) (interfaces.ExecutionData, error) {
-	finalHash := s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
-	safeHash := s.bsp.BeaconState(ctx).GetSafeEth1BlockHash()
-
 	// Notify the execution client of the new finalized and safe hashes, while also
 	// triggering a block to be built. We wait for the payload ID to be returned.
+	fcuConfig := &execution.FCUConfig{
+		HeadEth1Hash:  headHash,
+		ProposingSlot: beaconBlock.GetSlot(),
+	}
+
 	err := s.en.NotifyForkchoiceUpdate(
-		ctx, slot,
-		execution.NewNotifyForkchoiceUpdateArg(
-			headHash, safeHash, finalHash,
-		),
+		ctx, fcuConfig,
 		true,
 		true,
 		false,
 	)
 
 	if err != nil {
-		s.Logger().Error("Failed to notify forkchoice update",
-			"finalized_hash", finalHash,
-			"safe_hash", safeHash,
-			"head_hash", headHash,
-			"error", err)
 		return nil, err
 	}
 
-	return s.waitForPayload(ctx, payloadBuildDelay*time.Second, slot, headHash)
+	return s.waitForPayload(ctx, payloadBuildDelay*time.Second, beaconBlock.GetSlot(), headHash)
 }
 
 // waitForPayload waits for a payload to be built by the execution client.

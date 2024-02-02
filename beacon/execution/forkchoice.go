@@ -40,11 +40,10 @@ import (
 //
 //nolint:unparam // this fn is being refactored anyways.
 func (s *Service) notifyForkchoiceUpdateWithSyncingRetry(
-	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
+	ctx context.Context, fcuConfig *FCUConfig, withAttrs bool,
 ) error {
 retry:
-
-	if err := s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs); err != nil {
+	if err := s.notifyForkchoiceUpdate(ctx, fcuConfig, withAttrs); err != nil {
 		if errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
 			s.Logger().Info("retrying forkchoice update", "reason", err)
 			time.Sleep(forkchoiceBackoff)
@@ -55,24 +54,26 @@ retry:
 	return nil
 }
 
-func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
-	slot primitives.Slot, arg *NotifyForkchoiceUpdateArg, withAttrs bool,
+func (s *Service) notifyForkchoiceUpdate(
+	ctx context.Context, fcuConfig *FCUConfig, withAttrs bool,
 ) error {
 	var (
-		payloadID *primitives.PayloadID
-		attrs     payloadattribute.Attributer
-		err       error
-		fc        = &enginev1.ForkchoiceState{
-			HeadBlockHash:      arg.headHash.Bytes(),
-			SafeBlockHash:      arg.safeHash.Bytes(),
-			FinalizedBlockHash: arg.finalHash.Bytes(),
+		payloadID   *primitives.PayloadID
+		attrs       payloadattribute.Attributer
+		err         error
+		beaconState = s.bsp.BeaconState(ctx)
+		fc          = &enginev1.ForkchoiceState{
+			HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
+			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
+			FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
 		}
+		slot = fcuConfig.ProposingSlot
 	)
 
 	// Cache payloads if we get a payloadID in our response.
 	defer func() {
 		if payloadID != nil {
-			s.payloadCache.Set(slot, arg.headHash, *payloadID)
+			s.payloadCache.Set(slot, fcuConfig.HeadEth1Hash, *payloadID)
 		}
 	}()
 
@@ -98,31 +99,12 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context,
 			return err
 		case execution.ErrInvalidPayloadStatus:
 			s.Logger().Error("invalid payload status", "error", err)
-			// TODO: Get last valid is kinda hood, its just a ptr in mem rn.
-			previousHead := s.bsp.BeaconState(ctx).GetLastValidHead()
-			err = s.notifyForkchoiceUpdate(ctx, slot, &NotifyForkchoiceUpdateArg{
-				headHash: previousHead,
-			}, withAttrs)
-
-			if err != nil {
-				// TODO: if u hit here, you're cooked.
-				return err // Returning err because it's recursive here.
-			}
-
-			// if err := s.saveHead(ctx, r, b, st); err != nil {
-			// 	log.WithError(err).Error("could not save head after pruning invalid blocks")
-			// }
-
-			// log.WithFields(logrus.Fields{
-			// 	"slot":                 headBlk.Slot(),
-			// 	"blockRoot":            fmt.Sprintf("%#x", bytesutil.Trunc(headRoot[:])),
-			// 	"invalidChildrenCount": len(invalidRoots),
-			// 	"newHeadRoot":          fmt.Sprintf("%#x", bytesutil.Trunc(r[:])),
-			// }).Warn("Pruned invalid blocks")
+			// In Prysm, this code recursively calls back until we find a valid hash we can
+			// insert. In BeaconKit, we don't have the nice ability to do this. But in
+			// theory we should never need it, since we have single block finality.
+			// If we get an invalid payload status here, something higher up
+			// must've gone wrong and thus we can't really retry here.
 			return errors.New("invalid payload")
-			// return pid, invalidBlock{error: ErrInvalidPayload,
-			//root: arg.headRoot, invalidAncestorRoots: invalidRoots}
-
 		default:
 			s.Logger().Error("undefined execution engine error", "error", err)
 			return err

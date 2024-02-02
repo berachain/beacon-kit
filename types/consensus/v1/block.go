@@ -47,6 +47,49 @@ func BaseBeaconKitBlockFromState(
 	)
 }
 
+// BaseBeaconKitBlock assembles a new beacon block from
+// the given slot, time, execution data, and version.
+func NewBaseBeaconKitBlock(
+	slot Slot,
+	time uint64,
+	executionData interfaces.ExecutionData,
+	version int,
+) (interfaces.BeaconKitBlock, error) {
+	block := &BaseBeaconKitBlock{
+		Slot:    slot,
+		Time:    time,
+		Version: uint64(version),
+	}
+	if executionData != nil {
+		if err := block.AttachPayload(executionData); err != nil {
+			return nil, err
+		}
+	}
+	return block, nil
+}
+
+// NewEmptyBeaconKitBlockFromState assembles a new beacon block
+// with no execution data from the given state.
+func NewEmptyBeaconKitBlockFromState(
+	beaconState state.BeaconState,
+) (interfaces.BeaconKitBlock, error) {
+	return NewEmptyBeaconKitBlock(
+		beaconState.Slot(),
+		beaconState.Time(),
+		beaconState.Version(),
+	)
+}
+
+// NewEmptyBeaconKitBlock assembles a new beacon block
+// with no execution data.
+func NewEmptyBeaconKitBlock(
+	slot Slot,
+	time uint64,
+	version int,
+) (interfaces.BeaconKitBlock, error) {
+	return NewBaseBeaconKitBlock(slot, time, nil, version)
+}
+
 // ReadOnlyBeaconKitBlockFromABCIRequest assembles a
 // new read-only beacon block by extracting a marshalled
 // block out of an ABCI request.
@@ -70,31 +113,23 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	return &block, nil
 }
 
-// BaseBeaconKitBlock assembles a new beacon block from
-// the given slot, time, execution data, and version.
-func NewBaseBeaconKitBlock(
-	slot Slot,
-	time uint64,
+// AttachPayload attaches the given execution data to the block.
+func (b *BaseBeaconKitBlock) AttachPayload(
 	executionData interfaces.ExecutionData,
-	version int,
-) (interfaces.BeaconKitBlock, error) {
+) error {
 	execData, err := executionData.MarshalSSZ()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	value, err := executionData.ValueInGwei()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &BaseBeaconKitBlock{
-		Slot:     slot,
-		Time:     time,
-		ExecData: execData,
-		Value:    Gwei(value),
-		Version:  uint64(version),
-	}, nil
+	b.ExecData = execData
+	b.Value = Gwei(value)
+	return nil
 }
 
 // IsNil checks if the BaseBeaconKitBlock is nil or not.

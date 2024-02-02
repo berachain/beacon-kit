@@ -53,6 +53,7 @@ type ReadOnlyBeaconKitBlock interface {
 	GetValue() math.Gwei
 	// ExecutionData returns the execution data of the block.
 	ExecutionData() interfaces.ExecutionData
+	AttachPayload(interfaces.ExecutionData) error
 }
 
 type ABCIRequest interface {

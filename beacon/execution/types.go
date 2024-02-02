@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
@@ -55,6 +56,12 @@ type NotifyForkchoiceUpdateArg struct {
 	safeHash common.Hash
 	// finalHash is the hash of the last finalized block.
 	finalHash common.Hash
+}
+
+type FCUConfig struct {
+	HeadEth1Hash  common.Hash
+	ProposingSlot primitives.Slot
+	// attributes    payloadattribute.Attributer
 }
 
 // NewNotifyForkchoiceUpdateArg creates a new NotifyForkchoiceUpdateArg.

@@ -33,7 +33,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/state"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
 type (
@@ -75,7 +74,6 @@ type BeaconStateProvider interface {
 type executionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 	NotifyForkchoiceUpdate(
-		ctx context.Context, slot primitives.Slot,
-		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry, async bool,
+		ctx context.Context, fcuConfig *execution.FCUConfig, withAttrs, withRetry, async bool,
 	) error
 }
