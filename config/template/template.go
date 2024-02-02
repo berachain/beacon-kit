@@ -48,16 +48,16 @@ jwt-secret-path = "{{.Polaris.ExecutionClient.JWTSecretPath}}"
 
 [beacon-kit.beacon-config]
 # Altair fork epoch
-altair-fork-epoch = {{.Polaris.BeaconConfig.AltairForkEpoch}}
+altair-fork-epoch = {{.Polaris.Beacon.AltairForkEpoch}}
 
 # Bellatrix fork epoch
-bellatrix-fork-epoch = {{.Polaris.BeaconConfig.BellatrixForkEpoch}}
+bellatrix-fork-epoch = {{.Polaris.Beacon.BellatrixForkEpoch}}
 
 # Capella fork epoch
-capella-fork-epoch = {{.Polaris.BeaconConfig.CapellaForkEpoch}}
+capella-fork-epoch = {{.Polaris.Beacon.CapellaForkEpoch}}
 
 # Deneb fork epoch
-deneb-fork-epoch = {{.Polaris.BeaconConfig.DenebForkEpoch}}
+deneb-fork-epoch = {{.Polaris.Beacon.DenebForkEpoch}}
 
 [beacon-kit.proposal]
 # Position of the beacon block in the proposal
