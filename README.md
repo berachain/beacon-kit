@@ -5,15 +5,16 @@
 [![Codecov](https://img.shields.io/codecov/c/github/paradigmxyz/reth?token=c24SDcMImE)][codecov] -->
 <!-- [![Telegram Chat][tg-badge]][tg-url] -->
 
-**A modular and customizable consensus layer framework for Ethereum based blockchains**
+**A modular and customizable consensus layer for Ethereum based blockchains**
 
 ![](.github/assets/banner.png)
 
 
 ## What is BeaconKit?
 
-BeaconKit is a novel framework that leverages the Cosmos-SDK to build a modular, customizable consensus layer for Ethereum based blockchains. It focuses on providing an extremely developer friendly way to spin up Ethereum Virtual Machine based blockchains, control / add consensus rules, while ensuring 100% compatibilty with existing Ethereum tooling. 
+BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to create a flexible, customizable consensus layer tailored for Ethereum-based blockchains. The framework offers the most user-friendly way to build and operate an EVM blockchain, while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
 
+You've heard of EVM Compatibility, then EVM Equivalence, and now with BeaconKit, we introduce *EVM Identicality*.
 
 ## Supported Execution Clients
 
