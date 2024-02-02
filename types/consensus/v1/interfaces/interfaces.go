@@ -39,8 +39,7 @@ type ExecutionData = interfaces.ExecutionData
 // BeaconKitBlock is the interface for a beacon block.
 type BeaconKitBlock interface {
 	ReadOnlyBeaconKitBlock
-	// SetExecutionData sets the execution data of the block.
-	SetExecutionData(executionData interfaces.ExecutionData) error
+	WriteOnlyBeaconKitBlock
 }
 
 // ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
@@ -53,9 +52,14 @@ type ReadOnlyBeaconKitBlock interface {
 	GetValue() math.Gwei
 	// ExecutionData returns the execution data of the block.
 	ExecutionData() interfaces.ExecutionData
-	AttachPayload(interfaces.ExecutionData) error
 }
 
+// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
+type WriteOnlyBeaconKitBlock interface {
+	AttachExecutionData(interfaces.ExecutionData) error
+}
+
+// ABCIRequest is the interface for an ABCI request.
 type ABCIRequest interface {
 	GetHeight() int64
 	GetTime() time.Time

@@ -61,7 +61,7 @@ func NewBaseBeaconKitBlock(
 		Version: uint64(version),
 	}
 	if executionData != nil {
-		if err := block.AttachPayload(executionData); err != nil {
+		if err := block.AttachExecutionData(executionData); err != nil {
 			return nil, err
 		}
 	}
@@ -113,8 +113,13 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	return &block, nil
 }
 
-// AttachPayload attaches the given execution data to the block.
-func (b *BaseBeaconKitBlock) AttachPayload(
+// IsNil checks if the BaseBeaconKitBlock is nil or not.
+func (b *BaseBeaconKitBlock) IsNil() bool {
+	return b == nil
+}
+
+// AttachExecutionData attaches the given execution data to the block.
+func (b *BaseBeaconKitBlock) AttachExecutionData(
 	executionData interfaces.ExecutionData,
 ) error {
 	execData, err := executionData.MarshalSSZ()
@@ -130,18 +135,6 @@ func (b *BaseBeaconKitBlock) AttachPayload(
 	b.ExecData = execData
 	b.Value = Gwei(value)
 	return nil
-}
-
-// IsNil checks if the BaseBeaconKitBlock is nil or not.
-func (b *BaseBeaconKitBlock) IsNil() bool {
-	return b == nil
-}
-
-// SetExecutionData sets the execution data of the block.
-func (b *BaseBeaconKitBlock) SetExecutionData(executionData interfaces.ExecutionData) error {
-	var err error
-	b.ExecData, err = executionData.MarshalSSZ()
-	return err
 }
 
 // ExecutionData returns the execution data of the block.

@@ -79,7 +79,7 @@ func (s *Service) GetOrBuildBlock(
 	}
 
 	// Assemble a new block with the payload.
-	if err = beaconBlock.AttachPayload(executionData); err != nil {
+	if err = beaconBlock.AttachExecutionData(executionData); err != nil {
 		return nil, err
 	}
 
