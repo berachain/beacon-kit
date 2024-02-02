@@ -35,50 +35,30 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
-// to sync up and the consensus client shouldn't join the validator set yet.
-const DefaultPayloadPosition = uint(0)
-
 // Handler is a struct that encapsulates the necessary components to handle the proposal processes.
 type Handler struct {
+	cfg             *config.Proposal
+	beaconChain     *blockchain.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
-	beaconChain     *blockchain.Service
-	payloadPosition uint
 }
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
+	cfg *config.Proposal,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
-
+		cfg:             cfg,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
 		beaconChain:     beaconChain,
-		// TODO: also need to make payload position a config variable or something.
-		payloadPosition: DefaultPayloadPosition,
-	}
-}
-
-// NewHandlerWithCustomPayloadPosition creates a new instance
-// of the Handler struct with a custom payload position.
-func NewHandlerWithCustomPayloadPosition(
-	beaconChain *blockchain.Service,
-	prepareProposal sdk.PrepareProposalHandler,
-	processProposal sdk.ProcessProposalHandler,
-	payloadPosition uint,
-) *Handler {
-	return &Handler{
-		prepareProposal: prepareProposal,
-		processProposal: processProposal,
-		beaconChain:     beaconChain,
-		payloadPosition: payloadPosition,
 	}
 }
 
@@ -125,7 +105,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Extract the beacon kit block from the proposal and unmarshal it.
 	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-		req, h.payloadPosition,
+		req, h.cfg.BeaconKitBlockPosition,
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
@@ -151,11 +131,11 @@ func (h *Handler) ProcessProposalHandler(
 func (h *Handler) RemoveBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
 ) *abci.RequestProcessProposal {
-	req.Txs = removeAtIndex(req.Txs, int(h.payloadPosition))
+	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconKitBlockPosition)
 	return req
 }
 
 // removeAtIndex removes an element at a given index from a slice.
-func removeAtIndex[T any](s []T, index int) []T {
+func removeAtIndex[T any](s []T, index uint) []T {
 	return append(s[:index], s[index+1:]...)
 }

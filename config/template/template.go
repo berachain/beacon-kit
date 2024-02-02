@@ -58,5 +58,9 @@ capella-fork-epoch = {{.Polaris.BeaconConfig.CapellaForkEpoch}}
 
 # Deneb fork epoch
 deneb-fork-epoch = {{.Polaris.BeaconConfig.DenebForkEpoch}}
+
+[beacon-kit.proposal]
+# Position of the beacon block in the proposal
+beacon-kit-block-proposal-position = {{.Polaris.Proposal.BeaconKitBlockPosition}}
 `
 )

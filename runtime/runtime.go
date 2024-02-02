@@ -47,6 +47,7 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
+	cfg        *config.Config
 	mu         sync.Mutex
 	logger     log.Logger
 	fscp       BeaconStateProvider
@@ -95,7 +96,7 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
-	baseService := service.NewBaseService(&cfg.BeaconConfig, nil, logger)
+	baseService := service.NewBaseService(&cfg.Beacon, nil, logger)
 
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
@@ -117,7 +118,7 @@ func NewDefaultBeaconKitRuntime(
 	// Engine Caller wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
 	engineCaller := engine.NewCaller(engine.WithEth1Client(eth1Client),
-		engine.WithBeaconConfig(&cfg.BeaconConfig),
+		engine.WithBeaconConfig(&cfg.Beacon),
 		engine.WithLogger(logger),
 		engine.WithEngineTimeout(cfg.ExecutionClient.RPCTimeout))
 

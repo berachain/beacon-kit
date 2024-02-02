@@ -62,6 +62,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	// Build and Register Prepare and Process Proposal Handlers.
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
 	proposalHandler := proposal.NewHandler(
+		&r.cfg.Proposal,
 		chainService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),

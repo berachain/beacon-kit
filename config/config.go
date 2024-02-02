@@ -39,7 +39,9 @@ type Config struct {
 	ExecutionClient Client
 
 	// BeaconConfig is the configuration for the fork epochs.
-	BeaconConfig Beacon
+	Beacon Beacon
+
+	Proposal
 }
 
 // DefaultConfig returns the default configuration for a polaris chain.
@@ -52,7 +54,7 @@ func DefaultConfig() *Config {
 			JWTSecretPath:   "./app/jwt.hex",
 			RequiredChainID: 7, //nolint:gomnd // default config.
 		},
-		BeaconConfig: DefaultBeaconConfig(),
+		Beacon: DefaultBeaconConfig(),
 	}
 }
 
@@ -126,26 +128,32 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.AltairForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.AltairForkEpoch, err = parser.GetEpoch(
 		flags.AltairForkEpoch,
 	); err != nil {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.BellatrixForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.BellatrixForkEpoch, err = parser.GetEpoch(
 		flags.BellatrixForkEpoch,
 	); err != nil {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.CapellaForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.CapellaForkEpoch, err = parser.GetEpoch(
 		flags.CapellaForkEpoch,
 	); err != nil {
 		return nil, err
 	}
 
-	if conf.BeaconConfig.DenebForkEpoch, err = parser.GetEpoch(
+	if conf.Beacon.DenebForkEpoch, err = parser.GetEpoch(
 		flags.DenebForkEpoch,
+	); err != nil {
+		return nil, err
+	}
+
+	if conf.Proposal.BeaconKitBlockPosition, err = parser.GetUint(
+		flags.BeaconKitBlockPosition,
 	); err != nil {
 		return nil, err
 	}

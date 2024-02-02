@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 	"github.com/stretchr/testify/assert"
 )
@@ -68,8 +69,8 @@ func TestRemoveBeaconBlockFromTxs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := proposal.NewHandlerWithCustomPayloadPosition(
-				nil, nil, nil, tt.payloadPosition,
+			handler := proposal.NewHandler(
+				&config.Proposal{BeaconKitBlockPosition: tt.payloadPosition}, nil, nil, nil,
 			)
 			req := &abci.RequestProcessProposal{Txs: tt.inputTxs}
 			result := handler.RemoveBeaconBlockFromTxs(req)
