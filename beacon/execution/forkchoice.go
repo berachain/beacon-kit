@@ -82,10 +82,10 @@ func (s *Service) notifyForkchoiceUpdate(
 		case execution.ErrInvalidPayloadStatus:
 			s.Logger().Error("invalid payload status", "error", err)
 			// In Prysm, this code recursively calls back until we find a valid hash we can
-			// insert. In BeaconKit, we don't have the nice ability to do this. But in
-			// theory we should never need it, since we have single block finality.
-			// If we get an invalid payload status here, something higher up
-			// must've gone wrong and thus we can't really retry here.
+			// insert. In BeaconKit, we don't have the nice ability to do this, *but* in
+			// theory we should never need it, since we have single block finality thanks
+			// to CometBFT. Essentially, if we get an invalid payload status here, something
+			// higher up must've gone wrong and thus we don't really need the retry here.
 			return errors.New("invalid payload")
 		default:
 			s.Logger().Error("undefined execution engine error", "error", err)
