@@ -37,7 +37,7 @@ import (
 )
 
 func (s *Service) notifyForkchoiceUpdate(
-	ctx context.Context, fcuConfig *FCUConfig, withAttrs bool,
+	ctx context.Context, fcuConfig *FCUConfig,
 ) error {
 	var (
 		payloadID   *primitives.PayloadID
@@ -60,7 +60,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	}()
 
 	// TODO: this withAttrs hack needs to be removed.
-	if withAttrs {
+	if fcuConfig.BuildPayload {
 		// TODO: handle versions properly.
 		attrs, err = s.getPayloadAttributes(ctx, slot, uint64(time.Now().Unix()))
 		if err != nil {

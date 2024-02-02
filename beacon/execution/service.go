@@ -101,13 +101,12 @@ func (s *Service) Status() error {
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-	withAttrs bool,
 ) error {
 	var err error
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
 	s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		err = s.notifyForkchoiceUpdate(ctx, fcuConfig, withAttrs)
+		err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
 	})
 
 	return err

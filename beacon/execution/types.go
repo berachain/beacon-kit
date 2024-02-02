@@ -47,32 +47,18 @@ type GrandCentralDispatch interface {
 	GetQueue(id string) dispatch.Queue
 }
 
-// NotifyForkchoiceUpdateArg is the argument for the forkchoice
-// update notification `notifyForkchoiceUpdate`.
-type NotifyForkchoiceUpdateArg struct {
-	// headHash is the hash of the head block we are building ontop of.=
-	headHash common.Hash
-	// safeHash is the hash of the last safe block.
-	safeHash common.Hash
-	// finalHash is the hash of the last finalized block.
-	finalHash common.Hash
-}
-
+// FCUConfig is a struct that holds the configuration for a fork choice update.
 type FCUConfig struct {
-	HeadEth1Hash  common.Hash
-	ProposingSlot primitives.Slot
-	// attributes    payloadattribute.Attributer
-}
+	// HeadEth1Hash is the hash of the head eth1 block we are updating the
+	// execution client's head to be.
+	HeadEth1Hash common.Hash
 
-// NewNotifyForkchoiceUpdateArg creates a new NotifyForkchoiceUpdateArg.
-func NewNotifyForkchoiceUpdateArg(
-	headHash common.Hash,
-	safeHash common.Hash,
-	finalHash common.Hash,
-) *NotifyForkchoiceUpdateArg {
-	return &NotifyForkchoiceUpdateArg{
-		headHash:  headHash,
-		safeHash:  safeHash,
-		finalHash: finalHash,
-	}
+	// BuildPayload is a flag that indicates whether the execution client
+	// should build a payload ontop of the new head (HeadEth1Hash would be the
+	// parent of the payload that is going to be built).
+	BuildPayload bool
+
+	// ProposingSlot is the slot that the execution client should propose a block
+	// for if `BuildPayload == true`.
+	ProposingSlot primitives.Slot
 }

@@ -96,7 +96,7 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
-	// Create the base service, we will the  create shallow copie for each service.
+	// Create the base service, we will the  create shallow copies for each service.
 	baseService := service.NewBaseService(&cfg.Beacon, gcd, logger)
 
 	// Create the eth1 client that will be used to interact with the execution client.

@@ -187,8 +187,8 @@ func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
 			context.Background(),
 			&execution.FCUConfig{
 				HeadEth1Hash: bss.clFinalized,
+				BuildPayload: false,
 			},
-			false, // todo: start building a payload here once we can determine the real slot.
 		)
 	}
 	return nil

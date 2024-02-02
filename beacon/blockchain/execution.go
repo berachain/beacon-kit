@@ -97,11 +97,11 @@ func (s *Service) buildNewPayloadForBlock(
 	fcuConfig := &execution.FCUConfig{
 		HeadEth1Hash:  headHash,
 		ProposingSlot: beaconBlock.GetSlot(),
+		BuildPayload:  true,
 	}
 
 	err := s.en.NotifyForkchoiceUpdate(
 		ctx, fcuConfig,
-		true,
 	)
 
 	if err != nil {
