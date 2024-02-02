@@ -47,12 +47,11 @@ func (s *Service) postBlockProcess(
 	// a payload ID. If the payload ID is nil, we return an error. One thing to notice here however
 	// is that we pass in `slot+1` to the execution client. We do this so that we can begin building
 	// the next block in the background while we are finalizing this block.
-	// We are okay pushing this asynchonous work to the execution client, as it is
+	// We are okay pushing this asynchonous work to the execution client, as it is designed for it.
 	return s.en.NotifyForkchoiceUpdate(
-		ctx, block.GetSlot()+1,
-		execution.NewNotifyForkchoiceUpdateArg(
-			common.BytesToHash(block.ExecutionData().BlockHash()),
-			s.bsp.BeaconState(ctx).GetSafeEth1BlockHash(),
-			s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash(),
-		), true, true, false)
+		ctx, &execution.FCUConfig{
+			HeadEth1Hash:  common.Hash(block.ExecutionData().BlockHash()),
+			ProposingSlot: block.GetSlot() + 1,
+			BuildPayload:  true,
+		})
 }

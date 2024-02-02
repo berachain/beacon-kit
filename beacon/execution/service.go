@@ -53,10 +53,6 @@ type Service struct {
 	bsp BeaconStateProvider
 	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.PayloadIDCache
-	// fcd is the forkchoice dispatch queue. Anytime a forkchoice update is sent to the
-	// execution client, it must be sent through this queue to ensure that the ordering
-	// of forkchoice updates is respected.
-	gcd GrandCentralDispatch
 
 	stopCh chan *struct{}
 }
@@ -104,26 +100,13 @@ func (s *Service) Status() error {
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
-	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
-	withAttrs, withRetry, async bool,
+	ctx context.Context, fcuConfig *FCUConfig,
 ) error {
 	var err error
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	// We receive a response from the execution client.
-	queue := s.gcd.GetQueue(forkchoiceDispatchQueue)
-	queueDispatchFn := queue.Sync
-	if async {
-		queueDispatchFn = queue.Async
-	}
-
-	// Dispatch in the selected manner.
-	queueDispatchFn(func() {
-		// TODO: we need to handle this whole retry thing better. It's ghetto af.
-		if withRetry {
-			err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
-		}
-		err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
+	s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+		err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
 	})
 
 	return err

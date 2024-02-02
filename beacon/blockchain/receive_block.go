@@ -37,6 +37,8 @@ import (
 	prsymexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 )
 
+// ReceiveBeaconBlock receives an incoming beacon block, it first validates
+// and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	block interfaces.ReadOnlyBeaconKitBlock,
@@ -105,7 +107,7 @@ func (s *Service) validateStateTransition(
 	return nil
 }
 
-// ValidateProposedBeaconBlock checks the validity of a proposed beacon block.
+// validateExecutionOnBlock checks the validity of a proposed beacon block.
 func (s *Service) validateExecutionOnBlock(ctx context.Context, header interfaces.ExecutionData,
 ) (bool, error) {
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)

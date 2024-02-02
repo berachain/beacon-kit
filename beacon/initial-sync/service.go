@@ -181,17 +181,15 @@ func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
 		return nil
 	}
 
-	// Begin triggering the forkchoice.
-	return s.es.NotifyForkchoiceUpdate(
-		context.Background(),
-		0, // todo: determine real slot.
-		execution.NewNotifyForkchoiceUpdateArg(
-			bss.clFinalized,
-			bss.clFinalized,
-			bss.clFinalized,
-		),
-		false, // todo: start building a payload here once we can determine the real slot.
-		true,
-		false,
-	)
+	// Only forkchoice update if the beacon chain has a valid finalized block.
+	if !bytes.Equal(bss.clFinalized.Bytes(), (common.Hash{}).Bytes()) {
+		return s.es.NotifyForkchoiceUpdate(
+			context.Background(),
+			&execution.FCUConfig{
+				HeadEth1Hash: bss.clFinalized,
+				BuildPayload: false,
+			},
+		)
+	}
+	return nil
 }

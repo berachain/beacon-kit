@@ -47,11 +47,3 @@ func WithEngineCaller(ec engine.Caller) Option {
 		return nil
 	}
 }
-
-// WithGCD is an option to set the GrandCentralDispatch for the Service.
-func WithGCD(gcd GrandCentralDispatch) Option {
-	return func(s *Service) error {
-		s.gcd = gcd
-		return nil
-	}
-}

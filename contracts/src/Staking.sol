@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.24;
 
 /**
  * @dev Interface of the staking module's precompiled contract

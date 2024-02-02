@@ -47,6 +47,49 @@ func BaseBeaconKitBlockFromState(
 	)
 }
 
+// BaseBeaconKitBlock assembles a new beacon block from
+// the given slot, time, execution data, and version.
+func NewBaseBeaconKitBlock(
+	slot Slot,
+	time uint64,
+	executionData interfaces.ExecutionData,
+	version int,
+) (interfaces.BeaconKitBlock, error) {
+	block := &BaseBeaconKitBlock{
+		Slot:    slot,
+		Time:    time,
+		Version: uint64(version),
+	}
+	if executionData != nil {
+		if err := block.AttachExecutionData(executionData); err != nil {
+			return nil, err
+		}
+	}
+	return block, nil
+}
+
+// NewEmptyBeaconKitBlockFromState assembles a new beacon block
+// with no execution data from the given state.
+func NewEmptyBeaconKitBlockFromState(
+	beaconState state.BeaconState,
+) (interfaces.BeaconKitBlock, error) {
+	return NewEmptyBeaconKitBlock(
+		beaconState.Slot(),
+		beaconState.Time(),
+		beaconState.Version(),
+	)
+}
+
+// NewEmptyBeaconKitBlock assembles a new beacon block
+// with no execution data.
+func NewEmptyBeaconKitBlock(
+	slot Slot,
+	time uint64,
+	version int,
+) (interfaces.BeaconKitBlock, error) {
+	return NewBaseBeaconKitBlock(slot, time, nil, version)
+}
+
 // ReadOnlyBeaconKitBlockFromABCIRequest assembles a
 // new read-only beacon block by extracting a marshalled
 // block out of an ABCI request.
@@ -70,43 +113,28 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	return &block, nil
 }
 
-// BaseBeaconKitBlock assembles a new beacon block from
-// the given slot, time, execution data, and version.
-func NewBaseBeaconKitBlock(
-	slot Slot,
-	time uint64,
-	executionData interfaces.ExecutionData,
-	version int,
-) (interfaces.BeaconKitBlock, error) {
-	execData, err := executionData.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-
-	value, err := executionData.ValueInGwei()
-	if err != nil {
-		return nil, err
-	}
-
-	return &BaseBeaconKitBlock{
-		Slot:     slot,
-		Time:     time,
-		ExecData: execData,
-		Value:    Gwei(value),
-		Version:  uint64(version),
-	}, nil
-}
-
 // IsNil checks if the BaseBeaconKitBlock is nil or not.
 func (b *BaseBeaconKitBlock) IsNil() bool {
 	return b == nil
 }
 
-// SetExecutionData sets the execution data of the block.
-func (b *BaseBeaconKitBlock) SetExecutionData(executionData interfaces.ExecutionData) error {
-	var err error
-	b.ExecData, err = executionData.MarshalSSZ()
-	return err
+// AttachExecutionData attaches the given execution data to the block.
+func (b *BaseBeaconKitBlock) AttachExecutionData(
+	executionData interfaces.ExecutionData,
+) error {
+	execData, err := executionData.MarshalSSZ()
+	if err != nil {
+		return err
+	}
+
+	value, err := executionData.ValueInGwei()
+	if err != nil {
+		return err
+	}
+
+	b.ExecData = execData
+	b.Value = Gwei(value)
+	return nil
 }
 
 // ExecutionData returns the execution data of the block.
