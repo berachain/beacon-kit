@@ -37,7 +37,7 @@ type (
 	// Gwei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Gwei
 	// We have to do this to keep `sszgen` happy.
 	Gwei = github_com_prysmaticlabs_prysm_v4_math.Gwei
-	// Gwei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Wei
+	// Wei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Wei
 	// We have to do this to keep `sszgen` happy.
 	Wei = github_com_prysmaticlabs_prysm_v4_math.Wei
 )
