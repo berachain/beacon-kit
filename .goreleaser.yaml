@@ -1,0 +1,135 @@
+project_name: beacond
+
+env:
+  - CGO_ENABLED=1
+
+# before:
+#   hooks:
+#     - go mod tidy
+#     - go mod download
+
+builds:
+  # - id: beacond-darwin-amd64
+  #   binary: beacond
+  #   main: ./examples/beacond/cmd
+  #   goarch:
+  #     - amd64
+  #   goos:
+  #     - darwin
+  #   env:
+  #     - CGO_ENABLED=1
+  #     #- CC=o64-clang
+  #     - CGO_LDFLAGS=-L/lib
+  #     - GO111MODULE=on
+  #   flags:
+  #     - -mod=readonly
+  #     - -trimpath
+  #   tags:
+  #     - netgo
+  #     - ledger
+  #     - muslc
+  #   ldflags:
+  #     - -s -w -linkmode=external -extldflags '-Wl,-z,muldefs -static' -X github.com/cosmos/cosmos-sdk/version.Name=beacond -X github.com/cosmos/cosmos-sdk/version.AppName=beacond -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags='netgo,ledger,muslc -X github.com/cosmos/cosmos-sdk/types.DBBackend=pebbledb'
+
+  # - id: beacond-darwin-arm64
+  #   binary: beacond
+  #   main: ./examples/beacond/cmd
+  #   goarch:
+  #     - arm64
+  #   goos:
+  #     - darwin
+  #   env:
+  #     - CGO_ENABLED=1
+  #     - GO111MODULE=on
+  #     #- CC=oa64-clang
+  #     #- CGO_LDFLAGS=-L/lib
+  #   flags:
+  #     - -mod=readonly
+  #     - -trimpath
+  #   tags:
+  #     - netgo
+  #     - ledger
+  #     - muslc
+  #   ldflags:
+  #     - -s -w -linkmode=external -extldflags '-Wl,-z,muldefs -static' -X github.com/cosmos/cosmos-sdk/version.Name=beacond -X github.com/cosmos/cosmos-sdk/version.AppName=beacond -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags='netgo,ledger,muslc -X github.com/cosmos/cosmos-sdk/types.DBBackend=pebbledb'
+
+  - id: beacond-linux-amd64
+    binary: beacond
+    main: ./examples/beacond/cmd
+    env:
+      - CGO_ENABLED=1
+      - GO111MODULE=on
+      - CC=x86_64-linux-gnu-gcc
+    goarch:
+      - amd64
+    goos:
+      - linux
+    flags:
+      - -mod=readonly
+      - -trimpath
+    tags:
+      - netgo
+      - ledger
+      - muslc
+    ldflags:
+      - -s -w -linkmode=external -extldflags '-Wl,-z,muldefs -static' -X github.com/cosmos/cosmos-sdk/version.Name=beacond -X github.com/cosmos/cosmos-sdk/version.AppName=beacond -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags='netgo,ledger,muslc -X github.com/cosmos/cosmos-sdk/types.DBBackend=pebbledb'
+
+  - id: beacond-linux-arm64
+    binary: beacond
+    main: ./examples/beacond/cmd
+    goarch:
+      - arm64
+    goos:
+      - linux
+    env:
+      - CGO_ENABLED=0
+      #- CC=aarch64-linux-gnu-gcc
+    flags:
+      - -mod=readonly
+      - -trimpath
+    tags:
+      - netgo
+      - ledger
+      - muslc
+    ldflags:
+      - -s -w -linkmode=external -extldflags '-Wl,-z,muldefs -static' -X github.com/cosmos/cosmos-sdk/version.Name=beacond -X github.com/cosmos/cosmos-sdk/version.AppName=beacond -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags='netgo,ledger,muslc -X github.com/cosmos/cosmos-sdk/types.DBBackend=pebbledb'
+
+# universal_binaries:
+  # - id: beacond-darwin-universal
+  #   ids:
+  #     - beacond-darwin-amd64
+  #     - beacond-darwin-arm64
+  #   replace: true
+  #   name_template: "beacond"
+archives:
+  - id: w/version
+    builds:
+      # - beacond-darwin-universal
+      - beacond-linux-amd64
+      # - beacond-linux-arm64
+    name_template: "beacond_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    wrap_in_directory: false
+    format: tar.gz
+    files:
+      - none*
+  - id: wo/version
+    builds:
+      # - beacond-darwin-universal
+      - beacond-linux-amd64
+      # - beacond-linux-arm64
+    name_template: "beacond_{{ .Os }}_{{ .Arch }}"
+    wrap_in_directory: false
+    format: tar.gz
+    files:
+      - none*
+
+#dflags:
+# -linkmode=external
+#- -s -w -extldflags '-Wl,-z,muldefs -static' -X github.com/cosmos/cosmos-sdk/version.Name=beacond -X github.com/cosmos/cosmos-sdk/version.AppName=beacond -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags='netgo,ledger,muslc -X github.com/cosmos/cosmos-sdk/types.DBBackend=pebbledb'
+
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
