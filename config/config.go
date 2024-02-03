@@ -29,7 +29,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/itsdevbear/bolaris/cmd/flags"
+	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/spf13/cobra"
 )
 
@@ -48,29 +48,9 @@ type Config struct {
 // DefaultConfig returns the default configuration for a polaris chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ExecutionClient: ExecutionClient{
-			RPCDialURL:      "http://localhost:8551",
-			RPCTimeout:      5, //nolint:gomnd // default config.
-			RPCRetries:      3, //nolint:gomnd // default config.
-			JWTSecretPath:   "./app/jwt.hex",
-			RequiredChainID: 7, //nolint:gomnd // default config.
-		},
-		Beacon: DefaultBeaconConfig(),
+		ExecutionClient: DefaultExecutionClientConfig(),
+		Beacon:          DefaultBeaconConfig(),
 	}
-}
-
-// Client is the configuration struct for the execution client.
-type ExecutionClient struct {
-	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL string
-	// RPCTimeout is the RPC timeout for execution client requests.
-	RPCTimeout uint64
-	// RPCRetries is the number of retries before shutting down consensus client.
-	RPCRetries uint64
-	// JWTSecretPath is the path to the JWT secret.
-	JWTSecretPath string
-	// RequiredChainID is the chain id that the consensus client must be connected to.
-	RequiredChainID uint64
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
