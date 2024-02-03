@@ -188,9 +188,6 @@ func NewBeaconKitApp(
 	/****  Module Options ****/
 	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
-	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
-	app.RegisterUpgradeHandlers()
-
 	// Load the app.
 	if err = app.Load(loadLatest); err != nil {
 		panic(err)
