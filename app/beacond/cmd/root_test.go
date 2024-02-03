@@ -36,53 +36,46 @@ import (
 
 	testapp "github.com/itsdevbear/bolaris/app"
 	"github.com/itsdevbear/bolaris/app/beacond/cmd"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
-func TestCmd(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "app/beacond/cmd")
+func TestInitCommand(t *testing.T) {
+	rootCmd := cmd.NewRootCmd()
+	rootCmd.SetOut(os.NewFile(0, os.DevNull))
+	rootCmd.SetArgs([]string{
+		"init",           // Test the init cmd
+		"BeaconApp-test", // Moniker
+		fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json
+	})
+
+	err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
 }
 
-var _ = Describe("Init command", func() {
-	It("should initialize the app with given options", func() {
-		stdout := os.Stdout
-		defer func() { os.Stdout = stdout }()
-		os.Stdout = os.NewFile(0, os.DevNull)
-		rootCmd := cmd.NewRootCmd()
-		rootCmd.SetArgs([]string{
-			"init",           // Test the init cmd
-			"BeaconApp-test", // Moniker
-			fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json
-		})
+func TestHomeFlagRegistration(t *testing.T) {
+	stdout := os.Stdout
+	defer func() { os.Stdout = stdout }()
+	os.Stdout = os.NewFile(0, os.DevNull)
+	homeDir := os.TempDir()
 
-		err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome)
-		Expect(err).ToNot(HaveOccurred())
+	rootCmd := cmd.NewRootCmd()
+	rootCmd.SetArgs([]string{
+		"query",
+		fmt.Sprintf("--%s", flags.FlagHome),
+		homeDir,
 	})
-})
 
-var _ = Describe("Home flag registration", func() {
-	It("should set home directory correctly", func() {
-		// Redirect standard out to null
-		stdout := os.Stdout
-		defer func() { os.Stdout = stdout }()
-		os.Stdout = os.NewFile(0, os.DevNull)
-		homeDir := os.TempDir()
+	err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
 
-		rootCmd := cmd.NewRootCmd()
-		rootCmd.SetArgs([]string{
-			"query",
-			fmt.Sprintf("--%s", flags.FlagHome),
-			homeDir,
-		})
-
-		err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome)
-		Expect(err).ToNot(HaveOccurred())
-
-		result, err := rootCmd.Flags().GetString(flags.FlagHome)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(result).To(Equal(homeDir))
-	})
-})
+	result, err := rootCmd.Flags().GetString(flags.FlagHome)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+	if result != homeDir {
+		t.Errorf("Expected homeDir to be %s, got %s", homeDir, result)
+	}
+}

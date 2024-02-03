@@ -243,26 +243,21 @@ start-besu:
 #     unit      #
 #################
 
-install-ginkgo:
-	@echo "Installing ginkgo..."
-	@go install github.com/onsi/ginkgo/v2/ginkgo@latest
 
 test-unit:
-	@$(MAKE) install-ginkgo forge-test
+	@$(MAKE) forge-test
 	@echo "Running unit tests..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace --skip .*e2e* ./...
+	go test ./...
 
 test-unit-race:
-	@$(MAKE) install-ginkgo forge-test
+	@$(MAKE) forge-test
 	@echo "Running unit tests with race detection..."
-	@ginkgo --race -r --randomize-all --fail-on-pending -trace --skip .*e2e* ./...
+	go test -race ./...
 
 test-unit-cover:
-	@$(MAKE) install-ginkgo forge-test
+	@$(MAKE) forge-test
 	@echo "Running unit tests with coverage..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace --skip .*e2e* \
-	--junit-report out.xml --cover --coverprofile "coverage-test-unit-cover.txt" --covermode atomic \
-		./...
+	go test -cover -coverprofile=coverage-test-unit-cover.txt -covermode=atomic ./...
 
 #################
 #     forge     #
@@ -282,24 +277,6 @@ test-e2e:
 test-e2e-no-build:
 	@$(MAKE) install-ginkgo
 	@echo "Running e2e tests..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace -timeout 30m ./e2e/precompile/...
-
-#################
-#   localnet    #
-#################
-
-test-localnet:
-	@$(MAKE) test-localnet-no-build
-
-test-localnet-no-build:
-	@$(MAKE) install-ginkgo
-	@echo "Running localnet tests..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace -timeout 30m ./e2e/localnet/...
-
-
-###############################################################################
-###                              Formatting                                 ###
-###############################################################################
 
 ###############################################################################
 ###                                Linting                                  ###
