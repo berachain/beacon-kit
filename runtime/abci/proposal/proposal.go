@@ -39,7 +39,8 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// Handler is a struct that encapsulates the necessary components to handle the proposal processes.
+// Handler is a struct that encapsulates the necessary components to handle
+// the proposal processes.
 type Handler struct {
 	cfg             *config.Proposal
 	beaconChain     *blockchain.Service
@@ -62,6 +63,8 @@ func NewHandler(
 	}
 }
 
+// PrepareProposalHandler is a wrapper around the prepare proposal handler
+// that injects the beacon block into the proposal.
 func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
@@ -97,6 +100,8 @@ func (h *Handler) PrepareProposalHandler(
 	return resp, nil
 }
 
+// ProcessProposalHandler is a wrapper around the process proposal handler
+// that extracts the beacon block from the proposal and processes it.
 func (h *Handler) ProcessProposalHandler(
 	ctx sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
