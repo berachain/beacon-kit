@@ -29,6 +29,7 @@ ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./app/beacond
 ARG FOUNDRY_DIR=contracts
 
+
 #######################################################
 ###         Stage 1 - Build the Application         ###
 #######################################################
@@ -75,6 +76,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     env GOOS=${GOOS} GOARCH=${GOARCH} && \
     env NAME=${NAME} DB_BACKEND=${DB_BACKEND} && \
     env APP_NAME=${APP_NAME} && \
+    env CGO_ENABLED=1 && \
     go build \
     -mod=readonly \
     -tags ${BUILD_TAGS} \
