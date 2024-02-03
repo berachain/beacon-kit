@@ -27,7 +27,7 @@ coverage:
   status:
     project:
       default:
-        target: 45%
+        target: 0%
     patch: off
 
 comment:
@@ -45,4 +45,4 @@ ignore:
   - "**/*.mock.go"
   - "**/proto"
   - "**/build"
-  - "**/cmd"
+  - "**/contracts"

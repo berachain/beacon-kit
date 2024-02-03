@@ -45,7 +45,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
       - name: Setup Golang
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
       - name: Cache Golang Deps
@@ -62,27 +62,26 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
-      # - name: Archive code coverage results
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: code-coverage-report
-      #     path: coverage-${{ matrix.args }}.txt
-      #     retention-days: 1
-      #   if: ${{ matrix.args == 'test-unit-cover' }}
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: coverage-${{ matrix.args }}.txt
+          retention-days: 1
+        if: ${{ matrix.args == 'test-unit-cover' }}
 
-  # TODO: Re-enable later.
-  # codecov:
-  #   name: codecov(uploader, polaris-linux-latest)
-  #   runs-on: polaris-linux-latest
-  #   needs: ci
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Download code coverage results
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: code-coverage-report
-  #     - name: Upload to Codecov
-  #       uses: codecov/codecov-action@v2
-  #       with:
-  #         token: ${{ secrets.CODECOV_TOKEN }}
+  codecov:
+    name: codecov(uploader, polaris-linux-latest)
+    runs-on: polaris-linux-latest
+    needs: ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download code coverage results
+        uses: actions/download-artifact@v2
+        with:
+          name: code-coverage-report
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
