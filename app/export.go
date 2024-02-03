@@ -112,7 +112,10 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 			if err != nil {
 				panic(err)
 			}
-			_, _ = app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
+			_, err = app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
+			if err != nil {
+				panic(err)
+			}
 			return false
 		}); err != nil {
 		panic(err)
@@ -131,7 +134,10 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 
 		delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 
-		_, _ = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
+		_, err = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	// clear validator slash events

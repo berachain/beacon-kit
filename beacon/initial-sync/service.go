@@ -101,8 +101,8 @@ func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 
 	// We previously grabbed the beacon chain's view of what is finalized. We first ensure it
 	// exists. If it exists on the chain, this is bullish. If it doesn't we need to forkchoice.
-	clFinalized, _ := s.ethClient.HeaderByHash(ctx, common.BytesToHash(finalHash[:]))
-	if clFinalized == nil {
+	clFinalized, err := s.ethClient.HeaderByHash(ctx, common.BytesToHash(finalHash[:]))
+	if clFinalized == nil || err != nil {
 		// We need to fork choice to find the latest finalized block. This is trigger the execution
 		// chain to start asking it's peers to help it sync and build the chain required for
 		// the following forkchoice.

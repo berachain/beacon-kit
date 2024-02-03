@@ -98,5 +98,6 @@ func TestDispatchQueueConcurrent_Stop(t *testing.T) {
 		t.Errorf("Async function executed after Stop")
 	})
 
+	// This should be a no-op.
 	q.Stop()
 }

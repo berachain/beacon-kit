@@ -36,7 +36,7 @@ func (s *BeaconStore) Slot() primitives.Slot {
 // TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
 // Time returns the current time of the beacon chain in Unix timestamp format.
 func (s *BeaconStore) Time() uint64 {
-	return uint64(s.sdkCtx.BlockTime().Unix())
+	return uint64(s.sdkCtx.BlockTime().Unix()) //#nosec:G701 // won't realistically overflow.
 }
 
 // Version returns the active fork version of the beacon chain based on the current slot.
