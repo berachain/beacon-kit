@@ -115,8 +115,8 @@ func (x *fastReflection_BaseBeaconKitBlock) Range(f func(protoreflect.FieldDescr
 			return
 		}
 	}
-	if x.Version != uint64(0) {
-		value := protoreflect.ValueOfUint64(x.Version)
+	if x.Version != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Version)
 		if !f(fd_BaseBeaconKitBlock_version, value) {
 			return
 		}
@@ -149,7 +149,7 @@ func (x *fastReflection_BaseBeaconKitBlock) Has(fd protoreflect.FieldDescriptor)
 	case "types.consensus.v1.BaseBeaconKitBlock.value":
 		return x.Value != uint64(0)
 	case "types.consensus.v1.BaseBeaconKitBlock.version":
-		return x.Version != uint64(0)
+		return x.Version != int64(0)
 	case "types.consensus.v1.BaseBeaconKitBlock.exec_data":
 		return len(x.ExecData) != 0
 	default:
@@ -175,7 +175,7 @@ func (x *fastReflection_BaseBeaconKitBlock) Clear(fd protoreflect.FieldDescripto
 	case "types.consensus.v1.BaseBeaconKitBlock.value":
 		x.Value = uint64(0)
 	case "types.consensus.v1.BaseBeaconKitBlock.version":
-		x.Version = uint64(0)
+		x.Version = int64(0)
 	case "types.consensus.v1.BaseBeaconKitBlock.exec_data":
 		x.ExecData = nil
 	default:
@@ -205,7 +205,7 @@ func (x *fastReflection_BaseBeaconKitBlock) Get(descriptor protoreflect.FieldDes
 		return protoreflect.ValueOfUint64(value)
 	case "types.consensus.v1.BaseBeaconKitBlock.version":
 		value := x.Version
-		return protoreflect.ValueOfUint64(value)
+		return protoreflect.ValueOfInt64(value)
 	case "types.consensus.v1.BaseBeaconKitBlock.exec_data":
 		value := x.ExecData
 		return protoreflect.ValueOfBytes(value)
@@ -236,7 +236,7 @@ func (x *fastReflection_BaseBeaconKitBlock) Set(fd protoreflect.FieldDescriptor,
 	case "types.consensus.v1.BaseBeaconKitBlock.value":
 		x.Value = value.Uint()
 	case "types.consensus.v1.BaseBeaconKitBlock.version":
-		x.Version = value.Uint()
+		x.Version = value.Int()
 	case "types.consensus.v1.BaseBeaconKitBlock.exec_data":
 		x.ExecData = value.Bytes()
 	default:
@@ -289,7 +289,7 @@ func (x *fastReflection_BaseBeaconKitBlock) NewField(fd protoreflect.FieldDescri
 	case "types.consensus.v1.BaseBeaconKitBlock.value":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "types.consensus.v1.BaseBeaconKitBlock.version":
-		return protoreflect.ValueOfUint64(uint64(0))
+		return protoreflect.ValueOfInt64(int64(0))
 	case "types.consensus.v1.BaseBeaconKitBlock.exec_data":
 		return protoreflect.ValueOfBytes(nil)
 	default:
@@ -553,7 +553,7 @@ func (x *fastReflection_BaseBeaconKitBlock) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					x.Version |= uint64(b&0x7F) << shift
+					x.Version |= int64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -674,7 +674,7 @@ type BaseBeaconKitBlock struct {
 	Slot     uint64 `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty"`
 	Time     uint64 `protobuf:"varint,2,opt,name=time,proto3" json:"time,omitempty"`
 	Value    uint64 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
-	Version  uint64 `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+	Version  int64  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
 	ExecData []byte `protobuf:"bytes,5,opt,name=exec_data,json=execData,proto3" json:"exec_data,omitempty"`
 }
 
@@ -719,7 +719,7 @@ func (x *BaseBeaconKitBlock) GetValue() uint64 {
 	return 0
 }
 
-func (x *BaseBeaconKitBlock) GetVersion() uint64 {
+func (x *BaseBeaconKitBlock) GetVersion() int64 {
 	if x != nil {
 		return x.Version
 	}
@@ -754,7 +754,7 @@ var file_types_consensus_v1_block_proto_rawDesc = []byte{
 	0x70, 0x72, 0x79, 0x73, 0x6d, 0x61, 0x74, 0x69, 0x63, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x70, 0x72,
 	0x79, 0x73, 0x6d, 0x2f, 0x76, 0x34, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x47, 0x77, 0x65, 0x69,
 	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69,
-	0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
+	0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
 	0x6e, 0x12, 0x1b, 0x0a, 0x09, 0x65, 0x78, 0x65, 0x63, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05,
 	0x20, 0x01, 0x28, 0x0c, 0x52, 0x08, 0x65, 0x78, 0x65, 0x63, 0x44, 0x61, 0x74, 0x61, 0x42, 0xbf,
 	0x01, 0x0a, 0x16, 0x63, 0x6f, 0x6d, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x63, 0x6f, 0x6e,

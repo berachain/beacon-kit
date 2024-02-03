@@ -62,6 +62,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	// TODO: this withAttrs hack needs to be removed.
 	if fcuConfig.BuildPayload {
 		// TODO: handle versions properly.
+		//#nosec:G701 // won't realistically overflow.
 		attrs, err = s.getPayloadAttributes(ctx, slot, uint64(time.Now().Unix()))
 		if err != nil {
 			s.Logger().Error("failed to get payload attributes in notifyForkchoiceUpdated", "error", err)

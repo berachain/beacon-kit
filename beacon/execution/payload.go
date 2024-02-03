@@ -27,7 +27,7 @@ package execution
 
 import (
 	"context"
-	"crypto/rand"
+	"crypto/rand" //#nosec:G702 // TODO: do randao properly.
 
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
