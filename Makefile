@@ -249,15 +249,10 @@ test-unit:
 	@echo "Running unit tests..."
 	go test ./...
 
-test-unit-race:
-	@$(MAKE) forge-test
-	@echo "Running unit tests with race detection..."
-	go test -race ./...
-
 test-unit-cover:
 	@$(MAKE) forge-test
 	@echo "Running unit tests with coverage..."
-	go test -cover -coverprofile=coverage-test-unit-cover.txt -covermode=atomic ./...
+	go test -race -coverprofile=coverage-test-unit-cover.txt -covermode=atomic ./...
 
 #################
 #     forge     #
@@ -275,7 +270,6 @@ test-e2e:
 	@$(MAKE) test-e2e-no-build
 
 test-e2e-no-build:
-	@$(MAKE) install-ginkgo
 	@echo "Running e2e tests..."
 
 ###############################################################################
@@ -286,7 +280,10 @@ format:
 	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golangci-fix
 
 lint:
-	@$(MAKE) license buf-lint forge-lint golangci gosec
+	@$(MAKE) license buf-lint forge-lint golangci
+
+gosec:
+	@$(MAKE) gosec
 
 
 #################
