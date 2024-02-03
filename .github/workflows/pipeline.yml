@@ -37,7 +37,6 @@ jobs:
       matrix:
         args: ["build", "lint", "test-unit-race", "test-unit-cover"]
         os: [ubuntu-latest]
-        go-version: [1.21.6]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -47,16 +46,8 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go-version }}
-      - name: Cache Golang Deps
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go
-          key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-golang-
+          go-version: 'stable'
+          check-latest: true
       - name: Run ${{ matrix.args }}
         run: |
           make ${{ matrix.args }}
@@ -71,8 +62,7 @@ jobs:
         if: ${{ matrix.args == 'test-unit-cover' }}
 
   codecov:
-    name: codecov(uploader, polaris-linux-latest)
-    runs-on: polaris-linux-latest
+    runs-on: ubuntu-latest
     needs: ci
     steps:
       - name: Checkout
