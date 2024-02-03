@@ -282,10 +282,6 @@ format:
 lint:
 	@$(MAKE) license buf-lint forge-lint golangci
 
-gosec:
-	@$(MAKE) gosec
-
-
 #################
 #     forge     #
 #################
