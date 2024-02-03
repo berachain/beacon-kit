@@ -23,25 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package config
 
-import "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-
-// TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
-// Slot returns the current slot of the beacon chain by converting the block height to a slot.
-func (s *BeaconStore) Slot() primitives.Slot {
-	return primitives.Slot(s.sdkCtx.BlockHeight())
+// Client is the configuration struct for the execution client.
+type ExecutionClient struct {
+	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
+	RPCDialURL string
+	// RPCTimeout is the RPC timeout for execution client requests.
+	RPCTimeout uint64
+	// RPCRetries is the number of retries before shutting down consensus client.
+	RPCRetries uint64
+	// JWTSecretPath is the path to the JWT secret.
+	JWTSecretPath string
+	// RequiredChainID is the chain id that the consensus client must be connected to.
+	RequiredChainID uint64
 }
 
-// TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
-// Time returns the current time of the beacon chain in Unix timestamp format.
-func (s *BeaconStore) Time() uint64 {
-	return uint64(s.sdkCtx.BlockTime().Unix()) //#nosec:G701 // won't realistically overflow.
-}
-
-// Version returns the active fork version of the beacon chain based on the current slot.
-// It utilizes the beacon configuration to determine the active fork version.
-func (s *BeaconStore) Version() int {
-	// TODO: properly do the SlotsPerEpoch math.
-	return s.cfg.ActiveForkVersion(primitives.Epoch(s.Slot()))
+// DefaultExecutionClientConfig returns the default configuration for the execution client.
+func DefaultExecutionClientConfig() ExecutionClient {
+	return ExecutionClient{
+		RPCDialURL:      "http://localhost:8551",
+		RPCTimeout:      5, //nolint:gomnd // default config.
+		RPCRetries:      3, //nolint:gomnd // default config.
+		JWTSecretPath:   "./app/jwt.hex",
+		RequiredChainID: 7, //nolint:gomnd // default config.
+	}
 }

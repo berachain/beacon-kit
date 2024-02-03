@@ -26,33 +26,47 @@
 package config_test
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sgconfig "github.com/itsdevbear/bolaris/config"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Configuration", func() {
-	It("should set CoinType", func() {
+func TestConfiguration(t *testing.T) {
+	t.Run("should set CoinType", func(t *testing.T) {
 		config := sdk.GetConfig()
 
-		Expect(int(config.GetCoinType())).To(Equal(sdk.CoinType))
-		Expect(config.GetFullBIP44Path()).To(Equal(sdk.FullFundraiserPath))
+		if int(config.GetCoinType()) != sdk.CoinType {
+			t.Errorf("expected CoinType %d, got %d", sdk.CoinType, config.GetCoinType())
+		}
+		if config.GetFullBIP44Path() != sdk.FullFundraiserPath {
+			t.Errorf("expected FullBIP44Path %s, got %s",
+				sdk.FullFundraiserPath, config.GetFullBIP44Path())
+		}
 
 		sgconfig.SetupCosmosConfig()
 
-		Expect(int(config.GetCoinType())).To(Equal(int(60)))
-		Expect(config.GetCoinType()).To(Equal(sdk.GetConfig().GetCoinType()))
-		Expect(config.GetFullBIP44Path()).To(Equal(sdk.GetConfig().GetFullBIP44Path()))
+		if int(config.GetCoinType()) != 60 {
+			t.Errorf("expected CoinType %d, got %d", 60, config.GetCoinType())
+		}
+		if config.GetCoinType() != sdk.GetConfig().GetCoinType() {
+			t.Errorf("expected CoinType %d, got %d",
+				sdk.GetConfig().GetCoinType(), config.GetCoinType())
+		}
+		if config.GetFullBIP44Path() != sdk.GetConfig().GetFullBIP44Path() {
+			t.Errorf("expected FullBIP44Path %s, got %s",
+				sdk.GetConfig().GetFullBIP44Path(), config.GetFullBIP44Path())
+		}
 	})
 
-	It("should generate HD path", func() {
+	t.Run("should generate HD path", func(t *testing.T) {
 		params := *hd.NewFundraiserParams(0, 60, 0)
 		hdPath := params.String()
 
-		Expect(hdPath).To(Equal("m/44'/60'/0'/0/0"))
+		if hdPath != "m/44'/60'/0'/0/0" {
+			t.Errorf("expected HD path %s, got %s", "m/44'/60'/0'/0/0", hdPath)
+		}
 	})
-})
+}

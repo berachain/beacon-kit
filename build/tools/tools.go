@@ -41,8 +41,6 @@ import (
 	_ "github.com/ethereum/go-ethereum/rlp/rlpgen"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
-	_ "github.com/onsi/ginkgo/v2/ginkgo"
 	_ "github.com/prysmaticlabs/fastssz/sszgen"
-	_ "github.com/securego/gosec/v2/cmd/gosec"
 	_ "github.com/vektra/mockery/v2"
 )

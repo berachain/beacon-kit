@@ -35,6 +35,6 @@ message BaseBeaconKitBlock {
   uint64 slot = 1 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
   uint64 time = 2;
   uint64 value = 3 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/math.Gwei"];
-  uint64 version = 4;
+  int64 version = 4;
   bytes exec_data = 5;
 }

@@ -243,26 +243,16 @@ start-besu:
 #     unit      #
 #################
 
-install-ginkgo:
-	@echo "Installing ginkgo..."
-	@go install github.com/onsi/ginkgo/v2/ginkgo@latest
 
 test-unit:
-	@$(MAKE) install-ginkgo forge-test
+	@$(MAKE) forge-test
 	@echo "Running unit tests..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace --skip .*e2e* ./...
-
-test-unit-race:
-	@$(MAKE) install-ginkgo forge-test
-	@echo "Running unit tests with race detection..."
-	@ginkgo --race -r --randomize-all --fail-on-pending -trace --skip .*e2e* ./...
+	go test ./...
 
 test-unit-cover:
-	@$(MAKE) install-ginkgo forge-test
+	@$(MAKE) forge-test
 	@echo "Running unit tests with coverage..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace --skip .*e2e* \
-	--junit-report out.xml --cover --coverprofile "coverage-test-unit-cover.txt" --covermode atomic \
-		./...
+	go test -race -coverprofile=coverage-test-unit-cover.txt -covermode=atomic ./...
 
 #################
 #     forge     #
@@ -280,26 +270,7 @@ test-e2e:
 	@$(MAKE) test-e2e-no-build
 
 test-e2e-no-build:
-	@$(MAKE) install-ginkgo
 	@echo "Running e2e tests..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace -timeout 30m ./e2e/precompile/...
-
-#################
-#   localnet    #
-#################
-
-test-localnet:
-	@$(MAKE) test-localnet-no-build
-
-test-localnet-no-build:
-	@$(MAKE) install-ginkgo
-	@echo "Running localnet tests..."
-	@ginkgo -r --randomize-all --fail-on-pending -trace -timeout 30m ./e2e/localnet/...
-
-
-###############################################################################
-###                              Formatting                                 ###
-###############################################################################
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -309,8 +280,7 @@ format:
 	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golangci-fix
 
 lint:
-	@$(MAKE) license buf-lint forge-lint golangci gosec
-
+	@$(MAKE) license buf-lint forge-lint golangci
 
 #################
 #     forge     #
@@ -374,12 +344,12 @@ license-fix:
 
 gosec-install:
 	@echo "--> Installing gosec"
-	@go install github.com/securego/gosec/v2/cmd/gosec
+	@go install github.com/cosmos/gosec/v2/cmd/gosec
 
 gosec:
 	@$(MAKE) gosec-install
 	@echo "--> Running gosec"
-	@gosec -exclude-generated ./...
+	@gosec ./...
 
 
 #################

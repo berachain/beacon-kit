@@ -38,11 +38,16 @@ import (
 // BeaconStore is a wrapper around a KVStore sdk.Context
 // that provides access to all beacon related data.
 type BeaconStore struct {
-	sdkCtx sdk.Context
 	store.KVStore
+
+	// sdkCtx is the context of the store.
+	sdkCtx sdk.Context
+
+	// cfg is the beacon configuration.
 	cfg *config.Beacon
 
 	// lastValidHash is the last valid head in the store.
+	// TODO: we need to handle this in a better way.
 	lastValidHash common.Hash
 }
 
