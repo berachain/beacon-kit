@@ -52,6 +52,6 @@ func (s *Service) postBlockProcess(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  common.Hash(block.ExecutionData().BlockHash()),
 			ProposingSlot: block.GetSlot() + 1,
-			BuildPayload:  true,
+			Attributes:    s.getPayloadAttribute(ctx),
 		})
 }

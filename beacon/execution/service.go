@@ -44,8 +44,6 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// etherbase is the address to which block rewards are sent.
-	etherbase common.Address
 
 	// Forkchoice Related Fields
 	//

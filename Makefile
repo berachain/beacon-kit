@@ -152,7 +152,7 @@ start-nethermind:
 	-p 8551:8551 \
 	-v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	nethermind/nethermind \y
+	nethermind/nethermind \
 	--JsonRpc.Port 8545 \
 	--JsonRpc.EngineEnabledModules "eth,net,engine" \
 	--JsonRpc.EnginePort 8551 \

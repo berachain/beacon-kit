@@ -26,6 +26,7 @@
 package config
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
@@ -39,15 +40,20 @@ type Beacon struct {
 	CapellaForkEpoch primitives.Epoch
 	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
 	DenebForkEpoch primitives.Epoch
+
+	// Suggested FeeRecipient is the address that will receive the transaction fees
+	// produced by any blocks from this node. Only takes effect post bellatrix.
+	SuggestedFeeRecipient common.Address
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
-		AltairForkEpoch:    0,
-		BellatrixForkEpoch: 0,
-		CapellaForkEpoch:   0,
-		DenebForkEpoch:     primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		AltairForkEpoch:       0,
+		BellatrixForkEpoch:    0,
+		CapellaForkEpoch:      0,
+		DenebForkEpoch:        primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		SuggestedFeeRecipient: common.Address{},
 	}
 }
 

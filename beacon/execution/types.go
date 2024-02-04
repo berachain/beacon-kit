@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/types/state"
+	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
@@ -53,12 +54,12 @@ type FCUConfig struct {
 	// execution client's head to be.
 	HeadEth1Hash common.Hash
 
-	// BuildPayload is a flag that indicates whether the execution client
-	// should build a payload ontop of the new head (HeadEth1Hash would be the
-	// parent of the payload that is going to be built).
-	BuildPayload bool
-
 	// ProposingSlot is the slot that the execution client should propose a block
-	// for if `BuildPayload == true`.
+	// for if Attributes neither nil nor empty.
 	ProposingSlot primitives.Slot
+
+	// Attributes is a list of payload attributes to include in a forkchoice update
+	// to the execution client. It is used to signal to the execution client that
+	// it should build a payload.
+	Attributes payloadattribute.Attributer
 }

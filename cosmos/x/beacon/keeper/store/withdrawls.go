@@ -23,16 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package store
 
-// Proposal is a configuration struct for the cosmos proposal handler.
-type Proposal struct {
-	BeaconKitBlockPosition uint
-}
+import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
-// DefaultProposalConfig returns the default configuration for the proposal service.
-func DefaultProposalConfig() Proposal {
-	return Proposal{
-		BeaconKitBlockPosition: 0,
-	}
+// TODO: maybe BeaconState interface needs to be glue'd together outside of
+// x/beacon, since we are going to need to get withdrawls from the x/beacon_staking.
+// TODO: We might want to build BeaconState from a variety of sources, not just
+// the x/beacon module.
+func (s *BeaconStore) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
+	return []*enginev1.Withdrawal{}, nil
 }
