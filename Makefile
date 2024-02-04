@@ -109,7 +109,6 @@ start-reth:
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
@@ -117,7 +116,6 @@ start-reth:
 	--http.api eth \
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir .tmp/reth
 	
 # Init and start geth node
 start-geth:
@@ -151,7 +149,6 @@ start-nethermind:
 	-p 8545:8545 \
 	-p 8551:8551 \
 	-v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
 	nethermind/nethermind \
 	--JsonRpc.Port 8545 \
 	--JsonRpc.EngineEnabledModules "eth,net,engine" \
@@ -169,7 +166,6 @@ start-besu:
 	-p 8545:8545 \
 	-p 8551:8551 \
 	-v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
 	hyperledger/besu:latest \
 	--data-path=.tmp/besu \
 	--genesis-file=../../${ETH_GENESIS_PATH} \
