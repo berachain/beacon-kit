@@ -27,6 +27,7 @@ package queue_test
 
 import (
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -37,21 +38,24 @@ import (
 func TestDispatchQueueConcurrent_Async(t *testing.T) {
 	q := queue.NewDispatchQueue(4, 4)
 
-	var counter int
-	wg := &sync.WaitGroup{}
+	var (
+		counter atomic.Int32
+		wg      sync.WaitGroup
+	)
+
 	wg.Add(10)
 
 	for i := 0; i < 10; i++ {
 		q.Async(func() {
 			defer wg.Done()
-			counter++
+			counter.Add(1)
 		})
 	}
 
 	wg.Wait()
 
-	if counter != 10 {
-		t.Errorf("Expected counter to be 10, got %d", counter)
+	if counter.Load() != 10 {
+		t.Errorf("Expected counter to be 10, got %d", counter.Load())
 	}
 
 	q.Stop()
