@@ -349,9 +349,7 @@ repo-rinse: |
 
 .PHONY: build build-linux-amd64 build-linux-arm64 \
 	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
-	forge-build forge-clean proto proto-build docker-build \
-	docker-build-base docker-build-local docker-build-seed \
-	docker-build-validator docker-build-localnet generate \
+	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
 	start test-unit test-unit-race test-unit-cover forge-test \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \

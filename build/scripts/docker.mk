@@ -26,5 +26,3 @@ docker-build:
 	-f ${DOCKERFILE} \
 	-t $(IMAGE_NAME):$(VERSION) \
 	.
-
-.PHONY: docker-build-localnet
