@@ -23,15 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package queues
+package queue
 
 import (
 	"sync"
 	"time"
 )
 
-// ConcurrentQueue is a concurrent queue for dispatching work items.
-type ConcurrentQueue struct {
+// DispatchQueue is a concurrent queue for dispatching work items.
+type DispatchQueue struct {
 	queue    chan WorkItem  // Channel for dispatching work items.
 	wg       sync.WaitGroup // WaitGroup for tracking in-flight work items.
 	stopChan chan struct{}  // Channel for signaling stop.
@@ -39,12 +39,12 @@ type ConcurrentQueue struct {
 	mu       sync.Mutex     // Mutex for protecting stopped flag.
 }
 
-// NewConcurrentDispatchQueue creates a new Queue and starts its worker goroutines.
-func NewConcurrentDispatchQueue(
+// NewDispatchQueue creates a new Queue and starts its worker goroutines.
+func NewDispatchQueue(
 	workerCount int,
 	maxQueueSize int,
-) *ConcurrentQueue {
-	q := &ConcurrentQueue{
+) *DispatchQueue {
+	q := &DispatchQueue{
 		queue:    make(chan WorkItem, maxQueueSize),
 		stopChan: make(chan struct{}),
 	}
@@ -69,7 +69,7 @@ func NewConcurrentDispatchQueue(
 }
 
 // Async adds a work item to the queue to be executed asynchronously.
-func (q *ConcurrentQueue) Async(execute WorkItem) {
+func (q *DispatchQueue) Async(execute WorkItem) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -82,13 +82,13 @@ func (q *ConcurrentQueue) Async(execute WorkItem) {
 }
 
 // AsyncAfter adds a work item to the queue to be executed after a specified duration.
-func (q *ConcurrentQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
+func (q *DispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
 	time.Sleep(deadline)
 	q.Async(execute)
 }
 
 // Sync adds a work item to the queue and waits for its execution to complete.
-func (q *ConcurrentQueue) Sync(execute WorkItem) {
+func (q *DispatchQueue) Sync(execute WorkItem) {
 	done := make(chan struct{})
 	q.Async(func() {
 		execute()
@@ -98,14 +98,14 @@ func (q *ConcurrentQueue) Sync(execute WorkItem) {
 }
 
 // AsyncAndWait adds a work item to the queue and waits for all work items to complete.
-func (q *ConcurrentQueue) AsyncAndWait(execute WorkItem) {
+func (q *DispatchQueue) AsyncAndWait(execute WorkItem) {
 	q.Async(execute)
 	q.wg.Wait()
 }
 
 // Stop stops the queue, preventing new work items from being added and waits for all
 // in-flight work items to complete.
-func (q *ConcurrentQueue) Stop() {
+func (q *DispatchQueue) Stop() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 

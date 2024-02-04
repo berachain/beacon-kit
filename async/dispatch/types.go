@@ -28,17 +28,17 @@ package dispatch
 import (
 	"time"
 
-	"github.com/itsdevbear/bolaris/async/dispatch/queues"
+	"github.com/itsdevbear/bolaris/async/dispatch/queue"
 )
 
 // Queue represents a queue of work items to be executed. It's interface is inspired by
 // Apple's Grand Central Dispatch (GCD) API.
 // https://developer.apple.com/documentation/dispatch/dispatchqueue
 type Queue interface {
-	Async(queues.WorkItem)
-	AsyncAfter(time.Duration, queues.WorkItem)
-	Sync(queues.WorkItem)
-	AsyncAndWait(queues.WorkItem)
+	Async(queue.WorkItem)
+	AsyncAfter(time.Duration, queue.WorkItem)
+	Sync(queue.WorkItem)
+	AsyncAndWait(queue.WorkItem)
 }
 
 // Event represents actions that occur during consensus. Listeners can
