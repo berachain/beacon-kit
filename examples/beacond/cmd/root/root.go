@@ -244,7 +244,7 @@ func initRootCmd(
 		confixcmd.ConfigCommand(),
 		pruning.Cmd(newApp, testapp.DefaultNodeHome),
 		snapshot.Cmd(newApp),
-		beaconconfig.BeaconKitCommands(newApp),
+		beaconconfig.BeaconKitCommands(),
 	)
 
 	AddCommands(rootCmd, testapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags, server.StartCmdOptions{

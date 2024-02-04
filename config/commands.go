@@ -28,12 +28,10 @@ package config
 import (
 	"github.com/itsdevbear/bolaris/config/cli"
 	"github.com/spf13/cobra"
-
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // Cmd returns the snapshots group command.
-func BeaconKitCommands(_ servertypes.AppCreator) *cobra.Command {
+func BeaconKitCommands() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "beacon-kit",
 		Short: "BeaconKit related commands",
