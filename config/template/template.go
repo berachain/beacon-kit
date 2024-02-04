@@ -59,6 +59,10 @@ capella-fork-epoch = {{.Polaris.Beacon.CapellaForkEpoch}}
 # Deneb fork epoch
 deneb-fork-epoch = {{.Polaris.Beacon.DenebForkEpoch}}
 
+# Post bellatrix, this address will receive the transaction fees produced by any blocks 
+# from this node.
+suggested-fee-recipient = "{{.Polaris.Beacon.SuggestedFeeRecipient}}"
+
 [beacon-kit.proposal]
 # Position of the beacon block in the proposal
 beacon-kit-block-proposal-position = {{.Polaris.Proposal.BeaconKitBlockPosition}}

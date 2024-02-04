@@ -27,15 +27,11 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
 // postBlockProcess(.
@@ -58,92 +54,4 @@ func (s *Service) postBlockProcess(
 			ProposingSlot: block.GetSlot() + 1,
 			Attributes:    s.getPayloadAttribute(ctx),
 		})
-}
-
-// getPayloadAttributes returns the payload attributes for the given state and slot.
-// The attribute is required to initiate a payload build process in the
-// context of an `engine_forkchoiceUpdated` call.
-func (s *Service) getPayloadAttribute(
-	ctx context.Context,
-) payloadattribute.Attributer {
-	var (
-		st         = s.bsp.BeaconState(ctx)
-		emptyAttri = payloadattribute.EmptyWithVersion(st.Version())
-		// TODO: FEE RECIPIENT
-		feeRecipient = make([]byte, 20) //nolint:gomnd // TODO: later
-		// TODO: RANDAO
-		prevRando = make([]byte, 32) //nolint:gomnd // TODO: later
-		// TODO: Cancun
-		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
-	)
-
-	// TODO: RANDAO
-	// // Get previous randao.
-	// prevRando, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
-	// if err != nil {
-	// 	log.WithError(err).Error("Could not get randao mix to get payload attribute")
-	// 	return emptyAttri
-	// }
-
-	// NOTE: We have to use time.Now() and not the time on the block header coming from
-	// Comet or else we attempt to build a block at an equivalent timestamp to the last.
-	// TODO: figure out how to fix this.
-	t := uint64(time.Now().Unix())
-
-	var attr payloadattribute.Attributer
-	switch st.Version() {
-	case version.Deneb:
-		withdrawals, err := st.ExpectedWithdrawals()
-		if err != nil {
-			s.Logger().Error(
-				"Could not get expected withdrawals to get payload attribute", "error", err)
-			return emptyAttri
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: feeRecipient,
-			Withdrawals:           withdrawals,
-			ParentBeaconBlockRoot: headRoot,
-		})
-		if err != nil {
-			s.Logger().Error("Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	case version.Capella:
-		withdrawals, err := st.ExpectedWithdrawals()
-		if err != nil {
-			s.Logger().Error(
-				"Could not get expected withdrawals to get payload attribute", "error", err)
-			return emptyAttri
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: feeRecipient,
-			Withdrawals:           withdrawals,
-		})
-		if err != nil {
-			s.Logger().Error(
-				"Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	case version.Bellatrix:
-		var err error
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: feeRecipient,
-		})
-		if err != nil {
-			s.Logger().Error("Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	default:
-		s.Logger().Error(
-			"Could not get payload attribute due to unknown state version", "version", st.Version())
-		return emptyAttri
-	}
-
-	return attr
 }

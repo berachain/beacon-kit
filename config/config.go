@@ -50,6 +50,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		ExecutionClient: DefaultExecutionClientConfig(),
 		Beacon:          DefaultBeaconConfig(),
+		Proposal:        DefaultProposalConfig(),
 	}
 }
 
@@ -133,6 +134,12 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 		return nil, err
 	}
 
+	if conf.Beacon.SuggestedFeeRecipient, err = parser.GetCommonAddress(
+		flags.SuggestedFeeRecipient,
+	); err != nil {
+		return nil, err
+	}
+
 	if conf.Proposal.BeaconKitBlockPosition, err = parser.GetUint(
 		flags.BeaconKitBlockPosition,
 	); err != nil {
@@ -144,11 +151,14 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
-	defaultCfg := DefaultConfig().ExecutionClient
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.JWTSecretPath,
+	defaultCfg := DefaultConfig()
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.ExecutionClient.JWTSecretPath,
 		"path to the execution client secret")
-	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.RPCDialURL, "rpc dial url")
-	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.RPCRetries, "rpc retries")
-	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.RequiredChainID, "required chain id")
+	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.ExecutionClient.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.ExecutionClient.RPCRetries, "rpc retries")
+	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.ExecutionClient.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.ExecutionClient.RequiredChainID,
+		"required chain id")
+	startCmd.Flags().String(flags.SuggestedFeeRecipient,
+		defaultCfg.Beacon.SuggestedFeeRecipient.Hex(), "suggested fee recipient")
 }

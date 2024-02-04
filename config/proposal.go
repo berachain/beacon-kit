@@ -31,8 +31,8 @@ type Proposal struct {
 }
 
 // DefaultProposalConfig returns the default configuration for the proposal service.
-func DefaultProposalConfig() *Proposal {
-	return &Proposal{
+func DefaultProposalConfig() Proposal {
+	return Proposal{
 		BeaconKitBlockPosition: 0,
 	}
 }
