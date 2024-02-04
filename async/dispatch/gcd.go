@@ -121,7 +121,6 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 func (gcd *GrandCentralDispatch) GetQueue(id string) Queue {
 	gcd.mu.RLock()
 	defer gcd.mu.RUnlock()
-	// Get the feed from the map.
 	queue, ok := gcd.queues[id]
 	if !ok {
 		return nil
