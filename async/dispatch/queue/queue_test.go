@@ -34,7 +34,6 @@ import (
 	"github.com/itsdevbear/bolaris/async/dispatch/queue"
 )
 
-// TestDispatchQueueConcurrent_Async tests the concurrent dispatch queue's Async function.
 func TestDispatchQueueConcurrent_Async(t *testing.T) {
 	q := queue.NewDispatchQueue(4, 4)
 

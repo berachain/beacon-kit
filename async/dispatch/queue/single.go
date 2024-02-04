@@ -79,6 +79,7 @@ func (q *SingleDispatchQueue) Async(item WorkItem) {
 		// that is being removed from the channel is never called.
 		q.wg.Done()
 	default:
+		// If there is no item in the channel, do nothing.
 	}
 
 	// Push the new item.
@@ -88,11 +89,8 @@ func (q *SingleDispatchQueue) Async(item WorkItem) {
 
 // AsyncAfter adds a work item to the queue to be executed after a specified duration.
 func (q *SingleDispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
-	q.wg.Add(1)
-	go func() {
-		time.Sleep(deadline)
-		q.Async(execute)
-	}()
+	time.Sleep(deadline)
+	q.Async(execute)
 }
 
 // Sync adds a work item to the queue and waits for its execution to complete.
