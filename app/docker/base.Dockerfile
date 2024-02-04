@@ -21,8 +21,6 @@
 ARG GO_VERSION=1.21.6
 ARG RUNNER_IMAGE=alpine
 ARG BUILD_TAGS="netgo,ledger,muslc"
-ARG GOARCH=amd64
-ARG GOOS=linux
 ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
@@ -63,8 +61,6 @@ COPY . .
 
 # Build args
 ARG NAME
-ARG GOARCH
-ARG GOOS
 ARG APP_NAME
 ARG DB_BACKEND
 ARG CMD_PATH
@@ -72,7 +68,6 @@ ARG CMD_PATH
 # Build beacond
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    env GOOS=${GOOS} GOARCH=${GOARCH} && \
     env NAME=${NAME} DB_BACKEND=${DB_BACKEND} && \
     env APP_NAME=${APP_NAME} && \
     go build \
