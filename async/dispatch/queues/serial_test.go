@@ -34,7 +34,7 @@ import (
 )
 
 func TestSerialDispatchQueue(t *testing.T) {
-	q := queues.NewSerialDispatchQueue()
+	q := queues.NewSerialDispatchQueue(4)
 
 	// Test Async
 	wg := &sync.WaitGroup{}
@@ -74,7 +74,7 @@ func TestSerialDispatchQueue(t *testing.T) {
 }
 
 func TestSerialDispatchQueue_Stop(t *testing.T) {
-	q := queues.NewSerialDispatchQueue()
+	q := queues.NewSerialDispatchQueue(4)
 
 	// Add some items to the queue
 	for i := 0; i < 10; i++ {

@@ -69,7 +69,9 @@ func NewGrandCentralDispatch(opts ...Option) (*GrandCentralDispatch, error) {
 	}
 
 	// We create a global queue
-	gcd.queues[GlobalQueueID] = queues.NewSerialDispatchQueue()
+	gcd.queues[GlobalQueueID] = queues.NewSerialDispatchQueue(
+		64, //nolint:gomnd // todo: make this configurable.
+	)
 
 	for _, opt := range opts {
 		if err := opt(gcd); err != nil {
@@ -96,7 +98,7 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	case QueueTypeSingle:
 		queue = queues.NewSingleDispatchQueue()
 	case QueueTypeSerial:
-		queue = queues.NewSerialDispatchQueue()
+		queue = queues.NewSerialDispatchQueue(64) //nolint:gomnd // todo: make this configurable.
 	case QueueTypeConcur:
 		panic("not implemented")
 		// queue = NewConcurrentDispatchQueue()

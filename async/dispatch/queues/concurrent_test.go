@@ -33,53 +33,97 @@ import (
 	"github.com/itsdevbear/bolaris/async/dispatch/queues"
 )
 
-func TestDispatchQueueConcurrent(t *testing.T) {
-	q := queues.NewConcurrentDispatchQueue(4)
+// TestDispatchQueueConcurrent_Async tests the concurrent dispatch queue's Async function.
+func TestDispatchQueueConcurrent_Async(t *testing.T) {
+	q := queues.NewConcurrentDispatchQueue(4, 4)
 
-	// Test Async
+	var counter int
+	wg := &sync.WaitGroup{}
+	wg.Add(10)
+
+	for i := 0; i < 10; i++ {
+		q.Async(func() {
+			defer wg.Done()
+			counter++
+		})
+	}
+
+	wg.Wait()
+
+	if counter != 10 {
+		t.Errorf("Expected counter to be 10, got %d", counter)
+	}
+
+	q.Stop()
+}
+
+func TestDispatchQueueConcurrent_AsyncAfter(t *testing.T) {
+	q := queues.NewConcurrentDispatchQueue(4, 4)
+
+	var asyncAfterExecuted bool
+
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	q.Async(func() {
+
+	startTime := time.Now()
+	waitTime := time.Millisecond * 100
+	q.AsyncAfter(waitTime, func() {
+		asyncAfterExecuted = true
 		wg.Done()
 	})
+
 	wg.Wait()
 
-	// Test AsyncAfter
-	wg.Add(1)
-	q.AsyncAfter(time.Millisecond*100, func() {
-		wg.Done()
-	})
-	wg.Wait()
+	if !asyncAfterExecuted {
+		t.Errorf("AsyncAfter function did not execute")
+	}
 
-	// Test Sync
-	syncDone := false
+	if time.Since(startTime) < waitTime {
+		t.Errorf("AsyncAfter function executed earlier than expected")
+	}
+
+	q.Stop()
+}
+
+func TestDispatchQueueConcurrent_Sync(t *testing.T) {
+	q := queues.NewConcurrentDispatchQueue(4, 4)
+
+	var syncExecuted bool
+
 	q.Sync(func() {
-		syncDone = true
+		syncExecuted = true
 	})
-	if !syncDone {
+
+	if !syncExecuted {
 		t.Errorf("Sync function did not execute")
 	}
 
-	// Test AsyncAndWait
-	asyncAndWaitDone := false
+	q.Stop()
+}
+
+func TestDispatchQueueConcurrent_AsyncAndWait(t *testing.T) {
+	q := queues.NewConcurrentDispatchQueue(4, 4)
+
+	var asyncAndWaitExecuted bool
+
 	q.AsyncAndWait(func() {
-		asyncAndWaitDone = true
+		asyncAndWaitExecuted = true
 	})
-	if !asyncAndWaitDone {
+
+	if !asyncAndWaitExecuted {
 		t.Errorf("AsyncAndWait function did not execute")
 	}
 
-	// Test Stop
 	q.Stop()
 }
 
 func TestDispatchQueueConcurrent_Stop(t *testing.T) {
-	q := queues.NewSerialDispatchQueue()
+	q := queues.NewConcurrentDispatchQueue(4, 4)
 
 	// Add some items to the queue
 	for i := 0; i < 10; i++ {
 		q.Async(func() {
-			time.Sleep(time.Millisecond * 100)
+			time.Sleep(time.Millisecond * 10)
 		})
 	}
 
@@ -89,15 +133,11 @@ func TestDispatchQueueConcurrent_Stop(t *testing.T) {
 	// Try to add another item to the queue, it should panic
 	defer func() {
 		if r := recover(); r == nil {
-			t.Errorf("Async function did not panic after Stop")
+			t.Errorf("Expected panic after Stop, but none occurred")
 		}
 	}()
 
 	q.Async(func() {
-		// This code should never be executed
 		t.Errorf("Async function executed after Stop")
 	})
-
-	// This should be a no-op.
-	q.Stop()
 }

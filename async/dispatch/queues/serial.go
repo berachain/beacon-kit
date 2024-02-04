@@ -32,8 +32,8 @@ type SerialQueue struct {
 }
 
 // NewSerialDispatchQueue creates a new Queue and starts its worker goroutine.
-func NewSerialDispatchQueue() *SerialQueue {
+func NewSerialDispatchQueue(maxQueueSize int) *SerialQueue {
 	return &SerialQueue{
-		ConcurrentQueue: NewConcurrentDispatchQueue(1),
+		ConcurrentQueue: NewConcurrentDispatchQueue(1, maxQueueSize),
 	}
 }
