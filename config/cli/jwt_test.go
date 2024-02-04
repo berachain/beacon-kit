@@ -95,17 +95,19 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 
 		// Check the file has been overridden with the new content
 		checkAuthFileIntegrity(t, tempFile.Name())
+
+		require.NoError(t, os.RemoveAll(tempFile.Name()))
 	})
 }
 
 func checkAuthFileIntegrity(t testing.TB, fPath string) {
 	fileInfo, err := os.Stat(fPath)
 	require.NoError(t, err)
-	require.Equal(t, true, fileInfo != nil)
+	require.NotEqual(t, nil, fileInfo)
 
 	enc, err := os.ReadFile(fPath) // Updated to use os.ReadFile directly
 	require.NoError(t, err)
 	decoded, err := hexutil.Decode(string(enc))
 	require.NoError(t, err)
-	require.Equal(t, 32, len(decoded))
+	require.Len(t, decoded, 32)
 }
