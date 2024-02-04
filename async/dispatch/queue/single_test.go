@@ -68,7 +68,7 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 		})
 	}
 
-	// Since the first Async called hasn't exited yet (we know this because ready == false still)
+	// Since the first Async called hasn't exited yet (it's waiting on the condition variable),
 	// the last Async should be enqueued and all others should be replaced.
 	q.Async(func() {
 		defer allTasksDoneWg.Done()
