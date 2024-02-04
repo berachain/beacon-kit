@@ -21,13 +21,10 @@
 ARG GO_VERSION=1.21.6
 ARG RUNNER_IMAGE=alpine
 ARG BUILD_TAGS="netgo,ledger,muslc"
-ARG GOARCH=amd64
-ARG GOOS=linux
 ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
-ARG CMD_PATH=./app/beacond
-ARG FOUNDRY_DIR=contracts
+ARG CMD_PATH=./examples/beacond/cmd
 
 
 #######################################################
@@ -40,14 +37,12 @@ ARG GIT_VERSION
 ARG GIT_COMMIT
 ARG BUILD_TAGS
 
-RUN apk add --no-cache \
-    ca-certificates \
-    build-base \
-    linux-headers
+RUN apk add --no-cache ca-certificates build-base linux-headers
 
 # Setup some alpine stuff that nobody really knows how or why it works.
 RUN set -eux; \
     apk add --no-cache git linux-headers ca-certificates build-base
+
 # Set the working directory
 WORKDIR /workdir
 
@@ -64,8 +59,6 @@ COPY . .
 
 # Build args
 ARG NAME
-ARG GOARCH
-ARG GOOS
 ARG APP_NAME
 ARG DB_BACKEND
 ARG CMD_PATH
@@ -73,7 +66,6 @@ ARG CMD_PATH
 # Build beacond
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    env GOOS=${GOOS} GOARCH=${GOARCH} && \
     env NAME=${NAME} DB_BACKEND=${DB_BACKEND} && \
     env APP_NAME=${APP_NAME} && \
     env CGO_ENABLED=1 && \
@@ -88,7 +80,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     -X github.com/cosmos/cosmos-sdk/types.DBBackend=$DB_BACKEND \
     -w -s -linkmode=external -extldflags '-Wl,-z,muldefs -static'" \
     -trimpath \
-    -o /workdir/build/bin/ \
+    -o /workdir/build/bin/beacond \
     ${CMD_PATH}
 
 #######################################################
@@ -101,14 +93,10 @@ FROM ${RUNNER_IMAGE}
 ARG APP_NAME
 
 # Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/${APP_NAME} /bin/
+COPY --from=builder /workdir/build/bin/${APP_NAME} /
 
 RUN apk add bash jq sed curl
 
 WORKDIR /
 
-COPY ./app/docker/seed/scripts scripts/
-
-RUN chmod +x scripts/*
-
-CMD ["sh", "-c", "sleep infinity"]
+ENTRYPOINT [ "./beacond" ]

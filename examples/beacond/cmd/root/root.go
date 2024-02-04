@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 //nolint:govet,gomnd,lll // from sdk.
-package cmd
+package root
 
 import (
 	"context"
@@ -70,7 +70,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	testapp "github.com/itsdevbear/bolaris/app"
+	testapp "github.com/itsdevbear/bolaris/examples/beacond/app"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 	beacontemplate "github.com/itsdevbear/bolaris/config/template"

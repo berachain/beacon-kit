@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cmd_test
+package root_test
 
 import (
 	"fmt"
@@ -34,12 +34,12 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	testapp "github.com/itsdevbear/bolaris/app"
-	"github.com/itsdevbear/bolaris/app/beacond/cmd"
+	testapp "github.com/itsdevbear/bolaris/examples/beacond/app"
+	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 )
 
 func TestInitCommand(t *testing.T) {
-	rootCmd := cmd.NewRootCmd()
+	rootCmd := root.NewRootCmd()
 	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"init",           // Test the init cmd
@@ -59,7 +59,7 @@ func TestHomeFlagRegistration(t *testing.T) {
 	os.Stdout = os.NewFile(0, os.DevNull)
 	homeDir := os.TempDir()
 
-	rootCmd := cmd.NewRootCmd()
+	rootCmd := root.NewRootCmd()
 	rootCmd.SetArgs([]string{
 		"query",
 		fmt.Sprintf("--%s", flags.FlagHome),

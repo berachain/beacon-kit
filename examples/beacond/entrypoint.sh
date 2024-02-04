@@ -121,4 +121,4 @@ fi
 ./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abera \
---home "$HOMEDIR" --beacon-kit.execution-client.jwt-secret-path "./app/jwt.hex"
+--home "$HOMEDIR" --beacon-kit.execution-client.jwt-secret-path ${JWT_SECRET_PATH}

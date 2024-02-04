@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-include build/scripts/cosmos.mk build/scripts/constants.mk
+include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
@@ -10,7 +10,7 @@ include build/scripts/cosmos.mk build/scripts/constants.mk
 
 BUILD_TARGETS := build install
 
-build: BUILD_ARGS=-o $(OUT_DIR)/
+build: BUILD_ARGS=-o $(OUT_DIR)/beacond
 
 build-linux-amd64:
 	GOOS=linux GOARCH=amd64 LEDGER_ENABLED=false $(MAKE) build
@@ -19,8 +19,8 @@ build-linux-arm64:
 	GOOS=linux GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
 
 $(BUILD_TARGETS): forge-build sync $(OUT_DIR)/
-	@echo "Building ${TESTAPP_DIR}"
-	@cd ${CURRENT_DIR}/$(TESTAPP_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./...
+	@echo "Building ${TESTAPP_CMD_DIR}"
+	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
 
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
@@ -57,65 +57,6 @@ proto:
 proto-build:
 	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
 
-###############################################################################
-###                                 Docker                                  ###
-###############################################################################
-
-# Variables
-DOCKER_TYPE ?= base
-ARCH ?= arm64
-GO_VERSION ?= 1.21.6
-IMAGE_NAME ?= beacond
-IMAGE_VERSION ?= v0.0.0
-BASE_IMAGE ?= beacond/base:$(IMAGE_VERSION)
-
-# Docker Paths
-BASE_DOCKER_PATH = ./app/docker
-EXEC_DOCKER_PATH = $(BASE_DOCKER_PATH)/base.Dockerfile
-LOCAL_DOCKER_PATH = $(BASE_DOCKER_PATH)/local/Dockerfile
-SEED_DOCKER_PATH =  $(BASE_DOCKER_PATH)/seed/Dockerfile
-VAL_DOCKER_PATH =  $(BASE_DOCKER_PATH)/validator/Dockerfile
-LOCALNET_CLIENT_PATH = ./e2e/precompile/beacond
-LOCALNET_DOCKER_PATH = $(LOCALNET_CLIENT_PATH)/Dockerfile
-
-# Image Build
-docker-build:
-	@echo "Build a release docker image for the Cosmos SDK chain..."
-	@$(MAKE) docker-build-$(DOCKER_TYPE)
-
-# Docker Build Types
-docker-build-base:
-	$(call docker-build-helper,$(EXEC_DOCKER_PATH),base)
-
-docker-build-local:
-	$(call docker-build-helper,$(LOCAL_DOCKER_PATH),local,--build-arg BASE_IMAGE=$(BASE_IMAGE))
-
-docker-build-seed:
-	$(call docker-build-helper,$(SEED_DOCKER_PATH),seed,--build-arg BASE_IMAGE=$(BASE_IMAGE))
-
-docker-build-validator:
-	$(call docker-build-helper,$(VAL_DOCKER_PATH),validator,--build-arg BASE_IMAGE=$(BASE_IMAGE))
-
-docker-build-localnet:
-	$(call docker-build-helper,$(LOCALNET_DOCKER_PATH),localnet,--build-arg BASE_IMAGE=$(BASE_IMAGE))
-
-# Docker Build Function
-define docker-build-helper
-	docker build \
-	--build-arg GO_VERSION=$(GO_VERSION) \
-	--platform linux/$(ARCH) \
-	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
-	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
-	--build-arg GOOS=linux \
-	--build-arg GOARCH=$(ARCH) \
-	-f $(1) \
-	-t $(IMAGE_NAME)/$(2):$(IMAGE_VERSION) \
-	$(if $(3),$(3)) \
-	.
-
-endef
-
-.PHONY: docker-build-localnet
 
 ###############################################################################
 ###                                 CodeGen                                 ###
@@ -151,11 +92,14 @@ mockery:
 #    beacond     #
 #################
 
-# TODO: add start-erigon and start-nethermind
+# TODO: add start-erigon
+
+JWT_PATH = ${TESTAPP_DIR}/jwt.hex
+ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
 
 # Start beacond
 start:
-	@./app/entrypoint.sh
+	@JWT_SECRET_PATH=$(JWT_PATH) ./examples/beacond/entrypoint.sh
 
 # Start reth node
 start-reth:
@@ -164,38 +108,39 @@ start-reth:
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/app:/app \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
-	--chain ./app/eth-genesis.json \
+	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth \
 	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret ./app/jwt.hex
+	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir .tmp/reth
 	
 # Init and start geth node
 start-geth:
 	rm -rf .tmp/geth
 	docker run \
-	--rm -v $(PWD)/app:/app \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
 	--datadir .tmp/geth \
-	./app/eth-genesis.json
+	${ETH_GENESIS_PATH}
+
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/app:/app \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth \
 	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret ./app/jwt.hex \
+	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--datadir .tmp/geth
 
@@ -205,17 +150,17 @@ start-nethermind:
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	-v $(PWD)/app:/app \
+	-v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	nethermind/nethermind \
+	nethermind/nethermind \y
 	--JsonRpc.Port 8545 \
 	--JsonRpc.EngineEnabledModules "eth,net,engine" \
 	--JsonRpc.EnginePort 8551 \
 	--JsonRpc.EngineHost 0.0.0.0 \
 	--JsonRpc.Host 0.0.0.0 \
-	--JsonRpc.JwtSecretFile ../app/jwt.hex \
+	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../app/eth-nether-genesis.json
+	--Init.ChainSpecPath ../$(TESTAPP_DIR)/eth-nether-genesis.json
 
 # Start besu node
 start-besu:
@@ -223,11 +168,11 @@ start-besu:
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	-v $(PWD)/app:/app \
+	-v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	hyperledger/besu:latest \
 	--data-path=.tmp/besu \
-	--genesis-file=../../app/eth-genesis.json \
+	--genesis-file=../../${ETH_GENESIS_PATH} \
 	--rpc-http-enabled \
 	--rpc-http-api=ETH,NET,ENGINE,DEBUG,NET,WEB3 \
 	--host-allowlist="*" \
@@ -235,7 +180,7 @@ start-besu:
 	--engine-rpc-port=8551 \
 	--engine-rpc-enabled \
 	--engine-host-allowlist="*" \
-	--engine-jwt-secret=../../app/jwt.hex
+	--engine-jwt-secret=../../${JWT_PATH}
 
 
 
@@ -404,9 +349,7 @@ repo-rinse: |
 
 .PHONY: build build-linux-amd64 build-linux-arm64 \
 	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
-	forge-build forge-clean proto proto-build docker-build \
-	docker-build-base docker-build-local docker-build-seed \
-	docker-build-validator docker-build-localnet generate \
+	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
 	start test-unit test-unit-race test-unit-cover forge-test \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
