@@ -151,7 +151,7 @@ mockery:
 #    beacond     #
 #################
 
-# TODO: add start-erigon and start-nethermin
+# TODO: add start-erigon
 
 JWT_PATH = ${TESTAPP_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
