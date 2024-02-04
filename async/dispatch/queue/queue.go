@@ -109,14 +109,17 @@ func (q *DispatchQueue) Stop() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
+	// If the queue has already been stopped, no-op.
 	if q.stopped {
 		return
 	}
 
+	// Mark the queue as stopped to prevent
+	// new work items from being added.
+	q.stopped = true
+
 	// Wait for all tasks to complete
 	q.wg.Wait()
-
-	q.stopped = true
 
 	// Close the queue channel to stop receiving new tasks
 	close(q.queue)
