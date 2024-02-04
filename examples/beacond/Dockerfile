@@ -97,6 +97,4 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /
 
 RUN apk add bash jq sed curl
 
-WORKDIR /
-
 ENTRYPOINT [ "./beacond" ]

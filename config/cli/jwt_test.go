@@ -32,7 +32,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/itsdevbear/bolaris/config/cli"
-	"github.com/prysmaticlabs/prysm/v4/testing/require"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_NewGenerateJWTCommand(t *testing.T) {
