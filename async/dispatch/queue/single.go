@@ -23,15 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package queues
+package queue
 
-// WorkItem represents a unit of work to be executed.
-type WorkItem func()
+// SingleDispatchQueue is a dispatch queue that dispatches a single item at a time.
+// It respects the order of items added to the queue and will always
+// process the freshest item that was MOST recently added to the queue.
+type SingleDispatchQueue struct {
+	*DispatchQueue
+}
 
-// Event represents actions that occur during consensus. Listeners can
-// register callbacks with event handlers for specific event types.
-type Event interface {
-	Type() string
-	Source() any
-	Value() any
+// NewSingleDispatchQueue creates a new SingleDispatchQueue.
+func NewSingleDispatchQueue() *SingleDispatchQueue {
+	q := &SingleDispatchQueue{
+		DispatchQueue: NewDispatchQueue(1, 1),
+	}
+	return q
+}
+
+// Async adds a work item to the queue to be executed asynchronously.
+func (q *SingleDispatchQueue) Async(item WorkItem) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	// Remove the currently pending item before
+	// adding the new one to the channel.
+	select {
+	case <-q.queue:
+		// Decrement the WaitGroup as the corresponding wg.Add(1) from the item
+		// that is being removed from the channel is never called.
+		q.wg.Done()
+	default:
+		// If there is no item in the channel, do nothing.
+	}
+
+	// Push the new item.
+	q.wg.Add(1)
+	q.queue <- item
 }

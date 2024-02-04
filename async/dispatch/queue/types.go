@@ -23,17 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package queues
+package queue
 
-// SerialQueue is a serialized queue for dispatching work items.
-// It is simply a concurrent queue with a worker count of 1.
-type SerialQueue struct {
-	*ConcurrentQueue
-}
+// WorkItem represents a unit of work to be executed.
+type WorkItem func()
 
-// NewSerialDispatchQueue creates a new Queue and starts its worker goroutine.
-func NewSerialDispatchQueue() *SerialQueue {
-	return &SerialQueue{
-		ConcurrentQueue: NewConcurrentDispatchQueue(1),
-	}
+// Event represents actions that occur during consensus. Listeners can
+// register callbacks with event handlers for specific event types.
+type Event interface {
+	Type() string
+	Source() any
+	Value() any
 }

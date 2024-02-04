@@ -30,11 +30,16 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/async/dispatch/queues"
+	dqueue "github.com/itsdevbear/bolaris/async/dispatch/queue"
 )
 
-// GlobalQueueID is the identifier for the global queue.
-const GlobalQueueID = "global"
+const (
+	// GlobalQueueID is the identifier for the global queue.
+	GlobalQueueID = "global"
+
+	// DefaultQueueSize is the default size of a queue.
+	DefaultQueueSize = 64 // todo: make this configurable.
+)
 
 // QueueType represents the type of a queue.
 type QueueType string
@@ -53,7 +58,7 @@ const (
 
 // GrandCentralDispatch is a structure that holds the mutex, logger and queues.
 type GrandCentralDispatch struct {
-	mu     sync.Mutex
+	mu     sync.RWMutex
 	logger log.Logger
 	queues map[string]Queue
 }
@@ -69,7 +74,10 @@ func NewGrandCentralDispatch(opts ...Option) (*GrandCentralDispatch, error) {
 	}
 
 	// We create a global queue
-	gcd.queues[GlobalQueueID] = queues.NewSerialDispatchQueue()
+	gcd.queues[GlobalQueueID] = dqueue.NewDispatchQueue(
+		1,
+		DefaultQueueSize,
+	)
 
 	for _, opt := range opts {
 		if err := opt(gcd); err != nil {
@@ -94,12 +102,12 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	var queue Queue
 	switch queueType {
 	case QueueTypeSingle:
-		queue = queues.NewSingleDispatchQueue()
+		queue = dqueue.NewSingleDispatchQueue()
 	case QueueTypeSerial:
-		queue = queues.NewSerialDispatchQueue()
+		queue = dqueue.NewDispatchQueue(1, DefaultQueueSize)
 	case QueueTypeConcur:
-		panic("not implemented")
-		// queue = NewConcurrentDispatchQueue()
+		//nolint:gomnd // todo: make this configurable.
+		queue = dqueue.NewDispatchQueue(64, DefaultQueueSize)
 	default:
 		panic("unknown queue type")
 	}
@@ -111,7 +119,8 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 
 // GetQueue returns the feed associated with the provided key.
 func (gcd *GrandCentralDispatch) GetQueue(id string) Queue {
-	// Get the feed from the map.
+	gcd.mu.RLock()
+	defer gcd.mu.RUnlock()
 	queue, ok := gcd.queues[id]
 	if !ok {
 		return nil
