@@ -22,26 +22,56 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
+//
 
+// nolint
+//
+//nolint:nolintlint // testing file.
 package main
 
 import (
-	"os"
+	"context"
+	"math/big"
 
-	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-
-	testapp "github.com/itsdevbear/bolaris/app"
-	"github.com/itsdevbear/bolaris/app/beacond/cmd"
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/beacon/logs/callback"
+	"github.com/itsdevbear/bolaris/examples/beacond/contracts"
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
 func main() {
-	config.SetupCosmosConfig()
-	rootCmd := cmd.NewRootCmd()
-	if err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome); err != nil {
-		log.NewLogger(rootCmd.OutOrStderr()).Error("failure when running app", "error", err)
-		os.Exit(1)
+	ssc := &contracts.StakingCallbacks{}
+
+	sc, err := callback.NewFrom(ssc)
+	if err != nil {
+		panic(err)
 	}
+
+	ethclient, err := ethclient.Dial("http://localhost:8545")
+	if err != nil {
+		panic(err)
+	}
+
+	logs, err := ethclient.FilterLogs(context.Background(), ethereum.FilterQuery{
+		Addresses: []common.Address{common.HexToAddress("0xB0ce0be267f1B1db9b30CD3E61DF1C6937129A84")},
+		FromBlock: big.NewInt(135),
+		ToBlock:   big.NewInt(1000),
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	for _, log := range logs {
+		// Handle the log
+		err = sc.HandleLog(context.Background(), evmv1.NewLogFromGethLog(log))
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	_ = sc
 }

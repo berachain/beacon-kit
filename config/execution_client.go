@@ -45,7 +45,7 @@ func DefaultExecutionClientConfig() ExecutionClient {
 		RPCDialURL:      "http://localhost:8551",
 		RPCTimeout:      5, //nolint:gomnd // default config.
 		RPCRetries:      3, //nolint:gomnd // default config.
-		JWTSecretPath:   "./app/jwt.hex",
+		JWTSecretPath:   "./jwt.hex",
 		RequiredChainID: 7, //nolint:gomnd // default config.
 	}
 }

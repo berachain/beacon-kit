@@ -10,7 +10,7 @@ export COMMIT := $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
 OUT_DIR ?= $(CURDIR)/build/bin
 BINDIR ?= $(GOPATH)/build/bin
-TESTAPP_DIR = ./app
+TESTAPP_DIR = examples/beacond
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags
