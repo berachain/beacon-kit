@@ -65,7 +65,7 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 	// before enqueueing the next two.
 	firstWorkStarted.Wait()
 
-	// These tasks should should get replaced.
+	// These tasks should get replaced over and over by each other.
 	for i := 0; i < 68; i++ {
 		q.Async(func() {
 			defer allWorkDone.Done()
@@ -77,7 +77,7 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 	}
 
 	// Since the first Async called hasn't exited yet (it's waiting on the condition variable),
-	// the last Async should be enqueued and all others should be replaced.
+	// the last Async should be enqueued and all others should've been replaced.
 	q.Async(func() {
 		defer allWorkDone.Done()
 
