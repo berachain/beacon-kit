@@ -41,6 +41,12 @@ func (s *Service) getPayloadAttribute(
 	ctx context.Context,
 ) payloadattribute.Attributer {
 	var (
+		// NOTE: We have to use time.Now() and not the time on the block header coming from
+		// Comet or else we attempt to build a block at an equivalent timestamp to the last.
+		// TODO: figure out how to fix this, in ethereum I think we need to use the slot to timestamp
+		// for the slot math thingy to calculate what the correct timestamp would be for the block we
+		// are building.
+		t          = uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
 		st         = s.bsp.BeaconState(ctx)
 		emptyAttri = payloadattribute.EmptyWithVersion(st.Version())
 		// TODO: RANDAO
@@ -56,11 +62,6 @@ func (s *Service) getPayloadAttribute(
 	// 	log.WithError(err).Error("Could not get randao mix to get payload attribute")
 	// 	return emptyAttri
 	// }
-
-	// NOTE: We have to use time.Now() and not the time on the block header coming from
-	// Comet or else we attempt to build a block at an equivalent timestamp to the last.
-	// TODO: figure out how to fix this.
-	t := uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
 
 	var attr payloadattribute.Attributer
 	switch st.Version() {
