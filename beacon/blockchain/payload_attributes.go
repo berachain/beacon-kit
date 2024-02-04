@@ -60,7 +60,7 @@ func (s *Service) getPayloadAttribute(
 	// NOTE: We have to use time.Now() and not the time on the block header coming from
 	// Comet or else we attempt to build a block at an equivalent timestamp to the last.
 	// TODO: figure out how to fix this.
-	t := uint64(time.Now().Unix())
+	t := uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
 
 	var attr payloadattribute.Attributer
 	switch st.Version() {
