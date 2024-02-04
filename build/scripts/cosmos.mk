@@ -11,6 +11,7 @@ CURRENT_DIR = $(shell pwd)
 OUT_DIR ?= $(CURDIR)/build/bin
 BINDIR ?= $(GOPATH)/build/bin
 TESTAPP_DIR = examples/beacond
+TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags

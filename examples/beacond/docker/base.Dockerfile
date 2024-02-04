@@ -24,7 +24,7 @@ ARG BUILD_TAGS="netgo,ledger,muslc"
 ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
-ARG CMD_PATH=./app/beacond
+ARG CMD_PATH=./examples/beacond/cmd
 ARG FOUNDRY_DIR=contracts
 
 
@@ -83,7 +83,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     -X github.com/cosmos/cosmos-sdk/types.DBBackend=$DB_BACKEND \
     -w -s -linkmode=external -extldflags '-Wl,-z,muldefs -static'" \
     -trimpath \
-    -o /workdir/build/bin/ \
+    -o /workdir/build/bin/beacond \
     ${CMD_PATH}
 
 #######################################################
@@ -96,14 +96,11 @@ FROM ${RUNNER_IMAGE}
 ARG APP_NAME
 
 # Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/${APP_NAME} /bin/
+COPY --from=builder /workdir/build/bin/${APP_NAME} /
 
 RUN apk add bash jq sed curl
 
 WORKDIR /
 
-COPY ./app/docker/seed/scripts scripts/
 
-RUN chmod +x scripts/*
-
-CMD ["sh", "-c", "sleep infinity"]
+ENTRYPOINT [ "./beacond" ]

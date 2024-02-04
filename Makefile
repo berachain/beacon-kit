@@ -10,7 +10,7 @@ include build/scripts/cosmos.mk build/scripts/constants.mk
 
 BUILD_TARGETS := build install
 
-build: BUILD_ARGS=-o $(OUT_DIR)/
+build: BUILD_ARGS=-o $(OUT_DIR)/beacond
 
 build-linux-amd64:
 	GOOS=linux GOARCH=amd64 LEDGER_ENABLED=false $(MAKE) build
@@ -19,8 +19,8 @@ build-linux-arm64:
 	GOOS=linux GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
 
 $(BUILD_TARGETS): forge-build sync $(OUT_DIR)/
-	@echo "Building ${TESTAPP_DIR}"
-	@cd ${CURRENT_DIR}/$(TESTAPP_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./...
+	@echo "Building ${TESTAPP_CMD_DIR}"
+	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
 
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
