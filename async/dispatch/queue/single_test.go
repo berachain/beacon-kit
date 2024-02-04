@@ -36,34 +36,42 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 	q := queue.NewSingleDispatchQueue()
 
 	var (
-		firstTaskDoneWg sync.WaitGroup
-		allTasksDoneWg  sync.WaitGroup
-		mu              sync.Mutex
-		cond            = sync.NewCond(&mu)
-		output          = []int{}
+		firstWorkStarted sync.WaitGroup
+		allWorkDone      sync.WaitGroup
+		mu               sync.Mutex
+		cond             = sync.NewCond(&mu)
+		output           = []int{}
 	)
-	firstTaskDoneWg.Add(1)
-	allTasksDoneWg.Add(2)
+	// We only want to track if the first async function has started.
+	firstWorkStarted.Add(1)
+	// We want to wait for all the work to be done before we stop the queue.
+	// We will only execute two tasks in total.
+	allWorkDone.Add(2)
+
 	q.Async(func() {
-		defer allTasksDoneWg.Done()
+		defer allWorkDone.Done()
 		mu.Lock()
 		defer mu.Unlock()
-		firstTaskDoneWg.Done()
+
+		// Mark the first async function as started.
+		firstWorkStarted.Done()
+
+		// Block on the condition variable to simulate a long-running task.
 		cond.Wait()
 		output = append(output, 1)
 	})
 
 	// Wait for the first async function to start
 	// before enqueueing the next two.
-	firstTaskDoneWg.Wait()
+	firstWorkStarted.Wait()
 
 	// These tasks should should get replaced.
 	for i := 0; i < 68; i++ {
 		q.Async(func() {
-			defer allTasksDoneWg.Done()
+			defer allWorkDone.Done()
+
 			mu.Lock()
 			defer mu.Unlock()
-
 			output = append(output, 1+i)
 		})
 	}
@@ -71,16 +79,18 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 	// Since the first Async called hasn't exited yet (it's waiting on the condition variable),
 	// the last Async should be enqueued and all others should be replaced.
 	q.Async(func() {
-		defer allTasksDoneWg.Done()
+		defer allWorkDone.Done()
+
 		mu.Lock()
 		defer mu.Unlock()
-
 		output = append(output, 69)
 	})
 
 	// Signal the condition variable to wake up the first async function.
 	cond.Signal()
-	allTasksDoneWg.Wait()
+
+	// Wait for all running tasks to finish.
+	allWorkDone.Wait()
 
 	// The length of the output should be 2.
 	if len(output) != 2 {
