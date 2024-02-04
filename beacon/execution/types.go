@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/types/state"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
@@ -39,13 +38,6 @@ import (
 type BeaconStateProvider interface {
 	// BeaconState provides access to the underlying beacon state.
 	BeaconState(ctx context.Context) state.BeaconState
-}
-
-// GrandCentralDispatch is an interface that wraps the basic GetQueue method.
-// It is used to retrieve a dispatch queue by its ID.
-type GrandCentralDispatch interface {
-	// GetQueue returns a queue with the provided ID.
-	GetQueue(id string) dispatch.Queue
 }
 
 // FCUConfig is a struct that holds the configuration for a fork choice update.
