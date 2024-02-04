@@ -76,6 +76,26 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 
 		require.NoError(t, os.RemoveAll(rootDirectory))
 	})
+
+	t.Run("should override existing file when flag is set", func(t *testing.T) {
+		// Create a temporary file to simulate an existing file
+		tempFile, err := os.CreateTemp("", "existing_jwt.hex")
+		require.NoError(t, err)
+		defer os.Remove(tempFile.Name()) // clean up
+
+		// Write some content to the file to simulate an existing JWT
+		_, err = tempFile.WriteString("not_a_jwt_secret")
+		require.NoError(t, err)
+		tempFile.Close()
+
+		// Execute the command with the --force flag to override the existing file
+		cmd := cli.NewGenerateJWTCommand()
+		cmd.SetArgs([]string{"--output-path", tempFile.Name()})
+		require.NoError(t, cmd.Execute())
+
+		// Check the file has been overridden with the new content
+		checkAuthFileIntegrity(t, tempFile.Name())
+	})
 }
 
 func checkAuthFileIntegrity(t testing.TB, fPath string) {
