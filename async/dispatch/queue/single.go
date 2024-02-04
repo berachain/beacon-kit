@@ -25,44 +25,18 @@
 
 package queue
 
-import (
-	"sync"
-	"time"
-)
-
 // SingleDispatchQueue is a dispatch queue that dispatches a single item at a time.
 // It respects the order of items added to the queue and will always
 // process the freshest item that was MOST recently added to the queue.
 type SingleDispatchQueue struct {
-	mu       sync.Mutex
-	item     chan WorkItem
-	wg       sync.WaitGroup // WaitGroup for tracking in-flight work items.
-	stopChan chan struct{}  // Channel for signaling stop.
+	*DispatchQueue
 }
 
 // NewSingleDispatchQueue creates a new SingleDispatchQueue.
 func NewSingleDispatchQueue() *SingleDispatchQueue {
 	q := &SingleDispatchQueue{
-		item:     make(chan WorkItem, 1),
-		stopChan: make(chan struct{}),
+		DispatchQueue: NewDispatchQueue(1, 1),
 	}
-	go func() {
-		for {
-			select {
-			case <-q.stopChan:
-				return
-			// No race condition exists between case item, ok := <-q.item in NewSingleDispatchQueue
-			// and the q.item <- item in Async. The select statement in NewSingleDispatchQueue
-			// listens for incoming items on the q.item channel in a separate goroutine and thus
-			// the operation is not affected by the mutex lock in Async.
-			case item, ok := <-q.item:
-				if ok {
-					item()
-					q.wg.Done()
-				}
-			}
-		}
-	}()
 	return q
 }
 
@@ -74,7 +48,7 @@ func (q *SingleDispatchQueue) Async(item WorkItem) {
 	// Remove the currently pending item before
 	// adding the new one to the channel.
 	select {
-	case <-q.item:
+	case <-q.queue:
 		// Decrement the WaitGroup as the corresponding wg.Add(1) from the item
 		// that is being removed from the channel is never called.
 		q.wg.Done()
@@ -84,28 +58,5 @@ func (q *SingleDispatchQueue) Async(item WorkItem) {
 
 	// Push the new item.
 	q.wg.Add(1)
-	q.item <- item
-}
-
-// AsyncAfter adds a work item to the queue to be executed after a specified duration.
-func (q *SingleDispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
-	time.Sleep(deadline)
-	q.Async(execute)
-}
-
-// Sync adds a work item to the queue and waits for its execution to complete.
-func (q *SingleDispatchQueue) Sync(execute WorkItem) {
-	done := make(chan struct{})
-	q.Async(func() {
-		execute()
-		close(done)
-	})
-	<-done
-}
-
-// AsyncAndWait adds a work item to the queue to be executed asynchronously
-// and waits for its execution to complete.
-func (q *SingleDispatchQueue) AsyncAndWait(execute WorkItem) {
-	q.Async(execute)
-	q.wg.Wait()
+	q.queue <- item
 }

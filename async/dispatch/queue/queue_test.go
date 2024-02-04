@@ -126,7 +126,7 @@ func TestDispatchQueueConcurrent_Stop(t *testing.T) {
 	// Add some items to the queue
 	for i := 0; i < 10; i++ {
 		q.Async(func() {
-			time.Sleep(time.Millisecond * 10)
+			time.Sleep(time.Millisecond * 100)
 		})
 	}
 
