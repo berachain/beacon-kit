@@ -187,7 +187,6 @@ func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
 			context.Background(),
 			&execution.FCUConfig{
 				HeadEth1Hash: bss.clFinalized,
-				BuildPayload: false,
 			},
 		)
 	}

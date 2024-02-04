@@ -28,10 +28,8 @@ package execution
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -41,7 +39,6 @@ func (s *Service) notifyForkchoiceUpdate(
 ) error {
 	var (
 		payloadID   *primitives.PayloadID
-		attrs       payloadattribute.Attributer
 		err         error
 		beaconState = s.bsp.BeaconState(ctx)
 		fc          = &enginev1.ForkchoiceState{
@@ -49,32 +46,17 @@ func (s *Service) notifyForkchoiceUpdate(
 			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
 			FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
 		}
-		slot = fcuConfig.ProposingSlot
 	)
 
 	// Cache payloads if we get a payloadID in our response.
 	defer func() {
 		if payloadID != nil {
-			s.payloadCache.Set(slot, fcuConfig.HeadEth1Hash, *payloadID)
+			s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, *payloadID)
 		}
 	}()
 
-	// TODO: this withAttrs hack needs to be removed.
-	if fcuConfig.BuildPayload {
-		// TODO: handle versions properly.
-		//#nosec:G701 // won't realistically overflow.
-		attrs, err = s.getPayloadAttributes(ctx, slot, uint64(time.Now().Unix()))
-		if err != nil {
-			s.Logger().Error("failed to get payload attributes in notifyForkchoiceUpdated", "error", err)
-			return err
-		}
-	} else {
-		attrs = payloadattribute.EmptyWithVersion(
-			s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)))
-	}
-
 	// TODO: remember and figure out what the middle param is.
-	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, attrs)
+	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
 		// TODO: ensure this switch statement isn't fucked.
 		switch err { //nolint:errorlint // okay for now.
