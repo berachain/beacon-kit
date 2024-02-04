@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         args: ["build", "lint", "gosec", "test-unit-cover"]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest-large]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
