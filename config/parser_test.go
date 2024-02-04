@@ -32,85 +32,76 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/config/mocks"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
-func TestConfig(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "types/config")
-}
-
-var _ = Describe("Parser", func() {
+func TestParser(t *testing.T) {
 	var parser *config.AppOptionsParser
-	var appOpts *mocks.AppOptions
+	var appOpts = new(mocks.AppOptions)
 
-	BeforeEach(func() {
-		appOpts = new(mocks.AppOptions)
-		parser = config.NewAppOptionsParser(appOpts)
-	})
+	parser = config.NewAppOptionsParser(appOpts)
 
-	It("should set and retrieve a string option", func() {
+	t.Run("should set and retrieve a string option", func(t *testing.T) {
 		value := "testValue"
-		runTest(appOpts, parser.GetString, value)
+		runTest(t, appOpts, parser.GetString, value)
 	})
 
-	It("should set and retrieve an integer option", func() {
+	t.Run("should set and retrieve an integer option", func(t *testing.T) {
 		value := int(42)
-		runTest(appOpts, parser.GetInt, value)
+		runTest(t, appOpts, parser.GetInt, value)
 	})
 
-	It("should handle an int64 option", func() {
+	t.Run("should handle an int64 option", func(t *testing.T) {
 		value := int64(42)
-		runTest(appOpts, parser.GetInt64, value)
+		runTest(t, appOpts, parser.GetInt64, value)
 	})
 
-	It("should set and retrieve a uint64 option", func() {
+	t.Run("should set and retrieve a uint64 option", func(t *testing.T) {
 		value := uint64(42)
-		runTest(appOpts, parser.GetUint64, value)
+		runTest(t, appOpts, parser.GetUint64, value)
 	})
 
-	It("should set and retrieve a pointer to a uint64 option", func() {
+	t.Run("should set and retrieve a pointer to a uint64 option", func(t *testing.T) {
 		value := uint64(42)
-		runTestWithOutput(appOpts, parser.GetUint64Ptr, "42", &value)
+		runTestWithOutput(t, appOpts, parser.GetUint64Ptr, "42", &value)
 	})
 
-	It("should set and retrieve a big.Int option", func() {
+	t.Run("should set and retrieve a big.Int option", func(t *testing.T) {
 		value := new(big.Int).SetInt64(42)
-		runTestWithOutput(appOpts, parser.GetBigInt, "42", value)
+		runTestWithOutput(t, appOpts, parser.GetBigInt, "42", value)
 	})
 
-	It("should set and retrieve a float64 option", func() {
+	t.Run("should set and retrieve a float64 option", func(t *testing.T) {
 		value := 3.14159
-		runTest(appOpts, parser.GetFloat64, value)
+		runTest(t, appOpts, parser.GetFloat64, value)
 	})
 
-	It("should set and retrieve a boolean option", func() {
+	t.Run("should set and retrieve a boolean option", func(t *testing.T) {
 		value := true
-		runTest(appOpts, parser.GetBool, value)
+		runTest(t, appOpts, parser.GetBool, value)
 	})
 
-	It("should set and retrieve a string slice option", func() {
+	t.Run("should set and retrieve a string slice option", func(t *testing.T) {
 		value := []string{"apple", "banana", "cherry"}
-		runTest(appOpts, parser.GetStringSlice, value)
+		runTest(t, appOpts, parser.GetStringSlice, value)
 	})
 
-	It("should set and retrieve a time.Duration option", func() {
+	t.Run("should set and retrieve a time.Duration option", func(t *testing.T) {
 		value := time.Second * 10
-		runTest(appOpts, parser.GetTimeDuration, value)
+		runTest(t, appOpts, parser.GetTimeDuration, value)
 	})
 
-	It("should set and retrieve a common.Address option", func() {
+	t.Run("should set and retrieve a common.Address option", func(t *testing.T) {
 		addressStr := "0x18df82c7e422a42d47345ed86b0e935e9718ebda"
 		runTestWithOutput(
-			appOpts, parser.GetCommonAddress, addressStr, common.HexToAddress(addressStr))
+			t, appOpts, parser.GetCommonAddress, addressStr, common.HexToAddress(addressStr))
 	})
 
-	It("should set and retrieve a list of common.Address options", func() {
+	t.Run("should set and retrieve a list of common.Address options", func(t *testing.T) {
 		addressStrs := []string{
 			"0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
 			"0x18df82c7e422a42d47345ed86b0e935e9718ebda",
@@ -119,36 +110,30 @@ var _ = Describe("Parser", func() {
 			common.HexToAddress(addressStrs[0]),
 			common.HexToAddress(addressStrs[1]),
 		}
-
-		// Run the test using the runTest function
 		runTestWithOutput(
-			appOpts, parser.GetCommonAddressList, addressStrs, expectedAddresses)
+			t, appOpts, parser.GetCommonAddressList, addressStrs, expectedAddresses)
 	})
 
-	It("should set and retrieve a hexutil.Bytes option", func() {
+	t.Run("should set and retrieve a hexutil.Bytes option", func(t *testing.T) {
 		bytesStr := "0x1234567890abcdef"
 		expectedBytes := hexutil.MustDecode(bytesStr)
-
-		// Run the test using the runTest function
-		runTest(appOpts, parser.GetHexutilBytes, expectedBytes)
+		runTest(t, appOpts, parser.GetHexutilBytes, expectedBytes)
 	})
-})
-
-// runTest handles testing of various types.
-func runTest[A any](
-	appOpts *mocks.AppOptions, parser func(string) (A, error), value A) {
-	runTestWithOutput(appOpts, parser, value, value)
 }
 
-// runTest handles testing of various types.
-func runTestWithOutput[A, B any](
-	appOpts *mocks.AppOptions, parser func(string) (B, error), value A, output B) {
-	// Set the value.
-	appOpts.On("Get", "myTestKey").Return(value).Once()
+func runTest[A any](
+	t *testing.T, appOpts *mocks.AppOptions, parser func(string) (A, error), value A,
+) {
+	runTestWithOutput(t, appOpts, parser, value, value)
+}
 
-	// Retrieve the option
+func runTestWithOutput[A, B any](
+	t *testing.T, appOpts *mocks.AppOptions, parser func(string) (B, error), value A, output B,
+) {
+	appOpts.On("Get", mock.Anything).Return(value).Once()
+
 	retrievedValue, err := parser("myTestKey")
 
-	Expect(err).ToNot(HaveOccurred())
-	Expect(retrievedValue).To(Equal(output))
+	require.NoError(t, err)
+	require.Equal(t, output, retrievedValue)
 }

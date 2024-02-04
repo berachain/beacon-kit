@@ -30,6 +30,9 @@ import (
 	"time"
 )
 
+// defaultQueueSize is the default size of the queue.
+const defaultQueueSize = 32
+
 // ConcurrentQueue is a concurrent queue for dispatching work items.
 type ConcurrentQueue struct {
 	queue    chan WorkItem  // Channel for dispatching work items.
@@ -42,7 +45,7 @@ type ConcurrentQueue struct {
 // NewConcurrentDispatchQueue creates a new Queue and starts its worker goroutines.
 func NewConcurrentDispatchQueue(workerCount int) *ConcurrentQueue {
 	q := &ConcurrentQueue{
-		queue:    make(chan WorkItem),
+		queue:    make(chan WorkItem, defaultQueueSize),
 		stopChan: make(chan struct{}),
 	}
 
@@ -113,6 +116,9 @@ func (q *ConcurrentQueue) Stop() {
 		return
 	}
 
+	// Wait for all tasks to complete
+	q.wg.Wait()
+
 	q.stopped = true
 
 	// Close the queue channel to stop receiving new tasks
@@ -120,7 +126,4 @@ func (q *ConcurrentQueue) Stop() {
 
 	// Stop the workers
 	close(q.stopChan)
-
-	// Wait for all tasks to complete
-	q.wg.Wait()
 }

@@ -33,7 +33,7 @@ import (
 	"github.com/itsdevbear/bolaris/async/dispatch/queues"
 )
 
-func TestDispatchQueue(t *testing.T) {
+func TestSerialDispatchQueue(t *testing.T) {
 	q := queues.NewSerialDispatchQueue()
 
 	// Test Async
@@ -73,7 +73,7 @@ func TestDispatchQueue(t *testing.T) {
 	q.Stop()
 }
 
-func TestDispatchQueue_Stop(t *testing.T) {
+func TestSerialDispatchQueue_Stop(t *testing.T) {
 	q := queues.NewSerialDispatchQueue()
 
 	// Add some items to the queue

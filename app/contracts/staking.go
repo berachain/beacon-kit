@@ -48,7 +48,10 @@ type StakingCallbacks struct {
 }
 
 func (s *StakingCallbacks) ABIEvents() map[string]abi.Event {
-	x, _ := StakingMetaData.GetAbi()
+	x, err := StakingMetaData.GetAbi()
+	if err != nil {
+		panic(err)
+	}
 	return x.Events
 }
 

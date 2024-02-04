@@ -58,7 +58,7 @@ func NewBaseBeaconKitBlock(
 	block := &BaseBeaconKitBlock{
 		Slot:    slot,
 		Time:    time,
-		Version: uint64(version),
+		Version: int64(version),
 	}
 	if executionData != nil {
 		if err := block.AttachExecutionData(executionData); err != nil {
@@ -140,6 +140,9 @@ func (b *BaseBeaconKitBlock) AttachExecutionData(
 // ExecutionData returns the execution data of the block.
 func (b *BaseBeaconKitBlock) ExecutionData() interfaces.ExecutionData {
 	// Safe to ignore the error since we successfully marshalled the data before.
-	data, _ := BytesToExecutionData(b.ExecData, b.Value, int(b.Version))
+	data, err := BytesToExecutionData(b.ExecData, b.Value, int(b.Version))
+	if err != nil {
+		panic(err)
+	}
 	return data
 }
