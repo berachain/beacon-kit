@@ -25,7 +25,6 @@ ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./examples/beacond/cmd
-ARG FOUNDRY_DIR=contracts
 
 
 #######################################################
@@ -38,14 +37,12 @@ ARG GIT_VERSION
 ARG GIT_COMMIT
 ARG BUILD_TAGS
 
-RUN apk add --no-cache \
-    ca-certificates \
-    build-base \
-    linux-headers
+RUN apk add --no-cache ca-certificates build-base linux-headers
 
 # Setup some alpine stuff that nobody really knows how or why it works.
 RUN set -eux; \
     apk add --no-cache git linux-headers ca-certificates build-base
+
 # Set the working directory
 WORKDIR /workdir
 
@@ -101,6 +98,5 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /
 RUN apk add bash jq sed curl
 
 WORKDIR /
-
 
 ENTRYPOINT [ "./beacond" ]
