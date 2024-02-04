@@ -66,13 +66,13 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 	firstWorkStarted.Wait()
 
 	// These tasks should get replaced over and over by each other.
-	for i := 0; i < 68; i++ {
+	for i := 2; i < 69; i++ {
 		q.Async(func() {
 			defer allWorkDone.Done()
 
 			mu.Lock()
 			defer mu.Unlock()
-			output = append(output, 1+i)
+			output = append(output, i)
 		})
 	}
 
