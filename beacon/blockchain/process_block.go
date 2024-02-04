@@ -27,12 +27,12 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/itsdevbear/bolaris/types/state"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
@@ -56,17 +56,18 @@ func (s *Service) postBlockProcess(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  common.Hash(block.ExecutionData().BlockHash()),
 			ProposingSlot: block.GetSlot() + 1,
-			Attributes:    s.getPayloadAttribute(ctx, s.bsp.BeaconState(ctx)),
+			Attributes:    s.getPayloadAttribute(ctx),
 		})
 }
 
 // getPayloadAttributes returns the payload attributes for the given state and slot.
-// The attribute is required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call.
+// The attribute is required to initiate a payload build process in the
+// context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(
 	ctx context.Context,
-	st state.BeaconState,
 ) payloadattribute.Attributer {
 	var (
+		st         = s.bsp.BeaconState(ctx)
 		emptyAttri = payloadattribute.EmptyWithVersion(st.Version())
 		// TODO: FEE RECIPIENT
 		feeRecipient = make([]byte, 20) //nolint:gomnd // TODO: later
@@ -84,6 +85,11 @@ func (s *Service) getPayloadAttribute(
 	// 	return emptyAttri
 	// }
 
+	// NOTE: We have to use time.Now() and not the time on the block header coming from
+	// Comet or else we attempt to build a block at an equivalent timestamp to the last.
+	// TODO: figure out how to fix this.
+	t := uint64(time.Now().Unix())
+
 	var attr payloadattribute.Attributer
 	switch st.Version() {
 	case version.Deneb:
@@ -94,7 +100,7 @@ func (s *Service) getPayloadAttribute(
 			return emptyAttri
 		}
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
-			Timestamp:             st.Time(),
+			Timestamp:             t,
 			PrevRandao:            prevRando,
 			SuggestedFeeRecipient: feeRecipient,
 			Withdrawals:           withdrawals,
@@ -112,7 +118,7 @@ func (s *Service) getPayloadAttribute(
 			return emptyAttri
 		}
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
-			Timestamp:             st.Time(),
+			Timestamp:             t,
 			PrevRandao:            prevRando,
 			SuggestedFeeRecipient: feeRecipient,
 			Withdrawals:           withdrawals,
@@ -125,7 +131,7 @@ func (s *Service) getPayloadAttribute(
 	case version.Bellatrix:
 		var err error
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
-			Timestamp:             st.Time(),
+			Timestamp:             t,
 			PrevRandao:            prevRando,
 			SuggestedFeeRecipient: feeRecipient,
 		})
