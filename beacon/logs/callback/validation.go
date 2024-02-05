@@ -28,7 +28,7 @@ package callback
 import (
 	"errors"
 	"fmt"
-	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
 )

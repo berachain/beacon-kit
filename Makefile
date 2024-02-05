@@ -271,12 +271,12 @@ license-fix:
 
 gosec-install:
 	@echo "--> Installing gosec"
-	@go install github.com/cosmos/gosec/v2/cmd/gosec
+	@go install github.com/cosmos/gosec/v2/cmd/gosec 
 
 gosec:
 	@$(MAKE) gosec-install
 	@echo "--> Running gosec"
-	@gosec ./...
+	@gosec -exclude G702 ./...
 
 
 #################

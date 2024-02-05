@@ -22,7 +22,7 @@ package callback
 
 import (
 	"context"
-	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	evmv1 "github.com/itsdevbear/bolaris/proto/eth2/types/evm/v1"
