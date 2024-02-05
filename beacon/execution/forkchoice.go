@@ -30,6 +30,7 @@ import (
 	"errors"
 
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
+	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -58,6 +59,10 @@ func (s *Service) notifyForkchoiceUpdate(
 			)
 		}
 	}()
+
+	if fcuConfig.Attributes == nil {
+		fcuConfig.Attributes = payloadattribute.EmptyWithVersion(beaconState.Version())
+	}
 
 	// TODO: remember and figure out what the middle param is.
 	payloadIDBytes, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)

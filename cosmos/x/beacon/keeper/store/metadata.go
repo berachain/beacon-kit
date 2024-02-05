@@ -25,7 +25,9 @@
 
 package store
 
-import "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+import (
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+)
 
 // TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
 // Slot returns the current slot of the beacon chain by converting the block height to a slot.

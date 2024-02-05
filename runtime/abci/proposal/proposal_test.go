@@ -70,7 +70,7 @@ func TestRemoveBeaconBlockFromTxs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler := proposal.NewHandler(
-				&config.Proposal{BeaconKitBlockPosition: tt.payloadPosition}, nil, nil, nil,
+				&config.Proposal{BeaconKitBlockPosition: tt.payloadPosition}, nil, nil, nil, nil,
 			)
 			req := &abci.RequestProcessProposal{Txs: tt.inputTxs}
 			result := handler.RemoveBeaconBlockFromTxs(req)

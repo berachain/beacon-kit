@@ -31,6 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/beacon/validator"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
@@ -48,8 +49,9 @@ type CosmosApp interface {
 
 func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	var (
-		chainService *blockchain.Service
-		syncService  *initialsync.Service
+		chainService     *blockchain.Service
+		validatorService *validator.Service
+		syncService      *initialsync.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		return err
@@ -59,10 +61,15 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		panic(err)
 	}
 
+	if err := r.services.FetchService(&validatorService); err != nil {
+		panic(err)
+	}
+
 	// Build and Register Prepare and Process Proposal Handlers.
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.Proposal,
+		validatorService,
 		chainService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),

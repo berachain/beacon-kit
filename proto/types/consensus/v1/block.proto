@@ -38,7 +38,7 @@ message BeaconKitBlock {
 
   // BeaconBlockBody contains the body of the beacon block.
   oneof body {
-    BeaconBlockBody block_body_generic = 2;
+    BeaconBlockBody block_body_generic = 3;
   }
 
   // The payload value of the block.

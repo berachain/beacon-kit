@@ -37,7 +37,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
-	"go.opencensus.io/trace"
 )
 
 //nolint:funlen,gocognit // TODO FIX
@@ -45,9 +44,6 @@ func (s *Service) getLocalPayload(
 	ctx context.Context,
 	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
 ) (interfaces.ExecutionData, bool, error) {
-	ctx, span := trace.StartSpan(ctx, "ProposerServer.getLocalPayload")
-	defer span.End()
-
 	if blk.Version() < version.Bellatrix {
 		return nil, false, nil
 	}
@@ -60,14 +56,14 @@ func (s *Service) getLocalPayload(
 	// 	"slot":           slot,
 	// 	"headRoot":       fmt.Sprintf("%#x", headRoot),
 	// }
-	p, err := blk.Execution()
-	if err != nil {
-		return nil, false, err
-	}
+	// p, err := blk.Execution()
+	// if err != nil {
+	// 	return nil, false, err
+	// }
 
-	parentHash := p.ParentHash()
-
-	payloadID, ok := s.PayloadIDCache.PayloadID(slot, [32]byte(parentHash))
+	// parentHash := p.ParentHash()
+	// WILL ALWAYS MISS
+	payloadID, ok := s.PayloadIDCache.PayloadID(slot, [32]byte{})
 
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -82,7 +78,7 @@ func (s *Service) getLocalPayload(
 		// payloadIDCacheHit.Inc()
 		var payload interfaces.ExecutionData
 		var overrideBuilder bool
-		payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pid, slot)
+		payload, _, overrideBuilder, err := s.en.GetPayload(ctx, pid, slot)
 		switch {
 		case err == nil:
 			// bundleCache.add(slot, bundle)
@@ -96,18 +92,13 @@ func (s *Service) getLocalPayload(
 
 	// Otherwise we did not have a payload in the cache and we must build a new payload.
 
-	// log.WithFields(logFields).Debug("payload ID cache miss")
-	// parentHash, err := s.getParentBlockHash(ctx, st, slot)
-	// switch {
-	// case errors.Is(err, errActivationNotReached) || errors.Is(err, errNoTerminalBlockHash):
-	// 	p, err := consensusblocks.WrappedExecutionPayload(emptyPayload())
-	// 	if err != nil {
-	// 		return nil, false, err
-	// 	}
-	// 	return p, false, nil
-	// case err != nil:
-	// 	return nil, false, err
-	// }
+	// log.WithFields(logFields).Debug("payload ID cache miss")vs
+	var parentHash []byte
+	var err error
+	parentHash, err = s.getParentBlockHash(ctx)
+	if err != nil {
+		return nil, false, err
+	}
 
 	// payloadIDCacheMiss.Inc()
 
@@ -115,8 +106,8 @@ func (s *Service) getLocalPayload(
 	// if err != nil {
 	// 	return nil, false, err
 	// }
-	random := []byte{}     // todo: randao
-	headRoot := [32]byte{} // todo: cancaun
+	random := make([]byte, 32)   //nolint:gomnd // todo: randao
+	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
 	justifiedBlockHash := s.BeaconState(ctx).GetSafeEth1BlockHash()
 	finalizedBlockHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 
@@ -142,7 +133,7 @@ func (s *Service) getLocalPayload(
 			PrevRandao:            random,
 			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 			Withdrawals:           withdrawals,
-			ParentBeaconBlockRoot: headRoot[:],
+			ParentBeaconBlockRoot: headRoot,
 		})
 		if err != nil {
 			return nil, false, err
@@ -182,6 +173,7 @@ func (s *Service) getLocalPayload(
 	if payloadIDBytes == nil {
 		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentHash)
 	}
+
 	payload, _, overrideBuilder, err := s.en.GetPayload(ctx, *payloadIDBytes, slot)
 	if err != nil {
 		return nil, false, err
@@ -193,4 +185,18 @@ func (s *Service) getLocalPayload(
 		s.Logger().Debug("received execution payload from local engine", "value", localValueGwei)
 	}
 	return payload, overrideBuilder, nil
+}
+
+// getParentBlockHash retrieves the parent block hash for the given slot.
+//
+//nolint:unparam // todo: review this later.
+func (s *Service) getParentBlockHash(ctx context.Context) ([]byte, error) {
+	// The first slot should be proposed with the genesis block as parent.
+	st := s.BeaconState(ctx)
+	if st.Slot() == 1 {
+		return st.GenesisEth1Hash().Bytes(), nil
+	}
+
+	// We always want the parent block to be the last finalized block.
+	return st.GetFinalizedEth1BlockHash().Bytes(), nil
 }

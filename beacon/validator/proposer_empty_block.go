@@ -23,6 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package validator
 
-const payloadBuildDelay = 2
+import (
+	"fmt"
+
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+)
+
+func (s *Service) getEmptyBlock(slot primitives.Slot) (interfaces.BeaconKitBlock, error) {
+	var sBlk interfaces.BeaconKitBlock
+	var err error
+	switch s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)) {
+	case version.Deneb:
+		panic("ERROR: Unsupported version")
+	case version.Capella:
+		sBlk, err = consensusv1.NewBeaconKitBlock(slot, nil, version.Capella)
+		if err != nil {
+			return nil, fmt.Errorf("could not initialize block for proposal: %w", err)
+		}
+	default:
+		panic("ERROR: Unsupported version")
+	}
+	return sBlk, err
+}
