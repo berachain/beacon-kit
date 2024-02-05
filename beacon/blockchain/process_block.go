@@ -53,6 +53,14 @@ func (s *Service) postBlockProcess(
 	// is that we pass in `slot+1` to the execution client. We do this so that we can begin building
 	// the next block in the background while we are finalizing this block.
 	// We are okay pushing this asynchonous work to the execution client, as it is designed for it.
+	//
+	// TODO: add "if validator" and trigger the next slot in advance only IF validator.
+	// This is to avoid rocking the payload cache in two places.
+	// For now we are just going to disable optimistic payload building.
+	//
+	// TODO: we should probably just have a validator job in the background that is
+	// constantly building new payloads and then not worry about anything here triggering
+	// payload builds.
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  common.Hash(executionPayload.BlockHash()),
