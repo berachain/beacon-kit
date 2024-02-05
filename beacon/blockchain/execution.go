@@ -96,7 +96,7 @@ func (s *Service) buildNewPayloadForBlock(
 	// triggering a block to be built. We wait for the payload ID to be returned.
 	fcuConfig := &execution.FCUConfig{
 		HeadEth1Hash:  headHash,
-		ProposingSlot: beaconBlock.GetSlot(),
+		ProposingSlot: beaconBlock.RetrieveSlot(),
 		Attributes:    s.getPayloadAttribute(ctx),
 	}
 
@@ -108,7 +108,7 @@ func (s *Service) buildNewPayloadForBlock(
 		return nil, err
 	}
 
-	return s.waitForPayload(ctx, payloadBuildDelay*time.Second, beaconBlock.GetSlot(), headHash)
+	return s.waitForPayload(ctx, payloadBuildDelay*time.Second, beaconBlock.RetrieveSlot(), headHash)
 }
 
 // waitForPayload waits for a payload to be built by the execution client.

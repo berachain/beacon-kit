@@ -26,15 +26,13 @@
 syntax = "proto3";
 package types.consensus.v1;
 
-import "gogoproto/gogo.proto";
-
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
 
 // BeaconKitBlock represents a generic beacon block that can be used to represent
 // any beacon block in the system.
 message BeaconKitBlock {
   // Beacon chain slot that this block represents.
-  uint64 slot = 1 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
+  uint64 slot = 1;
 
   // BeaconBlockBody contains the body of the beacon block.
   oneof body {

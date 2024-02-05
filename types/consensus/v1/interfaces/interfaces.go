@@ -43,7 +43,7 @@ type BeaconKitBlock interface {
 
 // ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconKitBlock interface {
-	GetSlot() primitives.Slot
+	RetrieveSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
 	// Execution returns the execution data of the block.

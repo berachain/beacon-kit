@@ -57,7 +57,7 @@ func NewBeaconKitBlock(
 	version int,
 ) (interfaces.BeaconKitBlock, error) {
 	block := &BeaconKitBlock{
-		Slot: slot,
+		Slot: uint64(slot),
 		Body: &BeaconKitBlock_BlockBodyGeneric{
 			BlockBodyGeneric: &BeaconBlockBody{
 				Version: int64(version),
@@ -150,4 +150,8 @@ func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 		b.GetBlockBodyGeneric().ExecutionPayload,
 		Wei(value),
 		int(b.GetBlockBodyGeneric().Version))
+}
+
+func (b *BeaconKitBlock) RetrieveSlot() Slot {
+	return Slot(b.Slot)
 }
