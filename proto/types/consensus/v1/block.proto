@@ -30,11 +30,33 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
 
-// GenericBeaconKitBlock defines the data of a beacon block that is injected by the proposer.
-message BaseBeaconKitBlock {
+// BeaconKitBlock represents a generic beacon block that can be used to represent
+// any beacon block in the system.
+message BeaconKitBlock {
+  // Beacon chain slot that this block represents.
   uint64 slot = 1 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
-  uint64 time = 2;
-  uint64 value = 3 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/math.Gwei"];
+
+  // BeaconBlockBody contains the body of the beacon block.
+  oneof body {
+    BeaconBlockBody block_body_generic = 2;
+  }
+
+  // The payload value of the block.
+  string payload_value = 101;
+}
+
+// BeaconBlockBody represents the body of a beacon block.
+message BeaconBlockBody {
+  // The validators RANDAO reveal 96 byte value.
+  bytes randao_reveal = 1;
+
+  // 32 byte field of arbitrary data. This field may contain any data and
+  // is not used for anything other than a fun message.
+  bytes graffiti = 2;
+
+  // Execution payload from the execution chain. New in Bellatrix network upgrade.
+  bytes execution_payload = 3;
+
+  // TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
   int64 version = 4;
-  bytes exec_data = 5;
 }

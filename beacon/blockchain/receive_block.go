@@ -41,7 +41,7 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
-	block interfaces.ReadOnlyBeaconKitBlock,
+	blk interfaces.ReadOnlyBeaconKitBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -56,7 +56,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// var postState state.BeaconState
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, block)
+		err := s.validateStateTransition(groupCtx, blk)
 		if err != nil {
 			s.Logger().Error("failed to validate state transition", "error", err)
 			return err
@@ -67,7 +67,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, block.ExecutionData(),
+			groupCtx, blk,
 		); err != nil {
 			s.Logger().Error("failed to notify engine of new payload", "error", err)
 			return err
@@ -80,8 +80,9 @@ func (s *Service) ReceiveBeaconBlock(
 		return err
 	}
 
+	// If the block is valid, we can process it.
 	if err := s.postBlockProcess(
-		ctx, block /*blockCopy, blockRoot, postState,*/, isValidPayload,
+		ctx, blk, isValidPayload,
 	); err != nil {
 		return err
 	}
@@ -94,22 +95,33 @@ func (s *Service) ReceiveBeaconBlock(
 // It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
 // but maybe not the most extensible.
 func (s *Service) validateStateTransition(
-	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock,
+	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
 ) error {
-	parentHash := block.ExecutionData().ParentHash()
+	executionData, err := blk.Execution()
+	if err != nil {
+		return err
+	}
+
 	finalizedHash := s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
-	if !bytes.Equal(finalizedHash[:], parentHash) {
+	if !bytes.Equal(finalizedHash[:], executionData.ParentHash()) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
-			parentHash, finalizedHash,
+			executionData.ParentHash(), finalizedHash,
 		)
 	}
+
 	return nil
 }
 
 // validateExecutionOnBlock checks the validity of a proposed beacon block.
-func (s *Service) validateExecutionOnBlock(ctx context.Context, header interfaces.ExecutionData,
+func (s *Service) validateExecutionOnBlock(
+	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
 ) (bool, error) {
+	header, err := blk.Execution()
+	if err != nil {
+		return false, err
+	}
+
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)
 	if err != nil && errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
 		s.Logger().Error("Failed to validate execution on block", "error", err)

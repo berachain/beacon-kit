@@ -26,42 +26,46 @@
 package v1
 
 import (
+	"errors"
+	"math/big"
+
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
 
-// BaseBeaconKitBlock implements the BeaconKitBlock interface.
-var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
+// BeaconKitBlock implements the BeaconKitBlock interface.
+var _ interfaces.BeaconKitBlock = (*BeaconKitBlock)(nil)
 
-// BaseBeaconKitBlockFromState assembles a new beacon block
+// BeaconKitBlockFromState assembles a new beacon block
 // from the given state and execution data.
-func BaseBeaconKitBlockFromState(
+func BeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
 	executionData interfaces.ExecutionData,
 ) (interfaces.BeaconKitBlock, error) {
-	return NewBaseBeaconKitBlock(
+	return NewBeaconKitBlock(
 		beaconState.Slot(),
-		beaconState.Time(),
 		executionData,
 		beaconState.Version(),
 	)
 }
 
-// BaseBeaconKitBlock assembles a new beacon block from
+// BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
-func NewBaseBeaconKitBlock(
+func NewBeaconKitBlock(
 	slot Slot,
-	time uint64,
 	executionData interfaces.ExecutionData,
 	version int,
 ) (interfaces.BeaconKitBlock, error) {
-	block := &BaseBeaconKitBlock{
-		Slot:    slot,
-		Time:    time,
-		Version: int64(version),
+	block := &BeaconKitBlock{
+		Slot: slot,
+		Body: &BeaconKitBlock_BlockBodyGeneric{
+			BlockBodyGeneric: &BeaconBlockBody{
+				Version: int64(version),
+			},
+		},
 	}
 	if executionData != nil {
-		if err := block.AttachExecutionData(executionData); err != nil {
+		if err := block.AttachExecution(executionData); err != nil {
 			return nil, err
 		}
 	}
@@ -75,7 +79,6 @@ func NewEmptyBeaconKitBlockFromState(
 ) (interfaces.BeaconKitBlock, error) {
 	return NewEmptyBeaconKitBlock(
 		beaconState.Slot(),
-		beaconState.Time(),
 		beaconState.Version(),
 	)
 }
@@ -84,10 +87,9 @@ func NewEmptyBeaconKitBlockFromState(
 // with no execution data.
 func NewEmptyBeaconKitBlock(
 	slot Slot,
-	time uint64,
 	version int,
 ) (interfaces.BeaconKitBlock, error) {
-	return NewBaseBeaconKitBlock(slot, time, nil, version)
+	return NewBeaconKitBlock(slot, nil, version)
 }
 
 // ReadOnlyBeaconKitBlockFromABCIRequest assembles a
@@ -106,20 +108,20 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	if bzIndex >= uint(len(txs)) {
 		return nil, ErrBzIndexOutOfBounds
 	}
-	block := BaseBeaconKitBlock{}
+	block := BeaconKitBlock{}
 	if err := block.Unmarshal(txs[bzIndex]); err != nil {
 		return nil, err
 	}
 	return &block, nil
 }
 
-// IsNil checks if the BaseBeaconKitBlock is nil or not.
-func (b *BaseBeaconKitBlock) IsNil() bool {
+// IsNil checks if the BeaconKitBlock is nil or not.
+func (b *BeaconKitBlock) IsNil() bool {
 	return b == nil
 }
 
-// AttachExecutionData attaches the given execution data to the block.
-func (b *BaseBeaconKitBlock) AttachExecutionData(
+// AttachExecution attaches the given execution data to the block.
+func (b *BeaconKitBlock) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
 	execData, err := executionData.MarshalSSZ()
@@ -127,22 +129,25 @@ func (b *BaseBeaconKitBlock) AttachExecutionData(
 		return err
 	}
 
-	value, err := executionData.ValueInGwei()
+	value, err := executionData.ValueInWei()
 	if err != nil {
 		return err
 	}
 
-	b.ExecData = execData
-	b.Value = Gwei(value)
+	b.Body.(*BeaconKitBlock_BlockBodyGeneric).BlockBodyGeneric.ExecutionPayload = execData
+	b.PayloadValue = (*value).String() //nolint:gocritic // suggestion doesn't compile.
 	return nil
 }
 
-// ExecutionData returns the execution data of the block.
-func (b *BaseBeaconKitBlock) ExecutionData() interfaces.ExecutionData {
+// Execution returns the execution data of the block.
+func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 	// Safe to ignore the error since we successfully marshalled the data before.
-	data, err := BytesToExecutionData(b.ExecData, b.Value, int(b.Version))
-	if err != nil {
-		panic(err)
+	value, ok := big.NewInt(0).SetString(b.PayloadValue, 10) //nolint:gomnd // base 10.
+	if !ok {
+		return nil, errors.New("failed to convert payload value to big.Int")
 	}
-	return data
+	return BytesToExecutionData(
+		b.GetBlockBodyGeneric().ExecutionPayload,
+		Wei(value),
+		int(b.GetBlockBodyGeneric().Version))
 }

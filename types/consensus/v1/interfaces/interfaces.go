@@ -30,7 +30,6 @@ import (
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
 // ExecutionData is the interface for the execution data of a block.
@@ -44,19 +43,21 @@ type BeaconKitBlock interface {
 
 // ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconKitBlock interface {
-	Marshal() ([]byte, error)
-	Unmarshal([]byte) error
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
-	GetValue() math.Gwei
-	// ExecutionData returns the execution data of the block.
-	ExecutionData() interfaces.ExecutionData
+	// Execution returns the execution data of the block.
+	Execution() (interfaces.ExecutionData, error)
+
+	// Marshal is the interface for marshalling a beacon block.
+	Marshal() ([]byte, error)
+	// Unmarshal is the interface for unmarshalling a beacon block.
+	Unmarshal([]byte) error
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
 type WriteOnlyBeaconKitBlock interface {
-	AttachExecutionData(interfaces.ExecutionData) error
+	AttachExecution(interfaces.ExecutionData) error
 }
 
 // ABCIRequest is the interface for an ABCI request.

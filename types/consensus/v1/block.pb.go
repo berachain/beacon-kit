@@ -8,7 +8,6 @@ import (
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -25,27 +24,33 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenericBeaconKitBlock defines the data of a beacon block that is injected by the proposer.
-type BaseBeaconKitBlock struct {
-	Slot     github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot `protobuf:"varint,1,opt,name=slot,proto3,casttype=github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot" json:"slot,omitempty"`
-	Time     uint64                                                            `protobuf:"varint,2,opt,name=time,proto3" json:"time,omitempty"`
-	Value    github_com_prysmaticlabs_prysm_v4_math.Gwei                       `protobuf:"varint,3,opt,name=value,proto3,casttype=github.com/prysmaticlabs/prysm/v4/math.Gwei" json:"value,omitempty"`
-	Version  int64                                                             `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
-	ExecData []byte                                                            `protobuf:"bytes,5,opt,name=exec_data,json=execData,proto3" json:"exec_data,omitempty"`
+// BeaconKitBlock represents a generic beacon block that can be used to represent
+// any beacon block in the system.
+type BeaconKitBlock struct {
+	// Beacon chain slot that this block represents.
+	Slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot `protobuf:"varint,1,opt,name=slot,proto3,casttype=github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot" json:"slot,omitempty"`
+	// BeaconBlockBody contains the body of the beacon block.
+	//
+	// Types that are valid to be assigned to Body:
+	//
+	//	*BeaconKitBlock_BlockBodyGeneric
+	Body isBeaconKitBlock_Body `protobuf_oneof:"body"`
+	// The payload value of the block.
+	PayloadValue string `protobuf:"bytes,101,opt,name=payload_value,json=payloadValue,proto3" json:"payload_value,omitempty"`
 }
 
-func (m *BaseBeaconKitBlock) Reset()         { *m = BaseBeaconKitBlock{} }
-func (m *BaseBeaconKitBlock) String() string { return proto.CompactTextString(m) }
-func (*BaseBeaconKitBlock) ProtoMessage()    {}
-func (*BaseBeaconKitBlock) Descriptor() ([]byte, []int) {
+func (m *BeaconKitBlock) Reset()         { *m = BeaconKitBlock{} }
+func (m *BeaconKitBlock) String() string { return proto.CompactTextString(m) }
+func (*BeaconKitBlock) ProtoMessage()    {}
+func (*BeaconKitBlock) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b29fa1ac1aaec767, []int{0}
 }
-func (m *BaseBeaconKitBlock) XXX_Unmarshal(b []byte) error {
+func (m *BeaconKitBlock) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *BaseBeaconKitBlock) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *BeaconKitBlock) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_BaseBeaconKitBlock.Marshal(b, m, deterministic)
+		return xxx_messageInfo_BeaconKitBlock.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -55,84 +60,176 @@ func (m *BaseBeaconKitBlock) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *BaseBeaconKitBlock) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_BaseBeaconKitBlock.Merge(m, src)
+func (m *BeaconKitBlock) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BeaconKitBlock.Merge(m, src)
 }
-func (m *BaseBeaconKitBlock) XXX_Size() int {
+func (m *BeaconKitBlock) XXX_Size() int {
 	return m.Size()
 }
-func (m *BaseBeaconKitBlock) XXX_DiscardUnknown() {
-	xxx_messageInfo_BaseBeaconKitBlock.DiscardUnknown(m)
+func (m *BeaconKitBlock) XXX_DiscardUnknown() {
+	xxx_messageInfo_BeaconKitBlock.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_BaseBeaconKitBlock proto.InternalMessageInfo
+var xxx_messageInfo_BeaconKitBlock proto.InternalMessageInfo
 
-func (m *BaseBeaconKitBlock) GetSlot() github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot {
+type isBeaconKitBlock_Body interface {
+	isBeaconKitBlock_Body()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type BeaconKitBlock_BlockBodyGeneric struct {
+	BlockBodyGeneric *BeaconBlockBody `protobuf:"bytes,2,opt,name=block_body_generic,json=blockBodyGeneric,proto3,oneof" json:"block_body_generic,omitempty"`
+}
+
+func (*BeaconKitBlock_BlockBodyGeneric) isBeaconKitBlock_Body() {}
+
+func (m *BeaconKitBlock) GetBody() isBeaconKitBlock_Body {
+	if m != nil {
+		return m.Body
+	}
+	return nil
+}
+
+func (m *BeaconKitBlock) GetSlot() github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot {
 	if m != nil {
 		return m.Slot
 	}
 	return 0
 }
 
-func (m *BaseBeaconKitBlock) GetTime() uint64 {
-	if m != nil {
-		return m.Time
+func (m *BeaconKitBlock) GetBlockBodyGeneric() *BeaconBlockBody {
+	if x, ok := m.GetBody().(*BeaconKitBlock_BlockBodyGeneric); ok {
+		return x.BlockBodyGeneric
 	}
-	return 0
+	return nil
 }
 
-func (m *BaseBeaconKitBlock) GetValue() github_com_prysmaticlabs_prysm_v4_math.Gwei {
+func (m *BeaconKitBlock) GetPayloadValue() string {
 	if m != nil {
-		return m.Value
+		return m.PayloadValue
 	}
-	return 0
+	return ""
 }
 
-func (m *BaseBeaconKitBlock) GetVersion() int64 {
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*BeaconKitBlock) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*BeaconKitBlock_BlockBodyGeneric)(nil),
+	}
+}
+
+// BeaconBlockBody represents the body of a beacon block.
+type BeaconBlockBody struct {
+	// The validators RANDAO reveal 96 byte value.
+	RandaoReveal []byte `protobuf:"bytes,1,opt,name=randao_reveal,json=randaoReveal,proto3" json:"randao_reveal,omitempty"`
+	// 32 byte field of arbitrary data. This field may contain any data and
+	// is not used for anything other than a fun message.
+	Graffiti []byte `protobuf:"bytes,2,opt,name=graffiti,proto3" json:"graffiti,omitempty"`
+	// Execution payload from the execution chain. New in Bellatrix network upgrade.
+	ExecutionPayload []byte `protobuf:"bytes,3,opt,name=execution_payload,json=executionPayload,proto3" json:"execution_payload,omitempty"`
+	// TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
+	Version int64 `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+}
+
+func (m *BeaconBlockBody) Reset()         { *m = BeaconBlockBody{} }
+func (m *BeaconBlockBody) String() string { return proto.CompactTextString(m) }
+func (*BeaconBlockBody) ProtoMessage()    {}
+func (*BeaconBlockBody) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b29fa1ac1aaec767, []int{1}
+}
+func (m *BeaconBlockBody) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *BeaconBlockBody) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_BeaconBlockBody.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *BeaconBlockBody) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BeaconBlockBody.Merge(m, src)
+}
+func (m *BeaconBlockBody) XXX_Size() int {
+	return m.Size()
+}
+func (m *BeaconBlockBody) XXX_DiscardUnknown() {
+	xxx_messageInfo_BeaconBlockBody.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_BeaconBlockBody proto.InternalMessageInfo
+
+func (m *BeaconBlockBody) GetRandaoReveal() []byte {
+	if m != nil {
+		return m.RandaoReveal
+	}
+	return nil
+}
+
+func (m *BeaconBlockBody) GetGraffiti() []byte {
+	if m != nil {
+		return m.Graffiti
+	}
+	return nil
+}
+
+func (m *BeaconBlockBody) GetExecutionPayload() []byte {
+	if m != nil {
+		return m.ExecutionPayload
+	}
+	return nil
+}
+
+func (m *BeaconBlockBody) GetVersion() int64 {
 	if m != nil {
 		return m.Version
 	}
 	return 0
 }
 
-func (m *BaseBeaconKitBlock) GetExecData() []byte {
-	if m != nil {
-		return m.ExecData
-	}
-	return nil
-}
-
 func init() {
-	proto.RegisterType((*BaseBeaconKitBlock)(nil), "types.consensus.v1.BaseBeaconKitBlock")
+	proto.RegisterType((*BeaconKitBlock)(nil), "types.consensus.v1.BeaconKitBlock")
+	proto.RegisterType((*BeaconBlockBody)(nil), "types.consensus.v1.BeaconBlockBody")
 }
 
 func init() { proto.RegisterFile("types/consensus/v1/block.proto", fileDescriptor_b29fa1ac1aaec767) }
 
 var fileDescriptor_b29fa1ac1aaec767 = []byte{
-	// 314 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x51, 0x4d, 0x4b, 0xc3, 0x40,
-	0x10, 0xed, 0xb6, 0xa9, 0x1f, 0x8b, 0xa7, 0xc5, 0x43, 0x50, 0xd8, 0x16, 0x4f, 0x05, 0x31, 0x6b,
-	0xd1, 0x3f, 0x60, 0xb0, 0x08, 0x7a, 0x8b, 0x27, 0xbd, 0xc8, 0x26, 0x1d, 0xda, 0xc5, 0x24, 0x1b,
-	0x32, 0xd3, 0xd5, 0x1e, 0xfd, 0x07, 0xfe, 0x2c, 0x8f, 0x3d, 0x7a, 0x2a, 0xd2, 0xfe, 0x8b, 0x9e,
-	0x24, 0x09, 0x7e, 0x80, 0x07, 0x6f, 0xef, 0xed, 0xdb, 0x79, 0xef, 0x31, 0xc3, 0x25, 0xcd, 0x0b,
-	0x40, 0x95, 0xd8, 0x1c, 0x21, 0xc7, 0x19, 0x2a, 0x37, 0x54, 0x71, 0x6a, 0x93, 0xc7, 0xa0, 0x28,
-	0x2d, 0x59, 0x21, 0x6a, 0x3d, 0xf8, 0xd6, 0x03, 0x37, 0x3c, 0xd8, 0x9f, 0xd8, 0x89, 0xad, 0x65,
-	0x55, 0xa1, 0xe6, 0xe7, 0xd1, 0x4b, 0x9b, 0x8b, 0x50, 0x23, 0x84, 0xa0, 0x13, 0x9b, 0xdf, 0x18,
-	0x0a, 0x2b, 0x1b, 0x71, 0xc7, 0x3d, 0x4c, 0x2d, 0xf9, 0xac, 0xcf, 0x06, 0x5e, 0x38, 0xda, 0x2c,
-	0x7b, 0x17, 0x13, 0x43, 0xd3, 0x59, 0x1c, 0x24, 0x36, 0x53, 0x45, 0x39, 0xc7, 0x4c, 0x93, 0x49,
-	0x52, 0x1d, 0x63, 0xc3, 0x94, 0x3b, 0xff, 0xa9, 0x73, 0xd2, 0xd4, 0x2b, 0x4a, 0x93, 0x19, 0x32,
-	0x0e, 0x30, 0xb8, 0x4d, 0x2d, 0x45, 0xb5, 0xa5, 0x10, 0xdc, 0x23, 0x93, 0x81, 0xdf, 0xae, 0xac,
-	0xa3, 0x1a, 0x8b, 0x11, 0xef, 0x3a, 0x9d, 0xce, 0xc0, 0xef, 0xd4, 0x79, 0x6a, 0xb3, 0xec, 0x1d,
-	0xff, 0x9f, 0x97, 0x69, 0x9a, 0x06, 0x57, 0x4f, 0x60, 0xa2, 0x66, 0x5a, 0xf8, 0x7c, 0xdb, 0x41,
-	0x89, 0xc6, 0xe6, 0xbe, 0xd7, 0x67, 0x83, 0x4e, 0xf4, 0x45, 0xc5, 0x21, 0xdf, 0x85, 0x67, 0x48,
-	0x1e, 0xc6, 0x9a, 0xb4, 0xdf, 0xed, 0xb3, 0xc1, 0x5e, 0xb4, 0x53, 0x3d, 0x5c, 0x6a, 0xd2, 0xe1,
-	0xf5, 0xdb, 0x4a, 0xb2, 0xc5, 0x4a, 0xb2, 0x8f, 0x95, 0x64, 0xaf, 0x6b, 0xd9, 0x5a, 0xac, 0x65,
-	0xeb, 0x7d, 0x2d, 0x5b, 0xf7, 0xa7, 0xbf, 0x4a, 0x18, 0xc2, 0x31, 0xb8, 0x18, 0x74, 0xa9, 0x62,
-	0x9b, 0xea, 0xd2, 0xa0, 0xfa, 0x7b, 0x85, 0x78, 0xab, 0x5e, 0xeb, 0xd9, 0x67, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0xd5, 0x20, 0x5e, 0x9e, 0xa2, 0x01, 0x00, 0x00,
+	// 388 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x64, 0x92, 0xc1, 0xaa, 0xd4, 0x30,
+	0x14, 0x86, 0x1b, 0x6f, 0xb9, 0x6a, 0xac, 0x7a, 0x0d, 0x2e, 0xca, 0x5d, 0xd4, 0x72, 0xef, 0xa6,
+	0x20, 0x36, 0x5e, 0xf5, 0x05, 0x2c, 0x88, 0xa2, 0x1b, 0xe9, 0x80, 0xa0, 0x9b, 0x92, 0xb4, 0x99,
+	0x1a, 0xcc, 0xf4, 0x94, 0x24, 0x0d, 0xf6, 0x2d, 0xdc, 0xfa, 0x46, 0x2e, 0x67, 0xe9, 0x4a, 0x64,
+	0x66, 0xed, 0x0b, 0xb8, 0x92, 0xa6, 0x33, 0xa3, 0x38, 0xbb, 0xfe, 0xff, 0x7f, 0xfa, 0x9f, 0xaf,
+	0x9c, 0xe2, 0xc4, 0x8e, 0xbd, 0x30, 0xb4, 0x86, 0xce, 0x88, 0xce, 0x0c, 0x86, 0xba, 0x2b, 0xca,
+	0x15, 0xd4, 0x9f, 0xf2, 0x5e, 0x83, 0x05, 0x42, 0x7c, 0x9e, 0x1f, 0xf2, 0xdc, 0x5d, 0x9d, 0xdf,
+	0x6f, 0xa1, 0x05, 0x1f, 0xd3, 0xe9, 0x69, 0x9e, 0xbc, 0xf8, 0x85, 0xf0, 0x9d, 0x42, 0xb0, 0x1a,
+	0xba, 0x37, 0xd2, 0x16, 0x53, 0x05, 0x79, 0x8f, 0x43, 0xa3, 0xc0, 0xc6, 0x28, 0x45, 0x59, 0x58,
+	0xbc, 0xf8, 0xfd, 0xe3, 0xc1, 0xf3, 0x56, 0xda, 0x8f, 0x03, 0xcf, 0x6b, 0x58, 0xd1, 0x5e, 0x8f,
+	0x66, 0xc5, 0xac, 0xac, 0x15, 0xe3, 0x66, 0x56, 0xd4, 0x3d, 0xfb, 0x8b, 0xf2, 0x68, 0x46, 0xeb,
+	0xb5, 0x5c, 0x49, 0x2b, 0x9d, 0x30, 0xf9, 0x42, 0x81, 0x2d, 0x7d, 0x25, 0x59, 0x60, 0xe2, 0x31,
+	0x2b, 0x0e, 0xcd, 0x58, 0xb5, 0xa2, 0x13, 0x5a, 0xd6, 0xf1, 0xb5, 0x14, 0x65, 0xb7, 0x9e, 0x5c,
+	0xe6, 0xc7, 0xd0, 0xf9, 0x8c, 0xe6, 0xb9, 0x0a, 0x68, 0xc6, 0x57, 0x41, 0x79, 0xc6, 0xf7, 0xe2,
+	0xe5, 0xfc, 0x3a, 0xb9, 0xc4, 0xb7, 0x7b, 0x36, 0x2a, 0x60, 0x4d, 0xe5, 0x98, 0x1a, 0x44, 0x2c,
+	0x52, 0x94, 0xdd, 0x2c, 0xa3, 0x9d, 0xf9, 0x6e, 0xf2, 0x8a, 0x53, 0x1c, 0x4e, 0x3b, 0x2f, 0xbe,
+	0x22, 0x7c, 0xf7, 0xbf, 0xd2, 0xa9, 0x40, 0xb3, 0xae, 0x61, 0x50, 0x69, 0xe1, 0x04, 0x53, 0xfe,
+	0xcb, 0xa3, 0x32, 0x9a, 0xcd, 0xd2, 0x7b, 0xe4, 0x1c, 0xdf, 0x68, 0x35, 0x5b, 0x2e, 0xa5, 0x95,
+	0x1e, 0x38, 0x2a, 0x0f, 0x9a, 0x3c, 0xc4, 0xf7, 0xc4, 0x67, 0x51, 0x0f, 0x56, 0x42, 0x57, 0xed,
+	0xd6, 0xc6, 0x27, 0x7e, 0xe8, 0xec, 0x10, 0xbc, 0x9d, 0x7d, 0x12, 0xe3, 0xeb, 0x4e, 0x68, 0x23,
+	0xa1, 0x8b, 0xc3, 0x14, 0x65, 0x27, 0xe5, 0x5e, 0x16, 0xaf, 0xbf, 0x6d, 0x12, 0xb4, 0xde, 0x24,
+	0xe8, 0xe7, 0x26, 0x41, 0x5f, 0xb6, 0x49, 0xb0, 0xde, 0x26, 0xc1, 0xf7, 0x6d, 0x12, 0x7c, 0x78,
+	0xfc, 0xcf, 0x01, 0xa4, 0x35, 0x8d, 0x70, 0x5c, 0x30, 0x4d, 0x39, 0x28, 0xa6, 0xa5, 0xa1, 0xc7,
+	0x7f, 0x03, 0x3f, 0xf5, 0xe7, 0x7d, 0xfa, 0x27, 0x00, 0x00, 0xff, 0xff, 0x28, 0x77, 0xe8, 0x0a,
+	0x2a, 0x02, 0x00, 0x00,
 }
 
-func (m *BaseBeaconKitBlock) Marshal() (dAtA []byte, err error) {
+func (m *BeaconKitBlock) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -142,42 +239,108 @@ func (m *BaseBeaconKitBlock) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *BaseBeaconKitBlock) MarshalTo(dAtA []byte) (int, error) {
+func (m *BeaconKitBlock) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *BaseBeaconKitBlock) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *BeaconKitBlock) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.ExecData) > 0 {
-		i -= len(m.ExecData)
-		copy(dAtA[i:], m.ExecData)
-		i = encodeVarintBlock(dAtA, i, uint64(len(m.ExecData)))
+	if len(m.PayloadValue) > 0 {
+		i -= len(m.PayloadValue)
+		copy(dAtA[i:], m.PayloadValue)
+		i = encodeVarintBlock(dAtA, i, uint64(len(m.PayloadValue)))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x6
+		i--
+		dAtA[i] = 0xaa
 	}
-	if m.Version != 0 {
-		i = encodeVarintBlock(dAtA, i, uint64(m.Version))
-		i--
-		dAtA[i] = 0x20
-	}
-	if m.Value != 0 {
-		i = encodeVarintBlock(dAtA, i, uint64(m.Value))
-		i--
-		dAtA[i] = 0x18
-	}
-	if m.Time != 0 {
-		i = encodeVarintBlock(dAtA, i, uint64(m.Time))
-		i--
-		dAtA[i] = 0x10
+	if m.Body != nil {
+		{
+			size := m.Body.Size()
+			i -= size
+			if _, err := m.Body.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
 	}
 	if m.Slot != 0 {
 		i = encodeVarintBlock(dAtA, i, uint64(m.Slot))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *BeaconKitBlock_BlockBodyGeneric) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *BeaconKitBlock_BlockBodyGeneric) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.BlockBodyGeneric != nil {
+		{
+			size, err := m.BlockBodyGeneric.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintBlock(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+func (m *BeaconBlockBody) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BeaconBlockBody) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *BeaconBlockBody) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Version != 0 {
+		i = encodeVarintBlock(dAtA, i, uint64(m.Version))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.ExecutionPayload) > 0 {
+		i -= len(m.ExecutionPayload)
+		copy(dAtA[i:], m.ExecutionPayload)
+		i = encodeVarintBlock(dAtA, i, uint64(len(m.ExecutionPayload)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Graffiti) > 0 {
+		i -= len(m.Graffiti)
+		copy(dAtA[i:], m.Graffiti)
+		i = encodeVarintBlock(dAtA, i, uint64(len(m.Graffiti)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.RandaoReveal) > 0 {
+		i -= len(m.RandaoReveal)
+		copy(dAtA[i:], m.RandaoReveal)
+		i = encodeVarintBlock(dAtA, i, uint64(len(m.RandaoReveal)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -193,7 +356,7 @@ func encodeVarintBlock(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *BaseBeaconKitBlock) Size() (n int) {
+func (m *BeaconKitBlock) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -202,18 +365,48 @@ func (m *BaseBeaconKitBlock) Size() (n int) {
 	if m.Slot != 0 {
 		n += 1 + sovBlock(uint64(m.Slot))
 	}
-	if m.Time != 0 {
-		n += 1 + sovBlock(uint64(m.Time))
+	if m.Body != nil {
+		n += m.Body.Size()
 	}
-	if m.Value != 0 {
-		n += 1 + sovBlock(uint64(m.Value))
+	l = len(m.PayloadValue)
+	if l > 0 {
+		n += 2 + l + sovBlock(uint64(l))
+	}
+	return n
+}
+
+func (m *BeaconKitBlock_BlockBodyGeneric) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.BlockBodyGeneric != nil {
+		l = m.BlockBodyGeneric.Size()
+		n += 1 + l + sovBlock(uint64(l))
+	}
+	return n
+}
+func (m *BeaconBlockBody) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RandaoReveal)
+	if l > 0 {
+		n += 1 + l + sovBlock(uint64(l))
+	}
+	l = len(m.Graffiti)
+	if l > 0 {
+		n += 1 + l + sovBlock(uint64(l))
+	}
+	l = len(m.ExecutionPayload)
+	if l > 0 {
+		n += 1 + l + sovBlock(uint64(l))
 	}
 	if m.Version != 0 {
 		n += 1 + sovBlock(uint64(m.Version))
-	}
-	l = len(m.ExecData)
-	if l > 0 {
-		n += 1 + l + sovBlock(uint64(l))
 	}
 	return n
 }
@@ -224,7 +417,7 @@ func sovBlock(x uint64) (n int) {
 func sozBlock(x uint64) (n int) {
 	return sovBlock(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *BaseBeaconKitBlock) Unmarshal(dAtA []byte) error {
+func (m *BeaconKitBlock) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -247,10 +440,10 @@ func (m *BaseBeaconKitBlock) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: BaseBeaconKitBlock: wiretype end group for non-group")
+			return fmt.Errorf("proto: BeaconKitBlock: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: BaseBeaconKitBlock: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: BeaconKitBlock: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -273,65 +466,125 @@ func (m *BaseBeaconKitBlock) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Time", wireType)
-			}
-			m.Time = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBlock
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Time |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
-			}
-			m.Value = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBlock
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Value |= github_com_prysmaticlabs_prysm_v4_math.Gwei(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
-			}
-			m.Version = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBlock
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Version |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExecData", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BlockBodyGeneric", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBlock
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBlock
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthBlock
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &BeaconBlockBody{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Body = &BeaconKitBlock_BlockBodyGeneric{v}
+			iNdEx = postIndex
+		case 101:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PayloadValue", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBlock
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBlock
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBlock
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PayloadValue = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBlock(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthBlock
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *BeaconBlockBody) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBlock
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BeaconBlockBody: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BeaconBlockBody: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RandaoReveal", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -358,11 +611,98 @@ func (m *BaseBeaconKitBlock) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ExecData = append(m.ExecData[:0], dAtA[iNdEx:postIndex]...)
-			if m.ExecData == nil {
-				m.ExecData = []byte{}
+			m.RandaoReveal = append(m.RandaoReveal[:0], dAtA[iNdEx:postIndex]...)
+			if m.RandaoReveal == nil {
+				m.RandaoReveal = []byte{}
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Graffiti", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBlock
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBlock
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBlock
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Graffiti = append(m.Graffiti[:0], dAtA[iNdEx:postIndex]...)
+			if m.Graffiti == nil {
+				m.Graffiti = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExecutionPayload", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBlock
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBlock
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBlock
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExecutionPayload = append(m.ExecutionPayload[:0], dAtA[iNdEx:postIndex]...)
+			if m.ExecutionPayload == nil {
+				m.ExecutionPayload = []byte{}
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+			}
+			m.Version = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBlock
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Version |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBlock(dAtA[iNdEx:])
