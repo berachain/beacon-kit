@@ -324,7 +324,7 @@ proto-sync-install:
 proto-sync:
 	@$(MAKE) proto-sync-install 
 	@echo "--> Running proto-sync"
-	@protosync -I $(eth2ProtoDir) --dest=$(eth2ProtoDir)/third_party
+	@protosync -I $(eth2ProtoDir) --dest=./proto/eth2/third_party proto/engine/v1/execution_engine.proto --level=trace
 
 
 #################
@@ -336,12 +336,12 @@ sszgen-install:
 	@go install github.com/prysmaticlabs/fastssz/sszgen
 
 
-SSZ_STRUCTS=BeaconBlockData
+SSZ_STRUCTS=BeaconKitBlock
 
 sszgen:
 	@$(MAKE) sszgen-install
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1/ -objs ${SSZ_STRUCTS}
+	@sszgen -path ./proto/eth2/types/consensus/v1/ -objs ${SSZ_STRUCTS}
 ###############################################################################
 ###                             Dependencies                                ###
 ###############################################################################

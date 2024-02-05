@@ -23,40 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
-
-import "third_party/prysm/engine/v1/execution_engine.proto";
-
-option go_package = "github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1";
-
-// BeaconKitBlock represents a generic beacon block that can be used to represent
-// any beacon block in the system.
-message BeaconKitBlock {
-  // Beacon chain slot that this block represents.
-  uint64 slot = 1;
-
-  // BeaconBlockBody contains the body of the beacon block.
-  oneof body {
-    BeaconBlockBody block_body_generic = 2;
-  }
-
-  // The payload value of the block.
-  string payload_value = 101;
+repo "https://github.com/prysmaticlabs/prysm.git" {
+  prefix = "proto/engine"
+  commit = "develop"
+  root = ""
 }
 
-// BeaconBlockBody represents the body of a beacon block.
-message BeaconBlockBody {
-  // The validators RANDAO reveal 96 byte value.
-  bytes randao_reveal = 1;
+repo "https://github.com/prysmaticlabs/prysm.git" {
+  prefix = "proto/eth"
+  commit = "develop"
+  root = ""
+}
 
-  // 32 byte field of arbitrary data. This field may contain any data and
-  // is not used for anything other than a fun message.
-  bytes graffiti = 2;
-
-  // TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
-  int64 version = 3;
-
-  // Execution payload from the execution chain. New in Bellatrix network upgrade.
-  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
+repo "https://github.com/protocolbuffers/protobuf.git" {
+  prefix = "google/protobuf/"
+  root = "src"
 }

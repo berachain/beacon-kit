@@ -25,10 +25,7 @@
 
 # This module represents buf.build/itsdevbear/bolaris
 version: v1
-name: buf.build/itsdevbear/bolaris
-deps:
-  - buf.build/googleapis/googleapis
-
+name: buf.build/itsdevbear/bolaris-eth2
 
 breaking:
   use:
@@ -46,4 +43,6 @@ lint:
     - PACKAGE_VERSION_SUFFIX
     - RPC_REQUEST_STANDARD_NAME
     - ENUM_NO_ALLOW_ALIAS
+  ignore:
+    - third_party
   

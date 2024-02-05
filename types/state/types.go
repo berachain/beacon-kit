@@ -30,7 +30,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // BeaconStateProvider provides access to the current beacon state.
@@ -78,7 +78,7 @@ type ReadOnlyForkChoice interface {
 
 // ReadOnlyWithdrawals defines a struct which only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
+	ExpectedWithdrawals() ([]*v1.Withdrawal, error)
 }
 
 type ReadOnlyGenesis interface {

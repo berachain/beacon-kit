@@ -31,6 +31,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -125,18 +126,19 @@ func (b *BeaconKitBlock) IsNil() bool {
 func (b *BeaconKitBlock) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
-	execData, err := executionData.MarshalSSZ()
+
+	execDataCapella, err := executionData.PbCapella()
 	if err != nil {
 		return err
 	}
-
 	value, err := executionData.ValueInWei()
 	if err != nil {
 		return err
 	}
 
-	b.Body.(*BeaconKitBlock_BlockBodyGeneric).BlockBodyGeneric.ExecutionPayload = execData
 	b.PayloadValue = (*value).String() //nolint:gocritic // suggestion doesn't compile.
+	b.GetBlockBodyGeneric().ExecutionPayload = execDataCapella
+
 	return nil
 }
 
@@ -147,10 +149,7 @@ func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 	if !ok {
 		return nil, errors.New("failed to convert payload value to big.Int")
 	}
-	return BytesToExecutionData(
-		b.GetBlockBodyGeneric().GetExecutionPayload(),
-		Wei(value),
-		int(b.GetBlockBodyGeneric().GetVersion()))
+	return blocks.WrappedExecutionPayloadCapella(b.GetBlockBodyGeneric().GetExecutionPayload(), value)
 }
 
 func (b *BeaconKitBlock) RetrieveSlot() Slot {
