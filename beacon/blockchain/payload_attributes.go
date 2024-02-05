@@ -33,10 +33,7 @@ import (
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 )
 
-// TOOD: fix lint.
-var _ = (&Service{}).getPayloadAttribute
-
-// BuildPayloadAttributes returns the payload attributes for the given state and slot.
+// getPayloadAttribute returns the payload attributes for the given state and slot.
 // The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(

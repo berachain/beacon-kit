@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
@@ -77,17 +78,22 @@ func (s *Service) getLocalPayload(
 	// If we have a payload ID in the cache, we can return the payload from the cache.
 	payloadID, ok := s.payloadCache.PayloadID(slot, [32]byte(parentEth1Hash))
 	if ok && (payloadID != primitives.PayloadID{}) {
-		// Payload ID is cache hit. Return the cached payload ID.
-		var pid primitives.PayloadID
-		copy(pid[:], payloadID[:])
-		// payloadIDCacheHit.Inc()
-		var payload interfaces.ExecutionData
-		var overrideBuilder bool
-		payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pid, slot)
+		var (
+			pidCpy          primitives.PayloadID
+			payload         interfaces.ExecutionData
+			overrideBuilder bool
+		)
+
+		// Payload ID is cache hit.
+		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
+		copy(pidCpy[:], payloadID[:])
+
+		payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot)
 		switch {
 		case err == nil:
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
+			//  Return the cached payload ID.
 			return payload, overrideBuilder, nil
 		case errors.Is(err, context.DeadlineExceeded):
 		default:
@@ -95,22 +101,22 @@ func (s *Service) getLocalPayload(
 		}
 	}
 
-	// payloadIDCacheMiss.Inc()
+	// If we reach this point, we have a cache miss and must build a new payload.
+	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
 
 	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 	// if err != nil {
 	// 	return nil, false, err
 	// }
 
-	justifiedBlockHash := s.BeaconState(ctx).GetSafeEth1BlockHash()
-	finalizedBlockHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
-
+	// Build the forkchoice state.
 	f := &enginev1.ForkchoiceState{
 		HeadBlockHash:      parentEth1Hash,
-		SafeBlockHash:      justifiedBlockHash[:],
-		FinalizedBlockHash: finalizedBlockHash[:],
+		SafeBlockHash:      s.BeaconState(ctx).GetSafeEth1BlockHash().Bytes(),
+		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
 	}
 
+	// Build the payload attributes.
 	t := time.Now()              // todo: the proper mathematics for time must be done.
 	random := make([]byte, 32)   //nolint:gomnd // todo: randao
 	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
@@ -128,17 +134,20 @@ func (s *Service) getLocalPayload(
 	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attr)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "could not prepare payload")
-	}
-	if payloadIDBytes == nil {
+	} else if payloadIDBytes == nil {
 		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
-	payload, _, overrideBuilder, err := s.en.GetPayload(ctx, *payloadIDBytes, slot)
+	payload, bundle, overrideBuilder, err := s.en.GetPayload(ctx, *payloadIDBytes, slot)
 	if err != nil {
 		return nil, false, err
 	}
+
+	// TODO: Dencun
+	_ = bundle
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
+
 	localValueGwei, err := payload.ValueInGwei()
 	if err == nil {
 		s.Logger().Debug("received execution payload from local engine", "value", localValueGwei)
