@@ -101,8 +101,7 @@ func (s *Service) getLocalPayload(
 	// if err != nil {
 	// 	return nil, false, err
 	// }
-	random := make([]byte, 32)   //nolint:gomnd // todo: randao
-	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
+
 	justifiedBlockHash := s.BeaconState(ctx).GetSafeEth1BlockHash()
 	finalizedBlockHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 
@@ -112,7 +111,9 @@ func (s *Service) getLocalPayload(
 		FinalizedBlockHash: finalizedBlockHash[:],
 	}
 
-	t := time.Now()
+	t := time.Now()              // todo: the proper mathematics for time must be done.
+	random := make([]byte, 32)   //nolint:gomnd // todo: randao
+	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
 	attr := core.BuildPayloadAttributes(
 		s.BeaconCfg(),
 		st,
@@ -121,6 +122,7 @@ func (s *Service) getLocalPayload(
 		headRoot,
 		uint64(t.Unix()), //#nosec // won't overflow, time cannot be negative.
 	)
+
 	var payloadIDBytes *enginev1.PayloadIDBytes
 	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attr)
 	if err != nil {

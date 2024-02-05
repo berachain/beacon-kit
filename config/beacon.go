@@ -51,6 +51,9 @@ type Validator struct {
 
 	// Grafitti is the string that will be included in the graffiti field of the beacon block.
 	Graffiti string
+
+	// PrepareAllPayloads informs the engine to prepare a block on every slot.
+	PrepareAllPayloads bool
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
@@ -68,6 +71,7 @@ func DefaultValidatorConfig() Validator {
 	return Validator{
 		SuggestedFeeRecipient: common.Address{},
 		Graffiti:              "",
+		PrepareAllPayloads:    true,
 	}
 }
 

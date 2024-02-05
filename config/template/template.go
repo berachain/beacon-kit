@@ -64,6 +64,9 @@ suggested-fee-recipient = "{{.BeaconKit.Beacon.Validator.SuggestedFeeRecipient}}
 # Graffiti string that will be included in the graffiti field of the beacon block.
 graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
 
+# Prepare all payloads informs the engine to prepare a block on every slot.
+prepare-all-payloads = {{.BeaconKit.Beacon.Validator.PrepareAllPayloads}}
+
 [beacon-kit.proposal]
 # Position of the beacon block in the proposal
 beacon-kit-block-proposal-position = {{.BeaconKit.Proposal.BeaconKitBlockPosition}}

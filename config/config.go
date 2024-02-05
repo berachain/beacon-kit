@@ -144,6 +144,12 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 		return nil, err
 	}
 
+	if conf.Beacon.Validator.PrepareAllPayloads, err = parser.GetBool(
+		flags.PrepareAllPayloads,
+	); err != nil {
+		return nil, err
+	}
+
 	if conf.Proposal.BeaconKitBlockPosition, err = parser.GetUint(
 		flags.BeaconKitBlockPosition,
 	); err != nil {

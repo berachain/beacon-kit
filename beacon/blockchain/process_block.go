@@ -32,6 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 )
 
 // postBlockProcess(.
@@ -54,18 +55,20 @@ func (s *Service) postBlockProcess(
 	// the next block in the background while we are finalizing this block.
 	// We are okay pushing this asynchonous work to the execution client, as it is designed for it.
 	//
-	// TODO: add "if validator" and trigger the next slot in advance only IF validator.
-	// This is to avoid rocking the payload cache in two places.
-	// For now we are just going to disable optimistic payload building.
-	//
 	// TODO: we should probably just have a validator job in the background that is
 	// constantly building new payloads and then not worry about anything here triggering
 	// payload builds.
+	var attrs payloadattribute.Attributer
+	if s.BeaconCfg().Validator.PrepareAllPayloads {
+		attrs = s.getPayloadAttribute(ctx)
+	} else {
+		attrs = payloadattribute.EmptyWithVersion(s.BeaconState(ctx).Version())
+	}
+
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  common.Hash(executionPayload.BlockHash()),
 			ProposingSlot: block.GetSlot() + 1,
-			Attributes:    nil,
-			// Attributes:    s.getPayloadAttribute(ctx),
+			Attributes:    attrs,
 		})
 }
