@@ -685,8 +685,8 @@ func (x *fastReflection_BeaconBlockBody) Range(f func(protoreflect.FieldDescript
 			return
 		}
 	}
-	if x.Version != int32(0) {
-		value := protoreflect.ValueOfInt32(x.Version)
+	if x.Version != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Version)
 		if !f(fd_BeaconBlockBody_version, value) {
 			return
 		}
@@ -713,7 +713,7 @@ func (x *fastReflection_BeaconBlockBody) Has(fd protoreflect.FieldDescriptor) bo
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		return len(x.ExecutionPayload) != 0
 	case "types.consensus.v1.BeaconBlockBody.version":
-		return x.Version != int32(0)
+		return x.Version != int64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -737,7 +737,7 @@ func (x *fastReflection_BeaconBlockBody) Clear(fd protoreflect.FieldDescriptor) 
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		x.ExecutionPayload = nil
 	case "types.consensus.v1.BeaconBlockBody.version":
-		x.Version = int32(0)
+		x.Version = int64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -765,7 +765,7 @@ func (x *fastReflection_BeaconBlockBody) Get(descriptor protoreflect.FieldDescri
 		return protoreflect.ValueOfBytes(value)
 	case "types.consensus.v1.BeaconBlockBody.version":
 		value := x.Version
-		return protoreflect.ValueOfInt32(value)
+		return protoreflect.ValueOfInt64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -793,7 +793,7 @@ func (x *fastReflection_BeaconBlockBody) Set(fd protoreflect.FieldDescriptor, va
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		x.ExecutionPayload = value.Bytes()
 	case "types.consensus.v1.BeaconBlockBody.version":
-		x.Version = int32(value.Int())
+		x.Version = value.Int()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -842,7 +842,7 @@ func (x *fastReflection_BeaconBlockBody) NewField(fd protoreflect.FieldDescripto
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		return protoreflect.ValueOfBytes(nil)
 	case "types.consensus.v1.BeaconBlockBody.version":
-		return protoreflect.ValueOfInt32(int32(0))
+		return protoreflect.ValueOfInt64(int64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -1147,7 +1147,7 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					x.Version |= int32(b&0x7F) << shift
+					x.Version |= int64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -1316,7 +1316,7 @@ type BeaconBlockBody struct {
 	// Execution payload from the execution chain. New in Bellatrix network upgrade.
 	ExecutionPayload []byte `protobuf:"bytes,3,opt,name=execution_payload,json=executionPayload,proto3" json:"execution_payload,omitempty"`
 	// TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
-	Version int32 `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+	Version int64 `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
 }
 
 func (x *BeaconBlockBody) Reset() {
@@ -1360,7 +1360,7 @@ func (x *BeaconBlockBody) GetExecutionPayload() []byte {
 	return nil
 }
 
-func (x *BeaconBlockBody) GetVersion() int32 {
+func (x *BeaconBlockBody) GetVersion() int64 {
 	if x != nil {
 		return x.Version
 	}
@@ -1398,7 +1398,7 @@ var file_types_consensus_v1_block_proto_rawDesc = []byte{
 	0x2b, 0x0a, 0x11, 0x65, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x70, 0x61, 0x79,
 	0x6c, 0x6f, 0x61, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x10, 0x65, 0x78, 0x65, 0x63,
 	0x75, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x18, 0x0a, 0x07,
-	0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x76,
+	0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x76,
 	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x42, 0xbf, 0x01, 0x0a, 0x16, 0x63, 0x6f, 0x6d, 0x2e, 0x74,
 	0x79, 0x70, 0x65, 0x73, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x76,
 	0x31, 0x42, 0x0a, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,

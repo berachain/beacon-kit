@@ -57,7 +57,7 @@ func NewBeaconKitBlock(
 		Slot: slot,
 		Body: &BeaconKitBlock_BlockBodyGeneric{
 			BlockBodyGeneric: &BeaconBlockBody{
-				Version: int32(version),
+				Version: int64(version),
 			},
 		},
 	}
