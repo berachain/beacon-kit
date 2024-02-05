@@ -47,7 +47,7 @@ func (s *Service) getPayloadAttribute(
 		// for the slot math thingy to calculate what the correct timestamp would be for the block we
 		// are building.
 		t          = uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
-		st         = s.bsp.BeaconState(ctx)
+		st         = s.BeaconState(ctx)
 		emptyAttri = payloadattribute.EmptyWithVersion(st.Version())
 		// TODO: RANDAO
 		prevRando = make([]byte, 32) //nolint:gomnd // TODO: later

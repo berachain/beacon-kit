@@ -49,7 +49,7 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
 	eth1BlockHash := common.Hash(execution.BlockHash())
-	state := s.bsp.BeaconState(ctx)
+	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)

@@ -45,10 +45,6 @@ type Service struct {
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
 
-	// Forkchoice Related Fields
-	//
-	// bsp is the fork choice store provider.
-	bsp BeaconStateProvider
 	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.PayloadIDCache
 

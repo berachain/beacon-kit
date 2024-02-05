@@ -31,15 +31,6 @@ import (
 
 type Option func(*Service) error
 
-// WithBeaconStateProvider is an option to set the BeaconStateProvider
-// for the Service.
-func WithBeaconStateProvider(bsp BeaconStateProvider) Option {
-	return func(s *Service) error {
-		s.bsp = bsp
-		return nil
-	}
-}
-
 // WithEngineCaller is an option to set the Caller for the Service.
 func WithEngineCaller(ec engine.Caller) Option {
 	return func(s *Service) error {

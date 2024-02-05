@@ -40,6 +40,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
@@ -141,7 +142,7 @@ func (s *engineCaller) NewPayload(
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineCaller) ForkchoiceUpdated(
 	ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
-) (*primitives.PayloadID, []byte, error) {
+) (*enginev1.PayloadIDBytes, []byte, error) {
 	d := time.Now().Add(
 		time.Duration(
 			s.engineTimeout,
@@ -201,11 +202,7 @@ func (s *engineCaller) ForkchoiceUpdated(
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
-		if result.PayloadId == nil {
-			return nil, resp.GetLatestValidHash(), nil
-		}
-		pid := primitives.PayloadID(*result.PayloadId)
-		return &pid, resp.GetLatestValidHash(), nil
+		return result.PayloadId, resp.GetLatestValidHash(), nil
 	case pb.PayloadStatus_UNKNOWN:
 		return nil, nil, execution.ErrUnknownPayloadStatus
 	case pb.PayloadStatus_INVALID_BLOCK_HASH:

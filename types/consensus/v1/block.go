@@ -151,3 +151,7 @@ func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 		Wei(value),
 		int(b.GetBlockBodyGeneric().Version))
 }
+
+func (b *BeaconKitBlock) Version() uint64 {
+	return uint64(b.GetBlockBodyGeneric().Version)
+}

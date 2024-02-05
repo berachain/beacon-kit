@@ -36,15 +36,6 @@ func WithEthClient(ethClient ethClient) Option {
 	}
 }
 
-// WithBeaconStateProvider is an Option that sets the BeaconStateProvider
-// of the Service.
-func WithBeaconStateProvider(bsp BeaconStateProvider) Option {
-	return func(r *Service) error {
-		r.bsp = bsp
-		return nil
-	}
-}
-
 // WithExecutionService is an Option that sets the ExecutionService of the Service.
 func WithExecutionService(es executionService) Option {
 	return func(r *Service) error {

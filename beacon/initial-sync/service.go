@@ -41,7 +41,6 @@ import (
 type Service struct {
 	service.BaseService
 	ethClient ethClient
-	bsp       BeaconStateProvider
 	es        executionService
 }
 
@@ -82,7 +81,7 @@ func (s *Service) Status() error { return nil }
 // 3. Return we are blessed.
 func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 	// First lets grab the beacon chains view of the last finalized execution layer block.
-	finalHash := s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	finalHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 
 	// If the chain hasn't been started met, we are at genesis, and we can't really do anything.
 	// This is to handle calling this function before InitGenesis has been called. If InitGenesis

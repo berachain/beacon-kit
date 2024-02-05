@@ -23,16 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package validator
 
-// Option is a function type that takes a pointer to a Service and returns an error.
-type Option func(*Service) error
+const (
+	// MetricGetBuiltPayloadHit is used to count the number of times a built
+	// payload is successfully retrieved.
+	MetricGetBuiltPayloadHit = "beaconkit.blockchain_get_built_payload_hit"
 
-// WithExecutionService is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) Option {
-	return func(s *Service) error {
-		s.en = en
-		return nil
-	}
-}
+	// MetricGetBuiltPayloadMiss is used to count the number of times a built
+	// payload retrieval is attempted but not found.
+	MetricGetBuiltPayloadMiss = "beaconkit.blockchain_get_built_payload_miss"
+
+	// MetricReceivedInvalidPayload is used to count the number of times an
+	// invalid payload is received.
+	MetricReceivedInvalidPayload = "beaconkit.blockchain_received_invalid_payload"
+)

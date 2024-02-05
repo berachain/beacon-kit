@@ -47,7 +47,7 @@ func (s *Service) GetOrBuildBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	var (
-		beaconState        = s.bsp.BeaconState(ctx)
+		beaconState        = s.BeaconState(ctx)
 		executionData      interfaces.ExecutionData
 		lastFinalizedBlock = beaconState.GetFinalizedEth1BlockHash()
 	)
