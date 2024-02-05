@@ -31,6 +31,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
+// Beacon is the configuration for the beacon chain.
 type Beacon struct {
 	// AltairForkEpoch is used to represent the assigned fork epoch for altair.
 	AltairForkEpoch primitives.Epoch
@@ -46,6 +47,8 @@ type Beacon struct {
 	Validator Validator
 }
 
+// Validator is the configuration for the validator. Only utilized when
+// this node is in the active validator set.
 type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction fees
 	// produced by any blocks from this node. Only takes effect post bellatrix.
@@ -69,6 +72,7 @@ func DefaultBeaconConfig() Beacon {
 	}
 }
 
+// DefaultValidatorConfig returns the default validator configuration.
 func DefaultValidatorConfig() Validator {
 	return Validator{
 		SuggestedFeeRecipient: common.Address{},
