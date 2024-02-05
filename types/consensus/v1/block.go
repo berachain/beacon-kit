@@ -64,7 +64,7 @@ func NewBeaconKitBlock(
 		},
 	}
 	if executionData != nil {
-		if err := block.AttachExecutionData(executionData); err != nil {
+		if err := block.AttachExecution(executionData); err != nil {
 			return nil, err
 		}
 	}
@@ -119,8 +119,8 @@ func (b *BeaconKitBlock) IsNil() bool {
 	return b == nil
 }
 
-// AttachExecutionData attaches the given execution data to the block.
-func (b *BeaconKitBlock) AttachExecutionData(
+// AttachExecution attaches the given execution data to the block.
+func (b *BeaconKitBlock) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
 	execData, err := executionData.MarshalSSZ()

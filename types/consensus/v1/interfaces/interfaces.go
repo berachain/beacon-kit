@@ -54,7 +54,7 @@ type ReadOnlyBeaconKitBlock interface {
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
 type WriteOnlyBeaconKitBlock interface {
-	AttachExecutionData(interfaces.ExecutionData) error
+	AttachExecution(interfaces.ExecutionData) error
 }
 
 // ABCIRequest is the interface for an ABCI request.
