@@ -49,7 +49,7 @@ type Keeper struct {
 // Assert Keeper implements BeaconStateProvider interface.
 var _ state.BeaconStateProvider = &Keeper{}
 
-// NewKeeper creates new instances of the polaris Keeper.
+// NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	storeKey storetypes.StoreKey,
 	beaconCfg *config.Beacon,

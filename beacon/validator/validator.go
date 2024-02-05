@@ -23,14 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package beacon.v1alpha1;
+package validator
 
-option go_package = "github.com/itsdevbear/bolaris/cosmos/x/beacon/types";
+import (
+	"context"
 
-// GenesisState is the genesis-state for the x/oracle module, it takes a set of
-// predefined CurrencyPairGeneses
-message GenesisState {
-  // NextID is the next ID to be used for a CurrencyPair
-  string eth1_genesis_hash = 1;
+	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+)
+
+type Service struct {
+	service.BaseService
+}
+
+// BuildBeaconBlock builds a new beacon block.
+func (s *Service) BuildBeaconBlock(_ context.Context) (interfaces.BeaconKitBlock, error) {
+	return nil, nil
 }

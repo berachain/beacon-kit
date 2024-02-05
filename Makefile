@@ -313,6 +313,15 @@ buf-lint:
 	@echo "--> Running buf lint"
 	@buf lint --error-format=json $(protoDir)
 
+proto-sync-install:
+	@echo "--> Installing buf"
+	@go install github.com/cashapp/protosync/cmd/protosync
+
+proto-sync:
+	@$(MAKE) proto-sync-install 
+	@echo "--> Running proto-sync"
+	@protosync -I $(protoDir)/types --dest=$(protoDir)
+
 
 #################
 #    sszgen    #

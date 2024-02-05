@@ -39,7 +39,8 @@ const (
 	BellatrixForkEpoch    = "beacon-kit.beacon-config.bellatrix-fork-epoch"
 	CapellaForkEpoch      = "beacon-kit.beacon-config.capella-fork-epoch"
 	DenebForkEpoch        = "beacon-kit.beacon-config.deneb-fork-epoch"
-	SuggestedFeeRecipient = "beacon-kit.beacon-config.suggested-fee-recipient"
+	SuggestedFeeRecipient = "beacon-kit.beacon-config.validator.suggested-fee-recipient"
+	Graffiti              = "beacon-kit.beacon-config.validator.graffiti"
 
 	// Proposal.
 	BeaconKitBlockPosition = "beacon-kit.proposal.beacon-kit-block-proposal-position"

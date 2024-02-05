@@ -75,7 +75,7 @@ func (s *Service) getPayloadAttribute(
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
 			Timestamp:             t,
 			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: s.BeaconCfg().SuggestedFeeRecipient[:],
+			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 			Withdrawals:           withdrawals,
 			ParentBeaconBlockRoot: headRoot,
 		})
@@ -93,7 +93,7 @@ func (s *Service) getPayloadAttribute(
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
 			Timestamp:             t,
 			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: s.BeaconCfg().SuggestedFeeRecipient[:],
+			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 			Withdrawals:           withdrawals,
 		})
 		if err != nil {
@@ -106,7 +106,7 @@ func (s *Service) getPayloadAttribute(
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
 			Timestamp:             t,
 			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: s.BeaconCfg().SuggestedFeeRecipient[:],
+			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 		})
 		if err != nil {
 			s.Logger().Error("Could not get payload attribute", "error", err)

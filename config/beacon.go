@@ -41,19 +41,33 @@ type Beacon struct {
 	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
 	DenebForkEpoch primitives.Epoch
 
+	Validator Validator
+}
+
+type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction fees
 	// produced by any blocks from this node. Only takes effect post bellatrix.
 	SuggestedFeeRecipient common.Address
+
+	// Grafitti is the string that will be included in the graffiti field of the beacon block.
+	Graffiti string
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
-		AltairForkEpoch:       0,
-		BellatrixForkEpoch:    0,
-		CapellaForkEpoch:      0,
-		DenebForkEpoch:        primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		AltairForkEpoch:    0,
+		BellatrixForkEpoch: 0,
+		CapellaForkEpoch:   0,
+		DenebForkEpoch:     primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		Validator:          DefaultValidatorConfig(),
+	}
+}
+
+func DefaultValidatorConfig() Validator {
+	return Validator{
 		SuggestedFeeRecipient: common.Address{},
+		Graffiti:              "",
 	}
 }
 
