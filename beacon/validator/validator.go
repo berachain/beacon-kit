@@ -53,6 +53,7 @@ func (s *Service) BuildBeaconBlock(ctx context.Context, slot primitives.Slot) (i
 	}
 
 	executionData, overrideBuilder, err := s.getLocalPayload(ctx, beaconBlock, beaconState)
+	// TODO: allow external block builders to override the payload.
 	_ = overrideBuilder
 	if err != nil {
 		return nil, err

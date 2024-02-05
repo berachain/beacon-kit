@@ -25,45 +25,13 @@
 
 package validator
 
-import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
-)
+import "github.com/itsdevbear/bolaris/beacon/execution/engine"
 
-type BlockBuilder interface {
-}
+type Option func(*Service) error
 
-type Service struct {
-	service.BaseService
-	en             engine.Caller
-	PayloadIDCache *cache.PayloadIDCache
-}
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
+func WithEngineCaller(caller engine.Caller) Option {
+	return func(s *Service) error {
+		s.en = caller
+		return nil
 	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start() {
-	return
-}
-
-func (s *Service) Stop() error {
-	return nil
-}
-
-func (s *Service) Status() error {
-	return nil
 }

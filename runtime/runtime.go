@@ -38,6 +38,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/beacon/validator"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/state"
@@ -144,6 +145,12 @@ func NewDefaultBeaconKitRuntime(
 		initialsync.WithExecutionService(executionService),
 	)
 
+	// Build the validator service.
+	validatorService := validator.NewService(
+		baseService.WithName("validator"),
+		validator.WithEngineCaller(engineCaller),
+	)
+
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
 		WithConfig(cfg),
@@ -151,6 +158,7 @@ func NewDefaultBeaconKitRuntime(
 		WithService(executionService),
 		WithService(chainService),
 		WithService(notificationService),
+		WithService(validatorService),
 		WithLogger(logger),
 		WithBeaconStateProvider(bsp),
 		WithDispatcher(gcd),
