@@ -28,7 +28,7 @@ package callback
 import (
 	"context"
 
-	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
+	evmv1 "github.com/itsdevbear/bolaris/proto/eth2/types/evm/v1"
 )
 
 // LogHandler represents a struct that has the ability to ingest

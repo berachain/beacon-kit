@@ -44,20 +44,6 @@ forge-clean: |
 	@forge clean --root $(CONTRACTS_DIR)
 
 
-#################
-#     proto     #
-#################
-
-protoImageName    := "ghcr.io/cosmos/proto-builder"
-protoImageVersion := "0.14.0"
-
-proto:
-	@$(MAKE) buf-lint-fix buf-lint proto-build
-
-proto-build:
-	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
-
-
 ###############################################################################
 ###                                 CodeGen                                 ###
 ###############################################################################
@@ -297,7 +283,23 @@ gosec:
 #     proto     #
 #################
 
-protoDir := "proto"
+
+protoImageName    := "ghcr.io/cosmos/proto-builder"
+protoImageVersion := "0.14.0"
+modulesProtoDir := "proto/modules"
+eth2ProtoDir := "proto/eth2"
+
+#################
+#     proto     #
+#################
+
+
+proto:
+	@$(MAKE) buf-lint-fix buf-lint proto-build
+
+proto-build:
+	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
+	@cd $(eth2ProtoDir) && buf generate --template buf.gen.yaml
 
 buf-install:
 	@echo "--> Installing buf"
@@ -306,12 +308,23 @@ buf-install:
 buf-lint-fix:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf format"
-	@buf format -w --error-format=json $(protoDir)
+	@buf format -w --error-format=json $(modulesProtoDir)
+	@buf format -w --error-format=json $(eth2ProtoDir)
 
 buf-lint:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf lint"
-	@buf lint --error-format=json $(protoDir)
+	@buf lint --error-format=json $(modulesProtoDir)
+	@buf lint --error-format=json $(eth2ProtoDir)
+
+proto-sync-install:
+	@echo "--> Installing buf"
+	@go install github.com/cashapp/protosync/cmd/protosync
+
+proto-sync:
+	@$(MAKE) proto-sync-install 
+	@echo "--> Running proto-sync"
+	@protosync -I $(eth2ProtoDir) --dest=$(eth2ProtoDir)/third_party
 
 
 #################

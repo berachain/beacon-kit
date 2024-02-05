@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1/interfaces"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs, deposits,

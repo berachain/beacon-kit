@@ -29,8 +29,9 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
+	"google.golang.org/protobuf/proto"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -142,16 +143,24 @@ func (b *BeaconKitBlock) AttachExecution(
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 	// Safe to ignore the error since we successfully marshalled the data before.
-	value, ok := big.NewInt(0).SetString(b.PayloadValue, 10) //nolint:gomnd // base 10.
+	value, ok := big.NewInt(0).SetString(b.GetPayloadValue(), 10) //nolint:gomnd // base 10.
 	if !ok {
 		return nil, errors.New("failed to convert payload value to big.Int")
 	}
 	return BytesToExecutionData(
-		b.GetBlockBodyGeneric().ExecutionPayload,
+		b.GetBlockBodyGeneric().GetExecutionPayload(),
 		Wei(value),
-		int(b.GetBlockBodyGeneric().Version))
+		int(b.GetBlockBodyGeneric().GetVersion()))
 }
 
 func (b *BeaconKitBlock) RetrieveSlot() Slot {
-	return Slot(b.Slot)
+	return Slot(b.GetSlot())
+}
+
+func (b *BeaconKitBlock) Marshal() ([]byte, error) {
+	return proto.Marshal(b)
+}
+
+func (b *BeaconKitBlock) Unmarshal(data []byte) error {
+	return proto.Unmarshal(data, b)
 }

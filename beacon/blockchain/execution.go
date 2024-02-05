@@ -32,8 +32,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	consensusv1 "github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 

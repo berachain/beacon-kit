@@ -37,7 +37,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	consensusv1 "github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/state"
 )
 

@@ -26,7 +26,7 @@
 syntax = "proto3";
 package types.consensus.v1;
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
+option go_package = "github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1";
 
 // BeaconKitBlock represents a generic beacon block that can be used to represent
 // any beacon block in the system.

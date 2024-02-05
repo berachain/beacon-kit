@@ -36,7 +36,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/config"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	consensusv1 "github.com/itsdevbear/bolaris/proto/eth2/types/consensus/v1"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle

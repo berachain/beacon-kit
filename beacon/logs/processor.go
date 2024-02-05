@@ -36,7 +36,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
-	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
+	evmv1 "github.com/itsdevbear/bolaris/proto/eth2/types/evm/v1"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/beacon/logs/callback"
@@ -126,13 +126,13 @@ func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error
 	for i, filterLog := range logs {
 		// Skip logs that are not from the block we are processing.
 		// This should never happen, but defensively check anyway.
-		if filterLog.BlockNumber != blkNum.Uint64() {
+		if filterLog.GetBlockNumber() != blkNum.Uint64() {
 			continue
 		}
 
 		// Skip logs that are not from the addresses we care about.
 		// This should never happen, but defensively check anyway.
-		handler, found := s.handlers[common.Address(filterLog.Address)]
+		handler, found := s.handlers[common.Address(filterLog.GetAddress())]
 		if !found {
 			continue
 		}
