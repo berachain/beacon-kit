@@ -41,6 +41,8 @@ type Beacon struct {
 	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
 	DenebForkEpoch primitives.Epoch
 
+	// Validator is the configuration for the validator. Only utilized when
+	// this node is in the active validator set.
 	Validator Validator
 }
 
