@@ -57,7 +57,6 @@ func NewService(
 }
 
 func (s *Service) Start() {
-	return
 }
 
 func (s *Service) Stop() error {

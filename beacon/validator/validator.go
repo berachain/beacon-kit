@@ -34,7 +34,9 @@ import (
 )
 
 // BuildBeaconBlock builds a new beacon block.
-func (s *Service) BuildBeaconBlock(ctx context.Context, slot primitives.Slot) (interfaces.BeaconKitBlock, error) {
+func (s *Service) BuildBeaconBlock(
+	ctx context.Context, _ primitives.Slot,
+) (interfaces.BeaconKitBlock, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
@@ -88,7 +90,8 @@ func (s *Service) BuildBeaconBlock(ctx context.Context, slot primitives.Slot) (i
 	return beaconBlock, nil
 }
 
-// // buildNewPayloadForBlock begins building a new payload ontop of `headHash` for the given block,
+// // buildNewPayloadForBlock begins building a new
+// payload ontop of `headHash` for the given block,
 // // and waits for the payload to be built by the execution client.
 // func (s *Service) buildNewPayloadForBlock(
 // 	ctx context.Context, beaconBlock interfaces.BeaconKitBlock, headHash common.Hash,
@@ -109,7 +112,8 @@ func (s *Service) BuildBeaconBlock(ctx context.Context, slot primitives.Slot) (i
 // 		return nil, err
 // 	}
 
-// 	return s.waitForPayload(ctx, payloadBuildDelay*time.Second, beaconBlock.GetSlot(), headHash)
+// 	return s.waitForPayload(ctx, payloadBuildDelay*time.Second,
+// beaconBlock.GetSlot(), headHash)
 // }
 
 // // waitForPayload waits for a payload to be built by the execution client.
@@ -124,7 +128,8 @@ func (s *Service) BuildBeaconBlock(ctx context.Context, slot primitives.Slot) (i
 // 	case <-ctx.Done():
 // 		// The context was cancelled before the timer expired
 // 		s.Logger().Error(
-// 			"Context cancelled while waiting for payload", "slot", slot, "head_hash", headHash,
+// 			"Context cancelled while waiting for payload", "slot", slot,
+// "head_hash", headHash,
 // 		)
 // 		return nil, ctx.Err()
 // 	case <-timer.C:

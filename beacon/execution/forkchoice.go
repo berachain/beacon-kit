@@ -51,7 +51,11 @@ func (s *Service) notifyForkchoiceUpdate(
 	// Cache payloads if we get a payloadID in our response.
 	defer func() {
 		if payloadIDBytes != nil {
-			s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(*payloadIDBytes))
+			s.payloadCache.Set(
+				fcuConfig.ProposingSlot,
+				fcuConfig.HeadEth1Hash,
+				primitives.PayloadID(*payloadIDBytes),
+			)
 		}
 	}()
 

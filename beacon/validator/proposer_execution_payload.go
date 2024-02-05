@@ -40,8 +40,10 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func (vs *Service) getLocalPayload(
-	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
+//nolint:funlen,gocognit // TODO FIX
+func (s *Service) getLocalPayload(
+	ctx context.Context,
+	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
 ) (interfaces.ExecutionData, bool, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.getLocalPayload")
 	defer span.End()
@@ -65,9 +67,9 @@ func (vs *Service) getLocalPayload(
 
 	parentHash := p.ParentHash()
 
-	payloadID, ok := vs.PayloadIDCache.PayloadID(slot, [32]byte(parentHash))
+	payloadID, ok := s.PayloadIDCache.PayloadID(slot, [32]byte(parentHash))
 
-	// val, tracked := vs.TrackedValidatorsCache.Validator(vIdx)
+	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
@@ -80,7 +82,7 @@ func (vs *Service) getLocalPayload(
 		// payloadIDCacheHit.Inc()
 		var payload interfaces.ExecutionData
 		var overrideBuilder bool
-		payload, _, overrideBuilder, err = vs.en.GetPayload(ctx, pid, slot)
+		payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pid, slot)
 		switch {
 		case err == nil:
 			// bundleCache.add(slot, bundle)
@@ -95,7 +97,7 @@ func (vs *Service) getLocalPayload(
 	// Otherwise we did not have a payload in the cache and we must build a new payload.
 
 	// log.WithFields(logFields).Debug("payload ID cache miss")
-	// parentHash, err := vs.getParentBlockHash(ctx, st, slot)
+	// parentHash, err := s.getParentBlockHash(ctx, st, slot)
 	// switch {
 	// case errors.Is(err, errActivationNotReached) || errors.Is(err, errNoTerminalBlockHash):
 	// 	p, err := consensusblocks.WrappedExecutionPayload(emptyPayload())
@@ -113,10 +115,10 @@ func (vs *Service) getLocalPayload(
 	// if err != nil {
 	// 	return nil, false, err
 	// }
-	random := []byte{}
+	random := []byte{}     // todo: randao
 	headRoot := [32]byte{} // todo: cancaun
-	justifiedBlockHash := vs.BeaconState(ctx).GetSafeEth1BlockHash()
-	finalizedBlockHash := vs.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	justifiedBlockHash := s.BeaconState(ctx).GetSafeEth1BlockHash()
+	finalizedBlockHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 
 	f := &enginev1.ForkchoiceState{
 		HeadBlockHash:      parentHash,
@@ -138,7 +140,7 @@ func (vs *Service) getLocalPayload(
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
 			Timestamp:             uint64(t.Unix()),
 			PrevRandao:            random,
-			SuggestedFeeRecipient: vs.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 			Withdrawals:           withdrawals,
 			ParentBeaconBlockRoot: headRoot[:],
 		})
@@ -146,14 +148,14 @@ func (vs *Service) getLocalPayload(
 			return nil, false, err
 		}
 	case version.Capella:
-		withdrawals, err := st.ExpectedWithdrawals()
+		withdrawals, err = st.ExpectedWithdrawals()
 		if err != nil {
 			return nil, false, err
 		}
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
 			Timestamp:             uint64(t.Unix()),
 			PrevRandao:            random,
-			SuggestedFeeRecipient: vs.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 			Withdrawals:           withdrawals,
 		})
 		if err != nil {
@@ -163,7 +165,7 @@ func (vs *Service) getLocalPayload(
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
 			Timestamp:             uint64(t.Unix()),
 			PrevRandao:            random,
-			SuggestedFeeRecipient: vs.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 		})
 		if err != nil {
 			return nil, false, err
@@ -173,14 +175,14 @@ func (vs *Service) getLocalPayload(
 	}
 
 	var payloadIDBytes *enginev1.PayloadIDBytes
-	payloadIDBytes, _, err = vs.en.ForkchoiceUpdated(ctx, f, attr)
+	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attr)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "could not prepare payload")
 	}
 	if payloadIDBytes == nil {
 		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentHash)
 	}
-	payload, _, overrideBuilder, err := vs.en.GetPayload(ctx, *payloadIDBytes, slot)
+	payload, _, overrideBuilder, err := s.en.GetPayload(ctx, *payloadIDBytes, slot)
 	if err != nil {
 		return nil, false, err
 	}
@@ -188,7 +190,7 @@ func (vs *Service) getLocalPayload(
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 	localValueGwei, err := payload.ValueInGwei()
 	if err == nil {
-		vs.Logger().Debug("received execution payload from local engine", "value", localValueGwei)
+		s.Logger().Debug("received execution payload from local engine", "value", localValueGwei)
 	}
 	return payload, overrideBuilder, nil
 }
