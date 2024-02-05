@@ -77,7 +77,7 @@ func (s *Service) getLocalPayload(
 	}
 
 	// If we have a payload ID in the cache, we can return the payload from the cache.
-	payloadID, ok := s.PayloadIDCache.PayloadID(slot, [32]byte(parentEth1Hash))
+	payloadID, ok := s.payloadCache.PayloadID(slot, [32]byte(parentEth1Hash))
 	if ok && payloadID != [8]byte{} {
 		// Payload ID is cache hit. Return the cached payload ID.
 		var pid primitives.PayloadID

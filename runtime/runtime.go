@@ -42,6 +42,7 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
@@ -102,6 +103,9 @@ func NewDefaultBeaconKitRuntime(
 		&cfg.Beacon, bsp, gcd, logger,
 	)
 
+	// Create a payloadCache for the execution service and validator service to share.
+	payloadCache := cache.NewPayloadIDCache()
+
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		ctx,
@@ -130,6 +134,7 @@ func NewDefaultBeaconKitRuntime(
 	executionService := execution.New(
 		baseService.WithName("execution"),
 		execution.WithEngineCaller(engineCaller),
+		execution.WithPayloadCache(payloadCache),
 	)
 
 	// Build the blockchain service
@@ -149,6 +154,7 @@ func NewDefaultBeaconKitRuntime(
 	validatorService := validator.NewService(
 		baseService.WithName("validator"),
 		validator.WithEngineCaller(engineCaller),
+		validator.WithPayloadCache(payloadCache),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.

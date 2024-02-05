@@ -36,8 +36,8 @@ type BlockBuilder interface {
 
 type Service struct {
 	service.BaseService
-	en             engine.Caller
-	PayloadIDCache *cache.PayloadIDCache
+	en           engine.Caller
+	payloadCache *cache.PayloadIDCache
 }
 
 func NewService(
@@ -45,8 +45,7 @@ func NewService(
 	opts ...Option,
 ) *Service {
 	s := &Service{
-		BaseService:    base,
-		PayloadIDCache: cache.NewPayloadIDCache(),
+		BaseService: base,
 	}
 
 	for _, opt := range opts {

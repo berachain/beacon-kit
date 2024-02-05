@@ -25,13 +25,23 @@
 
 package validator
 
-import "github.com/itsdevbear/bolaris/beacon/execution/engine"
+import (
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
+)
 
 type Option func(*Service) error
 
 func WithEngineCaller(caller engine.Caller) Option {
 	return func(s *Service) error {
 		s.en = caller
+		return nil
+	}
+}
+
+func WithPayloadCache(pc *cache.PayloadIDCache) Option {
+	return func(s *Service) error {
+		s.payloadCache = pc
 		return nil
 	}
 }
