@@ -28,37 +28,34 @@ package v1
 import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
-// BaseBeaconKitBlock implements the BeaconKitBlock interface.
-var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
+// BeaconKitBlock implements the BeaconKitBlock interface.
+var _ interfaces.BeaconKitBlock = (*BeaconKitBlock)(nil)
 
-// BaseBeaconKitBlockFromState assembles a new beacon block
+// BeaconKitBlockFromState assembles a new beacon block
 // from the given state and execution data.
-func BaseBeaconKitBlockFromState(
+func BeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
 	executionData interfaces.ExecutionData,
 ) (interfaces.BeaconKitBlock, error) {
-	return NewBaseBeaconKitBlock(
+	return NewBeaconKitBlock(
 		beaconState.Slot(),
-		beaconState.Time(),
 		executionData,
 		beaconState.Version(),
 	)
 }
 
-// BaseBeaconKitBlock assembles a new beacon block from
+// BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
-func NewBaseBeaconKitBlock(
+func NewBeaconKitBlock(
 	slot Slot,
-	time uint64,
 	executionData interfaces.ExecutionData,
 	version int,
 ) (interfaces.BeaconKitBlock, error) {
-	block := &BaseBeaconKitBlock{
-		Slot:    slot,
-		Time:    time,
-		Version: int64(version),
+	block := &BeaconKitBlock{
+		Slot: slot,
 	}
 	if executionData != nil {
 		if err := block.AttachExecutionData(executionData); err != nil {
@@ -75,7 +72,6 @@ func NewEmptyBeaconKitBlockFromState(
 ) (interfaces.BeaconKitBlock, error) {
 	return NewEmptyBeaconKitBlock(
 		beaconState.Slot(),
-		beaconState.Time(),
 		beaconState.Version(),
 	)
 }
@@ -84,10 +80,9 @@ func NewEmptyBeaconKitBlockFromState(
 // with no execution data.
 func NewEmptyBeaconKitBlock(
 	slot Slot,
-	time uint64,
 	version int,
 ) (interfaces.BeaconKitBlock, error) {
-	return NewBaseBeaconKitBlock(slot, time, nil, version)
+	return NewBeaconKitBlock(slot, nil, version)
 }
 
 // ReadOnlyBeaconKitBlockFromABCIRequest assembles a
@@ -106,20 +101,20 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	if bzIndex >= uint(len(txs)) {
 		return nil, ErrBzIndexOutOfBounds
 	}
-	block := BaseBeaconKitBlock{}
+	block := BeaconKitBlock{}
 	if err := block.Unmarshal(txs[bzIndex]); err != nil {
 		return nil, err
 	}
 	return &block, nil
 }
 
-// IsNil checks if the BaseBeaconKitBlock is nil or not.
-func (b *BaseBeaconKitBlock) IsNil() bool {
+// IsNil checks if the BeaconKitBlock is nil or not.
+func (b *BeaconKitBlock) IsNil() bool {
 	return b == nil
 }
 
 // AttachExecutionData attaches the given execution data to the block.
-func (b *BaseBeaconKitBlock) AttachExecutionData(
+func (b *BeaconKitBlock) AttachExecutionData(
 	executionData interfaces.ExecutionData,
 ) error {
 	execData, err := executionData.MarshalSSZ()
@@ -132,15 +127,16 @@ func (b *BaseBeaconKitBlock) AttachExecutionData(
 		return err
 	}
 
-	b.ExecData = execData
-	b.Value = Gwei(value)
+	b.Body.ExecutionPayload = execData
+	b.PayloadValue = value
 	return nil
 }
 
 // ExecutionData returns the execution data of the block.
-func (b *BaseBeaconKitBlock) ExecutionData() interfaces.ExecutionData {
+func (b *BeaconKitBlock) Execution() interfaces.ExecutionData {
 	// Safe to ignore the error since we successfully marshalled the data before.
-	data, err := BytesToExecutionData(b.ExecData, b.Value, int(b.Version))
+	data, err := BytesToExecutionData(
+		b.Body.ExecutionPayload, math.Gwei(b.PayloadValue), int(b.Body.Version))
 	if err != nil {
 		panic(err)
 	}

@@ -50,7 +50,7 @@ func (s *Service) postBlockProcess(
 	// We are okay pushing this asynchonous work to the execution client, as it is designed for it.
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:  common.Hash(block.ExecutionData().BlockHash()),
+			HeadEth1Hash:  common.Hash(block.Execution().BlockHash()),
 			ProposingSlot: block.GetSlot() + 1,
 			Attributes:    s.getPayloadAttribute(ctx),
 		})

@@ -67,7 +67,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, block.ExecutionData(),
+			groupCtx, block.Execution(),
 		); err != nil {
 			s.Logger().Error("failed to notify engine of new payload", "error", err)
 			return err
@@ -96,7 +96,7 @@ func (s *Service) ReceiveBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock,
 ) error {
-	parentHash := block.ExecutionData().ParentHash()
+	parentHash := block.Execution().ParentHash()
 	finalizedHash := s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
 	if !bytes.Equal(finalizedHash[:], parentHash) {
 		return fmt.Errorf(

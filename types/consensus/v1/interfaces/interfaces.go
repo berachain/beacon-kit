@@ -30,7 +30,6 @@ import (
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
 // ExecutionData is the interface for the execution data of a block.
@@ -49,9 +48,8 @@ type ReadOnlyBeaconKitBlock interface {
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
-	GetValue() math.Gwei
 	// ExecutionData returns the execution data of the block.
-	ExecutionData() interfaces.ExecutionData
+	Execution() interfaces.ExecutionData
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.

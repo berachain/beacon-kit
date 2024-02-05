@@ -102,7 +102,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		}
 
 		// Since the proposal passed, we want to mark the execution block as finalized.
-		h.markBlockAsFinalized(ctx, common.Hash(beaconBlock.ExecutionData().BlockHash()))
+		h.markBlockAsFinalized(ctx, common.Hash(beaconBlock.Execution().BlockHash()))
 
 		// Since the block is finalized, we can process the logs emitted by the
 		// execution layer and perform the desired state transitions on
