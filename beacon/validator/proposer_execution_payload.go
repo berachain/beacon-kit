@@ -30,16 +30,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/pkg/errors"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
-//nolint:funlen,gocognit // TODO FIX
 func (s *Service) getLocalPayload(
 	ctx context.Context,
 	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
@@ -69,9 +68,8 @@ func (s *Service) getLocalPayload(
 	// Otherwise we did not have a payload in the cache and we must build a new payload.
 
 	// log.WithFields(logFields).Debug("payload ID cache miss")vs
-	var parentEth1Hash []byte
-	var err error
-	parentEth1Hash, err = s.getParentBlockHash(ctx)
+
+	parentEth1Hash, err := s.getParentBlockHash(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -115,56 +113,14 @@ func (s *Service) getLocalPayload(
 	}
 
 	t := time.Now()
-	var (
-		attr        payloadattribute.Attributer
-		withdrawals []*enginev1.Withdrawal
+	attr := core.BuildPayloadAttributes(
+		s.BeaconCfg(),
+		st,
+		s.Logger(),
+		random,
+		headRoot,
+		uint64(t.Unix()), //#nosec // won't overflow, time cannot be negative.
 	)
-	switch st.Version() {
-	case version.Deneb:
-		withdrawals, err = st.ExpectedWithdrawals()
-		if err != nil {
-			return nil, false, err
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
-			//#nosec:G701 // won't overflow, time cannot be negative.
-			Timestamp:             uint64(t.Unix()),
-			PrevRandao:            random,
-			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
-			Withdrawals:           withdrawals,
-			ParentBeaconBlockRoot: headRoot,
-		})
-		if err != nil {
-			return nil, false, err
-		}
-	case version.Capella:
-		withdrawals, err = st.ExpectedWithdrawals()
-		if err != nil {
-			return nil, false, err
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
-			//#nosec:G701 // won't overflow, time cannot be negative.
-			Timestamp:             uint64(t.Unix()),
-			PrevRandao:            random,
-			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
-			Withdrawals:           withdrawals,
-		})
-		if err != nil {
-			return nil, false, err
-		}
-	case version.Bellatrix:
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
-			//#nosec:G701 // won't overflow, time cannot be negative.
-			Timestamp:             uint64(t.Unix()),
-			PrevRandao:            random,
-			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
-		})
-		if err != nil {
-			return nil, false, err
-		}
-	default:
-		return nil, false, errors.New("unknown beacon state version")
-	}
-
 	var payloadIDBytes *enginev1.PayloadIDBytes
 	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attr)
 	if err != nil {
