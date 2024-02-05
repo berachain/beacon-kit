@@ -42,7 +42,7 @@ message BeaconKitBlock {
   }
 
   // The payload value of the block.
-  uint64 payload_value = 101;
+  string payload_value = 101;
 }
 
 // BeaconBlockBody represents the body of a beacon block.

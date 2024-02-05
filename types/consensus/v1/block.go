@@ -26,6 +26,8 @@
 package v1
 
 import (
+	"math/big"
+
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
@@ -126,22 +128,26 @@ func (b *BeaconKitBlock) AttachExecutionData(
 		return err
 	}
 
-	value, err := executionData.ValueInGwei()
+	value, err := executionData.ValueInWei()
 	if err != nil {
 		return err
 	}
 
 	b.Body.(*BeaconKitBlock_BlockBodyGeneric).BlockBodyGeneric.ExecutionPayload = execData
-	b.PayloadValue = value
+	b.PayloadValue = (*value).String() //nolint:gocritic // suggestion doesn't compile.
 	return nil
 }
 
 // ExecutionData returns the execution data of the block.
 func (b *BeaconKitBlock) Execution() interfaces.ExecutionData {
 	// Safe to ignore the error since we successfully marshalled the data before.
+	value, ok := big.NewInt(0).SetString(b.PayloadValue, 10) //nolint:gomnd // base 10.
+	if !ok {
+		panic("failed to convert payload value to big.Int")
+	}
 	data, err := BytesToExecutionData(
 		b.GetBlockBodyGeneric().ExecutionPayload,
-		Gwei(b.PayloadValue),
+		Wei(value),
 		int(b.GetBlockBodyGeneric().Version))
 	if err != nil {
 		panic(err)

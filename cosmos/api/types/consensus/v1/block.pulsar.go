@@ -109,8 +109,8 @@ func (x *fastReflection_BeaconKitBlock) Range(f func(protoreflect.FieldDescripto
 			}
 		}
 	}
-	if x.PayloadValue != uint64(0) {
-		value := protoreflect.ValueOfUint64(x.PayloadValue)
+	if x.PayloadValue != "" {
+		value := protoreflect.ValueOfString(x.PayloadValue)
 		if !f(fd_BeaconKitBlock_payload_value, value) {
 			return
 		}
@@ -141,7 +141,7 @@ func (x *fastReflection_BeaconKitBlock) Has(fd protoreflect.FieldDescriptor) boo
 			return false
 		}
 	case "types.consensus.v1.BeaconKitBlock.payload_value":
-		return x.PayloadValue != uint64(0)
+		return x.PayloadValue != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconKitBlock"))
@@ -163,7 +163,7 @@ func (x *fastReflection_BeaconKitBlock) Clear(fd protoreflect.FieldDescriptor) {
 	case "types.consensus.v1.BeaconKitBlock.block_body_generic":
 		x.Body = nil
 	case "types.consensus.v1.BeaconKitBlock.payload_value":
-		x.PayloadValue = uint64(0)
+		x.PayloadValue = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconKitBlock"))
@@ -193,7 +193,7 @@ func (x *fastReflection_BeaconKitBlock) Get(descriptor protoreflect.FieldDescrip
 		}
 	case "types.consensus.v1.BeaconKitBlock.payload_value":
 		value := x.PayloadValue
-		return protoreflect.ValueOfUint64(value)
+		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconKitBlock"))
@@ -220,7 +220,7 @@ func (x *fastReflection_BeaconKitBlock) Set(fd protoreflect.FieldDescriptor, val
 		cv := value.Message().Interface().(*BeaconBlockBody)
 		x.Body = &BeaconKitBlock_BlockBodyGeneric{BlockBodyGeneric: cv}
 	case "types.consensus.v1.BeaconKitBlock.payload_value":
-		x.PayloadValue = value.Uint()
+		x.PayloadValue = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconKitBlock"))
@@ -280,7 +280,7 @@ func (x *fastReflection_BeaconKitBlock) NewField(fd protoreflect.FieldDescriptor
 		value := &BeaconBlockBody{}
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	case "types.consensus.v1.BeaconKitBlock.payload_value":
-		return protoreflect.ValueOfUint64(uint64(0))
+		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconKitBlock"))
@@ -369,8 +369,9 @@ func (x *fastReflection_BeaconKitBlock) ProtoMethods() *protoiface.Methods {
 			l = options.Size(x.BlockBodyGeneric)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.PayloadValue != 0 {
-			n += 2 + runtime.Sov(uint64(x.PayloadValue))
+		l = len(x.PayloadValue)
+		if l > 0 {
+			n += 2 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -416,12 +417,14 @@ func (x *fastReflection_BeaconKitBlock) ProtoMethods() *protoiface.Methods {
 			i--
 			dAtA[i] = 0x12
 		}
-		if x.PayloadValue != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.PayloadValue))
+		if len(x.PayloadValue) > 0 {
+			i -= len(x.PayloadValue)
+			copy(dAtA[i:], x.PayloadValue)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.PayloadValue)))
 			i--
 			dAtA[i] = 0x6
 			i--
-			dAtA[i] = 0xa8
+			dAtA[i] = 0xaa
 		}
 		if x.Slot != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.Slot))
@@ -532,10 +535,10 @@ func (x *fastReflection_BeaconKitBlock) ProtoMethods() *protoiface.Methods {
 				x.Body = &BeaconKitBlock_BlockBodyGeneric{v}
 				iNdEx = postIndex
 			case 101:
-				if wireType != 0 {
+				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field PayloadValue", wireType)
 				}
-				x.PayloadValue = 0
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -545,11 +548,24 @@ func (x *fastReflection_BeaconKitBlock) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					x.PayloadValue |= uint64(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.PayloadValue = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1241,7 +1257,7 @@ type BeaconKitBlock struct {
 	//	*BeaconKitBlock_BlockBodyGeneric
 	Body isBeaconKitBlock_Body `protobuf_oneof:"body"`
 	// The payload value of the block.
-	PayloadValue uint64 `protobuf:"varint,101,opt,name=payload_value,json=payloadValue,proto3" json:"payload_value,omitempty"`
+	PayloadValue string `protobuf:"bytes,101,opt,name=payload_value,json=payloadValue,proto3" json:"payload_value,omitempty"`
 }
 
 func (x *BeaconKitBlock) Reset() {
@@ -1285,11 +1301,11 @@ func (x *BeaconKitBlock) GetBlockBodyGeneric() *BeaconBlockBody {
 	return nil
 }
 
-func (x *BeaconKitBlock) GetPayloadValue() uint64 {
+func (x *BeaconKitBlock) GetPayloadValue() string {
 	if x != nil {
 		return x.PayloadValue
 	}
-	return 0
+	return ""
 }
 
 type isBeaconKitBlock_Body interface {
@@ -1388,7 +1404,7 @@ var file_types_consensus_v1_block_proto_rawDesc = []byte{
 	0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x42, 0x6f, 0x64, 0x79, 0x48, 0x00, 0x52, 0x10, 0x62, 0x6c, 0x6f,
 	0x63, 0x6b, 0x42, 0x6f, 0x64, 0x79, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x69, 0x63, 0x12, 0x23, 0x0a,
 	0x0d, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x5f, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x65,
-	0x20, 0x01, 0x28, 0x04, 0x52, 0x0c, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x56, 0x61, 0x6c,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x56, 0x61, 0x6c,
 	0x75, 0x65, 0x42, 0x06, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x22, 0x99, 0x01, 0x0a, 0x0f, 0x42,
 	0x65, 0x61, 0x63, 0x6f, 0x6e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x42, 0x6f, 0x64, 0x79, 0x12, 0x23,
 	0x0a, 0x0d, 0x72, 0x61, 0x6e, 0x64, 0x61, 0x6f, 0x5f, 0x72, 0x65, 0x76, 0x65, 0x61, 0x6c, 0x18,
