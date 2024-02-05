@@ -41,7 +41,7 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
-	block interfaces.ReadOnlyBeaconKitBlock,
+	blk interfaces.ReadOnlyBeaconKitBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -56,7 +56,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// var postState state.BeaconState
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, block)
+		err := s.validateStateTransition(groupCtx, blk)
 		if err != nil {
 			s.Logger().Error("failed to validate state transition", "error", err)
 			return err
@@ -67,7 +67,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, block,
+			groupCtx, blk,
 		); err != nil {
 			s.Logger().Error("failed to notify engine of new payload", "error", err)
 			return err
@@ -80,8 +80,9 @@ func (s *Service) ReceiveBeaconBlock(
 		return err
 	}
 
+	// If the block is valid, we can process it.
 	if err := s.postBlockProcess(
-		ctx, block /*blockCopy, blockRoot, postState,*/, isValidPayload,
+		ctx, blk, isValidPayload,
 	); err != nil {
 		return err
 	}
@@ -114,9 +115,9 @@ func (s *Service) validateStateTransition(
 
 // validateExecutionOnBlock checks the validity of a proposed beacon block.
 func (s *Service) validateExecutionOnBlock(
-	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock,
+	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
 ) (bool, error) {
-	header, err := block.Execution()
+	header, err := blk.Execution()
 	if err != nil {
 		return false, err
 	}

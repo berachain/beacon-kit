@@ -73,7 +73,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	// Build and Register Preblock Handler.
 	app.SetPreBlocker(
 		preblock.NewBeaconPreBlockHandler(
-			&r.cfg.Proposal, r.logger, r.fscp, syncService, nil,
+			&r.cfg.Proposal, r.logger, chainService, syncService, nil,
 		).PreBlocker(),
 	)
 	return nil
