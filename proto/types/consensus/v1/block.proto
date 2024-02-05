@@ -46,10 +46,12 @@ message BeaconKitBlock {
   uint64 slot = 1 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
 
   // BeaconBlockBody contains the body of the beacon block.
-  BeaconBlockBody body = 2;
+  oneof body {
+    BeaconBlockBody block_body_generic = 2;
+  }
 
   // The payload value of the block.
-  uint64 payload_value = 3;
+  uint64 payload_value = 101;
 }
 
 // BeaconBlockBody represents the body of a beacon block.

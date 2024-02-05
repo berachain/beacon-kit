@@ -28,7 +28,6 @@ package v1
 import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
-	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -56,6 +55,11 @@ func NewBeaconKitBlock(
 ) (interfaces.BeaconKitBlock, error) {
 	block := &BeaconKitBlock{
 		Slot: slot,
+		Body: &BeaconKitBlock_BlockBodyGeneric{
+			BlockBodyGeneric: &BeaconBlockBody{
+				Version: int32(version),
+			},
+		},
 	}
 	if executionData != nil {
 		if err := block.AttachExecutionData(executionData); err != nil {
@@ -127,7 +131,7 @@ func (b *BeaconKitBlock) AttachExecutionData(
 		return err
 	}
 
-	b.Body.ExecutionPayload = execData
+	b.Body.(*BeaconKitBlock_BlockBodyGeneric).BlockBodyGeneric.ExecutionPayload = execData
 	b.PayloadValue = value
 	return nil
 }
@@ -136,7 +140,9 @@ func (b *BeaconKitBlock) AttachExecutionData(
 func (b *BeaconKitBlock) Execution() interfaces.ExecutionData {
 	// Safe to ignore the error since we successfully marshalled the data before.
 	data, err := BytesToExecutionData(
-		b.Body.ExecutionPayload, math.Gwei(b.PayloadValue), int(b.Body.Version))
+		b.GetBlockBodyGeneric().ExecutionPayload,
+		Gwei(b.PayloadValue),
+		int(b.GetBlockBodyGeneric().Version))
 	if err != nil {
 		panic(err)
 	}
