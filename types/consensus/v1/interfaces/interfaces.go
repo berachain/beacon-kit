@@ -47,7 +47,7 @@ type ReadOnlyBeaconKitBlock interface {
 	// ProposerAddress() []byte
 	IsNil() bool
 	// Execution returns the execution data of the block.
-	Execution() interfaces.ExecutionData
+	Execution() (interfaces.ExecutionData, error)
 
 	// Marshal is the interface for marshalling a beacon block.
 	Marshal() ([]byte, error)

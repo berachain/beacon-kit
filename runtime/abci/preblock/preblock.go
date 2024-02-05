@@ -101,8 +101,13 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return nil, err
 		}
 
+		execution, err := beaconBlock.Execution()
+		if err != nil {
+			return nil, err
+		}
+
 		// Since the proposal passed, we want to mark the execution block as finalized.
-		h.markBlockAsFinalized(ctx, common.Hash(beaconBlock.Execution().BlockHash()))
+		h.markBlockAsFinalized(ctx, common.Hash(execution.BlockHash()))
 
 		// Since the block is finalized, we can process the logs emitted by the
 		// execution layer and perform the desired state transitions on

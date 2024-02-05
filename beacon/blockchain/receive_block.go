@@ -67,7 +67,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, block.Execution(),
+			groupCtx, block,
 		); err != nil {
 			s.Logger().Error("failed to notify engine of new payload", "error", err)
 			return err
@@ -94,22 +94,33 @@ func (s *Service) ReceiveBeaconBlock(
 // It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
 // but maybe not the most extensible.
 func (s *Service) validateStateTransition(
-	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock,
+	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
 ) error {
-	parentHash := block.Execution().ParentHash()
+	executionData, err := blk.Execution()
+	if err != nil {
+		return err
+	}
+
 	finalizedHash := s.bsp.BeaconState(ctx).GetFinalizedEth1BlockHash()
-	if !bytes.Equal(finalizedHash[:], parentHash) {
+	if !bytes.Equal(finalizedHash[:], executionData.ParentHash()) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
-			parentHash, finalizedHash,
+			executionData.ParentHash(), finalizedHash,
 		)
 	}
+
 	return nil
 }
 
 // validateExecutionOnBlock checks the validity of a proposed beacon block.
-func (s *Service) validateExecutionOnBlock(ctx context.Context, header interfaces.ExecutionData,
+func (s *Service) validateExecutionOnBlock(
+	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock,
 ) (bool, error) {
+	header, err := block.Execution()
+	if err != nil {
+		return false, err
+	}
+
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)
 	if err != nil && errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
 		s.Logger().Error("Failed to validate execution on block", "error", err)
