@@ -28,11 +28,9 @@ package execution
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -50,12 +48,20 @@ func (s *Service) notifyForkchoiceUpdate(
 		}
 	)
 
+	// Cache payloads if we get a payloadID in our response.
+	defer func() {
+		if payloadID != nil {
+			s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, *payloadID)
+		}
+	}()
+
 	// TODO: remember and figure out what the middle param is.
 	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
+		// TODO: ensure this switch statement isn't fucked.
 		switch err { //nolint:errorlint // okay for now.
 		case execution.ErrAcceptedSyncingPayloadStatus:
-			return nil
+			return err
 		case execution.ErrInvalidPayloadStatus:
 			s.Logger().Error("invalid payload status", "error", err)
 			// In Prysm, this code recursively calls back until we find a valid hash we can
@@ -69,31 +75,30 @@ func (s *Service) notifyForkchoiceUpdate(
 			return err
 		}
 	}
-
-	// We can mark this Eth1Block as the latest valid block.
-	// TODO: maybe move to blockchain for IsCanonical and Head checks.
-	// TODO: the whole getting the execution payload off the block /
-	// the whole LastestExecutionPayload Premine thing "PremineGenesisConfig".
-	s.bsp.BeaconState(ctx).SetLastValidHead(fcuConfig.HeadEth1Hash)
-
-	// If the forkchoice update call has an attribute, update the payload ID cache.
-	hasAttr := fcuConfig.Attributes != nil && !fcuConfig.Attributes.IsEmpty()
-	if hasAttr && payloadID != nil {
-		var pID [8]byte
-		copy(pID[:], payloadID[:])
-		s.Logger().Info("forkchoice updated with payload attributes for proposal",
-			"head_eth1_hash", fcuConfig.HeadEth1Hash,
-			"proposing_slot", fcuConfig.ProposingSlot,
-			"payloadID", fmt.Sprintf("%#x", bytesutil.Trunc(payloadID[:])),
-		)
-		s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, pID)
-	} else if hasAttr && payloadID == nil {
-		/*TODO: introduce this feature && !s.cfg.Features.Get().PrepareAllPayloads*/
-		s.Logger().Error("received nil payload ID on VALID engine response",
-			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
-			"proposing_slot", fcuConfig.ProposingSlot,
-		)
-	}
-
+	// forkchoiceUpdatedValidNodeCount.Inc()
+	//
+	//	if err := s.cfg.ForkChoiceStore.SetOptimisticToValid(ctx, arg.headRoot); err != nil {
+	//		log.WithError(err).Error("Could not set head root to valid")
+	//		return nil, nil
+	//	}
+	//
+	// If the forkchoice update call has an attribute, update the proposer payload ID cache.
+	//
+	//	if hasAttr && payloadID != nil {
+	//		var pId [8]byte
+	//		copy(pId[:], payloadID[:])
+	//		log.WithFields(logrus.Fields{
+	//			"blockRoot": fmt.Sprintf("%#x", bytesutil.Trunc(arg.headRoot[:])),
+	//			"headSlot":  headBlk.Slot(),
+	//			"payloadID": fmt.Sprintf("%#x", bytesutil.Trunc(payloadID[:])),
+	//		}).Info("Forkchoice updated with payload attributes for proposal")
+	//		s.cfg.ProposerSlotIndexCache.SetProposerAndPayloadIDs(nextSlot, proposerId, pId, arg.headRoot)
+	//	} else if hasAttr && payloadID == nil && !features.Get().PrepareAllPayloads {
+	//
+	//		log.WithFields(logrus.Fields{
+	//			"blockHash": fmt.Sprintf("%#x", headPayload.BlockHash()),
+	//			"slot":      headBlk.Slot(),
+	//		}).Error("Received nil payload ID on VALID engine response")
+	//	}
 	return nil
 }
