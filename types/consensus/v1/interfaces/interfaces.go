@@ -54,7 +54,7 @@ type ReadOnlyBeaconKitBlock interface {
 	// Unmarshal is the interface for unmarshalling a beacon block.
 	Unmarshal([]byte) error
 
-	Version() uint64
+	Version() int
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.

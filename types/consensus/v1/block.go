@@ -60,6 +60,7 @@ func NewBeaconKitBlock(
 		Slot: slot,
 		Body: &BeaconKitBlock_BlockBodyGeneric{
 			BlockBodyGeneric: &BeaconBlockBody{
+				//#nosec:G701 // won't overflow, version is never negative.
 				Version: int64(version),
 			},
 		},
@@ -152,6 +153,6 @@ func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 		int(b.GetBlockBodyGeneric().Version))
 }
 
-func (b *BeaconKitBlock) Version() uint64 {
-	return uint64(b.GetBlockBodyGeneric().Version)
+func (b *BeaconKitBlock) Version() int {
+	return int(b.GetBlockBodyGeneric().Version)
 }

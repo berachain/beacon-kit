@@ -61,16 +61,23 @@ func (s *Service) getLocalPayload(
 	// 	return nil, false, err
 	// }
 
-	// parentHash := p.ParentHash()
-	// WILL ALWAYS MISS
-	payloadID, ok := s.PayloadIDCache.PayloadID(slot, [32]byte{})
-
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
 
+	// Otherwise we did not have a payload in the cache and we must build a new payload.
+
+	// log.WithFields(logFields).Debug("payload ID cache miss")vs
+	var parentEth1Hash []byte
+	var err error
+	parentEth1Hash, err = s.getParentBlockHash(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
 	// If we have a payload ID in the cache, we can return the payload from the cache.
+	payloadID, ok := s.PayloadIDCache.PayloadID(slot, [32]byte(parentEth1Hash))
 	if ok && payloadID != [8]byte{} {
 		// Payload ID is cache hit. Return the cached payload ID.
 		var pid primitives.PayloadID
@@ -78,7 +85,7 @@ func (s *Service) getLocalPayload(
 		// payloadIDCacheHit.Inc()
 		var payload interfaces.ExecutionData
 		var overrideBuilder bool
-		payload, _, overrideBuilder, err := s.en.GetPayload(ctx, pid, slot)
+		payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pid, slot)
 		switch {
 		case err == nil:
 			// bundleCache.add(slot, bundle)
@@ -88,16 +95,6 @@ func (s *Service) getLocalPayload(
 		default:
 			return nil, false, errors.Wrap(err, "could not get cached payload from execution client")
 		}
-	}
-
-	// Otherwise we did not have a payload in the cache and we must build a new payload.
-
-	// log.WithFields(logFields).Debug("payload ID cache miss")vs
-	var parentHash []byte
-	var err error
-	parentHash, err = s.getParentBlockHash(ctx)
-	if err != nil {
-		return nil, false, err
 	}
 
 	// payloadIDCacheMiss.Inc()
@@ -112,7 +109,7 @@ func (s *Service) getLocalPayload(
 	finalizedBlockHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 
 	f := &enginev1.ForkchoiceState{
-		HeadBlockHash:      parentHash,
+		HeadBlockHash:      parentEth1Hash,
 		SafeBlockHash:      justifiedBlockHash[:],
 		FinalizedBlockHash: finalizedBlockHash[:],
 	}
@@ -129,6 +126,7 @@ func (s *Service) getLocalPayload(
 			return nil, false, err
 		}
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
+			//#nosec:G701 // won't overflow, time cannot be negative.
 			Timestamp:             uint64(t.Unix()),
 			PrevRandao:            random,
 			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
@@ -144,6 +142,7 @@ func (s *Service) getLocalPayload(
 			return nil, false, err
 		}
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
+			//#nosec:G701 // won't overflow, time cannot be negative.
 			Timestamp:             uint64(t.Unix()),
 			PrevRandao:            random,
 			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
@@ -154,6 +153,7 @@ func (s *Service) getLocalPayload(
 		}
 	case version.Bellatrix:
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
+			//#nosec:G701 // won't overflow, time cannot be negative.
 			Timestamp:             uint64(t.Unix()),
 			PrevRandao:            random,
 			SuggestedFeeRecipient: s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
@@ -171,7 +171,7 @@ func (s *Service) getLocalPayload(
 		return nil, false, errors.Wrap(err, "could not prepare payload")
 	}
 	if payloadIDBytes == nil {
-		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentHash)
+		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
 	payload, _, overrideBuilder, err := s.en.GetPayload(ctx, *payloadIDBytes, slot)
