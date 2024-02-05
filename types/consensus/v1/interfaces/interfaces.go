@@ -43,13 +43,16 @@ type BeaconKitBlock interface {
 
 // ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconKitBlock interface {
-	Marshal() ([]byte, error)
-	Unmarshal([]byte) error
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
-	// ExecutionData returns the execution data of the block.
+	// Execution returns the execution data of the block.
 	Execution() interfaces.ExecutionData
+
+	// Marshal is the interface for marshalling a beacon block.
+	Marshal() ([]byte, error)
+	// Unmarshal is the interface for unmarshalling a beacon block.
+	Unmarshal([]byte) error
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.

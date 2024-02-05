@@ -138,7 +138,7 @@ func (b *BeaconKitBlock) AttachExecution(
 	return nil
 }
 
-// ExecutionData returns the execution data of the block.
+// Execution returns the execution data of the block.
 func (b *BeaconKitBlock) Execution() interfaces.ExecutionData {
 	// Safe to ignore the error since we successfully marshalled the data before.
 	value, ok := big.NewInt(0).SetString(b.PayloadValue, 10) //nolint:gomnd // base 10.
