@@ -56,19 +56,12 @@ func (s *Service) getLocalPayload(
 	// 	"slot":           slot,
 	// 	"headRoot":       fmt.Sprintf("%#x", headRoot),
 	// }
-	// p, err := blk.Execution()
-	// if err != nil {
-	// 	return nil, false, err
-	// }
 
+	// TODO: Proposer-Builder Seperation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
-
-	// Otherwise we did not have a payload in the cache and we must build a new payload.
-
-	// log.WithFields(logFields).Debug("payload ID cache miss")vs
 
 	parentEth1Hash, err := s.getParentBlockHash(ctx)
 	if err != nil {
@@ -104,6 +97,8 @@ func (s *Service) getLocalPayload(
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
 
+	// TODO: Randao
+	random := make([]byte, 32) //nolint:gomnd // todo: randao
 	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 	// if err != nil {
 	// 	return nil, false, err
@@ -118,7 +113,6 @@ func (s *Service) getLocalPayload(
 
 	// Build the payload attributes.
 	t := time.Now()              // todo: the proper mathematics for time must be done.
-	random := make([]byte, 32)   //nolint:gomnd // todo: randao
 	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
 	attr := core.BuildPayloadAttributes(
 		s.BeaconCfg(),
