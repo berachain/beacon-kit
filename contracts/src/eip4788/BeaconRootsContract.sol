@@ -55,7 +55,7 @@ contract BeaconKitRootsContract {
     //     evm.return(root)
     function get() internal view returns (bytes32) {
         assembly {
-            if eq(calldatasize(), 32) {
+            if iszero(eq(calldatasize(), 32)) {
                 revert(0, 0)
             }
             if eq(calldataload(0), 0) {
