@@ -2,8 +2,8 @@
 pragma solidity ^0.8.24;
 
 contract BeaconKitRootsContract {
-
     uint256 constant HISTORY_BUFFER_LENGTH = 256;
+
     fallback() external {
         address systemAddress = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
         if (msg.sender == systemAddress) {
@@ -14,7 +14,6 @@ contract BeaconKitRootsContract {
             get();
         }
     }
-
 
     // From: https://eips.ethereum.org/EIPS/eip-4788
     //
@@ -32,7 +31,6 @@ contract BeaconKitRootsContract {
             sstore(root_idx, calldataload(0))
         }
     }
-    
 
     // From: https://eips.ethereum.org/EIPS/eip-4788
     //
@@ -55,26 +53,14 @@ contract BeaconKitRootsContract {
     //     evm.return(root)
     function get() internal view returns (bytes32) {
         assembly {
-            if eq(calldatasize(), 32) {
-                revert(0, 0)
-            }
-            if eq(calldataload(0), 0) {
-                revert(0, 0)
-            }
+            if eq(calldatasize(), 32) { revert(0, 0) }
+            if eq(calldataload(0), 0) { revert(0, 0) }
             let timestamp_idx := mod(calldataload(0), HISTORY_BUFFER_LENGTH)
             let _timestamp := sload(timestamp_idx)
-            if eq(_timestamp, calldataload(0)) {
-                revert(0, 0)
-            }
+            if eq(_timestamp, calldataload(0)) { revert(0, 0) }
             let root_idx := add(timestamp_idx, HISTORY_BUFFER_LENGTH)
             let root := sload(root_idx)
             return(root, 32)
         }
     }
-    
 }
-
-
-
-
-
