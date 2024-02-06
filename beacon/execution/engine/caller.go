@@ -40,7 +40,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
@@ -79,11 +79,11 @@ func (s *engineCaller) NewPayload(
 		) * time.Second)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
-	result := &pb.PayloadStatus{}
+	result := &enginev1.PayloadStatus{}
 
 	switch payload.Proto().(type) {
-	case *pb.ExecutionPayload:
-		payloadPb, ok := payload.Proto().(*pb.ExecutionPayload)
+	case *enginev1.ExecutionPayload:
+		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayload)
 		if !ok {
 			return nil, errors.New("execution data must be a Bellatrix or Capella execution payload")
 		}
@@ -92,8 +92,8 @@ func (s *engineCaller) NewPayload(
 		if err != nil {
 			return nil, s.handleRPCError(err)
 		}
-	case *pb.ExecutionPayloadCapella:
-		payloadPb, ok := payload.Proto().(*pb.ExecutionPayloadCapella)
+	case *enginev1.ExecutionPayloadCapella:
+		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayloadCapella)
 		if !ok {
 			return nil, errors.New("execution data must be a Capella execution payload")
 		}
@@ -102,8 +102,8 @@ func (s *engineCaller) NewPayload(
 		if err != nil {
 			return nil, s.handleRPCError(err)
 		}
-	case *pb.ExecutionPayloadDeneb:
-		payloadPb, ok := payload.Proto().(*pb.ExecutionPayloadDeneb)
+	case *enginev1.ExecutionPayloadDeneb:
+		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayloadDeneb)
 		if !ok {
 			return nil, errors.New("execution data must be a Deneb execution payload")
 		}
@@ -123,15 +123,15 @@ func (s *engineCaller) NewPayload(
 	}
 
 	switch result.GetStatus() {
-	case pb.PayloadStatus_INVALID_BLOCK_HASH:
+	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
 		return nil, execution.ErrInvalidBlockHashPayloadStatus
-	case pb.PayloadStatus_ACCEPTED, pb.PayloadStatus_SYNCING:
+	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
 		return nil, execution.ErrAcceptedSyncingPayloadStatus
-	case pb.PayloadStatus_INVALID:
+	case enginev1.PayloadStatus_INVALID:
 		return result.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
-	case pb.PayloadStatus_VALID:
+	case enginev1.PayloadStatus_VALID:
 		return result.GetLatestValidHash(), nil
-	case pb.PayloadStatus_UNKNOWN:
+	case enginev1.PayloadStatus_UNKNOWN:
 		return nil, execution.ErrUnknownPayloadStatus
 	default:
 		return nil, execution.ErrUnknownPayloadStatus
@@ -140,8 +140,8 @@ func (s *engineCaller) NewPayload(
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineCaller) ForkchoiceUpdated(
-	ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
-) (*primitives.PayloadID, []byte, error) {
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
+) (*enginev1.PayloadIDBytes, []byte, error) {
 	d := time.Now().Add(
 		time.Duration(
 			s.engineTimeout,
@@ -196,19 +196,15 @@ func (s *engineCaller) ForkchoiceUpdated(
 	}
 	resp := result.Status
 	switch resp.GetStatus() {
-	case pb.PayloadStatus_ACCEPTED, pb.PayloadStatus_SYNCING:
+	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
 		return nil, nil, execution.ErrAcceptedSyncingPayloadStatus
-	case pb.PayloadStatus_INVALID:
+	case enginev1.PayloadStatus_INVALID:
 		return nil, resp.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
-	case pb.PayloadStatus_VALID:
-		if result.PayloadId == nil {
-			return nil, resp.GetLatestValidHash(), nil
-		}
-		pid := primitives.PayloadID(*result.PayloadId)
-		return &pid, resp.GetLatestValidHash(), nil
-	case pb.PayloadStatus_UNKNOWN:
+	case enginev1.PayloadStatus_VALID:
+		return result.PayloadId, resp.GetLatestValidHash(), nil
+	case enginev1.PayloadStatus_UNKNOWN:
 		return nil, nil, execution.ErrUnknownPayloadStatus
-	case pb.PayloadStatus_INVALID_BLOCK_HASH:
+	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
 		return nil, nil, execution.ErrInvalidBlockHashPayloadStatus
 	}
 	return nil, nil, execution.ErrUnknownPayloadStatus
@@ -218,7 +214,7 @@ func (s *engineCaller) ForkchoiceUpdated(
 // It returns the execution data as well as the blobs bundle.
 func (s *engineCaller) GetPayload(
 	ctx context.Context, payloadID [8]byte, slot primitives.Slot,
-) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error) {
+) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	d := time.Now().Add(
 		time.Duration(
 			s.engineTimeout,
@@ -226,9 +222,9 @@ func (s *engineCaller) GetPayload(
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 	if primitives.Epoch(slot) >= s.beaconCfg.DenebForkEpoch {
-		result := &pb.ExecutionPayloadDenebWithValueAndBlobsBundle{}
+		result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV3, pb.PayloadIDBytes(payloadID))
+			result, execution.GetPayloadMethodV3, enginev1.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -241,9 +237,9 @@ func (s *engineCaller) GetPayload(
 	}
 
 	if primitives.Epoch(slot) >= s.beaconCfg.CapellaForkEpoch {
-		result := &pb.ExecutionPayloadCapellaWithValue{}
+		result := &enginev1.ExecutionPayloadCapellaWithValue{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV2, pb.PayloadIDBytes(payloadID))
+			result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID))
 		if err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
@@ -255,9 +251,9 @@ func (s *engineCaller) GetPayload(
 		return ed, nil, false, nil
 	}
 
-	result := &pb.ExecutionPayload{}
+	result := &enginev1.ExecutionPayload{}
 	err := s.Eth1Client.Client.Client().CallContext(ctx,
-		result, execution.GetPayloadMethod, pb.PayloadIDBytes(payloadID))
+		result, execution.GetPayloadMethod, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
@@ -271,8 +267,8 @@ func (s *engineCaller) GetPayload(
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
 func (s *engineCaller) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
-) (*pb.ExecutionBlock, error) {
-	result := &pb.ExecutionBlock{}
+) (*enginev1.ExecutionBlock, error) {
+	result := &enginev1.ExecutionBlock{}
 	err := s.Eth1Client.Client.Client().CallContext(
 		ctx, result, "eth_getBlockByHash", hash, withTxs)
 	return result, s.handleRPCError(err)

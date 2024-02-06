@@ -31,6 +31,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
+// Beacon is the configuration for the beacon chain.
 type Beacon struct {
 	// AltairForkEpoch is used to represent the assigned fork epoch for altair.
 	AltairForkEpoch primitives.Epoch
@@ -41,19 +42,42 @@ type Beacon struct {
 	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
 	DenebForkEpoch primitives.Epoch
 
+	// Validator is the configuration for the validator. Only utilized when
+	// this node is in the active validator set.
+	Validator Validator
+}
+
+// Validator is the configuration for the validator. Only utilized when
+// this node is in the active validator set.
+type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction fees
 	// produced by any blocks from this node. Only takes effect post bellatrix.
 	SuggestedFeeRecipient common.Address
+
+	// Grafitti is the string that will be included in the graffiti field of the beacon block.
+	Graffiti string
+
+	// PrepareAllPayloads informs the engine to prepare a block on every slot.
+	PrepareAllPayloads bool
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
-		AltairForkEpoch:       0,
-		BellatrixForkEpoch:    0,
-		CapellaForkEpoch:      0,
-		DenebForkEpoch:        primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		AltairForkEpoch:    0,
+		BellatrixForkEpoch: 0,
+		CapellaForkEpoch:   0,
+		DenebForkEpoch:     primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		Validator:          DefaultValidatorConfig(),
+	}
+}
+
+// DefaultValidatorConfig returns the default validator configuration.
+func DefaultValidatorConfig() Validator {
+	return Validator{
 		SuggestedFeeRecipient: common.Address{},
+		Graffiti:              "",
+		PrepareAllPayloads:    true,
 	}
 }
 

@@ -35,6 +35,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	"github.com/itsdevbear/bolaris/beacon/validator"
 	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
@@ -43,6 +44,7 @@ import (
 // the proposal processes.
 type Handler struct {
 	cfg             *config.Proposal
+	validator       *validator.Service
 	beaconChain     *blockchain.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
@@ -51,15 +53,17 @@ type Handler struct {
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
 	cfg *config.Proposal,
+	validator *validator.Service,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
 		cfg:             cfg,
+		validator:       validator,
+		beaconChain:     beaconChain,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
-		beaconChain:     beaconChain,
 	}
 }
 
@@ -71,10 +75,10 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// We start by requesting a block from the execution client. This may be from pulling
-	// a previously built payload from the local cache via `getPayload()` or it may be
+	// We start by requesting the validator service to build us a block. This may
+	// be from pulling a previously built payload from the local cache or it may be
 	// by asking for a forkchoice from the execution client, depending on timing.
-	block, err := h.beaconChain.GetOrBuildBlock(
+	block, err := h.validator.BuildBeaconBlock(
 		ctx, primitives.Slot(req.Height),
 	)
 

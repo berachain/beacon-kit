@@ -23,16 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package service
 
-// Option is a function type that takes a pointer to a Service and returns an error.
-type Option func(*Service) error
+import (
+	"context"
 
-// WithExecutionService is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) Option {
-	return func(s *Service) error {
-		s.en = en
-		return nil
-	}
+	"github.com/itsdevbear/bolaris/types/state"
+)
+
+type BeaconStateProvider interface {
+	BeaconState(ctx context.Context) state.BeaconState
 }

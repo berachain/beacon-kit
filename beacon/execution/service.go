@@ -44,15 +44,8 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-
-	// Forkchoice Related Fields
-	//
-	// bsp is the fork choice store provider.
-	bsp BeaconStateProvider
 	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.PayloadIDCache
-
-	stopCh chan *struct{}
 }
 
 // New creates a new Service with the provided options.
@@ -61,9 +54,7 @@ func New(
 	opts ...Option,
 ) *Service {
 	ec := &Service{
-		BaseService:  base,
-		payloadCache: cache.NewPayloadIDCache(),
-		stopCh:       make(chan *struct{}),
+		BaseService: base,
 	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
@@ -75,15 +66,11 @@ func New(
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {
-	// go s.loop()
-}
+func (s *Service) Start() {}
 
 // Stop terminates all goroutines belonging to the service,
 // blocking until they are all terminated.
 func (s *Service) Stop() error {
-	s.Logger().Info("stopping service...")
-	// <-s.stopCh
 	return nil
 }
 

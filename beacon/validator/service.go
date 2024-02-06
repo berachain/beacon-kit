@@ -23,16 +23,46 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package validator
 
-// Option is a function type that takes a pointer to a Service and returns an error.
-type Option func(*Service) error
+import (
+	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
+)
 
-// WithExecutionService is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) Option {
-	return func(s *Service) error {
-		s.en = en
-		return nil
+type BlockBuilder interface {
+}
+
+type Service struct {
+	service.BaseService
+	en           engine.Caller
+	payloadCache *cache.PayloadIDCache
+}
+
+func NewService(
+	base service.BaseService,
+	opts ...Option,
+) *Service {
+	s := &Service{
+		BaseService: base,
 	}
+
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			panic(err)
+		}
+	}
+	return s
+}
+
+func (s *Service) Start() {
+}
+
+func (s *Service) Stop() error {
+	return nil
+}
+
+func (s *Service) Status() error {
+	return nil
 }

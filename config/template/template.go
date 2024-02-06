@@ -28,43 +28,47 @@ package template
 const (
 	ConfigTemplate = `
 ###############################################################################
-###                                 Polaris                                 ###
+###                                BeaconKit                                ###
 ###############################################################################
-# General Polaris settings
-[polaris]
-
 [beacon-kit.execution-client]
 # HTTP url of the execution client JSON-RPC endpoint.
-rpc-dial-url = "{{ .Polaris.ExecutionClient.RPCDialURL }}"
+rpc-dial-url = "{{ .BeaconKit.ExecutionClient.RPCDialURL }}"
 
 # RPC timeout for execution client requests.
-rpc-timeout = "{{ .Polaris.ExecutionClient.RPCTimeout }}"
+rpc-timeout = "{{ .BeaconKit.ExecutionClient.RPCTimeout }}"
 
 # Number of retries before shutting down consensus client.
-rpc-retries = "{{.Polaris.ExecutionClient.RPCRetries}}"
+rpc-retries = "{{.BeaconKit.ExecutionClient.RPCRetries}}"
 
 # Path to the execution client JWT-secret
-jwt-secret-path = "{{.Polaris.ExecutionClient.JWTSecretPath}}"
+jwt-secret-path = "{{.BeaconKit.ExecutionClient.JWTSecretPath}}"
 
 [beacon-kit.beacon-config]
 # Altair fork epoch
-altair-fork-epoch = {{.Polaris.Beacon.AltairForkEpoch}}
+altair-fork-epoch = {{.BeaconKit.Beacon.AltairForkEpoch}}
 
 # Bellatrix fork epoch
-bellatrix-fork-epoch = {{.Polaris.Beacon.BellatrixForkEpoch}}
+bellatrix-fork-epoch = {{.BeaconKit.Beacon.BellatrixForkEpoch}}
 
 # Capella fork epoch
-capella-fork-epoch = {{.Polaris.Beacon.CapellaForkEpoch}}
+capella-fork-epoch = {{.BeaconKit.Beacon.CapellaForkEpoch}}
 
 # Deneb fork epoch
-deneb-fork-epoch = {{.Polaris.Beacon.DenebForkEpoch}}
+deneb-fork-epoch = {{.BeaconKit.Beacon.DenebForkEpoch}}
 
+[beacon-kit.beacon-config.validator]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
 # from this node.
-suggested-fee-recipient = "{{.Polaris.Beacon.SuggestedFeeRecipient}}"
+suggested-fee-recipient = "{{.BeaconKit.Beacon.Validator.SuggestedFeeRecipient}}"
+
+# Graffiti string that will be included in the graffiti field of the beacon block.
+graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
+
+# Prepare all payloads informs the engine to prepare a block on every slot.
+prepare-all-payloads = {{.BeaconKit.Beacon.Validator.PrepareAllPayloads}}
 
 [beacon-kit.proposal]
 # Position of the beacon block in the proposal
-beacon-kit-block-proposal-position = {{.Polaris.Proposal.BeaconKitBlockPosition}}
+beacon-kit-block-proposal-position = {{.BeaconKit.Proposal.BeaconKitBlockPosition}}
 `
 )

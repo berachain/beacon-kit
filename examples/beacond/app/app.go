@@ -106,7 +106,7 @@ type BeaconApp struct {
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
-	// polaris required keeper
+	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
 	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
 }

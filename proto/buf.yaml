@@ -48,4 +48,4 @@ lint:
     - RPC_REQUEST_STANDARD_NAME
     - ENUM_NO_ALLOW_ALIAS
   ignore:
-    - third_party
+    - proto/third_party

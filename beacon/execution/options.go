@@ -27,23 +27,23 @@ package execution
 
 import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 )
 
 type Option func(*Service) error
-
-// WithBeaconStateProvider is an option to set the BeaconStateProvider
-// for the Service.
-func WithBeaconStateProvider(bsp BeaconStateProvider) Option {
-	return func(s *Service) error {
-		s.bsp = bsp
-		return nil
-	}
-}
 
 // WithEngineCaller is an option to set the Caller for the Service.
 func WithEngineCaller(ec engine.Caller) Option {
 	return func(s *Service) error {
 		s.engine = ec
+		return nil
+	}
+}
+
+// WithPayloadCache is an option to set the PayloadIDCache for the Service.
+func WithPayloadCache(pc *cache.PayloadIDCache) Option {
+	return func(s *Service) error {
+		s.payloadCache = pc
 		return nil
 	}
 }

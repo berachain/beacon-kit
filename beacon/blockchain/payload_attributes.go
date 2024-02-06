@@ -29,12 +29,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/itsdevbear/bolaris/beacon/core"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
-// getPayloadAttributes returns the payload attributes for the given state and slot.
+// getPayloadAttribute returns the payload attributes for the given state and slot.
 // The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(
@@ -46,9 +45,7 @@ func (s *Service) getPayloadAttribute(
 		// TODO: figure out how to fix this, in ethereum I think we need to use the slot to timestamp
 		// for the slot math thingy to calculate what the correct timestamp would be for the block we
 		// are building.
-		t          = uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
-		st         = s.bsp.BeaconState(ctx)
-		emptyAttri = payloadattribute.EmptyWithVersion(st.Version())
+		t = uint64(time.Now().Unix()) + 1 //#nosec:G701 // won't overflow, time cannot be negative.
 		// TODO: RANDAO
 		prevRando = make([]byte, 32) //nolint:gomnd // TODO: later
 		// TODO: Cancun
@@ -63,60 +60,12 @@ func (s *Service) getPayloadAttribute(
 	// 	return emptyAttri
 	// }
 
-	var attr payloadattribute.Attributer
-	switch st.Version() {
-	case version.Deneb:
-		withdrawals, err := st.ExpectedWithdrawals()
-		if err != nil {
-			s.Logger().Error(
-				"Could not get expected withdrawals to get payload attribute", "error", err)
-			return emptyAttri
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: s.BeaconCfg().SuggestedFeeRecipient[:],
-			Withdrawals:           withdrawals,
-			ParentBeaconBlockRoot: headRoot,
-		})
-		if err != nil {
-			s.Logger().Error("Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	case version.Capella:
-		withdrawals, err := st.ExpectedWithdrawals()
-		if err != nil {
-			s.Logger().Error(
-				"Could not get expected withdrawals to get payload attribute", "error", err)
-			return emptyAttri
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: s.BeaconCfg().SuggestedFeeRecipient[:],
-			Withdrawals:           withdrawals,
-		})
-		if err != nil {
-			s.Logger().Error(
-				"Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	case version.Bellatrix:
-		var err error
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: s.BeaconCfg().SuggestedFeeRecipient[:],
-		})
-		if err != nil {
-			s.Logger().Error("Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	default:
-		s.Logger().Error(
-			"Could not get payload attribute due to unknown state version", "version", st.Version())
-		return emptyAttri
-	}
-
-	return attr
+	return core.BuildPayloadAttributes(
+		s.BeaconCfg(),
+		s.BeaconState(ctx),
+		s.Logger(),
+		prevRando,
+		headRoot,
+		t,
+	)
 }

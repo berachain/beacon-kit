@@ -38,9 +38,11 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/beacon/validator"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
@@ -97,7 +99,12 @@ func NewDefaultBeaconKitRuntime(
 	}
 
 	// Create the base service, we will the  create shallow copies for each service.
-	baseService := service.NewBaseService(&cfg.Beacon, gcd, logger)
+	baseService := service.NewBaseService(
+		&cfg.Beacon, bsp, gcd, logger,
+	)
+
+	// Create a payloadCache for the execution service and validator service to share.
+	payloadCache := cache.NewPayloadIDCache()
 
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
@@ -126,14 +133,13 @@ func NewDefaultBeaconKitRuntime(
 	// Build the execution service.
 	executionService := execution.New(
 		baseService.WithName("execution"),
-		execution.WithBeaconStateProvider(bsp),
 		execution.WithEngineCaller(engineCaller),
+		execution.WithPayloadCache(payloadCache),
 	)
 
 	// Build the blockchain service
 	chainService := blockchain.NewService(
 		baseService.WithName("blockchain"),
-		blockchain.WithBeaconStateProvider(bsp),
 		blockchain.WithExecutionService(executionService),
 	)
 
@@ -141,8 +147,14 @@ func NewDefaultBeaconKitRuntime(
 	syncService := initialsync.NewService(
 		baseService.WithName("initial-sync"),
 		initialsync.WithEthClient(eth1Client),
-		initialsync.WithBeaconStateProvider(bsp),
 		initialsync.WithExecutionService(executionService),
+	)
+
+	// Build the validator service.
+	validatorService := validator.NewService(
+		baseService.WithName("validator"),
+		validator.WithEngineCaller(engineCaller),
+		validator.WithPayloadCache(payloadCache),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
@@ -152,6 +164,7 @@ func NewDefaultBeaconKitRuntime(
 		WithService(executionService),
 		WithService(chainService),
 		WithService(notificationService),
+		WithService(validatorService),
 		WithLogger(logger),
 		WithBeaconStateProvider(bsp),
 		WithDispatcher(gcd),

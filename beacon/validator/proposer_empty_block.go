@@ -23,16 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package validator
 
-// Option is a function type that takes a pointer to a Service and returns an error.
-type Option func(*Service) error
+import (
+	"fmt"
 
-// WithExecutionService is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) Option {
-	return func(s *Service) error {
-		s.en = en
-		return nil
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+)
+
+func (s *Service) getEmptyBlock(slot primitives.Slot) (interfaces.BeaconKitBlock, error) {
+	var sBlk interfaces.BeaconKitBlock
+	var err error
+	switch s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)) {
+	case version.Deneb:
+		// TODO: SUPPORT
+		panic("ERROR: Unsupported version")
+	case version.Capella:
+		sBlk, err = consensusv1.NewBeaconKitBlock(slot, nil, version.Capella)
+		if err != nil {
+			return nil, fmt.Errorf("could not initialize block for proposal: %w", err)
+		}
+	default:
+		// TODO: we should just hardcode in beacon-kit that all forks capella and early
+		// are always enabled. Need to make this change around the entire codebase.
+		panic("ERROR: Unsupported version")
 	}
+	return sBlk, err
 }

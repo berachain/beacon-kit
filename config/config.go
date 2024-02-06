@@ -33,7 +33,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Config is the main configuration struct for the Polaris chain.
+// Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
 	// ExecutionClient is the configuration for the execution client.
 	ExecutionClient ExecutionClient
@@ -45,7 +45,7 @@ type Config struct {
 	Proposal Proposal
 }
 
-// DefaultConfig returns the default configuration for a polaris chain.
+// DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
 		ExecutionClient: DefaultExecutionClientConfig(),
@@ -134,8 +134,18 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 		return nil, err
 	}
 
-	if conf.Beacon.SuggestedFeeRecipient, err = parser.GetCommonAddress(
+	if conf.Beacon.Validator.SuggestedFeeRecipient, err = parser.GetCommonAddress(
 		flags.SuggestedFeeRecipient,
+	); err != nil {
+		return nil, err
+	}
+
+	if conf.Beacon.Validator.Graffiti, err = parser.GetString(flags.Graffiti); err != nil {
+		return nil, err
+	}
+
+	if conf.Beacon.Validator.PrepareAllPayloads, err = parser.GetBool(
+		flags.PrepareAllPayloads,
 	); err != nil {
 		return nil, err
 	}
@@ -160,5 +170,5 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.ExecutionClient.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
-		defaultCfg.Beacon.SuggestedFeeRecipient.Hex(), "suggested fee recipient")
+		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(), "suggested fee recipient")
 }

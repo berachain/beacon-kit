@@ -23,48 +23,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package interfaces
+package validator
 
 import (
-	"time"
+	"context"
 
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
-// ExecutionData is the interface for the execution data of a block.
-type ExecutionData = interfaces.ExecutionData
+// BuildBeaconBlock builds a new beacon block.
+func (s *Service) BuildBeaconBlock(
+	ctx context.Context, _ primitives.Slot,
+) (interfaces.BeaconKitBlock, error) {
+	// The goal here is to acquire a payload whose parent is the previously
+	// finalized block, such that, if this payload is accepted, it will be
+	// the next finalized block in the chain. A byproduct of this design
+	// is that we get the nice property of lazily propogating the finalized
+	// and safe block hashes to the execution client.
+	var (
+		beaconState   = s.BeaconState(ctx)
+		executionData interfaces.ExecutionData
+	)
 
-// BeaconKitBlock is the interface for a beacon block.
-type BeaconKitBlock interface {
-	ReadOnlyBeaconKitBlock
-	WriteOnlyBeaconKitBlock
-}
+	// Create a new empty block from the current state.
+	beaconBlock, err := s.getEmptyBlock(beaconState.Slot())
+	if err != nil {
+		return nil, err
+	}
 
-// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconKitBlock interface {
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	// Execution returns the execution data of the block.
-	Execution() (interfaces.ExecutionData, error)
+	executionData, overrideBuilder, err := s.getLocalPayload(ctx, beaconBlock, beaconState)
+	if err != nil {
+		return nil, err
+	}
 
-	// Marshal is the interface for marshalling a beacon block.
-	Marshal() ([]byte, error)
-	// Unmarshal is the interface for unmarshalling a beacon block.
-	Unmarshal([]byte) error
+	// TODO: allow external block builders to override the payload.
+	_ = overrideBuilder
 
-	Version() int
-}
+	// Assemble a new block with the payload.
+	if err = beaconBlock.AttachExecution(executionData); err != nil {
+		return nil, err
+	}
 
-// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(interfaces.ExecutionData) error
-}
-
-// ABCIRequest is the interface for an ABCI request.
-type ABCIRequest interface {
-	GetHeight() int64
-	GetTime() time.Time
-	GetTxs() [][]byte
+	// Return the block.
+	return beaconBlock, nil
 }

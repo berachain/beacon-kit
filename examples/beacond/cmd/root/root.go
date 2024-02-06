@@ -120,7 +120,7 @@ func NewRootCmd() *cobra.Command {
 
 	rootCmd := &cobra.Command{
 		Use:   "beacond",
-		Short: "polaris sample app",
+		Short: "beacon-kit sample app",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
@@ -192,7 +192,7 @@ func initAppConfig() (string, interface{}) {
 
 	type CustomAppConfig struct {
 		serverconfig.Config
-		Polaris beaconconfig.Config `mapstructure:"polaris"`
+		BeaconKit beaconconfig.Config `mapstructure:"beacon-kit"`
 	}
 
 	// Optionally allow the chain developer to overwrite the SDK's default
@@ -219,8 +219,8 @@ func initAppConfig() (string, interface{}) {
 	srvCfg.Telemetry.MetricsSink = "mem"
 
 	customAppConfig := CustomAppConfig{
-		Config:  *srvCfg,
-		Polaris: *beaconconfig.DefaultConfig(),
+		Config:    *srvCfg,
+		BeaconKit: *beaconconfig.DefaultConfig(),
 	}
 
 	customAppTemplate := serverconfig.DefaultConfigTemplate + beacontemplate.ConfigTemplate

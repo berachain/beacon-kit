@@ -23,6 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package validator
 
-const payloadBuildDelay = 2
+const (
+	// MetricGetBuiltPayloadHit is used to count the number of times a built
+	// payload retrieval is attempted and found.
+	MetricsPayloadIDCacheHit = "beaconkit.validator.payload-id-cache-hit"
+
+	// MetricGetBuiltPayloadMiss is used to count the number of times a built
+	// payload retrieval is attempted but not found.
+	MetricsPayloadIDCacheMiss = "beaconkit.validator.payload-id-cache-miss"
+)
