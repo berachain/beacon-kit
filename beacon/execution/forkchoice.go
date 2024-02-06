@@ -67,11 +67,9 @@ func (s *Service) notifyForkchoiceUpdate(
 	// TODO: remember and figure out what the middle param is.
 	payloadIDBytes, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
-		// TODO: ensure this switch statement isn't fucked.
-		switch err { //nolint:errorlint // okay for now.
-		case execution.ErrAcceptedSyncingPayloadStatus:
+		if errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
 			return err
-		case execution.ErrInvalidPayloadStatus:
+		} else if errors.Is(err, execution.ErrInvalidPayloadStatus) {
 			s.Logger().Error("invalid payload status", "error", err)
 			// In Prysm, this code recursively calls back until we find a valid hash we can
 			// insert. In BeaconKit, we don't have the nice ability to do this, *but* in
@@ -79,10 +77,9 @@ func (s *Service) notifyForkchoiceUpdate(
 			// to CometBFT. Essentially, if we get an invalid payload status here, something
 			// higher up must've gone wrong and thus we don't really need the retry here.
 			return errors.New("invalid payload")
-		default:
-			s.Logger().Error("undefined execution engine error", "error", err)
-			return err
 		}
+		s.Logger().Error("undefined execution engine error", "error", err)
+		return err
 	}
 	// forkchoiceUpdatedValidNodeCount.Inc()
 	//
