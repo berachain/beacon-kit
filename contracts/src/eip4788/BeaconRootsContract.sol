@@ -2,11 +2,21 @@
 pragma solidity ^0.8.24;
 
 contract BeaconKitRootsContract {
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        CONSTANTS                           */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
     uint256 constant HISTORY_BUFFER_LENGTH = 256;
+    address constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        ENTRYPOINT                          */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     fallback() external {
-        address systemAddress = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
-        if (msg.sender == systemAddress) {
+        if (msg.sender == SYSTEM_ADDRESS) {
             // Call set function
             set();
         } else {
@@ -23,8 +33,23 @@ contract BeaconKitRootsContract {
 
     //     storage.set(timestamp_idx, evm.timestamp)
     //     storage.set(root_idx, evm.calldata)
+    //
+    /// @dev Sets the beacon root and coinbase for the current block.
+    /// This function is called internally and utilizes assembly for direct storage access.
     function set() internal {
-        assembly {
+        setBeaconRoot();
+        setCoinbase();
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                       BEACON ROOT                          */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+    /// @dev Sets the beacon root and coinbase for the current block.
+    /// This function is called internally and utilizes assembly for direct storage access.
+    function setBeaconRoot() internal {
+         assembly {
             let timestamp_idx := mod(timestamp(), HISTORY_BUFFER_LENGTH)
             let root_idx := add(timestamp_idx, HISTORY_BUFFER_LENGTH)
             sstore(timestamp_idx, timestamp())
@@ -49,8 +74,12 @@ contract BeaconKitRootsContract {
 
     //     root_idx = timestamp_idx + HISTORY_BUFFER_LENGTH
     //     root = storage.get(root_idx)
-
+    //
     //     evm.return(root)
+    //
+    /// @dev Retrieves the beacon root for a given timestamp.
+    /// This function is called internally and utilizes assembly for direct storage access.
+    /// @return The beacon root associated with the given timestamp.
     function get() internal view returns (bytes32) {
         assembly {
             if iszero(eq(calldatasize(), 32)) { revert(0, 0) }
@@ -61,6 +90,33 @@ contract BeaconKitRootsContract {
             let root_idx := add(timestamp_idx, HISTORY_BUFFER_LENGTH)
             let root := sload(root_idx)
             return(root, 32)
+        }
+    }
+    
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                         COINBASE                           */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @dev Sets the coinbase for the current block in storage.
+    /// This function is called internally and utilizes assembly for direct storage access.
+    function setCoinbase() internal {
+        uint256 bn = block.number;
+        assembly {
+            sstore(mod(bn, HISTORY_BUFFER_LENGTH), coinbase())
+        }
+    }
+
+
+    /// @dev Retrieves the coinbase for a given block number.
+    /// @dev if called with a block number that is before the history buffer
+    /// it will return the coinbase for blockNumber + HISTORY_BUFFER_LENGTH * A
+    /// Where A is the number of times the buffer has cycled since the blockNumber
+    /// @param blockNumber The block number for which to retrieve the coinbase.
+    /// @return The coinbase for the given block number.
+    function getCoinbase(uint256 blockNumber) external view returns (address) {
+        assembly {
+            return(sload(mod(blockNumber, HISTORY_BUFFER_LENGTH)), 20)
         }
     }
 }
