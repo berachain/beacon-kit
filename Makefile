@@ -286,8 +286,7 @@ gosec:
 
 protoImageName    := "ghcr.io/cosmos/proto-builder"
 protoImageVersion := "0.14.0"
-modulesProtoDir := "proto/modules"
-eth2ProtoDir := "proto/eth2"
+modulesProtoDir := "proto"
 
 #################
 #     proto     #
@@ -299,8 +298,8 @@ proto:
 
 proto-build:
 	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
-	@cd $(eth2ProtoDir) && buf generate --template buf.gen.yaml
-
+	@./build/scripts/prysm_templates.sh
+	
 buf-install:
 	@echo "--> Installing buf"
 	@go install github.com/bufbuild/buf/cmd/buf
@@ -309,13 +308,11 @@ buf-lint-fix:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf format"
 	@buf format -w --error-format=json $(modulesProtoDir)
-	@buf format -w --error-format=json $(eth2ProtoDir)
 
 buf-lint:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf lint"
 	@buf lint --error-format=json $(modulesProtoDir)
-	@buf lint --error-format=json $(eth2ProtoDir)
 
 proto-sync-install:
 	@echo "--> Installing buf"
@@ -336,12 +333,13 @@ sszgen-install:
 	@go install github.com/prysmaticlabs/fastssz/sszgen
 
 
-SSZ_STRUCTS=FunBlock
+SSZ_STRUCTS=BeaconKitBlock
 
 sszgen:
 	@$(MAKE) sszgen-install
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/blocks -objs ${SSZ_STRUCTS}
+	@sszgen -path ./types/consensus/v1 -objs BeaconKitBlock
+# @sszgen -path ./types/consensus/v1 -objs BeaconBlockBody
 ###############################################################################
 ###                             Dependencies                                ###
 ###############################################################################

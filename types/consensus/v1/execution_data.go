@@ -30,9 +30,11 @@ import (
 
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
+
+type ValidatorIndex = uint64
 
 // BytesToExecutionData converts a byte array to an ExecutionData object based on
 // the requested version.
@@ -57,7 +59,7 @@ func BytesToExecutionData(
 
 // wrapExecutionPayload wraps a byte array into an ExecutionPayload object.
 func wrapExecutionPayload(bz []byte) (interfaces.ExecutionData, error) {
-	payload := &enginev1.ExecutionPayload{}
+	payload := &v1.ExecutionPayload{}
 	if err := payload.UnmarshalSSZ(bz); err != nil {
 		return nil, err
 	}
@@ -66,7 +68,7 @@ func wrapExecutionPayload(bz []byte) (interfaces.ExecutionData, error) {
 
 // wrapExecutionPayloadCapella wraps a byte array and value into an ExecutionPayloadCapella object.
 func wrapExecutionPayloadCapella(bz []byte, value Wei) (interfaces.ExecutionData, error) {
-	payload := &enginev1.ExecutionPayloadCapella{}
+	payload := &v1.ExecutionPayloadCapella{}
 	if err := payload.UnmarshalSSZ(bz); err != nil {
 		return nil, err
 	}
@@ -75,7 +77,7 @@ func wrapExecutionPayloadCapella(bz []byte, value Wei) (interfaces.ExecutionData
 
 // wrapExecutionPayloadDeneb wraps a byte array and value into an ExecutionPayloadDeneb object.
 func wrapExecutionPayloadDeneb(bz []byte, value Wei) (interfaces.ExecutionData, error) {
-	payload := &enginev1.ExecutionPayloadDeneb{}
+	payload := &v1.ExecutionPayloadDeneb{}
 	if err := payload.UnmarshalSSZ(bz); err != nil {
 		return nil, err
 	}

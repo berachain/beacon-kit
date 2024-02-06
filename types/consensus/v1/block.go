@@ -26,9 +26,6 @@
 package v1
 
 import (
-	"errors"
-	"math/big"
-
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 )
@@ -57,12 +54,10 @@ func NewBeaconKitBlock(
 	version int,
 ) (interfaces.BeaconKitBlock, error) {
 	block := &BeaconKitBlock{
-		Slot: slot,
-		Body: &BeaconKitBlock_BlockBodyGeneric{
-			BlockBodyGeneric: &BeaconBlockBody{
-				//#nosec:G701 // won't overflow, version is never negative.
-				Version: int64(version),
-			},
+		Slot:             uint64(slot),
+		BlockBodyGeneric: &BeaconBlockBody{
+			//#nosec:G701 // won't overflow, version is never negative.
+			// Version: int64(version),
 		},
 	}
 	if executionData != nil {
@@ -70,7 +65,8 @@ func NewBeaconKitBlock(
 			return nil, err
 		}
 	}
-	return block, nil
+	return nil, nil
+	// return block, nil
 }
 
 // NewEmptyBeaconKitBlockFromState assembles a new beacon block
@@ -109,11 +105,12 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	if bzIndex >= uint(len(txs)) {
 		return nil, ErrBzIndexOutOfBounds
 	}
-	block := BeaconKitBlock{}
-	if err := block.Unmarshal(txs[bzIndex]); err != nil {
-		return nil, err
-	}
-	return &block, nil
+	// block := BeaconKitBlock{}
+	// if err := block.Unmarshal(txs[bzIndex]); err != nil {
+	// 	return nil, err
+	// }
+	return nil, nil
+	// return &block, nil
 }
 
 // IsNil checks if the BeaconKitBlock is nil or not.
@@ -125,34 +122,37 @@ func (b *BeaconKitBlock) IsNil() bool {
 func (b *BeaconKitBlock) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
-	execData, err := executionData.MarshalSSZ()
-	if err != nil {
-		return err
-	}
-
-	value, err := executionData.ValueInWei()
-	if err != nil {
-		return err
-	}
-
-	b.Body.(*BeaconKitBlock_BlockBodyGeneric).BlockBodyGeneric.ExecutionPayload = execData
-	b.PayloadValue = (*value).String() //nolint:gocritic // suggestion doesn't compile.
 	return nil
+	// execData, err := executionData.MarshalSSZ()
+	// if err != nil {
+	// 	return err
+	// }
+
+	// value, err := executionData.ValueInWei()
+	// if err != nil {
+	// 	return err
+	// }
+
+	// b.Body.(*BeaconKitBlock_BlockBodyGeneric).BlockBodyGeneric.ExecutionPayload = execData
+	// b.PayloadValue = (*value).String() //nolint:gocritic // suggestion doesn't compile.
+	// return nil
 }
 
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 	// Safe to ignore the error since we successfully marshalled the data before.
-	value, ok := big.NewInt(0).SetString(b.PayloadValue, 10) //nolint:gomnd // base 10.
-	if !ok {
-		return nil, errors.New("failed to convert payload value to big.Int")
-	}
-	return BytesToExecutionData(
-		b.GetBlockBodyGeneric().ExecutionPayload,
-		Wei(value),
-		int(b.GetBlockBodyGeneric().Version))
+	// value, ok := big.NewInt(0).SetString(b.PayloadValue, 10) //nolint:gomnd // base 10.
+	// if !ok {
+	// 	return nil, errors.New("failed to convert payload value to big.Int")
+	// }
+	return nil, nil
+	// return BytesToExecutionData(
+	// 	b.GetBlockBodyGeneric().ExecutionPayload,
+	// 	Wei(value),
+	// 	int(b.GetBlockBodyGeneric().Version))
 }
 
 func (b *BeaconKitBlock) Version() int {
-	return int(b.GetBlockBodyGeneric().Version)
+	return 0
+	// return int(b.GetBlockBodyGeneric().Version)
 }
