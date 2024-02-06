@@ -106,9 +106,8 @@ contract BeaconRootsContract {
     /// @dev Sets the coinbase for the current block in storage.
     /// This function is called internally and utilizes assembly for direct storage access.
     function setCoinbase() internal {
-        uint256 bn = block.number;
         assembly {
-            sstore(mod(bn, HISTORY_BUFFER_LENGTH), coinbase())
+            sstore(mod(number(), HISTORY_BUFFER_LENGTH), coinbase())
         }
     }
 
