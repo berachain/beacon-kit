@@ -120,7 +120,8 @@ contract BeaconRootsContract {
     /// @return The coinbase for the given block number.
     function getCoinbase(uint256 blockNumber) external view returns (address) {
         assembly {
-            return(sload(mod(blockNumber, HISTORY_BUFFER_LENGTH)), 20)
+            mstore(0, sload(mod(blockNumber, HISTORY_BUFFER_LENGTH))) // fix collision
+            return(0, 0x20) // or 32
         }
     }
 }
