@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+/// @title BeaconRootsContract
+/// @dev This contract is an implementation of the BeaconRootsContract as defined in EIP-4788.
+/// It has been extended to include a coinbase storage slot for each block for use with
+/// the Berachain Proof-of-Liquidity protocol.
+/// @author https://eips.ethereum.org/EIPS/eip-4788
+/// @author itsdevbear@berachain.com
+/// @author rusty@berachain.com
+/// @author po@berachain.com
 contract BeaconKitRootsContract {
-
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     uint256 constant HISTORY_BUFFER_LENGTH = 256;
     address constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
-
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        ENTRYPOINT                          */
@@ -45,11 +51,10 @@ contract BeaconKitRootsContract {
     /*                       BEACON ROOT                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-
     /// @dev Sets the beacon root and coinbase for the current block.
     /// This function is called internally and utilizes assembly for direct storage access.
     function setBeaconRoot() internal {
-         assembly {
+        assembly {
             let timestamp_idx := mod(timestamp(), HISTORY_BUFFER_LENGTH)
             let root_idx := add(timestamp_idx, HISTORY_BUFFER_LENGTH)
             sstore(timestamp_idx, timestamp())
@@ -93,7 +98,6 @@ contract BeaconKitRootsContract {
             return(0, 32)
         }
     }
-    
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                         COINBASE                           */
@@ -107,7 +111,6 @@ contract BeaconKitRootsContract {
             sstore(mod(bn, HISTORY_BUFFER_LENGTH), coinbase())
         }
     }
-
 
     /// @dev Retrieves the coinbase for a given block number.
     /// @dev if called with a block number that is before the history buffer
