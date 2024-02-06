@@ -89,7 +89,8 @@ contract BeaconKitRootsContract {
             if iszero(eq(_timestamp, calldataload(0))) { revert(0, 0) }
             let root_idx := add(timestamp_idx, HISTORY_BUFFER_LENGTH)
             let root := sload(root_idx)
-            return(root, 32)
+            mstore(0, root)
+            return(0, 32)
         }
     }
     
