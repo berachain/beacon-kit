@@ -85,7 +85,7 @@ func (f *FunBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (f *FunBlock) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size != 576 {
+	if size < 576 {
 		return ssz.ErrSize
 	}
 
@@ -99,7 +99,8 @@ func (f *FunBlock) UnmarshalSSZ(buf []byte) error {
 	if f.ExecutionPayload == nil {
 		f.ExecutionPayload = new(enginev1.ExecutionPayloadCapella)
 	}
-	if err = f.ExecutionPayload.UnmarshalSSZ(buf[32:576]); err != nil {
+	
+	if err = f.ExecutionPayload.UnmarshalSSZ(buf[32:]); err != nil {
 		return err
 	}
 

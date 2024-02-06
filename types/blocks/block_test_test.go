@@ -28,7 +28,12 @@ func TestRoundtripMarshalSSZ(t *testing.T) {
 			BaseFeePerGas: common.Hash{1}.Bytes(),
 			BlockHash:     common.Hash{1}.Bytes(),
 			Transactions:  [][]byte{},
-			Withdrawals:   []*enginev1.Withdrawal{},
+			Withdrawals: []*enginev1.Withdrawal{
+				{
+					Amount:  65,
+					Address: common.Address{1}.Bytes(),
+				},
+			},
 		},
 	}
 
