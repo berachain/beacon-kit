@@ -25,9 +25,6 @@
 
 package execution
 
-import "time"
-
 const (
-	forkchoiceBackoff       = 500 * time.Millisecond
 	forkchoiceDispatchQueue = "dispatch.forkchoice"
 )
