@@ -56,7 +56,7 @@ message BeaconBlockBody {
   bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
 
   // TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
-  int64 version = 3;
+  bytes version = 3 [(ethereum.eth.ext.ssz_size) = "8"];
 
   // Execution payload from the execution chain. New in Bellatrix network upgrade.
   ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
