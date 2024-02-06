@@ -53,11 +53,11 @@ contract BeaconKitRootsContract {
     //     evm.return(root)
     function get() internal view returns (bytes32) {
         assembly {
-            if eq(calldatasize(), 32) { revert(0, 0) }
+            if iszero(eq(calldatasize(), 32)) { revert(0, 0) }
             if eq(calldataload(0), 0) { revert(0, 0) }
             let timestamp_idx := mod(calldataload(0), HISTORY_BUFFER_LENGTH)
             let _timestamp := sload(timestamp_idx)
-            if eq(_timestamp, calldataload(0)) { revert(0, 0) }
+            if iszero(eq(_timestamp, calldataload(0))) { revert(0, 0) }
             let root_idx := add(timestamp_idx, HISTORY_BUFFER_LENGTH)
             let root := sload(root_idx)
             return(root, 32)
