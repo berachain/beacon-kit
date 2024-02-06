@@ -2,6 +2,7 @@
 package consensusv1
 
 import (
+<<<<<<< HEAD
 	fmt "fmt"
 	io "io"
 	reflect "reflect"
@@ -12,6 +13,18 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+=======
+	v1 "cosmossdk.io/api/ethereum/engine/v1"
+	_ "cosmossdk.io/api/ethereum/eth/ext"
+	fmt "fmt"
+	runtime "github.com/cosmos/cosmos-proto/runtime"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoiface "google.golang.org/protobuf/runtime/protoiface"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 )
 
 var (
@@ -606,8 +619,13 @@ var (
 	md_BeaconBlockBody                   protoreflect.MessageDescriptor
 	fd_BeaconBlockBody_randao_reveal     protoreflect.FieldDescriptor
 	fd_BeaconBlockBody_graffiti          protoreflect.FieldDescriptor
+<<<<<<< HEAD
 	fd_BeaconBlockBody_execution_payload protoreflect.FieldDescriptor
 	fd_BeaconBlockBody_version           protoreflect.FieldDescriptor
+=======
+	fd_BeaconBlockBody_version           protoreflect.FieldDescriptor
+	fd_BeaconBlockBody_execution_payload protoreflect.FieldDescriptor
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 )
 
 func init() {
@@ -615,8 +633,13 @@ func init() {
 	md_BeaconBlockBody = File_types_consensus_v1_block_proto.Messages().ByName("BeaconBlockBody")
 	fd_BeaconBlockBody_randao_reveal = md_BeaconBlockBody.Fields().ByName("randao_reveal")
 	fd_BeaconBlockBody_graffiti = md_BeaconBlockBody.Fields().ByName("graffiti")
+<<<<<<< HEAD
 	fd_BeaconBlockBody_execution_payload = md_BeaconBlockBody.Fields().ByName("execution_payload")
 	fd_BeaconBlockBody_version = md_BeaconBlockBody.Fields().ByName("version")
+=======
+	fd_BeaconBlockBody_version = md_BeaconBlockBody.Fields().ByName("version")
+	fd_BeaconBlockBody_execution_payload = md_BeaconBlockBody.Fields().ByName("execution_payload")
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 }
 
 var _ protoreflect.Message = (*fastReflection_BeaconBlockBody)(nil)
@@ -696,6 +719,7 @@ func (x *fastReflection_BeaconBlockBody) Range(f func(protoreflect.FieldDescript
 			return
 		}
 	}
+<<<<<<< HEAD
 	if len(x.ExecutionPayload) != 0 {
 		value := protoreflect.ValueOfBytes(x.ExecutionPayload)
 		if !f(fd_BeaconBlockBody_execution_payload, value) {
@@ -705,6 +729,17 @@ func (x *fastReflection_BeaconBlockBody) Range(f func(protoreflect.FieldDescript
 	if x.Version != int64(0) {
 		value := protoreflect.ValueOfInt64(x.Version)
 		if !f(fd_BeaconBlockBody_version, value) {
+=======
+	if len(x.Version) != 0 {
+		value := protoreflect.ValueOfBytes(x.Version)
+		if !f(fd_BeaconBlockBody_version, value) {
+			return
+		}
+	}
+	if x.ExecutionPayload != nil {
+		value := protoreflect.ValueOfMessage(x.ExecutionPayload.ProtoReflect())
+		if !f(fd_BeaconBlockBody_execution_payload, value) {
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 			return
 		}
 	}
@@ -727,10 +762,17 @@ func (x *fastReflection_BeaconBlockBody) Has(fd protoreflect.FieldDescriptor) bo
 		return len(x.RandaoReveal) != 0
 	case "types.consensus.v1.BeaconBlockBody.graffiti":
 		return len(x.Graffiti) != 0
+<<<<<<< HEAD
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		return len(x.ExecutionPayload) != 0
 	case "types.consensus.v1.BeaconBlockBody.version":
 		return x.Version != int64(0)
+=======
+	case "types.consensus.v1.BeaconBlockBody.version":
+		return len(x.Version) != 0
+	case "types.consensus.v1.BeaconBlockBody.execution_payload":
+		return x.ExecutionPayload != nil
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -751,10 +793,17 @@ func (x *fastReflection_BeaconBlockBody) Clear(fd protoreflect.FieldDescriptor) 
 		x.RandaoReveal = nil
 	case "types.consensus.v1.BeaconBlockBody.graffiti":
 		x.Graffiti = nil
+<<<<<<< HEAD
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		x.ExecutionPayload = nil
 	case "types.consensus.v1.BeaconBlockBody.version":
 		x.Version = int64(0)
+=======
+	case "types.consensus.v1.BeaconBlockBody.version":
+		x.Version = nil
+	case "types.consensus.v1.BeaconBlockBody.execution_payload":
+		x.ExecutionPayload = nil
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -777,12 +826,21 @@ func (x *fastReflection_BeaconBlockBody) Get(descriptor protoreflect.FieldDescri
 	case "types.consensus.v1.BeaconBlockBody.graffiti":
 		value := x.Graffiti
 		return protoreflect.ValueOfBytes(value)
+<<<<<<< HEAD
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		value := x.ExecutionPayload
 		return protoreflect.ValueOfBytes(value)
 	case "types.consensus.v1.BeaconBlockBody.version":
 		value := x.Version
 		return protoreflect.ValueOfInt64(value)
+=======
+	case "types.consensus.v1.BeaconBlockBody.version":
+		value := x.Version
+		return protoreflect.ValueOfBytes(value)
+	case "types.consensus.v1.BeaconBlockBody.execution_payload":
+		value := x.ExecutionPayload
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -807,10 +865,17 @@ func (x *fastReflection_BeaconBlockBody) Set(fd protoreflect.FieldDescriptor, va
 		x.RandaoReveal = value.Bytes()
 	case "types.consensus.v1.BeaconBlockBody.graffiti":
 		x.Graffiti = value.Bytes()
+<<<<<<< HEAD
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		x.ExecutionPayload = value.Bytes()
 	case "types.consensus.v1.BeaconBlockBody.version":
 		x.Version = value.Int()
+=======
+	case "types.consensus.v1.BeaconBlockBody.version":
+		x.Version = value.Bytes()
+	case "types.consensus.v1.BeaconBlockBody.execution_payload":
+		x.ExecutionPayload = value.Message().Interface().(*v1.ExecutionPayloadCapella)
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -831,12 +896,23 @@ func (x *fastReflection_BeaconBlockBody) Set(fd protoreflect.FieldDescriptor, va
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_BeaconBlockBody) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+<<<<<<< HEAD
+=======
+	case "types.consensus.v1.BeaconBlockBody.execution_payload":
+		if x.ExecutionPayload == nil {
+			x.ExecutionPayload = new(v1.ExecutionPayloadCapella)
+		}
+		return protoreflect.ValueOfMessage(x.ExecutionPayload.ProtoReflect())
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	case "types.consensus.v1.BeaconBlockBody.randao_reveal":
 		panic(fmt.Errorf("field randao_reveal of message types.consensus.v1.BeaconBlockBody is not mutable"))
 	case "types.consensus.v1.BeaconBlockBody.graffiti":
 		panic(fmt.Errorf("field graffiti of message types.consensus.v1.BeaconBlockBody is not mutable"))
+<<<<<<< HEAD
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		panic(fmt.Errorf("field execution_payload of message types.consensus.v1.BeaconBlockBody is not mutable"))
+=======
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	case "types.consensus.v1.BeaconBlockBody.version":
 		panic(fmt.Errorf("field version of message types.consensus.v1.BeaconBlockBody is not mutable"))
 	default:
@@ -856,10 +932,18 @@ func (x *fastReflection_BeaconBlockBody) NewField(fd protoreflect.FieldDescripto
 		return protoreflect.ValueOfBytes(nil)
 	case "types.consensus.v1.BeaconBlockBody.graffiti":
 		return protoreflect.ValueOfBytes(nil)
+<<<<<<< HEAD
 	case "types.consensus.v1.BeaconBlockBody.execution_payload":
 		return protoreflect.ValueOfBytes(nil)
 	case "types.consensus.v1.BeaconBlockBody.version":
 		return protoreflect.ValueOfInt64(int64(0))
+=======
+	case "types.consensus.v1.BeaconBlockBody.version":
+		return protoreflect.ValueOfBytes(nil)
+	case "types.consensus.v1.BeaconBlockBody.execution_payload":
+		m := new(v1.ExecutionPayloadCapella)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: types.consensus.v1.BeaconBlockBody"))
@@ -937,12 +1021,22 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+<<<<<<< HEAD
 		l = len(x.ExecutionPayload)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.Version != 0 {
 			n += 1 + runtime.Sov(uint64(x.Version))
+=======
+		l = len(x.Version)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.ExecutionPayload != nil {
+			l = options.Size(x.ExecutionPayload)
+			n += 1 + l + runtime.Sov(uint64(l))
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -973,6 +1067,7 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
+<<<<<<< HEAD
 		if x.Version != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.Version))
 			i--
@@ -982,6 +1077,26 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 			i -= len(x.ExecutionPayload)
 			copy(dAtA[i:], x.ExecutionPayload)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.ExecutionPayload)))
+=======
+		if x.ExecutionPayload != nil {
+			encoded, err := options.Marshal(x.ExecutionPayload)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x22
+		}
+		if len(x.Version) > 0 {
+			i -= len(x.Version)
+			copy(dAtA[i:], x.Version)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Version)))
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 			i--
 			dAtA[i] = 0x1a
 		}
@@ -1118,7 +1233,11 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 3:
 				if wireType != 2 {
+<<<<<<< HEAD
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ExecutionPayload", wireType)
+=======
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 				}
 				var byteLen int
 				for shift := uint(0); ; shift += 7 {
@@ -1145,6 +1264,7 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
+<<<<<<< HEAD
 				x.ExecutionPayload = append(x.ExecutionPayload[:0], dAtA[iNdEx:postIndex]...)
 				if x.ExecutionPayload == nil {
 					x.ExecutionPayload = []byte{}
@@ -1155,6 +1275,18 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
 				}
 				x.Version = 0
+=======
+				x.Version = append(x.Version[:0], dAtA[iNdEx:postIndex]...)
+				if x.Version == nil {
+					x.Version = []byte{}
+				}
+				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ExecutionPayload", wireType)
+				}
+				var msglen int
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -1164,11 +1296,35 @@ func (x *fastReflection_BeaconBlockBody) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
+<<<<<<< HEAD
 					x.Version |= int64(b&0x7F) << shift
+=======
+					msglen |= int(b&0x7F) << shift
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 					if b < 0x80 {
 						break
 					}
 				}
+<<<<<<< HEAD
+=======
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.ExecutionPayload == nil {
+					x.ExecutionPayload = &v1.ExecutionPayloadCapella{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ExecutionPayload); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1330,10 +1486,17 @@ type BeaconBlockBody struct {
 	// 32 byte field of arbitrary data. This field may contain any data and
 	// is not used for anything other than a fun message.
 	Graffiti []byte `protobuf:"bytes,2,opt,name=graffiti,proto3" json:"graffiti,omitempty"`
+<<<<<<< HEAD
 	// Execution payload from the execution chain. New in Bellatrix network upgrade.
 	ExecutionPayload []byte `protobuf:"bytes,3,opt,name=execution_payload,json=executionPayload,proto3" json:"execution_payload,omitempty"`
 	// TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
 	Version int64 `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+=======
+	// TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
+	Version []byte `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+	// Execution payload from the execution chain. New in Bellatrix network upgrade.
+	ExecutionPayload *v1.ExecutionPayloadCapella `protobuf:"bytes,4,opt,name=execution_payload,json=executionPayload,proto3" json:"execution_payload,omitempty"`
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 }
 
 func (x *BeaconBlockBody) Reset() {
@@ -1370,18 +1533,32 @@ func (x *BeaconBlockBody) GetGraffiti() []byte {
 	return nil
 }
 
+<<<<<<< HEAD
 func (x *BeaconBlockBody) GetExecutionPayload() []byte {
 	if x != nil {
 		return x.ExecutionPayload
+=======
+func (x *BeaconBlockBody) GetVersion() []byte {
+	if x != nil {
+		return x.Version
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func (x *BeaconBlockBody) GetVersion() int64 {
 	if x != nil {
 		return x.Version
 	}
 	return 0
+=======
+func (x *BeaconBlockBody) GetExecutionPayload() *v1.ExecutionPayloadCapella {
+	if x != nil {
+		return x.ExecutionPayload
+	}
+	return nil
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 }
 
 var File_types_consensus_v1_block_proto protoreflect.FileDescriptor
@@ -1390,6 +1567,7 @@ var file_types_consensus_v1_block_proto_rawDesc = []byte{
 	0x0a, 0x1e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75,
 	0x73, 0x2f, 0x76, 0x31, 0x2f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x12, 0x12, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75,
+<<<<<<< HEAD
 	0x73, 0x2e, 0x76, 0x31, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f,
 	0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xed, 0x01, 0x0a, 0x0e, 0x42,
 	0x65, 0x61, 0x63, 0x6f, 0x6e, 0x4b, 0x69, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x59, 0x0a,
@@ -1429,6 +1607,55 @@ var file_types_consensus_v1_block_proto_rawDesc = []byte{
 	0x75, 0x73, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
 	0x61, 0xea, 0x02, 0x14, 0x54, 0x79, 0x70, 0x65, 0x73, 0x3a, 0x3a, 0x43, 0x6f, 0x6e, 0x73, 0x65,
 	0x6e, 0x73, 0x75, 0x73, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+=======
+	0x73, 0x2e, 0x76, 0x31, 0x1a, 0x29, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x2f, 0x65,
+	0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2f, 0x76, 0x31, 0x2f, 0x65, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69,
+	0x6f, 0x6e, 0x5f, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a,
+	0x1e, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x2f, 0x65, 0x74, 0x68, 0x2f, 0x65, 0x78,
+	0x74, 0x2f, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22,
+	0xed, 0x01, 0x0a, 0x0e, 0x42, 0x65, 0x61, 0x63, 0x6f, 0x6e, 0x4b, 0x69, 0x74, 0x42, 0x6c, 0x6f,
+	0x63, 0x6b, 0x12, 0x59, 0x0a, 0x04, 0x73, 0x6c, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04,
+	0x42, 0x45, 0x82, 0xb5, 0x18, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x70, 0x72, 0x79, 0x73, 0x6d, 0x61, 0x74, 0x69, 0x63, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x70,
+	0x72, 0x79, 0x73, 0x6d, 0x2f, 0x76, 0x34, 0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75,
+	0x73, 0x2d, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x70, 0x72, 0x69, 0x6d, 0x69, 0x74, 0x69, 0x76,
+	0x65, 0x73, 0x2e, 0x53, 0x6c, 0x6f, 0x74, 0x52, 0x04, 0x73, 0x6c, 0x6f, 0x74, 0x12, 0x53, 0x0a,
+	0x12, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x62, 0x6f, 0x64, 0x79, 0x5f, 0x67, 0x65, 0x6e, 0x65,
+	0x72, 0x69, 0x63, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x74, 0x79, 0x70, 0x65,
+	0x73, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x42,
+	0x65, 0x61, 0x63, 0x6f, 0x6e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x42, 0x6f, 0x64, 0x79, 0x48, 0x00,
+	0x52, 0x10, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x42, 0x6f, 0x64, 0x79, 0x47, 0x65, 0x6e, 0x65, 0x72,
+	0x69, 0x63, 0x12, 0x23, 0x0a, 0x0d, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x5f, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x18, 0x65, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x61, 0x79, 0x6c, 0x6f,
+	0x61, 0x64, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x06, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x22,
+	0xdd, 0x01, 0x0a, 0x0f, 0x42, 0x65, 0x61, 0x63, 0x6f, 0x6e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x42,
+	0x6f, 0x64, 0x79, 0x12, 0x2b, 0x0a, 0x0d, 0x72, 0x61, 0x6e, 0x64, 0x61, 0x6f, 0x5f, 0x72, 0x65,
+	0x76, 0x65, 0x61, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x06, 0x8a, 0xb5, 0x18, 0x02,
+	0x33, 0x32, 0x52, 0x0c, 0x72, 0x61, 0x6e, 0x64, 0x61, 0x6f, 0x52, 0x65, 0x76, 0x65, 0x61, 0x6c,
+	0x12, 0x22, 0x0a, 0x08, 0x67, 0x72, 0x61, 0x66, 0x66, 0x69, 0x74, 0x69, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0c, 0x42, 0x06, 0x8a, 0xb5, 0x18, 0x02, 0x33, 0x32, 0x52, 0x08, 0x67, 0x72, 0x61, 0x66,
+	0x66, 0x69, 0x74, 0x69, 0x12, 0x1f, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x05, 0x8a, 0xb5, 0x18, 0x01, 0x38, 0x52, 0x07, 0x76, 0x65,
+	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x58, 0x0a, 0x11, 0x65, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69,
+	0x6f, 0x6e, 0x5f, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x2b, 0x2e, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x2e, 0x65, 0x6e, 0x67, 0x69,
+	0x6e, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x50,
+	0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x43, 0x61, 0x70, 0x65, 0x6c, 0x6c, 0x61, 0x52, 0x10, 0x65,
+	0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x42,
+	0xbf, 0x01, 0x0a, 0x16, 0x63, 0x6f, 0x6d, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x63, 0x6f,
+	0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x42, 0x6c, 0x6f, 0x63,
+	0x6b, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
+	0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73,
+	0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2f, 0x76, 0x31, 0x3b, 0x63, 0x6f,
+	0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x54, 0x43, 0x58, 0xaa,
+	0x02, 0x12, 0x54, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75,
+	0x73, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x12, 0x54, 0x79, 0x70, 0x65, 0x73, 0x5c, 0x43, 0x6f, 0x6e,
+	0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1e, 0x54, 0x79, 0x70, 0x65,
+	0x73, 0x5c, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x5c, 0x56, 0x31, 0x5c, 0x47,
+	0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x14, 0x54, 0x79, 0x70,
+	0x65, 0x73, 0x3a, 0x3a, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x3a, 0x3a, 0x56,
+	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 }
 
 var (
@@ -1445,6 +1672,7 @@ func file_types_consensus_v1_block_proto_rawDescGZIP() []byte {
 
 var file_types_consensus_v1_block_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_types_consensus_v1_block_proto_goTypes = []interface{}{
+<<<<<<< HEAD
 	(*BeaconKitBlock)(nil),  // 0: types.consensus.v1.BeaconKitBlock
 	(*BeaconBlockBody)(nil), // 1: types.consensus.v1.BeaconBlockBody
 }
@@ -1455,6 +1683,20 @@ var file_types_consensus_v1_block_proto_depIdxs = []int32{
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
+=======
+	(*BeaconKitBlock)(nil),             // 0: types.consensus.v1.BeaconKitBlock
+	(*BeaconBlockBody)(nil),            // 1: types.consensus.v1.BeaconBlockBody
+	(*v1.ExecutionPayloadCapella)(nil), // 2: ethereum.engine.v1.ExecutionPayloadCapella
+}
+var file_types_consensus_v1_block_proto_depIdxs = []int32{
+	1, // 0: types.consensus.v1.BeaconKitBlock.block_body_generic:type_name -> types.consensus.v1.BeaconBlockBody
+	2, // 1: types.consensus.v1.BeaconBlockBody.execution_payload:type_name -> ethereum.engine.v1.ExecutionPayloadCapella
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
+>>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 }
 
 func init() { file_types_consensus_v1_block_proto_init() }
