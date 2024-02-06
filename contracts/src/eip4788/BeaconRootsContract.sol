@@ -83,7 +83,7 @@ contract BeaconKitRootsContract {
     function get() internal view returns (bytes32) {
         assembly {
             if iszero(eq(calldatasize(), 32)) { revert(0, 0) }
-            if eq(calldataload(0), 0) { revert(0, 0) }
+            if iszero(calldataload(0)) { revert(0, 0) }
             let timestamp_idx := mod(calldataload(0), HISTORY_BUFFER_LENGTH)
             let _timestamp := sload(timestamp_idx)
             if iszero(eq(_timestamp, calldataload(0))) { revert(0, 0) }
