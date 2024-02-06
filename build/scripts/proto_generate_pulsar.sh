@@ -46,3 +46,4 @@ echo "REEEE"
 pwd
 cp -r api cosmos
 rm -rf api
+rm -rf cosmos/api/ethereum

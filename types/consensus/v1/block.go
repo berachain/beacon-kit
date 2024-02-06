@@ -105,10 +105,10 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	if bzIndex >= uint(len(txs)) {
 		return nil, ErrBzIndexOutOfBounds
 	}
-	// block := BeaconKitBlock{}
-	// if err := block.Unmarshal(txs[bzIndex]); err != nil {
-	// 	return nil, err
-	// }
+	block := BeaconKitBlock{}
+	if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
+		return nil, err
+	}
 	return nil, nil
 	// return &block, nil
 }
@@ -155,4 +155,8 @@ func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 func (b *BeaconKitBlock) Version() int {
 	return 0
 	// return int(b.GetBlockBodyGeneric().Version)
+}
+
+func (b *BeaconKitBlock) BSlot() Slot {
+	return Slot(b.Slot)
 }

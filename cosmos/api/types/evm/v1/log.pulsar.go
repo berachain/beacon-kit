@@ -3,23 +3,14 @@ package evmv1
 
 import (
 	fmt "fmt"
-<<<<<<< HEAD
 	io "io"
 	reflect "reflect"
 	sync "sync"
 
-=======
->>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-<<<<<<< HEAD
-=======
-	io "io"
-	reflect "reflect"
-	sync "sync"
->>>>>>> d9869447e1142d539f47bc7b0a6745e470d0f870
 )
 
 var _ protoreflect.List = (*_Log_2_list)(nil)

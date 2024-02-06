@@ -88,7 +88,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Marshal the block into bytes.
-	bz, err := block.Marshal()
+	bz, err := block.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
