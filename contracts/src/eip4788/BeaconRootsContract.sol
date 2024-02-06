@@ -9,7 +9,7 @@ pragma solidity ^0.8.24;
 /// @author itsdevbear@berachain.com
 /// @author rusty@berachain.com
 /// @author po@berachain.com
-contract BeaconKitRootsContract {
+contract BeaconRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
