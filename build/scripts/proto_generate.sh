@@ -41,6 +41,10 @@ for dir in $proto_dirs; do
     # gogo proto files SHOULD ONLY be generated if this is false
     # we don't want gogo proto to run for proto files which are natively built for google.golang.org/protobuf
     echo $file
+    if [[ $file == *"/third_party/"* ]]; then
+      echo "Skipping third party proto file: $file"
+      continue
+    fi
     if grep -q "option go_package" "$file" && grep -H -o -c 'option go_package.*cosmossdk.io/api' "$file" | grep -q ':0$'; then
       buf generate --template buf.gen.gogo.yaml $file
     fi
@@ -53,4 +57,5 @@ cp -r github.com/itsdevbear/bolaris/* ../../
 rm -rf github.com
 cd ../../
 
+echo "Generating pulsar proto code"
 ./build/scripts/proto_generate_pulsar.sh

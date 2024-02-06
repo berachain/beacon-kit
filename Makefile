@@ -336,12 +336,12 @@ sszgen-install:
 	@go install github.com/prysmaticlabs/fastssz/sszgen
 
 
-SSZ_STRUCTS=BeaconKitBlock
+SSZ_STRUCTS=FunBlock
 
 sszgen:
 	@$(MAKE) sszgen-install
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./proto/eth2/types/consensus/v1/ -objs ${SSZ_STRUCTS}
+	@sszgen -path ./types/blocks -objs ${SSZ_STRUCTS}
 ###############################################################################
 ###                             Dependencies                                ###
 ###############################################################################

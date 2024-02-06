@@ -50,4 +50,5 @@ lint:
     - ENUM_NO_ALLOW_ALIAS
   ignore:
     - beacon/module/v1alpha1/module.proto
+    - third_party
   

@@ -31,6 +31,7 @@ managed:
     except:
       - buf.build/googleapis/googleapis
     override:
+
 plugins:
   - name: go-pulsar
     out: ../../api
