@@ -14,7 +14,12 @@ contract BeaconRootsContract {
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    // HISTORY_BUFFER_LENGTH is the length of the circular buffer for
+    // storing beacon roots and coinbases.
     uint256 constant HISTORY_BUFFER_LENGTH = 256;
+
+    // SYSTEM_ADDRESS is the address that is allowed to call the set function
+    // as defined in EIP-4788: https://eips.ethereum.org/EIPS/eip-4788
     address constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
