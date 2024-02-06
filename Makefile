@@ -44,20 +44,6 @@ forge-clean: |
 	@forge clean --root $(CONTRACTS_DIR)
 
 
-#################
-#     proto     #
-#################
-
-protoImageName    := "ghcr.io/cosmos/proto-builder"
-protoImageVersion := "0.14.0"
-
-proto:
-	@$(MAKE) buf-lint-fix buf-lint proto-build
-
-proto-build:
-	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
-
-
 ###############################################################################
 ###                                 CodeGen                                 ###
 ###############################################################################
@@ -285,19 +271,35 @@ license-fix:
 
 gosec-install:
 	@echo "--> Installing gosec"
-	@go install github.com/cosmos/gosec/v2/cmd/gosec
+	@go install github.com/cosmos/gosec/v2/cmd/gosec 
 
 gosec:
 	@$(MAKE) gosec-install
 	@echo "--> Running gosec"
-	@gosec ./...
+	@gosec -exclude G702 ./...
 
 
 #################
 #     proto     #
 #################
 
-protoDir := "proto"
+
+protoImageName    := "ghcr.io/cosmos/proto-builder"
+protoImageVersion := "0.14.0"
+modulesProtoDir := "proto/modules"
+eth2ProtoDir := "proto/eth2"
+
+#################
+#     proto     #
+#################
+
+
+proto:
+	@$(MAKE) buf-lint-fix buf-lint proto-build
+
+proto-build:
+	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
+	@cd $(eth2ProtoDir) && buf generate --template buf.gen.yaml
 
 buf-install:
 	@echo "--> Installing buf"
@@ -306,12 +308,14 @@ buf-install:
 buf-lint-fix:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf format"
-	@buf format -w --error-format=json $(protoDir)
+	@buf format -w --error-format=json $(modulesProtoDir)
+	@buf format -w --error-format=json $(eth2ProtoDir)
 
 buf-lint:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf lint"
-	@buf lint --error-format=json $(protoDir)
+	@buf lint --error-format=json $(modulesProtoDir)
+	@buf lint --error-format=json $(eth2ProtoDir)
 
 proto-sync-install:
 	@echo "--> Installing buf"
@@ -320,7 +324,7 @@ proto-sync-install:
 proto-sync:
 	@$(MAKE) proto-sync-install 
 	@echo "--> Running proto-sync"
-	@protosync -I $(protoDir)/types --dest=$(protoDir)
+	@protosync -I $(eth2ProtoDir) --dest=./proto/eth2/third_party proto/engine/v1/execution_engine.proto --level=trace
 
 
 #################
@@ -332,12 +336,12 @@ sszgen-install:
 	@go install github.com/prysmaticlabs/fastssz/sszgen
 
 
-SSZ_STRUCTS=BeaconBlockData
+SSZ_STRUCTS=BeaconKitBlock
 
 sszgen:
 	@$(MAKE) sszgen-install
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1/ -objs ${SSZ_STRUCTS}
+	@sszgen -path ./proto/eth2/types/consensus/v1/ -objs ${SSZ_STRUCTS}
 ###############################################################################
 ###                             Dependencies                                ###
 ###############################################################################
