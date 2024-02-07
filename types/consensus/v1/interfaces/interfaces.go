@@ -28,7 +28,7 @@ package interfaces
 import (
 	"time"
 
-	ssz "github.com/ferranbt/fastssz"
+	ssz "github.com/prysmaticlabs/fastssz"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
@@ -46,7 +46,7 @@ type BeaconKitBlock interface {
 type ReadOnlyBeaconKitBlock interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
-	// ssz.HashRoot
+	ssz.HashRoot
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
