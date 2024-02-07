@@ -44,15 +44,6 @@ rpc-retries = "{{.BeaconKit.ExecutionClient.RPCRetries}}"
 jwt-secret-path = "{{.BeaconKit.ExecutionClient.JWTSecretPath}}"
 
 [beacon-kit.beacon-config]
-# Altair fork epoch
-altair-fork-epoch = {{.BeaconKit.Beacon.AltairForkEpoch}}
-
-# Bellatrix fork epoch
-bellatrix-fork-epoch = {{.BeaconKit.Beacon.BellatrixForkEpoch}}
-
-# Capella fork epoch
-capella-fork-epoch = {{.BeaconKit.Beacon.CapellaForkEpoch}}
-
 # Deneb fork epoch
 deneb-fork-epoch = {{.BeaconKit.Beacon.DenebForkEpoch}}
 

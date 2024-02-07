@@ -26,17 +26,10 @@
 package v1
 
 import (
-	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
 )
 
 type (
-	// Slot is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot
-	// We have to do this to keep `sszgen` happy.
-	Slot = github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot
-	// Gwei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Gwei
-	// We have to do this to keep `sszgen` happy.
-	Gwei = github_com_prysmaticlabs_prysm_v4_math.Gwei
 	// Wei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Wei
 	// We have to do this to keep `sszgen` happy.
 	Wei = github_com_prysmaticlabs_prysm_v4_math.Wei

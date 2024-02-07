@@ -35,10 +35,7 @@ const (
 	RequiredChainID = "beacon-kit.execution-client.required-chain-id"
 
 	// Beacon Config.
-	AltairForkEpoch    = "beacon-kit.beacon-config.altair-fork-epoch"
-	BellatrixForkEpoch = "beacon-kit.beacon-config.bellatrix-fork-epoch"
-	CapellaForkEpoch   = "beacon-kit.beacon-config.capella-fork-epoch"
-	DenebForkEpoch     = "beacon-kit.beacon-config.deneb-fork-epoch"
+	DenebForkEpoch = "beacon-kit.beacon-config.deneb-fork-epoch"
 
 	// Validator Config.
 	SuggestedFeeRecipient = "beacon-kit.beacon-config.validator.suggested-fee-recipient"

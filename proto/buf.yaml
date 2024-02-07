@@ -36,6 +36,7 @@ breaking:
   use:
     - FILE
 lint:
+  allow_comment_ignores: true
   use:
     - DEFAULT
     - COMMENTS
@@ -48,4 +49,6 @@ lint:
     - RPC_REQUEST_STANDARD_NAME
     - ENUM_NO_ALLOW_ALIAS
   ignore:
-    - proto/third_party
+    - beacon/module/v1alpha1/module.proto
+    - ethereum
+  

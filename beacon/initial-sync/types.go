@@ -32,7 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/itsdevbear/bolaris/beacon/state"
 )
 
 type (

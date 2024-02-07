@@ -82,16 +82,6 @@ func (s *engineCaller) NewPayload(
 	result := &enginev1.PayloadStatus{}
 
 	switch payload.Proto().(type) {
-	case *enginev1.ExecutionPayload:
-		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayload)
-		if !ok {
-			return nil, errors.New("execution data must be a Bellatrix or Capella execution payload")
-		}
-		err := s.Eth1Client.Client.Client().CallContext(ctx, result,
-			execution.NewPayloadMethod, payloadPb)
-		if err != nil {
-			return nil, s.handleRPCError(err)
-		}
 	case *enginev1.ExecutionPayloadCapella:
 		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayloadCapella)
 		if !ok {
@@ -153,16 +143,6 @@ func (s *engineCaller) ForkchoiceUpdated(
 		return nil, nil, errors.New("nil payload attributer")
 	}
 	switch attrs.Version() {
-	case version.Bellatrix:
-		a, err := attrs.PbV1()
-		if err != nil {
-			return nil, nil, err
-		}
-		err = s.Eth1Client.Client.Client().CallContext(ctx, result,
-			execution.ForkchoiceUpdatedMethod, state, a)
-		if err != nil {
-			return nil, nil, s.handleRPCError(err)
-		}
 	case version.Capella:
 		a, err := attrs.PbV2()
 		if err != nil {
@@ -236,28 +216,14 @@ func (s *engineCaller) GetPayload(
 		return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
 	}
 
-	if primitives.Epoch(slot) >= s.beaconCfg.CapellaForkEpoch {
-		result := &enginev1.ExecutionPayloadCapellaWithValue{}
-		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID))
-		if err != nil {
-			return nil, nil, false, s.handleRPCError(err)
-		}
-		ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
-			blocks.PayloadValueToWei(result.GetValue()))
-		if err != nil {
-			return nil, nil, false, err
-		}
-		return ed, nil, false, nil
-	}
-
-	result := &enginev1.ExecutionPayload{}
+	result := &enginev1.ExecutionPayloadCapellaWithValue{}
 	err := s.Eth1Client.Client.Client().CallContext(ctx,
-		result, execution.GetPayloadMethod, enginev1.PayloadIDBytes(payloadID))
+		result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
-	ed, err := blocks.WrappedExecutionPayload(result)
+	ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
+		blocks.PayloadValueToWei(result.GetValue()))
 	if err != nil {
 		return nil, nil, false, err
 	}

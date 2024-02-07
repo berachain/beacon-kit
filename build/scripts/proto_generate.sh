@@ -32,7 +32,8 @@
 
 set -e
 
-echo "Generating gogo proto code"
+echo "--> Generating protobufs using cosmos proto builder"
+go install github.com/prysmaticlabs/protoc-gen-go-cast
 cd proto
 proto_dirs=$(find ./ -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
@@ -40,17 +41,21 @@ for dir in $proto_dirs; do
     # this regex checks if a proto file has its go_package set to cosmossdk.io/api/...
     # gogo proto files SHOULD ONLY be generated if this is false
     # we don't want gogo proto to run for proto files which are natively built for google.golang.org/protobuf
-    echo $file
+    template="buf.gen.gogo.yaml"
+    if [[ $file == *"/types"* || $file == *"/ethereum"* ]]; then
+      template="buf.gen.ssz.yaml"
+    fi
     if grep -q "option go_package" "$file" && grep -H -o -c 'option go_package.*cosmossdk.io/api' "$file" | grep -q ':0$'; then
-      buf generate --template buf.gen.gogo.yaml $file
+      buf generate --template $template $file
     fi
   done
 done
 
 # move proto files to the right places
-pwd
+echo "--> Copying generated proto files to the right places"
 cp -r github.com/itsdevbear/bolaris/* ../
 rm -rf github.com
 cd ../
 
+echo "--> Generating pulsar proto code"
 ./build/scripts/proto_generate_pulsar.sh

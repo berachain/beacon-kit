@@ -16,6 +16,10 @@ BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to cre
 
 First there was EVM Compatibility; next, EVM Equivalence; and now with BeaconKit, **EVM Identicality**.
 
+## Why BeaconKit? 
+
+TODO: Talk about Polaris / Ethermint compatibility issue.
+
 ## Supported Execution Clients
 
 Through utilizing the [Ethereum Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine) BeaconKit is able to support all 5 major Ethereum execution clients:
@@ -26,10 +30,13 @@ Through utilizing the [Ethereum Engine API](https://github.com/ethereum/executio
 - **Besu**: An enterprise-grade Ethereum client developed under the Apache 2.0 license and written in Java.
 - **Reth**: A Rust-based Ethereum client, focusing on performance and reliability.
 
+## Documentation
+BeaconKit leverages `godoc` for it's core documentation, you can run `godoc` locally and run a web-ui of the 
+latest documentation:
 
-## Why BeaconKit? 
-
-TODO: Talk about Polaris / Ethermint compatibility issue.
+```bash
+make godoc 
+```
 
 ## Running a Local Development Network
 
@@ -40,13 +47,13 @@ TODO: Talk about Polaris / Ethermint compatibility issue.
 
 Start by opening two terminals side-by-side:
 
-**Terminal 1**
+**Terminal 1:**
 ```bash
 # Start the sample BeaconKit Consensus Client:
 make start
 ```
 
-**Terminal 2**
+**Terminal 2:**
 ```bash
 # Start an Ethereum Execution Client:
 make start-reth # or start-geth start-besu start-erigon start-nethermind

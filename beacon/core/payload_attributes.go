@@ -28,8 +28,8 @@ package core
 import (
 	"cosmossdk.io/log"
 
+	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types/state"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
@@ -81,17 +81,6 @@ func BuildPayloadAttributes(
 		if err != nil {
 			logger.Error(
 				"Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	case version.Bellatrix:
-		var err error
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: beaconConfig.Validator.SuggestedFeeRecipient[:],
-		})
-		if err != nil {
-			logger.Error("Could not get payload attribute", "error", err)
 			return emptyAttri
 		}
 	default:

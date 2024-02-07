@@ -43,5 +43,7 @@ import (
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
 	_ "github.com/prysmaticlabs/fastssz/sszgen"
+	_ "github.com/prysmaticlabs/protoc-gen-go-cast"
 	_ "github.com/vektra/mockery/v2"
+	_ "golang.org/x/tools/cmd/godoc"
 )

@@ -28,6 +28,7 @@ package interfaces
 import (
 	"time"
 
+	ssz "github.com/prysmaticlabs/fastssz"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
@@ -43,17 +44,14 @@ type BeaconKitBlock interface {
 
 // ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconKitBlock interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
 	// Execution returns the execution data of the block.
 	Execution() (interfaces.ExecutionData, error)
-
-	// Marshal is the interface for marshalling a beacon block.
-	Marshal() ([]byte, error)
-	// Unmarshal is the interface for unmarshalling a beacon block.
-	Unmarshal([]byte) error
-
 	Version() int
 }
 
