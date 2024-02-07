@@ -33,6 +33,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v4/math"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -130,16 +131,23 @@ func (b *BeaconKitBlock) IsNil() bool {
 func (b *BeaconKitBlock) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
-	var err error
+	var (
+		err   error
+		value Wei
+	)
+
 	b.BlockBodyGeneric.ExecutionPayload, err = executionData.PbCapella()
 	if err != nil {
 		return err
 	}
 
-	var value Wei
 	value, err = executionData.ValueInWei()
 	if err != nil {
 		return err
+	}
+
+	if !math.IsValidUint256(value) {
+		return ErrInvalidExecutionValue
 	}
 
 	// TODO: this needs to be done better, really hood rn.

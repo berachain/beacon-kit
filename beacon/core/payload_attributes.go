@@ -83,17 +83,6 @@ func BuildPayloadAttributes(
 				"Could not get payload attribute", "error", err)
 			return emptyAttri
 		}
-	case version.Bellatrix:
-		var err error
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: beaconConfig.Validator.SuggestedFeeRecipient[:],
-		})
-		if err != nil {
-			logger.Error("Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
 	default:
 		logger.Error(
 			"Could not get payload attribute due to unknown state version", "version", st.Version())

@@ -33,12 +33,6 @@ import (
 
 // Beacon is the configuration for the beacon chain.
 type Beacon struct {
-	// AltairForkEpoch is used to represent the assigned fork epoch for altair.
-	AltairForkEpoch primitives.Epoch
-	// BellatrixForkEpoch is used to represent the assigned fork epoch for bellatrix.
-	BellatrixForkEpoch primitives.Epoch
-	// CapellaForkEpoch is used to represent the assigned fork epoch for capella.
-	CapellaForkEpoch primitives.Epoch
 	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
 	DenebForkEpoch primitives.Epoch
 
@@ -51,7 +45,7 @@ type Beacon struct {
 // this node is in the active validator set.
 type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction fees
-	// produced by any blocks from this node. Only takes effect post bellatrix.
+	// produced by any blocks from this node.
 	SuggestedFeeRecipient common.Address
 
 	// Grafitti is the string that will be included in the graffiti field of the beacon block.
@@ -64,11 +58,8 @@ type Validator struct {
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
-		AltairForkEpoch:    0,
-		BellatrixForkEpoch: 0,
-		CapellaForkEpoch:   0,
-		DenebForkEpoch:     primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
-		Validator:          DefaultValidatorConfig(),
+		DenebForkEpoch: primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		Validator:      DefaultValidatorConfig(),
 	}
 }
 
@@ -87,17 +78,6 @@ func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
 		return version.Deneb
 	}
 
-	if epoch >= c.CapellaForkEpoch {
-		return version.Capella
-	}
-
-	if epoch >= c.BellatrixForkEpoch {
-		return version.Bellatrix
-	}
-
-	if epoch >= c.AltairForkEpoch {
-		return version.Altair
-	}
-
-	return (version.Phase0)
+	// In BeaconKit we assume the Capella fork is always active.
+	return version.Capella
 }
