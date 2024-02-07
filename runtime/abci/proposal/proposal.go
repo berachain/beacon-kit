@@ -43,7 +43,7 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg             *config.Proposal
+	cfg             *config.ABCI
 	validator       *validator.Service
 	beaconChain     *blockchain.Service
 	prepareProposal sdk.PrepareProposalHandler
@@ -52,7 +52,7 @@ type Handler struct {
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
-	cfg *config.Proposal,
+	cfg *config.ABCI,
 	validator *validator.Service,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,

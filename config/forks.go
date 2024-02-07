@@ -23,28 +23,47 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package config
 
 import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
-// Option is a functional option for the validator service.
-type Option func(*Service) error
+// Forks conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Forks] = &Forks{}
 
-// WithEngineCaller sets the engine caller for the validator service.
-func WithEngineCaller(caller engine.Caller) Option {
-	return func(s *Service) error {
-		s.en = caller
-		return nil
+// DefaultValidatorConfig returns the default validator configuration.
+func DefaultForksConfig() Forks {
+	return Forks{
+		DenebForkEpoch: primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
 	}
 }
 
-// WithPayloadCache sets the payload cache for the validator service.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
-	return func(s *Service) error {
-		s.payloadCache = pc
-		return nil
+// Config represents the configuration struct for the validator.
+type Forks struct {
+	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
+	DenebForkEpoch primitives.Epoch
+}
+
+// Template returns the configuration template.
+func (c Forks) Template() string {
+	return `
+[beacon-kit.beacon-config.forks]
+# Deneb fork epoch
+deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
+`
+}
+
+// Parse parses the configuration.
+func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
+	var err error
+	if c.DenebForkEpoch, err = parser.GetEpoch(
+		flags.DenebForkEpoch,
+	); err != nil {
+		return nil, err
 	}
+
+	return &c, nil
 }

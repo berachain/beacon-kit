@@ -25,7 +25,26 @@
 
 package config
 
-// Client is the configuration struct for the execution client.
+import (
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/config/parser"
+)
+
+// ExecutionClient conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[ExecutionClient] = &ExecutionClient{}
+
+// DefaultExecutionClientConfig returns the default configuration for the execution client.
+func DefaultExecutionClientConfig() ExecutionClient {
+	return ExecutionClient{
+		RPCDialURL:      "http://localhost:8551",
+		RPCTimeout:      5, //nolint:gomnd // default config.
+		RPCRetries:      3, //nolint:gomnd // default config.
+		JWTSecretPath:   "./jwt.hex",
+		RequiredChainID: 7, //nolint:gomnd // default config.
+	}
+}
+
+// ExecutionClient is the configuration struct for the execution client.
 type ExecutionClient struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
@@ -39,13 +58,49 @@ type ExecutionClient struct {
 	RequiredChainID uint64
 }
 
-// DefaultExecutionClientConfig returns the default configuration for the execution client.
-func DefaultExecutionClientConfig() ExecutionClient {
-	return ExecutionClient{
-		RPCDialURL:      "http://localhost:8551",
-		RPCTimeout:      5, //nolint:gomnd // default config.
-		RPCRetries:      3, //nolint:gomnd // default config.
-		JWTSecretPath:   "./jwt.hex",
-		RequiredChainID: 7, //nolint:gomnd // default config.
+// Parse parses the configuration.
+func (c ExecutionClient) Parse(parser parser.AppOptionsParser) (*ExecutionClient, error) {
+	var err error
+	if c.RPCDialURL, err = parser.GetString(flags.RPCDialURL); err != nil {
+		return nil, err
 	}
+	if c.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
+		return nil, err
+	}
+	if c.RPCTimeout, err = parser.GetUint64(
+		flags.RPCTimeout,
+	); err != nil {
+		return nil, err
+	}
+	if c.JWTSecretPath, err = parser.GetString(
+		flags.JWTSecretPath,
+	); err != nil {
+		return nil, err
+	}
+	if c.RequiredChainID, err = parser.GetUint64(
+		flags.RequiredChainID,
+	); err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+func (c ExecutionClient) Template() string {
+	return `
+[beacon-kit.execution-client]
+# HTTP url of the execution client JSON-RPC endpoint.
+rpc-dial-url = "{{ .BeaconKit.ExecutionClient.RPCDialURL }}"
+
+# RPC timeout for execution client requests.
+rpc-timeout = "{{ .BeaconKit.ExecutionClient.RPCTimeout }}"
+
+# Number of retries before shutting down consensus client.
+rpc-retries = "{{.BeaconKit.ExecutionClient.RPCRetries}}"
+
+# Path to the execution client JWT-secret
+jwt-secret-path = "{{.BeaconKit.ExecutionClient.JWTSecretPath}}"
+
+# Required chain id for the execution client.
+required-chain-id = "{{.BeaconKit.ExecutionClient.RequiredChainID}}"
+`
 }

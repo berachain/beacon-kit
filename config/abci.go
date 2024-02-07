@@ -25,14 +25,41 @@
 
 package config
 
-// Proposal is a configuration struct for the cosmos proposal handler.
-type Proposal struct {
+import (
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/config/parser"
+)
+
+// ABCI is a configuration struct for the cosmos proposal handler.
+type ABCI struct {
+	// BeaconKitBlockPosition is the position of the beacon block in the cometbft proposal.
 	BeaconKitBlockPosition uint
 }
 
-// DefaultProposalConfig returns the default configuration for the proposal service.
-func DefaultProposalConfig() Proposal {
-	return Proposal{
+// DefaultABCIConfig returns the default configuration for the proposal service.
+func DefaultABCIConfig() ABCI {
+	return ABCI{
 		BeaconKitBlockPosition: 0,
 	}
+}
+
+// Template returns the configuration template for the abci config.
+func (c ABCI) Template() string {
+	return `
+[beacon-kit.abci]
+# Position of the beacon block in the proposal
+beacon-kit-block-proposal-position = {{.BeaconKit.ABCI.BeaconKitBlockPosition}}
+`
+}
+
+// Parse parses the configuration.
+func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
+	var err error
+	if c.BeaconKitBlockPosition, err = parser.GetUint(
+		flags.BeaconKitBlockPosition,
+	); err != nil {
+		return nil, err
+	}
+
+	return &c, nil
 }

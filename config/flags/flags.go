@@ -35,7 +35,7 @@ const (
 	RequiredChainID = "beacon-kit.execution-client.required-chain-id"
 
 	// Beacon Config.
-	DenebForkEpoch = "beacon-kit.beacon-config.deneb-fork-epoch"
+	DenebForkEpoch = "beacon-kit.beacon-config.forks.deneb-fork-epoch"
 
 	// Validator Config.
 	SuggestedFeeRecipient = "beacon-kit.beacon-config.validator.suggested-fee-recipient"
