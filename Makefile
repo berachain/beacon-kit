@@ -30,10 +30,8 @@ build-clean:
 
 clean:
 	@rm -rf .tmp/ 
-	@rm -rf **/**.pb_encoding.go
-	@rm -rf **/**.pb.go
 	@rm -rf $(OUT_DIR)
-	@$(MAKE) forge-clean
+	@$(MAKE) sszgen-clean proto-clean forge-clean
 
 #################
 #     forge     #
@@ -301,6 +299,10 @@ proto:
 proto-build:
 	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
 	@./build/scripts/prysm_templates.sh
+
+proto-clean:
+	@find . -name '*.pb.go' -delete
+	@find . -name '*.pb.gw.go' -delete
 	
 buf-install:
 	@echo "--> Installing buf"
