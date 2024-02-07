@@ -110,24 +110,6 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 		return nil, err
 	}
 
-	if conf.Beacon.AltairForkEpoch, err = parser.GetEpoch(
-		flags.AltairForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if conf.Beacon.BellatrixForkEpoch, err = parser.GetEpoch(
-		flags.BellatrixForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if conf.Beacon.CapellaForkEpoch, err = parser.GetEpoch(
-		flags.CapellaForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
 	if conf.Beacon.DenebForkEpoch, err = parser.GetEpoch(
 		flags.DenebForkEpoch,
 	); err != nil {

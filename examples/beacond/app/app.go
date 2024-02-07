@@ -60,8 +60,8 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
-	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
+	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	"github.com/itsdevbear/bolaris/types/cosmos"
 )
 

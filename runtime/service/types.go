@@ -28,7 +28,7 @@ package service
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/itsdevbear/bolaris/beacon/state"
 )
 
 type BeaconStateProvider interface {

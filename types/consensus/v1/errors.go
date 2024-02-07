@@ -35,4 +35,8 @@ var (
 	// ErrBzIndexOutOfBounds is an error for when the index
 	// is out of bounds.
 	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
+
+	// ErrInvalidExecutionValue is an error for when the
+	// execution value is invalid.
+	ErrInvalidExecutionValue = errors.New("invalid execution value")
 )

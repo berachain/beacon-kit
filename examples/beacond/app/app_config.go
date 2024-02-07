@@ -62,23 +62,23 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	beaconv1alpha1 "github.com/itsdevbear/bolaris/cosmos/api/beacon/module/v1alpha1"
-	beacontypes "github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
+	beaconv1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
+	beacontypes "github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 
-	_ "cosmossdk.io/x/evidence"                       // import for side-effects
-	_ "cosmossdk.io/x/upgrade"                        // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/auth"           // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"   // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/bank"           // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/consensus"      // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/crisis"         // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/distribution"   // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/gov"            // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/mint"           // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/slashing"       // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/staking"        // import for side-effects
-	_ "github.com/itsdevbear/bolaris/cosmos/x/beacon" // import for side-effects
+	_ "cosmossdk.io/x/evidence"                              // import for side-effects
+	_ "cosmossdk.io/x/upgrade"                               // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth"                  // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"        // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"          // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/bank"                  // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/consensus"             // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/crisis"                // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/distribution"          // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/gov"                   // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/mint"                  // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/slashing"              // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/staking"               // import for side-effects
+	_ "github.com/itsdevbear/bolaris/runtime/modules/beacon" // import for side-effects
 )
 
 // MakeAppConfig for making an application configuration.
