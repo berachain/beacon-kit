@@ -48,7 +48,7 @@ func (s *Service) getLocalPayload(
 		return nil, false, nil
 	}
 
-	slot := blk.BSlot()
+	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
 	// logFields := logrus.Fields{

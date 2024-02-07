@@ -30,6 +30,8 @@ build-clean:
 
 clean:
 	@rm -rf .tmp/ 
+	@rm -rf **/**.pb_encoding.go
+	@rm -rf **/**.pb.go
 	@rm -rf $(OUT_DIR)
 	@$(MAKE) forge-clean
 
@@ -328,20 +330,23 @@ proto-sync:
 #    sszgen    #
 #################
 
+SSZ_STRUCTS=BeaconKitBlock
+
 sszgen-install:
 	@echo "--> Installing sszgen"
 	@go install github.com/prysmaticlabs/fastssz/sszgen
 
-
-SSZ_STRUCTS=BeaconKitBlock
+sszgen-clean:
+	@find . -name '*.pb_encoding.go' -delete
 
 sszgen:
-	@$(MAKE) sszgen-install
+	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@rm -rf **/**.pb_encoding.go
-	@sszgen -path ./types/consensus/v1 -objs BeaconKitBlock --include ~/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
+	@sszgen -path ./types/consensus/v1 -objs ${SSZ_STRUCTS} \
+    --include $(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/consensus-types/primitives,\
+	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 
-###############################################################################
+##############################################################################
 ###                             Dependencies                                ###
 ###############################################################################
 

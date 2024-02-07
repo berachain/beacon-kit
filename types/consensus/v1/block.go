@@ -32,6 +32,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -53,14 +54,14 @@ func BeaconKitBlockFromState(
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
-	slot Slot,
+	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
 	executionData interfaces.ExecutionData,
 	version uint32,
 ) (interfaces.BeaconKitBlock, error) {
 	versionBytes := make([]byte, 4) //nolint:gomnd // 4 bytes for uint32.
 	binary.LittleEndian.PutUint32(versionBytes, version)
 	block := &BeaconKitBlock{
-		Slot: uint64(slot),
+		Slot: slot,
 		BlockBodyGeneric: &BeaconBlockBody{
 			RandaoReveal: make([]byte, 96), //nolint:gomnd // 48 bytes for RandaoReveal.
 			Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
@@ -90,7 +91,7 @@ func NewEmptyBeaconKitBlockFromState(
 // NewEmptyBeaconKitBlock assembles a new beacon block
 // with no execution data.
 func NewEmptyBeaconKitBlock(
-	slot Slot,
+	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
 	version uint32,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBeaconKitBlock(slot, nil, version)
@@ -157,8 +158,4 @@ func (b *BeaconKitBlock) Version() int {
 	versionBytes := b.GetBlockBodyGeneric().GetVersion()
 	version := binary.BigEndian.Uint32(versionBytes)
 	return int(version)
-}
-
-func (b *BeaconKitBlock) BSlot() Slot {
-	return Slot(b.GetSlot())
 }

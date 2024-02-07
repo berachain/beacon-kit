@@ -47,7 +47,7 @@ type ReadOnlyBeaconKitBlock interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	// ssz.HashRoot
-	BSlot() primitives.Slot
+	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
 	// Execution returns the execution data of the block.
