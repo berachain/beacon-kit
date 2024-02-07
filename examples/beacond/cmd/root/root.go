@@ -70,9 +70,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
+	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	testapp "github.com/itsdevbear/bolaris/examples/beacond/app"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
+	tos "github.com/itsdevbear/bolaris/config/tos"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.
@@ -155,7 +157,8 @@ func NewRootCmd() *cobra.Command {
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customCMTConfig := initCometBFTConfig()
-
+			temporaryTosLink := "https://github.com/berachain/beacon-kit/blob/main/TERMS_OF_SERVICE.md"
+			tos.VerifyTosAcceptedOrPrompt(app.AppName, temporaryTosLink, initClientCtx, cmd)
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
 		},
 	}
@@ -260,6 +263,9 @@ func initRootCmd(
 		txCommand(),
 		keys.Commands(),
 	)
+
+	// add the flag to automagically accept the TOS
+	beaconconfig.AddToSFlag(rootCmd)
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {

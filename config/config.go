@@ -147,3 +147,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"suggested fee recipient",
 	)
 }
+
+func AddToSFlag(rootCmd *cobra.Command) {
+	rootCmd.Flags().Bool(flags.BeaconKitAcceptTos, false, "accept the terms of service")
+}
