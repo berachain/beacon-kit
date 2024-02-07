@@ -36,14 +36,14 @@ var _ BeaconKitConfig[ABCI] = ABCI{}
 // DefaultABCIConfig returns the default configuration for the proposal service.
 func DefaultABCIConfig() ABCI {
 	return ABCI{
-		BeaconKitBlockPosition: 0,
+		BeaconBlockPosition: 0,
 	}
 }
 
 // ABCI is a configuration struct for the cosmos proposal handler.
 type ABCI struct {
-	// BeaconKitBlockPosition is the position of the beacon block in the cometbft proposal.
-	BeaconKitBlockPosition uint
+	// BeaconBlockPosition is the position of the beacon block in the cometbft proposal.
+	BeaconBlockPosition uint
 }
 
 // Template returns the configuration template for the abci config.
@@ -51,15 +51,15 @@ func (c ABCI) Template() string {
 	return `
 [beacon-kit.abci]
 # Position of the beacon block in the proposal
-beacon-kit-block-proposal-position = {{.BeaconKit.ABCI.BeaconKitBlockPosition}}
+beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
 `
 }
 
 // Parse parses the configuration.
 func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
 	var err error
-	if c.BeaconKitBlockPosition, err = parser.GetUint(
-		flags.BeaconKitBlockPosition,
+	if c.BeaconBlockPosition, err = parser.GetUint(
+		flags.BeaconBlockPosition,
 	); err != nil {
 		return nil, err
 	}

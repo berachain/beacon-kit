@@ -43,5 +43,5 @@ const (
 	PrepareAllPayloads    = "beacon-kit.beacon-config.validator.prepare-all-payloads"
 
 	// Proposal.
-	BeaconKitBlockPosition = "beacon-kit.proposal.beacon-kit-block-proposal-position"
+	BeaconBlockPosition = "beacon-kit.abci.beacon-block-proposal-position"
 )

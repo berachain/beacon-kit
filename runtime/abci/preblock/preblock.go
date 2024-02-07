@@ -96,7 +96,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Extract the beacon block from the ABCI request.
 		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-			req, h.cfg.BeaconKitBlockPosition,
+			req, h.cfg.BeaconBlockPosition,
 		)
 		if err != nil {
 			return nil, err

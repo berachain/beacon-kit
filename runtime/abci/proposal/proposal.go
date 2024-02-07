@@ -114,7 +114,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Extract the beacon kit block from the proposal and unmarshal it.
 	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-		req, h.cfg.BeaconKitBlockPosition,
+		req, h.cfg.BeaconBlockPosition,
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
@@ -140,7 +140,7 @@ func (h *Handler) ProcessProposalHandler(
 func (h *Handler) RemoveBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
 ) *abci.RequestProcessProposal {
-	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconKitBlockPosition)
+	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconBlockPosition)
 	return req
 }
 
