@@ -60,13 +60,13 @@ func NewBeaconKitBlock(
 		err   error
 	)
 	switch requestedVersion {
+	case version.Deneb:
+		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
 		block, err = capella.NewBeaconKitBlock(slot, executionData)
 		if err != nil {
 			return nil, err
 		}
-	case version.Deneb:
-		return nil, errors.New("TODO: Deneb block")
 	default:
 		return nil, errors.New("unsupported version")
 	}
@@ -120,13 +120,16 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 
 	var block interfaces.BeaconKitBlock
 	switch requestedVersion {
+	case version.Deneb:
+		return nil, errors.New("TODO: Deneb block")
+
 	case version.Capella:
 		block = &capella.BeaconKitBlockCapella{}
 		if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
 			return nil, err
 		}
-	case version.Deneb:
-		return nil, errors.New("TODO: Deneb block")
+	default:
+		return nil, errors.New("unsupported version")
 	}
 
 	return block, nil
