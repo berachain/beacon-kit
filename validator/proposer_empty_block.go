@@ -35,9 +35,13 @@ import (
 )
 
 func (s *Service) getEmptyBlock(slot primitives.Slot) (interfaces.BeaconKitBlock, error) {
-	var sBlk interfaces.BeaconKitBlock
-	var err error
-	switch fork := s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)); fork {
+	var (
+		sBlk interfaces.BeaconKitBlock
+		err  error
+		fork = s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
+	)
+
+	switch fork {
 	case version.Deneb:
 		// TODO: SUPPORT
 		panic("ERROR: deneb fork is not yet supported in beacon-kit.")
