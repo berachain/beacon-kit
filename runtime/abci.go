@@ -31,9 +31,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
-	"github.com/itsdevbear/bolaris/beacon/validator"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
+	"github.com/itsdevbear/bolaris/validator"
 )
 
 // CosmosApp is an interface that defines the methods needed for the Cosmos setup.

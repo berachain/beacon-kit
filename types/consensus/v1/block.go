@@ -29,8 +29,8 @@ import (
 	"encoding/binary"
 	"math/big"
 
+	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"

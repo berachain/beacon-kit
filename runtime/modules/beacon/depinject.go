@@ -23,46 +23,54 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package evm
 
 import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/depinject"
+	store "cosmossdk.io/store/types"
+
+	"github.com/itsdevbear/bolaris/config"
+	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 )
 
-type BlockBuilder interface {
+//nolint:gochecknoinits // GRRRR fix later.
+func init() {
+	appmodule.Register(&modulev1alpha1.Module{},
+		appmodule.Provide(ProvideModule),
+	)
 }
 
-type Service struct {
-	service.BaseService
-	en           engine.Caller
-	payloadCache *cache.PayloadIDCache
+// DepInjectInput is the input for the dep inject framework.
+type DepInjectInput struct {
+	depinject.In
+
+	ModuleKey depinject.OwnModuleKey
+	Config    *modulev1alpha1.Module
+	Key       *store.KVStoreKey
+
+	BeaconKitConfig *config.Beacon
 }
 
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
+// DepInjectOutput is the output for the dep inject framework.
+type DepInjectOutput struct {
+	depinject.Out
+
+	Keeper *keeper.Keeper
+	Module appmodule.AppModule
+}
+
+// ProvideModule is a function that provides the module to the application.
+func ProvideModule(in DepInjectInput) DepInjectOutput {
+	k := keeper.NewKeeper(
+		in.Key,
+		in.BeaconKitConfig,
+	)
+	m := NewAppModule(k)
+
+	return DepInjectOutput{
+		Keeper: k,
+		Module: m,
 	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start() {
-}
-
-func (s *Service) Stop() error {
-	return nil
-}
-
-func (s *Service) Status() error {
-	return nil
 }

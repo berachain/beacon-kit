@@ -38,10 +38,10 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
-	"github.com/itsdevbear/bolaris/beacon/validator"
+	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/itsdevbear/bolaris/validator"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/runtime"
 )

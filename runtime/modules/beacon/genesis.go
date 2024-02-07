@@ -34,7 +34,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm

@@ -35,9 +35,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	"github.com/itsdevbear/bolaris/beacon/validator"
 	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/validator"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle

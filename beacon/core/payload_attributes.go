@@ -28,8 +28,8 @@ package core
 import (
 	"cosmossdk.io/log"
 
+	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types/state"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"

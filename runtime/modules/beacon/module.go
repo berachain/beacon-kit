@@ -38,8 +38,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
-	"github.com/itsdevbear/bolaris/cosmos/x/beacon/types"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
 
 // ConsensusVersion defines the current x/beacon module consensus version.

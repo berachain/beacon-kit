@@ -24,9 +24,9 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package beacon.v1alpha1;
+package x.beacon.v1alpha1;
 
-option go_package = "github.com/itsdevbear/bolaris/cosmos/x/beacon/types";
+option go_package = "github.com/itsdevbear/bolaris/runtime/modules/beacon/types";
 
 // GenesisState is the genesis-state for the x/oracle module, it takes a set of
 // predefined CurrencyPairGeneses
