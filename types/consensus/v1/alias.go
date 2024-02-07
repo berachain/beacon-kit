@@ -23,23 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+package v1
 
-import "ethereum/eth/ext/options.proto";
-import "types/consensus/v1/body.proto";
+import (
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
+)
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
-
-// BeaconKitBlock represents a generic beacon block that can be used to represent
-// any beacon block in the system.
-message BeaconKitBlock {
-  // Beacon chain slot that this block represents.
-  uint64 slot = 1; // [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
-
-  // BeaconBlockBody contains the body of the beacon block.
-  BeaconBlockBody block_body_generic = 2;
-
-  // The payload value of the block.
-  bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
-}
+type (
+	// Slot is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot
+	// We have to do this to keep `sszgen` happy.
+	Slot = github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot
+	// Wei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Wei
+	// We have to do this to keep `sszgen` happy.
+	Wei = github_com_prysmaticlabs_prysm_v4_math.Wei
+)

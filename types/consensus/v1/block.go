@@ -32,8 +32,6 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
-	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -55,12 +53,12 @@ func BeaconKitBlockFromState(
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
-	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
+	slot Slot,
 	executionData interfaces.ExecutionData,
 	version uint32,
 ) (interfaces.BeaconKitBlock, error) {
 	versionBytes := make([]byte, 4) //nolint:gomnd // 4 bytes for uint32.
-	binary.LittleEndian.PutUint32(versionBytes, uint32(version))
+	binary.LittleEndian.PutUint32(versionBytes, version)
 	block := &BeaconKitBlock{
 		Slot: uint64(slot),
 		BlockBodyGeneric: &BeaconBlockBody{
@@ -90,7 +88,7 @@ func NewEmptyBeaconKitBlockFromState(
 // NewEmptyBeaconKitBlock assembles a new beacon block
 // with no execution data.
 func NewEmptyBeaconKitBlock(
-	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
+	slot Slot,
 	version uint32,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBeaconKitBlock(slot, nil, version)
@@ -134,13 +132,16 @@ func (b *BeaconKitBlock) AttachExecution(
 		return err
 	}
 
-	var value github_com_prysmaticlabs_prysm_v4_math.Wei
+	var value Wei
 	value, err = executionData.ValueInWei()
 	if err != nil {
 		return err
 	}
 
-	b.PayloadValue = (*value).Bytes() //nolint:gocritic // suggestion doesnt work.
+	// TODO: this needs to be done better, really hood rn.
+	payloadValueBz := make([]byte, 32)     //nolint:gomnd // 32 bytes for uint256.
+	copy(payloadValueBz, (*value).Bytes()) //nolint:gocritic // we need to copy the bytes.
+	b.PayloadValue = payloadValueBz
 	return err
 }
 
@@ -156,6 +157,6 @@ func (b *BeaconKitBlock) Version() int {
 	return int(version)
 }
 
-func (b *BeaconKitBlock) BSlot() github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot {
-	return github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot(b.GetSlot())
+func (b *BeaconKitBlock) BSlot() Slot {
+	return Slot(b.GetSlot())
 }
