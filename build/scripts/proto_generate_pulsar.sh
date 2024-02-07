@@ -42,8 +42,6 @@ mkdir -p cosmos/api
 echo "Generating API module"
 (cd proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
 
-echo "REEEE"
-pwd
 cp -r api cosmos
 rm -rf api
 rm -rf cosmos/api/ethereum

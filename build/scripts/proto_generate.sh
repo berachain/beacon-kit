@@ -46,8 +46,6 @@ for dir in $proto_dirs; do
       template="buf.gen.ssz.yaml"
     fi
     if grep -q "option go_package" "$file" && grep -H -o -c 'option go_package.*cosmossdk.io/api' "$file" | grep -q ':0$'; then
-      echo $template
-      echo $file
       buf generate --template $template $file
     fi
   done
@@ -59,5 +57,5 @@ cp -r github.com/itsdevbear/bolaris/* ../
 rm -rf github.com
 cd ../
 
-# echo "Generating pulsar proto code"
+echo "--> Generating pulsar proto code"
 ./build/scripts/proto_generate_pulsar.sh
