@@ -42,6 +42,16 @@ type BeaconKitBlock interface {
 	WriteOnlyBeaconKitBlock
 }
 
+type BeaconBlockBody interface {
+	ReadOnlyBeaconKitBlockBody
+}
+
+type ReadOnlyBeaconKitBlockBody interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+}
+
 // ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconKitBlock interface {
 	ssz.Marshaler

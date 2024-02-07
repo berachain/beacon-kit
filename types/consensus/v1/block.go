@@ -37,7 +37,7 @@ import (
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
-var _ interfaces.BeaconKitBlock = (*BeaconKitBlock)(nil)
+var _ interfaces.BeaconKitBlock = (*BeaconKitBlockCapella)(nil)
 
 // BeaconKitBlockFromState assembles a new beacon block
 // from the given state and execution data.
@@ -62,9 +62,9 @@ func NewBeaconKitBlock(
 ) (interfaces.BeaconKitBlock, error) {
 	versionBytes := make([]byte, 4) //nolint:gomnd // 4 bytes for uint32.
 	binary.LittleEndian.PutUint32(versionBytes, version)
-	block := &BeaconKitBlock{
+	block := &BeaconKitBlockCapella{
 		Slot: slot,
-		BlockBodyGeneric: &BeaconBlockBody{
+		Body: &BeaconKitBlockBodyCapella{
 			RandaoReveal: make([]byte, 96), //nolint:gomnd // 96 bytes for RandaoReveal.
 			Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
 			Version:      versionBytes,
@@ -115,7 +115,7 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	if bzIndex >= uint(len(txs)) {
 		return nil, ErrBzIndexOutOfBounds
 	}
-	block := BeaconKitBlock{}
+	block := BeaconKitBlockCapella{}
 	if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
 		return nil, err
 	}
@@ -123,12 +123,12 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 }
 
 // IsNil checks if the BeaconKitBlock is nil or not.
-func (b *BeaconKitBlock) IsNil() bool {
+func (b *BeaconKitBlockCapella) IsNil() bool {
 	return b == nil
 }
 
 // AttachExecution attaches the given execution data to the block.
-func (b *BeaconKitBlock) AttachExecution(
+func (b *BeaconKitBlockCapella) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
 	var (
@@ -136,7 +136,7 @@ func (b *BeaconKitBlock) AttachExecution(
 		value Wei
 	)
 
-	b.BlockBodyGeneric.ExecutionPayload, err = executionData.PbCapella()
+	b.Body.ExecutionPayload, err = executionData.PbCapella()
 	if err != nil {
 		return err
 	}
@@ -158,13 +158,13 @@ func (b *BeaconKitBlock) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
-	return blocks.WrappedExecutionPayloadCapella(b.GetBlockBodyGeneric().GetExecutionPayload(),
+func (b *BeaconKitBlockCapella) Execution() (interfaces.ExecutionData, error) {
+	return blocks.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
 		new(big.Int).SetBytes(b.GetPayloadValue()))
 }
 
-func (b *BeaconKitBlock) Version() int {
-	versionBytes := b.GetBlockBodyGeneric().GetVersion()
+func (b *BeaconKitBlockCapella) Version() int {
+	versionBytes := b.GetBody().GetVersion()
 	version := binary.BigEndian.Uint32(versionBytes)
 	return int(version) //#nosec:G701 // won't realistically overflow.
 }

@@ -23,26 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+package blocks
 
-import "ethereum/engine/v1/execution_engine.proto";
-import "ethereum/eth/ext/options.proto";
+import (
+	"github.com/pkg/errors"
+)
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
-
-// BeaconKitBlockBodyCapella represents the body of a beacon block.
-message BeaconKitBlockBodyCapella {
-  // The validators RANDAO reveal 96 byte value.
-  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
-
-  // 32 byte field of arbitrary data. This field may contain any data and
-  // is not used for anything other than a fun message.
-  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
-
-  // TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
-  bytes version = 3 [(ethereum.eth.ext.ssz_size) = "4"];
-
-  // Execution payload from the execution chain. New in Bellatrix network upgrade.
-  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
-}
+var (
+	// errUnsupportedBeaconBlock is returned when the struct type is not a supported beacon block
+	// type.
+	errUnsupportedBeaconBlock = errors.New("unsupported beacon block")
+	// errUnsupportedBeaconBlockBody is returned when the struct type is not a supported beacon
+	// block body type.
+	errUnsupportedBeaconBlockBody = errors.New("unsupported beacon block body")
+	// ErrNilObject is returned in a constructor when the underlying object is nil.
+)
