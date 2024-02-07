@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package x.beacon.v1alpha1;
+package runtime.modules.beacon.v1alpha1;
 
 option go_package = "github.com/itsdevbear/bolaris/runtime/modules/beacon/types";
 
