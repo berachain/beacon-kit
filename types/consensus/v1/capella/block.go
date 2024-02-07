@@ -23,10 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+package capella
 
 import (
-	"encoding/binary"
 	"math/big"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
@@ -34,6 +33,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
+	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -48,8 +48,6 @@ func BeaconKitBlockFromState(
 	return NewBeaconKitBlock(
 		beaconState.Slot(),
 		executionData,
-		//#nosec:G701 // won't realistically overflow.
-		uint32(beaconState.Version()),
 	)
 }
 
@@ -58,16 +56,12 @@ func BeaconKitBlockFromState(
 func NewBeaconKitBlock(
 	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
 	executionData interfaces.ExecutionData,
-	version uint32,
 ) (interfaces.BeaconKitBlock, error) {
-	versionBytes := make([]byte, 4) //nolint:gomnd // 4 bytes for uint32.
-	binary.LittleEndian.PutUint32(versionBytes, version)
 	block := &BeaconKitBlockCapella{
 		Slot: slot,
 		Body: &BeaconKitBlockBodyCapella{
 			RandaoReveal: make([]byte, 96), //nolint:gomnd // 96 bytes for RandaoReveal.
 			Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
-			Version:      versionBytes,
 		},
 	}
 	if executionData != nil {
@@ -76,50 +70,6 @@ func NewBeaconKitBlock(
 		}
 	}
 	return block, nil
-}
-
-// NewEmptyBeaconKitBlockFromState assembles a new beacon block
-// with no execution data from the given state.
-func NewEmptyBeaconKitBlockFromState(
-	beaconState state.BeaconState,
-) (interfaces.BeaconKitBlock, error) {
-	return NewEmptyBeaconKitBlock(
-		beaconState.Slot(),
-		//#nosec:G701 // won't realistically overflow.
-		uint32(beaconState.Version()),
-	)
-}
-
-// NewEmptyBeaconKitBlock assembles a new beacon block
-// with no execution data.
-func NewEmptyBeaconKitBlock(
-	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
-	version uint32,
-) (interfaces.BeaconKitBlock, error) {
-	return NewBeaconKitBlock(slot, nil, version)
-}
-
-// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
-// new read-only beacon block by extracting a marshalled
-// block out of an ABCI request.
-func ReadOnlyBeaconKitBlockFromABCIRequest(
-	req interfaces.ABCIRequest,
-	bzIndex uint,
-) (interfaces.ReadOnlyBeaconKitBlock, error) {
-	// Extract the marshalled payload from the proposal
-	txs := req.GetTxs()
-	lenTxs := len(txs)
-	if lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInProposal
-	}
-	if bzIndex >= uint(len(txs)) {
-		return nil, ErrBzIndexOutOfBounds
-	}
-	block := BeaconKitBlockCapella{}
-	if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
-		return nil, err
-	}
-	return &block, nil
 }
 
 // IsNil checks if the BeaconKitBlock is nil or not.
@@ -163,8 +113,7 @@ func (b *BeaconKitBlockCapella) Execution() (interfaces.ExecutionData, error) {
 		new(big.Int).SetBytes(b.GetPayloadValue()))
 }
 
+// Version returns the version of the block.
 func (b *BeaconKitBlockCapella) Version() int {
-	versionBytes := b.GetBody().GetVersion()
-	version := binary.BigEndian.Uint32(versionBytes)
-	return int(version) //#nosec:G701 // won't realistically overflow.
+	return version.Capella
 }

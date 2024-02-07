@@ -24,3 +24,110 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package blocks
+
+import (
+	"errors"
+
+	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
+	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+)
+
+// BeaconKitBlockFromState assembles a new beacon block
+// from the given state and execution data.
+func BeaconKitBlockFromState(
+	beaconState state.ReadOnlyBeaconState,
+	executionData interfaces.ExecutionData,
+) (interfaces.BeaconKitBlock, error) {
+	return NewBeaconKitBlock(
+		beaconState.Slot(),
+		executionData,
+		beaconState.Version(),
+	)
+}
+
+// BeaconKitBlock assembles a new beacon block from
+// the given slot, time, execution data, and version.
+func NewBeaconKitBlock(
+	slot primitives.Slot,
+	executionData interfaces.ExecutionData,
+	requestedVersion int,
+) (interfaces.BeaconKitBlock, error) {
+	var (
+		block interfaces.BeaconKitBlock
+		err   error
+	)
+	switch requestedVersion {
+	case version.Capella:
+		block, err = capella.NewBeaconKitBlock(slot, executionData)
+		if err != nil {
+			return nil, err
+		}
+	case version.Deneb:
+		return nil, errors.New("TODO: Deneb block")
+	default:
+		return nil, errors.New("unsupported version")
+	}
+
+	// Attach the execution data to the block if it exists.
+	if executionData != nil {
+		if err = block.AttachExecution(executionData); err != nil {
+			return nil, err
+		}
+	}
+	return block, nil
+}
+
+// NewEmptyBeaconKitBlockFromState assembles a new beacon block
+// with no execution data from the given state.
+func NewEmptyBeaconKitBlockFromState(
+	beaconState state.BeaconState,
+) (interfaces.BeaconKitBlock, error) {
+	return NewEmptyBeaconKitBlock(
+		beaconState.Slot(),
+		beaconState.Version(),
+	)
+}
+
+// NewEmptyBeaconKitBlock assembles a new beacon block
+// with no execution data.
+func NewEmptyBeaconKitBlock(
+	slot primitives.Slot,
+	version int,
+) (interfaces.BeaconKitBlock, error) {
+	return NewBeaconKitBlock(slot, nil, version)
+}
+
+// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
+// new read-only beacon block by extracting a marshalled
+// block out of an ABCI request.
+func ReadOnlyBeaconKitBlockFromABCIRequest(
+	req interfaces.ABCIRequest,
+	bzIndex uint,
+	requestedVersion int,
+) (interfaces.ReadOnlyBeaconKitBlock, error) {
+	// Extract the marshalled payload from the proposal
+	txs := req.GetTxs()
+	lenTxs := len(txs)
+	if lenTxs == 0 {
+		return nil, ErrNoBeaconBlockInProposal
+	}
+	if bzIndex >= uint(len(txs)) {
+		return nil, ErrBzIndexOutOfBounds
+	}
+
+	var block interfaces.BeaconKitBlock
+	switch requestedVersion {
+	case version.Capella:
+		block = &capella.BeaconKitBlockCapella{}
+		if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
+			return nil, err
+		}
+	case version.Deneb:
+		return nil, errors.New("TODO: Deneb block")
+	}
+
+	return block, nil
+}

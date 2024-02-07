@@ -30,11 +30,15 @@ import (
 )
 
 var (
-	// errUnsupportedBeaconBlock is returned when the struct type is not a supported beacon block
-	// type.
-	errUnsupportedBeaconBlock = errors.New("unsupported beacon block")
-	// errUnsupportedBeaconBlockBody is returned when the struct type is not a supported beacon
-	// block body type.
-	errUnsupportedBeaconBlockBody = errors.New("unsupported beacon block body")
-	// ErrNilObject is returned in a constructor when the underlying object is nil.
+	// ErrNoBeaconBlockInProposal is an error for when
+	// there is no beacon block in a proposal.
+	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
+
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
+
+	// ErrInvalidExecutionValue is an error for when the
+	// execution value is invalid.
+	ErrInvalidExecutionValue = errors.New("invalid execution value")
 )

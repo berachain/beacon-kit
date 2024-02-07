@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/log"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -38,7 +39,7 @@ import (
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/blocks"
 )
 
 type BeaconKeeper interface {
@@ -95,8 +96,14 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		h.syncStatus.CheckSyncStatus(ctx)
 
 		// Extract the beacon block from the ABCI request.
-		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-			req, h.cfg.BeaconBlockPosition,
+		//
+		// TODO: I don't love how we have to use the BeaconConfig here.
+		// TODO: Block factory struct?
+		// TODO: Use protobuf and .(type)?
+		beaconBlock, err := blocks.ReadOnlyBeaconKitBlockFromABCIRequest(
+			req, h.cfg.BeaconBlockPosition, h.chainService.BeaconCfg().ActiveForkVersion(
+				primitives.Epoch(req.Height),
+			),
 		)
 		if err != nil {
 			return nil, err
