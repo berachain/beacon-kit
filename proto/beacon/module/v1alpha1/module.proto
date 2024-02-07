@@ -27,10 +27,9 @@ syntax = "proto3";
 
 package beacon.module.v1alpha1;
 
-// //buf:lint:ignore COMPILE
-// import "cosmos/app/v1alpha1/module.proto";
+import "cosmos/app/v1alpha1/module.proto";
 
-// // Module is the config object of the evm module.
-// message Module {
-//   option (cosmos.app.v1alpha1.module) = {go_import: "github.com/itsdevbear/bolaris/cosmos/x/beacon"};
-// }
+// Module is the config object of the evm module.
+message Module {
+  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/itsdevbear/bolaris/cosmos/x/beacon"};
+}

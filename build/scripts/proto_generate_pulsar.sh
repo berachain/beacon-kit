@@ -47,3 +47,4 @@ pwd
 cp -r api cosmos
 rm -rf api
 rm -rf cosmos/api/ethereum
+rm -rf cosmos/api/types

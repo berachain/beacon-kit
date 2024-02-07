@@ -60,4 +60,4 @@ rm -rf github.com
 cd ../
 
 # echo "Generating pulsar proto code"
-# ./build/scripts/proto_generate_pulsar.sh
+./build/scripts/proto_generate_pulsar.sh
