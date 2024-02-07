@@ -73,7 +73,6 @@ import (
 	testapp "github.com/itsdevbear/bolaris/examples/beacond/app"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
-	beacontemplate "github.com/itsdevbear/bolaris/config/template"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.
@@ -223,7 +222,7 @@ func initAppConfig() (string, interface{}) {
 		BeaconKit: *beaconconfig.DefaultConfig(),
 	}
 
-	customAppTemplate := serverconfig.DefaultConfigTemplate + beacontemplate.ConfigTemplate
+	customAppTemplate := serverconfig.DefaultConfigTemplate + customAppConfig.BeaconKit.Template()
 
 	return customAppTemplate, customAppConfig
 }

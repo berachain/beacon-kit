@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package parser
 
 import (
 	"fmt"
@@ -60,8 +60,8 @@ func NewAppOptionsParser(opts servertypes.AppOptions) *AppOptionsParser {
 	return &AppOptionsParser{opts}
 }
 
-// GetCommonAddress returns the common.Address for the provided key.
-func (c *AppOptionsParser) GetCommonAddress(key string) (common.Address, error) {
+// GetExecutionAddress returns the common.Address for the provided key.
+func (c *AppOptionsParser) GetExecutionAddress(key string) (common.Address, error) {
 	addressStr, err := c.GetString(key)
 	if err != nil {
 		return common.Address{}, err

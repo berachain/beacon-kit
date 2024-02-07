@@ -25,27 +25,45 @@
 
 package config
 
-// Client is the configuration struct for the execution client.
-type ExecutionClient struct {
-	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL string
-	// RPCTimeout is the RPC timeout for execution client requests.
-	RPCTimeout uint64
-	// RPCRetries is the number of retries before shutting down consensus client.
-	RPCRetries uint64
-	// JWTSecretPath is the path to the JWT secret.
-	JWTSecretPath string
-	// RequiredChainID is the chain id that the consensus client must be connected to.
-	RequiredChainID uint64
+import (
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+)
+
+// Forks conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Forks] = &Forks{}
+
+// DefaultValidatorConfig returns the default validator configuration.
+func DefaultForksConfig() Forks {
+	return Forks{
+		DenebForkEpoch: primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+	}
 }
 
-// DefaultExecutionClientConfig returns the default configuration for the execution client.
-func DefaultExecutionClientConfig() ExecutionClient {
-	return ExecutionClient{
-		RPCDialURL:      "http://localhost:8551",
-		RPCTimeout:      5, //nolint:gomnd // default config.
-		RPCRetries:      3, //nolint:gomnd // default config.
-		JWTSecretPath:   "./jwt.hex",
-		RequiredChainID: 7, //nolint:gomnd // default config.
+// Config represents the configuration struct for the validator.
+type Forks struct {
+	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
+	DenebForkEpoch primitives.Epoch
+}
+
+// Parse parses the configuration.
+func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
+	var err error
+	if c.DenebForkEpoch, err = parser.GetEpoch(
+		flags.DenebForkEpoch,
+	); err != nil {
+		return nil, err
 	}
+
+	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c Forks) Template() string {
+	return `
+[beacon-kit.beacon-config.forks]
+# Deneb fork epoch
+deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
+`
 }

@@ -23,30 +23,63 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package template
+package config
 
-const (
-	ConfigTemplate = `
-###############################################################################
-###                                BeaconKit                                ###
-###############################################################################
-[beacon-kit.execution-client]
-# HTTP url of the execution client JSON-RPC endpoint.
-rpc-dial-url = "{{ .BeaconKit.ExecutionClient.RPCDialURL }}"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/config/parser"
+)
 
-# RPC timeout for execution client requests.
-rpc-timeout = "{{ .BeaconKit.ExecutionClient.RPCTimeout }}"
+// Validator conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Validator] = &Validator{}
 
-# Number of retries before shutting down consensus client.
-rpc-retries = "{{.BeaconKit.ExecutionClient.RPCRetries}}"
+// DefaultValidatorConfig returns the default validator configuration.
+func DefaultValidatorConfig() Validator {
+	return Validator{
+		SuggestedFeeRecipient: common.Address{},
+		Graffiti:              "",
+		PrepareAllPayloads:    true,
+	}
+}
 
-# Path to the execution client JWT-secret
-jwt-secret-path = "{{.BeaconKit.ExecutionClient.JWTSecretPath}}"
+// Config represents the configuration struct for the validator.
+type Validator struct {
+	// Suggested FeeRecipient is the address that will receive the transaction fees
+	// produced by any blocks from this node.
+	SuggestedFeeRecipient common.Address
 
-[beacon-kit.beacon-config]
-# Deneb fork epoch
-deneb-fork-epoch = {{.BeaconKit.Beacon.DenebForkEpoch}}
+	// Grafitti is the string that will be included in the graffiti field of the beacon block.
+	Graffiti string
 
+	// PrepareAllPayloads informs the engine to prepare a block on every slot.
+	PrepareAllPayloads bool
+}
+
+// Parse parses the configuration.
+func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
+	var err error
+	if c.SuggestedFeeRecipient, err = parser.GetExecutionAddress(
+		flags.SuggestedFeeRecipient,
+	); err != nil {
+		return nil, err
+	}
+	if c.Graffiti, err = parser.GetString(flags.Graffiti); err != nil {
+		return nil, err
+	}
+
+	if c.PrepareAllPayloads, err = parser.GetBool(
+		flags.PrepareAllPayloads,
+	); err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c Validator) Template() string {
+	return `
 [beacon-kit.beacon-config.validator]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
 # from this node.
@@ -57,9 +90,5 @@ graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
 
 # Prepare all payloads informs the engine to prepare a block on every slot.
 prepare-all-payloads = {{.BeaconKit.Beacon.Validator.PrepareAllPayloads}}
-
-[beacon-kit.proposal]
-# Position of the beacon block in the proposal
-beacon-kit-block-proposal-position = {{.BeaconKit.Proposal.BeaconKitBlockPosition}}
 `
-)
+}

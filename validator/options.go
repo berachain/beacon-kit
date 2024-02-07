@@ -30,8 +30,10 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 )
 
+// Option is a functional option for the validator service.
 type Option func(*Service) error
 
+// WithEngineCaller sets the engine caller for the validator service.
 func WithEngineCaller(caller engine.Caller) Option {
 	return func(s *Service) error {
 		s.en = caller
@@ -39,6 +41,7 @@ func WithEngineCaller(caller engine.Caller) Option {
 	}
 }
 
+// WithPayloadCache sets the payload cache for the validator service.
 func WithPayloadCache(pc *cache.PayloadIDCache) Option {
 	return func(s *Service) error {
 		s.payloadCache = pc

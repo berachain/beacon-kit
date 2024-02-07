@@ -50,7 +50,7 @@ type BeaconKeeper interface {
 // are executed/finalized for a given block.
 type BeaconPreBlockHandler struct {
 	// cfg is the configuration for block proposals and finalization.
-	cfg *config.Proposal
+	cfg *config.ABCI
 
 	// logger is the logger used by the handler.
 	logger log.Logger
@@ -71,7 +71,7 @@ type BeaconPreBlockHandler struct {
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
 // is responsible for writing oracle data included in vote extensions to state.
 func NewBeaconPreBlockHandler(
-	cfg *config.Proposal,
+	cfg *config.ABCI,
 	logger log.Logger,
 	chainService *blockchain.Service,
 	syncService *initialsync.Service,
@@ -96,7 +96,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Extract the beacon block from the ABCI request.
 		beaconBlock, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-			req, h.cfg.BeaconKitBlockPosition,
+			req, h.cfg.BeaconBlockPosition,
 		)
 		if err != nil {
 			return nil, err

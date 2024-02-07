@@ -26,58 +26,65 @@
 package config
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/config/parser"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
+// Beacon conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Beacon] = Beacon{}
+
 // Beacon is the configuration for the beacon chain.
 type Beacon struct {
-	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
-	DenebForkEpoch primitives.Epoch
-
+	// Forks is the configuration for the beacon chain forks.
+	Forks Forks
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
 }
 
-// Validator is the configuration for the validator. Only utilized when
-// this node is in the active validator set.
-type Validator struct {
-	// Suggested FeeRecipient is the address that will receive the transaction fees
-	// produced by any blocks from this node.
-	SuggestedFeeRecipient common.Address
-
-	// Grafitti is the string that will be included in the graffiti field of the beacon block.
-	Graffiti string
-
-	// PrepareAllPayloads informs the engine to prepare a block on every slot.
-	PrepareAllPayloads bool
-}
-
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
-		DenebForkEpoch: primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
-		Validator:      DefaultValidatorConfig(),
-	}
-}
-
-// DefaultValidatorConfig returns the default validator configuration.
-func DefaultValidatorConfig() Validator {
-	return Validator{
-		SuggestedFeeRecipient: common.Address{},
-		Graffiti:              "",
-		PrepareAllPayloads:    true,
+		Forks:     DefaultForksConfig(),
+		Validator: DefaultValidatorConfig(),
 	}
 }
 
 // ActiveForkVersion returns the active fork version for a given slot.
 func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
-	if epoch >= c.DenebForkEpoch {
+	if epoch >= c.Forks.DenebForkEpoch {
 		return version.Deneb
 	}
 
 	// In BeaconKit we assume the Capella fork is always active.
 	return version.Capella
+}
+
+// Parse parses the configuration.
+func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
+	var (
+		err       error
+		forks     *Forks
+		validator *Validator
+	)
+
+	// Parse the forks configuration.
+	if forks, err = c.Forks.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Forks = *forks
+
+	// Parse the validator configuration.
+	if validator, err = c.Validator.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Validator = *validator
+
+	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c Beacon) Template() string {
+	return c.Forks.Template() + c.Validator.Template()
 }

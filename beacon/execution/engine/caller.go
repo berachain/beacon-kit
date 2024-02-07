@@ -201,7 +201,7 @@ func (s *engineCaller) GetPayload(
 		) * time.Second)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
-	if primitives.Epoch(slot) >= s.beaconCfg.DenebForkEpoch {
+	if primitives.Epoch(slot) >= s.beaconCfg.Forks.DenebForkEpoch {
 		result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 		err := s.Eth1Client.Client.Client().CallContext(ctx,
 			result, execution.GetPayloadMethodV3, enginev1.PayloadIDBytes(payloadID))

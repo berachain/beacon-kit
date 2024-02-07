@@ -35,21 +35,25 @@ import (
 )
 
 func (s *Service) getEmptyBlock(slot primitives.Slot) (interfaces.BeaconKitBlock, error) {
-	var sBlk interfaces.BeaconKitBlock
-	var err error
-	switch s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)) {
+	var (
+		sBlk interfaces.BeaconKitBlock
+		err  error
+		fork = s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
+	)
+
+	switch fork {
 	case version.Deneb:
 		// TODO: SUPPORT
-		panic("ERROR: Unsupported version")
+		panic("ERROR: deneb fork is not yet supported in beacon-kit.")
 	case version.Capella:
+		// TODO: generalize the beacon kit block building using a factory pattern.
 		sBlk, err = consensusv1.NewBeaconKitBlock(slot, nil, version.Capella)
 		if err != nil {
 			return nil, fmt.Errorf("could not initialize block for proposal: %w", err)
 		}
 	default:
-		// TODO: we should just hardcode in beacon-kit that all forks capella and early
-		// are always enabled. Need to make this change around the entire codebase.
-		panic("ERROR: Unsupported version")
+		err = fmt.Errorf(
+			"unknown fork version %d for slot %d", fork, slot)
 	}
 	return sBlk, err
 }
