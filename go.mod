@@ -24,7 +24,6 @@ require (
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.11
-	github.com/ferranbt/fastssz v0.0.0-20210120143747-11b9eff30ea9
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/google/addlicense v1.1.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
