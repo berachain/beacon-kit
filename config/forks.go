@@ -47,15 +47,6 @@ type Forks struct {
 	DenebForkEpoch primitives.Epoch
 }
 
-// Template returns the configuration template.
-func (c Forks) Template() string {
-	return `
-[beacon-kit.beacon-config.forks]
-# Deneb fork epoch
-deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
-`
-}
-
 // Parse parses the configuration.
 func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 	var err error
@@ -66,4 +57,13 @@ func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 	}
 
 	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c Forks) Template() string {
+	return `
+[beacon-kit.beacon-config.forks]
+# Deneb fork epoch
+deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
+`
 }

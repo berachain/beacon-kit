@@ -40,6 +40,15 @@ type BeaconKitConfig[T any] interface {
 	Parse(parser parser.AppOptionsParser) (*T, error)
 }
 
+// DefaultConfig returns the default configuration for a BeaconKit chain.
+func DefaultConfig() *Config {
+	return &Config{
+		Execution: DefaultExecutionConfig(),
+		Beacon:    DefaultBeaconConfig(),
+		ABCI:      DefaultABCIConfig(),
+	}
+}
+
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
 	// Execution is the configuration for the execution client.
@@ -59,15 +68,6 @@ func (c Config) Template() string {
 ###                                BeaconKit                                ###
 ###############################################################################
 ` + c.Execution.Template() + c.Beacon.Template() + c.ABCI.Template()
-}
-
-// DefaultConfig returns the default configuration for a BeaconKit chain.
-func DefaultConfig() *Config {
-	return &Config{
-		Execution: DefaultExecutionConfig(),
-		Beacon:    DefaultBeaconConfig(),
-		ABCI:      DefaultABCIConfig(),
-	}
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the

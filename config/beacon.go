@@ -61,11 +61,6 @@ func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
 	return version.Capella
 }
 
-// Template returns the configuration template.
-func (c Beacon) Template() string {
-	return c.Forks.Template() + c.Validator.Template()
-}
-
 // Parse parses the configuration.
 func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 	var (
@@ -87,4 +82,9 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 	c.Validator = *validator
 
 	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c Beacon) Template() string {
+	return c.Forks.Template() + c.Validator.Template()
 }

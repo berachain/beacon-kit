@@ -56,22 +56,6 @@ type Validator struct {
 	PrepareAllPayloads bool
 }
 
-// Template returns the configuration template.
-func (c Validator) Template() string {
-	return `
-[beacon-kit.beacon-config.validator]
-# Post bellatrix, this address will receive the transaction fees produced by any blocks 
-# from this node.
-suggested-fee-recipient = "{{.BeaconKit.Beacon.Validator.SuggestedFeeRecipient}}"
-
-# Graffiti string that will be included in the graffiti field of the beacon block.
-graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
-
-# Prepare all payloads informs the engine to prepare a block on every slot.
-prepare-all-payloads = {{.BeaconKit.Beacon.Validator.PrepareAllPayloads}}
-`
-}
-
 // Parse parses the configuration.
 func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
 	var err error
@@ -91,4 +75,20 @@ func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
 	}
 
 	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c Validator) Template() string {
+	return `
+[beacon-kit.beacon-config.validator]
+# Post bellatrix, this address will receive the transaction fees produced by any blocks 
+# from this node.
+suggested-fee-recipient = "{{.BeaconKit.Beacon.Validator.SuggestedFeeRecipient}}"
+
+# Graffiti string that will be included in the graffiti field of the beacon block.
+graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
+
+# Prepare all payloads informs the engine to prepare a block on every slot.
+prepare-all-payloads = {{.BeaconKit.Beacon.Validator.PrepareAllPayloads}}
+`
 }

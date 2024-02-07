@@ -46,15 +46,6 @@ type ABCI struct {
 	BeaconBlockPosition uint
 }
 
-// Template returns the configuration template for the abci config.
-func (c ABCI) Template() string {
-	return `
-[beacon-kit.abci]
-# Position of the beacon block in the proposal
-beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
-`
-}
-
 // Parse parses the configuration.
 func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
 	var err error
@@ -65,4 +56,13 @@ func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
 	}
 
 	return &c, nil
+}
+
+// Template returns the configuration template for the abci config.
+func (c ABCI) Template() string {
+	return `
+[beacon-kit.abci]
+# Position of the beacon block in the proposal
+beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
+`
 }
