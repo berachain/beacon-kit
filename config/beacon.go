@@ -31,6 +31,9 @@ import (
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
+// Beacon conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Beacon] = Beacon{}
+
 // Beacon is the configuration for the beacon chain.
 type Beacon struct {
 	// Forks is the configuration for the beacon chain forks.

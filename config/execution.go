@@ -30,12 +30,12 @@ import (
 	"github.com/itsdevbear/bolaris/config/parser"
 )
 
-// ExecutionClient conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[ExecutionClient] = &ExecutionClient{}
+// Execution conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Execution] = &Execution{}
 
-// DefaultExecutionClientConfig returns the default configuration for the execution client.
-func DefaultExecutionClientConfig() ExecutionClient {
-	return ExecutionClient{
+// DefaultExecutionConfig returns the default configuration for the execution client.
+func DefaultExecutionConfig() Execution {
+	return Execution{
 		RPCDialURL:      "http://localhost:8551",
 		RPCTimeout:      5, //nolint:gomnd // default config.
 		RPCRetries:      3, //nolint:gomnd // default config.
@@ -44,8 +44,8 @@ func DefaultExecutionClientConfig() ExecutionClient {
 	}
 }
 
-// ExecutionClient is the configuration struct for the execution client.
-type ExecutionClient struct {
+// Execution is the configuration struct for the execution client.
+type Execution struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
 	// RPCTimeout is the RPC timeout for execution client requests.
@@ -59,7 +59,7 @@ type ExecutionClient struct {
 }
 
 // Parse parses the configuration.
-func (c ExecutionClient) Parse(parser parser.AppOptionsParser) (*ExecutionClient, error) {
+func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 	var err error
 	if c.RPCDialURL, err = parser.GetString(flags.RPCDialURL); err != nil {
 		return nil, err
@@ -85,22 +85,22 @@ func (c ExecutionClient) Parse(parser parser.AppOptionsParser) (*ExecutionClient
 	return &c, nil
 }
 
-func (c ExecutionClient) Template() string {
+func (c Execution) Template() string {
 	return `
 [beacon-kit.execution-client]
 # HTTP url of the execution client JSON-RPC endpoint.
-rpc-dial-url = "{{ .BeaconKit.ExecutionClient.RPCDialURL }}"
+rpc-dial-url = "{{ .BeaconKit.Execution.RPCDialURL }}"
 
 # RPC timeout for execution client requests.
-rpc-timeout = "{{ .BeaconKit.ExecutionClient.RPCTimeout }}"
+rpc-timeout = "{{ .BeaconKit.Execution.RPCTimeout }}"
 
 # Number of retries before shutting down consensus client.
-rpc-retries = "{{.BeaconKit.ExecutionClient.RPCRetries}}"
+rpc-retries = "{{.BeaconKit.Execution.RPCRetries}}"
 
 # Path to the execution client JWT-secret
-jwt-secret-path = "{{.BeaconKit.ExecutionClient.JWTSecretPath}}"
+jwt-secret-path = "{{.BeaconKit.Execution.JWTSecretPath}}"
 
 # Required chain id for the execution client.
-required-chain-id = "{{.BeaconKit.ExecutionClient.RequiredChainID}}"
+required-chain-id = "{{.BeaconKit.Execution.RequiredChainID}}"
 `
 }

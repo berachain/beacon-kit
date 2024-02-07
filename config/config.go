@@ -42,8 +42,8 @@ type BeaconKitConfig[T any] interface {
 
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
-	// ExecutionClient is the configuration for the execution client.
-	ExecutionClient ExecutionClient
+	// Execution is the configuration for the execution client.
+	Execution Execution
 
 	// Beacon is the configuration for the fork epochs.
 	Beacon Beacon
@@ -58,15 +58,15 @@ func (c Config) Template() string {
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################
-` + c.ExecutionClient.Template() + c.Beacon.Template() + c.ABCI.Template()
+` + c.Execution.Template() + c.Beacon.Template() + c.ABCI.Template()
 }
 
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ExecutionClient: DefaultExecutionClientConfig(),
-		Beacon:          DefaultBeaconConfig(),
-		ABCI:            DefaultABCIConfig(),
+		Execution: DefaultExecutionConfig(),
+		Beacon:    DefaultBeaconConfig(),
+		ABCI:      DefaultABCIConfig(),
 	}
 }
 
@@ -102,18 +102,18 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 // readConfigFromAppOptsParser reads the configuration options from the given.
 func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error) {
 	var (
-		err                error
-		conf               = &Config{}
-		executionClientCfg *ExecutionClient
-		beaconCfg          *Beacon
-		abciCfg            *ABCI
+		err          error
+		conf         = &Config{}
+		executionCfg *Execution
+		beaconCfg    *Beacon
+		abciCfg      *ABCI
 	)
 	// Read Execution Client Config
-	executionClientCfg, err = ExecutionClient{}.Parse(parser)
+	executionCfg, err = Execution{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
-	conf.ExecutionClient = *executionClientCfg
+	conf.Execution = *executionCfg
 
 	// Read Beacon Config
 	beaconCfg, err = Beacon{}.Parse(parser)
@@ -135,12 +135,12 @@ func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.ExecutionClient.JWTSecretPath,
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.Execution.JWTSecretPath,
 		"path to the execution client secret")
-	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.ExecutionClient.RPCDialURL, "rpc dial url")
-	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.ExecutionClient.RPCRetries, "rpc retries")
-	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.ExecutionClient.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.ExecutionClient.RequiredChainID,
+	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Execution.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Execution.RPCRetries, "rpc retries")
+	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.Execution.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.Execution.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
 		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(),

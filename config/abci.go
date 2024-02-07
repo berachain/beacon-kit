@@ -30,17 +30,20 @@ import (
 	"github.com/itsdevbear/bolaris/config/parser"
 )
 
-// ABCI is a configuration struct for the cosmos proposal handler.
-type ABCI struct {
-	// BeaconKitBlockPosition is the position of the beacon block in the cometbft proposal.
-	BeaconKitBlockPosition uint
-}
+// ABCI conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[ABCI] = ABCI{}
 
 // DefaultABCIConfig returns the default configuration for the proposal service.
 func DefaultABCIConfig() ABCI {
 	return ABCI{
 		BeaconKitBlockPosition: 0,
 	}
+}
+
+// ABCI is a configuration struct for the cosmos proposal handler.
+type ABCI struct {
+	// BeaconKitBlockPosition is the position of the beacon block in the cometbft proposal.
+	BeaconKitBlockPosition uint
 }
 
 // Template returns the configuration template for the abci config.
