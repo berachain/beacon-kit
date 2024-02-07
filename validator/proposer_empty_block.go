@@ -46,6 +46,7 @@ func (s *Service) getEmptyBlock(slot primitives.Slot) (interfaces.BeaconKitBlock
 		// TODO: SUPPORT
 		panic("ERROR: deneb fork is not yet supported in beacon-kit.")
 	case version.Capella:
+		// TODO: generalize the beacon kit block building using a factory pattern.
 		sBlk, err = consensusv1.NewBeaconKitBlock(slot, nil, version.Capella)
 		if err != nil {
 			return nil, fmt.Errorf("could not initialize block for proposal: %w", err)
