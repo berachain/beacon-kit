@@ -65,7 +65,7 @@ func NewBeaconKitBlock(
 	block := &BeaconKitBlock{
 		Slot: slot,
 		BlockBodyGeneric: &BeaconBlockBody{
-			RandaoReveal: make([]byte, 96), //nolint:gomnd // 48 bytes for RandaoReveal.
+			RandaoReveal: make([]byte, 96), //nolint:gomnd // 96 bytes for RandaoReveal.
 			Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
 			Version:      versionBytes,
 		},
