@@ -58,8 +58,8 @@ func newMethod(
 // Call executes the corresponding method attached to a specific log.
 func (m *method) Call(ctx context.Context, log *evmv1.Log) error {
 	// Unpack the args from the input, if any exist.
-	topics := log.Topics
-	unpackedArgs, err := m.abiEvent.Inputs.Unpack(log.Data)
+	topics := log.GetTopics()
+	unpackedArgs, err := m.abiEvent.Inputs.Unpack(log.GetData())
 	if err != nil {
 		return err
 	}
