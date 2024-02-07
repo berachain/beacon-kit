@@ -23,27 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build tools
-// +build tools
-
-// This is the canonical way to enforce dependency inclusion in go.mod for tools that are not directly involved in the build process.
-// See
-// https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
-
-package tools
-
-//nolint
+package logs
 
 import (
-	_ "github.com/bufbuild/buf/cmd/buf"
-	_ "github.com/cashapp/protosync/cmd/protosync"
-	_ "github.com/cosmos/gosec/v2/cmd/gosec"
-	_ "github.com/ethereum/go-ethereum/cmd/abigen"
-	_ "github.com/ethereum/go-ethereum/rlp/rlpgen"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/google/addlicense"
-	_ "github.com/prysmaticlabs/fastssz/sszgen"
-	_ "github.com/prysmaticlabs/protoc-gen-go-cast"
-	_ "github.com/vektra/mockery/v2"
-	_ "golang.org/x/tools/cmd/godoc"
+	"cosmossdk.io/log"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 )
+
+// Option is a function that applies a specific configuration to the Processor.
+type Option func(*Processor) error
+
+// WithEthClient is an Option that sets the Ethereum client for the Processor.
+func WithEthClient(eth1Client *eth.Eth1Client) Option {
+	return func(p *Processor) error {
+		p.eth1Client = eth1Client
+		return nil
+	}
+}
+
+// WithContractAddr is an Option that sets the contract address for the Processor.
+func WithHandlers(handlers map[common.Address]callback.LogHandler) Option {
+	return func(p *Processor) error {
+		p.handlers = handlers
+		return nil
+	}
+}
+
+// WithLogger is an Option that sets the logger for the Processor.
+func WithLogger(logger log.Logger) Option {
+	return func(p *Processor) error {
+		p.logger = logger.With("module", "beacon-kit-log-processor")
+		return nil
+	}
+}

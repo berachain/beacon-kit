@@ -280,6 +280,19 @@ gosec:
 
 
 #################
+#     godoc     #
+#################
+
+godoc-install:
+	@echo "--> Installing godoc"
+	@go install golang.org/x/tools/cmd/godoc
+godoc:
+	@$(MAKE) godoc-install
+	@echo "Starting godoc server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
+	@godoc -http=:6060
+
+
+#################
 #     proto     #
 #################
 
