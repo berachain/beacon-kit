@@ -47,6 +47,7 @@ func BeaconKitBlockFromState(
 	return NewBeaconKitBlock(
 		beaconState.Slot(),
 		executionData,
+		//#nosec:G701 // won't realistically overflow.
 		uint32(beaconState.Version()),
 	)
 }
@@ -65,8 +66,7 @@ func NewBeaconKitBlock(
 		BlockBodyGeneric: &BeaconBlockBody{
 			RandaoReveal: make([]byte, 96), //nolint:gomnd // 48 bytes for RandaoReveal.
 			Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
-			//#nosec:G701 // won't overflow, version is never negative.
-			Version: versionBytes,
+			Version:      versionBytes,
 		},
 	}
 	if executionData != nil {
@@ -84,6 +84,7 @@ func NewEmptyBeaconKitBlockFromState(
 ) (interfaces.BeaconKitBlock, error) {
 	return NewEmptyBeaconKitBlock(
 		beaconState.Slot(),
+		//#nosec:G701 // won't realistically overflow.
 		uint32(beaconState.Version()),
 	)
 }
@@ -157,5 +158,5 @@ func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
 func (b *BeaconKitBlock) Version() int {
 	versionBytes := b.GetBlockBodyGeneric().GetVersion()
 	version := binary.BigEndian.Uint32(versionBytes)
-	return int(version)
+	return int(version) //#nosec:G701 // won't realistically overflow.
 }
