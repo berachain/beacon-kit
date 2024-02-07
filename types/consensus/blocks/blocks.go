@@ -122,7 +122,6 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	switch requestedVersion {
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
-
 	case version.Capella:
 		block = &capella.BeaconKitBlockCapella{}
 		if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
