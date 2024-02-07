@@ -26,8 +26,8 @@
 syntax = "proto3";
 package types.consensus.v1;
 
-import "ethereum/engine/v1/execution_engine.proto";
 import "ethereum/eth/ext/options.proto";
+import "types/consensus/v1/body.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
 
@@ -41,21 +41,5 @@ message BeaconKitBlock {
   BeaconBlockBody block_body_generic = 2;
 
   // The payload value of the block.
-  bytes payload_value = 101 [(ethereum.eth.ext.ssz_max) = "256"];
-}
-
-// BeaconBlockBody represents the body of a beacon block.
-message BeaconBlockBody {
-  // The validators RANDAO reveal 96 byte value.
-  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "32"];
-
-  // 32 byte field of arbitrary data. This field may contain any data and
-  // is not used for anything other than a fun message.
-  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
-
-  // TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
-  bytes version = 3 [(ethereum.eth.ext.ssz_size) = "8"];
-
-  // Execution payload from the execution chain. New in Bellatrix network upgrade.
-  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
+  bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "4"];
 }

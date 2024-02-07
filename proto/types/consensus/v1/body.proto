@@ -23,21 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+syntax = "proto3";
+package types.consensus.v1;
 
-import (
-	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
-)
+import "ethereum/engine/v1/execution_engine.proto";
+import "ethereum/eth/ext/options.proto";
 
-type (
-	// Slot is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot
-	// We have to do this to keep `sszgen` happy.
-	Slot = github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot
-	// Gwei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Gwei
-	// We have to do this to keep `sszgen` happy.
-	Gwei = github_com_prysmaticlabs_prysm_v4_math.Gwei
-	// Wei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Wei
-	// We have to do this to keep `sszgen` happy.
-	Wei = github_com_prysmaticlabs_prysm_v4_math.Wei
-)
+option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
+
+// BeaconBlockBody represents the body of a beacon block.
+message BeaconBlockBody {
+  // The validators RANDAO reveal 96 byte value.
+  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // 32 byte field of arbitrary data. This field may contain any data and
+  // is not used for anything other than a fun message.
+  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
+  bytes version = 3 [(ethereum.eth.ext.ssz_size) = "4"];
+
+  // Execution payload from the execution chain. New in Bellatrix network upgrade.
+  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
+}

@@ -53,21 +53,21 @@ func LogsFromEthLogs(ethlogs []ethtypes.Log) Logs {
 
 // ToEthLog converts a protobuf Log to a Geth Log.
 func (log *Log) ToEthLog() *ethtypes.Log {
-	topics := make([]common.Hash, len(log.Topics))
-	for i, topic := range log.Topics {
+	topics := make([]common.Hash, len(log.GetTopics()))
+	for i, topic := range log.GetTopics() {
 		topics[i] = common.BytesToHash(topic)
 	}
 
 	return &ethtypes.Log{
-		Address:     common.BytesToAddress(log.Address),
+		Address:     common.BytesToAddress(log.GetAddress()),
 		Topics:      topics,
-		Data:        log.Data,
-		BlockNumber: log.BlockNumber,
-		TxHash:      common.BytesToHash(log.TxHash),
-		TxIndex:     uint(log.TxIndex),
-		Index:       uint(log.Index),
-		BlockHash:   common.BytesToHash(log.BlockHash),
-		Removed:     log.Removed,
+		Data:        log.GetData(),
+		BlockNumber: log.GetBlockNumber(),
+		TxHash:      common.BytesToHash(log.GetTxHash()),
+		TxIndex:     uint(log.GetTxIndex()),
+		Index:       uint(log.GetIndex()),
+		BlockHash:   common.BytesToHash(log.GetBlockHash()),
+		Removed:     log.GetRemoved(),
 	}
 }
 

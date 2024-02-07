@@ -338,8 +338,8 @@ SSZ_STRUCTS=BeaconKitBlock
 sszgen:
 	@$(MAKE) sszgen-install
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1 -objs BeaconKitBlock
-# @sszgen -path ./types/consensus/v1 -objs BeaconBlockBody
+	@sszgen -path ./types/consensus/v1 -objs BeaconKitBlock --include ~/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
+	
 ###############################################################################
 ###                             Dependencies                                ###
 ###############################################################################

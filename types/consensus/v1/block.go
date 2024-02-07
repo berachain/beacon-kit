@@ -26,8 +26,14 @@
 package v1
 
 import (
+	"encoding/binary"
+	"math/big"
+
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/itsdevbear/bolaris/types/state"
+	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -42,22 +48,24 @@ func BeaconKitBlockFromState(
 	return NewBeaconKitBlock(
 		beaconState.Slot(),
 		executionData,
-		beaconState.Version(),
+		uint32(beaconState.Version()),
 	)
 }
 
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
-	slot Slot,
+	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
 	executionData interfaces.ExecutionData,
-	version int,
+	version uint32,
 ) (interfaces.BeaconKitBlock, error) {
+	versionBytes := make([]byte, 4) //nolint:gomnd // 4 bytes for uint32.
+	binary.LittleEndian.PutUint32(versionBytes, uint32(version))
 	block := &BeaconKitBlock{
-		Slot:             uint64(slot),
+		Slot: uint64(slot),
 		BlockBodyGeneric: &BeaconBlockBody{
 			//#nosec:G701 // won't overflow, version is never negative.
-			// Version: int64(version),
+			Version: versionBytes,
 		},
 	}
 	if executionData != nil {
@@ -65,8 +73,7 @@ func NewBeaconKitBlock(
 			return nil, err
 		}
 	}
-	return nil, nil
-	// return block, nil
+	return block, nil
 }
 
 // NewEmptyBeaconKitBlockFromState assembles a new beacon block
@@ -76,15 +83,15 @@ func NewEmptyBeaconKitBlockFromState(
 ) (interfaces.BeaconKitBlock, error) {
 	return NewEmptyBeaconKitBlock(
 		beaconState.Slot(),
-		beaconState.Version(),
+		uint32(beaconState.Version()),
 	)
 }
 
 // NewEmptyBeaconKitBlock assembles a new beacon block
 // with no execution data.
 func NewEmptyBeaconKitBlock(
-	slot Slot,
-	version int,
+	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
+	version uint32,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBeaconKitBlock(slot, nil, version)
 }
@@ -109,8 +116,7 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
 		return nil, err
 	}
-	return nil, nil
-	// return &block, nil
+	return &block, nil
 }
 
 // IsNil checks if the BeaconKitBlock is nil or not.
@@ -122,41 +128,34 @@ func (b *BeaconKitBlock) IsNil() bool {
 func (b *BeaconKitBlock) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
-	return nil
-	// execData, err := executionData.MarshalSSZ()
-	// if err != nil {
-	// 	return err
-	// }
+	var err error
+	b.BlockBodyGeneric.ExecutionPayload, err = executionData.PbCapella()
+	if err != nil {
+		return err
+	}
 
-	// value, err := executionData.ValueInWei()
-	// if err != nil {
-	// 	return err
-	// }
+	var value github_com_prysmaticlabs_prysm_v4_math.Wei
+	value, err = executionData.ValueInWei()
+	if err != nil {
+		return err
+	}
 
-	// b.Body.(*BeaconKitBlock_BlockBodyGeneric).BlockBodyGeneric.ExecutionPayload = execData
-	// b.PayloadValue = (*value).String() //nolint:gocritic // suggestion doesn't compile.
-	// return nil
+	b.PayloadValue = (*value).Bytes() //nolint:gocritic // suggestion doesnt work.
+	return err
 }
 
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlock) Execution() (interfaces.ExecutionData, error) {
-	// Safe to ignore the error since we successfully marshalled the data before.
-	// value, ok := big.NewInt(0).SetString(b.PayloadValue, 10) //nolint:gomnd // base 10.
-	// if !ok {
-	// 	return nil, errors.New("failed to convert payload value to big.Int")
-	// }
-	return nil, nil
-	// return BytesToExecutionData(
-	// 	b.GetBlockBodyGeneric().ExecutionPayload,
-	// 	Wei(value),
-	// 	int(b.GetBlockBodyGeneric().Version))
+	return blocks.WrappedExecutionPayloadCapella(b.GetBlockBodyGeneric().GetExecutionPayload(),
+		new(big.Int).SetBytes(b.GetPayloadValue()))
 }
 
 func (b *BeaconKitBlock) Version() int {
-	return 0
-	// return int(b.GetBlockBodyGeneric().Version)
+	versionBytes := b.GetBlockBodyGeneric().GetVersion()
+	version := binary.BigEndian.Uint32(versionBytes)
+	return int(version)
 }
 
-func (b *BeaconKitBlock) BSlot() Slot {
-	return Slot(b.Slot)
+func (b *BeaconKitBlock) BSlot() github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot {
+	return github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot(b.GetSlot())
 }
