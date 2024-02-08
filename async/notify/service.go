@@ -86,7 +86,7 @@ func (s *Service) Start() {
 			subscription := feed.Subscribe(ch)
 
 			// Start a goroutine to listen for events and call the handler
-			go func(pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription) error {
+			go func(pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription) {
 				for {
 					select {
 					case event := <-ch:
@@ -95,13 +95,15 @@ func (s *Service) Start() {
 							pair.handler.HandleNotification(event)
 						})
 						if err != nil {
-							return err
+							// Choosing to panic here because it doesn't make sense for the
+							// service we're controlling to have stopped the queue
+							panic(err)
 						}
 					case <-subscription.Err():
-						return nil
+						return
 					case <-s.stop:
 						// This will receive a value when the stop channel is closed
-						return nil
+						return
 					}
 				}
 			}(pair, ch, subscription)

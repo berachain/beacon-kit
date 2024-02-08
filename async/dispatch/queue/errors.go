@@ -27,4 +27,4 @@ package queue
 
 import "errors"
 
-var ErrAddToStoppedQueue = errors.New("Cannot add to stopped queue")
+var ErrAddToStoppedQueue = errors.New("cannot add to stopped queue")
