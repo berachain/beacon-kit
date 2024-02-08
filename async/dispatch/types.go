@@ -35,10 +35,10 @@ import (
 // Apple's Grand Central Dispatch (GCD) API.
 // https://developer.apple.com/documentation/dispatch/dispatchqueue
 type Queue interface {
-	Async(queue.WorkItem)
-	AsyncAfter(time.Duration, queue.WorkItem)
-	Sync(queue.WorkItem)
-	AsyncAndWait(queue.WorkItem)
+	Async(queue.WorkItem) error
+	AsyncAfter(time.Duration, queue.WorkItem) error
+	Sync(queue.WorkItem) error
+	AsyncAndWait(queue.WorkItem) error
 }
 
 // Event represents actions that occur during consensus. Listeners can
