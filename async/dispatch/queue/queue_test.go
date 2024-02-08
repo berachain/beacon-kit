@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/async/dispatch/queue"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDispatchQueueConcurrent_Async(t *testing.T) {
@@ -45,10 +46,12 @@ func TestDispatchQueueConcurrent_Async(t *testing.T) {
 	wg.Add(10)
 
 	for i := 0; i < 10; i++ {
-		q.Async(func() {
+		if err := q.Async(func() {
 			defer wg.Done()
 			counter.Add(1)
-		})
+		}); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 	}
 
 	wg.Wait()
@@ -70,10 +73,13 @@ func TestDispatchQueueConcurrent_AsyncAfter(t *testing.T) {
 
 	startTime := time.Now()
 	waitTime := time.Millisecond * 100
-	q.AsyncAfter(waitTime, func() {
+	err := q.AsyncAfter(waitTime, func() {
 		asyncAfterExecuted = true
 		wg.Done()
 	})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
 	wg.Wait()
 
@@ -93,9 +99,12 @@ func TestDispatchQueueConcurrent_Sync(t *testing.T) {
 
 	var syncExecuted bool
 
-	q.Sync(func() {
+	err := q.Sync(func() {
 		syncExecuted = true
 	})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
 	if !syncExecuted {
 		t.Errorf("Sync function did not execute")
@@ -109,9 +118,12 @@ func TestDispatchQueueConcurrent_AsyncAndWait(t *testing.T) {
 
 	var asyncAndWaitExecuted bool
 
-	q.AsyncAndWait(func() {
+	err := q.AsyncAndWait(func() {
 		asyncAndWaitExecuted = true
 	})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
 	if !asyncAndWaitExecuted {
 		t.Errorf("AsyncAndWait function did not execute")
@@ -125,9 +137,11 @@ func TestDispatchQueueConcurrent_Stop(t *testing.T) {
 
 	// Add some items to the queue
 	for i := 0; i < 10; i++ {
-		q.Async(func() {
+		if err := q.Async(func() {
 			time.Sleep(time.Millisecond * 100)
-		})
+		}); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 	}
 
 	// Stop the queue
@@ -135,12 +149,11 @@ func TestDispatchQueueConcurrent_Stop(t *testing.T) {
 
 	// Try to add another item to the queue, it should panic
 	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Expected panic after Stop, but none occurred")
-		}
 	}()
 
-	q.Async(func() {
+	if err := q.Async(func() {
 		t.Errorf("Async function executed after Stop")
-	})
+	}); err == nil {
+		assert.Equal(t, err, queue.ErrAddToStoppedQueue)
+	}
 }
