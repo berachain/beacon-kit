@@ -84,7 +84,7 @@ func (p *PayloadIDCache) Set(
 	}
 	innerMap[eth1Hash] = pid
 	// Prune older slots to maintain the cache size limit.
-	if slot > 1 {
+	if slot >= historicalPayloadIDCacheSize {
 		p.prune(slot - historicalPayloadIDCacheSize)
 	}
 }
