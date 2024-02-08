@@ -75,12 +75,13 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
 }
 
-// DefaultNodeHome default home directories for the application daemon.
-var DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
+const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TERMS_OF_SERVICE.md"
 
 var (
 	_ runtime.AppI            = (*BeaconApp)(nil)
 	_ servertypes.Application = (*BeaconApp)(nil)
+	// DefaultNodeHome default home directories for the application daemon.
+	DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
 )
 
 // BeaconApp extends an ABCI application, but with most of its parameters exported.
