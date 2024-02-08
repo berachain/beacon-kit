@@ -39,6 +39,16 @@ type (
 	Gwei uint64
 )
 
+// BytesToWei converts a byte slice to a Wei.
+func BytesToWei(v []byte) Wei {
+	return uint256.NewInt(0).SetBytes(v)
+}
+
+// WeiToBytes converts a Wei to a byte slice.
+func WeiToBytes(v Wei) []byte {
+	return v.Bytes()
+}
+
 // WeiToGwei converts Wei to uint64 gwei.
 // The input `v` is copied before being modified.
 func WeiToGwei(v Wei) Gwei {
