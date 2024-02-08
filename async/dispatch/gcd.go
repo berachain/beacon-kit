@@ -38,10 +38,10 @@ const (
 	GlobalQueueID = "global"
 
 	// DefaultQueueSize is the default size of a queue.
-	DefaultQueueSize = 64 // todo: make this configurable.
+	DefaultQueueSize = uint16(64) // todo: make this configurable.
 
 	// DefaultConcurrentQueueWorkerCount is the default size of a concurrent queue.
-	DefaultConcurrentQueueWorkerCount = 64 // todo: make this configurable.
+	DefaultConcurrentQueueWorkerCount = uint16(64) // todo: make this configurable.
 )
 
 // QueueType represents the type of a queue.
