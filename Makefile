@@ -225,11 +225,9 @@ forge-lint:
 # golangci-lint #
 #################
 
-golangci_version=v1.55.2
-
 golangci-install:
-	@echo "--> Installing golangci-lint $(golangci_version)"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
+	@echo "--> Installing golangci-lint"
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 golangci:
 	@$(MAKE) golangci-install
