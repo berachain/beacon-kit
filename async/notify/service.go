@@ -86,19 +86,22 @@ func (s *Service) Start() {
 			subscription := feed.Subscribe(ch)
 
 			// Start a goroutine to listen for events and call the handler
-			go func(pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription) {
+			go func(pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription) error {
 				for {
 					select {
 					case event := <-ch:
 						// Use the dispatch queue to call the handler's Handle method asynchronously
-						s.gcd.GetQueue(pair.queueID).Async(func() {
+						err := s.gcd.GetQueue(pair.queueID).Async(func() {
 							pair.handler.HandleNotification(event)
 						})
+						if err != nil {
+							return err
+						}
 					case <-subscription.Err():
-						return
+						return nil
 					case <-s.stop:
 						// This will receive a value when the stop channel is closed
-						return
+						return nil
 					}
 				}
 			}(pair, ch, subscription)
