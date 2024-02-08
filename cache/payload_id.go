@@ -85,21 +85,21 @@ func (p *PayloadIDCache) Set(
 	innerMap[eth1Hash] = pid
 	// Prune older slots to maintain the cache size limit.
 	if slot >= historicalPayloadIDCacheSize {
-		p.prune(slot - historicalPayloadIDCacheSize)
+		p.prunePrior(slot - historicalPayloadIDCacheSize)
 	}
 }
 
-// UnsafePrune removes payload IDs from the cache for slots older than
+// UnsafePrunePrior removes payload IDs from the cache for slots less than
 // the specified slot. Only used for testing.
-func (p *PayloadIDCache) UnsafePrune(slot primitives.Slot) {
+func (p *PayloadIDCache) UnsafePrunePrior(slot primitives.Slot) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.prune(slot)
+	p.prunePrior(slot)
 }
 
-// Prune removes payload IDs from the cache for slots older than the specified slot.
+// Prune removes payload IDs from the cache for slots less than the specified slot.
 // This method helps in managing the memory usage of the cache by discarding outdated entries.
-func (p *PayloadIDCache) prune(slot primitives.Slot) {
+func (p *PayloadIDCache) prunePrior(slot primitives.Slot) {
 	for s := range p.slotToEth1HashToPayloadID {
 		if s < slot {
 			delete(p.slotToEth1HashToPayloadID, s)

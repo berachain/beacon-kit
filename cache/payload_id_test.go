@@ -72,7 +72,7 @@ func TestPayloadIDCache(t *testing.T) {
 		cacheUnderTest.Set(slot, r, pid)
 
 		// Prune and attempt to retrieve pruned entry
-		cacheUnderTest.UnsafePrune(slot + 1)
+		cacheUnderTest.UnsafePrunePrior(slot + 1)
 		p, ok := cacheUnderTest.Get(slot, r)
 		require.False(t, ok)
 		require.Equal(t, primitives.PayloadID{}, p)
@@ -90,7 +90,7 @@ func TestPayloadIDCache(t *testing.T) {
 		}
 
 		// Prune and check if only the last two entries exist
-		cacheUnderTest.UnsafePrune(3)
+		cacheUnderTest.UnsafePrunePrior(3)
 		for i := uint8(0); i < 3; i++ {
 			slot := primitives.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}

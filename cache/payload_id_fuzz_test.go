@@ -26,15 +26,19 @@
 package cache_test
 
 import (
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/types/primitives"
 	"github.com/stretchr/testify/require"
 )
 
-func FuzzPayloadIDCache(f *testing.F) {
+func FuzzPayloadIDCacheBasic(f *testing.F) {
 	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4, 5, 6, 7, 8})
+	f.Add(uint64(2), []byte{4, 5, 6}, []byte{9, 10, 11, 12, 13, 14, 15, 16})
+	f.Add(uint64(3), []byte{7, 8, 9}, []byte{17, 18, 19, 20, 21, 22, 23, 24})
 	f.Fuzz(func(t *testing.T, slot uint64, _r, _p []byte) {
 		var r [32]byte
 		copy(r[:], _r)
@@ -58,8 +62,65 @@ func FuzzPayloadIDCache(f *testing.F) {
 		require.Equal(t, newPid, p, "PayloadID should be overwritten with the new value")
 
 		// Prune and verify deletion
-		cacheUnderTest.UnsafePrune(primitives.Slot(slot) + 1)
+		cacheUnderTest.UnsafePrunePrior(primitives.Slot(slot) + 1)
 		_, ok = cacheUnderTest.Get(primitives.Slot(slot), r)
 		require.False(t, ok, "Entry should be pruned and not found")
+	})
+}
+
+func FuzzPayloadIDInvalidInput(f *testing.F) {
+	// Intentionally invalid inputs
+	f.Add(uint64(1), []byte{1, 2, 3, 4, 5, 6, 7, 8, 9}, []byte{1, 2, 3})
+
+	f.Fuzz(func(t *testing.T, slot uint64, _r, _p []byte) {
+		var r [32]byte
+		if len(_r) > 32 {
+			// Expecting an error or specific handling of oversized input
+			t.Skip("Skipping test due to intentionally invalid input size for root.")
+		}
+		copy(r[:], _r)
+		var paddedPayload [8]byte
+		copy(paddedPayload[:], _p[:min(len(_p), 8)])
+		pid := primitives.PayloadID(paddedPayload[:])
+		cacheUnderTest := cache.NewPayloadIDCache()
+		cacheUnderTest.Set(primitives.Slot(slot), r, pid)
+
+		_, ok := cacheUnderTest.Get(primitives.Slot(slot), r)
+		require.True(t, ok)
+	})
+}
+
+func FuzzPayloadIDCacheConcurrency(f *testing.F) {
+	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4})
+
+	f.Fuzz(func(t *testing.T, slot uint64, _r, _p []byte) {
+		cacheUnderTest := cache.NewPayloadIDCache()
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+
+		// Set operation in one goroutine
+		go func() {
+			defer wg.Done()
+			var r [32]byte
+			copy(r[:], _r)
+			var paddedPayload [8]byte
+			copy(paddedPayload[:], _p[:min(len(_p), 8)])
+			pid := primitives.PayloadID(paddedPayload[:])
+			cacheUnderTest.Set(primitives.Slot(slot), r, pid)
+		}()
+
+		// Get operation in another goroutine
+		var ok bool
+		go func() {
+			defer wg.Done()
+			time.Sleep(10 * time.Millisecond) // Small delay to let the Set operation proceed
+			var r [32]byte
+			copy(r[:], _r)
+			_, ok = cacheUnderTest.Get(primitives.Slot(slot), r)
+		}()
+
+		wg.Wait()
+		require.True(t, ok)
 	})
 }
