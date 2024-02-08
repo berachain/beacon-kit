@@ -28,7 +28,7 @@ package cache_test
 import (
 	"testing"
 
-	cache "github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/types/primitives"
 	"github.com/stretchr/testify/require"
 )
