@@ -33,55 +33,76 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidatorPayloadIDsCache_GetAndSaveValidatorPayloadIDs(t *testing.T) {
+func TestPayloadIDCache(t *testing.T) {
 	cacheUnderTest := cache.NewPayloadIDCache()
-	var r [32]byte
-	p, ok := cacheUnderTest.Get(0, r)
-	require.False(t, ok)
-	require.Equal(t, primitives.PayloadID{}, p)
 
-	slot := primitives.Slot(1234)
-	pid := primitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
-	r = [32]byte{1, 2, 3}
-	cacheUnderTest.Set(slot, r, pid)
-	p, ok = cacheUnderTest.Get(slot, r)
-	require.True(t, ok)
-	require.Equal(t, pid, p)
+	t.Run("Get from empty cache", func(t *testing.T) {
+		var r [32]byte
+		p, ok := cacheUnderTest.Get(0, r)
+		require.False(t, ok)
+		require.Equal(t, primitives.PayloadID{}, p)
+	})
 
-	slot = primitives.Slot(9456456)
-	r = [32]byte{4, 5, 6}
-	cacheUnderTest.Set(slot, r, primitives.PayloadID{})
-	p, ok = cacheUnderTest.Get(slot, r)
-	require.True(t, ok)
-	require.Equal(t, primitives.PayloadID{}, p)
+	t.Run("Set and Get", func(t *testing.T) {
+		slot := primitives.Slot(1234)
+		r := [32]byte{1, 2, 3}
+		pid := primitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
+		cacheUnderTest.Set(slot, r, pid)
 
-	// reset cache without pid
-	slot = primitives.Slot(9456456)
-	r = [32]byte{7, 8, 9}
-	pid = [8]byte{3, 2, 3, 33, 72, 8, 7, 8}
-	cacheUnderTest.Set(slot, r, pid)
-	p, ok = cacheUnderTest.Get(slot, r)
-	require.True(t, ok)
-	require.Equal(t, pid, p)
+		p, ok := cacheUnderTest.Get(slot, r)
+		require.True(t, ok)
+		require.Equal(t, pid, p)
+	})
 
-	// Forked chain
-	r = [32]byte{1, 2, 3}
-	p, ok = cacheUnderTest.Get(slot, r)
-	require.False(t, ok)
-	require.Equal(t, primitives.PayloadID{}, p)
+	t.Run("Overwrite existing", func(t *testing.T) {
+		slot := primitives.Slot(1234)
+		r := [32]byte{1, 2, 3}
+		newPid := primitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
+		cacheUnderTest.Set(slot, r, newPid)
 
-	// existing pid - change the cache
-	slot = primitives.Slot(9456456)
-	r = [32]byte{7, 8, 9}
-	newPid := primitives.PayloadID{1, 2, 3, 33, 72, 8, 7, 1}
-	cacheUnderTest.Set(slot, r, newPid)
-	p, ok = cacheUnderTest.Get(slot, r)
-	require.True(t, ok)
-	require.Equal(t, newPid, p)
+		p, ok := cacheUnderTest.Get(slot, r)
+		require.True(t, ok)
+		require.Equal(t, newPid, p)
+	})
 
-	// remove cache entry
-	cacheUnderTest.Prune(slot + 1)
-	p, ok = cacheUnderTest.Get(slot, r)
-	require.Equal(t, primitives.PayloadID{}, p)
-	require.False(t, ok)
+	t.Run("Prune and verify deletion", func(t *testing.T) {
+		slot := primitives.Slot(9456456)
+		r := [32]byte{4, 5, 6}
+		pid := primitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
+		cacheUnderTest.Set(slot, r, pid)
+
+		// Prune and attempt to retrieve pruned entry
+		cacheUnderTest.UnsafePrune(slot + 1)
+		p, ok := cacheUnderTest.Get(slot, r)
+		require.False(t, ok)
+		require.Equal(t, primitives.PayloadID{}, p)
+	})
+
+	t.Run("Multiple entries and prune", func(t *testing.T) {
+		// Set multiple entries
+		for i := uint8(0); i < 5; i++ {
+			slot := primitives.Slot(i)
+			r := [32]byte{i, i + 1, i + 2}
+			pid := primitives.PayloadID{
+				i, i, i, i, i, i, i, i,
+			}
+			cacheUnderTest.Set(slot, r, pid)
+		}
+
+		// Prune and check if only the last two entries exist
+		cacheUnderTest.UnsafePrune(3)
+		for i := uint8(0); i < 3; i++ {
+			slot := primitives.Slot(i)
+			r := [32]byte{i, i + 1, i + 2}
+			_, ok := cacheUnderTest.Get(slot, r)
+			require.False(t, ok, "Expected entry to be pruned for slot", slot)
+		}
+
+		for i := uint8(3); i < 5; i++ {
+			slot := primitives.Slot(i)
+			r := [32]byte{i, i + 1, i + 2}
+			_, ok := cacheUnderTest.Get(slot, r)
+			require.True(t, ok, "Expected entry to exist for slot", slot)
+		}
+	})
 }
