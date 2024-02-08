@@ -345,7 +345,7 @@ proto-sync:
 #    sszgen    #
 #################
 
-SSZ_STRUCTS=BeaconKitBlock
+SSZ_STRUCTS=BeaconKitBlockCapella
 
 sszgen-install:
 	@echo "--> Installing sszgen"
@@ -357,7 +357,7 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1 -objs ${SSZ_STRUCTS} \
+	@sszgen -path ./types/consensus/v1/capella -objs ${SSZ_STRUCTS} \
     --include $(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/consensus-types/primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 

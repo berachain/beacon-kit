@@ -39,6 +39,9 @@ const (
 
 	// DefaultQueueSize is the default size of a queue.
 	DefaultQueueSize = 64 // todo: make this configurable.
+
+	// DefaultConcurrentQueueWorkerCount is the default size of a concurrent queue.
+	DefaultConcurrentQueueWorkerCount = 64 // todo: make this configurable.
 )
 
 // QueueType represents the type of a queue.
@@ -106,8 +109,8 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	case QueueTypeSerial:
 		queue = dqueue.NewDispatchQueue(1, DefaultQueueSize)
 	case QueueTypeConcur:
-		//nolint:gomnd // todo: make this configurable.
-		queue = dqueue.NewDispatchQueue(64, DefaultQueueSize)
+
+		queue = dqueue.NewDispatchQueue(DefaultConcurrentQueueWorkerCount, DefaultQueueSize)
 	default:
 		panic("unknown queue type")
 	}

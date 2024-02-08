@@ -23,14 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+package blocks
 
 import (
-	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
+	"github.com/pkg/errors"
 )
 
-type (
-	// Wei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Wei
-	// We have to do this to keep `sszgen` happy.
-	Wei = github_com_prysmaticlabs_prysm_v4_math.Wei
+var (
+	// ErrNoBeaconBlockInProposal is an error for when
+	// there is no beacon block in a proposal.
+	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
+
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
+
+	// ErrInvalidExecutionValue is an error for when the
+	// execution value is invalid.
+	ErrInvalidExecutionValue = errors.New("invalid execution value")
+
+	// ErrForkVersionNotSupported is an error for when the fork
+	// version is not supported.
+	ErrForkVersionNotSupported = errors.New("fork version not supported")
 )
