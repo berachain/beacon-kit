@@ -41,15 +41,15 @@ type DispatchQueue struct {
 
 // NewDispatchQueue creates a new Queue and starts its worker goroutines.
 func NewDispatchQueue(
-	workerCount uint64,
-	maxQueueSize uint64,
+	workerCount uint16,
+	maxQueueSize uint16,
 ) *DispatchQueue {
 	q := &DispatchQueue{
 		queue:    make(chan WorkItem, maxQueueSize),
 		stopChan: make(chan struct{}),
 	}
 
-	for i := uint64(0); i < workerCount; i++ {
+	for i := uint16(0); i < workerCount; i++ {
 		go func() {
 			for {
 				select {
