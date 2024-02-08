@@ -39,11 +39,12 @@ const (
 
 type (
 	// General
-	PayloadStatus   = enginev1.PayloadStatus
-	ForkchoiceState = enginev1.ForkchoiceState
-	PayloadIDBytes  = enginev1.PayloadIDBytes
-	ExecutionBlock  = enginev1.ExecutionBlock
-	Withdrawal      = enginev1.Withdrawal
+	PayloadStatus    = enginev1.PayloadStatus
+	ForkchoiceState  = enginev1.ForkchoiceState
+	PayloadIDBytes   = enginev1.PayloadIDBytes
+	ExecutionBlock   = enginev1.ExecutionBlock
+	ExecutionPayload = enginev1.ExecutionPayload
+	Withdrawal       = enginev1.Withdrawal
 
 	// Deneb
 	PayloadAttributesV3                          = enginev1.PayloadAttributesV3
