@@ -35,18 +35,24 @@ import (
 
 func TestWeiToGwei(t *testing.T) {
 	tests := []struct {
+		name string
 		v    *uint256.Int
 		want math.Gwei
 	}{
-		{uint256.NewInt(1e9 - 1), 0},
-		{uint256.NewInt(1e9), 1},
-		{uint256.NewInt(1e10), 10},
-		{uint256.NewInt(239489233849348394), 239489233},
+		{"just below 1 Gwei", uint256.NewInt(1e9 - 1), 0},
+		{"exactly 1 Gwei", uint256.NewInt(1e9), 1},
+		{"10 Gwei", uint256.NewInt(1e10), 10},
+		{"large number", uint256.NewInt(239489233849348394), 239489233},
+		{"1 Eth", uint256.NewInt(1e18), 1000000000},
+		{"1.5 Eth", uint256.NewInt(15e17), 1500000000},
+		{"edge case large number", uint256.NewInt(999999999999999999), 999999999},
 	}
 	for _, tt := range tests {
-		if got := math.WeiToGwei(tt.v); got != tt.want {
-			t.Errorf("WeiToGwei() = %v, want %v", got, tt.want)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			if got := math.WeiToGwei(tt.v); got != tt.want {
+				t.Errorf("WeiToGwei() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -54,6 +60,6 @@ func TestWeiToGwei_CopyOk(t *testing.T) {
 	v := uint256.NewInt(1e9)
 	got := math.WeiToGwei(v)
 
-	require.Equal(t, math.Gwei(1), got)
-	require.Equal(t, uint256.NewInt(1e9).Uint64(), v.Uint64())
+	require.Equal(t, math.Gwei(1), got, "conversion result mismatch")
+	require.Equal(t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
 }
