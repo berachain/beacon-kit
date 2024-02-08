@@ -170,6 +170,7 @@ start-besu:
 #     unit      #
 #################
 
+FUZZ_TIME=10s
 
 test-unit:
 	@$(MAKE) forge-test
@@ -183,12 +184,9 @@ test-unit-cover:
 
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
-	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=10s
-	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=10s
-	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=10s
-
-test-unit-fuzz-time:
-	@echo "Running fuzz tests for a specified duration..."
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${FUZZ_TIME}
 
 #################
 #     forge     #
