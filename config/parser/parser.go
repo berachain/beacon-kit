@@ -30,7 +30,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 	"github.com/spf13/cast"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -123,7 +123,7 @@ func (c *AppOptionsParser) GetUint(key string) (uint, error) {
 // GetEpoch retrieves a primitives.Epoch value from a configuration key.
 func (c *AppOptionsParser) GetEpoch(key string) (primitives.Epoch, error) {
 	epoch, err := handleError(c, cast.ToUint64E, key)
-	return primitives.Epoch(epoch), err
+	return epoch, err
 }
 
 // GetUint64Ptr retrieves a pointer to a uint64 value fro	m a configuration key.

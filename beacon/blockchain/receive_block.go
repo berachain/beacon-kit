@@ -31,10 +31,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"golang.org/x/sync/errgroup"
-
-	prsymexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 )
 
 // ReceiveBeaconBlock receives an incoming beacon block, it first validates
@@ -123,11 +122,11 @@ func (s *Service) validateExecutionOnBlock(
 	}
 
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)
-	if err != nil && errors.Is(err, prsymexecution.ErrAcceptedSyncingPayloadStatus) {
+	if err != nil && errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
 		s.Logger().Error("Failed to validate execution on block", "error", err)
 		return isValidPayload, err
 	} else if err != nil || !isValidPayload {
-		return isValidPayload, prsymexecution.ErrInvalidPayloadStatus
+		return isValidPayload, execution.ErrInvalidPayloadStatus
 	}
 	return isValidPayload, nil
 }

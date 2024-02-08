@@ -30,9 +30,9 @@ import (
 	"errors"
 
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
 func (s *Service) notifyForkchoiceUpdate(

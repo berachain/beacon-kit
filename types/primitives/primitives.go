@@ -23,28 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package primitives
 
-import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/cache"
-)
+// Epoch represents a single epoch.
+// We don't really use epochs in BeaconKit.
+// But we keep them around for compatibility with the Ethereum 2.0 spec.
+type Epoch = uint64
 
-// Option is a functional option for the validator service.
-type Option func(*Service) error
-
-// WithEngineCaller sets the engine caller for the validator service.
-func WithEngineCaller(caller engine.Caller) Option {
-	return func(s *Service) error {
-		s.en = caller
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache for the validator service.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
-	return func(s *Service) error {
-		s.payloadCache = pc
-		return nil
-	}
-}
+// PayloadID represents a unique identifier for a payload.
+type PayloadID = [8]byte

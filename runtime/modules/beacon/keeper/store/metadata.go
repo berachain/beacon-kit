@@ -26,7 +26,7 @@
 package store
 
 import (
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // TODO: move these? It feels coupled to this x/beacon. But it's okay for now.

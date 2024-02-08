@@ -29,7 +29,7 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"

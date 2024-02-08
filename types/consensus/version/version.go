@@ -23,28 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package version
 
-import (
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/cache"
+const (
+	Phase0 = iota
+	Altair
+	Bellatrix
+	Capella
+	Deneb
 )
-
-// Option is a functional option for the validator service.
-type Option func(*Service) error
-
-// WithEngineCaller sets the engine caller for the validator service.
-func WithEngineCaller(caller engine.Caller) Option {
-	return func(s *Service) error {
-		s.en = caller
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache for the validator service.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
-	return func(s *Service) error {
-		s.payloadCache = pc
-		return nil
-	}
-}

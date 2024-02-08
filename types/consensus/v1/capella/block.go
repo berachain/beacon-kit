@@ -30,8 +30,8 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.

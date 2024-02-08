@@ -39,7 +39,7 @@ jobs:
   ci:
     strategy:
       matrix:
-        args: ["build", "lint", "gosec", "test-unit-cover"]
+        args: ["build", "lint", "gosec", "test-unit-cover", "test-unit-fuzz"]
         os: [ubuntu-latest-large]
     runs-on: ${{ matrix.os }}
     steps:

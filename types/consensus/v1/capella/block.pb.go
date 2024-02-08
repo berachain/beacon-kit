@@ -33,7 +33,7 @@ package capella
 
 import (
 	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/itsdevbear/bolaris/types/primitives"
 	_ "github.com/prysmaticlabs/prysm/v4/proto/eth/ext"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

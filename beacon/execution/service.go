@@ -30,12 +30,12 @@ import (
 	"errors"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // Service is responsible for delivering beacon chain notifications to
@@ -103,7 +103,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.PayloadID(
+	payloadID, found := s.payloadCache.Get(
 		slot, headHash,
 	)
 	if !found {

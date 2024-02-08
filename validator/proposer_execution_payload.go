@@ -35,8 +35,8 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/primitives"
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 
 func (s *Service) getLocalPayload(
@@ -64,7 +64,7 @@ func (s *Service) getLocalPayload(
 	}
 
 	// If we have a payload ID in the cache, we can return the payload from the cache.
-	payloadID, ok := s.payloadCache.PayloadID(slot, [32]byte(parentEth1Hash))
+	payloadID, ok := s.payloadCache.Get(slot, [32]byte(parentEth1Hash))
 	if ok && (payloadID != primitives.PayloadID{}) {
 		var (
 			pidCpy          primitives.PayloadID
