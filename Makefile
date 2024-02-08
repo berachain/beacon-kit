@@ -181,6 +181,13 @@ test-unit-cover:
 	@echo "Running unit tests with coverage..."
 	go test -race -coverprofile=coverage-test-unit-cover.txt -covermode=atomic ./...
 
+test-unit-fuzz:
+	@echo "Running fuzz tests with coverage..."
+	go test ./cache/... -fuzz=Fuzz -fuzztime=15s
+
+test-unit-fuzz-time:
+	@echo "Running fuzz tests for a specified duration..."
+
 #################
 #     forge     #
 #################
@@ -377,7 +384,7 @@ repo-rinse: |
 	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
 	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
-	start test-unit test-unit-race test-unit-cover forge-test \
+	start test-unit test-unit-cover forge-test \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
 	test-hive-v test-localnet test-localnet-no-build format lint \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
