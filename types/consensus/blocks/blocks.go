@@ -102,28 +102,27 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	bzIndex uint,
 	requestedVersion int,
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {
-	// Extract the marshalled payload from the proposal
 	txs := req.GetTxs()
-	lenTxs := len(txs)
-	if lenTxs == 0 {
+
+	// Ensure there are transactions in the request and
+	// that the request is valid.
+	if lenTxs := uint(len(txs)); lenTxs == 0 {
 		return nil, ErrNoBeaconBlockInProposal
-	}
-	if bzIndex >= uint(len(txs)) {
+	} else if bzIndex >= lenTxs {
 		return nil, ErrBzIndexOutOfBounds
 	}
 
-	var block interfaces.BeaconKitBlock
+	// Unmarshal the block from the request.
 	switch requestedVersion {
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
-		block = &capella.BeaconKitBlockCapella{}
+		block := &capella.BeaconKitBlockCapella{}
 		if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
 			return nil, err
 		}
+		return block, nil
 	default:
 		return nil, errors.New("unsupported version")
 	}
-
-	return block, nil
 }
