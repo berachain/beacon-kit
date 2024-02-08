@@ -69,38 +69,45 @@ func NewDispatchQueue(
 }
 
 // Async adds a work item to the queue to be executed asynchronously.
-func (q *DispatchQueue) Async(execute WorkItem) {
+func (q *DispatchQueue) Async(execute WorkItem) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	if q.stopped {
-		panic("Queue has been stopped")
+		return ErrAddToStoppedQueue
 	}
 
 	q.wg.Add(1)
 	q.queue <- execute
+	return nil
 }
 
 // AsyncAfter adds a work item to the queue to be executed after a specified duration.
-func (q *DispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) {
+func (q *DispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) error {
 	time.Sleep(deadline)
-	q.Async(execute)
+	return q.Async(execute)
 }
 
 // Sync adds a work item to the queue and waits for its execution to complete.
-func (q *DispatchQueue) Sync(execute WorkItem) {
+func (q *DispatchQueue) Sync(execute WorkItem) error {
 	done := make(chan struct{})
-	q.Async(func() {
+	if err := q.Async(func() {
 		execute()
 		close(done)
-	})
+	}); err != nil {
+		return err
+	}
 	<-done
+	return nil
 }
 
 // AsyncAndWait adds a work item to the queue and waits for all work items to complete.
-func (q *DispatchQueue) AsyncAndWait(execute WorkItem) {
-	q.Async(execute)
+func (q *DispatchQueue) AsyncAndWait(execute WorkItem) error {
+	if err := q.Async(execute); err != nil {
+		return err
+	}
 	q.wg.Wait()
+	return nil
 }
 
 // Stop stops the queue, preventing new work items from being added and waits for all
