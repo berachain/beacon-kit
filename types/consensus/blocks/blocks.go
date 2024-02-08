@@ -59,6 +59,7 @@ func NewBeaconKitBlock(
 		block interfaces.BeaconKitBlock
 		err   error
 	)
+
 	switch requestedVersion {
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
@@ -69,13 +70,6 @@ func NewBeaconKitBlock(
 		}
 	default:
 		return nil, errors.New("unsupported version")
-	}
-
-	// Attach the execution data to the block if it exists.
-	if executionData != nil {
-		if err = block.AttachExecution(executionData); err != nil {
-			return nil, err
-		}
 	}
 	return block, nil
 }

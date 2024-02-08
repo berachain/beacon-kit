@@ -32,7 +32,6 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
 	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
@@ -77,27 +76,23 @@ func (b *BeaconKitBlockCapella) IsNil() bool {
 	return b == nil
 }
 
+// Version returns the version of the block.
+func (b *BeaconKitBlockCapella) Version() int {
+	return version.Capella
+}
+
 // AttachExecution attaches the given execution data to the block.
 func (b *BeaconKitBlockCapella) AttachExecution(
 	executionData interfaces.ExecutionData,
 ) error {
-	var (
-		err   error
-		value Wei
-	)
+	value, err := executionData.ValueInWei()
+	if err != nil {
+		return err
+	}
 
 	b.Body.ExecutionPayload, err = executionData.PbCapella()
 	if err != nil {
 		return err
-	}
-
-	value, err = executionData.ValueInWei()
-	if err != nil {
-		return err
-	}
-
-	if !github_com_prysmaticlabs_prysm_v4_math.IsValidUint256(value) {
-		return ErrInvalidExecutionValue
 	}
 
 	// TODO: this needs to be done better, really hood rn.
@@ -111,9 +106,4 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 func (b *BeaconKitBlockCapella) Execution() (interfaces.ExecutionData, error) {
 	return blocks.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
 		new(big.Int).SetBytes(b.GetPayloadValue()))
-}
-
-// Version returns the version of the block.
-func (b *BeaconKitBlockCapella) Version() int {
-	return version.Capella
 }
