@@ -41,4 +41,8 @@ var (
 	// ErrInvalidExecutionValue is an error for when the
 	// execution value is invalid.
 	ErrInvalidExecutionValue = errors.New("invalid execution value")
+
+	// ErrForkVersionNotSupported is an error for when the fork
+	// version is not supported.
+	ErrForkVersionNotSupported = errors.New("fork version not supported")
 )

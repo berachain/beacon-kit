@@ -61,7 +61,7 @@ func NewBeaconKitBlock(
 	case version.Capella:
 		return capella.NewBeaconKitBlock(slot, executionData)
 	default:
-		return nil, errors.New("unsupported version")
+		return nil, ErrForkVersionNotSupported
 	}
 }
 
@@ -114,6 +114,6 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 		}
 		return block, nil
 	default:
-		return nil, errors.New("unsupported version")
+		return nil, ErrForkVersionNotSupported
 	}
 }
