@@ -53,25 +53,16 @@ func BeaconKitBlockFromState(
 func NewBeaconKitBlock(
 	slot primitives.Slot,
 	executionData interfaces.ExecutionData,
-	requestedVersion int,
+	forkVersion int,
 ) (interfaces.BeaconKitBlock, error) {
-	var (
-		block interfaces.BeaconKitBlock
-		err   error
-	)
-
-	switch requestedVersion {
+	switch forkVersion {
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
-		block, err = capella.NewBeaconKitBlock(slot, executionData)
-		if err != nil {
-			return nil, err
-		}
+		return capella.NewBeaconKitBlock(slot, executionData)
 	default:
 		return nil, errors.New("unsupported version")
 	}
-	return block, nil
 }
 
 // NewEmptyBeaconKitBlockFromState assembles a new beacon block
@@ -100,7 +91,7 @@ func NewEmptyBeaconKitBlock(
 func ReadOnlyBeaconKitBlockFromABCIRequest(
 	req interfaces.ABCIRequest,
 	bzIndex uint,
-	requestedVersion int,
+	forkVersion int,
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {
 	txs := req.GetTxs()
 
@@ -113,7 +104,7 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	}
 
 	// Unmarshal the block from the request.
-	switch requestedVersion {
+	switch forkVersion {
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
