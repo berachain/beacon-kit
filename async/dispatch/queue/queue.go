@@ -91,11 +91,10 @@ func (q *DispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) err
 // Sync adds a work item to the queue and waits for its execution to complete.
 func (q *DispatchQueue) Sync(execute WorkItem) error {
 	done := make(chan struct{})
-	err := q.Async(func() {
+	if err := q.Async(func() {
 		execute()
 		close(done)
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 	<-done
@@ -104,8 +103,7 @@ func (q *DispatchQueue) Sync(execute WorkItem) error {
 
 // AsyncAndWait adds a work item to the queue and waits for all work items to complete.
 func (q *DispatchQueue) AsyncAndWait(execute WorkItem) error {
-	err := q.Async(execute)
-	if err != nil {
+	if err := q.Async(execute); err != nil {
 		return err
 	}
 	q.wg.Wait()

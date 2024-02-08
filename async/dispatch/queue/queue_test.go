@@ -46,11 +46,10 @@ func TestDispatchQueueConcurrent_Async(t *testing.T) {
 	wg.Add(10)
 
 	for i := 0; i < 10; i++ {
-		err := q.Async(func() {
+		if err := q.Async(func() {
 			defer wg.Done()
 			counter.Add(1)
-		})
-		if err != nil {
+		}); err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 	}
@@ -138,10 +137,9 @@ func TestDispatchQueueConcurrent_Stop(t *testing.T) {
 
 	// Add some items to the queue
 	for i := 0; i < 10; i++ {
-		err := q.Async(func() {
+		if err := q.Async(func() {
 			time.Sleep(time.Millisecond * 100)
-		})
-		if err != nil {
+		}); err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 	}
@@ -153,10 +151,9 @@ func TestDispatchQueueConcurrent_Stop(t *testing.T) {
 	defer func() {
 	}()
 
-	err := q.Async(func() {
+	if err := q.Async(func() {
 		t.Errorf("Async function executed after Stop")
-	})
-	if err == nil {
+	}); err == nil {
 		assert.Equal(t, err, queue.ErrAddToStoppedQueue)
 	}
 }

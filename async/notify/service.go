@@ -91,10 +91,9 @@ func (s *Service) Start() {
 					select {
 					case event := <-ch:
 						// Use the dispatch queue to call the handler's Handle method asynchronously
-						err := s.gcd.GetQueue(pair.queueID).Async(func() {
+						if err := s.gcd.GetQueue(pair.queueID).Async(func() {
 							pair.handler.HandleNotification(event)
-						})
-						if err != nil {
+						}); err != nil {
 							// Choosing to panic here because it doesn't make sense for the
 							// service we're controlling to have stopped the queue
 							panic(err)

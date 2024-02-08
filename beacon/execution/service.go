@@ -90,10 +90,9 @@ func (s *Service) NotifyForkchoiceUpdate(
 	var err error
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
 		err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
-	})
-	if e != nil {
+	}); e != nil {
 		return e
 	}
 

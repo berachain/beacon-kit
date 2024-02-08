@@ -48,7 +48,7 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 	// We will only execute two tasks in total.
 	allWorkDone.Add(2)
 
-	err := q.Async(func() {
+	if err := q.Async(func() {
 		defer allWorkDone.Done()
 		mu.Lock()
 		defer mu.Unlock()
@@ -59,8 +59,7 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 		// Block on the condition variable to simulate a long-running task.
 		cond.Wait()
 		output = append(output, 1)
-	})
-	if err != nil {
+	}); err != nil {
 		t.Errorf("Unexpected err %v", err)
 	}
 
@@ -70,28 +69,26 @@ func TestSingleDispatchQueueReplace(t *testing.T) {
 
 	// These tasks should get replaced over and over by each other.
 	for i := 2; i < 69; i++ {
-		err = q.Async(func() {
+		if err := q.Async(func() {
 			defer allWorkDone.Done()
 
 			mu.Lock()
 			defer mu.Unlock()
 			output = append(output, i)
-		})
-		if err != nil {
+		}); err != nil {
 			t.Errorf("Unexpected err %v", err)
 		}
 	}
 
 	// Since the first Async called hasn't exited yet (it's waiting on the condition variable),
 	// the last Async should be enqueued and all others should've been replaced.
-	err = q.Async(func() {
+	if err := q.Async(func() {
 		defer allWorkDone.Done()
 
 		mu.Lock()
 		defer mu.Unlock()
 		output = append(output, 69)
-	})
-	if err != nil {
+	}); err != nil {
 		t.Errorf("Unexpected err %v", err)
 	}
 
