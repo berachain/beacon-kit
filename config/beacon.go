@@ -27,8 +27,8 @@ package config
 
 import (
 	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 
 // Beacon conforms to the BeaconKitConfig interface.
