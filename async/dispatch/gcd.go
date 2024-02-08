@@ -26,7 +26,6 @@
 package dispatch
 
 import (
-	"fmt"
 	"sync"
 
 	"cosmossdk.io/log"
@@ -99,7 +98,7 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	// Check to make sure the queue doesn't already exist.
 	_, found := gcd.queues[id]
 	if found {
-		panic(fmt.Sprintf("queue already exists: %s", id))
+		panic("queue already exists: " + id)
 	}
 
 	var queue Queue
