@@ -31,16 +31,16 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum/common"
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 

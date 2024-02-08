@@ -26,11 +26,10 @@
 package capella
 
 import (
-	"math/big"
-
+	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
+	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
@@ -105,5 +104,5 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlockCapella) Execution() (interfaces.ExecutionData, error) {
 	return blocks.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
-		new(big.Int).SetBytes(b.GetPayloadValue()))
+		uint256.NewInt(0).SetBytes(b.GetPayloadValue()))
 }

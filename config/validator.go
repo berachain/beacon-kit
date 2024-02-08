@@ -26,9 +26,9 @@
 package config
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // Validator conforms to the BeaconKitConfig interface.

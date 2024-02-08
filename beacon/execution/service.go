@@ -29,13 +29,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // Service is responsible for delivering beacon chain notifications to

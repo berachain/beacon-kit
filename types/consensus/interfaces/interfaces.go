@@ -28,13 +28,46 @@ package interfaces
 import (
 	"time"
 
+	"github.com/itsdevbear/bolaris/math"
+	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	ssz "github.com/prysmaticlabs/fastssz"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"google.golang.org/protobuf/proto"
 )
 
 // ExecutionData is the interface for the execution data of a block.
-type ExecutionData = interfaces.ExecutionData
+type ExecutionData interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
+	IsBlinded() bool
+	Proto() proto.Message
+	ParentHash() []byte
+	FeeRecipient() []byte
+	StateRoot() []byte
+	ReceiptsRoot() []byte
+	LogsBloom() []byte
+	PrevRandao() []byte
+	BlockNumber() uint64
+	GasLimit() uint64
+	GasUsed() uint64
+	Timestamp() uint64
+	ExtraData() []byte
+	BaseFeePerGas() []byte
+	BlobGasUsed() (uint64, error)
+	ExcessBlobGas() (uint64, error)
+	BlockHash() []byte
+	Transactions() ([][]byte, error)
+	TransactionsRoot() ([]byte, error)
+	Withdrawals() ([]*enginev1.Withdrawal, error)
+	WithdrawalsRoot() ([]byte, error)
+	PbCapella() (*enginev1.ExecutionPayloadCapella, error)
+	PbBellatrix() (*enginev1.ExecutionPayload, error)
+	PbDeneb() (*enginev1.ExecutionPayloadDeneb, error)
+	ValueInWei() (math.Wei, error)
+	ValueInGwei() (uint64, error)
+}
 
 // BeaconKitBlock is the interface for a beacon block.
 type BeaconKitBlock interface {
@@ -61,13 +94,13 @@ type ReadOnlyBeaconKitBlock interface {
 	// ProposerAddress() []byte
 	IsNil() bool
 	// Execution returns the execution data of the block.
-	Execution() (interfaces.ExecutionData, error)
+	Execution() (ExecutionData, error)
 	Version() int
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
 type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(interfaces.ExecutionData) error
+	AttachExecution(ExecutionData) error
 }
 
 // ABCIRequest is the interface for an ABCI request.

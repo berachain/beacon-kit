@@ -28,9 +28,9 @@ package engine
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"

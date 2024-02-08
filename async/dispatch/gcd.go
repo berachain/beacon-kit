@@ -108,7 +108,6 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	case QueueTypeSerial:
 		queue = dqueue.NewDispatchQueue(1, DefaultQueueSize)
 	case QueueTypeConcur:
-
 		queue = dqueue.NewDispatchQueue(DefaultConcurrentQueueWorkerCount, DefaultQueueSize)
 	default:
 		panic("unknown queue type")

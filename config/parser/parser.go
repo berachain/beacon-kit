@@ -35,8 +35,8 @@ import (
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
 )
 
 // TODO: Move this to a common package for parsing utils.

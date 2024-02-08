@@ -23,45 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package payload
 
-import (
-	"context"
+import enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
-)
-
-// BeaconStore is a wrapper around a KVStore sdk.Context
-// that provides access to all beacon related data.
-type BeaconStore struct {
-	store.KVStore
-
-	// sdkCtx is the context of the store.
-	sdkCtx sdk.Context
-
-	// cfg is the beacon configuration.
-	cfg *config.Beacon
-
-	// lastValidHash is the last valid head in the store.
-	// TODO: we need to handle this in a better way.
-	lastValidHash common.Hash
-}
-
-// NewBeaconStore creates a new instance of BeaconStore.
-func NewBeaconStore(
-	ctx context.Context,
-	storeKey storetypes.StoreKey,
-	// TODO: should this be stored in on-chain params?
-	cfg *config.Beacon,
-) *BeaconStore {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return &BeaconStore{
-		sdkCtx:  sdkCtx,
-		KVStore: sdkCtx.KVStore(storeKey),
-		cfg:     cfg,
-	}
+type Attributer interface {
+	Version() int
+	PrevRandao() []byte
+	Timestamps() uint64
+	SuggestedFeeRecipient() []byte
+	Withdrawals() ([]*enginev1.Withdrawal, error)
+	PbV2() (*enginev1.PayloadAttributesV2, error)
+	PbV3() (*enginev1.PayloadAttributesV3, error)
+	IsEmpty() bool
 }

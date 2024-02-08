@@ -29,10 +29,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 type (

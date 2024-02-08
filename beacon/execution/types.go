@@ -28,8 +28,8 @@ package execution
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )

@@ -29,8 +29,8 @@ import (
 	"errors"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )

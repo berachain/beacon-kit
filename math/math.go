@@ -23,45 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package math
 
 import (
-	"context"
-
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/holiman/uint256"
 )
 
-// BeaconStore is a wrapper around a KVStore sdk.Context
-// that provides access to all beacon related data.
-type BeaconStore struct {
-	store.KVStore
+// GweiPerEth is the number of Gwei in an Eth.
+const GweiPerEth = 1e9
 
-	// sdkCtx is the context of the store.
-	sdkCtx sdk.Context
+type (
+	// Wei is the smallest unit of Ether, represented as a pointer to a Uint256.
+	Wei = *uint256.Int
+	// Gwei is a denomination of 1e9 Wei represented as an uint64.
+	Gwei uint64
+)
 
-	// cfg is the beacon configuration.
-	cfg *config.Beacon
-
-	// lastValidHash is the last valid head in the store.
-	// TODO: we need to handle this in a better way.
-	lastValidHash common.Hash
+// BytesToWei converts a byte slice to a Wei.
+func BytesToWei(v []byte) Wei {
+	return uint256.NewInt(0).SetBytes(v)
 }
 
-// NewBeaconStore creates a new instance of BeaconStore.
-func NewBeaconStore(
-	ctx context.Context,
-	storeKey storetypes.StoreKey,
-	// TODO: should this be stored in on-chain params?
-	cfg *config.Beacon,
-) *BeaconStore {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return &BeaconStore{
-		sdkCtx:  sdkCtx,
-		KVStore: sdkCtx.KVStore(storeKey),
-		cfg:     cfg,
+// WeiToBytes converts a Wei to a byte slice.
+func WeiToBytes(v Wei) []byte {
+	return v.Bytes()
+}
+
+// WeiToGwei converts Wei to uint64 gwei.
+// The input `v` is copied before being modified.
+func WeiToGwei(v Wei) Gwei {
+	if v == nil {
+		return 0
 	}
+	copied := new(uint256.Int).Set(v)
+	copied.Div(copied, uint256.NewInt(GweiPerEth))
+	return Gwei(copied.Uint64())
 }

@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/types/consensus/blocks"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 )
 

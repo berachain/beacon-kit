@@ -33,10 +33,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (s *Service) getLocalPayload(

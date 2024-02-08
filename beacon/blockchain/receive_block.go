@@ -31,7 +31,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"golang.org/x/sync/errgroup"
 
 	prsymexecution "github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
