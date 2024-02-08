@@ -30,8 +30,8 @@ import (
 
 	"github.com/itsdevbear/bolaris/math"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"google.golang.org/protobuf/proto"
 )
 

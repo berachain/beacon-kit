@@ -30,7 +30,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/types/consensus/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // BuildBeaconBlock builds a new beacon block.

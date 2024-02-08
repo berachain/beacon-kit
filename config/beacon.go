@@ -27,7 +27,7 @@ package config
 
 import (
 	"github.com/itsdevbear/bolaris/config/parser"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 )
 

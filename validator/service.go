@@ -27,8 +27,8 @@ package validator
 
 import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
 )
 
 type BlockBuilder interface {
