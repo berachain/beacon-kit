@@ -70,10 +70,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
+	"github.com/itsdevbear/bolaris/config/tos"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
-	tos "github.com/itsdevbear/bolaris/config/tos"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.
@@ -137,6 +137,12 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
+			if err = tos.VerifyTosAcceptedOrPrompt(
+				app.AppName, app.TermsOfServiceURL, initClientCtx, cmd,
+			); err != nil {
+				return err
+			}
+
 			// This needs to go after ReadFromClientConfig, as that function
 			// sets the RPC client needed for SIGN_MODE_TEXTUAL.
 			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
@@ -156,12 +162,6 @@ func NewRootCmd() *cobra.Command {
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customCMTConfig := initCometBFTConfig()
-
-			if err = tos.VerifyTosAcceptedOrPrompt(
-				app.AppName, app.TermsOfServiceURL, initClientCtx, cmd,
-			); err != nil {
-				return err
-			}
 
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
 		},
@@ -244,6 +244,9 @@ func initRootCmd(
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
+	// add the flag to automagically accept the TOS
+	beaconconfig.AddToSFlag(rootCmd)
+
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
 		debug.Cmd(),
@@ -268,13 +271,12 @@ func initRootCmd(
 		keys.Commands(),
 	)
 
-	// add the flag to automagically accept the TOS
-	beaconconfig.AddToSFlag(rootCmd)
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 	beaconconfig.AddBeaconKitFlags(startCmd)
+
 }
 
 // add server commands.

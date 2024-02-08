@@ -34,7 +34,8 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	testapp "github.com/itsdevbear/bolaris/examples/beacond/app"
+	beaconflags "github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 )
 
@@ -45,9 +46,10 @@ func TestInitCommand(t *testing.T) {
 		"init",           // Test the init cmd
 		"BeaconApp-test", // Moniker
 		fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json
+		fmt.Sprintf("--%s", beaconflags.BeaconKitAcceptTos),
 	})
 
-	err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome)
+	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -64,9 +66,10 @@ func TestHomeFlagRegistration(t *testing.T) {
 		"query",
 		fmt.Sprintf("--%s", flags.FlagHome),
 		homeDir,
+		fmt.Sprintf("--%s", beaconflags.BeaconKitAcceptTos),
 	})
 
-	err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome)
+	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}

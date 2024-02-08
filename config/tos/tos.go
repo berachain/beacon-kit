@@ -51,7 +51,7 @@ as “you” or the “user”) certify that you have read and agreed to the ter
 TERMS AND CONDITIONS: %s
 
 
-Type "accept" to accept this terms and conditions [accept/decline]:`
+Type "accept" to accept these terms and conditions [accept/decline]:`
 	// acceptTosPromptErrTextFormat is the the error prompt text for accepting the terms of use.
 	acceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
 non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
