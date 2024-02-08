@@ -81,7 +81,7 @@ import (
 	_ "github.com/itsdevbear/bolaris/runtime/modules/beacon" // import for side-effects
 )
 
-const AppName = "BeaconKitExampleApp"
+const AppName = "BeaconKitApp"
 
 // MakeAppConfig for making an application configuration.
 //

@@ -45,6 +45,6 @@ const (
 	// Proposal.
 	BeaconBlockPosition = "beacon-kit.abci.beacon-block-proposal-position"
 
-	// General Flags
+	// General Flags.
 	BeaconKitAcceptTos = "beacon-kit.accept-tos"
 )
