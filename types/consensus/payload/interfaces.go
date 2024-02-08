@@ -23,36 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package payload
 
-import (
-	"context"
+import enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-)
-
-// FinalizeBeaconBlock finalizes a beacon block by processing the logs, deposits,
-// and voluntary exits. It also updates the finalized and safe eth1 block hashes
-// on the beacon state.
-func (s *Service) FinalizeBeaconBlock(
-	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock,
-) error {
-	execution, err := blk.Execution()
-	if err != nil {
-		return err
-	}
-
-	// TODO: PROCESS LOGS HERE
-	// TODO: PROCESS DEPOSITS HERE
-	// TODO: PROCESS VOLUNTARY EXITS HERE
-
-	eth1BlockHash := common.Hash(execution.BlockHash())
-	state := s.BeaconState(ctx)
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
-	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetLastValidHead(eth1BlockHash)
-
-	return nil
+type Attributer interface {
+	Version() int
+	PrevRandao() []byte
+	Timestamps() uint64
+	SuggestedFeeRecipient() []byte
+	Withdrawals() ([]*enginev1.Withdrawal, error)
+	PbV2() (*enginev1.PayloadAttributesV2, error)
+	PbV3() (*enginev1.PayloadAttributesV3, error)
+	IsEmpty() bool
 }

@@ -26,8 +26,8 @@
 package v1
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // Logs is a slice of pointers to Log.

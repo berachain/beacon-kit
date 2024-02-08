@@ -25,7 +25,7 @@
 
 package store
 
-import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+import enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 
 // TODO: maybe BeaconState interface needs to be glue'd together outside of
 // x/beacon, since we are going to need to get withdrawls from the x/beacon_staking.

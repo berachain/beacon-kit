@@ -26,7 +26,7 @@
 package store
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // SetLastValidHead sets the last valid head in the store.

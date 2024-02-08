@@ -32,7 +32,7 @@ import (
 
 	"cosmossdk.io/log"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // loadJWTSecret reads the JWT secret from a file and returns it.
