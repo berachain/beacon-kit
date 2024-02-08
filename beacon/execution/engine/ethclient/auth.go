@@ -26,43 +26,35 @@
 package eth
 
 import (
-	"net/url"
+	"net/http"
+	"strings"
 
-	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum/node"
 )
 
-// Option is a functional option for the Eth1Client.
-type Option func(s *Eth1Client) error
+// buildHeaders creates the headers for the execution client.
+func (s *Eth1Client) buildHeaders() (http.Header, error) {
+	var (
+		headers        = http.Header{}
+		jwtAuthHandler = node.NewJWTAuth([32]byte(s.cfg.jwtSecret))
+	)
 
-// WithHTTPEndpointAndJWTSecret for authenticating the execution node JSON-RPC endpoint.
-func WithHTTPEndpointAndJWTSecret(endpointString string, secret []byte) Option {
-	return func(s *Eth1Client) error {
-		if len(secret) == 0 {
-			return nil
+	// Authenticate the execution node JSON-RPC endpoint.
+	if err := jwtAuthHandler(headers); err != nil {
+		return nil, err
+	}
+
+	// Add additional headers if provided.
+	for _, h := range s.cfg.headers {
+		if h == "" {
+			continue
 		}
-		s.cfg.jwtSecret = secret
-		u, err := url.Parse(endpointString)
-		if err != nil {
-			return err
+		keyValue := strings.Split(h, "=")
+		if len(keyValue) < 2 { //nolint:gomnd // it's okay.
+			s.logger.Error("Incorrect HTTP header flag format. Skipping %v", keyValue[0])
+			continue
 		}
-		s.cfg.dialURL = u
-		return nil
+		headers.Set(keyValue[0], strings.Join(keyValue[1:], "="))
 	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *Eth1Client) error {
-		s.logger = logger.With("module", "beacon-kit-execution")
-		return nil
-	}
-}
-
-// WithRequiredChainID is an option to set the required
-// chain ID for the Eth1Client.
-func WithRequiredChainID(chainID uint64) Option {
-	return func(s *Eth1Client) error {
-		s.cfg.chainID = chainID
-		return nil
-	}
+	return headers, nil
 }
