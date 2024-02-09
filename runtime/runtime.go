@@ -158,6 +158,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Create the service registry.
 	serviceRegistry := service.NewRegistry(
+		service.WithLogger(logger),
 		service.WithService(syncService),
 		service.WithService(executionService),
 		service.WithService(chainService),
