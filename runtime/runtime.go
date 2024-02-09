@@ -27,7 +27,6 @@ package runtime
 
 import (
 	"context"
-	"sync"
 
 	"cosmossdk.io/log"
 
@@ -49,13 +48,14 @@ import (
 // service registry.
 type BeaconKitRuntime struct {
 	cfg        *config.Config
-	mu         sync.Mutex
 	logger     log.Logger
 	fscp       BeaconStateProvider
 	services   *service.Registry
 	dispatcher *dispatch.GrandCentralDispatch
 }
 
+// BeaconStateProvider is an interface that provides the
+// beacon state to the runtime.
 type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
@@ -65,10 +65,7 @@ type BeaconStateProvider interface {
 func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{
-		services: service.NewRegistry(),
-	}
-
+	bkr := &BeaconKitRuntime{}
 	for _, opt := range opts {
 		if err := opt(bkr); err != nil {
 			return nil, err
@@ -159,15 +156,20 @@ func NewDefaultBeaconKitRuntime(
 		validator.WithPayloadCache(payloadCache),
 	)
 
+	// Create the service registry.
+	serviceRegistry := service.NewRegistry(
+		service.WithService(syncService),
+		service.WithService(executionService),
+		service.WithService(chainService),
+		service.WithService(notificationService),
+		service.WithService(validatorService),
+	)
+
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
 		WithConfig(cfg),
-		WithService(syncService),
-		WithService(executionService),
-		WithService(chainService),
-		WithService(notificationService),
-		WithService(validatorService),
 		WithLogger(logger),
+		WithServiceRegistry(serviceRegistry),
 		WithBeaconStateProvider(bsp),
 		WithDispatcher(gcd),
 	)

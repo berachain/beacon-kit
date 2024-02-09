@@ -53,10 +53,17 @@ type Registry struct {
 }
 
 // NewRegistry starts a registry instance for convenience.
-func NewRegistry() *Registry {
-	return &Registry{
+func NewRegistry(opts ...RegistryOption) *Registry {
+	r := &Registry{
 		services: make(map[reflect.Type]Basic),
 	}
+
+	for _, opt := range opts {
+		if err := opt(r); err != nil {
+			panic(err)
+		}
+	}
+	return r
 }
 
 // StartAll initialized each service in order of registration.

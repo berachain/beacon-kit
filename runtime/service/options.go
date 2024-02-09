@@ -37,3 +37,10 @@ func WithLogger(logger log.Logger) RegistryOption {
 		return nil
 	}
 }
+
+// WithService is an Option that registers a service with the Registry.
+func WithService(svc Basic) RegistryOption {
+	return func(r *Registry) error {
+		return r.RegisterService(svc)
+	}
+}
