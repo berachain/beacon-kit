@@ -50,7 +50,7 @@ var _ Caller = (*engineCaller)(nil)
 // engineCaller is a struct that holds a pointer to an Eth1Client.
 type engineCaller struct {
 	*eth.Eth1Client
-	engineTimeout uint64
+	engineTimeout time.Duration
 	beaconCfg     *config.Beacon
 	logger        log.Logger
 }
@@ -73,10 +73,7 @@ func (s *engineCaller) NewPayload(
 	ctx context.Context, payload interfaces.ExecutionData,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
-	d := time.Now().Add(
-		time.Duration(
-			s.engineTimeout,
-		) * time.Second)
+	d := time.Now().Add(s.engineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 	result := &enginev1.PayloadStatus{}
@@ -132,10 +129,7 @@ func (s *engineCaller) NewPayload(
 func (s *engineCaller) ForkchoiceUpdated(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
-	d := time.Now().Add(
-		time.Duration(
-			s.engineTimeout,
-		) * time.Second)
+	d := time.Now().Add(s.engineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 	result := &execution.ForkchoiceUpdatedResponse{}
@@ -195,10 +189,7 @@ func (s *engineCaller) ForkchoiceUpdated(
 func (s *engineCaller) GetPayload(
 	ctx context.Context, payloadID [8]byte, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	d := time.Now().Add(
-		time.Duration(
-			s.engineTimeout,
-		) * time.Second)
+	d := time.Now().Add(s.engineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 	if primitives.Epoch(slot) >= s.beaconCfg.Forks.DenebForkEpoch {

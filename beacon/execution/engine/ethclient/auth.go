@@ -27,6 +27,7 @@ package eth
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/ethereum/go-ethereum/node"
 )
@@ -45,4 +46,18 @@ func (s *Eth1Client) buildHeaders() (http.Header, error) {
 
 	// Add additional headers if provided.
 	return headers, nil
+}
+
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *Eth1Client) jwtRefreshLoop() {
+	for {
+		select {
+		case <-s.ctx.Done():
+			return
+		case <-time.After(s.jwtRefreshInterval):
+			if err := s.setupExecutionClientConnection(); err != nil {
+				s.logger.Error("failed to refresh JWT", "err", err)
+			}
+		}
+	}
 }

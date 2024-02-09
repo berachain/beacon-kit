@@ -42,8 +42,6 @@ import (
 const (
 	// jwtLength is the length of the JWT token.
 	jwtLength = 32
-	// backOffPeriod is the time to wait before trying to reconnect with the eth1 node.
-	backOffPeriod = 5
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
@@ -51,10 +49,13 @@ type Eth1Client struct {
 	ctx    context.Context
 	logger log.Logger
 	*ethclient.Client
-	connectedETH1 bool
-	chainID       uint64
-	jwtSecret     [32]byte
-	dialURL       *url.URL
+
+	connectedETH1       bool
+	chainID             uint64
+	jwtSecret           [32]byte
+	jwtRefreshInterval  time.Duration
+	healthCheckInterval time.Duration
+	dialURL             *url.URL
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided context and options.
@@ -68,24 +69,24 @@ func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 		}
 	}
 
-	c.Start(ctx)
+	c.Start() // TODO: move this so it is on the cmd.Context.
 	return c, nil
 }
 
 // Start the powchain service's main event loop.
-func (s *Eth1Client) Start(ctx context.Context) {
+func (s *Eth1Client) Start() {
 	for {
 		if err := s.setupExecutionClientConnection(); err != nil {
 			s.logger.Info("Waiting for connection to execution client...",
 				"dial-url", s.dialURL.String(), "err", err)
-			time.Sleep(backOffPeriod * time.Second)
 			continue
 		}
 		break
 	}
 
-	// Start the health check loop.
-	go s.connectionHealthLoop(ctx)
+	// Start the health check & jwt refresh loop.
+	go s.healthCheckLoop()
+	go s.jwtRefreshLoop()
 }
 
 // setupExecutionClientConnections dials the execution client and ensures the chain ID is correct.
@@ -135,37 +136,10 @@ func (s *Eth1Client) dialExecutionRPCClient() error {
 
 	// Check for an error when dialing the execution client.
 	if err != nil {
+		s.logger.Error("could not dial execution client", "error", err)
 		return err
 	}
 
-	// Attach the client to the struct.
 	s.Client = ethclient.NewClient(client)
 	return nil
-}
-
-// Every N seconds, defined as a backoffPeriod, attempts to re-establish an execution client
-// connection and if this does not work, we fallback to the next endpoint if defined.
-func (s *Eth1Client) pollConnectionStatus() {
-	ticker := time.NewTicker(backOffPeriod * time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			s.logger.Info("Trying to dial endpoint...", "dial-url", s.dialURL.String())
-			currClient := s.Client.Client()
-			if err := s.setupExecutionClientConnection(); err != nil {
-				s.logger.Error("Could not connect to execution client endpoint", "error", err)
-				continue
-			}
-			// Close previous client, if connection was successful.
-			if currClient != nil {
-				currClient.Close()
-			}
-			s.logger.Info("Connected to new endpoint", "dial-url", s.dialURL.String())
-			return
-		case <-s.ctx.Done():
-			s.logger.Info("Received cancelled context,closing existing powchain service")
-			return
-		}
-	}
 }
