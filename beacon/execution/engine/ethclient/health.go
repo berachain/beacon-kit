@@ -26,15 +26,9 @@
 package eth
 
 import (
-	"context"
 	"fmt"
 	"time"
-
-	"github.com/prysmaticlabs/prysm/v4/io/logs"
 )
-
-// healthCheckPeriod defines the time interval for periodic health checks.
-const healthCheckPeriod = 5 * time.Second
 
 // ConnectedETH1 returns the connection status of the Ethereum 1 client.
 func (s *Eth1Client) ConnectedETH1() bool {
@@ -48,35 +42,34 @@ func (s *Eth1Client) updateConnectedETH1(state bool) {
 	s.connectedETH1 = state
 }
 
+// healthCheckLoop periodically checks the connection health of the execution client.
+func (s *Eth1Client) healthCheckLoop() {
+	for {
+		select {
+		case <-s.ctx.Done():
+			return
+		case <-time.After(s.healthCheckInterval):
+			if err := s.ensureCorrectExecutionChain(); err != nil {
+				s.logger.Error("eth1 connection health check failed",
+					"dial-url", s.dialURL.String(),
+					"error", err,
+				)
+				s.updateConnectedETH1(false)
+			}
+		}
+	}
+}
+
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
-func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
-	chainID, err := s.Client.ChainID(ctx)
+func (s *Eth1Client) ensureCorrectExecutionChain() error {
+	chainID, err := s.Client.ChainID(s.ctx)
 	if err != nil {
 		return err
 	}
 
-	if chainID.Uint64() != s.cfg.chainID {
-		return fmt.Errorf("wanted chain ID %d, got %d", s.cfg.chainID, chainID.Uint64())
+	if chainID.Uint64() != s.chainID {
+		return fmt.Errorf("wanted chain ID %d, got %d", s.chainID, chainID.Uint64())
 	}
 	return nil
-}
-
-// connectionHealthLoop periodically checks the connection health of the execution client.
-func (s *Eth1Client) connectionHealthLoop(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			if _, err := s.Client.ChainID(ctx); err != nil {
-				s.logger.Error("eth1 connection health check failed",
-					"dial-url", logs.MaskCredentialsLogging(s.cfg.currHTTPEndpoint.Url),
-					"error", err,
-				)
-				s.pollConnectionStatus(ctx)
-			}
-			time.Sleep(healthCheckPeriod)
-		}
-	}
 }

@@ -76,17 +76,14 @@ func (s *Service) getLocalPayload(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
 
-		payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot)
-		switch {
-		case err == nil:
+		if payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 			//  Return the cached payload ID.
 			return payload, overrideBuilder, nil
-		case errors.Is(err, context.DeadlineExceeded):
-		default:
-			return nil, false, errors.Wrap(err, "could not get cached payload from execution client")
 		}
+		s.Logger().Warn("could not get cached payload from execution client", "error", err)
+		telemetry.IncrCounter(1, MetricsPayloadIDCacheError)
 	}
 
 	// If we reach this point, we have a cache miss and must build a new payload.

@@ -109,7 +109,10 @@ func NewDefaultBeaconKitRuntime(
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		ctx,
-		eth.WithHTTPEndpointAndJWTSecret(cfg.Execution.RPCDialURL, jwtSecret),
+		eth.WithHealthCheckInterval(cfg.Execution.RPCHealthCheckInterval),
+		eth.WithJWTRefreshInterval(cfg.Execution.RPCJWTRefreshInterval),
+		eth.WithEndpointDialURL(cfg.Execution.RPCDialURL),
+		eth.WithJWTSecret(jwtSecret),
 		eth.WithLogger(logger),
 		eth.WithRequiredChainID(cfg.Execution.RequiredChainID),
 	)
@@ -172,7 +175,7 @@ func NewDefaultBeaconKitRuntime(
 }
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StartServices() {
+func (r *BeaconKitRuntime) StartServices(_ context.Context) {
 	r.services.StartAll()
 }
 
