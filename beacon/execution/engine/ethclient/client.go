@@ -94,7 +94,10 @@ func (s *Eth1Client) Start(ctx context.Context) {
 func (s *Eth1Client) setupExecutionClientConnection() {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(); err != nil {
-		s.logger.Error("could not dial execution client", "error", err)
+		// This log gets spammy, we only log it when we first lose connection.
+		if s.connectedETH1 {
+			s.logger.Error("could not dial execution client", "error", err)
+		}
 		s.updateConnectedETH1(false)
 		return
 	}
