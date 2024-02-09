@@ -32,8 +32,7 @@ import (
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // Caller defines a client that can interact with an Ethereum
@@ -51,14 +50,14 @@ type Caller interface {
 		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
-		ctx context.Context, state *pb.ForkchoiceState, attrs payloadattribute.Attributer,
-	) (*pb.PayloadIDBytes, []byte, error)
+		ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
+	) (*enginev1.PayloadIDBytes, []byte, error)
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(ctx context.Context, payloadID [8]byte,
-		slot primitives.Slot) (interfaces.ExecutionData, *pb.BlobsBundle, bool, error)
+		slot primitives.Slot) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
 	// ExecutionBlockByHash retrieves the execution block by its hash.
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
-		withTxs bool) (*pb.ExecutionBlock, error)
+		withTxs bool) (*enginev1.ExecutionBlock, error)
 
 	// Eth Namespace Methods
 	//

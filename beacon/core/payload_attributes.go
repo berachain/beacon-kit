@@ -30,6 +30,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -43,9 +44,9 @@ func BuildPayloadAttributes(
 	prevRando []byte,
 	headRoot []byte,
 	t uint64,
-) payloadattribute.Attributer {
+) interfaces.PayloadAttributer {
 	emptyAttri := payloadattribute.EmptyWithVersion(st.Version())
-	var attr payloadattribute.Attributer
+	var attr interfaces.PayloadAttributer
 	switch st.Version() {
 	case version.Deneb:
 		withdrawals, err := st.ExpectedWithdrawals()

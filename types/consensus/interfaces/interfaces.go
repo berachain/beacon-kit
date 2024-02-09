@@ -35,6 +35,17 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type PayloadAttributer interface {
+	Version() int
+	PrevRandao() []byte
+	Timestamps() uint64
+	SuggestedFeeRecipient() []byte
+	Withdrawals() ([]*enginev1.Withdrawal, error)
+	PbV2() (*enginev1.PayloadAttributesV2, error)
+	PbV3() (*enginev1.PayloadAttributesV3, error)
+	IsEmpty() bool
+}
+
 // ExecutionData is the interface for the execution data of a block.
 type ExecutionData interface {
 	ssz.Marshaler

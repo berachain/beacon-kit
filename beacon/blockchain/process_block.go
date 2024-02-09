@@ -58,7 +58,7 @@ func (s *Service) postBlockProcess(
 	// TODO: we should probably just have a validator job in the background that is
 	// constantly building new payloads and then not worry about anything here triggering
 	// payload builds.
-	var attrs payloadattribute.Attributer
+	var attrs interfaces.PayloadAttributer
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		attrs = s.getPayloadAttribute(ctx)
 	} else {
