@@ -28,6 +28,7 @@ package tos
 import (
 	"errors"
 	"path/filepath"
+	"strings"
 
 	file "github.com/itsdevbear/bolaris/config"
 
@@ -90,7 +91,7 @@ func VerifyTosAcceptedOrPrompt(
 		return nil
 	}
 
-	err := beaconprompt.DefaultPrompt(
+	input, err := beaconprompt.DefaultPrompt(
 		cmd,
 		aurora.NewAurora(true).Bold(BuildTosPromptText(
 			appName, tosLink,
@@ -98,6 +99,10 @@ func VerifyTosAcceptedOrPrompt(
 		"decline")
 	if err != nil {
 		return errors.New(BuildErrorPromptText(tosLink))
+	}
+
+	if !strings.EqualFold(input, "accept") {
+		return errors.New("you have to accept Terms and Conditions in order to continue")
 	}
 
 	saveTosAccepted(homedir, cmd)

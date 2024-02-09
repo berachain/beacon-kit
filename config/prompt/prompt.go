@@ -26,20 +26,18 @@
 package prompt
 
 import (
-	"errors"
-	"strings"
+	"bufio"
+	"fmt"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
-
-	"github.com/AlecAivazis/survey/v2"
 )
 
 // DefaultPrompt prompts the user and validates their response.
 // Returns only when the user has provided a valid response.
 func DefaultPrompt(
 	cmd *cobra.Command, promptText, defaultValue string,
-) error {
+) (string, error) {
 	au := aurora.NewAurora(true)
 	if defaultValue != "" {
 		promptText = au.Sprintf(
@@ -51,22 +49,16 @@ func DefaultPrompt(
 		promptText = au.Sprintf("%s:\n", promptText)
 	}
 
-	var input string
-	return survey.AskOne(
-		&survey.Input{
-			Message: promptText,
-			Default: defaultValue,
-		},
-		&input,
-		survey.WithValidator(func(val interface{}) error {
-			input := val.(string)
-			if !strings.EqualFold(input, "accept") {
-				return errors.New("you have to accept Terms and Conditions in order to continue")
-			}
-			return nil
-		}),
-		survey.WithIcons(func(icons *survey.IconSet) {
-			icons.Question.Text = ""
-		}),
-	)
+	input := defaultValue
+	inputReader := cmd.InOrStdin()
+	scanner := bufio.NewScanner(inputReader)
+	cmd.Print(promptText)
+	if scanner.Scan() {
+		if text := scanner.Text(); text != "" {
+			input = text
+		}
+		fmt.Printf("You entered: %s\n", input)
+	}
+
+	return input, scanner.Err()
 }
