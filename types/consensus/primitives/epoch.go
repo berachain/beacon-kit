@@ -25,5 +25,7 @@
 
 package primitives
 
-// Slot is just a nice alias for SSZUint64.
-type Slot = SSZUint64
+// Epoch represents a single epoch.
+// We don't really use epochs in BeaconKit.
+// But we keep them around for compatibility with the Ethereum 2.0 spec.
+type Epoch = uint64
