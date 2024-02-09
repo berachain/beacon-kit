@@ -27,10 +27,10 @@ name: docker
 
 on:
   push:
-    # tags:
+    tags:
+      - 'v*.*.*'
     branches:
-    - '**'
-
+      - main
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
