@@ -27,9 +27,7 @@ name: pipeline
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
+  merge_group:
 
 concurrency:
   group: ci-${{ github.ref }}-tests
@@ -41,6 +39,7 @@ jobs:
       matrix:
         args: ["build", "lint", "gosec", "test-unit-cover", "test-unit-fuzz"]
         os: [ubuntu-latest-large]
+    name: ${{ matrix.args }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout

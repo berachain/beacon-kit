@@ -187,8 +187,8 @@ test-unit-fuzz:
 	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${FUZZ_TIME}
 	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${FUZZ_TIME}
 	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${FUZZ_TIME}
-	go test -fuzz=FuzzSlotMarshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
-	go test -fuzz=FuzzSlotUnmarshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
 
 #################
 #     forge     #
