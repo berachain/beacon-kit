@@ -23,7 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package primitives_test
 
-// Slot is just a nice alias for SSZUint64.
-type Slot = SSZUint64
+// This file is for if we ever need to do any payload_id tests.
