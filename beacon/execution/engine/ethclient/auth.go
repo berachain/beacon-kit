@@ -48,7 +48,7 @@ func (s *Eth1Client) buildHeaders() (http.Header, error) {
 	return headers, nil
 }
 
-// refreshJWT refreshes the JWT token for the execution client.
+// jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *Eth1Client) jwtRefreshLoop() {
 	for {
 		select {
