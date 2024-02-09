@@ -26,7 +26,7 @@
 package engine
 
 import (
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -35,16 +35,16 @@ import (
 func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) {
 	switch result.GetStatus() {
 	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
-		return nil, execution.ErrInvalidBlockHashPayloadStatus
+		return nil, eth.ErrInvalidBlockHashPayloadStatus
 	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
-		return nil, execution.ErrAcceptedSyncingPayloadStatus
+		return nil, eth.ErrAcceptedSyncingPayloadStatus
 	case enginev1.PayloadStatus_INVALID:
-		return result.GetLatestValidHash(), execution.ErrInvalidPayloadStatus
+		return result.GetLatestValidHash(), eth.ErrInvalidPayloadStatus
 	case enginev1.PayloadStatus_VALID:
 		return result.GetLatestValidHash(), nil
 	case enginev1.PayloadStatus_UNKNOWN:
-		return nil, execution.ErrUnknownPayloadStatus
+		return nil, eth.ErrUnknownPayloadStatus
 	default:
-		return nil, execution.ErrUnknownPayloadStatus
+		return nil, eth.ErrUnknownPayloadStatus
 	}
 }

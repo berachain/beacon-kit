@@ -33,7 +33,6 @@ import (
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 )
 
 // ErrUnauthenticatedConnection indicates that the connection is not authenticated.
@@ -42,18 +41,54 @@ const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID a
 	will need to set up JWT authentication...`
 
 var (
-
-	// ErrInvalidJWTSecretLength indicates that the JWT secret length is invalid.
+	// ErrInvalidJWTSecretLength signifies the JWT secret length is not correct.
 	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
-
-	// ErrHTTPTimeout returns true if the error is a http.Client timeout error.
+	// ErrHTTPTimeout indicates a timeout error from http.Client.
 	ErrHTTPTimeout = errors.New("timeout from http.Client")
-
-	// ErrEmptyBlockHash indicates that the block hash is empty.
+	// ErrEmptyBlockHash denotes an empty block hash scenario.
 	ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
-
-	// ErrNilResponse indicates that the response is nil.
+	// ErrNilResponse signifies that the execution client returned a nil response.
 	ErrNilResponse = errors.New("nil response from execution client")
+	// ErrParse is associated with JSON-RPC code -32700, indicating a parsing error.
+	ErrParse = errors.New("invalid JSON was received by the server")
+	// ErrInvalidRequest is associated with JSON-RPC code -32600,
+	// indicating an invalid request object.
+	ErrInvalidRequest = errors.New("JSON sent is not valid request object")
+	// ErrMethodNotFound is associated with JSON-RPC code -32601,
+	// indicating a non-existent method was called.
+	ErrMethodNotFound = errors.New("method not found")
+	// ErrInvalidParams is associated with JSON-RPC code -32602,
+	// indicating method parameters were invalid.
+	ErrInvalidParams = errors.New("invalid method parameter(s)")
+	// ErrInternal is associated with JSON-RPC code -32603,
+	// indicating an internal JSON-RPC error.
+	ErrInternal = errors.New("internal JSON-RPC error")
+	// ErrServer is associated with JSON-RPC code -32000,
+	// indicating a client-side error during request processing.
+	ErrServer = errors.New("client error while processing request")
+	// ErrUnknownPayload is associated with JSON-RPC code -38001,
+	// indicating an unavailable or non-existent payload.
+	ErrUnknownPayload = errors.New("payload does not exist or is not available")
+	// ErrInvalidForkchoiceState is associated with JSON-RPC code -38002,
+	// indicating an invalid fork choice state.
+	ErrInvalidForkchoiceState = errors.New("invalid forkchoice state")
+	// ErrInvalidPayloadAttributes is associated with JSON-RPC code -38003,
+	// indicating invalid or inconsistent payload attributes.
+	ErrInvalidPayloadAttributes = errors.New("payload attributes are invalid / inconsistent")
+	// ErrUnknownPayloadStatus indicates an unknown status for the payload.
+	ErrUnknownPayloadStatus = errors.New("unknown payload status")
+	// ErrAcceptedSyncingPayloadStatus indicates a payload status of either SYNCING or ACCEPTED.
+	ErrAcceptedSyncingPayloadStatus = errors.New("payload status is SYNCING or ACCEPTED")
+	// ErrInvalidPayloadStatus indicates an invalid status for the payload.
+	ErrInvalidPayloadStatus = errors.New("payload status is INVALID")
+	// ErrInvalidBlockHashPayloadStatus indicates a failure in validating the
+	// block hash for the payload.
+	ErrInvalidBlockHashPayloadStatus = errors.New("payload status is INVALID_BLOCK_HASH")
+	// ErrRequestTooLarge indicates that the request size exceeded the limit.
+	ErrRequestTooLarge = errors.New("request too large")
+	// ErrUnsupportedVersion indicates a request for a block type with an unknown
+	// ExecutionPayload schema.
+	ErrUnsupportedVersion = errors.New("unknown ExecutionPayload schema for block version")
 )
 
 // Handles errors received from the RPC server according to the specification.
@@ -62,7 +97,7 @@ func (s *Eth1Client) handleRPCError(err error) error {
 		return nil
 	}
 	if isTimeout(err) {
-		return execution.ErrHTTPTimeout
+		return ErrHTTPTimeout
 	}
 	e, ok := err.(gethRPC.Error) //nolint:errorlint // from prysm.
 	if !ok {
@@ -77,31 +112,31 @@ func (s *Eth1Client) handleRPCError(err error) error {
 	switch e.ErrorCode() {
 	case -32700:
 		telemetry.IncrCounter(1, MetricKeyParseErrorCount)
-		return execution.ErrParse
+		return ErrParse
 	case -32600:
 		telemetry.IncrCounter(1, MetricKeyInvalidRequestCount)
-		return execution.ErrInvalidRequest
+		return ErrInvalidRequest
 	case -32601:
 		telemetry.IncrCounter(1, MetricKeyMethodNotFoundCount)
-		return execution.ErrMethodNotFound
+		return ErrMethodNotFound
 	case -32602:
 		telemetry.IncrCounter(1, MetricKeyInvalidParamsCount)
-		return execution.ErrInvalidParams
+		return ErrInvalidParams
 	case -32603:
 		telemetry.IncrCounter(1, MetricKeyInternalErrorCount)
-		return execution.ErrInternal
+		return ErrInternal
 	case -38001:
 		telemetry.IncrCounter(1, MetricKeyUnknownPayloadErrorCount)
-		return execution.ErrUnknownPayload
+		return ErrUnknownPayload
 	case -38002:
 		telemetry.IncrCounter(1, MetricKeyInvalidForkchoiceStateCount)
-		return execution.ErrInvalidForkchoiceState
+		return ErrInvalidForkchoiceState
 	case -38003:
 		telemetry.IncrCounter(1, MetricKeyInvalidPayloadAttributesCount)
-		return execution.ErrInvalidPayloadAttributes
+		return ErrInvalidPayloadAttributes
 	case -38004:
 		telemetry.IncrCounter(1, MetricKeyRequestTooLargeCount)
-		return execution.ErrRequestTooLarge
+		return ErrRequestTooLarge
 	case -32000:
 		telemetry.IncrCounter(1, MetricKeyInternalServerErrorCount)
 		// Only -32000 status codes are data errors in the RPC specification.
@@ -110,7 +145,7 @@ func (s *Eth1Client) handleRPCError(err error) error {
 		if !ok {
 			return errors.Wrapf(err, "got an unexpected error in JSON-RPC response")
 		}
-		return errors.Wrapf(execution.ErrServer, "%v", errWithData.Error())
+		return errors.Wrapf(ErrServer, "%v", errWithData.Error())
 	default:
 		return err
 	}
