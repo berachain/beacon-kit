@@ -119,7 +119,9 @@ func (s *Eth1Client) NewPayloadV2(
 	ctx context.Context, payload *enginev1.ExecutionPayloadCapella,
 ) (*enginev1.PayloadStatus, error) {
 	result := &enginev1.PayloadStatus{}
-	if err := s.RawClient().CallContext(ctx, result, "engine_newPayloadV2", payload); err != nil {
+	if err := s.RawClient().CallContext(
+		ctx, result, "engine_newPayloadV2", payload,
+	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
 	return result, nil
