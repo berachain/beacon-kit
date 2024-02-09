@@ -30,9 +30,6 @@ import (
 	"time"
 )
 
-// healthCheckPeriod defines the time interval for periodic health checks.
-const healthCheckPeriod = 5 * time.Second
-
 // ConnectedETH1 returns the connection status of the Ethereum 1 client.
 func (s *Eth1Client) ConnectedETH1() bool {
 	// Return the connection status of the Ethereum 1 client.
@@ -47,13 +44,11 @@ func (s *Eth1Client) updateConnectedETH1(state bool) {
 
 // healthCheckLoop periodically checks the connection health of the execution client.
 func (s *Eth1Client) healthCheckLoop() {
-	ticker := time.NewTicker(healthCheckPeriod)
-	defer ticker.Stop()
 	for {
 		select {
 		case <-s.ctx.Done():
 			return
-		case <-ticker.C:
+		case <-time.After(s.healthCheckInterval):
 			if err := s.ensureCorrectExecutionChain(); err != nil {
 				s.logger.Error("eth1 connection health check failed",
 					"dial-url", s.dialURL.String(),
