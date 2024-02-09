@@ -25,10 +25,8 @@
 
 package primitives
 
-// Epoch represents a single epoch.
-// We don't really use epochs in BeaconKit.
-// But we keep them around for compatibility with the Ethereum 2.0 spec.
-type Epoch = uint64
+type (
 
-// PayloadID represents a unique identifier for a payload.
-type PayloadID = [8]byte
+	// PayloadID represents a unique identifier for a payload.
+	PayloadID = [8]byte
+)

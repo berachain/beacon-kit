@@ -51,13 +51,16 @@ func (s *Eth1Client) buildHeaders() (http.Header, error) {
 // jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *Eth1Client) jwtRefreshLoop() {
 	for {
-		select {
-		case <-s.ctx.Done():
-			return
-		case <-time.After(s.jwtRefreshInterval):
-			if err := s.setupExecutionClientConnection(); err != nil {
-				s.logger.Error("failed to refresh JWT", "err", err)
-			}
-		}
+		s.tryConnectionAfter(s.jwtRefreshInterval)
+	}
+}
+
+// tryConnectionAfter attemps a connection after a given interval.
+func (s *Eth1Client) tryConnectionAfter(interval time.Duration) {
+	select {
+	case <-s.ctx.Done():
+		return
+	case <-time.After(interval):
+		s.setupExecutionClientConnection()
 	}
 }

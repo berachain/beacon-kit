@@ -30,9 +30,6 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/log"
-	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
@@ -44,32 +41,8 @@ import (
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 )
 
-// Caller is implemented by engineCaller.
-var _ Caller = (*engineCaller)(nil)
-
-// engineCaller is a struct that holds a pointer to an Eth1Client.
-type engineCaller struct {
-	*eth.Eth1Client
-	engineTimeout time.Duration
-	beaconCfg     *config.Beacon
-	logger        log.Logger
-}
-
-// NewCaller creates a new engine client engineCaller.
-// It takes an Eth1Client as an argument and returns a pointer to an engineCaller.
-func NewCaller(opts ...Option) Caller {
-	ec := &engineCaller{}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			panic(err)
-		}
-	}
-
-	return ec
-}
-
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *engineCaller) NewPayload(
+func (s *engineClient) NewPayload(
 	ctx context.Context, payload interfaces.ExecutionData,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
@@ -126,7 +99,7 @@ func (s *engineCaller) NewPayload(
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *engineCaller) ForkchoiceUpdated(
+func (s *engineClient) ForkchoiceUpdated(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	d := time.Now().Add(s.engineTimeout)
@@ -186,7 +159,7 @@ func (s *engineCaller) ForkchoiceUpdated(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
 // It returns the execution data as well as the blobs bundle.
-func (s *engineCaller) GetPayload(
+func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID [8]byte, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	d := time.Now().Add(s.engineTimeout)
@@ -194,39 +167,34 @@ func (s *engineCaller) GetPayload(
 	defer cancel()
 	if primitives.Epoch(slot) >= s.beaconCfg.Forks.DenebForkEpoch {
 		result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-		err := s.Eth1Client.Client.Client().CallContext(ctx,
-			result, execution.GetPayloadMethodV3, enginev1.PayloadIDBytes(payloadID))
-		if err != nil {
+
+		if err := s.Eth1Client.Client.Client().CallContext(ctx,
+			result, execution.GetPayloadMethodV3, enginev1.PayloadIDBytes(payloadID),
+		); err != nil {
 			return nil, nil, false, s.handleRPCError(err)
 		}
+
 		ed, err := blocks.WrappedExecutionPayloadDeneb(result.GetPayload(),
 			blocks.PayloadValueToWei(result.GetValue()))
 		if err != nil {
 			return nil, nil, false, err
 		}
+
 		return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
 	}
 
 	result := &enginev1.ExecutionPayloadCapellaWithValue{}
-	err := s.Eth1Client.Client.Client().CallContext(ctx,
-		result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID))
-	if err != nil {
+	if err := s.Eth1Client.Client.Client().CallContext(ctx,
+		result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID),
+	); err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
+
 	ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
 		blocks.PayloadValueToWei(result.GetValue()))
+
 	if err != nil {
 		return nil, nil, false, err
 	}
 	return ed, nil, false, nil
-}
-
-// ExecutionBlockByHash fetches an execution engine block by hash by calling
-// eth_blockByHash via JSON-RPC.
-func (s *engineCaller) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
-) (*enginev1.ExecutionBlock, error) {
-	result := &enginev1.ExecutionBlock{}
-	err := s.Eth1Client.Client.Client().CallContext(
-		ctx, result, "eth_getBlockByHash", hash, withTxs)
-	return result, s.handleRPCError(err)
 }

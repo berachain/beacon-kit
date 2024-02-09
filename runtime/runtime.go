@@ -47,11 +47,10 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg        *config.Config
-	logger     log.Logger
-	fscp       BeaconStateProvider
-	services   *service.Registry
-	dispatcher *dispatch.GrandCentralDispatch
+	cfg      *config.Config
+	logger   log.Logger
+	fscp     BeaconStateProvider
+	services *service.Registry
 }
 
 // BeaconStateProvider is an interface that provides the
@@ -80,7 +79,7 @@ func NewDefaultBeaconKitRuntime(
 	ctx context.Context, cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Get JWT Secret for eth1 connection.
-	jwtSecret, err := eth.LoadJWTSecret(cfg.Execution.JWTSecretPath, logger)
+	jwtSecret, err := eth.LoadJWTSecret(cfg.Engine.JWTSecretPath, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -105,12 +104,13 @@ func NewDefaultBeaconKitRuntime(
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		ctx,
-		eth.WithHealthCheckInterval(cfg.Execution.RPCHealthCheckInterval),
-		eth.WithJWTRefreshInterval(cfg.Execution.RPCJWTRefreshInterval),
-		eth.WithEndpointDialURL(cfg.Execution.RPCDialURL),
+		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
+		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
+		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
+		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),
 		eth.WithJWTSecret(jwtSecret),
 		eth.WithLogger(logger),
-		eth.WithRequiredChainID(cfg.Execution.RequiredChainID),
+		eth.WithRequiredChainID(cfg.Engine.RequiredChainID),
 	)
 	if err != nil {
 		return nil, err
@@ -122,17 +122,18 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithLogger(logger),
 	)
 
-	// Engine Caller wraps the eth1 client and provides the interface for the
+	// NewClient wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
-	engineCaller := engine.NewCaller(engine.WithEth1Client(eth1Client),
+	engineClient := engine.NewClient(
+		engine.WithEth1Client(eth1Client),
 		engine.WithBeaconConfig(&cfg.Beacon),
 		engine.WithLogger(logger),
-		engine.WithEngineTimeout(cfg.Execution.RPCTimeout))
+		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the execution service.
 	executionService := execution.New(
 		baseService.WithName("execution"),
-		execution.WithEngineCaller(engineCaller),
+		execution.WithEngineCaller(engineClient),
 		execution.WithPayloadCache(payloadCache),
 	)
 
@@ -152,7 +153,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the validator service.
 	validatorService := validator.NewService(
 		baseService.WithName("validator"),
-		validator.WithEngineCaller(engineCaller),
+		validator.WithEngineCaller(engineClient),
 		validator.WithPayloadCache(payloadCache),
 	)
 
@@ -172,7 +173,6 @@ func NewDefaultBeaconKitRuntime(
 		WithLogger(logger),
 		WithServiceRegistry(serviceRegistry),
 		WithBeaconStateProvider(bsp),
-		WithDispatcher(gcd),
 	)
 }
 
@@ -189,7 +189,6 @@ func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 // InitialSyncCheck.
 func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
 	var syncService *initialsync.Service
-
 	if err := r.services.FetchService(&syncService); err != nil {
 		return err
 	}

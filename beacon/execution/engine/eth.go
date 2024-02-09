@@ -23,46 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package engine
 
 import (
-	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"context"
+
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 )
 
-// Option is a function that modifies the BeaconKitRuntime.
-type Option func(*BeaconKitRuntime) error
-
-// WithConfig is an Option that sets the configuration of the BeaconKitRuntime.
-func WithConfig(cfg *config.Config) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.cfg = cfg
-		return nil
-	}
-}
-
-// WithServiceRegistry is an Option that sets the service registry of the BeaconKitRuntime.
-func WithServiceRegistry(reg *service.Registry) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.services = reg
-		return nil
-	}
-}
-
-// WithLogger is an Option that sets the logger of the BeaconKitRuntime.
-func WithLogger(logger log.Logger) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.logger = logger.With("module", "beacon-kit-runtime")
-		return nil
-	}
-}
-
-// WithBeaconStateProvider is an Option that sets the BeaconStateProvider
-// of the BeaconKitRuntime.
-func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.fscp = fscp
-		return nil
-	}
+// ExecutionBlockByHash fetches an execution engine block by hash by calling
+// eth_blockByHash via JSON-RPC.
+func (s *engineClient) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
+) (*enginev1.ExecutionBlock, error) {
+	result := &enginev1.ExecutionBlock{}
+	err := s.Eth1Client.Client.Client().CallContext(
+		ctx, result, "eth_getBlockByHash", hash, withTxs)
+	return result, s.handleRPCError(err)
 }

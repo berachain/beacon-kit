@@ -33,13 +33,13 @@ import (
 // ConnectedETH1 returns the connection status of the Ethereum 1 client.
 func (s *Eth1Client) ConnectedETH1() bool {
 	// Return the connection status of the Ethereum 1 client.
-	return s.connectedETH1
+	return s.connectedETH1.Load()
 }
 
 // updateConnectedETH1 updates the connection status of the Ethereum 1 client.
 func (s *Eth1Client) updateConnectedETH1(state bool) {
 	// Update the connection status of the Ethereum 1 client.
-	s.connectedETH1 = state
+	s.connectedETH1.Store(state)
 }
 
 // healthCheckLoop periodically checks the connection health of the execution client.

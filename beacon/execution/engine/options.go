@@ -34,12 +34,12 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 )
 
-// Option is a function type that takes a pointer to an engineCaller and returns an error.
-type Option func(*engineCaller) error
+// Option is a function type that takes a pointer to an engineClient and returns an error.
+type Option func(*engineClient) error
 
 // WithEth1Client is a function that returns an Option.
 func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineCaller) error {
+	return func(s *engineClient) error {
 		s.Eth1Client = eth1Client
 		return nil
 	}
@@ -47,7 +47,7 @@ func WithEth1Client(eth1Client *eth.Eth1Client) Option {
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineCaller) error {
+	return func(s *engineClient) error {
 		s.beaconCfg = beaconCfg
 		return nil
 	}
@@ -55,7 +55,7 @@ func WithBeaconConfig(beaconCfg *config.Beacon) Option {
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithLogger(logger log.Logger) Option {
-	return func(s *engineCaller) error {
+	return func(s *engineClient) error {
 		s.logger = logger.With("module", "beacon-kit-engine-caller")
 		return nil
 	}
@@ -63,7 +63,7 @@ func WithLogger(logger log.Logger) Option {
 
 // WithEngineTimeout is an option to set the timeout for the engine.
 func WithEngineTimeout(engineTimeout time.Duration) Option {
-	return func(s *engineCaller) error {
+	return func(s *engineClient) error {
 		s.engineTimeout = engineTimeout
 		return nil
 	}
