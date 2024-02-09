@@ -35,6 +35,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// PayloadAttributer is the interface for the payload attributes provided
+// in a forkchoiceUpdated call.
 type PayloadAttributer interface {
 	Version() int
 	PrevRandao() []byte
