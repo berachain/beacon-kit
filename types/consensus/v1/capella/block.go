@@ -30,8 +30,8 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -52,7 +52,7 @@ func BeaconKitBlockFromState(
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
-	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
+	slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot,
 	executionData interfaces.ExecutionData,
 ) (interfaces.BeaconKitBlock, error) {
 	block := &BeaconKitBlockCapella{

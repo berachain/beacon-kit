@@ -26,7 +26,7 @@
 package store
 
 import (
-	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // TODO: move these? It feels coupled to this x/beacon. But it's okay for now.

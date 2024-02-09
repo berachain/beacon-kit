@@ -30,7 +30,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
-	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // BeaconStateProvider provides access to the current beacon state.

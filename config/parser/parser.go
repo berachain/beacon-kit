@@ -30,7 +30,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/spf13/cast"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"

@@ -31,7 +31,7 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/stretchr/testify/require"
 )
 

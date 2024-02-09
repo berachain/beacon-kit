@@ -31,7 +31,7 @@ import (
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	pb "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )

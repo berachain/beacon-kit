@@ -29,7 +29,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 func TestSlot_Casting(t *testing.T) {

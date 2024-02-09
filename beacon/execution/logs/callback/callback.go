@@ -51,7 +51,7 @@ func NewFrom(
 ) (LogHandler, error) {
 	// We take all of the functions from the handler and build a map that
 	// maps an ethereum log to a corresponding function to handle it.
-	sigsToFns, err := buildIdsToMethods(si, reflect.ValueOf(si))
+	sigsToFns, err := buildIDsToMethods(si, reflect.ValueOf(si))
 	if err != nil {
 		return nil, err
 	}

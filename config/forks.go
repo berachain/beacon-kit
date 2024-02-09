@@ -28,7 +28,7 @@ package config
 import (
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/config/parser"
-	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // Forks conforms to the BeaconKitConfig interface.
