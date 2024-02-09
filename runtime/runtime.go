@@ -27,7 +27,6 @@ package runtime
 
 import (
 	"context"
-	"sync"
 
 	"cosmossdk.io/log"
 
@@ -43,20 +42,20 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/validator"
-	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
 	cfg        *config.Config
-	mu         sync.Mutex
 	logger     log.Logger
 	fscp       BeaconStateProvider
-	services   *runtime.ServiceRegistry
+	services   *service.Registry
 	dispatcher *dispatch.GrandCentralDispatch
 }
 
+// BeaconStateProvider is an interface that provides the
+// beacon state to the runtime.
 type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
@@ -66,10 +65,7 @@ type BeaconStateProvider interface {
 func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{
-		services: runtime.NewServiceRegistry(),
-	}
-
+	bkr := &BeaconKitRuntime{}
 	for _, opt := range opts {
 		if err := opt(bkr); err != nil {
 			return nil, err
@@ -160,29 +156,29 @@ func NewDefaultBeaconKitRuntime(
 		validator.WithPayloadCache(payloadCache),
 	)
 
+	// Create the service registry.
+	serviceRegistry := service.NewRegistry(
+		service.WithLogger(logger),
+		service.WithService(syncService),
+		service.WithService(executionService),
+		service.WithService(chainService),
+		service.WithService(notificationService),
+		service.WithService(validatorService),
+	)
+
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
 		WithConfig(cfg),
-		WithService(syncService),
-		WithService(executionService),
-		WithService(chainService),
-		WithService(notificationService),
-		WithService(validatorService),
 		WithLogger(logger),
+		WithServiceRegistry(serviceRegistry),
 		WithBeaconStateProvider(bsp),
 		WithDispatcher(gcd),
 	)
 }
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StartServices(_ context.Context) {
-	r.services.StartAll()
-}
-
-// StopServices stops all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StopServices() {
-	r.logger.Info("stopping all services")
-	r.services.StopAll()
+func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
+	r.services.StartAll(ctx)
 }
 
 // FetchService retrieves a service from the BeaconKitRuntime's service registry.

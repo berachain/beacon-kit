@@ -26,6 +26,8 @@
 package validator
 
 import (
+	"context"
+
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -58,11 +60,7 @@ func NewService(
 	return s
 }
 
-func (s *Service) Start() {
-}
-
-func (s *Service) Stop() error {
-	return nil
+func (s *Service) Start(context.Context) {
 }
 
 func (s *Service) Status() error {

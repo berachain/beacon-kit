@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// # Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -22,38 +22,27 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
+//
+//nolint:gochecknoglobals // this file contains functions for use as errors.
+package service
 
-package blockchain
+import "fmt"
 
-import (
-	"context"
+var (
+	// errServiceAlreadyExists defines an error for when a service already exists.
+	errServiceAlreadyExists = func(serviceName string) error {
+		return fmt.Errorf("service already exists: %v", serviceName)
+	}
 
-	"github.com/itsdevbear/bolaris/runtime/service"
+	// errInputIsNotPointer defines an error for when the input must be of pointer type.
+	errInputIsNotPointer = func(valueType interface{}) error {
+		return fmt.Errorf(
+			"input must be of pointer type, received value type instead: %T", valueType,
+		)
+	}
+
+	// errUnknownService defines an error for when an unknown service is encountered.
+	errUnknownService = func(serviceType interface{}) error {
+		return fmt.Errorf("unknown service: %T", serviceType)
+	}
 )
-
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	en ExecutionService
-}
-
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}
-
-// Start spawns any goroutines required by the service.
-func (s *Service) Start(context.Context) {}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }
