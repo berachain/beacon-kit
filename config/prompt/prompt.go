@@ -23,22 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package prompt
 
 import (
-	"github.com/itsdevbear/bolaris/config/cli"
+	"bufio"
+
+	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 )
 
-// Cmd returns the snapshots group command.
-func BeaconKitCommands() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "beacon-kit",
-		Short: "BeaconKit related commands",
+// DefaultPrompt prompts the user and validates their response.
+// Returns only when the user has provided a valid response.
+func DefaultPrompt(
+	cmd *cobra.Command, promptText, defaultValue string,
+) (string, error) {
+	au := aurora.NewAurora(true)
+	if defaultValue != "" {
+		promptText = au.Sprintf(
+			"%s (%s: %s):\n", promptText,
+			au.BrightGreen("default"),
+			defaultValue,
+		)
+	} else {
+		promptText = au.Sprintf("%s:\n", promptText)
 	}
-	cmd.AddCommand(
-		cli.NewGenerateJWTCommand(),
-	)
 
-	return cmd
+	input := defaultValue
+	inputReader := cmd.InOrStdin()
+	scanner := bufio.NewScanner(inputReader)
+	cmd.Print(promptText)
+	if scanner.Scan() {
+		if text := scanner.Text(); text != "" {
+			input = text
+		}
+	}
+
+	return input, scanner.Err()
 }
