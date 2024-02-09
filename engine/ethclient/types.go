@@ -23,21 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package eth
 
-import (
-	"context"
+import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
-)
-
-// ExecutionBlockByHash fetches an execution engine block by hash by calling
-// eth_blockByHash via JSON-RPC.
-func (s *engineClient) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
-) (*enginev1.ExecutionBlock, error) {
-	result := &enginev1.ExecutionBlock{}
-	err := s.Eth1Client.Client.Client().CallContext(
-		ctx, result, "eth_getBlockByHash", hash, withTxs)
-	return result, s.handleRPCError(err)
+// ForkchoiceUpdatedResponse is the response kind received by the
+// engine_forkchoiceUpdatedV1 endpoint.
+type ForkchoiceUpdatedResponse struct {
+	Status          *enginev1.PayloadStatus  `json:"payloadStatus"`
+	PayloadID       *enginev1.PayloadIDBytes `json:"payloadId"`
+	ValidationError string                   `json:"validationError"`
 }

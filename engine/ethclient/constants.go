@@ -25,36 +25,16 @@
 
 package eth
 
-import (
-	"fmt"
-	"os"
-	"strings"
-
-	"cosmossdk.io/log"
-
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+const (
+	// GetPayloadMethod v1 request string for JSON-RPC.
+	GetPayloadMethod = "engine_getPayloadV1"
+	// GetPayloadMethodV2 v2 request string for JSON-RPC.
+	GetPayloadMethodV2 = "engine_getPayloadV2"
+	GetPayloadMethodV3 = "engine_getPayloadV3"
+	// GetPayloadBodiesByHashV1 v1 request string for JSON-RPC.
+	GetPayloadBodiesByHashV1 = "engine_getPayloadBodiesByHashV1"
+	// GetPayloadBodiesByRangeV1 v1 request string for JSON-RPC.
+	GetPayloadBodiesByRangeV1 = "engine_getPayloadBodiesByRangeV1"
+	// ExchangeCapabilities request string for JSON-RPC.
+	ExchangeCapabilities = "engine_exchangeCapabilities"
 )
-
-// loadJWTSecret reads the JWT secret from a file and returns it.
-// It returns an error if the file cannot be read or if the JWT secret is not valid.
-func LoadJWTSecret(filepath string, logger log.Logger) ([jwtLength]byte, error) {
-	// Read the file.
-	//#nosec:G304 // false positive.
-	data, err := os.ReadFile(filepath)
-	if err != nil {
-		// Return an error if the file cannot be read.
-		return [jwtLength]byte{}, err
-	}
-
-	// Convert the data to a JWT secret.
-	jwtSecret := common.FromHex(strings.TrimSpace(string(data)))
-
-	// Check if the JWT secret is valid.
-	if len(jwtSecret) != jwtLength {
-		// Return an error if the JWT secret is not valid.
-		return [jwtLength]byte{}, fmt.Errorf("failed to load jwt secret from %s", filepath)
-	}
-
-	logger.Info("loaded execution client jwt secret file", "path", filepath, "crc32")
-	return [jwtLength]byte(jwtSecret), nil
-}

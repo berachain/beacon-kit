@@ -26,35 +26,24 @@
 package eth
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
 
-// ConnectedETH1 returns the connection status of the Ethereum 1 client.
-func (s *Eth1Client) ConnectedETH1() bool {
-	// Return the connection status of the Ethereum 1 client.
-	return s.connectedETH1.Load()
-}
-
-// updateConnectedETH1 updates the connection status of the Ethereum 1 client.
-func (s *Eth1Client) updateConnectedETH1(state bool) {
-	// Update the connection status of the Ethereum 1 client.
-	s.connectedETH1.Store(state)
-}
-
 // healthCheckLoop periodically checks the connection health of the execution client.
-func (s *Eth1Client) healthCheckLoop() {
+func (s *Eth1Client) healthCheckLoop(ctx context.Context) {
 	for {
 		select {
-		case <-s.ctx.Done():
+		case <-ctx.Done():
 			return
 		case <-time.After(s.healthCheckInterval):
-			if err := s.ensureCorrectExecutionChain(); err != nil {
+			if err := s.ensureCorrectExecutionChain(ctx); err != nil {
 				s.logger.Error("eth1 connection health check failed",
 					"dial-url", s.dialURL.String(),
 					"error", err,
 				)
-				s.updateConnectedETH1(false)
+				s.connectedETH1.Store(false)
 			}
 		}
 	}
@@ -62,8 +51,8 @@ func (s *Eth1Client) healthCheckLoop() {
 
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
-func (s *Eth1Client) ensureCorrectExecutionChain() error {
-	chainID, err := s.Client.ChainID(s.ctx)
+func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
+	chainID, err := s.Client.ChainID(ctx)
 	if err != nil {
 		return err
 	}

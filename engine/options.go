@@ -23,14 +23,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package engine
 
-import "errors"
+import (
+	"time"
 
-// ErrUnauthenticatedConnection indicates that the connection is not authenticated.
-const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
-connection is not authenticated. If connecting to your execution client via HTTP, you 
-will need to set up JWT authentication...`
+	"cosmossdk.io/log"
 
-// ErrInvalidJWTSecretLength indicates that the JWT secret length is invalid.
-var ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
+	"github.com/itsdevbear/bolaris/config"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+)
+
+// Option is a function type that takes a pointer to an engineClient and returns an error.
+type Option func(*engineClient) error
+
+// WithEth1Client is a function that returns an Option.
+func WithEth1Client(eth1Client *eth.Eth1Client) Option {
+	return func(s *engineClient) error {
+		s.Eth1Client = eth1Client
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *engineClient) error {
+		s.beaconCfg = beaconCfg
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *engineClient) error {
+		s.logger = logger.With("module", "beacon-kit-engine-caller")
+		return nil
+	}
+}
+
+// WithEngineTimeout is an option to set the timeout for the engine.
+func WithEngineTimeout(engineTimeout time.Duration) Option {
+	return func(s *engineClient) error {
+		s.engineTimeout = engineTimeout
+		return nil
+	}
+}

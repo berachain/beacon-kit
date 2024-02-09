@@ -29,8 +29,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"

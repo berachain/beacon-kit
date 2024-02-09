@@ -28,8 +28,8 @@ package validator
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
