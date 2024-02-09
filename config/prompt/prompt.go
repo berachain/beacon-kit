@@ -26,41 +26,47 @@
 package prompt
 
 import (
-	"bufio"
 	"errors"
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
+
+	"github.com/AlecAivazis/survey/v2"
 )
 
-// DefaultPrompt prompts the user for any text and performs no validation.
-// If nothing is entered it returns the default.
+// DefaultPrompt prompts the user and validates their response.
+// Returns only when the user has provided a valid response.
 func DefaultPrompt(
 	cmd *cobra.Command, promptText, defaultValue string,
-) (string, error) {
-	var (
-		response string
-		au       = aurora.NewAurora(true)
-		scanner  = bufio.NewScanner(os.Stdin)
-	)
-
+) error {
+	au := aurora.NewAurora(true)
 	if defaultValue != "" {
-		cmd.Print(fmt.Sprintf(
-			"%s (%s: %s):\n", promptText, au.BrightGreen("default"), defaultValue))
+		promptText = au.Sprintf(
+			"%s (%s: %s):\n", promptText,
+			au.BrightGreen("default"),
+			defaultValue,
+		)
 	} else {
-		cmd.Print(fmt.Sprintf("%s:\n", promptText))
+		promptText = au.Sprintf("%s:\n", promptText)
 	}
 
-	if ok := scanner.Scan(); ok {
-		item := scanner.Text()
-		response = strings.TrimRight(item, "\r\n")
-		if response == "" {
-			return defaultValue, nil
-		}
-		return response, nil
-	}
-	return "", errors.New("could not scan text input")
+	var input string
+	return survey.AskOne(
+		&survey.Input{
+			Message: promptText,
+			Default: defaultValue,
+		},
+		&input,
+		survey.WithValidator(func(val interface{}) error {
+			input := val.(string)
+			if !strings.EqualFold(input, "accept") {
+				return errors.New("you have to accept Terms and Conditions in order to continue")
+			}
+			return nil
+		}),
+		survey.WithIcons(func(icons *survey.IconSet) {
+			icons.Question.Text = ""
+		}),
+	)
 }

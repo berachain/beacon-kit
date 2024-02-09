@@ -28,13 +28,15 @@ package tos
 import (
 	"errors"
 	"path/filepath"
-	"strings"
+
+	file "github.com/itsdevbear/bolaris/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/config/flags"
 	beaconprompt "github.com/itsdevbear/bolaris/config/prompt"
 	"github.com/logrusorgru/aurora"
-	"github.com/prysmaticlabs/prysm/v4/io/file"
+
+	// "github.com/prysmaticlabs/prysm/v4/io/file"
 	"github.com/spf13/cobra"
 )
 
@@ -88,17 +90,14 @@ func VerifyTosAcceptedOrPrompt(
 		return nil
 	}
 
-	input, err := beaconprompt.DefaultPrompt(
+	err := beaconprompt.DefaultPrompt(
 		cmd,
 		aurora.NewAurora(true).Bold(BuildTosPromptText(
 			appName, tosLink,
-		)).String(), "decline")
+		)).String(),
+		"decline")
 	if err != nil {
 		return errors.New(BuildErrorPromptText(tosLink))
-	}
-
-	if !strings.EqualFold(input, "accept") {
-		return errors.New("you have to accept Terms and Conditions in order to continue")
 	}
 
 	saveTosAccepted(homedir, cmd)
