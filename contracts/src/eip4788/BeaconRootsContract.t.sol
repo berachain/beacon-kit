@@ -11,6 +11,7 @@ contract BeaconRootsContractTest is SoladyTest {
     uint256 private constant HISTORY_BUFFER_LENGTH = 256;
     uint256 private constant BEACON_ROOT_OFFSET = HISTORY_BUFFER_LENGTH;
     uint256 private constant COINBASE_OFFSET = BEACON_ROOT_OFFSET + HISTORY_BUFFER_LENGTH;
+    uint256 private constant BLOCK_MAPPING_OFFSET = COINBASE_OFFSET + HISTORY_BUFFER_LENGTH;
     address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
     uint256 private constant BLOCK_INTERVAL = 5;
@@ -92,9 +93,12 @@ contract BeaconRootsContractTest is SoladyTest {
         // loop over the last `HISTORY_BUFFER_LENGTH` indices
         uint256 i = length - 1;
         for (uint256 j; j < HISTORY_BUFFER_LENGTH; ++j) {
-            uint256 blockIdx = (startBlock + i) % HISTORY_BUFFER_LENGTH;
+            uint256 blockNumber = startBlock + i;
+            uint256 blockIdx = blockNumber % HISTORY_BUFFER_LENGTH;
             bytes32 data = vm.load(address(beaconRootsContract), bytes32(blockIdx));
             assertEq(uint256(data), timestamps[i], "set: invalid timestamp");
+            data = vm.load(address(beaconRootsContract), keccak256(abi.encode(timestamps[i], BLOCK_MAPPING_OFFSET)));
+            assertEq(uint256(data), blockNumber, "set: invalid block number");
             data = vm.load(address(beaconRootsContract), bytes32(blockIdx + BEACON_ROOT_OFFSET));
             assertEq(data, beaconRoots[i], "set: invalid beacon root");
             data = vm.load(address(beaconRootsContract), bytes32(blockIdx + COINBASE_OFFSET));
