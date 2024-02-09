@@ -179,7 +179,7 @@ func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
 	// Only forkchoice update if the beacon chain has a valid finalized block.
 	if !bytes.Equal(bss.clFinalized.Bytes(), (common.Hash{}).Bytes()) {
 		return s.es.NotifyForkchoiceUpdate(
-			context.Background(),
+			ctx,
 			&execution.FCUConfig{
 				HeadEth1Hash: bss.clFinalized,
 			},

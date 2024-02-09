@@ -23,46 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package engine
 
 import (
+	"time"
+
 	"cosmossdk.io/log"
+	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// Option is a function that modifies the BeaconKitRuntime.
-type Option func(*BeaconKitRuntime) error
+// Caller is implemented by engineClient.
+var _ Caller = (*engineClient)(nil)
 
-// WithConfig is an Option that sets the configuration of the BeaconKitRuntime.
-func WithConfig(cfg *config.Config) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.cfg = cfg
-		return nil
-	}
+// engineClient is a struct that holds a pointer to an Eth1Client.
+type engineClient struct {
+	*eth.Eth1Client
+	engineTimeout time.Duration
+	beaconCfg     *config.Beacon
+	logger        log.Logger
 }
 
-// WithServiceRegistry is an Option that sets the service registry of the BeaconKitRuntime.
-func WithServiceRegistry(reg *service.Registry) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.services = reg
-		return nil
+// NewClient creates a new engine client engineClient.
+// It takes an Eth1Client as an argument and returns a pointer to an engineClient.
+func NewClient(opts ...Option) Caller {
+	ec := &engineClient{}
+	for _, opt := range opts {
+		if err := opt(ec); err != nil {
+			panic(err)
+		}
 	}
-}
 
-// WithLogger is an Option that sets the logger of the BeaconKitRuntime.
-func WithLogger(logger log.Logger) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.logger = logger.With("module", "beacon-kit-runtime")
-		return nil
-	}
-}
-
-// WithBeaconStateProvider is an Option that sets the BeaconStateProvider
-// of the BeaconKitRuntime.
-func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.fscp = fscp
-		return nil
-	}
+	return ec
 }

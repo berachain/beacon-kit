@@ -32,30 +32,33 @@ import (
 	"github.com/itsdevbear/bolaris/config/parser"
 )
 
-// Execution conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[Execution] = &Execution{}
+// Engine conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Engine] = &Engine{}
 
-// DefaultExecutionConfig returns the default configuration for the execution client.
-func DefaultExecutionConfig() Execution {
-	return Execution{
-		RPCDialURL:             "http://localhost:8551",
-		RPCRetries:             3,                //nolint:gomnd // default config.
-		RPCTimeout:             2 * time.Second,  //nolint:gomnd // default config.
-		RPCHealthCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
-		RPCJWTRefreshInterval:  30 * time.Second, //nolint:gomnd // default config.
-		JWTSecretPath:          "./jwt.hex",
-		RequiredChainID:        7, //nolint:gomnd // default config.
+// DefaultEngineConfig returns the default configuration for the execution client.
+func DefaultEngineConfig() Engine {
+	return Engine{
+		RPCDialURL:              "http://localhost:8551",
+		RPCRetries:              3,                //nolint:gomnd // default config.
+		RPCTimeout:              2 * time.Second,  //nolint:gomnd // default config.
+		RPCStartupCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
+		RPCHealthCheckInterval:  5 * time.Second,  //nolint:gomnd // default config.
+		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
+		JWTSecretPath:           "./jwt.hex",
+		RequiredChainID:         7, //nolint:gomnd // default config.
 	}
 }
 
-// Execution is the configuration struct for the execution client.
-type Execution struct {
+// Engine is the configuration struct for the execution client.
+type Engine struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
 	// RPCRetries is the number of retries before shutting down consensus client.
 	RPCRetries uint64
-	// RPCTimeout is the RPC timeout for execution client requests.
+	// RPCTimeout is the RPC timeout for execution client calls.
 	RPCTimeout time.Duration
+	// RPCStartupCheckInterval is the Interval for the startup check.
+	RPCStartupCheckInterval time.Duration
 	// HealthCheckInterval is the Interval for the health check.
 	RPCHealthCheckInterval time.Duration
 	// JWTRefreshInterval is the Interval for the JWT refresh.
@@ -67,7 +70,7 @@ type Execution struct {
 }
 
 // Parse parses the configuration.
-func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
+func (c Engine) Parse(parser parser.AppOptionsParser) (*Engine, error) {
 	var err error
 	if c.RPCDialURL, err = parser.GetString(flags.RPCDialURL); err != nil {
 		return nil, err
@@ -77,6 +80,11 @@ func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 	}
 	if c.RPCTimeout, err = parser.GetTimeDuration(
 		flags.RPCTimeout,
+	); err != nil {
+		return nil, err
+	}
+	if c.RPCStartupCheckInterval, err = parser.GetTimeDuration(
+		flags.RPCStartupCheckInterval,
 	); err != nil {
 		return nil, err
 	}
@@ -103,28 +111,31 @@ func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 	return &c, nil
 }
 
-func (c Execution) Template() string {
+func (c Engine) Template() string {
 	return `
-[beacon-kit.execution-client]
+[beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
-rpc-dial-url = "{{ .BeaconKit.Execution.RPCDialURL }}"
+rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"
 
 # Number of retries before shutting down consensus client.
-rpc-retries = "{{.BeaconKit.Execution.RPCRetries}}"
+rpc-retries = "{{.BeaconKit.Engine.RPCRetries}}"
 
 # RPC timeout for execution client requests.
-rpc-timeout = "{{ .BeaconKit.Execution.RPCTimeout }}"
+rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"
+
+# Interval for the startup check.
+rpc-startup-check-interval = "{{ .BeaconKit.Engine.RPCStartupCheckInterval }}"
 
 # Interval for the health check.
-rpc-health-check-interval = "{{ .BeaconKit.Execution.RPCHealthCheckInterval }}"
+rpc-health-check-interval = "{{ .BeaconKit.Engine.RPCHealthCheckInterval }}"
 
 # Interval for the JWT refresh.
-rpc-jwt-refresh-interval = "{{ .BeaconKit.Execution.RPCJWTRefreshInterval }}"
+rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"
 
 # Path to the execution client JWT-secret
-jwt-secret-path = "{{.BeaconKit.Execution.JWTSecretPath}}"
+jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 
 # Required chain id for the execution client.
-required-chain-id = "{{.BeaconKit.Execution.RequiredChainID}}"
+required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
 `
 }

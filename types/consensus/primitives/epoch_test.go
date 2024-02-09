@@ -23,46 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package primitives_test
 
-import (
-	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-// Option is a function that modifies the BeaconKitRuntime.
-type Option func(*BeaconKitRuntime) error
-
-// WithConfig is an Option that sets the configuration of the BeaconKitRuntime.
-func WithConfig(cfg *config.Config) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.cfg = cfg
-		return nil
-	}
-}
-
-// WithServiceRegistry is an Option that sets the service registry of the BeaconKitRuntime.
-func WithServiceRegistry(reg *service.Registry) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.services = reg
-		return nil
-	}
-}
-
-// WithLogger is an Option that sets the logger of the BeaconKitRuntime.
-func WithLogger(logger log.Logger) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.logger = logger.With("module", "beacon-kit-runtime")
-		return nil
-	}
-}
-
-// WithBeaconStateProvider is an Option that sets the BeaconStateProvider
-// of the BeaconKitRuntime.
-func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.fscp = fscp
-		return nil
-	}
-}
+// This file is for if we ever need to do any epoch tests.
