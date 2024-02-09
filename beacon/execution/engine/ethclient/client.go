@@ -74,8 +74,8 @@ func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 // Start the powchain service's main event loop.
 func (s *Eth1Client) Start(ctx context.Context) {
 	// Attempt an intial connection.
-	s.setupExecutionClientConnection()
 	s.ctx = ctx
+	s.setupExecutionClientConnection()
 
 	// We will spin up the execution client connection in a loop until it is connected.
 	for !s.ConnectedETH1() {
