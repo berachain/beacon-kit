@@ -140,8 +140,6 @@ func (s *Eth1Client) dialExecutionRPCClient() error {
 		return err
 	}
 
-	// Attach the client to the struct.
-	s.Client = nil
 	s.Client = ethclient.NewClient(client)
 	return nil
 }
