@@ -64,7 +64,6 @@ func (s *Service) notifyForkchoiceUpdate(
 		fcuConfig.Attributes = payloadattribute.EmptyWithVersion(beaconState.Version())
 	}
 
-	// TODO: remember and figure out what the middle param is.
 	payloadIDBytes, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
 		// TODO: ensure this switch statement isn't fucked.

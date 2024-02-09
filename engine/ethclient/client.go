@@ -126,44 +126,29 @@ func (s *Eth1Client) NewPayloadV3(
 	return result, nil
 }
 
-// ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
-func (s *Eth1Client) ForkchoiceUpdatedV2(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
-) (*ForkchoiceUpdatedResponse, error) {
-	result := &ForkchoiceUpdatedResponse{}
-	if attrs == nil {
-		return nil, errors.New("nil payload attributer")
-	}
-
-	if err := s.RawClient().CallContext(
-		ctx, result, "engine_forkchoiceUpdatedV2", state, attrs,
-	); err != nil {
-		return nil, s.handleRPCError(err)
-	}
-
-	if result.Status == nil {
-		return nil, execution.ErrNilResponse
-	} else if result.ValidationError != "" {
-		s.logger.Error(
-			"Got validation error in forkChoiceUpdated",
-			"err", errors.New(result.ValidationError),
-		)
-	}
-
-	return result, nil
-}
-
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV3,
 ) (*ForkchoiceUpdatedResponse, error) {
+	return s.forkchoiceUpdateCall(ctx, "engine_forkchoiceUpdatedV3", state, attrs)
+}
+
+// ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
+func (s *Eth1Client) ForkchoiceUpdatedV2(
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
+) (*ForkchoiceUpdatedResponse, error) {
+	return s.forkchoiceUpdateCall(ctx, "engine_forkchoiceUpdatedV2", state, attrs)
+}
+
+// forkchoiceUpdateCall is a helper function to call to any version of the forkchoiceUpdated
+// method.
+func (s *Eth1Client) forkchoiceUpdateCall(
+	ctx context.Context, method string, state *enginev1.ForkchoiceState, attrs any,
+) (*ForkchoiceUpdatedResponse, error) {
 	result := &ForkchoiceUpdatedResponse{}
-	if attrs == nil {
-		return nil, errors.New("nil payload attributer")
-	}
 
 	if err := s.RawClient().CallContext(
-		ctx, result, "engine_forkchoiceUpdatedV3", state, attrs,
+		ctx, result, method, state, attrs,
 	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
