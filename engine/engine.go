@@ -43,7 +43,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -176,44 +175,53 @@ func (s *engineClient) updateForkChoiceByVersion(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
 // It returns the execution data as well as the blobs bundle.
 func (s *engineClient) GetPayload(
-	ctx context.Context, payloadID [8]byte, slot primitives.Slot,
+	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 	defer cancel()
 
 	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
 	case version.Deneb:
-		result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-
-		if err := s.RawClient().CallContext(ctx,
-			result, execution.GetPayloadMethodV3, enginev1.PayloadIDBytes(payloadID),
-		); err != nil {
-			return nil, nil, false, err
-		}
-
-		ed, err := blocks.WrappedExecutionPayloadDeneb(result.GetPayload(),
-			blocks.PayloadValueToWei(result.GetValue()))
-		if err != nil {
-			return nil, nil, false, err
-		}
-
-		return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
+		return s.getPayloadDeneb(ctx, payloadID)
 	case version.Capella:
-		result := &enginev1.ExecutionPayloadCapellaWithValue{}
-		if err := s.RawClient().CallContext(ctx,
-			result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID),
-		); err != nil {
-			return nil, nil, false, err
-		}
-
-		ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
-			blocks.PayloadValueToWei(result.GetValue()))
-
-		if err != nil {
-			return nil, nil, false, err
-		}
-		return ed, nil, false, nil
+		return s.getPayloadCapella(ctx, payloadID)
 	default:
 		return nil, nil, false, errors.New("unknown fork version")
 	}
+}
+
+// handleDenebFork processes the Deneb fork version.
+func (s *engineClient) getPayloadDeneb(
+	ctx context.Context, payloadID primitives.PayloadID,
+) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+	result, err := s.GetPayloadV3(ctx, payloadID)
+	if err != nil {
+		return nil, nil, false, err
+	}
+	ed, err := blocks.WrappedExecutionPayloadDeneb(
+		result.GetPayload(), blocks.PayloadValueToWei(result.GetValue()),
+	)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
+}
+
+// handleCapellaFork processes the Capella fork version.
+func (s *engineClient) getPayloadCapella(
+	ctx context.Context, payloadID primitives.PayloadID,
+) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+	result, err := s.GetPayloadV2(ctx, payloadID)
+	if err != nil {
+		return nil, nil, false, err
+	}
+	ed, err := blocks.WrappedExecutionPayloadCapella(
+		result.GetPayload(), blocks.PayloadValueToWei(result.GetValue()),
+	)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	return ed, nil, false, nil
 }
