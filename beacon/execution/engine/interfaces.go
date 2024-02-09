@@ -37,7 +37,7 @@ import (
 )
 
 // Caller defines a client that can interact with an Ethereum
-// execution node's engine engineCaller via JSON-RPC.
+// execution node's engine engineClient via JSON-RPC.
 type Caller interface {
 	// Generic Methods
 	//

@@ -140,6 +140,9 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
 	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
 	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Duration(flags.RPCStartupCheckInterval,
+		defaultCfg.Engine.RPCStartupCheckInterval,
+		"rpc startup check interval")
 	startCmd.Flags().Duration(flags.RPCHealthCheckInteval,
 		defaultCfg.Engine.RPCHealthCheckInterval,
 		"rpc health check interval")
