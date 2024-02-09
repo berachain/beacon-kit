@@ -69,19 +69,24 @@ func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 		}
 	}
 
-	c.Start() // TODO: move this so it is on the cmd.Context.
+	c.Start(ctx) // TODO: move this so it is on the cmd.Context.
 	return c, nil
 }
 
 // Start the powchain service's main event loop.
-func (s *Eth1Client) Start() {
-	for {
-		if err := s.setupExecutionClientConnection(); err != nil {
-			s.logger.Info("Waiting for connection to execution client...",
-				"dial-url", s.dialURL.String(), "err", err)
-			continue
+func (s *Eth1Client) Start(ctx context.Context) {
+	// We will spin up the execution client connection in a loop until it is connected.
+	for !s.ConnectedETH1() {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if err := s.setupExecutionClientConnection(); err != nil {
+				s.logger.Info("Waiting for connection to execution client...",
+					"dial-url", s.dialURL.String(), "err", err)
+				time.Sleep(s.healthCheckInterval)
+			}
 		}
-		break
 	}
 
 	// Start the health check & jwt refresh loop.
