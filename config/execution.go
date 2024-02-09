@@ -39,10 +39,10 @@ var _ BeaconKitConfig[Execution] = &Execution{}
 func DefaultExecutionConfig() Execution {
 	return Execution{
 		RPCDialURL:             "http://localhost:8551",
-		RPCTimeout:             5,  //nolint:gomnd // default config.
-		RPCRetries:             3,  //nolint:gomnd // default config.
-		RPCHealthCheckInterval: 5,  //nolint:gomnd // default config.
-		RPCJWTRefreshInterval:  30, //nolint:gomnd // default config.
+		RPCRetries:             3,                //nolint:gomnd // default config.
+		RPCTimeout:             2 * time.Second,  //nolint:gomnd // default config.
+		RPCHealthCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
+		RPCJWTRefreshInterval:  30 * time.Second, //nolint:gomnd // default config.
 		JWTSecretPath:          "./jwt.hex",
 		RequiredChainID:        7, //nolint:gomnd // default config.
 	}
@@ -109,11 +109,17 @@ func (c Execution) Template() string {
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "{{ .BeaconKit.Execution.RPCDialURL }}"
 
+# Number of retries before shutting down consensus client.
+rpc-retries = "{{.BeaconKit.Execution.RPCRetries}}"
+
 # RPC timeout for execution client requests.
 rpc-timeout = "{{ .BeaconKit.Execution.RPCTimeout }}"
 
-# Number of retries before shutting down consensus client.
-rpc-retries = "{{.BeaconKit.Execution.RPCRetries}}"
+# Interval for the health check.
+rpc-health-check-interval = "{{ .BeaconKit.Execution.RPCHealthCheckInterval }}"
+
+# Interval for the JWT refresh.
+rpc-jwt-refresh-interval = "{{ .BeaconKit.Execution.RPCJWTRefreshInterval }}"
 
 # Path to the execution client JWT-secret
 jwt-secret-path = "{{.BeaconKit.Execution.JWTSecretPath}}"
