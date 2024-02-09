@@ -38,13 +38,14 @@ var _ BeaconKitConfig[Engine] = &Engine{}
 // DefaultEngineConfig returns the default configuration for the execution client.
 func DefaultEngineConfig() Engine {
 	return Engine{
-		RPCDialURL:             "http://localhost:8551",
-		RPCRetries:             3,                //nolint:gomnd // default config.
-		RPCTimeout:             2 * time.Second,  //nolint:gomnd // default config.
-		RPCHealthCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
-		RPCJWTRefreshInterval:  30 * time.Second, //nolint:gomnd // default config.
-		JWTSecretPath:          "./jwt.hex",
-		RequiredChainID:        7, //nolint:gomnd // default config.
+		RPCDialURL:              "http://localhost:8551",
+		RPCRetries:              3,                //nolint:gomnd // default config.
+		RPCTimeout:              2 * time.Second,  //nolint:gomnd // default config.
+		RPCStartupCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
+		RPCHealthCheckInterval:  5 * time.Second,  //nolint:gomnd // default config.
+		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
+		JWTSecretPath:           "./jwt.hex",
+		RequiredChainID:         7, //nolint:gomnd // default config.
 	}
 }
 
