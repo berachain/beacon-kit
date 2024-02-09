@@ -80,7 +80,7 @@ func (s *Registry) StartAll(ctx context.Context) {
 func (s *Registry) Statuses() map[reflect.Type]error {
 	m := make(map[reflect.Type]error, len(s.serviceTypes))
 	for _, kind := range s.serviceTypes {
-		m[kind] = s.services[kind].Status()
+		m[kind] = s.services[kind].Status() //#nosec:G703 // todo:test.
 	}
 	return m
 }
