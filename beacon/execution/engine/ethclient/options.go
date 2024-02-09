@@ -26,26 +26,33 @@
 package eth
 
 import (
-	"github.com/prysmaticlabs/prysm/v4/network"
-	"github.com/prysmaticlabs/prysm/v4/network/authorization"
+	"net/url"
 
 	"cosmossdk.io/log"
 )
 
+// Option is a functional option for the Eth1Client.
 type Option func(s *Eth1Client) error
 
-// WithHTTPEndpointAndJWTSecret for authenticating the execution node JSON-RPC endpoint.
-func WithHTTPEndpointAndJWTSecret(endpointString string, secret []byte) Option {
+// WithEndpointDialURL for authenticating the execution node JSON-RPC endpoint.
+func WithEndpointDialURL(dialURL string) Option {
 	return func(s *Eth1Client) error {
-		if len(secret) == 0 {
-			return nil
+		u, err := url.Parse(dialURL)
+		if err != nil {
+			return err
 		}
-		// Overwrite authorization type for all endpoints to be of a bearer type.
-		hEndpoint := network.HttpEndpoint(endpointString)
-		hEndpoint.Auth.Method = authorization.Bearer
-		hEndpoint.Auth.Value = string(secret)
+		s.dialURL = u
+		return nil
+	}
+}
 
-		s.cfg.currHTTPEndpoint = hEndpoint
+// WithJWTSecret is an option to set the JWT secret for the Eth1Client.
+func WithJWTSecret(secret [jwtLength]byte) Option {
+	return func(s *Eth1Client) error {
+		if len(secret) != jwtLength {
+			return ErrInvalidJWTSecretLength
+		}
+		s.jwtSecret = secret
 		return nil
 	}
 }
@@ -58,19 +65,11 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
-// WithHeaders is an option to set the headers for the Eth1Client.
-func WithHeaders(headers []string) Option {
-	return func(s *Eth1Client) error {
-		s.cfg.headers = headers
-		return nil
-	}
-}
-
 // WithRequiredChainID is an option to set the required
 // chain ID for the Eth1Client.
 func WithRequiredChainID(chainID uint64) Option {
 	return func(s *Eth1Client) error {
-		s.cfg.chainID = chainID
+		s.chainID = chainID
 		return nil
 	}
 }

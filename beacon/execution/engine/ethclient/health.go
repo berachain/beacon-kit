@@ -29,8 +29,6 @@ import (
 	"context"
 	"fmt"
 	"time"
-
-	"github.com/prysmaticlabs/prysm/v4/io/logs"
 )
 
 // healthCheckPeriod defines the time interval for periodic health checks.
@@ -50,14 +48,14 @@ func (s *Eth1Client) updateConnectedETH1(state bool) {
 
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
-func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
-	chainID, err := s.Client.ChainID(ctx)
+func (s *Eth1Client) ensureCorrectExecutionChain() error {
+	chainID, err := s.Client.ChainID(s.ctx)
 	if err != nil {
 		return err
 	}
 
-	if chainID.Uint64() != s.cfg.chainID {
-		return fmt.Errorf("wanted chain ID %d, got %d", s.cfg.chainID, chainID.Uint64())
+	if chainID.Uint64() != s.chainID {
+		return fmt.Errorf("wanted chain ID %d, got %d", s.chainID, chainID.Uint64())
 	}
 	return nil
 }
@@ -71,10 +69,10 @@ func (s *Eth1Client) connectionHealthLoop(ctx context.Context) {
 		default:
 			if _, err := s.Client.ChainID(ctx); err != nil {
 				s.logger.Error("eth1 connection health check failed",
-					"dial-url", logs.MaskCredentialsLogging(s.cfg.currHTTPEndpoint.Url),
+					"dial-url", s.dialURL.String(),
 					"error", err,
 				)
-				s.pollConnectionStatus(ctx)
+				s.pollConnectionStatus()
 			}
 			time.Sleep(healthCheckPeriod)
 		}
