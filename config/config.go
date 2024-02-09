@@ -156,3 +156,8 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"suggested fee recipient",
 	)
 }
+
+// AddToSFlag adds the terms of service flag to the given command.
+func AddToSFlag(rootCmd *cobra.Command) {
+	rootCmd.PersistentFlags().Bool(flags.BeaconKitAcceptTos, false, "accept the terms of service")
+}
