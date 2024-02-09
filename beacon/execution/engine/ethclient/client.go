@@ -108,9 +108,13 @@ func (s *Eth1Client) setupExecutionClientConnection() {
 		s.Client.Close()
 		errStr := err.Error()
 		if strings.Contains(errStr, "401 Unauthorized") {
-			errStr = UnauthenticatedConnectionErrorStr
+			// We always log this error as it is a critical error.
+			s.logger.Error(UnauthenticatedConnectionErrorStr)
+		} else if s.connectedETH1.Load() {
+			// This log gets spammy, we only log it when we first lose connection.
+			s.logger.Error("could not dial execution client", "error", err)
 		}
-		s.logger.Error(errStr)
+
 		s.updateConnectedETH1(false)
 		return
 	}
