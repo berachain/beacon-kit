@@ -32,9 +32,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"cosmossdk.io/log"
+	"github.com/pkg/errors"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
@@ -47,28 +46,21 @@ const (
 	backOffPeriod = 5
 )
 
-// eth1ClientConfig is a struct that holds the configuration for the Ethereum 1 client.
-type eth1ClientConfig struct {
-	chainID   uint64
-	jwtSecret []byte
-	headers   []string
-	dialURL   *url.URL
-}
-
 // Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
 type Eth1Client struct {
+	ctx    context.Context
+	logger log.Logger
 	*ethclient.Client
 	connectedETH1 bool
-	cfg           *eth1ClientConfig
-	ctx           context.Context
-	logger        log.Logger
+	chainID       uint64
+	jwtSecret     [32]byte
+	dialURL       *url.URL
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided context and options.
 func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 	c := &Eth1Client{
 		ctx: ctx,
-		cfg: &eth1ClientConfig{},
 	}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
@@ -83,9 +75,9 @@ func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 // Start the powchain service's main event loop.
 func (s *Eth1Client) Start(ctx context.Context) {
 	for {
-		if err := s.setupExecutionClientConnections(); err != nil {
+		if err := s.setupExecutionClientConnection(); err != nil {
 			s.logger.Info("Waiting for connection to execution client...",
-				"dial-url", s.cfg.dialURL.String(), "err", err)
+				"dial-url", s.dialURL.String(), "err", err)
 			time.Sleep(backOffPeriod * time.Second)
 			continue
 		}
@@ -96,7 +88,8 @@ func (s *Eth1Client) Start(ctx context.Context) {
 	go s.connectionHealthLoop(ctx)
 }
 
-func (s *Eth1Client) setupExecutionClientConnections() error {
+// setupExecutionClientConnections dials the execution client and ensures the chain ID is correct.
+func (s *Eth1Client) setupExecutionClientConnection() error {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(); err != nil {
 		return errors.Wrap(err, "could not dial execution node")
@@ -124,24 +117,23 @@ func (s *Eth1Client) setupExecutionClientConnections() error {
 func (s *Eth1Client) dialExecutionRPCClient() error {
 	var client *gethRPC.Client
 
-	// Build the headers for the execution client.
-	// We have to build new headers every time we dial the client
-	// since we need to periodically create a new JWT token since
-	// the current one will eventually expire.
+	// Construct the headers for the execution client.
+	// New headers must be constructed each time the client is dialed
+	// to periodically generate a new JWT token, as the existing one will eventually expire.
 	headers, err := s.buildHeaders()
 	if err != nil {
 		return err
 	}
 
 	// Dial the execution client based on the URL scheme.
-	switch s.cfg.dialURL.Scheme {
+	switch s.dialURL.Scheme {
 	case "http", "https":
 		client, err = gethRPC.DialOptions(
-			s.ctx, s.cfg.dialURL.String(), gethRPC.WithHeaders(headers))
+			s.ctx, s.dialURL.String(), gethRPC.WithHeaders(headers))
 	case "", "ipc":
-		client, err = gethRPC.DialIPC(s.ctx, s.cfg.dialURL.String())
+		client, err = gethRPC.DialIPC(s.ctx, s.dialURL.String())
 	default:
-		return fmt.Errorf("no known transport for URL scheme %q", s.cfg.dialURL.Scheme)
+		return fmt.Errorf("no known transport for URL scheme %q", s.dialURL.Scheme)
 	}
 
 	// Check for an error when dialing the execution client.
@@ -162,9 +154,9 @@ func (s *Eth1Client) pollConnectionStatus() {
 	for {
 		select {
 		case <-ticker.C:
-			s.logger.Info("Trying to dial endpoint...", "dial-url", s.cfg.dialURL.String())
+			s.logger.Info("Trying to dial endpoint...", "dial-url", s.dialURL.String())
 			currClient := s.Client.Client()
-			if err := s.setupExecutionClientConnections(); err != nil {
+			if err := s.setupExecutionClientConnection(); err != nil {
 				s.logger.Error("Could not connect to execution client endpoint", "error", err)
 				continue
 			}
@@ -172,7 +164,7 @@ func (s *Eth1Client) pollConnectionStatus() {
 			if currClient != nil {
 				currClient.Close()
 			}
-			s.logger.Info("Connected to new endpoint", "dial-url", s.cfg.dialURL.String())
+			s.logger.Info("Connected to new endpoint", "dial-url", s.dialURL.String())
 			return
 		case <-s.ctx.Done():
 			s.logger.Info("Received cancelled context,closing existing powchain service")

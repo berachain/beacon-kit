@@ -34,18 +34,25 @@ import (
 // Option is a functional option for the Eth1Client.
 type Option func(s *Eth1Client) error
 
-// WithHTTPEndpointAndJWTSecret for authenticating the execution node JSON-RPC endpoint.
-func WithHTTPEndpointAndJWTSecret(endpointString string, secret []byte) Option {
+// WithEndpointDialURL for authenticating the execution node JSON-RPC endpoint.
+func WithEndpointDialURL(dialURL string) Option {
 	return func(s *Eth1Client) error {
-		if len(secret) == 0 {
-			return nil
-		}
-		s.cfg.jwtSecret = secret
-		u, err := url.Parse(endpointString)
+		u, err := url.Parse(dialURL)
 		if err != nil {
 			return err
 		}
-		s.cfg.dialURL = u
+		s.dialURL = u
+		return nil
+	}
+}
+
+// WithJWTSecret is an option to set the JWT secret for the Eth1Client.
+func WithJWTSecret(secret [jwtLength]byte) Option {
+	return func(s *Eth1Client) error {
+		if len(secret) != jwtLength {
+			return ErrInvalidJWTSecretLength
+		}
+		s.jwtSecret = secret
 		return nil
 	}
 }
@@ -62,7 +69,7 @@ func WithLogger(logger log.Logger) Option {
 // chain ID for the Eth1Client.
 func WithRequiredChainID(chainID uint64) Option {
 	return func(s *Eth1Client) error {
-		s.cfg.chainID = chainID
+		s.chainID = chainID
 		return nil
 	}
 }

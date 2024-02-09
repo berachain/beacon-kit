@@ -27,7 +27,6 @@ package eth
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/node"
 )
@@ -36,7 +35,7 @@ import (
 func (s *Eth1Client) buildHeaders() (http.Header, error) {
 	var (
 		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth([32]byte(s.cfg.jwtSecret))
+		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
 	)
 
 	// Authenticate the execution node JSON-RPC endpoint.
@@ -45,16 +44,5 @@ func (s *Eth1Client) buildHeaders() (http.Header, error) {
 	}
 
 	// Add additional headers if provided.
-	for _, h := range s.cfg.headers {
-		if h == "" {
-			continue
-		}
-		keyValue := strings.Split(h, "=")
-		if len(keyValue) < 2 { //nolint:gomnd // it's okay.
-			s.logger.Error("Incorrect HTTP header flag format. Skipping %v", keyValue[0])
-			continue
-		}
-		headers.Set(keyValue[0], strings.Join(keyValue[1:], "="))
-	}
 	return headers, nil
 }

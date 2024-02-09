@@ -54,8 +54,8 @@ func (s *Eth1Client) ensureCorrectExecutionChain() error {
 		return err
 	}
 
-	if chainID.Uint64() != s.cfg.chainID {
-		return fmt.Errorf("wanted chain ID %d, got %d", s.cfg.chainID, chainID.Uint64())
+	if chainID.Uint64() != s.chainID {
+		return fmt.Errorf("wanted chain ID %d, got %d", s.chainID, chainID.Uint64())
 	}
 	return nil
 }
@@ -69,7 +69,7 @@ func (s *Eth1Client) connectionHealthLoop(ctx context.Context) {
 		default:
 			if _, err := s.Client.ChainID(ctx); err != nil {
 				s.logger.Error("eth1 connection health check failed",
-					"dial-url", s.cfg.dialURL.String(),
+					"dial-url", s.dialURL.String(),
 					"error", err,
 				)
 				s.pollConnectionStatus()
