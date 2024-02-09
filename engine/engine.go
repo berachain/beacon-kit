@@ -74,72 +74,67 @@ func (s *engineClient) NewPayload(
 	ctx context.Context, payload interfaces.ExecutionData,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
-	var (
-		dctx, cancel = context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
-		err          error
-		result       *enginev1.PayloadStatus
-	)
+	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 	defer cancel()
 
-	switch payload.Proto().(type) {
-	case *enginev1.ExecutionPayloadCapella:
-		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayloadCapella)
-		if !ok {
-			return nil, errors.New("execution data must be a Capella execution payload")
-		}
-		result, err = s.NewPayloadV2(dctx, payloadPb)
-	case *enginev1.ExecutionPayloadDeneb:
-		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayloadDeneb)
-		if !ok {
-			return nil, errors.New("execution data must be a Deneb execution payload")
-		}
-		result, err = s.NewPayloadV3(dctx, payloadPb, versionedHashes, parentBlockRoot)
-	default:
-		return nil, errors.New("unknown execution data type")
-	}
+	payloadPb, err := s.getPayloadProto(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	if result.GetValidationError() != "" {
-		s.logger.Error("Got a validation error in newPayload", "err",
-			errors.New(result.GetValidationError()))
+	result, err := s.callNewPayloadRPC(dctx, payloadPb, versionedHashes, parentBlockRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationErr := result.GetValidationError(); validationErr != "" {
+		s.logger.Error("Got a validation error in newPayload", "err", errors.New(validationErr))
 	}
 
 	return processPayloadStatusResult(result)
+}
+
+// getPayloadProto returns the payload proto from the execution data.
+func (s *engineClient) getPayloadProto(payload interfaces.ExecutionData) (interface{}, error) {
+	switch payloadPb := payload.Proto().(type) {
+	case *enginev1.ExecutionPayloadCapella:
+		return payloadPb, nil
+	case *enginev1.ExecutionPayloadDeneb:
+		return payloadPb, nil
+	default:
+		return nil, errors.New("unknown execution data type")
+	}
+}
+
+// callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
+func (s *engineClient) callNewPayloadRPC(
+	ctx context.Context, payloadPb interface{},
+	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
+) (*enginev1.PayloadStatus, error) {
+	switch payloadPb := payloadPb.(type) {
+	case *enginev1.ExecutionPayloadCapella:
+		return s.NewPayloadV2(ctx, payloadPb)
+	case *enginev1.ExecutionPayloadDeneb:
+		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
+	default:
+		return nil, errors.New("invalid payload type for RPC call")
+	}
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineClient) ForkchoiceUpdated(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
-	var (
-		result       *eth.ForkchoiceUpdatedResponse
-		dctx, cancel = context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
-	)
+	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 	defer cancel()
+	attrProto, err := s.getAttrProto(attrs)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	switch attrs.Version() {
-	case version.Deneb:
-		a, err := attrs.PbV3()
-		if err != nil {
-			return nil, nil, err
-		}
-		result, err = s.ForkchoiceUpdatedV3(dctx, state, a)
-		if err != nil {
-			return nil, nil, err
-		}
-	case version.Capella:
-		a, err := attrs.PbV2()
-		if err != nil {
-			return nil, nil, err
-		}
-		result, err = s.ForkchoiceUpdatedV2(dctx, state, a)
-		if err != nil {
-			return nil, nil, err
-		}
-	default:
-		return nil, nil, fmt.Errorf("unknown payload attribute version: %v", attrs.Version())
+	result, err := s.updateForkChoiceByVersion(dctx, state, attrProto)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	lastestValidHash, err := processPayloadStatusResult(result.Status)
@@ -147,6 +142,33 @@ func (s *engineClient) ForkchoiceUpdated(
 		return nil, lastestValidHash, err
 	}
 	return result.PayloadID, lastestValidHash, nil
+}
+
+// getAttrProto returns the attribute proto from the payload attribute.
+func (s *engineClient) getAttrProto(attrs payloadattribute.Attributer) (any, error) {
+	switch attrs.Version() {
+	case version.Deneb:
+		return attrs.PbV3()
+	case version.Capella:
+		return attrs.PbV2()
+	default:
+		return nil, fmt.Errorf("unknown payload attribute version: %v", attrs.Version())
+	}
+}
+
+// updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via JSON-RPC.
+func (s *engineClient) updateForkChoiceByVersion(
+	ctx context.Context, state *enginev1.ForkchoiceState,
+	attrProto any,
+) (*eth.ForkchoiceUpdatedResponse, error) {
+	switch v := attrProto.(type) {
+	case *enginev1.PayloadAttributesV3:
+		return s.ForkchoiceUpdatedV3(ctx, state, v)
+	case *enginev1.PayloadAttributesV2:
+		return s.ForkchoiceUpdatedV2(ctx, state, v)
+	default:
+		return nil, errors.New("invalid payload attribute version")
+	}
 }
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
@@ -157,7 +179,8 @@ func (s *engineClient) GetPayload(
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 	defer cancel()
 
-	if primitives.Epoch(slot) >= s.beaconCfg.Forks.DenebForkEpoch {
+	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
+	case version.Deneb:
 		result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 
 		if err := s.RawClient().CallContext(ctx,
@@ -173,20 +196,22 @@ func (s *engineClient) GetPayload(
 		}
 
 		return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
-	}
+	case version.Capella:
+		result := &enginev1.ExecutionPayloadCapellaWithValue{}
+		if err := s.RawClient().CallContext(ctx,
+			result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID),
+		); err != nil {
+			return nil, nil, false, err
+		}
 
-	result := &enginev1.ExecutionPayloadCapellaWithValue{}
-	if err := s.RawClient().CallContext(ctx,
-		result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID),
-	); err != nil {
-		return nil, nil, false, err
-	}
+		ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
+			blocks.PayloadValueToWei(result.GetValue()))
 
-	ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
-		blocks.PayloadValueToWei(result.GetValue()))
-
-	if err != nil {
-		return nil, nil, false, err
+		if err != nil {
+			return nil, nil, false, err
+		}
+		return ed, nil, false, nil
+	default:
+		return nil, nil, false, errors.New("unknown fork version")
 	}
-	return ed, nil, false, nil
 }
