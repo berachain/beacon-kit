@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"cosmossdk.io/log"
@@ -49,7 +50,7 @@ type Eth1Client struct {
 	logger log.Logger
 	*ethclient.Client
 
-	connectedETH1        bool
+	connectedETH1        atomic.Bool
 	chainID              uint64
 	jwtSecret            [32]byte
 	startupRetryInterval time.Duration
@@ -95,7 +96,7 @@ func (s *Eth1Client) setupExecutionClientConnection() {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(); err != nil {
 		// This log gets spammy, we only log it when we first lose connection.
-		if s.connectedETH1 {
+		if s.connectedETH1.Load() {
 			s.logger.Error("could not dial execution client", "error", err)
 		}
 		s.updateConnectedETH1(false)
