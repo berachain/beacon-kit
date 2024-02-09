@@ -43,16 +43,16 @@ type BeaconKitConfig[T any] interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		Execution: DefaultExecutionConfig(),
-		Beacon:    DefaultBeaconConfig(),
-		ABCI:      DefaultABCIConfig(),
+		Engine: DefaultEngineConfig(),
+		Beacon: DefaultBeaconConfig(),
+		ABCI:   DefaultABCIConfig(),
 	}
 }
 
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
-	// Execution is the configuration for the execution client.
-	Execution Execution
+	// Engine is the configuration for the execution client.
+	Engine Engine
 
 	// Beacon is the configuration for the fork epochs.
 	Beacon Beacon
@@ -67,7 +67,7 @@ func (c Config) Template() string {
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################
-` + c.Execution.Template() + c.Beacon.Template() + c.ABCI.Template()
+` + c.Engine.Template() + c.Beacon.Template() + c.ABCI.Template()
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
@@ -102,18 +102,18 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 // readConfigFromAppOptsParser reads the configuration options from the given.
 func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error) {
 	var (
-		err          error
-		conf         = &Config{}
-		executionCfg *Execution
-		beaconCfg    *Beacon
-		abciCfg      *ABCI
+		err       error
+		conf      = &Config{}
+		engineCfg *Engine
+		beaconCfg *Beacon
+		abciCfg   *ABCI
 	)
-	// Read Execution Client Config
-	executionCfg, err = Execution{}.Parse(parser)
+	// Read Engine Client Config
+	engineCfg, err = Engine{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
-	conf.Execution = *executionCfg
+	conf.Engine = *engineCfg
 
 	// Read Beacon Config
 	beaconCfg, err = Beacon{}.Parse(parser)
@@ -135,18 +135,18 @@ func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.Execution.JWTSecretPath,
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
 		"path to the execution client secret")
-	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Execution.RPCDialURL, "rpc dial url")
-	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Execution.RPCRetries, "rpc retries")
-	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.Execution.RPCTimeout, "rpc timeout")
+	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
 	startCmd.Flags().Duration(flags.RPCHealthCheckInteval,
-		defaultCfg.Execution.RPCHealthCheckInterval,
+		defaultCfg.Engine.RPCHealthCheckInterval,
 		"rpc health check interval")
 	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
-		defaultCfg.Execution.RPCJWTRefreshInterval,
+		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval")
-	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.Execution.RequiredChainID,
+	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
 		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(),

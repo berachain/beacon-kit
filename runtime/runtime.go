@@ -80,7 +80,7 @@ func NewDefaultBeaconKitRuntime(
 	ctx context.Context, cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Get JWT Secret for eth1 connection.
-	jwtSecret, err := eth.LoadJWTSecret(cfg.Execution.JWTSecretPath, logger)
+	jwtSecret, err := eth.LoadJWTSecret(cfg.Engine.JWTSecretPath, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -105,12 +105,12 @@ func NewDefaultBeaconKitRuntime(
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		ctx,
-		eth.WithHealthCheckInterval(cfg.Execution.RPCHealthCheckInterval),
-		eth.WithJWTRefreshInterval(cfg.Execution.RPCJWTRefreshInterval),
-		eth.WithEndpointDialURL(cfg.Execution.RPCDialURL),
+		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
+		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
+		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),
 		eth.WithJWTSecret(jwtSecret),
 		eth.WithLogger(logger),
-		eth.WithRequiredChainID(cfg.Execution.RequiredChainID),
+		eth.WithRequiredChainID(cfg.Engine.RequiredChainID),
 	)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func NewDefaultBeaconKitRuntime(
 	engineCaller := engine.NewCaller(engine.WithEth1Client(eth1Client),
 		engine.WithBeaconConfig(&cfg.Beacon),
 		engine.WithLogger(logger),
-		engine.WithEngineTimeout(cfg.Execution.RPCTimeout))
+		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the execution service.
 	executionService := execution.New(

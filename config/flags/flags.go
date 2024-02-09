@@ -26,24 +26,33 @@
 package flags
 
 const (
+	// Beacon Kit Root Flag.
+	beaconKitRoot = "beacon-kit."
+
 	// Execution Client.
-	RPCDialURL            = "beacon-kit.execution-client.rpc-dial-url"
-	RPCRetries            = "beacon-kit.execution-client.rpc-retries"
-	RPCTimeout            = "beacon-kit.execution-client.rpc-timeout"
-	RPCHealthCheckInteval = "beacon-kit.execution-client.rpc-health-check-interval"
-	RPCJWTRefreshInterval = "beacon-kit.execution-client.rpc-jwt-refresh-interval"
-	//#nosec:G101 // false positive.
-	JWTSecretPath   = "beacon-kit.execution-client.jwt-secret-path"
-	RequiredChainID = "beacon-kit.execution-client.required-chain-id"
+	engineRoot            = beaconKitRoot + "engine."
+	RPCDialURL            = engineRoot + "rpc-dial-url"
+	RPCRetries            = engineRoot + "rpc-retries"
+	RPCTimeout            = engineRoot + "rpc-timeout"
+	RPCHealthCheckInteval = engineRoot + "rpc-health-check-interval"
+	RPCJWTRefreshInterval = engineRoot + "rpc-jwt-refresh-interval"
+	JWTSecretPath         = engineRoot + "jwt-secret-path"
+	RequiredChainID       = engineRoot + "required-chain-id"
 
 	// Beacon Config.
-	DenebForkEpoch = "beacon-kit.beacon-config.forks.deneb-fork-epoch"
+	beaconConfigRoot = beaconKitRoot + "beacon-config."
+
+	// Fork Config.
+	forkRoot       = beaconConfigRoot + "forks."
+	DenebForkEpoch = forkRoot + "deneb-fork-epoch"
 
 	// Validator Config.
-	SuggestedFeeRecipient = "beacon-kit.beacon-config.validator.suggested-fee-recipient"
-	Graffiti              = "beacon-kit.beacon-config.validator.graffiti"
-	PrepareAllPayloads    = "beacon-kit.beacon-config.validator.prepare-all-payloads"
+	validator             = beaconKitRoot + "validator"
+	SuggestedFeeRecipient = validator + "suggested-fee-recipient"
+	Graffiti              = validator + "graffiti"
+	PrepareAllPayloads    = validator + "prepare-all-payloads"
 
-	// Proposal.
-	BeaconBlockPosition = "beacon-kit.abci.beacon-block-proposal-position"
+	// ABCI Config.
+	abciRoot            = beaconKitRoot + "abci."
+	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
 )
