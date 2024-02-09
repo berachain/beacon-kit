@@ -27,7 +27,6 @@ package prompt
 
 import (
 	"bufio"
-	"fmt"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
@@ -57,7 +56,6 @@ func DefaultPrompt(
 		if text := scanner.Text(); text != "" {
 			input = text
 		}
-		fmt.Printf("You entered: %s\n", input)
 	}
 
 	return input, scanner.Err()
