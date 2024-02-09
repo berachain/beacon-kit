@@ -26,6 +26,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/config/parser"
 )
@@ -36,11 +38,13 @@ var _ BeaconKitConfig[Execution] = &Execution{}
 // DefaultExecutionConfig returns the default configuration for the execution client.
 func DefaultExecutionConfig() Execution {
 	return Execution{
-		RPCDialURL:      "http://localhost:8551",
-		RPCTimeout:      5, //nolint:gomnd // default config.
-		RPCRetries:      3, //nolint:gomnd // default config.
-		JWTSecretPath:   "./jwt.hex",
-		RequiredChainID: 7, //nolint:gomnd // default config.
+		RPCDialURL:             "http://localhost:8551",
+		RPCTimeout:             5,  //nolint:gomnd // default config.
+		RPCRetries:             3,  //nolint:gomnd // default config.
+		RPCHealthCheckInterval: 5,  //nolint:gomnd // default config.
+		RPCJWTRefreshInterval:  30, //nolint:gomnd // default config.
+		JWTSecretPath:          "./jwt.hex",
+		RequiredChainID:        7, //nolint:gomnd // default config.
 	}
 }
 
@@ -48,10 +52,14 @@ func DefaultExecutionConfig() Execution {
 type Execution struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
-	// RPCTimeout is the RPC timeout for execution client requests.
-	RPCTimeout uint64
 	// RPCRetries is the number of retries before shutting down consensus client.
 	RPCRetries uint64
+	// RPCTimeout is the RPC timeout for execution client requests.
+	RPCTimeout time.Duration
+	// HealthCheckInterval is the Interval for the health check.
+	RPCHealthCheckInterval time.Duration
+	// JWTRefreshInterval is the Interval for the JWT refresh.
+	RPCJWTRefreshInterval time.Duration
 	// JWTSecretPath is the path to the JWT secret.
 	JWTSecretPath string
 	// RequiredChainID is the chain id that the consensus client must be connected to.
@@ -67,8 +75,18 @@ func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 	if c.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
 		return nil, err
 	}
-	if c.RPCTimeout, err = parser.GetUint64(
+	if c.RPCTimeout, err = parser.GetTimeDuration(
 		flags.RPCTimeout,
+	); err != nil {
+		return nil, err
+	}
+	if c.RPCHealthCheckInterval, err = parser.GetTimeDuration(
+		flags.RPCHealthCheckInteval,
+	); err != nil {
+		return nil, err
+	}
+	if c.RPCJWTRefreshInterval, err = parser.GetTimeDuration(
+		flags.RPCJWTRefreshInterval,
 	); err != nil {
 		return nil, err
 	}

@@ -26,6 +26,8 @@
 package engine
 
 import (
+	"time"
+
 	"cosmossdk.io/log"
 
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
@@ -60,7 +62,7 @@ func WithLogger(logger log.Logger) Option {
 }
 
 // WithEngineTimeout is an option to set the timeout for the engine.
-func WithEngineTimeout(engineTimeout uint64) Option {
+func WithEngineTimeout(engineTimeout time.Duration) Option {
 	return func(s *engineCaller) error {
 		s.engineTimeout = engineTimeout
 		return nil

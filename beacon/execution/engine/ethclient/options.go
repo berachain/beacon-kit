@@ -27,6 +27,7 @@ package eth
 
 import (
 	"net/url"
+	"time"
 
 	"cosmossdk.io/log"
 )
@@ -53,6 +54,22 @@ func WithJWTSecret(secret [jwtLength]byte) Option {
 			return ErrInvalidJWTSecretLength
 		}
 		s.jwtSecret = secret
+		return nil
+	}
+}
+
+// WithJWTRefreshInterval is an option to set the JWT refresh interval for the Eth1Client.
+func WithJWTRefreshInterval(interval time.Duration) Option {
+	return func(s *Eth1Client) error {
+		s.jwtRefreshInterval = interval
+		return nil
+	}
+}
+
+// WithHealthCheckInterval is an option to set the health check interval for the Eth1Client.
+func WithHealthCheckInterval(interval time.Duration) Option {
+	return func(s *Eth1Client) error {
+		s.healthCheckInterval = interval
 		return nil
 	}
 }
