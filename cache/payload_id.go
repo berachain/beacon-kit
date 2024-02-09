@@ -67,7 +67,10 @@ func (p *PayloadIDCache) Get(
 		return primitives.PayloadID{}, false
 	}
 	pid, ok := innerMap[eth1Hash]
-	return pid, ok
+	if !ok {
+		return primitives.PayloadID{}, false
+	}
+	return pid, true
 }
 
 // Set updates or inserts a payload ID for a given slot and eth1 hash.
@@ -77,16 +80,19 @@ func (p *PayloadIDCache) Set(
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	// Prune older slots to maintain the cache size limit.
+	if slot >= historicalPayloadIDCacheSize {
+		p.prunePrior(slot - historicalPayloadIDCacheSize)
+	}
+
+	// Update the cache with the new payload ID.
 	innerMap, exists := p.slotToEth1HashToPayloadID[slot]
 	if !exists {
 		innerMap = make(map[common.Hash]primitives.PayloadID)
 		p.slotToEth1HashToPayloadID[slot] = innerMap
 	}
 	innerMap[eth1Hash] = pid
-	// Prune older slots to maintain the cache size limit.
-	if slot >= historicalPayloadIDCacheSize {
-		p.prunePrior(slot - historicalPayloadIDCacheSize)
-	}
 }
 
 // UnsafePrunePrior removes payload IDs from the cache for slots less than
