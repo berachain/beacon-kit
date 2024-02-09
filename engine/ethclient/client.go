@@ -100,17 +100,6 @@ func (s *Eth1Client) IsConnected() bool {
 	return s.isConnected.Load()
 }
 
-// NewPayloadV2 calls the engine_newPayloadV2 method via JSON-RPC.
-func (s *Eth1Client) NewPayloadV2(
-	ctx context.Context, payload *enginev1.ExecutionPayloadCapella,
-) (*enginev1.PayloadStatus, error) {
-	result := &enginev1.PayloadStatus{}
-	if err := s.RawClient().CallContext(ctx, result, "engine_newPayloadV2", payload); err != nil {
-		return nil, s.handleRPCError(err)
-	}
-	return result, nil
-}
-
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) NewPayloadV3(
 	ctx context.Context, payload *enginev1.ExecutionPayloadDeneb,
@@ -120,6 +109,17 @@ func (s *Eth1Client) NewPayloadV3(
 	if err := s.RawClient().CallContext(
 		ctx, result, "engine_newPayloadV3", payload, versionedHashes, parentBlockRoot,
 	); err != nil {
+		return nil, s.handleRPCError(err)
+	}
+	return result, nil
+}
+
+// NewPayloadV2 calls the engine_newPayloadV2 method via JSON-RPC.
+func (s *Eth1Client) NewPayloadV2(
+	ctx context.Context, payload *enginev1.ExecutionPayloadCapella,
+) (*enginev1.PayloadStatus, error) {
+	result := &enginev1.PayloadStatus{}
+	if err := s.RawClient().CallContext(ctx, result, "engine_newPayloadV2", payload); err != nil {
 		return nil, s.handleRPCError(err)
 	}
 	return result, nil
