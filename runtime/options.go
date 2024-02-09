@@ -27,7 +27,6 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -64,14 +63,6 @@ func WithLogger(logger log.Logger) Option {
 func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
-		return nil
-	}
-}
-
-// WithDispatcher is an Option that sets the GrandCentralDispatch of the BeaconKitRuntime.
-func WithDispatcher(dispatcher *dispatch.GrandCentralDispatch) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.dispatcher = dispatcher
 		return nil
 	}
 }
