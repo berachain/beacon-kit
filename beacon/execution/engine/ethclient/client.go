@@ -33,7 +33,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/pkg/errors"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
@@ -50,19 +49,18 @@ type Eth1Client struct {
 	logger log.Logger
 	*ethclient.Client
 
-	connectedETH1       bool
-	chainID             uint64
-	jwtSecret           [32]byte
-	jwtRefreshInterval  time.Duration
-	healthCheckInterval time.Duration
-	dialURL             *url.URL
+	connectedETH1        bool
+	chainID              uint64
+	jwtSecret            [32]byte
+	startupRetryInterval time.Duration
+	jwtRefreshInterval   time.Duration
+	healthCheckInterval  time.Duration
+	dialURL              *url.URL
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided context and options.
 func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
-	c := &Eth1Client{
-		ctx: ctx,
-	}
+	c := &Eth1Client{}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
 			return nil, err
@@ -75,45 +73,46 @@ func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 
 // Start the powchain service's main event loop.
 func (s *Eth1Client) Start(ctx context.Context) {
+	// Attempt an intial connection.
+	s.setupExecutionClientConnection()
+	s.ctx = ctx
+
 	// We will spin up the execution client connection in a loop until it is connected.
 	for !s.ConnectedETH1() {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			if err := s.setupExecutionClientConnection(); err != nil {
-				s.logger.Info("Waiting for connection to execution client...",
-					"dial-url", s.dialURL.String(), "err", err)
-				time.Sleep(s.healthCheckInterval)
-			}
-		}
+		// If we enter this loop, the above connection attempt failed.
+		s.logger.Info("Waiting for connection to execution client...", "dial-url", s.dialURL.String())
+		s.tryConnectionAfter(s.startupRetryInterval)
 	}
 
-	// Start the health check & jwt refresh loop.
+	// If we reached this point, the execution client is connected so we can start
+	// the health check & jwt refresh loops.
 	go s.healthCheckLoop()
 	go s.jwtRefreshLoop()
 }
 
 // setupExecutionClientConnections dials the execution client and ensures the chain ID is correct.
-func (s *Eth1Client) setupExecutionClientConnection() error {
+func (s *Eth1Client) setupExecutionClientConnection() {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(); err != nil {
-		return errors.Wrap(err, "could not dial execution node")
+		s.logger.Error("could not dial execution client", "error", err)
+		s.updateConnectedETH1(false)
+		return
 	}
 
-	// Ensure we have the correct chain ID connected.
+	// Ensure the execution client is connected to the correct chain.
 	if err := s.ensureCorrectExecutionChain(); err != nil {
 		s.Client.Close()
 		errStr := err.Error()
 		if strings.Contains(errStr, "401 Unauthorized") {
 			errStr = UnauthenticatedConnectionErrorStr
 		}
-		return errors.Wrap(err, errStr)
+		s.logger.Error(errStr)
+		s.updateConnectedETH1(false)
+		return
 	}
 
-	// Mark the client as connected.
+	// If we reached here the client is connected and we mark as such.
 	s.updateConnectedETH1(true)
-	return nil
 }
 
 // DialExecutionRPCClient dials the execution client's RPC endpoint.

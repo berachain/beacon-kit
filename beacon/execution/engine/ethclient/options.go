@@ -58,6 +58,14 @@ func WithJWTSecret(secret [jwtLength]byte) Option {
 	}
 }
 
+// WithStartupRetryInterval is an option to set the startup retry interval for the Eth1Client.
+func WithStartupRetryInterval(interval time.Duration) Option {
+	return func(s *Eth1Client) error {
+		s.startupRetryInterval = interval
+		return nil
+	}
+}
+
 // WithJWTRefreshInterval is an option to set the JWT refresh interval for the Eth1Client.
 func WithJWTRefreshInterval(interval time.Duration) Option {
 	return func(s *Eth1Client) error {

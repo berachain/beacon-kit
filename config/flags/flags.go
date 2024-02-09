@@ -30,14 +30,15 @@ const (
 	beaconKitRoot = "beacon-kit."
 
 	// Execution Client.
-	engineRoot            = beaconKitRoot + "engine."
-	RPCDialURL            = engineRoot + "rpc-dial-url"
-	RPCRetries            = engineRoot + "rpc-retries"
-	RPCTimeout            = engineRoot + "rpc-timeout"
-	RPCHealthCheckInteval = engineRoot + "rpc-health-check-interval"
-	RPCJWTRefreshInterval = engineRoot + "rpc-jwt-refresh-interval"
-	JWTSecretPath         = engineRoot + "jwt-secret-path"
-	RequiredChainID       = engineRoot + "required-chain-id"
+	engineRoot              = beaconKitRoot + "engine."
+	RPCDialURL              = engineRoot + "rpc-dial-url"
+	RPCRetries              = engineRoot + "rpc-retries"
+	RPCTimeout              = engineRoot + "rpc-timeout"
+	RPCStartupCheckInterval = engineRoot + "rpc-startup-check-interval"
+	RPCHealthCheckInteval   = engineRoot + "rpc-health-check-interval"
+	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
+	JWTSecretPath           = engineRoot + "jwt-secret-path"
+	RequiredChainID         = engineRoot + "required-chain-id"
 
 	// Beacon Config.
 	beaconConfigRoot = beaconKitRoot + "beacon-config."

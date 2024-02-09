@@ -105,6 +105,7 @@ func NewDefaultBeaconKitRuntime(
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		ctx,
+		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
 		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
 		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
 		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),

@@ -143,6 +143,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Duration(flags.RPCHealthCheckInteval,
 		defaultCfg.Engine.RPCHealthCheckInterval,
 		"rpc health check interval")
+
 	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval")
