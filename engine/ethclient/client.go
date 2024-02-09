@@ -38,7 +38,6 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -129,39 +128,56 @@ func (s *Eth1Client) NewPayloadV3(
 
 // ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV2(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
-) (*enginev1.PayloadIDBytes, []byte, error) {
-	return s.forkchoiceUpdatedCall(ctx, "engine_forkchoiceUpdatedV2", state, attrs)
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
+) (*ForkchoiceUpdatedResponse, error) {
+	result := &ForkchoiceUpdatedResponse{}
+	if attrs == nil {
+		return nil, errors.New("nil payload attributer")
+	}
+
+	if err := s.RawClient().CallContext(
+		ctx, result, "engine_forkchoiceUpdatedV2", state, attrs,
+	); err != nil {
+		return nil, s.handleRPCError(err)
+	}
+
+	if result.Status == nil {
+		return nil, execution.ErrNilResponse
+	} else if result.ValidationError != "" {
+		s.logger.Error(
+			"Got validation error in forkChoiceUpdated",
+			"err", errors.New(result.ValidationError),
+		)
+	}
+
+	return result, nil
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
-) (*enginev1.PayloadIDBytes, []byte, error) {
-	return s.forkchoiceUpdatedCall(ctx, "engine_forkchoiceUpdatedV3", state, attrs)
-}
-
-// forkchoiceUpdatedCall is a helper function to call the forkchoiceUpdated method via JSON-RPC.
-func (s *Eth1Client) forkchoiceUpdatedCall(
-	ctx context.Context, method string,
-	state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
-) (*enginev1.PayloadIDBytes, []byte, error) {
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV3,
+) (*ForkchoiceUpdatedResponse, error) {
 	result := &ForkchoiceUpdatedResponse{}
 	if attrs == nil {
-		return nil, nil, errors.New("nil payload attributer")
+		return nil, errors.New("nil payload attributer")
 	}
 
 	if err := s.RawClient().CallContext(
-		ctx, result, method, state, attrs,
+		ctx, result, "engine_forkchoiceUpdatedV3", state, attrs,
 	); err != nil {
-		return nil, nil, s.handleRPCError(err)
+		return nil, s.handleRPCError(err)
 	}
 
 	if result.Status == nil {
-		return nil, nil, execution.ErrNilResponse
+		return nil, execution.ErrNilResponse
+	} else if result.ValidationError != "" {
+		s.logger.Error(
+			"Got validation error in forkChoiceUpdated",
+			"err", errors.New(result.ValidationError),
+		)
 	}
 
-	return result.PayloadID, result.Status.GetLatestValidHash(), nil
+	return result, nil
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling

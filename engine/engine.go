@@ -75,12 +75,12 @@ func (s *engineClient) NewPayload(
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
 	var (
-		d            = time.Now().Add(s.engineTimeout)
-		dctx, cancel = context.WithDeadline(ctx, d)
+		dctx, cancel = context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 		err          error
 		result       *enginev1.PayloadStatus
 	)
 	defer cancel()
+
 	switch payload.Proto().(type) {
 	case *enginev1.ExecutionPayloadCapella:
 		payloadPb, ok := payload.Proto().(*enginev1.ExecutionPayloadCapella)
@@ -98,7 +98,7 @@ func (s *engineClient) NewPayload(
 		return nil, errors.New("unknown execution data type")
 	}
 	if err != nil {
-		return nil, s.handleRPCError(err)
+		return nil, err
 	}
 
 	if result.GetValidationError() != "" {
@@ -113,50 +113,40 @@ func (s *engineClient) NewPayload(
 func (s *engineClient) ForkchoiceUpdated(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
-	d := time.Now().Add(s.engineTimeout)
-	ctx, cancel := context.WithDeadline(ctx, d)
+	var (
+		result       *eth.ForkchoiceUpdatedResponse
+		dctx, cancel = context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	)
 	defer cancel()
-	result := &execution.ForkchoiceUpdatedResponse{}
-	if attrs == nil {
-		return nil, nil, errors.New("nil payload attributer")
-	}
+
 	switch attrs.Version() {
 	case version.Deneb:
 		a, err := attrs.PbV3()
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.RawClient().CallContext(ctx, result,
-			execution.ForkchoiceUpdatedMethodV3, state, a)
+		result, err = s.ForkchoiceUpdatedV3(dctx, state, a)
 		if err != nil {
-			return nil, nil, s.handleRPCError(err)
+			return nil, nil, err
 		}
 	case version.Capella:
 		a, err := attrs.PbV2()
 		if err != nil {
 			return nil, nil, err
 		}
-		err = s.RawClient().CallContext(ctx, result,
-			execution.ForkchoiceUpdatedMethodV2, state, a)
+		result, err = s.ForkchoiceUpdatedV2(dctx, state, a)
 		if err != nil {
-			return nil, nil, s.handleRPCError(err)
+			return nil, nil, err
 		}
 	default:
 		return nil, nil, fmt.Errorf("unknown payload attribute version: %v", attrs.Version())
 	}
 
-	if result.Status == nil {
-		return nil, nil, execution.ErrNilResponse
-	}
-	if result.ValidationError != "" {
-		s.logger.Error("Got validation error in forkChoiceUpdated", "err",
-			errors.New(result.ValidationError))
-	}
 	lastestValidHash, err := processPayloadStatusResult(result.Status)
 	if err != nil {
 		return nil, lastestValidHash, err
 	}
-	return result.PayloadId, lastestValidHash, nil
+	return result.PayloadID, lastestValidHash, nil
 }
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
@@ -173,7 +163,7 @@ func (s *engineClient) GetPayload(
 		if err := s.RawClient().CallContext(ctx,
 			result, execution.GetPayloadMethodV3, enginev1.PayloadIDBytes(payloadID),
 		); err != nil {
-			return nil, nil, false, s.handleRPCError(err)
+			return nil, nil, false, err
 		}
 
 		ed, err := blocks.WrappedExecutionPayloadDeneb(result.GetPayload(),
@@ -189,7 +179,7 @@ func (s *engineClient) GetPayload(
 	if err := s.RawClient().CallContext(ctx,
 		result, execution.GetPayloadMethodV2, enginev1.PayloadIDBytes(payloadID),
 	); err != nil {
-		return nil, nil, false, s.handleRPCError(err)
+		return nil, nil, false, err
 	}
 
 	ed, err := blocks.WrappedExecutionPayloadCapella(result.GetPayload(),
@@ -199,14 +189,4 @@ func (s *engineClient) GetPayload(
 		return nil, nil, false, err
 	}
 	return ed, nil, false, nil
-}
-
-// ExecutionBlockByHash fetches an execution engine block by hash by calling
-// eth_blockByHash via JSON-RPC.
-func (s *engineClient) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
-) (*enginev1.ExecutionBlock, error) {
-	result := &enginev1.ExecutionBlock{}
-	err := s.Eth1Client.Client.Client().CallContext(
-		ctx, result, "eth_getBlockByHash", hash, withTxs)
-	return result, s.handleRPCError(err)
 }
