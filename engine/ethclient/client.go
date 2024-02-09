@@ -166,6 +166,28 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 	return result, nil
 }
 
+// GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
+func (s *Eth1Client) GetPayloadV3(
+	ctx context.Context, payloadID enginev1.PayloadIDBytes,
+) (*enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle, error) {
+	result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
+	if err := s.RawClient().CallContext(ctx, result, "engine_getPayloadV3", payloadID); err != nil {
+		return nil, s.handleRPCError(err)
+	}
+	return result, nil
+}
+
+// GetPayloadV2 calls the engine_getPayloadV2 method via JSON-RPC.
+func (s *Eth1Client) GetPayloadV2(
+	ctx context.Context, payloadID enginev1.PayloadIDBytes,
+) (*enginev1.ExecutionPayloadCapellaWithValue, error) {
+	result := &enginev1.ExecutionPayloadCapellaWithValue{}
+	if err := s.RawClient().CallContext(ctx, result, "engine_getPayloadV2", payloadID); err != nil {
+		return nil, s.handleRPCError(err)
+	}
+	return result, nil
+}
+
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
@@ -184,26 +206,4 @@ func (s *Eth1Client) ExecutionBlockByNumber(ctx context.Context, num rpc.BlockNu
 	err := s.RawClient().CallContext(
 		ctx, result, "eth_getBlockByNumber", num, withTxs)
 	return result, s.handleRPCError(err)
-}
-
-// GetPayloadV2 calls the engine_getPayloadV2 method via JSON-RPC.
-func (s *Eth1Client) GetPayloadV2(
-	ctx context.Context, payloadID enginev1.PayloadIDBytes,
-) (*enginev1.ExecutionPayloadCapellaWithValue, error) {
-	result := &enginev1.ExecutionPayloadCapellaWithValue{}
-	if err := s.RawClient().CallContext(ctx, result, "engine_getPayloadV2", payloadID); err != nil {
-		return nil, s.handleRPCError(err)
-	}
-	return result, nil
-}
-
-// GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
-func (s *Eth1Client) GetPayloadV3(
-	ctx context.Context, payloadID enginev1.PayloadIDBytes,
-) (*enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle, error) {
-	result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-	if err := s.RawClient().CallContext(ctx, result, "engine_getPayloadV3", payloadID); err != nil {
-		return nil, s.handleRPCError(err)
-	}
-	return result, nil
 }
