@@ -33,4 +33,8 @@ const (
 	// MetricGetBuiltPayloadMiss is used to count the number of times a built
 	// payload retrieval is attempted but not found.
 	MetricsPayloadIDCacheMiss = "beaconkit.validator.payload-id-cache-miss"
+
+	// MetricErrorRetrievingPayload is used to count the number of times an error
+	// occurs when attempting to retrieve a built payload.
+	MetricsPayloadIDCacheError = "beaconkit.validator.get-payload-error"
 )
