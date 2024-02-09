@@ -30,7 +30,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	file "github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/io"
+	"github.com/prysmaticlabs/prysm/v4/io/file"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/config/flags"
@@ -110,16 +111,16 @@ func VerifyTosAcceptedOrPrompt(
 
 // saveTosAccepted creates a file when Tos accepted.
 func saveTosAccepted(dataDir string, cmd *cobra.Command) {
-	dataDirExists, err := file.HasDir(dataDir)
+	dataDirExists, err := io.HasDir(dataDir)
 	if err != nil {
 		cmd.PrintErrf("error checking directory: %s\n", dataDir)
 	}
 	if !dataDirExists {
-		if err = file.MkdirAll(dataDir); err != nil {
+		if err = io.MkdirAll(dataDir); err != nil {
 			cmd.PrintErrf("error creating directory: %s\n", dataDir)
 		}
 	}
-	if err = file.WriteFile(filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
+	if err = io.WriteFile(filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
 		cmd.PrintErrf("error writing %s to file: %s\n", flags.BeaconKitAcceptTos,
 			filepath.Join(dataDir, acceptTosFilename))
 	}
