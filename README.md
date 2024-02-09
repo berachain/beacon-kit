@@ -42,7 +42,7 @@ make godoc
 
 **Prerequisites:**
 - [Docker](https://docs.docker.com/engine/install/)
-- [Golang 1.21.6+](https://go.dev/doc/install)
+- [Golang 1.22.0+](https://go.dev/doc/install)
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
 
 Start by opening two terminals side-by-side:

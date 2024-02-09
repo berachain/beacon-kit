@@ -29,9 +29,9 @@ import (
 	"context"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 )
 

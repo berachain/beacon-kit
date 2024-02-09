@@ -33,10 +33,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (s *Service) getLocalPayload(
@@ -64,7 +64,7 @@ func (s *Service) getLocalPayload(
 	}
 
 	// If we have a payload ID in the cache, we can return the payload from the cache.
-	payloadID, ok := s.payloadCache.PayloadID(slot, [32]byte(parentEth1Hash))
+	payloadID, ok := s.payloadCache.Get(slot, [32]byte(parentEth1Hash))
 	if ok && (payloadID != primitives.PayloadID{}) {
 		var (
 			pidCpy          primitives.PayloadID
@@ -76,17 +76,14 @@ func (s *Service) getLocalPayload(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
 
-		payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot)
-		switch {
-		case err == nil:
+		if payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 			//  Return the cached payload ID.
 			return payload, overrideBuilder, nil
-		case errors.Is(err, context.DeadlineExceeded):
-		default:
-			return nil, false, errors.Wrap(err, "could not get cached payload from execution client")
 		}
+		s.Logger().Warn("could not get cached payload from execution client", "error", err)
+		telemetry.IncrCounter(1, MetricsPayloadIDCacheError)
 	}
 
 	// If we reach this point, we have a cache miss and must build a new payload.

@@ -27,9 +27,11 @@ package flags
 
 const (
 	// Execution Client.
-	RPCDialURL = "beacon-kit.execution-client.rpc-dial-url"
-	RPCTimeout = "beacon-kit.execution-client.rpc-timeout"
-	RPCRetries = "beacon-kit.execution-client.rpc-retries"
+	RPCDialURL            = "beacon-kit.execution-client.rpc-dial-url"
+	RPCRetries            = "beacon-kit.execution-client.rpc-retries"
+	RPCTimeout            = "beacon-kit.execution-client.rpc-timeout"
+	RPCHealthCheckInteval = "beacon-kit.execution-client.rpc-health-check-interval"
+	RPCJWTRefreshInterval = "beacon-kit.execution-client.rpc-jwt-refresh-interval"
 	//#nosec:G101 // false positive.
 	JWTSecretPath   = "beacon-kit.execution-client.jwt-secret-path"
 	RequiredChainID = "beacon-kit.execution-client.required-chain-id"

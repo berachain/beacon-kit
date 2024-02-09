@@ -27,7 +27,7 @@ package validator
 
 import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
+	"github.com/itsdevbear/bolaris/cache"
 )
 
 // Option is a functional option for the validator service.

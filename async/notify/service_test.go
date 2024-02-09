@@ -26,6 +26,7 @@
 package notify_test
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -76,13 +77,10 @@ func TestDispatch(t *testing.T) {
 	}
 
 	// Start the service
-	service.Start()
-	defer func() {
-		if err = service.Stop(); err != nil {
-			t.Fatalf("Failed to stop service: %v", err)
-		}
-	}()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
+	service.Start(ctx)
 	// Use a channel to wait for the event to be received
 	eventReceived := make(chan struct{})
 	go func() {

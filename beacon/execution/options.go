@@ -27,7 +27,7 @@ package execution
 
 import (
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
+	"github.com/itsdevbear/bolaris/cache"
 )
 
 type Option func(*Service) error

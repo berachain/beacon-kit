@@ -30,13 +30,13 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/spf13/cast"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
 )
 
 // TODO: Move this to a common package for parsing utils.
@@ -123,7 +123,7 @@ func (c *AppOptionsParser) GetUint(key string) (uint, error) {
 // GetEpoch retrieves a primitives.Epoch value from a configuration key.
 func (c *AppOptionsParser) GetEpoch(key string) (primitives.Epoch, error) {
 	epoch, err := handleError(c, cast.ToUint64E, key)
-	return primitives.Epoch(epoch), err
+	return epoch, err
 }
 
 // GetUint64Ptr retrieves a pointer to a uint64 value fro	m a configuration key.

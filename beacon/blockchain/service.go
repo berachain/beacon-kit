@@ -26,6 +26,8 @@
 package blockchain
 
 import (
+	"context"
+
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -51,14 +53,7 @@ func NewService(
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.Logger().Info("stopping service...")
-	return nil
-}
+func (s *Service) Start(context.Context) {}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error { return nil }

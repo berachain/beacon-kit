@@ -240,16 +240,6 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	); err != nil {
 		panic(err)
 	}
-}
 
-// RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (app *BeaconApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
-	app.App.RegisterNodeService(clientCtx, cfg)
-	app.BeaconKitRunner.StartServices()
-}
-
-// Close shuts down the application.
-func (app *BeaconApp) Close() error {
-	app.BeaconKitRunner.StopServices()
-	return app.BaseApp.Close()
+	app.BeaconKitRunner.StartServices(apiSvr.ClientCtx.CmdContext)
 }

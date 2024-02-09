@@ -30,8 +30,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/itsdevbear/bolaris/config/cli"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -103,7 +103,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 func checkAuthFileIntegrity(t testing.TB, fPath string) {
 	fileInfo, err := os.Stat(fPath)
 	require.NoError(t, err)
-	require.NotEqual(t, nil, fileInfo)
+	require.NotNil(t, fileInfo)
 
 	enc, err := os.ReadFile(fPath) // Updated to use os.ReadFile directly
 	require.NoError(t, err)

@@ -30,10 +30,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // Service is responsible for tracking the synchornization status
@@ -63,11 +63,7 @@ func NewService(
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error { return nil }
+func (s *Service) Start(context.Context) {}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error { return nil }

@@ -35,7 +35,7 @@ option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1/capella";
 // any beacon block in the system.
 message BeaconKitBlockCapella {
   // Beacon chain slot that this block represents.
-  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
 
   // BeaconBlockBody contains the body of the beacon block.
   BeaconKitBlockBodyCapella body = 2;

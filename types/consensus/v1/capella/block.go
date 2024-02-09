@@ -26,13 +26,12 @@
 package capella
 
 import (
-	"math/big"
-
+	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/blocks"
-	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -53,7 +52,7 @@ func BeaconKitBlockFromState(
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
-	slot github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot,
+	slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot,
 	executionData interfaces.ExecutionData,
 ) (interfaces.BeaconKitBlock, error) {
 	block := &BeaconKitBlockCapella{
@@ -105,5 +104,5 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlockCapella) Execution() (interfaces.ExecutionData, error) {
 	return blocks.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
-		new(big.Int).SetBytes(b.GetPayloadValue()))
+		uint256.NewInt(0).SetBytes(b.GetPayloadValue()))
 }

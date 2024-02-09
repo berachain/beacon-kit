@@ -29,7 +29,7 @@ import (
 	"errors"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/prysm/v4/crypto/rand"
 	"github.com/prysmaticlabs/prysm/v4/io/file"
 	"github.com/spf13/cobra"
@@ -47,7 +47,7 @@ func NewGenerateJWTCommand() *cobra.Command {
 		Long: `This command generates a new JWT authentication secret and writes it to a file.
 If no output file path is specified, it uses the default file name 
 "jwt.hex" in the current directory.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			fileName, err := getFilePath(cmd)
 			if err != nil {
 				return err
