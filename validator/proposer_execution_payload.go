@@ -75,7 +75,6 @@ func (s *Service) getLocalPayload(
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
-
 		if payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)

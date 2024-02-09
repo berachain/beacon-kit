@@ -123,9 +123,10 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithLogger(logger),
 	)
 
-	// Engine Caller wraps the eth1 client and provides the interface for the
+	// NewClient wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
-	engineCaller := engine.NewCaller(engine.WithEth1Client(eth1Client),
+	engineClient := engine.NewClient(
+		engine.WithEth1Client(eth1Client),
 		engine.WithBeaconConfig(&cfg.Beacon),
 		engine.WithLogger(logger),
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
@@ -133,7 +134,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the execution service.
 	executionService := execution.New(
 		baseService.WithName("execution"),
-		execution.WithEngineCaller(engineCaller),
+		execution.WithEngineCaller(engineClient),
 		execution.WithPayloadCache(payloadCache),
 	)
 
@@ -153,7 +154,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the validator service.
 	validatorService := validator.NewService(
 		baseService.WithName("validator"),
-		validator.WithEngineCaller(engineCaller),
+		validator.WithEngineCaller(engineClient),
 		validator.WithPayloadCache(payloadCache),
 	)
 

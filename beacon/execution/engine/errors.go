@@ -42,7 +42,7 @@ var (
 )
 
 // Handles errors received from the RPC server according to the specification.
-func (s *engineCaller) handleRPCError(err error) error {
+func (s *engineClient) handleRPCError(err error) error {
 	if err == nil {
 		return nil
 	}

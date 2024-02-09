@@ -29,42 +29,30 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-
 	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/config"
 )
 
-// Option is a function type that takes a pointer to an engineClient and returns an error.
-type Option func(*engineClient) error
+// Caller is implemented by engineClient.
+var _ Caller = (*engineClient)(nil)
 
-// WithEth1Client is a function that returns an Option.
-func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineClient) error {
-		s.Eth1Client = eth1Client
-		return nil
-	}
+// engineClient is a struct that holds a pointer to an Eth1Client.
+type engineClient struct {
+	*eth.Eth1Client
+	engineTimeout time.Duration
+	beaconCfg     *config.Beacon
+	logger        log.Logger
 }
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineClient) error {
-		s.beaconCfg = beaconCfg
-		return nil
+// NewClient creates a new engine client engineClient.
+// It takes an Eth1Client as an argument and returns a pointer to an engineClient.
+func NewClient(opts ...Option) Caller {
+	ec := &engineClient{}
+	for _, opt := range opts {
+		if err := opt(ec); err != nil {
+			panic(err)
+		}
 	}
-}
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *engineClient) error {
-		s.logger = logger.With("module", "beacon-kit-engine-caller")
-		return nil
-	}
-}
-
-// WithEngineTimeout is an option to set the timeout for the engine.
-func WithEngineTimeout(engineTimeout time.Duration) Option {
-	return func(s *engineClient) error {
-		s.engineTimeout = engineTimeout
-		return nil
-	}
+	return ec
 }
