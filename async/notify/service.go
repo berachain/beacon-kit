@@ -26,6 +26,8 @@
 package notify
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
 
 	"github.com/prysmaticlabs/prysm/v4/async/event"
@@ -50,9 +52,6 @@ type Service struct {
 
 	// dispatch is an instance of GrandCentralDispatch.
 	gcd GrandCentralDispatch
-
-	// stop is a channel that is used to stop the service.
-	stop chan struct{}
 }
 
 // NewService creates a new Service.
@@ -60,7 +59,6 @@ func NewService(opts ...Option) *Service {
 	s := &Service{
 		feeds:    make(map[string]*event.Feed),
 		handlers: make(map[string][]eventHandlerQueuePair),
-		stop:     make(chan struct{}),
 	}
 
 	for _, opt := range opts {
@@ -72,8 +70,7 @@ func NewService(opts ...Option) *Service {
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {
-	s.running = true
+func (s *Service) Start(ctx context.Context) {
 	for name, handlers := range s.handlers {
 		feed, ok := s.feeds[name]
 		if !ok {
@@ -100,7 +97,8 @@ func (s *Service) Start() {
 						}
 					case <-subscription.Err():
 						return
-					case <-s.stop:
+					case <-ctx.Done():
+						s.running = false
 						// This will receive a value when the stop channel is closed
 						return
 					}
@@ -108,15 +106,7 @@ func (s *Service) Start() {
 			}(pair, ch, subscription)
 		}
 	}
-}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.logger.Info("stopping service...")
-	close(s.stop)
-	s.running = false
-	return nil
+	s.running = true
 }
 
 // Status returns error if the service is not considered healthy.

@@ -242,9 +242,3 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 
 	app.BeaconKitRunner.StartServices(apiSvr.ClientCtx.CmdContext)
 }
-
-// Close shuts down the application.
-func (app *BeaconApp) Close() error {
-	app.BeaconKitRunner.StopServices()
-	return app.BaseApp.Close()
-}

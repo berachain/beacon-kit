@@ -43,7 +43,6 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/validator"
-	"github.com/prysmaticlabs/prysm/v4/runtime"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -53,7 +52,7 @@ type BeaconKitRuntime struct {
 	mu         sync.Mutex
 	logger     log.Logger
 	fscp       BeaconStateProvider
-	services   *runtime.ServiceRegistry
+	services   *service.Registry
 	dispatcher *dispatch.GrandCentralDispatch
 }
 
@@ -67,7 +66,7 @@ func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
 	bkr := &BeaconKitRuntime{
-		services: runtime.NewServiceRegistry(),
+		services: service.NewRegistry(),
 	}
 
 	for _, opt := range opts {
@@ -175,14 +174,8 @@ func NewDefaultBeaconKitRuntime(
 }
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StartServices(_ context.Context) {
-	r.services.StartAll()
-}
-
-// StopServices stops all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StopServices() {
-	r.logger.Info("stopping all services")
-	r.services.StopAll()
+func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
+	r.services.StartAll(ctx)
 }
 
 // FetchService retrieves a service from the BeaconKitRuntime's service registry.
