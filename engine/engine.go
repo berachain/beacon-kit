@@ -31,9 +31,8 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -41,6 +40,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
@@ -154,9 +154,9 @@ func (s *engineClient) ForkchoiceUpdated(
 func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID [8]byte, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	d := time.Now().Add(s.engineTimeout)
-	ctx, cancel := context.WithDeadline(ctx, d)
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 	defer cancel()
+
 	if primitives.Epoch(slot) >= s.beaconCfg.Forks.DenebForkEpoch {
 		result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 

@@ -43,7 +43,7 @@ func (s *Eth1Client) healthCheckLoop(ctx context.Context) {
 					"dial-url", s.dialURL.String(),
 					"error", err,
 				)
-				s.connectedETH1.Store(false)
+				s.isConnected.Store(false)
 			}
 		}
 	}

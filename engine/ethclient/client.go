@@ -34,10 +34,9 @@ import (
 
 	"cosmossdk.io/log"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -51,7 +50,7 @@ type Eth1Client struct {
 	logger log.Logger
 	*ethclient.Client
 
-	connectedETH1        atomic.Bool
+	isConnected          atomic.Bool
 	chainID              uint64
 	jwtSecret            [32]byte
 	startupRetryInterval time.Duration
@@ -79,7 +78,7 @@ func (s *Eth1Client) Start(ctx context.Context) {
 	s.setupExecutionClientConnection(ctx)
 
 	// We will spin up the execution client connection in a loop until it is connected.
-	for !s.ConnectedETH1() {
+	for !s.isConnected.Load() {
 		// If we enter this loop, the above connection attempt failed.
 		s.logger.Info("Waiting for connection to execution client...", "dial-url", s.dialURL.String())
 		s.tryConnectionAfter(ctx, s.startupRetryInterval)
@@ -96,9 +95,9 @@ func (s *Eth1Client) RawClient() *rpc.Client {
 	return s.Client.Client()
 }
 
-// ConnectedETH1 returns the connection status of the Ethereum 1 client.
-func (s *Eth1Client) ConnectedETH1() bool {
-	return s.connectedETH1.Load()
+// IsConnected returns the connection status of the Ethereum 1 client.
+func (s *Eth1Client) IsConnected() bool {
+	return s.isConnected.Load()
 }
 
 // NewPayloadV2 calls the engine_newPayloadV2 method via JSON-RPC.
@@ -154,7 +153,7 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 	}
 
 	if result.Status == nil {
-		return nil, execution.ErrNilResponse
+		return nil, ErrNilResponse
 	} else if result.ValidationError != "" {
 		s.logger.Error(
 			"Got validation error in forkChoiceUpdated",

@@ -26,8 +26,8 @@
 package engine
 
 import (
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // processPayloadStatusResult processes the payload status result and

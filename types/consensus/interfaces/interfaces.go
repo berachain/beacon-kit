@@ -29,9 +29,9 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/math"
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
 

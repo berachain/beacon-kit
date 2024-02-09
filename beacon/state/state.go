@@ -28,9 +28,9 @@ package state
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // BeaconStateProvider provides access to the current beacon state.

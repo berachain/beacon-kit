@@ -25,7 +25,7 @@
 
 package payload
 
-import enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
 type Attributer interface {
 	Version() int

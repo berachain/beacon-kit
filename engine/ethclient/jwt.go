@@ -33,8 +33,8 @@ import (
 	"strings"
 
 	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/node"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.

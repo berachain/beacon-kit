@@ -40,10 +40,10 @@ func (s *Eth1Client) setupExecutionClientConnection(ctx context.Context) {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(ctx); err != nil {
 		// This log gets spammy, we only log it when we first lose connection.
-		if s.connectedETH1.Load() {
+		if s.isConnected.Load() {
 			s.logger.Error("could not dial execution client", "error", err)
 		}
-		s.connectedETH1.Store(false)
+		s.isConnected.Store(false)
 		return
 	}
 
@@ -53,17 +53,17 @@ func (s *Eth1Client) setupExecutionClientConnection(ctx context.Context) {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
-		} else if s.connectedETH1.Load() {
+		} else if s.isConnected.Load() {
 			// This log gets spammy, we only log it when we first lose connection.
 			s.logger.Error("could not dial execution client", "error", err)
 		}
 
-		s.connectedETH1.Store(false)
+		s.isConnected.Store(false)
 		return
 	}
 
 	// If we reached here the client is connected and we mark as such.
-	s.connectedETH1.Store(true)
+	s.isConnected.Store(true)
 }
 
 // DialExecutionRPCClient dials the execution client's RPC endpoint.

@@ -51,6 +51,9 @@ var (
 
 	// ErrEmptyBlockHash indicates that the block hash is empty.
 	ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
+
+	// ErrNilResponse indicates that the response is nil.
+	ErrNilResponse = errors.New("nil response from execution client")
 )
 
 // Handles errors received from the RPC server according to the specification.

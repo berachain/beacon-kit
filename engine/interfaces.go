@@ -28,8 +28,8 @@ package engine
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
@@ -41,8 +41,8 @@ import (
 type Caller interface {
 	// Generic Methods
 	//
-	// ConnectedETH1 returns true if the client is connected to the execution node.
-	ConnectedETH1() bool
+	// IsConnected returns true if the client is connected to the execution node.
+	IsConnected() bool
 
 	// Engine API Related Methods
 	//
