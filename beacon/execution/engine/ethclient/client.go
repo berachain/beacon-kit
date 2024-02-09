@@ -106,8 +106,7 @@ func (s *Eth1Client) setupExecutionClientConnection() {
 	// Ensure the execution client is connected to the correct chain.
 	if err := s.ensureCorrectExecutionChain(); err != nil {
 		s.Client.Close()
-		errStr := err.Error()
-		if strings.Contains(errStr, "401 Unauthorized") {
+		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
 		} else if s.connectedETH1.Load() {
