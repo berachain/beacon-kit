@@ -47,11 +47,10 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg        *config.Config
-	logger     log.Logger
-	fscp       BeaconStateProvider
-	services   *service.Registry
-	dispatcher *dispatch.GrandCentralDispatch
+	cfg      *config.Config
+	logger   log.Logger
+	fscp     BeaconStateProvider
+	services *service.Registry
 }
 
 // BeaconStateProvider is an interface that provides the
@@ -174,7 +173,6 @@ func NewDefaultBeaconKitRuntime(
 		WithLogger(logger),
 		WithServiceRegistry(serviceRegistry),
 		WithBeaconStateProvider(bsp),
-		WithDispatcher(gcd),
 	)
 }
 
