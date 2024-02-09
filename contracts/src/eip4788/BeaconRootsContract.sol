@@ -105,35 +105,23 @@ contract BeaconRootsContract {
     /// @dev Sets the beacon root and coinbase for the current block.
     /// This function is called internally and utilizes assembly for direct storage access.
     function set() internal {
-        setBeaconRoot();
-        setCoinbase();
-    }
-
-    /// @dev Sets the beacon root and coinbase for the current block.
-    /// This function is called internally and utilizes assembly for direct storage access.
-    function setBeaconRoot() internal {
-        assembly {
+        uint256 _COINBASE_OFFSET = COINBASE_OFFSET;
+        assembly ("memory-safe") {
             let block_idx := mod(number(), HISTORY_BUFFER_LENGTH)
+            // set the timestamp
             sstore(block_idx, timestamp())
             let root_idx := add(block_idx, BEACON_ROOT_OFFSET)
+            // set the beacon root
             sstore(root_idx, calldataload(0))
+            let coinbase_idx := add(block_idx, _COINBASE_OFFSET)
+            // set the coinbase
+            sstore(coinbase_idx, coinbase())
         }
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                         COINBASE                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @dev Sets the coinbase for the current block in storage.
-    /// This function is called internally and utilizes assembly for direct storage access.
-    function setCoinbase() internal {
-        uint256 _COINBASE_OFFSET = COINBASE_OFFSET;
-        assembly {
-            let block_idx := mod(number(), HISTORY_BUFFER_LENGTH)
-            let coinbase_idx := add(block_idx, _COINBASE_OFFSET)
-            sstore(coinbase_idx, coinbase())
-        }
-    }
 
     /// @notice Retrieves the coinbase for a given block number.
     /// @dev if called with a block number that is before the history buffer
@@ -159,7 +147,6 @@ contract BeaconRootsContract {
     /// @dev Precondition: Any two consecutive timestamps in the circular buffer are strictly increasing.
     function binarySearch() internal view returns (uint256 block_idx) {
         assembly ("memory-safe") {
-            // TODO: test partially initialized buffer
             let high := mod(number(), HISTORY_BUFFER_LENGTH)
             let low := mod(add(number(), 1), HISTORY_BUFFER_LENGTH)
             // revert if the timestamp is not within the circular buffer
