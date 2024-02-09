@@ -15,6 +15,7 @@ contract BeaconRootsContractTest is SoladyTest {
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
     uint256 private constant BLOCK_INTERVAL = 5;
     uint256 private constant TIMESTAMP = 1707425462;
+    uint256[HISTORY_BUFFER_LENGTH] private _timestamps;
 
     BeaconRootsContract internal beaconRootsContract;
     bytes32 private beaconRoot;
@@ -44,6 +45,7 @@ contract BeaconRootsContractTest is SoladyTest {
             timestamps[i] = startTimestamp + i * BLOCK_INTERVAL
             // a random number between 1 and BLOCK_INTERVAL such that the timestamp is ever increasing
             + FixedPointMathLib.min(1, FixedPointMathLib.fullMulDiv(_random(), BLOCK_INTERVAL, type(uint256).max));
+            _timestamps[i] = timestamps[i];
             beaconRoots[i] = bytes32(_random());
             coinbases[i] = _randomNonZeroAddress();
             vm.roll(blockNumbers[i]);
@@ -54,6 +56,19 @@ contract BeaconRootsContractTest is SoladyTest {
         }
         beaconRoot = beaconRoots[length - 1];
         vm.stopPrank();
+    }
+
+    function callGet(uint256 timestamp) internal returns (bool success, bytes memory data) {
+        (success, data) = address(beaconRootsContract).call(abi.encode(timestamp));
+    }
+
+    function validateBeaconRoots(uint256[] memory timestamps, bytes32[] memory beaconRoots) internal {
+        for (uint256 i; i < timestamps.length; ++i) {
+            (bool success, bytes memory data) = callGet(timestamps[i]);
+            assertTrue(success, "get: failed");
+            assertEq(data.length, 32, "get: invalid length");
+            assertEq(bytes32(data), beaconRoots[i], "get: invalid beacon root");
+        }
     }
 
     function test_Set() public {
@@ -76,26 +91,33 @@ contract BeaconRootsContractTest is SoladyTest {
     }
 
     function test_Get() public {
-        (bool success, bytes memory data) = address(beaconRootsContract).call(abi.encode(block.timestamp));
+        (bool success, bytes memory data) = callGet(block.timestamp);
         assertTrue(success, "get: failed");
         assertEq(data.length, 32, "get: invalid length");
         assertEq(bytes32(data), beaconRoot, "get: invalid beacon root");
     }
 
+    function test_GetOutOfRangeTimestamp() public {
+        (bool success,) = callGet(TIMESTAMP - 1);
+        assertFalse(success, "get: found out of range timestamp");
+    }
+
+    function test_GetInvalidTimestamp(uint256 timestamp) public {
+        timestamp = _bound(timestamp, _timestamps[0] + 1, _timestamps[HISTORY_BUFFER_LENGTH - 1] - 1);
+        for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
+            vm.assume(timestamp != _timestamps[i]);
+        }
+        (bool success,) = callGet(timestamp);
+        assertFalse(success, "get: found invalid timestamp");
+    }
+
     function testFuzz_Get(uint64 startBlock, uint32 startTimestamp) public {
         vm.assume(startTimestamp > 0);
-        (uint256[] memory blockNumbers, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
+        (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
             setStorage(startBlock, startTimestamp, HISTORY_BUFFER_LENGTH);
         // The timestamp encoded in the calldata may be in the past.
         // But the block number and timestamp in the EVM must be the latest.
-        vm.roll(blockNumbers[HISTORY_BUFFER_LENGTH - 1]);
-        vm.warp(timestamps[HISTORY_BUFFER_LENGTH - 1]);
-        for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
-            (bool success, bytes memory data) = address(beaconRootsContract).call(abi.encode(timestamps[i]));
-            assertTrue(success, "get: failed");
-            assertEq(data.length, 32, "get: invalid length");
-            assertEq(bytes32(data), beaconRoots[i], "get: invalid beacon root");
-        }
+        validateBeaconRoots(timestamps, beaconRoots);
     }
 
     function testFuzz_GetCoinbase(uint64 startBlock, uint32 startTimestamp) public {
@@ -108,5 +130,13 @@ contract BeaconRootsContractTest is SoladyTest {
             assertTrue(success, "getCoinbase: failed");
             assertEq(uint256(bytes32(data)), uint160(coinbases[i]), "get: invalid coinbase");
         }
+    }
+
+    function testFuzz_PartiallyInitializedBuffer(uint256 length) public {
+        beaconRootsContract = new BeaconRootsContract();
+        length = _bound(length, 1, HISTORY_BUFFER_LENGTH - 1);
+        // The block number starts from 1.
+        (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) = setStorage(1, TIMESTAMP, length);
+        validateBeaconRoots(timestamps, beaconRoots);
     }
 }
