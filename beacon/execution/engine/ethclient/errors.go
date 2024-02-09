@@ -27,5 +27,10 @@ package eth
 
 import "errors"
 
+// ErrUnauthenticatedConnection indicates that the connection is not authenticated.
+const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
+connection is not authenticated. If connecting to your execution client via HTTP, you 
+will need to set up JWT authentication...`
+
 // ErrInvalidJWTSecretLength indicates that the JWT secret length is invalid.
 var ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
