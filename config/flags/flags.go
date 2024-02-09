@@ -41,7 +41,8 @@ const (
 	RequiredChainID         = engineRoot + "required-chain-id"
 
 	// Beacon Config.
-	beaconConfigRoot = beaconKitRoot + "beacon-config."
+	beaconConfigRoot   = beaconKitRoot + "beacon-config."
+	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
 	// Fork Config.
 	forkRoot       = beaconConfigRoot + "forks."

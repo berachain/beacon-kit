@@ -81,6 +81,8 @@ import (
 	_ "github.com/itsdevbear/bolaris/runtime/modules/beacon" // import for side-effects
 )
 
+const AppName = "BeaconKitApp"
+
 // MakeAppConfig for making an application configuration.
 //
 //nolint:funlen // long config
@@ -122,7 +124,7 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 			{
 				Name: runtime.ModuleName,
 				Config: appconfig.WrapAny(&runtimev1alpha1.Module{
-					AppName: "BeaconApp",
+					AppName: AppName,
 					// During begin block slashing happens after distr.BeginBlocker so that
 					// there is nothing left over in the validator fee pool, so as to keep the
 					// CanWithdrawInvariant invariant.

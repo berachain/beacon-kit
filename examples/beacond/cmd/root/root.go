@@ -70,7 +70,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	testapp "github.com/itsdevbear/bolaris/examples/beacond/app"
+	"github.com/itsdevbear/bolaris/config/tos"
+	"github.com/itsdevbear/bolaris/examples/beacond/app"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
@@ -90,7 +91,7 @@ func NewRootCmd() *cobra.Command {
 
 	if err := depinject.Inject(
 		depinject.Configs(
-			testapp.MakeAppConfig(""),
+			app.MakeAppConfig(""),
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
@@ -114,7 +115,7 @@ func NewRootCmd() *cobra.Command {
 		WithLegacyAmino(legacyAmino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithHomeDir(testapp.DefaultNodeHome).
+		WithHomeDir(app.DefaultNodeHome).
 		WithViper("") // In BeaconApp, we don't use any prefix for env variables.
 
 	rootCmd := &cobra.Command{
@@ -133,6 +134,12 @@ func NewRootCmd() *cobra.Command {
 
 			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
 			if err != nil {
+				return err
+			}
+
+			if err = tos.VerifyTosAcceptedOrPrompt(
+				app.AppName, app.TermsOfServiceURL, initClientCtx, cmd,
+			); err != nil {
 				return err
 			}
 
@@ -237,16 +244,19 @@ func initRootCmd(
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
+	// add the flag to automagically accept the TOS
+	beaconconfig.AddToSFlag(rootCmd)
+
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(basicManager, testapp.DefaultNodeHome),
+		genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
-		pruning.Cmd(newApp, testapp.DefaultNodeHome),
+		pruning.Cmd(newApp, app.DefaultNodeHome),
 		snapshot.Cmd(newApp),
 		beaconconfig.BeaconKitCommands(),
 	)
 
-	AddCommands(rootCmd, testapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags, server.StartCmdOptions{
+	AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addModuleInitFlags, server.StartCmdOptions{
 		PostSetup: func(svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error {
 			return nil
 		},
@@ -260,11 +270,13 @@ func initRootCmd(
 		txCommand(),
 		keys.Commands(),
 	)
+
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 	beaconconfig.AddBeaconKitFlags(startCmd)
+
 }
 
 // add server commands.
@@ -301,7 +313,7 @@ func AddCommands(rootCmd *cobra.Command, defaultNodeHome string,
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.
 func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, basicManager, testapp.DefaultNodeHome)
+	cmd := genutilcli.Commands(txConfig, basicManager, app.DefaultNodeHome)
 
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
@@ -362,7 +374,7 @@ func newApp(
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	return testapp.NewBeaconKitApp(
+	return app.NewBeaconKitApp(
 		logger, db, traceStore, true,
 		"",
 		appOpts,
@@ -397,24 +409,24 @@ func appExport(
 	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
 	appOpts = viperAppOpts
 
-	var testApp *testapp.BeaconApp
+	var beaconApp *app.BeaconApp
 	if height != -1 {
-		testApp = testapp.NewBeaconKitApp(logger, db, traceStore, false, "", appOpts)
+		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, false, "", appOpts)
 
-		if err := testApp.LoadHeight(height); err != nil {
+		if err := beaconApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		testApp = testapp.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
+		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
 	}
 
-	return testApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+	return beaconApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
 var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
 	dir, err := os.MkdirTemp("", "beacond")
 	if err != nil {
-		dir = testapp.DefaultNodeHome
+		dir = app.DefaultNodeHome
 	}
 	defer os.RemoveAll(dir)
 
