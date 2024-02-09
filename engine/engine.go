@@ -177,14 +177,14 @@ func (s *engineClient) updateForkChoiceByVersion(
 func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 	defer cancel()
 
 	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
 	case version.Deneb:
-		return s.getPayloadDeneb(ctx, payloadID)
+		return s.getPayloadDeneb(dctx, payloadID)
 	case version.Capella:
-		return s.getPayloadCapella(ctx, payloadID)
+		return s.getPayloadCapella(dctx, payloadID)
 	default:
 		return nil, nil, false, errors.New("unknown fork version")
 	}
