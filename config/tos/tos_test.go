@@ -25,61 +25,144 @@
 
 package tos_test
 
-// import (
-// 	"testing"
-// 	"github.com/cosmos/cosmos-sdk/client"
-// 	"github.com/itsdevbear/bolaris/config/tos"
-// 	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
-// 	"github.com/prysmaticlabs/prysm/v4/testing/require".
-// )
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
 
-// func TestVerifyTosAcceptedOrPrompt(t *testing.T) {
-// 	rootCmd := root.NewRootCmd()
-// 	rootCmd.SetOut(os.NewFile(0, os.DevNull))
-// 	appName := "TestApp"
-// 	tosLink := "https://example.com/tos"
-// 	clientCtx := client.Context{}.WithInput(os.Stdin)
+	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
+	file "github.com/itsdevbear/bolaris/config"
+	beaconflags "github.com/itsdevbear/bolaris/config/flags"
 
-// 	// replacing stdin
-// tmpfile, err := os.CreateTemp("", "tmp")
-// require.NoError(t, err)
-// origStdin := os.Stdin
-// os.Stdin = tmpfile
-// defer func() { os.Stdin = origStdin }()
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/itsdevbear/bolaris/examples/beacond/app"
+	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
+)
 
-// // userprompt decline
-// _, err = tmpfile.Write([]byte("decline"))
-// require.NoError(t, err)
-// _, err = tmpfile.Seek(0, 0)
-// 	require.NoError(t, err)
-// 	require.ErrorContains(t, "you have to
-// 	accept Terms and Conditions", tos.VerifyTosAccep
-// 	tedOrPrompt(appName, tosLink, clientCtx, rootCmd))
+const acceptTosFilename = "tosaccepted"
 
-// 	// userprompt accept
-// 	err = tmpfile.Truncate(0)
-// 	require.NoError(t, err)
-// 	_, err = tmpfile.Seek(0, 0)
-// 	require.NoError(t, err)
-// 	_, err = tmpfile.Write([]byte("accept"))
-// 	require.NoError(t, err)
-// 	_, err = tmpfile.Seek(0, 0)
-// 	require.NoError(t, err)
-// 	require.NoError(t, VerifyTosAcceptedOrPrompt(context))
-// 	require.NoError(t, os.Remove(file
-// 	path.Join(context.String(cmd.DataDirFlag.Name), acceptTosFilename)))
+var (
+	declinedErrorString          = "you have to accept Terms and Conditions in order to continue"
+	acceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
+non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
+terms and conditions here:`
+)
 
-// 	require.NoError(t, tmpfile.Close())
-// 	require.NoError(t, os.Remove(tmpfile.Name()))
+func expectTosAcceptSuccess(t *testing.T, homeDir string) {
+	if ok := file.Exists(filepath.Join(homeDir, acceptTosFilename)); !ok {
+		t.Errorf("Expected tosaccepted file to exist in %s", homeDir)
+	}
+}
 
-// 	// saved in file
-// 	require.NoError(t, os.WriteFile(filepath.Jo
-// 	in(context.String(cmd.DataDirFlag.Name), acceptTosFilename), []byte(""), 0666))
-// 	require.NoError(t, VerifyTosAcceptedOrPrompt(context))
-// 	require.NoError(t, os.RemoveAll(context.String(cmd.DataDirFlag.Name)))
+func makeTempDir(t *testing.T) string {
+	homeDir, err := os.MkdirTemp("", "beacond-test-*")
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+	t.Log("homeDir: ", homeDir)
+	return homeDir
+}
 
-// 	// flag is set
-// 	set.Bool(cmd.AcceptTosFlag.Name, true, "")
-// 	require.NoError(t, VerifyTosAcceptedOrPrompt(context))
-// 	require.NoError(t, os.RemoveAll(context.String(cmd.DataDirFlag.Name)))
-// }
+func TestAcceptTosFlag(t *testing.T) {
+	stdout := os.Stdout
+	defer func() { os.Stdout = stdout }()
+	os.Stdout = os.NewFile(0, os.DevNull)
+	homeDir := makeTempDir(t)
+	defer os.RemoveAll(homeDir)
+
+	rootCmd := root.NewRootCmd()
+	rootCmd.SetOut(os.NewFile(0, os.DevNull))
+	rootCmd.SetArgs([]string{
+		"query",
+		fmt.Sprintf("--%s", flags.FlagHome),
+		homeDir,
+		fmt.Sprintf("--%s", beaconflags.BeaconKitAcceptTos),
+	})
+
+	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+
+	expectTosAcceptSuccess(t, homeDir)
+}
+
+func TestAcceptWithCLI(t *testing.T) {
+	stdout := os.Stdout
+	defer func() { os.Stdout = stdout }()
+	// os.Stdout = os.NewFile(0, os.DevNull)
+	homeDir := makeTempDir(t)
+	t.Log("homeDir: ", homeDir)
+
+	inputBuffer := bytes.NewReader([]byte("accept\n"))
+	rootCmd := root.NewRootCmd()
+	// rootCmd.SetOut(os.NewFile(0, os.DevNull))
+	rootCmd.SetArgs([]string{
+		"query",
+		fmt.Sprintf("--%s", flags.FlagHome),
+		homeDir,
+	})
+	rootCmd.SetIn(inputBuffer)
+
+	if err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome); err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+
+	expectTosAcceptSuccess(t, homeDir)
+}
+
+func TestDeclineWithCLI(t *testing.T) {
+	stdout := os.Stdout
+	defer func() { os.Stdout = stdout }()
+	homeDir := makeTempDir(t)
+	t.Log("homeDir: ", homeDir)
+
+	inputBuffer := bytes.NewReader([]byte("decline\n"))
+	rootCmd := root.NewRootCmd()
+	rootCmd.SetArgs([]string{
+		"query",
+		fmt.Sprintf("--%s", flags.FlagHome),
+		homeDir,
+	})
+	rootCmd.SetIn(inputBuffer)
+
+	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+	if err.Error() != declinedErrorString {
+		t.Errorf("Expected %v, got %v", declinedErrorString, err)
+	}
+}
+
+type ErrReader struct{}
+
+func (e *ErrReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("forced error in scanner")
+}
+func TestDeclineWithNonInteractiveCLI(t *testing.T) {
+	stdout := os.Stdout
+	defer func() { os.Stdout = stdout }()
+	homeDir := makeTempDir(t)
+	t.Log("homeDir: ", homeDir)
+
+	rootCmd := root.NewRootCmd()
+	rootCmd.SetArgs([]string{
+		"query",
+		fmt.Sprintf("--%s", flags.FlagHome),
+		homeDir,
+	})
+	rootCmd.SetIn(&ErrReader{})
+
+	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), acceptTosPromptErrTextFormat) {
+		t.Errorf("Expected %v, got %v", acceptTosPromptErrTextFormat, err)
+	}
+}

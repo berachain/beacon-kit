@@ -37,7 +37,6 @@ import (
 	beaconprompt "github.com/itsdevbear/bolaris/config/prompt"
 	"github.com/logrusorgru/aurora"
 
-	// "github.com/prysmaticlabs/prysm/v4/io/file"
 	"github.com/spf13/cobra"
 )
 
