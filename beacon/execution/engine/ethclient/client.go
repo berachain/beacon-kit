@@ -144,7 +144,6 @@ func (s *Eth1Client) dialExecutionRPCClient() error {
 
 	// Check for an error when dialing the execution client.
 	if err != nil {
-		s.logger.Error("could not dial execution client", "error", err)
 		return err
 	}
 
