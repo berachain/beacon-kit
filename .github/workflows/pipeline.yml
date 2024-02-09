@@ -41,6 +41,7 @@ jobs:
       matrix:
         args: ["build", "lint", "gosec", "test-unit-cover", "test-unit-fuzz"]
         os: [ubuntu-latest-large]
+    name: ${{ matrix.args }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
