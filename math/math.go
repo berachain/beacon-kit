@@ -23,46 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package interfaces
+package math
 
 import (
-	"time"
-
-	ssz "github.com/prysmaticlabs/fastssz"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/holiman/uint256"
 )
 
-// ExecutionData is the interface for the execution data of a block.
-type ExecutionData = interfaces.ExecutionData
+// GweiPerEth is the number of Gwei in an Eth.
+const GweiPerEth = 1e9
 
-// BeaconKitBlock is the interface for a beacon block.
-type BeaconKitBlock interface {
-	ReadOnlyBeaconKitBlock
-	WriteOnlyBeaconKitBlock
+type (
+	// Wei is the smallest unit of Ether, represented as a pointer to a Uint256.
+	Wei = *uint256.Int
+	// Gwei is a denomination of 1e9 Wei represented as an uint64.
+	Gwei uint64
+)
+
+// BytesToWei converts a byte slice to a Wei.
+func BytesToWei(v []byte) Wei {
+	return uint256.NewInt(0).SetBytes(v)
 }
 
-// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconKitBlock interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	// Execution returns the execution data of the block.
-	Execution() (interfaces.ExecutionData, error)
-	Version() int
+// WeiToBytes converts a Wei to a byte slice.
+func WeiToBytes(v Wei) []byte {
+	return v.Bytes()
 }
 
-// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(interfaces.ExecutionData) error
-}
-
-// ABCIRequest is the interface for an ABCI request.
-type ABCIRequest interface {
-	GetHeight() int64
-	GetTime() time.Time
-	GetTxs() [][]byte
+// WeiToGwei converts Wei to uint64 gwei.
+// The input `v` is copied before being modified.
+func WeiToGwei(v Wei) Gwei {
+	if v == nil {
+		return 0
+	}
+	copied := new(uint256.Int).Set(v)
+	copied.Div(copied, uint256.NewInt(GweiPerEth))
+	return Gwei(copied.Uint64())
 }

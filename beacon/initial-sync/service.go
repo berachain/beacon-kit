@@ -30,10 +30,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // Service is responsible for tracking the synchornization status

@@ -28,5 +28,7 @@ package execution
 import "errors"
 
 var (
-	ErrExecutionClientDisconnected = errors.New("execution client disconnected")
+	ErrExecutionClientDisconnected  = errors.New("execution client disconnected")
+	ErrAcceptedSyncingPayloadStatus = errors.New("payload status is SYNCING or ACCEPTED")
+	ErrInvalidPayloadStatus         = errors.New("payload status is INVALID")
 )

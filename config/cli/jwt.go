@@ -29,7 +29,7 @@ import (
 	"errors"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/prysm/v4/crypto/rand"
 	"github.com/prysmaticlabs/prysm/v4/io/file"
 	"github.com/spf13/cobra"

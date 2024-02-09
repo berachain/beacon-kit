@@ -23,20 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+package hexutil
 
-import "errors"
+import "github.com/ethereum/go-ethereum/common/hexutil"
+
+type (
+	Bytes = hexutil.Bytes
+)
 
 var (
-	// ErrNoBeaconBlockInProposal is an error for when
-	// there is no beacon block in a proposal.
-	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
-
-	// ErrBzIndexOutOfBounds is an error for when the index
-	// is out of bounds.
-	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
-
-	// ErrInvalidExecutionValue is an error for when the
-	// execution value is invalid.
-	ErrInvalidExecutionValue = errors.New("invalid execution value")
+	Encode     = hexutil.Encode
+	Decode     = hexutil.Decode
+	MustDecode = hexutil.MustDecode
 )

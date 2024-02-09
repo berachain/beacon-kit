@@ -23,37 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package version
 
-import (
-	"fmt"
-
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+const (
+	Phase0 = iota
+	Altair
+	Bellatrix
+	Capella
+	Deneb
 )
-
-func (s *Service) getEmptyBlock(slot primitives.Slot) (interfaces.BeaconKitBlock, error) {
-	var (
-		sBlk interfaces.BeaconKitBlock
-		err  error
-		fork = s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
-	)
-
-	switch fork {
-	case version.Deneb:
-		// TODO: SUPPORT
-		panic("ERROR: deneb fork is not yet supported in beacon-kit.")
-	case version.Capella:
-		// TODO: generalize the beacon kit block building using a factory pattern.
-		sBlk, err = consensusv1.NewBeaconKitBlock(slot, nil, version.Capella)
-		if err != nil {
-			return nil, fmt.Errorf("could not initialize block for proposal: %w", err)
-		}
-	default:
-		err = fmt.Errorf(
-			"unknown fork version %d for slot %d", fork, slot)
-	}
-	return sBlk, err
-}

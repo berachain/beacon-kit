@@ -29,13 +29,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // Service is responsible for delivering beacon chain notifications to
@@ -90,9 +90,11 @@ func (s *Service) NotifyForkchoiceUpdate(
 	var err error
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
 		err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
-	})
+	}); e != nil {
+		return e
+	}
 
 	return err
 }
@@ -101,7 +103,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.PayloadID(
+	payloadID, found := s.payloadCache.Get(
 		slot, headHash,
 	)
 	if !found {

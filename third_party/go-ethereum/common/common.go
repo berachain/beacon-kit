@@ -23,26 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+package common
 
-import "ethereum/engine/v1/execution_engine.proto";
-import "ethereum/eth/ext/options.proto";
+import "github.com/ethereum/go-ethereum/common"
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
+type (
+	Address = common.Address
+	Hash    = common.Hash
+)
 
-// BeaconBlockBody represents the body of a beacon block.
-message BeaconBlockBody {
-  // The validators RANDAO reveal 96 byte value.
-  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
+var (
+	BytesToAddress = common.BytesToAddress
+)
 
-  // 32 byte field of arbitrary data. This field may contain any data and
-  // is not used for anything other than a fun message.
-  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
-
-  // TODO: DEPRECATE WHEN WE BREAK OUT INTO MULTIPLE MESSAGES PER FORK.
-  bytes version = 3 [(ethereum.eth.ext.ssz_size) = "4"];
-
-  // Execution payload from the execution chain. New in Bellatrix network upgrade.
-  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
-}
+var (
+	IsHexAddress = common.IsHexAddress
+	HexToAddress = common.HexToAddress
+	HexToHash    = common.HexToHash
+	FromHex      = common.FromHex
+	BytesToHash  = common.BytesToHash
+)

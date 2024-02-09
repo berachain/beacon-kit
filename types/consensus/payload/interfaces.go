@@ -23,14 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+package payload
 
-import (
-	github_com_prysmaticlabs_prysm_v4_math "github.com/prysmaticlabs/prysm/v4/math"
-)
+import enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 
-type (
-	// Wei is from github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Wei
-	// We have to do this to keep `sszgen` happy.
-	Wei = github_com_prysmaticlabs_prysm_v4_math.Wei
-)
+type Attributer interface {
+	Version() int
+	PrevRandao() []byte
+	Timestamps() uint64
+	SuggestedFeeRecipient() []byte
+	Withdrawals() ([]*enginev1.Withdrawal, error)
+	PbV2() (*enginev1.PayloadAttributesV2, error)
+	PbV3() (*enginev1.PayloadAttributesV3, error)
+	IsEmpty() bool
+}

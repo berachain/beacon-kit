@@ -28,8 +28,9 @@ package validator
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/blocks"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // BuildBeaconBlock builds a new beacon block.
@@ -44,10 +45,13 @@ func (s *Service) BuildBeaconBlock(
 	var (
 		beaconState   = s.BeaconState(ctx)
 		executionData interfaces.ExecutionData
+		slot          = beaconState.Slot()
 	)
 
 	// Create a new empty block from the current state.
-	beaconBlock, err := s.getEmptyBlock(beaconState.Slot())
+	beaconBlock, err := blocks.NewEmptyBeaconKitBlock(
+		slot, s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+	)
 	if err != nil {
 		return nil, err
 	}

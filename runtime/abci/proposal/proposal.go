@@ -29,14 +29,14 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/config"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/blocks"
 	"github.com/itsdevbear/bolaris/validator"
 )
 
@@ -112,9 +112,14 @@ func (h *Handler) ProcessProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
-	// Extract the beacon kit block from the proposal and unmarshal it.
-	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
+	// Extract the beacon block from the ABCI request.
+	//
+	// TODO: I don't love how we have to use the BeaconConfig here.
+	// TODO: Block factory struct?
+	// TODO: Use protobuf and .(type)?
+	block, err := blocks.ReadOnlyBeaconKitBlockFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
+		h.beaconChain.BeaconCfg().ActiveForkVersion(primitives.Epoch(req.Height)),
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
