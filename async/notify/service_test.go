@@ -77,7 +77,9 @@ func TestDispatch(t *testing.T) {
 	}
 
 	// Start the service
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	service.Start(ctx)
 	// Use a channel to wait for the event to be received
 	eventReceived := make(chan struct{})
@@ -118,5 +120,4 @@ func TestDispatch(t *testing.T) {
 	if handler.receivedEvents[0] != event {
 		t.Fatalf("Expected event %v, got %v", event, handler.receivedEvents[0])
 	}
-	<-ctx.Done()
 }
