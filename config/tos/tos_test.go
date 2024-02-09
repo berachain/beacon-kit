@@ -28,7 +28,6 @@ package tos_test
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,19 +36,16 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	file "github.com/itsdevbear/bolaris/config"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/config/tos"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 )
 
-const acceptTosFilename = "tosaccepted"
-
-var (
-	declinedErrorString          = "you have to accept Terms and Conditions in order to continue"
-	acceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
-non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
-terms and conditions here:`
+const (
+	acceptTosFilename   = "tosaccepted"
+	declinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 
 func expectTosAcceptSuccess(t *testing.T, homeDir string) {
@@ -78,9 +74,9 @@ func TestAcceptTosFlag(t *testing.T) {
 	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
-		fmt.Sprintf("--%s", flags.FlagHome),
+		"--" + flags.FlagHome,
 		homeDir,
-		fmt.Sprintf("--%s", beaconflags.BeaconKitAcceptTos),
+		"--" + beaconflags.BeaconKitAcceptTos,
 	})
 
 	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
@@ -103,7 +99,7 @@ func TestAcceptWithCLI(t *testing.T) {
 	// rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
-		fmt.Sprintf("--%s", flags.FlagHome),
+		"--" + flags.FlagHome,
 		homeDir,
 	})
 	rootCmd.SetIn(inputBuffer)
@@ -125,7 +121,7 @@ func TestDeclineWithCLI(t *testing.T) {
 	rootCmd := root.NewRootCmd()
 	rootCmd.SetArgs([]string{
 		"query",
-		fmt.Sprintf("--%s", flags.FlagHome),
+		"--" + flags.FlagHome,
 		homeDir,
 	})
 	rootCmd.SetIn(inputBuffer)
@@ -141,7 +137,7 @@ func TestDeclineWithCLI(t *testing.T) {
 
 type ErrReader struct{}
 
-func (e *ErrReader) Read(p []byte) (n int, err error) {
+func (e *ErrReader) Read(p []byte) (int, error) {
 	return 0, errors.New("forced error in scanner")
 }
 func TestDeclineWithNonInteractiveCLI(t *testing.T) {
@@ -153,7 +149,7 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	rootCmd := root.NewRootCmd()
 	rootCmd.SetArgs([]string{
 		"query",
-		fmt.Sprintf("--%s", flags.FlagHome),
+		"--" + flags.FlagHome,
 		homeDir,
 	})
 	rootCmd.SetIn(&ErrReader{})
@@ -162,7 +158,8 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	if !strings.Contains(err.Error(), acceptTosPromptErrTextFormat) {
-		t.Errorf("Expected %v, got %v", acceptTosPromptErrTextFormat, err)
+
+	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
+		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText(""), err)
 	}
 }

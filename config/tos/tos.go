@@ -55,7 +55,7 @@ TERMS AND CONDITIONS: %s
 
 Type "accept" to accept these terms and conditions [accept/decline]:`
 	// acceptTosPromptErrTextFormat is the the error prompt text for accepting the terms of use.
-	acceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
+	AcceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
 non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
 terms and conditions here: 
 %s`
@@ -70,7 +70,7 @@ func BuildTosPromptText(appName, tosLink string) string {
 // BuildErrorPromptText builds the prompt text for accepting the terms of use.
 func BuildErrorPromptText(tosLink string) string {
 	return aurora.NewAurora(true).
-		Sprintf(acceptTosPromptErrTextFormat, tosLink)
+		Sprintf(AcceptTosPromptErrTextFormat, tosLink)
 }
 
 // VerifyTosAcceptedOrPrompt checks if Tos was accepted before or asks to accept.
