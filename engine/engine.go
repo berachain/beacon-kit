@@ -31,17 +31,20 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/itsdevbear/bolaris/config"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
+
 	"github.com/pkg/errors"
+
 	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
 // Caller is implemented by engineClient.
