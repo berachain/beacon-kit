@@ -26,6 +26,7 @@ contract BeaconRootsContractTest is SoladyTest {
         setStorage(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
     }
 
+    /// @dev Set the storage of the BeaconRootsContract by calling from the SYSTEM_ADDRESS.
     function setStorage(uint256 startBlock, uint256 startTimestamp, uint256 length)
         internal
         returns (
@@ -45,7 +46,7 @@ contract BeaconRootsContractTest is SoladyTest {
             timestamps[i] = startTimestamp + i * BLOCK_INTERVAL
             // a random number between 1 and BLOCK_INTERVAL such that the timestamp is ever increasing
             + FixedPointMathLib.min(1, FixedPointMathLib.fullMulDiv(_random(), BLOCK_INTERVAL, type(uint256).max));
-            _timestamps[i] = timestamps[i];
+            _timestamps[i % HISTORY_BUFFER_LENGTH] = timestamps[i];
             beaconRoots[i] = bytes32(_random());
             coinbases[i] = _randomNonZeroAddress();
             vm.roll(blockNumbers[i]);
@@ -63,23 +64,34 @@ contract BeaconRootsContractTest is SoladyTest {
     }
 
     function validateBeaconRoots(uint256[] memory timestamps, bytes32[] memory beaconRoots) internal {
-        for (uint256 i; i < timestamps.length; ++i) {
+        // loop over the last `HISTORY_BUFFER_LENGTH` indices
+        uint256 i = timestamps.length - 1;
+        for (uint256 j; j < HISTORY_BUFFER_LENGTH; ++j) {
             (bool success, bytes memory data) = callGet(timestamps[i]);
             assertTrue(success, "get: failed");
             assertEq(data.length, 32, "get: invalid length");
             assertEq(bytes32(data), beaconRoots[i], "get: invalid beacon root");
+            if (i == 0) {
+                break;
+            }
+            --i;
         }
     }
 
+    /// @dev Test the timestamps, beacon roots, and coinbases are stored correctly in the circular buffers.
     function test_Set() public {
-        testFuzz_Set(0, 0);
+        testFuzz_Set(0, 0, HISTORY_BUFFER_LENGTH);
     }
 
-    /// @dev Test the timestamps, beacon roots, and coinbases are stored correctly in the circular buffers.
-    function testFuzz_Set(uint64 startBlock, uint32 startTimestamp) public {
+    /// @dev Fuzzing test the timestamps, beacon roots, and coinbases are stored correctly in the circular buffers.
+    function testFuzz_Set(uint64 startBlock, uint32 startTimestamp, uint256 length) public {
+        // may wrap around the circular buffer
+        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots, address[] memory coinbases) =
-            setStorage(startBlock, startTimestamp, HISTORY_BUFFER_LENGTH);
-        for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
+            setStorage(startBlock, startTimestamp, length);
+        // loop over the last `HISTORY_BUFFER_LENGTH` indices
+        uint256 i = length - 1;
+        for (uint256 j; j < HISTORY_BUFFER_LENGTH; ++j) {
             uint256 blockIdx = (startBlock + i) % HISTORY_BUFFER_LENGTH;
             bytes32 data = vm.load(address(beaconRootsContract), bytes32(blockIdx));
             assertEq(uint256(data), timestamps[i], "set: invalid timestamp");
@@ -87,14 +99,25 @@ contract BeaconRootsContractTest is SoladyTest {
             assertEq(data, beaconRoots[i], "set: invalid beacon root");
             data = vm.load(address(beaconRootsContract), bytes32(blockIdx + COINBASE_OFFSET));
             assertEq(uint256(data), uint160(coinbases[i]), "set: invalid coinbase");
+            if (i == 0) {
+                break;
+            }
+            --i;
         }
     }
 
+    /// @dev Test the beacon root is retrieved correctly from the circular buffer.
     function test_Get() public {
         (bool success, bytes memory data) = callGet(block.timestamp);
         assertTrue(success, "get: failed");
         assertEq(data.length, 32, "get: invalid length");
         assertEq(bytes32(data), beaconRoot, "get: invalid beacon root");
+    }
+
+    function test_InvalidCalldataLength() public {
+        bytes memory data = abi.encode(block.timestamp);
+        (bool success,) = address(beaconRootsContract).call(bytes.concat(data, data));
+        assertFalse(success, "get: found invalid calldata length");
     }
 
     function test_GetOutOfRangeTimestamp() public {
@@ -111,27 +134,40 @@ contract BeaconRootsContractTest is SoladyTest {
         assertFalse(success, "get: found invalid timestamp");
     }
 
-    function testFuzz_Get(uint64 startBlock, uint32 startTimestamp) public {
+    /// @dev Fuzzing test the beacon root is retrieved correctly from the circular buffer.
+    function testFuzz_Get(uint64 startBlock, uint32 startTimestamp, uint256 length) public {
         vm.assume(startTimestamp > 0);
-        (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
-            setStorage(startBlock, startTimestamp, HISTORY_BUFFER_LENGTH);
+        // may wrap around the circular buffer
+        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
+        beaconRootsContract = new BeaconRootsContract();
+        (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) = setStorage(startBlock, startTimestamp, length);
         // The timestamp encoded in the calldata may be in the past.
         // But the block number and timestamp in the EVM must be the latest.
         validateBeaconRoots(timestamps, beaconRoots);
     }
 
-    function testFuzz_GetCoinbase(uint64 startBlock, uint32 startTimestamp) public {
+    /// @dev Fuzzing test the coinbase is retrieved correctly from the circular buffer.
+    function testFuzz_GetCoinbase(uint64 startBlock, uint32 startTimestamp, uint256 length) public {
         vm.assume(startTimestamp > 0);
-        (uint256[] memory blockNumbers,,, address[] memory coinbases) =
-            setStorage(startBlock, startTimestamp, HISTORY_BUFFER_LENGTH);
-        for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
+        // may wrap around the circular buffer
+        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
+        beaconRootsContract = new BeaconRootsContract();
+        (uint256[] memory blockNumbers,,, address[] memory coinbases) = setStorage(startBlock, startTimestamp, length);
+        // loop over the last `HISTORY_BUFFER_LENGTH` indices
+        uint256 i = length - 1;
+        for (uint256 j; j < HISTORY_BUFFER_LENGTH; ++j) {
             (bool success, bytes memory data) =
                 address(beaconRootsContract).call(abi.encodeWithSelector(GET_COINBASE_SELECTOR, blockNumbers[i]));
             assertTrue(success, "getCoinbase: failed");
             assertEq(uint256(bytes32(data)), uint160(coinbases[i]), "get: invalid coinbase");
+            if (i == 0) {
+                break;
+            }
+            --i;
         }
     }
 
+    /// @dev Fuzzing test the beacon root is retrieved correctly from a partially initialized buffer.
     function testFuzz_PartiallyInitializedBuffer(uint256 length) public {
         beaconRootsContract = new BeaconRootsContract();
         length = _bound(length, 1, HISTORY_BUFFER_LENGTH - 1);

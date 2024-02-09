@@ -39,11 +39,11 @@ contract BeaconRootsContract {
     ///       block number, the function will return the coinbase for the given block number.
     fallback() external {
         if (msg.sender != SYSTEM_ADDRESS) {
-            if (bytes4(msg.data) != GET_COINBASE_SELECTOR) {
+            if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
+                getCoinbase(uint256(bytes32(msg.data[4:36])));
+            } else {
                 // if the first 32 bytes is a timestamp, the first 4 bytes must be 0
                 get();
-            } else {
-                getCoinbase(uint256(bytes32(msg.data[4:36])));
             }
         } else {
             set();
