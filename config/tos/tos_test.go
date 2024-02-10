@@ -64,9 +64,6 @@ func makeTempDir(t *testing.T) string {
 }
 
 func TestAcceptTosFlag(t *testing.T) {
-	stdout := os.Stdout
-	defer func() { os.Stdout = stdout }()
-	os.Stdout = os.NewFile(0, os.DevNull)
 	homeDir := makeTempDir(t)
 	defer os.RemoveAll(homeDir)
 
@@ -88,15 +85,12 @@ func TestAcceptTosFlag(t *testing.T) {
 }
 
 func TestAcceptWithCLI(t *testing.T) {
-	stdout := os.Stdout
-	defer func() { os.Stdout = stdout }()
-	// os.Stdout = os.NewFile(0, os.DevNull)
 	homeDir := makeTempDir(t)
 	t.Log("homeDir: ", homeDir)
 
 	inputBuffer := bytes.NewReader([]byte("accept\n"))
 	rootCmd := root.NewRootCmd()
-	// rootCmd.SetOut(os.NewFile(0, os.DevNull))
+	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
 		"--" + flags.FlagHome,
@@ -112,8 +106,6 @@ func TestAcceptWithCLI(t *testing.T) {
 }
 
 func TestDeclineWithCLI(t *testing.T) {
-	stdout := os.Stdout
-	defer func() { os.Stdout = stdout }()
 	homeDir := makeTempDir(t)
 	t.Log("homeDir: ", homeDir)
 
