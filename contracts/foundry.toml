@@ -1,17 +1,39 @@
+# Full reference https://github.com/foundry-rs/foundry/tree/master/crates/config
 [profile.default]
-fuzz_runs = 1024
-ignored_error_codes = [1878, 5574]
-evm_version = 'shanghai'
-solc_version = '0.8.24'
-cache = true
-force = false
-optimizer = false
-remappings = [
+  auto_detect_solc = false
+  solc_version = '0.8.24'
+  evm_version = "shanghai"
+  fuzz = { runs = 1024 }
+  gas_reports = ["*"]
+  cache=true
+  optimizer = true
+  optimizer_runs = 10_000
+  out = "out"
+  script = "script"
+  solc = "0.8.24"
+  src = "src"
+  test = "test"
+  remappings = [
     '@solmate/=lib/solmate/src/',
     '@forge-std/=lib/forge-std/src/',
     '@interfaces/=interfaces/',
     '@src/=src/',
-]
+  ]
+  verbosity = 3
 
 [profile.ci]
-fuzz_runs = 8192
+  fuzz = { runs = 8192 }
+  verbosity = 4
+
+[fmt]
+  bracket_spacing = true
+  int_types = "long"
+  line_length = 99
+  multiline_func_header = "all"
+  number_underscore = "thousands"
+  quote_style = "double"
+  tab_width = 4
+  wrap_comments = true
+
+[rpc_endpoints]
+  localhost = "http://localhost:8545"
