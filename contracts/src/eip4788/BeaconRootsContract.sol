@@ -107,7 +107,7 @@ contract BeaconRootsContract {
             sstore(block_idx, timestamp())
             // set the current block number in the mapping
             mstore(0, timestamp())
-            mstore(0x20, _blockNumbers.slot)
+            // 0x20 is already set
             sstore(keccak256(0, 0x40), number())
             // set the beacon root
             let root_idx := add(block_idx, _beaconRoots.slot)
