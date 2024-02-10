@@ -40,6 +40,12 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
+<<<<<<< Updated upstream
+=======
+	"github.com/itsdevbear/bolaris/engine"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	"github.com/itsdevbear/bolaris/io/jwt"
+>>>>>>> Stashed changes
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/validator"
 )
@@ -79,7 +85,7 @@ func NewDefaultBeaconKitRuntime(
 	ctx context.Context, cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Get JWT Secret for eth1 connection.
-	jwtSecret, err := eth.LoadJWTSecret(cfg.Engine.JWTSecretPath, logger)
+	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
 	if err != nil {
 		return nil, err
 	}

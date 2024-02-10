@@ -26,6 +26,7 @@
 package eth
 
 import (
+<<<<<<< Updated upstream:beacon/execution/engine/ethclient/utils.go
 	"fmt"
 	"os"
 	"strings"
@@ -57,4 +58,33 @@ func LoadJWTSecret(filepath string, logger log.Logger) ([jwtLength]byte, error) 
 
 	logger.Info("loaded execution client jwt secret file", "path", filepath, "crc32")
 	return [jwtLength]byte(jwtSecret), nil
+=======
+	"context"
+	"net/http"
+
+	"github.com/ethereum/go-ethereum/node"
+)
+
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
+	for {
+		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
+	}
+}
+
+// buildHeaders creates the headers for the execution client.
+func (s *Eth1Client) buildHeaders() (http.Header, error) {
+	var (
+		headers        = http.Header{}
+		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
+	)
+
+	// Authenticate the execution node JSON-RPC endpoint.
+	if err := jwtAuthHandler(headers); err != nil {
+		return nil, err
+	}
+
+	// Add additional headers if provided.
+	return headers, nil
+>>>>>>> Stashed changes:engine/ethclient/jwt.go
 }
