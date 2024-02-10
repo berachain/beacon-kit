@@ -1334,12 +1334,3 @@ func PayloadValueToWei(value []byte) math.Wei {
 	// TODO: does this need to be flipped still with the new library?
 	return uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
 }
-
-// PayloadValueToGwei returns a Gwei value given the payload's value.
-func PayloadValueToGwei(value []byte) math.Gwei {
-	// We have to convert big endian to little endian because the value is coming
-	// from the execution layer.
-	// TODO: does this need to be flipped still with the new library?
-	v := uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
-	return math.WeiToGwei(v)
-}
