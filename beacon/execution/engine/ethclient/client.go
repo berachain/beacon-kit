@@ -37,11 +37,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
-)
-
-const (
-	// jwtLength is the length of the JWT token.
-	jwtLength = 32
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
@@ -52,7 +48,7 @@ type Eth1Client struct {
 
 	connectedETH1        atomic.Bool
 	chainID              uint64
-	jwtSecret            [32]byte
+	jwtSecret            jwt.Secret
 	startupRetryInterval time.Duration
 	jwtRefreshInterval   time.Duration
 	healthCheckInterval  time.Duration
