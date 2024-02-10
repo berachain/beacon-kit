@@ -52,11 +52,17 @@ func NewFromFile(filepath string) (Secret, error) {
 		// Return an error if the file cannot be read.
 		return [EthereumJWTLength]byte{}, err
 	}
-	return NewFromHex(string(data))
+	return NewFromHex(strings.TrimSpace(string(data)))
 }
 
 // NewFromHex converts a byte array to a JWT secret.
 func NewFromHex(hexStr string) (Secret, error) {
+	// Ensure the hex string contains only hexadecimal characters.
+	if !HexRegexp.MatchString(hexStr) {
+		return [EthereumJWTLength]byte{}, ErrContainsIllegalCharacter
+	}
+
+	// Convert the hex string to a byte array.
 	bz := common.FromHex(hexStr)
 	if bz == nil || len(bz) != EthereumJWTLength {
 		return [EthereumJWTLength]byte{}, ErrLengthMismatch
@@ -65,8 +71,8 @@ func NewFromHex(hexStr string) (Secret, error) {
 	return Secret(bz), nil
 }
 
-// Validate checks if the JWT secret is valid by ensuring it meets the expected length
-// and contains only hexadecimal characters.
+// String returns the JWT secret as a string with the first 8 characters
+// visible and the rest masked out for security.
 func (s Secret) String() string {
 	secret := hexutil.Encode(s[:])
 	return secret[:8] + strings.Repeat("*", len(secret[8:]))

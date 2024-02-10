@@ -40,12 +40,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
-<<<<<<< Updated upstream
-=======
-	"github.com/itsdevbear/bolaris/engine"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
->>>>>>> Stashed changes
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/validator"
 )
