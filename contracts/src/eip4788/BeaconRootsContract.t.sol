@@ -94,12 +94,15 @@ contract BeaconRootsContractTest is SoladyTest {
     /// @dev Test the timestamps, beacon roots, and coinbases are stored correctly in the circular
     /// buffers.
     function test_Set() public {
-        testFuzz_Set(0, 0, HISTORY_BUFFER_LENGTH);
+        testFuzz_Set(0, 1, HISTORY_BUFFER_LENGTH);
     }
 
     /// @dev Fuzzing test the timestamps, beacon roots, and coinbases are stored correctly in the
     /// circular buffers.
     function testFuzz_Set(uint64 startBlock, uint32 startTimestamp, uint256 length) public {
+        vm.assume(startTimestamp > 0);
+        // deploy a new one to get a fresh storage
+        beaconRootsContract = new BeaconRootsContract();
         // may wrap around the circular buffer
         length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots, address[] memory coinbases) =
@@ -161,6 +164,7 @@ contract BeaconRootsContractTest is SoladyTest {
         vm.assume(startTimestamp > 0);
         // may wrap around the circular buffer
         length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
+        // deploy a new one to get a fresh storage
         beaconRootsContract = new BeaconRootsContract();
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
             setStorage(startBlock, startTimestamp, length);
@@ -180,6 +184,7 @@ contract BeaconRootsContractTest is SoladyTest {
         vm.assume(startTimestamp > 0);
         // may wrap around the circular buffer
         length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
+        // deploy a new one to get a fresh storage
         beaconRootsContract = new BeaconRootsContract();
         (uint256[] memory blockNumbers,,, address[] memory coinbases) =
             setStorage(startBlock, startTimestamp, length);
@@ -201,6 +206,7 @@ contract BeaconRootsContractTest is SoladyTest {
     /// @dev Fuzzing test the beacon root is retrieved correctly from a partially initialized
     /// buffer.
     function testFuzz_PartiallyInitializedBuffer(uint256 length) public {
+        // deploy a new one to get a fresh storage
         beaconRootsContract = new BeaconRootsContract();
         length = _bound(length, 1, HISTORY_BUFFER_LENGTH - 1);
         // The block number starts from 1.
