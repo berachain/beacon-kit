@@ -55,7 +55,7 @@ func NewFromFile(filepath string) (Secret, error) {
 	return NewFromHex(strings.TrimSpace(string(data)))
 }
 
-// NewFromHex converts a byte array to a JWT secret.
+// NewFromHex creates a new JWT secret from a hexadecimal string.
 func NewFromHex(hexStr string) (Secret, error) {
 	// Ensure the hex string contains only hexadecimal characters.
 	if !HexRegexp.MatchString(hexStr) {
