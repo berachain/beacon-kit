@@ -14,10 +14,12 @@ contract BeaconRootsContract {
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev HISTORY_BUFFER_LENGTH is the length of the circular buffer for storing beacon roots and coinbases.
+    /// @dev HISTORY_BUFFER_LENGTH is the length of the circular buffer for storing beacon roots
+    /// and coinbases.
     uint256 private constant HISTORY_BUFFER_LENGTH = 256;
 
-    /// @dev SYSTEM_ADDRESS is the address that is allowed to call the set function as defined in EIP-4788.
+    /// @dev SYSTEM_ADDRESS is the address that is allowed to call the set function as defined in
+    /// EIP-4788.
     address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
 
     /// @dev The selector for "getCoinbase(uint256)".
@@ -44,10 +46,13 @@ contract BeaconRootsContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice Conforming to EIP-4788, this contract follows two execution paths:
-    /// 1. If it is called by the SYSTEM_ADDRESS, the calldata is the 32-byte encoded beacon block root.
+    /// 1. If it is called by the SYSTEM_ADDRESS, the calldata is the 32-byte encoded beacon block
+    /// root.
     /// 2. If it is called by any other address, there are two possible scenarios:
-    ///    a. If the calldata is the 32-byte encoded timestamp, the function will return the beacon block root.
-    ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)" appended with the 32-byte encoded
+    ///    a. If the calldata is the 32-byte encoded timestamp, the function will return the beacon
+    /// block root.
+    ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)" appended with the
+    /// 32-byte encoded
     ///       block number, the function will return the coinbase for the given block number.
     fallback() external {
         if (msg.sender != SYSTEM_ADDRESS) {
@@ -92,7 +97,8 @@ contract BeaconRootsContract {
     function set() internal {
         assembly ("memory-safe") {
             let block_idx := mod(number(), HISTORY_BUFFER_LENGTH)
-            // clean the key in the mapping for the stale timestamp in the block index to be overridden
+            // clean the key in the mapping for the stale timestamp in the block index to be
+            // overridden
             let stale_timestamp := sload(block_idx)
             mstore(0, stale_timestamp)
             mstore(0x20, _blockNumbers.slot)
