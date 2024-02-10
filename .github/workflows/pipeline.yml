@@ -25,6 +25,9 @@
 
 name: pipeline
 
+env:
+  FOUNDRY_PROFILE: "ci"
+
 on:
   pull_request:
   merge_group:
