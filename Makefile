@@ -196,7 +196,7 @@ test-unit-fuzz:
 
 forge-test:
 	@echo "Running forge test..."
-	@forge test --root $(CONTRACTS_DIR)
+	@cd $(CONTRACTS_DIR) && forge test
 
 #################
 #      e2e      #
