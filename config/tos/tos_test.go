@@ -48,21 +48,6 @@ const (
 	declinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 
-func expectTosAcceptSuccess(t *testing.T, homeDir string) {
-	if ok := file.Exists(filepath.Join(homeDir, acceptTosFilename)); !ok {
-		t.Errorf("Expected tosaccepted file to exist in %s", homeDir)
-	}
-}
-
-func makeTempDir(t *testing.T) string {
-	homeDir, err := os.MkdirTemp("", "beacond-test-*")
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
-	t.Log("homeDir: ", homeDir)
-	return homeDir
-}
-
 func TestAcceptTosFlag(t *testing.T) {
 	homeDir := makeTempDir(t)
 	defer os.RemoveAll(homeDir)
@@ -91,12 +76,12 @@ func TestAcceptWithCLI(t *testing.T) {
 	inputBuffer := bytes.NewReader([]byte("accept\n"))
 	rootCmd := root.NewRootCmd()
 	rootCmd.SetOut(os.NewFile(0, os.DevNull))
+	rootCmd.SetIn(inputBuffer)
 	rootCmd.SetArgs([]string{
 		"query",
 		"--" + flags.FlagHome,
 		homeDir,
 	})
-	rootCmd.SetIn(inputBuffer)
 
 	if err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome); err != nil {
 		t.Errorf("Expected no error, got %v", err)
@@ -111,12 +96,13 @@ func TestDeclineWithCLI(t *testing.T) {
 
 	inputBuffer := bytes.NewReader([]byte("decline\n"))
 	rootCmd := root.NewRootCmd()
+	rootCmd.SetOut(os.NewFile(0, os.DevNull))
+	rootCmd.SetIn(inputBuffer)
 	rootCmd.SetArgs([]string{
 		"query",
 		"--" + flags.FlagHome,
 		homeDir,
 	})
-	rootCmd.SetIn(inputBuffer)
 
 	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
 	if err == nil {
@@ -127,24 +113,18 @@ func TestDeclineWithCLI(t *testing.T) {
 	}
 }
 
-type ErrReader struct{}
-
-func (e *ErrReader) Read(p []byte) (int, error) {
-	return 0, errors.New("forced error in scanner")
-}
 func TestDeclineWithNonInteractiveCLI(t *testing.T) {
-	stdout := os.Stdout
-	defer func() { os.Stdout = stdout }()
 	homeDir := makeTempDir(t)
 	t.Log("homeDir: ", homeDir)
 
 	rootCmd := root.NewRootCmd()
+	rootCmd.SetIn(&ErrReader{})
+	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
 		"--" + flags.FlagHome,
 		homeDir,
 	})
-	rootCmd.SetIn(&ErrReader{})
 
 	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
 	if err == nil {
@@ -154,4 +134,25 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
 		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText(""), err)
 	}
+}
+
+type ErrReader struct{}
+
+func (e *ErrReader) Read(p []byte) (int, error) {
+	return 0, errors.New("forced error in scanner")
+}
+
+func expectTosAcceptSuccess(t *testing.T, homeDir string) {
+	if ok := file.Exists(filepath.Join(homeDir, acceptTosFilename)); !ok {
+		t.Errorf("Expected tosaccepted file to exist in %s", homeDir)
+	}
+}
+
+func makeTempDir(t *testing.T) string {
+	homeDir, err := os.MkdirTemp("", "beacond-test-*")
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+	t.Log("homeDir: ", homeDir)
+	return homeDir
 }
