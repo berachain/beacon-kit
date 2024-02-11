@@ -33,6 +33,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -64,7 +65,7 @@ func (s *Service) getLocalPayload(
 	}
 
 	// If we have a payload ID in the cache, we can return the payload from the cache.
-	payloadID, ok := s.payloadCache.Get(slot, [32]byte(parentEth1Hash))
+	payloadID, ok := s.payloadCache.Get(slot, parentEth1Hash)
 	if ok && (payloadID != primitives.PayloadID{}) {
 		var (
 			pidCpy          primitives.PayloadID
@@ -97,7 +98,7 @@ func (s *Service) getLocalPayload(
 
 	// Build the forkchoice state.
 	f := &enginev1.ForkchoiceState{
-		HeadBlockHash:      parentEth1Hash,
+		HeadBlockHash:      parentEth1Hash.Bytes(),
 		SafeBlockHash:      s.BeaconState(ctx).GetSafeEth1BlockHash().Bytes(),
 		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
 	}
@@ -143,13 +144,13 @@ func (s *Service) getLocalPayload(
 // getParentBlockHash retrieves the parent block hash for the given slot.
 //
 //nolint:unparam // todo: review this later.
-func (s *Service) getParentBlockHash(ctx context.Context) ([]byte, error) {
+func (s *Service) getParentBlockHash(ctx context.Context) (common.Hash, error) {
 	// The first slot should be proposed with the genesis block as parent.
 	st := s.BeaconState(ctx)
 	if st.Slot() == 1 {
-		return st.GenesisEth1Hash().Bytes(), nil
+		return st.GenesisEth1Hash(), nil
 	}
 
 	// We always want the parent block to be the last finalized block.
-	return st.GetFinalizedEth1BlockHash().Bytes(), nil
+	return st.GetFinalizedEth1BlockHash(), nil
 }
