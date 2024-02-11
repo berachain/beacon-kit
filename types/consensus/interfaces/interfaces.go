@@ -28,9 +28,10 @@ package interfaces
 import (
 	"time"
 
+	ssz "github.com/prysmaticlabs/fastssz"
+
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
