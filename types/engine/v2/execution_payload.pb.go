@@ -53,31 +53,31 @@ type ExecutionPayloadCapella struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The parent hash is the hash of the parent block.
+	// parent_hash is the hash of the parent block.
 	ParentHash []byte `protobuf:"bytes,1,opt,name=parent_hash,json=parentHash,proto3" json:"parent_hash,omitempty" ssz-size:"32"`
-	// The fee recipient is the address that will receive the transaction fees.
+	// fee_recipient is the address that will receive the transaction fees.
 	FeeRecipient []byte `protobuf:"bytes,2,opt,name=fee_recipient,json=feeRecipient,proto3" json:"fee_recipient,omitempty" ssz-size:"20"`
-	// The state root is the root of the state trie after processing the block.
+	// state_root is the root of the state trie after processing the block.
 	StateRoot []byte `protobuf:"bytes,3,opt,name=state_root,json=stateRoot,proto3" json:"state_root,omitempty" ssz-size:"32"`
-	// The receipts root is the root of the receipts trie for the block's transactions.
+	// receipts_root is the root of the receipts trie for the block's transactions.
 	ReceiptsRoot []byte `protobuf:"bytes,4,opt,name=receipts_root,json=receiptsRoot,proto3" json:"receipts_root,omitempty" ssz-size:"32"`
-	// The logs bloom is a bloom filter for the logs contained within the block.
+	// logs_bloom is a bloom filter for the logs contained within the block.
 	LogsBloom []byte `protobuf:"bytes,5,opt,name=logs_bloom,json=logsBloom,proto3" json:"logs_bloom,omitempty" ssz-size:"256"`
-	// The prev_randao is the RANDAO mix of the previous block.
+	// prev_randao is the RANDAO mix of the previous block.
 	PrevRandao []byte `protobuf:"bytes,6,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
-	// The block number is the height of the block in the blockchain.
+	// block_number is the height of the block in the blockchain.
 	BlockNumber uint64 `protobuf:"varint,7,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
-	// The gas limit is the maximum amount of gas allowed in this block.
+	// gas_limit is the maximum amount of gas allowed in this block.
 	GasLimit uint64 `protobuf:"varint,8,opt,name=gas_limit,json=gasLimit,proto3" json:"gas_limit,omitempty"`
-	// The gas used is the total amount of gas used by all transactions in this block.
+	// gas_used is the total amount of gas used by all transactions in this block.
 	GasUsed uint64 `protobuf:"varint,9,opt,name=gas_used,json=gasUsed,proto3" json:"gas_used,omitempty"`
-	// The timestamp is the Unix timestamp at which the block was proposed.
+	// timestamp is the Unix timestamp at which the block was proposed.
 	Timestamp uint64 `protobuf:"varint,10,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	// Extra data is arbitrary data included by the block proposer.
+	// extra_data is arbitrary data included by the block proposer.
 	ExtraData []byte `protobuf:"bytes,11,opt,name=extra_data,json=extraData,proto3" json:"extra_data,omitempty" ssz-max:"32"`
-	// The base fee per gas is the minimum fee per gas required for a transaction to be included in this block.
+	// base_fee_per_gas is the minimum fee per gas required for a transaction to be included in this block.
 	BaseFeePerGas []byte `protobuf:"bytes,12,opt,name=base_fee_per_gas,json=baseFeePerGas,proto3" json:"base_fee_per_gas,omitempty" ssz-size:"32"`
-	// The block hash is the hash of this block.
+	// block_hash is the hash of this block.
 	BlockHash []byte `protobuf:"bytes,13,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
 	// Transactions are the list of transactions included in the block.
 	Transactions [][]byte `protobuf:"bytes,14,rep,name=transactions,proto3" json:"transactions,omitempty" ssz-max:"1048576,1073741824" ssz-size:"?,?"`
