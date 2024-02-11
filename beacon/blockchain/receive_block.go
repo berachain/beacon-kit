@@ -31,7 +31,7 @@ import (
 	"errors"
 	"fmt"
 
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"golang.org/x/sync/errgroup"
 )

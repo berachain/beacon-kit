@@ -23,48 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package ethclient
 
 import (
-	"time"
+	"context"
 
-	"cosmossdk.io/log"
-
-	"github.com/itsdevbear/bolaris/config"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-// Option is a function type that takes a pointer to an engineClient and returns an error.
-type Option func(*engineClient) error
-
-// WithEth1Client is a function that returns an Option.
-func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineClient) error {
-		s.Eth1Client = eth1Client
-		return nil
-	}
+// GethRPCClient is an interface for the Geth RPC client.
+type GethRPCClient interface {
+	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
 }
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineClient) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *engineClient) error {
-		s.logger = logger.With("module", "beacon-kit.engine")
-		return nil
-	}
-}
-
-// WithEngineTimeout is an option to set the timeout for the engine.
-func WithEngineTimeout(engineTimeout time.Duration) Option {
-	return func(s *engineClient) error {
-		s.engineTimeout = engineTimeout
-		return nil
-	}
+// ForkchoiceUpdatedResponse is the response kind received by the
+// engine_forkchoiceUpdatedV1 endpoint.
+type ForkchoiceUpdatedResponse struct {
+	Status          *enginev1.PayloadStatus  `json:"payloadStatus"`
+	PayloadID       *enginev1.PayloadIDBytes `json:"payloadId"`
+	ValidationError string                   `json:"validationError"`
 }

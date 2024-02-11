@@ -31,7 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )
 
 // Option is a function that applies a specific configuration to the Processor.

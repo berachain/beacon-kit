@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package ethclient
 
 import (
 	"context"
@@ -73,7 +73,7 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 	// Construct the headers for the execution client.
 	// New headers must be constructed each time the client is dialed
 	// to periodically generate a new JWT token, as the existing one will eventually expire.
-	headers, err := s.buildHeaders()
+	headers, err := s.BuildHeaders()
 	if err != nil {
 		return err
 	}
@@ -95,6 +95,7 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 	}
 
 	s.Client = ethclient.NewClient(client)
+	s.GethRPCClient = client
 	return nil
 }
 

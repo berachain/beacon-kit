@@ -23,14 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package engine
 
-import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+import (
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+)
 
-// ForkchoiceUpdatedResponse is the response kind received by the
-// engine_forkchoiceUpdatedV1 endpoint.
-type ForkchoiceUpdatedResponse struct {
-	Status          *enginev1.PayloadStatus  `json:"payloadStatus"`
-	PayloadID       *enginev1.PayloadIDBytes `json:"payloadId"`
-	ValidationError string                   `json:"validationError"`
+// processPayloadStatusResult processes the payload status result and
+// returns the latest valid hash or an error.
+func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) {
+	switch result.GetStatus() {
+	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
+		return nil, eth.ErrInvalidBlockHashPayloadStatus
+	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
+		return nil, eth.ErrAcceptedSyncingPayloadStatus
+	case enginev1.PayloadStatus_INVALID:
+		return result.GetLatestValidHash(), eth.ErrInvalidPayloadStatus
+	case enginev1.PayloadStatus_VALID:
+		return result.GetLatestValidHash(), nil
+	case enginev1.PayloadStatus_UNKNOWN:
+		return nil, eth.ErrUnknownPayloadStatus
+	default:
+		return nil, eth.ErrUnknownPayloadStatus
+	}
 }

@@ -23,34 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package builder
 
-import (
-	"context"
-	"net/http"
-
-	"github.com/ethereum/go-ethereum/node"
-)
-
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
-	for {
-		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
-	}
-}
-
-// buildHeaders creates the headers for the execution client.
-func (s *Eth1Client) buildHeaders() (http.Header, error) {
-	var (
-		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
-	)
-
-	// Authenticate the execution node JSON-RPC endpoint.
-	if err := jwtAuthHandler(headers); err != nil {
-		return nil, err
-	}
-
-	// Add additional headers if provided.
-	return headers, nil
-}
+// TODO: put the block builder apis in here.
