@@ -30,13 +30,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	file "github.com/itsdevbear/bolaris/config"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/config/flags"
 	beaconprompt "github.com/itsdevbear/bolaris/config/prompt"
+	"github.com/itsdevbear/bolaris/io/file"
 	"github.com/logrusorgru/aurora"
-
 	"github.com/spf13/cobra"
 )
 
