@@ -91,6 +91,10 @@ func TestBuildHeaders(t *testing.T) {
 				authHeader := headers.Get("Authorization")
 				require.NotEmpty(t, authHeader)
 				require.Contains(t, authHeader, "Bearer ")
+				require.Regexp(t,
+					`^Bearer [A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$`, authHeader,
+					"Authorization header does not match expected JWT format",
+				)
 			}
 		})
 	}
