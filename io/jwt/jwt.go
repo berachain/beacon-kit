@@ -86,12 +86,12 @@ func NewRandom() (*Secret, error) {
 
 // String returns the JWT secret as a string with the first 8 characters
 // visible and the rest masked out for security.
-func (s Secret) String() string {
+func (s *Secret) String() string {
 	secret := hexutil.Encode(s[:])
 	return secret[:8] + strings.Repeat("*", len(secret[8:]))
 }
 
 // Bytes returns the JWT secret as a byte array.
-func (s Secret) Bytes() []byte {
+func (s *Secret) Bytes() []byte {
 	return s[:]
 }

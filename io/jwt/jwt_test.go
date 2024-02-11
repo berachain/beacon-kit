@@ -35,38 +35,37 @@ import (
 )
 
 func TestNewFromHex(t *testing.T) {
+	wantValid := jwt.Secret(
+		common.FromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+	)
 	tests := []struct {
 		name    string
 		hexStr  string
-		want    jwt.Secret
+		want    *jwt.Secret
 		wantErr bool
 	}{
 		{
-			name:   "valid hex string w/ 0x prefix",
-			hexStr: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-			want: jwt.Secret(
-				common.FromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
-			),
+			name:    "valid hex string w/ 0x prefix",
+			hexStr:  "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+			want:    &(wantValid),
 			wantErr: false,
 		},
 		{
-			name:   "valid hex string no 0x prefix",
-			hexStr: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-			want: jwt.Secret(
-				common.FromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
-			),
+			name:    "valid hex string no 0x prefix",
+			hexStr:  "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+			want:    &(wantValid),
 			wantErr: false,
 		},
 		{
 			name:    "invalid hex string",
 			hexStr:  "0x123",
-			want:    jwt.Secret{},
+			want:    nil,
 			wantErr: true,
 		},
 		{
 			name:    "empty hex string",
 			hexStr:  "",
-			want:    jwt.Secret{},
+			want:    nil,
 			wantErr: true,
 		},
 	}
@@ -78,6 +77,7 @@ func TestNewFromHex(t *testing.T) {
 				t.Errorf("NewFromHex() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewFromHex() = %v, want %v", got, tt.want)
 			}
