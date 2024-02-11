@@ -36,7 +36,7 @@ import (
 func (s *Eth1Client) buildHeaders() (http.Header, error) {
 	var (
 		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
+		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
 	)
 
 	// Authenticate the execution node JSON-RPC endpoint.

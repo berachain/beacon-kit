@@ -32,5 +32,10 @@ const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID a
 connection is not authenticated. If connecting to your execution client via HTTP, you 
 will need to set up JWT authentication...`
 
-// ErrInvalidJWTSecretLength indicates that the JWT secret length is invalid.
-var ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
+var (
+	// ErrInvalidJWTSecretLength indicates that the JWT secret length is invalid.
+	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
+
+	// ErrNilJWTSecret indicates that the JWT secret is nil.
+	ErrNilJWTSecret = errors.New("nil JWT secret")
+)

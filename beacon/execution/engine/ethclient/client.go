@@ -48,7 +48,7 @@ type Eth1Client struct {
 
 	connectedETH1        atomic.Bool
 	chainID              uint64
-	jwtSecret            jwt.Secret
+	jwtSecret            *jwt.Secret
 	startupRetryInterval time.Duration
 	jwtRefreshInterval   time.Duration
 	healthCheckInterval  time.Duration

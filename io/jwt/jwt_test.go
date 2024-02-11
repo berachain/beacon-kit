@@ -30,6 +30,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
@@ -106,5 +107,58 @@ func TestSecretString(t *testing.T) {
 				t.Errorf("Secret.String() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestNewRandom(t *testing.T) {
+	secret, err := jwt.NewRandom()
+	if err != nil {
+		t.Errorf("NewRandom() error = %v, wantErr %v", err, false)
+	}
+	if len(secret) == 0 {
+		t.Errorf("NewRandom() generated an empty secret")
+	}
+
+	if len(secret.Bytes()) != 32 {
+		t.Errorf(
+			"NewRandom() generated a secret of incorrect length: got %d, want %d",
+			len(secret.Bytes()), 32,
+		)
+	}
+}
+
+func TestSecretBytes(t *testing.T) {
+	expectedLength := 32 // Assuming the secret is expected to be 32 bytes long
+	secret, _ := jwt.NewRandom()
+	bytes := secret.Bytes()
+	if len(bytes) != expectedLength {
+		t.Errorf("Bytes() length = %d, want %d", len(bytes), expectedLength)
+	}
+	for _, b := range bytes {
+		if b == 0 {
+			t.Errorf("Bytes() contains zero byte, want all bytes to be non-zero")
+			break
+		}
+	}
+}
+
+func TestSecretRoundTripEncoding(t *testing.T) {
+	originalSecret, err := jwt.NewRandom()
+	if err != nil {
+		t.Fatalf("NewRandom() error = %v, wantErr %v", err, false)
+	}
+
+	// Encode the original secret to hex string
+	encodedSecret := hexutil.Encode(originalSecret.Bytes())
+
+	// Decode the hex string back to secret
+	decodedSecret, err := jwt.NewFromHex(encodedSecret)
+	if err != nil {
+		t.Fatalf("NewFromHex() error = %v", err)
+	}
+
+	// Compare the original and decoded secrets
+	if !reflect.DeepEqual(originalSecret, decodedSecret) {
+		t.Errorf("Round trip encoding failed. Original: %v, Decoded: %v", originalSecret, decodedSecret)
 	}
 }

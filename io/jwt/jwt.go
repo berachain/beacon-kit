@@ -26,6 +26,7 @@
 package jwt
 
 import (
+	"crypto/rand"
 	"os"
 	"regexp"
 	"strings"
@@ -46,29 +47,41 @@ const EthereumJWTLength = 32
 type Secret [EthereumJWTLength]byte
 
 // NewFromFile reads the JWT secret from a file and returns it.
-func NewFromFile(filepath string) (Secret, error) {
+func NewFromFile(filepath string) (*Secret, error) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		// Return an error if the file cannot be read.
-		return [EthereumJWTLength]byte{}, err
+		return nil, err
 	}
 	return NewFromHex(strings.TrimSpace(string(data)))
 }
 
 // NewFromHex creates a new JWT secret from a hexadecimal string.
-func NewFromHex(hexStr string) (Secret, error) {
+func NewFromHex(hexStr string) (*Secret, error) {
 	// Ensure the hex string contains only hexadecimal characters.
 	if !HexRegexp.MatchString(hexStr) {
-		return [EthereumJWTLength]byte{}, ErrContainsIllegalCharacter
+		return nil, ErrContainsIllegalCharacter
 	}
 
 	// Convert the hex string to a byte array.
 	bz := common.FromHex(hexStr)
 	if bz == nil || len(bz) != EthereumJWTLength {
-		return [EthereumJWTLength]byte{}, ErrLengthMismatch
+		return nil, ErrLengthMismatch
 	}
+	s := Secret(bz)
+	return &s, nil
+}
 
-	return Secret(bz), nil
+// NewRandom creates a new random JWT secret.
+func NewRandom() (*Secret, error) {
+	secret := make([]byte, EthereumJWTLength)
+	n, err := rand.Read(secret)
+	if err != nil {
+		return nil, err
+	} else if n <= 0 {
+		return nil, ErrUnexpectedLength
+	}
+	return NewFromHex(hexutil.Encode(secret))
 }
 
 // String returns the JWT secret as a string with the first 8 characters
@@ -76,4 +89,9 @@ func NewFromHex(hexStr string) (Secret, error) {
 func (s Secret) String() string {
 	secret := hexutil.Encode(s[:])
 	return secret[:8] + strings.Repeat("*", len(secret[8:]))
+}
+
+// Bytes returns the JWT secret as a byte array.
+func (s Secret) Bytes() []byte {
+	return s[:]
 }
