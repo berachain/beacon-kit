@@ -23,36 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package eth
 
 import (
-	"time"
+	"context"
+	"net/http"
 
-	"cosmossdk.io/log"
-	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/ethereum/go-ethereum/node"
 )
 
-// Caller is implemented by engineClient.
-var _ Caller = (*engineClient)(nil)
-
-// engineClient is a struct that holds a pointer to an Eth1Client.
-type engineClient struct {
-	*eth.Eth1Client
-	engineTimeout time.Duration
-	beaconCfg     *config.Beacon
-	logger        log.Logger
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
+	for {
+		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
+	}
 }
 
-// NewClient creates a new engine client engineClient.
-// It takes an Eth1Client as an argument and returns a pointer to an engineClient.
-func NewClient(opts ...Option) Caller {
-	ec := &engineClient{}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			panic(err)
-		}
+// buildHeaders creates the headers for the execution client.
+func (s *Eth1Client) buildHeaders() (http.Header, error) {
+	var (
+		headers        = http.Header{}
+		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
+	)
+
+	// Authenticate the execution node JSON-RPC endpoint.
+	if err := jwtAuthHandler(headers); err != nil {
+		return nil, err
 	}
 
-	return ec
+	// Add additional headers if provided.
+	return headers, nil
 }

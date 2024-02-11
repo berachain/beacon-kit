@@ -24,3 +24,27 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package engine
+
+import (
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+)
+
+// processPayloadStatusResult processes the payload status result and
+// returns the latest valid hash or an error.
+func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) {
+	switch result.GetStatus() {
+	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
+		return nil, eth.ErrInvalidBlockHashPayloadStatus
+	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
+		return nil, eth.ErrAcceptedSyncingPayloadStatus
+	case enginev1.PayloadStatus_INVALID:
+		return result.GetLatestValidHash(), eth.ErrInvalidPayloadStatus
+	case enginev1.PayloadStatus_VALID:
+		return result.GetLatestValidHash(), nil
+	case enginev1.PayloadStatus_UNKNOWN:
+		return nil, eth.ErrUnknownPayloadStatus
+	default:
+		return nil, eth.ErrUnknownPayloadStatus
+	}
+}

@@ -25,12 +25,16 @@
 
 package eth
 
-import "errors"
-
-// ErrUnauthenticatedConnection indicates that the connection is not authenticated.
-const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
-connection is not authenticated. If connecting to your execution client via HTTP, you 
-will need to set up JWT authentication...`
-
-// ErrInvalidJWTSecretLength indicates that the JWT secret length is invalid.
-var ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
+const (
+	// GetPayloadMethod v1 request string for JSON-RPC.
+	GetPayloadMethod = "engine_getPayloadV1"
+	// GetPayloadMethodV2 v2 request string for JSON-RPC.
+	GetPayloadMethodV2 = "engine_getPayloadV2"
+	GetPayloadMethodV3 = "engine_getPayloadV3"
+	// GetPayloadBodiesByHashV1 v1 request string for JSON-RPC.
+	GetPayloadBodiesByHashV1 = "engine_getPayloadBodiesByHashV1"
+	// GetPayloadBodiesByRangeV1 v1 request string for JSON-RPC.
+	GetPayloadBodiesByRangeV1 = "engine_getPayloadBodiesByRangeV1"
+	// ExchangeCapabilities request string for JSON-RPC.
+	ExchangeCapabilities = "engine_exchangeCapabilities"
+)

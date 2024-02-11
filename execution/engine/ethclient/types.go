@@ -25,42 +25,12 @@
 
 package eth
 
-import (
-	"net/http"
-	"time"
+import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
-	"github.com/ethereum/go-ethereum/node"
-)
-
-// buildHeaders creates the headers for the execution client.
-func (s *Eth1Client) buildHeaders() (http.Header, error) {
-	var (
-		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
-	)
-
-	// Authenticate the execution node JSON-RPC endpoint.
-	if err := jwtAuthHandler(headers); err != nil {
-		return nil, err
-	}
-
-	// Add additional headers if provided.
-	return headers, nil
-}
-
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *Eth1Client) jwtRefreshLoop() {
-	for {
-		s.tryConnectionAfter(s.jwtRefreshInterval)
-	}
-}
-
-// tryConnectionAfter attemps a connection after a given interval.
-func (s *Eth1Client) tryConnectionAfter(interval time.Duration) {
-	select {
-	case <-s.ctx.Done():
-		return
-	case <-time.After(interval):
-		s.setupExecutionClientConnection()
-	}
+// ForkchoiceUpdatedResponse is the response kind received by the
+// engine_forkchoiceUpdatedV1 endpoint.
+type ForkchoiceUpdatedResponse struct {
+	Status          *enginev1.PayloadStatus  `json:"payloadStatus"`
+	PayloadID       *enginev1.PayloadIDBytes `json:"payloadId"`
+	ValidationError string                   `json:"validationError"`
 }

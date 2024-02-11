@@ -38,8 +38,8 @@ import (
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 
-	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )
 
 // Processor is responsible for processing logs fr.

@@ -29,8 +29,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
 	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
@@ -70,7 +70,7 @@ func (s *Service) Start(context.Context) {}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
-	if !s.engine.ConnectedETH1() {
+	if !s.engine.IsConnected() {
 		return ErrExecutionClientDisconnected
 	}
 	return nil
