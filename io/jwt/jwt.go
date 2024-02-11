@@ -91,6 +91,11 @@ func (s *Secret) String() string {
 	return secret[:8] + strings.Repeat("*", len(secret[8:]))
 }
 
+// Hex returns the JWT secret as a hexadecimal string.
+func (s *Secret) Hex() string {
+	return hexutil.Encode(s[:])
+}
+
 // Bytes returns the JWT secret as a byte array.
 func (s *Secret) Bytes() []byte {
 	return s[:]

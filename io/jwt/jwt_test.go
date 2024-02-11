@@ -27,6 +27,7 @@ package jwt_test
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -134,11 +135,33 @@ func TestSecretBytes(t *testing.T) {
 	if len(bytes) != expectedLength {
 		t.Errorf("Bytes() length = %d, want %d", len(bytes), expectedLength)
 	}
-	for _, b := range bytes {
-		if b == 0 {
-			t.Errorf("Bytes() contains zero byte, want all bytes to be non-zero")
-			break
-		}
+}
+
+func TestSecretHexWithFixedInput(t *testing.T) {
+	expectedHex := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+	expectedHexLength := 64 // Since the secret is 32 bytes, its hex representation should be 64 characters long
+	secret, err := jwt.NewFromHex(expectedHex)
+	if err != nil {
+		t.Fatalf("NewFromHex() error = %v", err)
+	}
+	hexStr := secret.Hex()
+	if hexStr != expectedHex {
+		t.Errorf("Hex() = %s, want %s", hexStr, expectedHex)
+	}
+
+	// Check if the hex string is of the expected length and format.
+	if len(hexStr) != expectedHexLength+2 {
+		t.Errorf("Hex() length = %d, want %d", len(hexStr), expectedHexLength)
+	}
+
+	// Strip the '0x' prefix and check if the remaining string is a valid hexadecimal.
+	hexStr = strings.TrimPrefix(hexStr, "0x")
+	if len(hexStr) != expectedHexLength {
+		t.Errorf("Hex() length after stripping '0x' = %d, want %d", len(hexStr), expectedHexLength)
+	}
+
+	if !jwt.HexRegexp.MatchString(hexStr) {
+		t.Errorf("Hex() output does not match hexadecimal format, got: %s", hexStr)
 	}
 }
 

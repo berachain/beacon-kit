@@ -91,7 +91,7 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 	if err != nil {
 		return err
 	}
-	if err = file.WriteFile(fileName, secret.Bytes()); err != nil {
+	if err = file.WriteFile(fileName, []byte(secret.Hex())); err != nil {
 		return err
 	}
 	cmd.Printf("Successfully wrote new JSON-RPC authentication secret to: %s", fileName)
