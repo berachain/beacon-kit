@@ -38,3 +38,8 @@ packages:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
+  github.com/itsdevbear/bolaris/runtime/service:
+    config:
+      recursive: True
+      with-expecter: true
+      include-regex: Basic
