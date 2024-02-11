@@ -25,15 +25,14 @@
 
 syntax = "proto3";
 
-package types.engine.v2;
+package types.engine.v3;
 
 import "ethereum/eth/ext/options.proto";
-import "types/engine/v1/withdrawal.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/engine/v2";
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v3";
 
-// ExecutionPayloadCapella defines the structure for the execution payload specific to the Capella upgrade.
-message ExecutionPayloadCapella {
+// ExecutionPayloadHeaderDeneb defines the header structure for execution payloads in the Deneb upgrade.
+message ExecutionPayloadHeaderDeneb {
   // parent_hash is the hash of the parent block.
   bytes parent_hash = 1 [(ethereum.eth.ext.ssz_size) = "32"];
   // fee_recipient is the address that will receive the transaction fees.
@@ -60,19 +59,12 @@ message ExecutionPayloadCapella {
   bytes base_fee_per_gas = 12 [(ethereum.eth.ext.ssz_size) = "32"];
   // block_hash is the hash of this block.
   bytes block_hash = 13 [(ethereum.eth.ext.ssz_size) = "32"];
-  // Transactions are the list of transactions included in the block.
-  repeated bytes transactions = 14 [
-    (ethereum.eth.ext.ssz_size) = "?,?",
-    (ethereum.eth.ext.ssz_max) = "1048576,1073741824"
-  ];
-  // Withdrawals are the list of withdrawals included in the block, new in Capella.
-  repeated types.engine.v1.Withdrawal withdrawals = 15 [(ethereum.eth.ext.ssz_max) = "withdrawal.size"];
-}
-
-// ExecutionPayloadCapellaWithValue wraps the ExecutionPayloadCapella with an additional value field.
-message ExecutionPayloadCapellaWithValue {
-  // payload is the ExecutionPayloadCapella message.
-  ExecutionPayloadCapella payload = 1;
-  // value is an additional field to store arbitrary bytes.
-  bytes value = 2;
+  // transactions_root is the root of the trie structure for the transactions included in the block.
+  bytes transactions_root = 14 [(ethereum.eth.ext.ssz_size) = "32"];
+  // withdrawals_root is the root of the trie structure for the withdrawals included in the block, new in Deneb.
+  bytes withdrawals_root = 15 [(ethereum.eth.ext.ssz_size) = "32"];
+  // blob_gas_used is the amount of gas used by blob transactions in this block.
+  uint64 blob_gas_used = 16;
+  // excess_blob_gas represents the gas exceeding the block's gas limit, attributed to blob transactions.
+  uint64 excess_blob_gas = 17;
 }

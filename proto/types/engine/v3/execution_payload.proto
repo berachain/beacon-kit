@@ -25,15 +25,16 @@
 
 syntax = "proto3";
 
-package types.engine.v2;
+package types.engine.v3;
 
 import "ethereum/eth/ext/options.proto";
 import "types/engine/v1/withdrawal.proto";
+import "types/engine/v3/blobs_bundle.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/engine/v2";
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v3";
 
-// ExecutionPayloadCapella defines the structure for the execution payload specific to the Capella upgrade.
-message ExecutionPayloadCapella {
+// ExecutionPayloadDeneb defines the structure for the execution payload specific to the Deneb upgrade.
+message ExecutionPayloadDeneb {
   // parent_hash is the hash of the parent block.
   bytes parent_hash = 1 [(ethereum.eth.ext.ssz_size) = "32"];
   // fee_recipient is the address that will receive the transaction fees.
@@ -65,14 +66,22 @@ message ExecutionPayloadCapella {
     (ethereum.eth.ext.ssz_size) = "?,?",
     (ethereum.eth.ext.ssz_max) = "1048576,1073741824"
   ];
-  // Withdrawals are the list of withdrawals included in the block, new in Capella.
+  // Withdrawals are the list of withdrawals included in the block, new in Deneb.
   repeated types.engine.v1.Withdrawal withdrawals = 15 [(ethereum.eth.ext.ssz_max) = "withdrawal.size"];
+  // blob_gas_used is the amount of gas used by blob transactions in this block.
+  uint64 blob_gas_used = 16;
+  // excess_blob_gas represents the gas exceeding the block's gas limit, attributed to blob transactions.
+  uint64 excess_blob_gas = 17;
 }
 
-// ExecutionPayloadCapellaWithValue wraps the ExecutionPayloadCapella with an additional value field.
-message ExecutionPayloadCapellaWithValue {
-  // payload is the ExecutionPayloadCapella message.
-  ExecutionPayloadCapella payload = 1;
+// ExecutionPayloadDenebWithValue wraps the ExecutionPayloadDeneb with an additional value field.
+message ExecutionPayloadDenebWithValue {
+  // payload is the ExecutionPayloadDeneb message.
+  ExecutionPayloadDeneb payload = 1;
   // value is an additional field to store arbitrary bytes.
   bytes value = 2;
+  // blobs_bundle contains the necessary components for constructing a blobs sidecar object.
+  BlobsBundle blobs_bundle = 3;
+  // should_override_builder indicates whether the default builder should be overridden.
+  bool should_override_builder = 4;
 }
