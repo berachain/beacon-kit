@@ -13,7 +13,7 @@
 // limitations under the License.
 syntax = "proto3";
 
-package ethclientereum.eth.ext;
+package ethereum.eth.ext;
 
 import "google/protobuf/descriptor.proto";
 
