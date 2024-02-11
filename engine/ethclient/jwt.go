@@ -27,13 +27,8 @@ package eth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"os"
-	"strings"
 
-	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/node"
 )
 
@@ -58,28 +53,4 @@ func (s *Eth1Client) buildHeaders() (http.Header, error) {
 
 	// Add additional headers if provided.
 	return headers, nil
-}
-
-// loadJWTSecret reads the JWT secret from a file and returns it.
-// It returns an error if the file cannot be read or if the JWT secret is not valid.
-func LoadJWTSecret(filepath string, logger log.Logger) ([jwtLength]byte, error) {
-	// Read the file.
-	//#nosec:G304 // false positive.
-	data, err := os.ReadFile(filepath)
-	if err != nil {
-		// Return an error if the file cannot be read.
-		return [jwtLength]byte{}, err
-	}
-
-	// Convert the data to a JWT secret.
-	jwtSecret := common.FromHex(strings.TrimSpace(string(data)))
-
-	// Check if the JWT secret is valid.
-	if len(jwtSecret) != jwtLength {
-		// Return an error if the JWT secret is not valid.
-		return [jwtLength]byte{}, fmt.Errorf("failed to load jwt secret from %s", filepath)
-	}
-
-	logger.Info("loaded execution client jwt secret file", "path", filepath, "crc32")
-	return [jwtLength]byte(jwtSecret), nil
 }

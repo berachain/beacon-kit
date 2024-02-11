@@ -40,11 +40,6 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-const (
-	// jwtLength is the length of the JWT token.
-	jwtLength = 32
-)
-
 // Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
 type Eth1Client struct {
 	logger log.Logger
