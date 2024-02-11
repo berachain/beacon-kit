@@ -38,7 +38,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestNewPayloadV3(t *testing.T) {
+func TestNewPayloadV3_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name            string
 		versionedHashes []common.Hash
@@ -88,7 +88,7 @@ func TestNewPayloadV3(t *testing.T) {
 	}
 }
 
-func TestNewPayloadV2(t *testing.T) {
+func TestNewPayloadV2_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
 		ret     error
@@ -128,7 +128,7 @@ func TestNewPayloadV2(t *testing.T) {
 	}
 }
 
-func TestForkchoiceUpdatedV3(t *testing.T) {
+func TestForkchoiceUpdatedV3_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
 		state   *enginev1.ForkchoiceState
@@ -173,7 +173,7 @@ func TestForkchoiceUpdatedV3(t *testing.T) {
 	}
 }
 
-func TestForkchoiceUpdatedV2(t *testing.T) {
+func TestForkchoiceUpdatedV2_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
 		state   *enginev1.ForkchoiceState
@@ -220,7 +220,7 @@ func TestForkchoiceUpdatedV2(t *testing.T) {
 	}
 }
 
-func TestGetPayloadV3(t *testing.T) {
+func TestGetPayloadV3_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
 		pid     enginev1.PayloadIDBytes
@@ -228,10 +228,10 @@ func TestGetPayloadV3(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "nil response should error",
+			name:    "nil response is desired",
 			pid:     enginev1.PayloadIDBytes{},
 			ret:     nil,
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name:    "call context returns error",
@@ -248,12 +248,55 @@ func TestGetPayloadV3(t *testing.T) {
 
 			mockRPCClient.EXPECT().
 				CallContext(mock.Anything, mock.Anything,
-					"engine_getPayloadV3", tt.pid, tt.pid,
+					"engine_getPayloadV3", tt.pid,
 				).
 				Return(tt.ret).
 				Once()
 
 			_, err := client.GetPayloadV3(context.Background(), tt.pid)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestGetPayloadV2_BasicSanityCheck(t *testing.T) {
+	tests := []struct {
+		name    string
+		pid     enginev1.PayloadIDBytes
+		ret     error
+		wantErr bool
+	}{
+		{
+			name:    "nil response is desired",
+			pid:     enginev1.PayloadIDBytes{},
+			ret:     nil,
+			wantErr: false,
+		},
+		{
+			name:    "call context returns error",
+			pid:     enginev1.PayloadIDBytes{},
+			ret:     errors.New("my custom rpc error"),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRPCClient := new(mocks.GethRPCClient)
+			client := &ethclient.Eth1Client{GethRPCClient: mockRPCClient}
+
+			mockRPCClient.EXPECT().
+				CallContext(mock.Anything, mock.Anything,
+					"engine_getPayloadV2", tt.pid,
+				).
+				Return(tt.ret).
+				Once()
+
+			_, err := client.GetPayloadV2(context.Background(), tt.pid)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

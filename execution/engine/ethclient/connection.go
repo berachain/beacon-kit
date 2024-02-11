@@ -73,7 +73,7 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 	// Construct the headers for the execution client.
 	// New headers must be constructed each time the client is dialed
 	// to periodically generate a new JWT token, as the existing one will eventually expire.
-	headers, err := s.buildHeaders()
+	headers, err := s.BuildHeaders()
 	if err != nil {
 		return err
 	}

@@ -39,8 +39,8 @@ func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
 	}
 }
 
-// buildHeaders creates the headers for the execution client.
-func (s *Eth1Client) buildHeaders() (http.Header, error) {
+// BuildHeaders creates the headers for the execution client.
+func (s *Eth1Client) BuildHeaders() (http.Header, error) {
 	var (
 		headers        = http.Header{}
 		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
