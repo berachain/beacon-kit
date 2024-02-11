@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+syntax = "proto3";
+
+package types.engine.v1;
+
+import "ethereum/eth/ext/options.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v1";
+
+// PayloadStatus represents the status of a payload, including its validation status and any errors.
+message PayloadStatus {
+  // status indicates the current validation status of the payload.
+  Status status = 1;
+  // latest_valid_hash is the hash of the latest valid payload, if available.
+  bytes latest_valid_hash = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+  // validation_error contains a descriptive error message if the payload is invalid.
+  string validation_error = 3;
+  // Status is an enumeration of possible validation statuses for a payload.
+  enum Status {
+    // Status is unknown. This is the default state.
+    UNKNOWN = 0;
+    // Payload is valid.
+    VALID = 1;
+    // Payload is invalid.
+    INVALID = 2;
+    // Node is syncing and cannot determine payload validity.
+    SYNCING = 3;
+    // Payload has been accepted, but not yet validated.
+    ACCEPTED = 4;
+    // Payload contains an invalid block hash.
+    INVALID_BLOCK_HASH = 5;
+  }
+}

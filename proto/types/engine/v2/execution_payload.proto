@@ -1,0 +1,70 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+syntax = "proto3";
+
+package types.engine.v2;
+
+import "ethereum/eth/ext/options.proto";
+import "types/engine/v1/withdrawal.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v2";
+
+// ExecutionPayloadCapella defines the structure for the execution payload specific to the Capella upgrade.
+message ExecutionPayloadCapella {
+  // The parent hash is the hash of the parent block.
+  bytes parent_hash = 1 [(ethereum.eth.ext.ssz_size) = "32"];
+  // The fee recipient is the address that will receive the transaction fees.
+  bytes fee_recipient = 2 [(ethereum.eth.ext.ssz_size) = "20"];
+  // The state root is the root of the state trie after processing the block.
+  bytes state_root = 3 [(ethereum.eth.ext.ssz_size) = "32"];
+  // The receipts root is the root of the receipts trie for the block's transactions.
+  bytes receipts_root = 4 [(ethereum.eth.ext.ssz_size) = "32"];
+  // The logs bloom is a bloom filter for the logs contained within the block.
+  bytes logs_bloom = 5 [(ethereum.eth.ext.ssz_size) = "logs_bloom.size"];
+  // The prev_randao is the RANDAO mix of the previous block.
+  bytes prev_randao = 6 [(ethereum.eth.ext.ssz_size) = "32"];
+  // The block number is the height of the block in the blockchain.
+  uint64 block_number = 7;
+  // The gas limit is the maximum amount of gas allowed in this block.
+  uint64 gas_limit = 8;
+  // The gas used is the total amount of gas used by all transactions in this block.
+  uint64 gas_used = 9;
+  // The timestamp is the Unix timestamp at which the block was proposed.
+  uint64 timestamp = 10;
+  // Extra data is arbitrary data included by the block proposer.
+  bytes extra_data = 11 [(ethereum.eth.ext.ssz_max) = "extra_data.size"];
+  // The base fee per gas is the minimum fee per gas required for a transaction to be included in this block.
+  bytes base_fee_per_gas = 12 [(ethereum.eth.ext.ssz_size) = "32"];
+  // The block hash is the hash of this block.
+  bytes block_hash = 13 [(ethereum.eth.ext.ssz_size) = "32"];
+  // Transactions are the list of transactions included in the block.
+  repeated bytes transactions = 14 [
+    (ethereum.eth.ext.ssz_size) = "?,?",
+    (ethereum.eth.ext.ssz_max) = "1048576,1073741824"
+  ];
+  // Withdrawals are the list of withdrawals included in the block, new in Capella.
+  repeated types.engine.v1.Withdrawal withdrawals = 15 [(ethereum.eth.ext.ssz_max) = "withdrawal.size"];
+}

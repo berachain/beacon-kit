@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+syntax = "proto3";
+
+package types.engine.v1;
+
+import "ethereum/eth/ext/options.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v1";
+
+// ForkchoiceState represents the state of the fork choice in the Ethereum consensus mechanism.
+message ForkchoiceState {
+  // The hash of the head block, which is the most recent block in the chain.
+  bytes head_block_hash = 1 [(ethereum.eth.ext.ssz_size) = "32"];
+  // The hash of the safe block, which is considered safe to build upon.
+  bytes safe_block_hash = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+  // The hash of the finalized block, which can no longer be reorganized out of the chain.
+  bytes finalized_block_hash = 3 [(ethereum.eth.ext.ssz_size) = "32"];
+}

@@ -352,7 +352,7 @@ proto-sync:
 #    sszgen    #
 #################
 
-SSZ_STRUCTS=BeaconKitBlockCapella
+SSZ_STRUCTS=BeaconKitBlockCapella,Withdrawal
 
 sszgen-install:
 	@echo "--> Installing sszgen"
