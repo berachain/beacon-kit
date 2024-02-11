@@ -20,6 +20,7 @@ contracts/out
 *.dll
 *.so
 *.dylib
+*.info
 
 # Test binary, built with `go test -c`
 *.test
