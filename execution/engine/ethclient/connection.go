@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package ethclient
 
 import (
 	"context"
@@ -95,6 +95,7 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 	}
 
 	s.Client = ethclient.NewClient(client)
+	s.GethRPCClient = client
 	return nil
 }
 

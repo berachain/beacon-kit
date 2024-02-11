@@ -23,9 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package ethclient
 
-import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+import (
+	"context"
+
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+)
+
+// GethRPCClient is an interface for the Geth RPC client.
+type GethRPCClient interface {
+	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
+}
 
 // ForkchoiceUpdatedResponse is the response kind received by the
 // engine_forkchoiceUpdatedV1 endpoint.
