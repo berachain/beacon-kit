@@ -23,7 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package primitives_test
 
-// PayloadID represents a unique identifier for a payload.
-type PayloadID = [8]byte
+// This file is for if we ever need to do any validator index tests.
