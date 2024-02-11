@@ -25,5 +25,5 @@
 
 package primitives
 
-// PayloadID represents a unique identifier for a payload.
-type PayloadID = [8]byte
+// ValidatorIndex represents a validator index in the beacon chain.
+type ValidatorIndex = SSZUint64

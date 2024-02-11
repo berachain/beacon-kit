@@ -31,7 +31,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
