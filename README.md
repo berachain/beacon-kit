@@ -31,11 +31,11 @@ Through utilizing the [Ethereum Engine API](https://github.com/ethereum/executio
 - **Reth**: A Rust-based Ethereum client, focusing on performance and reliability.
 
 ## Documentation
-BeaconKit leverages `godoc` for it's core documentation, you can run `godoc` locally and run a web-ui of the 
+BeaconKit leverages `pkgsite` for it's core documentation, you can run `pkgsite` locally and run a web-ui of the 
 latest documentation:
 
 ```bash
-make godoc 
+make pkgsite 
 ```
 
 ## Running a Local Development Network
