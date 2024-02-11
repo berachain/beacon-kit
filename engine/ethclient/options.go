@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
 // Option is a functional option for the Eth1Client.
@@ -48,11 +49,8 @@ func WithEndpointDialURL(dialURL string) Option {
 }
 
 // WithJWTSecret is an option to set the JWT secret for the Eth1Client.
-func WithJWTSecret(secret [jwtLength]byte) Option {
+func WithJWTSecret(secret jwt.Secret) Option {
 	return func(s *Eth1Client) error {
-		if len(secret) != jwtLength {
-			return ErrInvalidJWTSecretLength
-		}
 		s.jwtSecret = secret
 		return nil
 	}
