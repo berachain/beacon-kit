@@ -25,16 +25,24 @@
 
 package eth
 
+// Constants for JSON-RPC method names.
 const (
-	// GetPayloadMethod v1 request string for JSON-RPC.
-	GetPayloadMethod = "engine_getPayloadV1"
-	// GetPayloadMethodV2 v2 request string for JSON-RPC.
+	// NewPayloadMethodV2 is the method name for creating a new payload in Capella.
+	NewPayloadMethodV2 = "engine_newPayloadV2"
+	// NewPayloadMethodV3 is the method name for creating a new payload in in Deneb.
+	NewPayloadMethodV3 = "engine_newPayloadV3"
+	// ForkchoiceUpdatedMethodV2 is the method name for updating the fork choice in Capella.
+	ForkchoiceUpdatedMethodV2 = "engine_forkchoiceUpdatedV2"
+	// ForkchoiceUpdatedMethodV3 is the method name for updating the fork choice in in Deneb.
+	ForkchoiceUpdatedMethodV3 = "engine_forkchoiceUpdatedV3"
+	// GetPayloadMethodV2 is the method name for retrieving a payload in Capella.
 	GetPayloadMethodV2 = "engine_getPayloadV2"
+	// GetPayloadMethodV3 is the method name for retrieving a payload in in Deneb.
 	GetPayloadMethodV3 = "engine_getPayloadV3"
-	// GetPayloadBodiesByHashV1 v1 request string for JSON-RPC.
-	GetPayloadBodiesByHashV1 = "engine_getPayloadBodiesByHashV1"
-	// GetPayloadBodiesByRangeV1 v1 request string for JSON-RPC.
-	GetPayloadBodiesByRangeV1 = "engine_getPayloadBodiesByRangeV1"
-	// ExchangeCapabilities request string for JSON-RPC.
+	// BlockByHashMethod is the method name for retrieving a block by its hash.
+	BlockByHashMethod = "eth_getBlockByHash"
+	// BlockByNumberMethod is the method name for retrieving a block by its number.
+	BlockByNumberMethod = "eth_getBlockByNumber"
+	// ExchangeCapabilities is the method name for exchanging capabilities with the peer.
 	ExchangeCapabilities = "engine_exchangeCapabilities"
 )

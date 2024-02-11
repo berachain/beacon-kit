@@ -102,7 +102,7 @@ func (s *Eth1Client) NewPayloadV3(
 ) (*enginev1.PayloadStatus, error) {
 	result := &enginev1.PayloadStatus{}
 	if err := s.RawClient().CallContext(
-		ctx, result, "engine_newPayloadV3", payload, versionedHashes, parentBlockRoot,
+		ctx, result, NewPayloadMethodV3, payload, versionedHashes, parentBlockRoot,
 	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
@@ -115,7 +115,7 @@ func (s *Eth1Client) NewPayloadV2(
 ) (*enginev1.PayloadStatus, error) {
 	result := &enginev1.PayloadStatus{}
 	if err := s.RawClient().CallContext(
-		ctx, result, "engine_newPayloadV2", payload,
+		ctx, result, NewPayloadMethodV2, payload,
 	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
@@ -126,14 +126,14 @@ func (s *Eth1Client) NewPayloadV2(
 func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV3,
 ) (*ForkchoiceUpdatedResponse, error) {
-	return s.forkchoiceUpdateCall(ctx, "engine_forkchoiceUpdatedV3", state, attrs)
+	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
 // ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV2(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
 ) (*ForkchoiceUpdatedResponse, error) {
-	return s.forkchoiceUpdateCall(ctx, "engine_forkchoiceUpdatedV2", state, attrs)
+	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV2, state, attrs)
 }
 
 // forkchoiceUpdateCall is a helper function to call to any version of the forkchoiceUpdated
@@ -166,7 +166,7 @@ func (s *Eth1Client) GetPayloadV3(
 	ctx context.Context, payloadID enginev1.PayloadIDBytes,
 ) (*enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle, error) {
 	result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-	if err := s.RawClient().CallContext(ctx, result, "engine_getPayloadV3", payloadID); err != nil {
+	if err := s.RawClient().CallContext(ctx, result, GetPayloadMethodV3, payloadID); err != nil {
 		return nil, s.handleRPCError(err)
 	}
 	return result, nil
@@ -177,7 +177,7 @@ func (s *Eth1Client) GetPayloadV2(
 	ctx context.Context, payloadID enginev1.PayloadIDBytes,
 ) (*enginev1.ExecutionPayloadCapellaWithValue, error) {
 	result := &enginev1.ExecutionPayloadCapellaWithValue{}
-	if err := s.RawClient().CallContext(ctx, result, "engine_getPayloadV2", payloadID); err != nil {
+	if err := s.RawClient().CallContext(ctx, result, GetPayloadMethodV2, payloadID); err != nil {
 		return nil, s.handleRPCError(err)
 	}
 	return result, nil
@@ -189,7 +189,7 @@ func (s *Eth1Client) ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 ) (*enginev1.ExecutionBlock, error) {
 	result := &enginev1.ExecutionBlock{}
 	err := s.RawClient().CallContext(
-		ctx, result, "eth_getBlockByHash", hash, withTxs)
+		ctx, result, BlockByHashMethod, hash, withTxs)
 	return result, s.handleRPCError(err)
 }
 
@@ -199,6 +199,6 @@ func (s *Eth1Client) ExecutionBlockByNumber(ctx context.Context, num rpc.BlockNu
 ) (*enginev1.ExecutionBlock, error) {
 	result := &enginev1.ExecutionBlock{}
 	err := s.RawClient().CallContext(
-		ctx, result, "eth_getBlockByNumber", num, withTxs)
+		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, s.handleRPCError(err)
 }
