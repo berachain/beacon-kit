@@ -27,7 +27,7 @@ package execution
 
 import (
 	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/engine"
+	"github.com/itsdevbear/bolaris/execution/engine"
 )
 
 type Option func(*Service) error

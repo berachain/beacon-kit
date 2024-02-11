@@ -23,46 +23,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package engine
 
 import (
-	"context"
+	"time"
 
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"cosmossdk.io/log"
+
+	"github.com/itsdevbear/bolaris/config"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )
 
-type BlockBuilder interface {
-}
+// Option is a function type that takes a pointer to an engineClient and returns an error.
+type Option func(*engineClient) error
 
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	en           engine.Caller
-	payloadCache *cache.PayloadIDCache
-}
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
+// WithEth1Client is a function that returns an Option.
+func WithEth1Client(eth1Client *eth.Eth1Client) Option {
+	return func(s *engineClient) error {
+		s.Eth1Client = eth1Client
+		return nil
 	}
+}
 
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *engineClient) error {
+		s.beaconCfg = beaconCfg
+		return nil
 	}
-	return s
 }
 
-func (s *Service) Start(context.Context) {
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *engineClient) error {
+		s.logger = logger.With("module", "beacon-kit.engine")
+		return nil
+	}
 }
 
-func (s *Service) Status() error {
-	return nil
+// WithEngineTimeout is an option to set the timeout for the engine.
+func WithEngineTimeout(engineTimeout time.Duration) Option {
+	return func(s *engineClient) error {
+		s.engineTimeout = engineTimeout
+		return nil
+	}
 }

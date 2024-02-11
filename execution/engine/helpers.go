@@ -23,46 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package engine
 
 import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type BlockBuilder interface {
-}
-
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	en           engine.Caller
-	payloadCache *cache.PayloadIDCache
-}
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
+// processPayloadStatusResult processes the payload status result and
+// returns the latest valid hash or an error.
+func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) {
+	switch result.GetStatus() {
+	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
+		return nil, eth.ErrInvalidBlockHashPayloadStatus
+	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
+		return nil, eth.ErrAcceptedSyncingPayloadStatus
+	case enginev1.PayloadStatus_INVALID:
+		return result.GetLatestValidHash(), eth.ErrInvalidPayloadStatus
+	case enginev1.PayloadStatus_VALID:
+		return result.GetLatestValidHash(), nil
+	case enginev1.PayloadStatus_UNKNOWN:
+		return nil, eth.ErrUnknownPayloadStatus
+	default:
+		return nil, eth.ErrUnknownPayloadStatus
 	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start(context.Context) {
-}
-
-func (s *Service) Status() error {
-	return nil
 }

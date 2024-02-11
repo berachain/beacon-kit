@@ -27,7 +27,7 @@ package validator
 
 import (
 	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/engine"
+	"github.com/itsdevbear/bolaris/execution/engine"
 )
 
 // Option is a functional option for the validator service.

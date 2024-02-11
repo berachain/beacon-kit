@@ -35,7 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/config"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -184,7 +184,7 @@ func (s *engineClient) GetPayload(
 	case version.Deneb:
 		return s.getPayloadDeneb(dctx, payloadID)
 	case version.Capella:
-		return s.getPayloadCapella(dctx, payloadID)
+		return s.getPayloadCapella(ctx, payloadID)
 	default:
 		return nil, nil, false, errors.New("unknown fork version")
 	}

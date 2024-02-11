@@ -23,42 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package ethclient
 
 import (
 	"context"
-	"fmt"
-	"time"
+	"net/http"
+
+	"github.com/ethereum/go-ethereum/node"
 )
 
-// healthCheckLoop periodically checks the connection health of the execution client.
-func (s *Eth1Client) healthCheckLoop(ctx context.Context) {
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
 	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(s.healthCheckInterval):
-			if err := s.ensureCorrectExecutionChain(ctx); err != nil {
-				s.logger.Error("eth1 connection health check failed",
-					"dial-url", s.dialURL.String(),
-					"error", err,
-				)
-				s.isConnected.Store(false)
-			}
-		}
+		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
 	}
 }
 
-// Checks the chain ID of the execution client to ensure
-// it matches local parameters of what Prysm expects.
-func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
-	chainID, err := s.Client.ChainID(ctx)
-	if err != nil {
-		return err
+// BuildHeaders creates the headers for the execution client.
+func (s *Eth1Client) BuildHeaders() (http.Header, error) {
+	var (
+		headers        = http.Header{}
+		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
+	)
+
+	// Authenticate the execution node JSON-RPC endpoint.
+	if err := jwtAuthHandler(headers); err != nil {
+		return nil, err
 	}
 
-	if chainID.Uint64() != s.chainID {
-		return fmt.Errorf("wanted chain ID %d, got %d", s.chainID, chainID.Uint64())
-	}
-	return nil
+	// Add additional headers if provided.
+	return headers, nil
 }
