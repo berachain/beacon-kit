@@ -139,7 +139,8 @@ func TestSecretBytes(t *testing.T) {
 
 func TestSecretHexWithFixedInput(t *testing.T) {
 	expectedHex := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-	expectedHexLength := 64 // Since the secret is 32 bytes, its hex representation should be 64 characters long
+	// Since the secret is 32 bytes, its hex representation should be 64 characters long
+	expectedHexLength := 64
 	secret, err := jwt.NewFromHex(expectedHex)
 	if err != nil {
 		t.Fatalf("NewFromHex() error = %v", err)
