@@ -176,8 +176,10 @@ start-besu:
 
 FUZZ_TIME=10s
 
+test:
+	@$(MAKE) test-unit test-forge
 test-unit:
-	@$(MAKE) test-forge
+	@$(MAKE)
 	@echo "Running unit tests..."
 	go test ./...
 
