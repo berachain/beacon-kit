@@ -50,6 +50,7 @@ jobs:
           - "gosec"
           - "test-unit-cover"
           - "test-unit-fuzz"
+          - "test-forge"
           - "test-forge-cover"
         os: [ubuntu-latest-large]
     name: ${{ matrix.args }}

@@ -206,7 +206,7 @@ test-forge:
 
 test-forge-cover:
 	@echo "Running forge test with coverage..."
-	@cd $(CONTRACTS_DIR) && forge coverage --report lcov --report-file ../test-forge-cover.txt
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file ../test-forge-cover.txt
 
 #################
 #      e2e      #
