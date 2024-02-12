@@ -26,6 +26,7 @@
 package capella
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -40,6 +41,22 @@ var _ interfaces.PayloadAttributer = (*WrappedPayloadAttributesV2)(nil)
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedPayloadAttributesV2 struct {
 	*enginev1.PayloadAttributesV2
+}
+
+// NewWrappedExecutionPayloadDeneb creates a new WrappedPayloadAttributesV2.
+func NewWrappedPayloadAttributerV2(
+	timestamp uint64, prevRandao []byte,
+	suggestedFeeReceipient common.Address,
+	withdrawals []*enginev1.Withdrawal,
+) *WrappedPayloadAttributesV2 {
+	return &WrappedPayloadAttributesV2{
+		PayloadAttributesV2: &enginev1.PayloadAttributesV2{
+			Timestamp:             timestamp,
+			PrevRandao:            prevRandao,
+			SuggestedFeeRecipient: suggestedFeeReceipient.Bytes(),
+			Withdrawals:           withdrawals,
+		},
+	}
 }
 
 // Version returns the consensus version for the Capella upgrade.

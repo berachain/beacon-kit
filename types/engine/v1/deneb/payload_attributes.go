@@ -26,6 +26,7 @@
 package deneb
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -40,6 +41,24 @@ var _ interfaces.PayloadAttributer = (*WrappedPayloadAttributesV3)(nil)
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedPayloadAttributesV3 struct {
 	*enginev1.PayloadAttributesV3
+}
+
+// NewWrappedExecutionPayloadDeneb creates a new WrappedPayloadAttributesV3.
+func NewWrappedPayloadAttributerV3(
+	timestamp uint64, prevRandao []byte,
+	suggestedFeeReceipient common.Address,
+	withdrawals []*enginev1.Withdrawal,
+	parentBeaconBlockRoot []byte,
+) *WrappedPayloadAttributesV3 {
+	return &WrappedPayloadAttributesV3{
+		PayloadAttributesV3: &enginev1.PayloadAttributesV3{
+			Timestamp:             timestamp,
+			PrevRandao:            prevRandao,
+			SuggestedFeeRecipient: suggestedFeeReceipient.Bytes(),
+			Withdrawals:           withdrawals,
+			ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		},
+	}
 }
 
 // Version returns the consensus version for the Capella upgrade.
