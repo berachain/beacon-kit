@@ -177,7 +177,7 @@ start-besu:
 FUZZ_TIME=10s
 
 test:
-	@$(MAKE) test-unit test-forge
+	@$(MAKE) test-unit test-forge-fuzz
 test-unit:
 	@$(MAKE)
 	@echo "Running unit tests..."
@@ -200,13 +200,13 @@ test-unit-fuzz:
 #     forge     #
 #################
 
-test-forge:
-	@echo "Running forge test..."
-	@cd $(CONTRACTS_DIR) && forge test
-
 test-forge-cover:
 	@echo "Running forge test with coverage..."
-	@cd $(CONTRACTS_DIR) && forge coverage --report lcov --report-file ../test-forge-cover.txt
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file ../test-forge-cover.txt
+
+test-forge-fuzz:
+	@echo "Running forge fuzz tests..."
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test --mt testFuzz
 
 #################
 #      e2e      #
@@ -396,7 +396,7 @@ repo-rinse: |
 	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
 	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
-	start test-unit test-unit-cover test-forge \
+	start test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
 	test-hive-v test-localnet test-localnet-no-build format lint \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
