@@ -28,13 +28,15 @@ package cli
 import (
 	"path/filepath"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/itsdevbear/bolaris/io/file"
 	"github.com/itsdevbear/bolaris/io/jwt"
-	"github.com/prysmaticlabs/prysm/v4/io/file"
 	"github.com/spf13/cobra"
 )
 
 const (
 	DefaultSecretFileName = "jwt.hex"
+	FlagOutputPath        = "output-path"
 )
 
 // NewGenerateJWTCommand creates a new command for generating a JWT secret.
@@ -46,37 +48,46 @@ func NewGenerateJWTCommand() *cobra.Command {
 If no output file path is specified, it uses the default file name 
 "jwt.hex" in the current directory.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			fileName, err := getFilePath(cmd)
+			// Get the file path from the command flags.
+			outputPath, err := getFilePath(cmd)
 			if err != nil {
 				return err
 			}
-			return generateAuthSecretInFile(cmd, fileName)
+
+			return generateAuthSecretInFile(cmd, outputPath)
 		},
 	}
-	cmd.Flags().StringP("output-path", "o", "", "Optional output file path for the JWT secret")
+	cmd.Flags().StringP(FlagOutputPath, "o", "", "Optional output file path for the JWT secret")
 	return cmd
 }
 
 // getFilePath retrieves the file path for the JWT secret from the command flags.
 // If no path is specified, it returns the default secret file name.
 func getFilePath(cmd *cobra.Command) (string, error) {
-	specifiedFilePath, err := cmd.Flags().GetString("output-path")
+	specifiedFilePath, err := cmd.Flags().GetString(FlagOutputPath)
 	if err != nil {
 		return "", err
 	}
 	if specifiedFilePath != "" {
 		return specifiedFilePath, nil
 	}
-	return DefaultSecretFileName, nil // Use default secret file name if no path is specified
+
+	// If no path is specified, try to get the cosmos client context and use
+	// the configured home directory to write the secret to the default file name.
+	if specifiedFilePath == "" {
+		clientCtx, ok := cmd.Context().Value(client.ClientContextKey).(*client.Context)
+		if !ok {
+			return "", ErrNoClientCtx
+		}
+		specifiedFilePath = filepath.Join(clientCtx.HomeDir+"/config/", DefaultSecretFileName)
+	}
+
+	return specifiedFilePath, nil // Use default secret file name if no path is specified
 }
 
 // generateAuthSecretInFile writes a newly generated JWT secret to a specified file.
 func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 	var err error
-	fileName, err = file.ExpandPath(fileName)
-	if err != nil {
-		return err
-	}
 	fileDir := filepath.Dir(fileName)
 	exists, err := file.HasDir(fileDir)
 	if err != nil {
