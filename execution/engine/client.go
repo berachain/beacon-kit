@@ -75,7 +75,7 @@ func (s *engineClient) NewPayload(
 	ctx context.Context, payload interfaces.ExecutionData,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
-	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
 	payloadPb, err := s.getPayloadProto(payload)
@@ -88,6 +88,8 @@ func (s *engineClient) NewPayload(
 		return nil, err
 	}
 
+	// This case is only true when the payload is invalid, so `processPayloadStatusResult` below
+	// will return an error.
 	if validationErr := result.GetValidationError(); validationErr != "" {
 		s.logger.Error("Got a validation error in newPayload", "err", errors.New(validationErr))
 	}
@@ -126,7 +128,7 @@ func (s *engineClient) callNewPayloadRPC(
 func (s *engineClient) ForkchoiceUpdated(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
-	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 	attrProto, err := s.getAttrProto(attrs)
 	if err != nil {
@@ -177,7 +179,7 @@ func (s *engineClient) updateForkChoiceByVersion(
 func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
 	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
