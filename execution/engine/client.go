@@ -74,12 +74,7 @@ func (s *engineClient) NewPayload(
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
-	payloadPb, err := s.getPayloadProto(payload)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := s.callNewPayloadRPC(dctx, payloadPb, versionedHashes, parentBlockRoot)
+	result, err := s.callNewPayloadRPC(dctx, payload, versionedHashes, parentBlockRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -93,24 +88,12 @@ func (s *engineClient) NewPayload(
 	return processPayloadStatusResult(result)
 }
 
-// getPayloadProto returns the payload proto from the execution data.
-func (s *engineClient) getPayloadProto(payload engine.ExecutionPayload) (interface{}, error) {
-	switch payloadPb := payload.ToProto().(type) {
-	case *enginev1.ExecutionPayloadCapella:
-		return payloadPb, nil
-	case *enginev1.ExecutionPayloadDeneb:
-		return payloadPb, nil
-	default:
-		return nil, errors.New("unknown execution data type")
-	}
-}
-
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *engineClient) callNewPayloadRPC(
-	ctx context.Context, payloadPb interface{},
+	ctx context.Context, payloadPb engine.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) (*enginev1.PayloadStatus, error) {
-	switch payloadPb := payloadPb.(type) {
+	switch payloadPb := payloadPb.ToProto().(type) {
 	case *enginev1.ExecutionPayloadCapella:
 		return s.NewPayloadV2(ctx, payloadPb)
 	case *enginev1.ExecutionPayloadDeneb:
@@ -127,7 +110,7 @@ func (s *engineClient) ForkchoiceUpdated(
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
-	result, err := s.updateForkChoiceByVersion(dctx, state, attrs)
+	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -140,11 +123,10 @@ func (s *engineClient) ForkchoiceUpdated(
 }
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via JSON-RPC.
-func (s *engineClient) updateForkChoiceByVersion(
-	ctx context.Context, state *enginev1.ForkchoiceState,
-	attrProto engine.PayloadAttributer,
+func (s *engineClient) callUpdatedForkchoiceRPC(
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-	switch v := attrProto.ToProto().(type) {
+	switch v := attrs.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
 	case *enginev1.PayloadAttributesV2:
