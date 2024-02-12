@@ -23,34 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package cli
 
-import (
-	"context"
-	"net/http"
+import "errors"
 
-	"github.com/ethereum/go-ethereum/node"
+var (
+	// ErrNoClientCtx indicates that the client context was not found.
+	ErrNoClientCtx = errors.New("client context not found")
+	// ErrNoHomeDir indicates that the home directory was not found.
+	ErrNoHomeDir = errors.New("home directory not found")
 )
-
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
-	for {
-		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
-	}
-}
-
-// BuildHeaders creates the headers for the execution client.
-func (s *Eth1Client) BuildHeaders() (http.Header, error) {
-	var (
-		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
-	)
-
-	// Authenticate the execution node JSON-RPC endpoint.
-	if err := jwtAuthHandler(headers); err != nil {
-		return nil, err
-	}
-
-	// Add additional headers if provided.
-	return headers, nil
-}

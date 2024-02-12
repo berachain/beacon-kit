@@ -9,6 +9,7 @@ data/
 site/
 contracts/cache
 contracts/out
+*.hex
 
 ##########
 # Golang #

@@ -48,7 +48,7 @@ type Eth1Client struct {
 	logger               log.Logger
 	isConnected          atomic.Bool
 	chainID              uint64
-	jwtSecret            [32]byte
+	jwtSecret            *jwt.Secret
 	startupRetryInterval time.Duration
 	jwtRefreshInterval   time.Duration
 	healthCheckInterval  time.Duration
