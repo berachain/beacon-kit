@@ -27,6 +27,7 @@ package file
 
 import (
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"strings"
@@ -35,12 +36,12 @@ import (
 // AbsPath expands the environment variables in a path and converts it
 // to an absolute path.
 func AbsPath(inputPath string) (string, error) {
-	if strings.HasPrefix(inputPath, "~/") {
+	if strings.HasPrefix(inputPath, "~/") || inputPath == "~" {
 		homeDir, err := HomeDir()
 		if err != nil {
 			return "", err
 		}
-		inputPath = filepath.Join(homeDir, inputPath[2:])
+		inputPath = filepath.Join(homeDir, inputPath[1:])
 	}
 
 	return filepath.Abs(path.Clean(os.ExpandEnv(inputPath)))
@@ -51,7 +52,11 @@ func HomeDir() (string, error) {
 	if homeDir := os.Getenv("HOME"); homeDir != "" {
 		return homeDir, nil
 	}
-	return os.UserHomeDir()
+	user, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	return user.HomeDir, nil
 }
 
 // HasDir checks if a directory exists.
