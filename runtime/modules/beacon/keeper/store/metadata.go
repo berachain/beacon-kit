@@ -32,6 +32,7 @@ import (
 // TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
 // Slot returns the current slot of the beacon chain by converting the block height to a slot.
 func (s *BeaconStore) Slot() primitives.Slot {
+	// TODO: make this configurable as it might not always be 1:1 later
 	return primitives.Slot(s.sdkCtx.BlockHeight())
 }
 
