@@ -28,4 +28,4 @@ package key
 import "errors"
 
 // ErrNoPrivValidatorFound is returned when no priv validator is found.
-var ErrNoPrivValidatorFound = errors.New("no priv validator found")
+var ErrNoPrivValidatorFound = errors.New("no private key found for validator")
