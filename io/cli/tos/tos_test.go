@@ -49,7 +49,6 @@ const (
 )
 
 func TestAcceptTosFlag(t *testing.T) {
-	os.Stdout = os.NewFile(0, os.DevNull)
 	homeDir := makeTempDir(t)
 	defer os.RemoveAll(homeDir)
 
@@ -119,8 +118,8 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	t.Log("homeDir: ", homeDir)
 
 	rootCmd := root.NewRootCmd()
-	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetIn(&ErrReader{})
+	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
 		"--" + flags.FlagHome,
