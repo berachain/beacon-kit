@@ -149,7 +149,7 @@ contract BeaconRootsContractTest is SoladyTest {
         assertFalse(success, "get: found out of range timestamp");
     }
 
-    function test_GetInvalidTimestamp(uint256 timestamp) public {
+    function testFuzz_GetInvalidTimestamp(uint256 timestamp) public {
         timestamp =
             _bound(timestamp, _timestamps[0] + 1, _timestamps[HISTORY_BUFFER_LENGTH - 1] - 1);
         for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
