@@ -32,6 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
 	einterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
 )
 
@@ -62,7 +63,7 @@ func (s *Service) postBlockProcess(
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		attrs = s.getPayloadAttribute(ctx)
 	} else {
-		attrs = nil // payloadattribute.EmptyWithVersion(s.BeaconState(ctx).Version())
+		attrs = engine.EmptyPayloadAttributesWithVersion(s.BeaconState(ctx).Version())
 	}
 
 	return s.en.NotifyForkchoiceUpdate(
