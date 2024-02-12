@@ -37,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/io/jwt"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -159,10 +160,12 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV3(
-	ctx context.Context, payloadID enginev1.PayloadIDBytes,
+	ctx context.Context, payloadID primitives.PayloadID,
 ) (*enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle, error) {
 	result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-	if err := s.GethRPCClient.CallContext(ctx, result, GetPayloadMethodV3, payloadID); err != nil {
+	if err := s.GethRPCClient.CallContext(
+		ctx, result, GetPayloadMethodV3, payloadID,
+	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
 	return result, nil
@@ -170,10 +173,12 @@ func (s *Eth1Client) GetPayloadV3(
 
 // GetPayloadV2 calls the engine_getPayloadV2 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV2(
-	ctx context.Context, payloadID enginev1.PayloadIDBytes,
+	ctx context.Context, payloadID primitives.PayloadID,
 ) (*enginev1.ExecutionPayloadCapellaWithValue, error) {
 	result := &enginev1.ExecutionPayloadCapellaWithValue{}
-	if err := s.GethRPCClient.CallContext(ctx, result, GetPayloadMethodV2, payloadID); err != nil {
+	if err := s.GethRPCClient.CallContext(
+		ctx, result, GetPayloadMethodV2, payloadID,
+	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
 	return result, nil

@@ -124,7 +124,9 @@ func (s *Service) getLocalPayload(
 		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
-	payload, bundle, overrideBuilder, err := s.en.GetPayload(ctx, *payloadIDBytes, slot)
+	payload, bundle, overrideBuilder, err := s.en.GetPayload(
+		ctx, primitives.PayloadID(*payloadIDBytes), slot,
+	)
 	if err != nil {
 		return nil, false, err
 	}
