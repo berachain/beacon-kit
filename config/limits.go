@@ -36,24 +36,24 @@ var _ BeaconKitConfig[Limits] = &Limits{}
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultLimitsConfig() Limits {
 	return Limits{
-		MaxDeposits:    16, //nolint:gomnd
-		MaxWithdrawals: 16, //nolint:gomnd
+		MaxDepositsPerBlock:      16, //nolint:gomnd
+		MaxWithdrawalsPerPayload: 16, //nolint:gomnd
 	}
 }
 
 // Limits represents the configuration struct for the limits on the beacon chain.
 type Limits struct {
-	MaxDeposits    uint64
-	MaxWithdrawals uint64
+	MaxDepositsPerBlock      uint64
+	MaxWithdrawalsPerPayload uint64
 }
 
 // Parse parses the configuration.
 func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 	var err error
-	if c.MaxDeposits, err = parser.GetUint64(flags.MaxDeposits); err != nil {
+	if c.MaxDepositsPerBlock, err = parser.GetUint64(flags.MaxDeposits); err != nil {
 		return nil, err
 	}
-	if c.MaxWithdrawals, err = parser.GetUint64(flags.MaxWithdrawals); err != nil {
+	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(flags.MaxWithdrawals); err != nil {
 		return nil, err
 	}
 
@@ -64,9 +64,9 @@ func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 func (c Limits) Template() string {
 	return `
 [beacon-kit.beacon-config.limits]
-# MaxDeposits is the maximum number of Deposits allowed in a block.
-max-deposits = {{.BeaconKit.Beacon.Limits.MaxDeposits}}
-# MaxWithdrawals is the maximum number of Withdrawals allowed in a block.
-max-withdrawals = {{.BeaconKit.Beacon.Limits.MaxWithdrawals}}
+# MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.
+max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
+# MaxWithdrawalsPerPayload is the maximum number of Withdrawals allowed in a payload.
+max-withdrawals-per-payload = {{.BeaconKit.Beacon.Limits.MaxWithdrawalsPerPayload}}
 `
 }
