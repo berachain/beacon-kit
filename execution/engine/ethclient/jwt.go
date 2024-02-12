@@ -23,23 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package common
+package ethclient
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"context"
+	"net/http"
 
-type (
-	Address = common.Address
-	Hash    = common.Hash
+	"github.com/ethereum/go-ethereum/node"
 )
 
-var (
-	BytesToAddress = common.BytesToAddress
-)
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
+	for {
+		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
+	}
+}
 
-var (
-	IsHexAddress = common.IsHexAddress
-	HexToAddress = common.HexToAddress
-	HexToHash    = common.HexToHash
-	FromHex      = common.FromHex
-	BytesToHash  = common.BytesToHash
-)
+// BuildHeaders creates the headers for the execution client.
+func (s *Eth1Client) BuildHeaders() (http.Header, error) {
+	var (
+		headers        = http.Header{}
+		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
+	)
+
+	// Authenticate the execution node JSON-RPC endpoint.
+	if err := jwtAuthHandler(headers); err != nil {
+		return nil, err
+	}
+
+	// Add additional headers if provided.
+	return headers, nil
+}

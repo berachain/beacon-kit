@@ -31,7 +31,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/itsdevbear/bolaris/beacon/execution"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"golang.org/x/sync/errgroup"
 )
@@ -122,11 +122,11 @@ func (s *Service) validateExecutionOnBlock(
 	}
 
 	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)
-	if err != nil && errors.Is(err, execution.ErrAcceptedSyncingPayloadStatus) {
+	if err != nil && errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus) {
 		s.Logger().Error("Failed to validate execution on block", "error", err)
 		return isValidPayload, err
 	} else if err != nil || !isValidPayload {
-		return isValidPayload, execution.ErrInvalidPayloadStatus
+		return isValidPayload, eth.ErrInvalidPayloadStatus
 	}
 	return isValidPayload, nil
 }

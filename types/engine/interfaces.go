@@ -23,19 +23,44 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package engine
 
-import "errors"
-
-// ErrUnauthenticatedConnection indicates that the connection is not authenticated.
-const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
-connection is not authenticated. If connecting to your execution client via HTTP, you 
-will need to set up JWT authentication...`
-
-var (
-	// ErrInvalidJWTSecretLength indicates that the JWT secret length is invalid.
-	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
-
-	// ErrNilJWTSecret indicates that the JWT secret is nil.
-	ErrNilJWTSecret = errors.New("nil JWT secret")
+import (
+	ssz "github.com/prysmaticlabs/fastssz"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
+
+// ExecutionPayloadBody is the interface for the execution data of a block.
+// It contains all the fields that are part of both an execution payload header
+// and a full execution payload.
+type ExecutionPayloadBody interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	Version() int
+	IsBlinded() bool
+}
+
+// ExecutionPayload is the interface for the execution data of a block.
+type ExecutionPayload interface {
+	ExecutionPayloadBody
+	GetTransactions() [][]byte
+	GetWithdrawals() []*enginev1.Withdrawal
+}
+
+// ExecutionPayloadHeader is the interface representing an execution payload header.
+type ExecutionPayloadHeader interface {
+	ExecutionPayloadBody
+	GetTransactionsRoot() []byte
+	GetWithdrawalsRoot() []byte
+}
+
+// PayloadAttributer is the interface for the payload attributes of a block.
+type PayloadAttributer interface {
+	Version() int
+	GetPrevRandao() []byte
+	GetTimestamp() uint64
+	GetSuggestedFeeRecipient() []byte
+	GetWithdrawals() []*enginev1.Withdrawal
+	IsEmpty() bool
+}

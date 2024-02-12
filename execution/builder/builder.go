@@ -23,16 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package hexutil
+package builder
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
-
-type (
-	Bytes = hexutil.Bytes
-)
-
-var (
-	Encode     = hexutil.Encode
-	Decode     = hexutil.Decode
-	MustDecode = hexutil.MustDecode
-)
+// TODO: put the block builder apis in here.

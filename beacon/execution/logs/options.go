@@ -28,10 +28,10 @@ package logs
 import (
 	"cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 
-	eth "github.com/itsdevbear/bolaris/beacon/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )
 
 // Option is a function that applies a specific configuration to the Processor.

@@ -33,6 +33,11 @@ packages:
       recursive: True
       with-expecter: true
       all: True
+  github.com/itsdevbear/bolaris/execution/engine/ethclient:
+    config:
+      recursive: True
+      with-expecter: true
+      include-regex: GethRPCClient
   github.com/itsdevbear/bolaris/runtime/service:
     config:
       recursive: True

@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/beacon/core"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
 
 // getPayloadAttribute returns the payload attributes for the given state and slot.
@@ -38,7 +38,7 @@ import (
 // context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(
 	ctx context.Context,
-) payloadattribute.Attributer {
+) interfaces.PayloadAttributer {
 	var (
 		// NOTE: We have to use time.Now() and not the time on the block header coming from
 		// Comet or else we attempt to build a block at an equivalent timestamp to the last.

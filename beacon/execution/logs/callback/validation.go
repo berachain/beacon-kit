@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // validateArg uses reflection to verify the implementation arg matches the ABI arg.

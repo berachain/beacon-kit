@@ -28,10 +28,10 @@ package execution
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 )
 
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
@@ -53,5 +53,5 @@ type FCUConfig struct {
 	// Attributes is a list of payload attributes to include in a forkchoice update
 	// to the execution client. It is used to signal to the execution client that
 	// it should build a payload.
-	Attributes payloadattribute.Attributer
+	Attributes interfaces.PayloadAttributer
 }

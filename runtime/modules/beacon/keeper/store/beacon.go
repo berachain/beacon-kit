@@ -31,8 +31,8 @@ import (
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
 )
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
