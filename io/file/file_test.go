@@ -27,7 +27,6 @@ package file_test
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -41,7 +40,6 @@ func TestHasDir(t *testing.T) {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(dir) // clean up
-	fmt.Println("dir: ", dir)
 
 	exists, err := file.HasDir(dir)
 	if err != nil || !exists {
@@ -57,7 +55,7 @@ func TestHasDir(t *testing.T) {
 func TestAbsPath(t *testing.T) {
 	// Home Directory
 	homeDir := os.Getenv("HOME")
-	os.Setenv("envVariable", "test")
+	t.Setenv("envVariable", "test")
 
 	tests := []struct {
 		path     string

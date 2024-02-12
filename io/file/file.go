@@ -125,7 +125,7 @@ func WriteFile(filePath string, data []byte) error {
 	}
 
 	if ok := Exists(absFilePath); !ok {
-		err := CreateFile(absFilePath)
+		err = CreateFile(absFilePath)
 		if err != nil {
 			return err
 		}
