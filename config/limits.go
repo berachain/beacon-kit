@@ -33,11 +33,16 @@ import (
 // Limits conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Limits] = &Limits{}
 
+const (
+	defaultMaxDepositsPerBlock      = 16
+	defaultMaxWithdrawalsPerPayload = 16
+)
+
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultLimitsConfig() Limits {
 	return Limits{
-		MaxDepositsPerBlock:      16, //nolint:gomnd
-		MaxWithdrawalsPerPayload: 16, //nolint:gomnd
+		MaxDepositsPerBlock:      defaultMaxDepositsPerBlock,
+		MaxWithdrawalsPerPayload: defaultMaxWithdrawalsPerPayload,
 	}
 }
 
