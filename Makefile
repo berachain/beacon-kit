@@ -165,6 +165,10 @@ start-besu:
 	--engine-jwt-secret=../../${JWT_PATH}
 
 
+###############################################################################
+###                                Testing                                  ###
+###############################################################################
+
 
 #################
 #     unit      #
@@ -172,15 +176,17 @@ start-besu:
 
 FUZZ_TIME=10s
 
+test:
+	@$(MAKE) test-unit test-forge
 test-unit:
-	@$(MAKE) forge-test
+	@$(MAKE)
 	@echo "Running unit tests..."
 	go test ./...
 
 test-unit-cover:
-	@$(MAKE) forge-test
+	@$(MAKE)
 	@echo "Running unit tests with coverage..."
-	go test -race -coverprofile=coverage-test-unit-cover.txt -covermode=atomic ./...
+	go test -race -coverprofile=test-unit-cover.txt -covermode=atomic ./...
 
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
@@ -194,9 +200,13 @@ test-unit-fuzz:
 #     forge     #
 #################
 
-forge-test:
+test-forge:
 	@echo "Running forge test..."
 	@cd $(CONTRACTS_DIR) && forge test
+
+test-forge-cover:
+	@echo "Running forge test with coverage..."
+	@cd $(CONTRACTS_DIR) && forge coverage --report lcov --report-file ../test-forge-cover.txt
 
 #################
 #      e2e      #
@@ -287,16 +297,16 @@ gosec:
 
 
 #################
-#     godoc     #
+#     pkgsite     #
 #################
 
-godoc-install:
-	@echo "--> Installing godoc"
-	@go install golang.org/x/tools/cmd/godoc
-godoc:
-	@$(MAKE) godoc-install
-	@echo "Starting godoc server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
-	@godoc -http=:6060
+pkgsite-install:
+	@echo "--> Installing pkgsite"
+	@go install golang.org/x/pkgsite/cmd/pkgsite
+pkgsite:
+	@$(MAKE) pkgsite-install
+	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
+	@pkgsite -http=:6060
 
 
 #################
@@ -391,7 +401,7 @@ repo-rinse: |
 	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
 	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
-	start test-unit test-unit-cover forge-test \
+	start test-unit test-unit-cover test-forge \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
 	test-hive-v test-localnet test-localnet-no-build format lint \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
