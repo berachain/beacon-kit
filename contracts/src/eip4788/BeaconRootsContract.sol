@@ -52,12 +52,12 @@ contract BeaconRootsContract {
     ///    a. If the calldata is the 32-byte encoded timestamp, the function will return the beacon
     /// block root.
     ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)" appended with the
-    /// 32-byte encoded
-    ///       block number, the function will return the coinbase for the given block number.
+    /// 32-byte encoded block number, the function will return the coinbase for the given block
+    /// number.
     fallback() external {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
-                getCoinbase(uint256(bytes32(msg.data[4:36])));
+                getCoinbase();
             } else {
                 // if the first 32 bytes is a timestamp, the first 4 bytes must be 0
                 get();
@@ -126,11 +126,10 @@ contract BeaconRootsContract {
     /// @dev if called with a block number that is before the history buffer
     /// it will return the coinbase for blockNumber + HISTORY_BUFFER_LENGTH * A
     /// Where A is the number of times the buffer has cycled since the blockNumber
-    /// @param blockNumber The block number for which to retrieve the coinbase.
     /// @return The coinbase for the given block number.
-    function getCoinbase(uint256 blockNumber) internal view returns (address) {
+    function getCoinbase() internal view returns (address) {
         assembly ("memory-safe") {
-            let block_idx := mod(blockNumber, HISTORY_BUFFER_LENGTH)
+            let block_idx := mod(calldataload(4), HISTORY_BUFFER_LENGTH)
             let coinbase_idx := add(block_idx, _coinbases.slot)
             mstore(0, sload(coinbase_idx))
             return(0, 0x20)
