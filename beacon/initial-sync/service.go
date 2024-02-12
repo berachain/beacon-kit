@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// Service is responsible for tracking the synchornization status
+// Service is responsible for tracking the synchronization status
 // of both the beacon and execution chains.
 type Service struct {
 	service.BaseService
