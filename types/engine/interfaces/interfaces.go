@@ -64,5 +64,4 @@ type PayloadAttributer interface {
 	GetTimestamp() uint64
 	GetSuggestedFeeRecipient() []byte
 	GetWithdrawals() []*enginev1.Withdrawal
-	IsEmpty() bool
 }
