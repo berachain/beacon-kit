@@ -89,6 +89,8 @@ func (s *engineClient) NewPayload(
 		return nil, err
 	}
 
+	// This case is only true when the payload is invalid, so `processPayloadStatusResult` below
+	// will return an error.
 	if validationErr := result.GetValidationError(); validationErr != "" {
 		s.logger.Error("Got a validation error in newPayload", "err", errors.New(validationErr))
 	}
