@@ -74,12 +74,12 @@ message ExecutionPayloadDeneb {
   uint64 excess_blob_gas = 17;
 }
 
-// ExecutionPayloadDenebWithValue wraps the ExecutionPayloadDeneb with an additional value field.
-message ExecutionPayloadDenebWithValue {
+// ExecutionPayloadDenebWithValueAndBlobsBundle wraps the ExecutionPayloadDeneb with an additional value field.
+message ExecutionPayloadDenebWithValueAndBlobsBundle {
   // payload is the ExecutionPayloadDeneb message.
   ExecutionPayloadDeneb payload = 1;
-  // value is an additional field to store arbitrary bytes.
-  bytes value = 2;
+  // value stores the payload value in wei.
+  bytes value = 2 [(ethereum.eth.ext.ssz_max) = "32"];
   // blobs_bundle contains the necessary components for constructing a blobs sidecar object.
   BlobsBundle blobs_bundle = 3;
   // should_override_builder indicates whether the default builder should be overridden.

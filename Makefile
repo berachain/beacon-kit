@@ -370,6 +370,8 @@ sszgen:
 	@sszgen -path ./types/engine/v1 -objs Withdrawal --include ./types/consensus/primitives
 	@sszgen -path ./types/engine/v2 -objs ExecutionPayloadCapella,ExecutionPayloadCapellaWithValue \
 	 --include ./types/engine/v1,./types/consensus/primitives
+	@sszgen -path ./types/engine/v3 -objs ExecutionPayloadDeneb,ExecutionPayloadDenebWithValueAndBlobsBundle \
+	 --include ./types/engine/v1,./types/consensus/primitives
 
 ##############################################################################
 ###                             Dependencies                                ###
