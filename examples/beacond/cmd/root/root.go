@@ -71,7 +71,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
-	"github.com/itsdevbear/bolaris/io/tos"
+	"github.com/itsdevbear/bolaris/io/cli/tos"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
