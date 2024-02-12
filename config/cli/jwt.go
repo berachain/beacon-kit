@@ -26,11 +26,9 @@
 package cli
 
 import (
-	"errors"
 	"path/filepath"
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
-	"github.com/prysmaticlabs/prysm/v4/crypto/rand"
+	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/prysmaticlabs/prysm/v4/io/file"
 	"github.com/spf13/cobra"
 )
@@ -89,26 +87,13 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 			return err
 		}
 	}
-	secret, err := generateRandomHexString()
+	secret, err := jwt.NewRandom()
 	if err != nil {
 		return err
 	}
-	if err = file.WriteFile(fileName, []byte(secret)); err != nil {
+	if err = file.WriteFile(fileName, []byte(secret.Hex())); err != nil {
 		return err
 	}
 	cmd.Printf("Successfully wrote new JSON-RPC authentication secret to: %s", fileName)
 	return nil
-}
-
-// generateRandomHexString generates a random 32-byte hex string to be used as a JWT secret.
-func generateRandomHexString() (string, error) {
-	secret := make([]byte, 32) //nolint:gomnd // 32 bytes.
-	randGen := rand.NewGenerator()
-	n, err := randGen.Read(secret)
-	if err != nil {
-		return "", err
-	} else if n <= 0 {
-		return "", errors.New("rand: unexpected length")
-	}
-	return hexutil.Encode(secret), nil
 }
