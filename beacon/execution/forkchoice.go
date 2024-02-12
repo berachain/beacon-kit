@@ -29,10 +29,10 @@ import (
 	"context"
 	"errors"
 
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (s *Service) notifyForkchoiceUpdate(
@@ -64,14 +64,13 @@ func (s *Service) notifyForkchoiceUpdate(
 		fcuConfig.Attributes = payloadattribute.EmptyWithVersion(beaconState.Version())
 	}
 
-	// TODO: remember and figure out what the middle param is.
 	payloadIDBytes, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
 		// TODO: ensure this switch statement isn't fucked.
 		switch err { //nolint:errorlint // okay for now.
-		case execution.ErrAcceptedSyncingPayloadStatus:
+		case eth.ErrAcceptedSyncingPayloadStatus:
 			return err
-		case execution.ErrInvalidPayloadStatus:
+		case eth.ErrInvalidPayloadStatus:
 			s.Logger().Error("invalid payload status", "error", err)
 			// In Prysm, this code recursively calls back until we find a valid hash we can
 			// insert. In BeaconKit, we don't have the nice ability to do this, *but* in

@@ -35,11 +35,20 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	fastssz "github.com/prysmaticlabs/fastssz"
 	fieldparams "github.com/prysmaticlabs/prysm/v4/config/fieldparams"
-	consensus_types "github.com/prysmaticlabs/prysm/v4/consensus-types"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	"github.com/prysmaticlabs/prysm/v4/encoding/ssz"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
+)
+
+// TODO: FULLY DEPRECATE THIS FILE
+var (
+	// ErrNilObjectWrapped is returned in a constructor when the underlying object is nil.
+	ErrNilObjectWrapped = errors.New("attempted to wrap nil object")
+	// ErrUnsupportedField is returned when a getter/setter access is not supported.
+	ErrUnsupportedField = errors.New("unsupported getter")
+	// ErrOutOfBounds is returned when a slice or array index does not exist.
+	ErrOutOfBounds = errors.New("index out of bounds")
 )
 
 // executionPayload is a convenience wrapper around a beacon block body's execution payload data structure
@@ -53,7 +62,7 @@ type executionPayload struct {
 func WrappedExecutionPayload(p *enginev1.ExecutionPayload) (interfaces.ExecutionData, error) {
 	w := executionPayload{p: p}
 	if w.IsNil() {
-		return nil, consensus_types.ErrNilObjectWrapped
+		return nil, ErrNilObjectWrapped
 	}
 	return w, nil
 }
@@ -175,27 +184,27 @@ func (e executionPayload) Transactions() ([][]byte, error) {
 
 // TransactionsRoot --.
 func (executionPayload) TransactionsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // Withdrawals --.
 func (executionPayload) Withdrawals() ([]*enginev1.Withdrawal, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // WithdrawalsRoot --.
 func (executionPayload) WithdrawalsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // BlobGasUsed --.
 func (e executionPayload) BlobGasUsed() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // ExcessBlobGas --.
 func (e executionPayload) ExcessBlobGas() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // PbBellatrix --.
@@ -205,22 +214,22 @@ func (e executionPayload) PbBellatrix() (*enginev1.ExecutionPayload, error) {
 
 // PbCapella --.
 func (executionPayload) PbCapella() (*enginev1.ExecutionPayloadCapella, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbDeneb --.
 func (executionPayload) PbDeneb() (*enginev1.ExecutionPayloadDeneb, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // ValueInWei --.
 func (executionPayload) ValueInWei() (math.Wei, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // ValueInGwei --.
 func (executionPayload) ValueInGwei() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // executionPayloadHeader is a convenience wrapper around a blinded beacon block body's execution header data structure
@@ -234,7 +243,7 @@ type executionPayloadHeader struct {
 func WrappedExecutionPayloadHeader(p *enginev1.ExecutionPayloadHeader) (interfaces.ExecutionData, error) {
 	w := executionPayloadHeader{p: p}
 	if w.IsNil() {
-		return nil, consensus_types.ErrNilObjectWrapped
+		return nil, ErrNilObjectWrapped
 	}
 	return w, nil
 }
@@ -351,7 +360,7 @@ func (e executionPayloadHeader) BlockHash() []byte {
 
 // Transactions --.
 func (executionPayloadHeader) Transactions() ([][]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // TransactionsRoot --.
@@ -361,47 +370,47 @@ func (e executionPayloadHeader) TransactionsRoot() ([]byte, error) {
 
 // Withdrawals --.
 func (executionPayloadHeader) Withdrawals() ([]*enginev1.Withdrawal, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // WithdrawalsRoot --.
 func (executionPayloadHeader) WithdrawalsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // BlobGasUsed --.
 func (e executionPayloadHeader) BlobGasUsed() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // ExcessBlobGas --.
 func (e executionPayloadHeader) ExcessBlobGas() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // PbDeneb --.
 func (executionPayloadHeader) PbDeneb() (*enginev1.ExecutionPayloadDeneb, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbCapella --.
 func (executionPayloadHeader) PbCapella() (*enginev1.ExecutionPayloadCapella, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbBellatrix --.
 func (executionPayloadHeader) PbBellatrix() (*enginev1.ExecutionPayload, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // ValueInWei --.
 func (executionPayloadHeader) ValueInWei() (math.Wei, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // ValueInGwei --.
 func (executionPayloadHeader) ValueInGwei() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // PayloadToHeader converts `payload` into execution payload header format.
@@ -445,7 +454,7 @@ type executionPayloadCapella struct {
 func WrappedExecutionPayloadCapella(p *enginev1.ExecutionPayloadCapella, value math.Wei) (interfaces.ExecutionData, error) {
 	w := executionPayloadCapella{p: p, weiValue: value, gweiValue: uint64(math.WeiToGwei(value))}
 	if w.IsNil() {
-		return nil, consensus_types.ErrNilObjectWrapped
+		return nil, ErrNilObjectWrapped
 	}
 	return w, nil
 }
@@ -567,7 +576,7 @@ func (e executionPayloadCapella) Transactions() ([][]byte, error) {
 
 // TransactionsRoot --.
 func (executionPayloadCapella) TransactionsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // Withdrawals --.
@@ -577,22 +586,22 @@ func (e executionPayloadCapella) Withdrawals() ([]*enginev1.Withdrawal, error) {
 
 // WithdrawalsRoot --.
 func (executionPayloadCapella) WithdrawalsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // BlobGasUsed --.
 func (e executionPayloadCapella) BlobGasUsed() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // ExcessBlobGas --.
 func (e executionPayloadCapella) ExcessBlobGas() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // PbDeneb --.
 func (executionPayloadCapella) PbDeneb() (*enginev1.ExecutionPayloadDeneb, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbCapella --.
@@ -602,7 +611,7 @@ func (e executionPayloadCapella) PbCapella() (*enginev1.ExecutionPayloadCapella,
 
 // PbBellatrix --.
 func (executionPayloadCapella) PbBellatrix() (*enginev1.ExecutionPayload, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // ValueInWei --.
@@ -628,7 +637,7 @@ type executionPayloadHeaderCapella struct {
 func WrappedExecutionPayloadHeaderCapella(p *enginev1.ExecutionPayloadHeaderCapella, value math.Wei) (interfaces.ExecutionData, error) {
 	w := executionPayloadHeaderCapella{p: p, weiValue: value, gweiValue: uint64(math.WeiToGwei(value))}
 	if w.IsNil() {
-		return nil, consensus_types.ErrNilObjectWrapped
+		return nil, ErrNilObjectWrapped
 	}
 	return w, nil
 }
@@ -745,7 +754,7 @@ func (e executionPayloadHeaderCapella) BlockHash() []byte {
 
 // Transactions --.
 func (executionPayloadHeaderCapella) Transactions() ([][]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // TransactionsRoot --.
@@ -755,7 +764,7 @@ func (e executionPayloadHeaderCapella) TransactionsRoot() ([]byte, error) {
 
 // Withdrawals --.
 func (executionPayloadHeaderCapella) Withdrawals() ([]*enginev1.Withdrawal, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // WithdrawalsRoot --.
@@ -765,27 +774,27 @@ func (e executionPayloadHeaderCapella) WithdrawalsRoot() ([]byte, error) {
 
 // BlobGasUsed --.
 func (e executionPayloadHeaderCapella) BlobGasUsed() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // ExcessBlobGas --.
 func (e executionPayloadHeaderCapella) ExcessBlobGas() (uint64, error) {
-	return 0, consensus_types.ErrUnsupportedField
+	return 0, ErrUnsupportedField
 }
 
 // PbDeneb --.
 func (executionPayloadHeaderCapella) PbDeneb() (*enginev1.ExecutionPayloadDeneb, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbCapella --.
 func (executionPayloadHeaderCapella) PbCapella() (*enginev1.ExecutionPayloadCapella, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbBellatrix --.
 func (executionPayloadHeaderCapella) PbBellatrix() (*enginev1.ExecutionPayload, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // ValueInWei --.
@@ -919,7 +928,7 @@ func IsEmptyExecutionData(data interfaces.ExecutionData) (bool, error) {
 
 	txs, err := data.Transactions()
 	switch {
-	case errors.Is(err, consensus_types.ErrUnsupportedField):
+	case errors.Is(err, ErrUnsupportedField):
 	case err != nil:
 		return false, err
 	default:
@@ -963,7 +972,7 @@ func WrappedExecutionPayloadHeaderDeneb(
 ) (interfaces.ExecutionData, error) {
 	w := executionPayloadHeaderDeneb{p: p, weiValue: value, gweiValue: uint64(math.WeiToGwei(value))}
 	if w.IsNil() {
-		return nil, consensus_types.ErrNilObjectWrapped
+		return nil, ErrNilObjectWrapped
 	}
 	return w, nil
 }
@@ -1075,7 +1084,7 @@ func (e executionPayloadHeaderDeneb) BlockHash() []byte {
 
 // Transactions --.
 func (executionPayloadHeaderDeneb) Transactions() ([][]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // TransactionsRoot --.
@@ -1085,7 +1094,7 @@ func (e executionPayloadHeaderDeneb) TransactionsRoot() ([]byte, error) {
 
 // Withdrawals --.
 func (e executionPayloadHeaderDeneb) Withdrawals() ([]*enginev1.Withdrawal, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // WithdrawalsRoot --.
@@ -1105,17 +1114,17 @@ func (e executionPayloadHeaderDeneb) ExcessBlobGas() (uint64, error) {
 
 // PbDeneb --.
 func (executionPayloadHeaderDeneb) PbDeneb() (*enginev1.ExecutionPayloadDeneb, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbBellatrix --.
 func (executionPayloadHeaderDeneb) PbBellatrix() (*enginev1.ExecutionPayload, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbCapella --.
 func (executionPayloadHeaderDeneb) PbCapella() (*enginev1.ExecutionPayloadCapella, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // ValueInWei --.
@@ -1150,7 +1159,7 @@ func WrappedExecutionPayloadDeneb(
 ) (interfaces.ExecutionData, error) {
 	w := executionPayloadDeneb{p: p, weiValue: value, gweiValue: uint64(math.WeiToGwei(value))}
 	if w.IsNil() {
-		return nil, consensus_types.ErrNilObjectWrapped
+		return nil, ErrNilObjectWrapped
 	}
 	return w, nil
 }
@@ -1267,7 +1276,7 @@ func (e executionPayloadDeneb) Transactions() ([][]byte, error) {
 
 // TransactionsRoot --.
 func (e executionPayloadDeneb) TransactionsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // Withdrawals --.
@@ -1277,7 +1286,7 @@ func (e executionPayloadDeneb) Withdrawals() ([]*enginev1.Withdrawal, error) {
 
 // WithdrawalsRoot --.
 func (e executionPayloadDeneb) WithdrawalsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 func (e executionPayloadDeneb) BlobGasUsed() (uint64, error) {
@@ -1290,12 +1299,12 @@ func (e executionPayloadDeneb) ExcessBlobGas() (uint64, error) {
 
 // PbBellatrix --.
 func (e executionPayloadDeneb) PbBellatrix() (*enginev1.ExecutionPayload, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbCapella --.
 func (e executionPayloadDeneb) PbCapella() (*enginev1.ExecutionPayloadCapella, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return nil, ErrUnsupportedField
 }
 
 // PbDeneb --.
@@ -1324,13 +1333,4 @@ func PayloadValueToWei(value []byte) math.Wei {
 	// from the execution layer.
 	// TODO: does this need to be flipped still with the new library?
 	return uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
-}
-
-// PayloadValueToGwei returns a Gwei value given the payload's value.
-func PayloadValueToGwei(value []byte) math.Gwei {
-	// We have to convert big endian to little endian because the value is coming
-	// from the execution layer.
-	// TODO: does this need to be flipped still with the new library?
-	v := uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
-	return math.WeiToGwei(v)
 }

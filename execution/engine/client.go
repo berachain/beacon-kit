@@ -43,7 +43,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -127,7 +126,7 @@ func (s *engineClient) callNewPayloadRPC(
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineClient) ForkchoiceUpdated(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
@@ -149,7 +148,7 @@ func (s *engineClient) ForkchoiceUpdated(
 }
 
 // getAttrProto returns the attribute proto from the payload attribute.
-func (s *engineClient) getAttrProto(attrs payloadattribute.Attributer) (any, error) {
+func (s *engineClient) getAttrProto(attrs interfaces.PayloadAttributer) (any, error) {
 	switch attrs.Version() {
 	case version.Deneb:
 		return attrs.PbV3()

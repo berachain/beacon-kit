@@ -28,7 +28,7 @@ package cache
 import (
 	"sync"
 
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 

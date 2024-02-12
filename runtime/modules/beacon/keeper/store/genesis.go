@@ -26,7 +26,7 @@
 package store
 
 import (
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
