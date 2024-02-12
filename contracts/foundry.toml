@@ -22,7 +22,7 @@
   ]
   verbosity = 3
 
-[profile.ci]
+[profile.fuzz]
 fuzz = { runs = 8192 }
 verbosity = 4
 
