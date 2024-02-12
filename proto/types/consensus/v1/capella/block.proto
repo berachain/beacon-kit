@@ -28,7 +28,7 @@ package types.consensus.v1.capella;
 
 import "ethereum/engine/v1/execution_engine.proto";
 import "ethereum/eth/ext/options.proto";
-import "types/consensus/deposit.proto";
+import "types/consensus/v1/deposit.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1/capella";
 
