@@ -28,7 +28,7 @@ package interfaces
 import (
 	"time"
 
-	ssz "github.com/itsdevbear/fastssz"
+	ssz "github.com/prysmaticlabs/fastssz"
 
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
