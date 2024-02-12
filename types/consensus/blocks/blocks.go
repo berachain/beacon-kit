@@ -33,7 +33,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	engine "github.com/itsdevbear/bolaris/types/engine/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // BeaconKitBlockFromState assembles a new beacon block

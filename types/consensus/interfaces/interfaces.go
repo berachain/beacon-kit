@@ -30,7 +30,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	einterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
 	ssz "github.com/prysmaticlabs/fastssz"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
@@ -108,13 +108,13 @@ type ReadOnlyBeaconKitBlock interface {
 	// ProposerAddress() []byte
 	IsNil() bool
 	// Execution returns the execution data of the block.
-	Execution() (einterfaces.ExecutionPayload, error)
+	Execution() (engine.ExecutionPayload, error)
 	Version() int
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
 type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(einterfaces.ExecutionPayload) error
+	AttachExecution(engine.ExecutionPayload) error
 }
 
 // ABCIRequest is the interface for an ABCI request.

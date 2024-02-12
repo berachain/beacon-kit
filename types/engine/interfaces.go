@@ -23,31 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package engine
 
 import (
-	"context"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
+// We re-export the interfaces from the engine package to aid in importing them
+// in other packages.
+type (
+	// ExecutionPayloadBody is the interface for the execution data of a block.
+	// It contains all the fields that are part of both an execution payload header
+	// and a full execution payload.
+	ExecutionPayloadBody = interfaces.ExecutionPayloadBody
 
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
+	// ExecutionPayload is the interface for the execution data of a block.
+	ExecutionPayload = interfaces.ExecutionPayload
 
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
-}
+	// ExecutionPayloadHeader is the interface representing an execution payload header.
+	ExecutionPayloadHeader = interfaces.ExecutionPayloadHeader
+
+	// PayloadAttributer is the interface for the payload attributes of a block.
+	PayloadAttributer = interfaces.PayloadAttributer
+)

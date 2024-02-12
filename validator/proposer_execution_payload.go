@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	enginei "github.com/itsdevbear/bolaris/types/engine/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
 	"github.com/pkg/errors"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -44,7 +44,7 @@ import (
 func (s *Service) getLocalPayload(
 	ctx context.Context,
 	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
-) (enginei.ExecutionPayload, bool, error) {
+) (engine.ExecutionPayload, bool, error) {
 	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
@@ -70,7 +70,7 @@ func (s *Service) getLocalPayload(
 	if ok && (payloadID != primitives.PayloadID{}) {
 		var (
 			pidCpy          primitives.PayloadID
-			payload         enginei.ExecutionPayload
+			payload         engine.ExecutionPayload
 			overrideBuilder bool
 		)
 

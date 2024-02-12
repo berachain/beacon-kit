@@ -33,7 +33,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/engine"
-	einterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
 )
 
 // postBlockProcess(.
@@ -59,7 +58,7 @@ func (s *Service) postBlockProcess(
 	// TODO: we should probably just have a validator job in the background that is
 	// constantly building new payloads and then not worry about anything here triggering
 	// payload builds.
-	var attrs einterfaces.PayloadAttributer
+	var attrs engine.PayloadAttributer
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		attrs = s.getPayloadAttribute(ctx)
 	} else {

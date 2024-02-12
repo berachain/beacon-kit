@@ -28,7 +28,6 @@ package engine
 import (
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	capella "github.com/itsdevbear/bolaris/types/engine/v1/capella"
 	deneb "github.com/itsdevbear/bolaris/types/engine/v1/deneb"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -38,7 +37,7 @@ import (
 // into an interface.
 func WrappedExecutionPayloadDeneb(
 	p *enginev1.ExecutionPayloadDeneb, wei math.Wei,
-) (interfaces.ExecutionPayload, error) {
+) (ExecutionPayload, error) {
 	return deneb.NewWrappedExecutionPayloadDeneb(
 		p, wei,
 	), nil
@@ -48,14 +47,14 @@ func WrappedExecutionPayloadDeneb(
 // into an interface.
 func WrappedExecutionPayloadCapella(
 	p *enginev1.ExecutionPayloadCapella, wei math.Wei,
-) (interfaces.ExecutionPayload, error) {
+) (ExecutionPayload, error) {
 	return capella.NewWrappedExecutionPayloadCapella(
 		p, wei,
 	), nil
 }
 
 // EmptyExecutionPayloadWithVersion returns an empty execution payload for the given version.
-func EmptyPayloadAttributesWithVersion(v int) interfaces.PayloadAttributer {
+func EmptyPayloadAttributesWithVersion(v int) PayloadAttributer {
 	switch v {
 	case version.Deneb:
 		return &deneb.WrappedPayloadAttributesV3{}

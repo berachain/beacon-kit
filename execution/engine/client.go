@@ -38,7 +38,6 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	"github.com/pkg/errors"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -69,7 +68,7 @@ func NewClient(opts ...Option) Caller {
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *engineClient) NewPayload(
-	ctx context.Context, payload interfaces.ExecutionPayload,
+	ctx context.Context, payload engine.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
@@ -95,7 +94,7 @@ func (s *engineClient) NewPayload(
 }
 
 // getPayloadProto returns the payload proto from the execution data.
-func (s *engineClient) getPayloadProto(payload interfaces.ExecutionPayload) (interface{}, error) {
+func (s *engineClient) getPayloadProto(payload engine.ExecutionPayload) (interface{}, error) {
 	switch payloadPb := payload.ToProto().(type) {
 	case *enginev1.ExecutionPayloadCapella:
 		return payloadPb, nil
@@ -123,7 +122,7 @@ func (s *engineClient) callNewPayloadRPC(
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineClient) ForkchoiceUpdated(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
@@ -143,7 +142,7 @@ func (s *engineClient) ForkchoiceUpdated(
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via JSON-RPC.
 func (s *engineClient) updateForkChoiceByVersion(
 	ctx context.Context, state *enginev1.ForkchoiceState,
-	attrProto interfaces.PayloadAttributer,
+	attrProto engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
 	switch v := attrProto.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
@@ -159,7 +158,7 @@ func (s *engineClient) updateForkChoiceByVersion(
 // It returns the execution data as well as the blobs bundle.
 func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
-) (interfaces.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
@@ -176,7 +175,7 @@ func (s *engineClient) GetPayload(
 // handleDenebFork processes the Deneb fork version.
 func (s *engineClient) getPayloadDeneb(
 	ctx context.Context, payloadID primitives.PayloadID,
-) (interfaces.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	result, err := s.GetPayloadV3(ctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, err
@@ -194,7 +193,7 @@ func (s *engineClient) getPayloadDeneb(
 // handleCapellaFork processes the Capella fork version.
 func (s *engineClient) getPayloadCapella(
 	ctx context.Context, payloadID primitives.PayloadID,
-) (interfaces.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	result, err := s.GetPayloadV2(ctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, err

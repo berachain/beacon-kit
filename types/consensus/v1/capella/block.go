@@ -34,7 +34,6 @@ import (
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
-	enginei "github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -45,7 +44,7 @@ var _ interfaces.BeaconKitBlock = (*BeaconKitBlockCapella)(nil)
 // from the given state and execution data.
 func BeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
-	executionData enginei.ExecutionPayload,
+	executionData engine.ExecutionPayload,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBeaconKitBlock(
 		beaconState.Slot(),
@@ -57,7 +56,7 @@ func BeaconKitBlockFromState(
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
 	slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot,
-	executionData enginei.ExecutionPayload,
+	executionData engine.ExecutionPayload,
 ) (interfaces.BeaconKitBlock, error) {
 	block := &BeaconKitBlockCapella{
 		Slot: slot,
@@ -86,7 +85,7 @@ func (b *BeaconKitBlockCapella) Version() int {
 
 // AttachExecution attaches the given execution data to the block.
 func (b *BeaconKitBlockCapella) AttachExecution(
-	executionData enginei.ExecutionPayload,
+	executionData engine.ExecutionPayload,
 ) error {
 	var ok bool
 	b.Body.ExecutionPayload, ok = executionData.ToProto().(*enginev1.ExecutionPayloadCapella)
@@ -103,7 +102,7 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlockCapella) Execution() (enginei.ExecutionPayload, error) {
+func (b *BeaconKitBlockCapella) Execution() (engine.ExecutionPayload, error) {
 	return engine.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
 		uint256.NewInt(0).SetBytes(b.GetPayloadValue()))
 }

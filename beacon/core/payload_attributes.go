@@ -31,7 +31,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
 	capella "github.com/itsdevbear/bolaris/types/engine/v1/capella"
 	deneb "github.com/itsdevbear/bolaris/types/engine/v1/deneb"
 )
@@ -44,7 +44,7 @@ func BuildPayloadAttributes(
 	prevRando []byte,
 	parentBeaconBlockRoot []byte,
 	timestamp uint64,
-) interfaces.PayloadAttributer {
+) engine.PayloadAttributer {
 	// Since beacon-kit is always post capella we can assume calling ExpectedWithdrawals
 	// is valid.
 	withdrawals, err := st.ExpectedWithdrawals()
