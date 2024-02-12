@@ -74,6 +74,7 @@ func (s *engineClient) NewPayload(
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
+	// Call the appropriate RPC method based on the payload version.
 	result, err := s.callNewPayloadRPC(dctx, payload, versionedHashes, parentBlockRoot)
 	if err != nil {
 		return nil, err
@@ -90,10 +91,10 @@ func (s *engineClient) NewPayload(
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *engineClient) callNewPayloadRPC(
-	ctx context.Context, payloadPb engine.ExecutionPayload,
+	ctx context.Context, payload engine.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) (*enginev1.PayloadStatus, error) {
-	switch payloadPb := payloadPb.ToProto().(type) {
+	switch payloadPb := payload.ToProto().(type) {
 	case *enginev1.ExecutionPayloadCapella:
 		return s.NewPayloadV2(ctx, payloadPb)
 	case *enginev1.ExecutionPayloadDeneb:
