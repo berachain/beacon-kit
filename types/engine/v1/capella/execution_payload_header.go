@@ -72,3 +72,11 @@ func (p *WrappedExecutionPayloadHeaderCapella) ToHeader() (
 ) {
 	return p, nil
 }
+
+func (p *WrappedExecutionPayloadHeaderCapella) GetTransactionsRoot() []byte {
+	return p.TransactionsRoot
+}
+
+func (p *WrappedExecutionPayloadHeaderCapella) GetWithdrawalsRoot() []byte {
+	return p.WithdrawalsRoot
+}

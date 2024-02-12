@@ -28,6 +28,7 @@ package capella
 import (
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
+	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
@@ -64,8 +65,41 @@ func (p *WrappedExecutionPayloadCapella) ToPayload() interfaces.ExecutionPayload
 	return p
 }
 
+// GetTransactions returns the transactions in the payload.
+func (p *WrappedExecutionPayloadCapella) GetTransactions() [][]byte {
+	return p.Transactions
+}
+
+// GetWithdrawals returns the withdrawals in the payload.
+func (p *WrappedExecutionPayloadCapella) GetWithdrawals() []*enginev1.Withdrawal {
+	return p.Withdrawals
+}
+
 // ToHeader produces an ExecutionPayloadHeader.
 func (p *WrappedExecutionPayloadCapella) ToHeader() interfaces.ExecutionPayloadHeader {
 	// TODO: @ocnc
-	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+	// panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+
+	txRoot := []byte{}
+	withdrawalsRoot := []byte{}
+
+	return &WrappedExecutionPayloadHeaderCapella{
+		ExecutionPayloadHeaderCapella: enginev1.ExecutionPayloadHeaderCapella{
+			ParentHash:       bytesutil.SafeCopyBytes(p.GetParentHash()),
+			FeeRecipient:     bytesutil.SafeCopyBytes(p.GetFeeRecipient()),
+			StateRoot:        bytesutil.SafeCopyBytes(p.GetStateRoot()),
+			ReceiptsRoot:     bytesutil.SafeCopyBytes(p.GetReceiptsRoot()),
+			LogsBloom:        bytesutil.SafeCopyBytes(p.GetLogsBloom()),
+			PrevRandao:       bytesutil.SafeCopyBytes(p.GetPrevRandao()),
+			BlockNumber:      p.GetBlockNumber(),
+			GasLimit:         p.GetGasLimit(),
+			GasUsed:          p.GetGasUsed(),
+			Timestamp:        p.GetTimestamp(),
+			ExtraData:        bytesutil.SafeCopyBytes(p.GetExtraData()),
+			BaseFeePerGas:    bytesutil.SafeCopyBytes(p.GetBaseFeePerGas()),
+			BlockHash:        bytesutil.SafeCopyBytes(p.GetBlockHash()),
+			TransactionsRoot: txRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+		},
+	}
 }
