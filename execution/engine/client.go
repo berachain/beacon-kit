@@ -196,7 +196,7 @@ func (s *engineClient) GetPayload(
 func (s *engineClient) getPayloadDeneb(
 	ctx context.Context, payloadID primitives.PayloadID,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	result, err := s.GetPayloadV3(ctx, payloadID)
+	result, err := s.GetPayloadV3(ctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, err
 	}
@@ -214,7 +214,7 @@ func (s *engineClient) getPayloadDeneb(
 func (s *engineClient) getPayloadCapella(
 	ctx context.Context, payloadID primitives.PayloadID,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	result, err := s.GetPayloadV2(ctx, payloadID)
+	result, err := s.GetPayloadV2(ctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, err
 	}

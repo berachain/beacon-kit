@@ -25,26 +25,5 @@
 
 package primitives
 
-import (
-	"encoding/json"
-
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common/hexutil"
-)
-
 // PayloadID represents a unique identifier for a payload.
 type PayloadID [8]byte
-
-// MarshalJSON serializes the PayloadID into JSON format.
-func (b PayloadID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(hexutil.Bytes(b[:]))
-}
-
-// UnmarshalJSON deserializes the JSON-encoded data into a PayloadID.
-func (b *PayloadID) UnmarshalJSON(input []byte) error {
-	var dec hexutil.Bytes
-	if err := json.Unmarshal(input, &dec); err != nil {
-		return err
-	}
-	copy(b[:], dec[:])
-	return nil
-}
