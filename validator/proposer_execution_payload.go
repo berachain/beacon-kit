@@ -60,7 +60,7 @@ func (s *Service) getLocalPayload(
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
 
-	parentEth1Hash, err := s.GetParentHash(ctx)
+	parentEth1Hash, err := s.getParentEth1Hash(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -141,10 +141,10 @@ func (s *Service) getLocalPayload(
 	return payload, overrideBuilder, nil
 }
 
-// GetParentHash retrieves the parent block hash for the given slot.
+// getParentEth1Hash retrieves the parent block hash for the given slot.
 //
-
-func (s *Service) GetParentHash(ctx context.Context) (common.Hash, error) {
+//nolint:unparam // todo: review this later.
+func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
 	// The first slot should be proposed with the genesis block as parent.
 	st := s.BeaconState(ctx)
 	if st.Slot() == 1 {
