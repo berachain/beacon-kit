@@ -52,6 +52,55 @@ func TestHasDir(t *testing.T) {
 	}
 }
 
+func TestAbsPath(t *testing.T) {
+	// Home Directory
+	homeDir := os.Getenv("HOME")
+	t.Setenv("envVariable", "test")
+
+	tests := []struct {
+		path     string
+		expected string
+	}{
+		{"/test", "/test"},
+		{"~", homeDir},
+		{"~/test", filepath.Join(homeDir, "test")},
+		{"~/test/../test", filepath.Join(homeDir, "test")},
+		{"/$envVariable", "/test"},
+		{"~/$envVariable", filepath.Join(homeDir, "test")},
+	}
+
+	for _, test := range tests {
+		absPath, err := file.AbsPath(test.path)
+		if err != nil {
+			t.Fatalf("Failed to get absolute path: %v", err)
+		}
+		if absPath != test.expected {
+			t.Errorf("Expected path %s, got %s", test.expected, absPath)
+		}
+	}
+}
+
+func TestHomeDir(t *testing.T) {
+	expectedHomeDir := os.Getenv("HOME")
+	homeDir, err := file.HomeDir()
+	if err != nil {
+		t.Fatalf("Failed to get home directory: %v", err)
+	}
+	if homeDir != expectedHomeDir {
+		t.Errorf("Expected home directory %s, got %s", expectedHomeDir, homeDir)
+	}
+
+	// Unset HOME environment variable
+	os.Unsetenv("HOME")
+	homeDir, err = file.HomeDir()
+	if err != nil {
+		t.Errorf("Expected nil error, got %v", err)
+	}
+	if homeDir != expectedHomeDir {
+		t.Errorf("Expected home directory %s, got %s", expectedHomeDir, homeDir)
+	}
+}
+
 func TestMkdirAll(t *testing.T) {
 	dir, err := os.MkdirTemp("", "testmkdir")
 	if err != nil {

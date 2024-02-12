@@ -25,58 +25,115 @@
 
 package file
 
-import "os"
+import (
+	"os"
+	"os/user"
+	"path"
+	"path/filepath"
+	"strings"
+)
+
+// AbsPath expands the environment variables in a path and converts it
+// to an absolute path.
+func AbsPath(inputPath string) (string, error) {
+	if strings.HasPrefix(inputPath, "~/") || inputPath == "~" {
+		homeDir, err := HomeDir()
+		if err != nil {
+			return "", err
+		}
+		inputPath = filepath.Join(homeDir, inputPath[1:])
+	}
+
+	return filepath.Abs(path.Clean(os.ExpandEnv(inputPath)))
+}
+
+// HomeDir returns the home directory for the current user.
+func HomeDir() (string, error) {
+	if homeDir := os.Getenv("HOME"); homeDir != "" {
+		return homeDir, nil
+	}
+	user, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	return user.HomeDir, nil
+}
 
 // HasDir checks if a directory exists.
 func HasDir(dirPath string) (bool, error) {
-	stat, err := os.Stat(dirPath)
+	absDirPath, err := AbsPath(dirPath)
+	if err != nil {
+		return false, err
+	}
+
+	stat, err := os.Stat(absDirPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return false, nil // Directory does not exist
+			return false, nil
 		}
-		return false, err // An error occurred (e.g., permissions)
+		return false, err
 	}
-	return stat.IsDir(), nil // Return true if the path is a directory
+	return stat.IsDir(), nil
 }
 
 // MkdirAll creates a directory along with any necessary parents.
+// If the directory already exists, MkdirAll does nothing and returns nil.
 func MkdirAll(dirPath string) error {
-	return os.MkdirAll(dirPath, os.ModePerm) // Creates the directory with default permissions
+	absDirPath, err := AbsPath(dirPath)
+	if err != nil {
+		return err
+	}
+	return os.MkdirAll(absDirPath, os.ModePerm)
 }
 
 // CreateFile creates or truncates a file at the specified path.
 func CreateFile(filePath string) error {
-	file, err := os.Create(filePath)
+	absFilePath, err := AbsPath(filePath)
 	if err != nil {
-		return err // Return the error if file creation failed
+		return err
 	}
-	return file.Close() // Close the file and return the result of Close()
+
+	file, err := os.Create(absFilePath)
+	if err != nil {
+		return err
+	}
+	return file.Close()
 }
 
 // Exists checks if a file exists.
 func Exists(path string) bool {
-	_, err := os.Stat(path)
+	absPath, err := AbsPath(path)
+	if err != nil {
+		return false
+	}
+
+	_, err = os.Stat(absPath)
 	if err == nil {
 		return true // File exists
 	}
 	if os.IsNotExist(err) {
-		return false // File does not exist
+		return false
 	}
-	return false // An error occurred (e.g., permissions)
+	return false
 }
 
 // WriteFile writes data to a file at the specified path.
 func WriteFile(filePath string, data []byte) error {
-	if ok := Exists(filePath); !ok {
-		err := CreateFile(filePath)
+	absFilePath, err := AbsPath(filePath)
+	if err != nil {
+		return err
+	}
+
+	if ok := Exists(absFilePath); !ok {
+		err = CreateFile(absFilePath)
 		if err != nil {
-			return err // Return the error if creating file failed
+			return err
 		}
 	}
 
-	err := os.WriteFile(filePath, data, os.ModePerm)
+	err = os.WriteFile(absFilePath, data, os.ModePerm)
 	if err != nil {
-		return err // Return the error if writing to file failed
+		return err
 	}
-	return nil // Return nil if writing to file was successful
+	return nil
 }
