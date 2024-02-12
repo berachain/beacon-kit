@@ -48,8 +48,11 @@ func (s *Service) BuildBeaconBlock(
 		slot          = beaconState.Slot()
 	)
 
-	// SIGN UR RANDAO THINGY HERE OR SOMETHING.
-	_, _ = s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
+	// TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
+	_, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
+	if err != nil {
+		return nil, err
+	}
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := blocks.NewEmptyBeaconKitBlock(
