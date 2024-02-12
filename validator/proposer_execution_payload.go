@@ -36,6 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	newenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/pkg/errors"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -97,7 +98,7 @@ func (s *Service) getLocalPayload(
 	// }
 
 	// Build the forkchoice state.
-	f := &enginev1.ForkchoiceState{
+	f := &newenginev1.ForkchoiceState{
 		HeadBlockHash:      parentEth1Hash.Bytes(),
 		SafeBlockHash:      s.BeaconState(ctx).GetSafeEth1BlockHash().Bytes(),
 		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),

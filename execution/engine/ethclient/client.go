@@ -36,6 +36,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	newenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -119,14 +120,14 @@ func (s *Eth1Client) NewPayloadV2(
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV3,
+	ctx context.Context, state *newenginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV3,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
 // ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV2(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
+	ctx context.Context, state *newenginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV2, state, attrs)
 }
@@ -134,7 +135,7 @@ func (s *Eth1Client) ForkchoiceUpdatedV2(
 // forkchoiceUpdateCall is a helper function to call to any version of the forkchoiceUpdated
 // method.
 func (s *Eth1Client) forkchoiceUpdateCall(
-	ctx context.Context, method string, state *enginev1.ForkchoiceState, attrs any,
+	ctx context.Context, method string, state *newenginev1.ForkchoiceState, attrs any,
 ) (*ForkchoiceUpdatedResponse, error) {
 	result := &ForkchoiceUpdatedResponse{}
 

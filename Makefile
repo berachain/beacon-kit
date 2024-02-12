@@ -368,6 +368,15 @@ sszgen:
     --include ./types/consensus/primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 
+
+#################
+#    gencodec    #
+#################
+
+gencodec-install:
+	@echo "--> Installing gencodec"
+	@go install github.com/fjl/gencodec
+
 ##############################################################################
 ###                             Dependencies                                ###
 ###############################################################################

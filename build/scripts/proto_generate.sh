@@ -34,6 +34,7 @@ set -e
 
 echo "--> Generating protobufs using cosmos proto builder"
 go install github.com/prysmaticlabs/protoc-gen-go-cast
+go install github.com/favadi/protoc-go-inject-tag@latest
 cd proto
 proto_dirs=$(find ./ -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do

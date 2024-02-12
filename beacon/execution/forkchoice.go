@@ -31,6 +31,7 @@ import (
 
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	newenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -42,7 +43,7 @@ func (s *Service) notifyForkchoiceUpdate(
 		payloadIDBytes *enginev1.PayloadIDBytes
 		err            error
 		beaconState    = s.BeaconState(ctx)
-		fc             = &enginev1.ForkchoiceState{
+		fc             = &newenginev1.ForkchoiceState{
 			HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
 			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
 			FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),

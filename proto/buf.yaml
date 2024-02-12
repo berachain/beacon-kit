@@ -50,6 +50,7 @@ lint:
     - ENUM_NO_ALLOW_ALIAS
     - ENUM_VALUE_PREFIX
     - ENUM_ZERO_VALUE_SUFFIX
+    - FIELD_LOWER_SNAKE_CASE
   ignore:
     - beacon/module/v1alpha1/module.proto
     - ethereum

@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/execution/engine/ethclient/mocks"
+	newenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -131,21 +132,21 @@ func TestNewPayloadV2_BasicSanityCheck(t *testing.T) {
 func TestForkchoiceUpdatedV3_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
-		state   *enginev1.ForkchoiceState
+		state   *newenginev1.ForkchoiceState
 		attrs   *enginev1.PayloadAttributesV3
 		ret     error
 		wantErr bool
 	}{
 		{
 			name:    "nil response should error",
-			state:   &enginev1.ForkchoiceState{},
+			state:   &newenginev1.ForkchoiceState{},
 			attrs:   &enginev1.PayloadAttributesV3{},
 			ret:     nil,
 			wantErr: true,
 		},
 		{
 			name:    "call context returns error",
-			state:   &enginev1.ForkchoiceState{},
+			state:   &newenginev1.ForkchoiceState{},
 			attrs:   &enginev1.PayloadAttributesV3{},
 			ret:     errors.New("my custom rpc error"),
 			wantErr: true,
@@ -176,21 +177,21 @@ func TestForkchoiceUpdatedV3_BasicSanityCheck(t *testing.T) {
 func TestForkchoiceUpdatedV2_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
-		state   *enginev1.ForkchoiceState
+		state   *newenginev1.ForkchoiceState
 		attrs   *enginev1.PayloadAttributesV2
 		ret     error
 		wantErr bool
 	}{
 		{
 			name:    "nil response should error",
-			state:   &enginev1.ForkchoiceState{},
+			state:   &newenginev1.ForkchoiceState{},
 			attrs:   &enginev1.PayloadAttributesV2{},
 			ret:     nil,
 			wantErr: true,
 		},
 		{
 			name:    "call context returns error",
-			state:   &enginev1.ForkchoiceState{},
+			state:   &newenginev1.ForkchoiceState{},
 			attrs:   &enginev1.PayloadAttributesV2{},
 			ret:     errors.New("custom rpc error"),
 			wantErr: true,

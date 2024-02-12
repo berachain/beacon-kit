@@ -28,15 +28,28 @@ syntax = "proto3";
 package types.engine.v1;
 
 import "ethereum/eth/ext/options.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/engine/v1";
 
 // ForkchoiceState represents the state of the fork choice in the Ethereum consensus mechanism.
 message ForkchoiceState {
   // The hash of the head block, which is the most recent block in the chain.
-  bytes head_block_hash = 1 [(ethereum.eth.ext.ssz_size) = "32"];
+  bytes head_block_hash = 1 [
+    (gogoproto.jsontag) = "headBlockHash",
+    (ethereum.eth.ext.ssz_size) = "32",
+    (ethereum.eth.ext.cast_type) = "github.com/ethereum/go-ethereum/common/hexutil.Bytes"
+  ];
+
   // The hash of the safe block, which is considered safe to build upon.
-  bytes safe_block_hash = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+  bytes safe_block_hash = 2 [
+    (ethereum.eth.ext.ssz_size) = "32",
+    (ethereum.eth.ext.cast_type) = "github.com/ethereum/go-ethereum/common/hexutil.Bytes"
+  ];
+
   // The hash of the finalized block, which can no longer be reorganized out of the chain.
-  bytes finalized_block_hash = 3 [(ethereum.eth.ext.ssz_size) = "32"];
+  bytes finalized_block_hash = 3 [
+    (ethereum.eth.ext.ssz_size) = "32",
+    (ethereum.eth.ext.cast_type) = "github.com/ethereum/go-ethereum/common/hexutil.Bytes"
+  ];
 }

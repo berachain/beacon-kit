@@ -35,5 +35,6 @@ for file in $(find ./types -name '*.pb.go'); do
     for key in $keys; do
         value=$(echo $json | jq -r ".\"$key\"")
         sed -i '' "s/$key/$value/g" $file
+        
     done
 done

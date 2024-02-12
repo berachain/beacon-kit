@@ -32,6 +32,7 @@ import (
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	newenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -50,7 +51,7 @@ type Caller interface {
 		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
-		ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
+		ctx context.Context, state *newenginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
 	) (*enginev1.PayloadIDBytes, []byte, error)
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(ctx context.Context, payloadID [8]byte,

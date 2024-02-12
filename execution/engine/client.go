@@ -43,6 +43,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	newenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -124,7 +125,7 @@ func (s *engineClient) callNewPayloadRPC(
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineClient) ForkchoiceUpdated(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
+	ctx context.Context, state *newenginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
 	defer cancel()
@@ -159,7 +160,7 @@ func (s *engineClient) getAttrProto(attrs interfaces.PayloadAttributer) (any, er
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via JSON-RPC.
 func (s *engineClient) updateForkChoiceByVersion(
-	ctx context.Context, state *enginev1.ForkchoiceState,
+	ctx context.Context, state *newenginev1.ForkchoiceState,
 	attrProto any,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
 	switch v := attrProto.(type) {
