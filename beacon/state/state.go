@@ -69,15 +69,13 @@ type ReadOnlyRandao interface {
 	GetRandaoReveals() []randao.Reveal
 	// Generates the reveal by signing the epoch number
 	GenerateRandaoReveal() (randao.Reveal, error)
-	// Given a randao reveal and the pub key of a validator, validatate the reveal
-	VerifyRandaoReveal(randao.Reveal, randao.ValidatorPubKey) bool
 }
 
 type WriteOnlyRandao interface {
-	// Update the state with the locally generatted reveal
+	// Update the state with the locally generated reveal
 	SetRandaoReveal(randao.Reveal) error
-	// This mixes in the global randao reveal and updates the internal state with the random number
-	MixAndUpdateRandaoReveal(randao.Reveal) error
+	// This sets the mixed in the global randao reveal
+	SetMixedInRandaoReveal(randao.Reveal) error
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
