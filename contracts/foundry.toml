@@ -8,7 +8,7 @@
   cache=true
   optimizer = true
   optimizer_runs = 4294967295
-  via_ir = true
+  via_ir = false
   out = "out"
   script = "script"
   solc = "0.8.24"
