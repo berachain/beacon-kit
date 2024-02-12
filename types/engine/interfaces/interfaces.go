@@ -26,6 +26,7 @@
 package interfaces
 
 import (
+	"github.com/itsdevbear/bolaris/math"
 	ssz "github.com/prysmaticlabs/fastssz"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
@@ -41,11 +42,15 @@ type ExecutionPayloadBody interface {
 	Version() int
 	IsBlinded() bool
 	ToProto() proto.Message
+	GetBlockHash() []byte
+	GetParentHash() []byte
+	GetValue() math.Wei
 }
 
 // ExecutionPayload is the interface for the execution data of a block.
 type ExecutionPayload interface {
 	ExecutionPayloadBody
+
 	GetTransactions() [][]byte
 	GetWithdrawals() []*enginev1.Withdrawal
 }

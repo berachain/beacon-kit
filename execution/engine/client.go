@@ -35,12 +35,10 @@ import (
 
 	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-
-	einterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
+	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	"github.com/pkg/errors"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -71,7 +69,7 @@ func NewClient(opts ...Option) Caller {
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *engineClient) NewPayload(
-	ctx context.Context, payload interfaces.ExecutionData,
+	ctx context.Context, payload interfaces.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
@@ -97,8 +95,8 @@ func (s *engineClient) NewPayload(
 }
 
 // getPayloadProto returns the payload proto from the execution data.
-func (s *engineClient) getPayloadProto(payload interfaces.ExecutionData) (interface{}, error) {
-	switch payloadPb := payload.Proto().(type) {
+func (s *engineClient) getPayloadProto(payload interfaces.ExecutionPayload) (interface{}, error) {
+	switch payloadPb := payload.ToProto().(type) {
 	case *enginev1.ExecutionPayloadCapella:
 		return payloadPb, nil
 	case *enginev1.ExecutionPayloadDeneb:
@@ -125,7 +123,7 @@ func (s *engineClient) callNewPayloadRPC(
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineClient) ForkchoiceUpdated(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs einterfaces.PayloadAttributer,
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
@@ -145,7 +143,7 @@ func (s *engineClient) ForkchoiceUpdated(
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via JSON-RPC.
 func (s *engineClient) updateForkChoiceByVersion(
 	ctx context.Context, state *enginev1.ForkchoiceState,
-	attrProto einterfaces.PayloadAttributer,
+	attrProto interfaces.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
 	switch v := attrProto.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
@@ -161,7 +159,7 @@ func (s *engineClient) updateForkChoiceByVersion(
 // It returns the execution data as well as the blobs bundle.
 func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
-) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+) (interfaces.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
@@ -178,13 +176,13 @@ func (s *engineClient) GetPayload(
 // handleDenebFork processes the Deneb fork version.
 func (s *engineClient) getPayloadDeneb(
 	ctx context.Context, payloadID primitives.PayloadID,
-) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+) (interfaces.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	result, err := s.GetPayloadV3(ctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, err
 	}
-	ed, err := blocks.WrappedExecutionPayloadDeneb(
-		result.GetPayload(), blocks.PayloadValueToWei(result.GetValue()),
+	ed, err := engine.WrappedExecutionPayloadDeneb(
+		result.GetPayload(), PayloadValueToWei(result.GetValue()),
 	)
 	if err != nil {
 		return nil, nil, false, err
@@ -196,13 +194,13 @@ func (s *engineClient) getPayloadDeneb(
 // handleCapellaFork processes the Capella fork version.
 func (s *engineClient) getPayloadCapella(
 	ctx context.Context, payloadID primitives.PayloadID,
-) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+) (interfaces.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	result, err := s.GetPayloadV2(ctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, err
 	}
-	ed, err := blocks.WrappedExecutionPayloadCapella(
-		result.GetPayload(), blocks.PayloadValueToWei(result.GetValue()),
+	ed, err := engine.WrappedExecutionPayloadCapella(
+		result.GetPayload(), PayloadValueToWei(result.GetValue()),
 	)
 	if err != nil {
 		return nil, nil, false, err

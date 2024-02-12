@@ -23,31 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package engine
 
 import (
-	"context"
+	"github.com/holiman/uint256"
+	"github.com/itsdevbear/bolaris/math"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	// TODO: @ocnc to remove this GPL3 dependency.
+	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
-
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader interfaces.ExecutionPayload, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
-
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (interfaces.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+// PayloadValueToWei returns a Wei value given the payload's value.
+func PayloadValueToWei(value []byte) math.Wei {
+	// We have to convert big endian to little endian because the value is coming
+	// from the execution layer.
+	return uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
 }

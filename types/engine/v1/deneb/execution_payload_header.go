@@ -28,6 +28,7 @@ package deneb
 import (
 	"errors"
 
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -70,4 +71,9 @@ func (p *WrappedExecutionPayloadHeaderDeneb) ToHeader() (
 	interfaces.ExecutionPayloadHeader, error,
 ) {
 	return p, nil
+}
+
+// GetValue returns the value of the payload.
+func (p *WrappedExecutionPayloadHeaderDeneb) GetValue() math.Wei {
+	panic("TODO")
 }

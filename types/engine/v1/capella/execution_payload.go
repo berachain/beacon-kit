@@ -26,6 +26,7 @@
 package capella
 
 import (
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -39,7 +40,19 @@ var _ interfaces.ExecutionPayload = (*WrappedExecutionPayloadCapella)(nil)
 // WrappedExecutionPayloadCapella wraps the ExecutionPayloadCapella
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadCapella struct {
-	enginev1.ExecutionPayloadCapella
+	*enginev1.ExecutionPayloadCapella
+	value math.Wei
+}
+
+// NewWrappedExecutionPayloadCapella creates a new WrappedExecutionPayloadCapella.
+func NewWrappedExecutionPayloadCapella(
+	payload *enginev1.ExecutionPayloadCapella,
+	value math.Wei,
+) *WrappedExecutionPayloadCapella {
+	return &WrappedExecutionPayloadCapella{
+		ExecutionPayloadCapella: payload,
+		value:                   value,
+	}
 }
 
 // Version returns the version identifier for the ExecutionPayloadCapella.
@@ -55,7 +68,7 @@ func (p *WrappedExecutionPayloadCapella) IsBlinded() bool {
 
 // ToProto returns the ExecutionPayloadCapella as a proto.Message.
 func (p *WrappedExecutionPayloadCapella) ToProto() proto.Message {
-	return &p.ExecutionPayloadCapella
+	return p.ExecutionPayloadCapella
 }
 
 // ToPayload returns itself as it implements the engine.ExecutionPayload interface.
@@ -67,4 +80,12 @@ func (p *WrappedExecutionPayloadCapella) ToPayload() interfaces.ExecutionPayload
 func (p *WrappedExecutionPayloadCapella) ToHeader() interfaces.ExecutionPayloadHeader {
 	// TODO: @ocnc
 	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+}
+
+// GetValue returns the value of the payload.
+func (p *WrappedExecutionPayloadCapella) GetValue() math.Wei {
+	if p.value == nil {
+		return math.ZeroWei()
+	}
+	return p.value
 }

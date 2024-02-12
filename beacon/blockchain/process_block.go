@@ -67,7 +67,7 @@ func (s *Service) postBlockProcess(
 
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:  common.Hash(executionPayload.BlockHash()),
+			HeadEth1Hash:  common.Hash(executionPayload.GetBlockHash()),
 			ProposingSlot: block.GetSlot() + 1,
 			Attributes:    attrs,
 		})
