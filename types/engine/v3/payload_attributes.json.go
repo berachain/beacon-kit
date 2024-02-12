@@ -12,10 +12,10 @@ import (
 func (p PayloadAttributesV3) MarshalJSON() ([]byte, error) {
 	type PayloadAttributesV3 struct {
 		Timestamp             uint64           `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-		PrevRandao            []byte           `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
-		SuggestedFeeRecipient []byte           `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggested_fee_recipient,omitempty" ssz-size:"20"`
+		PrevRandao            []byte           `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prevRandao,omitempty" ssz-size:"32"`
+		SuggestedFeeRecipient []byte           `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggestedFeeRecipient,omitempty" ssz-size:"20"`
 		Withdrawals           []*v1.Withdrawal `protobuf:"bytes,4,rep,name=withdrawals,proto3" json:"withdrawals,omitempty" ssz-max:"4"`
-		ParentBeaconBlockRoot []byte           `protobuf:"bytes,5,opt,name=parent_beacon_block_root,json=parentBeaconBlockRoot,proto3" json:"parent_beacon_block_root,omitempty" ssz-size:"32"`
+		ParentBeaconBlockRoot []byte           `protobuf:"bytes,5,opt,name=parent_beacon_block_root,json=parentBeaconBlockRoot,proto3" json:"parentBeaconBlockRoot,omitempty" ssz-size:"32"`
 	}
 	var enc PayloadAttributesV3
 	enc.Timestamp = p.Timestamp
@@ -30,10 +30,10 @@ func (p PayloadAttributesV3) MarshalJSON() ([]byte, error) {
 func (p *PayloadAttributesV3) UnmarshalJSON(input []byte) error {
 	type PayloadAttributesV3 struct {
 		Timestamp             *uint64          `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-		PrevRandao            []byte           `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
-		SuggestedFeeRecipient []byte           `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggested_fee_recipient,omitempty" ssz-size:"20"`
+		PrevRandao            []byte           `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prevRandao,omitempty" ssz-size:"32"`
+		SuggestedFeeRecipient []byte           `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggestedFeeRecipient,omitempty" ssz-size:"20"`
 		Withdrawals           []*v1.Withdrawal `protobuf:"bytes,4,rep,name=withdrawals,proto3" json:"withdrawals,omitempty" ssz-max:"4"`
-		ParentBeaconBlockRoot []byte           `protobuf:"bytes,5,opt,name=parent_beacon_block_root,json=parentBeaconBlockRoot,proto3" json:"parent_beacon_block_root,omitempty" ssz-size:"32"`
+		ParentBeaconBlockRoot []byte           `protobuf:"bytes,5,opt,name=parent_beacon_block_root,json=parentBeaconBlockRoot,proto3" json:"parentBeaconBlockRoot,omitempty" ssz-size:"32"`
 	}
 	var dec PayloadAttributesV3
 	if err := json.Unmarshal(input, &dec); err != nil {
