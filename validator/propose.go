@@ -49,6 +49,7 @@ func (s *Service) BuildBeaconBlock(
 	)
 
 	// // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
+	_ = s.beaconKitValKey
 	// _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
 	// if err != nil {
 	// 	return nil, err
