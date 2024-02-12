@@ -115,8 +115,6 @@ func TestDeclineWithCLI(t *testing.T) {
 }
 
 func TestDeclineWithNonInteractiveCLI(t *testing.T) {
-	stdout := os.Stdout
-	defer func() { os.Stdout = stdout }()
 	homeDir := makeTempDir(t)
 	t.Log("homeDir: ", homeDir)
 
