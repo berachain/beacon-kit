@@ -25,6 +25,4 @@
 
 package v2
 
-// var _ engine.ExecutionPayload = (*ExecutionPayloadCapella)(nil)
-
-// ExecutionPayloadCapella is the Capella execution payl
+// TODO: HEADER
