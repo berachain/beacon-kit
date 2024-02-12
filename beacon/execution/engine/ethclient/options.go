@@ -49,8 +49,11 @@ func WithEndpointDialURL(dialURL string) Option {
 }
 
 // WithJWTSecret is an option to set the JWT secret for the Eth1Client.
-func WithJWTSecret(secret jwt.Secret) Option {
+func WithJWTSecret(secret *jwt.Secret) Option {
 	return func(s *Eth1Client) error {
+		if secret == nil {
+			return ErrNilJWTSecret
+		}
 		s.jwtSecret = secret
 		return nil
 	}

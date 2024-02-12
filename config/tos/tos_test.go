@@ -34,9 +34,9 @@ import (
 	"testing"
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	file "github.com/itsdevbear/bolaris/config"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/config/tos"
+	"github.com/itsdevbear/bolaris/io/file"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
