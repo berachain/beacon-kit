@@ -43,7 +43,7 @@ func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
 func (s *Eth1Client) BuildHeaders() (http.Header, error) {
 	var (
 		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(s.jwtSecret)
+		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
 	)
 
 	// Authenticate the execution node JSON-RPC endpoint.
