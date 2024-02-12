@@ -28,12 +28,11 @@ package engine
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // Caller defines a client that can interact with an Ethereum
@@ -41,8 +40,8 @@ import (
 type Caller interface {
 	// Generic Methods
 	//
-	// ConnectedETH1 returns true if the client is connected to the execution node.
-	ConnectedETH1() bool
+	// IsConnected returns true if the client is connected to the execution node.
+	IsConnected() bool
 
 	// Engine API Related Methods
 	//
@@ -51,7 +50,7 @@ type Caller interface {
 		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
-		ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
+		ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
 	) (*enginev1.PayloadIDBytes, []byte, error)
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(ctx context.Context, payloadID primitives.PayloadID,

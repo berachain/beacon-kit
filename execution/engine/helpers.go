@@ -23,44 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eth
+package engine
 
 import (
-	"net/http"
-	"time"
-
-	"github.com/ethereum/go-ethereum/node"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-// buildHeaders creates the headers for the execution client.
-func (s *Eth1Client) buildHeaders() (http.Header, error) {
-	var (
-		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
-	)
-
-	// Authenticate the execution node JSON-RPC endpoint.
-	if err := jwtAuthHandler(headers); err != nil {
-		return nil, err
-	}
-
-	// Add additional headers if provided.
-	return headers, nil
-}
-
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *Eth1Client) jwtRefreshLoop() {
-	for {
-		s.tryConnectionAfter(s.jwtRefreshInterval)
-	}
-}
-
-// tryConnectionAfter attemps a connection after a given interval.
-func (s *Eth1Client) tryConnectionAfter(interval time.Duration) {
-	select {
-	case <-s.ctx.Done():
-		return
-	case <-time.After(interval):
-		s.setupExecutionClientConnection()
+// processPayloadStatusResult processes the payload status result and
+// returns the latest valid hash or an error.
+func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) {
+	switch result.GetStatus() {
+	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
+		return nil, eth.ErrInvalidBlockHashPayloadStatus
+	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
+		return nil, eth.ErrAcceptedSyncingPayloadStatus
+	case enginev1.PayloadStatus_INVALID:
+		return result.GetLatestValidHash(), eth.ErrInvalidPayloadStatus
+	case enginev1.PayloadStatus_VALID:
+		return result.GetLatestValidHash(), nil
+	case enginev1.PayloadStatus_UNKNOWN:
+		fallthrough
+	default:
+		return nil, eth.ErrUnknownPayloadStatus
 	}
 }

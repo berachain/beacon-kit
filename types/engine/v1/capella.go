@@ -23,31 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package enginev1
 
 import (
-	"context"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
+	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
+type ExecutionPayloadCapella struct {
+	enginev1.ExecutionPayloadCapella
+}
 
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
+var (
+	// ExecutionPayloadCapella ensures compatibility with the engine.ExecutionPayload interface.
+	_ engine.ExecutionPayload = (*ExecutionPayloadCapella)(nil)
+)
 
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
+// Version returns the version identifier for the ExecutionPayloadCapella.
+func (p *ExecutionPayloadCapella) Version() int {
+	return version.Capella
+}
+
+// IsBlinded indicates whether the payload is blinded. For ExecutionPayloadCapella,
+// this is always false.
+func (p *ExecutionPayloadCapella) IsBlinded() bool {
+	return false
+}
+
+// ToPayload returns itself as it implements the engine.ExecutionPayload interface.
+func (p *ExecutionPayloadCapella) ToPayload() engine.ExecutionPayload {
+	return p
+}
+
+// ToHeader is intended to convert the ExecutionPayloadCapella to an ExecutionPayloadHeader.
+// Currently, it panics as the slice merkalization is yet to be implemented.
+func (p *ExecutionPayloadCapella) ToHeader() engine.ExecutionPayloadHeader {
+	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
 }

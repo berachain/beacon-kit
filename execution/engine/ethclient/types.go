@@ -23,17 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package payload
+package ethclient
 
-import enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
+import (
+	"context"
 
-type Attributer interface {
-	Version() int
-	PrevRandao() []byte
-	Timestamps() uint64
-	SuggestedFeeRecipient() []byte
-	Withdrawals() ([]*enginev1.Withdrawal, error)
-	PbV2() (*enginev1.PayloadAttributesV2, error)
-	PbV3() (*enginev1.PayloadAttributesV3, error)
-	IsEmpty() bool
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+)
+
+// GethRPCClient is an interface for the Geth RPC client.
+type GethRPCClient interface {
+	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
+}
+
+// ForkchoiceUpdatedResponse is the response kind received by the
+// engine_forkchoiceUpdatedV1 endpoint.
+type ForkchoiceUpdatedResponse struct {
+	Status          *enginev1.PayloadStatus  `json:"payloadStatus"`
+	PayloadID       *enginev1.PayloadIDBytes `json:"payloadId"`
+	ValidationError string                   `json:"validationError"`
 }

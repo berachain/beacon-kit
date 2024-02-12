@@ -25,7 +25,7 @@ import (
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/itsdevbear/bolaris/third_party/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 

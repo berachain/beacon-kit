@@ -29,11 +29,24 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/math"
-	enginev1 "github.com/itsdevbear/bolaris/third_party/prysm/proto/engine/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
+
+// PayloadAttributer is the interface for the payload attributes provided
+// in a forkchoiceUpdated call.
+type PayloadAttributer interface {
+	Version() int
+	PrevRandao() []byte
+	Timestamps() uint64
+	SuggestedFeeRecipient() []byte
+	Withdrawals() ([]*enginev1.Withdrawal, error)
+	PbV2() (*enginev1.PayloadAttributesV2, error)
+	PbV3() (*enginev1.PayloadAttributesV3, error)
+	IsEmpty() bool
+}
 
 // ExecutionData is the interface for the execution data of a block.
 type ExecutionData interface {
