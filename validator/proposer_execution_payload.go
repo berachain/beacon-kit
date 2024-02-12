@@ -137,10 +137,7 @@ func (s *Service) getLocalPayload(
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 
-	// localValueGwei, err := payload.ValueInGwei()
-	// if err == nil {
-	// 	s.Logger().Debug("received execution payload from local engine", "value", localValueGwei)
-	// }
+	s.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
 	return payload, overrideBuilder, nil
 }
 
