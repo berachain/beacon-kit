@@ -76,7 +76,7 @@ func (s *engineClient) NewPayload(
 	ctx context.Context, payload interfaces.ExecutionData,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
-	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
 	payloadPb, err := s.getPayloadProto(payload)
@@ -127,7 +127,7 @@ func (s *engineClient) callNewPayloadRPC(
 func (s *engineClient) ForkchoiceUpdated(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs payloadattribute.Attributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
-	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 	attrProto, err := s.getAttrProto(attrs)
 	if err != nil {
@@ -178,7 +178,7 @@ func (s *engineClient) updateForkChoiceByVersion(
 func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	dctx, cancel := context.WithDeadline(ctx, time.Now().Add(s.engineTimeout))
+	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
 	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
