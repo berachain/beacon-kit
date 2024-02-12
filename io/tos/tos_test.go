@@ -35,8 +35,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/io/file"
 	"github.com/itsdevbear/bolaris/io/tos"
-	"github.com/itsdevbear/bolaris/io"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
@@ -49,7 +49,7 @@ const (
 )
 
 func expectTosAcceptSuccess(t *testing.T, homeDir string) {
-	if ok := io.Exists(filepath.Join(homeDir, acceptTosFilename)); !ok {
+	if ok := file.Exists(filepath.Join(homeDir, acceptTosFilename)); !ok {
 		t.Errorf("Expected tosaccepted file to exist in %s", homeDir)
 	}
 }
