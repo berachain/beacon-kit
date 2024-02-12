@@ -4,7 +4,7 @@ package capella
 
 import (
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
+	ssz "github.com/itsdevbear/fastssz"
 	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 

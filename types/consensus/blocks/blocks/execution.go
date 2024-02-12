@@ -33,7 +33,7 @@ import (
 	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	fastssz "github.com/prysmaticlabs/fastssz"
+	fastssz "github.com/itsdevbear/fastssz"
 	fieldparams "github.com/prysmaticlabs/prysm/v4/config/fieldparams"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	"github.com/prysmaticlabs/prysm/v4/encoding/ssz"

@@ -27,7 +27,7 @@ package engine
 
 import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	ssz "github.com/prysmaticlabs/fastssz"
+	ssz "github.com/itsdevbear/fastssz"
 )
 
 // ExecutionPayloadBody is the interface for the execution data of a block.
