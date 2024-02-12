@@ -38,7 +38,8 @@ var (
 	_ interfaces.ExecutionPayload = (*WrappedExecutionPayloadDeneb)(nil)
 )
 
-// WrappedExecutionPayloadDeneb is a wrapper around the ExecutionPayloadDeneb.
+// WrappedExecutionPayloadDeneb wraps the ExecutionPayloadDeneb
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadDeneb struct {
 	enginev1.ExecutionPayloadDeneb
 }

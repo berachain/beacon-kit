@@ -32,13 +32,12 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	// WrappedExecutionPayloadCapella ensures compatibility with the
-	// engine.ExecutionPayload interface.
-	_ interfaces.ExecutionPayload = (*WrappedExecutionPayloadCapella)(nil)
-)
+// WrappedExecutionPayloadCapella ensures compatibility with the
+// engine.ExecutionPayload interface.
+var _ interfaces.ExecutionPayload = (*WrappedExecutionPayloadCapella)(nil)
 
-// WrappedExecutionPayloadCapella is a wrapper around the ExecutionPayloadCapella.
+// WrappedExecutionPayloadCapella wraps the ExecutionPayloadCapella
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadCapella struct {
 	enginev1.ExecutionPayloadCapella
 }
