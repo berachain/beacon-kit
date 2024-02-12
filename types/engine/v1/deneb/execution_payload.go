@@ -32,11 +32,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	// WrappedExecutionPayloadDeneb ensures compatibility with the
-	// engine.ExecutionPayload interface.
-	_ interfaces.ExecutionPayload = (*WrappedExecutionPayloadDeneb)(nil)
-)
+// WrappedExecutionPayloadDeneb ensures compatibility with the
+// engine.ExecutionPayload interface.
+var _ interfaces.ExecutionPayload = (*WrappedExecutionPayloadDeneb)(nil)
 
 // WrappedExecutionPayloadDeneb wraps the ExecutionPayloadDeneb
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
