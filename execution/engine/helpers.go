@@ -43,7 +43,7 @@ func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) 
 	case enginev1.PayloadStatus_VALID:
 		return result.GetLatestValidHash(), nil
 	case enginev1.PayloadStatus_UNKNOWN:
-		return nil, eth.ErrUnknownPayloadStatus
+		fallthrough
 	default:
 		return nil, eth.ErrUnknownPayloadStatus
 	}
