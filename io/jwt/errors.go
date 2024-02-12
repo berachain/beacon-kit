@@ -32,6 +32,4 @@ var (
 	ErrLengthMismatch = errors.New("JWT secret length mismatch")
 	// ErrContainsIllegalCharacter is returned when the JWT secret contains illegal characters.
 	ErrContainsIllegalCharacter = errors.New("JWT secret contains illegal character(s)")
-	// ErrUnexpectedLength is returned when the JWT secret length is not as expected.
-	ErrUnexpectedLength = errors.New("unexpected JWT secret length")
 )

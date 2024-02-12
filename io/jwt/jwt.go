@@ -75,11 +75,11 @@ func NewFromHex(hexStr string) (*Secret, error) {
 // NewRandom creates a new random JWT secret.
 func NewRandom() (*Secret, error) {
 	secret := make([]byte, EthereumJWTLength)
-	n, err := rand.Read(secret)
+	// We don't need to check n since:
+	// n == len(b) if and only if err == nil.
+	_, err := rand.Read(secret)
 	if err != nil {
 		return nil, err
-	} else if n <= 0 {
-		return nil, ErrUnexpectedLength
 	}
 	return NewFromHex(hexutil.Encode(secret))
 }
