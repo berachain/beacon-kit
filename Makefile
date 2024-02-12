@@ -206,7 +206,7 @@ test-forge-cover:
 
 test-forge-fuzz:
 	@echo "Running forge fuzz tests..."
-	@cd $(CONTRACTS_DIR) && forge test --mt testFuzz
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test --mt testFuzz
 
 #################
 #      e2e      #

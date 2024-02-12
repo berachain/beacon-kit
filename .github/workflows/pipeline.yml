@@ -25,9 +25,6 @@
 
 name: pipeline
 
-env:
-  FOUNDRY_PROFILE: "fuzz"
-
 on:
   pull_request:
   merge_group:
