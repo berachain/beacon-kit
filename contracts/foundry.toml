@@ -7,23 +7,27 @@
   gas_reports = ["*"]
   cache=true
   optimizer = true
-  optimizer_runs = 10_000
+  optimizer_runs = 4294967295
+  via_ir = false
   out = "out"
   script = "script"
   solc = "0.8.24"
   src = "src"
   test = "test"
   remappings = [
-    '@solmate/=lib/solmate/src/',
     '@forge-std/=lib/forge-std/src/',
+    '@solady/=lib/solady/src/',
     '@interfaces/=interfaces/',
     '@src/=src/',
   ]
   verbosity = 3
 
-[profile.ci]
-  fuzz = { runs = 8192 }
-  verbosity = 4
+[profile.fuzz]
+fuzz = { runs = 8192 }
+verbosity = 4
+
+[profile.coverage]
+fuzz = { runs = 256 }
 
 [fmt]
   bracket_spacing = true
