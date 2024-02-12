@@ -9,7 +9,7 @@ import (
 )
 
 // MarshalJSON marshals as JSON.
-func (f ForkchoiceState) MarshalJSON() ([]byte, error) {
+func (f *ForkchoiceState) MarshalJSON() ([]byte, error) {
 	type ForkchoiceState struct {
 		HeadBlockHash      hexutil.Bytes `protobuf:"bytes,1,opt,name=head_block_hash,json=headBlockHash,proto3" json:"headBlockHash,omitempty" cast-type:"github.com/ethereum/go-ethereum/common/hexutil.Bytes" jsontag:"headBlockHash" ssz-size:"32"`
 		SafeBlockHash      hexutil.Bytes `protobuf:"bytes,2,opt,name=safe_block_hash,json=safeBlockHash,proto3" json:"safeBlockHash,omitempty" cast-type:"github.com/ethereum/go-ethereum/common/hexutil.Bytes" ssz-size:"32"`

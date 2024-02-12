@@ -56,13 +56,13 @@ type PayloadAttributesV3 struct {
 	// The timestamp at which the payload is proposed.
 	Timestamp uint64 `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	// The RANDAO mix of the previous block.
-	PrevRandao []byte `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
+	PrevRandao []byte `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prevRandao,omitempty" ssz-size:"32"`
 	// The suggested address to receive the transaction fee.
-	SuggestedFeeRecipient []byte `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggested_fee_recipient,omitempty" ssz-size:"20"`
+	SuggestedFeeRecipient []byte `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggestedFeeRecipient,omitempty" ssz-size:"20"`
 	// A list of withdrawals included in the payload, introduced in the Capella upgrade.
 	Withdrawals []*v1.Withdrawal `protobuf:"bytes,4,rep,name=withdrawals,proto3" json:"withdrawals,omitempty" ssz-max:"4"`
 	// The root of the beacon block that the payload is proposing.
-	ParentBeaconBlockRoot []byte `protobuf:"bytes,5,opt,name=parent_beacon_block_root,json=parentBeaconBlockRoot,proto3" json:"parent_beacon_block_root,omitempty" ssz-size:"32"`
+	ParentBeaconBlockRoot []byte `protobuf:"bytes,5,opt,name=parent_beacon_block_root,json=parentBeaconBlockRoot,proto3" json:"parentBeaconBlockRoot,omitempty" ssz-size:"32"`
 }
 
 func (x *PayloadAttributesV3) Reset() {
