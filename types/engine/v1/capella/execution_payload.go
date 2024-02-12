@@ -23,41 +23,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package enginev1
+package capella
 
 import (
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine"
+	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"google.golang.org/protobuf/proto"
 )
 
-type ExecutionPayloadCapella struct {
+var (
+	// WrappedExecutionPayloadCapella ensures compatibility with the
+	// engine.ExecutionPayload interface.
+	_ interfaces.ExecutionPayload = (*WrappedExecutionPayloadCapella)(nil)
+)
+
+// WrappedExecutionPayloadCapella is a wrapper around the ExecutionPayloadCapella.
+type WrappedExecutionPayloadCapella struct {
 	enginev1.ExecutionPayloadCapella
 }
 
-var (
-	// ExecutionPayloadCapella ensures compatibility with the engine.ExecutionPayload interface.
-	_ engine.ExecutionPayload = (*ExecutionPayloadCapella)(nil)
-)
-
 // Version returns the version identifier for the ExecutionPayloadCapella.
-func (p *ExecutionPayloadCapella) Version() int {
+func (p *WrappedExecutionPayloadCapella) Version() int {
 	return version.Capella
 }
 
 // IsBlinded indicates whether the payload is blinded. For ExecutionPayloadCapella,
 // this is always false.
-func (p *ExecutionPayloadCapella) IsBlinded() bool {
+func (p *WrappedExecutionPayloadCapella) IsBlinded() bool {
 	return false
 }
 
+// ToProto returns the ExecutionPayloadCapella as a proto.Message.
+func (p *WrappedExecutionPayloadCapella) ToProto() proto.Message {
+	return &p.ExecutionPayloadCapella
+}
+
 // ToPayload returns itself as it implements the engine.ExecutionPayload interface.
-func (p *ExecutionPayloadCapella) ToPayload() engine.ExecutionPayload {
+func (p *WrappedExecutionPayloadCapella) ToPayload() interfaces.ExecutionPayload {
 	return p
 }
 
-// ToHeader is intended to convert the ExecutionPayloadCapella to an ExecutionPayloadHeader.
-// Currently, it panics as the slice merkalization is yet to be implemented.
-func (p *ExecutionPayloadCapella) ToHeader() engine.ExecutionPayloadHeader {
+// ToHeader produces an ExecutionPayloadHeader.
+func (p *WrappedExecutionPayloadCapella) ToHeader() interfaces.ExecutionPayloadHeader {
+	// TODO: @ocnc
 	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
 }

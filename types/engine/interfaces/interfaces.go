@@ -23,11 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package interfaces
 
 import (
 	ssz "github.com/prysmaticlabs/fastssz"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 // ExecutionPayloadBody is the interface for the execution data of a block.
@@ -39,6 +40,7 @@ type ExecutionPayloadBody interface {
 	ssz.HashRoot
 	Version() int
 	IsBlinded() bool
+	ToProto() proto.Message
 }
 
 // ExecutionPayload is the interface for the execution data of a block.
