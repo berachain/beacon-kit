@@ -368,7 +368,8 @@ sszgen:
     --include ./types/consensus/primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 	@sszgen -path ./types/engine/v1 -objs Withdrawal --include ./types/consensus/primitives
-	@sszgen -path ./types/engine/v2 -objs ExecutionPayloadCapella --include ./types/engine/v1,./types/consensus/primitives
+	@sszgen -path ./types/engine/v2 -objs ExecutionPayloadCapella,ExecutionPayloadCapellaWithValue \
+	 --include ./types/engine/v1,./types/consensus/primitives
 
 ##############################################################################
 ###                             Dependencies                                ###

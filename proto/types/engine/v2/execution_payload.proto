@@ -73,6 +73,6 @@ message ExecutionPayloadCapella {
 message ExecutionPayloadCapellaWithValue {
   // payload is the ExecutionPayloadCapella message.
   ExecutionPayloadCapella payload = 1;
-  // value is an additional field to store arbitrary bytes.
-  bytes value = 2;
+  // value stores the payload value in wei.
+  bytes value = 2 [(ethereum.eth.ext.ssz_max) = "32"];
 }

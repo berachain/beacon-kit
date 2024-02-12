@@ -25,6 +25,62 @@
 
 package v2
 
-// var _ engine.ExecutionPayload = (*ExecutionPayloadCapella)(nil)
+import (
+	"github.com/itsdevbear/bolaris/types/consensus/version"
+	"github.com/itsdevbear/bolaris/types/engine"
+	v1 "github.com/itsdevbear/bolaris/types/engine/v1"
+)
 
-// ExecutionPayloadCapella is the Capella execution payl
+var (
+	// ExecutionPayloadCapella ensures compatibility with the engine.ExecutionPayload interface.
+	_ engine.ExecutionPayload = (*ExecutionPayloadCapella)(nil)
+	_ engine.ExecutionPayload = (*ExecutionPayloadCapellaWithValue)(nil)
+)
+
+// Version returns the version identifier for the ExecutionPayloadCapella.
+func (p *ExecutionPayloadCapella) Version() int {
+	return version.Capella
+}
+
+// IsBlinded indicates whether the payload is blinded. For ExecutionPayloadCapella,
+// this is always false.
+func (p *ExecutionPayloadCapella) IsBlinded() bool {
+	return false
+}
+
+// ToPayload returns itself as it implements the engine.ExecutionPayload interface.
+func (p *ExecutionPayloadCapella) ToPayload() engine.ExecutionPayload {
+	return p
+}
+
+// ToHeader is intended to convert the ExecutionPayloadCapella to an ExecutionPayloadHeader.
+// Currently, it panics as the slice merkalization is yet to be implemented.
+func (p *ExecutionPayloadCapella) ToHeader() engine.ExecutionPayloadHeader {
+	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+}
+
+func (p *ExecutionPayloadCapellaWithValue) Version() int {
+	return version.Capella
+}
+
+func (p *ExecutionPayloadCapellaWithValue) IsBlinded() bool {
+	return false
+}
+
+func (p *ExecutionPayloadCapellaWithValue) ToPayload() engine.ExecutionPayload {
+	return p
+}
+
+func (p *ExecutionPayloadCapellaWithValue) ToHeader() engine.ExecutionPayloadHeader {
+	panic("TODO: Implement slice merkalization for ExecutionPayloadCapellaWithValue")
+}
+
+// GetTransactions returns the transactions of the payload.
+func (p *ExecutionPayloadCapellaWithValue) GetTransactions() [][]byte {
+	return p.GetPayload().GetTransactions()
+}
+
+// GetWithdrawals returns the withdrawals of the payload.
+func (p *ExecutionPayloadCapellaWithValue) GetWithdrawals() []*v1.Withdrawal {
+	return p.GetPayload().GetWithdrawals()
+}
