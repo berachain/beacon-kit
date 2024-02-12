@@ -89,6 +89,8 @@ var (
 	// ErrUnsupportedVersion indicates a request for a block type with an unknown
 	// ExecutionPayload schema.
 	ErrUnsupportedVersion = errors.New("unknown ExecutionPayload schema for block version")
+	// ErrNilJWTSecret indicates that the JWT secret is nil.
+	ErrNilJWTSecret = errors.New("nil JWT secret")
 )
 
 // Handles errors received from the RPC server according to the specification.
