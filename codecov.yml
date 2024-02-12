@@ -41,6 +41,7 @@ ignore:
   - "**/*.pb.gw.go"
   - "**/*.pulsar.go"
   - "**/*.abigen.go"
+  - "**/*.pb_encoding.go"
   - "**/*.rlpgen.go"
   - "**/*.mock.go"
   - "**/proto"
