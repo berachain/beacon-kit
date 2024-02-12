@@ -62,7 +62,7 @@ type executionPayload struct {
 func WrappedExecutionPayload(p *enginev1.ExecutionPayload) (interfaces.ExecutionData, error) {
 	w := executionPayload{p: p}
 	if w.IsNil() {
-		return nil, errors.New("attempted to wrap nil object")
+		return nil, ErrNilObjectWrapped
 	}
 	return w, nil
 }

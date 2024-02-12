@@ -44,7 +44,13 @@ jobs:
   ci:
     strategy:
       matrix:
-        args: ["build", "lint", "gosec", "test-unit-cover", "test-unit-fuzz"]
+        args: 
+          - "build"
+          - "lint"
+          - "gosec"
+          - "test-unit-cover"
+          - "test-unit-fuzz"
+          - "test-forge-cover"
         os: [ubuntu-latest-large]
     name: ${{ matrix.args }}
     runs-on: ${{ matrix.os }}
@@ -67,5 +73,5 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage-${{ matrix.args }}.txt
-        if: ${{ matrix.args == 'test-unit-cover' }}
+          files: ./${{ matrix.args }}.txt
+        if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover'}}

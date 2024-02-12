@@ -85,7 +85,7 @@ func TestBuildHeaders(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, headers)
 				require.IsType(t, http.Header{}, headers)
-				fn := node.NewJWTAuth(jwtSecret)
+				fn := node.NewJWTAuth(*jwtSecret)
 				err = fn(headers)
 				require.NoError(t, err)
 				authHeader := headers.Get("Authorization")

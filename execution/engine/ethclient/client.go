@@ -36,6 +36,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/io/jwt"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -47,7 +48,7 @@ type Eth1Client struct {
 	logger               log.Logger
 	isConnected          atomic.Bool
 	chainID              uint64
-	jwtSecret            [32]byte
+	jwtSecret            *jwt.Secret
 	startupRetryInterval time.Duration
 	jwtRefreshInterval   time.Duration
 	healthCheckInterval  time.Duration
