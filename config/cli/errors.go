@@ -23,27 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build tools
-// +build tools
+package cli
 
-// This is the canonical way to enforce dependency inclusion in go.mod for tools that are not directly involved in the build process.
-// See
-// https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
+import "errors"
 
-package tools
-
-//nolint
-
-import (
-	_ "github.com/bufbuild/buf/cmd/buf"
-	_ "github.com/cashapp/protosync/cmd/protosync"
-	_ "github.com/cosmos/gosec/v2/cmd/gosec"
-	_ "github.com/ethereum/go-ethereum/cmd/abigen"
-	_ "github.com/ethereum/go-ethereum/rlp/rlpgen"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/google/addlicense"
-	_ "github.com/prysmaticlabs/fastssz/sszgen"
-	_ "github.com/prysmaticlabs/protoc-gen-go-cast"
-	_ "github.com/vektra/mockery/v2"
-	_ "golang.org/x/pkgsite/cmd/pkgsite"
+var (
+	// ErrNoClientCtx indicates that the client context was not found.
+	ErrNoClientCtx = errors.New("client context not found")
+	// ErrNoHomeDir indicates that the home directory was not found.
+	ErrNoHomeDir = errors.New("home directory not found")
 )
