@@ -297,16 +297,16 @@ gosec:
 
 
 #################
-#     godoc     #
+#     pkgsite     #
 #################
 
-godoc-install:
-	@echo "--> Installing godoc"
-	@go install golang.org/x/tools/cmd/godoc
-godoc:
-	@$(MAKE) godoc-install
-	@echo "Starting godoc server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
-	@godoc -http=:6060
+pkgsite-install:
+	@echo "--> Installing pkgsite"
+	@go install golang.org/x/pkgsite/cmd/pkgsite
+pkgsite:
+	@$(MAKE) pkgsite-install
+	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
+	@pkgsite -http=:6060
 
 
 #################
