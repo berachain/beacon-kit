@@ -28,31 +28,37 @@ package config
 import (
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/config/parser"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// Forks conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[Forks] = &Forks{}
+// Limits conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Limits] = &Limits{}
 
-// DefaultForksConfig returns the default forks configuration.
-func DefaultForksConfig() Forks {
-	return Forks{
-		DenebForkEpoch: primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+const (
+	defaultMaxDepositsPerBlock      = 16
+	defaultMaxWithdrawalsPerPayload = 16
+)
+
+// DefaultValidatorConfig returns the default validator configuration.
+func DefaultLimitsConfig() Limits {
+	return Limits{
+		MaxDepositsPerBlock:      defaultMaxDepositsPerBlock,
+		MaxWithdrawalsPerPayload: defaultMaxWithdrawalsPerPayload,
 	}
 }
 
-// Config represents the configuration struct for the forks.
-type Forks struct {
-	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
-	DenebForkEpoch primitives.Epoch
+// Limits represents the configuration struct for the limits on the beacon chain.
+type Limits struct {
+	MaxDepositsPerBlock      uint64
+	MaxWithdrawalsPerPayload uint64
 }
 
 // Parse parses the configuration.
-func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
+func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 	var err error
-	if c.DenebForkEpoch, err = parser.GetEpoch(
-		flags.DenebForkEpoch,
-	); err != nil {
+	if c.MaxDepositsPerBlock, err = parser.GetUint64(flags.MaxDeposits); err != nil {
+		return nil, err
+	}
+	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(flags.MaxWithdrawals); err != nil {
 		return nil, err
 	}
 
@@ -60,10 +66,12 @@ func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 }
 
 // Template returns the configuration template.
-func (c Forks) Template() string {
+func (c Limits) Template() string {
 	return `
-[beacon-kit.beacon-config.forks]
-# Deneb fork epoch
-deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
+[beacon-kit.beacon-config.limits]
+# MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.
+max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
+# MaxWithdrawalsPerPayload is the maximum number of Withdrawals allowed in a payload.
+max-withdrawals-per-payload = {{.BeaconKit.Beacon.Limits.MaxWithdrawalsPerPayload}}
 `
 }

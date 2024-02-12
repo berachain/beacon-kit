@@ -38,6 +38,8 @@ var _ BeaconKitConfig[Beacon] = Beacon{}
 type Beacon struct {
 	// Forks is the configuration for the beacon chain forks.
 	Forks Forks
+	// Limits is the configuration for limits (max/min) on the beacon chain.
+	Limits Limits
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
@@ -47,6 +49,7 @@ type Beacon struct {
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
 		Forks:     DefaultForksConfig(),
+		Limits:    DefaultLimitsConfig(),
 		Validator: DefaultValidatorConfig(),
 	}
 }
@@ -66,6 +69,7 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 	var (
 		err       error
 		forks     *Forks
+		limits    *Limits
 		validator *Validator
 	)
 
@@ -74,6 +78,12 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 		return nil, err
 	}
 	c.Forks = *forks
+
+	// Parse the limits configuration.
+	if limits, err = c.Limits.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Limits = *limits
 
 	// Parse the validator configuration.
 	if validator, err = c.Validator.Parse(parser); err != nil {
@@ -86,5 +96,5 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 
 // Template returns the configuration template.
 func (c Beacon) Template() string {
-	return c.Forks.Template() + c.Validator.Template()
+	return c.Forks.Template() + c.Limits.Template() + c.Validator.Template()
 }

@@ -54,6 +54,11 @@ const (
 	Graffiti              = validator + "graffiti"
 	PrepareAllPayloads    = validator + "prepare-all-payloads"
 
+	// Limits Config.
+	limitsRoot     = beaconConfigRoot + "limits."
+	MaxDeposits    = limitsRoot + "max-deposits"
+	MaxWithdrawals = limitsRoot + "max-withdrawals"
+
 	// ABCI Config.
 	abciRoot            = beaconKitRoot + "abci."
 	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
