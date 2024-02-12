@@ -26,4 +26,4 @@
 package primitives
 
 // PayloadID represents a unique identifier for a payload.
-type PayloadID = [8]byte
+type PayloadID [8]byte
