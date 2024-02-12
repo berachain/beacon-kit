@@ -32,7 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	einterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
 )
 
 // postBlockProcess(.
@@ -58,11 +58,11 @@ func (s *Service) postBlockProcess(
 	// TODO: we should probably just have a validator job in the background that is
 	// constantly building new payloads and then not worry about anything here triggering
 	// payload builds.
-	var attrs interfaces.PayloadAttributer
+	var attrs einterfaces.PayloadAttributer
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		attrs = s.getPayloadAttribute(ctx)
 	} else {
-		attrs = payloadattribute.EmptyWithVersion(s.BeaconState(ctx).Version())
+		attrs = nil // payloadattribute.EmptyWithVersion(s.BeaconState(ctx).Version())
 	}
 
 	return s.en.NotifyForkchoiceUpdate(

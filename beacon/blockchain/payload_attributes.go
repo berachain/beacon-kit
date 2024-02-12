@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/beacon/core"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 )
 
 // getPayloadAttribute returns the payload attributes for the given state and slot.

@@ -60,6 +60,8 @@ type ExecutionPayloadHeader interface {
 // PayloadAttributer is the interface for the payload attributes of a block.
 type PayloadAttributer interface {
 	Version() int
+	IsEmpty() bool
+	ToProto() proto.Message
 	GetPrevRandao() []byte
 	GetTimestamp() uint64
 	GetSuggestedFeeRecipient() []byte

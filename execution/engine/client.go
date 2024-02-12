@@ -27,7 +27,6 @@ package engine
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"cosmossdk.io/log"
@@ -41,8 +40,8 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 
+	einterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
 	"github.com/pkg/errors"
-
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -126,16 +125,12 @@ func (s *engineClient) callNewPayloadRPC(
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineClient) ForkchoiceUpdated(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs interfaces.PayloadAttributer,
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs einterfaces.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
-	attrProto, err := s.getAttrProto(attrs)
-	if err != nil {
-		return nil, nil, err
-	}
 
-	result, err := s.updateForkChoiceByVersion(dctx, state, attrProto)
+	result, err := s.updateForkChoiceByVersion(dctx, state, attrs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -147,24 +142,12 @@ func (s *engineClient) ForkchoiceUpdated(
 	return result.PayloadID, lastestValidHash, nil
 }
 
-// getAttrProto returns the attribute proto from the payload attribute.
-func (s *engineClient) getAttrProto(attrs interfaces.PayloadAttributer) (any, error) {
-	switch attrs.Version() {
-	case version.Deneb:
-		return attrs.PbV3()
-	case version.Capella:
-		return attrs.PbV2()
-	default:
-		return nil, fmt.Errorf("unknown payload attribute version: %v", attrs.Version())
-	}
-}
-
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via JSON-RPC.
 func (s *engineClient) updateForkChoiceByVersion(
 	ctx context.Context, state *enginev1.ForkchoiceState,
-	attrProto any,
+	attrProto einterfaces.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-	switch v := attrProto.(type) {
+	switch v := attrProto.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
 	case *enginev1.PayloadAttributesV2:

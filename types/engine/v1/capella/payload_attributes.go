@@ -29,6 +29,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 // WrappedPayloadAttributesV2 ensures compatibility with the
@@ -38,10 +39,20 @@ var _ interfaces.PayloadAttributer = (*WrappedPayloadAttributesV2)(nil)
 // WrappedPayloadAttributesV2 wraps the PayloadAttributesV2
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedPayloadAttributesV2 struct {
-	enginev1.PayloadAttributesV2
+	*enginev1.PayloadAttributesV2
 }
 
 // Version returns the consensus version for the Capella upgrade.
 func (w *WrappedPayloadAttributesV2) Version() int {
 	return version.Capella
+}
+
+// IsEmpty returns true if the WrappedPayloadAttributesV3 is empty.
+func (w *WrappedPayloadAttributesV2) IsEmpty() bool {
+	return w.PayloadAttributesV2 == nil
+}
+
+// ToProto returns the WrappedPayloadAttributesV3 as a proto.Message.
+func (w *WrappedPayloadAttributesV2) ToProto() proto.Message {
+	return w.PayloadAttributesV2
 }

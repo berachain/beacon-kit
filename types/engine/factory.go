@@ -24,3 +24,22 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package engine
+
+import (
+	"github.com/itsdevbear/bolaris/types/consensus/version"
+	"github.com/itsdevbear/bolaris/types/engine/interfaces"
+	capella "github.com/itsdevbear/bolaris/types/engine/v1/capella"
+	deneb "github.com/itsdevbear/bolaris/types/engine/v1/deneb"
+)
+
+// EmptyExecutionPayloadWithVersion returns an empty execution payload for the given version.
+func EmptyPayloadAttributesWithVersion(v int) interfaces.PayloadAttributer {
+	switch v {
+	case version.Deneb:
+		return &deneb.WrappedPayloadAttributesV3{}
+	case version.Capella:
+		return &capella.WrappedPayloadAttributesV2{}
+	default:
+		return nil
+	}
+}
