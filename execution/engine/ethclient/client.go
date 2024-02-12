@@ -36,6 +36,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/io/jwt"
 	newenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
