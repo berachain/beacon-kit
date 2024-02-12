@@ -160,7 +160,7 @@ func (s *engineClient) ForkchoiceUpdated(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC.
 // It returns the execution data as well as the blobs bundle.
 func (s *engineClient) GetPayload(
-	ctx context.Context, payloadID [8]byte, slot primitives.Slot,
+	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
 	d := time.Now().Add(s.engineTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
