@@ -26,13 +26,9 @@
 package sha256_test
 
 import (
-	"fmt"
-	"sync"
 	"testing"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
-	"github.com/prysmaticlabs/gohashtree"
-	"github.com/stretchr/testify/require"
 )
 
 func FuzzVectorizedSha256(f *testing.F) {
@@ -63,49 +59,6 @@ func FuzzVectorizedSha256(f *testing.F) {
 			input = append(input, [32]byte{})
 		}
 
-		var wg sync.WaitGroup
-		var output [][32]byte
-		errChan := make(chan error, 2) // Buffer for 2 potential errors
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			var err error
-			output, err = sha256.VectorizedSha256(input)
-			if err != nil {
-				errChan <- fmt.Errorf("VectorizedSha256 failed: %w", err)
-				return
-			}
-		}()
-
-		wg.Add(1)
-		expectedOutput := make([][32]byte, len(input)/2)
-		go func() {
-			defer wg.Done()
-			err := gohashtree.Hash(expectedOutput, input)
-			if err != nil {
-				errChan <- fmt.Errorf("gohashtree.Hash failed: %w", err)
-			}
-		}()
-
-		wg.Wait()      // Wait for both goroutines to finish
-		close(errChan) // Close the channel
-
-		// Check if there were any errors
-		for err := range errChan {
-			require.NoError(t, err)
-		}
-
-		// Ensure the lengths are the same
-		if len(output) != len(expectedOutput) {
-			t.Fatalf("Expected output length %d, got %d", len(expectedOutput), len(output))
-		}
-
-		// Compare the outputs element by element
-		for i := range output {
-			if output[i] != expectedOutput[i] {
-				t.Errorf("Output mismatch at index %d: expected %x, got %x", i, expectedOutput[i], output[i])
-			}
-		}
+		requireGoHashTreeEquivalence(t, input)
 	})
 }
