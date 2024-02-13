@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/core/randao"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -53,6 +54,27 @@ type ReadOnlyBeaconState interface {
 	Slot() primitives.Slot
 	Time() uint64
 	Version() int
+
+	// TODO: fill these in as we develop impl
+
+	// ReadOnlyRandao
+	// WriteOnlyRandao
+	// GetEpochBySlot(primitives.Slot) primitives.Epoch
+}
+
+type ReadOnlyRandao interface {
+	// Get the historical randao reveals
+	// For now track everything, but we probably want to only track
+	// up to some number based on config
+	GetRandaoReveals() []randao.Reveal
+	GetRandaoRevealByIndex(uint32) []randao.Reveal
+}
+
+type WriteOnlyRandao interface {
+	// Update the state with the locally generated reveal
+	SetRandaoReveal(randao.Reveal) error
+	// This sets the mixed in the global randao reveal
+	SetMixedInRandaoReveal(randao.Reveal) error
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
