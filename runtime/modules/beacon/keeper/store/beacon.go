@@ -40,6 +40,8 @@ import (
 type BeaconStore struct {
 	store.KVStore
 
+	StakingKeeper StakingKeeper
+
 	// sdkCtx is the context of the store.
 	sdkCtx sdk.Context
 
@@ -55,13 +57,15 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
+	stakingKeeper StakingKeeper,
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return &BeaconStore{
-		sdkCtx:  sdkCtx,
-		KVStore: sdkCtx.KVStore(storeKey),
-		cfg:     cfg,
+		sdkCtx:        sdkCtx,
+		KVStore:       sdkCtx.KVStore(storeKey),
+		StakingKeeper: stakingKeeper,
+		cfg:           cfg,
 	}
 }

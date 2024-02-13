@@ -45,6 +45,7 @@ func (s *Service) FinalizeBeaconBlock(
 	}
 
 	// TODO: PROCESS LOGS HERE
+	err = s.en.ProcessLogs(ctx, execution.BlockNumber())
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 

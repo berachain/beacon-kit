@@ -44,7 +44,7 @@ import (
 type Keeper struct {
 	storeKey      storetypes.StoreKey
 	beaconCfg     *config.Beacon
-	stakingKeeper StakingKeeper
+	stakingKeeper store.StakingKeeper
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -54,7 +54,7 @@ var _ state.BeaconStateProvider = &Keeper{}
 func NewKeeper(
 	storeKey storetypes.StoreKey,
 	beaconCfg *config.Beacon,
-	stakingKeeper StakingKeeper,
+	stakingKeeper store.StakingKeeper,
 ) *Keeper {
 	return &Keeper{
 		storeKey:      storeKey,
@@ -69,6 +69,7 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return store.NewBeaconStore(
 		ctx,
 		k.storeKey,
+		k.stakingKeeper,
 		k.beaconCfg,
 	)
 }

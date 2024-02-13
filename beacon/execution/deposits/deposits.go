@@ -23,15 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper
+package deposits
 
 import (
 	"context"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
-// StakingKeeper is a wrapper around Cosmos SDK x/staking keeper.
-type StakingKeeper interface {
-	Delegate(ctx context.Context, validatorPK cryptotypes.PubKey, amount uint64) error
+type DepositHandler struct{}
+
+var _ callback.LogHandler = &DepositHandler{}
+
+func (h *DepositHandler) HandleLog(ctx context.Context, log *evmv1.Log) error {
+	return nil
 }
