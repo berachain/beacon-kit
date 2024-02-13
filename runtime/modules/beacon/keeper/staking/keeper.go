@@ -33,74 +33,76 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// WrappedKeeper is a wrapper around Cosmos SDK x/staking keeper.
+var _ Staking = &Keeper{}
+
+// Keeper implements the Staking interface
+// as a wrapper around Cosmos SDK x/staking keeper.
 // with a queue of deposits to be processed.
-type WrappedKeeper struct {
-	keeper    keeper.Keeper
-	deposits  []*consensusv1.Deposit
-	beaconCfg *config.Beacon
+type Keeper struct {
+	stakingKeeper stakingkeeper.Keeper
+	deposits      []*consensusv1.Deposit
+	beaconCfg     *config.Beacon
 }
 
-// NewWrappedKeeper creates a new instance of the staking wrapper.
-func NewWrappedKeeper(keeper keeper.Keeper, beaconCfg *config.Beacon) WrappedKeeper {
-	return WrappedKeeper{
-		keeper:    keeper,
-		deposits:  make([]*consensusv1.Deposit, 0),
-		beaconCfg: beaconCfg,
+// NewKeeper creates a new instance of the staking wrapper.
+func NewKeeper(stakingKeeper stakingkeeper.Keeper, beaconCfg *config.Beacon) Keeper {
+	return Keeper{
+		stakingKeeper: stakingKeeper,
+		deposits:      make([]*consensusv1.Deposit, 0),
+		beaconCfg:     beaconCfg,
 	}
 }
 
 // AddDeposit queues a deposit to the staking module.
-func (w WrappedKeeper) AddDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
-	w.deposits = append(w.deposits, deposit)
+func (k Keeper) AddDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
+	k.deposits = append(k.deposits, deposit)
 	return nil
 }
 
 // processDeposit processes a single deposit and delegates the tokens to the validator.
-func (w WrappedKeeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
+func (k Keeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
 	validatorPK := &ed25519.PubKey{}
 	err := validatorPK.Unmarshal(deposit.Data.GetPubkey())
 	if err != nil {
 		return err
 	}
 	valConsAddr := sdk.GetConsAddress(validatorPK)
-	validator, err := w.keeper.GetValidator(ctx, sdk.ValAddress(valConsAddr))
+	validator, err := k.stakingKeeper.GetValidator(ctx, sdk.ValAddress(valConsAddr))
 	amount := deposit.Data.GetAmount()
 	if err != nil {
 		if errors.Is(err, stakingtypes.ErrNoValidatorFound) {
-			_, err = w.createValidator(ctx, validatorPK, amount)
+			_, err = k.createValidator(ctx, validatorPK, amount)
 			return err
 		}
 		return err
 	}
-	_, err = w.keeper.Delegate(ctx, sdk.AccAddress(valConsAddr), math.NewInt(int64(amount)), stakingtypes.Unbonded, validator, true)
+	_, err = k.stakingKeeper.Delegate(ctx, sdk.AccAddress(valConsAddr), math.NewInt(int64(amount)), stakingtypes.Unbonded, validator, true)
 	return err
 }
 
-// Delegate processes the queued deposits (up to the limit MaxDepositsPerBlock)
-// and delegates the tokens to the validators.
-func (w WrappedKeeper) Delegate(ctx context.Context) error {
+// ProcessDeposits processes the queued deposits (up to the limit MaxDepositsPerBlock).
+func (k Keeper) ProcessDeposits(ctx context.Context) error {
 	var processedDeposits uint64
-	for processedDeposits < w.beaconCfg.Limits.MaxDepositsPerBlock && len(w.deposits) > 0 {
-		deposit := w.deposits[0]
-		if err := w.processDeposit(ctx, deposit); err != nil {
+	for processedDeposits < k.beaconCfg.Limits.MaxDepositsPerBlock && len(k.deposits) > 0 {
+		deposit := k.deposits[0]
+		if err := k.processDeposit(ctx, deposit); err != nil {
 			return err
 		}
-		w.deposits = w.deposits[1:]
+		k.deposits = k.deposits[1:]
 		processedDeposits++
 	}
 	return nil
 }
 
 // createValidator creates a new validator with the given public key and amount of tokens.
-func (w WrappedKeeper) createValidator(ctx context.Context, validatorPK cryptotypes.PubKey, amount uint64) (stakingtypes.Validator, error) {
+func (k Keeper) createValidator(ctx context.Context, validatorPK cryptotypes.PubKey, amount uint64) (stakingtypes.Validator, error) {
 	stake := math.NewInt(int64(amount))
 	valConsAddr := sdk.GetConsAddress(validatorPK)
 	operator := sdk.ValAddress(valConsAddr).String()
