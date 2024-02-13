@@ -55,11 +55,11 @@ func FuzzHashTreeRoot(f *testing.F) {
 		}
 
 		// Ensure an even number of chunks for HashTreeRoot
+		expectError := false
 		if len(input)%2 != 0 {
-			// Add an extra block of zeros if the number of chunks is odd
-			input = append(input, [32]byte{})
+			expectError = true
 		}
 
-		requireGoHashTreeEquivalence(t, input)
+		requireGoHashTreeEquivalence(t, input, expectError)
 	})
 }

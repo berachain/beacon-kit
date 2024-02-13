@@ -92,10 +92,7 @@ func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
 			)
 		})
 	}
-	// Wait for all goroutines to finish processing their segments.
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
+
 	// The last segment of inputList is processed here because the division of the inputList
 	// among the goroutines might leave a remainder segment that is not exactly divisible by
 	// the number of goroutines spawned. This remainder segment is processed in the main goroutine
@@ -107,5 +104,11 @@ func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
 			return nil, err
 		}
 	}
+
+	// Wait for all goroutines to finish processing their segments.
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
 	return ConvertBytesToTreeRoots(outputList), nil
 }

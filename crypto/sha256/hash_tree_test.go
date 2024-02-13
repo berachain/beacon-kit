@@ -75,17 +75,19 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	// Define a test table with various input sizes,
 	// including ones above and below MinParallelizationSize
 	testCases := []struct {
-		name string
-		size int
+		name    string
+		size    int
+		wantErr bool
 	}{
-		{"BelowMinParallelizationSize", sha256.MinParallelizationSize / 2},
-		{"AtMinParallelizationSize", sha256.MinParallelizationSize},
-		{"AboveMinParallelizationSize", sha256.MinParallelizationSize * 2},
-		{"SmallSize", 16},
-		{"MediumSize", 64},
-		{"LargeSize", 128},
-		{"TestRemainderStartIndexSmall", sha256.MinParallelizationSize + 6},
-		{"TestRemainderStartIndexBig", sha256.MinParallelizationSize - 2},
+		{"BelowMinParallelizationSize", sha256.MinParallelizationSize / 2, false},
+		{"AtMinParallelizationSize", sha256.MinParallelizationSize, false},
+		{"AboveMinParallelizationSize", sha256.MinParallelizationSize * 2, false},
+		{"SmallSize", 16, false},
+		{"MediumSize", 64, false},
+		{"LargeSize", 128, false},
+		{"TestRemainderStartIndexSmall", sha256.MinParallelizationSize + 6, false},
+		{"TestRemainderStartIndexBig", sha256.MinParallelizationSize - 2, false},
+		{"TestOddLength", sha256.MinParallelizationSize + 1, true},
 	}
 
 	for _, tc := range testCases {
@@ -99,7 +101,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 					inputList[i][j] = byte(randGen.Intn(256))
 				}
 			}
-			requireGoHashTreeEquivalence(t, inputList)
+			requireGoHashTreeEquivalence(t, inputList, tc.wantErr)
 		})
 	}
 }

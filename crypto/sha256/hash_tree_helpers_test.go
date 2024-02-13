@@ -38,7 +38,7 @@ import (
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output of
 // sha256.HashTreeRoot is equivalent to the output of gohashtree.Hash.
-func requireGoHashTreeEquivalence(t *testing.T, inputList []tree.Root) {
+func requireGoHashTreeEquivalence(t *testing.T, inputList []tree.Root, expectError bool) {
 	expectedOutput := make([]tree.Root, len(inputList)/2)
 	var output []tree.Root
 
@@ -73,7 +73,12 @@ func requireGoHashTreeEquivalence(t *testing.T, inputList []tree.Root) {
 
 	// Check if there were any errors
 	for err := range errChan {
-		require.NoError(t, err, "Error occurred during hashing")
+		if !expectError {
+			require.NoError(t, err, "Error occurred during hashing")
+		} else {
+			require.Error(t, err, "Expected error did not occur")
+			return
+		}
 	}
 
 	// Ensure the lengths are the same
