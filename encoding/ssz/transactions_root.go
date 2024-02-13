@@ -23,24 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package capella
+package ssz
 
 import (
-	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/protolambda/ztyp/tree"
+
+	// We need to import this package to use the VectorizedSha256 function.
+	_ "github.com/minio/sha256-simd"
 )
 
-// WrappedPayloadAttributesV2 wraps the PayloadAttributesV2 from the Prysmatic Labs' Engine API v1.
-var _ interfaces.PayloadAttributer = (*WrappedPayloadAttributesV2)(nil)
+// TransactionsRoot computes the HTR for the Transactions' property of the ExecutionPayload
+// The code was largely copy/pasted from the code generated to compute the HTR of the entire
+// ExecutionPayload.
+func TransactionsRoot(txs [][]byte) ([32]byte, error) {
+	txRoots := make([][32]byte, 0)
+	for i := 0; i < len(txs); i++ {
+		txRoots = append(
+			txRoots, tree.GetHashFn().ByteListHTR(txs[i], primitives.MaxBytesPerTxLength),
+		)
+	}
 
-// WrappedPayloadAttributesV2 is a struct that embeds enginev1.PayloadAttributesV2
-// to provide additional functionality required by the PayloadAttributer interface.
-type WrappedPayloadAttributesV2 struct {
-	enginev1.PayloadAttributesV2
-}
-
-// Version returns the consensus version for the Capella upgrade.
-func (w *WrappedPayloadAttributesV2) Version() int {
-	return version.Capella
+	byteRoots, err := SafeMerkleizeVector(
+		convertBytesToTreeRoots(txRoots), uint64(len(txRoots)), primitives.MaxTxsPerPayloadLength,
+	)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return tree.GetHashFn().Mixin(byteRoots, uint64(len(txRoots))), nil
 }
