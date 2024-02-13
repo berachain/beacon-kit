@@ -218,6 +218,7 @@ test-e2e:
 test-e2e-no-build:
 	@echo "Running e2e tests..."
 
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################
@@ -308,6 +309,18 @@ pkgsite:
 	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
 	@pkgsite -http=:6060
 
+#################
+#    slither    #
+#################
+
+slither:
+	docker run \
+	-t \
+	--platform linux/amd64 \
+	-v ./contracts:/contracts \
+	trailofbits/eth-security-toolbox \
+	slither /contracts/src --config-file /contracts/slither.config.json
+
 
 #################
 #     proto     #
@@ -317,11 +330,6 @@ pkgsite:
 protoImageName    := "ghcr.io/cosmos/proto-builder"
 protoImageVersion := "0.14.0"
 modulesProtoDir := "proto"
-
-#################
-#     proto     #
-#################
-
 
 proto:
 	@$(MAKE) buf-lint-fix buf-lint proto-build
