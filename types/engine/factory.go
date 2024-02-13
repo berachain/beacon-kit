@@ -23,41 +23,44 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package enginev1
+package engine
 
 import (
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine"
+	capella "github.com/itsdevbear/bolaris/types/engine/v1/capella"
+	deneb "github.com/itsdevbear/bolaris/types/engine/v1/deneb"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type ExecutionPayloadCapella struct {
-	enginev1.ExecutionPayloadCapella
+// WrappedExecutionPayloadDeneb is a constructor which wraps a protobuf execution payload
+// into an interface.
+func WrappedExecutionPayloadDeneb(
+	p *enginev1.ExecutionPayloadDeneb, wei math.Wei,
+) (ExecutionPayload, error) {
+	return deneb.NewWrappedExecutionPayloadDeneb(
+		p, wei,
+	), nil
 }
 
-var (
-	// ExecutionPayloadCapella ensures compatibility with the engine.ExecutionPayload interface.
-	_ engine.ExecutionPayload = (*ExecutionPayloadCapella)(nil)
-)
-
-// Version returns the version identifier for the ExecutionPayloadCapella.
-func (p *ExecutionPayloadCapella) Version() int {
-	return version.Capella
+// WrappedExecutionPayloadCapella is a constructor which wraps a protobuf execution payload
+// into an interface.
+func WrappedExecutionPayloadCapella(
+	p *enginev1.ExecutionPayloadCapella, wei math.Wei,
+) (ExecutionPayload, error) {
+	return capella.NewWrappedExecutionPayloadCapella(
+		p, wei,
+	), nil
 }
 
-// IsBlinded indicates whether the payload is blinded. For ExecutionPayloadCapella,
-// this is always false.
-func (p *ExecutionPayloadCapella) IsBlinded() bool {
-	return false
-}
-
-// ToPayload returns itself as it implements the engine.ExecutionPayload interface.
-func (p *ExecutionPayloadCapella) ToPayload() engine.ExecutionPayload {
-	return p
-}
-
-// ToHeader is intended to convert the ExecutionPayloadCapella to an ExecutionPayloadHeader.
-// Currently, it panics as the slice merkalization is yet to be implemented.
-func (p *ExecutionPayloadCapella) ToHeader() engine.ExecutionPayloadHeader {
-	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+// EmptyExecutionPayloadWithVersion returns an empty execution payload for the given version.
+func EmptyPayloadAttributesWithVersion(v int) PayloadAttributer {
+	switch v {
+	case version.Deneb:
+		return &deneb.WrappedPayloadAttributesV3{}
+	case version.Capella:
+		return &capella.WrappedPayloadAttributesV2{}
+	default:
+		return nil
+	}
 }

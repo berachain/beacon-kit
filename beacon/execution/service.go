@@ -33,8 +33,8 @@ import (
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	enginetypes "github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -96,7 +96,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
-) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	payloadID, found := s.payloadCache.Get(
 		slot, headHash,
 	)
@@ -110,7 +110,7 @@ func (s *Service) GetBuiltPayload(
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-	preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+	preStateHeader enginetypes.ExecutionPayload, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
 ) (bool, error) {
 	// var lastValidHash []byte
 	// if blk.Version() >= version.Deneb {
