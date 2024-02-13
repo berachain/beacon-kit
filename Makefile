@@ -360,8 +360,6 @@ buf-lint:
 #    sszgen    #
 #################
 
-SSZ_STRUCTS=BeaconKitBlockCapella
-
 sszgen-install:
 	@echo "--> Installing sszgen"
 	@go install github.com/prysmaticlabs/fastssz/sszgen
@@ -372,9 +370,11 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1/capella -objs ${SSZ_STRUCTS} \
-    --include ./types/consensus/primitives,\
+	@sszgen -path ./types/consensus/v1/capella -objs BeaconKitBlockCapella \
+    --include ./types/consensus/primitives,./types/consensus/v1,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
+	@sszgen -path ./types/consensus/v1 -objs Deposit \
+    --include $(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 
 ##############################################################################
 ###                             Dependencies                                ###
