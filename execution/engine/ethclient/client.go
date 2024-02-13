@@ -56,7 +56,7 @@ type Eth1Client struct {
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided context and options.
-func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
+func NewEth1Client(opts ...Option) (*Eth1Client, error) {
 	c := &Eth1Client{}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
@@ -64,7 +64,6 @@ func NewEth1Client(ctx context.Context, opts ...Option) (*Eth1Client, error) {
 		}
 	}
 
-	c.Start(ctx) // TODO: move this so it is on the cmd.Context.
 	return c, nil
 }
 
