@@ -97,14 +97,15 @@ func BuildMerkleTreeAndMixinLength[T Hashable](elements []T, limit uint64) (tree
 //
 // [Element1] -> Hash -> [Root1]
 // [Element2] -> Hash -> [Root2]
-//       .          .        .
-//       .          .        .
-//       .          .        .
+//
+//	.          .        .
+//	.          .        .
+//	.          .        .
+//
 // [ElementN] -> Hash -> [RootN]
 //
 // Where each Element is hashed individually to produce a corresponding Root.
 // This process is applied to all elements in the input list, resulting in a list of roots.
-
 func HashElements[T Hashable](elements []T) ([]tree.Root, error) {
 	roots := make([]tree.Root, len(elements))
 	var err error
