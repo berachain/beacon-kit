@@ -105,6 +105,7 @@ func SafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) (tree.Root, 
 		return tree.Root{}, errors.New("merkleizing list exceeds the maximum allowed number of elements")
 	}
 
+	// Determine the max possible depth of the tree given maxRootsAllowed.
 	depth := tree.CoverDepth(maxRootsAllowed)
 
 	// If the list is empty, return the zero hash at the calculated depth.
