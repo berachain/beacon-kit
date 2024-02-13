@@ -34,9 +34,12 @@ import (
 )
 
 const (
-	// MinSliceSizeToParallelize is the minimum size of the input list that
+	// MinParallelizationSize is the minimum size of the input list that
 	// should be hashed using the default method. If the input list is smaller
 	// than this size, the overhead of parallelizing the hashing process is.
+	//
+	// TODO: This value is arbitrary and should be benchmarked to find the
+	// optimal value.
 	MinParallelizationSize = 5000
 	// two is a constant to make the linter happy.
 	two = 2
@@ -48,6 +51,9 @@ const (
 // performance improvement compared to the default method of hashing
 // lists.
 func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
+	if len(inputList)%2 != 0 {
+		return nil, ErrOddLengthTreeRoots
+	}
 	outputList := make([][32]byte, len(inputList)/two)
 	inputListBytes32 := ConvertTreeRootsToBytes(inputList)
 	// If the input list is small, hash it using the default method since
@@ -60,6 +66,9 @@ func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
 	n := runtime.GOMAXPROCS(0) - 1
 	groupSize := len(inputList) / (two * (n + 1))
 	eg := new(errgroup.Group)
+
+	// if n is 0 the parallelization is disabled and the whole inputList is hashed in the main
+	// goroutine at the end of this function.
 	for j := 0; j < n; j++ {
 		// capture loop variable
 		cj := j
