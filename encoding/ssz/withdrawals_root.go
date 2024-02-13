@@ -64,5 +64,5 @@ func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
 // WithdrawalsRoot computes the Merkle root of a slice of withdrawals with a given limit.
 // TODO: create strong types and make put these functions on their receivers.
 func WithdrawalsRoot(withdrawals []*Withdrawal, limit uint64) (tree.Root, error) {
-	return sha256.BuildMerkleTreeAndMixinLength(withdrawals, limit)
+	return sha256.BuildMerkleRootAndMixinLength(withdrawals, limit)
 }

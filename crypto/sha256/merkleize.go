@@ -48,8 +48,8 @@ import (
 //	             v
 //	         [ Root ]  The root hash of the Merkle tree
 //
-// BuildMerkleTree constructs a Hash Tree Root (HTR) from a list of elements.
-func BuildMerkleTree[T Hashable](elements []T, limit uint64) (tree.Root, error) {
+// BuildMerkleRoot constructs a Hash Tree Root (HTR) from a list of elements.
+func BuildMerkleRoot[T Hashable](elements []T, limit uint64) (tree.Root, error) {
 	roots, err := HashElements(elements)
 	if err != nil {
 		return [32]byte{}, err
@@ -80,10 +80,10 @@ func BuildMerkleTree[T Hashable](elements []T, limit uint64) (tree.Root, error) 
 //	             v
 //	         [ Final Root ]  Hash the result to return the final HTR
 //
-// BuildMerkleTreeAndMixinLength hashes each element in the list and then returns the HTR
+// BuildMerkleRootAndMixinLength hashes each element in the list and then returns the HTR
 // of the corresponding list of roots. It then appends the length of the roots to the
 // end of the byteRoots and further hashes the result to return the final HTR.
-func BuildMerkleTreeAndMixinLength[T Hashable](elements []T, limit uint64) (tree.Root, error) {
+func BuildMerkleRootAndMixinLength[T Hashable](elements []T, limit uint64) (tree.Root, error) {
 	roots, err := HashElements(elements)
 	if err != nil {
 		return [32]byte{}, err
@@ -148,8 +148,7 @@ func SafeMerkelizeVectorAndMixinLength(
 // 2. Append length -> [HTR_byte_array, length]
 // Step 3: Hash result -> Final HTR.
 func UnsafeMerkleizeVectorAndMixinLength(roots []tree.Root, maxRootsAllowed uint64) tree.Root {
-	txRootLen := uint64(len(roots))
-	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, txRootLen), maxRootsAllowed)
+	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, uint64(len(roots))), maxRootsAllowed)
 }
 
 // UnsafeMerkleizeVector is a function that computes the Hash Tree Root (HTR) for

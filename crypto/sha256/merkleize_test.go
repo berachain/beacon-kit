@@ -43,7 +43,7 @@ func Test_MerkleizeVectorSSZ(t *testing.T) {
 			234, 233, 20, 133, 149, 68, 114, 213, 111, 36, 109,
 			242, 86, 191, 60, 174, 25, 53, 42, 18, 60}
 		length := uint64(16)
-		root, err := sha256.BuildMerkleTree(attList, length)
+		root, err := sha256.BuildMerkleRoot(attList, length)
 		require.NoError(t, err)
 		require.Equal(t, expected, root)
 	})
@@ -69,7 +69,7 @@ func Test_MerkleizeVectorSSZ(t *testing.T) {
 			181, 200, 15, 143, 160, 25, 133, 105, 26, 183, 107,
 			10, 198, 232, 231, 107, 162, 243, 243, 56, 20}
 		length := uint64(16)
-		root, err := sha256.BuildMerkleTree(attList, length)
+		root, err := sha256.BuildMerkleRoot(attList, length)
 		require.NoError(t, err)
 		require.Equal(t, expected, root)
 	})
