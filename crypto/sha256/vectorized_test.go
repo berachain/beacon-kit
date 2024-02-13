@@ -71,6 +71,7 @@ func Test_VectorizedSha256(t *testing.T) {
 	}
 }
 
+//nolint:gocognit // This test is meant to be complex.
 func Test_GoHashTreeHashConformance(t *testing.T) {
 	// Define a test table with various input sizes,
 	// including ones above and below MinParallelizationSize
@@ -91,7 +92,8 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			inputList := make([][32]byte, tc.size)
-			outputList2 := make([][32]byte, tc.size/2)
+			expectedOutput := make([][32]byte, len(inputList)/2)
+			var output [][32]byte
 
 			// Fill inputList with pseudo-random data
 			randSource := rand.NewSource(time.Now().UnixNano())
@@ -102,22 +104,53 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 				}
 			}
 
-			// Use VectorizedSha256 for outputList1
-			outputList1, err := sha256.VectorizedSha256(inputList)
-			require.NoError(t, err)
+			var wg sync.WaitGroup
 
-			// Use gohashtree.Hash directly for outputList2
-			err = gohashtree.Hash(outputList2, inputList)
-			require.NoError(t, err)
+			errChan := make(chan error, 2) // Buffer for 2 potential errors
 
-			// Use gohashtree.Hash directly for outputList2
-			err = gohashtree.Hash(outputList2, inputList)
-			require.NoError(t, err)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				var err error
+				output, err = sha256.VectorizedSha256(inputList)
+				if err != nil {
+					errChan <- fmt.Errorf("VectorizedSha256 failed: %w", err)
+					return
+				}
+			}()
 
-			// Compare the outputs
-			require.Equal(
-				t, outputList1, outputList2,
-				"Outputs from VectorizedSha256 and gohashtree.Hash should be identical")
+			wg.Add(1)
+
+			go func() {
+				defer wg.Done()
+				err := gohashtree.Hash(expectedOutput, inputList)
+				if err != nil {
+					errChan <- fmt.Errorf("gohashtree.Hash failed: %w", err)
+				}
+			}()
+
+			wg.Wait()      // Wait for both goroutines to finish
+			close(errChan) // Close the channel
+
+			// Check if there were any errors
+			for err := range errChan {
+				require.NoError(t, err)
+			}
+
+			// Ensure the lengths are the same
+			if len(output) != len(expectedOutput) {
+				t.Fatalf("Expected output length %d, got %d", len(expectedOutput), len(output))
+			}
+
+			// Compare the outputs element by element
+			for i := range output {
+				if output[i] != expectedOutput[i] {
+					t.Errorf(
+						"Output mismatch at index %d: expected %x, got %x", i,
+						expectedOutput[i], output[i],
+					)
+				}
+			}
 		})
 	}
 }

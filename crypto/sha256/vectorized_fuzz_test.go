@@ -26,10 +26,13 @@
 package sha256_test
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/prysmaticlabs/gohashtree"
+	"github.com/stretchr/testify/require"
 )
 
 func FuzzVectorizedSha256(f *testing.F) {
@@ -60,17 +63,37 @@ func FuzzVectorizedSha256(f *testing.F) {
 			input = append(input, [32]byte{})
 		}
 
-		// Execute the function under test
-		output, err := sha256.VectorizedSha256(input)
-		if err != nil {
-			t.Fatalf("VectorizedSha256 failed: %v", err)
-		}
+		var wg sync.WaitGroup
+		var output [][32]byte
+		errChan := make(chan error, 2) // Buffer for 2 potential errors
 
-		// Compare the output of VectorizedSha256 with gohashtree.Hash
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var err error
+			output, err = sha256.VectorizedSha256(input)
+			if err != nil {
+				errChan <- fmt.Errorf("VectorizedSha256 failed: %w", err)
+				return
+			}
+		}()
+
+		wg.Add(1)
 		expectedOutput := make([][32]byte, len(input)/2)
-		err = gohashtree.Hash(expectedOutput, input)
-		if err != nil {
-			t.Fatalf("gohashtree.Hash failed: %v", err)
+		go func() {
+			defer wg.Done()
+			err := gohashtree.Hash(expectedOutput, input)
+			if err != nil {
+				errChan <- fmt.Errorf("gohashtree.Hash failed: %w", err)
+			}
+		}()
+
+		wg.Wait()      // Wait for both goroutines to finish
+		close(errChan) // Close the channel
+
+		// Check if there were any errors
+		for err := range errChan {
+			require.NoError(t, err)
 		}
 
 		// Ensure the lengths are the same
@@ -85,12 +108,4 @@ func FuzzVectorizedSha256(f *testing.F) {
 			}
 		}
 	})
-}
-
-// Helper function to get the minimum of two integers.
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
