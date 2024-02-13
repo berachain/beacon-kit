@@ -33,5 +33,7 @@ import (
 
 // StakingKeeper is a wrapper around Cosmos SDK x/staking keeper.
 type StakingKeeper interface {
+	// Delegate delegates the given amount of tokens to the given validator.
+	// If the validator does not exist, it will create a new validator.
 	Delegate(ctx context.Context, validatorPK cryptotypes.PubKey, amount uint64) error
 }

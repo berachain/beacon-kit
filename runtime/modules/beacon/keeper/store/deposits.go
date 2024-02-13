@@ -23,19 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package deposits
+package store
 
 import (
-	"context"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-type DepositHandler struct{}
-
-var _ callback.LogHandler = &DepositHandler{}
-
-func (h *DepositHandler) HandleLog(ctx context.Context, log *evmv1.Log) error {
-	return nil
+func (s *BeaconStore) AddDeposit(deposit *consensusv1.Deposit) error {
+	pk := &ed25519.PubKey{}
+	err := pk.Unmarshal(deposit.Data.GetPubkey())
+	if err != nil {
+		return err
+	}
+	return s.StakingKeeper.Delegate(s.sdkCtx, pk, deposit.Data.GetAmount())
 }

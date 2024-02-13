@@ -23,39 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package deposits
 
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
-// FinalizeBeaconBlock finalizes a beacon block by processing the logs, deposits,
-// and voluntary exits. It also updates the finalized and safe eth1 block hashes
-// on the beacon state.
-func (s *Service) FinalizeBeaconBlock(
-	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock,
-) error {
-	execution, err := blk.Execution()
-	if err != nil {
-		return err
-	}
+type DepositHandler struct{}
 
-	state := s.BeaconState(ctx)
+var _ callback.LogHandler = &DepositHandler{}
 
-	// Process logs, including deposits.
-	err = s.en.ProcessLogs(ctx, execution.BlockNumber())
-	// TODO: PROCESS DEPOSITS HERE
-	// state.AddDeposit(...)
-	// TODO: PROCESS VOLUNTARY EXITS HERE
-
-	eth1BlockHash := common.Hash(execution.BlockHash())
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
-	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetLastValidHead(eth1BlockHash)
-
+// HandleLog processes the logs from the Eth1 deposit contract.
+func (h *DepositHandler) HandleLog(ctx context.Context, log *evmv1.Log) error {
 	return nil
 }
