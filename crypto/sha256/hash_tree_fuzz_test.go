@@ -31,7 +31,7 @@ import (
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 )
 
-func FuzzVectorizedSha256(f *testing.F) {
+func FuzzHashTreeRoot(f *testing.F) {
 	// Seed corpus with a variety of sizes, including edge cases
 	f.Add([]byte{})                                      // Test with empty slice
 	f.Add(make([]byte, 31))                              // Just below a single block size
@@ -45,7 +45,7 @@ func FuzzVectorizedSha256(f *testing.F) {
 	f.Add(make([]byte, 2*sha256.MinParallelizationSize)) // Double MinParallelizationSize
 
 	f.Fuzz(func(t *testing.T, original []byte) {
-		// Convert []byte to [][32]byte as required by VectorizedSha256
+		// Convert []byte to [][32]byte as required by HashTreeRoot
 		var input [][32]byte
 		for i := 0; i < len(original); i += 32 {
 			var block [32]byte
@@ -53,7 +53,7 @@ func FuzzVectorizedSha256(f *testing.F) {
 			input = append(input, block)
 		}
 
-		// Ensure an even number of chunks for VectorizedSha256
+		// Ensure an even number of chunks for HashTreeRoot
 		if len(input)%2 != 0 {
 			// Add an extra block of zeros if the number of chunks is odd
 			input = append(input, [32]byte{})
