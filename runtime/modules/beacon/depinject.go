@@ -33,7 +33,7 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/staking"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.
@@ -53,7 +53,7 @@ type DepInjectInput struct {
 
 	BeaconKitConfig *config.Beacon
 
-	StakingKeeper store.StakingKeeper
+	Staking staking.Staking
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -69,7 +69,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Key,
 		in.BeaconKitConfig,
-		in.StakingKeeper,
+		in.Staking,
 	)
 	m := NewAppModule(k)
 

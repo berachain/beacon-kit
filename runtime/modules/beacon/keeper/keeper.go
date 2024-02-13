@@ -35,6 +35,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/staking"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
@@ -42,9 +43,9 @@ import (
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	storeKey      storetypes.StoreKey
-	beaconCfg     *config.Beacon
-	stakingKeeper store.StakingKeeper
+	storeKey  storetypes.StoreKey
+	beaconCfg *config.Beacon
+	staking   staking.Staking
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -54,12 +55,12 @@ var _ state.BeaconStateProvider = &Keeper{}
 func NewKeeper(
 	storeKey storetypes.StoreKey,
 	beaconCfg *config.Beacon,
-	stakingKeeper store.StakingKeeper,
+	staking staking.Staking,
 ) *Keeper {
 	return &Keeper{
-		storeKey:      storeKey,
-		beaconCfg:     beaconCfg,
-		stakingKeeper: stakingKeeper,
+		storeKey:  storeKey,
+		beaconCfg: beaconCfg,
+		staking:   staking,
 	}
 }
 
@@ -69,7 +70,7 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return store.NewBeaconStore(
 		ctx,
 		k.storeKey,
-		k.stakingKeeper,
+		k.staking,
 		k.beaconCfg,
 	)
 }

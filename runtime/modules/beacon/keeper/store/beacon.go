@@ -33,6 +33,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/staking"
 )
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
@@ -40,7 +41,7 @@ import (
 type BeaconStore struct {
 	store.KVStore
 
-	StakingKeeper StakingKeeper
+	Staking staking.Staking
 
 	// sdkCtx is the context of the store.
 	sdkCtx sdk.Context
@@ -57,15 +58,15 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
-	stakingKeeper StakingKeeper,
+	staking staking.Staking,
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return &BeaconStore{
-		sdkCtx:        sdkCtx,
-		KVStore:       sdkCtx.KVStore(storeKey),
-		StakingKeeper: stakingKeeper,
-		cfg:           cfg,
+		sdkCtx:  sdkCtx,
+		KVStore: sdkCtx.KVStore(storeKey),
+		Staking: staking,
+		cfg:     cfg,
 	}
 }

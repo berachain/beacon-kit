@@ -47,9 +47,16 @@ func (s *Service) FinalizeBeaconBlock(
 	state := s.BeaconState(ctx)
 
 	// Process logs, including deposits.
+	// TODO: Add deposits into the state.
 	err = s.en.ProcessLogs(ctx, execution.GetBlockNumber())
-	// TODO: PROCESS DEPOSITS HERE
-	// state.AddDeposit(...)
+	if err != nil {
+		return err
+	}
+	// Process deposits.
+	err = state.ProcessDeposits()
+	if err != nil {
+		return err
+	}
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
 	eth1BlockHash := common.Hash(execution.GetBlockHash())

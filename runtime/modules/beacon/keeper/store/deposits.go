@@ -26,16 +26,15 @@
 package store
 
 import (
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
+// AddDeposit adds a deposit to the staking module.
 func (s *BeaconStore) AddDeposit(deposit *consensusv1.Deposit) error {
-	pk := &ed25519.PubKey{}
-	err := pk.Unmarshal(deposit.Data.GetPubkey())
-	if err != nil {
-		return err
-	}
-	return s.StakingKeeper.Delegate(s.sdkCtx, pk, deposit.Data.GetAmount())
+	return s.Staking.AddDeposit(s.sdkCtx, deposit)
+}
+
+// ProcessDeposits processes the queued deposits.
+func (s *BeaconStore) ProcessDeposits() error {
+	return s.Staking.ProcessDeposits(s.sdkCtx)
 }

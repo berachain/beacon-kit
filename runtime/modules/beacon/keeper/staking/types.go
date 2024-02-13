@@ -23,17 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package staking
 
 import (
 	"context"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// StakingKeeper is a wrapper around Cosmos SDK x/staking keeper.
-type StakingKeeper interface {
-	// Delegate delegates the given amount of tokens to the given validator.
-	// If the validator does not exist, it will create a new validator.
-	Delegate(ctx context.Context, validatorPK cryptotypes.PubKey, amount uint64) error
+// Staking is an interface with functions handling deposits.
+type Staking interface {
+	// AddDeposit queues a deposit to the staking module.
+	AddDeposit(ctx context.Context, deposit *consensusv1.Deposit) error
+	// Delegate processes the queued deposits (up to the limit MaxDepositsPerBlock)
+	// and delegates the tokens to the validators.
+	ProcessDeposits(ctx context.Context) error
 }

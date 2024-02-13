@@ -51,6 +51,7 @@ type BeaconState interface {
 type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
+	ReadOnlyDeposits
 	ReadOnlyWithdrawals
 	Slot() primitives.Slot
 	Time() uint64
@@ -86,6 +87,11 @@ type ReadOnlyWithdrawals interface {
 // WriteOnlyDeposits defines a struct which only has write access to deposit methods.
 type WriteOnlyDeposits interface {
 	AddDeposit(deposit *consensusv1.Deposit) error
+}
+
+// ReadOnlyDeposits defines a struct which only has read access to deposit methods.
+type ReadOnlyDeposits interface {
+	ProcessDeposits() error
 }
 
 type ReadOnlyGenesis interface {
