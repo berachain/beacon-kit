@@ -23,14 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package sha256
 
-// This is the internal representation of the randao reveal
-// Although it is 32 bytes now, it can change
-// We use the same size as Ed25519 sig
-// TODO: update to 96 bytes when moving to BLS
-type Reveal [32]byte
-
-// This is the external representation of the randao random number
-// We fix this to 32 bytes.
-type RandomValue [32]byte
+// Hashable is an interface representing objects that implement HashTreeRoot().
+type Hashable interface {
+	HashTreeRoot() ([32]byte, error)
+}

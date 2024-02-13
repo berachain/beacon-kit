@@ -28,7 +28,7 @@ package types.consensus.v1;
 
 import "ethereum/eth/ext/options.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
+option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
 
 // Deposit into the consensus layer from the deposit contract in the execution layer.
 message Deposit {

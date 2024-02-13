@@ -18,15 +18,12 @@ build-linux-amd64:
 build-linux-arm64:
 	GOOS=linux GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
 
-$(BUILD_TARGETS): forge-build sync $(OUT_DIR)/
+$(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
 	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
 
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
-
-build-clean: 
-	@$(MAKE) clean build
 
 clean:
 	@rm -rf .tmp/ 
@@ -174,7 +171,9 @@ start-besu:
 #     unit      #
 #################
 
-FUZZ_TIME=10s
+SHORT_FUZZ_TIME=15s
+MEDIUM_FUZZ_TIME=45s
+LONG_FUZZ_TIME=3m
 
 test:
 	@$(MAKE) test-unit test-forge-fuzz
@@ -190,11 +189,12 @@ test-unit-cover:
 
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
-	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${FUZZ_TIME}
-	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${FUZZ_TIME}
-	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 
 #################
 #     forge     #
@@ -217,6 +217,7 @@ test-e2e:
 
 test-e2e-no-build:
 	@echo "Running e2e tests..."
+
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -308,6 +309,18 @@ pkgsite:
 	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
 	@pkgsite -http=:6060
 
+#################
+#    slither    #
+#################
+
+slither:
+	docker run \
+	-t \
+	--platform linux/amd64 \
+	-v ./contracts:/contracts \
+	trailofbits/eth-security-toolbox \
+	slither /contracts/src --config-file /contracts/slither.config.json
+
 
 #################
 #     proto     #
@@ -317,11 +330,6 @@ pkgsite:
 protoImageName    := "ghcr.io/cosmos/proto-builder"
 protoImageVersion := "0.14.0"
 modulesProtoDir := "proto"
-
-#################
-#     proto     #
-#################
-
 
 proto:
 	@$(MAKE) buf-lint-fix buf-lint proto-build
@@ -352,8 +360,6 @@ buf-lint:
 #    sszgen    #
 #################
 
-SSZ_STRUCTS=BeaconKitBlockCapella
-
 sszgen-install:
 	@echo "--> Installing sszgen"
 	@go install github.com/prysmaticlabs/fastssz/sszgen
@@ -364,9 +370,11 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1/capella -objs ${SSZ_STRUCTS} \
-    --include ./types/consensus/primitives,\
+	@sszgen -path ./types/consensus/v1/capella -objs BeaconKitBlockCapella \
+    --include ./types/consensus/primitives,./types/consensus/v1,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
+	@sszgen -path ./types/consensus/v1 -objs Deposit \
+    --include $(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 
 ##############################################################################
 ###                             Dependencies                                ###
@@ -383,7 +391,7 @@ repo-rinse: |
 
 
 .PHONY: build build-linux-amd64 build-linux-arm64 \
-	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
+	$(BUILD_TARGETS) clean \
 	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
 	start test-unit test-unit-cover test-forge-cover test-forge-fuzz \
