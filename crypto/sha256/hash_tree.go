@@ -45,12 +45,24 @@ const (
 	two = 2
 )
 
-// HashTreeRoot takes a list of roots and hashes them using CPU
-// specific vector instructions. Depending on host machine's specific
-// hardware configuration, using this routine can lead to a significant
-// performance improvement compared to the default method of hashing
-// lists.
+// HashTreeRoot is a function that processes a list of tree.Root elements by hashing them.
+// This function leverages CPU-specific vector instructions for hashing, which can significantly
+// enhance performance on compatible hardware. The actual hashing is delegated to the
+// HashTreeRootWithNProcesses function, with the number of processes set to one less than
+// the maximum number of CPU cores available to the Go runtime. This is to ensure at least
+// one core is available for other tasks, potentially improving overall system responsiveness.
 func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
+	// The number of processes is set to the maximum number of CPU cores minus one.
+	// runtime.GOMAXPROCS(0) retrieves the current setting without changing it.
+	return HashTreeRootWithNRoutines(inputList, runtime.GOMAXPROCS(0)-1)
+}
+
+// HashTreeRootWithNProcesses takes a list of tree.Root elements and an integer n,
+// then hashes the list using n parallel processes. This allows for concurrent hashing,
+// which can be faster than sequential hashing for large lists, especially on multi-core
+// processors. The function is designed to be flexible, allowing the caller to specify
+// the degree of parallelism.
+func HashTreeRootWithNRoutines(inputList []tree.Root, n int) ([]tree.Root, error) {
 	if len(inputList)%2 != 0 {
 		return nil, ErrOddLengthTreeRoots
 	}
@@ -63,7 +75,6 @@ func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
-	n := runtime.GOMAXPROCS(0) - 1
 	groupSize := len(inputList) / (two * (n + 1))
 	eg := new(errgroup.Group)
 
