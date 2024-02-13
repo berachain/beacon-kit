@@ -25,4 +25,12 @@
 
 package randao
 
-// PUT CORE LOGIC HERE
+// This is the internal representation of the randao reveal
+// Although it is 32 bytes now, it can change
+// We use the same size as Ed25519 sig
+// TODO: update to 96 bytes when moving to BLS
+type Reveal [32]byte
+
+// This is the external representation of the randao random number
+// We fix this to 32 bytes.
+type RandomValue [32]byte
