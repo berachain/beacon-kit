@@ -30,5 +30,5 @@ import "errors"
 var (
 	// ErrMixHashRevealLengthMismatch is returned when the hash of therandao reveal and
 	// the length of the randao mix are different.
-	ErrMixHashRevealLengthMismatch = errors.New("Randao mix and reveal length mismatch")
+	ErrMixHashRevealLengthMismatch = errors.New("randao mix and reveal length mismatch")
 )

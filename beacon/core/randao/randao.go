@@ -33,7 +33,7 @@ import "github.com/ethereum/go-ethereum/common"
 // TODO: update to 96 bytes when moving to BLS
 type Reveal [32]byte
 
-// This is a hashed value of the signed reveal
+// This is a hashed value of the signed reveal.
 type Mix [32]byte
 
 // This is the external representation of the randao random number
@@ -41,7 +41,6 @@ type Mix [32]byte
 type RandomValue [32]byte
 
 func (m *Mix) MixInRandao(newReveal Reveal) error {
-
 	// As of go-eth 1.13.12, this is based on Keccak256 which is crypto hash
 	// and hence irreversible so safe to use here
 	hash := common.Hash(newReveal)
@@ -50,8 +49,8 @@ func (m *Mix) MixInRandao(newReveal Reveal) error {
 		return ErrMixHashRevealLengthMismatch
 	}
 
-	for idx, byte_ := range newReveal {
-		m[idx] ^= byte_
+	for idx, b := range hash {
+		m[idx] ^= b
 	}
 
 	return nil
