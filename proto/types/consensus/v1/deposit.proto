@@ -23,48 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+syntax = "proto3";
+package types.consensus.v1;
 
-import (
-	"context"
+import "ethereum/eth/ext/options.proto";
 
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/validator/key"
-)
+option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
 
-type BlockBuilder interface {
-}
+// Deposit into the consensus layer from the deposit contract in the execution layer.
+message Deposit {
+  // Data contains the data for the deposit.
+  message Data {
+    // Public key of the validator, which is compatible to the implementations
+    // of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is preferred.
+    bytes pubkey = 1 [
+      (ethereum.eth.ext.ssz_max) = "96",
+      (ethereum.eth.ext.spec_name) = "pubkey"
+    ];
 
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	beaconKitValKey key.BeaconKitValKey
-	en              engine.Caller
-	payloadCache    *cache.PayloadIDCache
-}
+    // A withdrawal credentials as a 20-byte Eth1 address.
+    bytes withdrawal_credentials = 2 [(ethereum.eth.ext.ssz_size) = "20"];
 
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start(context.Context) {
-}
-
-func (s *Service) Status() error {
-	return nil
+    // Deposit amount in gwei.
+    uint64 amount = 3;
+  }
+  Data data = 1;
 }

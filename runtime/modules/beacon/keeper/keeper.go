@@ -42,8 +42,9 @@ import (
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	storeKey  storetypes.StoreKey
-	beaconCfg *config.Beacon
+	storeKey      storetypes.StoreKey
+	beaconCfg     *config.Beacon
+	stakingKeeper StakingKeeper
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -53,10 +54,12 @@ var _ state.BeaconStateProvider = &Keeper{}
 func NewKeeper(
 	storeKey storetypes.StoreKey,
 	beaconCfg *config.Beacon,
+	stakingKeeper StakingKeeper,
 ) *Keeper {
 	return &Keeper{
-		storeKey:  storeKey,
-		beaconCfg: beaconCfg,
+		storeKey:      storeKey,
+		beaconCfg:     beaconCfg,
+		stakingKeeper: stakingKeeper,
 	}
 }
 
