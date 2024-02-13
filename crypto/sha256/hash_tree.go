@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	// MinSliceSizeToParallelize is the minimum size of the input list that
+	// MinParallelizationSize is the minimum size of the input list that
 	// should be hashed using the default method. If the input list is smaller
 	// than this size, the overhead of parallelizing the hashing process is.
 	MinParallelizationSize = 5000
@@ -59,6 +59,9 @@ func HashTreeRoot(inputList [][32]byte) ([][32]byte, error) {
 	n := runtime.GOMAXPROCS(0) - 1
 	groupSize := len(inputList) / (two * (n + 1))
 	eg := new(errgroup.Group)
+
+	// if n is 0 the parallelization is disabled and the whole inputList is hashed in the main
+	// goroutine at the end of this function.
 	for j := 0; j < n; j++ {
 		// capture loop variable
 		cj := j
