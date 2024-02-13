@@ -28,8 +28,8 @@ package ssz
 import (
 	"errors"
 
+	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
-	"github.com/prysmaticlabs/prysm/v4/crypto/hash/htr"
 
 	// We need to import this package to use the VectorizedSha256 function.
 	_ "github.com/minio/sha256-simd"
@@ -47,44 +47,83 @@ func SafeMerkelizeVectorAndMixinLength(roots []tree.Root, limit uint64) ([32]byt
 	return tree.GetHashFn().Mixin(byteRoots, txRootLen), nil
 }
 
-// SafeMerkleizeVector takes a list of roots and returns the HTR of the corresponding list
-// of roots. It performs a safety check to ensure that the length of the list is not greater
-// than the maximum length.
-func SafeMerkleizeVector(roots []tree.Root, length, limit uint64) (tree.Root, error) {
-	if length > limit {
-		return tree.Root{}, errors.New("merkleizing list that is too large, over limit")
-	}
-	return UnsafeMerkleizeVector(roots, limit), nil
-}
-
-// UnsafeMerkleizeVectorAndMixinLength takes a list of roots and returns the HTR
-// of the corresponding list of roots. It then appends the length of the roots to the
-// end of the byteRoots and further hashes the result to return the final HTR.
+// UnsafeMerkleizeVectorAndMixinLength is a function that operates on a list of tree roots.
+// Initially, it computes the Hash Tree Root (HTR) for the given list. Subsequently, it
+// appends the length of the list to the end of the computed byte array of roots. This
+// appended byte array is then hashed again to produce the final HTR. This process can be
+// visualized as follows:
+//
+// Step 1: Compute HTR for list of roots -> HTR([Root1, Root2, ..., RootN])
+// Step 2: Append length of list to byte array -> [HTR_byte_array, length]
+// Step 3: Hash the result from Step 2 -> HTR([HTR_byte_array, length])
+//
+// Given roots: [R1, R2, ..., RN]
+// 1. Compute HTR -> [HTR_byte_array]
+// 2. Append length -> [HTR_byte_array, length]
+// Step 3: Hash result -> Final HTR.
 func UnsafeMerkleizeVectorAndMixinLength(roots []tree.Root, limit uint64) tree.Root {
 	txRootLen := uint64(len(roots))
 	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, txRootLen), limit)
 }
 
-// UnsafeMerkleizeVector takes a list of roots and returns the HTR of the corresponding
-// list of roots.
+// UnsafeMerkleizeVector is a function that computes the Hash Tree Root (HTR) for
+// a given list of tree roots. It simply calls the SafeMerkleizeVector function and
+// panics if an error is returned.
 func UnsafeMerkleizeVector(roots []tree.Root, limit uint64) tree.Root {
+	root, err := SafeMerkleizeVector(roots, limit, limit)
+	if err != nil {
+		panic(err)
+	}
+	return root
+}
+
+// The function SafeMerkleizeVector is designed to compute the Hash Tree Root (HTR)
+// for a given list of tree roots. It operates under the assumption that no safety checks
+// on the size of the list against a limit are needed (hence "Unsafe").
+// Here's a step-by-step explanation and a diagrammatic representation of its operation:
+
+// 1. Determine the depth required to cover the list, given a limit on the number of elements.
+// 2. If the list is empty, return the zero hash at the calculated depth.
+// 3. Iterate over each level of depth:
+//    a. Check if the current list of roots has an odd length. If so, append a zero hash at
+//       the current depth to make it even.
+//    b. Hash pairs of elements (roots) together to form a new level of the tree, reducing
+//       the total number of elements by half. This step is repeated until a single root is
+//       obtained, representing the HTR of the list.
+
+// Given roots: [R1, R2, R3]
+// Step 3a: Check for odd length -> [R1, R2, R3, Z]
+// Step 3b: Hash pairs -> [H(R1,R2), H(R3,Z)]
+//
+//	Repeat -> [H(H(R1,R2), H(R3,Z))]
+//
+// Result: The final HTR is H(H(R1,R2), H(R3,Z)).
+func SafeMerkleizeVector(roots []tree.Root, length, limit uint64) (tree.Root, error) {
+	// If the length of the list is greater than the limit, return an error.
+	if length > limit {
+		return tree.Root{}, errors.New("merkleizing list that is too large, over limit")
+	}
+
 	depth := tree.CoverDepth(limit)
 
+	// If the list is empty, return the zero hash at the calculated depth.
 	if len(roots) == 0 {
-		return tree.ZeroHashes[depth]
+		return tree.ZeroHashes[depth], nil
 	}
 
-	// loop over i, depth
+	// Iterate over each level of depth in the tree.
 	for i := uint8(0); i < depth; i++ {
-		oddLength := len(roots)%2 == 1 //nolint:gomnd // 2 is the divisor.
-		if oddLength {
-			x := tree.ZeroHashes[i]
-			roots = append(roots, x)
+		// If the leaf count is odd, append a zero hash to make it even.
+		// We have to calculate what the definition of "zero" is at this depth.
+		if len(roots)%2 == 1 {
+			roots = append(roots, tree.ZeroHashes[i])
 		}
-
-		// TODO: move this because gpl
-		res := htr.VectorizedSha256(convertTreeRootsToBytes(roots))
+		// Hash pairs of elements together to form a new level of the tree.
+		res, err := sha256.HashTreeRoot(convertTreeRootsToBytes(roots))
+		if err != nil {
+			return tree.Root{}, err
+		}
 		roots = convertBytesToTreeRoots(res)
 	}
-	return roots[0]
+	return roots[0], nil
 }
