@@ -47,8 +47,9 @@ func SafeMerkelizeVectorAndMixinLength(roots []tree.Root, limit uint64) ([32]byt
 	return tree.GetHashFn().Mixin(byteRoots, txRootLen), nil
 }
 
-// SafeMerkleizeVector takes a list of roots and returns the HTR of the corresponding list of roots.
-// It performs a safety check to ensure that the length of the list is not greater than the maximum length.
+// SafeMerkleizeVector takes a list of roots and returns the HTR of the corresponding list
+// of roots. It performs a safety check to ensure that the length of the list is not greater
+// than the maximum length.
 func SafeMerkleizeVector(roots []tree.Root, length, limit uint64) (tree.Root, error) {
 	if length > limit {
 		return tree.Root{}, errors.New("merkleizing list that is too large, over limit")
@@ -61,10 +62,11 @@ func SafeMerkleizeVector(roots []tree.Root, length, limit uint64) (tree.Root, er
 // end of the byteRoots and further hashes the result to return the final HTR.
 func UnsafeMerkleizeVectorAndMixinLength(roots []tree.Root, limit uint64) tree.Root {
 	txRootLen := uint64(len(roots))
-	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, txRootLen), txRootLen)
+	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, txRootLen), limit)
 }
 
-// UnsafeMerkleizeVector takes a list of roots and returns the HTR of the corresponding list of roots.
+// UnsafeMerkleizeVector takes a list of roots and returns the HTR of the corresponding
+// list of roots.
 func UnsafeMerkleizeVector(roots []tree.Root, limit uint64) tree.Root {
 	depth := tree.CoverDepth(limit)
 

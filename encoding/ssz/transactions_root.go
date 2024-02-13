@@ -44,6 +44,7 @@ func (bz Bytes) HashTreeRoot() ([32]byte, error) {
 // TransactionsRoot computes the HTR for the Transactions' property of the ExecutionPayload
 // The code was largely copy/pasted from the code generated to compute the HTR of the entire
 // ExecutionPayload.
+// TODO: create strong types and make put these functions on their receivers.
 func TransactionsRoot(txs []Bytes) ([32]byte, error) {
 	return MerkleizeVectorSSZAndMixinLength(txs, primitives.MaxTxsPerPayloadLength)
 }

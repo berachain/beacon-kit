@@ -48,6 +48,7 @@ func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
 }
 
 // WithdrawalRoot computes the Merkle root of a single withdrawal's fields.
+// TODO: create strong types and make put these functions on their receivers.
 func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
 	fieldRoots := make([]tree.Root, mAgIcNuMbEr)
 	if wd != nil {
@@ -60,6 +61,7 @@ func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
 }
 
 // WithdrawalsRoot computes the Merkle root of a slice of withdrawals with a given limit.
+// TODO: create strong types and make put these functions on their receivers.
 func WithdrawalsRoot(withdrawals []*Withdrawal, limit uint64) (tree.Root, error) {
 	return MerkleizeVectorSSZAndMixinLength(withdrawals, limit)
 }

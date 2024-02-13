@@ -26,6 +26,9 @@
 package capella
 
 import (
+	"unsafe"
+
+	"github.com/itsdevbear/bolaris/encoding/ssz"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
@@ -76,10 +79,41 @@ func (p *WrappedExecutionPayloadCapella) ToPayload() interfaces.ExecutionPayload
 	return p
 }
 
-// ToHeader produces an ExecutionPayloadHeader.
-func (p *WrappedExecutionPayloadCapella) ToHeader() interfaces.ExecutionPayloadHeader {
-	// TODO: @ocnc
-	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+// ToHeader produces an ExecutionPayloadHeader from the ExecutionPayloadCapella.
+func (p *WrappedExecutionPayloadCapella) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
+	transactionsRoot, err := ssz.TransactionsRoot(
+		*(*[]ssz.Bytes)(unsafe.Pointer(&p.Transactions)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	withdrawalsRoot, err := ssz.WithdrawalsRoot(
+		*(*[]*ssz.Withdrawal)(unsafe.Pointer(&p.Withdrawals)), 16, //nolint:gomnd // TODO: bet.
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WrappedExecutionPayloadHeaderCapella{
+		ExecutionPayloadHeaderCapella: &enginev1.ExecutionPayloadHeaderCapella{
+			ParentHash:       p.ParentHash,
+			FeeRecipient:     p.FeeRecipient,
+			StateRoot:        p.StateRoot,
+			ReceiptsRoot:     p.ReceiptsRoot,
+			LogsBloom:        p.LogsBloom,
+			PrevRandao:       p.PrevRandao,
+			BlockNumber:      p.BlockNumber,
+			GasLimit:         p.GasLimit,
+			GasUsed:          p.GasUsed,
+			Timestamp:        p.Timestamp,
+			ExtraData:        p.ExtraData,
+			BaseFeePerGas:    p.BaseFeePerGas,
+			BlockHash:        p.BlockHash,
+			TransactionsRoot: transactionsRoot[:],
+			WithdrawalsRoot:  withdrawalsRoot[:],
+		},
+	}, nil
 }
 
 // GetValue returns the value of the payload.

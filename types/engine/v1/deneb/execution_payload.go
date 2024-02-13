@@ -77,7 +77,7 @@ func (p *WrappedExecutionPayloadDeneb) ToPayload() interfaces.ExecutionPayload {
 }
 
 // ToHeader produces an ExecutionPayloadHeader.
-func (p *WrappedExecutionPayloadDeneb) ToHeader() interfaces.ExecutionPayloadHeader {
+func (p *WrappedExecutionPayloadDeneb) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
 	// TODO: @ocnc
 	panic("TODO: Implement slice merkalization for ExecutionPayloadDeneb")
 }

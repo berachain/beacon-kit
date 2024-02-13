@@ -42,7 +42,7 @@ var _ interfaces.ExecutionPayloadHeader = (*WrappedExecutionPayloadHeaderCapella
 // WrappedExecutionPayloadHeaderCapella wraps the ExecutionPayloadHeaderCapella
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadHeaderCapella struct {
-	enginev1.ExecutionPayloadHeaderCapella
+	*enginev1.ExecutionPayloadHeaderCapella
 }
 
 // Version returns the version identifier for the WrappedExecutionPayloadHeaderCapella.
@@ -58,7 +58,7 @@ func (p *WrappedExecutionPayloadHeaderCapella) IsBlinded() bool {
 
 // ToProto returns the WrappedExecutionPayloadHeaderCapella as a proto.Message.
 func (p *WrappedExecutionPayloadHeaderCapella) ToProto() proto.Message {
-	return &p.ExecutionPayloadHeaderCapella
+	return p.ExecutionPayloadHeaderCapella
 }
 
 // ToPayload returns itself as it implements the engine.ExecutionPayload interface.
