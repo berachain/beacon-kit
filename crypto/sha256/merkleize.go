@@ -202,6 +202,8 @@ func SafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) (tree.Root, 
 
 	// Iterate over each level of depth in the tree.
 	for i := uint8(0); i < depth; i++ {
+		// If the current level of the tree has an odd number of roots, append the corresponding
+		// zero hash for that depth to make it even.
 		if len(roots)%2 != 0 {
 			roots = append(roots, tree.ZeroHashes[i])
 		}
