@@ -26,7 +26,6 @@
 package sha256_test
 
 import (
-
 	"runtime"
 	"testing"
 
