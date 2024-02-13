@@ -49,7 +49,7 @@ func WithPayloadCache(pc *cache.PayloadIDCache) Option {
 	}
 }
 
-// WithLogProcessor is an option to set the Processor for the Service.
+// WithProcessor is an option to set the Processor for the Service.
 func WithProcessor(p *logs.Processor) Option {
 	return func(s *Service) error {
 		s.logProcessor = p
