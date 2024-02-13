@@ -84,6 +84,8 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 		{"SmallSize", 16},
 		{"MediumSize", 64},
 		{"LargeSize", 128},
+		{"TestRemainderStartIndexSmall", sha256.MinParallelizationSize + 6},
+		{"TestRemainderStartIndexBig", sha256.MinParallelizationSize - 2},
 	}
 
 	for _, tc := range testCases {
