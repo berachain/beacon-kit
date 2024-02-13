@@ -1,12 +1,14 @@
 package encoding
 
 import (
+	"errors"
 	"unsafe"
 
+	_ "github.com/minio/sha256-simd"
 	"github.com/protolambda/ztyp/tree"
+
 	fieldparams "github.com/prysmaticlabs/prysm/v4/config/fieldparams"
 	"github.com/prysmaticlabs/prysm/v4/crypto/hash/htr"
-	"github.com/prysmaticlabs/prysm/v4/encoding/ssz"
 )
 
 // TransactionsRoot computes the HTR for the Transactions' property of the ExecutionPayload
@@ -19,15 +21,27 @@ func TransactionsRoot(txs [][]byte) ([32]byte, error) {
 		txRoots = append(txRoots, rt)
 	}
 
-	byteRoots, err := ssz.BitwiseMerkleize(txRoots, uint64(len(txRoots)), fieldparams.MaxTxsPerPayloadLength)
+	if uint64(len(txRoots)) > fieldparams.MaxTxsPerPayloadLength {
+		return [32]byte{}, errors.New("merkleizing list that is too large, over limit")
+	}
+
+	byteRoots, err := SafeMerkleizeVector(
+		convertBytesToTreeRoots(txRoots), uint64(len(txRoots)), fieldparams.MaxTxsPerPayloadLength,
+	)
 	if err != nil {
 		return [32]byte{}, err
 	}
-
 	return tree.GetHashFn().Mixin(byteRoots, uint64(len(txRoots))), nil
 }
 
-func MerkleizeVector(roots []tree.Root, length uint64) tree.Root {
+func SafeMerkleizeVector(roots []tree.Root, length, maxLength uint64) (tree.Root, error) {
+	if length > maxLength {
+		return tree.Root{}, errors.New("merkleizing list that is too large, over limit")
+	}
+	return UnsafeMerkleizeVector(roots, maxLength), nil
+}
+
+func UnsafeMerkleizeVector(roots []tree.Root, length uint64) tree.Root {
 	depth := tree.CoverDepth(length)
 
 	if len(roots) == 0 {
@@ -38,7 +52,8 @@ func MerkleizeVector(roots []tree.Root, length uint64) tree.Root {
 	for i := uint8(0); i < depth; i++ {
 		oddLength := len(roots)%2 == 1
 		if oddLength {
-			roots = append(roots, tree.ZeroHashes[i])
+			x := tree.ZeroHashes[i]
+			roots = append(roots, x)
 		}
 
 		// map htr.VectorizedSha256 to roots result
@@ -65,7 +80,7 @@ func MerkleizeVectorSSZ[T Hashable](elements []T, length uint64) ([32]byte, erro
 		}
 	}
 
-	return MerkleizeVector(convertBytesToTreeRoots(roots), length), nil
+	return UnsafeMerkleizeVector(convertBytesToTreeRoots(roots), length), nil
 }
 
 func convertTreeRootsToBytes(roots []tree.Root) [][32]byte {
