@@ -26,12 +26,15 @@
 package capella
 
 import (
+	"errors"
+
 	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/blocks/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
+	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -41,7 +44,7 @@ var _ interfaces.BeaconKitBlock = (*BeaconKitBlockCapella)(nil)
 // from the given state and execution data.
 func BeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
-	executionData interfaces.ExecutionData,
+	executionData engine.ExecutionPayload,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBeaconKitBlock(
 		beaconState.Slot(),
@@ -53,7 +56,7 @@ func BeaconKitBlockFromState(
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
 	slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot,
-	executionData interfaces.ExecutionData,
+	executionData engine.ExecutionPayload,
 ) (interfaces.BeaconKitBlock, error) {
 	block := &BeaconKitBlockCapella{
 		Slot: slot,
@@ -82,27 +85,24 @@ func (b *BeaconKitBlockCapella) Version() int {
 
 // AttachExecution attaches the given execution data to the block.
 func (b *BeaconKitBlockCapella) AttachExecution(
-	executionData interfaces.ExecutionData,
+	executionData engine.ExecutionPayload,
 ) error {
-	value, err := executionData.ValueInWei()
-	if err != nil {
-		return err
-	}
-
-	b.Body.ExecutionPayload, err = executionData.PbCapella()
-	if err != nil {
-		return err
+	var ok bool
+	b.Body.ExecutionPayload, ok = executionData.ToProto().(*enginev1.ExecutionPayloadCapella)
+	// b.Body.ExecutionPayload, err = executionData.PbCapella()
+	if !ok {
+		return errors.New("failed to convert execution data to capella payload")
 	}
 
 	// TODO: this needs to be done better, really hood rn.
-	payloadValueBz := make([]byte, 32)     //nolint:gomnd // 32 bytes for uint256.
-	copy(payloadValueBz, (*value).Bytes()) //nolint:gocritic // we need to copy the bytes.
+	payloadValueBz := make([]byte, 32) //nolint:gomnd // 32 bytes for uint256.
+	copy(payloadValueBz, executionData.GetValue().Bytes())
 	b.PayloadValue = payloadValueBz
-	return err
+	return nil
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlockCapella) Execution() (interfaces.ExecutionData, error) {
-	return blocks.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
+func (b *BeaconKitBlockCapella) Execution() (engine.ExecutionPayload, error) {
+	return engine.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
 		uint256.NewInt(0).SetBytes(b.GetPayloadValue()))
 }

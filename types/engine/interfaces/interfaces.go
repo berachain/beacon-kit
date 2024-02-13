@@ -23,31 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package interfaces
 
 import (
-	"context"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
+	"github.com/itsdevbear/bolaris/math"
+	ssz "github.com/prysmaticlabs/fastssz"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"google.golang.org/protobuf/proto"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
+// ExecutionPayloadBody is the interface for the execution data of a block.
+// It contains all the fields that are part of both an execution payload header
+// and a full execution payload.
+type ExecutionPayloadBody interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	Version() int
+	IsBlinded() bool
+	ToProto() proto.Message
+	GetBlockHash() []byte
+	GetParentHash() []byte
+	GetValue() math.Wei
+}
 
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
+// ExecutionPayload is the interface for the execution data of a block.
+type ExecutionPayload interface {
+	ExecutionPayloadBody
 
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	GetTransactions() [][]byte
+	GetWithdrawals() []*enginev1.Withdrawal
+}
+
+// ExecutionPayloadHeader is the interface representing an execution payload header.
+type ExecutionPayloadHeader interface {
+	ExecutionPayloadBody
+	GetTransactionsRoot() []byte
+	GetWithdrawalsRoot() []byte
+}
+
+// PayloadAttributer is the interface for the payload attributes of a block.
+type PayloadAttributer interface {
+	Version() int
+	IsEmpty() bool
+	ToProto() proto.Message
+	GetPrevRandao() []byte
+	GetTimestamp() uint64
+	GetSuggestedFeeRecipient() []byte
+	GetWithdrawals() []*enginev1.Withdrawal
 }

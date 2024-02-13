@@ -26,41 +26,23 @@
 package engine
 
 import (
-	ssz "github.com/prysmaticlabs/fastssz"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 )
 
-// ExecutionPayloadBody is the interface for the execution data of a block.
-// It contains all the fields that are part of both an execution payload header
-// and a full execution payload.
-type ExecutionPayloadBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	Version() int
-	IsBlinded() bool
-}
+// We re-export the interfaces from the engine package to aid in importing them
+// in other packages.
+type (
+	// ExecutionPayloadBody is the interface for the execution data of a block.
+	// It contains all the fields that are part of both an execution payload header
+	// and a full execution payload.
+	ExecutionPayloadBody = interfaces.ExecutionPayloadBody
 
-// ExecutionPayload is the interface for the execution data of a block.
-type ExecutionPayload interface {
-	ExecutionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []*enginev1.Withdrawal
-}
+	// ExecutionPayload is the interface for the execution data of a block.
+	ExecutionPayload = interfaces.ExecutionPayload
 
-// ExecutionPayloadHeader is the interface representing an execution payload header.
-type ExecutionPayloadHeader interface {
-	ExecutionPayloadBody
-	GetTransactionsRoot() []byte
-	GetWithdrawalsRoot() []byte
-}
+	// ExecutionPayloadHeader is the interface representing an execution payload header.
+	ExecutionPayloadHeader = interfaces.ExecutionPayloadHeader
 
-// PayloadAttributer is the interface for the payload attributes of a block.
-type PayloadAttributer interface {
-	Version() int
-	GetPrevRandao() []byte
-	GetTimestamp() uint64
-	GetSuggestedFeeRecipient() []byte
-	GetWithdrawals() []*enginev1.Withdrawal
-	IsEmpty() bool
-}
+	// PayloadAttributer is the interface for the payload attributes of a block.
+	PayloadAttributer = interfaces.PayloadAttributer
+)
