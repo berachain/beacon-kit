@@ -18,15 +18,12 @@ build-linux-amd64:
 build-linux-arm64:
 	GOOS=linux GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
 
-$(BUILD_TARGETS): forge-build sync $(OUT_DIR)/
+$(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
 	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
 
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
-
-build-clean: 
-	@$(MAKE) clean build
 
 clean:
 	@rm -rf .tmp/ 
@@ -391,7 +388,7 @@ repo-rinse: |
 
 
 .PHONY: build build-linux-amd64 build-linux-arm64 \
-	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
+	$(BUILD_TARGETS) clean \
 	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
 	start test-unit test-unit-cover test-forge-cover test-forge-fuzz \

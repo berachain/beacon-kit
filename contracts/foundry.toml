@@ -24,7 +24,7 @@
 
 [profile.fuzz]
 fuzz = { runs = 8192 }
-verbosity = 4
+verbosity = 3
 
 [profile.coverage]
 fuzz = { runs = 256 }
