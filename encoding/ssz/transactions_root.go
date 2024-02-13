@@ -33,30 +33,32 @@ import (
 	_ "github.com/minio/sha256-simd"
 )
 
-// TxBz is a byte slice representing a transaction.
-type TxBz []byte
+// Bytes is a byte slice representing a transaction.
+type Bytes []byte
 
 // HashTreeRoot returns the hash tree root of the transaction.
-func (bz TxBz) HashTreeRoot(h tree.HashFn) tree.Root {
+func (bz Bytes) HashTreeRoot(h tree.HashFn) tree.Root {
 	return h.ByteListHTR(bz, primitives.MaxBytesPerTxLength)
 }
 
 // TransactionsRoot computes the HTR for the Transactions' property of the ExecutionPayload
 // The code was largely copy/pasted from the code generated to compute the HTR of the entire
 // ExecutionPayload.
-func TransactionsRoot(txs []TxBz) ([32]byte, error) {
-	txRoots := make([][32]byte, 0)
+func TransactionsRoot(txs []Bytes) ([32]byte, error) {
+	fn := tree.GetHashFn()
+	txRoots := make([]tree.Root, 0)
 	for i := 0; i < len(txs); i++ {
 		txRoots = append(
-			txRoots, tree.GetHashFn().HashTreeRoot(txs[i]),
+			txRoots, fn.HashTreeRoot(txs[i]),
 		)
 	}
 
+	lenTxRoots := uint64(len(txRoots))
 	byteRoots, err := SafeMerkleizeVector(
-		convertBytesToTreeRoots(txRoots), uint64(len(txRoots)), primitives.MaxTxsPerPayloadLength,
+		txRoots, lenTxRoots, primitives.MaxTxsPerPayloadLength,
 	)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return tree.GetHashFn().Mixin(byteRoots, uint64(len(txRoots))), nil
+	return fn.Mixin(byteRoots, lenTxRoots), nil
 }
