@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/protolambda/ztyp/tree"
 )
 
 func FuzzHashTreeRoot(f *testing.F) {
@@ -46,9 +47,9 @@ func FuzzHashTreeRoot(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, original []byte) {
 		// Convert []byte to [][32]byte as required by HashTreeRoot
-		var input [][32]byte
+		var input []tree.Root
 		for i := 0; i < len(original); i += 32 {
-			var block [32]byte
+			var block tree.Root
 			copy(block[:], original[i:min(i+32, len(original))])
 			input = append(input, block)
 		}

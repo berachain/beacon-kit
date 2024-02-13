@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ssz
+package sha256
 
 import (
 	"unsafe"
@@ -31,47 +31,12 @@ import (
 	"github.com/protolambda/ztyp/tree"
 )
 
-// Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable interface {
-	HashTreeRoot() ([32]byte, error)
-}
-
-func convertTreeRootsToBytes(roots []tree.Root) [][32]byte {
+func ConvertTreeRootsToBytes(roots []tree.Root) [][32]byte {
 	//#nosec:G103 // This is a safe conversion.
 	return *(*[][32]byte)(unsafe.Pointer(&roots))
 }
 
-func convertBytesToTreeRoots(bytes [][32]byte) []tree.Root {
+func ConvertBytesToTreeRoots(bytes [][32]byte) []tree.Root {
 	//#nosec:G103 // This is a safe conversion.
 	return *(*[]tree.Root)(unsafe.Pointer(&bytes))
-}
-
-// MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
-// of the corresponding list of roots.
-func MerkleizeVectorSSZ[T Hashable](elements []T, limit uint64) ([32]byte, error) {
-	roots := make([]tree.Root, len(elements))
-	var err error
-	for i, el := range elements {
-		roots[i], err = el.HashTreeRoot()
-		if err != nil {
-			return [32]byte{}, err
-		}
-	}
-
-	return UnsafeMerkleizeVector(roots, limit), nil
-}
-
-// MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
-// of the corresponding list of roots.
-func MerkleizeVectorSSZAndMixinLength[T Hashable](elements []T, limit uint64) ([32]byte, error) {
-	roots := make([]tree.Root, len(elements))
-	var err error
-	for i, el := range elements {
-		roots[i], err = el.HashTreeRoot()
-		if err != nil {
-			return [32]byte{}, err
-		}
-	}
-
-	return SafeMerkelizeVectorAndMixinLength(roots, limit)
 }

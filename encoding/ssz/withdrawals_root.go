@@ -28,6 +28,7 @@ package ssz
 import (
 	"encoding/binary"
 
+	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 
@@ -57,11 +58,11 @@ func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
 		fieldRoots[2] = bytesutil.ToBytes32(wd.GetAddress())
 		binary.LittleEndian.PutUint64(fieldRoots[3][:], wd.GetAmount())
 	}
-	return SafeMerkleizeVector(fieldRoots, mAgIcNuMbEr)
+	return sha256.SafeMerkleizeVector(fieldRoots, mAgIcNuMbEr)
 }
 
 // WithdrawalsRoot computes the Merkle root of a slice of withdrawals with a given limit.
 // TODO: create strong types and make put these functions on their receivers.
 func WithdrawalsRoot(withdrawals []*Withdrawal, limit uint64) (tree.Root, error) {
-	return MerkleizeVectorSSZAndMixinLength(withdrawals, limit)
+	return sha256.MerkleizeVectorSSZAndMixinLength(withdrawals, limit)
 }

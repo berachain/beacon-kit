@@ -28,6 +28,7 @@ package sha256
 import (
 	"runtime"
 
+	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -46,13 +47,13 @@ const (
 // hardware configuration, using this routine can lead to a significant
 // performance improvement compared to the default method of hashing
 // lists.
-func HashTreeRoot(inputList [][32]byte) ([][32]byte, error) {
+func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
 	outputList := make([][32]byte, len(inputList)/two)
-
+	inputListBytes32 := ConvertTreeRootsToBytes(inputList)
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if len(inputList) < MinParallelizationSize {
-		return outputList, gohashtree.Hash(outputList, inputList)
+		return ConvertBytesToTreeRoots(outputList), gohashtree.Hash(outputList, inputListBytes32)
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -78,7 +79,7 @@ func HashTreeRoot(inputList [][32]byte) ([][32]byte, error) {
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[cj*groupSize:], inputList[cj*two*groupSize:(cj+1)*two*groupSize],
+				outputList[cj*groupSize:], inputListBytes32[cj*two*groupSize:(cj+1)*two*groupSize],
 			)
 		})
 	}
@@ -92,10 +93,10 @@ func HashTreeRoot(inputList [][32]byte) ([][32]byte, error) {
 	// to ensure all parts of the inputList are hashed.
 	remainderStartIndex := n * two * groupSize
 	if remainderStartIndex < len(inputList) { // Check if there's a remainder segment to process.
-		err := gohashtree.Hash(outputList[n*groupSize:], inputList[remainderStartIndex:])
+		err := gohashtree.Hash(outputList[n*groupSize:], inputListBytes32[remainderStartIndex:])
 		if err != nil {
 			return nil, err
 		}
 	}
-	return outputList, nil
+	return ConvertBytesToTreeRoots(outputList), nil
 }

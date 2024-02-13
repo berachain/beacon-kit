@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/protolambda/ztyp/tree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,18 +42,18 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
 		t.Run(fmt.Sprintf("Size%d", size*sha256.MinParallelizationSize), func(t *testing.T) {
-			largeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
-			secondLargeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
+			largeSlice := make([]tree.Root, size*sha256.MinParallelizationSize)
+			secondLargeSlice := make([]tree.Root, size*sha256.MinParallelizationSize)
 			// Assuming hash reduces size by half
-			hash1 := make([][32]byte, size*sha256.MinParallelizationSize/2)
-			var hash2 [][32]byte
+			hash1 := make([]tree.Root, size*sha256.MinParallelizationSize/2)
+			var hash2 []tree.Root
 			var err error
 
 			wg := sync.WaitGroup{}
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				var tempHash [][32]byte
+				var tempHash []tree.Root
 				tempHash, err = sha256.HashTreeRoot(largeSlice)
 				copy(hash1, tempHash)
 			}()
@@ -89,7 +90,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			inputList := make([][32]byte, tc.size)
+			inputList := make([]tree.Root, tc.size)
 			// Fill inputList with pseudo-random data
 			randSource := rand.NewSource(time.Now().UnixNano())
 			randGen := rand.New(randSource)

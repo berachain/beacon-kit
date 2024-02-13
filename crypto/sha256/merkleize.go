@@ -23,12 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ssz
+package sha256
 
 import (
 	"errors"
 
-	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
 )
 
@@ -99,6 +98,8 @@ func UnsafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) tree.Root 
 //
 // Result: The final HTR is H(H(R1,R2), H(R3,Z)).
 func SafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) (tree.Root, error) {
+	var err error
+
 	// If the number of elements in the list exceeds the maximum allowed, return an error.
 	if uint64(len(roots)) > maxRootsAllowed {
 		return tree.Root{}, errors.New("merkleizing list exceeds the maximum allowed number of elements")
@@ -119,11 +120,10 @@ func SafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) (tree.Root, 
 			roots = append(roots, tree.ZeroHashes[i])
 		}
 		// Hash pairs of elements together to form a new level of the tree.
-		res, err := sha256.HashTreeRoot(convertTreeRootsToBytes(roots))
+		roots, err = HashTreeRoot(roots)
 		if err != nil {
 			return tree.Root{}, err
 		}
-		roots = convertBytesToTreeRoots(res)
 	}
 	return roots[0], nil
 }

@@ -23,29 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ssz
+package sha256
 
 import (
-	"github.com/itsdevbear/bolaris/crypto/sha256"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/protolambda/ztyp/tree"
-
-	// We need to import this package to use the VectorizedSha256 function.
-	_ "github.com/minio/sha256-simd"
 )
 
-// Bytes is a byte slice representing a transaction.
-type Bytes []byte
+// MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
+// of the corresponding list of roots.
+func MerkleizeVectorSSZ[T Hashable](elements []T, limit uint64) ([32]byte, error) {
+	roots := make([]tree.Root, len(elements))
+	var err error
+	for i, el := range elements {
+		roots[i], err = el.HashTreeRoot()
+		if err != nil {
+			return [32]byte{}, err
+		}
+	}
 
-// HashTreeRoot returns the hash tree root of the transaction.
-func (bz Bytes) HashTreeRoot() ([32]byte, error) {
-	return tree.GetHashFn().ByteListHTR(bz, primitives.MaxBytesPerTxLength), nil
+	return UnsafeMerkleizeVector(roots, limit), nil
 }
 
-// TransactionsRoot computes the HTR for the Transactions' property of the ExecutionPayload
-// The code was largely copy/pasted from the code generated to compute the HTR of the entire
-// ExecutionPayload.
-// TODO: create strong types and make put these functions on their receivers.
-func TransactionsRoot(txs []Bytes) ([32]byte, error) {
-	return sha256.MerkleizeVectorSSZAndMixinLength(txs, primitives.MaxTxsPerPayloadLength)
+// MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
+// of the corresponding list of roots.
+func MerkleizeVectorSSZAndMixinLength[T Hashable](elements []T, limit uint64) ([32]byte, error) {
+	roots := make([]tree.Root, len(elements))
+	var err error
+	for i, el := range elements {
+		roots[i], err = el.HashTreeRoot()
+		if err != nil {
+			return [32]byte{}, err
+		}
+	}
+
+	return SafeMerkelizeVectorAndMixinLength(roots, limit)
 }
