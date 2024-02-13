@@ -26,43 +26,14 @@
 package ssz
 
 import (
-	"encoding/binary"
-
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-
 	// TODO: @ocnc to remove this GPL3 dependency.
-	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 )
-
-// mAgIcNuMbEr is a magic number used to ensure that the
-// withdrawal root is computed correctly.
-const mAgIcNuMbEr = 4
-
-// Withdrawal is a wrapper around the enginev1.Withdrawal type.
-type Withdrawal enginev1.Withdrawal
-
-// HashTreeRoot returns the hash tree root of a withdrawal.
-func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
-	return WithdrawalRoot((*enginev1.Withdrawal)(w))
-}
-
-// WithdrawalRoot computes the Merkle root of a single withdrawal's fields.
-// TODO: create strong types and make put these functions on their receivers.
-func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
-	fieldRoots := make([]tree.Root, mAgIcNuMbEr)
-	if wd != nil {
-		binary.LittleEndian.PutUint64(fieldRoots[0][:], wd.GetIndex())
-		binary.LittleEndian.PutUint64(fieldRoots[1][:], uint64(wd.GetValidatorIndex()))
-		fieldRoots[2] = bytesutil.ToBytes32(wd.GetAddress())
-		binary.LittleEndian.PutUint64(fieldRoots[3][:], wd.GetAmount())
-	}
-	return sha256.SafeMerkleizeVector(fieldRoots, mAgIcNuMbEr)
-}
 
 // WithdrawalsRoot computes the Merkle root of a slice of withdrawals with a given limit.
 // TODO: create strong types and make put these functions on their receivers.
-func WithdrawalsRoot(withdrawals []*Withdrawal, limit uint64) (tree.Root, error) {
+func WithdrawalsRoot(withdrawals []*enginev1.Withdrawal, limit uint64) (tree.Root, error) {
 	return sha256.BuildMerkleRootAndMixinLength(withdrawals, limit)
 }

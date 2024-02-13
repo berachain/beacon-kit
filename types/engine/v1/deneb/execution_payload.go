@@ -26,10 +26,9 @@
 package deneb
 
 import (
-	"unsafe"
-
-	"github.com/itsdevbear/bolaris/encoding/ssz"
+	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/itsdevbear/bolaris/math"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -81,17 +80,15 @@ func (p *WrappedExecutionPayloadDeneb) ToPayload() interfaces.ExecutionPayload {
 
 // ToHeader produces an ExecutionPayloadHeader.
 func (p *WrappedExecutionPayloadDeneb) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
-	//#nosec:G103 // This is a safe conversion, todo:cleanup.
-	transactionsRoot, err := ssz.TransactionsRoot(
-		*(*[]ssz.Bytes)(unsafe.Pointer(&p.Transactions)),
+	transactionsRoot, err := sha256.BuildMerkleRootAndMixinLengthBytes(
+		p.Transactions, primitives.MaxTxsPerPayloadLength,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	//#nosec:G103 // This is a safe conversion, todo:cleanup.
-	withdrawalsRoot, err := ssz.WithdrawalsRoot(
-		*(*[]*ssz.Withdrawal)(unsafe.Pointer(&p.Withdrawals)), 16, //nolint:gomnd // TODO: bet.
+	withdrawalsRoot, err := sha256.BuildMerkleRootAndMixinLength(
+		p.Withdrawals, primitives.MaxWithdrawalsPerPayload,
 	)
 	if err != nil {
 		return nil, err

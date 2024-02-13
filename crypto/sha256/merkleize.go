@@ -31,6 +31,15 @@ import (
 	"github.com/protolambda/ztyp/tree"
 )
 
+// SSZBytes represents a ssz-able uint64.
+type SSZBytes []byte
+
+// HashTreeRoot computes the hash tree root of the SSZBytes.
+// It returns a fixed-size byte array and an error if any.
+func (s SSZBytes) HashTreeRoot() ([32]byte, error) {
+	return tree.GetHashFn().ByteListHTR(s, uint64(len(s))), nil
+}
+
 // We can visualize the process of building a Merkle tree as follows:
 //
 // [Element1] [Element2] ... [ElementN]
@@ -91,6 +100,15 @@ func BuildMerkleRootAndMixinLength[T Hashable](elements []T, limit uint64) (tree
 	return SafeMerkelizeVectorAndMixinLength(roots, limit)
 }
 
+// BuildMerkleRootAndMixinLengthBytes hashes each element in the list and then returns the HTR.
+func BuildMerkleRootAndMixinLengthBytes(elements [][]byte, limit uint64) (tree.Root, error) {
+	roots, err := HashBytes(elements)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return SafeMerkelizeVectorAndMixinLength(roots, limit)
+}
+
 // HashElements hashes each element in the list and then returns each item as a
 // tree.Root of height 1.
 // The following diagram illustrates the process of hashing elements into tree roots:
@@ -111,6 +129,20 @@ func HashElements[T Hashable](elements []T) ([]tree.Root, error) {
 	var err error
 	for i, el := range elements {
 		roots[i], err = el.HashTreeRoot()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return roots, nil
+}
+
+// HashBytes hashes each element in the list and then returns each item as a
+// tree.Root of height 1.
+func HashBytes(elements [][]byte) ([]tree.Root, error) {
+	roots := make([]tree.Root, len(elements))
+	var err error
+	for i, el := range elements {
+		roots[i], err = SSZBytes(el).HashTreeRoot()
 		if err != nil {
 			return nil, err
 		}
