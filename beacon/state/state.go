@@ -67,8 +67,7 @@ type ReadOnlyRandao interface {
 	// For now track everything, but we probably want to only track
 	// up to some number based on config
 	GetRandaoReveals() []randao.Reveal
-	// Generates the reveal by signing the epoch number
-	GenerateRandaoReveal() (randao.Reveal, error)
+	GetRandaoRevealByIndex(uint32) []randao.Reveal
 }
 
 type WriteOnlyRandao interface {
