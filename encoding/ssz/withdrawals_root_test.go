@@ -30,19 +30,18 @@ import (
 
 	ssz "github.com/itsdevbear/bolaris/encoding/ssz"
 	"github.com/protolambda/ztyp/tree"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/testing/require"
 )
 
 func TestWithrawalSliceRoot(t *testing.T) {
 	tests := []struct {
 		name  string
-		input []*enginev1.Withdrawal
+		input []*ssz.Withdrawal
 		want  tree.Root
 	}{
 		{
 			name:  "empty",
-			input: make([]*enginev1.Withdrawal, 0),
+			input: make([]*ssz.Withdrawal, 0),
 			want: tree.Root{0x79, 0x29, 0x30, 0xbb, 0xd5, 0xba,
 				0xac, 0x43, 0xbc, 0xc7, 0x98, 0xee, 0x49, 0xaa,
 				0x81, 0x85, 0xef, 0x76, 0xbb, 0x3b, 0x44, 0xba,
@@ -51,7 +50,7 @@ func TestWithrawalSliceRoot(t *testing.T) {
 		},
 		{
 			name: "non-empty",
-			input: []*enginev1.Withdrawal{{
+			input: []*ssz.Withdrawal{{
 				Index:          123,
 				ValidatorIndex: 123123,
 				Address:        []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0},

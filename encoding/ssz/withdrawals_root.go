@@ -39,6 +39,14 @@ import (
 // withdrawal root is computed correctly.
 const mAgIcNuMbEr = 4
 
+// Withdrawal is a wrapper around the enginev1.Withdrawal type.
+type Withdrawal enginev1.Withdrawal
+
+// HashTreeRoot returns the hash tree root of a withdrawal.
+func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
+	return WithdrawalRoot((*enginev1.Withdrawal)(w))
+}
+
 // WithdrawalRoot computes the Merkle root of a single withdrawal's fields.
 func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
 	fieldRoots := make([]tree.Root, mAgIcNuMbEr)
@@ -51,18 +59,7 @@ func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
 	return SafeMerkleizeVector(fieldRoots, mAgIcNuMbEr, mAgIcNuMbEr)
 }
 
-// WithdrawalsRoot computes the Merkle root of a slice of withdrawals.
-func WithdrawalsRoot(withdrawals []*enginev1.Withdrawal, limit uint64) (tree.Root, error) {
-	var (
-		err     error
-		txRoots = make([]tree.Root, len(withdrawals))
-	)
-
-	for i, w := range withdrawals {
-		if txRoots[i], err = WithdrawalRoot(w); err != nil {
-			return tree.Root{}, err
-		}
-	}
-
-	return MerkelizeVectorAndMixinLength(txRoots, limit)
+// WithdrawalsRoot computes the Merkle root of a slice of withdrawals with a given limit.
+func WithdrawalsRoot(withdrawals []*Withdrawal, limit uint64) (tree.Root, error) {
+	return MerkleizeVectorSSZAndMixinLength(withdrawals, limit)
 }

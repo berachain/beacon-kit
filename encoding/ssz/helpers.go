@@ -47,7 +47,7 @@ func convertBytesToTreeRoots(bytes [][32]byte) []tree.Root {
 // MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
 // of the corresponding list of roots.
 func MerkleizeVectorSSZ[T Hashable](elements []T, length uint64) ([32]byte, error) {
-	roots := make([][32]byte, len(elements))
+	roots := make([]tree.Root, len(elements))
 	var err error
 	for i, el := range elements {
 		roots[i], err = el.HashTreeRoot()
@@ -56,5 +56,20 @@ func MerkleizeVectorSSZ[T Hashable](elements []T, length uint64) ([32]byte, erro
 		}
 	}
 
-	return UnsafeMerkleizeVector(convertBytesToTreeRoots(roots), length), nil
+	return UnsafeMerkleizeVector(roots, length), nil
+}
+
+// MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
+// of the corresponding list of roots.
+func MerkleizeVectorSSZAndMixinLength[T Hashable](elements []T, limit uint64) ([32]byte, error) {
+	roots := make([]tree.Root, len(elements))
+	var err error
+	for i, el := range elements {
+		roots[i], err = el.HashTreeRoot()
+		if err != nil {
+			return [32]byte{}, err
+		}
+	}
+
+	return SafeMerkelizeVectorAndMixinLength(roots, limit)
 }

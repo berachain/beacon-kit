@@ -64,9 +64,9 @@ func UnsafeMerkleizeVector(roots []tree.Root, length uint64) tree.Root {
 	return roots[0]
 }
 
-// MerkelizeVectorAndMixinLength hashes each element in the list and then returns the HTR
+// SafeMerkelizeVectorAndMixinLength hashes each element in the list and then returns the HTR
 // with the length mixed in.
-func MerkelizeVectorAndMixinLength(txRoots []tree.Root, limit uint64) ([32]byte, error) {
+func SafeMerkelizeVectorAndMixinLength(txRoots []tree.Root, limit uint64) ([32]byte, error) {
 	txRootLen := uint64(len(txRoots))
 	byteRoots, err := SafeMerkleizeVector(txRoots, txRootLen, limit)
 	if err != nil {
