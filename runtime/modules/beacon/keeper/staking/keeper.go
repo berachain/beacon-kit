@@ -83,7 +83,7 @@ func (k Keeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit
 		}
 		return err
 	}
-	_, err = k.stakingKeeper.Delegate(ctx, sdk.AccAddress(valConsAddr), math.NewInt(int64(amount)), stakingtypes.Unbonded, validator, true)
+	_, err = k.stakingKeeper.Delegate(ctx, sdk.AccAddress(valConsAddr), math.NewIntFromUint64(amount), stakingtypes.Unbonded, validator, true)
 	return err
 }
 
@@ -103,7 +103,7 @@ func (k Keeper) ProcessDeposits(ctx context.Context) error {
 
 // createValidator creates a new validator with the given public key and amount of tokens.
 func (k Keeper) createValidator(ctx context.Context, validatorPK cryptotypes.PubKey, amount uint64) (stakingtypes.Validator, error) {
-	stake := math.NewInt(int64(amount))
+	stake := math.NewIntFromUint64(amount)
 	valConsAddr := sdk.GetConsAddress(validatorPK)
 	operator := sdk.ValAddress(valConsAddr).String()
 	val, err := stakingtypes.NewValidator(operator, validatorPK, stakingtypes.Description{Moniker: operator})

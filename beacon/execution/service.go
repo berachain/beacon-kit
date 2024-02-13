@@ -138,5 +138,5 @@ func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ in
 
 // ProcessLogs processes logs for the given block number.
 func (s *Service) ProcessLogs(ctx context.Context, blkNum uint64) error {
-	return s.logProcessor.ProcessFinalizedETH1Block(ctx, big.NewInt(int64(blkNum)))
+	return s.logProcessor.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
 }
