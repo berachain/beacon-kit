@@ -120,14 +120,14 @@ func (s *Eth1Client) NewPayloadV2(
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs any,
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV3,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
 // ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV2(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs any,
+	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV2, state, attrs)
 }
