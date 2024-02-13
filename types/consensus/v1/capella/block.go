@@ -34,7 +34,9 @@ import (
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+
+	// TODO: fix jank sszgen import naming requirement
+	v11 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
@@ -88,7 +90,7 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 	executionData engine.ExecutionPayload,
 ) error {
 	var ok bool
-	b.Body.ExecutionPayload, ok = executionData.ToProto().(*enginev1.ExecutionPayloadCapella)
+	b.Body.ExecutionPayload, ok = executionData.ToProto().(*v11.ExecutionPayloadCapella)
 	// b.Body.ExecutionPayload, err = executionData.PbCapella()
 	if !ok {
 		return errors.New("failed to convert execution data to capella payload")
