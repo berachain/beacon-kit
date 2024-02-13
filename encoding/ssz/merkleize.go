@@ -38,13 +38,16 @@ import (
 // SafeMerkelizeVectorAndMixinLength takes a list of roots and returns the HTR
 // of the corresponding list of roots. It then appends the length of the roots to the
 // end of the byteRoots and further hashes the result to return the final HTR.
-func SafeMerkelizeVectorAndMixinLength(roots []tree.Root, limit uint64) ([32]byte, error) {
-	txRootLen := uint64(len(roots))
-	byteRoots, err := SafeMerkleizeVector(roots, txRootLen, limit)
+// The 'limit' parameter specifies the maximum allowed number of roots in the list,
+// ensuring the list does not exceed this size.
+func SafeMerkelizeVectorAndMixinLength(
+	roots []tree.Root, maxRootsAllowed uint64,
+) ([32]byte, error) {
+	byteRoots, err := SafeMerkleizeVector(roots, maxRootsAllowed)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return tree.GetHashFn().Mixin(byteRoots, txRootLen), nil
+	return tree.GetHashFn().Mixin(byteRoots, uint64(len(roots))), nil
 }
 
 // UnsafeMerkleizeVectorAndMixinLength is a function that operates on a list of tree roots.
@@ -61,16 +64,16 @@ func SafeMerkelizeVectorAndMixinLength(roots []tree.Root, limit uint64) ([32]byt
 // 1. Compute HTR -> [HTR_byte_array]
 // 2. Append length -> [HTR_byte_array, length]
 // Step 3: Hash result -> Final HTR.
-func UnsafeMerkleizeVectorAndMixinLength(roots []tree.Root, limit uint64) tree.Root {
+func UnsafeMerkleizeVectorAndMixinLength(roots []tree.Root, maxRootsAllowed uint64) tree.Root {
 	txRootLen := uint64(len(roots))
-	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, txRootLen), limit)
+	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, txRootLen), maxRootsAllowed)
 }
 
 // UnsafeMerkleizeVector is a function that computes the Hash Tree Root (HTR) for
 // a given list of tree roots. It simply calls the SafeMerkleizeVector function and
 // panics if an error is returned.
-func UnsafeMerkleizeVector(roots []tree.Root, limit uint64) tree.Root {
-	root, err := SafeMerkleizeVector(roots, limit, limit)
+func UnsafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) tree.Root {
+	root, err := SafeMerkleizeVector(roots, maxRootsAllowed)
 	if err != nil {
 		panic(err)
 	}
@@ -98,13 +101,13 @@ func UnsafeMerkleizeVector(roots []tree.Root, limit uint64) tree.Root {
 //	Repeat -> [H(H(R1,R2), H(R3,Z))]
 //
 // Result: The final HTR is H(H(R1,R2), H(R3,Z)).
-func SafeMerkleizeVector(roots []tree.Root, length, limit uint64) (tree.Root, error) {
-	// If the length of the list is greater than the limit, return an error.
-	if length > limit {
-		return tree.Root{}, errors.New("merkleizing list that is too large, over limit")
+func SafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) (tree.Root, error) {
+	// If the number of elements in the list exceeds the maximum allowed, return an error.
+	if uint64(len(roots)) > maxRootsAllowed {
+		return tree.Root{}, errors.New("merkleizing list exceeds the maximum allowed number of elements")
 	}
 
-	depth := tree.CoverDepth(limit)
+	depth := tree.CoverDepth(maxRootsAllowed)
 
 	// If the list is empty, return the zero hash at the calculated depth.
 	if len(roots) == 0 {

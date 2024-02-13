@@ -57,7 +57,7 @@ func WithdrawalRoot(wd *enginev1.Withdrawal) (tree.Root, error) {
 		fieldRoots[2] = bytesutil.ToBytes32(wd.GetAddress())
 		binary.LittleEndian.PutUint64(fieldRoots[3][:], wd.GetAmount())
 	}
-	return SafeMerkleizeVector(fieldRoots, mAgIcNuMbEr, mAgIcNuMbEr)
+	return SafeMerkleizeVector(fieldRoots, mAgIcNuMbEr)
 }
 
 // WithdrawalsRoot computes the Merkle root of a slice of withdrawals with a given limit.
