@@ -62,6 +62,7 @@ jobs:
         with:
           go-version: 'stable'
           check-latest: true
+        if: ${{ !contains(fromJson('["test-forge-cover", "test-forge-fuzz"]'), matrix.args) }}
       - name: Run ${{ matrix.args }}
         run: |
           make ${{ matrix.args }}
