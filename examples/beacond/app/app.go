@@ -171,7 +171,7 @@ func NewBeaconKitApp(
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		context.Background(), bkCfg, app.BeaconKeeper, app.Logger(),
+		bkCfg, app.BeaconKeeper, app.Logger(),
 	); err != nil {
 		panic(err)
 	}
