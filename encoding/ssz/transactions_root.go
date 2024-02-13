@@ -44,21 +44,13 @@ func (bz Bytes) HashTreeRoot(h tree.HashFn) tree.Root {
 // TransactionsRoot computes the HTR for the Transactions' property of the ExecutionPayload
 // The code was largely copy/pasted from the code generated to compute the HTR of the entire
 // ExecutionPayload.
-func TransactionsRoot(txs []Bytes) (tree.Root, error) {
-	fn := tree.GetHashFn()
+func TransactionsRoot(txs []Bytes) ([32]byte, error) {
 	txRoots := make([]tree.Root, 0)
 	for i := 0; i < len(txs); i++ {
 		txRoots = append(
-			txRoots, fn.HashTreeRoot(txs[i]),
+			txRoots, tree.GetHashFn().HashTreeRoot(txs[i]),
 		)
 	}
 
-	lenTxRoots := uint64(len(txRoots))
-	byteRoots, err := SafeMerkleizeVector(
-		txRoots, lenTxRoots, primitives.MaxTxsPerPayloadLength,
-	)
-	if err != nil {
-		return tree.Root{}, err
-	}
-	return fn.Mixin(byteRoots, lenTxRoots), nil
+	return MerkelizeVectorAndMixinLength(txRoots, primitives.MaxTxsPerPayloadLength)
 }

@@ -30,6 +30,9 @@ import (
 
 	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/prysm/v4/crypto/hash/htr"
+
+	// We need to import this package to use the VectorizedSha256 function.
+	_ "github.com/minio/sha256-simd"
 )
 
 func SafeMerkleizeVector(roots []tree.Root, length, maxLength uint64) (tree.Root, error) {
@@ -59,4 +62,15 @@ func UnsafeMerkleizeVector(roots []tree.Root, length uint64) tree.Root {
 		roots = convertBytesToTreeRoots(res)
 	}
 	return roots[0]
+}
+
+// MerkelizeVectorAndMixinLength hashes each element in the list and then returns the HTR
+// with the length mixed in.
+func MerkelizeVectorAndMixinLength(txRoots []tree.Root, limit uint64) ([32]byte, error) {
+	txRootLen := uint64(len(txRoots))
+	byteRoots, err := SafeMerkleizeVector(txRoots, txRootLen, limit)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return tree.GetHashFn().Mixin(byteRoots, txRootLen), nil
 }
