@@ -183,8 +183,11 @@ func NewDefaultBeaconKitRuntime(
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
 func (r *BeaconKitRuntime) StartServices(cmdCtx context.Context) {
-	r.services.StartAll(cmdCtx)
+	// First try to start the eth1 client.
 	r.ethclient.Start(cmdCtx)
+
+	// Then start all the other services.
+	r.services.StartAll(cmdCtx)
 }
 
 // SetCometCfg sets the CometBFTConfig for the runtime.
