@@ -66,6 +66,20 @@ func (k Keeper) AddDeposit(_ context.Context, deposit *consensusv1.Deposit) erro
 	return nil
 }
 
+// ProcessDeposits processes the queued deposits (up to the limit MaxDepositsPerBlock).
+func (k Keeper) ProcessDeposits(ctx context.Context) error {
+	var processedDeposits uint64
+	for processedDeposits < k.beaconCfg.Limits.MaxDepositsPerBlock && len(k.deposits) > 0 {
+		deposit := k.deposits[0]
+		if err := k.processDeposit(ctx, deposit); err != nil {
+			return err
+		}
+		k.deposits = k.deposits[1:]
+		processedDeposits++
+	}
+	return nil
+}
+
 // processDeposit processes a single deposit and delegates the tokens to the validator.
 func (k Keeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
 	validatorPK := &ed25519.PubKey{}
@@ -86,20 +100,6 @@ func (k Keeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit
 	}
 	_, err = k.stakingKeeper.Delegate(ctx, sdk.AccAddress(valConsAddr), math.NewIntFromUint64(amount), stakingtypes.Unbonded, validator, true)
 	return err
-}
-
-// ProcessDeposits processes the queued deposits (up to the limit MaxDepositsPerBlock).
-func (k Keeper) ProcessDeposits(ctx context.Context) error {
-	var processedDeposits uint64
-	for processedDeposits < k.beaconCfg.Limits.MaxDepositsPerBlock && len(k.deposits) > 0 {
-		deposit := k.deposits[0]
-		if err := k.processDeposit(ctx, deposit); err != nil {
-			return err
-		}
-		k.deposits = k.deposits[1:]
-		processedDeposits++
-	}
-	return nil
 }
 
 // createValidator creates a new validator with the given public key and amount of tokens.
