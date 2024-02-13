@@ -43,6 +43,7 @@ var _ interfaces.ExecutionPayloadHeader = (*WrappedExecutionPayloadHeaderCapella
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadHeaderCapella struct {
 	*enginev1.ExecutionPayloadHeaderCapella
+	value math.Wei
 }
 
 // Version returns the version identifier for the WrappedExecutionPayloadHeaderCapella.
@@ -75,5 +76,5 @@ func (p *WrappedExecutionPayloadHeaderCapella) ToHeader() (
 
 // GetValue returns the value of the payload.
 func (p *WrappedExecutionPayloadHeaderCapella) GetValue() math.Wei {
-	panic("TODO")
+	return p.value
 }

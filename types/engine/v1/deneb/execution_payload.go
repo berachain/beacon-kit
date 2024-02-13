@@ -26,6 +26,9 @@
 package deneb
 
 import (
+	"unsafe"
+
+	"github.com/itsdevbear/bolaris/encoding/ssz"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
@@ -78,8 +81,44 @@ func (p *WrappedExecutionPayloadDeneb) ToPayload() interfaces.ExecutionPayload {
 
 // ToHeader produces an ExecutionPayloadHeader.
 func (p *WrappedExecutionPayloadDeneb) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
-	// TODO: @ocnc
-	panic("TODO: Implement slice merkalization for ExecutionPayloadDeneb")
+	//#nosec:G103 // This is a safe conversion, todo:cleanup.
+	transactionsRoot, err := ssz.TransactionsRoot(
+		*(*[]ssz.Bytes)(unsafe.Pointer(&p.Transactions)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	//#nosec:G103 // This is a safe conversion, todo:cleanup.
+	withdrawalsRoot, err := ssz.WithdrawalsRoot(
+		*(*[]*ssz.Withdrawal)(unsafe.Pointer(&p.Withdrawals)), 16, //nolint:gomnd // TODO: bet.
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WrappedExecutionPayloadHeaderDeneb{
+		ExecutionPayloadHeaderDeneb: enginev1.ExecutionPayloadHeaderDeneb{
+			ParentHash:       p.ParentHash,
+			FeeRecipient:     p.FeeRecipient,
+			StateRoot:        p.StateRoot,
+			ReceiptsRoot:     p.ReceiptsRoot,
+			LogsBloom:        p.LogsBloom,
+			PrevRandao:       p.PrevRandao,
+			BlockNumber:      p.BlockNumber,
+			GasLimit:         p.GasLimit,
+			GasUsed:          p.GasUsed,
+			Timestamp:        p.Timestamp,
+			ExtraData:        p.ExtraData,
+			BaseFeePerGas:    p.BaseFeePerGas,
+			BlockHash:        p.BlockHash,
+			TransactionsRoot: transactionsRoot[:],
+			WithdrawalsRoot:  withdrawalsRoot[:],
+			BlobGasUsed:      p.BlobGasUsed,
+			ExcessBlobGas:    p.ExcessBlobGas,
+		},
+		value: p.GetValue(),
+	}, nil
 }
 
 // GetValue returns the value of the payload.

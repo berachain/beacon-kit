@@ -115,6 +115,7 @@ func (p *WrappedExecutionPayloadCapella) ToHeader() (interfaces.ExecutionPayload
 			TransactionsRoot: transactionsRoot[:],
 			WithdrawalsRoot:  withdrawalsRoot[:],
 		},
+		value: p.GetValue(),
 	}, nil
 }
 
