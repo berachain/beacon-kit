@@ -30,8 +30,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -43,11 +43,11 @@ type ExecutionService interface {
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
 	) (bool, error)
 
 	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
 	GetBuiltPayload(
 		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
+	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

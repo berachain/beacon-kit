@@ -31,6 +31,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/blocks"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // BuildBeaconBlock builds a new beacon block.
@@ -44,9 +45,16 @@ func (s *Service) BuildBeaconBlock(
 	// and safe block hashes to the execution client.
 	var (
 		beaconState   = s.BeaconState(ctx)
-		executionData interfaces.ExecutionData
+		executionData engine.ExecutionPayload
 		slot          = beaconState.Slot()
 	)
+
+	// // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
+	_ = s.beaconKitValKey
+	// _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := blocks.NewEmptyBeaconKitBlock(

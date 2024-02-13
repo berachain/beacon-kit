@@ -48,10 +48,12 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg      *config.Config
-	logger   log.Logger
-	fscp     BeaconStateProvider
-	services *service.Registry
+	cfg       *config.Config
+	cometCfg  CometBFTConfig
+	logger    log.Logger
+	ethclient *eth.Eth1Client
+	fscp      BeaconStateProvider
+	services  *service.Registry
 }
 
 // BeaconStateProvider is an interface that provides the
@@ -77,7 +79,7 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default services.
 func NewDefaultBeaconKitRuntime(
-	ctx context.Context, cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
+	cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
@@ -104,7 +106,6 @@ func NewDefaultBeaconKitRuntime(
 
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
-		ctx,
 		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
 		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
 		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
@@ -174,12 +175,24 @@ func NewDefaultBeaconKitRuntime(
 		WithLogger(logger),
 		WithServiceRegistry(serviceRegistry),
 		WithBeaconStateProvider(bsp),
+		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
+		// This is necessary for the eth1 client to be able to shut down gracefully.
+		WithEth1Client(eth1Client),
 	)
 }
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
-	r.services.StartAll(ctx)
+func (r *BeaconKitRuntime) StartServices(cmdCtx context.Context) {
+	// First try to start the eth1 client.
+	r.ethclient.Start(cmdCtx)
+
+	// Then start all the other services.
+	r.services.StartAll(cmdCtx)
+}
+
+// SetCometCfg sets the CometBFTConfig for the runtime.
+func (r *BeaconKitRuntime) SetCometCfg(cometCfg CometBFTConfig) {
+	r.cometCfg = cometCfg
 }
 
 // FetchService retrieves a service from the BeaconKitRuntime's service registry.

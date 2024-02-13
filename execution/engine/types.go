@@ -26,41 +26,16 @@
 package engine
 
 import (
+	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/math"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
-	capella "github.com/itsdevbear/bolaris/types/engine/v1/capella"
-	deneb "github.com/itsdevbear/bolaris/types/engine/v1/deneb"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+
+	// TODO: @ocnc to remove this GPL3 dependency.
+	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 )
 
-// WrappedExecutionPayloadDeneb is a constructor which wraps a protobuf execution payload
-// into an interface.
-func WrappedExecutionPayloadDeneb(
-	p *enginev1.ExecutionPayloadDeneb, wei math.Wei,
-) (ExecutionPayload, error) {
-	return deneb.NewWrappedExecutionPayloadDeneb(
-		p, wei,
-	), nil
-}
-
-// WrappedExecutionPayloadCapella is a constructor which wraps a protobuf execution payload
-// into an interface.
-func WrappedExecutionPayloadCapella(
-	p *enginev1.ExecutionPayloadCapella, wei math.Wei,
-) (ExecutionPayload, error) {
-	return capella.NewWrappedExecutionPayloadCapella(
-		p, wei,
-	), nil
-}
-
-// EmptyExecutionPayloadWithVersion returns an empty execution payload for the given version.
-func EmptyPayloadAttributesWithVersion(v int) PayloadAttributer {
-	switch v {
-	case version.Deneb:
-		return &deneb.WrappedPayloadAttributesV3{}
-	case version.Capella:
-		return &capella.WrappedPayloadAttributesV2{}
-	default:
-		return nil
-	}
+// PayloadValueToWei returns a Wei value given the payload's value.
+func PayloadValueToWei(value []byte) math.Wei {
+	// We have to convert big endian to little endian because the value is coming
+	// from the execution layer.
+	return uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
 }

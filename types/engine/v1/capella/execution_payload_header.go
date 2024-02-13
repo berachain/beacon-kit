@@ -28,19 +28,19 @@ package capella
 import (
 	"errors"
 
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	// WrappedExecutionPayloadHeaderCapella ensures compatibility with the
-	// engine.ExecutionPayload interface.
-	_ interfaces.ExecutionPayloadHeader = (*WrappedExecutionPayloadHeaderCapella)(nil)
-)
+// WrappedExecutionPayloadHeaderCapella ensures compatibility with the
+// engine.ExecutionPayload interface.
+var _ interfaces.ExecutionPayloadHeader = (*WrappedExecutionPayloadHeaderCapella)(nil)
 
-// WrappedExecutionPayloadHeaderCapella is a wrapper around the ExecutionPayloadCapella.
+// WrappedExecutionPayloadHeaderCapella wraps the ExecutionPayloadHeaderCapella
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadHeaderCapella struct {
 	enginev1.ExecutionPayloadHeaderCapella
 }
@@ -73,10 +73,7 @@ func (p *WrappedExecutionPayloadHeaderCapella) ToHeader() (
 	return p, nil
 }
 
-func (p *WrappedExecutionPayloadHeaderCapella) GetTransactionsRoot() []byte {
-	return p.TransactionsRoot
-}
-
-func (p *WrappedExecutionPayloadHeaderCapella) GetWithdrawalsRoot() []byte {
-	return p.WithdrawalsRoot
+// GetValue returns the value of the payload.
+func (p *WrappedExecutionPayloadHeaderCapella) GetValue() math.Wei {
+	panic("TODO")
 }

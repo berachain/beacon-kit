@@ -33,13 +33,14 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
+	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // BeaconKitBlockFromState assembles a new beacon block
 // from the given state and execution data.
 func BeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
-	executionData interfaces.ExecutionData,
+	executionData engine.ExecutionPayload,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBeaconKitBlock(
 		beaconState.Slot(),
@@ -52,7 +53,7 @@ func BeaconKitBlockFromState(
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
 	slot primitives.Slot,
-	executionData interfaces.ExecutionData,
+	executionData engine.ExecutionPayload,
 	forkVersion int,
 ) (interfaces.BeaconKitBlock, error) {
 	switch forkVersion {

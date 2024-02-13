@@ -23,48 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package key
 
-import (
-	"context"
+import "errors"
 
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/validator/key"
-)
-
-type BlockBuilder interface {
-}
-
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	beaconKitValKey key.BeaconKitValKey
-	en              engine.Caller
-	payloadCache    *cache.PayloadIDCache
-}
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start(context.Context) {
-}
-
-func (s *Service) Status() error {
-	return nil
-}
+// ErrNoPrivValidatorFound is returned when no priv validator is found.
+var ErrNoPrivValidatorFound = errors.New("no private key found for validator")

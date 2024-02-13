@@ -26,22 +26,33 @@
 package capella
 
 import (
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	// WrappedExecutionPayloadCapella ensures compatibility with the
-	// engine.ExecutionPayload interface.
-	_ interfaces.ExecutionPayload = (*WrappedExecutionPayloadCapella)(nil)
-)
+// WrappedExecutionPayloadCapella ensures compatibility with the
+// engine.ExecutionPayload interface.
+var _ interfaces.ExecutionPayload = (*WrappedExecutionPayloadCapella)(nil)
 
-// WrappedExecutionPayloadCapella is a wrapper around the ExecutionPayloadCapella.
+// WrappedExecutionPayloadCapella wraps the ExecutionPayloadCapella
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadCapella struct {
-	enginev1.ExecutionPayloadCapella
+	*enginev1.ExecutionPayloadCapella
+	value math.Wei
+}
+
+// NewWrappedExecutionPayloadCapella creates a new WrappedExecutionPayloadCapella.
+func NewWrappedExecutionPayloadCapella(
+	payload *enginev1.ExecutionPayloadCapella,
+	value math.Wei,
+) *WrappedExecutionPayloadCapella {
+	return &WrappedExecutionPayloadCapella{
+		ExecutionPayloadCapella: payload,
+		value:                   value,
+	}
 }
 
 // Version returns the version identifier for the ExecutionPayloadCapella.
@@ -57,7 +68,7 @@ func (p *WrappedExecutionPayloadCapella) IsBlinded() bool {
 
 // ToProto returns the ExecutionPayloadCapella as a proto.Message.
 func (p *WrappedExecutionPayloadCapella) ToProto() proto.Message {
-	return &p.ExecutionPayloadCapella
+	return p.ExecutionPayloadCapella
 }
 
 // ToPayload returns itself as it implements the engine.ExecutionPayload interface.
@@ -65,41 +76,16 @@ func (p *WrappedExecutionPayloadCapella) ToPayload() interfaces.ExecutionPayload
 	return p
 }
 
-// GetTransactions returns the transactions in the payload.
-func (p *WrappedExecutionPayloadCapella) GetTransactions() [][]byte {
-	return p.Transactions
-}
-
-// GetWithdrawals returns the withdrawals in the payload.
-func (p *WrappedExecutionPayloadCapella) GetWithdrawals() []*enginev1.Withdrawal {
-	return p.Withdrawals
-}
-
 // ToHeader produces an ExecutionPayloadHeader.
 func (p *WrappedExecutionPayloadCapella) ToHeader() interfaces.ExecutionPayloadHeader {
 	// TODO: @ocnc
-	// panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+}
 
-	txRoot := []byte{}
-	withdrawalsRoot := []byte{}
-
-	return &WrappedExecutionPayloadHeaderCapella{
-		ExecutionPayloadHeaderCapella: enginev1.ExecutionPayloadHeaderCapella{
-			ParentHash:       bytesutil.SafeCopyBytes(p.GetParentHash()),
-			FeeRecipient:     bytesutil.SafeCopyBytes(p.GetFeeRecipient()),
-			StateRoot:        bytesutil.SafeCopyBytes(p.GetStateRoot()),
-			ReceiptsRoot:     bytesutil.SafeCopyBytes(p.GetReceiptsRoot()),
-			LogsBloom:        bytesutil.SafeCopyBytes(p.GetLogsBloom()),
-			PrevRandao:       bytesutil.SafeCopyBytes(p.GetPrevRandao()),
-			BlockNumber:      p.GetBlockNumber(),
-			GasLimit:         p.GetGasLimit(),
-			GasUsed:          p.GetGasUsed(),
-			Timestamp:        p.GetTimestamp(),
-			ExtraData:        bytesutil.SafeCopyBytes(p.GetExtraData()),
-			BaseFeePerGas:    bytesutil.SafeCopyBytes(p.GetBaseFeePerGas()),
-			BlockHash:        bytesutil.SafeCopyBytes(p.GetBlockHash()),
-			TransactionsRoot: txRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-		},
+// GetValue returns the value of the payload.
+func (p *WrappedExecutionPayloadCapella) GetValue() math.Wei {
+	if p.value == nil {
+		return math.ZeroWei()
 	}
+	return p.value
 }

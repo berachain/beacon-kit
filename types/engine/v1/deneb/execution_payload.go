@@ -26,21 +26,33 @@
 package deneb
 
 import (
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	// WrappedExecutionPayloadDeneb ensures compatibility with the
-	// engine.ExecutionPayload interface.
-	_ interfaces.ExecutionPayload = (*WrappedExecutionPayloadDeneb)(nil)
-)
+// WrappedExecutionPayloadDeneb ensures compatibility with the
+// engine.ExecutionPayload interface.
+var _ interfaces.ExecutionPayload = (*WrappedExecutionPayloadDeneb)(nil)
 
-// WrappedExecutionPayloadDeneb is a wrapper around the ExecutionPayloadDeneb.
+// WrappedExecutionPayloadDeneb wraps the ExecutionPayloadDeneb
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadDeneb struct {
-	enginev1.ExecutionPayloadDeneb
+	*enginev1.ExecutionPayloadDeneb
+	value math.Wei
+}
+
+// NewWrappedExecutionPayloadDeneb creates a new WrappedExecutionPayloadDeneb.
+func NewWrappedExecutionPayloadDeneb(
+	payload *enginev1.ExecutionPayloadDeneb,
+	value math.Wei,
+) *WrappedExecutionPayloadDeneb {
+	return &WrappedExecutionPayloadDeneb{
+		ExecutionPayloadDeneb: payload,
+		value:                 value,
+	}
 }
 
 // Version returns the version identifier for the ExecutionPayloadDeneb.
@@ -56,7 +68,7 @@ func (p *WrappedExecutionPayloadDeneb) IsBlinded() bool {
 
 // ToProto returns the ExecutionPayloadDeneb as a proto.Message.
 func (p *WrappedExecutionPayloadDeneb) ToProto() proto.Message {
-	return &p.ExecutionPayloadDeneb
+	return p.ExecutionPayloadDeneb
 }
 
 // ToPayload returns itself as it implements the engine.ExecutionPayload interface.
@@ -68,4 +80,12 @@ func (p *WrappedExecutionPayloadDeneb) ToPayload() interfaces.ExecutionPayload {
 func (p *WrappedExecutionPayloadDeneb) ToHeader() interfaces.ExecutionPayloadHeader {
 	// TODO: @ocnc
 	panic("TODO: Implement slice merkalization for ExecutionPayloadDeneb")
+}
+
+// GetValue returns the value of the payload.
+func (p *WrappedExecutionPayloadDeneb) GetValue() math.Wei {
+	if p.value == nil {
+		return math.ZeroWei()
+	}
+	return p.value
 }

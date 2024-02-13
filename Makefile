@@ -177,7 +177,7 @@ start-besu:
 FUZZ_TIME=10s
 
 test:
-	@$(MAKE) test-unit test-forge
+	@$(MAKE) test-unit test-forge-fuzz
 test-unit:
 	@$(MAKE)
 	@echo "Running unit tests..."
@@ -200,13 +200,13 @@ test-unit-fuzz:
 #     forge     #
 #################
 
-test-forge:
-	@echo "Running forge test..."
-	@cd $(CONTRACTS_DIR) && forge test
-
 test-forge-cover:
 	@echo "Running forge test with coverage..."
-	@cd $(CONTRACTS_DIR) && forge coverage --report lcov --report-file ../test-forge-cover.txt
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file ../test-forge-cover.txt
+
+test-forge-fuzz:
+	@echo "Running forge fuzz tests..."
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test --mt testFuzz
 
 #################
 #      e2e      #
@@ -348,16 +348,6 @@ buf-lint:
 	@echo "--> Running buf lint"
 	@buf lint --error-format=json $(modulesProtoDir)
 
-proto-sync-install:
-	@echo "--> Installing buf"
-	@go install github.com/cashapp/protosync/cmd/protosync
-
-proto-sync:
-	@$(MAKE) proto-sync-install 
-	@echo "--> Running proto-sync"
-	@protosync -I $(eth2ProtoDir) --dest=./proto/eth2/third_party proto/engine/v1/execution_engine.proto --level=trace
-
-
 #################
 #    sszgen    #
 #################
@@ -396,7 +386,7 @@ repo-rinse: |
 	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
 	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
-	start test-unit test-unit-cover test-forge \
+	start test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
 	test-hive-v test-localnet test-localnet-no-build format lint \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \

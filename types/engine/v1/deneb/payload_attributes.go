@@ -26,21 +26,52 @@
 package deneb
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"google.golang.org/protobuf/proto"
 )
 
-// WrappedPayloadAttributesV2 wraps the PayloadAttributesV2 from the Prysmatic Labs' Engine API v1.
+// WrappedPayloadAttributesV3 wraps the PayloadAttributesV3 from
+// Prysmatic Labs' Engine API v1.
 var _ interfaces.PayloadAttributer = (*WrappedPayloadAttributesV3)(nil)
 
-// WrappedPayloadAttributesV2 is a struct that embeds enginev1.PayloadAttributesV2
-// to provide additional functionality required by the PayloadAttributer interface.
+// WrappedPayloadAttributesV3 wraps the PayloadAttributesV3
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedPayloadAttributesV3 struct {
-	enginev1.PayloadAttributesV3
+	*enginev1.PayloadAttributesV3
+}
+
+// NewWrappedExecutionPayloadDeneb creates a new WrappedPayloadAttributesV3.
+func NewWrappedPayloadAttributerV3(
+	timestamp uint64, prevRandao []byte,
+	suggestedFeeReceipient common.Address,
+	withdrawals []*enginev1.Withdrawal,
+	parentBeaconBlockRoot []byte,
+) *WrappedPayloadAttributesV3 {
+	return &WrappedPayloadAttributesV3{
+		PayloadAttributesV3: &enginev1.PayloadAttributesV3{
+			Timestamp:             timestamp,
+			PrevRandao:            prevRandao,
+			SuggestedFeeRecipient: suggestedFeeReceipient.Bytes(),
+			Withdrawals:           withdrawals,
+			ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		},
+	}
 }
 
 // Version returns the consensus version for the Capella upgrade.
 func (w *WrappedPayloadAttributesV3) Version() int {
 	return version.Deneb
+}
+
+// IsEmpty returns true if the WrappedPayloadAttributesV3 is empty.
+func (w *WrappedPayloadAttributesV3) IsEmpty() bool {
+	return w.PayloadAttributesV3 == nil
+}
+
+// ToProto returns the WrappedPayloadAttributesV3 as a proto.Message.
+func (w *WrappedPayloadAttributesV3) ToProto() proto.Message {
+	return w.PayloadAttributesV3
 }

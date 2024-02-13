@@ -26,21 +26,50 @@
 package capella
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"google.golang.org/protobuf/proto"
 )
 
-// WrappedPayloadAttributesV2 wraps the PayloadAttributesV2 from the Prysmatic Labs' Engine API v1.
+// WrappedPayloadAttributesV2 ensures compatibility with the
+// engine.PayloadAttributer interface.
 var _ interfaces.PayloadAttributer = (*WrappedPayloadAttributesV2)(nil)
 
-// WrappedPayloadAttributesV2 is a struct that embeds enginev1.PayloadAttributesV2
-// to provide additional functionality required by the PayloadAttributer interface.
+// WrappedPayloadAttributesV2 wraps the PayloadAttributesV2
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedPayloadAttributesV2 struct {
-	enginev1.PayloadAttributesV2
+	*enginev1.PayloadAttributesV2
+}
+
+// NewWrappedExecutionPayloadDeneb creates a new WrappedPayloadAttributesV2.
+func NewWrappedPayloadAttributerV2(
+	timestamp uint64, prevRandao []byte,
+	suggestedFeeReceipient common.Address,
+	withdrawals []*enginev1.Withdrawal,
+) *WrappedPayloadAttributesV2 {
+	return &WrappedPayloadAttributesV2{
+		PayloadAttributesV2: &enginev1.PayloadAttributesV2{
+			Timestamp:             timestamp,
+			PrevRandao:            prevRandao,
+			SuggestedFeeRecipient: suggestedFeeReceipient.Bytes(),
+			Withdrawals:           withdrawals,
+		},
+	}
 }
 
 // Version returns the consensus version for the Capella upgrade.
 func (w *WrappedPayloadAttributesV2) Version() int {
 	return version.Capella
+}
+
+// IsEmpty returns true if the WrappedPayloadAttributesV3 is empty.
+func (w *WrappedPayloadAttributesV2) IsEmpty() bool {
+	return w.PayloadAttributesV2 == nil
+}
+
+// ToProto returns the WrappedPayloadAttributesV3 as a proto.Message.
+func (w *WrappedPayloadAttributesV2) ToProto() proto.Message {
+	return w.PayloadAttributesV2
 }

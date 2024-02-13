@@ -36,6 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
 	"github.com/pkg/errors"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -43,7 +44,7 @@ import (
 func (s *Service) getLocalPayload(
 	ctx context.Context,
 	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
-) (interfaces.ExecutionData, bool, error) {
+) (engine.ExecutionPayload, bool, error) {
 	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
@@ -59,7 +60,7 @@ func (s *Service) getLocalPayload(
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
 
-	parentEth1Hash, err := s.getParentBlockHash(ctx)
+	parentEth1Hash, err := s.getParentEth1Hash(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -69,7 +70,7 @@ func (s *Service) getLocalPayload(
 	if ok && (payloadID != primitives.PayloadID{}) {
 		var (
 			pidCpy          primitives.PayloadID
-			payload         interfaces.ExecutionData
+			payload         engine.ExecutionPayload
 			overrideBuilder bool
 		)
 
@@ -136,17 +137,14 @@ func (s *Service) getLocalPayload(
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 
-	localValueGwei, err := payload.ValueInGwei()
-	if err == nil {
-		s.Logger().Debug("received execution payload from local engine", "value", localValueGwei)
-	}
+	s.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
 	return payload, overrideBuilder, nil
 }
 
-// getParentBlockHash retrieves the parent block hash for the given slot.
+// getParentEth1Hash retrieves the parent block hash for the given slot.
 //
 //nolint:unparam // todo: review this later.
-func (s *Service) getParentBlockHash(ctx context.Context) (common.Hash, error) {
+func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
 	// The first slot should be proposed with the genesis block as parent.
 	st := s.BeaconState(ctx)
 	if st.Slot() == 1 {

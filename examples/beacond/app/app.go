@@ -27,6 +27,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -170,7 +171,7 @@ func NewBeaconKitApp(
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		context.Background(), bkCfg, app.BeaconKeeper, app.Logger(),
+		bkCfg, app.BeaconKeeper, app.Logger(),
 	); err != nil {
 		panic(err)
 	}
@@ -241,5 +242,10 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		panic(err)
 	}
 
+	v, ok := apiSvr.ClientCtx.CmdContext.Value(server.ServerContextKey).(*server.Context)
+	if !ok {
+		panic(fmt.Errorf("unexpected server context type: %T", v))
+	}
+	app.BeaconKitRunner.SetCometCfg(v.Config)
 	app.BeaconKitRunner.StartServices(apiSvr.ClientCtx.CmdContext)
 }

@@ -28,19 +28,19 @@ package deneb
 import (
 	"errors"
 
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	// WrappedExecutionPayloadHeaderDeneb ensures compatibility with the
-	// engine.ExecutionPayload interface.
-	_ interfaces.ExecutionPayloadHeader = (*WrappedExecutionPayloadHeaderDeneb)(nil)
-)
+// WrappedExecutionPayloadHeaderDeneb ensures compatibility with the
+// engine.ExecutionPayload interface.
+var _ interfaces.ExecutionPayloadHeader = (*WrappedExecutionPayloadHeaderDeneb)(nil)
 
-// WrappedExecutionPayloadHeaderDeneb is a wrapper around the ExecutionPayloadDeneb.
+// WrappedExecutionPayloadHeaderDeneb wraps the ExecutionPayloadHeaderDeneb
+// from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadHeaderDeneb struct {
 	enginev1.ExecutionPayloadHeaderDeneb
 }
@@ -71,4 +71,9 @@ func (p *WrappedExecutionPayloadHeaderDeneb) ToHeader() (
 	interfaces.ExecutionPayloadHeader, error,
 ) {
 	return p, nil
+}
+
+// GetValue returns the value of the payload.
+func (p *WrappedExecutionPayloadHeaderDeneb) GetValue() math.Wei {
+	panic("TODO")
 }

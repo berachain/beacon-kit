@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/itsdevbear/bolaris/encoding/ssz"
-	"github.com/prysmaticlabs/go-bitfield"
+	bitfield "github.com/prysmaticlabs/go-bitfield"
 	ethpb "github.com/prysmaticlabs/prysm/v4/proto/prysm/v1alpha1"
 	"github.com/stretchr/testify/require"
 )
