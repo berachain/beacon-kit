@@ -31,6 +31,92 @@ import (
 	"github.com/protolambda/ztyp/tree"
 )
 
+// We can visualize the process of building a Merkle tree as follows:
+//
+// [Element1] [Element2] ... [ElementN]
+//
+//	|          |                 |
+//	v          v                 v
+//
+// [ Hash1 ]  [ Hash2 ]  ...  [ HashN ]  Hash each element
+//
+//	\         /                 /
+//	 \       /       ...       /
+//	  \     /                 /
+//	   [       Merkle Tree       ]  Combine hashes to form the tree
+//	             |
+//	             v
+//	         [ Root ]  The root hash of the Merkle tree
+//
+// BuildMerkleTree constructs a Hash Tree Root (HTR) from a list of elements.
+func BuildMerkleTree[T Hashable](elements []T, limit uint64) (tree.Root, error) {
+	roots, err := HashElements(elements)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return SafeMerkleizeVector(roots, limit)
+}
+
+// We can visualize the process of building a Merkle tree and mixing in the length as follows:
+//
+// [Element1] [Element2] ... [ElementN]
+//
+//	|          |                 |
+//	v          v                 v
+//
+// [ Hash1 ]  [ Hash2 ]  ...  [ HashN ]  // Hash each element
+//
+//	\         /                 /
+//	 \       /       ...       /
+//	  \     /                 /
+//	   [       Merkle Tree       ]  Combine hashes to form the tree
+//	             |
+//	             v
+//	         [ Intermediate Root ]  The intermediate root hash of the Merkle tree
+//	             |
+//	             v
+//	     [Intermediate Root + Length]  Append the length of the roots to the intermediate root
+//	             |
+//	             v
+//	         [ Final Root ]  Hash the result to return the final HTR
+//
+// BuildMerkleTreeAndMixinLength hashes each element in the list and then returns the HTR
+// of the corresponding list of roots. It then appends the length of the roots to the
+// end of the byteRoots and further hashes the result to return the final HTR.
+func BuildMerkleTreeAndMixinLength[T Hashable](elements []T, limit uint64) (tree.Root, error) {
+	roots, err := HashElements(elements)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return SafeMerkelizeVectorAndMixinLength(roots, limit)
+}
+
+// HashElements hashes each element in the list and then returns each item as a
+// tree.Root of height 1.
+// The following diagram illustrates the process of hashing elements into tree roots:
+//
+// [Element1] -> Hash -> [Root1]
+// [Element2] -> Hash -> [Root2]
+//       .          .        .
+//       .          .        .
+//       .          .        .
+// [ElementN] -> Hash -> [RootN]
+//
+// Where each Element is hashed individually to produce a corresponding Root.
+// This process is applied to all elements in the input list, resulting in a list of roots.
+
+func HashElements[T Hashable](elements []T) ([]tree.Root, error) {
+	roots := make([]tree.Root, len(elements))
+	var err error
+	for i, el := range elements {
+		roots[i], err = el.HashTreeRoot()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return roots, nil
+}
+
 // SafeMerkelizeVectorAndMixinLength takes a list of roots and returns the HTR
 // of the corresponding list of roots. It then appends the length of the roots to the
 // end of the byteRoots and further hashes the result to return the final HTR.
@@ -115,9 +201,7 @@ func SafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) (tree.Root, 
 
 	// Iterate over each level of depth in the tree.
 	for i := uint8(0); i < depth; i++ {
-		// If the leaf count is odd, append a zero hash to make it even.
-		// We have to calculate what the definition of "zero" is at this depth.
-		if len(roots)%2 == 1 {
+		if len(roots)%2 != 0 {
 			roots = append(roots, tree.ZeroHashes[i])
 		}
 		// Hash pairs of elements together to form a new level of the tree.

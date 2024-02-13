@@ -47,5 +47,5 @@ func (bz Bytes) HashTreeRoot() ([32]byte, error) {
 // ExecutionPayload.
 // TODO: create strong types and make put these functions on their receivers.
 func TransactionsRoot(txs []Bytes) ([32]byte, error) {
-	return sha256.MerkleizeVectorSSZAndMixinLength(txs, primitives.MaxTxsPerPayloadLength)
+	return sha256.BuildMerkleTreeAndMixinLength(txs, primitives.MaxTxsPerPayloadLength)
 }
