@@ -30,10 +30,10 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/engine"
+	capella "github.com/itsdevbear/bolaris/types/engine/v1/capella"
+	deneb "github.com/itsdevbear/bolaris/types/engine/v1/deneb"
 )
 
 // BuildPayloadAttributes builds payload attributes for a given state.
@@ -42,53 +42,33 @@ func BuildPayloadAttributes(
 	st state.BeaconState,
 	logger log.Logger,
 	prevRando []byte,
-	headRoot []byte,
-	t uint64,
-) interfaces.PayloadAttributer {
-	emptyAttri := payloadattribute.EmptyWithVersion(st.Version())
-	var attr interfaces.PayloadAttributer
-	switch st.Version() {
-	case version.Deneb:
-		withdrawals, err := st.ExpectedWithdrawals()
-		if err != nil {
-			logger.Error(
-				"Could not get expected withdrawals to get payload attribute", "error", err)
-			return emptyAttri
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV3{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: beaconConfig.Validator.SuggestedFeeRecipient[:],
-			Withdrawals:           withdrawals,
-			ParentBeaconBlockRoot: headRoot,
-		})
-		if err != nil {
-			logger.Error("Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	case version.Capella:
-		withdrawals, err := st.ExpectedWithdrawals()
-		if err != nil {
-			logger.Error(
-				"Could not get expected withdrawals to get payload attribute", "error", err)
-			return emptyAttri
-		}
-		attr, err = payloadattribute.New(&enginev1.PayloadAttributesV2{
-			Timestamp:             t,
-			PrevRandao:            prevRando,
-			SuggestedFeeRecipient: beaconConfig.Validator.SuggestedFeeRecipient[:],
-			Withdrawals:           withdrawals,
-		})
-		if err != nil {
-			logger.Error(
-				"Could not get payload attribute", "error", err)
-			return emptyAttri
-		}
-	default:
+	parentBeaconBlockRoot []byte,
+	timestamp uint64,
+) engine.PayloadAttributer {
+	// Since beacon-kit is always post capella we can assume calling ExpectedWithdrawals
+	// is valid.
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
 		logger.Error(
-			"Could not get payload attribute due to unknown state version", "version", st.Version())
-		return emptyAttri
+			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil
 	}
 
-	return attr
+	switch st.Version() {
+	case version.Deneb:
+		return deneb.NewWrappedPayloadAttributerV3(
+			timestamp, prevRando, beaconConfig.Validator.SuggestedFeeRecipient, withdrawals,
+			parentBeaconBlockRoot,
+		)
+	case version.Capella:
+		return capella.NewWrappedPayloadAttributerV2(
+			timestamp, prevRando, beaconConfig.Validator.SuggestedFeeRecipient, withdrawals,
+		)
+	default:
+		logger.Error(
+			"Could not get payload attribute due to unknown state version",
+			"version", st.Version(),
+		)
+	}
+	return nil
 }

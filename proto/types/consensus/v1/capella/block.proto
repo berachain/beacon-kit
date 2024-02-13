@@ -28,6 +28,7 @@ package types.consensus.v1.capella;
 
 import "ethereum/engine/v1/execution_engine.proto";
 import "ethereum/eth/ext/options.proto";
+import "types/consensus/v1/deposit.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1/capella";
 
@@ -53,6 +54,9 @@ message BeaconKitBlockBodyCapella {
   // is not used for anything other than a fun message.
   bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
 
+  // Deposits from the execution chain, at most MAX_DEPOSITS_PER_BLOCK.
+  repeated Deposit deposits = 3 [(ethereum.eth.ext.ssz_max) = "16"];
+
   // Execution payload from the execution chain. New in Bellatrix network upgrade.
-  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 3;
+  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
 }
