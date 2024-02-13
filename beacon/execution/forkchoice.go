@@ -31,7 +31,7 @@ import (
 
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
+	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -61,7 +61,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	}()
 
 	if fcuConfig.Attributes == nil {
-		fcuConfig.Attributes = payloadattribute.EmptyWithVersion(beaconState.Version())
+		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(beaconState.Version())
 	}
 
 	payloadIDBytes, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)

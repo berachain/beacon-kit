@@ -23,39 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package engine
 
 import (
-	"context"
+	"github.com/holiman/uint256"
+	"github.com/itsdevbear/bolaris/math"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	// TODO: @ocnc to remove this GPL3 dependency.
+	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 )
 
-// FinalizeBeaconBlock finalizes a beacon block by processing the logs, deposits,
-// and voluntary exits. It also updates the finalized and safe eth1 block hashes
-// on the beacon state.
-func (s *Service) FinalizeBeaconBlock(
-	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock,
-) error {
-	execution, err := blk.Execution()
-	if err != nil {
-		return err
-	}
-
-	state := s.BeaconState(ctx)
-
-	// Process logs, including deposits.
-	err = s.en.ProcessLogs(ctx, execution.GetBlockNumber())
-	// TODO: PROCESS DEPOSITS HERE
-	// state.AddDeposit(...)
-	// TODO: PROCESS VOLUNTARY EXITS HERE
-
-	eth1BlockHash := common.Hash(execution.GetBlockHash())
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
-	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetLastValidHead(eth1BlockHash)
-
-	return nil
+// PayloadValueToWei returns a Wei value given the payload's value.
+func PayloadValueToWei(value []byte) math.Wei {
+	// We have to convert big endian to little endian because the value is coming
+	// from the execution layer.
+	return uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
 }

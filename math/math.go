@@ -59,3 +59,8 @@ func WeiToGwei(v Wei) Gwei {
 	copied.Div(copied, uint256.NewInt(GweiPerEth))
 	return Gwei(copied.Uint64())
 }
+
+// ZeroWei returns a zero Wei.
+func ZeroWei() Wei {
+	return uint256.NewInt(0)
+}

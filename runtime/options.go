@@ -28,6 +28,7 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -63,6 +64,14 @@ func WithLogger(logger log.Logger) Option {
 func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
+		return nil
+	}
+}
+
+// WithEth1Client is an Option that sets the Eth1Client of the BeaconKitRuntime.
+func WithEth1Client(ethclient *eth.Eth1Client) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.ethclient = ethclient
 		return nil
 	}
 }
