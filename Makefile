@@ -174,8 +174,8 @@ start-besu:
 #     unit      #
 #################
 
-FUZZ_TIME=10s
-
+SHORT_FUZZ_TIME=10s
+LONG_FUZZ_TIME=30s
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 test-unit:
@@ -190,11 +190,12 @@ test-unit-cover:
 
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
-	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${FUZZ_TIME}
-	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${FUZZ_TIME}
-	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzVectorizedSha256 ./crypto/sha256/... -fuzztime=${LONG_FUZZ_TIME}
 
 #################
 #     forge     #
