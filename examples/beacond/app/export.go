@@ -200,7 +200,6 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 
 	// reset context height
 	ctx = ctx.WithBlockHeight(height)
-
 	/* Handle staking state. */
 
 	// iterate through redelegations, reset creation height

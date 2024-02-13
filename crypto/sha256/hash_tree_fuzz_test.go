@@ -26,6 +26,7 @@
 package sha256_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
@@ -34,18 +35,29 @@ import (
 
 func FuzzHashTreeRoot(f *testing.F) {
 	// Seed corpus with a variety of sizes, including edge cases
-	f.Add([]byte{})                                      // Test with empty slice
-	f.Add(make([]byte, 31))                              // Just below a single block size
-	f.Add(make([]byte, 32))                              // Exactly one block size
-	f.Add(make([]byte, 33))                              // Just above a single block size
-	f.Add(make([]byte, 64))                              // Multiple blocks
-	f.Add(make([]byte, 1024))                            // Larger input
-	f.Add(make([]byte, sha256.MinParallelizationSize-2)) // Just below MinParallelizationSize
-	f.Add(make([]byte, sha256.MinParallelizationSize))   // Exactly MinParallelizationSize
-	f.Add(make([]byte, sha256.MinParallelizationSize+2)) // Just above MinParallelizationSize
-	f.Add(make([]byte, 2*sha256.MinParallelizationSize)) // Double MinParallelizationSize
+	//
+	// Test with empty slice
+	f.Add([]byte{}, 1)
+	// Just below a single block size
+	f.Add(make([]byte, 31), runtime.GOMAXPROCS(0)-1)
+	// Exactly one block size
+	f.Add(make([]byte, 32), runtime.GOMAXPROCS(0)+1)
+	// Just above a single block size
+	f.Add(make([]byte, 33), runtime.GOMAXPROCS(0)*2)
+	// Multiple blocks
+	f.Add(make([]byte, 64), runtime.GOMAXPROCS(0)*4)
+	// Larger input
+	f.Add(make([]byte, 1024), 3)
+	// Just below MinParallelizationSize
+	f.Add(make([]byte, sha256.MinParallelizationSize-2), 300)
+	// Exactly MinParallelizationSize
+	f.Add(make([]byte, sha256.MinParallelizationSize), 1)
+	// Just above MinParallelizationSize
+	f.Add(make([]byte, sha256.MinParallelizationSize+2), 64)
+	// Double MinParallelizationSize
+	f.Add(make([]byte, 2*sha256.MinParallelizationSize), runtime.GOMAXPROCS(0)-1)
 
-	f.Fuzz(func(t *testing.T, original []byte) {
+	f.Fuzz(func(t *testing.T, original []byte, numRoutines int) {
 		// Convert []byte to [][32]byte as required by HashTreeRoot
 		var input []tree.Root
 		for i := 0; i < len(original); i += 32 {
@@ -60,6 +72,6 @@ func FuzzHashTreeRoot(f *testing.F) {
 			expectError = true
 		}
 
-		requireGoHashTreeEquivalence(t, input, expectError)
+		requireGoHashTreeEquivalence(t, input, numRoutines, expectError)
 	})
 }
