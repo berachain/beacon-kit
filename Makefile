@@ -314,7 +314,7 @@ pkgsite:
 #################
 slither:
 	docker run \
-	-it \
+	-t \
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
 	trailofbits/eth-security-toolbox \
