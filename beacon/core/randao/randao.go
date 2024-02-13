@@ -25,8 +25,6 @@
 
 package randao
 
-import "github.com/cometbft/cometbft/crypto"
-
 // This is the internal representation of the randao reveal
 // Although it is 32 bytes now, it can change
 // We use the same size as Ed25519 sig
@@ -36,6 +34,3 @@ type Reveal [32]byte
 // This is the external representation of the randao random number
 // We fix this to 32 bytes.
 type RandomValue [32]byte
-
-// TODO: use proper type once fleshed out
-type ValidatorPubKey crypto.PubKey
