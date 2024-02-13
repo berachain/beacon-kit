@@ -90,7 +90,7 @@ func VectorizedSha256(inputList [][32]byte) ([][32]byte, error) {
 	// among the goroutines might leave a remainder segment that is not exactly divisible by
 	// the number of goroutines spawned. This remainder segment is processed in the main goroutine
 	// to ensure all parts of the inputList are hashed.
-	remainderStartIndex := n * 2 * groupSize  //nolint:gomnd // 2 is the divisor.
+	remainderStartIndex := n * two * groupSize
 	if remainderStartIndex < len(inputList) { // Check if there's a remainder segment to process.
 		err := gohashtree.Hash(outputList[n*groupSize:], inputList[remainderStartIndex:])
 		if err != nil {
