@@ -30,9 +30,6 @@ import (
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
-
-	// We need to import this package to use the VectorizedSha256 function.
-	_ "github.com/minio/sha256-simd"
 )
 
 // SafeMerkelizeVectorAndMixinLength takes a list of roots and returns the HTR
