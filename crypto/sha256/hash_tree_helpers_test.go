@@ -31,15 +31,16 @@ import (
 	"testing"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output of
 // sha256.HashTreeRoot is equivalent to the output of gohashtree.Hash.
-func requireGoHashTreeEquivalence(t *testing.T, inputList [][32]byte) {
-	expectedOutput := make([][32]byte, len(inputList)/2)
-	var output [][32]byte
+func requireGoHashTreeEquivalence(t *testing.T, inputList []tree.Root, expectError bool) {
+	expectedOutput := make([]tree.Root, len(inputList)/2)
+	var output []tree.Root
 
 	var wg sync.WaitGroup
 	errChan := make(chan error, 2) // Buffer for 2 potential errors
@@ -58,7 +59,10 @@ func requireGoHashTreeEquivalence(t *testing.T, inputList [][32]byte) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := gohashtree.Hash(expectedOutput, inputList)
+		err := gohashtree.Hash(
+			sha256.ConvertTreeRootsToBytes(expectedOutput),
+			sha256.ConvertTreeRootsToBytes(inputList),
+		)
 		if err != nil {
 			errChan <- fmt.Errorf("gohashtree.Hash failed: %w", err)
 		}
@@ -69,7 +73,12 @@ func requireGoHashTreeEquivalence(t *testing.T, inputList [][32]byte) {
 
 	// Check if there were any errors
 	for err := range errChan {
-		require.NoError(t, err, "Error occurred during hashing")
+		if !expectError {
+			require.NoError(t, err, "Error occurred during hashing")
+		} else {
+			require.Error(t, err, "Expected error did not occur")
+			return
+		}
 	}
 
 	// Ensure the lengths are the same

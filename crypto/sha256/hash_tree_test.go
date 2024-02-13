@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/protolambda/ztyp/tree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,18 +42,18 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
 		t.Run(fmt.Sprintf("Size%d", size*sha256.MinParallelizationSize), func(t *testing.T) {
-			largeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
-			secondLargeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
+			largeSlice := make([]tree.Root, size*sha256.MinParallelizationSize)
+			secondLargeSlice := make([]tree.Root, size*sha256.MinParallelizationSize)
 			// Assuming hash reduces size by half
-			hash1 := make([][32]byte, size*sha256.MinParallelizationSize/2)
-			var hash2 [][32]byte
+			hash1 := make([]tree.Root, size*sha256.MinParallelizationSize/2)
+			var hash2 []tree.Root
 			var err error
 
 			wg := sync.WaitGroup{}
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				var tempHash [][32]byte
+				var tempHash []tree.Root
 				tempHash, err = sha256.HashTreeRoot(largeSlice)
 				copy(hash1, tempHash)
 			}()
@@ -74,22 +75,24 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	// Define a test table with various input sizes,
 	// including ones above and below MinParallelizationSize
 	testCases := []struct {
-		name string
-		size int
+		name    string
+		size    int
+		wantErr bool
 	}{
-		{"BelowMinParallelizationSize", sha256.MinParallelizationSize / 2},
-		{"AtMinParallelizationSize", sha256.MinParallelizationSize},
-		{"AboveMinParallelizationSize", sha256.MinParallelizationSize * 2},
-		{"SmallSize", 16},
-		{"MediumSize", 64},
-		{"LargeSize", 128},
-		{"TestRemainderStartIndexSmall", sha256.MinParallelizationSize + 6},
-		{"TestRemainderStartIndexBig", sha256.MinParallelizationSize - 2},
+		{"BelowMinParallelizationSize", sha256.MinParallelizationSize / 2, false},
+		{"AtMinParallelizationSize", sha256.MinParallelizationSize, false},
+		{"AboveMinParallelizationSize", sha256.MinParallelizationSize * 2, false},
+		{"SmallSize", 16, false},
+		{"MediumSize", 64, false},
+		{"LargeSize", 128, false},
+		{"TestRemainderStartIndexSmall", sha256.MinParallelizationSize + 6, false},
+		{"TestRemainderStartIndexBig", sha256.MinParallelizationSize - 2, false},
+		{"TestOddLength", sha256.MinParallelizationSize + 1, true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			inputList := make([][32]byte, tc.size)
+			inputList := make([]tree.Root, tc.size)
 			// Fill inputList with pseudo-random data
 			randSource := rand.NewSource(time.Now().UnixNano())
 			randGen := rand.New(randSource)
@@ -98,7 +101,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 					inputList[i][j] = byte(randGen.Intn(256))
 				}
 			}
-			requireGoHashTreeEquivalence(t, inputList)
+			requireGoHashTreeEquivalence(t, inputList, tc.wantErr)
 		})
 	}
 }
