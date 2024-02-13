@@ -37,10 +37,12 @@ type Hashable interface {
 }
 
 func convertTreeRootsToBytes(roots []tree.Root) [][32]byte {
+	//#nosec:G103 // This is a safe conversion.
 	return *(*[][32]byte)(unsafe.Pointer(&roots))
 }
 
 func convertBytesToTreeRoots(bytes [][32]byte) []tree.Root {
+	//#nosec:G103 // This is a safe conversion.
 	return *(*[]tree.Root)(unsafe.Pointer(&bytes))
 }
 

@@ -81,6 +81,7 @@ func (p *WrappedExecutionPayloadCapella) ToPayload() interfaces.ExecutionPayload
 
 // ToHeader produces an ExecutionPayloadHeader from the ExecutionPayloadCapella.
 func (p *WrappedExecutionPayloadCapella) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
+	//#nosec:G103 // This is a safe conversion, todo:cleanup.
 	transactionsRoot, err := ssz.TransactionsRoot(
 		*(*[]ssz.Bytes)(unsafe.Pointer(&p.Transactions)),
 	)
@@ -88,6 +89,7 @@ func (p *WrappedExecutionPayloadCapella) ToHeader() (interfaces.ExecutionPayload
 		return nil, err
 	}
 
+	//#nosec:G103 // This is a safe conversion, todo:cleanup.
 	withdrawalsRoot, err := ssz.WithdrawalsRoot(
 		*(*[]*ssz.Withdrawal)(unsafe.Pointer(&p.Withdrawals)), 16, //nolint:gomnd // TODO: bet.
 	)
