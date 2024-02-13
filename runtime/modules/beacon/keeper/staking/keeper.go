@@ -107,7 +107,7 @@ func (k Keeper) createValidator(ctx context.Context, validatorPK cryptotypes.Pub
 	stake := math.NewIntFromUint64(amount)
 	valConsAddr := sdk.GetConsAddress(validatorPK)
 	operator := sdk.ValAddress(valConsAddr).String()
-	val, err := stakingtypes.NewValidator(operator, validatorPK, stakingtypes.Description{Moniker: operator})
+	val, err := stakingtypes.NewValidator(operator, validatorPK, stakingtypes.Description{Moniker: validatorPK.String()})
 	val.Tokens = stake
 	val.DelegatorShares = math.LegacyNewDecFromInt(val.Tokens)
 	return val, err
