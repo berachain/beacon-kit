@@ -61,7 +61,7 @@ func NewKeeper(stakingKeeper stakingkeeper.Keeper, beaconCfg *config.Beacon) Kee
 }
 
 // AddDeposit queues a deposit to the staking module.
-func (k Keeper) AddDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
+func (k Keeper) AddDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
 	k.deposits = append(k.deposits, deposit)
 	return nil
 }
@@ -69,13 +69,14 @@ func (k Keeper) AddDeposit(ctx context.Context, deposit *consensusv1.Deposit) er
 // processDeposit processes a single deposit and delegates the tokens to the validator.
 func (k Keeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
 	validatorPK := &ed25519.PubKey{}
-	err := validatorPK.Unmarshal(deposit.Data.GetPubkey())
+	depositData := deposit.GetData()
+	err := validatorPK.Unmarshal(depositData.GetPubkey())
 	if err != nil {
 		return err
 	}
 	valConsAddr := sdk.GetConsAddress(validatorPK)
 	validator, err := k.stakingKeeper.GetValidator(ctx, sdk.ValAddress(valConsAddr))
-	amount := deposit.Data.GetAmount()
+	amount := depositData.GetAmount()
 	if err != nil {
 		if errors.Is(err, stakingtypes.ErrNoValidatorFound) {
 			_, err = k.createValidator(ctx, validatorPK, amount)
