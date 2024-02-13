@@ -36,7 +36,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_VectorizedSha256EqualInputs(t *testing.T) {
+func Test_HashTreeRootEqualInputs(t *testing.T) {
 	// Test with slices of varying sizes to ensure robustness across different conditions
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
@@ -53,13 +53,13 @@ func Test_VectorizedSha256EqualInputs(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				var tempHash [][32]byte
-				tempHash, err = sha256.VectorizedSha256(largeSlice)
+				tempHash, err = sha256.HashTreeRoot(largeSlice)
 				copy(hash1, tempHash)
 			}()
 			wg.Wait()
 			require.NoError(t, err)
 
-			hash2, err = sha256.VectorizedSha256(secondLargeSlice)
+			hash2, err = sha256.HashTreeRoot(secondLargeSlice)
 			require.NoError(t, err)
 
 			require.Equal(t, len(hash1), len(hash2), "Hash lengths should be equal")

@@ -36,7 +36,7 @@ import (
 )
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output of
-// sha256.VectorizedSha256 is equivalent to the output of gohashtree.Hash.
+// sha256.HashTreeRoot is equivalent to the output of gohashtree.Hash.
 func requireGoHashTreeEquivalence(t *testing.T, inputList [][32]byte) {
 	expectedOutput := make([][32]byte, len(inputList)/2)
 	var output [][32]byte
@@ -48,9 +48,9 @@ func requireGoHashTreeEquivalence(t *testing.T, inputList [][32]byte) {
 	go func() {
 		defer wg.Done()
 		var err error
-		output, err = sha256.VectorizedSha256(inputList)
+		output, err = sha256.HashTreeRoot(inputList)
 		if err != nil {
-			errChan <- fmt.Errorf("VectorizedSha256 failed: %w", err)
+			errChan <- fmt.Errorf("HashTreeRoot failed: %w", err)
 			return
 		}
 	}()
