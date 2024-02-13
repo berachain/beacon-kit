@@ -35,16 +35,27 @@ import (
 
 func FuzzHashTreeRoot(f *testing.F) {
 	// Seed corpus with a variety of sizes, including edge cases
-	f.Add([]byte{}, 1)                                                            // Test with empty slice
-	f.Add(make([]byte, 31), runtime.GOMAXPROCS(0)-1)                              // Just below a single block size
-	f.Add(make([]byte, 32), runtime.GOMAXPROCS(0)+1)                              // Exactly one block size
-	f.Add(make([]byte, 33), runtime.GOMAXPROCS(0)*2)                              // Just above a single block size
-	f.Add(make([]byte, 64), runtime.GOMAXPROCS(0)*4)                              // Multiple blocks
-	f.Add(make([]byte, 1024), 3)                                                  // Larger input
-	f.Add(make([]byte, sha256.MinParallelizationSize-2), 300)                     // Just below MinParallelizationSize
-	f.Add(make([]byte, sha256.MinParallelizationSize), 1)                         // Exactly MinParallelizationSize
-	f.Add(make([]byte, sha256.MinParallelizationSize+2), 64)                      // Just above MinParallelizationSize
-	f.Add(make([]byte, 2*sha256.MinParallelizationSize), runtime.GOMAXPROCS(0)-1) // Double MinParallelizationSize
+	//
+	// Test with empty slice
+	f.Add([]byte{}, 1)
+	// Just below a single block size
+	f.Add(make([]byte, 31), runtime.GOMAXPROCS(0)-1)
+	// Exactly one block size
+	f.Add(make([]byte, 32), runtime.GOMAXPROCS(0)+1)
+	// Just above a single block size
+	f.Add(make([]byte, 33), runtime.GOMAXPROCS(0)*2)
+	// Multiple blocks
+	f.Add(make([]byte, 64), runtime.GOMAXPROCS(0)*4)
+	// Larger input
+	f.Add(make([]byte, 1024), 3)
+	// Just below MinParallelizationSize
+	f.Add(make([]byte, sha256.MinParallelizationSize-2), 300)
+	// Exactly MinParallelizationSize
+	f.Add(make([]byte, sha256.MinParallelizationSize), 1)
+	// Just above MinParallelizationSize
+	f.Add(make([]byte, sha256.MinParallelizationSize+2), 64)
+	// Double MinParallelizationSize
+	f.Add(make([]byte, 2*sha256.MinParallelizationSize), runtime.GOMAXPROCS(0)-1)
 
 	f.Fuzz(func(t *testing.T, original []byte, numRoutines int) {
 		// Convert []byte to [][32]byte as required by HashTreeRoot
