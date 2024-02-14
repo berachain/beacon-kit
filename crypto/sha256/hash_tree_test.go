@@ -28,6 +28,7 @@ package sha256_test
 import (
 	"fmt"
 	"math/rand"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -101,7 +102,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 					inputList[i][j] = byte(randGen.Intn(256))
 				}
 			}
-			requireGoHashTreeEquivalence(t, inputList, tc.wantErr)
+			requireGoHashTreeEquivalence(t, inputList, runtime.GOMAXPROCS(0)-1, tc.wantErr)
 		})
 	}
 }
