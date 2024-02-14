@@ -26,7 +26,7 @@
 package sha256
 
 import (
-	"github.com/minio/sha256-simd"
+	sha256 "github.com/minio/sha256-simd"
 )
 
 // This hashing library provides multiple ways to utilize the Hash function:
