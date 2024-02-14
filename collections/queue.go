@@ -44,7 +44,7 @@ func NewQueue[V any](
 	prefix sdk.Prefix, name string,
 	valueCodec codec.ValueCodec[V]) Queue[V] {
 	return Queue[V]{
-		container: sdk.NewMap[uint64, V](schema, prefix, name+"_container", sdk.Uint64Key, valueCodec),
+		container: sdk.NewMap[uint64, V](schema, prefix, name+"_queue", sdk.Uint64Key, valueCodec),
 		startIdx:  0,
 		endIdx:    0,
 	}
