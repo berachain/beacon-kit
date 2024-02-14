@@ -30,7 +30,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const ModuleName = "evm"
+const ModuleName = "beacon"
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
