@@ -26,8 +26,6 @@
 package sha256
 
 import (
-	"errors"
-
 	"github.com/protolambda/ztyp/tree"
 )
 
@@ -49,12 +47,12 @@ import (
 //	         [ Root ]  The root hash of the Merkle tree
 //
 // BuildMerkleRoot constructs a Hash Tree Root (HTR) from a list of elements.
-func BuildMerkleRoot[T Hashable](elements []T, limit uint64) ([32]byte, error) {
+func BuildMerkleRoot[T Hashable](elements []T, maxRootsAllowed uint64) ([32]byte, error) {
 	roots, err := HashElements(elements)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return SafeMerkleizeVector(roots, limit)
+	return SafeMerkleizeVector(roots, maxRootsAllowed)
 }
 
 // We can visualize the process of building a Merkle tree and mixing in the length as follows:
@@ -83,12 +81,14 @@ func BuildMerkleRoot[T Hashable](elements []T, limit uint64) ([32]byte, error) {
 // BuildMerkleRootAndMixinLength hashes each element in the list and then returns the HTR
 // of the corresponding list of roots. It then appends the length of the roots to the
 // end of the byteRoots and further hashes the result to return the final HTR.
-func BuildMerkleRootAndMixinLength[T Hashable](elements []T, limit uint64) ([32]byte, error) {
+func BuildMerkleRootAndMixinLength[T Hashable](
+	elements []T, maxRootsAllowed uint64,
+) ([32]byte, error) {
 	roots, err := HashElements(elements)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return SafeMerkelizeVectorAndMixinLength(roots, limit)
+	return SafeMerkelizeVectorAndMixinLength(roots, maxRootsAllowed)
 }
 
 // HashElements hashes each element in the list and then returns each item as a
@@ -121,8 +121,6 @@ func HashElements[H Hashable](elements []H) ([][32]byte, error) {
 // SafeMerkelizeVectorAndMixinLength takes a list of roots and returns the HTR
 // of the corresponding list of roots. It then appends the length of the roots to the
 // end of the byteRoots and further hashes the result to return the final HTR.
-// The 'limit' parameter specifies the maximum allowed number of roots in the list,
-// ensuring the list does not exceed this size.
 func SafeMerkelizeVectorAndMixinLength(
 	roots [][32]byte, maxRootsAllowed uint64,
 ) ([32]byte, error) {
@@ -157,7 +155,7 @@ func UnsafeMerkleizeVectorAndMixinLength(roots [][32]byte, maxRootsAllowed uint6
 func UnsafeMerkleizeVector(roots [][32]byte, maxRootsAllowed uint64) [32]byte {
 	root, err := SafeMerkleizeVector(roots, maxRootsAllowed)
 	if err != nil {
-		return [32]byte{}
+		panic(err)
 	}
 	return root
 }
@@ -193,7 +191,7 @@ func SafeMerkleizeVector(roots [][32]byte, maxRootsAllowed uint64) ([32]byte, er
 
 	// If the number of elements in the list exceeds the maximum allowed, return an error.
 	if uint64(len(roots)) > maxRootsAllowed {
-		return [32]byte{}, errors.New("merkleizing list exceeds the maximum allowed number of elements")
+		return [32]byte{}, ErrMaxRootsExceeded
 	}
 
 	// Determine the max possible depth of the tree given maxRootsAllowed.
