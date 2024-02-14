@@ -91,33 +91,6 @@ func BuildMerkleRootAndMixinLength[T Hashable](
 	return SafeMerkelizeVectorAndMixinLength(roots, maxRootsAllowed)
 }
 
-// HashElements hashes each element in the list and then returns each item as a
-// [32]byte of height 1.
-// The following diagram illustrates the process of hashing elements into tree roots:
-//
-// [Element1] -> Hash -> [Root1]
-// [Element2] -> Hash -> [Root2]
-//
-//	.          .        .
-//	.          .        .
-//	.          .        .
-//
-// [ElementN] -> Hash -> [RootN]
-//
-// Where each Element is hashed individually to produce a corresponding Root.
-// This process is applied to all elements in the input list, resulting in a list of roots.
-func HashElements[H Hashable](elements []H) ([][32]byte, error) {
-	roots := make([][32]byte, len(elements))
-	var err error
-	for i, el := range elements {
-		roots[i], err = el.HashTreeRoot()
-		if err != nil {
-			return nil, err
-		}
-	}
-	return roots, nil
-}
-
 // SafeMerkelizeVectorAndMixinLength takes a list of roots and returns the HTR
 // of the corresponding list of roots. It then appends the length of the roots to the
 // end of the byteRoots and further hashes the result to return the final HTR.
