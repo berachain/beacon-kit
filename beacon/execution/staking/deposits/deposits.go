@@ -37,6 +37,7 @@ type DepositHandler struct{}
 var _ callback.LogHandler = &DepositHandler{}
 
 // HandleLog processes the logs from the Eth1 deposit contract.
-func (h *DepositHandler) HandleLog(_ context.Context, log *evmv1.Log) error {
+func (h *DepositHandler) HandleLog(_ context.Context, _ *evmv1.Log) error {
+	// TODO: Parse the log and add the deposit to the staking module.
 	return nil
 }

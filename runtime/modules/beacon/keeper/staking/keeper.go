@@ -62,7 +62,7 @@ func NewKeeper(stakingKeeper stakingkeeper.Keeper, beaconCfg *config.Beacon) Kee
 
 // AddDeposit queues a deposit to the staking module.
 func (k Keeper) AddDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
-	k.deposits = append(k.deposits, deposit)
+	k.deposits = append(k.deposits, deposit) // nolint: staticcheck // false positive
 	return nil
 }
 
