@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -30,11 +30,11 @@ import (
 	"errors"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
+	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	enginetypes "github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -44,15 +44,8 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-
-	// Forkchoice Related Fields
-	//
-	// bsp is the fork choice store provider.
-	bsp BeaconStateProvider
 	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.PayloadIDCache
-
-	stopCh chan *struct{}
 }
 
 // New creates a new Service with the provided options.
@@ -61,9 +54,7 @@ func New(
 	opts ...Option,
 ) *Service {
 	ec := &Service{
-		BaseService:  base,
-		payloadCache: cache.NewPayloadIDCache(),
-		stopCh:       make(chan *struct{}),
+		BaseService: base,
 	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
@@ -75,21 +66,11 @@ func New(
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {
-	// go s.loop()
-}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.Logger().Info("stopping service...")
-	// <-s.stopCh
-	return nil
-}
+func (s *Service) Start(context.Context) {}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
-	if !s.engine.ConnectedETH1() {
+	if !s.engine.IsConnected() {
 		return ErrExecutionClientDisconnected
 	}
 	return nil
@@ -103,9 +84,11 @@ func (s *Service) NotifyForkchoiceUpdate(
 	var err error
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
-	})
+	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+		_, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
+	}); e != nil {
+		return e
+	}
 
 	return err
 }
@@ -113,8 +96,8 @@ func (s *Service) NotifyForkchoiceUpdate(
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetBuiltPayload(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
-) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.PayloadID(
+) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+	payloadID, found := s.payloadCache.Get(
 		slot, headHash,
 	)
 	if !found {
@@ -127,7 +110,7 @@ func (s *Service) GetBuiltPayload(
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-	preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+	preStateHeader enginetypes.ExecutionPayload, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
 ) (bool, error) {
 	// var lastValidHash []byte
 	// if blk.Version() >= version.Deneb {

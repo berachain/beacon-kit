@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -31,4 +31,15 @@ var (
 	// ErrNoBeaconBlockInProposal is an error for when
 	// there is no beacon block in a proposal.
 	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
+
+	// ErrValidatorClientNotSynced is an error for when a
+	// validator tries to propose a block with an out of sync
+	// execution client.
+	ErrValidatorClientNotSynced = errors.New(`your validator tried to propose a 
+block with an out of sync execution client, did you forget to reset your execution client?`)
+
+	// ErrClientNotSynced is an error for when a node tries to process
+	// a block with an out of sync execution client.
+	ErrClientNotSynced = errors.New(`your node tried to process a block with an 
+out of sync execution client, did you forget to reset your execution client?`)
 )

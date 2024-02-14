@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ func NewSingleDispatchQueue() *SingleDispatchQueue {
 }
 
 // Async adds a work item to the queue to be executed asynchronously.
-func (q *SingleDispatchQueue) Async(item WorkItem) {
+func (q *SingleDispatchQueue) Async(item WorkItem) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -59,4 +59,5 @@ func (q *SingleDispatchQueue) Async(item WorkItem) {
 	// Push the new item.
 	q.wg.Add(1)
 	q.queue <- item
+	return nil
 }

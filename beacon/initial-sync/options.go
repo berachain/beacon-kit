@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -32,15 +32,6 @@ type Option func(*Service) error
 func WithEthClient(ethClient ethClient) Option {
 	return func(s *Service) error {
 		s.ethClient = ethClient
-		return nil
-	}
-}
-
-// WithBeaconStateProvider is an Option that sets the BeaconStateProvider
-// of the Service.
-func WithBeaconStateProvider(bsp BeaconStateProvider) Option {
-	return func(r *Service) error {
-		r.bsp = bsp
 		return nil
 	}
 }

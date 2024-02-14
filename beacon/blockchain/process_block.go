@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -31,7 +31,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // postBlockProcess(.
@@ -43,15 +44,31 @@ func (s *Service) postBlockProcess(
 		return ErrInvalidPayload
 	}
 
+	executionPayload, err := block.Execution()
+	if err != nil {
+		return err
+	}
+
 	// We notify the execution client of the new block, and wait for it to return
 	// a payload ID. If the payload ID is nil, we return an error. One thing to notice here however
 	// is that we pass in `slot+1` to the execution client. We do this so that we can begin building
 	// the next block in the background while we are finalizing this block.
 	// We are okay pushing this asynchonous work to the execution client, as it is designed for it.
+	//
+	// TODO: we should probably just have a validator job in the background that is
+	// constantly building new payloads and then not worry about anything here triggering
+	// payload builds.
+	var attrs engine.PayloadAttributer
+	if s.BeaconCfg().Validator.PrepareAllPayloads {
+		attrs = s.getPayloadAttribute(ctx)
+	} else {
+		attrs = engine.EmptyPayloadAttributesWithVersion(s.BeaconState(ctx).Version())
+	}
+
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:  common.Hash(block.ExecutionData().BlockHash()),
+			HeadEth1Hash:  common.Hash(executionPayload.GetBlockHash()),
 			ProposingSlot: block.GetSlot() + 1,
-			Attributes:    s.getPayloadAttribute(ctx),
+			Attributes:    attrs,
 		})
 }

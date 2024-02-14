@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -103,7 +103,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 func checkAuthFileIntegrity(t testing.TB, fPath string) {
 	fileInfo, err := os.Stat(fPath)
 	require.NoError(t, err)
-	require.NotEqual(t, nil, fileInfo)
+	require.NotNil(t, fileInfo)
 
 	enc, err := os.ReadFile(fPath) // Updated to use os.ReadFile directly
 	require.NoError(t, err)

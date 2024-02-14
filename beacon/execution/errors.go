@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -28,5 +28,7 @@ package execution
 import "errors"
 
 var (
-	ErrExecutionClientDisconnected = errors.New("execution client disconnected")
+	ErrExecutionClientDisconnected  = errors.New("execution client disconnected")
+	ErrAcceptedSyncingPayloadStatus = errors.New("payload status is SYNCING or ACCEPTED")
+	ErrInvalidPayloadStatus         = errors.New("payload status is INVALID")
 )

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package app
 
 import (
-	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -60,8 +60,8 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
-	beaconkeeper "github.com/itsdevbear/bolaris/cosmos/x/beacon/keeper"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
+	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	"github.com/itsdevbear/bolaris/types/cosmos"
 )
 
@@ -75,12 +75,13 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
 }
 
-// DefaultNodeHome default home directories for the application daemon.
-var DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
+const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TERMS_OF_SERVICE.md"
 
 var (
 	_ runtime.AppI            = (*BeaconApp)(nil)
 	_ servertypes.Application = (*BeaconApp)(nil)
+	// DefaultNodeHome default home directories for the application daemon.
+	DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
 )
 
 // BeaconApp extends an ABCI application, but with most of its parameters exported.
@@ -106,7 +107,7 @@ type BeaconApp struct {
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
-	// polaris required keeper
+	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
 	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
 }
@@ -169,7 +170,7 @@ func NewBeaconKitApp(
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		context.Background(), bkCfg, app.BeaconKeeper, app.Logger(),
+		bkCfg, app.BeaconKeeper, app.Logger(),
 	); err != nil {
 		panic(err)
 	}
@@ -193,12 +194,6 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	// Initial check for execution client sync.
-	if err = app.BeaconKitRunner.InitialSyncCheck(
-		cosmos.NewEmptyContextWithMS(context.TODO(), app.CommitMultiStore()),
-	); err != nil {
-		panic(err)
-	}
 	return app
 }
 
@@ -232,6 +227,7 @@ func (app *BeaconApp) SimulationManager() *module.SimulationManager {
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+	ctx := apiSvr.ClientCtx.CmdContext
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(
@@ -239,16 +235,18 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	); err != nil {
 		panic(err)
 	}
-}
 
-// RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (app *BeaconApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
-	app.App.RegisterNodeService(clientCtx, cfg)
-	app.BeaconKitRunner.StartServices()
-}
+	v, ok := ctx.Value(server.ServerContextKey).(*server.Context)
+	if !ok {
+		panic(fmt.Errorf("unexpected server context type: %T", v))
+	}
+	app.BeaconKitRunner.SetCometCfg(v.Config)
+	app.BeaconKitRunner.StartServices(ctx)
 
-// Close shuts down the application.
-func (app *BeaconApp) Close() error {
-	app.BeaconKitRunner.StopServices()
-	return app.BaseApp.Close()
+	// Initial check for execution client sync.
+	if err := app.BeaconKitRunner.InitialSyncCheck(
+		cosmos.NewEmptyContextWithMS(ctx, app.CommitMultiStore()),
+	); err != nil {
+		panic(err)
+	}
 }

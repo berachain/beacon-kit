@@ -18,20 +18,17 @@ build-linux-amd64:
 build-linux-arm64:
 	GOOS=linux GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
 
-$(BUILD_TARGETS): forge-build sync $(OUT_DIR)/
+$(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
 	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
 
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
 
-build-clean: 
-	@$(MAKE) clean build
-
 clean:
 	@rm -rf .tmp/ 
 	@rm -rf $(OUT_DIR)
-	@$(MAKE) forge-clean
+	@$(MAKE) sszgen-clean proto-clean forge-clean
 
 #################
 #     forge     #
@@ -42,20 +39,6 @@ forge-build: |
 
 forge-clean: |
 	@forge clean --root $(CONTRACTS_DIR)
-
-
-#################
-#     proto     #
-#################
-
-protoImageName    := "ghcr.io/cosmos/proto-builder"
-protoImageVersion := "0.14.0"
-
-proto:
-	@$(MAKE) buf-lint-fix buf-lint proto-build
-
-proto-build:
-	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
 
 
 ###############################################################################
@@ -179,29 +162,51 @@ start-besu:
 	--engine-jwt-secret=../../${JWT_PATH}
 
 
+###############################################################################
+###                                Testing                                  ###
+###############################################################################
+
 
 #################
 #     unit      #
 #################
 
+SHORT_FUZZ_TIME=15s
+MEDIUM_FUZZ_TIME=45s
+LONG_FUZZ_TIME=3m
 
+test:
+	@$(MAKE) test-unit test-forge-fuzz
 test-unit:
-	@$(MAKE) forge-test
+	@$(MAKE)
 	@echo "Running unit tests..."
 	go test ./...
 
 test-unit-cover:
-	@$(MAKE) forge-test
+	@$(MAKE)
 	@echo "Running unit tests with coverage..."
-	go test -race -coverprofile=coverage-test-unit-cover.txt -covermode=atomic ./...
+	go test -race -coverprofile=test-unit-cover.txt -covermode=atomic ./...
+
+test-unit-fuzz:
+	@echo "Running fuzz tests with coverage..."
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 
 #################
 #     forge     #
 #################
 
-forge-test:
-	@echo "Running forge test..."
-	@forge test --root $(CONTRACTS_DIR)
+test-forge-cover:
+	@echo "Running forge test with coverage..."
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file ../test-forge-cover.txt
+
+test-forge-fuzz:
+	@echo "Running forge fuzz tests..."
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test --mt testFuzz
 
 #################
 #      e2e      #
@@ -212,6 +217,7 @@ test-e2e:
 
 test-e2e-no-build:
 	@echo "Running e2e tests..."
+
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -239,11 +245,9 @@ forge-lint:
 # golangci-lint #
 #################
 
-golangci_version=v1.55.2
-
 golangci-install:
-	@echo "--> Installing golangci-lint $(golangci_version)"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
+	@echo "--> Installing golangci-lint"
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 golangci:
 	@$(MAKE) golangci-install
@@ -285,20 +289,59 @@ license-fix:
 
 gosec-install:
 	@echo "--> Installing gosec"
-	@go install github.com/cosmos/gosec/v2/cmd/gosec
+	@go install github.com/cosmos/gosec/v2/cmd/gosec 
 
 gosec:
 	@$(MAKE) gosec-install
 	@echo "--> Running gosec"
-	@gosec ./...
+	@gosec -exclude G702 ./...
+
+
+#################
+#     pkgsite     #
+#################
+
+pkgsite-install:
+	@echo "--> Installing pkgsite"
+	@go install golang.org/x/pkgsite/cmd/pkgsite
+pkgsite:
+	@$(MAKE) pkgsite-install
+	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
+	@pkgsite -http=:6060
+
+#################
+#    slither    #
+#################
+
+slither:
+	docker run \
+	-t \
+	--platform linux/amd64 \
+	-v ./contracts:/contracts \
+	trailofbits/eth-security-toolbox \
+	slither /contracts/src --config-file /contracts/slither.config.json
 
 
 #################
 #     proto     #
 #################
 
-protoDir := "proto"
 
+protoImageName    := "ghcr.io/cosmos/proto-builder"
+protoImageVersion := "0.14.0"
+modulesProtoDir := "proto"
+
+proto:
+	@$(MAKE) buf-lint-fix buf-lint proto-build
+
+proto-build:
+	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
+	@./build/scripts/prysm_ssz_replacements.sh
+
+proto-clean:
+	@find . -name '*.pb.go' -delete
+	@find . -name '*.pb.gw.go' -delete
+	
 buf-install:
 	@echo "--> Installing buf"
 	@go install github.com/bufbuild/buf/cmd/buf
@@ -306,13 +349,12 @@ buf-install:
 buf-lint-fix:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf format"
-	@buf format -w --error-format=json $(protoDir)
+	@buf format -w --error-format=json $(modulesProtoDir)
 
 buf-lint:
 	@$(MAKE) buf-install 
 	@echo "--> Running buf lint"
-	@buf lint --error-format=json $(protoDir)
-
+	@buf lint --error-format=json $(modulesProtoDir)
 
 #################
 #    sszgen    #
@@ -322,14 +364,19 @@ sszgen-install:
 	@echo "--> Installing sszgen"
 	@go install github.com/prysmaticlabs/fastssz/sszgen
 
-
-SSZ_STRUCTS=BeaconBlockData
+sszgen-clean:
+	@find . -name '*.pb_encoding.go' -delete
 
 sszgen:
-	@$(MAKE) sszgen-install
+	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1/ -objs ${SSZ_STRUCTS}
-###############################################################################
+	@sszgen -path ./types/consensus/v1/capella -objs BeaconKitBlockCapella \
+    --include ./types/consensus/primitives,./types/consensus/v1,\
+	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
+	@sszgen -path ./types/consensus/v1 -objs Deposit \
+    --include $(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
+
+##############################################################################
 ###                             Dependencies                                ###
 ###############################################################################
 
@@ -344,10 +391,10 @@ repo-rinse: |
 
 
 .PHONY: build build-linux-amd64 build-linux-arm64 \
-	$(BUILD_TARGETS) $(OUT_DIR)/ build-clean clean \
+	$(BUILD_TARGETS) clean \
 	forge-build forge-clean proto proto-build docker-build generate \
 	abigen-install mockery-install mockery \
-	start test-unit test-unit-race test-unit-cover forge-test \
+	start test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
 	test-hive-v test-localnet test-localnet-no-build format lint \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \

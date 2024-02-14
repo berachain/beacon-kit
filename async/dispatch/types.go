@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -34,11 +34,12 @@ import (
 // Queue represents a queue of work items to be executed. It's interface is inspired by
 // Apple's Grand Central Dispatch (GCD) API.
 // https://developer.apple.com/documentation/dispatch/dispatchqueue
+// TODO: use error groups
 type Queue interface {
-	Async(queue.WorkItem)
-	AsyncAfter(time.Duration, queue.WorkItem)
-	Sync(queue.WorkItem)
-	AsyncAndWait(queue.WorkItem)
+	Async(queue.WorkItem) error
+	AsyncAfter(time.Duration, queue.WorkItem) error
+	Sync(queue.WorkItem) error
+	AsyncAndWait(queue.WorkItem) error
 }
 
 // Event represents actions that occur during consensus. Listeners can

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,40 +26,49 @@
 package proposal
 
 import (
+	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/blocks"
+	"github.com/itsdevbear/bolaris/validator"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg             *config.Proposal
+	cfg             *config.ABCI
+	validator       *validator.Service
 	beaconChain     *blockchain.Service
+	syncService     *initialsync.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 }
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
-	cfg *config.Proposal,
+	cfg *config.ABCI,
+	validator *validator.Service,
+	syncService *initialsync.Service,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
 		cfg:             cfg,
+		validator:       validator,
+		syncService:     syncService,
+		beaconChain:     beaconChain,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
-		beaconChain:     beaconChain,
 	}
 }
 
@@ -71,10 +80,15 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// We start by requesting a block from the execution client. This may be from pulling
-	// a previously built payload from the local cache via `getPayload()` or it may be
+	// TODO: Make this more sophisticated.
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == initialsync.StatusExecutionAhead {
+		return nil, fmt.Errorf("err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status)
+	}
+
+	// We start by requesting the validator service to build us a block. This may
+	// be from pulling a previously built payload from the local cache or it may be
 	// by asking for a forkchoice from the execution client, depending on timing.
-	block, err := h.beaconChain.GetOrBuildBlock(
+	block, err := h.validator.BuildBeaconBlock(
 		ctx, primitives.Slot(req.Height),
 	)
 
@@ -84,7 +98,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Marshal the block into bytes.
-	bz, err := block.Marshal()
+	bz, err := block.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
@@ -108,9 +122,19 @@ func (h *Handler) ProcessProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
-	// Extract the beacon kit block from the proposal and unmarshal it.
-	block, err := consensusv1.ReadOnlyBeaconKitBlockFromABCIRequest(
-		req, h.cfg.BeaconKitBlockPosition,
+	// TODO: Make this more sophisticated.
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status != initialsync.StatusSynced {
+		return nil, fmt.Errorf("err: %w, status: %d", ErrClientNotSynced, bsp.Status)
+	}
+
+	// Extract the beacon block from the ABCI request.
+	//
+	// TODO: I don't love how we have to use the BeaconConfig here.
+	// TODO: Block factory struct?
+	// TODO: Use protobuf and .(type)?
+	block, err := blocks.ReadOnlyBeaconKitBlockFromABCIRequest(
+		req, h.cfg.BeaconBlockPosition,
+		h.beaconChain.BeaconCfg().ActiveForkVersion(primitives.Epoch(req.Height)),
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
@@ -136,7 +160,7 @@ func (h *Handler) ProcessProposalHandler(
 func (h *Handler) RemoveBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
 ) *abci.RequestProcessProposal {
-	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconKitBlockPosition)
+	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconBlockPosition)
 	return req
 }
 

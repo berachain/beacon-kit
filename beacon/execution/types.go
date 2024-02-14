@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -29,9 +29,9 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/state"
-	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
@@ -53,5 +53,5 @@ type FCUConfig struct {
 	// Attributes is a list of payload attributes to include in a forkchoice update
 	// to the execution client. It is used to signal to the execution client that
 	// it should build a payload.
-	Attributes payloadattribute.Attributer
+	Attributes engine.PayloadAttributer
 }

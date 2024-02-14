@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package dispatch
 
 import (
-	"fmt"
 	"sync"
 
 	"cosmossdk.io/log"
@@ -38,7 +37,10 @@ const (
 	GlobalQueueID = "global"
 
 	// DefaultQueueSize is the default size of a queue.
-	DefaultQueueSize = 64 // todo: make this configurable.
+	DefaultQueueSize = uint16(64) // todo: make this configurable.
+
+	// DefaultConcurrentQueueWorkerCount is the default size of a concurrent queue.
+	DefaultConcurrentQueueWorkerCount = uint16(64) // todo: make this configurable.
 )
 
 // QueueType represents the type of a queue.
@@ -96,7 +98,7 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	// Check to make sure the queue doesn't already exist.
 	_, found := gcd.queues[id]
 	if found {
-		panic(fmt.Sprintf("queue already exists: %s", id))
+		panic("queue already exists: " + id)
 	}
 
 	var queue Queue
@@ -106,8 +108,7 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	case QueueTypeSerial:
 		queue = dqueue.NewDispatchQueue(1, DefaultQueueSize)
 	case QueueTypeConcur:
-		//nolint:gomnd // todo: make this configurable.
-		queue = dqueue.NewDispatchQueue(64, DefaultQueueSize)
+		queue = dqueue.NewDispatchQueue(DefaultConcurrentQueueWorkerCount, DefaultQueueSize)
 	default:
 		panic("unknown queue type")
 	}

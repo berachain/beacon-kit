@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -30,19 +30,18 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/execution"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) error {
+) (*enginev1.PayloadIDBytes, error) {
 	var (
-		payloadID   *primitives.PayloadID
+		payloadID   *enginev1.PayloadIDBytes
 		err         error
-		beaconState = s.bsp.BeaconState(ctx)
+		beaconState = s.BeaconState(ctx)
 		fc          = &enginev1.ForkchoiceState{
 			HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
 			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
@@ -54,19 +53,28 @@ func (s *Service) notifyForkchoiceUpdate(
 	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
 		switch err { //nolint:errorlint // okay for now.
-		case execution.ErrAcceptedSyncingPayloadStatus:
-			return nil
-		case execution.ErrInvalidPayloadStatus:
+		case eth.ErrAcceptedSyncingPayloadStatus:
+			s.Logger().Info("forkchoice updated with optimistic block",
+				"head_eth1_hash", fcuConfig.HeadEth1Hash,
+				"proposing_slot", fcuConfig.ProposingSlot,
+			)
+			return payloadID, nil
+		case eth.ErrInvalidPayloadStatus:
 			s.Logger().Error("invalid payload status", "error", err)
-			// In Prysm, this code recursively calls back until we find a valid hash we can
-			// insert. In BeaconKit, we don't have the nice ability to do this, *but* in
-			// theory we should never need it, since we have single block finality thanks
-			// to CometBFT. Essentially, if we get an invalid payload status here, something
-			// higher up must've gone wrong and thus we don't really need the retry here.
-			return errors.New("invalid payload")
+
+			// Attempt to get the chain back into a valid state.
+			payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
+				HeadEth1Hash:  beaconState.GetLastValidHead(),
+				ProposingSlot: fcuConfig.ProposingSlot,
+				Attributes:    fcuConfig.Attributes,
+			})
+			if err != nil {
+				return nil, err // Returning err because it's recursive here.
+			}
+			return payloadID, errors.New("BAD BLOCK REEEEEE RIP WALRUS")
 		default:
 			s.Logger().Error("undefined execution engine error", "error", err)
-			return err
+			return nil, err
 		}
 	}
 
@@ -74,7 +82,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	// TODO: maybe move to blockchain for IsCanonical and Head checks.
 	// TODO: the whole getting the execution payload off the block /
 	// the whole LastestExecutionPayload Premine thing "PremineGenesisConfig".
-	s.bsp.BeaconState(ctx).SetLastValidHead(fcuConfig.HeadEth1Hash)
+	beaconState.SetLastValidHead(fcuConfig.HeadEth1Hash)
 
 	// If the forkchoice update call has an attribute, update the payload ID cache.
 	hasAttr := fcuConfig.Attributes != nil && !fcuConfig.Attributes.IsEmpty()
@@ -95,5 +103,5 @@ func (s *Service) notifyForkchoiceUpdate(
 		)
 	}
 
-	return nil
+	return payloadID, nil
 }

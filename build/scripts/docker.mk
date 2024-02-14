@@ -6,7 +6,7 @@
 
 # Variables
 ARCH ?= arm64
-GO_VERSION ?= 1.21.6
+GO_VERSION ?= 1.22.0
 IMAGE_NAME ?= beacond
 
 # Docker Paths

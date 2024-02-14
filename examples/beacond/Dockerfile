@@ -18,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.21.6
+ARG GO_VERSION=1.22.0
 ARG RUNNER_IMAGE=alpine
 ARG BUILD_TAGS="netgo,ledger,muslc"
 ARG NAME=beacond
@@ -93,8 +93,8 @@ FROM ${RUNNER_IMAGE}
 ARG APP_NAME
 
 # Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/${APP_NAME} /
+COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 
 RUN apk add bash jq sed curl
 
-ENTRYPOINT [ "./beacond" ]
+#ENTRYPOINT [ "./beacond" ]

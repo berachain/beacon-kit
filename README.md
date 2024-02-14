@@ -1,9 +1,7 @@
 # beacon-kit 
 
-<!-- [![CI status](https://github.com/itsdevbear/bolaris/workflows/ci/badge.svg)][gh-ci] -->
-<!-- [![cargo-deny status](https://github.com/paradigmxyz/reth/workflows/deny/badge.svg)][gh-deny]
-[![Codecov](https://img.shields.io/codecov/c/github/paradigmxyz/reth?token=c24SDcMImE)][codecov] -->
-<!-- [![Telegram Chat][tg-badge]][tg-url] -->
+[![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
+[![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
 
 **A modular and customizable consensus layer for Ethereum based blockchains**
 
@@ -16,6 +14,10 @@ BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to cre
 
 First there was EVM Compatibility; next, EVM Equivalence; and now with BeaconKit, **EVM Identicality**.
 
+## Why BeaconKit? 
+
+TODO: Talk about Polaris / Ethermint compatibility issue.
+
 ## Supported Execution Clients
 
 Through utilizing the [Ethereum Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine) BeaconKit is able to support all 5 major Ethereum execution clients:
@@ -26,27 +28,30 @@ Through utilizing the [Ethereum Engine API](https://github.com/ethereum/executio
 - **Besu**: An enterprise-grade Ethereum client developed under the Apache 2.0 license and written in Java.
 - **Reth**: A Rust-based Ethereum client, focusing on performance and reliability.
 
+## Documentation
+BeaconKit leverages `pkgsite` for it's core documentation, you can run `pkgsite` locally and run a web-ui of the 
+latest documentation:
 
-## Why BeaconKit? 
-
-TODO: Talk about Polaris / Ethermint compatibility issue.
+```bash
+make pkgsite 
+```
 
 ## Running a Local Development Network
 
 **Prerequisites:**
 - [Docker](https://docs.docker.com/engine/install/)
-- [Golang 1.21.6+](https://go.dev/doc/install)
+- [Golang 1.22.0+](https://go.dev/doc/install)
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
 
 Start by opening two terminals side-by-side:
 
-**Terminal 1**
+**Terminal 1:**
 ```bash
 # Start the sample BeaconKit Consensus Client:
 make start
 ```
 
-**Terminal 2**
+**Terminal 2:**
 ```bash
 # Start an Ethereum Execution Client:
 make start-reth # or start-geth start-besu start-erigon start-nethermind

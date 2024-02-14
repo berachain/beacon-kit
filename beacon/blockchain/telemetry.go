@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,14 +26,6 @@
 package blockchain
 
 const (
-	// MetricGetBuiltPayloadHit is used to count the number of times a built
-	// payload is successfully retrieved.
-	MetricGetBuiltPayloadHit = "beaconkit.blockchain_get_built_payload_hit"
-
-	// MetricGetBuiltPayloadMiss is used to count the number of times a built
-	// payload retrieval is attempted but not found.
-	MetricGetBuiltPayloadMiss = "beaconkit.blockchain_get_built_payload_miss"
-
 	// MetricReceivedInvalidPayload is used to count the number of times an
 	// invalid payload is received.
 	MetricReceivedInvalidPayload = "beaconkit.blockchain_received_invalid_payload"

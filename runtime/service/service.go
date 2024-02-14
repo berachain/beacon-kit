@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import (
 
 // BaseService is a base service that provides common functionality for all services.
 type BaseService struct {
+	BeaconStateProvider
 	name      string
 	beaconCfg *config.Beacon
 	gcd       *dispatch.GrandCentralDispatch
@@ -43,13 +44,15 @@ type BaseService struct {
 // NewBaseService creates a new BaseService and applies the provided options.
 func NewBaseService(
 	cfg *config.Beacon,
+	bsp BeaconStateProvider,
 	gcd *dispatch.GrandCentralDispatch,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
-		gcd:       gcd,
-		logger:    logger,
-		beaconCfg: cfg,
+		BeaconStateProvider: bsp,
+		gcd:                 gcd,
+		logger:              logger,
+		beaconCfg:           cfg,
 	}
 }
 

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Berachain Foundation
+# Copyright (c) 2024 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -42,5 +42,8 @@ mkdir -p cosmos/api
 echo "Generating API module"
 (cd proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
 
-cp -r api cosmos
+# cp -r api cosmos
+cp -r api/runtime/modules/beacon/* runtime/modules/beacon/api
 rm -rf api
+# rm -rf cosmos/api/ethereum
+# rm -rf cosmos/api/types

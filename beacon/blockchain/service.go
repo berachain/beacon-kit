@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,14 +26,15 @@
 package blockchain
 
 import (
+	"context"
+
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Service is the blockchain service.
 type Service struct {
 	service.BaseService
-	bsp BeaconStateProvider
-	en  ExecutionService
+	en ExecutionService
 }
 
 // NewService returns a new Service.
@@ -52,14 +53,7 @@ func NewService(
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.Logger().Info("stopping service...")
-	return nil
-}
+func (s *Service) Start(context.Context) {}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error { return nil }

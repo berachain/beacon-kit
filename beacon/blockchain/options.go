@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -33,14 +33,6 @@ type Option func(*Service) error
 func WithExecutionService(en ExecutionService) Option {
 	return func(s *Service) error {
 		s.en = en
-		return nil
-	}
-}
-
-// WithBeaconStateProvider is an option to set the BeaconStateProvider for the Service.
-func WithBeaconStateProvider(bsp BeaconStateProvider) Option {
-	return func(s *Service) error {
-		s.bsp = bsp
 		return nil
 	}
 }

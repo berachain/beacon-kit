@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -30,15 +30,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/itsdevbear/bolaris/types/state"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
-
-type BeaconStateProvider interface {
-	BeaconState(ctx context.Context) state.BeaconState
-}
 
 type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
@@ -48,11 +43,11 @@ type ExecutionService interface {
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
 	) (bool, error)
 
 	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
 	GetBuiltPayload(
 		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
+	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

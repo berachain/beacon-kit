@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -27,9 +27,9 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/prysmaticlabs/prysm/v4/runtime"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Option is a function that modifies the BeaconKitRuntime.
@@ -43,13 +43,11 @@ func WithConfig(cfg *config.Config) Option {
 	}
 }
 
-// WithService is an Option that registers a service with the BeaconKitRuntime's service registry.
-func WithService(svc runtime.Service) Option {
-	// The function returns an Option that, when called, registers the service and returns nil.
+// WithServiceRegistry is an Option that sets the service registry of the BeaconKitRuntime.
+func WithServiceRegistry(reg *service.Registry) Option {
 	return func(r *BeaconKitRuntime) error {
-		r.mu.Lock()
-		defer r.mu.Unlock()
-		return r.services.RegisterService(svc)
+		r.services = reg
+		return nil
 	}
 }
 
@@ -70,10 +68,10 @@ func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
 	}
 }
 
-// WithDispatcher is an Option that sets the GrandCentralDispatch of the BeaconKitRuntime.
-func WithDispatcher(dispatcher *dispatch.GrandCentralDispatch) Option {
+// WithEth1Client is an Option that sets the Eth1Client of the BeaconKitRuntime.
+func WithEth1Client(ethclient *eth.Eth1Client) Option {
 	return func(r *BeaconKitRuntime) error {
-		r.dispatcher = dispatcher
+		r.ethclient = ethclient
 		return nil
 	}
 }

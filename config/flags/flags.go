@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,21 +26,40 @@
 package flags
 
 const (
+	// Beacon Kit Root Flag.
+	beaconKitRoot = "beacon-kit."
+
 	// Execution Client.
-	RPCDialURL = "beacon-kit.execution-client.rpc-dial-url"
-	RPCTimeout = "beacon-kit.execution-client.rpc-timeout"
-	RPCRetries = "beacon-kit.execution-client.rpc-retries"
-	//#nosec:G101 // false positive.
-	JWTSecretPath   = "beacon-kit.execution-client.jwt-secret-path"
-	RequiredChainID = "beacon-kit.execution-client.required-chain-id"
+	engineRoot              = beaconKitRoot + "engine."
+	RPCDialURL              = engineRoot + "rpc-dial-url"
+	RPCRetries              = engineRoot + "rpc-retries"
+	RPCTimeout              = engineRoot + "rpc-timeout"
+	RPCStartupCheckInterval = engineRoot + "rpc-startup-check-interval"
+	RPCHealthCheckInteval   = engineRoot + "rpc-health-check-interval"
+	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
+	JWTSecretPath           = engineRoot + "jwt-secret-path"
+	RequiredChainID         = engineRoot + "required-chain-id"
 
 	// Beacon Config.
-	AltairForkEpoch       = "beacon-kit.beacon-config.altair-fork-epoch"
-	BellatrixForkEpoch    = "beacon-kit.beacon-config.bellatrix-fork-epoch"
-	CapellaForkEpoch      = "beacon-kit.beacon-config.capella-fork-epoch"
-	DenebForkEpoch        = "beacon-kit.beacon-config.deneb-fork-epoch"
-	SuggestedFeeRecipient = "beacon-kit.beacon-config.suggested-fee-recipient"
+	beaconConfigRoot   = beaconKitRoot + "beacon-config."
+	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
-	// Proposal.
-	BeaconKitBlockPosition = "beacon-kit.proposal.beacon-kit-block-proposal-position"
+	// Fork Config.
+	forkRoot       = beaconConfigRoot + "forks."
+	DenebForkEpoch = forkRoot + "deneb-fork-epoch"
+
+	// Validator Config.
+	validator             = beaconKitRoot + "validator"
+	SuggestedFeeRecipient = validator + "suggested-fee-recipient"
+	Graffiti              = validator + "graffiti"
+	PrepareAllPayloads    = validator + "prepare-all-payloads"
+
+	// Limits Config.
+	limitsRoot     = beaconConfigRoot + "limits."
+	MaxDeposits    = limitsRoot + "max-deposits"
+	MaxWithdrawals = limitsRoot + "max-withdrawals"
+
+	// ABCI Config.
+	abciRoot            = beaconKitRoot + "abci."
+	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
 )

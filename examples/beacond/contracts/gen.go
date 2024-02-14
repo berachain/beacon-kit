@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -25,4 +25,4 @@
 
 package contracts
 
-//go:generate abigen --pkg contracts --abi ../../contracts/out/Staking.sol/Staking.abi.json --bin ../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking
+//go:generate abigen --pkg contracts --abi ../../../contracts/out/Staking.sol/Staking.abi.json --bin ../../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking

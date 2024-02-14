@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -30,28 +30,44 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/config/parser"
 	"github.com/spf13/cobra"
 )
 
-// Config is the main configuration struct for the Polaris chain.
+// BeaconKitConfig is the interface for a sub-config of the global BeaconKit configuration.
+type BeaconKitConfig[T any] interface {
+	Template() string
+	Parse(parser parser.AppOptionsParser) (*T, error)
+}
+
+// DefaultConfig returns the default configuration for a BeaconKit chain.
+func DefaultConfig() *Config {
+	return &Config{
+		Engine: DefaultEngineConfig(),
+		Beacon: DefaultBeaconConfig(),
+		ABCI:   DefaultABCIConfig(),
+	}
+}
+
+// Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
-	// ExecutionClient is the configuration for the execution client.
-	ExecutionClient ExecutionClient
+	// Engine is the configuration for the execution client.
+	Engine Engine
 
 	// Beacon is the configuration for the fork epochs.
 	Beacon Beacon
 
-	// Proposal is the configuration for the proposal handler.
-	Proposal Proposal
+	// ABCI is the configuration for ABCI related settings.
+	ABCI ABCI
 }
 
-// DefaultConfig returns the default configuration for a polaris chain.
-func DefaultConfig() *Config {
-	return &Config{
-		ExecutionClient: DefaultExecutionClientConfig(),
-		Beacon:          DefaultBeaconConfig(),
-		Proposal:        DefaultProposalConfig(),
-	}
+// Template returns the configuration template.
+func (c Config) Template() string {
+	return `
+###############################################################################
+###                                BeaconKit                                ###
+###############################################################################
+` + c.Engine.Template() + c.Beacon.Template() + c.ABCI.Template()
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
@@ -80,71 +96,38 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
-	return readConfigFromAppOptsParser(AppOptionsParser{AppOptions: opts})
+	return readConfigFromAppOptsParser(parser.AppOptionsParser{AppOptions: opts})
 }
 
-// TODO: cleanup parsing logic.
-func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
-	var err error
-	conf := &Config{}
+// readConfigFromAppOptsParser reads the configuration options from the given.
+func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error) {
+	var (
+		err       error
+		conf      = &Config{}
+		engineCfg *Engine
+		beaconCfg *Beacon
+		abciCfg   *ABCI
+	)
+	// Read Engine Client Config
+	engineCfg, err = Engine{}.Parse(parser)
+	if err != nil {
+		return nil, err
+	}
+	conf.Engine = *engineCfg
 
-	if conf.ExecutionClient.RPCDialURL, err = parser.GetString(flags.RPCDialURL); err != nil {
+	// Read Beacon Config
+	beaconCfg, err = Beacon{}.Parse(parser)
+	if err != nil {
 		return nil, err
 	}
-	if conf.ExecutionClient.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
-		return nil, err
-	}
-	if conf.ExecutionClient.RPCTimeout, err = parser.GetUint64(
-		flags.RPCTimeout,
-	); err != nil {
-		return nil, err
-	}
-	if conf.ExecutionClient.JWTSecretPath, err = parser.GetString(
-		flags.JWTSecretPath,
-	); err != nil {
-		return nil, err
-	}
-	if conf.ExecutionClient.RequiredChainID, err = parser.GetUint64(
-		flags.RequiredChainID,
-	); err != nil {
-		return nil, err
-	}
+	conf.Beacon = *beaconCfg
 
-	if conf.Beacon.AltairForkEpoch, err = parser.GetEpoch(
-		flags.AltairForkEpoch,
-	); err != nil {
+	// Read ABCI Config
+	abciCfg, err = ABCI{}.Parse(parser)
+	if err != nil {
 		return nil, err
 	}
-
-	if conf.Beacon.BellatrixForkEpoch, err = parser.GetEpoch(
-		flags.BellatrixForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if conf.Beacon.CapellaForkEpoch, err = parser.GetEpoch(
-		flags.CapellaForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if conf.Beacon.DenebForkEpoch, err = parser.GetEpoch(
-		flags.DenebForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if conf.Beacon.SuggestedFeeRecipient, err = parser.GetCommonAddress(
-		flags.SuggestedFeeRecipient,
-	); err != nil {
-		return nil, err
-	}
-
-	if conf.Proposal.BeaconKitBlockPosition, err = parser.GetUint(
-		flags.BeaconKitBlockPosition,
-	); err != nil {
-		return nil, err
-	}
+	conf.ABCI = *abciCfg
 
 	return conf, nil
 }
@@ -152,13 +135,29 @@ func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.ExecutionClient.JWTSecretPath,
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
 		"path to the execution client secret")
-	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.ExecutionClient.RPCDialURL, "rpc dial url")
-	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.ExecutionClient.RPCRetries, "rpc retries")
-	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.ExecutionClient.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.ExecutionClient.RequiredChainID,
+	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Duration(flags.RPCStartupCheckInterval,
+		defaultCfg.Engine.RPCStartupCheckInterval,
+		"rpc startup check interval")
+	startCmd.Flags().Duration(flags.RPCHealthCheckInteval,
+		defaultCfg.Engine.RPCHealthCheckInterval,
+		"rpc health check interval")
+	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
+		defaultCfg.Engine.RPCJWTRefreshInterval,
+		"rpc jwt refresh interval")
+	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
-		defaultCfg.Beacon.SuggestedFeeRecipient.Hex(), "suggested fee recipient")
+		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(),
+		"suggested fee recipient",
+	)
+}
+
+// AddToSFlag adds the terms of service flag to the given command.
+func AddToSFlag(rootCmd *cobra.Command) {
+	rootCmd.PersistentFlags().Bool(flags.BeaconKitAcceptTos, false, "accept the terms of service")
 }

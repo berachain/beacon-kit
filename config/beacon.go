@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,54 +26,75 @@
 package config
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/runtime/version"
+	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
-type Beacon struct {
-	// AltairForkEpoch is used to represent the assigned fork epoch for altair.
-	AltairForkEpoch primitives.Epoch
-	// BellatrixForkEpoch is used to represent the assigned fork epoch for bellatrix.
-	BellatrixForkEpoch primitives.Epoch
-	// CapellaForkEpoch is used to represent the assigned fork epoch for capella.
-	CapellaForkEpoch primitives.Epoch
-	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
-	DenebForkEpoch primitives.Epoch
+// Beacon conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Beacon] = Beacon{}
 
-	// Suggested FeeRecipient is the address that will receive the transaction fees
-	// produced by any blocks from this node. Only takes effect post bellatrix.
-	SuggestedFeeRecipient common.Address
+// Beacon is the configuration for the beacon chain.
+type Beacon struct {
+	// Forks is the configuration for the beacon chain forks.
+	Forks Forks
+	// Limits is the configuration for limits (max/min) on the beacon chain.
+	Limits Limits
+	// Validator is the configuration for the validator. Only utilized when
+	// this node is in the active validator set.
+	Validator Validator
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
-		AltairForkEpoch:       0,
-		BellatrixForkEpoch:    0,
-		CapellaForkEpoch:      0,
-		DenebForkEpoch:        primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
-		SuggestedFeeRecipient: common.Address{},
+		Forks:     DefaultForksConfig(),
+		Limits:    DefaultLimitsConfig(),
+		Validator: DefaultValidatorConfig(),
 	}
 }
 
 // ActiveForkVersion returns the active fork version for a given slot.
 func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
-	if epoch >= c.DenebForkEpoch {
+	if epoch >= c.Forks.DenebForkEpoch {
 		return version.Deneb
 	}
 
-	if epoch >= c.CapellaForkEpoch {
-		return version.Capella
-	}
+	// In BeaconKit we assume the Capella fork is always active.
+	return version.Capella
+}
 
-	if epoch >= c.BellatrixForkEpoch {
-		return version.Bellatrix
-	}
+// Parse parses the configuration.
+func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
+	var (
+		err       error
+		forks     *Forks
+		limits    *Limits
+		validator *Validator
+	)
 
-	if epoch >= c.AltairForkEpoch {
-		return version.Altair
+	// Parse the forks configuration.
+	if forks, err = c.Forks.Parse(parser); err != nil {
+		return nil, err
 	}
+	c.Forks = *forks
 
-	return (version.Phase0)
+	// Parse the limits configuration.
+	if limits, err = c.Limits.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Limits = *limits
+
+	// Parse the validator configuration.
+	if validator, err = c.Validator.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Validator = *validator
+
+	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c Beacon) Template() string {
+	return c.Forks.Template() + c.Limits.Template() + c.Validator.Template()
 }
