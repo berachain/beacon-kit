@@ -226,18 +226,16 @@ func SafeMerkleizeVector(roots []tree.Root, maxRootsAllowed uint64) (tree.Root, 
 	// Determine the max possible depth of the tree given maxRootsAllowed.
 	depth := tree.CoverDepth(maxRootsAllowed)
 
-	// If the list is empty, return the zero hash at the calculated depth.
-	if len(roots) == 0 {
-		return tree.ZeroHashes[depth], nil
-	}
-
 	// Iterate over each level of depth in the tree.
 	for i := uint8(0); i < depth; i++ {
 		// If the current level of the tree has an odd number of roots, append the corresponding
 		// zero hash for that depth to make it even.
 		if len(roots)%2 != 0 {
 			roots = append(roots, tree.ZeroHashes[i])
+		} else if len(roots) == 0 {
+			return tree.ZeroHashes[i], nil
 		}
+
 		// Hash pairs of elements together to form a new level of the tree.
 		roots, err = HashTreeRoot(roots)
 		if err != nil {
