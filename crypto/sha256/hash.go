@@ -27,6 +27,7 @@ package sha256
 
 import (
 	sha256 "github.com/minio/sha256-simd"
+	"golang.org/x/sync/errgroup"
 )
 
 // This hashing library provides multiple ways to utilize the Hash function:
@@ -39,12 +40,34 @@ func Hash(bz []byte) [32]byte {
 	return sha256.Sum256(bz)
 }
 
-// HashArray returns the SHA256 hashes of the input bytes.
+// HashArray returns the SHA256 hashes of the input bytes in parallel while maintaining the order.
 func HashArray(input [][]byte) ([][32]byte, error) {
 	roots := make([][32]byte, len(input))
+
+	// Create a channel to receive the results
+	resultCh := make(chan struct {
+		index int
+		hash  [32]byte
+	}, len(input))
+
+	// Iterate over the input bytes and hash them in parallel while maintaining order
 	for i, el := range input {
-		roots[i] = Hash(el)
+		go func(index int, data []byte) {
+			resultCh <- struct {
+				index int
+				hash  [32]byte
+			}{index, Hash(data)}
+		}(i, el)
 	}
+
+	// Collect the results from the channel and place them in the correct order
+	for range input {
+		res := <-resultCh
+		roots[res.index] = res.hash
+	}
+
+	close(resultCh)
+
 	return roots, nil
 }
 
@@ -82,6 +105,56 @@ func HashRootAndMixinLengthBz(input [][]byte) [32]byte {
 func HashRootAndMixinLengthAsBzSlice(input [][]byte) []byte {
 	bz := HashRootAndMixinLengthBz(input)
 	return bz[:]
+}
+
+// Hashable is an interface for objects that can be hashed.
+func HashElement[H Hashable](el H) ([32]byte, error) {
+	return el.HashTreeRoot()
+}
+
+// HashElements hashes each element in the list and then returns each item as a 32 byte buffer.
+// Where each Element is hashed individually to produce a corresponding Root.
+// This process is applied to all elements in the input list, resulting in a list of roots.
+func HashElements[H Hashable](input []H) ([][32]byte, error) {
+	roots := make([][32]byte, len(input))
+	// Create a channel to receive the results
+	resultCh := make(chan struct {
+		index int
+		hash  [32]byte
+	}, len(input))
+
+	// Use error group to handle errors from goroutines
+	var eg errgroup.Group
+
+	// Iterate over the input bytes and hash them in parallel while maintaining order
+	for i, el := range input {
+		i, el := i, el // Capture loop variables
+		eg.Go(func() error {
+			data, err := HashElement(el)
+			if err != nil {
+				return err
+			}
+			resultCh <- struct {
+				index int
+				hash  [32]byte
+			}{i, data}
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	// Collect the results from the channel and place them in the correct order
+	for range input {
+		res := <-resultCh
+		roots[res.index] = res.hash
+	}
+
+	close(resultCh)
+
+	return roots, nil
 }
 
 // HashRoot returns the SHA256 merkle root of the input bytes.
