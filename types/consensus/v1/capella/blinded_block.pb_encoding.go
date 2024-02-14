@@ -9,13 +9,13 @@ import (
 	v11 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-// MarshalSSZ ssz marshals the BeaconKitBlockCapella object
-func (b *BeaconKitBlockCapella) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ ssz marshals the BlindedBeaconKitBlockCapella object
+func (b *BlindedBeaconKitBlockCapella) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconKitBlockCapella object to a target array
-func (b *BeaconKitBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+// MarshalSSZTo ssz marshals the BlindedBeaconKitBlockCapella object to a target array
+func (b *BlindedBeaconKitBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(44)
 
@@ -25,7 +25,7 @@ func (b *BeaconKitBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error)
 	// Offset (1) 'Body'
 	dst = ssz.WriteOffset(dst, offset)
 	if b.Body == nil {
-		b.Body = new(BeaconKitBlockBodyCapella)
+		b.Body = new(BlindedBeaconKitBlockBodyCapella)
 	}
 	offset += b.Body.SizeSSZ()
 
@@ -44,8 +44,8 @@ func (b *BeaconKitBlockCapella) MarshalSSZTo(buf []byte) (dst []byte, err error)
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconKitBlockCapella object
-func (b *BeaconKitBlockCapella) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ ssz unmarshals the BlindedBeaconKitBlockCapella object
+func (b *BlindedBeaconKitBlockCapella) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
 	if size < 44 {
@@ -77,7 +77,7 @@ func (b *BeaconKitBlockCapella) UnmarshalSSZ(buf []byte) error {
 	{
 		buf = tail[o1:]
 		if b.Body == nil {
-			b.Body = new(BeaconKitBlockBodyCapella)
+			b.Body = new(BlindedBeaconKitBlockBodyCapella)
 		}
 		if err = b.Body.UnmarshalSSZ(buf); err != nil {
 			return err
@@ -86,26 +86,26 @@ func (b *BeaconKitBlockCapella) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconKitBlockCapella object
-func (b *BeaconKitBlockCapella) SizeSSZ() (size int) {
+// SizeSSZ returns the ssz encoded size in bytes for the BlindedBeaconKitBlockCapella object
+func (b *BlindedBeaconKitBlockCapella) SizeSSZ() (size int) {
 	size = 44
 
 	// Field (1) 'Body'
 	if b.Body == nil {
-		b.Body = new(BeaconKitBlockBodyCapella)
+		b.Body = new(BlindedBeaconKitBlockBodyCapella)
 	}
 	size += b.Body.SizeSSZ()
 
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconKitBlockCapella object
-func (b *BeaconKitBlockCapella) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot ssz hashes the BlindedBeaconKitBlockCapella object
+func (b *BlindedBeaconKitBlockCapella) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconKitBlockCapella object with a hasher
-func (b *BeaconKitBlockCapella) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+// HashTreeRootWith ssz hashes the BlindedBeaconKitBlockCapella object with a hasher
+func (b *BlindedBeaconKitBlockCapella) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -131,13 +131,13 @@ func (b *BeaconKitBlockCapella) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	return
 }
 
-// MarshalSSZ ssz marshals the BeaconKitBlockBodyCapella object
-func (b *BeaconKitBlockBodyCapella) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ ssz marshals the BlindedBeaconKitBlockBodyCapella object
+func (b *BlindedBeaconKitBlockBodyCapella) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconKitBlockBodyCapella object to a target array
-func (b *BeaconKitBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+// MarshalSSZTo ssz marshals the BlindedBeaconKitBlockBodyCapella object to a target array
+func (b *BlindedBeaconKitBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(136)
 
@@ -162,12 +162,12 @@ func (b *BeaconKitBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err er
 		offset += b.Deposits[ii].SizeSSZ()
 	}
 
-	// Offset (3) 'ExecutionPayload'
+	// Offset (3) 'ExecutionPayloadHeader'
 	dst = ssz.WriteOffset(dst, offset)
-	if b.ExecutionPayload == nil {
-		b.ExecutionPayload = new(v11.ExecutionPayloadCapella)
+	if b.ExecutionPayloadHeader == nil {
+		b.ExecutionPayloadHeader = new(v11.ExecutionPayloadHeaderCapella)
 	}
-	offset += b.ExecutionPayload.SizeSSZ()
+	offset += b.ExecutionPayloadHeader.SizeSSZ()
 
 	// Field (2) 'Deposits'
 	if size := len(b.Deposits); size > 16 {
@@ -187,16 +187,16 @@ func (b *BeaconKitBlockBodyCapella) MarshalSSZTo(buf []byte) (dst []byte, err er
 		}
 	}
 
-	// Field (3) 'ExecutionPayload'
-	if dst, err = b.ExecutionPayload.MarshalSSZTo(dst); err != nil {
+	// Field (3) 'ExecutionPayloadHeader'
+	if dst, err = b.ExecutionPayloadHeader.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconKitBlockBodyCapella object
-func (b *BeaconKitBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ ssz unmarshals the BlindedBeaconKitBlockBodyCapella object
+func (b *BlindedBeaconKitBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
 	if size < 136 {
@@ -227,7 +227,7 @@ func (b *BeaconKitBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (3) 'ExecutionPayload'
+	// Offset (3) 'ExecutionPayloadHeader'
 	if o3 = ssz.ReadOffset(buf[132:136]); o3 > size || o2 > o3 {
 		return ssz.ErrOffset
 	}
@@ -254,21 +254,21 @@ func (b *BeaconKitBlockBodyCapella) UnmarshalSSZ(buf []byte) error {
 		}
 	}
 
-	// Field (3) 'ExecutionPayload'
+	// Field (3) 'ExecutionPayloadHeader'
 	{
 		buf = tail[o3:]
-		if b.ExecutionPayload == nil {
-			b.ExecutionPayload = new(v11.ExecutionPayloadCapella)
+		if b.ExecutionPayloadHeader == nil {
+			b.ExecutionPayloadHeader = new(v11.ExecutionPayloadHeaderCapella)
 		}
-		if err = b.ExecutionPayload.UnmarshalSSZ(buf); err != nil {
+		if err = b.ExecutionPayloadHeader.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconKitBlockBodyCapella object
-func (b *BeaconKitBlockBodyCapella) SizeSSZ() (size int) {
+// SizeSSZ returns the ssz encoded size in bytes for the BlindedBeaconKitBlockBodyCapella object
+func (b *BlindedBeaconKitBlockBodyCapella) SizeSSZ() (size int) {
 	size = 136
 
 	// Field (2) 'Deposits'
@@ -277,22 +277,22 @@ func (b *BeaconKitBlockBodyCapella) SizeSSZ() (size int) {
 		size += b.Deposits[ii].SizeSSZ()
 	}
 
-	// Field (3) 'ExecutionPayload'
-	if b.ExecutionPayload == nil {
-		b.ExecutionPayload = new(v11.ExecutionPayloadCapella)
+	// Field (3) 'ExecutionPayloadHeader'
+	if b.ExecutionPayloadHeader == nil {
+		b.ExecutionPayloadHeader = new(v11.ExecutionPayloadHeaderCapella)
 	}
-	size += b.ExecutionPayload.SizeSSZ()
+	size += b.ExecutionPayloadHeader.SizeSSZ()
 
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconKitBlockBodyCapella object
-func (b *BeaconKitBlockBodyCapella) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot ssz hashes the BlindedBeaconKitBlockBodyCapella object
+func (b *BlindedBeaconKitBlockBodyCapella) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconKitBlockBodyCapella object with a hasher
-func (b *BeaconKitBlockBodyCapella) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+// HashTreeRootWith ssz hashes the BlindedBeaconKitBlockBodyCapella object with a hasher
+func (b *BlindedBeaconKitBlockBodyCapella) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'RandaoReveal'
@@ -329,8 +329,8 @@ func (b *BeaconKitBlockBodyCapella) HashTreeRootWith(hh *ssz.Hasher) (err error)
 		}
 	}
 
-	// Field (3) 'ExecutionPayload'
-	if err = b.ExecutionPayload.HashTreeRootWith(hh); err != nil {
+	// Field (3) 'ExecutionPayloadHeader'
+	if err = b.ExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
