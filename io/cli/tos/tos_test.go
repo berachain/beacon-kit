@@ -109,8 +109,8 @@ func TestDeclineWithCLI(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("decline", "")) {
-		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText("decline", ""), err)
+	if err.Error() != tos.DeclinedErrorString {
+		t.Errorf("Expected %v, got %v", tos.DeclinedErrorString, err)
 	}
 }
 
@@ -136,8 +136,8 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 		t.Errorf("Expected error, got nil")
 	}
 
-	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("", "")) {
-		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText("", ""), err)
+	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
+		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText(""), err)
 	}
 }
 
