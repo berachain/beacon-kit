@@ -28,6 +28,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/holiman/uint256 v1.2.4
 	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/minio/sha256-simd v1.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/protolambda/ztyp v0.2.2
 	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44
