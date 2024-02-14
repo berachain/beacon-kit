@@ -26,7 +26,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -195,12 +194,6 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	// Initial check for execution client sync.
-	if err = app.BeaconKitRunner.InitialSyncCheck(
-		cosmos.NewEmptyContextWithMS(context.TODO(), app.CommitMultiStore()),
-	); err != nil {
-		panic(err)
-	}
 	return app
 }
 
@@ -234,6 +227,7 @@ func (app *BeaconApp) SimulationManager() *module.SimulationManager {
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+	ctx := apiSvr.ClientCtx.CmdContext
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(
@@ -242,10 +236,17 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		panic(err)
 	}
 
-	v, ok := apiSvr.ClientCtx.CmdContext.Value(server.ServerContextKey).(*server.Context)
+	v, ok := ctx.Value(server.ServerContextKey).(*server.Context)
 	if !ok {
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
 	app.BeaconKitRunner.SetCometCfg(v.Config)
-	app.BeaconKitRunner.StartServices(apiSvr.ClientCtx.CmdContext)
+	app.BeaconKitRunner.StartServices(ctx)
+
+	// Initial check for execution client sync.
+	if err := app.BeaconKitRunner.InitialSyncCheck(
+		cosmos.NewEmptyContextWithMS(ctx, app.CommitMultiStore()),
+	); err != nil {
+		panic(err)
+	}
 }

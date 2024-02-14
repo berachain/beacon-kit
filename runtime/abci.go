@@ -70,6 +70,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
 		validatorService,
+		syncService,
 		chainService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
