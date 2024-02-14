@@ -26,7 +26,8 @@
 package store
 
 import (
-	"cosmossdk.io/collections"
+	"encoding/json"
+
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -44,20 +45,46 @@ func (d *Deposit) GetPubkey() []byte {
 	return d.GetData().GetPubkey()
 }
 
+type DepositValue struct{}
+
+func (DepositValue) Encode(value *Deposit) ([]byte, error) {
+	return value.MarshalSSZ()
+}
+
+func (DepositValue) Decode(b []byte) (*Deposit, error) {
+	value := new(Deposit)
+	if err := value.UnmarshalSSZ(b); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+func (DepositValue) EncodeJSON(value *Deposit) ([]byte, error) {
+	return json.Marshal(value)
+}
+
+func (DepositValue) DecodeJSON(b []byte) (*Deposit, error) {
+	d := new(Deposit)
+	err := json.Unmarshal(b, d)
+	return d, err
+}
+
+func (DepositValue) Stringify(value *Deposit) string {
+	return value.String()
+}
+
+func (d DepositValue) ValueType() string {
+	return "Deposit"
+}
+
 // AddDeposit adds a deposit to the staking module.
 func (s *BeaconStore) AddDeposit(deposit *Deposit) error {
-	s.deposits = append(s.deposits, deposit)
-	return nil
+	return s.deposits.Push(s.sdkCtx, deposit)
 }
 
 // NextDeposit returns the next deposit in the queue.
 func (s *BeaconStore) NextDeposit() (*Deposit, error) {
-	if len(s.deposits) == 0 {
-		return nil, collections.ErrNotFound
-	}
-	deposit := s.deposits[0]
-	s.deposits = s.deposits[1:]
-	return deposit, nil
+	return s.deposits.Next(s.sdkCtx)
 }
 
 // ProcessDeposit processes a deposit with the staking keeper.
