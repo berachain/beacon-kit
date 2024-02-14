@@ -32,6 +32,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Reader interface {
+	Read([]byte) (int, error)
+}
+
 type Prompt struct {
 	Cmd *cobra.Command
 

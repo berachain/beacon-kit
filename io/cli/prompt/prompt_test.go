@@ -32,8 +32,9 @@ import (
 	"testing"
 
 	"github.com/itsdevbear/bolaris/io/cli/prompt"
-	"github.com/itsdevbear/bolaris/io/cli/prompt/testutils"
+	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -45,15 +46,18 @@ var (
 )
 
 func TestAsk(t *testing.T) {
-	// Failling Case
+	// Failure Case
+	errReader := &mocks.Reader{}
+	errReader.On("Read", mock.Anything).Return(0, errors.New("error"))
+
 	p.Cmd.SetOut(os.NewFile(0, os.DevNull))
-	p.Cmd.SetIn(&testutils.ErrReader{})
+	p.Cmd.SetIn(errReader)
 	_, err := p.Ask()
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
 
-	// Passing Case
+	// Success Case
 	inputBuffer := bytes.NewReader([]byte("response\n"))
 	p.Cmd.SetIn(inputBuffer)
 	input, err := p.Ask()

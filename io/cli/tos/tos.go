@@ -55,12 +55,10 @@ TERMS AND CONDITIONS: %s
 
 Type "accept" to accept these terms and conditions [accept/decline]:`
 	// acceptTosPromptErrTextFormat is the the error prompt text for accepting the terms of use.
-	AcceptTosPromptErrTextFormat = `
-invalid input received: %s
-if you are trying to run in non-interactive environment, you can use the
---accept-terms-of-use flag after reading the 
-terms and conditions here: 
-%s`
+	AcceptTosPromptErrTextFormat = `invalid input received: %s, if you are trying to run in 
+	non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
+	terms and conditions here: 
+	%s`
 	DeclinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 

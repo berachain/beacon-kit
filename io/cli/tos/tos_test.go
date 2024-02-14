@@ -27,6 +27,7 @@ package tos_test
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,9 +35,10 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
-	testutils "github.com/itsdevbear/bolaris/io/cli/prompt/testutils"
+	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
 	"github.com/itsdevbear/bolaris/io/file"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
@@ -116,8 +118,12 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	homeDir := makeTempDir(t)
 	defer os.RemoveAll(homeDir)
 
+	// Setup non-interactive reader
+	errReader := &mocks.Reader{}
+	errReader.On("Read", mock.Anything).Return(0, errors.New("error"))
+
 	rootCmd := root.NewRootCmd()
-	rootCmd.SetIn(&testutils.ErrReader{})
+	rootCmd.SetIn(errReader)
 	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
