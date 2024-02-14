@@ -34,7 +34,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/config/flags"
-	beaconprompt "github.com/itsdevbear/bolaris/config/prompt"
+	beaconprompt "github.com/itsdevbear/bolaris/io/cli/prompt"
 	"github.com/logrusorgru/aurora"
 
 	"github.com/spf13/cobra"
@@ -55,10 +55,13 @@ TERMS AND CONDITIONS: %s
 
 Type "accept" to accept these terms and conditions [accept/decline]:`
 	// acceptTosPromptErrTextFormat is the the error prompt text for accepting the terms of use.
-	AcceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
-non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
+	AcceptTosPromptErrTextFormat = `
+invalid input received: %s
+if you are trying to run in non-interactive environment, you can use the
+--accept-terms-of-use flag after reading the 
 terms and conditions here: 
 %s`
+	DeclinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 
 // BuildTosPromptText builds the prompt text for accepting the terms of use.
@@ -68,9 +71,9 @@ func BuildTosPromptText(appName, tosLink string) string {
 }
 
 // BuildErrorPromptText builds the prompt text for accepting the terms of use.
-func BuildErrorPromptText(tosLink string) string {
+func BuildErrorPromptText(input, tosLink string) string {
 	return aurora.NewAurora(true).
-		Sprintf(AcceptTosPromptErrTextFormat, tosLink)
+		Sprintf(AcceptTosPromptErrTextFormat, input, tosLink)
 }
 
 // VerifyTosAcceptedOrPrompt checks if Tos was accepted before or asks to accept.
@@ -90,18 +93,22 @@ func VerifyTosAcceptedOrPrompt(
 		return nil
 	}
 
-	input, err := beaconprompt.DefaultPrompt(
-		cmd,
-		aurora.NewAurora(true).Bold(BuildTosPromptText(
+	prompt := &beaconprompt.Prompt{
+		Cmd: cmd,
+		Text: aurora.NewAurora(true).Bold(BuildTosPromptText(
 			appName, tosLink,
 		)).String(),
-		"decline")
-	if err != nil {
-		return errors.New(BuildErrorPromptText(tosLink))
+		Default: "decline",
+		ValidateFn: func(input string) error {
+			if !strings.EqualFold(input, "accept") {
+				return errors.New(DeclinedErrorString)
+			}
+			return nil
+		},
 	}
-
-	if !strings.EqualFold(input, "accept") {
-		return errors.New("you have to accept Terms and Conditions in order to continue")
+	input, err := prompt.AskAndValidate()
+	if err != nil {
+		return errors.New(BuildErrorPromptText(input, tosLink))
 	}
 
 	saveTosAccepted(homedir, cmd)

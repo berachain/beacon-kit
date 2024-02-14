@@ -27,7 +27,6 @@ package tos_test
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,6 +34,7 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
+	testutils "github.com/itsdevbear/bolaris/io/cli/prompt/testutils"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
 	"github.com/itsdevbear/bolaris/io/file"
 
@@ -44,8 +44,7 @@ import (
 )
 
 const (
-	acceptTosFilename   = "tosaccepted"
-	declinedErrorString = "you have to accept Terms and Conditions in order to continue"
+	acceptTosFilename = "tosaccepted"
 )
 
 func TestAcceptTosFlag(t *testing.T) {
@@ -71,7 +70,7 @@ func TestAcceptTosFlag(t *testing.T) {
 
 func TestAcceptWithCLI(t *testing.T) {
 	homeDir := makeTempDir(t)
-	t.Log("homeDir: ", homeDir)
+	defer os.RemoveAll(homeDir)
 
 	inputBuffer := bytes.NewReader([]byte("accept\n"))
 	rootCmd := root.NewRootCmd()
@@ -92,7 +91,7 @@ func TestAcceptWithCLI(t *testing.T) {
 
 func TestDeclineWithCLI(t *testing.T) {
 	homeDir := makeTempDir(t)
-	t.Log("homeDir: ", homeDir)
+	defer os.RemoveAll(homeDir)
 
 	inputBuffer := bytes.NewReader([]byte("decline\n"))
 	rootCmd := root.NewRootCmd()
@@ -108,17 +107,17 @@ func TestDeclineWithCLI(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	if err.Error() != declinedErrorString {
-		t.Errorf("Expected %v, got %v", declinedErrorString, err)
+	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("decline", "")) {
+		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText("decline", ""), err)
 	}
 }
 
 func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	homeDir := makeTempDir(t)
-	t.Log("homeDir: ", homeDir)
+	defer os.RemoveAll(homeDir)
 
 	rootCmd := root.NewRootCmd()
-	rootCmd.SetIn(&ErrReader{})
+	rootCmd.SetIn(&testutils.ErrReader{})
 	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
@@ -131,15 +130,9 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 		t.Errorf("Expected error, got nil")
 	}
 
-	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
-		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText(""), err)
+	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("", "")) {
+		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText("", ""), err)
 	}
-}
-
-type ErrReader struct{}
-
-func (e *ErrReader) Read(p []byte) (int, error) {
-	return 0, errors.New("forced error in scanner")
 }
 
 func expectTosAcceptSuccess(t *testing.T, homeDir string) {
@@ -153,6 +146,5 @@ func makeTempDir(t *testing.T) string {
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
-	t.Log("homeDir: ", homeDir)
 	return homeDir
 }

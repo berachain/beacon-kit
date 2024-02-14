@@ -23,47 +23,61 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package prompt
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"bufio"
+
+	"github.com/logrusorgru/aurora"
+	"github.com/spf13/cobra"
 )
 
-// Forks conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[Forks] = &Forks{}
+type Prompt struct {
+	Cmd *cobra.Command
 
-// DefaultForksConfig returns the default forks configuration.
-func DefaultForksConfig() Forks {
-	return Forks{
-		DenebForkEpoch: primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
-	}
+	Text       string
+	Default    string
+	ValidateFn func(string) error
 }
 
-// Config represents the configuration struct for the forks.
-type Forks struct {
-	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
-	DenebForkEpoch primitives.Epoch
-}
-
-// Parse parses the configuration.
-func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
-	var err error
-	if c.DenebForkEpoch, err = parser.GetEpoch(
-		flags.DenebForkEpoch,
-	); err != nil {
-		return nil, err
+// Ask prompts the user and stores their response.
+func (p *Prompt) Ask() (string, error) {
+	au := aurora.NewAurora(true)
+	prompt := au.Sprintf("%s:\n", p.Text)
+	if p.Default != "" {
+		prompt = au.Sprintf(
+			"%s (%s: %s):\n", p.Text,
+			au.BrightGreen("default"),
+			p.Default,
+		)
 	}
 
-	return &c, nil
+	input := p.Default
+	inputReader := p.Cmd.InOrStdin()
+	scanner := bufio.NewScanner(inputReader)
+	p.Cmd.Print(prompt)
+	if scanner.Scan() {
+		if text := scanner.Text(); text != "" {
+			input = text
+		}
+	}
+
+	return input, scanner.Err()
 }
 
-// Template returns the configuration template.
-func (c Forks) Template() string {
-	return `
-[beacon-kit.beacon-config.forks]
-# Deneb fork epoch
-deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
-`
+// AskAndValidate prompts the user and validates their response.
+// Equivalent to Ask() if no validate function is specified.
+func (p *Prompt) AskAndValidate() (string, error) {
+	input, err := p.Ask()
+	if err != nil {
+		return "", err
+	}
+
+	// If validate function is specified, validate the input.
+	if p.ValidateFn != nil {
+		if err = p.ValidateFn(input); err != nil {
+			return input, err
+		}
+	}
+	return input, nil
 }

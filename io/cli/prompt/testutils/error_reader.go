@@ -23,40 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package prompt
+package testutils
 
-import (
-	"bufio"
+import "errors"
 
-	"github.com/logrusorgru/aurora"
-	"github.com/spf13/cobra"
-)
+type ErrReader struct{}
 
-// DefaultPrompt prompts the user and validates their response.
-// Returns only when the user has provided a valid response.
-func DefaultPrompt(
-	cmd *cobra.Command, promptText, defaultValue string,
-) (string, error) {
-	au := aurora.NewAurora(true)
-	if defaultValue != "" {
-		promptText = au.Sprintf(
-			"%s (%s: %s):\n", promptText,
-			au.BrightGreen("default"),
-			defaultValue,
-		)
-	} else {
-		promptText = au.Sprintf("%s:\n", promptText)
-	}
-
-	input := defaultValue
-	inputReader := cmd.InOrStdin()
-	scanner := bufio.NewScanner(inputReader)
-	cmd.Print(promptText)
-	if scanner.Scan() {
-		if text := scanner.Text(); text != "" {
-			input = text
-		}
-	}
-
-	return input, scanner.Err()
+func (e *ErrReader) Read(_ []byte) (int, error) {
+	return 0, errors.New("forced error in scanner")
 }

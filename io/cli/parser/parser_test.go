@@ -35,8 +35,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/itsdevbear/bolaris/config/parser"
-	"github.com/itsdevbear/bolaris/config/parser/mocks"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
+	"github.com/itsdevbear/bolaris/io/cli/parser/mocks"
 )
 
 func TestParser(t *testing.T) {
