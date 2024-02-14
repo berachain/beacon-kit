@@ -28,8 +28,9 @@ package deposits
 import (
 	"context"
 
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 )
 
 type DepositHandler struct{}
@@ -37,7 +38,7 @@ type DepositHandler struct{}
 var _ callback.LogHandler = &DepositHandler{}
 
 // HandleLog processes the logs from the Eth1 deposit contract.
-func (h *DepositHandler) HandleLog(_ context.Context, _ *evmv1.Log) error {
+func (h *DepositHandler) HandleLog(_ context.Context, _ *coretypes.Log) error {
 	// TODO: Parse the log and add the deposit to the staking module.
 	return nil
 }
