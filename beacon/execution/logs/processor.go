@@ -131,7 +131,7 @@ func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error
 
 		// Skip logs that are not from the addresses we care about.
 		// This should never happen, but defensively check anyway.
-		handler, found := s.handlers[common.Address(filterLog.Address)]
+		handler, found := s.handlers[filterLog.Address]
 		if !found {
 			continue
 		}
