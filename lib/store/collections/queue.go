@@ -34,8 +34,8 @@ import (
 
 type Queue[V any] struct {
 	container sdk.Map[uint64, V]
-	startIdx  uint64 // inclusive
-	endIdx    uint64 // exclusive
+	frontIdx  sdk.Sequence // inclusive
+	backIdx   sdk.Sequence // exclusive
 }
 
 // NewQueue creates a new queue with the provided prefix and name.
@@ -44,9 +44,8 @@ func NewQueue[V any](
 	prefix sdk.Prefix, name string,
 	valueCodec codec.ValueCodec[V]) Queue[V] {
 	return Queue[V]{
-		container: sdk.NewMap[uint64, V](schema, prefix, name+"_container", sdk.Uint64Key, valueCodec),
-		startIdx:  0,
-		endIdx:    0,
+		container: sdk.NewMap[uint64, V](schema, prefix, name+"_queue", sdk.Uint64Key, valueCodec),
+		frontIdx:  sdk.NewSequence(schema, prefix, name+"_front"),
 	}
 }
 
