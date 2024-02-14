@@ -29,6 +29,11 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
+// This hashing library provides multiple ways to utilize the Hash function:
+// 1. Directly pass a raw []byte slice to the Hash function.
+// 2. Implement the `Hashable` interface and invoke the HashTreeRoot method
+//    for a customized hashing approach.
+
 // Hash returns the SHA256 hash of the input bytes.
 func Hash(bz []byte) [32]byte {
 	return sha256.Sum256(bz)
