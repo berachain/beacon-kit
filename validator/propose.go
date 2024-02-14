@@ -57,7 +57,7 @@ func (s *Service) BuildBeaconBlock(
 	// }
 
 	// Create a new empty block from the current state.
-	beaconBlock, err := consensus.NewEmptyBeaconKitBlock(
+	beaconBlock, err := consensus.EmptyBeaconKitBlock(
 		slot, s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
 	)
 	if err != nil {

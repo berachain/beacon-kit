@@ -23,19 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proposal
+package types
 
 import "errors"
 
 var (
-	// ErrValidatorClientNotSynced is an error for when a
-	// validator tries to propose a block with an out of sync
-	// execution client.
-	ErrValidatorClientNotSynced = errors.New(`your validator tried to propose a 
-block with an out of sync execution client, did you forget to reset your execution client?`)
+	// ErrNoBeaconBlockInRequest is an error for when
+	// there is no beacon block in an abci request.
+	ErrNoBeaconBlockInRequest = errors.New("no beacon block in abci request")
 
-	// ErrClientNotSynced is an error for when a node tries to process
-	// a block with an out of sync execution client.
-	ErrClientNotSynced = errors.New(`your node tried to process a block with an 
-out of sync execution client, did you forget to reset your execution client?`)
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
 )

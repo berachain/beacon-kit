@@ -30,7 +30,6 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -39,6 +38,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
+	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/validator"
 )
 
@@ -132,7 +132,7 @@ func (h *Handler) ProcessProposalHandler(
 	// TODO: I don't love how we have to use the BeaconConfig here.
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
-	block, err := consensus.ReadOnlyBeaconKitBlockFromABCIRequest(
+	block, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
 		h.beaconChain.BeaconCfg().ActiveForkVersion(primitives.Epoch(req.Height)),
 	)

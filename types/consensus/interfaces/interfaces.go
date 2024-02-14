@@ -26,8 +26,6 @@
 package interfaces
 
 import (
-	"time"
-
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	ssz "github.com/prysmaticlabs/fastssz"
@@ -65,11 +63,4 @@ type ReadOnlyBeaconKitBlock interface {
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
 type WriteOnlyBeaconKitBlock interface {
 	AttachExecution(engine.ExecutionPayload) error
-}
-
-// ABCIRequest is the interface for an ABCI request.
-type ABCIRequest interface {
-	GetHeight() int64
-	GetTime() time.Time
-	GetTxs() [][]byte
 }
