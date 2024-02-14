@@ -25,33 +25,10 @@
 
 package randao
 
-import "github.com/itsdevbear/bolaris/crypto/sha256"
+import "errors"
 
-// This is the internal representation of the randao reveal
-// Although it is 32 bytes now, it can change
-// We use the same size as Ed25519 sig
-// TODO: update to 96 bytes when moving to BLS
-type Reveal [32]byte
-
-// This is a hashed value of the signed reveal.
-type Mix [32]byte
-
-// This is the external representation of the randao random number
-// We fix this to 32 bytes.
-type RandomValue [32]byte
-
-func (m *Mix) MixInRandao(newReveal Reveal) error {
-	// As of go-eth 1.13.12, this is based on Keccak256 which is crypto hash
-	// and hence irreversible so safe to use here
-	hash := sha256.HashBytes(newReveal[:])
-
-	if len(hash) != len(m) {
-		return ErrMixHashRevealLengthMismatch
-	}
-
-	for idx, b := range hash {
-		m[idx] ^= b
-	}
-
-	return nil
-}
+var (
+	// ErrMixHashRevealLengthMismatch is returned when the hash of therandao reveal and
+	// the length of the randao mix are different.
+	ErrMixHashRevealLengthMismatch = errors.New("randao mix and reveal length mismatch")
+)
