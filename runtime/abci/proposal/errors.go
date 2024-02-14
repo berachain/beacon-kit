@@ -31,4 +31,8 @@ var (
 	// ErrNoBeaconBlockInProposal is an error for when
 	// there is no beacon block in a proposal.
 	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
+
+	ErrValidatorClientNotSynced = errors.New(
+		"your validator tried to propose a block with out of sync execution client, please investigate",
+	)
 )
