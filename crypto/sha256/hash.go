@@ -86,7 +86,10 @@ func HashRootAndMixinLengthAsBzSlice(input [][]byte) []byte {
 
 // HashRoot returns the SHA256 merkle root of the input bytes.
 func HashRoot[H Hashable](input []H) [32]byte {
-	b, _ := BuildMerkleRoot(input, uint64(len(input)))
+	b, err := BuildMerkleRoot(input, uint64(len(input)))
+	if err != nil {
+		panic(err)
+	}
 	return b
 }
 
@@ -99,7 +102,10 @@ func HashRootAsSlice[H Hashable](input []H) []byte {
 // HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
 // the length mixed in.
 func HashRootAndMixinLength[H Hashable](input []H) [32]byte {
-	b, _ := BuildMerkleRootAndMixinLength(input, uint64(len(input)))
+	b, err := BuildMerkleRootAndMixinLength(input, uint64(len(input)))
+	if err != nil {
+		panic(err)
+	}
 	return b
 }
 
