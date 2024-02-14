@@ -93,7 +93,7 @@ func (s *Service) notifyForkchoiceUpdate(
 		s.Logger().Info("forkchoice updated with payload attributes for proposal",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"proposing_slot", fcuConfig.ProposingSlot,
-			"payloadID", fmt.Sprintf("%#x", bytesutil.Trunc(payloadID[:])),
+			"payload_id", fmt.Sprintf("%#x", bytesutil.Trunc(payloadID[:])),
 		)
 		s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, pID)
 	} else if hasAttr && payloadID == nil {
