@@ -103,14 +103,7 @@ func (s *Processor) GatherLogsFromEth1Block(
 	}
 
 	// Gather all the logs from this block.
-	logs, err := s.eth1Client.FilterLogs(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert the logs to our own type.
-	// TODO: determine a way to not have to do this cause its a waste of CPU.
-	return logs, nil
+	return s.eth1Client.FilterLogs(ctx, query)
 }
 
 // ProcessETH1Block processes logs from the provided eth1 block.
