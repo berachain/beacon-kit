@@ -29,12 +29,36 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
+type Deposit struct {
+	*consensusv1.Deposit
+}
+
+// GetAmount returns the amount of the deposit.
+func (d *Deposit) GetAmount() uint64 {
+	return d.GetData().GetAmount()
+}
+
+// GetPubkey returns the public key of the validator in the deposit.
+func (d *Deposit) GetPubkey() []byte {
+	return d.GetData().GetPubkey()
+}
+
 // AddDeposit adds a deposit to the staking module.
-func (s *BeaconStore) AddDeposit(deposit *consensusv1.Deposit) error {
-	return s.Staking.AddDeposit(s.sdkCtx, deposit)
+func (s *BeaconStore) AddDeposit(deposit *Deposit) error {
+	s.deposits = append(s.deposits, deposit)
+	return nil
 }
 
 // ProcessDeposits processes the queued deposits.
 func (s *BeaconStore) ProcessDeposits() error {
-	return s.Staking.ProcessDeposits(s.sdkCtx)
+	var processedDeposits uint64
+	for processedDeposits < s.cfg.Limits.MaxDepositsPerBlock && len(s.deposits) > 0 {
+		deposit := s.deposits[0]
+		if _, err := s.stakingKeeper.Delegate(s.sdkCtx, deposit); err != nil {
+			return err
+		}
+		s.deposits = s.deposits[1:]
+		processedDeposits++
+	}
+	return nil
 }

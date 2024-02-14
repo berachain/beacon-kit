@@ -33,7 +33,7 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/staking"
+	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.
@@ -68,8 +68,8 @@ type DepInjectOutput struct {
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Key,
-		in.BeaconKitConfig,
 		in.Staking,
+		in.BeaconKitConfig,
 	)
 	m := NewAppModule(k)
 

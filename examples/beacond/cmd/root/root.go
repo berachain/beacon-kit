@@ -73,7 +73,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/staking"
+	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
@@ -99,7 +99,7 @@ func NewRootCmd() *cobra.Command {
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 				beaconCfg,
-				staking.NewKeeper(stakingkeeper.Keeper{}, beaconCfg),
+				staking.NewKeeper(stakingkeeper.Keeper{}),
 			),
 			depinject.Provide(),
 		),
