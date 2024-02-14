@@ -36,23 +36,23 @@ import (
 func Test_SafeMerkleizeVector(t *testing.T) {
 	tests := []struct {
 		name            string
-		roots           []tree.Root
+		roots           [][32]byte
 		maxRootsAllowed uint64
-		expected        tree.Root
+		expected        [32]byte
 		wantErr         bool
 	}{
 		{
 			name:            "empty roots list",
-			roots:           make([]tree.Root, 0),
+			roots:           make([][32]byte, 0),
 			maxRootsAllowed: 16,
 			expected:        tree.ZeroHashes[0],
 			wantErr:         false,
 		},
 		{
 			name:            "maxRootsAllowed is less than the number of roots",
-			roots:           []tree.Root{{0x01}, {0x01}, {0x01}, {0x01}},
+			roots:           [][32]byte{{0x01}, {0x01}, {0x01}, {0x01}},
 			maxRootsAllowed: 3,
-			expected:        tree.Root{0x00},
+			expected:        [32]byte{0x00},
 			wantErr:         true,
 		},
 	}
@@ -66,33 +66,6 @@ func Test_SafeMerkleizeVector(t *testing.T) {
 				require.Error(t, err)
 			}
 			require.Equal(t, tt.expected, root)
-		})
-	}
-}
-
-func Test_UnsafeMerkleizeVector_Panic(t *testing.T) {
-	tests := []struct {
-		name            string
-		roots           []tree.Root
-		maxRootsAllowed uint64
-		shouldPanic     bool
-	}{
-		{
-			name:            "maxRootsAllowed is less than the number of roots",
-			roots:           []tree.Root{{0x01}, {0x01}, {0x01}, {0x01}},
-			maxRootsAllowed: 3,
-			shouldPanic:     true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r == nil && tt.shouldPanic {
-					t.Errorf("UnsafeMerkleizeVector did not panic")
-				}
-			}()
-			sha256.UnsafeMerkleizeVector(tt.roots, tt.maxRootsAllowed)
 		})
 	}
 }

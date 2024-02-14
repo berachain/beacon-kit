@@ -26,6 +26,8 @@
 package deneb
 
 import (
+	"errors"
+
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -80,18 +82,12 @@ func (p *WrappedExecutionPayloadDeneb) ToPayload() interfaces.ExecutionPayload {
 
 // ToHeader produces an ExecutionPayloadHeader.
 func (p *WrappedExecutionPayloadDeneb) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
-	transactionsRoot, err := sha256.BuildMerkleRootAndMixinLengthBytes(
-		p.Transactions, primitives.MaxTxsPerPayloadLength,
-	)
-	if err != nil {
-		return nil, err
+	if len(p.Transactions) > primitives.MaxTxsPerPayloadLength {
+		return nil, errors.New("too many transactions")
 	}
 
-	withdrawalsRoot, err := sha256.BuildMerkleRootAndMixinLength(
-		p.Withdrawals, primitives.MaxWithdrawalsPerPayload,
-	)
-	if err != nil {
-		return nil, err
+	if len(p.Withdrawals) > primitives.MaxWithdrawalsPerPayload {
+		return nil, errors.New("too many withdrawals")
 	}
 
 	return &WrappedExecutionPayloadHeaderDeneb{
@@ -109,8 +105,8 @@ func (p *WrappedExecutionPayloadDeneb) ToHeader() (interfaces.ExecutionPayloadHe
 			ExtraData:        p.ExtraData,
 			BaseFeePerGas:    p.BaseFeePerGas,
 			BlockHash:        p.BlockHash,
-			TransactionsRoot: transactionsRoot[:],
-			WithdrawalsRoot:  withdrawalsRoot[:],
+			TransactionsRoot: sha256.HashRootAndMixinLengthAsBzSlice(p.Transactions),
+			WithdrawalsRoot:  sha256.HashRootAndMixinLengthAsSlice(p.Withdrawals),
 			BlobGasUsed:      p.BlobGasUsed,
 			ExcessBlobGas:    p.ExcessBlobGas,
 		},

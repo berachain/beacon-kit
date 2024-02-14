@@ -33,7 +33,6 @@ import (
 	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine/v1/capella"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/stretchr/testify/require"
@@ -45,18 +44,12 @@ func Test_CapellaToHeader(t *testing.T) {
 		Withdrawals:  make([]*enginev1.Withdrawal, 0),
 	}, uint256.NewInt(1))
 
-	txRoot, err := sha256.BuildMerkleRootAndMixinLengthBytes(
-		p.GetTransactions(), primitives.MaxTxsPerPayloadLength,
-	)
-	require.NoError(t, err)
+	txRoot := sha256.HashRootAndMixinLengthAsBzSlice(p.GetTransactions())
 
-	wdRoot, err := sha256.BuildMerkleRootAndMixinLength(
-		p.GetWithdrawals(), primitives.MaxWithdrawalsPerPayload,
-	)
-	require.NoError(t, err)
+	wdRoot := sha256.HashRootAndMixinLengthAsSlice(p.GetWithdrawals())
 
 	parentHash := make([]byte, 32)
-	_, err = rand.Read(parentHash)
+	_, err := rand.Read(parentHash)
 	require.NoError(t, err)
 	p.ParentHash = parentHash
 
@@ -123,7 +116,7 @@ func Test_CapellaToHeader(t *testing.T) {
 	require.Equal(t, uint64(1), h.GasUsed)
 	require.Equal(t, uint64(1), h.GasLimit)
 	require.Equal(t, uint64(1), h.Timestamp)
-	require.True(t, bytes.Equal(h.TransactionsRoot, txRoot[:]))
-	require.True(t, bytes.Equal(h.WithdrawalsRoot, wdRoot[:]))
+	require.True(t, bytes.Equal(h.TransactionsRoot, txRoot))
+	require.True(t, bytes.Equal(h.WithdrawalsRoot, wdRoot))
 	require.Equal(t, uint64(1), p.GetValue().Uint64())
 }
