@@ -27,6 +27,7 @@ package capella
 
 import (
 	"github.com/itsdevbear/bolaris/crypto/sha256"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
@@ -96,19 +97,19 @@ func (p *WrappedExecutionPayloadCapella) ToHeader() (interfaces.ExecutionPayload
 
 	return &WrappedExecutionPayloadHeaderCapella{
 		ExecutionPayloadHeaderCapella: &enginev1.ExecutionPayloadHeaderCapella{
-			ParentHash:       p.ParentHash,
-			FeeRecipient:     p.FeeRecipient,
-			StateRoot:        p.StateRoot,
-			ReceiptsRoot:     p.ReceiptsRoot,
-			LogsBloom:        p.LogsBloom,
-			PrevRandao:       p.PrevRandao,
+			ParentHash:       byteslib.SafeCopy(p.ParentHash),
+			FeeRecipient:     byteslib.SafeCopy(p.FeeRecipient),
+			StateRoot:        byteslib.SafeCopy(p.StateRoot),
+			ReceiptsRoot:     byteslib.SafeCopy(p.ReceiptsRoot),
+			LogsBloom:        byteslib.SafeCopy(p.LogsBloom),
+			PrevRandao:       byteslib.SafeCopy(p.PrevRandao),
 			BlockNumber:      p.BlockNumber,
 			GasLimit:         p.GasLimit,
 			GasUsed:          p.GasUsed,
 			Timestamp:        p.Timestamp,
-			ExtraData:        p.ExtraData,
-			BaseFeePerGas:    p.BaseFeePerGas,
-			BlockHash:        p.BlockHash,
+			ExtraData:        byteslib.SafeCopy(p.ExtraData),
+			BaseFeePerGas:    byteslib.SafeCopy(p.BaseFeePerGas),
+			BlockHash:        byteslib.SafeCopy(p.BlockHash),
 			TransactionsRoot: transactionsRoot[:],
 			WithdrawalsRoot:  withdrawalsRoot[:],
 		},
