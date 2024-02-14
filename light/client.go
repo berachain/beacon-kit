@@ -60,6 +60,7 @@ func NewClient(
 		witnessesAddrs []string
 	)
 
+	witnessesAddrs = witnesses
 	// If no primary address is specified, check the db for existing providers
 	if primaryAddr == "" {
 		primaryAddress, witnessesAddrs, err = db.CheckForExistingProviders()

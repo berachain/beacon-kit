@@ -93,6 +93,10 @@ func runProxy(cmd *cobra.Command, args []string) error {
 		witnessesAddrs = strings.Split(witnesses, ",")
 	}
 
+	if len(witnessesAddrs) == 0 {
+		witnessesAddrs = []string{"http://localhost:26657"}
+	}
+
 	client, err := light.NewClient(
 		logger,
 		chainID,

@@ -74,7 +74,7 @@ const (
 	// Default Flag Values.
 	defaultListeningAddress = "tcp://localhost:8888"
 	defaultPrimaryAddress   = ""
-	defaultWitnessAddresses = ""
+	defaultWitnessAddresses = "http://localhost:26657"
 	defaultDir              = ".beacon-light"
 	defaultMaxOpenConn      = 900
 	defaultTrustPeriod      = 168 * time.Hour
