@@ -25,7 +25,7 @@
 
 package randao
 
-import "github.com/ethereum/go-ethereum/common"
+import "github.com/itsdevbear/bolaris/crypto/sha256"
 
 // This is the internal representation of the randao reveal
 // Although it is 32 bytes now, it can change
@@ -43,7 +43,7 @@ type RandomValue [32]byte
 func (m *Mix) MixInRandao(newReveal Reveal) error {
 	// As of go-eth 1.13.12, this is based on Keccak256 which is crypto hash
 	// and hence irreversible so safe to use here
-	hash := common.Hash(newReveal)
+	hash := sha256.HashBytes(newReveal[:])
 
 	if len(hash) != len(m) {
 		return ErrMixHashRevealLengthMismatch
