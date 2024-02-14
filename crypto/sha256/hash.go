@@ -142,10 +142,6 @@ func HashElements[H Hashable](input []H) ([][32]byte, error) {
 		})
 	}
 
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-
 	// Collect the results from the channel and place them in the correct order
 	for range input {
 		res := <-resultCh
@@ -153,6 +149,11 @@ func HashElements[H Hashable](input []H) ([][32]byte, error) {
 	}
 
 	close(resultCh)
+
+	// Check for any errors from the goroutines
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
 
 	return roots, nil
 }
