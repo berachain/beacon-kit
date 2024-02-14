@@ -37,19 +37,18 @@ import (
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginev1.PayloadIDBytes, error) {
-	var (
-		payloadID   *enginev1.PayloadIDBytes
-		err         error
-		beaconState = s.BeaconState(ctx)
-		fc          = &enginev1.ForkchoiceState{
+	beaconState := s.BeaconState(ctx)
+
+	// Notify the execution engine of the forkchoice update.
+	payloadID, _, err := s.engine.ForkchoiceUpdated(
+		ctx,
+		&enginev1.ForkchoiceState{
 			HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
 			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
 			FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
-		}
+		},
+		fcuConfig.Attributes,
 	)
-
-	// TODO: remember and figure out what the middle param is.
-	payloadID, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
 		switch err { //nolint:errorlint // okay for now.
 		case eth.ErrAcceptedSyncingPayloadStatus:
