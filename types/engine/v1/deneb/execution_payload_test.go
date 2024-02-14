@@ -43,7 +43,7 @@ func Test_DenebToHeader(t *testing.T) {
 	p := deneb.NewWrappedExecutionPayloadDeneb(&enginev1.ExecutionPayloadDeneb{
 		Transactions: make([][]byte, 0),
 		Withdrawals:  make([]*enginev1.Withdrawal, 0),
-	}, uint256.NewInt(0))
+	}, uint256.NewInt(1))
 
 	txRoot, err := sha256.BuildMerkleRootAndMixinLengthBytes(
 		p.GetTransactions(), primitives.MaxTxsPerPayloadLength)
@@ -131,4 +131,5 @@ func Test_DenebToHeader(t *testing.T) {
 	require.True(t, bytes.Equal(h.WithdrawalsRoot, wdRoot[:]))
 	require.Equal(t, uint64(1), h.BlobGasUsed)
 	require.Equal(t, uint64(1), h.ExcessBlobGas)
+	require.Equal(t, uint64(1), h.GetValue().Uint64())
 }

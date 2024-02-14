@@ -43,7 +43,7 @@ func Test_CapellaToHeader(t *testing.T) {
 	p := capella.NewWrappedExecutionPayloadCapella(&enginev1.ExecutionPayloadCapella{
 		Transactions: make([][]byte, 0),
 		Withdrawals:  make([]*enginev1.Withdrawal, 0),
-	}, uint256.NewInt(0))
+	}, uint256.NewInt(1))
 
 	txRoot, err := sha256.BuildMerkleRootAndMixinLengthBytes(
 		p.GetTransactions(), primitives.MaxTxsPerPayloadLength,
@@ -125,4 +125,5 @@ func Test_CapellaToHeader(t *testing.T) {
 	require.Equal(t, uint64(1), h.Timestamp)
 	require.True(t, bytes.Equal(h.TransactionsRoot, txRoot[:]))
 	require.True(t, bytes.Equal(h.WithdrawalsRoot, wdRoot[:]))
+	require.Equal(t, uint64(1), p.GetValue().Uint64())
 }
