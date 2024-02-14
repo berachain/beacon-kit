@@ -36,6 +36,10 @@ var (
 	// validator tries to propose a block with an out of sync
 	// execution client.
 	ErrValidatorClientNotSynced = errors.New(`your validator tried to propose a 
-	block with an out of sync execution client, did you forget to reset your execution client?`,
-	)
+block with an out of sync execution client, did you forget to reset your execution client?`)
+
+	// ErrClientNotSynced is an error for when a node tries to process
+	// a block with an out of sync execution client.
+	ErrClientNotSynced = errors.New(`your node tried to process a block with an 
+out of sync execution client, did you forget to reset your execution client?`)
 )

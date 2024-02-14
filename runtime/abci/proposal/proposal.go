@@ -81,7 +81,7 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// TODO: Make this more sophisticated.
-	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status != initialsync.StatusSynced {
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == initialsync.StatusExecutionAhead {
 		return nil, fmt.Errorf("err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status)
 	}
 
@@ -121,6 +121,11 @@ func (h *Handler) ProcessProposalHandler(
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
+
+	// TODO: Make this more sophisticated.
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status != initialsync.StatusSynced {
+		return nil, fmt.Errorf("err: %w, status: %d", ErrClientNotSynced, bsp.Status)
+	}
 
 	// Extract the beacon block from the ABCI request.
 	//

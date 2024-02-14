@@ -42,8 +42,8 @@ type (
 	// BeaconSyncStatus represents the synchronization status of the beacon chain.
 	BeaconSyncProgress struct {
 		Status      Status
-		ClFinalized common.Hash
-		ElFinalized common.Hash
+		clFinalized common.Hash
+		elFinalized common.Hash
 	}
 )
 
