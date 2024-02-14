@@ -32,8 +32,7 @@ import "types/consensus/v1/deposit.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1/capella";
 
-// BeaconKitBlockCapella represents a generic beacon block that can be used to represent
-// any beacon block in the system.
+// BlindedBeaconKitBlockCapella represents a blinded beacon block.
 message BlindedBeaconKitBlockCapella {
   // Beacon chain slot that this block represents.
   uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
@@ -45,7 +44,7 @@ message BlindedBeaconKitBlockCapella {
   bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
 }
 
-// BlindedBeaconKitBlockBodyCapella represents the body of a beacon block.
+// BlindedBeaconKitBlockBodyCapella represents the body of a blinded beacon block.
 message BlindedBeaconKitBlockBodyCapella {
   // The validators RANDAO reveal 96 byte value.
   bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];

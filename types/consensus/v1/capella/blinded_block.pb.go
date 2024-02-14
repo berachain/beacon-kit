@@ -49,8 +49,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// BeaconKitBlockCapella represents a generic beacon block that can be used to represent
-// any beacon block in the system.
+// BlindedBeaconKitBlockCapella represents a blinded beacon block.
 type BlindedBeaconKitBlockCapella struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -117,7 +116,7 @@ func (x *BlindedBeaconKitBlockCapella) GetPayloadValue() []byte {
 	return nil
 }
 
-// BlindedBeaconKitBlockBodyCapella represents the body of a beacon block.
+// BlindedBeaconKitBlockBodyCapella represents the body of a blinded beacon block.
 type BlindedBeaconKitBlockBodyCapella struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
