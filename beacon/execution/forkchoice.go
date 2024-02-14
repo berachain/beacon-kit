@@ -27,7 +27,6 @@ package execution
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
@@ -71,7 +70,7 @@ func (s *Service) notifyForkchoiceUpdate(
 			if err != nil {
 				return nil, err // Returning err because it's recursive here.
 			}
-			return payloadID, errors.New("BAD BLOCK REEEEEE RIP WALRUS")
+			return payloadID, ErrBadBlockProduced
 		default:
 			s.Logger().Error("undefined execution engine error", "error", err)
 			return nil, err
