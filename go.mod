@@ -31,7 +31,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/protolambda/ztyp v0.2.2
 	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44
-	github.com/prysmaticlabs/gohashtree v0.0.3-alpha
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20230228205207-28762a7b9294
 	github.com/prysmaticlabs/prysm/v4 v4.2.1
 	github.com/spf13/cast v1.6.0
