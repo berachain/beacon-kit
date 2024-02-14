@@ -55,10 +55,10 @@ TERMS AND CONDITIONS: %s
 
 Type "accept" to accept these terms and conditions [accept/decline]:`
 	// acceptTosPromptErrTextFormat is the the error prompt text for accepting the terms of use.
-	AcceptTosPromptErrTextFormat = `invalid input received: %s, if you are trying to run in 
-	non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
-	terms and conditions here: 
-	%s`
+	AcceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
+non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
+terms and conditions here: 
+%s`
 	DeclinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 
@@ -69,9 +69,9 @@ func BuildTosPromptText(appName, tosLink string) string {
 }
 
 // BuildErrorPromptText builds the prompt text for accepting the terms of use.
-func BuildErrorPromptText(input, tosLink string) string {
+func BuildErrorPromptText(tosLink string) string {
 	return aurora.NewAurora(true).
-		Sprintf(AcceptTosPromptErrTextFormat, input, tosLink)
+		Sprintf(AcceptTosPromptErrTextFormat, tosLink)
 }
 
 // VerifyTosAcceptedOrPrompt checks if Tos was accepted before or asks to accept.
@@ -104,9 +104,12 @@ func VerifyTosAcceptedOrPrompt(
 			return nil
 		},
 	}
-	input, err := prompt.AskAndValidate()
+	_, err := prompt.AskAndValidate()
 	if err != nil {
-		return errors.New(BuildErrorPromptText(input, tosLink))
+		if err.Error() == DeclinedErrorString {
+			return err
+		}
+		return errors.New(BuildErrorPromptText(tosLink))
 	}
 
 	saveTosAccepted(homedir, cmd)
