@@ -35,8 +35,8 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
-	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
@@ -87,7 +87,7 @@ func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.I
 // GatherLogsFromEth1Block gathers all the logs from the provided eth1 block.
 func (s *Processor) GatherLogsFromEth1Block(
 	ctx context.Context, blkNum *big.Int,
-) (evmv1.Logs, error) {
+) ([]coretypes.Log, error) {
 	// Gather all the addresses we have handlers for.
 	addresses := make([]common.Address, 0)
 	for addr := range s.handlers {
@@ -103,15 +103,7 @@ func (s *Processor) GatherLogsFromEth1Block(
 	}
 
 	// Gather all the logs from this block.
-	ethLogs, err := s.eth1Client.FilterLogs(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert the logs to our own type.
-	// TODO: determine a way to not have to do this cause its a waste of CPU.
-	logs := evmv1.LogsFromEthLogs(ethLogs)
-	return logs, nil
+	return s.eth1Client.FilterLogs(ctx, query)
 }
 
 // ProcessETH1Block processes logs from the provided eth1 block.
@@ -126,19 +118,19 @@ func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error
 	for i, filterLog := range logs {
 		// Skip logs that are not from the block we are processing.
 		// This should never happen, but defensively check anyway.
-		if filterLog.GetBlockNumber() != blkNum.Uint64() {
+		if filterLog.BlockNumber != blkNum.Uint64() {
 			continue
 		}
 
 		// Skip logs that are not from the addresses we care about.
 		// This should never happen, but defensively check anyway.
-		handler, found := s.handlers[common.Address(filterLog.GetAddress())]
+		handler, found := s.handlers[filterLog.Address]
 		if !found {
 			continue
 		}
 
 		// Process the log with the handler.
-		if err = handler.HandleLog(ctx, logs[i]); err != nil {
+		if err = handler.HandleLog(ctx, &logs[i]); err != nil {
 			return errors.Wrap(err, "could not process log")
 		}
 	}

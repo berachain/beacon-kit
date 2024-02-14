@@ -28,11 +28,11 @@ package callback
 import (
 	"context"
 
-	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // LogHandler represents a struct that has the ability to ingest
 // an ethereum log and handle it.
 type LogHandler interface {
-	HandleLog(ctx context.Context, log *evmv1.Log) error
+	HandleLog(ctx context.Context, log *coretypes.Log) error
 }
