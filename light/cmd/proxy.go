@@ -97,6 +97,15 @@ func runProxy(cmd *cobra.Command, args []string) error {
 		witnessesAddrs = []string{"http://localhost:26657"}
 	}
 
+	primaryAddr, err := cmd.Flags().GetString(primaryAddr)
+	if err != nil {
+		return err
+	}
+
+	if primaryAddr == "" {
+		primaryAddr = "tcp://localhost:26657"
+	}
+
 	client, err := light.NewClient(
 		logger,
 		chainID,
@@ -114,12 +123,12 @@ func runProxy(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	config := light.InitServerConfig(maxOpenConnections)
-
+	listenAddr_ := "tcp://localhost:26658"
 	// Create the proxy server.
 	// this is a tendermint light client proxy server
 	p, err := lproxy.NewProxy(
 		client,
-		listenAddr,
+		listenAddr_,
 		primaryAddr,
 		config,
 		logger,
@@ -135,12 +144,18 @@ func runProxy(cmd *cobra.Command, args []string) error {
 	})
 
 	logger.Info("Starting proxy...", "laddr", listenAddr)
+	done := make(chan struct{})
 	// Start the proxy server.
-	if err = p.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
-		// Error starting or closing listener:
-		logger.Error("proxy ListenAndServe", "err", err)
-	}
-
+	go func() {
+		if err = p.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
+			// Error starting or closing listener:
+			logger.Error("proxy ListenAndServe", "err", err)
+		} else {
+			logger.Error("proxy server closed", "error", err)
+			done <- struct{}{}
+		}
+	}()
+	<-done
 	return nil
 }
 
