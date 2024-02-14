@@ -29,6 +29,6 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
-func HashBytes(b []byte) [32]byte {
+func Hash(b []byte) [32]byte {
 	return sha256.Sum256(b)
 }
