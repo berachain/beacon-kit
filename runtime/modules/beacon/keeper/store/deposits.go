@@ -26,7 +26,7 @@
 package store
 
 import (
-	"encoding/json"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
@@ -60,12 +60,12 @@ func (DepositValue) Decode(b []byte) (*Deposit, error) {
 }
 
 func (DepositValue) EncodeJSON(value *Deposit) ([]byte, error) {
-	return json.Marshal(value)
+	return protojson.Marshal(value)
 }
 
 func (DepositValue) DecodeJSON(b []byte) (*Deposit, error) {
 	d := new(Deposit)
-	err := json.Unmarshal(b, d)
+	err := protojson.Unmarshal(b, d)
 	return d, err
 }
 
