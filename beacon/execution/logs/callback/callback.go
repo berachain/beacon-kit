@@ -22,10 +22,11 @@ package callback
 
 import (
 	"context"
+	"errors"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	evmv1 "github.com/itsdevbear/bolaris/types/evm/v1"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // Handler is the interface for all stateful precompiled contracts, which must
@@ -62,9 +63,12 @@ func NewFrom(
 }
 
 // HandleLog calls the function that matches the given log's signature.
-func (sc *wrappedHandler) HandleLog(ctx context.Context, log *evmv1.Log) error {
+func (sc *wrappedHandler) HandleLog(ctx context.Context, log *coretypes.Log) error {
 	// Extract the method ID from the input and load the method.
-	fn, found := sc.sigsToFns[logSig(log.GetTopics()[0])]
+	if log == nil {
+		return errors.New("log is nil")
+	}
+	fn, found := sc.sigsToFns[logSig(log.Topics[0])]
 	if !found {
 		return ErrHandlerFnNotFound
 	}
