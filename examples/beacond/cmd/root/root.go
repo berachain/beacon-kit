@@ -72,6 +72,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
+	light "github.com/itsdevbear/bolaris/light/cmd"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
@@ -269,6 +270,7 @@ func initRootCmd(
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
+		light.LightClientCmd(),
 	)
 
 }
