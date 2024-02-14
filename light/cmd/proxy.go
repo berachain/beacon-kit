@@ -27,6 +27,7 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -39,7 +40,10 @@ import (
 	cometOs "github.com/cometbft/cometbft/libs/os"
 	lproxy "github.com/cometbft/cometbft/light/proxy"
 	lrpc "github.com/cometbft/cometbft/light/rpc"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/itsdevbear/bolaris/light"
+	"github.com/itsdevbear/bolaris/light/provider"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	"github.com/spf13/cobra"
 )
 
@@ -143,19 +147,40 @@ func runProxy(cmd *cobra.Command, args []string) error {
 		p.Listener.Close()
 	})
 
+	// querier := NewQuerier(p.Client)
+	cosmosProvider := provider.CosmosProvider{
+		RPCClient: p.Client,
+	}
+
+	resp, _, err := cosmosProvider.RunGRPCQuery(
+		context.Background(),
+		"/runtime.modules.beacon.v1alpha1.Querier/FinalizedEth1Block",
+		&types.FinalizedEth1BlockRequest{},
+		0,
+		false,
+	)
+	if err != nil {
+		return err
+	}
+	x := &types.FinalizedEth1BlockResponse{}
+	respp := proto.Unmarshal(resp.Value, x)
+	if respp != nil {
+		return respp
+	}
+	fmt.Println("Finalized Block on the Execution Client:", x.Eth1BlockHash)
+
 	logger.Info("Starting proxy...", "laddr", listenAddr)
-	done := make(chan struct{})
 	// Start the proxy server.
 	go func() {
+
 		if err = p.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
 			// Error starting or closing listener:
 			logger.Error("proxy ListenAndServe", "err", err)
 		} else {
 			logger.Error("proxy server closed", "error", err)
-			done <- struct{}{}
+
 		}
 	}()
-	<-done
 	return nil
 }
 
@@ -199,4 +224,13 @@ func NewConfirmationFunc(cmd *cobra.Command) func(string) bool {
 			}
 		}
 	}
+}
+
+type Querier struct {
+	// The client to use for querying.
+	client *lrpc.Client
+}
+
+func NewQuerier(client *lrpc.Client) *Querier {
+	return &Querier{client: client}
 }

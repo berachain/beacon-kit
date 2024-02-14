@@ -1,0 +1,23 @@
+// Since: cosmos-sdk 0.46
+syntax = "proto3";
+package runtime.modules.beacon.v1alpha1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/runtime/modules/beacon/types";
+
+// Query defines the gRPC querier service for gov module
+service Querier {
+  // FinalizedEth1Block queries the valid voting options for a proposal.
+  rpc FinalizedEth1Block(FinalizedEth1BlockRequest) returns (FinalizedEth1BlockResponse) {
+    option (google.api.http).get = "/beacon-kit/beacon/v1alpha/finalized_eth1_block";
+  }
+}
+
+// FinalizedEth1BlockRequest is the request type for the Query/Constitution RPC method
+message FinalizedEth1BlockRequest {}
+
+// FinalizedEth1BlockResponse is the response type for the Query/Constitution RPC method
+message FinalizedEth1BlockResponse {
+  string eth1_block_hash = 1;
+}

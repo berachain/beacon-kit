@@ -28,9 +28,6 @@ package evm
 import (
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-
-	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -46,7 +43,7 @@ import (
 const ConsensusVersion = 1
 
 var (
-	_ appmodule.HasServices = AppModule{}
+	// _ appmodule.HasServices = AppModule{}
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
@@ -74,7 +71,11 @@ func (b AppModuleBasic) RegisterInterfaces(r cdctypes.InterfaceRegistry) {
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the evm module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *gwruntime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *gwruntime.ServeMux) {
+	if err := types.RegisterQuerierHandlerClient(clientCtx.CmdContext, mux, types.NewQuerierClient(clientCtx)); err != nil {
+		panic(err)
+	}
+}
 
 // GetTxCmd returns no root tx command for the evm module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -116,9 +117,9 @@ func (am AppModule) IsAppModule() {}
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
-	// types.RegisterMsgServiceServer(registrar, am.keeper)
-	return nil
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	querier := keeper.Querier{Keeper: am.keeper}
+	types.RegisterQuerierServer(cfg.QueryServer(), &querier)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
