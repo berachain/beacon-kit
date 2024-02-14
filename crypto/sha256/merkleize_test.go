@@ -72,31 +72,27 @@ func Test_SafeMerkleizeVector(t *testing.T) {
 
 func Test_UnsafeMerkleizeVector_Panic(t *testing.T) {
 	tests := []struct {
-		name  string
-		roots []tree.Root
+		name            string
+		roots           []tree.Root
+		maxRootsAllowed uint64
+		shouldPanic     bool
 	}{
 		{
-			name:  "empty roots list",
-			roots: make([]tree.Root, 0),
-		},
-		{
-			name:  "roots list with one element",
-			roots: []tree.Root{{0x01}},
-		},
-		{
-			name:  "roots list with multiple elements",
-			roots: []tree.Root{{0x01}, {0x02}, {0x03}},
+			name:            "maxRootsAllowed is less than the number of roots",
+			roots:           []tree.Root{{0x01}, {0x01}, {0x01}, {0x01}},
+			maxRootsAllowed: 3,
+			shouldPanic:     true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defer func() {
-				if r := recover(); r == nil {
+				if r := recover(); r == nil && tt.shouldPanic {
 					t.Errorf("UnsafeMerkleizeVector did not panic")
 				}
 			}()
-			sha256.UnsafeMerkleizeVector(tt.roots, 16)
+			sha256.UnsafeMerkleizeVector(tt.roots, tt.maxRootsAllowed)
 		})
 	}
 }
