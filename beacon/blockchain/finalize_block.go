@@ -27,8 +27,11 @@ package blockchain
 
 import (
 	"context"
+	"errors"
 
+	"cosmossdk.io/collections"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
 
@@ -53,9 +56,22 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 	// Process deposits.
-	err = state.ProcessDeposits()
-	if err != nil {
-		return err
+	cfg := s.BeaconCfg()
+	var processedDeposits uint64
+	for processedDeposits < cfg.Limits.MaxDepositsPerBlock {
+		var deposit *store.Deposit
+		deposit, err = state.NextDeposit()
+		if err != nil {
+			if errors.Is(err, collections.ErrNotFound) {
+				break
+			}
+			return err
+		}
+		err = state.ProcessDeposit(deposit)
+		if err != nil {
+			return err
+		}
+		processedDeposits++
 	}
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 

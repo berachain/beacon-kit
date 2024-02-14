@@ -26,6 +26,7 @@
 package store
 
 import (
+	"cosmossdk.io/collections"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -49,16 +50,18 @@ func (s *BeaconStore) AddDeposit(deposit *Deposit) error {
 	return nil
 }
 
-// ProcessDeposits processes the queued deposits.
-func (s *BeaconStore) ProcessDeposits() error {
-	var processedDeposits uint64
-	for processedDeposits < s.cfg.Limits.MaxDepositsPerBlock && len(s.deposits) > 0 {
-		deposit := s.deposits[0]
-		if _, err := s.stakingKeeper.Delegate(s.sdkCtx, deposit); err != nil {
-			return err
-		}
-		s.deposits = s.deposits[1:]
-		processedDeposits++
+// NextDeposit returns the next deposit in the queue.
+func (s *BeaconStore) NextDeposit() (*Deposit, error) {
+	if len(s.deposits) == 0 {
+		return nil, collections.ErrNotFound
 	}
-	return nil
+	deposit := s.deposits[0]
+	s.deposits = s.deposits[1:]
+	return deposit, nil
+}
+
+// ProcessDeposit processes a deposit with the staking keeper.
+func (s *BeaconStore) ProcessDeposit(deposit *Deposit) error {
+	_, err := s.stakingKeeper.Delegate(s.sdkCtx, deposit)
+	return err
 }
