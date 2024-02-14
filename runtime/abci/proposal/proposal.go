@@ -26,6 +26,7 @@
 package proposal
 
 import (
+	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -35,6 +36,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/types/consensus/blocks"
 	"github.com/itsdevbear/bolaris/validator"
@@ -46,6 +48,7 @@ type Handler struct {
 	cfg             *config.ABCI
 	validator       *validator.Service
 	beaconChain     *blockchain.Service
+	syncService     *initialsync.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 }
@@ -54,6 +57,7 @@ type Handler struct {
 func NewHandler(
 	cfg *config.ABCI,
 	validator *validator.Service,
+	syncService *initialsync.Service,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
@@ -61,6 +65,7 @@ func NewHandler(
 	return &Handler{
 		cfg:             cfg,
 		validator:       validator,
+		syncService:     syncService,
 		beaconChain:     beaconChain,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
@@ -74,6 +79,11 @@ func (h *Handler) PrepareProposalHandler(
 ) (*abci.ResponsePrepareProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
+
+	// TODO: Make this more sophisticated.
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == initialsync.StatusExecutionAhead {
+		return nil, fmt.Errorf("err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status)
+	}
 
 	// We start by requesting the validator service to build us a block. This may
 	// be from pulling a previously built payload from the local cache or it may be
@@ -111,6 +121,11 @@ func (h *Handler) ProcessProposalHandler(
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
+
+	// TODO: Make this more sophisticated.
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status != initialsync.StatusSynced {
+		return nil, fmt.Errorf("err: %w, status: %d", ErrClientNotSynced, bsp.Status)
+	}
 
 	// Extract the beacon block from the ABCI request.
 	//

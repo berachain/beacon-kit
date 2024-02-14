@@ -33,7 +33,7 @@ require (
 	github.com/protolambda/ztyp v0.2.2
 	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7
-	github.com/prysmaticlabs/gohashtree v0.0.3-alpha
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20230228205207-28762a7b9294
 	github.com/prysmaticlabs/prysm/v4 v4.2.1
 	github.com/spf13/cast v1.6.0
@@ -43,7 +43,7 @@ require (
 	github.com/vektra/mockery/v2 v2.41.0
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
 	golang.org/x/sync v0.6.0
-	google.golang.org/grpc v1.61.0
+	google.golang.org/grpc v1.61.1
 	google.golang.org/protobuf v1.32.0
 )
 
