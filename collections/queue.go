@@ -48,7 +48,8 @@ func NewQueue[V any](schema *sdk.SchemaBuilder, prefix sdk.Prefix, name string, 
 }
 
 // Peek returns the top element of the queue, or ErrNotFound if the queue is empty.
-func (q *Queue[V]) Peek(ctx context.Context) (v V, err error) {
+func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
+	var v V
 	if q.startIdx >= q.endIdx {
 		return v, sdk.ErrNotFound
 	}
@@ -56,8 +57,8 @@ func (q *Queue[V]) Peek(ctx context.Context) (v V, err error) {
 }
 
 // Next returns the top element of the queue and removes it from the queue.
-func (q *Queue[V]) Next(ctx context.Context) (v V, err error) {
-	v, err = q.Peek(ctx)
+func (q *Queue[V]) Next(ctx context.Context) (V, error) {
+	v, err := q.Peek(ctx)
 	if err != nil {
 		return v, err
 	}
