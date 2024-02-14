@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024\ Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,31 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package consensus
 
 import (
-	"context"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"errors"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
+var (
+	// ErrNoBeaconBlockInProposal is an error for when
+	// there is no beacon block in a proposal.
+	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
 
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
 
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
-}
+	// ErrInvalidExecutionValue is an error for when the
+	// execution value is invalid.
+	ErrInvalidExecutionValue = errors.New("invalid execution value")
+
+	// ErrForkVersionNotSupported is an error for when the fork
+	// version is not supported.
+	ErrForkVersionNotSupported = errors.New("fork version not supported")
+)
