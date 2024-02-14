@@ -92,9 +92,6 @@ func NewBeaconPreBlockHandler(
 // the oracle data to the store.
 func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(ctx sdk.Context, req *cometabci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
-		// TODO: we need to actually do something with the sync status.
-		h.syncStatus.CheckSyncStatus(ctx)
-
 		// Extract the beacon block from the ABCI request.
 		//
 		// TODO: I don't love how we have to use the BeaconConfig here.
