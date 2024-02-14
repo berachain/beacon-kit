@@ -60,11 +60,10 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 		return nil, ErrOddLengthTreeRoots
 	}
 	outputList := make([][32]byte, len(inputList)/two)
-	inputListBytes32 := inputList
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if len(inputList) < MinParallelizationSize {
-		return outputList, gohashtree.Hash(outputList, inputListBytes32)
+		return outputList, gohashtree.Hash(outputList, inputList)
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -93,7 +92,7 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[cj*groupSize:], inputListBytes32[cj*two*groupSize:(cj+1)*two*groupSize],
+				outputList[cj*groupSize:], inputList[cj*two*groupSize:(cj+1)*two*groupSize],
 			)
 		})
 	}
@@ -104,7 +103,7 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 	// to ensure all parts of the inputList are hashed.
 	remainderStartIndex := n * two * groupSize
 	if remainderStartIndex < len(inputList) { // Check if there's a remainder segment to process.
-		err := gohashtree.Hash(outputList[n*groupSize:], inputListBytes32[remainderStartIndex:])
+		err := gohashtree.Hash(outputList[n*groupSize:], inputList[remainderStartIndex:])
 		if err != nil {
 			return nil, err
 		}
