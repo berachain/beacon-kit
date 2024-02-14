@@ -47,14 +47,13 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	state := s.BeaconState(ctx)
-
 	// Process logs, including deposits.
-	// TODO: Add deposits into the state.
 	err = s.en.ProcessLogs(ctx, execution.GetBlockNumber())
 	if err != nil {
 		return err
 	}
+
+	state := s.BeaconState(ctx)
 	// Process deposits.
 	cfg := s.BeaconCfg()
 	var processedDeposits uint64
