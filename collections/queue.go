@@ -39,7 +39,10 @@ type Queue[V any] struct {
 }
 
 // NewQueue creates a new queue with the provided prefix and name.
-func NewQueue[V any](schema *sdk.SchemaBuilder, prefix sdk.Prefix, name string, valueCodec codec.ValueCodec[V]) Queue[V] {
+func NewQueue[V any](
+	schema *sdk.SchemaBuilder,
+	prefix sdk.Prefix, name string,
+	valueCodec codec.ValueCodec[V]) Queue[V] {
 	return Queue[V]{
 		container: sdk.NewMap[uint64, V](schema, prefix, name+"_container", sdk.Uint64Key, valueCodec),
 		startIdx:  0,
