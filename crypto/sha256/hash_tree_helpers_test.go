@@ -31,7 +31,6 @@ import (
 	"testing"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
-	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
@@ -39,10 +38,10 @@ import (
 // requireGoHashTreeEquivalence is a helper function to ensure that the output of
 // sha256.HashTreeRoot is equivalent to the output of gohashtree.Hash.
 func requireGoHashTreeEquivalence(
-	t *testing.T, inputList []tree.Root, numRoutines int, expectError bool,
+	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
 ) {
-	expectedOutput := make([]tree.Root, len(inputList)/2)
-	var output []tree.Root
+	expectedOutput := make([][32]byte, len(inputList)/2)
+	var output [][32]byte
 
 	var wg sync.WaitGroup
 	errChan := make(chan error, 2) // Buffer for 2 potential errors
@@ -51,7 +50,7 @@ func requireGoHashTreeEquivalence(
 	go func() {
 		defer wg.Done()
 		var err error
-		output, err = sha256.HashTreeRootWithNRoutines(inputList, numRoutines)
+		output, err = sha256.BuildParentTreeRootsWithNRoutines(inputList, numRoutines)
 		if err != nil {
 			errChan <- fmt.Errorf("HashTreeRoot failed: %w", err)
 			return
@@ -62,8 +61,8 @@ func requireGoHashTreeEquivalence(
 	go func() {
 		defer wg.Done()
 		err := gohashtree.Hash(
-			sha256.ConvertTreeRootsToBytes(expectedOutput),
-			sha256.ConvertTreeRootsToBytes(inputList),
+			expectedOutput,
+			inputList,
 		)
 		if err != nil {
 			errChan <- fmt.Errorf("gohashtree.Hash failed: %w", err)

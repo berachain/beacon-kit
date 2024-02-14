@@ -26,9 +26,92 @@
 package sha256
 
 import (
-	"github.com/minio/sha256-simd"
+	sha256 "github.com/minio/sha256-simd"
 )
 
-func Hash(b []byte) [32]byte {
-	return sha256.Sum256(b)
+// This hashing library provides multiple ways to utilize the Hash function:
+// 1. Directly pass a raw []byte slice to the Hash function.
+// 2. Implement the `Hashable` interface and invoke the HashTreeRoot method
+//    for a customized hashing approach.
+
+// Hash returns the SHA256 hash of the input bytes.
+func Hash(bz []byte) [32]byte {
+	return sha256.Sum256(bz)
+}
+
+// HashArray returns the SHA256 hashes of the input bytes.
+func HashArray(input [][]byte) ([][32]byte, error) {
+	roots := make([][32]byte, len(input))
+	for i, el := range input {
+		roots[i] = Hash(el)
+	}
+	return roots, nil
+}
+
+// HashRoot returns the SHA256 merkle root of the input bytes.
+func HashRootBz(input [][]byte) [32]byte {
+	// Hash all the elements in the array to create the
+	// leaves of the merkle tree.
+	roots, err := HashArray(input)
+	if err != nil {
+		return [32]byte{}
+	}
+
+	// Then build the merkle tree from the leaves.
+	return UnsafeMerkleizeVector(roots, uint64(len(input)))
+}
+
+// HashRootBzBytes returns the SHA256 merkle root of the input bytes as a byte slice.
+func HashRootBzAsSlice(input [][]byte) []byte {
+	bz := HashRootBz(input)
+	return bz[:]
+}
+
+// HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
+// the length mixed in.
+func HashRootAndMixinLengthBz(input [][]byte) [32]byte {
+	roots, err := HashArray(input)
+	if err != nil {
+		return [32]byte{}
+	}
+	return UnsafeMerkleizeVectorAndMixinLength(roots, uint64(len(input)))
+}
+
+// HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
+// the length mixed in.
+func HashRootAndMixinLengthAsBzSlice(input [][]byte) []byte {
+	bz := HashRootAndMixinLengthBz(input)
+	return bz[:]
+}
+
+// HashRoot returns the SHA256 merkle root of the input bytes.
+func HashRoot[H Hashable](input []H) [32]byte {
+	b, err := BuildMerkleRoot(input, uint64(len(input)))
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+// HashRootAsSlice returns the SHA256 merkle root of the input bytes as a byte slice.
+func HashRootAsSlice[H Hashable](input []H) []byte {
+	bz := HashRoot(input)
+	return bz[:]
+}
+
+// HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
+// the length mixed in.
+func HashRootAndMixinLength[H Hashable](input []H) [32]byte {
+	b, err := BuildMerkleRootAndMixinLength(input, uint64(len(input)))
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+// HashRootAndMixinLengthAsSlice returns the SHA256 merkle root of the input bytes with
+// the length mixed in as a byte slice.
+func HashRootAndMixinLengthAsSlice[H Hashable](input []H) []byte {
+	bz := HashRootAndMixinLength(input)
+	return bz[:]
 }
