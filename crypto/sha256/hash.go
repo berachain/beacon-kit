@@ -23,23 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proposal
+package sha256
 
-import "errors"
-
-var (
-	// ErrNoBeaconBlockInProposal is an error for when
-	// there is no beacon block in a proposal.
-	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
-
-	// ErrValidatorClientNotSynced is an error for when a
-	// validator tries to propose a block with an out of sync
-	// execution client.
-	ErrValidatorClientNotSynced = errors.New(`your validator tried to propose a 
-block with an out of sync execution client, did you forget to reset your execution client?`)
-
-	// ErrClientNotSynced is an error for when a node tries to process
-	// a block with an out of sync execution client.
-	ErrClientNotSynced = errors.New(`your node tried to process a block with an 
-out of sync execution client, did you forget to reset your execution client?`)
+import (
+	"github.com/minio/sha256-simd"
 )
+
+func HashBytes(b []byte) [32]byte {
+	return sha256.Sum256(b)
+}
