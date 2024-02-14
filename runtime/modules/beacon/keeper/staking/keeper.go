@@ -93,21 +93,28 @@ func (k Keeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit
 	amount := depositData.GetAmount()
 	if err != nil {
 		if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
-			_, err = k.createValidator(ctx, validatorPK, amount)
+			_, err = k.createValidator(validatorPK, amount)
 			return err
 		}
 		return err
 	}
-	_, err = k.stakingKeeper.Delegate(ctx, sdk.AccAddress(valConsAddr), sdkmath.NewIntFromUint64(amount), sdkstaking.Unbonded, validator, true)
+	_, err = k.stakingKeeper.Delegate(
+		ctx, sdk.AccAddress(valConsAddr),
+		sdkmath.NewIntFromUint64(amount),
+		sdkstaking.Unbonded, validator, true)
 	return err
 }
 
 // createValidator creates a new validator with the given public key and amount of tokens.
-func (k Keeper) createValidator(ctx context.Context, validatorPK sdkcrypto.PubKey, amount uint64) (sdkstaking.Validator, error) {
+func (k Keeper) createValidator(
+	validatorPK sdkcrypto.PubKey,
+	amount uint64) (sdkstaking.Validator, error) {
 	stake := sdkmath.NewIntFromUint64(amount)
 	valConsAddr := sdk.GetConsAddress(validatorPK)
 	operator := sdk.ValAddress(valConsAddr).String()
-	val, err := sdkstaking.NewValidator(operator, validatorPK, sdkstaking.Description{Moniker: validatorPK.String()})
+	val, err := sdkstaking.NewValidator(
+		operator, validatorPK,
+		sdkstaking.Description{Moniker: validatorPK.String()})
 	val.Tokens = stake
 	val.DelegatorShares = sdkmath.LegacyNewDecFromInt(val.Tokens)
 	return val, err
