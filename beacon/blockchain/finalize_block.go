@@ -39,7 +39,7 @@ func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
 	blk interfaces.ReadOnlyBeaconKitBlock,
 ) error {
-	execution, err := blk.Execution()
+	execution, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
 	}
