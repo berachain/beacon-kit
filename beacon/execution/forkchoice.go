@@ -31,7 +31,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
-	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -94,7 +93,7 @@ func (s *Service) notifyForkchoiceUpdate(
 		s.Logger().Info("forkchoice updated with payload attributes for proposal",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"proposing_slot", fcuConfig.ProposingSlot,
-			"payload_id", fmt.Sprintf("%#x", bytesutil.Trunc(payloadID[:])),
+			"payload_id", fmt.Sprintf("%#x", payloadID),
 		)
 		s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, pID)
 	} else if hasAttr && payloadID == nil {
