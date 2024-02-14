@@ -29,6 +29,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -56,10 +57,11 @@ func (s *Service) notifyForkchoiceUpdate(
 				"head_eth1_hash", fcuConfig.HeadEth1Hash,
 				"proposing_slot", fcuConfig.ProposingSlot,
 			)
+			telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 			return payloadID, nil
 		case eth.ErrInvalidPayloadStatus:
 			s.Logger().Error("invalid payload status", "error", err)
-
+			telemetry.IncrCounter(1, MetricsKeyInvalidPayloadStatus)
 			// Attempt to get the chain back into a valid state.
 			payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
 				HeadEth1Hash:  beaconState.GetLastValidHead(),
