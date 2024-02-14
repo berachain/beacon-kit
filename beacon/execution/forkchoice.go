@@ -68,7 +68,9 @@ func (s *Service) notifyForkchoiceUpdate(
 				Attributes:    fcuConfig.Attributes,
 			})
 			if err != nil {
-				return nil, err // Returning err because it's recursive here.
+				// We have to return the error here since this function
+				// is recursive.
+				return nil, err
 			}
 			return payloadID, ErrBadBlockProduced
 		default:
