@@ -23,14 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package sha256
 
-// This is the internal representation of the randao reveal
-// Although it is 32 bytes now, it can change
-// We use the same size as Ed25519 sig
-// TODO: update to 96 bytes when moving to BLS
-type Reveal [32]byte
+import (
+	"unsafe"
 
-// This is the external representation of the randao random number
-// We fix this to 32 bytes.
-type RandomValue [32]byte
+	"github.com/protolambda/ztyp/tree"
+)
+
+func ConvertTreeRootsToBytes(roots []tree.Root) [][32]byte {
+	//#nosec:G103 // This is a safe conversion.
+	return *(*[][32]byte)(unsafe.Pointer(&roots))
+}
+
+func ConvertBytesToTreeRoots(bytes [][32]byte) []tree.Root {
+	//#nosec:G103 // This is a safe conversion.
+	return *(*[]tree.Root)(unsafe.Pointer(&bytes))
+}
