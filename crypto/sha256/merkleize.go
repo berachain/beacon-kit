@@ -180,7 +180,7 @@ func SafeMerkelizeVectorAndMixinLength(
 // 2. Append length -> [HTR_byte_array, length]
 // Step 3: Hash result -> Final HTR.
 func UnsafeMerkleizeVectorAndMixinLength(roots []tree.Root, maxRootsAllowed uint64) tree.Root {
-	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, uint64(len(roots))), maxRootsAllowed)
+	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, maxRootsAllowed), uint64(len(roots)))
 }
 
 // UnsafeMerkleizeVector is a function that computes the Hash Tree Root (HTR) for
