@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package version
+package randao
 
-const (
-	Phase0 = iota
-	Altair
-	Bellatrix
-	Capella
-	Deneb
+import "errors"
+
+var (
+	// ErrMixHashRevealLengthMismatch is returned when the hash of therandao reveal and
+	// the length of the randao mix are different.
+	ErrMixHashRevealLengthMismatch = errors.New("randao mix and reveal length mismatch")
 )

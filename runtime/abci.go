@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -70,6 +70,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
 		validatorService,
+		syncService,
 		chainService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),

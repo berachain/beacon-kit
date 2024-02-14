@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ type (
 
 	// BeaconSyncStatus represents the synchronization status of the beacon chain.
 	BeaconSyncProgress struct {
-		status      Status
+		Status      Status
 		clFinalized common.Hash
 		elFinalized common.Hash
 	}

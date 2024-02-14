@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package version
+package sha256
 
-const (
-	Phase0 = iota
-	Altair
-	Bellatrix
-	Capella
-	Deneb
+import (
+	"github.com/minio/sha256-simd"
 )
+
+func HashBytes(b []byte) [32]byte {
+	return sha256.Sum256(b)
+}
