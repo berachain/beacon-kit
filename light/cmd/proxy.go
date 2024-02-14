@@ -35,15 +35,16 @@ import (
 	"regexp"
 	"strings"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cometbft/cometbft/crypto/merkle"
 	"github.com/cometbft/cometbft/libs/log"
 	cometOs "github.com/cometbft/cometbft/libs/os"
 	lproxy "github.com/cometbft/cometbft/light/proxy"
 	lrpc "github.com/cometbft/cometbft/light/rpc"
-	"github.com/cosmos/gogoproto/proto"
+	cmtypes "github.com/cometbft/cometbft/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/light"
 	"github.com/itsdevbear/bolaris/light/provider"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	"github.com/spf13/cobra"
 )
 
@@ -136,6 +137,14 @@ func runProxy(cmd *cobra.Command, args []string) error {
 		primaryAddr,
 		config,
 		logger,
+		func(c *lrpc.Client) {
+			c.RegisterOpDecoder(
+				storetypes.ProofOpIAVLCommitment, storetypes.CommitmentOpDecoder,
+			)
+			c.RegisterOpDecoder(
+				storetypes.ProofOpSimpleMerkleCommitment, storetypes.CommitmentOpDecoder,
+			)
+		},
 		lrpc.KeyPathFn(MerkleKeyPathFn()),
 	)
 	if err != nil {
@@ -147,41 +156,71 @@ func runProxy(cmd *cobra.Command, args []string) error {
 		p.Listener.Close()
 	})
 
+	c := lrpc.NewClient(p.Client, client, func(c *lrpc.Client) {
+		c.RegisterOpDecoder(
+			storetypes.ProofOpIAVLCommitment, storetypes.CommitmentOpDecoder,
+		)
+		c.RegisterOpDecoder(
+			storetypes.ProofOpSimpleMerkleCommitment, storetypes.CommitmentOpDecoder,
+		)
+	},
+		lrpc.KeyPathFn(MerkleKeyPathFn()),
+	)
+
 	// querier := NewQuerier(p.Client)
 	cosmosProvider := provider.CosmosProvider{
-		RPCClient: p.Client,
+		RPCClient: c,
 	}
 
-	resp, _, err := cosmosProvider.RunGRPCQuery(
-		context.Background(),
-		"/runtime.modules.beacon.v1alpha1.Querier/FinalizedEth1Block",
-		&types.FinalizedEth1BlockRequest{},
-		0,
-		false,
-	)
-	if err != nil {
-		return err
-	}
-	x := &types.FinalizedEth1BlockResponse{}
-	respp := proto.Unmarshal(resp.Value, x)
-	if respp != nil {
-		return respp
-	}
-	fmt.Println("Finalized Block on the Execution Client:", x.Eth1BlockHash)
+	c.Start()
+	go ListenForNewBlocks(cmd.Context(), &cosmosProvider)
 
+	// Unmarshal raw bytes to proto.Message
 	logger.Info("Starting proxy...", "laddr", listenAddr)
 	// Start the proxy server.
 	go func() {
-
 		if err = p.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
 			// Error starting or closing listener:
 			logger.Error("proxy ListenAndServe", "err", err)
 		} else {
 			logger.Error("proxy server closed", "error", err)
-
 		}
 	}()
-	return nil
+	<-cmd.Context().Done()
+	return err
+}
+
+func ListenForNewBlocks(ctx context.Context, prov *provider.CosmosProvider) {
+	sub, err := prov.RPCClient.Subscribe(ctx, "subscriber", cmtypes.EventQueryNewBlockHeader.String())
+	if err != nil {
+		panic(err)
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-sub:
+			resA, err := prov.RPCClient.ABCIInfo(ctx)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			resp, _, err := prov.RunGRPCQuery(
+				context.Background(),
+				"/store/evm/key",
+				[]byte("fc_finalized"),
+				resA.Response.LastBlockHeight-1,
+				false,
+			)
+			if err != nil {
+				fmt.Println("Error querying the store:", err)
+				continue
+			}
+			fmt.Println("\033[32mFinalized Block on the Execution Client:", common.BytesToHash(resp.Value), "\033[0m")
+		default:
+			continue
+		}
+	}
 }
 
 const expectedMatchLength = 2

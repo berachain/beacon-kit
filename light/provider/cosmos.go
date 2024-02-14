@@ -28,12 +28,7 @@ type CosmosProvider struct {
 // arguments for the gRPC method, and returns the ABCI response. It is used
 // to factorize code between client (Invoke) and server (RegisterGRPCServer)
 // gRPC handlers.
-func (cc *CosmosProvider) RunGRPCQuery(ctx context.Context, method string, req interface{}, height int64, prove bool) (abci.ResponseQuery, metadata.MD, error) {
-	reqBz, err := protoCodec.Marshal(req)
-	if err != nil {
-		return abci.ResponseQuery{}, nil, err
-	}
-
+func (cc *CosmosProvider) RunGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64, prove bool) (abci.ResponseQuery, metadata.MD, error) {
 	// parse height header
 	// if heights := md.Get(grpctypes.GRPCBlockHeightHeader); len(heights) > 0 {
 	// 	height, err := strconv.ParseInt(heights[0], 10, 64)
