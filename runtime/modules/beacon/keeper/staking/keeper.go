@@ -29,12 +29,12 @@ import (
 	"context"
 	"errors"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkstaking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/itsdevbear/bolaris/config"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -92,23 +92,23 @@ func (k Keeper) processDeposit(ctx context.Context, deposit *consensusv1.Deposit
 	validator, err := k.stakingKeeper.GetValidator(ctx, sdk.ValAddress(valConsAddr))
 	amount := depositData.GetAmount()
 	if err != nil {
-		if errors.Is(err, stakingtypes.ErrNoValidatorFound) {
+		if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
 			_, err = k.createValidator(ctx, validatorPK, amount)
 			return err
 		}
 		return err
 	}
-	_, err = k.stakingKeeper.Delegate(ctx, sdk.AccAddress(valConsAddr), math.NewIntFromUint64(amount), stakingtypes.Unbonded, validator, true)
+	_, err = k.stakingKeeper.Delegate(ctx, sdk.AccAddress(valConsAddr), sdkmath.NewIntFromUint64(amount), sdkstaking.Unbonded, validator, true)
 	return err
 }
 
 // createValidator creates a new validator with the given public key and amount of tokens.
-func (k Keeper) createValidator(ctx context.Context, validatorPK cryptotypes.PubKey, amount uint64) (stakingtypes.Validator, error) {
-	stake := math.NewIntFromUint64(amount)
+func (k Keeper) createValidator(ctx context.Context, validatorPK sdkcrypto.PubKey, amount uint64) (sdkstaking.Validator, error) {
+	stake := sdkmath.NewIntFromUint64(amount)
 	valConsAddr := sdk.GetConsAddress(validatorPK)
 	operator := sdk.ValAddress(valConsAddr).String()
-	val, err := stakingtypes.NewValidator(operator, validatorPK, stakingtypes.Description{Moniker: validatorPK.String()})
+	val, err := sdkstaking.NewValidator(operator, validatorPK, sdkstaking.Description{Moniker: validatorPK.String()})
 	val.Tokens = stake
-	val.DelegatorShares = math.LegacyNewDecFromInt(val.Tokens)
+	val.DelegatorShares = sdkmath.LegacyNewDecFromInt(val.Tokens)
 	return val, err
 }
