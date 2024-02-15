@@ -38,23 +38,21 @@ type Queue[V any] struct {
 	tailSeq   sdk.Sequence // exclusive
 }
 
-const (
-	_ = iota
-	headSeqOffset
-	tailSeqOffset
-)
-
 // NewQueue creates a new queue with the provided prefix and name.
 func NewQueue[V any](
-	schema *sdk.SchemaBuilder,
-	startPrefixID int, name string,
+	schema *sdk.SchemaBuilder, name string,
 	valueCodec codec.ValueCodec[V]) Queue[V] {
+	var (
+		queueName   = name + "_queue"
+		headSeqName = name + "_head"
+		tailSeqName = name + "_tail"
+	)
 	return Queue[V]{
 		container: sdk.NewMap[uint64, V](
-			schema, sdk.NewPrefix(startPrefixID),
-			name+"_queue", sdk.Uint64Key, valueCodec),
-		headSeq: sdk.NewSequence(schema, sdk.NewPrefix(startPrefixID+headSeqOffset), name+"_head"),
-		tailSeq: sdk.NewSequence(schema, sdk.NewPrefix(startPrefixID+tailSeqOffset), name+"_tail"),
+			schema, sdk.NewPrefix(queueName),
+			queueName, sdk.Uint64Key, valueCodec),
+		headSeq: sdk.NewSequence(schema, sdk.NewPrefix(headSeqName), headSeqName),
+		tailSeq: sdk.NewSequence(schema, sdk.NewPrefix(tailSeqName), tailSeqName),
 	}
 }
 
