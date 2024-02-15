@@ -36,7 +36,11 @@ func (s *BeaconStore) GetRandaoReveals() []randao.Reveal {
 
 	idx := 0
 	for it.Next() {
-		ret[idx] = it.Value().(randao.Reveal)
+		v, err := it.Value().(randao.Reveal)
+		if err {
+			panic("fatal: invariant violation: internal cast error")
+		}
+		ret[idx] = v
 		idx++
 	}
 
