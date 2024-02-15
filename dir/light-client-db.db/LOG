@@ -1,0 +1,16 @@
+=============== Feb 15, 2024 (EST) ===============
+14:56:07.543172 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+14:56:07.561946 db@open opening
+14:56:07.562310 version@stat F·[] S·0B[] Sc·[]
+14:56:07.570633 db@janitor F·2 G·0
+14:56:07.570655 db@open done T·8.685625ms
+=============== Feb 15, 2024 (EST) ===============
+14:56:22.917727 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+14:56:22.917866 version@stat F·[] S·0B[] Sc·[]
+14:56:22.917879 db@open opening
+14:56:22.917909 journal@recovery F·1
+14:56:22.918060 journal@recovery recovering @1
+14:56:22.924002 memdb@flush created L0@2 N·2 S·179B "bea..ary,v1":"bea..ses,v2"
+14:56:22.924173 version@stat F·[1] S·179B[179B] Sc·[0.25]
+14:56:22.944742 db@janitor F·3 G·0
+14:56:22.944767 db@open done T·26.880209ms

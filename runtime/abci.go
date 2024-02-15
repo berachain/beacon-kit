@@ -31,7 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
-	localbuilder "github.com/itsdevbear/bolaris/builder/local"
+	"github.com/itsdevbear/bolaris/builder"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
@@ -49,9 +49,9 @@ type CosmosApp interface {
 
 func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	var (
-		chainService        *blockchain.Service
-		localBuilderService *localbuilder.Service
-		syncService         *initialsync.Service
+		chainService   *blockchain.Service
+		builderService *builder.Service
+		syncService    *initialsync.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		return err
@@ -61,7 +61,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		panic(err)
 	}
 
-	if err := r.services.FetchService(&localBuilderService); err != nil {
+	if err := r.services.FetchService(&builderService); err != nil {
 		panic(err)
 	}
 
@@ -71,7 +71,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		&r.cfg.ABCI,
 		syncService,
 		chainService,
-		localBuilderService,
+		builderService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 	)

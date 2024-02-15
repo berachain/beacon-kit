@@ -36,6 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/builder"
 	localbuilder "github.com/itsdevbear/bolaris/builder/local"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
@@ -153,10 +154,15 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the local block building service.
-	localBuilderService := localbuilder.NewService(
+	localBuilder := localbuilder.NewService(
 		baseService.WithName("local-builder"),
 		localbuilder.WithEngineCaller(engineClient),
 		localbuilder.WithPayloadCache(payloadCache),
+	)
+
+	builderService := builder.NewService(
+		baseService.WithName("builder"),
+		builder.WithLocalBuilder(localBuilder),
 	)
 
 	// Create the service registry.
@@ -166,7 +172,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(executionService),
 		service.WithService(chainService),
 		service.WithService(notificationService),
-		service.WithService(localBuilderService),
+		service.WithService(builderService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.

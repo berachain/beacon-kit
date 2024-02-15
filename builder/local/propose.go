@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package localbuilder
 
 import (
 	"context"
@@ -34,7 +34,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
-// RequestBestBlock builds a new beacon block.
+// BuildBeaconBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {

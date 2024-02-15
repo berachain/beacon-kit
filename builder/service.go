@@ -23,26 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/builder/local/key"
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
+	"github.com/itsdevbear/bolaris/builder/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
 type Service struct {
 	service.BaseService
-	beaconKitValKey key.BeaconKitValKey
-	en              engine.Caller
-	payloadCache    *cache.PayloadIDCache
+	localClient types.BuilderServiceClient
 }
 
+// NewService.
 func NewService(
 	base service.BaseService,
 	opts ...Option,
@@ -50,7 +47,6 @@ func NewService(
 	s := &Service{
 		BaseService: base,
 	}
-
 	for _, opt := range opts {
 		if err := opt(s); err != nil {
 			panic(err)
@@ -59,9 +55,26 @@ func NewService(
 	return s
 }
 
-func (s *Service) Start(context.Context) {
-}
+func (s *Service) Start(context.Context) {}
+func (s *Service) Status() error         { return nil }
 
-func (s *Service) Status() error {
-	return nil
+// RequestBestBlock requests the best availible block from the builder.
+func (s *Service) RequestBestBlock(
+	ctx context.Context,
+	slot primitives.Slot,
+	// version int,
+	// TODO: determine if we want this field, or should it be up to the builder
+	// to determine the parent.
+	/*eth1Parent common.Hash, */
+) (interfaces.ReadOnlyBeaconKitBlock, error) {
+	resp, err := s.localClient.RequestBestBlock(
+		ctx, &types.RequestBestBlockRequest{
+			Slot: uint64(slot),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Block, nil
 }

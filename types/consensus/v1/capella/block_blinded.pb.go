@@ -27,7 +27,7 @@
 // versions:
 // 	protoc-gen-go v1.32.0
 // 	protoc        (unknown)
-// source: types/consensus/v1/capella/blinded_block.proto
+// source: types/consensus/v1/capella/block_blinded.proto
 
 package capella
 
@@ -66,7 +66,7 @@ type BlindedBeaconKitBlockCapella struct {
 func (x *BlindedBeaconKitBlockCapella) Reset() {
 	*x = BlindedBeaconKitBlockCapella{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_types_consensus_v1_capella_blinded_block_proto_msgTypes[0]
+		mi := &file_types_consensus_v1_capella_block_blinded_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -79,7 +79,7 @@ func (x *BlindedBeaconKitBlockCapella) String() string {
 func (*BlindedBeaconKitBlockCapella) ProtoMessage() {}
 
 func (x *BlindedBeaconKitBlockCapella) ProtoReflect() protoreflect.Message {
-	mi := &file_types_consensus_v1_capella_blinded_block_proto_msgTypes[0]
+	mi := &file_types_consensus_v1_capella_block_blinded_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -92,7 +92,7 @@ func (x *BlindedBeaconKitBlockCapella) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlindedBeaconKitBlockCapella.ProtoReflect.Descriptor instead.
 func (*BlindedBeaconKitBlockCapella) Descriptor() ([]byte, []int) {
-	return file_types_consensus_v1_capella_blinded_block_proto_rawDescGZIP(), []int{0}
+	return file_types_consensus_v1_capella_block_blinded_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *BlindedBeaconKitBlockCapella) GetSlot() github_com_itsdevbear_bolaris_types_consensus_primitives.Slot {
@@ -129,14 +129,14 @@ type BlindedBeaconKitBlockBodyCapella struct {
 	Graffiti []byte `protobuf:"bytes,2,opt,name=graffiti,proto3" json:"graffiti,omitempty" ssz-size:"32"`
 	// Deposits from the execution chain, at most MAX_DEPOSITS_PER_BLOCK.
 	Deposits []*v1.Deposit `protobuf:"bytes,3,rep,name=deposits,proto3" json:"deposits,omitempty" ssz-max:"16"`
-	// Execution payload from the execution chain. New in Bellatrix network upgrade.
+	// Execution payload header from the execution chain. New in Bellatrix network upgrade.
 	ExecutionPayloadHeader *v11.ExecutionPayloadHeaderCapella `protobuf:"bytes,4,opt,name=execution_payload_header,json=executionPayloadHeader,proto3" json:"execution_payload_header,omitempty"`
 }
 
 func (x *BlindedBeaconKitBlockBodyCapella) Reset() {
 	*x = BlindedBeaconKitBlockBodyCapella{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_types_consensus_v1_capella_blinded_block_proto_msgTypes[1]
+		mi := &file_types_consensus_v1_capella_block_blinded_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -149,7 +149,7 @@ func (x *BlindedBeaconKitBlockBodyCapella) String() string {
 func (*BlindedBeaconKitBlockBodyCapella) ProtoMessage() {}
 
 func (x *BlindedBeaconKitBlockBodyCapella) ProtoReflect() protoreflect.Message {
-	mi := &file_types_consensus_v1_capella_blinded_block_proto_msgTypes[1]
+	mi := &file_types_consensus_v1_capella_block_blinded_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -162,7 +162,7 @@ func (x *BlindedBeaconKitBlockBodyCapella) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlindedBeaconKitBlockBodyCapella.ProtoReflect.Descriptor instead.
 func (*BlindedBeaconKitBlockBodyCapella) Descriptor() ([]byte, []int) {
-	return file_types_consensus_v1_capella_blinded_block_proto_rawDescGZIP(), []int{1}
+	return file_types_consensus_v1_capella_block_blinded_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *BlindedBeaconKitBlockBodyCapella) GetRandaoReveal() []byte {
@@ -193,12 +193,12 @@ func (x *BlindedBeaconKitBlockBodyCapella) GetExecutionPayloadHeader() *v11.Exec
 	return nil
 }
 
-var File_types_consensus_v1_capella_blinded_block_proto protoreflect.FileDescriptor
+var File_types_consensus_v1_capella_block_blinded_proto protoreflect.FileDescriptor
 
-var file_types_consensus_v1_capella_blinded_block_proto_rawDesc = []byte{
+var file_types_consensus_v1_capella_block_blinded_proto_rawDesc = []byte{
 	0x0a, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75,
-	0x73, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x61, 0x70, 0x65, 0x6c, 0x6c, 0x61, 0x2f, 0x62, 0x6c, 0x69,
-	0x6e, 0x64, 0x65, 0x64, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x73, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x61, 0x70, 0x65, 0x6c, 0x6c, 0x61, 0x2f, 0x62, 0x6c, 0x6f,
+	0x63, 0x6b, 0x5f, 0x62, 0x6c, 0x69, 0x6e, 0x64, 0x65, 0x64, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x12, 0x1a, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75,
 	0x73, 0x2e, 0x76, 0x31, 0x2e, 0x63, 0x61, 0x70, 0x65, 0x6c, 0x6c, 0x61, 0x1a, 0x29, 0x65, 0x74,
 	0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x2f, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2f, 0x76, 0x31,
@@ -249,25 +249,25 @@ var file_types_consensus_v1_capella_blinded_block_proto_rawDesc = []byte{
 }
 
 var (
-	file_types_consensus_v1_capella_blinded_block_proto_rawDescOnce sync.Once
-	file_types_consensus_v1_capella_blinded_block_proto_rawDescData = file_types_consensus_v1_capella_blinded_block_proto_rawDesc
+	file_types_consensus_v1_capella_block_blinded_proto_rawDescOnce sync.Once
+	file_types_consensus_v1_capella_block_blinded_proto_rawDescData = file_types_consensus_v1_capella_block_blinded_proto_rawDesc
 )
 
-func file_types_consensus_v1_capella_blinded_block_proto_rawDescGZIP() []byte {
-	file_types_consensus_v1_capella_blinded_block_proto_rawDescOnce.Do(func() {
-		file_types_consensus_v1_capella_blinded_block_proto_rawDescData = protoimpl.X.CompressGZIP(file_types_consensus_v1_capella_blinded_block_proto_rawDescData)
+func file_types_consensus_v1_capella_block_blinded_proto_rawDescGZIP() []byte {
+	file_types_consensus_v1_capella_block_blinded_proto_rawDescOnce.Do(func() {
+		file_types_consensus_v1_capella_block_blinded_proto_rawDescData = protoimpl.X.CompressGZIP(file_types_consensus_v1_capella_block_blinded_proto_rawDescData)
 	})
-	return file_types_consensus_v1_capella_blinded_block_proto_rawDescData
+	return file_types_consensus_v1_capella_block_blinded_proto_rawDescData
 }
 
-var file_types_consensus_v1_capella_blinded_block_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_types_consensus_v1_capella_blinded_block_proto_goTypes = []interface{}{
+var file_types_consensus_v1_capella_block_blinded_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_types_consensus_v1_capella_block_blinded_proto_goTypes = []interface{}{
 	(*BlindedBeaconKitBlockCapella)(nil),      // 0: types.consensus.v1.capella.BlindedBeaconKitBlockCapella
 	(*BlindedBeaconKitBlockBodyCapella)(nil),  // 1: types.consensus.v1.capella.BlindedBeaconKitBlockBodyCapella
 	(*v1.Deposit)(nil),                        // 2: types.consensus.v1.Deposit
 	(*v11.ExecutionPayloadHeaderCapella)(nil), // 3: ethereum.engine.v1.ExecutionPayloadHeaderCapella
 }
-var file_types_consensus_v1_capella_blinded_block_proto_depIdxs = []int32{
+var file_types_consensus_v1_capella_block_blinded_proto_depIdxs = []int32{
 	1, // 0: types.consensus.v1.capella.BlindedBeaconKitBlockCapella.body:type_name -> types.consensus.v1.capella.BlindedBeaconKitBlockBodyCapella
 	2, // 1: types.consensus.v1.capella.BlindedBeaconKitBlockBodyCapella.deposits:type_name -> types.consensus.v1.Deposit
 	3, // 2: types.consensus.v1.capella.BlindedBeaconKitBlockBodyCapella.execution_payload_header:type_name -> ethereum.engine.v1.ExecutionPayloadHeaderCapella
@@ -278,13 +278,13 @@ var file_types_consensus_v1_capella_blinded_block_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_types_consensus_v1_capella_blinded_block_proto_init() }
-func file_types_consensus_v1_capella_blinded_block_proto_init() {
-	if File_types_consensus_v1_capella_blinded_block_proto != nil {
+func init() { file_types_consensus_v1_capella_block_blinded_proto_init() }
+func file_types_consensus_v1_capella_block_blinded_proto_init() {
+	if File_types_consensus_v1_capella_block_blinded_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_types_consensus_v1_capella_blinded_block_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_types_consensus_v1_capella_block_blinded_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlindedBeaconKitBlockCapella); i {
 			case 0:
 				return &v.state
@@ -296,7 +296,7 @@ func file_types_consensus_v1_capella_blinded_block_proto_init() {
 				return nil
 			}
 		}
-		file_types_consensus_v1_capella_blinded_block_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_types_consensus_v1_capella_block_blinded_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlindedBeaconKitBlockBodyCapella); i {
 			case 0:
 				return &v.state
@@ -313,18 +313,18 @@ func file_types_consensus_v1_capella_blinded_block_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_types_consensus_v1_capella_blinded_block_proto_rawDesc,
+			RawDescriptor: file_types_consensus_v1_capella_block_blinded_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_types_consensus_v1_capella_blinded_block_proto_goTypes,
-		DependencyIndexes: file_types_consensus_v1_capella_blinded_block_proto_depIdxs,
-		MessageInfos:      file_types_consensus_v1_capella_blinded_block_proto_msgTypes,
+		GoTypes:           file_types_consensus_v1_capella_block_blinded_proto_goTypes,
+		DependencyIndexes: file_types_consensus_v1_capella_block_blinded_proto_depIdxs,
+		MessageInfos:      file_types_consensus_v1_capella_block_blinded_proto_msgTypes,
 	}.Build()
-	File_types_consensus_v1_capella_blinded_block_proto = out.File
-	file_types_consensus_v1_capella_blinded_block_proto_rawDesc = nil
-	file_types_consensus_v1_capella_blinded_block_proto_goTypes = nil
-	file_types_consensus_v1_capella_blinded_block_proto_depIdxs = nil
+	File_types_consensus_v1_capella_block_blinded_proto = out.File
+	file_types_consensus_v1_capella_block_blinded_proto_rawDesc = nil
+	file_types_consensus_v1_capella_block_blinded_proto_goTypes = nil
+	file_types_consensus_v1_capella_block_blinded_proto_depIdxs = nil
 }

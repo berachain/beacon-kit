@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package localbuilder
 
 const (
 	// MetricGetBuiltPayloadHit is used to count the number of times a built

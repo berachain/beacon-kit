@@ -23,6 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// validator contains the core block proposal logic for the beacon chain. It's goal
-// is to decouple running a validator from processing beacon block.
-package localbuilder
+syntax = "proto3";
+
+package builder.v1alpha1;
+
+import "ethereum/eth/ext/options.proto";
+import "types/consensus/v1/capella/block.proto";
+// import "types/consensus/v1/capella/block_blinded.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/builder/types";
+
+// BuilderService is the service provided by the builder.
+service BuilderService {
+  // RequestBestBlock requests the best available block from the builder.
+  rpc RequestBestBlock(RequestBestBlockRequest) returns (RequestBestBlockResponse);
+}
+
+// RequestBestBlockRequest is the request to the RequestBestBlock RPC.
+message RequestBestBlockRequest {
+  // slot is the slot of the block to request.
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
+
+  // blinded is true if the block should be blinded.
+  bool blinded = 2;
+}
+
+// RequestBestBlockResponse is the response to the RequestBestBlock RPC.
+message RequestBestBlockResponse {
+  // block is the best available block from the builder.
+  types.consensus.v1.capella.BeaconKitBlockCapella block = 1;
+}

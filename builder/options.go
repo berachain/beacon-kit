@@ -23,6 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// validator contains the core block proposal logic for the beacon chain. It's goal
-// is to decouple running a validator from processing beacon block.
-package localbuilder
+package builder
+
+import localbuilder "github.com/itsdevbear/bolaris/builder/local"
+
+type Option func(*Service) error
+
+// WithEngineCaller is an option to set the Caller for the Service.
+func WithLocalBuilder(builder *localbuilder.Service) Option {
+	return func(s *Service) error {
+		s.localClient = NewLocalClient(builder)
+		return nil
+	}
+}
