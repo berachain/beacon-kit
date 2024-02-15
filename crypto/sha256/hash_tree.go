@@ -66,7 +66,8 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
-	groupSize := len(inputList) / (two * max(n, 1)) // Ensure n is at least 1 to avoid division by zero.
+	// Take the max(n, 1) to prevent division by 0.
+	groupSize := len(inputList) / (two * max(n, 1))
 	eg := new(errgroup.Group)
 
 	// if n is 0 the parallelization is disabled and the whole inputList is hashed in the main
@@ -94,7 +95,7 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[cj*groupSize:min((cj+1)*groupSize, len(outputList))], // Safely handle the last segment size.
+				outputList[cj*groupSize:min((cj+1)*groupSize, len(outputList))],
 				inputList[segmentStart:segmentEnd],
 			)
 		})
@@ -103,7 +104,10 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 	// Process any remaining segment of the inputList not divisible by the number of goroutines.
 	remainderStartIndex := n * two * groupSize
 	if remainderStartIndex < len(inputList) {
-		if err := gohashtree.Hash(outputList[n*groupSize:], inputList[remainderStartIndex:]); err != nil {
+		if err := gohashtree.Hash(
+			outputList[n*groupSize:],
+			inputList[remainderStartIndex:],
+		); err != nil {
 			return nil, err
 		}
 	}

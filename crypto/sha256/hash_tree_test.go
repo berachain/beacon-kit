@@ -105,3 +105,11 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 		})
 	}
 }
+
+func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
+	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
+	// to test handling of division by zero.
+	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
+	_, err := sha256.BuildParentTreeRootsWithNRoutines(inputList, 0)
+	require.NoError(t, err, "BuildParentTreeRootsWithNRoutines should handle n=0 without error")
+}
