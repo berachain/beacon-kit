@@ -25,11 +25,11 @@
 
 package execution
 
-import "errors"
-
-var (
-	ErrExecutionClientDisconnected  = errors.New("execution client disconnected")
-	ErrAcceptedSyncingPayloadStatus = errors.New("payload status is SYNCING or ACCEPTED")
-	ErrInvalidPayloadStatus         = errors.New("payload status is INVALID")
-	ErrBadBlockProduced             = errors.New("beacon chain has produced a bad block, RIP walrus")
+const (
+	// MetricsKeyAcceptedSyncingPayloadStatus is used to count the number of times an
+	// accepted or syncing payload status is received.
+	MetricsKeyAcceptedSyncingPayloadStatus = "beaconkit.execution.accepted_syncing_payload_status"
+	// MetricsInvalidPayloadStatus is used to count the number of times an
+	// invalid payload status is received.
+	MetricsKeyInvalidPayloadStatus = "beaconkit.execution.invalid_payload_status"
 )

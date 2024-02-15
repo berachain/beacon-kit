@@ -27,86 +27,82 @@ package execution
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) error {
-	var (
-		payloadIDBytes *enginev1.PayloadIDBytes
-		err            error
-		beaconState    = s.BeaconState(ctx)
-		fc             = &enginev1.ForkchoiceState{
+) (*enginev1.PayloadIDBytes, error) {
+	beaconState := s.BeaconState(ctx)
+
+	// Notify the execution engine of the forkchoice update.
+	payloadID, _, err := s.engine.ForkchoiceUpdated(
+		ctx,
+		&enginev1.ForkchoiceState{
 			HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
 			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
 			FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
-		}
+		},
+		fcuConfig.Attributes,
 	)
-
-	// Cache payloads if we get a payloadID in our response.
-	defer func() {
-		if payloadIDBytes != nil {
-			s.payloadCache.Set(
-				fcuConfig.ProposingSlot,
-				fcuConfig.HeadEth1Hash,
-				primitives.PayloadID(*payloadIDBytes),
-			)
-		}
-	}()
-
-	if fcuConfig.Attributes == nil {
-		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(beaconState.Version())
-	}
-
-	payloadIDBytes, _, err = s.engine.ForkchoiceUpdated(ctx, fc, fcuConfig.Attributes)
 	if err != nil {
-		// TODO: ensure this switch statement isn't fucked.
 		switch err { //nolint:errorlint // okay for now.
 		case eth.ErrAcceptedSyncingPayloadStatus:
-			return err
+			s.Logger().Info("forkchoice updated with optimistic block",
+				"head_eth1_hash", fcuConfig.HeadEth1Hash,
+				"proposing_slot", fcuConfig.ProposingSlot,
+			)
+			telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
+			return payloadID, nil
 		case eth.ErrInvalidPayloadStatus:
 			s.Logger().Error("invalid payload status", "error", err)
-			// In Prysm, this code recursively calls back until we find a valid hash we can
-			// insert. In BeaconKit, we don't have the nice ability to do this, *but* in
-			// theory we should never need it, since we have single block finality thanks
-			// to CometBFT. Essentially, if we get an invalid payload status here, something
-			// higher up must've gone wrong and thus we don't really need the retry here.
-			return errors.New("invalid payload")
+			telemetry.IncrCounter(1, MetricsKeyInvalidPayloadStatus)
+			// Attempt to get the chain back into a valid state.
+			payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
+				HeadEth1Hash:  beaconState.GetLastValidHead(),
+				ProposingSlot: fcuConfig.ProposingSlot,
+				Attributes:    fcuConfig.Attributes,
+			})
+			if err != nil {
+				// We have to return the error here since this function
+				// is recursive.
+				return nil, err
+			}
+			return payloadID, ErrBadBlockProduced
 		default:
 			s.Logger().Error("undefined execution engine error", "error", err)
-			return err
+			return nil, err
 		}
 	}
-	// forkchoiceUpdatedValidNodeCount.Inc()
-	//
-	//	if err := s.cfg.ForkChoiceStore.SetOptimisticToValid(ctx, arg.headRoot); err != nil {
-	//		log.WithError(err).Error("Could not set head root to valid")
-	//		return nil, nil
-	//	}
-	//
-	// If the forkchoice update call has an attribute, update the proposer payload ID cache.
-	//
-	//	if hasAttr && payloadID != nil {
-	//		var pId [8]byte
-	//		copy(pId[:], payloadID[:])
-	//		log.WithFields(logrus.Fields{
-	//			"blockRoot": fmt.Sprintf("%#x", bytesutil.Trunc(arg.headRoot[:])),
-	//			"headSlot":  headBlk.Slot(),
-	//			"payloadID": fmt.Sprintf("%#x", bytesutil.Trunc(payloadID[:])),
-	//		}).Info("Forkchoice updated with payload attributes for proposal")
-	//		s.cfg.ProposerSlotIndexCache.SetProposerAndPayloadIDs(nextSlot, proposerId, pId, arg.headRoot)
-	//	} else if hasAttr && payloadID == nil && !features.Get().PrepareAllPayloads {
-	//
-	//		log.WithFields(logrus.Fields{
-	//			"blockHash": fmt.Sprintf("%#x", headPayload.BlockHash()),
-	//			"slot":      headBlk.Slot(),
-	//		}).Error("Received nil payload ID on VALID engine response")
-	//	}
-	return nil
+
+	// We can mark this Eth1Block as the latest valid block.
+	// TODO: maybe move to blockchain for IsCanonical and Head checks.
+	// TODO: the whole getting the execution payload off the block /
+	// the whole LastestExecutionPayload Premine thing "PremineGenesisConfig".
+	beaconState.SetLastValidHead(fcuConfig.HeadEth1Hash)
+
+	// If the forkchoice update call has an attribute, update the payload ID cache.
+	hasAttr := fcuConfig.Attributes != nil && !fcuConfig.Attributes.IsEmpty()
+	if hasAttr && payloadID != nil {
+		var pID [8]byte
+		copy(pID[:], payloadID[:])
+		s.Logger().Info("forkchoice updated with payload attributes for proposal",
+			"head_eth1_hash", fcuConfig.HeadEth1Hash,
+			"proposing_slot", fcuConfig.ProposingSlot,
+			"payload_id", fmt.Sprintf("%#x", payloadID),
+		)
+		s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, pID)
+	} else if hasAttr && payloadID == nil {
+		/*TODO: introduce this feature && !s.cfg.Features.Get().PrepareAllPayloads*/
+		s.Logger().Error("received nil payload ID on VALID engine response",
+			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
+			"proposing_slot", fcuConfig.ProposingSlot,
+		)
+	}
+
+	return payloadID, nil
 }
