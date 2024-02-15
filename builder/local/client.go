@@ -23,34 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package localbuilder
 
 import (
 	"context"
 
+	"github.com/itsdevbear/bolaris/builder/interfaces"
 	"github.com/itsdevbear/bolaris/builder/types"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
 	"google.golang.org/grpc"
 )
 
-// LocalClient implements the BuilderServiceClient interface to provide a local simulation of
+// Client implements the BuilderServiceClient interface to provide a local simulation of
 // builder service operations.
-var _ types.BuilderServiceClient = &LocalClient{}
+var _ types.BuilderServiceClient = &Client{}
 
-// LocalClient struct embeds the BuilderServiceServer to simulate a local client.
-type LocalClient struct {
-	localBuilder BeaconBlockBuilder
+// Client wraps the local BeaconBlockBuilder to adhere to the BuilderServiceClient interface.
+type Client struct {
+	localBuilder interfaces.BeaconBlockBuilder
 }
 
-// NewLocalClient creates a new LocalClient with the given BuilderServiceServer.
-func NewLocalClient(localBuilder BeaconBlockBuilder) *LocalClient {
-	return &LocalClient{localBuilder: localBuilder}
+// NewClient creates a new Client with the given BuilderServiceServer.
+func NewClient(localBuilder interfaces.BeaconBlockBuilder) *Client {
+	return &Client{localBuilder: localBuilder}
 }
 
 // RequestBestBlock simulates a request to the best available block from the builder.
 // It directly invokes the RequestBestBlock method of the embedded BuilderServiceServer,
 // bypassing gRPC call options.
-func (c *LocalClient) RequestBestBlock(
+func (c *Client) RequestBestBlock(
 	ctx context.Context, in *types.RequestBestBlockRequest, _ ...grpc.CallOption,
 ) (*types.RequestBestBlockResponse, error) {
 	// Directly call the RequestBestBlock method on the embedded BuilderServiceServer.

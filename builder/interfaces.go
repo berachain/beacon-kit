@@ -26,21 +26,7 @@
 package builder
 
 import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/builder/interfaces"
 )
 
-// BeaconBlockBuilder is the interface for building blocks.
-type BeaconBlockBuilder interface {
-	// RequestBestBlock requests the best availible block from the builder.
-	RequestBestBlock(
-		ctx context.Context,
-		slot primitives.Slot,
-		// version int,
-		// TODO: determine if we want this field, or should it be up to the builder
-		// to determine the parent.
-		/*eth1Parent common.Hash, */
-	) (interfaces.ReadOnlyBeaconKitBlock, error)
-}
+type BeaconBlockBuilder = interfaces.BeaconBlockBuilder

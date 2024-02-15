@@ -28,7 +28,7 @@ package builder
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/builder/types"
+	types "github.com/itsdevbear/bolaris/builder/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
