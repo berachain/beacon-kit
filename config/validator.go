@@ -59,7 +59,7 @@ type Validator struct {
 	// PrepareAllPayloads informs the engine to prepare a block on every slot.
 	PrepareAllPayloads bool
 
-	// Rando reveals to track
+	// Rando reveals to track.
 	NumRandaoRevealsToTrack uint64
 }
 
@@ -103,5 +103,8 @@ graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
 
 # Prepare all payloads informs the engine to prepare a block on every slot.
 prepare-all-payloads = {{.BeaconKit.Beacon.Validator.PrepareAllPayloads}}
+
+# Rando reveals to track.
+num-randao-reveals-to-track = {{.BeaconKit.Beacon.Validator.NumRandaoRevealsToTrack}}
 `
 }
