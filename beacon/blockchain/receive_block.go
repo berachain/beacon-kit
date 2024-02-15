@@ -96,7 +96,7 @@ func (s *Service) ReceiveBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
 ) error {
-	executionData, err := blk.Execution()
+	executionData, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (s *Service) validateStateTransition(
 func (s *Service) validateExecutionOnBlock(
 	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
 ) (bool, error) {
-	header, err := blk.Execution()
+	header, err := blk.ExecutionPayload()
 	if err != nil {
 		return false, err
 	}

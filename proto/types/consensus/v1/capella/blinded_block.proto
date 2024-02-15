@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+syntax = "proto3";
+package types.consensus.v1.capella;
+
+import "ethereum/engine/v1/execution_engine.proto";
+import "ethereum/eth/ext/options.proto";
+import "types/consensus/v1/deposit.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1/capella";
+
+// BlindedBeaconKitBlockCapella represents a blinded beacon block.
+message BlindedBeaconKitBlockCapella {
+  // Beacon chain slot that this block represents.
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
+
+  // BeaconBlockBody contains the body of the beacon block.
+  BlindedBeaconKitBlockBodyCapella body = 2;
+
+  // The payload value of the block.
+  bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
+}
+
+// BlindedBeaconKitBlockBodyCapella represents the body of a blinded beacon block.
+message BlindedBeaconKitBlockBodyCapella {
+  // The validators RANDAO reveal 96 byte value.
+  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
+
+  // 32 byte field of arbitrary data. This field may contain any data and
+  // is not used for anything other than a fun message.
+  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // Deposits from the execution chain, at most MAX_DEPOSITS_PER_BLOCK.
+  repeated Deposit deposits = 3 [(ethereum.eth.ext.ssz_max) = "16"];
+
+  // Execution payload header from the execution chain. New in Bellatrix network upgrade.
+  ethereum.engine.v1.ExecutionPayloadHeaderCapella execution_payload_header = 4;
+}

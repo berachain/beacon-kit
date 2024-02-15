@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blocks
+package consensus
 
 import (
 	"errors"
@@ -35,19 +35,6 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 )
-
-// BeaconKitBlockFromState assembles a new beacon block
-// from the given state and execution data.
-func BeaconKitBlockFromState(
-	beaconState state.ReadOnlyBeaconState,
-	executionData engine.ExecutionPayload,
-) (interfaces.BeaconKitBlock, error) {
-	return NewBeaconKitBlock(
-		beaconState.Slot(),
-		executionData,
-		beaconState.Version(),
-	)
-}
 
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
@@ -66,51 +53,51 @@ func NewBeaconKitBlock(
 	}
 }
 
-// NewEmptyBeaconKitBlockFromState assembles a new beacon block
-// with no execution data from the given state.
-func NewEmptyBeaconKitBlockFromState(
-	beaconState state.BeaconState,
-) (interfaces.BeaconKitBlock, error) {
-	return NewEmptyBeaconKitBlock(
-		beaconState.Slot(),
-		beaconState.Version(),
-	)
-}
-
-// NewEmptyBeaconKitBlock assembles a new beacon block
+// EmptyBeaconKitBlock assembles a new beacon block
 // with no execution data.
-func NewEmptyBeaconKitBlock(
+func EmptyBeaconKitBlock(
 	slot primitives.Slot,
 	version int,
 ) (interfaces.BeaconKitBlock, error) {
 	return NewBeaconKitBlock(slot, nil, version)
 }
 
-// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
-// new read-only beacon block by extracting a marshalled
-// block out of an ABCI request.
-func ReadOnlyBeaconKitBlockFromABCIRequest(
-	req interfaces.ABCIRequest,
-	bzIndex uint,
+// EmptyBeaconKitBlockFromState assembles a new beacon block
+// with no execution data from the given state.
+func EmptyBeaconKitBlockFromState(
+	beaconState state.BeaconState,
+) (interfaces.BeaconKitBlock, error) {
+	return EmptyBeaconKitBlock(
+		beaconState.Slot(),
+		beaconState.Version(),
+	)
+}
+
+// BeaconKitBlockFromState assembles a new beacon block
+// from the given state and execution data.
+func BeaconKitBlockFromState(
+	beaconState state.ReadOnlyBeaconState,
+	executionData engine.ExecutionPayload,
+) (interfaces.BeaconKitBlock, error) {
+	return NewBeaconKitBlock(
+		beaconState.Slot(),
+		executionData,
+		beaconState.Version(),
+	)
+}
+
+// BeaconKitBlockFromSSZ assembles a new beacon block
+// from the given SSZ bytes and fork version.
+func BeaconKitBlockFromSSZ(
+	bz []byte,
 	forkVersion int,
-) (interfaces.ReadOnlyBeaconKitBlock, error) {
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInProposal
-	} else if bzIndex >= lenTxs {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Unmarshal the block from the request.
+) (interfaces.BeaconKitBlock, error) {
 	switch forkVersion {
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
 		block := &capella.BeaconKitBlockCapella{}
-		if err := block.UnmarshalSSZ(txs[bzIndex]); err != nil {
+		if err := block.UnmarshalSSZ(bz); err != nil {
 			return nil, err
 		}
 		return block, nil
