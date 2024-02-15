@@ -33,8 +33,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Client implements the BuilderServiceClient interface to provide a local simulation of
-// builder service operations.
+// This Cleint adheres to the BuilderServiceClient interface.
 var _ types.BuilderServiceClient = &Client{}
 
 // Client wraps the LocalBlockBuilder to adhere to the BuilderServiceClient interface.
@@ -47,18 +46,21 @@ func NewClient(local *Builder) *Client {
 	return &Client{local: local}
 }
 
-// RequestBestBlock simulates a request to the best available block from the builder.
-// It directly invokes the RequestBestBlock method of the embedded BuilderServiceServer,
-// bypassing gRPC call options.
+// RequestBestBlock is used to request the best available block from the builder.
+// It directly calls the RequestBestBlock method on the local builder, instead of
+// making a gRPC call.
+//
+// NOTE: The gRPC opts are ignored for obvious reasons.
 func (c *Client) RequestBestBlock(
 	ctx context.Context, in *types.RequestBestBlockRequest, _ ...grpc.CallOption,
 ) (*types.RequestBestBlockResponse, error) {
-	// Directly call the RequestBestBlock method on the embedded BuilderServiceServer.
-	// Note: opts are ignored in this local client simulation.
+	// Directly call the RequestBestBlock method on the local builder.
 	beaconBlock, shouldOverride, err := c.local.RequestBestBlock(ctx, in.GetSlot())
 	if err != nil {
 		return nil, err
 	}
+
+	// Return the response.
 	return &types.RequestBestBlockResponse{
 		Override: shouldOverride,
 		Block:    beaconBlock.(*(capella.BeaconKitBlockCapella)),
