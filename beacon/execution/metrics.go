@@ -23,40 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package prompt
+package execution
 
-import (
-	"bufio"
-
-	"github.com/logrusorgru/aurora"
-	"github.com/spf13/cobra"
+const (
+	// MetricsKeyAcceptedSyncingPayloadStatus is used to count the number of times an
+	// accepted or syncing payload status is received.
+	MetricsKeyAcceptedSyncingPayloadStatus = "beaconkit.execution.accepted_syncing_payload_status"
+	// MetricsInvalidPayloadStatus is used to count the number of times an
+	// invalid payload status is received.
+	MetricsKeyInvalidPayloadStatus = "beaconkit.execution.invalid_payload_status"
 )
-
-// DefaultPrompt prompts the user and validates their response.
-// Returns only when the user has provided a valid response.
-func DefaultPrompt(
-	cmd *cobra.Command, promptText, defaultValue string,
-) (string, error) {
-	au := aurora.NewAurora(true)
-	if defaultValue != "" {
-		promptText = au.Sprintf(
-			"%s (%s: %s):\n", promptText,
-			au.BrightGreen("default"),
-			defaultValue,
-		)
-	} else {
-		promptText = au.Sprintf("%s:\n", promptText)
-	}
-
-	input := defaultValue
-	inputReader := cmd.InOrStdin()
-	scanner := bufio.NewScanner(inputReader)
-	cmd.Print(promptText)
-	if scanner.Scan() {
-		if text := scanner.Text(); text != "" {
-			input = text
-		}
-	}
-
-	return input, scanner.Err()
-}

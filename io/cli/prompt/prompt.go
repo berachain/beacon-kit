@@ -23,46 +23,65 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package prompt
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
+	"bufio"
+
+	"github.com/logrusorgru/aurora"
+	"github.com/spf13/cobra"
 )
 
-// ABCI conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[ABCI] = ABCI{}
+type Reader interface {
+	Read([]byte) (int, error)
+}
 
-// DefaultABCIConfig returns the default configuration for the proposal service.
-func DefaultABCIConfig() ABCI {
-	return ABCI{
-		BeaconBlockPosition: 0,
+type Prompt struct {
+	Cmd *cobra.Command
+
+	Text       string
+	Default    string
+	ValidateFn func(string) error
+}
+
+// Ask prompts the user and stores their response.
+func (p *Prompt) Ask() (string, error) {
+	au := aurora.NewAurora(true)
+	prompt := au.Sprintf("%s:\n", p.Text)
+	if p.Default != "" {
+		prompt = au.Sprintf(
+			"%s (%s: %s):\n", p.Text,
+			au.BrightGreen("default"),
+			p.Default,
+		)
 	}
-}
 
-// ABCI is a configuration struct for the cosmos proposal handler.
-type ABCI struct {
-	// BeaconBlockPosition is the position of the beacon block in the cometbft proposal.
-	BeaconBlockPosition uint
-}
-
-// Parse parses the configuration.
-func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
-	var err error
-	if c.BeaconBlockPosition, err = parser.GetUint(
-		flags.BeaconBlockPosition,
-	); err != nil {
-		return nil, err
+	input := p.Default
+	inputReader := p.Cmd.InOrStdin()
+	scanner := bufio.NewScanner(inputReader)
+	p.Cmd.Print(prompt)
+	if scanner.Scan() {
+		if text := scanner.Text(); text != "" {
+			input = text
+		}
 	}
 
-	return &c, nil
+	return input, scanner.Err()
 }
 
-// Template returns the configuration template for the abci config.
-func (c ABCI) Template() string {
-	return `
-[beacon-kit.abci]
-# Position of the beacon block in the proposal
-beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
-`
+// AskAndValidate prompts the user and validates their response.
+// Equivalent to Ask() if no validate function is specified.
+func (p *Prompt) AskAndValidate() (string, error) {
+	input, err := p.Ask()
+	if err != nil {
+		return "", err
+	}
+
+	// If validate function is specified, validate the input.
+	if p.ValidateFn != nil {
+		if err = p.ValidateFn(input); err != nil {
+			return input, err
+		}
+	}
+	return input, nil
 }
