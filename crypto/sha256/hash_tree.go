@@ -55,10 +55,11 @@ func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
 // machine's hardware configuration for potential performance gains over sequential hashing.
 func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte, error) {
 	inputLength := len(inputList)
+	outputLength := inputLength / two
 	if inputLength%2 != 0 {
 		return nil, ErrOddLengthTreeRoots
 	}
-	outputList := make([][32]byte, inputLength/two)
+	outputList := make([][32]byte, outputLength)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
@@ -96,7 +97,7 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[cj*groupSize:min((cj+1)*groupSize, len(outputList))],
+				outputList[cj*groupSize:min((cj+1)*groupSize, outputLength)],
 				inputList[segmentStart:segmentEnd],
 			)
 		})
