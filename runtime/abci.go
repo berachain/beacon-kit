@@ -31,9 +31,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	validator "github.com/itsdevbear/bolaris/builder/local"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
-	"github.com/itsdevbear/bolaris/validator"
 )
 
 // CosmosApp is an interface that defines the methods needed for the Cosmos setup.
@@ -69,9 +69,9 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
-		validatorService,
 		syncService,
 		chainService,
+		validatorService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 	)
