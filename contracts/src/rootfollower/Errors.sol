@@ -4,7 +4,8 @@ pragma solidity >=0.8.4;
 
 /**
  * @title Errors Library
- * @dev Provides custom error definitions for the RootFollower contract operations. */
+ * @dev Provides custom error definitions for the RootFollower contract operations.
+ */
 library Errors {
     /// @dev Unauthorized caller
     error UNAUTHORIZED(address);
