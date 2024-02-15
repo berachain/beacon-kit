@@ -70,6 +70,7 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 	// Otherwise parallelize the hashing process for large inputs.
 	// Take the max(n, 1) to prevent division by 0.
 	groupSize := inputLength / (two * max(n, 1))
+	twiceGroupSize := two * groupSize
 	eg := new(errgroup.Group)
 
 	// if n is 0 the parallelization is disabled and the whole inputList is hashed in the main
@@ -79,8 +80,9 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 		cj := j
 
 		// Define the segment of the inputList each goroutine will process.
-		segmentStart := cj * two * groupSize
-		segmentEnd := min((cj+1)*two*groupSize, inputLength)
+
+		segmentStart := cj * twiceGroupSize
+		segmentEnd := min((cj+1)*twiceGroupSize, inputLength)
 
 		// inputList:  [---------------------2*groupSize---------------------]
 		//              ^                    ^                    ^          ^
