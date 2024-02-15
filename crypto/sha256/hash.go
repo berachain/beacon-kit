@@ -27,7 +27,7 @@ package sha256
 
 import (
 	sha256 "github.com/minio/sha256-simd"
-	"golang.org/x/sync/errgroup"
+	"github.com/sourcegraph/conc/iter"
 )
 
 // This hashing library provides multiple ways to utilize the Hash function:
@@ -41,47 +41,20 @@ func Hash(bz []byte) [32]byte {
 }
 
 // HashArray returns the SHA256 hashes of the input bytes in parallel while maintaining the order.
-func HashArray(input [][]byte) ([][32]byte, error) {
+func HashArray(input [][]byte) [][32]byte {
 	roots := make([][32]byte, len(input))
-
-	// Create a channel to receive the results
-	resultCh := make(chan struct {
-		index int
-		hash  [32]byte
-	}, len(input))
-
-	// Iterate over the input bytes and hash them in parallel while maintaining order
-	for i, el := range input {
-		go func(index int, data []byte) {
-			resultCh <- struct {
-				index int
-				hash  [32]byte
-			}{index, Hash(data)}
-		}(i, el)
-	}
-
-	// Collect the results from the channel and place them in the correct order
-	for range input {
-		res := <-resultCh
-		roots[res.index] = res.hash
-	}
-
-	close(resultCh)
-
-	return roots, nil
+	iter.ForEachIdx[[]byte](
+		input,
+		func(i int, el *[]byte) {
+			roots[i] = Hash(*el)
+		},
+	)
+	return roots
 }
 
 // HashRoot returns the SHA256 merkle root of the input bytes.
 func HashRootBz(input [][]byte) [32]byte {
-	// Hash all the elements in the array to create the
-	// leaves of the merkle tree.
-	roots, err := HashArray(input)
-	if err != nil {
-		return [32]byte{}
-	}
-
-	// Then build the merkle tree from the leaves.
-	return UnsafeMerkleizeVector(roots, uint64(len(input)))
+	return UnsafeMerkleizeVector(HashArray(input), uint64(len(input)))
 }
 
 // HashRootBzBytes returns the SHA256 merkle root of the input bytes as a byte slice.
@@ -93,11 +66,7 @@ func HashRootBzAsSlice(input [][]byte) []byte {
 // HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
 // the length mixed in.
 func HashRootAndMixinLengthBz(input [][]byte) [32]byte {
-	roots, err := HashArray(input)
-	if err != nil {
-		return [32]byte{}
-	}
-	return UnsafeMerkleizeVectorAndMixinLength(roots, uint64(len(input)))
+	return UnsafeMerkleizeVectorAndMixinLength(HashArray(input), uint64(len(input)))
 }
 
 // HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
@@ -116,46 +85,25 @@ func HashElement[H Hashable](el H) ([32]byte, error) {
 // Where each Element is hashed individually to produce a corresponding Root.
 // This process is applied to all elements in the input list, resulting in a list of roots.
 func HashElements[H Hashable](input []H) ([][32]byte, error) {
-	roots := make([][32]byte, len(input))
-	// Create a channel to receive the results
-	resultCh := make(chan struct {
-		index int
-		hash  [32]byte
-	}, len(input))
+	var (
+		err   error
+		roots = make([][32]byte, len(input))
+	)
 
-	// Use error group to handle errors from goroutines
-	var eg errgroup.Group
-
-	// Iterate over the input bytes and hash them in parallel while maintaining order
-	for i, el := range input {
-		i, el := i, el // Capture loop variables
-		eg.Go(func() error {
-			data, err := HashElement(el)
+	// Hash each element in the list.
+	iter.ForEachIdx[H](
+		input,
+		func(i int, el *H) {
+			var localErr error
+			roots[i], localErr = (*el).HashTreeRoot()
 			if err != nil {
-				return err
+				err = localErr
 			}
-			resultCh <- struct {
-				index int
-				hash  [32]byte
-			}{i, data}
-			return nil
-		})
-	}
+		},
+	)
 
-	// Collect the results from the channel and place them in the correct order
-	for range input {
-		res := <-resultCh
-		roots[res.index] = res.hash
-	}
-
-	close(resultCh)
-
-	// Check for any errors from the goroutines
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-
-	return roots, nil
+	// Return the list of roots and any error encountered.
+	return roots, err
 }
 
 // HashRoot returns the SHA256 merkle root of the input bytes.
