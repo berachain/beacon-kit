@@ -42,7 +42,7 @@ func Test_Queue(t *testing.T) {
 	t.Run("should return correct items", func(t *testing.T) {
 		sk, ctx := deps()
 		sb := sdk.NewSchemaBuilder(sk)
-		q := collections.NewQueue[uint64](sb, 0, "queue", sdk.Uint64Value)
+		q := collections.NewQueue[uint64](sb, "queue", sdk.Uint64Value)
 
 		_, err := q.Peek(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
