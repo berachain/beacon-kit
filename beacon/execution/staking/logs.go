@@ -30,7 +30,6 @@ import (
 	"math/big"
 
 	"cosmossdk.io/log"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
@@ -97,7 +96,7 @@ func (s *Handler) Delegate(
 		return err
 	}
 	beaconState.SetStakingNonce(expectedNonce + 1)
-	sdk.UnwrapSDKContext(ctx).Logger().Info("delegating from execution layer",
+	s.Logger().Info("delegating from execution layer",
 		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
 	return nil
 }
