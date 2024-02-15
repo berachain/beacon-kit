@@ -50,7 +50,10 @@ func (s *BeaconStore) GetRandaoReveals() []randao.Reveal {
 func (s *BeaconStore) GetLatestRandaoReveal() *randao.Reveal {
 	it := s.randaoReveals.Iterator()
 	if it.Last() {
-		ret := it.Value().(randao.Reveal)
+		ret, err := it.Value().(randao.Reveal)
+		if err {
+			panic("fatal: invariant violation: last value must exist")
+		}
 		return &ret
 	}
 
