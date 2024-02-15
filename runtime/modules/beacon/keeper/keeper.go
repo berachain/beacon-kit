@@ -36,8 +36,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/collections"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	"github.com/itsdevbear/bolaris/runtime/modules/staking"
@@ -57,15 +57,14 @@ var _ state.BeaconStateProvider = &Keeper{}
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
-	storeKey storetypes.StoreKey,
+	storeKey *storetypes.KVStoreKey,
 	stakingKeeper staking.Staking,
 	beaconCfg *config.Beacon,
 ) *Keeper {
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	depositQueue := collections.NewQueue[*store.Deposit](
 		sdkcollections.NewSchemaBuilder(kvs),
-		sdkcollections.NewPrefix(0),
-		"deposits",
+		"deposit_queue",
 		store.DepositValue{})
 	return &Keeper{
 		storeKey:      storeKey,

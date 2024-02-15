@@ -26,8 +26,7 @@
 package store
 
 import (
-	"google.golang.org/protobuf/encoding/protojson"
-
+	"cosmossdk.io/collections/codec"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -47,26 +46,26 @@ func (d *Deposit) GetPubkey() []byte {
 
 type DepositValue struct{}
 
+var _ codec.ValueCodec[*Deposit] = DepositValue{}
+
 func (DepositValue) Encode(value *Deposit) ([]byte, error) {
 	return value.MarshalSSZ()
 }
 
 func (DepositValue) Decode(b []byte) (*Deposit, error) {
-	value := new(Deposit)
+	value := &Deposit{&consensusv1.Deposit{}}
 	if err := value.UnmarshalSSZ(b); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (DepositValue) EncodeJSON(value *Deposit) ([]byte, error) {
-	return protojson.Marshal(value)
+func (DepositValue) EncodeJSON(_ *Deposit) ([]byte, error) {
+	panic("not implemented")
 }
 
-func (DepositValue) DecodeJSON(b []byte) (*Deposit, error) {
-	d := new(Deposit)
-	err := protojson.Unmarshal(b, d)
-	return d, err
+func (DepositValue) DecodeJSON(_ []byte) (*Deposit, error) {
+	panic("not implemented")
 }
 
 func (DepositValue) Stringify(value *Deposit) string {

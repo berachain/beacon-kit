@@ -32,8 +32,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/collections"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
