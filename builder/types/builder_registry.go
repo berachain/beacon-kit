@@ -23,18 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package types
 
-import (
-	"github.com/itsdevbear/bolaris/builder/types"
-)
+// DefaultLocalBuilderName holds the default local builder name.
+const DefaultLocalBuilderName = "default-local-builder"
 
-type Option func(*Service) error
+// BuilderEntry holds the BuilderServiceClient and a boolean indicating if it's local.
+type BuilderEntry struct {
+	BuilderServiceClient
+	IsLocal bool
+}
 
-// WithBuilder is an option to set the Caller for the Service.
-func WithBlockBuilder(name string, builder types.BuilderServiceClient, isLocal bool) Option {
-	return func(s *Service) error {
-		s.builders.RegisterBuilder(name, builder, isLocal)
-		return nil
+// BuilderRegistry holds a map of builder names to their corresponding BuilderEntry.
+type BuilderRegistry struct {
+	builders map[string]BuilderEntry
+}
+
+// NewBuilderRegistry creates a new BuilderRegistry with an empty map of builders.
+func NewBuilderRegistry() *BuilderRegistry {
+	return &BuilderRegistry{
+		builders: make(map[string]BuilderEntry),
 	}
+}
+
+// RegisterBuilder adds a new BuilderEntry to the BuilderRegistry's map of builders.
+func (br *BuilderRegistry) RegisterBuilder(
+	name string, client BuilderServiceClient, isLocal bool,
+) {
+	br.builders[name] = BuilderEntry{
+		BuilderServiceClient: client,
+		IsLocal:              isLocal,
+	}
+}
+
+// GetBuilder returns the corresponding BuilderEntry for a given name.
+func (br *BuilderRegistry) GetBuilder(name string) BuilderEntry {
+	return br.builders[name]
 }

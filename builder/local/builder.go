@@ -34,16 +34,18 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
+// The local Builder is responsible for building beacon blocks and
+// handling the execution of beacon chain operations.
 type Builder struct {
 	service.BaseService
+
+	// TODO: the builder should be decoupled from anything validator related.
 	beaconKitValKey key.BeaconKitValKey
 	en              engine.Caller
 	payloadCache    *cache.PayloadIDCache
 }
 
-func NewService(
+func NewBuilder(
 	base service.BaseService,
 	opts ...Option,
 ) *Builder {

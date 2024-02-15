@@ -36,7 +36,7 @@ import (
 
 type Service struct {
 	service.BaseService
-	localClient types.BuilderServiceClient
+	builders *types.BuilderRegistry
 }
 
 // NewService.
@@ -46,6 +46,7 @@ func NewService(
 ) *Service {
 	s := &Service{
 		BaseService: base,
+		builders:    types.NewBuilderRegistry(),
 	}
 	for _, opt := range opts {
 		if err := opt(s); err != nil {
@@ -67,7 +68,7 @@ func (s *Service) RequestBestBlock(
 	// to determine the parent.
 	/*eth1Parent common.Hash, */
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {
-	resp, err := s.localClient.RequestBestBlock(
+	resp, err := s.builders.GetBuilder(types.DefaultLocalBuilderName).RequestBestBlock(
 		ctx, &types.RequestBestBlockRequest{
 			Slot: slot,
 		},
