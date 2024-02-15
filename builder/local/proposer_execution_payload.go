@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package local
 
 import (
 	"context"
@@ -41,10 +41,10 @@ import (
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-func (s *Service) getLocalPayload(
+func (b *Builder) getLocalPayload(
 	ctx context.Context,
 	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
-) (engine.ExecutionPayload, bool, error) {
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
@@ -60,30 +60,31 @@ func (s *Service) getLocalPayload(
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
 
-	parentEth1Hash, err := s.getParentEth1Hash(ctx)
+	parentEth1Hash, err := b.getParentEth1Hash(ctx)
 	if err != nil {
-		return nil, false, err
+		return nil, nil, false, err
 	}
 
 	// If we have a payload ID in the cache, we can return the payload from the cache.
-	payloadID, ok := s.payloadCache.Get(slot, parentEth1Hash)
+	payloadID, ok := b.payloadCache.Get(slot, parentEth1Hash)
 	if ok && (payloadID != primitives.PayloadID{}) {
 		var (
 			pidCpy          primitives.PayloadID
 			payload         engine.ExecutionPayload
 			overrideBuilder bool
+			blobsBundle     *enginev1.BlobsBundle
 		)
 
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
-		if payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot); err == nil {
+		if payload, blobsBundle, overrideBuilder, err = b.en.GetPayload(ctx, pidCpy, slot); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 			//  Return the cached payload ID.
-			return payload, overrideBuilder, nil
+			return payload, blobsBundle, overrideBuilder, nil
 		}
-		s.Logger().Warn("could not get cached payload from execution client", "error", err)
+		b.Logger().Warn("could not get cached payload from execution client", "error", err)
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheError)
 	}
 
@@ -100,17 +101,17 @@ func (s *Service) getLocalPayload(
 	// Build the forkchoice state.
 	f := &enginev1.ForkchoiceState{
 		HeadBlockHash:      parentEth1Hash.Bytes(),
-		SafeBlockHash:      s.BeaconState(ctx).GetSafeEth1BlockHash().Bytes(),
-		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
+		SafeBlockHash:      b.BeaconState(ctx).GetSafeEth1BlockHash().Bytes(),
+		FinalizedBlockHash: b.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
 	}
 
 	// Build the payload attributes.
 	t := time.Now()              // todo: the proper mathematics for time must be done.
 	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
 	attr := core.BuildPayloadAttributes(
-		s.BeaconCfg(),
+		b.BeaconCfg(),
 		st,
-		s.Logger(),
+		b.Logger(),
 		random,
 		headRoot,
 		//#nosec:G701 // won't overflow.
@@ -118,35 +119,33 @@ func (s *Service) getLocalPayload(
 	)
 
 	var payloadIDBytes *enginev1.PayloadIDBytes
-	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attr)
+	payloadIDBytes, _, err = b.en.ForkchoiceUpdated(ctx, f, attr)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "could not prepare payload")
+		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
 	} else if payloadIDBytes == nil {
-		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
+		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
-	payload, bundle, overrideBuilder, err := s.en.GetPayload(
+	payload, blobsBundle, overrideBuilder, err := b.en.GetPayload(
 		ctx, primitives.PayloadID(*payloadIDBytes), slot,
 	)
 	if err != nil {
-		return nil, false, err
+		return nil, blobsBundle, false, err
 	}
 
-	// TODO: Dencun
-	_ = bundle
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 
-	s.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
-	return payload, overrideBuilder, nil
+	b.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
+	return payload, blobsBundle, overrideBuilder, nil
 }
 
 // getParentEth1Hash retrieves the parent block hash for the given slot.
 //
 //nolint:unparam // todo: review this later.
-func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
+func (b *Builder) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
 	// The first slot should be proposed with the genesis block as parent.
-	st := s.BeaconState(ctx)
+	st := b.BeaconState(ctx)
 	if st.Slot() == 1 {
 		return st.GenesisEth1Hash(), nil
 	}

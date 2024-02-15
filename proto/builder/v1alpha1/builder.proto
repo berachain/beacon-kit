@@ -49,6 +49,10 @@ message RequestBestBlockRequest {
 
 // RequestBestBlockResponse is the response to the RequestBestBlock RPC.
 message RequestBestBlockResponse {
+  // override is true if the block should override the current best block.
+  // this field should only be taken into account if the block builder is
+  // a TRUSTED party.
+  bool override = 1;
   // block is the best available block from the builder.
-  types.consensus.v1.capella.BeaconKitBlockCapella block = 1;
+  types.consensus.v1.capella.BeaconKitBlockCapella block = 2;
 }

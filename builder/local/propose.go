@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package local
 
 import (
 	"context"
@@ -34,22 +34,22 @@ import (
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
-// BuildBeaconBlock builds a new beacon block.
-func (s *Service) RequestBestBlock(
+// RequestBestBlock builds a new beacon block.
+func (b *Builder) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
-) (interfaces.ReadOnlyBeaconKitBlock, error) {
+) (interfaces.ReadOnlyBeaconKitBlock, bool, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	var (
-		beaconState   = s.BeaconState(ctx)
+		beaconState   = b.BeaconState(ctx)
 		executionData engine.ExecutionPayload
 	)
 
 	// // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
-	_ = s.beaconKitValKey
+	_ = b.beaconKitValKey
 	// _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
 	// if err != nil {
 	// 	return nil, err
@@ -57,25 +57,27 @@ func (s *Service) RequestBestBlock(
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := consensus.EmptyBeaconKitBlock(
-		slot, s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+		slot, b.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
 	)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	executionData, overrideBuilder, err := s.getLocalPayload(ctx, beaconBlock, beaconState)
+	executionData, blobsBundle, overrideBuilder, err := b.getLocalPayload(
+		ctx, beaconBlock, beaconState,
+	)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	// TODO: allow external block builders to override the payload.
-	_ = overrideBuilder
+	// TODO: Dencun
+	_ = blobsBundle
 
 	// Assemble a new block with the payload.
 	if err = beaconBlock.AttachExecution(executionData); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// Return the block.
-	return beaconBlock, nil
+	return beaconBlock, overrideBuilder, err
 }

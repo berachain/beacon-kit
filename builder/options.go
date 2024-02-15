@@ -25,14 +25,14 @@
 
 package builder
 
-import localbuilder "github.com/itsdevbear/bolaris/builder/local"
+import "github.com/itsdevbear/bolaris/builder/local"
 
 type Option func(*Service) error
 
 // WithEngineCaller is an option to set the Caller for the Service.
-func WithLocalBuilder(builder *localbuilder.Service) Option {
+func Withlocal(builder *local.Builder) Option {
 	return func(s *Service) error {
-		s.localClient = localbuilder.NewClient(builder)
+		s.localClient = local.NewClient(builder)
 		return nil
 	}
 }

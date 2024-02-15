@@ -23,12 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package local
 
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/builder/interfaces"
 	"github.com/itsdevbear/bolaris/builder/types"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
 	"google.golang.org/grpc"
@@ -38,14 +37,14 @@ import (
 // builder service operations.
 var _ types.BuilderServiceClient = &Client{}
 
-// Client wraps the local BeaconBlockBuilder to adhere to the BuilderServiceClient interface.
+// Client wraps the LocalBlockBuilder to adhere to the BuilderServiceClient interface.
 type Client struct {
-	localBuilder interfaces.BeaconBlockBuilder
+	local *Builder
 }
 
 // NewClient creates a new Client with the given BuilderServiceServer.
-func NewClient(localBuilder interfaces.BeaconBlockBuilder) *Client {
-	return &Client{localBuilder: localBuilder}
+func NewClient(local *Builder) *Client {
+	return &Client{local: local}
 }
 
 // RequestBestBlock simulates a request to the best available block from the builder.
@@ -56,9 +55,12 @@ func (c *Client) RequestBestBlock(
 ) (*types.RequestBestBlockResponse, error) {
 	// Directly call the RequestBestBlock method on the embedded BuilderServiceServer.
 	// Note: opts are ignored in this local client simulation.
-	beaconBlock, err := c.localBuilder.RequestBestBlock(ctx, in.GetSlot())
+	beaconBlock, shouldOverride, err := c.local.RequestBestBlock(ctx, in.GetSlot())
 	if err != nil {
 		return nil, err
 	}
-	return &types.RequestBestBlockResponse{Block: beaconBlock.(*(capella.BeaconKitBlockCapella))}, nil
+	return &types.RequestBestBlockResponse{
+		Override: shouldOverride,
+		Block:    beaconBlock.(*(capella.BeaconKitBlockCapella)),
+	}, nil
 }

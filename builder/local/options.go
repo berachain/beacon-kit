@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package local
 
 import (
 	"github.com/itsdevbear/bolaris/cache"
@@ -31,11 +31,11 @@ import (
 )
 
 // Option is a functional option for the validator service.
-type Option func(*Service) error
+type Option func(*Builder) error
 
 // WithEngineCaller sets the engine caller for the validator service.
 func WithEngineCaller(caller engine.Caller) Option {
-	return func(s *Service) error {
+	return func(s *Builder) error {
 		s.en = caller
 		return nil
 	}
@@ -43,7 +43,7 @@ func WithEngineCaller(caller engine.Caller) Option {
 
 // WithPayloadCache sets the payload cache for the validator service.
 func WithPayloadCache(pc *cache.PayloadIDCache) Option {
-	return func(s *Service) error {
+	return func(s *Builder) error {
 		s.payloadCache = pc
 		return nil
 	}
