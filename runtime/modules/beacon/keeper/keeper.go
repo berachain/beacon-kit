@@ -57,7 +57,7 @@ var _ state.BeaconStateProvider = &Keeper{}
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
-	storeKey *storetypes.KVStoreKey,
+	storeKey storetypes.StoreKey,
 	stakingKeeper staking.Staking,
 	beaconCfg *config.Beacon,
 ) *Keeper {

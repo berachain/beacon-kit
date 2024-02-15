@@ -49,7 +49,7 @@ type DepInjectInput struct {
 
 	ModuleKey depinject.OwnModuleKey
 	Config    *modulev1alpha1.Module
-	Key       *storetypes.KVStoreKey
+	Key       storetypes.StoreKey
 
 	BeaconKitConfig *config.Beacon
 
