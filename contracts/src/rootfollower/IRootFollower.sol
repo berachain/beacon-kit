@@ -29,9 +29,7 @@ interface IRootFollower {
      * @param blockNum The address performing the mint.
      * @return coinbase The address of the coinbase for the given block number.
      */
-    function getCoinbase(
-        uint256 blockNum
-    ) external view returns (address coinbase);
+    function getCoinbase(uint256 blockNum) external view returns (address coinbase);
 
     /**
      * @dev Gets the next block to be rewarded. This returns the greater of current
