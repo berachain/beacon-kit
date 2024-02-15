@@ -101,17 +101,6 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 		})
 	}
 
-	// // Process any remaining segment of the inputList not divisible by the number of goroutines.
-	// remainderStartIndex := n * two * groupSize
-	// if remainderStartIndex < len(inputList) {
-	// 	if err := gohashtree.Hash(
-	// 		outputList[n*groupSize:],
-	// 		inputList[remainderStartIndex:],
-	// 	); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	// Wait for all goroutines to complete.
 	if err := eg.Wait(); err != nil {
 		return nil, err
