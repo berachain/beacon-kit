@@ -31,17 +31,18 @@ import (
 
 	sdk "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	dba "cosmossdk.io/store/dbadapter"
 	db "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 
-	"github.com/itsdevbear/bolaris/collections"
+	"github.com/itsdevbear/bolaris/lib/store/collections"
 )
 
 func Test_Queue(t *testing.T) {
 	t.Run("should return correct items", func(t *testing.T) {
 		sk, ctx := deps()
 		sb := sdk.NewSchemaBuilder(sk)
-		q := collections.NewQueue[uint64](sb, sdk.NewPrefix(0), "queue", sdk.Uint64Value)
+		q := collections.NewQueue[uint64](sb, 0, "queue", sdk.Uint64Value)
 
 		_, err := q.Peek(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
@@ -93,41 +94,41 @@ func Test_Queue(t *testing.T) {
 	})
 }
 
-type testStore struct {
-	db db.DB
+type Store struct {
+	dba.Store
 }
 
-func (t testStore) OpenKVStore(ctx context.Context) store.KVStore {
-	return t
+func (s Store) Get(key []byte) ([]byte, error) {
+	return s.Store.Get(key), nil
 }
 
-func (t testStore) Get(key []byte) ([]byte, error) {
-	return t.db.Get(key)
+func (s Store) Has(key []byte) (bool, error) {
+	return s.Store.Has(key), nil
 }
 
-func (t testStore) Has(key []byte) (bool, error) {
-	return t.db.Has(key)
+func (s Store) Iterator(start, end []byte) (db.Iterator, error) {
+	return s.Store.Iterator(start, end), nil
 }
 
-func (t testStore) Set(key, value []byte) error {
-	return t.db.Set(key, value)
+func (s Store) ReverseIterator(start, end []byte) (db.Iterator, error) {
+	return s.Store.ReverseIterator(start, end), nil
 }
 
-func (t testStore) Delete(key []byte) error {
-	return t.db.Delete(key)
+func (s Store) Set(key, value []byte) error {
+	s.Store.Set(key, value)
+	return nil
 }
 
-func (t testStore) Iterator(start, end []byte) (store.Iterator, error) {
-	return t.db.Iterator(start, end)
+func (s Store) Delete(key []byte) error {
+	s.Store.Delete(key)
+	return nil
 }
 
-func (t testStore) ReverseIterator(start, end []byte) (store.Iterator, error) {
-	return t.db.ReverseIterator(start, end)
+func (s Store) OpenKVStore(ctx context.Context) store.KVStore {
+	return s
 }
-
-var _ store.KVStore = testStore{}
 
 func deps() (store.KVStoreService, context.Context) {
-	kv := db.NewMemDB()
-	return &testStore{kv}, context.Background()
+	db := db.NewMemDB()
+	return &Store{Store: dba.Store{DB: db}}, context.Background()
 }

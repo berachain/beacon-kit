@@ -34,28 +34,49 @@ import (
 
 type Queue[V any] struct {
 	container sdk.Map[uint64, V]
-	frontIdx  sdk.Sequence // inclusive
-	backIdx   sdk.Sequence // exclusive
+	headSeq   sdk.Sequence // inclusive
+	tailSeq   sdk.Sequence // exclusive
 }
+
+const (
+	_ = iota
+	headSeqOffset
+	tailSeqOffset
+)
 
 // NewQueue creates a new queue with the provided prefix and name.
 func NewQueue[V any](
 	schema *sdk.SchemaBuilder,
-	prefix sdk.Prefix, name string,
+	startPrefixID int, name string,
 	valueCodec codec.ValueCodec[V]) Queue[V] {
 	return Queue[V]{
-		container: sdk.NewMap[uint64, V](schema, prefix, name+"_queue", sdk.Uint64Key, valueCodec),
-		frontIdx:  sdk.NewSequence(schema, prefix, name+"_front"),
+		container: sdk.NewMap[uint64, V](
+			schema, sdk.NewPrefix(startPrefixID),
+			name+"_queue", sdk.Uint64Key, valueCodec),
+		headSeq: sdk.NewSequence(schema, sdk.NewPrefix(startPrefixID+headSeqOffset), name+"_head"),
+		tailSeq: sdk.NewSequence(schema, sdk.NewPrefix(startPrefixID+tailSeqOffset), name+"_tail"),
 	}
 }
 
 // Peek returns the top element of the queue, or ErrNotFound if the queue is empty.
 func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
 	var v V
-	if q.startIdx >= q.endIdx {
+	headIdx, err := q.headSeq.Peek(ctx)
+	if err != nil {
+		return v, err
+	}
+	tailIdx, err := q.tailSeq.Peek(ctx)
+	if err != nil {
+		return v, err
+	}
+	if headIdx >= tailIdx {
 		return v, sdk.ErrNotFound
 	}
-	return q.container.Get(ctx, q.startIdx)
+	v, err = q.container.Get(ctx, headIdx)
+	if err != nil {
+		return v, err
+	}
+	return v, nil
 }
 
 // Next returns the top element of the queue and removes it from the queue.
@@ -64,20 +85,27 @@ func (q *Queue[V]) Next(ctx context.Context) (V, error) {
 	if err != nil {
 		return v, err
 	}
-	err = q.container.Remove(ctx, q.startIdx)
+	headIdx, err := q.headSeq.Next(ctx)
 	if err != nil {
 		return v, err
 	}
-	q.startIdx++
+	err = q.container.Remove(ctx, headIdx)
+	if err != nil {
+		return v, err
+	}
 	return v, nil
 }
 
 // Push adds a new element to the queue.
 func (q *Queue[V]) Push(ctx context.Context, value V) error {
-	err := q.container.Set(ctx, q.endIdx, value)
+	tailIdx, err := q.tailSeq.Peek(ctx)
 	if err != nil {
 		return err
 	}
-	q.endIdx++
-	return nil
+	err = q.container.Set(ctx, tailIdx, value)
+	if err != nil {
+		return err
+	}
+	_, err = q.tailSeq.Next(ctx)
+	return err
 }
