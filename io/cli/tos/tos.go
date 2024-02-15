@@ -34,7 +34,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/config/flags"
-	beaconprompt "github.com/itsdevbear/bolaris/config/prompt"
+	beaconprompt "github.com/itsdevbear/bolaris/io/cli/prompt"
 	"github.com/logrusorgru/aurora"
 
 	"github.com/spf13/cobra"
@@ -59,6 +59,7 @@ Type "accept" to accept these terms and conditions [accept/decline]:`
 non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
 terms and conditions here: 
 %s`
+	DeclinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 
 // BuildTosPromptText builds the prompt text for accepting the terms of use.
@@ -90,18 +91,25 @@ func VerifyTosAcceptedOrPrompt(
 		return nil
 	}
 
-	input, err := beaconprompt.DefaultPrompt(
-		cmd,
-		aurora.NewAurora(true).Bold(BuildTosPromptText(
+	prompt := &beaconprompt.Prompt{
+		Cmd: cmd,
+		Text: aurora.NewAurora(true).Bold(BuildTosPromptText(
 			appName, tosLink,
 		)).String(),
-		"decline")
-	if err != nil {
-		return errors.New(BuildErrorPromptText(tosLink))
+		Default: "decline",
+		ValidateFn: func(input string) error {
+			if !strings.EqualFold(input, "accept") {
+				return errors.New(DeclinedErrorString)
+			}
+			return nil
+		},
 	}
-
-	if !strings.EqualFold(input, "accept") {
-		return errors.New("you have to accept Terms and Conditions in order to continue")
+	_, err := prompt.AskAndValidate()
+	if err != nil {
+		if err.Error() == DeclinedErrorString {
+			return err
+		}
+		return errors.New(BuildErrorPromptText(tosLink))
 	}
 
 	saveTosAccepted(homedir, cmd)

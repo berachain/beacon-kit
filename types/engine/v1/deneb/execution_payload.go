@@ -26,7 +26,11 @@
 package deneb
 
 import (
+	"errors"
+
+	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/itsdevbear/bolaris/math"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -77,9 +81,37 @@ func (p *WrappedExecutionPayloadDeneb) ToPayload() interfaces.ExecutionPayload {
 }
 
 // ToHeader produces an ExecutionPayloadHeader.
-func (p *WrappedExecutionPayloadDeneb) ToHeader() interfaces.ExecutionPayloadHeader {
-	// TODO: @ocnc
-	panic("TODO: Implement slice merkalization for ExecutionPayloadDeneb")
+func (p *WrappedExecutionPayloadDeneb) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
+	if len(p.Transactions) > primitives.MaxTxsPerPayloadLength {
+		return nil, errors.New("too many transactions")
+	}
+
+	if len(p.Withdrawals) > primitives.MaxWithdrawalsPerPayload {
+		return nil, errors.New("too many withdrawals")
+	}
+
+	return &WrappedExecutionPayloadHeaderDeneb{
+		ExecutionPayloadHeaderDeneb: enginev1.ExecutionPayloadHeaderDeneb{
+			ParentHash:       p.ParentHash,
+			FeeRecipient:     p.FeeRecipient,
+			StateRoot:        p.StateRoot,
+			ReceiptsRoot:     p.ReceiptsRoot,
+			LogsBloom:        p.LogsBloom,
+			PrevRandao:       p.PrevRandao,
+			BlockNumber:      p.BlockNumber,
+			GasLimit:         p.GasLimit,
+			GasUsed:          p.GasUsed,
+			Timestamp:        p.Timestamp,
+			ExtraData:        p.ExtraData,
+			BaseFeePerGas:    p.BaseFeePerGas,
+			BlockHash:        p.BlockHash,
+			TransactionsRoot: sha256.HashRootAndMixinLengthAsBzSlice(p.Transactions),
+			WithdrawalsRoot:  sha256.HashRootAndMixinLengthAsSlice(p.Withdrawals),
+			BlobGasUsed:      p.BlobGasUsed,
+			ExcessBlobGas:    p.ExcessBlobGas,
+		},
+		value: p.GetValue(),
+	}, nil
 }
 
 // GetValue returns the value of the payload.

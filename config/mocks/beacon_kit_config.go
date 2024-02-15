@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	parser "github.com/itsdevbear/bolaris/config/parser"
+	parser "github.com/itsdevbear/bolaris/io/cli/parser"
 	mock "github.com/stretchr/testify/mock"
 )
 
