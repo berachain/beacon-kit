@@ -29,7 +29,6 @@ package builder.v1alpha1;
 
 import "ethereum/eth/ext/options.proto";
 import "types/consensus/v1/capella/block.proto";
-// import "types/consensus/v1/capella/block_blinded.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/builder/types";
 

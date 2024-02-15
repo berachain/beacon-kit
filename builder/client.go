@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/builder/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
 	"google.golang.org/grpc"
 )
@@ -56,7 +55,7 @@ func (c *LocalClient) RequestBestBlock(
 ) (*types.RequestBestBlockResponse, error) {
 	// Directly call the RequestBestBlock method on the embedded BuilderServiceServer.
 	// Note: opts are ignored in this local client simulation.
-	beaconBlock, err := c.localBuilder.RequestBestBlock(ctx, primitives.Slot(in.Slot))
+	beaconBlock, err := c.localBuilder.RequestBestBlock(ctx, in.GetSlot())
 	if err != nil {
 		return nil, err
 	}

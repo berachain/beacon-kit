@@ -69,12 +69,12 @@ func (s *Service) RequestBestBlock(
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {
 	resp, err := s.localClient.RequestBestBlock(
 		ctx, &types.RequestBestBlockRequest{
-			Slot: uint64(slot),
+			Slot: slot,
 		},
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.Block, nil
+	return resp.GetBlock(), nil
 }

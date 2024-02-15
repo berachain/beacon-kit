@@ -52,10 +52,6 @@ type ReadOnlyBeaconKitBlock interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
-	MarshalTo(dst []byte) (n int, err error)
-	Unmarshal(data []byte) error
-	Size() int
-	MarshalToSizedBuffer(dst []byte) (int, error)
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
