@@ -57,7 +57,7 @@ type ReadOnlyBeaconState interface {
 
 	// TODO: fill these in as we develop impl
 
-	// ReadOnlyRandao
+	ReadOnlyRandao
 	// WriteOnlyRandao
 	// GetEpochBySlot(primitives.Slot) primitives.Epoch
 }
@@ -66,8 +66,8 @@ type ReadOnlyRandao interface {
 	// Get the historical randao reveals
 	// For now track everything, but we probably want to only track
 	// up to some number based on config
+	GetLatestRandaoReveal() *randao.Reveal
 	GetRandaoReveals() []randao.Reveal
-	GetRandaoRevealByIndex(uint32) []randao.Reveal
 }
 
 type WriteOnlyRandao interface {

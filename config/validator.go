@@ -31,15 +31,19 @@ import (
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
+// TODO: figure out ideal number
+const DefaultNumRandaoRevealsToTrack = uint64(10)
+
 // Validator conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Validator] = &Validator{}
 
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultValidatorConfig() Validator {
 	return Validator{
-		SuggestedFeeRecipient: common.Address{},
-		Graffiti:              "",
-		PrepareAllPayloads:    true,
+		SuggestedFeeRecipient:   common.Address{},
+		Graffiti:                "",
+		PrepareAllPayloads:      true,
+		NumRandaoRevealsToTrack: DefaultNumRandaoRevealsToTrack,
 	}
 }
 

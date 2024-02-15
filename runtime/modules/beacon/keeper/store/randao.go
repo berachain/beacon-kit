@@ -26,48 +26,29 @@
 package store
 
 import (
-	"context"
-
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/emirpasic/gods/maps/linkedhashmap"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/beacon/core/randao"
 )
 
-// BeaconStore is a wrapper around a KVStore sdk.Context
-// that provides access to all beacon related data.
-type BeaconStore struct {
-	store.KVStore
+func (s *BeaconStore) GetRandaoReveals() []randao.Reveal {
+	ln := s.randaoReveals.Size()
+	ret := make([]randao.Reveal, ln)
+	it := s.randaoReveals.Iterator()
 
-	// sdkCtx is the context of the store.
-	sdkCtx sdk.Context
+	idx := 0
+	for it.Next() {
+		ret[idx] = it.Value().(randao.Reveal)
+		idx++
+	}
 
-	// cfg is the beacon configuration.
-	cfg *config.Beacon
-
-	// lastValidHash is the last valid head in the store.
-	// TODO: we need to handle this in a better way.
-	lastValidHash common.Hash
-
-	// TODO: make thread safe
-	// Randao reveals we're tracking
-	randaoReveals linkedhashmap.Map
+	return ret
 }
 
-// NewBeaconStore creates a new instance of BeaconStore.
-func NewBeaconStore(
-	ctx context.Context,
-	storeKey storetypes.StoreKey,
-	// TODO: should this be stored in on-chain params?
-	cfg *config.Beacon,
-) *BeaconStore {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return &BeaconStore{
-		sdkCtx:        sdkCtx,
-		KVStore:       sdkCtx.KVStore(storeKey),
-		cfg:           cfg,
-		randaoReveals: *linkedhashmap.New(),
+func (s *BeaconStore) GetLatestRandaoReveal() *randao.Reveal {
+	it := s.randaoReveals.Iterator()
+	if it.Last() {
+		ret := it.Value().(randao.Reveal)
+		return &ret
 	}
+
+	return nil
 }
