@@ -2,10 +2,10 @@
 
 pragma solidity >=0.8.10;
 
-import { Errors } from "./Errors.sol";
-import { IRootFollower } from "./IRootFollower.sol";
-import { FixedPointMathLib } from "@solady/utils/FixedPointMathLib.sol";
-import { Ownable } from "@solady/auth/Ownable.sol";
+import {Errors} from "./Errors.sol";
+import {IRootFollower} from "./IRootFollower.sol";
+import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
+import {Ownable} from "@solady/auth/Ownable.sol";
 
 abstract contract RootFollower is IRootFollower, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -17,7 +17,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /// @dev The selector for "getCoinbase(uint256)"
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
     /// @dev The beacon roots contract address.
-    address private constant BEACON_ROOT_ADDRESS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
+    address private constant BEACON_ROOT_ADDRESS =
+        0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          STORAGE                           */
@@ -34,16 +35,22 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IRootFollower
-    function getCoinbase(uint256 _block) public view returns (address coinbase) {
+    function getCoinbase(
+        uint256 _block
+    ) public view returns (address coinbase) {
         return _getCoinbase(_block);
     }
 
     /// @inheritdoc IRootFollower
     function getNextActionableBlock() public view returns (uint256 blockNum) {
-        return FixedPointMathLib.max(
-            _LAST_PROCESSED_BLOCK + 1,
-            FixedPointMathLib.zeroFloorSub(block.number, HISTORY_BUFFER_LENGTH)
-        );
+        return
+            FixedPointMathLib.max(
+                _LAST_PROCESSED_BLOCK + 1,
+                FixedPointMathLib.zeroFloorSub(
+                    block.number,
+                    HISTORY_BUFFER_LENGTH
+                )
+            );
     }
 
     /// @inheritdoc IRootFollower
@@ -75,11 +82,17 @@ abstract contract RootFollower is IRootFollower, Ownable {
      * @return _coinbase The miner's address for the block.
      * Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure.
      */
-    function _getCoinbase(uint256 _block) internal view returns (address _coinbase) {
+    function _getCoinbase(
+        uint256 _block
+    ) internal view returns (address _coinbase) {
         assembly ("memory-safe") {
             mstore(0, GET_COINBASE_SELECTOR)
             mstore(0x04, _block)
-            if iszero(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20)) { revert(0, 0) }
+            if iszero(
+                staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20)
+            ) {
+                revert(0, 0)
+            }
             _coinbase := mload(0)
         }
     }
@@ -92,7 +105,7 @@ abstract contract RootFollower is IRootFollower, Ownable {
     function _incrementBlock() internal {
         // Check if next block is actionable, revert if not.
         if ((_LAST_PROCESSED_BLOCK + 1) != getNextActionableBlock()) {
-            revert Errors.ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER();
+            revert Errors.AttemptedToIncrementOutOfBuffer();
         }
         // Increment and emit event.
         emit AdvancedBlock(++_LAST_PROCESSED_BLOCK);
@@ -105,12 +118,16 @@ abstract contract RootFollower is IRootFollower, Ownable {
     function _resetCount(uint256 _block) internal {
         // Reverts if the block number is in the future.
         if (_block > block.number) {
-            revert Errors.BLOCK_DOES_NOT_EXIST();
+            revert Errors.BlockDoesNotExist();
         }
         // Reverts if the block number is before the next actionable block.
         if (_block < getNextActionableBlock()) {
-            revert Errors.BLOCK_NOT_IN_BUFFER(_block);
+            revert Errors.BlockNotInBuffer(_block);
         }
+
+        // Emit an event to capture a block count reset.
+        emit BlockCountReset(_block, _LAST_PROCESSED_BLOCK);
+
         // Sets the last processed block to the specified block number.
         _LAST_PROCESSED_BLOCK = _block;
     }

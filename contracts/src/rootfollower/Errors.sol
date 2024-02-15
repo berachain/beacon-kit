@@ -8,11 +8,11 @@ pragma solidity >=0.8.4;
  */
 library Errors {
     /// @dev Unauthorized caller
-    error UNAUTHORIZED(address);
+    error Unauthorized(address);
     /// @dev The queried block is not in the buffer range
-    error BLOCK_NOT_IN_BUFFER(uint256);
+    error BlockNotInBuffer(uint256);
     /// @dev Increment was called with a block number no longer in the buffer range
-    error ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER();
+    error AttemptedToIncrementOutOfBuffer();
     /// @dev The block number does not exist yet
-    error BLOCK_DOES_NOT_EXIST();
+    error BlockDoesNotExist();
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.4;
 
 /**
  * @title IRootFollower
@@ -19,7 +19,7 @@ interface IRootFollower {
      * @param start The start block number of the block just actioned upon.
      * @param end The end block number of the block just actioned upon.
      */
-    event SkipBlocks(uint256 start, uint256 end);
+    event BlockCountReset(uint256 start, uint256 end);
 
     /**
      * @dev Gets the address of the coinbase for the given block number. The size of
@@ -29,7 +29,9 @@ interface IRootFollower {
      * @param blockNum The address performing the mint.
      * @return coinbase The address of the coinbase for the given block number.
      */
-    function getCoinbase(uint256 blockNum) external view returns (address coinbase);
+    function getCoinbase(
+        uint256 blockNum
+    ) external view returns (address coinbase);
 
     /**
      * @dev Gets the next block to be rewarded. This returns the greater of current
