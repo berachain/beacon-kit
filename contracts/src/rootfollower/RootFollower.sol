@@ -4,10 +4,10 @@ pragma solidity >=0.8.10;
 
 import {Errors} from "./Errors.sol";
 import {IRootFollower} from "./IRootFollower.sol";
-import {FixedPointMathLib} from "solady/src/utils/FixedPointMathLib.sol";
-import {OwnableRoles} from "solady/src/auth/OwnableRoles.sol";
+import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
+import {Ownable} from "@solady/auth/Ownable.sol";
 
-abstract contract RootFollower is IRootFollower, OwnableRoles {
+abstract contract RootFollower is IRootFollower, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
