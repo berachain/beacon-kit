@@ -31,6 +31,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -88,14 +89,13 @@ func (s *Service) notifyForkchoiceUpdate(
 	// If the forkchoice update call has an attribute, update the payload ID cache.
 	hasAttr := fcuConfig.Attributes != nil && !fcuConfig.Attributes.IsEmpty()
 	if hasAttr && payloadID != nil {
-		var pID [8]byte
-		copy(pID[:], payloadID[:])
 		s.Logger().Info("forkchoice updated with payload attributes for proposal",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"proposing_slot", fcuConfig.ProposingSlot,
 			"payload_id", fmt.Sprintf("%#x", payloadID),
 		)
-		s.payloadCache.Set(fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, pID)
+		s.payloadCache.Set(
+			fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
 	} else if hasAttr && payloadID == nil {
 		/*TODO: introduce this feature && !s.cfg.Features.Get().PrepareAllPayloads*/
 		s.Logger().Error("received nil payload ID on VALID engine response",
