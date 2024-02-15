@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	validator "github.com/itsdevbear/bolaris/builder/local"
+	localbuilder "github.com/itsdevbear/bolaris/builder/local"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/execution/engine"
@@ -152,11 +152,11 @@ func NewDefaultBeaconKitRuntime(
 		initialsync.WithExecutionService(executionService),
 	)
 
-	// Build the validator service.
-	validatorService := validator.NewService(
-		baseService.WithName("validator"),
-		validator.WithEngineCaller(engineClient),
-		validator.WithPayloadCache(payloadCache),
+	// Build the local block building service.
+	localBuilderService := localbuilder.NewService(
+		baseService.WithName("local-builder"),
+		localbuilder.WithEngineCaller(engineClient),
+		localbuilder.WithPayloadCache(payloadCache),
 	)
 
 	// Create the service registry.
@@ -166,7 +166,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(executionService),
 		service.WithService(chainService),
 		service.WithService(notificationService),
-		service.WithService(validatorService),
+		service.WithService(localBuilderService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
