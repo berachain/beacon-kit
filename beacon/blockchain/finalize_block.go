@@ -56,7 +56,7 @@ func (s *Service) FinalizeBeaconBlock(
 	state := s.BeaconState(ctx)
 	// Process deposits.
 	var processedDeposits uint64
-	for processedDeposits < cfg.Limits.MaxDepositsPerBlock {
+	for processedDeposits < s.BeaconCfg().Limits.MaxDepositsPerBlock {
 		var deposit *store.Deposit
 		deposit, err = state.NextDeposit()
 		if err != nil {
