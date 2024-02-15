@@ -137,23 +137,11 @@ func NewDefaultBeaconKitRuntime(
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the log processor.
-	handlers := make(map[common.Address]logs.LogHandler)
-	stakingHandler, err := staking.NewHandler(
-		baseService.WithName("staking"),
-		staking.WithLogger(logger),
-	)
-	if err != nil {
-		return nil, err
-	}
-	callbackHandler, err := callback.NewFrom(stakingHandler)
-	if err != nil {
-		return nil, err
-	}
-	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
-	logProcessor, err := logs.NewProcessor(
-		logs.WithEthClient(eth1Client),
-		logs.WithLogger(logger),
-		logs.WithHandlers(handlers),
+	logProcessor, err := newLogProcessor(
+		baseService,
+		eth1Client,
+		logger,
+		cfg,
 	)
 	if err != nil {
 		return nil, err
@@ -206,6 +194,33 @@ func NewDefaultBeaconKitRuntime(
 		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
 		// This is necessary for the eth1 client to be able to shut down gracefully.
 		WithEth1Client(eth1Client),
+	)
+}
+
+func newLogProcessor(
+	baseService *service.BaseService,
+	eth1Client *eth.Eth1Client,
+	logger log.Logger,
+	cfg *config.Config,
+) (*logs.Processor, error) {
+	// Build the log processor.
+	handlers := make(map[common.Address]logs.LogHandler)
+	stakingHandler, err := staking.NewHandler(
+		baseService.WithName("staking"),
+		staking.WithLogger(logger),
+	)
+	if err != nil {
+		return nil, err
+	}
+	callbackHandler, err := callback.NewFrom(stakingHandler)
+	if err != nil {
+		return nil, err
+	}
+	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
+	return logs.NewProcessor(
+		logs.WithEthClient(eth1Client),
+		logs.WithLogger(logger),
+		logs.WithHandlers(handlers),
 	)
 }
 
