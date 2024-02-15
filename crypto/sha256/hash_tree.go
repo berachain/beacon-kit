@@ -28,7 +28,6 @@ package sha256
 import (
 	"runtime"
 
-	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -45,36 +44,30 @@ const (
 	two = 2
 )
 
-// HashTreeRoot is a function that processes a list of tree.Root elements by hashing them.
-// This function leverages CPU-specific vector instructions for hashing, which can significantly
-// enhance performance on compatible hardware. The actual hashing is delegated to the
-// HashTreeRootWithNProcesses function, with the number of processes set to one less than
-// the maximum number of CPU cores available to the Go runtime. This is to ensure at least
-// one core is available for other tasks, potentially improving overall system responsiveness.
-func HashTreeRoot(inputList []tree.Root) ([]tree.Root, error) {
-	// The number of processes is set to the maximum number of CPU cores minus one.
-	// runtime.GOMAXPROCS(0) retrieves the current setting without changing it.
-	return HashTreeRootWithNRoutines(inputList, runtime.GOMAXPROCS(0)-1)
+// BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the number of
+// routines set to runtime.GOMAXPROCS(0)-1.
+func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
+	return BuildParentTreeRootsWithNRoutines(inputList, runtime.GOMAXPROCS(0)-1)
 }
 
-// HashTreeRootWithNProcesses takes a list of tree.Root elements and an integer n,
-// then hashes the list using n parallel processes. This allows for concurrent hashing,
-// which can be faster than sequential hashing for large lists, especially on multi-core
-// processors. The function is designed to be flexible, allowing the caller to specify
-// the degree of parallelism.
-func HashTreeRootWithNRoutines(inputList []tree.Root, n int) ([]tree.Root, error) {
+// HashTreeRoot takes a list of roots and hashes them using CPU
+// specific vector instructions. Depending on host machine's specific
+// hardware configuration, using this routine can lead to a significant
+// performance improvement compared to the default method of hashing
+// lists.
+func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte, error) {
 	if len(inputList)%2 != 0 {
 		return nil, ErrOddLengthTreeRoots
 	}
 	outputList := make([][32]byte, len(inputList)/two)
-	inputListBytes32 := ConvertTreeRootsToBytes(inputList)
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if len(inputList) < MinParallelizationSize {
-		return ConvertBytesToTreeRoots(outputList), gohashtree.Hash(outputList, inputListBytes32)
+		return outputList, gohashtree.Hash(outputList, inputList)
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
+
 	groupSize := len(inputList) / (two * (n + 1))
 	eg := new(errgroup.Group)
 
@@ -99,7 +92,7 @@ func HashTreeRootWithNRoutines(inputList []tree.Root, n int) ([]tree.Root, error
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[cj*groupSize:], inputListBytes32[cj*two*groupSize:(cj+1)*two*groupSize],
+				outputList[cj*groupSize:], inputList[cj*two*groupSize:(cj+1)*two*groupSize],
 			)
 		})
 	}
@@ -110,7 +103,7 @@ func HashTreeRootWithNRoutines(inputList []tree.Root, n int) ([]tree.Root, error
 	// to ensure all parts of the inputList are hashed.
 	remainderStartIndex := n * two * groupSize
 	if remainderStartIndex < len(inputList) { // Check if there's a remainder segment to process.
-		err := gohashtree.Hash(outputList[n*groupSize:], inputListBytes32[remainderStartIndex:])
+		err := gohashtree.Hash(outputList[n*groupSize:], inputList[remainderStartIndex:])
 		if err != nil {
 			return nil, err
 		}
@@ -121,5 +114,5 @@ func HashTreeRootWithNRoutines(inputList []tree.Root, n int) ([]tree.Root, error
 		return nil, err
 	}
 
-	return ConvertBytesToTreeRoots(outputList), nil
+	return outputList, nil
 }

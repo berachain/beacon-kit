@@ -23,14 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256
+package primitives
 
 import "errors"
 
-var (
-	// ErrOddLengthTreeRoots is an error returned when the input list length must be even.
-	ErrOddLengthTreeRoots = errors.New("input list length must be even")
-
-	// ErrMaxRootsExceeded is an error returned when the number of roots exceeds the maximum allowed.
-	ErrMaxRootsExceeded = errors.New("number of roots exceeds the maximum allowed")
-)
+// ErrInvalidBufferSize is an error indicating that the provided buffer size is invalid.
+var ErrInvalidBufferSize = errors.New("invalid buffer size")
