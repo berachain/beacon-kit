@@ -32,26 +32,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// DefaultPrompt prompts the user and validates their response.
-// Returns only when the user has provided a valid response.
-func DefaultPrompt(
-	cmd *cobra.Command, promptText, defaultValue string,
-) (string, error) {
+type Reader interface {
+	Read([]byte) (int, error)
+}
+
+type Prompt struct {
+	Cmd *cobra.Command
+
+	Text       string
+	Default    string
+	ValidateFn func(string) error
+}
+
+// Ask prompts the user and stores their response.
+func (p *Prompt) Ask() (string, error) {
 	au := aurora.NewAurora(true)
-	if defaultValue != "" {
-		promptText = au.Sprintf(
-			"%s (%s: %s):\n", promptText,
+	prompt := au.Sprintf("%s:\n", p.Text)
+	if p.Default != "" {
+		prompt = au.Sprintf(
+			"%s (%s: %s):\n", p.Text,
 			au.BrightGreen("default"),
-			defaultValue,
+			p.Default,
 		)
-	} else {
-		promptText = au.Sprintf("%s:\n", promptText)
 	}
 
-	input := defaultValue
-	inputReader := cmd.InOrStdin()
+	input := p.Default
+	inputReader := p.Cmd.InOrStdin()
 	scanner := bufio.NewScanner(inputReader)
-	cmd.Print(promptText)
+	p.Cmd.Print(prompt)
 	if scanner.Scan() {
 		if text := scanner.Text(); text != "" {
 			input = text
@@ -59,4 +67,21 @@ func DefaultPrompt(
 	}
 
 	return input, scanner.Err()
+}
+
+// AskAndValidate prompts the user and validates their response.
+// Equivalent to Ask() if no validate function is specified.
+func (p *Prompt) AskAndValidate() (string, error) {
+	input, err := p.Ask()
+	if err != nil {
+		return "", err
+	}
+
+	// If validate function is specified, validate the input.
+	if p.ValidateFn != nil {
+		if err = p.ValidateFn(input); err != nil {
+			return input, err
+		}
+	}
+	return input, nil
 }

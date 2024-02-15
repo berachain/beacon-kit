@@ -50,6 +50,7 @@ type ExecutionPayloadBody interface {
 // ExecutionPayload is the interface for the execution data of a block.
 type ExecutionPayload interface {
 	ExecutionPayloadBody
+	ToHeader() (ExecutionPayloadHeader, error)
 	GetTransactions() [][]byte
 	GetWithdrawals() []*enginev1.Withdrawal
 }
