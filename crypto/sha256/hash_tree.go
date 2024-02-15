@@ -54,11 +54,14 @@ func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
 // CPU-specific vector instructions and parallel processing. This method adapts to the host
 // machine's hardware configuration for potential performance gains over sequential hashing.
 func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte, error) {
+	// Validate the input list length.
 	inputLength := len(inputList)
-	outputLength := inputLength / two
 	if inputLength%2 != 0 {
 		return nil, ErrOddLengthTreeRoots
 	}
+
+	// Build output variables
+	outputLength := inputLength / two
 	outputList := make([][32]byte, outputLength)
 
 	// If the input list is small, hash it using the default method since
@@ -80,7 +83,6 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 		cj := j
 
 		// Define the segment of the inputList each goroutine will process.
-
 		segmentStart := cj * twiceGroupSize
 		segmentEnd := min((cj+1)*twiceGroupSize, inputLength)
 
