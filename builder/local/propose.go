@@ -34,10 +34,10 @@ import (
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
-// BuildBeaconBlock builds a new beacon block.
-func (s *Service) BuildBeaconBlock(
-	ctx context.Context, _ primitives.Slot,
-) (interfaces.BeaconKitBlock, error) {
+// RequestBestBlock builds a new beacon block.
+func (s *Service) RequestBestBlock(
+	ctx context.Context, slot primitives.Slot,
+) (interfaces.ReadOnlyBeaconKitBlock, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
@@ -46,7 +46,6 @@ func (s *Service) BuildBeaconBlock(
 	var (
 		beaconState   = s.BeaconState(ctx)
 		executionData engine.ExecutionPayload
-		slot          = beaconState.Slot()
 	)
 
 	// // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.

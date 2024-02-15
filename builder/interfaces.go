@@ -23,48 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package builder
 
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/validator/key"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-type BlockBuilder interface {
-}
-
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	beaconKitValKey key.BeaconKitValKey
-	en              engine.Caller
-	payloadCache    *cache.PayloadIDCache
-}
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start(context.Context) {
-}
-
-func (s *Service) Status() error {
-	return nil
+// BeaconBlockBuilder is the interface for building blocks.
+type BeaconBlockBuilder interface {
+	// RequestBestBlock requests the best availible block from the builder.
+	RequestBestBlock(
+		ctx context.Context,
+		slot primitives.Slot,
+		// version int,
+		// TODO: determine if we want this field, or should it be up to the builder
+		// to determine the parent.
+		/*eth1Parent common.Hash, */
+	) (interfaces.ReadOnlyBeaconKitBlock, error)
 }
