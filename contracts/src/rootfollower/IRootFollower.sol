@@ -5,8 +5,7 @@ pragma solidity >=0.8.10;
 /**
  * @title IRootFollower
  * @dev The interface for an abstract follower of the beacon root contract.
- * @author Berachain
- */
+ * @author Berachain */
 interface IRootFollower {
     /**
      * @dev Emitted when the block is advanced.
