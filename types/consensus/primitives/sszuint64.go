@@ -26,7 +26,6 @@
 package primitives
 
 import (
-	"errors"
 	"fmt"
 
 	fssz "github.com/prysmaticlabs/fastssz"
@@ -42,8 +41,6 @@ var (
 	_ fssz.Marshaler = (*SSZUint64)(nil)
 	// Ensure SSZUint64 implements the fssz.Unmarshaler interface.
 	_ fssz.Unmarshaler = (*SSZUint64)(nil)
-	// ErrInvalidBufferSize is an error indicating that the provided buffer size is invalid.
-	ErrInvalidBufferSize = errors.New("invalid buffer size")
 )
 
 // SSZUint64 represents a ssz-able uint64.

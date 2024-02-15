@@ -43,6 +43,7 @@ var _ interfaces.ExecutionPayloadHeader = (*WrappedExecutionPayloadHeaderDeneb)(
 // from Prysmatic Labs' EngineAPI v1 protobuf definitions.
 type WrappedExecutionPayloadHeaderDeneb struct {
 	enginev1.ExecutionPayloadHeaderDeneb
+	value math.Wei
 }
 
 // Version returns the version identifier for the WrappedExecutionPayloadHeaderDeneb.
@@ -75,5 +76,5 @@ func (p *WrappedExecutionPayloadHeaderDeneb) ToHeader() (
 
 // GetValue returns the value of the payload.
 func (p *WrappedExecutionPayloadHeaderDeneb) GetValue() math.Wei {
-	panic("TODO")
+	return p.value
 }
