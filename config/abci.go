@@ -27,7 +27,7 @@ package config
 
 import (
 	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
 // ABCI conforms to the BeaconKitConfig interface.
