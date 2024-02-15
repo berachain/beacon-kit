@@ -39,6 +39,15 @@ interface IRootFollower {
 
     /**
      * @dev Gets the last block that was actioned upon.
-     */
+     * @return blockNum The block number of the last block that was actioned upon. */
     function getLastActionedBlock() external view returns (uint256 blockNum);
+
+    /**
+     * @dev Increments the block number to the next block. */
+    function incrementBlock() external;
+
+    /**
+     * @dev Resets the block number to _block, used when out of the beacon root buffer.
+     * @param _block The block number to reset to. */
+    function resetCount(uint256 _block) external;
 }

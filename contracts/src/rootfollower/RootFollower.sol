@@ -59,13 +59,15 @@ abstract contract RootFollower is IRootFollower, OwnableRoles {
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                  PUBLIC UPDATE FUNCTIONS                   */
+    /*                     UPDATE FUNCTIONS                       */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /// @inheritdoc IRootFollower
     function incrementBlock() public onlyOwner {
         _incrementBlock();
     }
 
+    /// @inheritdoc IRootFollower
     function resetCount(uint256 _block) public onlyOwner {
         _resetCount(_block);
     }
@@ -74,6 +76,11 @@ abstract contract RootFollower is IRootFollower, OwnableRoles {
     /*                     INTERNAL FUNCTIONS                     */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /**
+     * @dev Fetches the coinbase address for a block using inline assembly & `staticcall`.
+     * @param _block The block number to query.
+     * @return _coinbase The miner's address for the block.
+     * Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure. */
     function _getCoinbase(
         uint256 _block
     ) internal view returns (address _coinbase) {
@@ -89,20 +96,32 @@ abstract contract RootFollower is IRootFollower, OwnableRoles {
         }
     }
 
+    /**
+     * @dev Increments `_LAST_PROCESSED_BLOCK` if it's the next actionable block.
+     * Reverts with `ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER` if the next block isn't actionable.
+     * Emits `AdvancedBlock` event after incrementing. */
     function _incrementBlock() internal {
+        // Check if next block is actionable, revert if not.
         if ((_LAST_PROCESSED_BLOCK + 1) != getNextActionableBlock()) {
             revert Errors.ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER();
         }
+        // Increment and emit event.
         emit AdvancedBlock(++_LAST_PROCESSED_BLOCK);
     }
 
+    /**
+     * @dev Resets the count to a specified block number.
+     * @param _block The block number to reset the count to. */
     function _resetCount(uint256 _block) internal {
+        // Reverts if the block number is in the future.
         if (_block > block.number) {
             revert Errors.BLOCK_DOES_NOT_EXIST();
         }
+        // Reverts if the block number is before the next actionable block.
         if (_block < getNextActionableBlock()) {
             revert Errors.BLOCK_NOT_IN_BUFFER(_block);
         }
+        // Sets the last processed block to the specified block number.
         _LAST_PROCESSED_BLOCK = _block;
     }
 }
