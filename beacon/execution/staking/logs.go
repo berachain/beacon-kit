@@ -108,7 +108,7 @@ func (s *Handler) Undelegate(
 	amount *big.Int,
 	nonce *big.Int,
 ) error {
-	sdk.UnwrapSDKContext(ctx).Logger().Info("undelegating from execution layer",
+	s.Logger().Info("undelegating from execution layer",
 		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
 	return nil
 }
