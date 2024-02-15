@@ -26,6 +26,9 @@
 package store
 
 import (
+	"encoding/binary"
+	"math/big"
+
 	"cosmossdk.io/collections/codec"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
@@ -42,6 +45,16 @@ func (d *Deposit) GetAmount() uint64 {
 // GetPubkey returns the public key of the validator in the deposit.
 func (d *Deposit) GetPubkey() []byte {
 	return d.GetData().GetPubkey()
+}
+
+// NewDeposit creates a new deposit.
+func NewDeposit(pubkey []byte, amount *big.Int, withdrawalCredentials []byte) *Deposit {
+	depositData := &consensusv1.Deposit_Data{
+		Pubkey:                pubkey,
+		Amount:                amount.Uint64(),
+		WithdrawalCredentials: withdrawalCredentials,
+	}
+	return &Deposit{&consensusv1.Deposit{Data: depositData}}
 }
 
 type DepositValue struct{}
@@ -90,4 +103,21 @@ func (s *BeaconStore) NextDeposit() (*Deposit, error) {
 func (s *BeaconStore) ProcessDeposit(deposit *Deposit) error {
 	_, err := s.stakingKeeper.Delegate(s.sdkCtx, deposit)
 	return err
+}
+
+// SetStakingNonce sets the staking nonce.
+func (s *BeaconStore) SetStakingNonce(nonce uint64) {
+	uint64Size := 8
+	bz := make([]byte, uint64Size)
+	binary.LittleEndian.PutUint64(bz, nonce)
+	s.Set([]byte(stakingNonceKey), bz)
+}
+
+// GetStakingNonce returns the staking nonce.
+func (s *BeaconStore) GetStakingNonce() uint64 {
+	bz := s.Get([]byte(stakingNonceKey))
+	if bz == nil {
+		return 0
+	}
+	return binary.LittleEndian.Uint64(bz)
 }

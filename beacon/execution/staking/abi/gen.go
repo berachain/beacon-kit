@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,24 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package abi
 
-// Genesis Related Keys.
-const (
-	// eth1GenesisHashKey is the key used to store the eth1 genesis hash.
-	eth1GenesisHashKey = "eth1_genesis_hash"
-)
-
-// Forkchoice Related Keys.
-const (
-	// forkchoiceSafeKey is the key used to store the safe block hash.
-	forkchoiceSafeKey = "fc_safe"
-	// forkchoiceFinalizedKey is the key used to store the finalized block hash.
-	forkchoiceFinalizedKey = "fc_finalized"
-)
-
-// State Related Keys.
-const (
-	// stateRootKey is the key used to store the next nonce of staking events.
-	stakingNonceKey = "staking_nonce"
-)
+//go:generate abigen --pkg abi --abi ../../../../contracts/out/Staking.sol/Staking.abi.json --bin ../../../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking

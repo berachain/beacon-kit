@@ -26,43 +26,60 @@
 pragma solidity 0.8.24;
 
 /**
- * @dev Interface of the staking module's precompiled contract
+ * @dev Interface of the staking contract.
  */
 contract Staking {
+    //////////////////////////////////////// VARIABLES
+    // /////////////////////////////////////////////
+    uint256 nonce;
+
     ////////////////////////////////////////// EVENTS /////////////////////////////////////////////
+    /**
+     * @dev Emitted by the staking contract when `amount` tokens
+     * are delegated to `validatorPubkey`.
+     * @param validatorPubkey The validator's public key.
+     * @param withdrawalCredentials The withdrawal credentials of the validator.
+     * @param amount The amount of tokens delegated.
+     * @param nonce The nonce of the delegation.
+     */
+    event Delegate(
+        bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount, uint256 nonce
+    );
 
     /**
-     * @dev Emitted by the staking module when `amount` tokens are delegated to
-     * `operatorAddress`
-     * @param operatorAddress The validator operator address
-     * @param amount The amount of tokens delegated
+     * @dev Emitted by the staking contract when `amount` tokens are unbonded from
+     * `validatorPubkey`.
+     * @param validatorPubkey The validator's public key.
+     * @param amount The amount of tokens unbonded.
+     * @param nonce The nonce of the undelegation.
      */
-    event Delegate(string operatorAddress, uint256 amount);
-
-    /**
-     * @dev Emitted by the staking module when `amount` tokens are unbonded from `validator`
-     * @param operatorAddress The validator operator address
-     * @param amount The amount of tokens unbonded
-     */
-    event Undelegate(string operatorAddress, uint256 amount);
+    event Undelegate(bytes validatorPubkey, uint256 amount, uint256 nonce);
 
     ////////////////////////////////////// WRITE METHODS //////////////////////////////////////////
 
     /**
-     * @dev msg.sender delegates the `amount` of tokens to `operatorAddress`
-     * @param operatorAddress The validator operator address
-     * @param amount The amount of tokens to delegate
+     * @dev msg.sender delegates the `amount` of tokens to `validatorPubkey`.
+     * @param validatorPubkey The validator's public key.
+     * @param amount The amount of tokens to delegate.
      */
-    function delegateFn(string calldata operatorAddress, uint256 amount) external {
-        emit Delegate(operatorAddress, amount);
+    function delegateFn(
+        bytes calldata validatorPubkey,
+        bytes calldata withdrawalCredentials,
+        uint256 amount
+    )
+        external
+    {
+        emit Delegate(validatorPubkey, withdrawalCredentials, amount, nonce);
+        nonce++;
     }
 
     /**
-     * @dev msg.sender undelegates the `amount` of tokens from `operatorAddress`
-     * @param operatorAddress The validator operator address
-     * @param amount The amount of tokens to undelegate
+     * @dev msg.sender undelegates the `amount` of tokens from `validatorPubkey`.
+     * @param validatorPubkey The validator's public key.
+     * @param amount The amount of tokens to undelegate.
      */
-    function undelegateFn(string calldata operatorAddress, uint256 amount) external {
-        emit Undelegate(operatorAddress, amount);
+    function undelegateFn(bytes calldata validatorPubkey, uint256 amount) external {
+        emit Undelegate(validatorPubkey, amount, nonce);
+        nonce++;
     }
 }

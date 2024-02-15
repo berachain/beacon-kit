@@ -52,8 +52,7 @@ type BeaconState interface {
 type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
-	ReadOnlyWithdrawals
-	ReadOnlyDeposits
+	ReadOnlyStaking
 	Slot() primitives.Slot
 	Time() uint64
 	Version() int
@@ -84,7 +83,7 @@ type WriteOnlyRandao interface {
 type WriteOnlyBeaconState interface {
 	WriteOnlyForkChoice
 	WriteOnlyGenesis
-	WriteOnlyDeposits
+	WriteOnlyStaking
 }
 
 // Write Only Fork Choice.
@@ -101,20 +100,18 @@ type ReadOnlyForkChoice interface {
 	GetFinalizedEth1BlockHash() common.Hash
 }
 
-// ReadOnlyWithdrawals defines a struct which only has read access to withdrawal methods.
-type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
-}
-
-// WriteOnlyDeposits defines a struct which only has write access to deposit methods.
-type WriteOnlyDeposits interface {
+// WriteOnlyStaking defines a struct which only has write access to staking methods.
+type WriteOnlyStaking interface {
 	AddDeposit(deposit *store.Deposit) error
 	ProcessDeposit(deposit *store.Deposit) error
+	SetStakingNonce(nonce uint64)
 }
 
-// ReadOnlyDeposits defines a struct which has read access to deposit methods.
-type ReadOnlyDeposits interface {
+// ReadOnlyStaking defines a struct which has read access to staking methods.
+type ReadOnlyStaking interface {
 	NextDeposit() (*store.Deposit, error)
+	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
+	GetStakingNonce() uint64
 }
 
 type ReadOnlyGenesis interface {

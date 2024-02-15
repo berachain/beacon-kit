@@ -38,7 +38,6 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )
 
@@ -46,14 +45,14 @@ import (
 type Processor struct {
 	logger     log.Logger
 	eth1Client *eth.Eth1Client
-	handlers   map[common.Address]callback.LogHandler
+	handlers   map[common.Address]LogHandler
 }
 
 // NewProcessor creates a new instance of Processor with the provided options.
 // It applies each option to the Processor and returns an error if any of the options fail.
 func NewProcessor(opts ...Option) (*Processor, error) {
 	s := &Processor{
-		handlers: make(map[common.Address]callback.LogHandler),
+		handlers: make(map[common.Address]LogHandler),
 	}
 	for _, opt := range opts {
 		if err := opt(s); err != nil {

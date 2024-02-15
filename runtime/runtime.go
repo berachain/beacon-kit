@@ -37,7 +37,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	"github.com/itsdevbear/bolaris/beacon/execution/staking/deposits"
+	"github.com/itsdevbear/bolaris/beacon/execution/staking"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/cache"
@@ -137,8 +137,19 @@ func NewDefaultBeaconKitRuntime(
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the log processor.
-	handlers := make(map[common.Address]callback.LogHandler)
-	handlers[cfg.Engine.DepositContractAddress] = &deposits.DepositHandler{}
+	handlers := make(map[common.Address]logs.LogHandler)
+	stakingHandler, err := staking.NewHandler(
+		baseService.WithName("staking"),
+		staking.WithLogger(logger),
+	)
+	if err != nil {
+		return nil, err
+	}
+	callbackHandler, err := callback.NewFrom(stakingHandler)
+	if err != nil {
+		return nil, err
+	}
+	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
 	logProcessor, err := logs.NewProcessor(
 		logs.WithEthClient(eth1Client),
 		logs.WithLogger(logger),

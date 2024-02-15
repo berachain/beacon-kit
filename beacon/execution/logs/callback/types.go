@@ -24,15 +24,3 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package callback
-
-import (
-	"context"
-
-	coretypes "github.com/ethereum/go-ethereum/core/types"
-)
-
-// LogHandler represents a struct that has the ability to ingest
-// an ethereum log and handle it.
-type LogHandler interface {
-	HandleLog(ctx context.Context, log *coretypes.Log) error
-}

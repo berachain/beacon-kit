@@ -29,13 +29,12 @@ import (
 	"context"
 
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 )
 
 type DepositHandler struct{}
 
-var _ callback.LogHandler = &DepositHandler{}
+var _ logs.LogHandler = &DepositHandler{}
 
 // HandleLog processes the logs from the Eth1 deposit contract.
 func (h *DepositHandler) HandleLog(_ context.Context, _ *coretypes.Log) error {

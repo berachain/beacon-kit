@@ -23,24 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package staking
 
-// Genesis Related Keys.
-const (
-	// eth1GenesisHashKey is the key used to store the eth1 genesis hash.
-	eth1GenesisHashKey = "eth1_genesis_hash"
+import (
+	"cosmossdk.io/log"
 )
 
-// Forkchoice Related Keys.
-const (
-	// forkchoiceSafeKey is the key used to store the safe block hash.
-	forkchoiceSafeKey = "fc_safe"
-	// forkchoiceFinalizedKey is the key used to store the finalized block hash.
-	forkchoiceFinalizedKey = "fc_finalized"
-)
+// Option is a function type that takes a pointer to an StakingHandler and returns an error.
+type Option func(*Handler) error
 
-// State Related Keys.
-const (
-	// stateRootKey is the key used to store the next nonce of staking events.
-	stakingNonceKey = "staking_nonce"
-)
+// WithLogger is an Option that sets the logger for the StakingHandler.
+func WithLogger(logger log.Logger) Option {
+	return func(h *Handler) error {
+		h.logger = logger.With("staking", "log-handler")
+		return nil
+	}
+}
