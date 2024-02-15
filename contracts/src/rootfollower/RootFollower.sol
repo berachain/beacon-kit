@@ -40,10 +40,12 @@ abstract contract RootFollower is IRootFollower, Ownable {
 
     /// @inheritdoc IRootFollower
     function getNextActionableBlock() public view returns (uint256 blockNum) {
-        return FixedPointMathLib.max(
-            _LAST_PROCESSED_BLOCK + 1,
-            FixedPointMathLib.zeroFloorSub(block.number, HISTORY_BUFFER_LENGTH)
-        );
+        unchecked {
+            return FixedPointMathLib.max(
+                _LAST_PROCESSED_BLOCK + 1,
+                FixedPointMathLib.zeroFloorSub(block.number, HISTORY_BUFFER_LENGTH)
+            );
+        }
     }
 
     /// @inheritdoc IRootFollower
@@ -52,7 +54,7 @@ abstract contract RootFollower is IRootFollower, Ownable {
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                     UPDATE FUNCTIONS                       */
+    /*                     ADMIN FUNCTIONS                        */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IRootFollower
@@ -79,7 +81,11 @@ abstract contract RootFollower is IRootFollower, Ownable {
         assembly ("memory-safe") {
             mstore(0, GET_COINBASE_SELECTOR)
             mstore(0x04, _block)
-            if iszero(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20)) { revert(0, 0) }
+            if iszero(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20)) {
+                // The signature for "BlockNotInBuffer()"
+                mstore(0, 0x68c0ab1c)
+                revert(0, 0x04)
+            }
             _coinbase := mload(0)
         }
     }
@@ -90,12 +96,17 @@ abstract contract RootFollower is IRootFollower, Ownable {
      * Emits `AdvancedBlock` event after incrementing.
      */
     function _incrementBlock() internal {
+        uint256 processingBlock;
+        unchecked {
+            processingBlock = _LAST_PROCESSED_BLOCK + 1;
+        }
         // Check if next block is actionable, revert if not.
-        if ((_LAST_PROCESSED_BLOCK + 1) != getNextActionableBlock()) {
+        if (processingBlock != getNextActionableBlock()) {
             revert Errors.AttemptedToIncrementOutOfBuffer();
         }
         // Increment and emit event.
-        emit AdvancedBlock(++_LAST_PROCESSED_BLOCK);
+        _LAST_PROCESSED_BLOCK = processingBlock;
+        emit AdvancedBlock(processingBlock);
     }
 
     /**
@@ -109,7 +120,7 @@ abstract contract RootFollower is IRootFollower, Ownable {
         }
         // Reverts if the block number is before the next actionable block.
         if (_block < getNextActionableBlock()) {
-            revert Errors.BlockNotInBuffer(_block);
+            revert Errors.BlockNotInBuffer();
         }
 
         // Emit an event to capture a block count reset.

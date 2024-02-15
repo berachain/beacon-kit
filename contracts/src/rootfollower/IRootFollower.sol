@@ -25,7 +25,10 @@ interface IRootFollower {
      * @dev Gets the address of the coinbase for the given block number. The size of
      * the BeaconRootsContract stores the coinbase for the last 256 blocks. Querying
      * a block number greater than the last 256 blocks will return an error. This also
-     * implies that actions must be invoked within 256 blocks of being proposed.
+     * implies that actions should be invoked within 256 blocks of being proposed.
+     * Otherwise any intended actions that were supposed to occur will be missed as the
+     * coinbase for the given block will no longer be available from the beacon root
+     * contract.
      * @param blockNum The address performing the mint.
      * @return coinbase The address of the coinbase for the given block number.
      */
@@ -47,12 +50,16 @@ interface IRootFollower {
 
     /**
      * @dev Increments the block number to the next block.
+     * This action should be permissioned to prevent unauthorized actors from
+     * modifying the block number inappropriately.
      */
     function incrementBlock() external;
 
     /**
      * @dev Resets the block number to _block, used when out of the beacon root buffer.
      * @param _block The block number to reset to.
+     * This action should be permissioned to prevent unauthorized actors from
+     * modifying the block number inappropriately.
      */
     function resetCount(uint256 _block) external;
 }

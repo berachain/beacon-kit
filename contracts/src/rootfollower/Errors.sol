@@ -10,7 +10,7 @@ library Errors {
     /// @dev Unauthorized caller
     error Unauthorized(address);
     /// @dev The queried block is not in the buffer range
-    error BlockNotInBuffer(uint256);
+    error BlockNotInBuffer();
     /// @dev Increment was called with a block number no longer in the buffer range
     error AttemptedToIncrementOutOfBuffer();
     /// @dev The block number does not exist yet
