@@ -101,6 +101,8 @@ func HashElements[H Hashable](input []H) ([][32]byte, error) {
 			}
 		},
 	)
+
+	// Return the list of roots and any error encountered.
 	return roots, err
 }
 
