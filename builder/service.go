@@ -34,6 +34,7 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -114,7 +115,7 @@ func (s *Service) RequestBestBlock(
 			if resp.err != nil || resp.response == nil {
 				continue
 			}
-			out = append(out, resp.response.GetBlock())
+			out = append(out, consensusv1.BlockFromContainer(resp.response.GetBlockContainer()))
 		}
 
 		// If no builders returned a block, return an error

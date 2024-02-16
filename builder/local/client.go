@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/builder/types"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"google.golang.org/grpc"
 )
 
@@ -62,7 +62,7 @@ func (c *Client) RequestBestBlock(
 
 	// Return the response.
 	return &types.RequestBestBlockResponse{
-		Override: shouldOverride,
-		Block:    beaconBlock.(*(capella.BeaconKitBlockCapella)),
+		Override:       shouldOverride,
+		BlockContainer: consensusv1.BlockContainerFromBlock(beaconBlock),
 	}, nil
 }

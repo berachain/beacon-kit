@@ -28,7 +28,7 @@ syntax = "proto3";
 package builder.v1alpha1;
 
 import "ethereum/eth/ext/options.proto";
-import "types/consensus/v1/capella/block.proto";
+import "types/consensus/v1/container.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/builder/types";
 
@@ -53,6 +53,7 @@ message RequestBestBlockResponse {
   // this field should only be taken into account if the block builder is
   // a TRUSTED party.
   bool override = 1;
-  // block is the best available block from the builder.
-  types.consensus.v1.capella.BeaconKitBlockCapella block = 2;
+
+  // block_container is the block requested.
+  types.consensus.v1.BeaconKitBlockContainer block_container = 2;
 }

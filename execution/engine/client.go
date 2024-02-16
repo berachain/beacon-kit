@@ -100,7 +100,7 @@ func (s *engineClient) callNewPayloadRPC(
 	case *enginev1.ExecutionPayloadDeneb:
 		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
 	default:
-		return nil, errors.New("invalid payload type for RPC call")
+		return nil, ErrInvalidExecutionPayloadType
 	}
 }
 
@@ -127,13 +127,17 @@ func (s *engineClient) ForkchoiceUpdated(
 func (s *engineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
+	if attrs == nil {
+		return nil, ErrNilAttributesPassedToClient
+	}
+
 	switch v := attrs.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
 	case *enginev1.PayloadAttributesV2:
 		return s.ForkchoiceUpdatedV2(ctx, state, v)
 	default:
-		return nil, errors.New("invalid payload attribute version")
+		return nil, ErrInvalidAttributesVersionPassedToClient
 	}
 }
 
@@ -151,7 +155,7 @@ func (s *engineClient) GetPayload(
 	case version.Capella:
 		return s.getPayloadCapella(ctx, payloadID)
 	default:
-		return nil, nil, false, errors.New("unknown fork version")
+		return nil, nil, false, ErrUnknownForkVersion
 	}
 }
 

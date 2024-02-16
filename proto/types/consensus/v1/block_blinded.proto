@@ -24,13 +24,13 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package types.consensus.v1.capella;
+package types.consensus.v1;
 
 import "ethereum/engine/v1/execution_engine.proto";
 import "ethereum/eth/ext/options.proto";
 import "types/consensus/v1/deposit.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1/capella";
+option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
 
 // BlindedBeaconKitBlockCapella represents a blinded beacon block.
 message BlindedBeaconKitBlockCapella {
