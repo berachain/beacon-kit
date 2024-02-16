@@ -227,7 +227,7 @@ func (app *BeaconApp) SimulationManager() *module.SimulationManager {
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
-	ctx := apiSvr.ClientCtx.CmdContext
+	ctx := cosmos.NewEmptyContextWithMS(apiSvr.ClientCtx.CmdContext, app.CommitMultiStore())
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(
