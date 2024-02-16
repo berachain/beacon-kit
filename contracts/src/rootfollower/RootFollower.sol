@@ -16,6 +16,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
     uint256 private constant HISTORY_BUFFER_LENGTH = 256;
     /// @dev The selector for "getCoinbase(uint256)"
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
+    /// @dev The selector for "BytesNotInBuffer()"
+    bytes4 private constant BYTES_NOT_IN_BUFFER_SELECTOR = 0x68c0ab1c;
     /// @dev The beacon roots contract address.
     address private constant BEACON_ROOT_ADDRESS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
@@ -23,6 +25,7 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*                          STORAGE                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /// @dev The last block number that was processed.
     uint256 private _LAST_PROCESSED_BLOCK;
 
     constructor() {
@@ -82,8 +85,7 @@ abstract contract RootFollower is IRootFollower, Ownable {
             mstore(0, GET_COINBASE_SELECTOR)
             mstore(0x04, _block)
             if iszero(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20)) {
-                // The signature for "BlockNotInBuffer()"
-                mstore(0, 0x68c0ab1c)
+                mstore(0, BYTES_NOT_IN_BUFFER_SELECTOR)
                 revert(0, 0x04)
             }
             _coinbase := mload(0)
