@@ -122,11 +122,6 @@ func (h *Handler) ProcessProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
-	// TODO: Make this more sophisticated.
-	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status != initialsync.StatusSynced {
-		return nil, fmt.Errorf("err: %w, status: %d", ErrClientNotSynced, bsp.Status)
-	}
-
 	// Extract the beacon block from the ABCI request.
 	//
 	// TODO: I don't love how we have to use the BeaconConfig here.
