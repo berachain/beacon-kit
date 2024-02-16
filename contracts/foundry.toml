@@ -1,26 +1,25 @@
 # Full reference https://github.com/foundry-rs/foundry/tree/master/crates/config
 [profile.default]
-  auto_detect_solc = false
-  solc_version = '0.8.24'
-  evm_version = "shanghai"
-  fuzz = { runs = 1024 }
-  gas_reports = ["*"]
-  cache=true
-  optimizer = true
-  optimizer_runs = 4294967295
-  via_ir = false
-  out = "out"
-  script = "script"
-  solc = "0.8.24"
-  src = "src"
-  test = "test"
-  remappings = [
+auto_detect_solc = false
+solc = "0.8.24"
+evm_version = "shanghai"
+fuzz = { runs = 1024 }
+gas_reports = ["*"]
+cache = true
+optimizer = true
+optimizer_runs = 4294967295
+via_ir = false
+out = "out"
+script = "script"
+src = "src"
+test = "test"
+remappings = [
     '@forge-std/=lib/forge-std/src/',
     '@solady/=lib/solady/src/',
     '@interfaces/=interfaces/',
     '@src/=src/',
-  ]
-  verbosity = 3
+]
+verbosity = 3
 
 [profile.fuzz]
 fuzz = { runs = 8192 }
@@ -30,14 +29,14 @@ verbosity = 3
 fuzz = { runs = 256 }
 
 [fmt]
-  bracket_spacing = true
-  int_types = "long"
-  line_length = 99
-  multiline_func_header = "all"
-  number_underscore = "thousands"
-  quote_style = "double"
-  tab_width = 4
-  wrap_comments = true
+bracket_spacing = true
+int_types = "long"
+line_length = 99
+multiline_func_header = "all"
+number_underscore = "thousands"
+quote_style = "double"
+tab_width = 4
+wrap_comments = true
 
 [rpc_endpoints]
-  localhost = "http://localhost:8545"
+localhost = "http://localhost:8545"
