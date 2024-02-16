@@ -138,22 +138,37 @@ contract BeaconRootsContractTest is SoladyTest {
         assertEq(bytes32(data), beaconRoot, "get: invalid beacon root");
     }
 
+    /// @dev Should fail if the calldata length is invalid.
     function test_InvalidCalldataLength() public {
         bytes memory data = abi.encode(block.timestamp);
         (bool success,) = address(beaconRootsContract).call(bytes.concat(data, data));
         assertFalse(success, "get: found invalid calldata length");
     }
 
+    /// @dev Should fail if the timestamp is out of range.
     function test_GetOutOfRangeTimestamp() public {
         (bool success,) = callGet(TIMESTAMP - 1);
         assertFalse(success, "get: found out of range timestamp");
     }
 
+    /// @dev Should fail if the timestamp is not in the circular buffer.
     function testFuzz_GetInvalidTimestamp(uint256 timestamp) public {
         timestamp =
             _bound(timestamp, _timestamps[0] + 1, _timestamps[HISTORY_BUFFER_LENGTH - 1] - 1);
-        for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
-            vm.assume(timestamp != _timestamps[i]);
+        bool loop = true;
+        // find a timestamp that is not in the circular buffer
+        while (loop) {
+            loop = false;
+            for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
+                if (timestamp == _timestamps[i]) {
+                    // if the timestamp is found in the circular buffer, try another one
+                    loop = true;
+                    timestamp = _bound(
+                        _random(), _timestamps[0] + 1, _timestamps[HISTORY_BUFFER_LENGTH - 1] - 1
+                    );
+                    break;
+                }
+            }
         }
         (bool success,) = callGet(timestamp);
         assertFalse(success, "get: found invalid timestamp");
