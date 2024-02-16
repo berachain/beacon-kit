@@ -75,10 +75,33 @@ mockery:
 #    beacond     #
 #################
 
-# TODO: add start-erigon
-
 JWT_PATH = ${TESTAPP_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
+
+# Start erigon
+start-erigon:
+	rm -rf .tmp/erigon
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	thorax/erigon:latest init \
+	--datadir .tmp/erigon \
+	${ETH_GENESIS_PATH}
+
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	thorax/erigon:latest \
+	--datadir .tmp/erigon \
+	--networkid 7 \
+	--snapshots=false \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH)
 
 # Start beacond
 start:
