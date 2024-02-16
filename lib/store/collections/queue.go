@@ -118,12 +118,7 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 
 	var err error
 
-	prefix := q.container.GetPrefix()
 	headIdx, err := q.headSeq.Peek(ctx)
-	if err != nil {
-		return nil, err
-	}
-	startKey, err := sdk.EncodeKeyWithPrefix(prefix, sdk.Uint64Key, headIdx)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +126,12 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	if err != nil {
 		return nil, err
 	}
+	startKey, err := sdk.EncodeKeyWithPrefix(nil, sdk.Uint64Key, headIdx)
+	if err != nil {
+		return nil, err
+	}
 	endKey, err := sdk.EncodeKeyWithPrefix(
-		prefix,
+		nil,
 		sdk.Uint64Key,
 		min(tailIdx, headIdx+n))
 	if err != nil {
@@ -146,7 +145,6 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Close()
 
 	return iter.Values()
 }
