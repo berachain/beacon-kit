@@ -27,12 +27,17 @@ package builder
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	types "github.com/itsdevbear/bolaris/builder/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/sourcegraph/conc/iter"
 )
+
+const DefaultBuilderTimeout = 2 * time.Second
 
 type Service struct {
 	service.BaseService
@@ -68,14 +73,69 @@ func (s *Service) RequestBestBlock(
 	// to determine the parent.
 	/*eth1Parent common.Hash, */
 ) (interfaces.ReadOnlyBeaconKitBlock, error) {
-	resp, err := s.builders.GetBuilder(types.DefaultLocalBuilderName).RequestBestBlock(
-		ctx, &types.RequestBestBlockRequest{
-			Slot: slot,
-		},
-	)
+	// Process all builders, both local and remote
+	localBuilders := s.builders.LocalBuilders()
+	// TODO: handle remote builders.
+	// remoteBuilders := s.builders.RemoteBuilders()
+
+	type concResponse struct {
+		builderName string
+		response    *types.RequestBestBlockResponse
+		err         error
+	}
+
+	processBuilders := func(
+		builders []*types.BuilderEntry,
+	) ([]interfaces.ReadOnlyBeaconKitBlock, error) {
+		resps := iter.Map[*types.BuilderEntry, *concResponse](
+			builders,
+			func(b **types.BuilderEntry) *concResponse {
+				builder := *b
+				dctx, cancel := context.WithTimeout(ctx, DefaultBuilderTimeout)
+				defer cancel()
+				resp, err := builder.BuilderServiceClient.RequestBestBlock(
+					dctx, &types.RequestBestBlockRequest{
+						Slot: slot,
+					})
+				if err != nil {
+					s.Logger().Warn("Failed to request block from builder", "builder", builder.Name, "error", err)
+				}
+				return &concResponse{
+					builderName: builder.Name,
+					response:    resp,
+					err:         err,
+				}
+			},
+		)
+
+		// Filter out any blocks with bad errors.
+		var out []interfaces.ReadOnlyBeaconKitBlock
+		for _, resp := range resps {
+			if resp.err != nil || resp.response == nil {
+				continue
+			}
+			out = append(out, resp.response.GetBlock())
+		}
+
+		// If no builders returned a block, return an error
+		if len(out) == 0 {
+			return nil, errors.New("all builders failed to return a block")
+		}
+
+		// Return the first block for now
+		// TODO: actually sort thru and create an algorithmn to choose the best block.
+		return out, nil
+	}
+
+	blocks, err := processBuilders(localBuilders)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.GetBlock(), nil
+	// TOOD: Process remote builders
+	// processBuilders(remoteBuilders)
+
+	// Return the first block for now
+	// TODO: actually sort thru and create an algo to choose the best block.
+	return blocks[0], nil
 }

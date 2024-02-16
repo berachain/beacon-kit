@@ -30,19 +30,21 @@ const DefaultLocalBuilderName = "default-local-builder"
 
 // BuilderEntry holds the BuilderServiceClient and a boolean indicating if it's local.
 type BuilderEntry struct {
+	Name string
 	BuilderServiceClient
 	IsLocal bool
 }
 
 // BuilderRegistry holds a map of builder names to their corresponding BuilderEntry.
 type BuilderRegistry struct {
-	builders map[string]BuilderEntry
+	localBuilders  map[string]*BuilderEntry
+	remoteBuilders map[string]*BuilderEntry
 }
 
 // NewBuilderRegistry creates a new BuilderRegistry with an empty map of builders.
 func NewBuilderRegistry() *BuilderRegistry {
 	return &BuilderRegistry{
-		builders: make(map[string]BuilderEntry),
+		localBuilders: make(map[string]*BuilderEntry),
 	}
 }
 
@@ -50,13 +52,40 @@ func NewBuilderRegistry() *BuilderRegistry {
 func (br *BuilderRegistry) RegisterBuilder(
 	name string, client BuilderServiceClient, isLocal bool,
 ) {
-	br.builders[name] = BuilderEntry{
+	var m map[string]*BuilderEntry
+	if isLocal {
+		m = br.localBuilders
+	} else {
+		m = br.remoteBuilders
+	}
+	m[name] = &BuilderEntry{
+		Name:                 name,
 		BuilderServiceClient: client,
-		IsLocal:              isLocal,
 	}
 }
 
 // GetBuilder returns the corresponding BuilderEntry for a given name.
-func (br *BuilderRegistry) GetBuilder(name string) BuilderEntry {
-	return br.builders[name]
+func (br *BuilderRegistry) GetBuilder(name string) *BuilderEntry {
+	if builder, ok := br.localBuilders[name]; ok {
+		return builder
+	}
+	return br.remoteBuilders[name]
+}
+
+// LocalBuildersList returns a list of local builders.
+func (br *BuilderRegistry) LocalBuilders() []*BuilderEntry {
+	localBuildersList := make([]*BuilderEntry, 0, len(br.localBuilders))
+	for _, builder := range br.localBuilders {
+		localBuildersList = append(localBuildersList, builder)
+	}
+	return localBuildersList
+}
+
+// RemoteBuildersList returns a list of remote builders.
+func (br *BuilderRegistry) RemoteBuilders() []*BuilderEntry {
+	remoteBuildersList := make([]*BuilderEntry, 0, len(br.remoteBuilders))
+	for _, builder := range br.remoteBuilders {
+		remoteBuildersList = append(remoteBuildersList, builder)
+	}
+	return remoteBuildersList
 }
