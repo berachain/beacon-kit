@@ -28,8 +28,8 @@ package local
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/builder/types"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"google.golang.org/grpc"
 )
 
@@ -51,18 +51,20 @@ func NewClient(local *Builder) *Client {
 // making a gRPC call.
 //
 // NOTE: The gRPC opts are ignored for obvious reasons.
-func (c *Client) RequestBestBlock(
-	ctx context.Context, in *types.RequestBestBlockRequest, _ ...grpc.CallOption,
-) (*types.RequestBestBlockResponse, error) {
+func (c *Client) GetExecutionPayload(
+	ctx context.Context, in *types.GetExecutionPayloadRequest, _ ...grpc.CallOption,
+) (*types.GetExecutionPayloadResponse, error) {
 	// Directly call the RequestBestBlock method on the local builder.
-	beaconBlock, shouldOverride, err := c.local.RequestBestBlock(ctx, in.GetSlot())
+	executionPayload, shouldOverride, err := c.local.GetExecutionPayload(
+		ctx, common.BytesToHash(in.GetParentHash()), in.GetSlot(),
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Return the response.
-	return &types.RequestBestBlockResponse{
-		Override:       shouldOverride,
-		BlockContainer: consensusv1.BlockContainerFromBlock(beaconBlock),
+	return &types.GetExecutionPayloadResponse{
+		Override:         shouldOverride,
+		PayloadContainer: executionPayload,
 	}, nil
 }

@@ -26,9 +26,6 @@
 package local
 
 import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/builder/local/key"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -38,13 +35,11 @@ import (
 // handling the execution of beacon chain operations.
 type Builder struct {
 	service.BaseService
-
-	// TODO: the builder should be decoupled from anything validator related.
-	beaconKitValKey key.BeaconKitValKey
-	en              engine.Caller
-	payloadCache    *cache.PayloadIDCache
+	en           engine.Caller
+	payloadCache *cache.PayloadIDCache
 }
 
+// NewBuilder creates a new local Builder.
 func NewBuilder(
 	base service.BaseService,
 	opts ...Option,
@@ -59,11 +54,4 @@ func NewBuilder(
 		}
 	}
 	return b
-}
-
-func (b *Builder) Start(context.Context) {
-}
-
-func (b *Builder) Status() error {
-	return nil
 }

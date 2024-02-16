@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	"github.com/pkg/errors"
@@ -43,9 +42,11 @@ import (
 
 func (b *Builder) getLocalPayload(
 	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
+	slot primitives.Slot,
+	parentEth1Hash common.Hash,
+	st state.BeaconState,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	slot := blk.GetSlot()
+	var err error
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
 	// logFields := logrus.Fields{
@@ -59,11 +60,6 @@ func (b *Builder) getLocalPayload(
 	// if !tracked {
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
-
-	parentEth1Hash, err := b.getParentEth1Hash(ctx)
-	if err != nil {
-		return nil, nil, false, err
-	}
 
 	// If we have a payload ID in the cache, we can return the payload from the cache.
 	payloadID, ok := b.payloadCache.Get(slot, parentEth1Hash)
@@ -138,18 +134,4 @@ func (b *Builder) getLocalPayload(
 
 	b.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
 	return payload, blobsBundle, overrideBuilder, nil
-}
-
-// getParentEth1Hash retrieves the parent block hash for the given slot.
-//
-//nolint:unparam // todo: review this later.
-func (b *Builder) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
-	// The first slot should be proposed with the genesis block as parent.
-	st := b.BeaconState(ctx)
-	if st.Slot() == 1 {
-		return st.GenesisEth1Hash(), nil
-	}
-
-	// We always want the parent block to be the last finalized block.
-	return st.GetFinalizedEth1BlockHash(), nil
 }

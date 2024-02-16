@@ -28,32 +28,35 @@ syntax = "proto3";
 package builder.v1alpha1;
 
 import "ethereum/eth/ext/options.proto";
-import "types/consensus/v1/container.proto";
+import "types/engine/v1/container.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/builder/types";
 
 // BuilderService is the service provided by the builder.
 service BuilderService {
   // RequestBestBlock requests the best available block from the builder.
-  rpc RequestBestBlock(RequestBestBlockRequest) returns (RequestBestBlockResponse);
+  rpc GetExecutionPayload(GetExecutionPayloadRequest) returns (GetExecutionPayloadResponse);
 }
 
-// RequestBestBlockRequest is the request to the RequestBestBlock RPC.
-message RequestBestBlockRequest {
+// RequestBuiltExecutionPayload is the request to the RequestBestBlock RPC.
+message GetExecutionPayloadRequest {
   // slot is the slot of the block to request.
   uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
 
+  // parent_hash is the hash of execution layer block the proposer will build on.
+  bytes parent_hash = 2; //[(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/engine/ExecutionHash"];
+
   // blinded is true if the block should be blinded.
-  bool blinded = 2;
+  bool blinded = 3;
 }
 
-// RequestBestBlockResponse is the response to the RequestBestBlock RPC.
-message RequestBestBlockResponse {
+// BuiltExecutionPayloadResponse is the response to the RequestBestBlock RPC.
+message GetExecutionPayloadResponse {
   // override is true if the block should override the current best block.
   // this field should only be taken into account if the block builder is
   // a TRUSTED party.
   bool override = 1;
 
   // block_container is the block requested.
-  types.consensus.v1.BeaconKitBlockContainer block_container = 2;
+  types.engine.v1.ExecutionPayloadContainer payload_container = 2;
 }

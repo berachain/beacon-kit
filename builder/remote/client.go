@@ -49,11 +49,11 @@ func NewClient(cc grpc.ClientConnInterface) *Client {
 // RequestBestBlock simulates a request to the best available block from the builder.
 // It directly invokes the RequestBestBlock method of the embedded BuilderServiceServer,
 // bypassing gRPC call options.
-func (c *Client) RequestBestBlock(
-	ctx context.Context, in *types.RequestBestBlockRequest, opts ...grpc.CallOption,
-) (*types.RequestBestBlockResponse, error) {
-	out := new(types.RequestBestBlockResponse)
-	err := c.cc.Invoke(ctx, types.BuilderService_RequestBestBlock_FullMethodName, in, out, opts...)
+func (c *Client) GetExecutionPayload(
+	ctx context.Context, in *types.GetExecutionPayloadRequest, opts ...grpc.CallOption,
+) (*types.GetExecutionPayloadResponse, error) {
+	out := new(types.GetExecutionPayloadResponse)
+	err := c.cc.Invoke(ctx, types.BuilderService_GetExecutionPayload_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

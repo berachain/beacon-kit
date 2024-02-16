@@ -30,11 +30,14 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	types "github.com/itsdevbear/bolaris/builder/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus"
+	consensusinterfaces "github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	engineinterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -69,11 +72,7 @@ func (s *Service) Status() error         { return nil }
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-	// version int,
-	// TODO: determine if we want this field, or should it be up to the builder
-	// to determine the parent.
-	/*eth1Parent common.Hash, */
-) (interfaces.ReadOnlyBeaconKitBlock, error) {
+) (consensusinterfaces.ReadOnlyBeaconKitBlock, error) {
 	// Process all builders, both local and remote
 	localBuilders := s.builders.LocalBuilders()
 	// TODO: handle remote builders.
@@ -81,22 +80,29 @@ func (s *Service) RequestBestBlock(
 
 	type concResponse struct {
 		builderName string
-		response    *types.RequestBestBlockResponse
+		response    *types.GetExecutionPayloadResponse
 		err         error
+	}
+
+	eth1ParentHash, err := s.getParentEth1Hash(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	processBuilders := func(
 		builders []*types.BuilderEntry,
-	) ([]interfaces.ReadOnlyBeaconKitBlock, error) {
+	) ([]engineinterfaces.ExecutionPayload, error) {
 		resps := iter.Map[*types.BuilderEntry, *concResponse](
 			builders,
 			func(b **types.BuilderEntry) *concResponse {
 				builder := *b
 				dctx, cancel := context.WithTimeout(ctx, DefaultBuilderTimeout)
 				defer cancel()
-				resp, err := builder.BuilderServiceClient.RequestBestBlock(
-					dctx, &types.RequestBestBlockRequest{
-						Slot: slot,
+				var resp *types.GetExecutionPayloadResponse
+				resp, err = builder.BuilderServiceClient.GetExecutionPayload(
+					dctx, &types.GetExecutionPayloadRequest{
+						ParentHash: eth1ParentHash.Bytes(),
+						Slot:       slot,
 					})
 				if err != nil {
 					s.Logger().Warn("Failed to request block from builder", "builder", builder.Name, "error", err)
@@ -110,12 +116,12 @@ func (s *Service) RequestBestBlock(
 		)
 
 		// Filter out any blocks with bad errors.
-		var out []interfaces.ReadOnlyBeaconKitBlock
+		var out []engineinterfaces.ExecutionPayload
 		for _, resp := range resps {
 			if resp.err != nil || resp.response == nil {
 				continue
 			}
-			out = append(out, consensusv1.BlockFromContainer(resp.response.GetBlockContainer()))
+			out = append(out, enginev1.PayloadFromContainer(resp.response.GetPayloadContainer()))
 		}
 
 		// If no builders returned a block, return an error
@@ -128,15 +134,39 @@ func (s *Service) RequestBestBlock(
 		return out, nil
 	}
 
-	blocks, err := processBuilders(localBuilders)
+	payloads, err := processBuilders(localBuilders)
 	if err != nil {
 		return nil, err
 	}
 
-	// TOOD: Process remote builders
-	// processBuilders(remoteBuilders)
-
 	// Return the first block for now
 	// TODO: actually sort thru and create an algo to choose the best block.
-	return blocks[0], nil
+	payload := payloads[0]
+
+	// // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
+	// _ = k.beaconKitValKey
+	// _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// Create a block from the payload
+	return consensus.BeaconKitBlockFromState(
+		s.BeaconState(ctx),
+		payload,
+	)
+}
+
+// getParentEth1Hash retrieves the parent block hash for the given slot.
+//
+//nolint:unparam // todo: review this later.
+func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
+	// The first slot should be proposed with the genesis block as parent.
+	st := s.BeaconState(ctx)
+	if st.Slot() == 1 {
+		return st.GenesisEth1Hash(), nil
+	}
+
+	// We always want the parent block to be the last finalized block.
+	return st.GetFinalizedEth1BlockHash(), nil
 }

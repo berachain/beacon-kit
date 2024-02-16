@@ -44,7 +44,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BuilderService_RequestBestBlock_FullMethodName = "/builder.v1alpha1.BuilderService/RequestBestBlock"
+	BuilderService_GetExecutionPayload_FullMethodName = "/builder.v1alpha1.BuilderService/GetExecutionPayload"
 )
 
 // BuilderServiceClient is the client API for BuilderService service.
@@ -52,7 +52,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BuilderServiceClient interface {
 	// RequestBestBlock requests the best available block from the builder.
-	RequestBestBlock(ctx context.Context, in *RequestBestBlockRequest, opts ...grpc.CallOption) (*RequestBestBlockResponse, error)
+	GetExecutionPayload(ctx context.Context, in *GetExecutionPayloadRequest, opts ...grpc.CallOption) (*GetExecutionPayloadResponse, error)
 }
 
 type builderServiceClient struct {
@@ -63,9 +63,9 @@ func NewBuilderServiceClient(cc grpc.ClientConnInterface) BuilderServiceClient {
 	return &builderServiceClient{cc}
 }
 
-func (c *builderServiceClient) RequestBestBlock(ctx context.Context, in *RequestBestBlockRequest, opts ...grpc.CallOption) (*RequestBestBlockResponse, error) {
-	out := new(RequestBestBlockResponse)
-	err := c.cc.Invoke(ctx, BuilderService_RequestBestBlock_FullMethodName, in, out, opts...)
+func (c *builderServiceClient) GetExecutionPayload(ctx context.Context, in *GetExecutionPayloadRequest, opts ...grpc.CallOption) (*GetExecutionPayloadResponse, error) {
+	out := new(GetExecutionPayloadResponse)
+	err := c.cc.Invoke(ctx, BuilderService_GetExecutionPayload_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (c *builderServiceClient) RequestBestBlock(ctx context.Context, in *Request
 // for forward compatibility
 type BuilderServiceServer interface {
 	// RequestBestBlock requests the best available block from the builder.
-	RequestBestBlock(context.Context, *RequestBestBlockRequest) (*RequestBestBlockResponse, error)
+	GetExecutionPayload(context.Context, *GetExecutionPayloadRequest) (*GetExecutionPayloadResponse, error)
 	mustEmbedUnimplementedBuilderServiceServer()
 }
 
@@ -85,8 +85,8 @@ type BuilderServiceServer interface {
 type UnimplementedBuilderServiceServer struct {
 }
 
-func (UnimplementedBuilderServiceServer) RequestBestBlock(context.Context, *RequestBestBlockRequest) (*RequestBestBlockResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RequestBestBlock not implemented")
+func (UnimplementedBuilderServiceServer) GetExecutionPayload(context.Context, *GetExecutionPayloadRequest) (*GetExecutionPayloadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetExecutionPayload not implemented")
 }
 func (UnimplementedBuilderServiceServer) mustEmbedUnimplementedBuilderServiceServer() {}
 
@@ -101,20 +101,20 @@ func RegisterBuilderServiceServer(s grpc.ServiceRegistrar, srv BuilderServiceSer
 	s.RegisterService(&BuilderService_ServiceDesc, srv)
 }
 
-func _BuilderService_RequestBestBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestBestBlockRequest)
+func _BuilderService_GetExecutionPayload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetExecutionPayloadRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BuilderServiceServer).RequestBestBlock(ctx, in)
+		return srv.(BuilderServiceServer).GetExecutionPayload(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: BuilderService_RequestBestBlock_FullMethodName,
+		FullMethod: BuilderService_GetExecutionPayload_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BuilderServiceServer).RequestBestBlock(ctx, req.(*RequestBestBlockRequest))
+		return srv.(BuilderServiceServer).GetExecutionPayload(ctx, req.(*GetExecutionPayloadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -127,8 +127,8 @@ var BuilderService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*BuilderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RequestBestBlock",
-			Handler:    _BuilderService_RequestBestBlock_Handler,
+			MethodName: "GetExecutionPayload",
+			Handler:    _BuilderService_GetExecutionPayload_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

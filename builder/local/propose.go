@@ -28,16 +28,16 @@ package local
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// RequestBestBlock builds a new beacon block.
-func (b *Builder) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot,
-) (interfaces.ReadOnlyBeaconKitBlock, bool, error) {
+// GetExecutionPayload builds a new beacon block.
+func (b *Builder) GetExecutionPayload(
+	ctx context.Context, parentEth1Hash common.Hash, slot primitives.Slot,
+) (*enginev1.ExecutionPayloadContainer, bool, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
@@ -48,23 +48,8 @@ func (b *Builder) RequestBestBlock(
 		executionData engine.ExecutionPayload
 	)
 
-	// // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
-	_ = b.beaconKitValKey
-	// _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// Create a new empty block from the current state.
-	beaconBlock, err := consensus.EmptyBeaconKitBlock(
-		slot, b.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
-	)
-	if err != nil {
-		return nil, false, err
-	}
-
 	executionData, blobsBundle, overrideBuilder, err := b.getLocalPayload(
-		ctx, beaconBlock, beaconState,
+		ctx, slot, parentEth1Hash, beaconState,
 	)
 	if err != nil {
 		return nil, false, err
@@ -73,11 +58,6 @@ func (b *Builder) RequestBestBlock(
 	// TODO: Dencun
 	_ = blobsBundle
 
-	// Assemble a new block with the payload.
-	if err = beaconBlock.AttachExecution(executionData); err != nil {
-		return nil, false, err
-	}
-
 	// Return the block.
-	return beaconBlock, overrideBuilder, err
+	return enginev1.PayloadContainerFromPayload(executionData), overrideBuilder, err
 }
