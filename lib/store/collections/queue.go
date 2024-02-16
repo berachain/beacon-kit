@@ -66,39 +66,47 @@ func NewQueue[V any](
 	}
 }
 
-// Peek returns the top element of the queue, or ErrNotFound if the queue is empty.
-func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
-	q.mu.RLock()
-	defer q.mu.RUnlock()
-
-	var v V
-	headIdx, err := q.headSeq.Peek(ctx)
-	if err != nil {
+// peek returns the top element of the queue, or ErrNotFound if the queue is empty.
+func (q *Queue[V]) peek(ctx context.Context) (V, error) {
+	var (
+		v       V
+		headIdx uint64
+		tailIdx uint64
+		err     error
+	)
+	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
 		return v, err
-	}
-	tailIdx, err := q.tailSeq.Peek(ctx)
-	if err != nil {
+	} else if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
 		return v, err
-	}
-	if headIdx >= tailIdx {
+	} else if headIdx >= tailIdx {
 		return v, sdk.ErrNotFound
 	}
 	return q.container.Get(ctx, headIdx)
 }
 
-// Pop returns the top element of the queue and removes it from the queue.
-func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
+func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
+	return q.peek(ctx)
+}
 
-	if v, err := q.Peek(ctx); err != nil {
+// Pop returns the top element of the queue and removes it from the queue.
+func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	var (
+		v       V
+		headIdx uint64
+		err     error
+	)
+	if v, err = q.peek(ctx); err != nil {
 		return v, err
-	} else if headIdx, err := q.headSeq.Next(ctx); err != nil {
-		return v, err
-	} else {
-		err = q.container.Remove(ctx, headIdx)
+	} else if headIdx, err = q.headSeq.Next(ctx); err != nil {
 		return v, err
 	}
+	err = q.container.Remove(ctx, headIdx)
+	return v, err
 }
 
 // Push adds a new element to the queue.
@@ -106,15 +114,20 @@ func (q *Queue[V]) Push(ctx context.Context, value V) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
+	var (
+		tailIdx uint64
+		err     error
+	)
+
 	// If the queue is empty, set the head sequence to 0.
-	if tailIdx, err := q.tailSeq.Peek(ctx); err != nil {
+	if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
 		return err
 	} else if err = q.container.Set(ctx, tailIdx, value); err != nil {
 		return err
 	}
 
-	// If the pop is successful, increment the tail sequence.
-	_, err := q.tailSeq.Next(ctx)
+	// If the push is successful, increment the tail sequence.
+	_, err = q.tailSeq.Next(ctx)
 	return err
 }
 
@@ -122,13 +135,14 @@ func (q *Queue[V]) Push(ctx context.Context, value V) error {
 func (q *Queue[V]) Len(ctx context.Context) (uint64, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
-
-	headIdx, err := q.headSeq.Peek(ctx)
-	if err != nil {
+	var (
+		headIdx uint64
+		tailIdx uint64
+		err     error
+	)
+	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
 		return 0, err
-	}
-	tailIdx, err := q.tailSeq.Peek(ctx)
-	if err != nil {
+	} else if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
 		return 0, err
 	}
 	return tailIdx - headIdx, nil
