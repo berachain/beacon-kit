@@ -71,7 +71,6 @@ func FuzzQueueSimple(f *testing.F) {
 		}
 
 		for i := int64(0); i < n4 && len(trackedItems) > 0; i++ {
-			// i := i // must capture loop var
 			var item int64
 			item, err = q.Pop(ctx)
 			require.NoError(t, err)
