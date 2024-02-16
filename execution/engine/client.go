@@ -111,6 +111,10 @@ func (s *engineClient) ForkchoiceUpdated(
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
+	if attrs == nil {
+		return nil, nil, errors.New("payload attributes cannot be nil")
+	}
+
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs)
 	if err != nil {
 		return nil, nil, err

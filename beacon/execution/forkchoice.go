@@ -32,6 +32,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
@@ -39,6 +40,11 @@ func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginev1.PayloadIDBytes, error) {
 	beaconState := s.BeaconState(ctx)
+
+	// Ensure we don't pass a nil attribute to the execution engine.
+	if fcuConfig.Attributes == nil {
+		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(beaconState.Version())
+	}
 
 	// Notify the execution engine of the forkchoice update.
 	payloadID, _, err := s.engine.ForkchoiceUpdated(
