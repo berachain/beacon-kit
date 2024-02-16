@@ -66,14 +66,16 @@ func NewQueue[V any](
 	}
 }
 
-// Peek returns the top element of the queue, or ErrNotFound if the queue is empty.
+// Peek wraps the peek method with a read lock.
 func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
-	return q.peek(ctx)
+	return q.UnsafePeek(ctx)
 }
 
-func (q *Queue[V]) peek(ctx context.Context) (V, error) {
+// UnsafePeek returns the top element of the queue without removing it.
+// It is unsafe to call this method without acquiring the read lock.
+func (q *Queue[V]) UnsafePeek(ctx context.Context) (V, error) {
 	var (
 		v                V
 		headIdx, tailIdx uint64
@@ -100,7 +102,7 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 		err     error
 	)
 
-	if v, err = q.peek(ctx); err != nil {
+	if v, err = q.UnsafePeek(ctx); err != nil {
 		return v, err
 	} else if headIdx, err = q.headSeq.Next(ctx); err != nil {
 		return v, err
