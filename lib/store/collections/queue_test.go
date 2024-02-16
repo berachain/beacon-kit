@@ -148,6 +148,10 @@ func Test_PopMulti(t *testing.T) {
 		mlen, err = mapLen[uint64](ctx, q.Container())
 		require.NoError(t, err)
 		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		items, err = q.PopMulti(ctx, 3)
+		require.NoError(t, err)
+		require.Empty(t, items)
 	})
 }
 

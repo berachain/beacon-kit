@@ -146,11 +146,16 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		// Clear the range (in batch) after the iteration is done.
-		q.container.Clear(ctx, new(sdk.Range[uint64]).StartInclusive(headIdx).EndExclusive(endIdx))
-		q.headSeq.Set(ctx, endIdx)
-	}()
+
+	// Clear the range (in batch) after the iteration is done.
+	err = q.container.Clear(ctx, new(sdk.Range[uint64]).StartInclusive(headIdx).EndExclusive(endIdx))
+	if err != nil {
+		return nil, err
+	}
+	err = q.headSeq.Set(ctx, endIdx)
+	if err != nil {
+		return nil, err
+	}
 
 	return iter.Values()
 }
@@ -195,6 +200,7 @@ func (q *Queue[V]) Len(ctx context.Context) (uint64, error) {
 	return tailIdx - headIdx, nil
 }
 
+// Container returns the underlying map container of the queue.
 func (q *Queue[V]) Container() sdk.Map[uint64, V] {
 	return q.container
 }
