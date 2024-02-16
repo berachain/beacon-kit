@@ -30,13 +30,15 @@ import (
 	"sync"
 
 	sdk "cosmossdk.io/collections"
-	"cosmossdk.io/collections/codec"
+	sdkcodec "cosmossdk.io/collections/codec"
 )
+
+type idxType = uint64
 
 // Queue is a simple queue implementation that uses a map and two sequences.
 type Queue[V any] struct {
 	// container is a map that holds the queue elements.
-	container sdk.Map[uint64, V]
+	container sdk.Map[idxType, V]
 	// headSeq is a sequence that points to the head of the queue.
 	headSeq sdk.Sequence // inclusive
 	// tailSeq is a sequence that points to the tail of the queue.
@@ -48,7 +50,7 @@ type Queue[V any] struct {
 // NewQueue creates a new queue with the provided prefix and name.
 func NewQueue[V any](
 	schema *sdk.SchemaBuilder, name string,
-	valueCodec codec.ValueCodec[V],
+	valueCodec sdkcodec.ValueCodec[V],
 ) Queue[V] {
 	var (
 		queueName   = name + "_queue"
@@ -56,10 +58,10 @@ func NewQueue[V any](
 		tailSeqName = name + "_tail"
 	)
 	return Queue[V]{
-		container: sdk.NewMap[uint64, V](
+		container: sdk.NewMap[idxType, V](
 			schema,
 			sdk.NewPrefix(queueName),
-			queueName, sdk.Uint64Key, valueCodec,
+			queueName, sdkcodec.NewUint64Key[idxType](), valueCodec,
 		),
 		headSeq: sdk.NewSequence(schema, sdk.NewPrefix(headSeqName), headSeqName),
 		tailSeq: sdk.NewSequence(schema, sdk.NewPrefix(tailSeqName), tailSeqName),
@@ -70,8 +72,8 @@ func NewQueue[V any](
 func (q *Queue[V]) peek(ctx context.Context) (V, error) {
 	var (
 		v       V
-		headIdx uint64
-		tailIdx uint64
+		headIdx idxType
+		tailIdx idxType
 		err     error
 	)
 	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
@@ -97,7 +99,7 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 
 	var (
 		v       V
-		headIdx uint64
+		headIdx idxType
 		err     error
 	)
 	if v, err = q.peek(ctx); err != nil {
@@ -115,7 +117,7 @@ func (q *Queue[V]) Push(ctx context.Context, value V) error {
 	defer q.mu.Unlock()
 
 	var (
-		tailIdx uint64
+		tailIdx idxType
 		err     error
 	)
 
@@ -132,12 +134,12 @@ func (q *Queue[V]) Push(ctx context.Context, value V) error {
 }
 
 // Len returns the length of the queue.
-func (q *Queue[V]) Len(ctx context.Context) (uint64, error) {
+func (q *Queue[V]) Len(ctx context.Context) (idxType, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 	var (
-		headIdx uint64
-		tailIdx uint64
+		headIdx idxType
+		tailIdx idxType
 		err     error
 	)
 	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
