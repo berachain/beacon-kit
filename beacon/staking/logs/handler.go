@@ -80,6 +80,8 @@ func (s *Handler) Delegate(
 	amountBz []byte,
 	nonceBz []byte,
 ) error {
+	// Beacon node and the deposit contract at the execution layer
+	// must agree on the encoding of uint values, i.e. little endian.
 	amount := binary.LittleEndian.Uint64(amountBz)
 	nonce := binary.LittleEndian.Uint64(nonceBz)
 	return s.st.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
