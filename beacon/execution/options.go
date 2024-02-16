@@ -26,6 +26,7 @@
 package execution
 
 import (
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 )
@@ -44,6 +45,14 @@ func WithEngineCaller(ec engine.Caller) Option {
 func WithPayloadCache(pc *cache.PayloadIDCache) Option {
 	return func(s *Service) error {
 		s.payloadCache = pc
+		return nil
+	}
+}
+
+// WithLogProcessor is an option to set the LogProcessor for the Service.
+func WithLogProcessor(lp *logs.Processor) Option {
+	return func(s *Service) error {
+		s.logProcessor = lp
 		return nil
 	}
 }

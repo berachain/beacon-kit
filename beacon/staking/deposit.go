@@ -27,7 +27,6 @@ package staking
 
 import (
 	"context"
-	"encoding/binary"
 
 	"cosmossdk.io/errors"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
@@ -37,49 +36,34 @@ import (
 // and puts the deposit to the beacon state.
 func (s *Service) ProcessDeposit(
 	ctx context.Context,
-	args []any,
+	validatorPubkey []byte,
+	withdrawalCredentials []byte,
+	amount uint64,
+	nonce uint64,
 ) error {
-	var (
-		validatorPubkey       []byte
-		withdrawalCredentials []byte
-		amountBz              []byte
-		nonceBz               []byte
-		ok                    bool
-	)
-	if validatorPubkey, ok = args[0].([]byte); !ok {
-		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[0])
-	}
-	if withdrawalCredentials, ok = args[1].([]byte); !ok {
-		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[1])
-	}
-	if amountBz, ok = args[2].([]byte); !ok {
-		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[2])
-	}
-	if nonceBz, ok = args[3].([]byte); !ok {
-		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[3])
-	}
-
 	beaconState := s.BeaconState(ctx)
 	expectedNonce := beaconState.GetStakingNonce()
-	logNonce := binary.LittleEndian.Uint64(nonceBz)
 	// We may receive the same deposit log twice from the execution layer, just ignore it.
-	if logNonce < expectedNonce {
+	if nonce < expectedNonce {
 		return nil
 	}
 	// The deposit log does not come in order.
-	if logNonce != expectedNonce {
+	if nonce != expectedNonce {
 		return errors.Wrapf(
-			ErrInvalidNonce, "expected nonce %d, got %d", expectedNonce, logNonce,
+			ErrInvalidNonce, "expected nonce %d, got %d", expectedNonce, nonce,
 		)
 	}
-	amount := binary.LittleEndian.Uint64(amountBz)
-	deposit := store.NewDeposit(validatorPubkey, amount, withdrawalCredentials)
+	deposit := store.NewDeposit(
+		validatorPubkey,
+		amount,
+		withdrawalCredentials,
+	)
 	err := beaconState.AddDeposit(deposit)
 	if err != nil {
 		return err
 	}
 	beaconState.SetStakingNonce(expectedNonce + 1)
 	s.Logger().Info("delegating from execution layer",
-		"validatorPubkey", validatorPubkey, "amount", amountBz, "nonce", nonceBz)
+		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
 	return nil
 }

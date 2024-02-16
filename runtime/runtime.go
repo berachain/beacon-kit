@@ -30,10 +30,14 @@ import (
 
 	"cosmossdk.io/log"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	stakinglogs "github.com/itsdevbear/bolaris/beacon/execution/logs/staking"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/state"
@@ -136,23 +140,30 @@ func NewDefaultBeaconKitRuntime(
 	// Build the staking service.
 	stakingService := staking.New(
 		baseService.WithName("staking"),
-		staking.WithEth1Client(eth1Client),
-		staking.WithDepositContractAddress(cfg.Engine.DepositContractAddress),
 		staking.WithLogger(logger),
 	)
+
+	// Build the log processor.
+	logProcessor, err := newLogProcessor(
+		baseService, stakingService,
+		eth1Client, logger, cfg,
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the execution service.
 	executionService := execution.New(
 		baseService.WithName("execution"),
 		execution.WithEngineCaller(engineClient),
 		execution.WithPayloadCache(payloadCache),
+		execution.WithLogProcessor(logProcessor),
 	)
 
 	// Build the blockchain service
 	chainService := blockchain.New(
 		baseService.WithName("blockchain"),
 		blockchain.WithExecutionService(executionService),
-		blockchain.WithStakingService(stakingService),
 	)
 
 	// Build the sync service.
@@ -189,6 +200,35 @@ func NewDefaultBeaconKitRuntime(
 		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
 		// This is necessary for the eth1 client to be able to shut down gracefully.
 		WithEth1Client(eth1Client),
+	)
+}
+
+func newLogProcessor(
+	baseService *service.BaseService,
+	stakingService *staking.Service,
+	eth1Client *eth.Eth1Client,
+	logger log.Logger,
+	cfg *config.Config,
+) (*logs.Processor, error) {
+	// Build the log processor.
+	handlers := make(map[common.Address]logs.LogHandler)
+	stakingLogHandler, err := stakinglogs.NewHandler(
+		baseService.WithName("staking"),
+		stakinglogs.WithLogger(logger),
+		stakinglogs.WithStakingService(stakingService),
+	)
+	if err != nil {
+		return nil, err
+	}
+	callbackHandler, err := callback.NewFrom(stakingLogHandler)
+	if err != nil {
+		return nil, err
+	}
+	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
+	return logs.NewProcessor(
+		logs.WithEthClient(eth1Client),
+		logs.WithLogger(logger),
+		logs.WithHandlers(handlers),
 	)
 }
 

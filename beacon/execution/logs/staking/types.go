@@ -25,8 +25,23 @@
 
 package staking
 
-import "errors"
+import "context"
 
-var (
-	ErrInvalidNonce = errors.New("invalid staking event nonce")
-)
+// Service represents a service that can process staking-related.
+type Service interface {
+	// ProcessDeposit processes a deposit from the execution chain.
+	ProcessDeposit(
+		ctx context.Context,
+		validatorPubkey []byte,
+		withdrawalCredentials []byte,
+		amount uint64,
+		nonce uint64,
+	) error
+	// ProcessWithdrawal processes a withdrawal from the execution chain.
+	ProcessWithdrawal(
+		ctx context.Context,
+		validatorPubkey []byte,
+		amount uint64,
+		nonce uint64,
+	) error
+}

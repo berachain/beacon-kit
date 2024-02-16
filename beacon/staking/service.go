@@ -30,17 +30,13 @@ import (
 
 	"cosmossdk.io/log"
 
-	"github.com/ethereum/go-ethereum/common"
-	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Service is responsible for handling staking events.
 type Service struct {
 	service.BaseService
-	eth1Client             *eth.Eth1Client
-	depositContractAddress common.Address
-	logger                 log.Logger
+	logger log.Logger
 }
 
 func New(

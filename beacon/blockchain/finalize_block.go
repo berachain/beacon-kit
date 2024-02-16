@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 	"errors"
-	"math/big"
 
 	"cosmossdk.io/collections"
 	"github.com/ethereum/go-ethereum/common"
@@ -49,7 +48,7 @@ func (s *Service) FinalizeBeaconBlock(
 	}
 
 	// Process logs.
-	err = s.st.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(execution.GetBlockNumber()))
+	err = s.en.ProcessLogs(ctx, execution.GetBlockNumber())
 	if err != nil {
 		return err
 	}

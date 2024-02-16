@@ -35,7 +35,6 @@ import (
 type Service struct {
 	service.BaseService
 	en ExecutionService
-	st StakingService
 }
 
 // New returns a new Service.

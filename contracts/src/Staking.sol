@@ -31,7 +31,7 @@ pragma solidity 0.8.24;
 contract Staking {
     //////////////////////////////////////// VARIABLES
     // /////////////////////////////////////////////
-    uint64 nonce;
+    uint256 nonce;
 
     ////////////////////////////////////////// EVENTS /////////////////////////////////////////////
     /**
@@ -42,9 +42,7 @@ contract Staking {
      * @param amount The amount of tokens delegated.
      * @param nonce The nonce of the delegation.
      */
-    event Delegate(
-        bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount, uint64 nonce
-    );
+    event Delegate(bytes validatorPubkey, bytes withdrawalCredentials, bytes amount, bytes nonce);
 
     /**
      * @dev Emitted by the staking contract when `amount` tokens are unbonded from
@@ -53,7 +51,7 @@ contract Staking {
      * @param amount The amount of tokens unbonded.
      * @param nonce The nonce of the undelegation.
      */
-    event Undelegate(bytes validatorPubkey, uint64 amount, uint64 nonce);
+    event Undelegate(bytes validatorPubkey, bytes amount, bytes nonce);
 
     ////////////////////////////////////// WRITE METHODS //////////////////////////////////////////
 
@@ -65,11 +63,16 @@ contract Staking {
     function delegateFn(
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
-        uint64 amount
+        uint256 amount
     )
         external
     {
-        emit Delegate(validatorPubkey, withdrawalCredentials, amount, nonce);
+        emit Delegate(
+            validatorPubkey,
+            withdrawalCredentials,
+            toLittleEndian64(uint64(amount)),
+            toLittleEndian64(uint64(nonce))
+        );
         nonce++;
     }
 
@@ -79,7 +82,23 @@ contract Staking {
      * @param amount The amount of tokens to undelegate.
      */
     function undelegateFn(bytes calldata validatorPubkey, uint64 amount) external {
-        emit Undelegate(validatorPubkey, amount, nonce);
+        emit Undelegate(
+            validatorPubkey, toLittleEndian64(uint64(amount)), toLittleEndian64(uint64(nonce))
+        );
         nonce++;
+    }
+
+    function toLittleEndian64(uint64 value) internal pure returns (bytes memory ret) {
+        ret = new bytes(8);
+        bytes8 bytesValue = bytes8(value);
+        // Byteswapping during copying to bytes.
+        ret[0] = bytesValue[7];
+        ret[1] = bytesValue[6];
+        ret[2] = bytesValue[5];
+        ret[3] = bytesValue[4];
+        ret[4] = bytesValue[3];
+        ret[5] = bytesValue[2];
+        ret[6] = bytesValue[1];
+        ret[7] = bytesValue[0];
     }
 }

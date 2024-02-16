@@ -36,12 +36,3 @@ func WithExecutionService(en ExecutionService) Option {
 		return nil
 	}
 }
-
-// WithStakingService is a function that returns an Option.
-// It sets the StakingService of the Service to the provided StakingService.
-func WithStakingService(st StakingService) Option {
-	return func(s *Service) error {
-		s.st = st
-		return nil
-	}
-}

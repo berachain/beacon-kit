@@ -25,8 +25,24 @@
 
 package staking
 
-import "errors"
-
-var (
-	ErrInvalidNonce = errors.New("invalid staking event nonce")
+import (
+	"cosmossdk.io/log"
 )
+
+// Option is a function type that takes a pointer to an StakingHandler and returns an error.
+type Option func(*Handler) error
+
+// WithLogger is an Option that sets the logger for the StakingHandler.
+func WithLogger(logger log.Logger) Option {
+	return func(h *Handler) error {
+		h.logger = logger.With("staking", "log-handler")
+		return nil
+	}
+}
+
+func WithStakingService(st Service) Option {
+	return func(h *Handler) error {
+		h.Service = st
+		return nil
+	}
+}

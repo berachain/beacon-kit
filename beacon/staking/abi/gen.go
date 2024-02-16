@@ -25,4 +25,4 @@
 
 package abi
 
-//go:generate abigen --pkg abi --abi ../../../../contracts/out/Staking.sol/Staking.abi.json --bin ../../../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking
+//go:generate abigen --pkg abi --abi ../../../contracts/out/Staking.sol/Staking.abi.json --bin ../../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking

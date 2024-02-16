@@ -27,34 +27,15 @@ package staking
 
 import (
 	"context"
-	"encoding/binary"
-
-	"cosmossdk.io/errors"
 )
 
 func (s *Service) ProcessWithdrawal(
 	_ context.Context,
-	args []any,
+	validatorPubkey []byte,
+	amount uint64,
+	nonce uint64,
 ) error {
-	var (
-		validatorPubkey []byte
-		amountBz        []byte
-		nonceBz         []byte
-		ok              bool
-	)
-	if validatorPubkey, ok = args[0].([]byte); !ok {
-		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[0])
-	}
-	if amountBz, ok = args[1].([]byte); !ok {
-		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[1])
-	}
-	if nonceBz, ok = args[2].([]byte); !ok {
-		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[2])
-	}
-
-	logNonce := binary.LittleEndian.Uint64(nonceBz)
-	amount := binary.LittleEndian.Uint64(amountBz)
 	s.Logger().Info("undelegating from execution layer",
-		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", logNonce)
+		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
 	return nil
 }
