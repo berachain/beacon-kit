@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package logs
 
 import (
 	"context"
@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -42,7 +43,7 @@ var _ callback.Handler = &Handler{}
 // Handler is a struct that implements the callback Handler interface.
 type Handler struct {
 	service.BaseService
-	Service
+	st     *staking.Service
 	logger log.Logger
 }
 
@@ -81,7 +82,7 @@ func (s *Handler) Delegate(
 ) error {
 	amount := binary.LittleEndian.Uint64(amountBz)
 	nonce := binary.LittleEndian.Uint64(nonceBz)
-	return s.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
+	return s.st.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
 }
 
 // Undelegate is a callback function that is called
@@ -94,5 +95,5 @@ func (s *Handler) Undelegate(
 ) error {
 	amount := binary.LittleEndian.Uint64(amountBz)
 	nonce := binary.LittleEndian.Uint64(nonceBz)
-	return s.ProcessWithdrawal(ctx, validatorPubkey, amount, nonce)
+	return s.st.ProcessWithdrawal(ctx, validatorPubkey, amount, nonce)
 }

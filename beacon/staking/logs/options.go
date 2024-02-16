@@ -23,10 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package logs
 
 import (
 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 )
 
 // Option is a function type that takes a pointer to an StakingHandler and returns an error.
@@ -40,9 +41,9 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
-func WithStakingService(st Service) Option {
+func WithStakingService(st *staking.Service) Option {
 	return func(h *Handler) error {
-		h.Service = st
+		h.st = st
 		return nil
 	}
 }
