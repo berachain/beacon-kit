@@ -132,6 +132,11 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	if err != nil {
 		return nil, err
 	}
+	// iter.Values already closes the iterator.
+	values, err := iter.Values()
+	if err != nil {
+		return nil, err
+	}
 
 	// Clear the range (in batch) after the iteration is done.
 	err = q.container.Clear(ctx, ranger)
@@ -142,8 +147,7 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return iter.Values()
+	return values, nil
 }
 
 // Push adds a new element to the queue.
