@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,38 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package staking
 
 import (
 	"context"
+	"encoding/binary"
 
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"cosmossdk.io/errors"
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	en ExecutionService
-	st StakingService
-}
-
-// New returns a new Service.
-func New(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
+func (s *Service) ProcessWithdrawal(
+	_ context.Context,
+	args []any,
+) error {
+	var (
+		validatorPubkey []byte
+		amountBz        []byte
+		nonceBz         []byte
+		ok              bool
+	)
+	if validatorPubkey, ok = args[0].([]byte); !ok {
+		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[0])
 	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
+	if amountBz, ok = args[1].([]byte); !ok {
+		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[1])
 	}
-	return s
+	if nonceBz, ok = args[2].([]byte); !ok {
+		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[2])
+	}
+
+	logNonce := binary.LittleEndian.Uint64(nonceBz)
+	amount := binary.LittleEndian.Uint64(amountBz)
+	s.Logger().Info("undelegating from execution layer",
+		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", logNonce)
+	return nil
 }
-
-// Start spawns any goroutines required by the service.
-func (s *Service) Start(context.Context) {}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }

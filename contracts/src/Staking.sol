@@ -31,7 +31,7 @@ pragma solidity 0.8.24;
 contract Staking {
     //////////////////////////////////////// VARIABLES
     // /////////////////////////////////////////////
-    uint256 nonce;
+    uint64 nonce;
 
     ////////////////////////////////////////// EVENTS /////////////////////////////////////////////
     /**
@@ -43,7 +43,7 @@ contract Staking {
      * @param nonce The nonce of the delegation.
      */
     event Delegate(
-        bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount, uint256 nonce
+        bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount, uint64 nonce
     );
 
     /**
@@ -53,7 +53,7 @@ contract Staking {
      * @param amount The amount of tokens unbonded.
      * @param nonce The nonce of the undelegation.
      */
-    event Undelegate(bytes validatorPubkey, uint256 amount, uint256 nonce);
+    event Undelegate(bytes validatorPubkey, uint64 amount, uint64 nonce);
 
     ////////////////////////////////////// WRITE METHODS //////////////////////////////////////////
 
@@ -65,7 +65,7 @@ contract Staking {
     function delegateFn(
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
-        uint256 amount
+        uint64 amount
     )
         external
     {
@@ -78,7 +78,7 @@ contract Staking {
      * @param validatorPubkey The validator's public key.
      * @param amount The amount of tokens to undelegate.
      */
-    function undelegateFn(bytes calldata validatorPubkey, uint256 amount) external {
+    function undelegateFn(bytes calldata validatorPubkey, uint64 amount) external {
         emit Undelegate(validatorPubkey, amount, nonce);
         nonce++;
     }

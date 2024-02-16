@@ -25,6 +25,35 @@
 
 package staking
 
-import "errors"
+import (
+	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum/common"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+)
 
-var ErrInvalidNonce = errors.New("invalid staking event nonce")
+// Option is a function type that takes a pointer to an Service and returns an error.
+type Option func(*Service) error
+
+// WithLogger is an Option that sets the logger for the Service.
+func WithLogger(logger log.Logger) Option {
+	return func(s *Service) error {
+		s.logger = logger.With("staking", "log-handler")
+		return nil
+	}
+}
+
+// WithEth1Client is an Option that sets the Ethereum client for the Service.
+func WithEth1Client(eth1Client *eth.Eth1Client) Option {
+	return func(s *Service) error {
+		s.eth1Client = eth1Client
+		return nil
+	}
+}
+
+// WithDepositContractAddress is an Option that sets the deposit contract address for the Service.
+func WithDepositContractAddress(depositContractAddress common.Address) Option {
+	return func(s *Service) error {
+		s.depositContractAddress = depositContractAddress
+		return nil
+	}
+}

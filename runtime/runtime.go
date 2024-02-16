@@ -30,15 +30,12 @@ import (
 
 	"cosmossdk.io/log"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	"github.com/itsdevbear/bolaris/beacon/execution/staking"
 	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
@@ -136,29 +133,26 @@ func NewDefaultBeaconKitRuntime(
 		engine.WithLogger(logger),
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
-	// Build the log processor.
-	logProcessor, err := newLogProcessor(
-		baseService,
-		eth1Client,
-		logger,
-		cfg,
+	// Build the staking service.
+	stakingService := staking.New(
+		baseService.WithName("staking"),
+		staking.WithEth1Client(eth1Client),
+		staking.WithDepositContractAddress(cfg.Engine.DepositContractAddress),
+		staking.WithLogger(logger),
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	// Build the execution service.
 	executionService := execution.New(
 		baseService.WithName("execution"),
 		execution.WithEngineCaller(engineClient),
 		execution.WithPayloadCache(payloadCache),
-		execution.WithProcessor(logProcessor),
 	)
 
 	// Build the blockchain service
-	chainService := blockchain.NewService(
+	chainService := blockchain.New(
 		baseService.WithName("blockchain"),
 		blockchain.WithExecutionService(executionService),
+		blockchain.WithStakingService(stakingService),
 	)
 
 	// Build the sync service.
@@ -179,6 +173,7 @@ func NewDefaultBeaconKitRuntime(
 	serviceRegistry := service.NewRegistry(
 		service.WithLogger(logger),
 		service.WithService(syncService),
+		service.WithService(stakingService),
 		service.WithService(executionService),
 		service.WithService(chainService),
 		service.WithService(notificationService),
@@ -194,33 +189,6 @@ func NewDefaultBeaconKitRuntime(
 		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
 		// This is necessary for the eth1 client to be able to shut down gracefully.
 		WithEth1Client(eth1Client),
-	)
-}
-
-func newLogProcessor(
-	baseService *service.BaseService,
-	eth1Client *eth.Eth1Client,
-	logger log.Logger,
-	cfg *config.Config,
-) (*logs.Processor, error) {
-	// Build the log processor.
-	handlers := make(map[common.Address]logs.LogHandler)
-	stakingHandler, err := staking.NewHandler(
-		baseService.WithName("staking"),
-		staking.WithLogger(logger),
-	)
-	if err != nil {
-		return nil, err
-	}
-	callbackHandler, err := callback.NewFrom(stakingHandler)
-	if err != nil {
-		return nil, err
-	}
-	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
-	return logs.NewProcessor(
-		logs.WithEthClient(eth1Client),
-		logs.WithLogger(logger),
-		logs.WithHandlers(handlers),
 	)
 }
 

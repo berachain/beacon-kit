@@ -23,38 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package staking
 
-import (
-	"context"
+import "errors"
 
-	"github.com/itsdevbear/bolaris/runtime/service"
+var (
+	ErrInvalidNonce               = errors.New("invalid staking event nonce")
+	ErrProcessingUnfinalizedBlock = errors.New("cannot process unsafe block")
+	ErrInvalidArgument            = errors.New("invalid argument")
 )
-
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	en ExecutionService
-	st StakingService
-}
-
-// New returns a new Service.
-func New(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}
-
-// Start spawns any goroutines required by the service.
-func (s *Service) Start(context.Context) {}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }

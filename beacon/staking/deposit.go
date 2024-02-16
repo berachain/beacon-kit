@@ -27,69 +27,52 @@ package staking
 
 import (
 	"context"
-	"math/big"
+	"encoding/binary"
 
-	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	stakingabi "github.com/itsdevbear/bolaris/beacon/execution/staking/abi"
+	"cosmossdk.io/errors"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-var _ callback.Handler = &Handler{}
-
-// Handler is a struct that implements the callback Handler interface.
-type Handler struct {
-	service.BaseService
-	logger log.Logger
-}
-
-// ABIEvents returns the events defined in the staking contract ABI.
-func (s *Handler) ABIEvents() map[string]abi.Event {
-	x, err := stakingabi.StakingMetaData.GetAbi()
-	if err != nil {
-		panic(err)
-	}
-	return x.Events
-}
-
-func NewHandler(
-	base service.BaseService,
-	opts ...Option,
-) (*Handler, error) {
-	s := &Handler{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			return nil, err
-		}
-	}
-	return s, nil
-}
-
-// Delegate is a callback function that is called
-// when a Delegate event is emitted from the staking contract.
-func (s *Handler) Delegate(
+// ProcessDeposit processes a deposit log from the execution layer
+// and puts the deposit to the beacon state.
+func (s *Service) ProcessDeposit(
 	ctx context.Context,
-	validatorPubkey []byte,
-	withdrawalCredentials []byte,
-	amount *big.Int,
-	nonce *big.Int,
+	args []any,
 ) error {
+	var (
+		validatorPubkey       []byte
+		withdrawalCredentials []byte
+		amountBz              []byte
+		nonceBz               []byte
+		ok                    bool
+	)
+	if validatorPubkey, ok = args[0].([]byte); !ok {
+		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[0])
+	}
+	if withdrawalCredentials, ok = args[1].([]byte); !ok {
+		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[1])
+	}
+	if amountBz, ok = args[2].([]byte); !ok {
+		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[2])
+	}
+	if nonceBz, ok = args[3].([]byte); !ok {
+		return errors.Wrapf(ErrInvalidArgument, "expected []byte, got %T", args[3])
+	}
+
 	beaconState := s.BeaconState(ctx)
 	expectedNonce := beaconState.GetStakingNonce()
-	logNonce := nonce.Uint64()
+	logNonce := binary.LittleEndian.Uint64(nonceBz)
 	// We may receive the same deposit log twice from the execution layer, just ignore it.
 	if logNonce < expectedNonce {
 		return nil
 	}
 	// The deposit log does not come in order.
 	if logNonce != expectedNonce {
-		return ErrInvalidNonce
+		return errors.Wrapf(
+			ErrInvalidNonce, "expected nonce %d, got %d", expectedNonce, logNonce,
+		)
 	}
+	amount := binary.LittleEndian.Uint64(amountBz)
 	deposit := store.NewDeposit(validatorPubkey, amount, withdrawalCredentials)
 	err := beaconState.AddDeposit(deposit)
 	if err != nil {
@@ -97,17 +80,6 @@ func (s *Handler) Delegate(
 	}
 	beaconState.SetStakingNonce(expectedNonce + 1)
 	s.Logger().Info("delegating from execution layer",
-		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
-	return nil
-}
-
-func (s *Handler) Undelegate(
-	ctx context.Context,
-	validatorPubkey []byte,
-	amount *big.Int,
-	nonce *big.Int,
-) error {
-	s.Logger().Info("undelegating from execution layer",
-		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
+		"validatorPubkey", validatorPubkey, "amount", amountBz, "nonce", nonceBz)
 	return nil
 }

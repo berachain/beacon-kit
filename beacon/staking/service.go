@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,16 +26,40 @@
 package staking
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
+
+	"github.com/ethereum/go-ethereum/common"
+	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// Option is a function type that takes a pointer to an StakingHandler and returns an error.
-type Option func(*Handler) error
-
-// WithLogger is an Option that sets the logger for the StakingHandler.
-func WithLogger(logger log.Logger) Option {
-	return func(h *Handler) error {
-		h.logger = logger.With("staking", "log-handler")
-		return nil
-	}
+// Service is responsible for handling staking events.
+type Service struct {
+	service.BaseService
+	eth1Client             *eth.Eth1Client
+	depositContractAddress common.Address
+	logger                 log.Logger
 }
+
+func New(
+	base service.BaseService,
+	opts ...Option,
+) *Service {
+	st := &Service{
+		BaseService: base,
+	}
+	for _, opt := range opts {
+		if err := opt(st); err != nil {
+			st.Logger().Error("Failed to apply option", "error", err)
+		}
+	}
+	return st
+}
+
+// Start spawns any goroutines required by the service.
+func (s *Service) Start(context.Context) {}
+
+// Status returns error if the service is not considered healthy.
+func (s *Service) Status() error { return nil }

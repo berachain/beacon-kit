@@ -35,7 +35,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
-// postBlockProcess(.
+// postBlockProcess.
 func (s *Service) postBlockProcess(
 	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock, isValidPayload bool,
 ) error {

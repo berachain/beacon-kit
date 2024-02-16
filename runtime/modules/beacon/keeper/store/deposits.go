@@ -27,7 +27,6 @@ package store
 
 import (
 	"encoding/binary"
-	"math/big"
 
 	"cosmossdk.io/collections/codec"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -48,10 +47,10 @@ func (d *Deposit) GetPubkey() []byte {
 }
 
 // NewDeposit creates a new deposit.
-func NewDeposit(pubkey []byte, amount *big.Int, withdrawalCredentials []byte) *Deposit {
+func NewDeposit(pubkey []byte, amount uint64, withdrawalCredentials []byte) *Deposit {
 	depositData := &consensusv1.Deposit_Data{
 		Pubkey:                pubkey,
-		Amount:                amount.Uint64(),
+		Amount:                amount,
 		WithdrawalCredentials: withdrawalCredentials,
 	}
 	return &Deposit{&consensusv1.Deposit{Data: depositData}}

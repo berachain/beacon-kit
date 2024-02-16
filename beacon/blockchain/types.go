@@ -27,6 +27,7 @@ package blockchain
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
@@ -50,7 +51,13 @@ type ExecutionService interface {
 	GetBuiltPayload(
 		ctx context.Context, slot primitives.Slot, headHash common.Hash,
 	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+}
 
-	// ProcessLogs processes logs for the given block number.
-	ProcessLogs(ctx context.Context, blkNum uint64) error
+type StakingService interface {
+	// ProcessDeposit processes a deposit from the execution chain.
+	ProcessDeposit(ctx context.Context, args []any) error
+	// ProcessWithdrawal processes a withdrawal from the execution chain.
+	ProcessWithdrawal(ctx context.Context, args []any) error
+	// ProcessFinalizedETH1Block processes a finalized eth1 block.
+	ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.Int) error
 }
