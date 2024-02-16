@@ -370,7 +370,7 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1/capella -objs BeaconKitBlockCapella \
+	@sszgen -path ./types/consensus/v1/capella -objs BeaconKitBlockCapella,BlindedBeaconKitBlockCapella \
     --include ./types/consensus/primitives,./types/consensus/v1,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 	@sszgen -path ./types/consensus/v1 -objs Deposit \

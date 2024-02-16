@@ -26,7 +26,12 @@
 package capella
 
 import (
+	"errors"
+
+	"github.com/itsdevbear/bolaris/crypto/sha256"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	"github.com/itsdevbear/bolaris/math"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -76,10 +81,36 @@ func (p *WrappedExecutionPayloadCapella) ToPayload() interfaces.ExecutionPayload
 	return p
 }
 
-// ToHeader produces an ExecutionPayloadHeader.
-func (p *WrappedExecutionPayloadCapella) ToHeader() interfaces.ExecutionPayloadHeader {
-	// TODO: @ocnc
-	panic("TODO: Implement slice merkalization for ExecutionPayloadCapella")
+// ToHeader produces an ExecutionPayloadHeader from the ExecutionPayloadCapella.
+func (p *WrappedExecutionPayloadCapella) ToHeader() (interfaces.ExecutionPayloadHeader, error) {
+	if len(p.Transactions) > primitives.MaxTxsPerPayloadLength {
+		return nil, errors.New("too many transactions")
+	}
+
+	if len(p.Withdrawals) > primitives.MaxWithdrawalsPerPayload {
+		return nil, errors.New("too many withdrawals")
+	}
+
+	return &WrappedExecutionPayloadHeaderCapella{
+		ExecutionPayloadHeaderCapella: &enginev1.ExecutionPayloadHeaderCapella{
+			ParentHash:       byteslib.SafeCopy(p.ParentHash),
+			FeeRecipient:     byteslib.SafeCopy(p.FeeRecipient),
+			StateRoot:        byteslib.SafeCopy(p.StateRoot),
+			ReceiptsRoot:     byteslib.SafeCopy(p.ReceiptsRoot),
+			LogsBloom:        byteslib.SafeCopy(p.LogsBloom),
+			PrevRandao:       byteslib.SafeCopy(p.PrevRandao),
+			BlockNumber:      p.BlockNumber,
+			GasLimit:         p.GasLimit,
+			GasUsed:          p.GasUsed,
+			Timestamp:        p.Timestamp,
+			ExtraData:        byteslib.SafeCopy(p.ExtraData),
+			BaseFeePerGas:    byteslib.SafeCopy(p.BaseFeePerGas),
+			BlockHash:        byteslib.SafeCopy(p.BlockHash),
+			TransactionsRoot: sha256.HashRootAndMixinLengthAsBzSlice(p.Transactions),
+			WithdrawalsRoot:  sha256.HashRootAndMixinLengthAsSlice(p.Withdrawals),
+		},
+		value: p.GetValue(),
+	}, nil
 }
 
 // GetValue returns the value of the payload.

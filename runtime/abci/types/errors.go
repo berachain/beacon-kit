@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,14 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256
+package types
 
 import "errors"
 
 var (
-	// ErrOddLengthTreeRoots is an error returned when the input list length must be even.
-	ErrOddLengthTreeRoots = errors.New("input list length must be even")
+	// ErrNoBeaconBlockInRequest is an error for when
+	// there is no beacon block in an abci request.
+	ErrNoBeaconBlockInRequest = errors.New("no beacon block in abci request")
 
-	// ErrMaxRootsExceeded is an error returned when the number of roots exceeds the maximum allowed.
-	ErrMaxRootsExceeded = errors.New("number of roots exceeds the maximum allowed")
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
 )

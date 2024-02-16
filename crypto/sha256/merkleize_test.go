@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,14 +23,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256
+package sha256_test
 
-import "errors"
+import (
+	"testing"
 
-var (
-	// ErrOddLengthTreeRoots is an error returned when the input list length must be even.
-	ErrOddLengthTreeRoots = errors.New("input list length must be even")
-
-	// ErrMaxRootsExceeded is an error returned when the number of roots exceeds the maximum allowed.
-	ErrMaxRootsExceeded = errors.New("number of roots exceeds the maximum allowed")
+	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/protolambda/ztyp/tree"
+	"github.com/stretchr/testify/require"
 )
+
+func Test_SafeMerkleizeVector(t *testing.T) {
+	tests := []struct {
+		name            string
+		roots           [][32]byte
+		maxRootsAllowed uint64
+		expected        [32]byte
+		wantErr         bool
+	}{
+		{
+			name:            "empty roots list",
+			roots:           make([][32]byte, 0),
+			maxRootsAllowed: 16,
+			expected:        tree.ZeroHashes[0],
+			wantErr:         false,
+		},
+		{
+			name:            "maxRootsAllowed is less than the number of roots",
+			roots:           [][32]byte{{0x01}, {0x01}, {0x01}, {0x01}},
+			maxRootsAllowed: 3,
+			expected:        [32]byte{0x00},
+			wantErr:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root, err := sha256.SafeMerkleizeVector(tt.roots, tt.maxRootsAllowed)
+			if !tt.wantErr {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+			require.Equal(t, tt.expected, root)
+		})
+	}
+}
