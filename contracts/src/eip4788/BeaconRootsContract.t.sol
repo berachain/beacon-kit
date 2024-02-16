@@ -5,24 +5,24 @@ import "../../lib/solady/test/utils/SoladyTest.sol";
 import "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import "../eip4788/BeaconRootsContract.sol";
 
-/// @title BeaconRootsContractTest
-/// @dev This contract is used for testing the BeaconRootsContract.
-contract BeaconRootsContractTest is SoladyTest {
-    uint256 private constant HISTORY_BUFFER_LENGTH = 256;
-    uint256 private constant BEACON_ROOT_OFFSET = HISTORY_BUFFER_LENGTH;
-    uint256 private constant COINBASE_OFFSET = BEACON_ROOT_OFFSET + HISTORY_BUFFER_LENGTH;
-    uint256 private constant BLOCK_MAPPING_OFFSET = COINBASE_OFFSET + HISTORY_BUFFER_LENGTH;
-    address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
-    bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
-    uint256 private constant BLOCK_INTERVAL = 5;
-    uint256 private constant TIMESTAMP = 1_707_425_462;
-    uint256[HISTORY_BUFFER_LENGTH] private _timestamps;
+/// @title BeaconRootsContractBaseTest
+/// @dev This contract is a baseplate for tests that depend on the BeaconRootsContract.
+contract BeaconRootsContractBaseTest is SoladyTest {
+    uint256 internal constant HISTORY_BUFFER_LENGTH = 256;
+    uint256 internal constant BEACON_ROOT_OFFSET = HISTORY_BUFFER_LENGTH;
+    uint256 internal constant COINBASE_OFFSET = BEACON_ROOT_OFFSET + HISTORY_BUFFER_LENGTH;
+    uint256 internal constant BLOCK_MAPPING_OFFSET = COINBASE_OFFSET + HISTORY_BUFFER_LENGTH;
+    address internal constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+    bytes4 internal constant GET_COINBASE_SELECTOR = 0xe8e284b9;
+    uint256 internal constant BLOCK_INTERVAL = 5;
+    uint256 internal constant TIMESTAMP = 1_707_425_462;
+    uint256[HISTORY_BUFFER_LENGTH] internal _timestamps;
 
     BeaconRootsContract internal beaconRootsContract;
-    bytes32 private beaconRoot;
+    bytes32 internal beaconRoot;
 
     /// @dev Set up the test environment by deploying a new BeaconRootsContract.
-    function setUp() public {
+    function setUp() public virtual {
         beaconRootsContract = new BeaconRootsContract();
         setStorage(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
     }
@@ -66,7 +66,11 @@ contract BeaconRootsContractTest is SoladyTest {
         beaconRoot = beaconRoots[length - 1];
         vm.stopPrank();
     }
+}
 
+/// @title BeaconRootsContractTest
+/// @dev This contract is used for testing the BeaconRootsContract.
+contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
     function callGet(uint256 timestamp) internal returns (bool success, bytes memory data) {
         (success, data) = address(beaconRootsContract).call(abi.encode(timestamp));
     }
