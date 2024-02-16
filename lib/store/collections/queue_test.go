@@ -100,41 +100,17 @@ func Test_Queue(t *testing.T) {
 	})
 }
 
-type Store struct {
+// MockStore wraps the dba.Store to implement additional functionalities.
+type MockStore struct {
 	dba.Store
 }
 
-func (s Store) Get(key []byte) ([]byte, error) {
-	return s.Store.Get(key), nil
+// OpenKVStore returns the underlying KVStore from the Store.
+func (s MockStore) OpenKVStore(ctx context.Context) store.KVStore {
+	return s.DB
 }
 
-func (s Store) Has(key []byte) (bool, error) {
-	return s.Store.Has(key), nil
-}
-
-func (s Store) Iterator(start, end []byte) (db.Iterator, error) {
-	return s.Store.Iterator(start, end), nil
-}
-
-func (s Store) ReverseIterator(start, end []byte) (db.Iterator, error) {
-	return s.Store.ReverseIterator(start, end), nil
-}
-
-func (s Store) Set(key, value []byte) error {
-	s.Store.Set(key, value)
-	return nil
-}
-
-func (s Store) Delete(key []byte) error {
-	s.Store.Delete(key)
-	return nil
-}
-
-func (s Store) OpenKVStore(ctx context.Context) store.KVStore {
-	return s
-}
-
+// deps initializes dependencies for testing, returning a KVStoreService and a context.
 func deps() (store.KVStoreService, context.Context) {
-	db := db.NewMemDB()
-	return &Store{Store: dba.Store{DB: db}}, context.Background()
+	return &MockStore{Store: dba.Store{DB: db.NewMemDB()}}, context.Background()
 }
