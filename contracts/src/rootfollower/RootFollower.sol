@@ -6,6 +6,7 @@ import { Errors } from "./Errors.sol";
 import { IRootFollower } from "./IRootFollower.sol";
 import { FixedPointMathLib } from "@solady/utils/FixedPointMathLib.sol";
 import { Ownable } from "@solady/auth/Ownable.sol";
+import { console2 } from "forge-std/console2.sol";
 
 abstract contract RootFollower is IRootFollower, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -81,6 +82,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
      * Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure.
      */
     function _getCoinbase(uint256 _block) internal view returns (address _coinbase) {
+        console2.log("block number: ", block.number);
+        console2.log("getCoinbase: ", _block);
         assembly ("memory-safe") {
             mstore(0, GET_COINBASE_SELECTOR)
             mstore(0x04, _block)
@@ -107,8 +110,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
             revert Errors.AttemptedToIncrementOutOfBuffer();
         }
         // Increment and emit event.
+        emit AdvancedBlock(_LAST_PROCESSED_BLOCK);
         _LAST_PROCESSED_BLOCK = processingBlock;
-        emit AdvancedBlock(processingBlock);
     }
 
     /**
