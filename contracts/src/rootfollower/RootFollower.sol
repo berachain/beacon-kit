@@ -108,8 +108,10 @@ abstract contract RootFollower is IRootFollower, Ownable {
             revert Errors.AttemptedToIncrementOutOfBuffer();
         }
         // Increment and emit event.
-        emit AdvancedBlock(_LAST_PROCESSED_BLOCK);
         _LAST_PROCESSED_BLOCK = processingBlock;
+        unchecked {
+            emit AdvancedBlock(processingBlock - 1);
+        }
     }
 
     /**
