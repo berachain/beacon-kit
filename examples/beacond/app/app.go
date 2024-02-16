@@ -245,7 +245,7 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 
 	// Initial check for execution client sync.
 	if err := app.BeaconKitRunner.InitialSyncCheck(
-		cosmos.NewEmptyContextWithMS(ctx, app.CommitMultiStore()),
+		ctx,
 	); err != nil {
 		panic(err)
 	}
