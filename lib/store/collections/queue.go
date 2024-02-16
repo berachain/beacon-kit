@@ -126,29 +126,15 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	if err != nil {
 		return nil, err
 	}
-	startKey, err := sdk.EncodeKeyWithPrefix(nil, sdk.Uint64Key, headIdx)
-	if err != nil {
-		return nil, err
-	}
 	endIdx := min(tailIdx, headIdx+n)
-	endKey, err := sdk.EncodeKeyWithPrefix(
-		nil,
-		sdk.Uint64Key,
-		endIdx)
-	if err != nil {
-		return nil, err
-	}
-	iter, err := q.container.IterateRaw(
-		ctx,
-		startKey,
-		endKey,
-		sdk.OrderAscending)
+	ranger := new(sdk.Range[uint64]).StartInclusive(headIdx).EndExclusive(endIdx)
+	iter, err := q.container.Iterate(ctx, ranger)
 	if err != nil {
 		return nil, err
 	}
 
 	// Clear the range (in batch) after the iteration is done.
-	err = q.container.Clear(ctx, new(sdk.Range[uint64]).StartInclusive(headIdx).EndExclusive(endIdx))
+	err = q.container.Clear(ctx, ranger)
 	if err != nil {
 		return nil, err
 	}
