@@ -160,16 +160,41 @@ func (q *Queue[V]) Push(ctx context.Context, value V) error {
 		err     error
 	)
 
-	// If the queue is empty, set the head sequence to 0.
+	// Get the current tail index.
 	if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
 		return err
 	} else if err = q.container.Set(ctx, tailIdx, value); err != nil {
 		return err
 	}
 
-	// If the pop is successful, increment the tail sequence.
+	// If the push is successful, increment the tail sequence.
 	_, err = q.tailSeq.Next(ctx)
 	return err
+}
+
+// PushMulti adds multiple new elements to the queue.
+func (q *Queue[V]) PushMulti(ctx context.Context, values []V) error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	var (
+		tailIdx uint64
+		err     error
+	)
+
+	// Get the current tail index.
+	if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
+		return err
+	}
+	for _, value := range values {
+		if err = q.container.Set(ctx, tailIdx, value); err != nil {
+			return err
+		}
+		tailIdx++
+	}
+
+	// If the push is successful, set the tail sequence to the new index.
+	return q.tailSeq.Set(ctx, tailIdx)
 }
 
 // Len returns the length of the queue.
