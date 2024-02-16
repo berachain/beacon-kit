@@ -152,8 +152,18 @@ contract BeaconRootsContractTest is SoladyTest {
     function testFuzz_GetInvalidTimestamp(uint256 timestamp) public {
         timestamp =
             _bound(timestamp, _timestamps[0] + 1, _timestamps[HISTORY_BUFFER_LENGTH - 1] - 1);
-        for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
-            vm.assume(timestamp != _timestamps[i]);
+        bool loop = true;
+        while (loop) {
+            loop = false;
+            for (uint256 i; i < HISTORY_BUFFER_LENGTH; ++i) {
+                if (timestamp == _timestamps[i]) {
+                    loop = true;
+                    timestamp = _bound(
+                        _random(), _timestamps[0] + 1, _timestamps[HISTORY_BUFFER_LENGTH - 1] - 1
+                    );
+                    break;
+                }
+            }
         }
         (bool success,) = callGet(timestamp);
         assertFalse(success, "get: found invalid timestamp");
