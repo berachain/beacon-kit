@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,44 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package interfaces
+package types
 
-import (
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	ssz "github.com/prysmaticlabs/fastssz"
+import "errors"
+
+var (
+	// ErrNoBeaconBlockInRequest is an error for when
+	// there is no beacon block in an abci request.
+	ErrNoBeaconBlockInRequest = errors.New("no beacon block in abci request")
+
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
 )
-
-// BeaconKitBlock is the interface for a beacon block.
-type BeaconKitBlock interface {
-	ReadOnlyBeaconKitBlock
-	WriteOnlyBeaconKitBlock
-}
-
-type BeaconBlockBody interface {
-	ReadOnlyBeaconKitBlockBody
-}
-
-type ReadOnlyBeaconKitBlockBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-}
-
-// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconKitBlock interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (engine.ExecutionPayload, error)
-	Version() int
-}
-
-// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(engine.ExecutionPayload) error
-}

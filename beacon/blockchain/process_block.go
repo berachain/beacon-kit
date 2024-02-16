@@ -44,7 +44,7 @@ func (s *Service) postBlockProcess(
 		return ErrInvalidPayload
 	}
 
-	executionPayload, err := block.Execution()
+	executionPayload, err := block.ExecutionPayload()
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,44 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package interfaces
+package types
 
 import (
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	ssz "github.com/prysmaticlabs/fastssz"
+	"time"
+
+	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
 
-// BeaconKitBlock is the interface for a beacon block.
-type BeaconKitBlock interface {
-	ReadOnlyBeaconKitBlock
-	WriteOnlyBeaconKitBlock
+// ABCIRequest is the interface for an ABCI request.
+type ABCIRequest interface {
+	GetHeight() int64
+	GetTime() time.Time
+	GetTxs() [][]byte
 }
 
-type BeaconBlockBody interface {
-	ReadOnlyBeaconKitBlockBody
-}
+// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
+// new read-only beacon block by extracting a marshalled
+// block out of an ABCI request.
+func ReadOnlyBeaconKitBlockFromABCIRequest(
+	req ABCIRequest,
+	bzIndex uint,
+	forkVersion int,
+) (interfaces.ReadOnlyBeaconKitBlock, error) {
+	txs := req.GetTxs()
 
-type ReadOnlyBeaconKitBlockBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-}
+	// Ensure there are transactions in the request and
+	// that the request is valid.
+	if lenTxs := uint(len(txs)); lenTxs == 0 {
+		return nil, ErrNoBeaconBlockInRequest
+	} else if bzIndex >= lenTxs {
+		return nil, ErrBzIndexOutOfBounds
+	}
 
-// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconKitBlock interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (engine.ExecutionPayload, error)
-	Version() int
-}
-
-// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(engine.ExecutionPayload) error
+	// Extract the beacon block from the ABCI request.
+	return consensus.BeaconKitBlockFromSSZ(txs[bzIndex], forkVersion)
 }

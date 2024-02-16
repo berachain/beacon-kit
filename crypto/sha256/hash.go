@@ -40,7 +40,7 @@ func Hash(bz []byte) [32]byte {
 	return sha256.Sum256(bz)
 }
 
-// HashArray returns the SHA256 hashes of the input bytes in parallel while maintaining the order.
+// HashArray returns the SHA256 hash of each input byte slice.
 func HashArray(input [][]byte) [][32]byte {
 	roots := make([][32]byte, len(input))
 	iter.ForEachIdx[[]byte](

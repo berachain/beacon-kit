@@ -104,7 +104,7 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlockCapella) Execution() (engine.ExecutionPayload, error) {
+func (b *BeaconKitBlockCapella) ExecutionPayload() (engine.ExecutionPayload, error) {
 	return engine.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
 		uint256.NewInt(0).SetBytes(b.GetPayloadValue()))
 }
