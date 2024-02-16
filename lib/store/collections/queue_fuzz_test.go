@@ -46,6 +46,7 @@ func FuzzQueueSimple(f *testing.F) {
 
 		trackedItems := make([]int64, 0)
 		for i := int64(0); i < n1; i++ {
+			i := i // must capture loop var
 			require.NoError(t, q.Push(ctx, i))
 			trackedItems = append(trackedItems, i)
 		}
@@ -53,25 +54,29 @@ func FuzzQueueSimple(f *testing.F) {
 		l, err := q.Len(ctx)
 		require.NoError(t, err)
 		require.Equal(t, int64(len(trackedItems)), int64(l))
-		require.Equal(t, n1, l)
+		require.Equal(t, int64(n1), int64(l))
 
-		// for i := int64(0); i < n2 && len(trackedItems) > 0; i++ {
-		// 	item, err := q.Pop(ctx)
-		// 	require.NoError(t, err)
-		// 	require.Equal(t, trackedItems[0], item)
-		// 	trackedItems = trackedItems[1:]
-		// }
+		for i := int64(0); i < n2 && len(trackedItems) > 0; i++ {
+			// i := i // must capture loop var
+			item, err := q.Pop(ctx)
+			require.NoError(t, err)
+			require.Equal(t, trackedItems[0], item)
+			trackedItems = trackedItems[1:]
+		}
 
-		// for i := int64(0); i < n3; i++ {
-		// 	require.NoError(t, q.Push(ctx, n1+i))
-		// 	trackedItems = append(trackedItems, n1+i)
-		// }
+		for i := int64(0); i < n3; i++ {
+			i := i // must capture loop var
+			require.NoError(t, q.Push(ctx, n1+i))
+			trackedItems = append(trackedItems, n1+i)
+		}
 
-		// for i := int64(0); i < n4 && len(trackedItems) > 0; i++ {
-		// 	item, err := q.Pop(ctx)
-		// 	require.NoError(t, err)
-		// 	require.Equal(t, trackedItems[0], item)
-		// 	trackedItems = trackedItems[1:]
-		// }
+		for i := int64(0); i < n4 && len(trackedItems) > 0; i++ {
+			// i := i // must capture loop var
+			item, err := q.Pop(ctx)
+			require.NoError(t, err)
+			require.Equal(t, trackedItems[0], item)
+			trackedItems = trackedItems[1:]
+		}
+
 	})
 }

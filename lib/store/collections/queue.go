@@ -33,18 +33,16 @@ import (
 	sdkcodec "cosmossdk.io/collections/codec"
 )
 
-type idxType = uint64
-
 // Queue is a simple queue implementation that uses a map and two sequences.
 type Queue[V any] struct {
 	// container is a map that holds the queue elements.
-	container sdk.Map[idxType, V]
+	container sdk.Map[uint64, V]
 	// headSeq is a sequence that points to the head of the queue.
 	headSeq sdk.Sequence // inclusive
 	// tailSeq is a sequence that points to the tail of the queue.
 	tailSeq sdk.Sequence // exclusive
 	// mu is a mutex that protects the queue.
-	mu sync.RWMutex
+	mu *sync.RWMutex
 }
 
 // NewQueue creates a new queue with the provided prefix and name.
@@ -58,23 +56,29 @@ func NewQueue[V any](
 		tailSeqName = name + "_tail"
 	)
 	return Queue[V]{
-		container: sdk.NewMap[idxType, V](
+		container: sdk.NewMap[uint64, V](
 			schema,
 			sdk.NewPrefix(queueName),
-			queueName, sdkcodec.NewUint64Key[idxType](), valueCodec,
+			queueName, sdk.Uint64Key, valueCodec,
 		),
 		headSeq: sdk.NewSequence(schema, sdk.NewPrefix(headSeqName), headSeqName),
 		tailSeq: sdk.NewSequence(schema, sdk.NewPrefix(tailSeqName), tailSeqName),
+		mu:      new(sync.RWMutex),
 	}
 }
 
-// peek returns the top element of the queue, or ErrNotFound if the queue is empty.
+// Peek returns the top element of the queue, or ErrNotFound if the queue is empty.
+func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+	return q.peek(ctx)
+}
+
 func (q *Queue[V]) peek(ctx context.Context) (V, error) {
 	var (
-		v       V
-		headIdx idxType
-		tailIdx idxType
-		err     error
+		v                V
+		headIdx, tailIdx uint64
+		err              error
 	)
 	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
 		return v, err
@@ -86,12 +90,6 @@ func (q *Queue[V]) peek(ctx context.Context) (V, error) {
 	return q.container.Get(ctx, headIdx)
 }
 
-func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
-	q.mu.RLock()
-	defer q.mu.RUnlock()
-	return q.peek(ctx)
-}
-
 // Pop returns the top element of the queue and removes it from the queue.
 func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 	q.mu.Lock()
@@ -99,16 +97,18 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 
 	var (
 		v       V
-		headIdx idxType
+		headIdx uint64
 		err     error
 	)
+
 	if v, err = q.peek(ctx); err != nil {
 		return v, err
 	} else if headIdx, err = q.headSeq.Next(ctx); err != nil {
 		return v, err
+	} else {
+		err = q.container.Remove(ctx, headIdx)
+		return v, err
 	}
-	err = q.container.Remove(ctx, headIdx)
-	return v, err
 }
 
 // Push adds a new element to the queue.
@@ -117,7 +117,7 @@ func (q *Queue[V]) Push(ctx context.Context, value V) error {
 	defer q.mu.Unlock()
 
 	var (
-		tailIdx idxType
+		tailIdx uint64
 		err     error
 	)
 
@@ -128,20 +128,21 @@ func (q *Queue[V]) Push(ctx context.Context, value V) error {
 		return err
 	}
 
-	// If the push is successful, increment the tail sequence.
+	// If the pop is successful, increment the tail sequence.
 	_, err = q.tailSeq.Next(ctx)
 	return err
 }
 
 // Len returns the length of the queue.
-func (q *Queue[V]) Len(ctx context.Context) (idxType, error) {
+func (q *Queue[V]) Len(ctx context.Context) (uint64, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
+
 	var (
-		headIdx idxType
-		tailIdx idxType
-		err     error
+		headIdx, tailIdx uint64
+		err              error
 	)
+
 	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
 		return 0, err
 	} else if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
