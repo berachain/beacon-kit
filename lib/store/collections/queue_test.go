@@ -47,7 +47,7 @@ func Test_Queue(t *testing.T) {
 		_, err := q.Peek(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 
-		_, err = q.Next(ctx)
+		_, err = q.Pop(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 
 		err = q.Push(ctx, 1)
@@ -55,13 +55,13 @@ func Test_Queue(t *testing.T) {
 		err = q.Push(ctx, 2)
 		require.NoError(t, err)
 
-		v, err := q.Next(ctx)
+		v, err := q.Pop(ctx)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), v)
-		v, err = q.Next(ctx)
+		v, err = q.Pop(ctx)
 		require.NoError(t, err)
 		require.Equal(t, uint64(2), v)
-		_, err = q.Next(ctx)
+		_, err = q.Pop(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 
 		err = q.Push(ctx, 3)
@@ -78,18 +78,43 @@ func Test_Queue(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uint64(3), v)
 
-		v, err = q.Next(ctx)
+		v, err = q.Pop(ctx)
 		require.NoError(t, err)
 		require.Equal(t, uint64(3), v)
 
-		v, err = q.Next(ctx)
+		v, err = q.Pop(ctx)
 		require.NoError(t, err)
 		require.Equal(t, uint64(4), v)
 
 		_, err = q.Peek(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 
-		_, err = q.Next(ctx)
+		_, err = q.Pop(ctx)
+		require.Equal(t, sdk.ErrNotFound, err)
+	})
+}
+
+func Fuzz_Queue(f *testing.F) {
+	f.Add(int64(0))
+	sk, ctx := deps()
+	sb := sdk.NewSchemaBuilder(sk)
+	q := collections.NewQueue[int64](sb, "queue", sdk.Int64Value)
+	f.Fuzz(func(t *testing.T, n int64) {
+		_, err := q.Pop(ctx)
+		require.Equal(t, sdk.ErrNotFound, err)
+
+		err = q.Push(ctx, n)
+		require.NoError(t, err)
+
+		v, err := q.Peek(ctx)
+		require.NoError(t, err)
+		require.Equal(t, n, v)
+
+		v, err = q.Pop(ctx)
+		require.NoError(t, err)
+		require.Equal(t, n, v)
+
+		_, err = q.Peek(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 	})
 }

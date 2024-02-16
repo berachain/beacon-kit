@@ -77,8 +77,8 @@ func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
 	return v, nil
 }
 
-// Next returns the top element of the queue and removes it from the queue.
-func (q *Queue[V]) Next(ctx context.Context) (V, error) {
+// Pop returns the top element of the queue and removes it from the queue.
+func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 	v, err := q.Peek(ctx)
 	if err != nil {
 		return v, err
