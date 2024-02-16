@@ -54,11 +54,12 @@ func FuzzQueueSimple(f *testing.F) {
 		l, err := q.Len(ctx)
 		require.NoError(t, err)
 		require.Equal(t, int64(len(trackedItems)), int64(l))
-		require.Equal(t, int64(n1), int64(l))
+		require.Equal(t, n1, int64(l))
 
 		for i := int64(0); i < n2 && len(trackedItems) > 0; i++ {
 			// i := i // must capture loop var
-			item, err := q.Pop(ctx)
+			var item int64
+			item, err = q.Pop(ctx)
 			require.NoError(t, err)
 			require.Equal(t, trackedItems[0], item)
 			trackedItems = trackedItems[1:]
@@ -72,11 +73,11 @@ func FuzzQueueSimple(f *testing.F) {
 
 		for i := int64(0); i < n4 && len(trackedItems) > 0; i++ {
 			// i := i // must capture loop var
-			item, err := q.Pop(ctx)
+			var item int64
+			item, err = q.Pop(ctx)
 			require.NoError(t, err)
 			require.Equal(t, trackedItems[0], item)
 			trackedItems = trackedItems[1:]
 		}
-
 	})
 }

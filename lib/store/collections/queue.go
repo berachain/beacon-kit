@@ -42,7 +42,7 @@ type Queue[V any] struct {
 	// tailSeq is a sequence that points to the tail of the queue.
 	tailSeq sdk.Sequence // exclusive
 	// mu is a mutex that protects the queue.
-	mu *sync.RWMutex
+	mu sync.RWMutex
 }
 
 // NewQueue creates a new queue with the provided prefix and name.
@@ -63,7 +63,6 @@ func NewQueue[V any](
 		),
 		headSeq: sdk.NewSequence(schema, sdk.NewPrefix(headSeqName), headSeqName),
 		tailSeq: sdk.NewSequence(schema, sdk.NewPrefix(tailSeqName), tailSeqName),
-		mu:      new(sync.RWMutex),
 	}
 }
 
@@ -105,10 +104,9 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 		return v, err
 	} else if headIdx, err = q.headSeq.Next(ctx); err != nil {
 		return v, err
-	} else {
-		err = q.container.Remove(ctx, headIdx)
-		return v, err
 	}
+	err = q.container.Remove(ctx, headIdx)
+	return v, err
 }
 
 // Push adds a new element to the queue.
