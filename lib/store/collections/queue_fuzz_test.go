@@ -40,7 +40,7 @@ func FuzzQueueSimple(f *testing.F) {
 	sb := sdk.NewSchemaBuilder(sk)
 	q := collections.NewQueue[int64](sb, "queue", sdk.Int64Value)
 	f.Fuzz(func(t *testing.T, n1, n2, n3, n4 int64) {
-		if n1 < 0 || n1 < n2 || n2 < n3 || n3 < n4 {
+		if n1 < 0 || n1 > n2 || n2 < n3 || n3 > n4 {
 			t.Skip()
 		}
 
@@ -52,8 +52,8 @@ func FuzzQueueSimple(f *testing.F) {
 
 		l, err := q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, int64(n1), int64(l))
 		require.Equal(t, int64(len(trackedItems)), int64(l))
+		require.Equal(t, int64(n1), int64(l))
 
 		// for i := int64(0); i < n2 && len(trackedItems) > 0; i++ {
 		// 	item, err := q.Pop(ctx)
