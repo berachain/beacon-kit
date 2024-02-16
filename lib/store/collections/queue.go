@@ -111,6 +111,46 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 	return v, err
 }
 
+// PopMulti returns the top n elements of the queue and removes them from the queue.
+func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	var err error
+
+	prefix := q.container.GetPrefix()
+	headIdx, err := q.headSeq.Peek(ctx)
+	if err != nil {
+		return nil, err
+	}
+	startKey, err := sdk.EncodeKeyWithPrefix(prefix, sdk.Uint64Key, headIdx)
+	if err != nil {
+		return nil, err
+	}
+	tailIdx, err := q.tailSeq.Peek(ctx)
+	if err != nil {
+		return nil, err
+	}
+	endKey, err := sdk.EncodeKeyWithPrefix(
+		prefix,
+		sdk.Uint64Key,
+		min(tailIdx, headIdx+n))
+	if err != nil {
+		return nil, err
+	}
+	iter, err := q.container.IterateRaw(
+		ctx,
+		startKey,
+		endKey,
+		sdk.OrderAscending)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close()
+
+	return iter.Values()
+}
+
 // Push adds a new element to the queue.
 func (q *Queue[V]) Push(ctx context.Context, value V) error {
 	q.mu.Lock()
