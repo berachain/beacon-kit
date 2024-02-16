@@ -89,7 +89,7 @@ func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
 // Pop returns the top element of the queue and removes it from the queue.
 func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 	q.mu.Lock()
-	defer q.mu.RUnlock()
+	defer q.mu.Unlock()
 
 	if v, err := q.Peek(ctx); err != nil {
 		return v, err
