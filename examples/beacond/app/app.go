@@ -244,9 +244,7 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	app.BeaconKitRunner.StartServices(ctx)
 
 	// Initial check for execution client sync.
-	if err := app.BeaconKitRunner.InitialSyncCheck(
-		ctx,
-	); err != nil {
+	if err := app.BeaconKitRunner.InitialSyncCheck(ctx); err != nil {
 		panic(err)
 	}
 }
