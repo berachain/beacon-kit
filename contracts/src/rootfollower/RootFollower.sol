@@ -4,8 +4,9 @@ pragma solidity >=0.8.10;
 
 import { Errors } from "./Errors.sol";
 import { IRootFollower } from "./IRootFollower.sol";
-import { FixedPointMathLib } from "@solady/utils/FixedPointMathLib.sol";
+
 import { Ownable } from "@solady/auth/Ownable.sol";
+import { FixedPointMathLib } from "@solady/utils/FixedPointMathLib.sol";
 
 abstract contract RootFollower is IRootFollower, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
