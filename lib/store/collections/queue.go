@@ -29,25 +29,26 @@ import (
 	"context"
 	"sync"
 
-	sdk "cosmossdk.io/collections"
+	sdkcollections "cosmossdk.io/collections"
 	sdkcodec "cosmossdk.io/collections/codec"
 )
 
 // Queue is a simple queue implementation that uses a map and two sequences.
+// TODO: Check atomicity of write operations.
 type Queue[V any] struct {
 	// container is a map that holds the queue elements.
-	container sdk.Map[uint64, V]
+	container sdkcollections.Map[uint64, V]
 	// headSeq is a sequence that points to the head of the queue.
-	headSeq sdk.Sequence // inclusive
+	headSeq sdkcollections.Sequence // inclusive
 	// tailSeq is a sequence that points to the tail of the queue.
-	tailSeq sdk.Sequence // exclusive
+	tailSeq sdkcollections.Sequence // exclusive
 	// mu is a mutex that protects the queue.
 	mu sync.RWMutex
 }
 
 // NewQueue creates a new queue with the provided prefix and name.
 func NewQueue[V any](
-	schema *sdk.SchemaBuilder, name string,
+	schema *sdkcollections.SchemaBuilder, name string,
 	valueCodec sdkcodec.ValueCodec[V],
 ) *Queue[V] {
 	var (
@@ -56,13 +57,13 @@ func NewQueue[V any](
 		tailSeqName = name + "_tail"
 	)
 	return &Queue[V]{
-		container: sdk.NewMap[uint64, V](
+		container: sdkcollections.NewMap[uint64, V](
 			schema,
-			sdk.NewPrefix(queueName),
-			queueName, sdk.Uint64Key, valueCodec,
+			sdkcollections.NewPrefix(queueName),
+			queueName, sdkcollections.Uint64Key, valueCodec,
 		),
-		headSeq: sdk.NewSequence(schema, sdk.NewPrefix(headSeqName), headSeqName),
-		tailSeq: sdk.NewSequence(schema, sdk.NewPrefix(tailSeqName), tailSeqName),
+		headSeq: sdkcollections.NewSequence(schema, sdkcollections.NewPrefix(headSeqName), headSeqName),
+		tailSeq: sdkcollections.NewSequence(schema, sdkcollections.NewPrefix(tailSeqName), tailSeqName),
 	}
 }
 
@@ -86,7 +87,7 @@ func (q *Queue[V]) UnsafePeek(ctx context.Context) (V, error) {
 	} else if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
 		return v, err
 	} else if headIdx >= tailIdx {
-		return v, sdk.ErrNotFound
+		return v, sdkcollections.ErrNotFound
 	}
 	return q.container.Get(ctx, headIdx)
 }
@@ -127,7 +128,7 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 		return nil, err
 	}
 	endIdx := min(tailIdx, headIdx+n)
-	ranger := new(sdk.Range[uint64]).StartInclusive(headIdx).EndExclusive(endIdx)
+	ranger := new(sdkcollections.Range[uint64]).StartInclusive(headIdx).EndExclusive(endIdx)
 	iter, err := q.container.Iterate(ctx, ranger)
 	if err != nil {
 		return nil, err
@@ -216,6 +217,6 @@ func (q *Queue[V]) Len(ctx context.Context) (uint64, error) {
 }
 
 // Container returns the underlying map container of the queue.
-func (q *Queue[V]) Container() sdk.Map[uint64, V] {
+func (q *Queue[V]) Container() sdkcollections.Map[uint64, V] {
 	return q.container
 }
