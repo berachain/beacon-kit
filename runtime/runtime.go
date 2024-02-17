@@ -211,7 +211,7 @@ func newLogProcessor(
 	cfg *config.Config,
 ) (*logs.Processor, error) {
 	// Build the log processor.
-	handlers := make(map[common.Address]logs.LogHandler)
+	handlers := make(map[common.Address]logs.Handler)
 	stakingLogHandler, err := stakinglogs.NewHandler(
 		baseService.WithName("staking"),
 		stakinglogs.WithLogger(logger),

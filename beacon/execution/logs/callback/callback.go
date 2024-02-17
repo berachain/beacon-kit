@@ -50,7 +50,7 @@ type wrappedHandler struct {
 // precompile functions map.
 func NewFrom(
 	si Handler,
-) (logs.LogHandler, error) {
+) (logs.Handler, error) {
 	// We take all of the functions from the handler and build a map that
 	// maps an ethereum log to a corresponding function to handle it.
 	sigsToFns, err := buildIDsToMethods(si, reflect.ValueOf(si))

@@ -45,14 +45,14 @@ import (
 type Processor struct {
 	logger     log.Logger
 	eth1Client *eth.Eth1Client
-	handlers   map[common.Address]LogHandler
+	handlers   map[common.Address]Handler
 }
 
 // NewProcessor creates a new instance of Processor with the provided options.
 // It applies each option to the Processor and returns an error if any of the options fail.
 func NewProcessor(opts ...Option) (*Processor, error) {
 	s := &Processor{
-		handlers: make(map[common.Address]LogHandler),
+		handlers: make(map[common.Address]Handler),
 	}
 	for _, opt := range opts {
 		if err := opt(s); err != nil {

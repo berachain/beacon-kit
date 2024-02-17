@@ -31,8 +31,8 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// LogHandler represents a struct that has the ability to ingest
+// Handler represents a struct that has the ability to ingest
 // an ethereum log and handle it.
-type LogHandler interface {
+type Handler interface {
 	HandleLog(ctx context.Context, log *coretypes.Log) error
 }
