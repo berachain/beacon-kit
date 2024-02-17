@@ -200,7 +200,7 @@ func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 	return r.services.FetchService(service)
 }
 
-// syncCheck.
+// InitialSyncCheck.
 func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
 	var syncService *sync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
