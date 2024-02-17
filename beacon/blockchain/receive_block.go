@@ -75,8 +75,17 @@ func (s *Service) ReceiveBeaconBlock(
 	})
 
 	// Wait for the goroutines to finish.
-	if err := eg.Wait(); err != nil {
-		return err
+	err := eg.Wait()
+	if err != nil {
+		// If we receive accepted or syncing status, we can ignore the error. This is required as
+		// some execution clients will rely on a forkchoice update to forcibly set head.
+		//
+		//nolint:lll // hyperlink.
+		// https://github.com/ethereum/go-ethereum/blob/95741b18448aaacacd0edd8f73a9364bd3df8c92/eth/catalyst/api.go#L660
+		// TODO: we should probably handle this via the sync service and error here properly.
+		if !errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus) {
+			return err
+		}
 	}
 
 	// If the block is valid, we can process it.
@@ -86,7 +95,7 @@ func (s *Service) ReceiveBeaconBlock(
 		return err
 	}
 
-	return nil
+	return err
 }
 
 // validateStateTransition validates the state transition of a given block.
