@@ -47,7 +47,6 @@ jobs:
           - linux/arm64
         os: 
           - ubuntu-latest-large
-          - ubuntu-latest-large # todo: attach to self hosted arm64 runner.
     steps:
       - name: Prepare
         run: |
