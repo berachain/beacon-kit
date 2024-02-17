@@ -26,9 +26,8 @@
 package store
 
 import (
-	"encoding/binary"
-
 	"cosmossdk.io/collections/codec"
+	"github.com/itsdevbear/bolaris/lib/encoding"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -106,9 +105,7 @@ func (s *BeaconStore) ProcessDeposit(deposit *Deposit) error {
 
 // SetStakingNonce sets the staking nonce.
 func (s *BeaconStore) SetStakingNonce(nonce uint64) {
-	uint64Size := 8
-	bz := make([]byte, uint64Size)
-	binary.LittleEndian.PutUint64(bz, nonce)
+	bz := encoding.EncodeUint64(nonce)
 	s.Set([]byte(stakingNonceKey), bz)
 }
 
@@ -118,5 +115,5 @@ func (s *BeaconStore) GetStakingNonce() uint64 {
 	if bz == nil {
 		return 0
 	}
-	return binary.LittleEndian.Uint64(bz)
+	return encoding.DecodeUint64(bz)
 }

@@ -27,7 +27,6 @@ package logs
 
 import (
 	"context"
-	"encoding/binary"
 
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -35,6 +34,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
+	"github.com/itsdevbear/bolaris/lib/encoding"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -82,8 +82,8 @@ func (s *Handler) Delegate(
 ) error {
 	// Beacon node and the deposit contract at the execution layer
 	// must agree on the encoding of uint values, i.e. little endian.
-	amount := binary.LittleEndian.Uint64(amountBz)
-	nonce := binary.LittleEndian.Uint64(nonceBz)
+	amount := encoding.DecodeUint64(amountBz)
+	nonce := encoding.DecodeUint64(nonceBz)
 	return s.st.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
 }
 
@@ -95,7 +95,7 @@ func (s *Handler) Undelegate(
 	amountBz []byte,
 	nonceBz []byte,
 ) error {
-	amount := binary.LittleEndian.Uint64(amountBz)
-	nonce := binary.LittleEndian.Uint64(nonceBz)
+	amount := encoding.DecodeUint64(amountBz)
+	nonce := encoding.DecodeUint64(nonceBz)
 	return s.st.ProcessWithdrawal(ctx, validatorPubkey, amount, nonce)
 }
