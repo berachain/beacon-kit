@@ -27,15 +27,60 @@ package execution
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/ethereum/go-ethereum/common"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
+	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
+// notifyNewPayload notifies the execution client of a new payload.
+func (s *Service) notifyNewPayload(
+	ctx context.Context, payload interfaces.ExecutionPayload,
+) (bool, error) {
+	var (
+		lastValidHash []byte
+		err           error
+		beaconState   = s.BeaconState(ctx)
+	)
+
+	//nolint:revive // okay for now.
+	if beaconState.Version() >= version.Deneb {
+		// TODO: Deneb
+		// var versionedHashes []common.Hash
+		// versionedHashes, err = kzgCommitmentsToVersionedHashes(blk.Block().Body())
+		// if err != nil {
+		// 	return false, errors.Wrap(err, "could not get versioned hashes to feed the engine")
+		// }
+		// pr := common.Hash(blk.Block().ParentRoot())
+		// lastValidHash, err = s.engine.NewPayload(ctx, payload, versionedHashes, &pr)
+	} else {
+		lastValidHash, err = s.engine.NewPayload(
+			ctx, payload, []common.Hash{}, &common.Hash{}, /*empty version hashes and root before Deneb*/
+		)
+	}
+	switch {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
+		s.Logger().Info("new payload called with optimistic block",
+			"head_eth1_hash", payload.GetBlockHash(),
+			"proposing_slot", beaconState.Slot,
+		)
+		return false, nil
+	case errors.Is(err, eth.ErrInvalidPayloadStatus):
+		s.Logger().Error("invalid payload status", "last_valid_hash", fmt.Sprintf("%#x", lastValidHash))
+		err = ErrBadBlockProduced
+	}
+
+	return false, err
+}
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginev1.PayloadIDBytes, error) {
@@ -56,34 +101,32 @@ func (s *Service) notifyForkchoiceUpdate(
 		},
 		fcuConfig.Attributes,
 	)
-	if err != nil {
-		switch err { //nolint:errorlint // okay for now.
-		case eth.ErrAcceptedSyncingPayloadStatus:
-			s.Logger().Info("forkchoice updated with optimistic block",
-				"head_eth1_hash", fcuConfig.HeadEth1Hash,
-				"proposing_slot", fcuConfig.ProposingSlot,
-			)
-			telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
-			return payloadID, nil
-		case eth.ErrInvalidPayloadStatus:
-			s.Logger().Error("invalid payload status", "error", err)
-			telemetry.IncrCounter(1, MetricsKeyInvalidPayloadStatus)
-			// Attempt to get the chain back into a valid state.
-			payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
-				HeadEth1Hash:  beaconState.GetLastValidHead(),
-				ProposingSlot: fcuConfig.ProposingSlot,
-				Attributes:    fcuConfig.Attributes,
-			})
-			if err != nil {
-				// We have to return the error here since this function
-				// is recursive.
-				return nil, err
-			}
-			return payloadID, ErrBadBlockProduced
-		default:
-			s.Logger().Error("undefined execution engine error", "error", err)
+	switch {
+	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
+		s.Logger().Info("forkchoice updated with optimistic block",
+			"head_eth1_hash", fcuConfig.HeadEth1Hash,
+			"proposing_slot", fcuConfig.ProposingSlot,
+		)
+		telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
+		return payloadID, nil
+	case errors.Is(err, eth.ErrInvalidPayloadStatus):
+		s.Logger().Error("invalid payload status", "error", err)
+		telemetry.IncrCounter(1, MetricsKeyInvalidPayloadStatus)
+		// Attempt to get the chain back into a valid state.
+		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
+			HeadEth1Hash:  beaconState.GetLastValidHead(),
+			ProposingSlot: fcuConfig.ProposingSlot,
+			Attributes:    fcuConfig.Attributes,
+		})
+		if err != nil {
+			// We have to return the error here since this function
+			// is recursive.
 			return nil, err
 		}
+		return payloadID, ErrBadBlockProduced
+	case err != nil:
+		s.Logger().Error("undefined execution engine error", "error", err)
+		return nil, err
 	}
 
 	// We can mark this Eth1Block as the latest valid block.
