@@ -112,7 +112,7 @@ func (s *engineClient) ForkchoiceUpdated(
 	defer cancel()
 
 	if attrs == nil {
-		return nil, nil, ErrNilPayloadAttributes
+		return nil, nil, ErrNilAttributesPassedToClient
 	}
 
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs)
@@ -131,6 +131,10 @@ func (s *engineClient) ForkchoiceUpdated(
 func (s *engineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
+	if attrs == nil {
+		return nil, ErrNilAttributesPassedToClient
+	}
+
 	switch v := attrs.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
