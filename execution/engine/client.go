@@ -131,10 +131,6 @@ func (s *engineClient) ForkchoiceUpdated(
 func (s *engineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-	if attrs == nil {
-		return nil, ErrNilAttributesPassedToClient
-	}
-
 	switch v := attrs.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
@@ -171,14 +167,14 @@ func (s *engineClient) getPayloadDeneb(
 	if err != nil {
 		return nil, nil, false, err
 	}
-	ed, err := engine.WrappedExecutionPayloadDeneb(
-		result.GetPayload(), PayloadValueToWei(result.GetValue()),
-	)
-	if err != nil {
-		return nil, nil, false, err
-	}
+	// ed, err := engine.WrappedExecutionPayloadDeneb(
+	// 	result.GetPayload(), PayloadValueToWei(result.GetValue()),
+	// )
+	// if err != nil {
+	// 	return nil, nil, false, err
+	// }
 
-	return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
+	return result, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
 }
 
 // handleCapellaFork processes the Capella fork version.
@@ -189,12 +185,6 @@ func (s *engineClient) getPayloadCapella(
 	if err != nil {
 		return nil, nil, false, err
 	}
-	ed, err := engine.WrappedExecutionPayloadCapella(
-		result.GetPayload(), PayloadValueToWei(result.GetValue()),
-	)
-	if err != nil {
-		return nil, nil, false, err
-	}
 
-	return ed, nil, false, nil
+	return result, nil, false, nil
 }

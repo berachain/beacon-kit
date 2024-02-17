@@ -32,11 +32,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
+	bkenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/pkg/errors"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -107,14 +107,21 @@ func (s *Service) getLocalPayload(
 	// Build the payload attributes.
 	t := time.Now()              // todo: the proper mathematics for time must be done.
 	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
-	attr := core.BuildPayloadAttributes(
-		s.BeaconCfg(),
-		st,
-		s.Logger(),
-		random,
-		headRoot,
-		//#nosec:G701 // won't overflow.
+
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		s.Logger().Error(
+			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil, false, err
+	}
+
+	attr, _ := bkenginev1.NewPayloadAttributesContainer(
+		st.Version(),
 		uint64(t.Unix()),
+		random,
+		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+		withdrawals,
+		headRoot,
 	)
 
 	var payloadIDBytes *enginev1.PayloadIDBytes

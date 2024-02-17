@@ -23,25 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+syntax = "proto3";
+package types.engine.v1;
 
-import (
-	"github.com/itsdevbear/bolaris/types/consensus/version"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-)
+import "ethereum/engine/v1/execution_engine.proto";
 
-// EmptyExecutionPayloadWithVersion returns an empty execution payload for the given version.
-func EmptyPayloadAttributesWithVersion(v int) PayloadAttributer {
-	switch v {
-	case version.Deneb:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V3{},
-		}
-	case version.Capella:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V2{},
-		}
-	default:
-		return nil
-	}
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v1;enginev1";
+
+// PayloadAttributesContainer is a container for payload attributes.
+message PayloadAttributesContainer {
+  // attributes represents the attributes of the payload.
+  oneof attributes {
+    // v2 are the payload attributes for capella.
+    ethereum.engine.v1.PayloadAttributesV2 v2 = 1;
+    // v3 are the payload attributes for deneb.
+    ethereum.engine.v1.PayloadAttributesV3 v3 = 2;
+  }
 }

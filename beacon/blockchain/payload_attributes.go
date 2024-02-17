@@ -29,8 +29,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // getPayloadAttribute returns the payload attributes for the given state and slot.
@@ -38,16 +38,16 @@ import (
 // context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(
 	ctx context.Context,
-) engine.PayloadAttributer {
+) (engine.PayloadAttributer, error) {
 	var (
 		// NOTE: We have to use time.Now() and not the time on the block header coming from
 		// Comet or else we attempt to build a block at an equivalent timestamp to the last.
 		// TODO: figure out how to fix this, in ethereum I think we need to use the slot to timestamp
 		// for the slot math thingy to calculate what the correct timestamp would be for the block we
 		// are building.
-		t = uint64(time.Now().Unix()) + 1 //#nosec:G701 // won't overflow, time cannot be negative.
+		t = uint64(time.Now().Unix()) + 4 //#nosec:G701 // won't overflow, time cannot be negative.
 		// TODO: RANDAO
-		prevRando = make([]byte, 32) //nolint:gomnd // TODO: later
+		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
 		// TODO: Cancun
 		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
 	)
@@ -59,13 +59,26 @@ func (s *Service) getPayloadAttribute(
 	// 	log.WithError(err).Error("Could not get randao mix to get payload attribute")
 	// 	return emptyAttri
 	// }
+	st := s.BeaconState(ctx)
 
-	return core.BuildPayloadAttributes(
-		s.BeaconCfg(),
-		s.BeaconState(ctx),
-		s.Logger(),
-		prevRando,
-		headRoot,
+	// Since beacon-kit is always post capella we can assume calling ExpectedWithdrawals
+	// is valid.
+	// TODO: need to make this so it is calling expected withdrawals from
+	// the next batch of withdrawals.
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		s.Logger().Error(
+			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil, err
+	}
+
+	return enginev1.NewPayloadAttributesContainer(
+		s.BeaconState(ctx).Version(),
+		//#nosec:G701 // won't overflow.
 		t,
+		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+		prevRandao,
+		withdrawals,
+		headRoot,
 	)
 }
