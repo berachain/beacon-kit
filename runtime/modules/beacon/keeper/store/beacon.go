@@ -51,6 +51,10 @@ type BeaconStore struct {
 	// deposits is a list of deposits that are queued to be processed.
 	deposits *collections.Queue[*Deposit]
 
+	// depositCache is a cache of deposits in the current block
+	// that are not yet committed to the queue.
+	depositCache []*Deposit
+
 	// stakingKeeper is the staking keeper, wrapping SDK x/staking.
 	stakingKeeper staking.Staking
 

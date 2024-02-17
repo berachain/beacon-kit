@@ -27,12 +27,9 @@ package blockchain
 
 import (
 	"context"
-	"errors"
 
-	"cosmossdk.io/collections"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
 
@@ -48,30 +45,24 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// Process logs, including deposits.
+	// Process logs, including deposit events,
+	// and push them to the cache in the beacon state.
 	err = s.en.ProcessLogs(ctx, payload.GetBlockNumber())
 	if err != nil {
 		return err
 	}
 
 	state := s.BeaconState(ctx)
-	// Process deposits.
-	cfg := s.BeaconCfg()
-	var processedDeposits uint64
-	for processedDeposits < cfg.Limits.MaxDepositsPerBlock {
-		var deposit *store.Deposit
-		deposit, err = state.NextDeposit()
-		if err != nil {
-			if errors.Is(err, collections.ErrNotFound) {
-				break
-			}
-			return err
-		}
-		err = state.ProcessDeposit(deposit)
-		if err != nil {
-			return err
-		}
-		processedDeposits++
+	// Commit cached deposits in this block to the beacon state's queue.
+	err = state.CommitDeposits()
+	if err != nil {
+		return err
+	}
+	// Pop deposits, up to MaxDepositsPerBlock, from the beacon state
+	// and persist them to the staking keeper.
+	_, err = state.PersistDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
+	if err != nil {
+		return err
 	}
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 

@@ -32,9 +32,9 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 )
 
-// ProcessDeposit processes a deposit log from the execution layer
+// ProcessDepositEvent processes a deposit log from the execution layer
 // and puts the deposit to the beacon state.
-func (s *Service) ProcessDeposit(
+func (s *Service) ProcessDepositEvent(
 	ctx context.Context,
 	validatorPubkey []byte,
 	withdrawalCredentials []byte,
@@ -43,29 +43,28 @@ func (s *Service) ProcessDeposit(
 ) error {
 	beaconState := s.BeaconState(ctx)
 	expectedNonce := beaconState.GetStakingNonce()
-	// We may receive the same deposit log twice from the execution layer, just ignore it.
+	// We may receive the same deposit event twice
+	// from the execution layer, just ignore it.
 	if nonce < expectedNonce {
 		return nil
 	}
-	// The deposit log does not come in order.
+	// The deposit event does not come in order.
 	if nonce != expectedNonce {
 		return errors.Wrapf(
 			ErrInvalidNonce, "expected nonce %d, got %d", expectedNonce, nonce,
 		)
 	}
-	// Increase the staking nonce before AddDeposit,
-	// so that it is ready to accept the nexr deposit,
-	// even when AddDeposit returns an error.
+	// Increase the staking nonce after nonce checks
+	// so that it is ready to accept the nexr deposit.
 	beaconState.SetStakingNonce(expectedNonce + 1)
 	deposit := store.NewDeposit(
 		validatorPubkey,
 		amount,
 		withdrawalCredentials,
 	)
-	// Add the deposit to the queue.
-	err := beaconState.AddDeposit(deposit)
+	err := beaconState.CacheDeposit(deposit)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to push deposit to cache")
 	}
 	s.Logger().Info("delegating from execution layer",
 		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)

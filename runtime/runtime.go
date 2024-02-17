@@ -140,14 +140,12 @@ func NewDefaultBeaconKitRuntime(
 	// Build the staking service.
 	stakingService := staking.New(
 		baseService.WithName("staking"),
-		staking.WithLogger(logger),
-	)
+		staking.WithLogger(logger))
 
 	// Build the log processor.
 	logProcessor, err := newLogProcessor(
 		baseService, stakingService,
-		eth1Client, logger, cfg,
-	)
+		eth1Client, logger, cfg)
 	if err != nil {
 		return nil, err
 	}

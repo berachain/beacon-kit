@@ -87,18 +87,42 @@ func (d DepositValue) ValueType() string {
 	return "Deposit"
 }
 
-// AddDeposit adds a deposit to the staking module.
-func (s *BeaconStore) AddDeposit(deposit *Deposit) error {
-	return s.deposits.Push(s.sdkCtx, deposit)
+// CacheDeposit caches a deposit.
+func (s *BeaconStore) CacheDeposit(deposit *Deposit) error {
+	s.depositCache = append(s.depositCache, deposit)
+	return nil
 }
 
-// NextDeposit returns the next deposit in the queue.
-func (s *BeaconStore) NextDeposit() (*Deposit, error) {
-	return s.deposits.Pop(s.sdkCtx)
+// CommitDeposits commits the cached deposits to the queue.
+func (s *BeaconStore) CommitDeposits() error {
+	err := s.deposits.PushMulti(s.sdkCtx, s.depositCache)
+	if err != nil {
+		return err
+	}
+	s.depositCache = nil
+	return nil
 }
 
-// ProcessDeposit processes a deposit with the staking keeper.
-func (s *BeaconStore) ProcessDeposit(deposit *Deposit) error {
+// PersistDeposits pops the next deposits, up to n,
+// from the queue and delegate them with staking keeper.
+func (s *BeaconStore) PersistDeposits(n uint64) ([]*Deposit, error) {
+	var err error
+	depositsToProcess, err := s.deposits.PopMulti(s.sdkCtx, n)
+	if err != nil {
+		return nil, err
+	}
+	for _, deposit := range depositsToProcess {
+		// TODO: If an error occurs in the middle of processing deposits,
+		// should we continue to process the remaining deposits?
+		if err = s.processDeposit(deposit); err != nil {
+			return nil, err
+		}
+	}
+	return depositsToProcess, nil
+}
+
+// processDeposit processes a deposit with the staking keeper.
+func (s *BeaconStore) processDeposit(deposit *Deposit) error {
 	_, err := s.stakingKeeper.Delegate(s.sdkCtx, deposit)
 	return err
 }

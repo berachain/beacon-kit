@@ -102,27 +102,16 @@ type ReadOnlyForkChoice interface {
 
 // WriteOnlyStaking defines a struct which only has write access to staking methods.
 type WriteOnlyStaking interface {
-	AddDeposit(deposit *store.Deposit) error
-	ProcessDeposit(deposit *store.Deposit) error
+	CacheDeposit(deposit *store.Deposit) error
+	CommitDeposits() error
+	PersistDeposits(n uint64) ([]*store.Deposit, error)
 	SetStakingNonce(nonce uint64)
 }
 
 // ReadOnlyStaking defines a struct which has read access to staking methods.
 type ReadOnlyStaking interface {
-	NextDeposit() (*store.Deposit, error)
 	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
 	GetStakingNonce() uint64
-}
-
-// WriteOnlyDeposits defines a struct which only has write access to deposit methods.
-type WriteOnlyDeposits interface {
-	AddDeposit(deposit *store.Deposit) error
-	ProcessDeposit(deposit *store.Deposit) error
-}
-
-// ReadOnlyDeposits defines a struct which has read access to deposit methods.
-type ReadOnlyDeposits interface {
-	NextDeposit() (*store.Deposit, error)
 }
 
 type ReadOnlyGenesis interface {

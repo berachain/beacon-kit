@@ -29,7 +29,7 @@ import (
 	"context"
 )
 
-func (s *Service) ProcessWithdrawal(
+func (s *Service) ProcessWithdrawalEvent(
 	_ context.Context,
 	validatorPubkey []byte,
 	amount uint64,
