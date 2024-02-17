@@ -100,41 +100,141 @@ func Test_Queue(t *testing.T) {
 	})
 }
 
-type Store struct {
+func Test_PopMulti(t *testing.T) {
+	t.Run("should return correct items and lengths", func(t *testing.T) {
+		sk, ctx := deps()
+		sb := sdk.NewSchemaBuilder(sk)
+		q := collections.NewQueue[uint64](sb, "queue", sdk.Uint64Value)
+
+		err := q.Push(ctx, 1)
+		require.NoError(t, err)
+
+		err = q.Push(ctx, 2)
+		require.NoError(t, err)
+
+		err = q.Push(ctx, 3)
+		require.NoError(t, err)
+
+		// Test length after pushes
+		qlen, err := q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), qlen, "Queue should have 3 items after 3 pushes")
+
+		mlen, err := mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		// Pop 2 items from the queue
+		items, err := q.PopMulti(ctx, 2)
+		require.NoError(t, err)
+		require.Equal(t, []uint64{1, 2}, items)
+
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(1), qlen, "Queue should have 1 item after popping 2 items")
+
+		mlen, err = mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		items, err = q.PopMulti(ctx, 3)
+		require.NoError(t, err)
+		require.Equal(t, []uint64{3}, items)
+
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(0), qlen, "Queue should be empty after popping all items")
+
+		mlen, err = mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		items, err = q.PopMulti(ctx, 3)
+		require.NoError(t, err)
+		require.Empty(t, items)
+	})
+}
+
+func Test_PushMulti(t *testing.T) {
+	t.Run("should return correct items and lengths", func(t *testing.T) {
+		sk, ctx := deps()
+		sb := sdk.NewSchemaBuilder(sk)
+		q := collections.NewQueue[uint64](sb, "queue", sdk.Uint64Value)
+
+		err := q.PushMulti(ctx, []uint64{1, 2, 3})
+		require.NoError(t, err)
+
+		// Test length after pushes
+		qlen, err := q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), qlen, "Queue should have 3 items after 3 pushes")
+
+		mlen, err := mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		items, err := q.PopMulti(ctx, 4)
+		require.NoError(t, err)
+		require.Equal(t, []uint64{1, 2, 3}, items)
+
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(0), qlen, "Queue should be empty after popping all items")
+
+		mlen, err = mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+	})
+}
+
+func mapLen[V any](ctx context.Context, m sdk.Map[uint64, V]) (int, error) {
+	iter, err := m.IterateRaw(ctx, nil, nil, sdk.OrderAscending)
+	if err != nil {
+		return 0, err
+	}
+	keys, err := iter.Keys()
+	if err != nil {
+		return 0, err
+	}
+	return len(keys), nil
+}
+
+// MockStore wraps the dba.Store to implement additional functionalities.
+type MockStore struct {
 	dba.Store
 }
 
-func (s Store) Get(key []byte) ([]byte, error) {
+func (s MockStore) Get(key []byte) ([]byte, error) {
 	return s.Store.Get(key), nil
 }
 
-func (s Store) Has(key []byte) (bool, error) {
+func (s MockStore) Has(key []byte) (bool, error) {
 	return s.Store.Has(key), nil
 }
 
-func (s Store) Iterator(start, end []byte) (db.Iterator, error) {
+func (s MockStore) Iterator(start, end []byte) (db.Iterator, error) {
 	return s.Store.Iterator(start, end), nil
 }
 
-func (s Store) ReverseIterator(start, end []byte) (db.Iterator, error) {
+func (s MockStore) ReverseIterator(start, end []byte) (db.Iterator, error) {
 	return s.Store.ReverseIterator(start, end), nil
 }
 
-func (s Store) Set(key, value []byte) error {
+func (s MockStore) Set(key, value []byte) error {
 	s.Store.Set(key, value)
 	return nil
 }
 
-func (s Store) Delete(key []byte) error {
+func (s MockStore) Delete(key []byte) error {
 	s.Store.Delete(key)
 	return nil
 }
 
-func (s Store) OpenKVStore(ctx context.Context) store.KVStore {
+func (s MockStore) OpenKVStore(ctx context.Context) store.KVStore {
 	return s
 }
 
 func deps() (store.KVStoreService, context.Context) {
 	db := db.NewMemDB()
-	return &Store{Store: dba.Store{DB: db}}, context.Background()
+	return &MockStore{Store: dba.Store{DB: db}}, context.Background()
 }
