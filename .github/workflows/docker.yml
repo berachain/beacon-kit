@@ -47,7 +47,7 @@ jobs:
           - linux/arm64
         os: 
           - ubuntu-latest-large
-    name: build ${{ matrix.platform }}
+    name: build - ${{ matrix.platform }}
     steps:
       - name: Prepare
         run: |
