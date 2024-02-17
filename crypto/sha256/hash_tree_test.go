@@ -34,7 +34,6 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/crypto/sha256"
-	"github.com/protolambda/ztyp/tree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,25 +42,25 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
 		t.Run(fmt.Sprintf("Size%d", size*sha256.MinParallelizationSize), func(t *testing.T) {
-			largeSlice := make([]tree.Root, size*sha256.MinParallelizationSize)
-			secondLargeSlice := make([]tree.Root, size*sha256.MinParallelizationSize)
+			largeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
+			secondLargeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
 			// Assuming hash reduces size by half
-			hash1 := make([]tree.Root, size*sha256.MinParallelizationSize/2)
-			var hash2 []tree.Root
+			hash1 := make([][32]byte, size*sha256.MinParallelizationSize/2)
+			var hash2 [][32]byte
 			var err error
 
 			wg := sync.WaitGroup{}
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				var tempHash []tree.Root
-				tempHash, err = sha256.HashTreeRoot(largeSlice)
+				var tempHash [][32]byte
+				tempHash, err = sha256.BuildParentTreeRoots(largeSlice)
 				copy(hash1, tempHash)
 			}()
 			wg.Wait()
 			require.NoError(t, err)
 
-			hash2, err = sha256.HashTreeRoot(secondLargeSlice)
+			hash2, err = sha256.BuildParentTreeRoots(secondLargeSlice)
 			require.NoError(t, err)
 
 			require.Equal(t, len(hash1), len(hash2), "Hash lengths should be equal")
@@ -93,7 +92,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			inputList := make([]tree.Root, tc.size)
+			inputList := make([][32]byte, tc.size)
 			// Fill inputList with pseudo-random data
 			randSource := rand.NewSource(time.Now().UnixNano())
 			randGen := rand.New(randSource)
@@ -105,4 +104,12 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 			requireGoHashTreeEquivalence(t, inputList, runtime.GOMAXPROCS(0)-1, tc.wantErr)
 		})
 	}
+}
+
+func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
+	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
+	// to test handling of division by zero.
+	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
+	_, err := sha256.BuildParentTreeRootsWithNRoutines(inputList, 0)
+	require.NoError(t, err, "BuildParentTreeRootsWithNRoutines should handle n=0 without error")
 }

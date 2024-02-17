@@ -28,7 +28,7 @@ package validator
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/types/consensus/blocks"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -57,7 +57,7 @@ func (s *Service) BuildBeaconBlock(
 	// }
 
 	// Create a new empty block from the current state.
-	beaconBlock, err := blocks.NewEmptyBeaconKitBlock(
+	beaconBlock, err := consensus.EmptyBeaconKitBlock(
 		slot, s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
 	)
 	if err != nil {

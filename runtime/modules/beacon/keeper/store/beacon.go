@@ -49,7 +49,7 @@ type BeaconStore struct {
 	cfg *config.Beacon
 
 	// deposits is a list of deposits that are queued to be processed.
-	deposits collections.Queue[*Deposit]
+	deposits *collections.Queue[*Deposit]
 
 	// stakingKeeper is the staking keeper, wrapping SDK x/staking.
 	stakingKeeper staking.Staking
@@ -63,7 +63,7 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
-	deposits collections.Queue[*Deposit],
+	deposits *collections.Queue[*Deposit],
 	stakingKeeper staking.Staking,
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,

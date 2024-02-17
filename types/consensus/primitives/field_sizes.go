@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,19 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-repo "https://github.com/prysmaticlabs/prysm.git" {
-  prefix = "proto/engine"
-  commit = "develop"
-  root = ""
-}
+package primitives
 
-repo "https://github.com/prysmaticlabs/prysm.git" {
-  prefix = "proto/eth"
-  commit = "develop"
-  root = ""
-}
-
-repo "https://github.com/protocolbuffers/protobuf.git" {
-  prefix = "google/protobuf/"
-  root = "src"
-}
+const (
+	// MaxTxsPerPayloadLength defines the maximum number of transactions that can
+	// be included in a payload.
+	MaxTxsPerPayloadLength = 1048576
+	// MaxBytesPerTxLength defines the maximum number of bytes that can be included
+	// in a transaction.
+	MaxBytesPerTxLength = 1073741824
+	// MaxWithdrawalsPerPayloadLength defines the
+	// maximum number of withdrawals that can be included in a payload.
+	MaxWithdrawalsPerPayload = 16
+)

@@ -50,10 +50,11 @@ const (
 	DenebForkEpoch = forkRoot + "deneb-fork-epoch"
 
 	// Validator Config.
-	validator             = beaconKitRoot + "validator"
-	SuggestedFeeRecipient = validator + "suggested-fee-recipient"
-	Graffiti              = validator + "graffiti"
-	PrepareAllPayloads    = validator + "prepare-all-payloads"
+	validator               = beaconKitRoot + "validator"
+	SuggestedFeeRecipient   = validator + "suggested-fee-recipient"
+	Graffiti                = validator + "graffiti"
+	PrepareAllPayloads      = validator + "prepare-all-payloads"
+	NumRandaoRevealsToTrack = validator + "num-randao-reveals-to-track"
 
 	// Limits Config.
 	limitsRoot     = beaconConfigRoot + "limits."

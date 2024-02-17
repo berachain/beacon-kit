@@ -89,7 +89,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
 	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
+		_, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
 	}); e != nil {
 		return e
 	}
@@ -114,26 +114,9 @@ func (s *Service) GetBuiltPayload(
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-	preStateHeader enginetypes.ExecutionPayload, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+	payload enginetypes.ExecutionPayload, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
 ) (bool, error) {
-	// var lastValidHash []byte
-	// if blk.Version() >= version.Deneb {
-	// 	var versionedHashes []common.Hash
-	// 	versionedHashes, err = kzgCommitmentsToVersionedHashes(blk.Block().Body())
-	// 	if err != nil {
-	// 		return false, errors.Wrap(err, "could not get versioned hashes to feed the engine")
-	// 	}
-	// 	pr := common.Hash(blk.Block().ParentRoot())
-	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload
-	//			(ctx, payload, versionedHashes, &pr)
-	// } else {
-	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload(ctx, payload,
-	// []common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
-	// }
-
-	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
-		[]common.Hash{}, &common.Hash{} /* TODO: empty version hashes and root before Deneb*/)
-	return lastValidHash != nil, err
+	return s.notifyNewPayload(ctx, payload)
 }
 
 // ProcessLogs processes logs for the given block number.

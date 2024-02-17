@@ -27,4 +27,10 @@ package sha256
 
 import "errors"
 
-var ErrOddLengthTreeRoots = errors.New("input list length must be even")
+var (
+	// ErrOddLengthTreeRoots is an error returned when the input list length must be even.
+	ErrOddLengthTreeRoots = errors.New("input list length must be even")
+
+	// ErrMaxRootsExceeded is an error returned when the number of roots exceeds the maximum allowed.
+	ErrMaxRootsExceeded = errors.New("number of roots exceeds the maximum allowed")
+)

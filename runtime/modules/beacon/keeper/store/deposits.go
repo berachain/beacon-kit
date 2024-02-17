@@ -95,7 +95,7 @@ func (s *BeaconStore) AddDeposit(deposit *Deposit) error {
 
 // NextDeposit returns the next deposit in the queue.
 func (s *BeaconStore) NextDeposit() (*Deposit, error) {
-	return s.deposits.Next(s.sdkCtx)
+	return s.deposits.Pop(s.sdkCtx)
 }
 
 // ProcessDeposit processes a deposit with the staking keeper.
