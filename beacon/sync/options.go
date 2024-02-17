@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package initialsync
+package sync
 
 // Option is a function that modifies the Service.
 type Option func(*Service) error
