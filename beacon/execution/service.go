@@ -42,7 +42,7 @@ import (
 )
 
 // Service is responsible for delivering beacon chain notifications to
-// the execution client.
+// the execution client and processing logs from the execution chain.
 type Service struct {
 	service.BaseService
 	st *staking.Service

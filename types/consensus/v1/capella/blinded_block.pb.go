@@ -129,7 +129,7 @@ type BlindedBeaconKitBlockBodyCapella struct {
 	Graffiti []byte `protobuf:"bytes,2,opt,name=graffiti,proto3" json:"graffiti,omitempty" ssz-size:"32"`
 	// Deposits from the execution chain, at most MAX_DEPOSITS_PER_BLOCK.
 	Deposits []*v1.Deposit `protobuf:"bytes,3,rep,name=deposits,proto3" json:"deposits,omitempty" ssz-max:"16"`
-	// Execution payload from the execution chain. New in Bellatrix network upgrade.
+	// Execution payload header from the execution chain. New in Bellatrix network upgrade.
 	ExecutionPayloadHeader *v11.ExecutionPayloadHeaderCapella `protobuf:"bytes,4,opt,name=execution_payload_header,json=executionPayloadHeader,proto3" json:"execution_payload_header,omitempty"`
 }
 

@@ -69,9 +69,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
+	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
@@ -96,6 +98,7 @@ func NewRootCmd() *cobra.Command {
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 				&beaconconfig.Beacon{},
+				staking.NewKeeper(stakingkeeper.Keeper{}),
 			),
 			depinject.Provide(),
 		),
