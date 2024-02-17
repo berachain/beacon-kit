@@ -30,7 +30,7 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/itsdevbear/bolaris/builder"
+	"github.com/itsdevbear/bolaris/execution/builder"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
