@@ -49,13 +49,13 @@ type Queue[V any] struct {
 func NewQueue[V any](
 	schema *sdk.SchemaBuilder, name string,
 	valueCodec sdkcodec.ValueCodec[V],
-) Queue[V] {
+) *Queue[V] {
 	var (
 		queueName   = name + "_queue"
 		headSeqName = name + "_head"
 		tailSeqName = name + "_tail"
 	)
-	return Queue[V]{
+	return &Queue[V]{
 		container: sdk.NewMap[uint64, V](
 			schema,
 			sdk.NewPrefix(queueName),

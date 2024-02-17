@@ -28,6 +28,7 @@ package config
 import (
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
@@ -46,6 +47,7 @@ func DefaultEngineConfig() Engine {
 		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
 		JWTSecretPath:           "./jwt.hex",
 		RequiredChainID:         7, //nolint:gomnd // default config.
+		DepositContractAddress:  common.HexToAddress("0x00000000219ab540356cBB839Cbe05303d7705Fa"),
 	}
 }
 
@@ -67,6 +69,8 @@ type Engine struct {
 	JWTSecretPath string
 	// RequiredChainID is the chain id that the consensus client must be connected to.
 	RequiredChainID uint64
+	// DepositContractAddress is the address of the deposit contract.
+	DepositContractAddress common.Address
 }
 
 // Parse parses the configuration.
@@ -108,6 +112,11 @@ func (c Engine) Parse(parser parser.AppOptionsParser) (*Engine, error) {
 	); err != nil {
 		return nil, err
 	}
+	if c.DepositContractAddress, err = parser.GetExecutionAddress(
+		flags.DepositContractAddress,
+	); err != nil {
+		return nil, err
+	}
 	return &c, nil
 }
 
@@ -137,5 +146,8 @@ jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 
 # Required chain id for the execution client.
 required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
+
+# Address of the deposit contract.
+deposit-contract-address = "{{.BeaconKit.Engine.DepositContractAddress}}"
 `
 }

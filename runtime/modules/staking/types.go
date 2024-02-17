@@ -23,34 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package staking
 
 import (
 	"context"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
+type Deposit interface {
+	GetPubkey() []byte
+	GetAmount() uint64
+}
 
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
-
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
-
-	// ProcessLogs processes logs for the given block number.
-	ProcessLogs(ctx context.Context, blkNum uint64) error
+// Staking is an interface with functions handling deposits.
+type Staking interface {
+	// Delegate delegates the deposit to the validator.
+	Delegate(ctx context.Context, deposit Deposit) (uint64, error)
 }
