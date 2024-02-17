@@ -30,6 +30,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -51,6 +52,8 @@ type BeaconState interface {
 type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
+	ReadOnlyWithdrawals
+	ReadOnlyDeposits
 	Slot() primitives.Slot
 	Time() uint64
 	Version() int
@@ -81,7 +84,7 @@ type WriteOnlyRandao interface {
 type WriteOnlyBeaconState interface {
 	WriteOnlyForkChoice
 	WriteOnlyGenesis
-	ReadOnlyWithdrawals
+	WriteOnlyDeposits
 }
 
 // Write Only Fork Choice.
@@ -101,6 +104,17 @@ type ReadOnlyForkChoice interface {
 // ReadOnlyWithdrawals defines a struct which only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
 	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
+}
+
+// WriteOnlyDeposits defines a struct which only has write access to deposit methods.
+type WriteOnlyDeposits interface {
+	AddDeposit(deposit *store.Deposit) error
+	ProcessDeposit(deposit *store.Deposit) error
+}
+
+// ReadOnlyDeposits defines a struct which has read access to deposit methods.
+type ReadOnlyDeposits interface {
+	NextDeposit() (*store.Deposit, error)
 }
 
 type ReadOnlyGenesis interface {
