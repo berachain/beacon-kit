@@ -39,7 +39,6 @@ const (
 	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
 	JWTSecretPath           = engineRoot + "jwt-secret-path"
 	RequiredChainID         = engineRoot + "required-chain-id"
-	DepositContractAddress  = engineRoot + "deposit-contract-address"
 
 	// Beacon Config.
 	beaconConfigRoot   = beaconKitRoot + "beacon-config."
