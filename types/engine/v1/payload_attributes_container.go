@@ -34,17 +34,14 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// WrappedPayloadAttributesV3 wraps the PayloadAttributesV3 from
-// Prysmatic Labs' Engine API v1.
-var _ interfaces.PayloadAttributer = (*PayloadAttributesContainer)(nil)
-
+// NewPayloadAttributesContainer creates a new PayloadAttributesContainer.
 func NewPayloadAttributesContainer(
 	v int,
 	timestamp uint64, prevRandao []byte,
 	suggestedFeeReceipient []byte,
 	withdrawals []*v1.Withdrawal,
 	parentBeaconBlockRoot []byte,
-) (*PayloadAttributesContainer, error) {
+) (interfaces.PayloadAttributer, error) {
 	switch v {
 	case version.Deneb:
 		return &PayloadAttributesContainer{
