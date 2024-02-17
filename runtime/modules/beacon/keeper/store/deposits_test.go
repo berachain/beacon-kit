@@ -35,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
+	"github.com/itsdevbear/bolaris/lib/encoding"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -50,7 +51,7 @@ func Test_DepositQueue(t *testing.T) {
 		dq := collections.NewQueue[*store.Deposit](
 			sdkcollections.NewSchemaBuilder(kvs),
 			"deposit_queue",
-			store.DepositValue{})
+			encoding.DepositValue{})
 
 		_, err := dq.Peek(ctx)
 		require.Equal(t, sdkcollections.ErrNotFound, err)

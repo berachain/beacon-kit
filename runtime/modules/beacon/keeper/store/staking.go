@@ -26,7 +26,6 @@
 package store
 
 import (
-	"cosmossdk.io/collections/codec"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -52,38 +51,6 @@ func NewDeposit(pubkey []byte, amount uint64, withdrawalCredentials []byte) *Dep
 		WithdrawalCredentials: withdrawalCredentials,
 	}
 	return &Deposit{&consensusv1.Deposit{Data: depositData}}
-}
-
-type DepositValue struct{}
-
-var _ codec.ValueCodec[*Deposit] = DepositValue{}
-
-func (DepositValue) Encode(value *Deposit) ([]byte, error) {
-	return value.MarshalSSZ()
-}
-
-func (DepositValue) Decode(b []byte) (*Deposit, error) {
-	value := &Deposit{&consensusv1.Deposit{}}
-	if err := value.UnmarshalSSZ(b); err != nil {
-		return nil, err
-	}
-	return value, nil
-}
-
-func (DepositValue) EncodeJSON(_ *Deposit) ([]byte, error) {
-	panic("not implemented")
-}
-
-func (DepositValue) DecodeJSON(_ []byte) (*Deposit, error) {
-	panic("not implemented")
-}
-
-func (DepositValue) Stringify(value *Deposit) string {
-	return value.String()
-}
-
-func (d DepositValue) ValueType() string {
-	return "Deposit"
 }
 
 // CacheDeposit caches a deposit.

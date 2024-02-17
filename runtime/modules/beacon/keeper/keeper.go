@@ -37,6 +37,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/lib/encoding"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
@@ -65,7 +66,7 @@ func NewKeeper(
 	depositQueue := collections.NewQueue[*store.Deposit](
 		sdkcollections.NewSchemaBuilder(kvs),
 		"deposit_queue",
-		store.DepositValue{})
+		encoding.DepositValue{})
 	return &Keeper{
 		storeKey:      storeKey,
 		deposits:      depositQueue,
