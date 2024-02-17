@@ -26,7 +26,7 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 )

@@ -55,7 +55,7 @@ func Test_DepositQueue(t *testing.T) {
 		_, err := dq.Peek(ctx)
 		require.Equal(t, sdkcollections.ErrNotFound, err)
 
-		_, err = dq.Next(ctx)
+		_, err = dq.Pop(ctx)
 		require.Equal(t, sdkcollections.ErrNotFound, err)
 
 		err = dq.Push(ctx, newDeposit([]byte("pubkey1"), 1))
@@ -68,7 +68,7 @@ func Test_DepositQueue(t *testing.T) {
 		require.Equal(t, uint64(1), d.GetAmount())
 		require.Equal(t, []byte("pubkey1"), d.GetPubkey())
 
-		d, err = dq.Next(ctx)
+		d, err = dq.Pop(ctx)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), d.GetAmount())
 		require.Equal(t, []byte("pubkey1"), d.GetPubkey())
@@ -76,7 +76,7 @@ func Test_DepositQueue(t *testing.T) {
 		err = dq.Push(ctx, newDeposit([]byte("pubkey3"), 3))
 		require.NoError(t, err)
 
-		d, err = dq.Next(ctx)
+		d, err = dq.Pop(ctx)
 		require.NoError(t, err)
 		require.Equal(t, uint64(2), d.GetAmount())
 		require.Equal(t, []byte("pubkey2"), d.GetPubkey())
@@ -86,7 +86,7 @@ func Test_DepositQueue(t *testing.T) {
 		require.Equal(t, uint64(3), d.GetAmount())
 		require.Equal(t, []byte("pubkey3"), d.GetPubkey())
 
-		d, err = dq.Next(ctx)
+		d, err = dq.Pop(ctx)
 		require.NoError(t, err)
 		require.Equal(t, uint64(3), d.GetAmount())
 		require.Equal(t, []byte("pubkey3"), d.GetPubkey())
@@ -94,7 +94,7 @@ func Test_DepositQueue(t *testing.T) {
 		_, err = dq.Peek(ctx)
 		require.Equal(t, sdkcollections.ErrNotFound, err)
 
-		_, err = dq.Next(ctx)
+		_, err = dq.Pop(ctx)
 		require.Equal(t, sdkcollections.ErrNotFound, err)
 	})
 }

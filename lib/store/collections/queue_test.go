@@ -39,57 +39,63 @@ import (
 )
 
 func Test_Queue(t *testing.T) {
-	t.Run("should return correct items", func(t *testing.T) {
+	t.Run("should return correct items and lengths", func(t *testing.T) {
 		sk, ctx := deps()
 		sb := sdk.NewSchemaBuilder(sk)
 		q := collections.NewQueue[uint64](sb, "queue", sdk.Uint64Value)
 
-		_, err := q.Peek(ctx)
-		require.Equal(t, sdk.ErrNotFound, err)
-
-		_, err = q.Next(ctx)
-		require.Equal(t, sdk.ErrNotFound, err)
-
-		err = q.Push(ctx, 1)
+		// Test initial length of the queue
+		qlen, err := q.Len(ctx)
 		require.NoError(t, err)
-		err = q.Push(ctx, 2)
-		require.NoError(t, err)
-
-		v, err := q.Next(ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(1), v)
-		v, err = q.Next(ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(2), v)
-		_, err = q.Next(ctx)
-		require.Equal(t, sdk.ErrNotFound, err)
-
-		err = q.Push(ctx, 3)
-		require.NoError(t, err)
-
-		v, err = q.Peek(ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(3), v)
-
-		err = q.Push(ctx, 4)
-		require.NoError(t, err)
-
-		v, err = q.Peek(ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(3), v)
-
-		v, err = q.Next(ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(3), v)
-
-		v, err = q.Next(ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(4), v)
+		require.Equal(t, uint64(0), qlen, "Queue should be empty initially")
 
 		_, err = q.Peek(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 
-		_, err = q.Next(ctx)
+		_, err = q.Pop(ctx)
+		require.Equal(t, sdk.ErrNotFound, err)
+
+		err = q.Push(ctx, 1)
+		require.NoError(t, err)
+
+		// Test length after first push
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(1), qlen, "Queue should have 1 item after first push")
+
+		err = q.Push(ctx, 2)
+		require.NoError(t, err)
+
+		// Test length after second push
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(2), qlen, "Queue should have 2 items after second push")
+
+		v, err := q.Pop(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(1), v)
+
+		// Test length after first pop
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(1), qlen, "Queue should have 1 item after first pop")
+
+		v, err = q.Pop(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(2), v)
+
+		// Test length after clearing the queue
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(0), qlen, "Queue should be empty after clearing")
+
+		// Attempt to peek at the top value of the queue, expecting an error since the queue
+		// should now be empty
+		_, err = q.Peek(ctx)
+		require.Equal(t, sdk.ErrNotFound, err)
+
+		// Attempt to pop an item from the queue, expecting an error since the queue is empty
+		_, err = q.Pop(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 	})
 }

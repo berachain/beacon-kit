@@ -28,10 +28,6 @@ package proposal
 import "errors"
 
 var (
-	// ErrNoBeaconBlockInProposal is an error for when
-	// there is no beacon block in a proposal.
-	ErrNoBeaconBlockInProposal = errors.New("no beacon block in proposal")
-
 	// ErrValidatorClientNotSynced is an error for when a
 	// validator tries to propose a block with an out of sync
 	// execution client.

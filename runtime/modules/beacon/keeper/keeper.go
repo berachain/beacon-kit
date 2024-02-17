@@ -47,7 +47,7 @@ import (
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	storeKey      storetypes.StoreKey
-	deposits      collections.Queue[*store.Deposit]
+	deposits      *collections.Queue[*store.Deposit]
 	stakingKeeper staking.Staking
 	beaconCfg     *config.Beacon
 }

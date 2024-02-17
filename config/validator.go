@@ -28,7 +28,7 @@ package config
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/config/parser"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
 // Validator conforms to the BeaconKitConfig interface.
@@ -54,6 +54,9 @@ type Validator struct {
 
 	// PrepareAllPayloads informs the engine to prepare a block on every slot.
 	PrepareAllPayloads bool
+
+	// Rando reveals to track
+	NumRandaoRevealsToTrack uint64
 }
 
 // Parse parses the configuration.
@@ -70,6 +73,12 @@ func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
 
 	if c.PrepareAllPayloads, err = parser.GetBool(
 		flags.PrepareAllPayloads,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.NumRandaoRevealsToTrack, err = parser.GetUint64(
+		flags.NumRandaoRevealsToTrack,
 	); err != nil {
 		return nil, err
 	}

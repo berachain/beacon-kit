@@ -31,6 +31,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
@@ -42,13 +43,13 @@ func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
 	blk interfaces.ReadOnlyBeaconKitBlock,
 ) error {
-	execution, err := blk.Execution()
+	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
 	}
 
 	// Process logs, including deposits.
-	err = s.en.ProcessLogs(ctx, execution.GetBlockNumber())
+	err = s.en.ProcessLogs(ctx, payload.GetBlockNumber())
 	if err != nil {
 		return err
 	}
@@ -74,7 +75,14 @@ func (s *Service) FinalizeBeaconBlock(
 	}
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	eth1BlockHash := common.Hash(execution.GetBlockHash())
+	if err = s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
+		HeadEth1Hash: common.Hash(payload.GetBlockHash()),
+		Attributes:   nil,
+	}); err != nil {
+		s.Logger().Error("failed to notify forkchoice update", "error", err)
+	}
+
+	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)

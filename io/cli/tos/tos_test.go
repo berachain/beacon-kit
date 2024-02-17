@@ -35,8 +35,10 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
 	"github.com/itsdevbear/bolaris/io/file"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
@@ -44,8 +46,7 @@ import (
 )
 
 const (
-	acceptTosFilename   = "tosaccepted"
-	declinedErrorString = "you have to accept Terms and Conditions in order to continue"
+	acceptTosFilename = "tosaccepted"
 )
 
 func TestAcceptTosFlag(t *testing.T) {
@@ -71,7 +72,7 @@ func TestAcceptTosFlag(t *testing.T) {
 
 func TestAcceptWithCLI(t *testing.T) {
 	homeDir := makeTempDir(t)
-	t.Log("homeDir: ", homeDir)
+	defer os.RemoveAll(homeDir)
 
 	inputBuffer := bytes.NewReader([]byte("accept\n"))
 	rootCmd := root.NewRootCmd()
@@ -92,7 +93,7 @@ func TestAcceptWithCLI(t *testing.T) {
 
 func TestDeclineWithCLI(t *testing.T) {
 	homeDir := makeTempDir(t)
-	t.Log("homeDir: ", homeDir)
+	defer os.RemoveAll(homeDir)
 
 	inputBuffer := bytes.NewReader([]byte("decline\n"))
 	rootCmd := root.NewRootCmd()
@@ -108,17 +109,21 @@ func TestDeclineWithCLI(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	if err.Error() != declinedErrorString {
-		t.Errorf("Expected %v, got %v", declinedErrorString, err)
+	if err.Error() != tos.DeclinedErrorString {
+		t.Errorf("Expected %v, got %v", tos.DeclinedErrorString, err)
 	}
 }
 
 func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	homeDir := makeTempDir(t)
-	t.Log("homeDir: ", homeDir)
+	defer os.RemoveAll(homeDir)
+
+	// Setup non-interactive reader
+	errReader := &mocks.Reader{}
+	errReader.On("Read", mock.Anything).Return(0, errors.New("error"))
 
 	rootCmd := root.NewRootCmd()
-	rootCmd.SetIn(&ErrReader{})
+	rootCmd.SetIn(errReader)
 	rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	rootCmd.SetArgs([]string{
 		"query",
@@ -136,12 +141,6 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	}
 }
 
-type ErrReader struct{}
-
-func (e *ErrReader) Read(p []byte) (int, error) {
-	return 0, errors.New("forced error in scanner")
-}
-
 func expectTosAcceptSuccess(t *testing.T, homeDir string) {
 	if ok := file.Exists(filepath.Join(homeDir, acceptTosFilename)); !ok {
 		t.Errorf("Expected tosaccepted file to exist in %s", homeDir)
@@ -153,6 +152,5 @@ func makeTempDir(t *testing.T) string {
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
-	t.Log("homeDir: ", homeDir)
 	return homeDir
 }

@@ -195,6 +195,7 @@ test-unit-fuzz:
 	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
+	go test -fuzz=FuzzQueue ./lib/store/collections/... -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
 #     forge     #
@@ -370,7 +371,7 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1/capella -objs BeaconKitBlockCapella \
+	@sszgen -path ./types/consensus/v1/capella -objs BeaconKitBlockCapella,BlindedBeaconKitBlockCapella \
     --include ./types/consensus/primitives,./types/consensus/v1,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 	@sszgen -path ./types/consensus/v1 -objs Deposit \
