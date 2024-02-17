@@ -26,6 +26,7 @@
 package enginev1
 
 import (
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	"github.com/itsdevbear/bolaris/types/engine/v1/capella"
 	"github.com/itsdevbear/bolaris/types/engine/v1/deneb"
@@ -63,14 +64,16 @@ func PayloadContainerFromPayload(
 // from a given BeaconKitBlockContainer.
 func PayloadFromContainer(
 	container *ExecutionPayloadContainer,
+	value math.Wei,
 ) interfaces.ExecutionPayload {
+	// TODO: support headers
 	switch payload := container.GetPayload().(type) {
 	case *ExecutionPayloadContainer_Capella:
-		return capella.NewWrappedExecutionPayloadCapella(payload.Capella, nil)
+		return capella.NewWrappedExecutionPayloadCapella(payload.Capella, value)
 	// case *ExecutionPayloadContainer_CapellaHeader:
-	// 	return capella.NewWrappedExecutionPayloadCapella(payload.CapellaHeader, nil)
+	// 	// return capella.NewWrappedExecutionPayloadCapella(payload.CapellaHeader, nil)
 	case *ExecutionPayloadContainer_Deneb:
-		return deneb.NewWrappedExecutionPayloadDeneb(payload.Deneb, nil)
+		return deneb.NewWrappedExecutionPayloadDeneb(payload.Deneb, value)
 	// case *ExecutionPayloadContainer_DenebHeader:
 	// 	return deneb.NewWrappedExecutionPayloadDeneb(payload.Capella, nil)
 	// case *BeaconKitBlockContainer_CapellaBlinded:
