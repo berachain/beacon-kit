@@ -27,9 +27,12 @@ package blockchain
 
 import (
 	"context"
+	"errors"
 
+	"cosmossdk.io/collections"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
 
@@ -45,11 +48,34 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// TODO: PROCESS LOGS HERE
-	// TODO: PROCESS DEPOSITS HERE
+	// Process logs, including deposits.
+	err = s.en.ProcessLogs(ctx, payload.GetBlockNumber())
+	if err != nil {
+		return err
+	}
+
+	state := s.BeaconState(ctx)
+	// Process deposits.
+	cfg := s.BeaconCfg()
+	var processedDeposits uint64
+	for processedDeposits < cfg.Limits.MaxDepositsPerBlock {
+		var deposit *store.Deposit
+		deposit, err = state.NextDeposit()
+		if err != nil {
+			if errors.Is(err, collections.ErrNotFound) {
+				break
+			}
+			return err
+		}
+		err = state.ProcessDeposit(deposit)
+		if err != nil {
+			return err
+		}
+		processedDeposits++
+	}
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	if err := s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
+	if err = s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
 		HeadEth1Hash: common.Hash(payload.GetBlockHash()),
 		Attributes:   nil,
 	}); err != nil {
@@ -57,7 +83,6 @@ func (s *Service) FinalizeBeaconBlock(
 	}
 
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)

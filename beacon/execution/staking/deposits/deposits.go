@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,34 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package deposits
 
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
+type DepositHandler struct{}
 
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
+var _ callback.LogHandler = &DepositHandler{}
 
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
-
-	// ProcessLogs processes logs for the given block number.
-	ProcessLogs(ctx context.Context, blkNum uint64) error
+// HandleLog processes the logs from the Eth1 deposit contract.
+func (h *DepositHandler) HandleLog(_ context.Context, _ *coretypes.Log) error {
+	// TODO: Parse the log and add the deposit to the staking module.
+	return nil
 }

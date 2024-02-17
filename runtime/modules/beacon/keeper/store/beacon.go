@@ -33,6 +33,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/lib/store/collections"
+	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
@@ -46,6 +48,12 @@ type BeaconStore struct {
 	// cfg is the beacon configuration.
 	cfg *config.Beacon
 
+	// deposits is a list of deposits that are queued to be processed.
+	deposits *collections.Queue[*Deposit]
+
+	// stakingKeeper is the staking keeper, wrapping SDK x/staking.
+	stakingKeeper staking.Staking
+
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
 	lastValidHash common.Hash
@@ -55,13 +63,17 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
+	deposits *collections.Queue[*Deposit],
+	stakingKeeper staking.Staking,
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return &BeaconStore{
-		sdkCtx:  sdkCtx,
-		KVStore: sdkCtx.KVStore(storeKey),
-		cfg:     cfg,
+		sdkCtx:        sdkCtx,
+		KVStore:       sdkCtx.KVStore(storeKey),
+		deposits:      deposits,
+		stakingKeeper: stakingKeeper,
+		cfg:           cfg,
 	}
 }
