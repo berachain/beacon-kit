@@ -23,40 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package deposits
 
 import (
-	"time"
+	"context"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 )
 
-// ABCIRequest is the interface for an ABCI request.
-type ABCIRequest interface {
-	GetHeight() int64
-	GetTime() time.Time
-	GetTxs() [][]byte
-}
+type DepositHandler struct{}
 
-// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
-// new read-only beacon block by extracting a marshalled
-// block out of an ABCI request.
-func ReadOnlyBeaconKitBlockFromABCIRequest(
-	req ABCIRequest,
-	bzIndex uint,
-	forkVersion int,
-) (interfaces.ReadOnlyBeaconKitBlock, error) {
-	txs := req.GetTxs()
+var _ callback.LogHandler = &DepositHandler{}
 
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= lenTxs {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	return consensus.BeaconKitBlockFromSSZ(txs[bzIndex], forkVersion)
+// HandleLog processes the logs from the Eth1 deposit contract.
+func (h *DepositHandler) HandleLog(_ context.Context, _ *coretypes.Log) error {
+	// TODO: Parse the log and add the deposit to the staking module.
+	return nil
 }
