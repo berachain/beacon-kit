@@ -29,7 +29,8 @@ pragma solidity 0.8.24;
  * @dev Interface of the staking contract.
  */
 contract Staking {
-    //////////////////////////////////////// VARIABLES /////////////////////////////////////////////
+    //////////////////////////////////////// VARIABLES
+    // /////////////////////////////////////////////
     uint256 nonce;
 
     ////////////////////////////////////////// EVENTS /////////////////////////////////////////////
@@ -41,12 +42,7 @@ contract Staking {
      * @param amount The amount of tokens delegated.
      * @param nonce The nonce of the delegation.
      */
-    event Deposit(
-        bytes validatorPubkey,
-        bytes withdrawalCredentials,
-        bytes amount,
-        bytes nonce
-    );
+    event Deposit(bytes validatorPubkey, bytes withdrawalCredentials, bytes amount, bytes nonce);
 
     /**
      * @dev Emitted by the staking contract when `amount` tokens are unbonded from
@@ -68,7 +64,9 @@ contract Staking {
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
-    ) external {
+    )
+        external
+    {
         emit Deposit(
             validatorPubkey,
             withdrawalCredentials,
@@ -84,11 +82,7 @@ contract Staking {
      * @param amount The amount of tokens to undelegate.
      */
     function withdraw(bytes calldata validatorPubkey, uint64 amount) external {
-        emit Withdraw(
-            validatorPubkey,
-            abi.encodePacked(amount),
-            abi.encodePacked(nonce)
-        );
+        emit Withdraw(validatorPubkey, abi.encodePacked(amount), abi.encodePacked(nonce));
         nonce++;
     }
 }

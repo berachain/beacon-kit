@@ -28,6 +28,7 @@ package execution
 import (
 	"context"
 	"errors"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
@@ -118,7 +119,6 @@ func (s *Service) NotifyNewPayload(ctx context.Context, payload enginetypes.Exec
 ) (bool, error) {
 	return s.notifyNewPayload(ctx, payload)
 }
-<<<<<<< HEAD
 
 // ProcessLogs processes logs for the given block number.
 func (s *Service) ProcessLogs(ctx context.Context, blkNum uint64) error {
@@ -131,5 +131,3 @@ func (s *Service) ProcessLogs(ctx context.Context, blkNum uint64) error {
 	}
 	return s.st.PersistDeposits(ctx)
 }
-=======
->>>>>>> 2ef1c7a568f885e74b3d5be498a841a391453bac

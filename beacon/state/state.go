@@ -30,6 +30,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -51,10 +52,7 @@ type BeaconState interface {
 type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
-<<<<<<< HEAD
 	ReadOnlyStaking
-=======
->>>>>>> 2ef1c7a568f885e74b3d5be498a841a391453bac
 	Slot() primitives.Slot
 	Time() uint64
 	Version() int
@@ -85,11 +83,7 @@ type WriteOnlyRandao interface {
 type WriteOnlyBeaconState interface {
 	WriteOnlyForkChoice
 	WriteOnlyGenesis
-<<<<<<< HEAD
 	WriteOnlyStaking
-=======
-	ReadOnlyWithdrawals
->>>>>>> 2ef1c7a568f885e74b3d5be498a841a391453bac
 }
 
 // Write Only Fork Choice.
@@ -115,10 +109,7 @@ type WriteOnlyStaking interface {
 // ReadOnlyStaking defines a struct which has read access to staking methods.
 type ReadOnlyStaking interface {
 	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
-<<<<<<< HEAD
 	GetStakingNonce() (uint64, error)
-=======
->>>>>>> 2ef1c7a568f885e74b3d5be498a841a391453bac
 }
 
 type ReadOnlyGenesis interface {

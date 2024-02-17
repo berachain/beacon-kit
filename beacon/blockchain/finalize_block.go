@@ -59,7 +59,6 @@ func (s *Service) FinalizeBeaconBlock(
 		s.Logger().Error("failed to notify forkchoice update", "error", err)
 	}
 
-	state := s.BeaconState(ctx)
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
