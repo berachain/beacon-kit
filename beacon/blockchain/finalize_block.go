@@ -49,7 +49,7 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	if err := s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
+	if err = s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
 		HeadEth1Hash: common.Hash(payload.GetBlockHash()),
 		Attributes:   nil,
 	}); err != nil {
