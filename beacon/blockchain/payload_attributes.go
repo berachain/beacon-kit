@@ -45,7 +45,7 @@ func (s *Service) getPayloadAttribute(
 		// TODO: figure out how to fix this, in ethereum I think we need to use the slot to timestamp
 		// for the slot math thingy to calculate what the correct timestamp would be for the block we
 		// are building.
-		t = uint64(time.Now().Unix()) + 4 //#nosec:G701 // won't overflow, time cannot be negative.
+		t = uint64(time.Now().Unix()) + 1 //#nosec:G701 // won't overflow, time cannot be negative.
 		// TODO: RANDAO
 		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
 		// TODO: Cancun
@@ -74,10 +74,8 @@ func (s *Service) getPayloadAttribute(
 
 	return enginev1.NewPayloadAttributesContainer(
 		s.BeaconState(ctx).Version(),
-		//#nosec:G701 // won't overflow.
-		t,
+		t, prevRandao,
 		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
-		prevRandao,
 		withdrawals,
 		headRoot,
 	)
