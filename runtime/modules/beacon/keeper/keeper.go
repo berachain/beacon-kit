@@ -30,26 +30,20 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	sdkcollections "cosmossdk.io/collections"
-	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
-	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	storeKey      storetypes.StoreKey
-	deposits      *collections.Queue[*store.Deposit]
-	stakingKeeper staking.Staking
-	beaconCfg     *config.Beacon
+	storeKey  storetypes.StoreKey
+	beaconCfg *config.Beacon
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -57,20 +51,12 @@ var _ state.BeaconStateProvider = &Keeper{}
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
-	storeKey *storetypes.KVStoreKey,
-	stakingKeeper staking.Staking,
+	storeKey storetypes.StoreKey,
 	beaconCfg *config.Beacon,
 ) *Keeper {
-	kvs := sdkruntime.NewKVStoreService(storeKey)
-	depositQueue := collections.NewQueue[*store.Deposit](
-		sdkcollections.NewSchemaBuilder(kvs),
-		"deposit_queue",
-		store.DepositValue{})
 	return &Keeper{
-		storeKey:      storeKey,
-		deposits:      depositQueue,
-		stakingKeeper: stakingKeeper,
-		beaconCfg:     beaconCfg,
+		storeKey:  storeKey,
+		beaconCfg: beaconCfg,
 	}
 }
 
@@ -80,8 +66,6 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return store.NewBeaconStore(
 		ctx,
 		k.storeKey,
-		k.deposits,
-		k.stakingKeeper,
 		k.beaconCfg,
 	)
 }

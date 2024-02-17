@@ -45,7 +45,7 @@ func WithEthClient(eth1Client *eth.Eth1Client) Option {
 	}
 }
 
-// WithHandlers is an Option that sets the contract address for the Processor.
+// WithContractAddr is an Option that sets the contract address for the Processor.
 func WithHandlers(handlers map[common.Address]callback.LogHandler) Option {
 	return func(p *Processor) error {
 		p.handlers = handlers

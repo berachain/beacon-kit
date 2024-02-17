@@ -30,14 +30,10 @@ import (
 
 	"cosmossdk.io/log"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	"github.com/itsdevbear/bolaris/beacon/execution/staking/deposits"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/cache"
@@ -136,24 +132,11 @@ func NewDefaultBeaconKitRuntime(
 		engine.WithLogger(logger),
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
-	// Build the log processor.
-	handlers := make(map[common.Address]callback.LogHandler)
-	handlers[cfg.Engine.DepositContractAddress] = &deposits.DepositHandler{}
-	logProcessor, err := logs.NewProcessor(
-		logs.WithEthClient(eth1Client),
-		logs.WithLogger(logger),
-		logs.WithHandlers(handlers),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Build the execution service.
 	executionService := execution.New(
 		baseService.WithName("execution"),
 		execution.WithEngineCaller(engineClient),
 		execution.WithPayloadCache(payloadCache),
-		execution.WithProcessor(logProcessor),
 	)
 
 	// Build the blockchain service
