@@ -26,8 +26,11 @@
 package execution
 
 import (
+<<<<<<< HEAD
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
+=======
+>>>>>>> 2ef1c7a568f885e74b3d5be498a841a391453bac
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 )

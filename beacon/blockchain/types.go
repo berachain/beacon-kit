@@ -48,7 +48,4 @@ type ExecutionService interface {
 	GetBuiltPayload(
 		ctx context.Context, slot primitives.Slot, headHash common.Hash,
 	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
-
-	// ProcessLogs processes logs for the given block number.
-	ProcessLogs(ctx context.Context, blkNum uint64) error
 }

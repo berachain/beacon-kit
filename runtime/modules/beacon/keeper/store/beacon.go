@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
-	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
@@ -67,17 +66,13 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
-	deposits *collections.Queue[*Deposit],
-	stakingKeeper staking.Staking,
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return &BeaconStore{
-		sdkCtx:        sdkCtx,
-		KVStore:       sdkCtx.KVStore(storeKey),
-		deposits:      deposits,
-		stakingKeeper: stakingKeeper,
-		cfg:           cfg,
+		sdkCtx:  sdkCtx,
+		KVStore: sdkCtx.KVStore(storeKey),
+		cfg:     cfg,
 	}
 }

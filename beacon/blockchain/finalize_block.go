@@ -61,6 +61,7 @@ func (s *Service) FinalizeBeaconBlock(
 
 	state := s.BeaconState(ctx)
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
+	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)
