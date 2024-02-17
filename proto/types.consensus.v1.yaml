@@ -1,0 +1,30 @@
+components:
+  schemas:
+    types.consensus.v1.Deposit:
+      description: Deposit into the consensus layer from the deposit contract in the
+        execution layer.
+      properties:
+        data:
+          properties:
+            amount:
+              description: Deposit amount in gwei.
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            pubkey:
+              description: Public key of the validator, which is compatible to the
+                implementations of the PubKey interface in Cosmos SDK. 32-byte ed25519
+                public key is preferred.
+              format: byte
+              type: string
+            withdrawalCredentials:
+              description: A withdrawal credentials as a 20-byte Eth1 address.
+              format: byte
+              type: string
+          type: object
+      type: object
+info:
+  title: OpenAPI Spec for Solo APIs.
+  version: v1
+openapi: 3.0.1
+paths: null

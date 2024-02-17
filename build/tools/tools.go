@@ -43,6 +43,7 @@ import (
 	_ "github.com/google/addlicense"
 	_ "github.com/prysmaticlabs/fastssz/sszgen"
 	_ "github.com/prysmaticlabs/protoc-gen-go-cast"
+	_ "github.com/solo-io/protoc-gen-openapi"
 	_ "github.com/vektra/mockery/v2"
 	_ "golang.org/x/pkgsite/cmd/pkgsite"
 )

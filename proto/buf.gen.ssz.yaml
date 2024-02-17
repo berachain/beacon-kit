@@ -30,3 +30,6 @@ plugins:
     out: .
   - name: go-grpc
     out: .
+  - name: openapi
+    out: .
+    opt: yaml=true,use_ref=true,include_description=true

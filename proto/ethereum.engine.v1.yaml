@@ -1,0 +1,801 @@
+components:
+  schemas:
+    ethereum.engine.v1.Blob:
+      description: Blob contains the data that is to be committed on chain.
+      properties:
+        data:
+          description: Each blob consists of `BLS_FIELD_ELEMENT`(32) multiplies `FIELD_ELEMENTS_PER_BLOB`(4096)
+          format: byte
+          type: string
+      type: object
+    ethereum.engine.v1.BlobsBundle:
+      description: BlobsBundle is retrieved through engine-api from the execution
+        layer client. It consists of the necessary components for constructing a blobs
+        sidecar object to gossip through p2p.
+      properties:
+        blobs:
+          description: The blobs itself.
+          items:
+            format: byte
+            type: string
+          type: array
+        kzgCommitments:
+          description: The KZG commitments of the blobs.
+          items:
+            format: byte
+            type: string
+          type: array
+        proofs:
+          description: The proofs of the blobs.
+          items:
+            format: byte
+            type: string
+          type: array
+      type: object
+    ethereum.engine.v1.ExchangeCapabilities:
+      properties:
+        supportedMethods:
+          items:
+            type: string
+          type: array
+      type: object
+    ethereum.engine.v1.ExecutionPayload:
+      properties:
+        baseFeePerGas:
+          format: byte
+          type: string
+        blockHash:
+          format: byte
+          type: string
+        blockNumber:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        extraData:
+          format: byte
+          type: string
+        feeRecipient:
+          format: byte
+          type: string
+        gasLimit:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        gasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        logsBloom:
+          format: byte
+          type: string
+        parentHash:
+          format: byte
+          type: string
+        prevRandao:
+          format: byte
+          type: string
+        receiptsRoot:
+          format: byte
+          type: string
+        stateRoot:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        transactions:
+          items:
+            format: byte
+            type: string
+          type: array
+      type: object
+    ethereum.engine.v1.ExecutionPayloadBodyV1:
+      properties:
+        transactions:
+          items:
+            format: byte
+            type: string
+          type: array
+        withdrawals:
+          items:
+            description: The withdrawal receipt with the recipient address and amount
+              withdrawn
+            properties:
+              address:
+                description: The execution address receiving the funds
+                format: byte
+                type: string
+              amount:
+                description: The withdrawn amount in Gwei
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              index:
+                description: Withdrawal index for accounting purposes
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              validatorIndex:
+                description: Validator index for the withdrawal
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+            type: object
+          type: array
+      type: object
+    ethereum.engine.v1.ExecutionPayloadCapella:
+      properties:
+        baseFeePerGas:
+          format: byte
+          type: string
+        blockHash:
+          format: byte
+          type: string
+        blockNumber:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        extraData:
+          format: byte
+          type: string
+        feeRecipient:
+          format: byte
+          type: string
+        gasLimit:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        gasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        logsBloom:
+          format: byte
+          type: string
+        parentHash:
+          format: byte
+          type: string
+        prevRandao:
+          format: byte
+          type: string
+        receiptsRoot:
+          format: byte
+          type: string
+        stateRoot:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        transactions:
+          items:
+            format: byte
+            type: string
+          type: array
+        withdrawals:
+          description: MAX_WITHDRAWALS_PER_PAYLOAD
+          items:
+            description: The withdrawal receipt with the recipient address and amount
+              withdrawn
+            properties:
+              address:
+                description: The execution address receiving the funds
+                format: byte
+                type: string
+              amount:
+                description: The withdrawn amount in Gwei
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              index:
+                description: Withdrawal index for accounting purposes
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              validatorIndex:
+                description: Validator index for the withdrawal
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+            type: object
+          type: array
+      type: object
+    ethereum.engine.v1.ExecutionPayloadCapellaWithValue:
+      properties:
+        payload:
+          properties:
+            baseFeePerGas:
+              format: byte
+              type: string
+            blockHash:
+              format: byte
+              type: string
+            blockNumber:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            extraData:
+              format: byte
+              type: string
+            feeRecipient:
+              format: byte
+              type: string
+            gasLimit:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            gasUsed:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            logsBloom:
+              format: byte
+              type: string
+            parentHash:
+              format: byte
+              type: string
+            prevRandao:
+              format: byte
+              type: string
+            receiptsRoot:
+              format: byte
+              type: string
+            stateRoot:
+              format: byte
+              type: string
+            timestamp:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            transactions:
+              items:
+                format: byte
+                type: string
+              type: array
+            withdrawals:
+              description: MAX_WITHDRAWALS_PER_PAYLOAD
+              items:
+                description: The withdrawal receipt with the recipient address and
+                  amount withdrawn
+                properties:
+                  address:
+                    description: The execution address receiving the funds
+                    format: byte
+                    type: string
+                  amount:
+                    description: The withdrawn amount in Gwei
+                    format: int64
+                    type: integer
+                    x-kubernetes-int-or-string: true
+                  index:
+                    description: Withdrawal index for accounting purposes
+                    format: int64
+                    type: integer
+                    x-kubernetes-int-or-string: true
+                  validatorIndex:
+                    description: Validator index for the withdrawal
+                    format: int64
+                    type: integer
+                    x-kubernetes-int-or-string: true
+                type: object
+              type: array
+          type: object
+        value:
+          format: byte
+          type: string
+      type: object
+    ethereum.engine.v1.ExecutionPayloadDeneb:
+      properties:
+        baseFeePerGas:
+          format: byte
+          type: string
+        blobGasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        blockHash:
+          format: byte
+          type: string
+        blockNumber:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        excessBlobGas:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        extraData:
+          format: byte
+          type: string
+        feeRecipient:
+          format: byte
+          type: string
+        gasLimit:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        gasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        logsBloom:
+          format: byte
+          type: string
+        parentHash:
+          format: byte
+          type: string
+        prevRandao:
+          format: byte
+          type: string
+        receiptsRoot:
+          format: byte
+          type: string
+        stateRoot:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        transactions:
+          items:
+            format: byte
+            type: string
+          type: array
+        withdrawals:
+          description: MAX_WITHDRAWALS_PER_PAYLOAD
+          items:
+            description: The withdrawal receipt with the recipient address and amount
+              withdrawn
+            properties:
+              address:
+                description: The execution address receiving the funds
+                format: byte
+                type: string
+              amount:
+                description: The withdrawn amount in Gwei
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              index:
+                description: Withdrawal index for accounting purposes
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              validatorIndex:
+                description: Validator index for the withdrawal
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+            type: object
+          type: array
+      type: object
+    ethereum.engine.v1.ExecutionPayloadDenebWithValueAndBlobsBundle:
+      properties:
+        blobsBundle:
+          properties:
+            blobs:
+              description: The blobs itself.
+              items:
+                format: byte
+                type: string
+              type: array
+            kzgCommitments:
+              description: The KZG commitments of the blobs.
+              items:
+                format: byte
+                type: string
+              type: array
+            proofs:
+              description: The proofs of the blobs.
+              items:
+                format: byte
+                type: string
+              type: array
+          type: object
+        payload:
+          properties:
+            baseFeePerGas:
+              format: byte
+              type: string
+            blobGasUsed:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            blockHash:
+              format: byte
+              type: string
+            blockNumber:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            excessBlobGas:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            extraData:
+              format: byte
+              type: string
+            feeRecipient:
+              format: byte
+              type: string
+            gasLimit:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            gasUsed:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            logsBloom:
+              format: byte
+              type: string
+            parentHash:
+              format: byte
+              type: string
+            prevRandao:
+              format: byte
+              type: string
+            receiptsRoot:
+              format: byte
+              type: string
+            stateRoot:
+              format: byte
+              type: string
+            timestamp:
+              format: int64
+              type: integer
+              x-kubernetes-int-or-string: true
+            transactions:
+              items:
+                format: byte
+                type: string
+              type: array
+            withdrawals:
+              description: MAX_WITHDRAWALS_PER_PAYLOAD
+              items:
+                description: The withdrawal receipt with the recipient address and
+                  amount withdrawn
+                properties:
+                  address:
+                    description: The execution address receiving the funds
+                    format: byte
+                    type: string
+                  amount:
+                    description: The withdrawn amount in Gwei
+                    format: int64
+                    type: integer
+                    x-kubernetes-int-or-string: true
+                  index:
+                    description: Withdrawal index for accounting purposes
+                    format: int64
+                    type: integer
+                    x-kubernetes-int-or-string: true
+                  validatorIndex:
+                    description: Validator index for the withdrawal
+                    format: int64
+                    type: integer
+                    x-kubernetes-int-or-string: true
+                type: object
+              type: array
+          type: object
+        shouldOverrideBuilder:
+          type: boolean
+        value:
+          format: byte
+          type: string
+      type: object
+    ethereum.engine.v1.ExecutionPayloadHeader:
+      properties:
+        baseFeePerGas:
+          format: byte
+          type: string
+        blockHash:
+          format: byte
+          type: string
+        blockNumber:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        extraData:
+          format: byte
+          type: string
+        feeRecipient:
+          format: byte
+          type: string
+        gasLimit:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        gasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        logsBloom:
+          format: byte
+          type: string
+        parentHash:
+          format: byte
+          type: string
+        prevRandao:
+          format: byte
+          type: string
+        receiptsRoot:
+          format: byte
+          type: string
+        stateRoot:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        transactionsRoot:
+          format: byte
+          type: string
+      type: object
+    ethereum.engine.v1.ExecutionPayloadHeaderCapella:
+      properties:
+        baseFeePerGas:
+          format: byte
+          type: string
+        blockHash:
+          format: byte
+          type: string
+        blockNumber:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        extraData:
+          format: byte
+          type: string
+        feeRecipient:
+          format: byte
+          type: string
+        gasLimit:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        gasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        logsBloom:
+          format: byte
+          type: string
+        parentHash:
+          format: byte
+          type: string
+        prevRandao:
+          format: byte
+          type: string
+        receiptsRoot:
+          format: byte
+          type: string
+        stateRoot:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        transactionsRoot:
+          format: byte
+          type: string
+        withdrawalsRoot:
+          format: byte
+          type: string
+      type: object
+    ethereum.engine.v1.ExecutionPayloadHeaderDeneb:
+      properties:
+        baseFeePerGas:
+          format: byte
+          type: string
+        blobGasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        blockHash:
+          format: byte
+          type: string
+        blockNumber:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        excessBlobGas:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        extraData:
+          format: byte
+          type: string
+        feeRecipient:
+          format: byte
+          type: string
+        gasLimit:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        gasUsed:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        logsBloom:
+          format: byte
+          type: string
+        parentHash:
+          format: byte
+          type: string
+        prevRandao:
+          format: byte
+          type: string
+        receiptsRoot:
+          format: byte
+          type: string
+        stateRoot:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        transactionsRoot:
+          format: byte
+          type: string
+        withdrawalsRoot:
+          format: byte
+          type: string
+      type: object
+    ethereum.engine.v1.ForkchoiceState:
+      properties:
+        finalizedBlockHash:
+          format: byte
+          type: string
+        headBlockHash:
+          format: byte
+          type: string
+        safeBlockHash:
+          format: byte
+          type: string
+      type: object
+    ethereum.engine.v1.PayloadAttributes:
+      properties:
+        prevRandao:
+          format: byte
+          type: string
+        suggestedFeeRecipient:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+      type: object
+    ethereum.engine.v1.PayloadAttributesV2:
+      properties:
+        prevRandao:
+          format: byte
+          type: string
+        suggestedFeeRecipient:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        withdrawals:
+          items:
+            description: The withdrawal receipt with the recipient address and amount
+              withdrawn
+            properties:
+              address:
+                description: The execution address receiving the funds
+                format: byte
+                type: string
+              amount:
+                description: The withdrawn amount in Gwei
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              index:
+                description: Withdrawal index for accounting purposes
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              validatorIndex:
+                description: Validator index for the withdrawal
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+            type: object
+          type: array
+      type: object
+    ethereum.engine.v1.PayloadAttributesV3:
+      properties:
+        parentBeaconBlockRoot:
+          format: byte
+          type: string
+        prevRandao:
+          format: byte
+          type: string
+        suggestedFeeRecipient:
+          format: byte
+          type: string
+        timestamp:
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        withdrawals:
+          items:
+            description: The withdrawal receipt with the recipient address and amount
+              withdrawn
+            properties:
+              address:
+                description: The execution address receiving the funds
+                format: byte
+                type: string
+              amount:
+                description: The withdrawn amount in Gwei
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              index:
+                description: Withdrawal index for accounting purposes
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+              validatorIndex:
+                description: Validator index for the withdrawal
+                format: int64
+                type: integer
+                x-kubernetes-int-or-string: true
+            type: object
+          type: array
+      type: object
+    ethereum.engine.v1.PayloadStatus:
+      properties:
+        latestValidHash:
+          format: byte
+          type: string
+        status:
+          enum:
+          - UNKNOWN
+          - VALID
+          - INVALID
+          - SYNCING
+          - ACCEPTED
+          - INVALID_BLOCK_HASH
+          type: string
+        validationError:
+          type: string
+      type: object
+    ethereum.engine.v1.Withdrawal:
+      description: The withdrawal receipt with the recipient address and amount withdrawn
+      properties:
+        address:
+          description: The execution address receiving the funds
+          format: byte
+          type: string
+        amount:
+          description: The withdrawn amount in Gwei
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        index:
+          description: Withdrawal index for accounting purposes
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+        validatorIndex:
+          description: Validator index for the withdrawal
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+      type: object
+info:
+  title: OpenAPI Spec for Solo APIs.
+  version: v1
+openapi: 3.0.1
+paths: null

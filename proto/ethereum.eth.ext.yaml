@@ -1,0 +1,6 @@
+components: {}
+info:
+  title: OpenAPI Spec for Solo APIs.
+  version: ext
+openapi: 3.0.1
+paths: null

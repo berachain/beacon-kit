@@ -1,0 +1,319 @@
+components:
+  schemas:
+    builder.v1alpha1.GetExecutionPayloadRequest:
+      description: RequestBuiltExecutionPayload is the request to the RequestBestBlock
+        RPC.
+      properties:
+        blinded:
+          description: blinded is true if the block should be blinded.
+          type: boolean
+        parentHash:
+          description: parent_hash is the hash of execution layer block the proposer
+            will build on.
+          format: byte
+          type: string
+        slot:
+          description: slot is the slot of the block to request.
+          format: int64
+          type: integer
+          x-kubernetes-int-or-string: true
+      type: object
+    builder.v1alpha1.GetExecutionPayloadResponse:
+      description: BuiltExecutionPayloadResponse is the response to the RequestBestBlock
+        RPC.
+      properties:
+        override:
+          description: override is true if the block should override the current best
+            block. this field should only be taken into account if the block builder
+            is a TRUSTED party.
+          type: boolean
+        payloadContainer:
+          description: block_container is the block requested.
+          properties:
+            capella:
+              description: capella represents an execution payload for capella.
+              properties:
+                baseFeePerGas:
+                  format: byte
+                  type: string
+                blockHash:
+                  format: byte
+                  type: string
+                blockNumber:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                extraData:
+                  format: byte
+                  type: string
+                feeRecipient:
+                  format: byte
+                  type: string
+                gasLimit:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                gasUsed:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                logsBloom:
+                  format: byte
+                  type: string
+                parentHash:
+                  format: byte
+                  type: string
+                prevRandao:
+                  format: byte
+                  type: string
+                receiptsRoot:
+                  format: byte
+                  type: string
+                stateRoot:
+                  format: byte
+                  type: string
+                timestamp:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                transactions:
+                  items:
+                    format: byte
+                    type: string
+                  type: array
+                withdrawals:
+                  description: MAX_WITHDRAWALS_PER_PAYLOAD
+                  items:
+                    description: The withdrawal receipt with the recipient address
+                      and amount withdrawn
+                    properties:
+                      address:
+                        description: The execution address receiving the funds
+                        format: byte
+                        type: string
+                      amount:
+                        description: The withdrawn amount in Gwei
+                        format: int64
+                        type: integer
+                        x-kubernetes-int-or-string: true
+                      index:
+                        description: Withdrawal index for accounting purposes
+                        format: int64
+                        type: integer
+                        x-kubernetes-int-or-string: true
+                      validatorIndex:
+                        description: Validator index for the withdrawal
+                        format: int64
+                        type: integer
+                        x-kubernetes-int-or-string: true
+                    type: object
+                  type: array
+              type: object
+            capellaHeader:
+              description: capella_header is the blinded block.
+              properties:
+                baseFeePerGas:
+                  format: byte
+                  type: string
+                blockHash:
+                  format: byte
+                  type: string
+                blockNumber:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                extraData:
+                  format: byte
+                  type: string
+                feeRecipient:
+                  format: byte
+                  type: string
+                gasLimit:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                gasUsed:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                logsBloom:
+                  format: byte
+                  type: string
+                parentHash:
+                  format: byte
+                  type: string
+                prevRandao:
+                  format: byte
+                  type: string
+                receiptsRoot:
+                  format: byte
+                  type: string
+                stateRoot:
+                  format: byte
+                  type: string
+                timestamp:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                transactionsRoot:
+                  format: byte
+                  type: string
+                withdrawalsRoot:
+                  format: byte
+                  type: string
+              type: object
+            deneb:
+              description: deneb represents an execution payload for deneb
+              properties:
+                baseFeePerGas:
+                  format: byte
+                  type: string
+                blobGasUsed:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                blockHash:
+                  format: byte
+                  type: string
+                blockNumber:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                excessBlobGas:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                extraData:
+                  format: byte
+                  type: string
+                feeRecipient:
+                  format: byte
+                  type: string
+                gasLimit:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                gasUsed:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                logsBloom:
+                  format: byte
+                  type: string
+                parentHash:
+                  format: byte
+                  type: string
+                prevRandao:
+                  format: byte
+                  type: string
+                receiptsRoot:
+                  format: byte
+                  type: string
+                stateRoot:
+                  format: byte
+                  type: string
+                timestamp:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                transactions:
+                  items:
+                    format: byte
+                    type: string
+                  type: array
+                withdrawals:
+                  description: MAX_WITHDRAWALS_PER_PAYLOAD
+                  items:
+                    description: The withdrawal receipt with the recipient address
+                      and amount withdrawn
+                    properties:
+                      address:
+                        description: The execution address receiving the funds
+                        format: byte
+                        type: string
+                      amount:
+                        description: The withdrawn amount in Gwei
+                        format: int64
+                        type: integer
+                        x-kubernetes-int-or-string: true
+                      index:
+                        description: Withdrawal index for accounting purposes
+                        format: int64
+                        type: integer
+                        x-kubernetes-int-or-string: true
+                      validatorIndex:
+                        description: Validator index for the withdrawal
+                        format: int64
+                        type: integer
+                        x-kubernetes-int-or-string: true
+                    type: object
+                  type: array
+              type: object
+            denebHeader:
+              description: deneb_header is the blinded block.
+              properties:
+                baseFeePerGas:
+                  format: byte
+                  type: string
+                blobGasUsed:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                blockHash:
+                  format: byte
+                  type: string
+                blockNumber:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                excessBlobGas:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                extraData:
+                  format: byte
+                  type: string
+                feeRecipient:
+                  format: byte
+                  type: string
+                gasLimit:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                gasUsed:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                logsBloom:
+                  format: byte
+                  type: string
+                parentHash:
+                  format: byte
+                  type: string
+                prevRandao:
+                  format: byte
+                  type: string
+                receiptsRoot:
+                  format: byte
+                  type: string
+                stateRoot:
+                  format: byte
+                  type: string
+                timestamp:
+                  format: int64
+                  type: integer
+                  x-kubernetes-int-or-string: true
+                transactionsRoot:
+                  format: byte
+                  type: string
+                withdrawalsRoot:
+                  format: byte
+                  type: string
+              type: object
+          type: object
+      type: object
+info:
+  title: OpenAPI Spec for Solo APIs.
+  version: v1alpha1
+openapi: 3.0.1
+paths: null

@@ -32,8 +32,11 @@
 
 set -e
 
-echo "--> Generating protobufs using cosmos proto builder"
+echo "--> Installing custom protoc plugins"
 go install github.com/prysmaticlabs/protoc-gen-go-cast
+go install github.com/solo-io/protoc-gen-openapi
+echo "--> Generating protobufs using cosmos proto builder"
+
 cd proto
 proto_dirs=$(find ./ -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
@@ -51,11 +54,13 @@ for dir in $proto_dirs; do
   done
 done
 
+
 # move proto files to the right places
 echo "--> Copying generated proto files to the right places"
 cp -r github.com/itsdevbear/bolaris/* ../
 rm -rf github.com
 cd ../
+
 
 echo "--> Generating pulsar proto code"
 ./build/scripts/proto_generate_pulsar.sh
