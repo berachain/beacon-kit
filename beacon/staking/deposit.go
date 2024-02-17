@@ -42,10 +42,11 @@ func (s *Service) ProcessDeposit(
 	nonce uint64,
 ) error {
 	beaconState := s.BeaconState(ctx)
-	expectedNonce, err := beaconState.GetStakingNonce()
+	startNonce, err := beaconState.GetStakingNonce()
 	if err != nil {
 		return err
 	}
+	expectedNonce := startNonce + uint64(len(s.depositCache))
 	// We may receive the same deposit event twice
 	// from the execution layer, just ignore it.
 	if nonce < expectedNonce {
@@ -63,10 +64,7 @@ func (s *Service) ProcessDeposit(
 		withdrawalCredentials,
 	)
 	// Cache the deposit to be pushed to the queue later in batch.
-	err = beaconState.CacheDeposit(deposit)
-	if err != nil {
-		return err
-	}
+	s.depositCache = append(s.depositCache, deposit)
 	s.Logger().Info("delegating from execution layer",
 		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
 	return nil
@@ -77,6 +75,7 @@ func (s *Service) PersistDeposits(ctx context.Context) error {
 	beaconState := s.BeaconState(ctx)
 	// Pop deposits, up to MaxDepositsPerBlock, from the queue
 	// and persist them to the staking keeper.
-	_, err := beaconState.PersistDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
+	_, err := beaconState.PersistDeposits(s.depositCache, s.BeaconCfg().Limits.MaxDepositsPerBlock)
+	s.depositCache = nil
 	return err
 }

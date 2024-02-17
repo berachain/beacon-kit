@@ -53,28 +53,21 @@ func NewDeposit(pubkey []byte, amount uint64, withdrawalCredentials []byte) *Dep
 	return &Deposit{&consensusv1.Deposit{Data: depositData}}
 }
 
-// CacheDeposit caches a deposit.
-func (s *BeaconStore) CacheDeposit(deposit *Deposit) error {
-	s.depositCache = append(s.depositCache, deposit)
-	return nil
-}
-
 // commitDeposits commits the cached deposits to the queue.
-func (s *BeaconStore) commitDeposits() error {
-	err := s.deposits.PushMulti(s.sdkCtx, s.depositCache)
+func (s *BeaconStore) commitDeposits(depositCache []*Deposit) error {
+	err := s.deposits.PushMulti(s.sdkCtx, depositCache)
 	if err != nil {
 		return err
 	}
-	s.depositCache = nil
 	return nil
 }
 
 // PersistDeposits commits the cached deposits to the queue
 // and processes the queued deposits.
-func (s *BeaconStore) PersistDeposits(n uint64) ([]*Deposit, error) {
+func (s *BeaconStore) PersistDeposits(depositCache []*Deposit, n uint64) ([]*Deposit, error) {
 	var err error
-	if len(s.depositCache) > 0 {
-		if err = s.commitDeposits(); err != nil {
+	if len(depositCache) > 0 {
+		if err = s.commitDeposits(depositCache); err != nil {
 			return nil, err
 		}
 	}
@@ -98,11 +91,12 @@ func (s *BeaconStore) processDeposit(deposit *Deposit) error {
 	return err
 }
 
-// GetStakingNonce returns the staking nonce.
+// GetStakingNonce returns the latest staking nonce in the previous block.
+// That nonce is also the expected staking nonce at the beginning of the current block.
 func (s *BeaconStore) GetStakingNonce() (uint64, error) {
 	headIdx, err := s.deposits.HeadIndex(s.sdkCtx)
 	if err != nil {
 		return 0, err
 	}
-	return headIdx + uint64(len(s.depositCache)), nil
+	return headIdx, nil
 }
