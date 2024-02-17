@@ -125,17 +125,10 @@ func (s *Service) validateStateTransition(
 func (s *Service) validateExecutionOnBlock(
 	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
 ) (bool, error) {
-	header, err := blk.ExecutionPayload()
+	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return false, err
 	}
 
-	isValidPayload, err := s.en.NotifyNewPayload(ctx, 0, header)
-	if err != nil && errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus) {
-		s.Logger().Error("Failed to validate execution on block", "error", err)
-		return isValidPayload, err
-	} else if err != nil || !isValidPayload {
-		return isValidPayload, eth.ErrInvalidPayloadStatus
-	}
-	return isValidPayload, nil
+	return s.en.NotifyNewPayload(ctx, payload)
 }

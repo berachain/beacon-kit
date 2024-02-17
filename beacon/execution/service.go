@@ -113,8 +113,7 @@ func (s *Service) GetBuiltPayload(
 
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
-func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-	payload enginetypes.ExecutionPayload, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+func (s *Service) NotifyNewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
 ) (bool, error) {
 	return s.notifyNewPayload(ctx, payload)
 }
