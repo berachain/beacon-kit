@@ -29,7 +29,6 @@ import (
 	"errors"
 
 	"github.com/holiman/uint256"
-	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
@@ -40,18 +39,6 @@ import (
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
 var _ interfaces.BeaconKitBlock = (*BeaconKitBlockCapella)(nil)
-
-// BeaconKitBlockFromState assembles a new beacon block
-// from the given state and execution data.
-func BeaconKitBlockFromState(
-	beaconState state.ReadOnlyBeaconState,
-	executionData engine.ExecutionPayload,
-) (interfaces.BeaconKitBlock, error) {
-	return NewBeaconKitBlock(
-		beaconState.Slot(),
-		executionData,
-	)
-}
 
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.

@@ -195,6 +195,7 @@ test-unit-fuzz:
 	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
+	go test -fuzz=FuzzQueue ./lib/store/collections/... -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
 #     forge     #

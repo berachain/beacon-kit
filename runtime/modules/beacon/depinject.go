@@ -28,11 +28,12 @@ package evm
 import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
-	store "cosmossdk.io/store/types"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/itsdevbear/bolaris/config"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
+	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.
@@ -48,9 +49,11 @@ type DepInjectInput struct {
 
 	ModuleKey depinject.OwnModuleKey
 	Config    *modulev1alpha1.Module
-	Key       *store.KVStoreKey
+	Key       *storetypes.KVStoreKey
 
 	BeaconKitConfig *config.Beacon
+
+	Staking staking.Staking
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -65,6 +68,7 @@ type DepInjectOutput struct {
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Key,
+		in.Staking,
 		in.BeaconKitConfig,
 	)
 	m := NewAppModule(k)

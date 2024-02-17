@@ -23,23 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package initialsync
+package builder
 
-// Option is a function that modifies the Service.
+import (
+	"github.com/itsdevbear/bolaris/execution/builder/types"
+)
+
 type Option func(*Service) error
 
-// WithEthClient is an Option that sets the ethClient of the Service.
-func WithEthClient(ethClient ethClient) Option {
+// WithBuilder is an option to set the Caller for the Service.
+func WithBlockBuilder(name string, builder types.BuilderServiceClient, isLocal bool) Option {
 	return func(s *Service) error {
-		s.ethClient = ethClient
-		return nil
-	}
-}
-
-// WithExecutionService is an Option that sets the ExecutionService of the Service.
-func WithExecutionService(es executionService) Option {
-	return func(r *Service) error {
-		r.es = es
+		s.builders.RegisterBuilder(name, builder, isLocal)
 		return nil
 	}
 }

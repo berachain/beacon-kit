@@ -28,8 +28,10 @@ package execution
 import (
 	"context"
 	"errors"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -39,13 +41,15 @@ import (
 )
 
 // Service is responsible for delivering beacon chain notifications to
-// the execution client.
+// the execution client and processing logs from the execution chain.
 type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
 	// payloadCache is used to track currently building payload IDs for a given slot.
 	payloadCache *cache.PayloadIDCache
+	// logProcessor is used to process logs from the execution chain.
+	logProcessor *logs.Processor
 }
 
 // New creates a new Service with the provided options.
@@ -109,25 +113,12 @@ func (s *Service) GetBuiltPayload(
 
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
-func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-	preStateHeader enginetypes.ExecutionPayload, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+func (s *Service) NotifyNewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
 ) (bool, error) {
-	// var lastValidHash []byte
-	// if blk.Version() >= version.Deneb {
-	// 	var versionedHashes []common.Hash
-	// 	versionedHashes, err = kzgCommitmentsToVersionedHashes(blk.Block().Body())
-	// 	if err != nil {
-	// 		return false, errors.Wrap(err, "could not get versioned hashes to feed the engine")
-	// 	}
-	// 	pr := common.Hash(blk.Block().ParentRoot())
-	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload
-	//			(ctx, payload, versionedHashes, &pr)
-	// } else {
-	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload(ctx, payload,
-	// []common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
-	// }
+	return s.notifyNewPayload(ctx, payload)
+}
 
-	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
-		[]common.Hash{}, &common.Hash{} /* TODO: empty version hashes and root before Deneb*/)
-	return lastValidHash != nil, err
+// ProcessLogs processes logs for the given block number.
+func (s *Service) ProcessLogs(ctx context.Context, blkNum uint64) error {
+	return s.logProcessor.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
 }
