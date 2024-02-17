@@ -35,13 +35,13 @@ contract Staking {
     ////////////////////////////////////////// EVENTS /////////////////////////////////////////////
     /**
      * @dev Emitted by the staking contract when `amount` tokens
-     * are delegated to `validatorPubkey`.
+     * @dev are delegated to `validatorPubkey`.
      * @param validatorPubkey The validator's public key.
      * @param withdrawalCredentials The withdrawal credentials of the validator.
      * @param amount The amount of tokens delegated.
      * @param nonce The nonce of the delegation.
      */
-    event Delegate(
+    event Deposit(
         bytes validatorPubkey,
         bytes withdrawalCredentials,
         bytes amount,
@@ -50,12 +50,12 @@ contract Staking {
 
     /**
      * @dev Emitted by the staking contract when `amount` tokens are unbonded from
-     * `validatorPubkey`.
+     * @dev `validatorPubkey`.
      * @param validatorPubkey The validator's public key.
      * @param amount The amount of tokens unbonded.
      * @param nonce The nonce of the undelegation.
      */
-    event Undelegate(bytes validatorPubkey, bytes amount, bytes nonce);
+    event Withdraw(bytes validatorPubkey, bytes amount, bytes nonce);
 
     ////////////////////////////////////// WRITE METHODS //////////////////////////////////////////
 
@@ -69,7 +69,7 @@ contract Staking {
         bytes calldata withdrawalCredentials,
         uint64 amount
     ) external {
-        emit Delegate(
+        emit Deposit(
             validatorPubkey,
             withdrawalCredentials,
             abi.encodePacked(amount),
@@ -84,7 +84,7 @@ contract Staking {
      * @param amount The amount of tokens to undelegate.
      */
     function withdraw(bytes calldata validatorPubkey, uint64 amount) external {
-        emit Undelegate(
+        emit Withdraw(
             validatorPubkey,
             abi.encodePacked(amount),
             abi.encodePacked(nonce)

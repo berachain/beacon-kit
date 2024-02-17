@@ -71,9 +71,9 @@ func NewHandler(
 	return s, nil
 }
 
-// Delegate is a callback function that is called
-// when a Delegate event is emitted from the staking contract.
-func (s *Handler) Delegate(
+// Deposit is a callback function that is called
+// when a Deposit event is emitted from the staking contract.
+func (s *Handler) Deposit(
 	ctx context.Context,
 	validatorPubkey []byte,
 	withdrawalCredentials []byte,
@@ -87,9 +87,9 @@ func (s *Handler) Delegate(
 	return s.st.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
 }
 
-// Undelegate is a callback function that is called
-// when a Undelegate event is emitted from the staking contract.
-func (s *Handler) Undelegate(
+// Withdraw is a callback function that is called
+// when a Withdraw event is emitted from the staking contract.
+func (s *Handler) Withdraw(
 	ctx context.Context,
 	validatorPubkey []byte,
 	amountBz []byte,
