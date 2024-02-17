@@ -28,3 +28,5 @@ version: v1
 plugins:
   - plugin: go-cast
     out: .
+  - name: go-grpc
+    out: .
