@@ -31,8 +31,8 @@ var (
 
 // StakingMetaData contains all meta data concerning the Staking contract.
 var StakingMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"delegateFn\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"undelegateFn\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Delegate\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"nonce\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Undelegate\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"nonce\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false}]",
-	Bin: "0x608060405234801561000f575f80fd5b506106af8061001d5f395ff3fe608060405234801561000f575f80fd5b5060043610610034575f3560e01c80631808312f14610038578063b478fa9c1461004d575b5f80fd5b61004b6100463660046103e1565b610060565b005b61004b61005b36600461044f565b6100cc565b7f300164b233189ce316983af16e299425432bf341ca1c41a2f0439e326f8b6b038585858561008e86610132565b6100985f54610132565b6040516100aa96959493929190610551565b60405180910390a15f805490806100c0836105ac565b91905055505050505050565b7f41384f3d85152f1d3e41c1e8c41a78dc5e52dcd8a340bf5af92212cb9598dc7483836100f884610132565b6101025f54610132565b6040516101129493929190610608565b60405180910390a15f80549080610128836105ac565b9190505550505050565b60408051600880825281830190925260609160208201818036833701905050905060c082901b8060071a60f81b825f815181106101715761017161064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a9053508060061a60f81b826001815181106101b9576101b961064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a9053508060051a60f81b826002815181106102015761020161064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a9053508060041a60f81b826003815181106102495761024961064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a9053508060031a60f81b826004815181106102915761029161064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a9053508060021a60f81b826005815181106102d9576102d961064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a9053508060011a60f81b826006815181106103215761032161064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a905350805f1a60f81b826007815181106103685761036861064c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690815f1a90535050919050565b5f8083601f8401126103ac575f80fd5b50813567ffffffffffffffff8111156103c3575f80fd5b6020830191508360208285010111156103da575f80fd5b9250929050565b5f805f805f606086880312156103f5575f80fd5b853567ffffffffffffffff8082111561040c575f80fd5b61041889838a0161039c565b90975095506020880135915080821115610430575f80fd5b5061043d8882890161039c565b96999598509660400135949350505050565b5f805f60408486031215610461575f80fd5b833567ffffffffffffffff80821115610478575f80fd5b6104848783880161039c565b909550935060208601359150808216821461049d575f80fd5b50809150509250925092565b81835281816020850137505f602082840101525f60207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f840116840101905092915050565b5f81518084525f5b81811015610514576020818501810151868301820152016104f8565b505f6020828601015260207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f83011685010191505092915050565b608081525f61056460808301888a6104a9565b82810360208401526105778187896104a9565b9050828103604084015261058b81866104f0565b9050828103606084015261059f81856104f0565b9998505050505050505050565b5f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8203610601577f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5060010190565b606081525f61061b6060830186886104a9565b828103602084015261062d81866104f0565b9050828103604084015261064181856104f0565b979650505050505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52603260045260245ffdfea2646970667358221220b71e6951ac337f9da037d639676c80c053d6a2c35ffb7afef9d368f1a5b2ea9d64736f6c63430008180033",
+	ABI: "[{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Delegate\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"nonce\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Undelegate\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"nonce\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false}]",
+	Bin: "0x608060405234801561000f575f80fd5b506104ca8061001d5f395ff3fe608060405234801561000f575f80fd5b5060043610610034575f3560e01c806334f5fd7c14610038578063c70126261461004d575b5f80fd5b61004b61004636600461023b565b610060565b005b61004b61005b3660046102a9565b61012e565b7f300164b233189ce316983af16e299425432bf341ca1c41a2f0439e326f8b6b03858585858560405160200161009891815260200190565b604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe08184030181528282525f5460208401529101604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe08184030181529082905261010c969594939291610399565b60405180910390a15f80549080610122836103f4565b91905055505050505050565b7f41384f3d85152f1d3e41c1e8c41a78dc5e52dcd8a340bf5af92212cb9598dc7483838360405160200161016491815260200190565b604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe08184030181528282525f5460208401529101604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0818403018152908290526101d694939291610450565b60405180910390a15f805490806101ec836103f4565b9190505550505050565b5f8083601f840112610206575f80fd5b50813567ffffffffffffffff81111561021d575f80fd5b602083019150836020828501011115610234575f80fd5b9250929050565b5f805f805f6060868803121561024f575f80fd5b853567ffffffffffffffff80821115610266575f80fd5b61027289838a016101f6565b9097509550602088013591508082111561028a575f80fd5b50610297888289016101f6565b96999598509660400135949350505050565b5f805f604084860312156102bb575f80fd5b833567ffffffffffffffff8111156102d1575f80fd5b6102dd868287016101f6565b909790965060209590950135949350505050565b81835281816020850137505f602082840101525f60207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f840116840101905092915050565b5f81518084525f5b8181101561035c57602081850181015186830182015201610340565b505f6020828601015260207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f83011685010191505092915050565b608081525f6103ac60808301888a6102f1565b82810360208401526103bf8187896102f1565b905082810360408401526103d38186610338565b905082810360608401526103e78185610338565b9998505050505050505050565b5f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8203610449577f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5060010190565b606081525f6104636060830186886102f1565b82810360208401526104758186610338565b905082810360408401526104898185610338565b97965050505050505056fea26469706673582212201123ca6ac136d041d939583f9f0ad56ffc2938c14136638df2921c720416cebc64736f6c63430008180033",
 }
 
 // StakingABI is the input ABI used to generate the binding from.
@@ -202,46 +202,46 @@ func (_Staking *StakingTransactorRaw) Transact(opts *bind.TransactOpts, method s
 	return _Staking.Contract.contract.Transact(opts, method, params...)
 }
 
-// DelegateFn is a paid mutator transaction binding the contract method 0x1808312f.
+// Deposit is a paid mutator transaction binding the contract method 0x34f5fd7c.
 //
-// Solidity: function delegateFn(bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount) returns()
-func (_Staking *StakingTransactor) DelegateFn(opts *bind.TransactOpts, validatorPubkey []byte, withdrawalCredentials []byte, amount *big.Int) (*types.Transaction, error) {
-	return _Staking.contract.Transact(opts, "delegateFn", validatorPubkey, withdrawalCredentials, amount)
+// Solidity: function deposit(bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount) returns()
+func (_Staking *StakingTransactor) Deposit(opts *bind.TransactOpts, validatorPubkey []byte, withdrawalCredentials []byte, amount *big.Int) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "deposit", validatorPubkey, withdrawalCredentials, amount)
 }
 
-// DelegateFn is a paid mutator transaction binding the contract method 0x1808312f.
+// Deposit is a paid mutator transaction binding the contract method 0x34f5fd7c.
 //
-// Solidity: function delegateFn(bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount) returns()
-func (_Staking *StakingSession) DelegateFn(validatorPubkey []byte, withdrawalCredentials []byte, amount *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.DelegateFn(&_Staking.TransactOpts, validatorPubkey, withdrawalCredentials, amount)
+// Solidity: function deposit(bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount) returns()
+func (_Staking *StakingSession) Deposit(validatorPubkey []byte, withdrawalCredentials []byte, amount *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.Deposit(&_Staking.TransactOpts, validatorPubkey, withdrawalCredentials, amount)
 }
 
-// DelegateFn is a paid mutator transaction binding the contract method 0x1808312f.
+// Deposit is a paid mutator transaction binding the contract method 0x34f5fd7c.
 //
-// Solidity: function delegateFn(bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount) returns()
-func (_Staking *StakingTransactorSession) DelegateFn(validatorPubkey []byte, withdrawalCredentials []byte, amount *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.DelegateFn(&_Staking.TransactOpts, validatorPubkey, withdrawalCredentials, amount)
+// Solidity: function deposit(bytes validatorPubkey, bytes withdrawalCredentials, uint256 amount) returns()
+func (_Staking *StakingTransactorSession) Deposit(validatorPubkey []byte, withdrawalCredentials []byte, amount *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.Deposit(&_Staking.TransactOpts, validatorPubkey, withdrawalCredentials, amount)
 }
 
-// UndelegateFn is a paid mutator transaction binding the contract method 0xb478fa9c.
+// Withdraw is a paid mutator transaction binding the contract method 0xc7012626.
 //
-// Solidity: function undelegateFn(bytes validatorPubkey, uint64 amount) returns()
-func (_Staking *StakingTransactor) UndelegateFn(opts *bind.TransactOpts, validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.contract.Transact(opts, "undelegateFn", validatorPubkey, amount)
+// Solidity: function withdraw(bytes validatorPubkey, uint256 amount) returns()
+func (_Staking *StakingTransactor) Withdraw(opts *bind.TransactOpts, validatorPubkey []byte, amount *big.Int) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "withdraw", validatorPubkey, amount)
 }
 
-// UndelegateFn is a paid mutator transaction binding the contract method 0xb478fa9c.
+// Withdraw is a paid mutator transaction binding the contract method 0xc7012626.
 //
-// Solidity: function undelegateFn(bytes validatorPubkey, uint64 amount) returns()
-func (_Staking *StakingSession) UndelegateFn(validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.Contract.UndelegateFn(&_Staking.TransactOpts, validatorPubkey, amount)
+// Solidity: function withdraw(bytes validatorPubkey, uint256 amount) returns()
+func (_Staking *StakingSession) Withdraw(validatorPubkey []byte, amount *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.Withdraw(&_Staking.TransactOpts, validatorPubkey, amount)
 }
 
-// UndelegateFn is a paid mutator transaction binding the contract method 0xb478fa9c.
+// Withdraw is a paid mutator transaction binding the contract method 0xc7012626.
 //
-// Solidity: function undelegateFn(bytes validatorPubkey, uint64 amount) returns()
-func (_Staking *StakingTransactorSession) UndelegateFn(validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.Contract.UndelegateFn(&_Staking.TransactOpts, validatorPubkey, amount)
+// Solidity: function withdraw(bytes validatorPubkey, uint256 amount) returns()
+func (_Staking *StakingTransactorSession) Withdraw(validatorPubkey []byte, amount *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.Withdraw(&_Staking.TransactOpts, validatorPubkey, amount)
 }
 
 // StakingDelegateIterator is returned from FilterDelegate and is used to iterate over the raw logs and unpacked data for Delegate events raised by the Staking contract.

@@ -37,8 +37,8 @@ type Service struct {
 	en ExecutionService
 }
 
-// New returns a new Service.
-func New(
+// NewService returns a new Service.
+func NewService(
 	base service.BaseService,
 	opts ...Option) *Service {
 	s := &Service{

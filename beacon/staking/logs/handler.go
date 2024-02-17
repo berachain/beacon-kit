@@ -84,7 +84,7 @@ func (s *Handler) Delegate(
 	// must agree on the encoding of uint values, i.e. little endian.
 	amount := encoding.DecodeUint64(amountBz)
 	nonce := encoding.DecodeUint64(nonceBz)
-	return s.st.ProcessDepositEvent(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
+	return s.st.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
 }
 
 // Undelegate is a callback function that is called
@@ -97,5 +97,5 @@ func (s *Handler) Undelegate(
 ) error {
 	amount := encoding.DecodeUint64(amountBz)
 	nonce := encoding.DecodeUint64(nonceBz)
-	return s.st.ProcessWithdrawalEvent(ctx, validatorPubkey, amount, nonce)
+	return s.st.ProcessWithdrawal(ctx, validatorPubkey, amount, nonce)
 }

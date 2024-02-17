@@ -45,22 +45,8 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// Process logs, including deposit events,
-	// and push them to the cache in the beacon state.
+	// Process logs, including deposit and withdrawal events.
 	err = s.en.ProcessLogs(ctx, payload.GetBlockNumber())
-	if err != nil {
-		return err
-	}
-
-	state := s.BeaconState(ctx)
-	// Commit cached deposits in this block to the beacon state's queue.
-	err = state.CommitDeposits()
-	if err != nil {
-		return err
-	}
-	// Pop deposits, up to MaxDepositsPerBlock, from the beacon state
-	// and persist them to the staking keeper.
-	_, err = state.PersistDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
 	if err != nil {
 		return err
 	}
@@ -73,6 +59,7 @@ func (s *Service) FinalizeBeaconBlock(
 		s.Logger().Error("failed to notify forkchoice update", "error", err)
 	}
 
+	state := s.BeaconState(ctx)
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)

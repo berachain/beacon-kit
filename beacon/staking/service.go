@@ -36,7 +36,6 @@ import (
 // Service is responsible for handling staking events.
 type Service struct {
 	service.BaseService
-	// Cache of deposits received in the current block.
 	logger log.Logger
 }
 

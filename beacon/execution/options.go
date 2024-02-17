@@ -27,6 +27,7 @@ package execution
 
 import (
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 )
@@ -53,6 +54,13 @@ func WithPayloadCache(pc *cache.PayloadIDCache) Option {
 func WithLogProcessor(lp *logs.Processor) Option {
 	return func(s *Service) error {
 		s.logProcessor = lp
+		return nil
+	}
+}
+
+func WithStakingService(st *staking.Service) Option {
+	return func(s *Service) error {
+		s.st = st
 		return nil
 	}
 }

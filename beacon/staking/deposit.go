@@ -32,9 +32,9 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 )
 
-// ProcessDepositEvent processes a deposit log from the execution layer
+// ProcessDeposit processes a deposit log from the execution layer
 // and puts the deposit to the beacon state.
-func (s *Service) ProcessDepositEvent(
+func (s *Service) ProcessDeposit(
 	ctx context.Context,
 	validatorPubkey []byte,
 	withdrawalCredentials []byte,
@@ -62,11 +62,26 @@ func (s *Service) ProcessDepositEvent(
 		amount,
 		withdrawalCredentials,
 	)
+	// Cache the deposit to be pushed to the queue later in batch.
 	err := beaconState.CacheDeposit(deposit)
 	if err != nil {
-		return errors.Wrapf(err, "failed to push deposit to cache")
+		return err
 	}
 	s.Logger().Info("delegating from execution layer",
 		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
+	return nil
+}
+
+// PersistDeposits persists the queued deposists to the keeper.
+func (s *Service) PersistDeposits(ctx context.Context) error {
+	beaconState := s.BeaconState(ctx)
+	// Commit cached deposits in this block to the beacon state's queue.
+	err := beaconState.CommitDeposits()
+	if err != nil {
+		return err
+	}
+	// Pop deposits, up to MaxDepositsPerBlock, from the queue
+	// and persist them to the staking keeper.
+	_, err = beaconState.PersistDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
 	return nil
 }

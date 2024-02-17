@@ -42,7 +42,12 @@ contract Staking {
      * @param amount The amount of tokens delegated.
      * @param nonce The nonce of the delegation.
      */
-    event Delegate(bytes validatorPubkey, bytes withdrawalCredentials, bytes amount, bytes nonce);
+    event Delegate(
+        bytes validatorPubkey,
+        bytes withdrawalCredentials,
+        bytes amount,
+        bytes nonce
+    );
 
     /**
      * @dev Emitted by the staking contract when `amount` tokens are unbonded from
@@ -60,18 +65,16 @@ contract Staking {
      * @param validatorPubkey The validator's public key.
      * @param amount The amount of tokens to delegate.
      */
-    function delegateFn(
+    function deposit(
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
         uint256 amount
-    )
-        external
-    {
+    ) external {
         emit Delegate(
             validatorPubkey,
             withdrawalCredentials,
-            toLittleEndian64(uint64(amount)),
-            toLittleEndian64(uint64(nonce))
+            abi.encodePacked(amount),
+            abi.encodePacked(nonce)
         );
         nonce++;
     }
@@ -81,24 +84,12 @@ contract Staking {
      * @param validatorPubkey The validator's public key.
      * @param amount The amount of tokens to undelegate.
      */
-    function undelegateFn(bytes calldata validatorPubkey, uint64 amount) external {
+    function withdraw(bytes calldata validatorPubkey, uint256 amount) external {
         emit Undelegate(
-            validatorPubkey, toLittleEndian64(uint64(amount)), toLittleEndian64(uint64(nonce))
+            validatorPubkey,
+            abi.encodePacked(amount),
+            abi.encodePacked(nonce)
         );
         nonce++;
-    }
-
-    function toLittleEndian64(uint64 value) internal pure returns (bytes memory ret) {
-        ret = new bytes(8);
-        bytes8 bytesValue = bytes8(value);
-        // Byteswapping during copying to bytes.
-        ret[0] = bytesValue[7];
-        ret[1] = bytesValue[6];
-        ret[2] = bytesValue[5];
-        ret[3] = bytesValue[4];
-        ret[4] = bytesValue[3];
-        ret[5] = bytesValue[2];
-        ret[6] = bytesValue[1];
-        ret[7] = bytesValue[0];
     }
 }

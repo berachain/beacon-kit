@@ -32,6 +32,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -44,6 +45,7 @@ import (
 // the execution client and processing logs from the execution chain.
 type Service struct {
 	service.BaseService
+	st *staking.Service
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
 	// payloadCache is used to track currently building payload IDs for a given slot.
@@ -120,5 +122,12 @@ func (s *Service) NotifyNewPayload(ctx context.Context, payload enginetypes.Exec
 
 // ProcessLogs processes logs for the given block number.
 func (s *Service) ProcessLogs(ctx context.Context, blkNum uint64) error {
-	return s.logProcessor.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
+	// LogProcessor processes logs from the execution client
+	// and pushes deposits/withdrawals to the beacon state.
+	err := s.logProcessor.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
+	if err != nil {
+		s.Logger().Error("failed to process logs", "error", err)
+		return err
+	}
+	return s.st.PersistDeposits(ctx)
 }
