@@ -53,16 +53,20 @@ func (s *Service) ProcessDeposit(
 			ErrInvalidNonce, "expected nonce %d, got %d", expectedNonce, nonce,
 		)
 	}
+	// Increase the staking nonce before AddDeposit,
+	// so that it is ready to accept the nexr deposit,
+	// even when AddDeposit returns an error.
+	beaconState.SetStakingNonce(expectedNonce + 1)
 	deposit := store.NewDeposit(
 		validatorPubkey,
 		amount,
 		withdrawalCredentials,
 	)
+	// Add the deposit to the queue.
 	err := beaconState.AddDeposit(deposit)
 	if err != nil {
 		return err
 	}
-	beaconState.SetStakingNonce(expectedNonce + 1)
 	s.Logger().Info("delegating from execution layer",
 		"validatorPubkey", validatorPubkey, "amount", amount, "nonce", nonce)
 	return nil
