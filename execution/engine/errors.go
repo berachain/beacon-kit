@@ -23,44 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package engine
 
-import (
-	"context"
+import "github.com/pkg/errors"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+var (
+	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
+	// attributes was provided.
+	ErrInvalidPayloadAttributeVersion = errors.New("invalid payload attribute version")
+	// ErrNilPayloadAttributes indicates that nil payload attributes were provided where
+	// they are expected.
+	ErrNilPayloadAttributes = errors.New("nil payload attributes")
+	// ErrInvalidPayloadType indicates an invalid payload type was provided for an RPC call.
+	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
+	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was provided for
+	// getting a payload.
+	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
 )
-
-// FinalizeBeaconBlock finalizes a beacon block by processing the logs, deposits,
-// and voluntary exits. It also updates the finalized and safe eth1 block hashes
-// on the beacon state.
-func (s *Service) FinalizeBeaconBlock(
-	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock,
-) error {
-	payload, err := blk.ExecutionPayload()
-	if err != nil {
-		return err
-	}
-
-	// TODO: PROCESS LOGS HERE
-	// TODO: PROCESS DEPOSITS HERE
-	// TODO: PROCESS VOLUNTARY EXITS HERE
-
-	if err := s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
-		HeadEth1Hash: common.Hash(payload.GetBlockHash()),
-		Attributes:   nil,
-	}); err != nil {
-		s.Logger().Error("failed to notify forkchoice update", "error", err)
-	}
-
-	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	state := s.BeaconState(ctx)
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
-	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetLastValidHead(eth1BlockHash)
-
-	return nil
-}
