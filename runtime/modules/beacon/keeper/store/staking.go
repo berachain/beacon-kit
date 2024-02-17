@@ -27,7 +27,6 @@ package store
 
 import (
 	"cosmossdk.io/collections/codec"
-	"github.com/itsdevbear/bolaris/lib/encoding"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -93,8 +92,8 @@ func (s *BeaconStore) CacheDeposit(deposit *Deposit) error {
 	return nil
 }
 
-// CommitDeposits commits the cached deposits to the queue.
-func (s *BeaconStore) CommitDeposits() error {
+// commitDeposits commits the cached deposits to the queue.
+func (s *BeaconStore) commitDeposits() error {
 	err := s.deposits.PushMulti(s.sdkCtx, s.depositCache)
 	if err != nil {
 		return err
@@ -103,10 +102,15 @@ func (s *BeaconStore) CommitDeposits() error {
 	return nil
 }
 
-// PersistDeposits pops the next deposits, up to n,
-// from the queue and delegate them with staking keeper.
+// PersistDeposits commits the cached deposits to the queue
+// and processes the queued deposits.
 func (s *BeaconStore) PersistDeposits(n uint64) ([]*Deposit, error) {
 	var err error
+	if len(s.depositCache) > 0 {
+		if err = s.commitDeposits(); err != nil {
+			return nil, err
+		}
+	}
 	depositsToProcess, err := s.deposits.PopMulti(s.sdkCtx, n)
 	if err != nil {
 		return nil, err
@@ -127,17 +131,11 @@ func (s *BeaconStore) processDeposit(deposit *Deposit) error {
 	return err
 }
 
-// SetStakingNonce sets the staking nonce.
-func (s *BeaconStore) SetStakingNonce(nonce uint64) {
-	bz := encoding.EncodeUint64(nonce)
-	s.Set([]byte(stakingNonceKey), bz)
-}
-
 // GetStakingNonce returns the staking nonce.
-func (s *BeaconStore) GetStakingNonce() uint64 {
-	bz := s.Get([]byte(stakingNonceKey))
-	if bz == nil {
-		return 0
+func (s *BeaconStore) GetStakingNonce() (uint64, error) {
+	headIdx, err := s.deposits.HeadIndex(s.sdkCtx)
+	if err != nil {
+		return 0, err
 	}
-	return encoding.DecodeUint64(bz)
+	return headIdx + uint64(len(s.depositCache)), nil
 }

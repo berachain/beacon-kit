@@ -216,6 +216,13 @@ func (q *Queue[V]) Len(ctx context.Context) (uint64, error) {
 	return tailIdx - headIdx, nil
 }
 
+// HeadIndex returns the index of the head of the queue.
+func (q *Queue[V]) HeadIndex(ctx context.Context) (uint64, error) {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+	return q.headSeq.Peek(ctx)
+}
+
 // Container returns the underlying map container of the queue.
 func (q *Queue[V]) Container() sdkcollections.Map[uint64, V] {
 	return q.container

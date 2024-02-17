@@ -38,9 +38,3 @@ const (
 	// forkchoiceFinalizedKey is the key used to store the finalized block hash.
 	forkchoiceFinalizedKey = "fc_finalized"
 )
-
-// State Related Keys.
-const (
-	// stateRootKey is the key used to store the next nonce of staking events.
-	stakingNonceKey = "staking_nonce"
-)
