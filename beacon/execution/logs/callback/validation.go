@@ -33,32 +33,29 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// validateArg uses reflection to verify the implementation arg matches the ABI arg, improving readability and efficiency.
+// validateArg uses reflection to verify the implementation arg matches the ABI arg.
 func validateArg(implMethodVar reflect.Value, abiMethodVar reflect.Value) error {
 	implMethodVarType := implMethodVar.Type()
 	abiMethodVarType := abiMethodVar.Type()
 
-	if implMethodVarType.Kind() == reflect.TypeOf(common.Hash{}).Kind() {
-		// No validation needed for common.Hash type as it's a direct match.
-		return nil
-	}
-
-	switch implMethodVarType.Kind() {
+	switch implMethodVarType.Kind() { //nolint:exhaustive // todo verify its okay.
+	case reflect.TypeOf(common.Hash{}).Kind():
 	case reflect.String:
 		return validateString(implMethodVarType, abiMethodVarType)
 	case reflect.Array, reflect.Slice:
 		return validateArrayOrSlice(implMethodVarType, abiMethodVarType)
+	case abiMethodVarType.Kind():
+		return validateSameKind(implMethodVarType, abiMethodVarType)
 	case reflect.Ptr:
 		return validatePointer(implMethodVarType, abiMethodVarType)
 	case reflect.Interface:
-		// For `any` (reflect.Interface), validation is deferred to the implementer.
-		return nil
+		// If it's `any` (reflect.Interface), we leave it to the implementer to make sure that it is
+		// used/converted correctly.
 	default:
-		if implMethodVarType.Kind() == abiMethodVarType.Kind() {
-			return validateSameKind(implMethodVarType, abiMethodVarType)
-		}
 		return fmt.Errorf("type mismatch: %v != %v", implMethodVarType, abiMethodVarType)
 	}
+
+	return nil
 }
 
 // validateString checks if the implementation type is a string, the ABI type must be a string.
