@@ -23,23 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package initialsync
+package blockchain
 
-// Option is a function that modifies the Service.
-type Option func(*Service) error
-
-// WithEthClient is an Option that sets the ethClient of the Service.
-func WithEthClient(ethClient ethClient) Option {
-	return func(s *Service) error {
-		s.ethClient = ethClient
-		return nil
-	}
-}
-
-// WithExecutionService is an Option that sets the ExecutionService of the Service.
-func WithExecutionService(es executionService) Option {
-	return func(r *Service) error {
-		r.es = es
-		return nil
-	}
-}
+// // waitForSync blocks until the node is synced to the head.
+// func (s *Service) waitForSync() error {
+// 	select {
+// 	case <-s.syncComplete:
+// 		return nil
+// 	case <-s.ctx.Done():
+// 		return errors.New("context closed, exiting goroutine")
+// 	}
+// }

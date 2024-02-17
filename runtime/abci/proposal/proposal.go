@@ -36,7 +36,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/validator"
@@ -48,7 +48,7 @@ type Handler struct {
 	cfg             *config.ABCI
 	validator       *validator.Service
 	beaconChain     *blockchain.Service
-	syncService     *initialsync.Service
+	syncService     *sync.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
 }
@@ -57,7 +57,7 @@ type Handler struct {
 func NewHandler(
 	cfg *config.ABCI,
 	validator *validator.Service,
-	syncService *initialsync.Service,
+	syncService *sync.Service,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
@@ -81,7 +81,7 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// TODO: Make this more sophisticated.
-	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == initialsync.StatusExecutionAhead {
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == sync.StatusExecutionAhead {
 		return nil, fmt.Errorf("err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status)
 	}
 

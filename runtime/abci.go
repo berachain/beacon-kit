@@ -30,7 +30,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 	"github.com/itsdevbear/bolaris/validator"
@@ -51,7 +51,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	var (
 		chainService     *blockchain.Service
 		validatorService *validator.Service
-		syncService      *initialsync.Service
+		syncService      *sync.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		return err

@@ -34,8 +34,8 @@ import (
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/state"
+	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/execution/engine"
@@ -146,10 +146,10 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the sync service.
-	syncService := initialsync.NewService(
-		baseService.WithName("initial-sync"),
-		initialsync.WithEthClient(eth1Client),
-		initialsync.WithExecutionService(executionService),
+	syncService := sync.NewService(
+		baseService.WithName("sync"),
+		sync.WithEthClient(eth1Client),
+		sync.WithExecutionService(executionService),
 	)
 
 	// Build the validator service.
@@ -200,9 +200,9 @@ func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 	return r.services.FetchService(service)
 }
 
-// InitialSyncCheck.
+// syncCheck.
 func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
-	var syncService *initialsync.Service
+	var syncService *sync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
 		return err
 	}
