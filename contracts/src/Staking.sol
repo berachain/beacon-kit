@@ -29,8 +29,7 @@ pragma solidity 0.8.24;
  * @dev Interface of the staking contract.
  */
 contract Staking {
-    //////////////////////////////////////// VARIABLES
-    // /////////////////////////////////////////////
+    //////////////////////////////////////// VARIABLES /////////////////////////////////////////////
     uint256 nonce;
 
     ////////////////////////////////////////// EVENTS /////////////////////////////////////////////
@@ -68,7 +67,7 @@ contract Staking {
     function deposit(
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
-        uint256 amount
+        uint64 amount
     ) external {
         emit Delegate(
             validatorPubkey,
@@ -84,7 +83,7 @@ contract Staking {
      * @param validatorPubkey The validator's public key.
      * @param amount The amount of tokens to undelegate.
      */
-    function withdraw(bytes calldata validatorPubkey, uint256 amount) external {
+    function withdraw(bytes calldata validatorPubkey, uint64 amount) external {
         emit Undelegate(
             validatorPubkey,
             abi.encodePacked(amount),

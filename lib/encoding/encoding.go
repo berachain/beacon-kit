@@ -33,11 +33,12 @@ import (
 func EncodeUint64(i uint64) []byte {
 	uint64Size := 8
 	b := make([]byte, uint64Size)
-	binary.LittleEndian.PutUint64(b, i)
+	binary.BigEndian.PutUint64(b, i)
 	return b
 }
 
 // DecodeUint64 decodes a byte slice into a uint64.
+// abi.encodePacked uses big-endian encoding.
 func DecodeUint64(b []byte) uint64 {
-	return binary.LittleEndian.Uint64(b)
+	return binary.BigEndian.Uint64(b)
 }

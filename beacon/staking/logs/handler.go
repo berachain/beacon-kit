@@ -95,6 +95,7 @@ func (s *Handler) Undelegate(
 	amountBz []byte,
 	nonceBz []byte,
 ) error {
+	// TODO: The encoding lib abstract checker for big vs little endian
 	amount := encoding.DecodeUint64(amountBz)
 	nonce := encoding.DecodeUint64(nonceBz)
 	return s.st.ProcessWithdrawal(ctx, validatorPubkey, amount, nonce)
