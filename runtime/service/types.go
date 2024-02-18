@@ -28,10 +28,9 @@ package service
 import (
 	"context"
 
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-
 	"github.com/itsdevbear/bolaris/beacon/state"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 type BeaconStateProvider interface {
