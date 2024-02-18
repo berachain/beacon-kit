@@ -35,7 +35,7 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginetypes "github.com/itsdevbear/bolaris/types/engine/interfaces"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Service is responsible for delivering beacon chain notifications to

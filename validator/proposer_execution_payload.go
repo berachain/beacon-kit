@@ -36,9 +36,8 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
-	bkenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/pkg/errors"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (s *Service) getLocalPayload(
@@ -117,7 +116,7 @@ func (s *Service) getLocalPayload(
 		return nil, false, err
 	}
 
-	attrs, err := bkenginev1.NewPayloadAttributesContainer(
+	attrs, err := engine.NewPayloadAttributesContainer(
 		st.Version(),
 		t,
 		prevRandao,

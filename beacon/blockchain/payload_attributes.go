@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // getPayloadAttribute returns the payload attributes for the given state and slot.
@@ -72,7 +71,7 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	return enginev1.NewPayloadAttributesContainer(
+	return engine.NewPayloadAttributesContainer(
 		s.BeaconState(ctx).Version(),
 		t, prevRandao,
 		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],

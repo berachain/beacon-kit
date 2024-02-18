@@ -36,13 +36,12 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.
 func (s *Service) notifyNewPayload(
-	ctx context.Context, payload interfaces.ExecutionPayload,
+	ctx context.Context, payload engine.ExecutionPayload,
 ) (bool, error) {
 	var (
 		lastValidHash []byte

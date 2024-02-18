@@ -33,7 +33,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Caller defines a client that can interact with an Ethereum
