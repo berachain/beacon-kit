@@ -23,14 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package builder
 
-const (
-	// MetricReceivedInvalidPayload is used to count the number of times an
-	// invalid payload is received.
-	MetricReceivedInvalidPayload = "beaconkit.blockchain.received_invalid_payload"
+import (
+	"context"
 
-	// MetricFailedToBuildLocalPayload is used to count the number of times the
-	// local builder fails to build a payload when triggered via the chain service.
-	MetricFailedToBuildLocalPayload = "beaconkit.blockchain.failed_to_build_local_payload"
+	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
+
+// BeaconBlockBuilder is the interface for building blocks.
+type BeaconBlockBuilder interface {
+	RequestBestBlock(
+		ctx context.Context,
+		slot primitives.Slot,
+	) (consensus.ReadOnlyBeaconKitBlock, error)
+}
