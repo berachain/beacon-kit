@@ -109,7 +109,7 @@ func BeaconKitBlockFromSSZ(
 	var block BeaconKitBlock
 	switch forkVersion {
 	case version.Deneb:
-		// TODO: deneb block
+		panic("TODO DENEB")
 		// block = &consensusv1.BeaconKitBlockDeneb{}
 	case version.Capella:
 		block = &consensusv1.BeaconKitBlockCapella{}
