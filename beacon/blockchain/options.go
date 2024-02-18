@@ -28,8 +28,17 @@ package blockchain
 // Option is a function type that takes a pointer to a Service and returns an error.
 type Option func(*Service) error
 
+// WithBuilderService is a function that returns an Option.
+// It sets the BuilderService of the Service to the provided Service.
+func WithBuilderService(bs BuilderService) Option {
+	return func(s *Service) error {
+		s.bs = bs
+		return nil
+	}
+}
+
 // WithExecutionService is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
+// It sets the ExecutionService of the Service to the provided Service.
 func WithExecutionService(en ExecutionService) Option {
 	return func(s *Service) error {
 		s.en = en

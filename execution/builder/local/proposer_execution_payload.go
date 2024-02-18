@@ -32,7 +32,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/state"
 
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -43,7 +42,7 @@ import (
 
 func (s *Service) getLocalPayload(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock, st state.BeaconState,
+	blk consensus.ReadOnlyBeaconKitBlock,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
@@ -90,10 +89,19 @@ func (s *Service) getLocalPayload(
 
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
+	//#nosec:G701 // won't overflow, time cannot be negative.
+	return s.GetExecutionPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
+}
 
-	// TODO: Randao
+// GetExecutionPayload retrieves the execution payload for the given slot.
+func (s *Service) GetExecutionPayload(
+	ctx context.Context,
+	parentEth1Hash common.Hash,
+	slot primitives.Slot,
+	timestamp uint64,
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	var (
-		t = uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
+		st = s.BeaconState(ctx)
 		// TODO: RANDAO
 		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
 		// TODO: Cancun
@@ -120,7 +128,7 @@ func (s *Service) getLocalPayload(
 
 	attrs, err := engine.NewPayloadAttributesContainer(
 		st.Version(),
-		t,
+		timestamp,
 		prevRandao,
 		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 		withdrawals,

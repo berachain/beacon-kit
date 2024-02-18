@@ -33,9 +33,6 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-type BlockBuilder interface {
-}
-
 // TODO: Decouple from ABCI and have this validator run on a seperate thread
 // have it configured itself and not be a service persay.
 type Service struct {
