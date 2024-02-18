@@ -37,7 +37,7 @@ import (
 )
 
 // TODO: calculate this based off of all the comet timeouts.
-const approximateSecondsPerBlock = 3
+const approximateBlkTime = 3 * time.Second
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
@@ -79,7 +79,7 @@ func (s *Service) sendFCU(
 	// a new execution payload for us.
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		_, _, _, err := s.bs.GetExecutionPayload(
-			ctx, headEth1Hash, proposingSlot, uint64(time.Now().Unix())+approximateSecondsPerBlock,
+			ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
 		)
 		if err != nil {
 			return err
