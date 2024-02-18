@@ -95,8 +95,8 @@ func (s *Service) NotifyForkchoiceUpdate(
 	return payloadID, err
 }
 
-// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetBuiltPayload(
+// GetPayload returns the payload and blobs bundle for the given slot.
+func (s *Service) GetPayload(
 	ctx context.Context, slot primitives.Slot, headHash common.Hash,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	payloadID, found := s.payloadCache.Get(

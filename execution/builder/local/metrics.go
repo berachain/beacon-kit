@@ -26,11 +26,11 @@
 package builder
 
 const (
-	// MetricGetBuiltPayloadHit is used to count the number of times a built
+	// MetricGetPayloadHit is used to count the number of times a built
 	// payload retrieval is attempted and found.
 	MetricsPayloadIDCacheHit = "beaconkit.validator.payload-id-cache-hit"
 
-	// MetricGetBuiltPayloadMiss is used to count the number of times a built
+	// MetricGetPayloadMiss is used to count the number of times a built
 	// payload retrieval is attempted but not found.
 	MetricsPayloadIDCacheMiss = "beaconkit.validator.payload-id-cache-miss"
 
