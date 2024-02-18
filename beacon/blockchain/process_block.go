@@ -82,7 +82,7 @@ func (s *Service) sendFCU(
 	// care about it in the context of processing the current block. As long as it doesn't error.
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		//#nosec:G701 // won't overflow, time cannot be negative.
-		_, _, _, err := s.bs.BuildLocalPayload(
+		_, _, _, err := s.bs.GetExecutionPayload(
 			ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
 		)
 		if err == nil {
