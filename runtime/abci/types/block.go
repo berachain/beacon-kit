@@ -29,7 +29,6 @@ import (
 	"time"
 
 	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
 
 // ABCIRequest is the interface for an ABCI request.
@@ -46,7 +45,7 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion int,
-) (interfaces.ReadOnlyBeaconKitBlock, error) {
+) (consensus.ReadOnlyBeaconKitBlock, error) {
 	txs := req.GetTxs()
 
 	// Ensure there are transactions in the request and

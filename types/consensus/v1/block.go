@@ -28,36 +28,10 @@ package consensusv1
 import (
 	"errors"
 
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
-
-// BeaconKitBlock implements the BeaconKitBlock interface.
-var _ interfaces.BeaconKitBlock = (*BeaconKitBlockCapella)(nil)
-
-// BeaconKitBlock assembles a new beacon block from
-// the given slot, time, execution data, and version.
-func NewBeaconKitBlock(
-	slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot,
-	executionData engine.ExecutionPayload,
-) (interfaces.BeaconKitBlock, error) {
-	block := &BeaconKitBlockCapella{
-		Slot: slot,
-		Body: &BeaconKitBlockBodyCapella{
-			RandaoReveal: make([]byte, 96), //nolint:gomnd // 96 bytes for RandaoReveal.
-			Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
-		},
-	}
-	if executionData != nil {
-		if err := block.AttachExecution(executionData); err != nil {
-			return nil, err
-		}
-	}
-	return block, nil
-}
 
 // IsNil checks if the BeaconKitBlock is nil or not.
 func (b *BeaconKitBlockCapella) IsNil() bool {

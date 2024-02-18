@@ -48,7 +48,7 @@ type BeaconStore struct {
 
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
-	lastValidHash common.Hash
+	lastValidHash *common.Hash
 }
 
 // NewBeaconStore creates a new instance of BeaconStore.

@@ -29,7 +29,7 @@ import (
 	"errors"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
@@ -42,15 +42,29 @@ func NewBeaconKitBlock(
 	slot primitives.Slot,
 	executionData engine.ExecutionPayload,
 	forkVersion int,
-) (interfaces.BeaconKitBlock, error) {
+) (BeaconKitBlock, error) {
+	var block BeaconKitBlock
 	switch forkVersion {
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
-		return consensusv1.NewBeaconKitBlock(slot, executionData)
+		block = &consensusv1.BeaconKitBlockCapella{
+			Slot: slot,
+			Body: &consensusv1.BeaconKitBlockBodyCapella{
+				RandaoReveal: make([]byte, 96), //nolint:gomnd // 96 bytes for RandaoReveal.
+				Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
+			},
+		}
 	default:
 		return nil, ErrForkVersionNotSupported
 	}
+
+	if executionData != nil {
+		if err := block.AttachExecution(executionData); err != nil {
+			return nil, err
+		}
+	}
+	return block, nil
 }
 
 // EmptyBeaconKitBlock assembles a new beacon block
@@ -58,7 +72,7 @@ func NewBeaconKitBlock(
 func EmptyBeaconKitBlock(
 	slot primitives.Slot,
 	version int,
-) (interfaces.BeaconKitBlock, error) {
+) (BeaconKitBlock, error) {
 	return NewBeaconKitBlock(slot, nil, version)
 }
 
@@ -66,7 +80,7 @@ func EmptyBeaconKitBlock(
 // with no execution data from the given state.
 func EmptyBeaconKitBlockFromState(
 	beaconState state.BeaconState,
-) (interfaces.BeaconKitBlock, error) {
+) (BeaconKitBlock, error) {
 	return EmptyBeaconKitBlock(
 		beaconState.Slot(),
 		beaconState.Version(),
@@ -78,7 +92,7 @@ func EmptyBeaconKitBlockFromState(
 func BeaconKitBlockFromState(
 	beaconState state.ReadOnlyBeaconState,
 	executionData engine.ExecutionPayload,
-) (interfaces.BeaconKitBlock, error) {
+) (BeaconKitBlock, error) {
 	return NewBeaconKitBlock(
 		beaconState.Slot(),
 		executionData,
@@ -91,17 +105,20 @@ func BeaconKitBlockFromState(
 func BeaconKitBlockFromSSZ(
 	bz []byte,
 	forkVersion int,
-) (interfaces.BeaconKitBlock, error) {
+) (BeaconKitBlock, error) {
+	var block BeaconKitBlock
 	switch forkVersion {
 	case version.Deneb:
-		return nil, errors.New("TODO: Deneb block")
+		panic("TODO DENEB")
+		// block = &consensusv1.BeaconKitBlockDeneb{}
 	case version.Capella:
-		block := &consensusv1.BeaconKitBlockCapella{}
-		if err := block.UnmarshalSSZ(bz); err != nil {
-			return nil, err
-		}
-		return block, nil
+		block = &consensusv1.BeaconKitBlockCapella{}
 	default:
 		return nil, ErrForkVersionNotSupported
 	}
+
+	if err := block.UnmarshalSSZ(bz); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
