@@ -139,9 +139,17 @@ func NewDefaultBeaconKitRuntime(
 		execution.WithPayloadCache(payloadCache),
 	)
 
+	// Build the validator service.
+	builderService := builder.NewService(
+		baseService.WithName("validator"),
+		builder.WithEngineCaller(engineClient),
+		builder.WithPayloadCache(payloadCache),
+	)
+
 	// Build the blockchain service
 	chainService := blockchain.NewService(
 		baseService.WithName("blockchain"),
+		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
 	)
 
@@ -150,13 +158,6 @@ func NewDefaultBeaconKitRuntime(
 		baseService.WithName("sync"),
 		sync.WithEthClient(eth1Client),
 		sync.WithExecutionService(executionService),
-	)
-
-	// Build the validator service.
-	builderService := builder.NewService(
-		baseService.WithName("validator"),
-		builder.WithEngineCaller(engineClient),
-		builder.WithPayloadCache(payloadCache),
 	)
 
 	// Create the service registry.

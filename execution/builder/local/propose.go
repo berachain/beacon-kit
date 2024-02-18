@@ -64,7 +64,7 @@ func (s *Service) BuildBeaconBlock(
 	}
 
 	executionData, blobsBundle, overrideBuilder, err := s.getLocalPayload(
-		ctx, beaconBlock, beaconState,
+		ctx, beaconBlock,
 	)
 	if err != nil {
 		return nil, err
