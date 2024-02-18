@@ -43,6 +43,7 @@ contract BeaconDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
     /// @dev DepositAmountTooLow is thrown when the specified deposit amount is below
     ///      the minimum.
     error DepositAmountTooLow();
@@ -62,7 +63,7 @@ contract BeaconDepositContract {
     event Withdrawal(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                     ADMIN FUNCTIONS                        */
+    /*                    STAKING FUNCTIONS                       */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev msg.sender deposits the `amount` of tokens to `validatorPubkey`.
