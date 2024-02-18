@@ -26,15 +26,21 @@
 package localbuilder
 
 const (
-	// MetricGetPayloadHit is used to count the number of times a built
+	prefix = "beaconkit.builder."
+
+	// MetricsPayloadIDCacheHit is used to count the number of times a built
 	// payload retrieval is attempted and found.
-	MetricsPayloadIDCacheHit = "beaconkit.validator.payload-id-cache-hit"
+	MetricsPayloadIDCacheHit = prefix + "payload-id-cache-hit"
 
 	// MetricGetPayloadMiss is used to count the number of times a built
 	// payload retrieval is attempted but not found.
-	MetricsPayloadIDCacheMiss = "beaconkit.validator.payload-id-cache-miss"
+	MetricsPayloadIDCacheMiss = prefix + "payload-id-cache-miss"
 
 	// MetricErrorRetrievingPayload is used to count the number of times an error
 	// occurs when attempting to retrieve a built payload.
-	MetricsPayloadIDCacheError = "beaconkit.validator.get-payload-error"
+	MetricsPayloadIDCacheError = prefix + "get-payload-error"
+
+	// MetricLocalBuilderReceivedNilPayload is used to count the number of times
+	// the local builder receives a nil payload.
+	MetricsLocalBuilderReceivedNilPayload = prefix + "local-builder-received-nil-payload"
 )
