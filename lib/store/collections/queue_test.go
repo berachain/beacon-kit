@@ -100,6 +100,105 @@ func Test_Queue(t *testing.T) {
 	})
 }
 
+func Test_PopMulti(t *testing.T) {
+	t.Run("should return correct items and lengths", func(t *testing.T) {
+		sk, ctx := deps()
+		sb := sdk.NewSchemaBuilder(sk)
+		q := collections.NewQueue[uint64](sb, "queue", sdk.Uint64Value)
+
+		err := q.Push(ctx, 1)
+		require.NoError(t, err)
+
+		err = q.Push(ctx, 2)
+		require.NoError(t, err)
+
+		err = q.Push(ctx, 3)
+		require.NoError(t, err)
+
+		// Test length after pushes
+		qlen, err := q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), qlen, "Queue should have 3 items after 3 pushes")
+
+		mlen, err := mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		// Pop 2 items from the queue
+		items, err := q.PopMulti(ctx, 2)
+		require.NoError(t, err)
+		require.Equal(t, []uint64{1, 2}, items)
+
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(1), qlen, "Queue should have 1 item after popping 2 items")
+
+		mlen, err = mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		items, err = q.PopMulti(ctx, 3)
+		require.NoError(t, err)
+		require.Equal(t, []uint64{3}, items)
+
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(0), qlen, "Queue should be empty after popping all items")
+
+		mlen, err = mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		items, err = q.PopMulti(ctx, 3)
+		require.NoError(t, err)
+		require.Empty(t, items)
+	})
+}
+
+func Test_PushMulti(t *testing.T) {
+	t.Run("should return correct items and lengths", func(t *testing.T) {
+		sk, ctx := deps()
+		sb := sdk.NewSchemaBuilder(sk)
+		q := collections.NewQueue[uint64](sb, "queue", sdk.Uint64Value)
+
+		err := q.PushMulti(ctx, []uint64{1, 2, 3})
+		require.NoError(t, err)
+
+		// Test length after pushes
+		qlen, err := q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), qlen, "Queue should have 3 items after 3 pushes")
+
+		mlen, err := mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+
+		items, err := q.PopMulti(ctx, 4)
+		require.NoError(t, err)
+		require.Equal(t, []uint64{1, 2, 3}, items)
+
+		qlen, err = q.Len(ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(0), qlen, "Queue should be empty after popping all items")
+
+		mlen, err = mapLen[uint64](ctx, q.Container())
+		require.NoError(t, err)
+		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+	})
+}
+
+func mapLen[V any](ctx context.Context, m sdk.Map[uint64, V]) (int, error) {
+	iter, err := m.IterateRaw(ctx, nil, nil, sdk.OrderAscending)
+	if err != nil {
+		return 0, err
+	}
+	keys, err := iter.Keys()
+	if err != nil {
+		return 0, err
+	}
+	return len(keys), nil
+}
+
 // MockStore wraps the dba.Store to implement additional functionalities.
 type MockStore struct {
 	dba.Store

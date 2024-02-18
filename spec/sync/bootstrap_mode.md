@@ -12,7 +12,7 @@ execution chain once the beacon chain is fully sync'd we will run into problems.
 
 # High Level Plan
 
-- Define an `initial-sync` queue.
+- Define an `sync` queue.
 
 - We should have some sort of global sync status that we can read off of the rpc.
 - Always start in some sort of bootstrapping mode.

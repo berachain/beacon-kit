@@ -36,8 +36,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/state"
+	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 )
@@ -62,7 +62,7 @@ type BeaconPreBlockHandler struct {
 
 	// syncStatus is the service that is responsible for determining if the
 	// node is currently syncing.
-	syncStatus *initialsync.Service
+	syncStatus *sync.Service
 
 	// childHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
@@ -75,7 +75,7 @@ func NewBeaconPreBlockHandler(
 	cfg *config.ABCI,
 	logger log.Logger,
 	chainService *blockchain.Service,
-	syncService *initialsync.Service,
+	syncService *sync.Service,
 	childHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{

@@ -42,9 +42,7 @@ type ExecutionService interface {
 	) error
 
 	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader engine.ExecutionPayload, /*, blk engine.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
+	NotifyNewPayload(ctx context.Context, preStateHeader engine.ExecutionPayload) (bool, error)
 
 	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
 	GetBuiltPayload(

@@ -23,40 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package engine
 
-import (
-	"time"
+import "github.com/pkg/errors"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+var (
+	// ErrNilAttributesPassedToClient is returned when nil attributes are passed to the client.
+	ErrNilAttributesPassedToClient = errors.New("nil attributes passed to client")
+	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
+	// attributes was provided.
+	ErrInvalidPayloadAttributeVersion = errors.New("invalid payload attribute version")
+	// ErrInvalidPayloadType indicates an invalid payload type was provided for an RPC call.
+	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
+	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was provided for
+	// getting a payload.
+	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
 )
-
-// ABCIRequest is the interface for an ABCI request.
-type ABCIRequest interface {
-	GetHeight() int64
-	GetTime() time.Time
-	GetTxs() [][]byte
-}
-
-// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
-// new read-only beacon block by extracting a marshalled
-// block out of an ABCI request.
-func ReadOnlyBeaconKitBlockFromABCIRequest(
-	req ABCIRequest,
-	bzIndex uint,
-	forkVersion int,
-) (interfaces.ReadOnlyBeaconKitBlock, error) {
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= lenTxs {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	return consensus.BeaconKitBlockFromSSZ(txs[bzIndex], forkVersion)
-}
