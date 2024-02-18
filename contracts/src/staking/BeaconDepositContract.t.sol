@@ -12,7 +12,7 @@ contract BeaconDepositContractTest is SoladyTest {
     BeaconDepositContract depositContract = BeaconDepositContract(BEACON_DEPOSIT_ADDRESS);
     bytes VALIDATOR_PUBKEY = "validator_pubkey";
     uint256 internal snapshot;
-    
+
     /// @dev Set up the test environment by deploying a new BeaconRootsContract.
     function setUp() public virtual {
         // etch the BeaconRootsContract to the BEACON_ROOT_ADDRESS
@@ -32,7 +32,7 @@ contract BeaconDepositContractTest is SoladyTest {
         emit BeaconDepositContract.Deposit(VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, amount);
 
         // Call the deposit function
-        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, amount);
+        depositContract.deposit{ value: amount }(VALIDATOR_PUBKEY, amount);
     }
 
     /// @dev Tests the deposit functionality with an amount below the minimum required.
@@ -41,11 +41,11 @@ contract BeaconDepositContractTest is SoladyTest {
         vm.revertTo(snapshot);
         uint64 amount = 0.9 gwei; // Below the 1 ether minimum
 
-        // Expect the transaction to revert with the DepositAmountTooLow error
-        vm.expectRevert(BeaconDepositContract.DepositAmountTooLow.selector);
+        // Expect the transaction to revert with the InsufficientDeposit error
+        vm.expectRevert(BeaconDepositContract.InsufficientDeposit.selector);
 
         // Call the deposit function
-        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, amount);
+        depositContract.deposit{ value: amount }(VALIDATOR_PUBKEY, amount);
     }
 
     /// @dev Tests the withdrawal functionality with a valid request.
@@ -63,5 +63,4 @@ contract BeaconDepositContractTest is SoladyTest {
         // which are not provided in the context. This is a placeholder for withdrawal testing.
         depositContract.withdraw(VALIDATOR_PUBKEY, amount);
     }
-
 }
