@@ -139,14 +139,14 @@ func NewDefaultBeaconKitRuntime(
 		execution.WithPayloadCache(payloadCache),
 	)
 
-	// Build the local builder service
+	// Build the local builder service.
 	builderService := builder.NewService(
 		baseService.WithName("local-builder"),
 		builder.WithEngineCaller(engineClient),
 		builder.WithPayloadCache(payloadCache),
 	)
 
-	// Build the blockchain service
+	// Build the blockchain service.
 	chainService := blockchain.NewService(
 		baseService.WithName("blockchain"),
 		blockchain.WithBuilderService(builderService),
