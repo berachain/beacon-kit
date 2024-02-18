@@ -8,9 +8,10 @@ import { BeaconDepositContract } from "./BeaconDepositContract.sol";
 /// @title BeaconDepositContractTest
 contract BeaconDepositContractTest is SoladyTest {
     address internal constant BEACON_DEPOSIT_ADDRESS = 0x00000000219ab540356cBB839Cbe05303d7705Fa;
-    bytes WITHDRAWAL_CREDENTIALS = abi.encodePacked(address(this));
-    BeaconDepositContract depositContract = BeaconDepositContract(BEACON_DEPOSIT_ADDRESS);
+    bytes20 WITHDRAWAL_CREDENTIALS = bytes20(uint160(address(this)));
     bytes VALIDATOR_PUBKEY = "validator_pubkey";
+
+    BeaconDepositContract depositContract = BeaconDepositContract(BEACON_DEPOSIT_ADDRESS);
     uint256 internal snapshot;
 
     /// @dev Set up the test environment by deploying a new BeaconRootsContract.
