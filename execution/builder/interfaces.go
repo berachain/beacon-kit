@@ -23,6 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// validator contains the core block proposal logic for the beacon chain. It's goal
-// is to decouple running a validator from processing beacon block.
 package builder
+
+import (
+	"context"
+
+	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+)
+
+// BeaconBlockBuilder is the interface for building blocks.
+type BeaconBlockBuilder interface {
+	RequestBestBlock(
+		ctx context.Context,
+		slot primitives.Slot,
+	) (consensus.ReadOnlyBeaconKitBlock, error)
+}
