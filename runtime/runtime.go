@@ -41,15 +41,14 @@ import (
 	stakinglogs "github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
+	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	"github.com/itsdevbear/bolaris/validator"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -119,9 +118,6 @@ func NewDefaultBeaconKitRuntime(
 	baseService := service.NewBaseService(
 		&cfg.Beacon, bsp, vcp, gcd, logger)
 
-	// Create a payloadCache for the execution service and validator service to share.
-	payloadCache := cache.NewPayloadIDCache()
-
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
@@ -164,27 +160,29 @@ func NewDefaultBeaconKitRuntime(
 	// Build the execution service.
 	executionService := execution.New(
 		baseService.WithName("execution"),
-		execution.WithStakingService(stakingService),
 		execution.WithEngineCaller(engineClient),
-		execution.WithPayloadCache(payloadCache),
-		execution.WithLogProcessor(logProcessor))
+	)
+
+	// Build the local builder service.
+	builderService := builder.NewService(
+		baseService.WithName("local-builder"),
+		builder.WithExecutionService(executionService),
+		builder.WithStakingService(stakingService),
+		builder.WithLogProcessor(logProcessor),
+	)
 
 	// Build the blockchain service
 	chainService := blockchain.NewService(
 		baseService.WithName("blockchain"),
-		blockchain.WithExecutionService(executionService))
+		blockchain.WithBuilderService(builderService),
+		blockchain.WithExecutionService(executionService),
+	)
 
 	// Build the sync service.
 	syncService := sync.NewService(
 		baseService.WithName("sync"),
 		sync.WithEthClient(eth1Client),
 		sync.WithExecutionService(executionService))
-
-	// Build the validator service.
-	validatorService := validator.NewService(
-		baseService.WithName("validator"),
-		validator.WithEngineCaller(engineClient),
-		validator.WithPayloadCache(payloadCache))
 
 	// Create the service registry.
 	serviceRegistry := service.NewRegistry(
@@ -194,7 +192,8 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(executionService),
 		service.WithService(chainService),
 		service.WithService(notificationService),
-		service.WithService(validatorService))
+		service.WithService(builderService),
+	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(

@@ -23,6 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// validator contains the core block proposal logic for the beacon chain. It's goal
-// is to decouple running a validator from processing beacon block.
-package validator
+package local
+
+import (
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/staking"
+)
+
+// Option is a functional option for the validator service.
+type Option func(*Service) error
+
+// WithExecutionService is a function that returns an Option.
+// It sets the ExecutionService of the Service to the provided Service.
+func WithExecutionService(en ExecutionService) Option {
+	return func(s *Service) error {
+		s.en = en
+		return nil
+	}
+}
+
+// WithLogProcessor is a function that returns an Option.
+// It sets the LogProcessor of the Service to the provided Service.
+func WithLogProcessor(lp *logs.Processor) Option {
+	return func(s *Service) error {
+		s.logProcessor = lp
+		return nil
+	}
+}
+
+// WithStakingService is a function that returns an Option.
+// It sets the StakingService of the Service to the provided Service.
+func WithStakingService(st *staking.Service) Option {
+	return func(s *Service) error {
+		s.st = st
+		return nil
+	}
+}

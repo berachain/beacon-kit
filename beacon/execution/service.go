@@ -27,13 +27,7 @@ package execution
 
 import (
 	"context"
-	"errors"
-	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking"
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -45,13 +39,8 @@ import (
 // the execution client and processing logs from the execution chain.
 type Service struct {
 	service.BaseService
-	st *staking.Service
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// payloadCache is used to track currently building payload IDs for a given slot.
-	payloadCache *cache.PayloadIDCache
-	// logProcessor is used to process logs from the execution client.
-	logProcessor *logs.Processor
 }
 
 // New creates a new Service with the provided options.
@@ -86,30 +75,14 @@ func (s *Service) Status() error {
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) error {
-	var err error
-
-	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		_, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
-	}); e != nil {
-		return e
-	}
-
-	return err
+) (*enginev1.PayloadIDBytes, error) {
+	return s.notifyForkchoiceUpdate(ctx, fcuConfig)
 }
 
-// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetBuiltPayload(
-	ctx context.Context, slot primitives.Slot, headHash common.Hash,
+// GetPayload returns the payload and blobs bundle for the given slot.
+func (s *Service) GetPayload(
+	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.Get(
-		slot, headHash,
-	)
-	if !found {
-		return nil, nil, false, errors.New("payload not found")
-	}
-
 	return s.engine.GetPayload(ctx, payloadID, slot)
 }
 
@@ -118,16 +91,4 @@ func (s *Service) GetBuiltPayload(
 func (s *Service) NotifyNewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
 ) (bool, error) {
 	return s.notifyNewPayload(ctx, payload)
-}
-
-// ProcessLogs processes logs for the given block number.
-func (s *Service) ProcessLogs(ctx context.Context, blkNum uint64) error {
-	// LogProcessor processes logs from the execution client
-	// and pushes deposits/withdrawals to the beacon state.
-	err := s.logProcessor.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
-	if err != nil {
-		s.Logger().Error("failed to process logs", "error", err)
-		return err
-	}
-	return s.st.PersistDeposits(ctx)
 }

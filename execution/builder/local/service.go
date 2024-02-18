@@ -23,8 +23,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package local
 
-const (
-	forkchoiceDispatchQueue = "dispatch.forkchoice"
+import (
+	"context"
+
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/staking"
+	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
+
+// TODO: Decouple from ABCI and have this validator run on a seperate thread
+// have it configured itself and not be a service persay.
+type Service struct {
+	service.BaseService
+	en           ExecutionService
+	st           *staking.Service
+	payloadCache *cache.PayloadIDCache
+	// logProcessor is used to process logs from the execution client.
+	logProcessor *logs.Processor
+}
+
+func NewService(
+	base service.BaseService,
+	opts ...Option,
+) *Service {
+	s := &Service{
+		BaseService:  base,
+		payloadCache: cache.NewPayloadIDCache(),
+	}
+
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			panic(err)
+		}
+	}
+	return s
+}
+
+func (s *Service) Start(context.Context) {
+}
+
+func (s *Service) Status() error {
+	return nil
+}

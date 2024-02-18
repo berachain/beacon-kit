@@ -23,28 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package local
 
 import (
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
+	"context"
+
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// Option is a functional option for the validator service.
-type Option func(*Service) error
+type ExecutionService interface {
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context, fcuConfig *execution.FCUConfig,
+	) (*enginev1.PayloadIDBytes, error)
 
-// WithEngineCaller sets the engine caller for the validator service.
-func WithEngineCaller(caller engine.Caller) Option {
-	return func(s *Service) error {
-		s.en = caller
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache for the validator service.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
-	return func(s *Service) error {
-		s.payloadCache = pc
-		return nil
-	}
+	// GetPayload gets a payload for a given payload ID and slot.
+	GetPayload(
+		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }
