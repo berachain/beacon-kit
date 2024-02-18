@@ -29,7 +29,6 @@ import (
 	"errors"
 
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
@@ -40,7 +39,7 @@ func NewPayloadAttributesContainer(
 	suggestedFeeReceipient []byte,
 	withdrawals []*enginev1.Withdrawal,
 	parentBeaconBlockRoot []byte,
-) (interfaces.PayloadAttributer, error) {
+) (PayloadAttributer, error) {
 	switch v {
 	case version.Deneb:
 		return &enginev1.PayloadAttributesContainer{
@@ -74,7 +73,7 @@ func NewPayloadAttributesContainer(
 // with no attributes.
 func EmptyPayloadAttributesWithVersion(
 	v int,
-) interfaces.PayloadAttributer {
+) PayloadAttributer {
 	switch v {
 	case version.Deneb:
 		return &enginev1.PayloadAttributesContainer{

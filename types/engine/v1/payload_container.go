@@ -30,13 +30,10 @@ import (
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	fssz "github.com/prysmaticlabs/fastssz"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	"google.golang.org/protobuf/proto"
 )
-
-var _ interfaces.ExecutionPayload = (*ExecutionPayloadContainer)(nil)
 
 // Version returns the version identifier for the ExecutionPayloadDeneb.
 func (p *ExecutionPayloadContainer) Version() int {

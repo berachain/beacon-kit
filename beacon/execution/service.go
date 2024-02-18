@@ -34,7 +34,7 @@ import (
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	enginetypes "github.com/itsdevbear/bolaris/types/engine/interfaces"
+	enginetypes "github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 

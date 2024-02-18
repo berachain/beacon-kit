@@ -42,25 +42,20 @@ type (
 	ExecutionPayloadDenebWithValueAndBlobsBundle = enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle
 	// ExecutionPayloadHeaderDeneb is an alias for the Prysm ExecutionPayloadHeaderDeneb.
 	ExecutionPayloadHeaderDeneb = enginev1.ExecutionPayloadHeaderDeneb
-
 	// BlobsBundle is an alias for the Prysm BlobsBundle.
 	BlobsBundle = enginev1.BlobsBundle
 	// Withdrawal is an alias for the Prysm Withdrawal.
 	Withdrawal = enginev1.Withdrawal
 	// ForkchoiceState is an alias for the Prysm ForkchoiceState.
 	ForkchoiceState = enginev1.ForkchoiceState
-
 	// PayloadAttributesContainer is an alias for the Prysm PayloadAttributesV2.
 	PayloadAttributesV2 = enginev1.PayloadAttributesV2
 	// PayloadAttributesContainer is an alias for the Prysm PayloadAttributesV3.
 	PayloadAttributesV3 = enginev1.PayloadAttributesV3
-
 	// PayloadAttributesContainer is an alias for the Prysm PayloadAttributesContainer.
 	PayloadIDBytes = enginev1.PayloadIDBytes
-
 	// PayloadStatus is an alias for the Prysm PayloadStatus.
 	PayloadStatus = enginev1.PayloadStatus
-
 	// ExecutionBlock is an alias for the Prysm ExecutionBlock.
 	ExecutionBlock = enginev1.ExecutionBlock
 )
