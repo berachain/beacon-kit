@@ -25,33 +25,6 @@
 
 package execution
 
-import (
-	"context"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
+const (
+	forkchoiceDispatchQueue = "dispatch.forkchoice"
 )
-
-// BeaconStateProvider is an interface that wraps the basic BeaconState method.
-type BeaconStateProvider interface {
-	// BeaconState provides access to the underlying beacon state.
-	BeaconState(ctx context.Context) state.BeaconState
-}
-
-// FCUConfig is a struct that holds the configuration for a fork choice update.
-type FCUConfig struct {
-	// HeadEth1Hash is the hash of the head eth1 block we are updating the
-	// execution client's head to be.
-	HeadEth1Hash common.Hash
-
-	// ProposingSlot is the slot that the execution client should propose a block
-	// for if Attributes neither nil nor empty.
-	ProposingSlot primitives.Slot
-
-	// Attributes is a list of payload attributes to include in a forkchoice update
-	// to the execution client. It is used to signal to the execution client that
-	// it should build a payload.
-	Attributes engine.PayloadAttributer
-}
