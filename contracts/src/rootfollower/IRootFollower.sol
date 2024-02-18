@@ -56,7 +56,8 @@ interface IRootFollower {
     function incrementBlock() external;
 
     /**
-     * @dev Resets the block number to _block, used when out of the beacon root buffer.
+     * @dev Resets the next actionable block number to _block, used when out of the beacon root
+     * buffer.
      * @param _block The block number to reset to.
      * This action should be permissioned to prevent unauthorized actors from
      * modifying the block number inappropriately.

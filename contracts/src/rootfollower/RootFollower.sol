@@ -116,8 +116,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
     }
 
     /**
-     * @dev Resets the count to a specified block number.
-     * @param _block The block number to reset the count to.
+     * @dev Resets the next actionable block to the inputted block number
+     * @param _block The block number to reset actionable block to.
      */
     function _resetCount(uint256 _block) internal {
         // Reverts if the block number is in the future.
@@ -132,7 +132,9 @@ abstract contract RootFollower is IRootFollower, Ownable {
         // Emit an event to capture a block count reset.
         emit BlockCountReset(_block, _LAST_PROCESSED_BLOCK);
 
-        // Sets the last processed block to the specified block number.
-        _LAST_PROCESSED_BLOCK = _block;
+        // Sets the actionable block to the inputted block.
+        unchecked {
+            _LAST_PROCESSED_BLOCK = _block - 1;
+        }
     }
 }

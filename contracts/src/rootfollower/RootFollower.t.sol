@@ -61,7 +61,25 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         rootFollower.incrementBlock();
 
         // Getting an out of buffer coinbase should result in a revert
-        vm.expectRevert();
+        vm.expectRevert(Errors.BlockNotInBuffer.selector);
         rootFollower.getCoinbase(1);
+    }
+
+    function test_resetCount() public {
+        vm.roll(1);
+        // Cannot reset block to a future block
+        vm.expectRevert(Errors.BlockDoesNotExist.selector);
+        rootFollower.resetCount(100);
+
+        // Set block to 500
+        vm.roll(500);
+
+        // Cannot reset to a block not in the buffer
+        vm.expectRevert(Errors.BlockNotInBuffer.selector);
+        rootFollower.resetCount(2);
+
+        // Should successfully reset the block count
+        rootFollower.resetCount(500 - 256);
+        assertEq(500 - 256, rootFollower.getNextActionableBlock());
     }
 }
