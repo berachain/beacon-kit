@@ -30,8 +30,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // BeaconStateProvider provides access to the current beacon state.

@@ -35,10 +35,10 @@ import (
 
 	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/version"
 	"github.com/pkg/errors"
 )
 

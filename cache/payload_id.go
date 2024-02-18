@@ -29,7 +29,7 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // historicalPayloadIDCacheSize defines the maximum number of slots to retain in the cache.

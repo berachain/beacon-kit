@@ -30,10 +30,10 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/state"
 
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
+	"github.com/itsdevbear/bolaris/types/primitives"
+	"github.com/itsdevbear/bolaris/types/version"
 )
 
 // BeaconKitBlock assembles a new beacon block from
