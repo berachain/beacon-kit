@@ -34,7 +34,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // TODO: calculate this based off of all the comet timeouts.
@@ -90,8 +89,6 @@ func (s *Service) sendFCU(
 	// Otherwise we just send the forkchoice update to the execution client with no attributes.
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:  headEth1Hash,
-			ProposingSlot: proposingSlot,
-			Attributes:    engine.EmptyPayloadAttributesWithVersion(s.BeaconState(ctx).Version()),
+			HeadEth1Hash: headEth1Hash,
 		})
 }
