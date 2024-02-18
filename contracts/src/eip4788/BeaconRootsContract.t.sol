@@ -14,7 +14,7 @@ contract BeaconRootsContractBaseTest is SoladyTest {
     uint256 internal constant BLOCK_MAPPING_OFFSET = COINBASE_OFFSET + HISTORY_BUFFER_LENGTH;
     address internal constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
     address internal constant BEACON_ROOT_ADDRESS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
-    bytes4 internal constant GET_COINBASE_SELECTOR = 0xe8e284b9;
+    bytes4 internal constant GET_COINBASE_SELECTOR = bytes4(keccak256("getCoinbase(uint256)"));
     uint256 internal constant BLOCK_INTERVAL = 5;
     uint256 internal constant TIMESTAMP = 1_707_425_462;
 
