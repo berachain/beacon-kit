@@ -85,6 +85,8 @@ func (s *Service) notifyForkchoiceUpdate(
 ) (*enginev1.PayloadIDBytes, error) {
 	beaconState := s.BeaconState(ctx)
 
+	// TODO: intercept here and ask builder service for payload attributes.
+	// if isValidator && PrepareAllPayloads {
 	// Ensure we don't pass a nil attribute to the execution engine.
 	if fcuConfig.Attributes == nil {
 		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(beaconState.Version())
