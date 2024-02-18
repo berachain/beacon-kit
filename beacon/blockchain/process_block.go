@@ -31,13 +31,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
-	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock, isValidPayload bool,
+	ctx context.Context, block consensus.ReadOnlyBeaconKitBlock, isValidPayload bool,
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)

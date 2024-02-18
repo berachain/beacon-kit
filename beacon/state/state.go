@@ -41,7 +41,7 @@ type BeaconStateProvider interface {
 }
 
 // BeaconState is the interface for the beacon state. It
-// is a combination of the read-only and write-only beacon state interfaces.
+// is a combination of the read-only and write-only beacon state consensus.
 type BeaconState interface {
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState

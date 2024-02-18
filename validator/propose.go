@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 )
@@ -37,7 +36,7 @@ import (
 // BuildBeaconBlock builds a new beacon block.
 func (s *Service) BuildBeaconBlock(
 	ctx context.Context, _ primitives.Slot,
-) (interfaces.BeaconKitBlock, error) {
+) (consensus.BeaconKitBlock, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
