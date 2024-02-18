@@ -140,11 +140,14 @@ func (s *Service) BuildLocalPayload(
 	payloadID, err = s.en.NotifyForkchoiceUpdate(ctx, fcuConfig)
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
-	}
-
-	// If the forkchoice update call has an attribute, update the payload ID cache.
-	hasAttr := fcuConfig.Attributes != nil && !fcuConfig.Attributes.IsEmpty()
-	if hasAttr && payloadID != nil {
+	} else if payloadID == nil {
+		s.Logger().Warn(
+			"local block builder received nil payload ID on VALID engine response",
+			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
+			"proposing_slot", fcuConfig.ProposingSlot,
+		)
+		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
+	} else {
 		s.Logger().Info("forkchoice updated with payload attributes for proposal",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"proposing_slot", fcuConfig.ProposingSlot,
@@ -152,13 +155,6 @@ func (s *Service) BuildLocalPayload(
 		)
 		s.payloadCache.Set(
 			fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
-	} else if hasAttr && payloadID == nil {
-		s.Logger().Warn(
-			"local block builder received nil payload ID on VALID engine response",
-			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
-			"proposing_slot", fcuConfig.ProposingSlot,
-		)
-		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
 	// Get the payload from the execution client.
