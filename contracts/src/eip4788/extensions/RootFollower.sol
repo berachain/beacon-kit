@@ -73,12 +73,10 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*                     INTERNAL FUNCTIONS                     */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /**
-     * @dev Fetches the coinbase address for a block using inline assembly & `staticcall`.
-     * @param _block The block number to query.
-     * @return _coinbase The miner's address for the block.
-     * Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure.
-     */
+    /// @dev Fetches the coinbase address for a block using inline assembly & `staticcall`.
+    /// @param _block The block number to query.
+    /// @return _coinbase The miner's address for the block.
+    /// Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure.
     function _getCoinbase(uint256 _block) internal view returns (address _coinbase) {
         // Check if _block is in the buffer range
         if (
@@ -95,11 +93,9 @@ abstract contract RootFollower is IRootFollower, Ownable {
         }
     }
 
-    /**
-     * @dev Increments `_LAST_PROCESSED_BLOCK` if it's the next actionable block.
-     * Reverts with `ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER` if the next block isn't actionable.
-     * Emits `AdvancedBlock` event after incrementing.
-     */
+    /// @dev Increments `_LAST_PROCESSED_BLOCK` if it's the next actionable block.
+    /// Reverts with `ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER` if the next block isn't actionable.
+    /// Emits `AdvancedBlock` event after incrementing.
     function _incrementBlock() internal {
         uint256 processingBlock;
         unchecked {
@@ -116,10 +112,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
         }
     }
 
-    /**
-     * @dev Resets the next actionable block to the inputted block number
-     * @param _block The block number to reset actionable block to.
-     */
+    /// @dev Resets the next actionable block to the inputted block number
+    /// @param _block The block number to reset actionable block to.
     function _resetCount(uint256 _block) internal {
         // Reverts if the block number is in the future.
         if (_block > block.number) {
