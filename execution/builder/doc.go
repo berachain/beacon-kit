@@ -25,4 +25,4 @@
 
 // validator contains the core block proposal logic for the beacon chain. It's goal
 // is to decouple running a validator from processing beacon block.
-package validator
+package builder

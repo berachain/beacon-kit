@@ -30,6 +30,7 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/itsdevbear/bolaris/execution/builder"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -39,14 +40,13 @@ import (
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
-	"github.com/itsdevbear/bolaris/validator"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
 	cfg             *config.ABCI
-	validator       *validator.Service
+	builderService  *builder.Service
 	beaconChain     *blockchain.Service
 	syncService     *sync.Service
 	prepareProposal sdk.PrepareProposalHandler
@@ -56,7 +56,7 @@ type Handler struct {
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
 	cfg *config.ABCI,
-	validator *validator.Service,
+	builderService *builder.Service,
 	syncService *sync.Service,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
@@ -64,7 +64,7 @@ func NewHandler(
 ) *Handler {
 	return &Handler{
 		cfg:             cfg,
-		validator:       validator,
+		builderService:  builderService,
 		syncService:     syncService,
 		beaconChain:     beaconChain,
 		prepareProposal: prepareProposal,
@@ -88,7 +88,7 @@ func (h *Handler) PrepareProposalHandler(
 	// We start by requesting the validator service to build us a block. This may
 	// be from pulling a previously built payload from the local cache or it may be
 	// by asking for a forkchoice from the execution client, depending on timing.
-	block, err := h.validator.BuildBeaconBlock(
+	block, err := h.builderService.BuildBeaconBlock(
 		ctx, primitives.Slot(req.Height),
 	)
 

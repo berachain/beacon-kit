@@ -38,11 +38,11 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/execution/builder"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/validator"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -153,10 +153,10 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the validator service.
-	validatorService := validator.NewService(
+	builderService := builder.NewService(
 		baseService.WithName("validator"),
-		validator.WithEngineCaller(engineClient),
-		validator.WithPayloadCache(payloadCache),
+		builder.WithEngineCaller(engineClient),
+		builder.WithPayloadCache(payloadCache),
 	)
 
 	// Create the service registry.
@@ -166,7 +166,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(executionService),
 		service.WithService(chainService),
 		service.WithService(notificationService),
-		service.WithService(validatorService),
+		service.WithService(builderService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
