@@ -141,6 +141,9 @@ func (s *Service) BuildLocalPayload(
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
 	} else if payloadID == nil {
+		s.Logger().Warn(
+			"local block builder received nil payload ID on VALID engine response",
+		)
 		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
