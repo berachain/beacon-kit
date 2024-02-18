@@ -89,8 +89,9 @@ func (s *Service) sendFCU(
 
 	// Otherwise we just send the forkchoice update to the execution client with no attributes.
 	// By not passing any attributes, the execution client will NOT build a new execution payload.
-	return s.en.NotifyForkchoiceUpdate(
+	_, err := s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash: headEth1Hash,
 		})
+	return err
 }

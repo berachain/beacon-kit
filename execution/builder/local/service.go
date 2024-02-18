@@ -46,7 +46,8 @@ func NewService(
 	opts ...Option,
 ) *Service {
 	s := &Service{
-		BaseService: base,
+		BaseService:  base,
+		payloadCache: cache.NewPayloadIDCache(),
 	}
 
 	for _, opt := range opts {

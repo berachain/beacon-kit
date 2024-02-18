@@ -27,9 +27,7 @@ package execution
 
 import (
 	"context"
-	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -80,30 +78,14 @@ func (s *Service) Status() error {
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) error {
-	var err error
-
-	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		_, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
-	}); e != nil {
-		return e
-	}
-
-	return err
+) (*enginev1.PayloadIDBytes, error) {
+	return s.notifyForkchoiceUpdate(ctx, fcuConfig)
 }
 
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetBuiltPayload(
-	ctx context.Context, slot primitives.Slot, headHash common.Hash,
+func (s *Service) GetPayload(
+	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.Get(
-		slot, headHash,
-	)
-	if !found {
-		return nil, nil, false, errors.New("payload not found")
-	}
-
 	return s.engine.GetPayload(ctx, payloadID, slot)
 }
 

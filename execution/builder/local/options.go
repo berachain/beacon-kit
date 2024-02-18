@@ -26,7 +26,6 @@
 package builder
 
 import (
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 )
 
@@ -37,14 +36,6 @@ type Option func(*Service) error
 func WithEngineCaller(caller engine.Caller) Option {
 	return func(s *Service) error {
 		s.en = caller
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache for the validator service.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
-	return func(s *Service) error {
-		s.payloadCache = pc
 		return nil
 	}
 }
