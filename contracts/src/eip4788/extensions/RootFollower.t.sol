@@ -5,8 +5,8 @@ pragma solidity ^0.8.0;
 import { Errors } from "./Errors.sol";
 import { IRootFollower } from "./IRootFollower.sol";
 import { RootFollower } from "./RootFollower.sol";
-import { BeaconRootsContract } from "../eip4788/BeaconRootsContract.sol";
-import { BeaconRootsContractBaseTest } from "../eip4788/BeaconRootsContract.t.sol";
+import { BeaconRootsContract } from "../BeaconRootsContract.sol";
+import { BeaconRootsContractBaseTest } from "../BeaconRootsContract.t.sol";
 import "forge-std/Test.sol";
 
 contract RootFollowerUser is RootFollower { }
