@@ -55,7 +55,7 @@ func (s *Service) FinalizeBeaconBlock(
 	state.SetLastValidHead(eth1BlockHash)
 
 	// TEMPORARY, needs to be handled better, this is a hack.
-	if err = s.sendFCU(ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()); err != nil {
+	if err = s.sendFCU(ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1); err != nil {
 		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
 	}
 
