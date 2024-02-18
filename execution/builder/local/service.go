@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -37,7 +36,7 @@ import (
 // have it configured itself and not be a service persay.
 type Service struct {
 	service.BaseService
-	en           engine.Caller
+	en           ExecutionService
 	payloadCache *cache.PayloadIDCache
 }
 
@@ -46,7 +45,8 @@ func NewService(
 	opts ...Option,
 ) *Service {
 	s := &Service{
-		BaseService: base,
+		BaseService:  base,
+		payloadCache: cache.NewPayloadIDCache(),
 	}
 
 	for _, opt := range opts {
