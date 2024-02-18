@@ -32,7 +32,7 @@ import (
 	"fmt"
 
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -40,7 +40,7 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock,
+	blk consensus.ReadOnlyBeaconKitBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -103,7 +103,7 @@ func (s *Service) ReceiveBeaconBlock(
 // It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
 // but maybe not the most extensible.
 func (s *Service) validateStateTransition(
-	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
+	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
 ) error {
 	executionData, err := blk.ExecutionPayload()
 	if err != nil {
@@ -123,7 +123,7 @@ func (s *Service) validateStateTransition(
 
 // validateExecutionOnBlock checks the validity of a proposed beacon block.
 func (s *Service) validateExecutionOnBlock(
-	ctx context.Context, blk interfaces.ReadOnlyBeaconKitBlock,
+	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
 ) (bool, error) {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {

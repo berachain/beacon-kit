@@ -32,13 +32,19 @@ import (
 // SetLastValidHead sets the last valid head in the store.
 // TODO: Make this in-mem thing more robust.
 func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
-	s.lastValidHash = lastValidHead
+	if s.lastValidHash == nil {
+		s.lastValidHash = new(common.Hash)
+	}
+	*s.lastValidHash = lastValidHead
 }
 
 // GetLastValidHead retrieves the last valid head from the store.
 // TODO: Make this in-mem thing more robust.
 func (s *BeaconStore) GetLastValidHead() common.Hash {
-	return s.lastValidHash
+	if s.lastValidHash == nil {
+		return s.GetFinalizedEth1BlockHash()
+	}
+	return *s.lastValidHash
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
