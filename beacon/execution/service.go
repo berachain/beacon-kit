@@ -76,7 +76,19 @@ func (s *Service) Status() error {
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginev1.PayloadIDBytes, error) {
-	return s.notifyForkchoiceUpdate(ctx, fcuConfig)
+	var (
+		err       error
+		payloadID *enginev1.PayloadIDBytes
+	)
+
+	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
+	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
+	}); e != nil {
+		return nil, e
+	}
+
+	return payloadID, err
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.

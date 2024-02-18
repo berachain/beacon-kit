@@ -34,6 +34,10 @@ import (
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
+const (
+	forkchoiceDispatchQueue = "dispatch.forkchoice"
+)
+
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
 type BeaconStateProvider interface {
 	// BeaconState provides access to the underlying beacon state.
