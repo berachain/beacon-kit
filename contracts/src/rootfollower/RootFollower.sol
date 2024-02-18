@@ -81,7 +81,10 @@ abstract contract RootFollower is IRootFollower, Ownable {
      */
     function _getCoinbase(uint256 _block) internal view returns (address _coinbase) {
         // Check if _block is in the buffer range
-        if ((_block < block.number - HISTORY_BUFFER_LENGTH) || (_block > block.number)) {
+        if (
+            (_block < FixedPointMathLib.zeroFloorSub(block.number, HISTORY_BUFFER_LENGTH))
+                || (_block > block.number)
+        ) {
             revert Errors.BlockNotInBuffer();
         }
         assembly ("memory-safe") {

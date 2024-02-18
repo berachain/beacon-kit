@@ -61,7 +61,7 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         rootFollower.incrementBlock();
 
         // Getting an out of buffer coinbase should result in a revert
-//        vm.expectRevert();
+        //        vm.expectRevert();
         rootFollower.getCoinbase(1);
     }
 }
