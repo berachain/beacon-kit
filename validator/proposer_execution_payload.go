@@ -33,7 +33,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+
+	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
@@ -42,7 +43,7 @@ import (
 
 func (s *Service) getLocalPayload(
 	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock, st state.BeaconState,
+	blk consensus.ReadOnlyBeaconKitBlock, st state.BeaconState,
 ) (engine.ExecutionPayload, bool, error) {
 	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()

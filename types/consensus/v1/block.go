@@ -28,38 +28,10 @@ package consensusv1
 import (
 	"errors"
 
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
-	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
-	// TODO: fix jank sszgen import naming requirement
 )
-
-// BeaconKitBlock implements the BeaconKitBlock interface.
-var _ interfaces.BeaconKitBlock = (*BeaconKitBlockCapella)(nil)
-
-// BeaconKitBlock assembles a new beacon block from
-// the given slot, time, execution data, and version.
-func NewBeaconKitBlock(
-	slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot,
-	executionData engine.ExecutionPayload,
-) (interfaces.BeaconKitBlock, error) {
-	block := &BeaconKitBlockCapella{
-		Slot: slot,
-		Body: &BeaconKitBlockBodyCapella{
-			RandaoReveal: make([]byte, 96), //nolint:gomnd // 96 bytes for RandaoReveal.
-			Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
-		},
-	}
-	if executionData != nil {
-		if err := block.AttachExecution(executionData); err != nil {
-			return nil, err
-		}
-	}
-	return block, nil
-}
 
 // IsNil checks if the BeaconKitBlock is nil or not.
 func (b *BeaconKitBlockCapella) IsNil() bool {
@@ -76,7 +48,7 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 	executionData engine.ExecutionPayload,
 ) error {
 	var ok bool
-	b.Body.ExecutionPayload, ok = executionData.ToProto().(*v1.ExecutionPayloadCapella)
+	b.Body.ExecutionPayload, ok = executionData.ToProto().(*enginev1.ExecutionPayloadCapella)
 	// b.Body.ExecutionPayload, err = executionData.PbCapella()
 	if !ok {
 		return errors.New("failed to convert execution data to capella payload")

@@ -204,11 +204,11 @@ test-unit-fuzz:
 
 test-forge-cover:
 	@echo "Running forge test with coverage..."
-	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file ../test-forge-cover.txt
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge build && forge coverage --report lcov --report-file ../test-forge-cover.txt
 
 test-forge-fuzz:
 	@echo "Running forge fuzz tests..."
-	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test --mt testFuzz
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test
 
 #################
 #      e2e      #

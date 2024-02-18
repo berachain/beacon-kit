@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs, deposits,
@@ -37,7 +37,7 @@ import (
 // on the beacon state.
 func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
-	blk interfaces.ReadOnlyBeaconKitBlock,
+	blk consensus.ReadOnlyBeaconKitBlock,
 ) error {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
