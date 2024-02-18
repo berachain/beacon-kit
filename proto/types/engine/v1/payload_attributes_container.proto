@@ -24,24 +24,19 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package types.consensus.v1;
+package types.engine.v1;
 
-import "ethereum/eth/ext/options.proto";
+import "ethereum/engine/v1/execution_engine.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v1;enginev1";
 
-// Deposit into the consensus layer from the deposit contract in the execution layer.
-message Deposit {
-  // Public key of the validator, which is compatible to the implementations
-  // of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is preferred.
-  bytes pubkey = 1 [
-    (ethereum.eth.ext.ssz_max) = "96",
-    (ethereum.eth.ext.spec_name) = "pubkey"
-  ];
-
-  // A withdrawal credentials as a 20-byte Eth1 address.
-  bytes withdrawal_credentials = 2 [(ethereum.eth.ext.ssz_size) = "20"];
-
-  // Deposit amount in gwei.
-  uint64 amount = 3;
+// PayloadAttributesContainer is a container for payload attributes.
+message PayloadAttributesContainer {
+  // attributes represents the attributes of the payload.
+  oneof attributes {
+    // v2 are the payload attributes for capella.
+    ethereum.engine.v1.PayloadAttributesV2 v2 = 1;
+    // v3 are the payload attributes for deneb.
+    ethereum.engine.v1.PayloadAttributesV3 v3 = 2;
+  }
 }

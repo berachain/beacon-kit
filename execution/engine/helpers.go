@@ -27,7 +27,7 @@ package engine
 
 import (
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // processPayloadStatusResult processes the payload status result and

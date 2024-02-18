@@ -103,11 +103,9 @@ func Test_DepositQueue(t *testing.T) {
 func newDeposit(pubkey []byte, amount uint64) *store.Deposit {
 	return &store.Deposit{
 		Deposit: &consensusv1.Deposit{
-			Data: &consensusv1.Deposit_Data{
-				WithdrawalCredentials: common.BytesToAddress(pubkey).Bytes(),
-				Pubkey:                pubkey,
-				Amount:                amount,
-			},
+			WithdrawalCredentials: common.BytesToAddress(pubkey).Bytes(),
+			Pubkey:                pubkey,
+			Amount:                amount,
 		},
 	}
 }

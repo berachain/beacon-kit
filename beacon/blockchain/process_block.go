@@ -60,7 +60,10 @@ func (s *Service) postBlockProcess(
 	// payload builds.
 	var attrs engine.PayloadAttributer
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
-		attrs = s.getPayloadAttribute(ctx)
+		attrs, err = s.getPayloadAttribute(ctx)
+		if err != nil {
+			return err
+		}
 	} else {
 		attrs = engine.EmptyPayloadAttributesWithVersion(s.BeaconState(ctx).Version())
 	}

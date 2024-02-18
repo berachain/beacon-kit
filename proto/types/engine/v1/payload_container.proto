@@ -24,24 +24,29 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package types.consensus.v1;
+package types.engine.v1;
 
-import "ethereum/eth/ext/options.proto";
+import "ethereum/engine/v1/execution_engine.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
+option go_package = "github.com/itsdevbear/bolaris/types/engine/v1;enginev1";
 
-// Deposit into the consensus layer from the deposit contract in the execution layer.
-message Deposit {
-  // Public key of the validator, which is compatible to the implementations
-  // of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is preferred.
-  bytes pubkey = 1 [
-    (ethereum.eth.ext.ssz_max) = "96",
-    (ethereum.eth.ext.spec_name) = "pubkey"
-  ];
-
-  // A withdrawal credentials as a 20-byte Eth1 address.
-  bytes withdrawal_credentials = 2 [(ethereum.eth.ext.ssz_size) = "20"];
-
-  // Deposit amount in gwei.
-  uint64 amount = 3;
+// ExecutionPayloadContainer is a container for an execution payload.
+message ExecutionPayloadContainer {
+  // payload represents the payload of the execution.
+  oneof payload {
+    // capella represents an execution payload for capella.
+    ethereum.engine.v1.ExecutionPayloadCapella capella = 1;
+    // capella_header is the blinded block.
+    ethereum.engine.v1.ExecutionPayloadHeaderCapella capella_header = 2;
+    // deneb represents an execution payload for deneb
+    ethereum.engine.v1.ExecutionPayloadDeneb deneb = 3;
+    // deneb_header is the blinded block.
+    ethereum.engine.v1.ExecutionPayloadHeaderDeneb deneb_header = 4;
+  }
+  // value is a byte array representing the value associated with the container.
+  bytes payload_value = 1001;
+  // blobs_bundle encapsulates a collection of blobs associated with the container.
+  ethereum.engine.v1.BlobsBundle blobs_bundle = 1002;
+  // should_override_builder indicates whether the default builder should be overridden.
+  bool should_override_builder = 1003;
 }

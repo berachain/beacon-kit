@@ -33,24 +33,15 @@ type Deposit struct {
 	*consensusv1.Deposit
 }
 
-// GetAmount returns the amount of the deposit.
-func (d *Deposit) GetAmount() uint64 {
-	return d.GetData().GetAmount()
-}
-
-// GetPubkey returns the public key of the validator in the deposit.
-func (d *Deposit) GetPubkey() []byte {
-	return d.GetData().GetPubkey()
-}
-
 // NewDeposit creates a new deposit.
 func NewDeposit(pubkey []byte, amount uint64, withdrawalCredentials []byte) *Deposit {
-	depositData := &consensusv1.Deposit_Data{
-		Pubkey:                pubkey,
-		Amount:                amount,
-		WithdrawalCredentials: withdrawalCredentials,
+	return &Deposit{
+		Deposit: &consensusv1.Deposit{
+			Pubkey:                pubkey,
+			Amount:                amount,
+			WithdrawalCredentials: withdrawalCredentials,
+		},
 	}
-	return &Deposit{&consensusv1.Deposit{Data: depositData}}
 }
 
 // commitDeposits commits the cached deposits to the queue.

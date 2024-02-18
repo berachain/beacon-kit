@@ -41,9 +41,9 @@ for dir in $proto_dirs; do
     # this regex checks if a proto file has its go_package set to cosmossdk.io/api/...
     # gogo proto files SHOULD ONLY be generated if this is false
     # we don't want gogo proto to run for proto files which are natively built for google.golang.org/protobuf
-    template="buf.gen.gogo.yaml"
-    if [[ $file == *"/types"* || $file == *"/ethereum"* ]]; then
-      template="buf.gen.ssz.yaml"
+    template="buf.gen.ssz.yaml"
+    if [[ $file == *"/runtime"* ]]; then
+      template="buf.gen.gogo.yaml"
     fi
     if grep -q "option go_package" "$file" && grep -H -o -c 'option go_package.*cosmossdk.io/api' "$file" | grep -q ':0$'; then
       buf generate --template $template $file

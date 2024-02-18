@@ -51,7 +51,7 @@ jobs:
           - "test-forge-cover"
           - "test-forge-fuzz"
 
-        os: [ubuntu-latest-large]
+        os: [ubuntu-latest]
     name: ${{ matrix.args }}
     runs-on: ${{ matrix.os }}
     steps:

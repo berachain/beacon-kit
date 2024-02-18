@@ -32,13 +32,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/pkg/errors"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 func (s *Service) getLocalPayload(
@@ -91,7 +90,13 @@ func (s *Service) getLocalPayload(
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
 
 	// TODO: Randao
-	random := make([]byte, 32) //nolint:gomnd // todo: randao
+	var (
+		t = uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
+		// TODO: RANDAO
+		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
+		// TODO: Cancun
+		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
+	)
 	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 	// if err != nil {
 	// 	return nil, false, err
@@ -104,21 +109,27 @@ func (s *Service) getLocalPayload(
 		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
 	}
 
-	// Build the payload attributes.
-	t := time.Now()              // todo: the proper mathematics for time must be done.
-	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
-	attr := core.BuildPayloadAttributes(
-		s.BeaconCfg(),
-		st,
-		s.Logger(),
-		random,
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		s.Logger().Error(
+			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil, false, err
+	}
+
+	attrs, err := engine.NewPayloadAttributesContainer(
+		st.Version(),
+		t,
+		prevRandao,
+		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+		withdrawals,
 		headRoot,
-		//#nosec:G701 // won't overflow.
-		uint64(t.Unix()),
 	)
+	if err != nil {
+		return nil, false, errors.Wrap(err, "could not create payload attributes")
+	}
 
 	var payloadIDBytes *enginev1.PayloadIDBytes
-	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attr)
+	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attrs)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "could not prepare payload")
 	} else if payloadIDBytes == nil {

@@ -36,8 +36,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+
 	"github.com/itsdevbear/bolaris/io/jwt"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
@@ -159,27 +160,39 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV3(
 	ctx context.Context, payloadID enginev1.PayloadIDBytes,
-) (*enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle, error) {
+) (*enginev1.ExecutionPayloadContainer, error) {
 	result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
 	if err := s.GethRPCClient.CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
-	return result, nil
+	return &enginev1.ExecutionPayloadContainer{
+		Payload: &enginev1.ExecutionPayloadContainer_Deneb{
+			Deneb: result.GetPayload(),
+		},
+		PayloadValue:          result.GetValue(),
+		BlobsBundle:           result.GetBlobsBundle(),
+		ShouldOverrideBuilder: result.GetShouldOverrideBuilder(),
+	}, nil
 }
 
 // GetPayloadV2 calls the engine_getPayloadV2 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV2(
 	ctx context.Context, payloadID enginev1.PayloadIDBytes,
-) (*enginev1.ExecutionPayloadCapellaWithValue, error) {
+) (*enginev1.ExecutionPayloadContainer, error) {
 	result := &enginev1.ExecutionPayloadCapellaWithValue{}
 	if err := s.GethRPCClient.CallContext(
 		ctx, result, GetPayloadMethodV2, payloadID,
 	); err != nil {
 		return nil, s.handleRPCError(err)
 	}
-	return result, nil
+	return &enginev1.ExecutionPayloadContainer{
+		Payload: &enginev1.ExecutionPayloadContainer_Capella{
+			Capella: result.GetPayload(),
+		},
+		PayloadValue: result.GetValue(),
+	}, nil
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
