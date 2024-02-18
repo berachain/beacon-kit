@@ -31,7 +31,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/capella"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 )
@@ -47,7 +47,7 @@ func NewBeaconKitBlock(
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
-		return capella.NewBeaconKitBlock(slot, executionData)
+		return consensusv1.NewBeaconKitBlock(slot, executionData)
 	default:
 		return nil, ErrForkVersionNotSupported
 	}
@@ -96,7 +96,7 @@ func BeaconKitBlockFromSSZ(
 	case version.Deneb:
 		return nil, errors.New("TODO: Deneb block")
 	case version.Capella:
-		block := &capella.BeaconKitBlockCapella{}
+		block := &consensusv1.BeaconKitBlockCapella{}
 		if err := block.UnmarshalSSZ(bz); err != nil {
 			return nil, err
 		}

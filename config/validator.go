@@ -77,12 +77,6 @@ func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
 		return nil, err
 	}
 
-	if c.NumRandaoRevealsToTrack, err = parser.GetUint64(
-		flags.NumRandaoRevealsToTrack,
-	); err != nil {
-		return nil, err
-	}
-
 	return &c, nil
 }
 

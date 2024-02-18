@@ -1557,8 +1557,8 @@ github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPU
 github.com/valyala/fasttemplate v1.2.1/go.mod h1:KHLXt3tVN2HBp8eijSv/kGJopbvo7S+qRAEEKiv+SiQ=
 github.com/vbatts/tar-split v0.11.5 h1:3bHCTIheBm1qFTcgh9oPu+nNBtX+XJIupG/vacinCts=
 github.com/vbatts/tar-split v0.11.5/go.mod h1:yZbwRsSeGjusneWgA781EKej9HF8vme8okylkAeNKLk=
-github.com/vektra/mockery/v2 v2.41.0 h1:miv6vazLja/sknB/Rv1ZyKzxOG24QJgIPNN1renwkrs=
-github.com/vektra/mockery/v2 v2.41.0/go.mod h1:XNTE9RIu3deGAGQRVjP1VZxGpQNm0YedZx4oDs3prr8=
+github.com/vektra/mockery/v2 v2.42.0 h1:xnP1KXjpcc1GD8jHRjgdpRIW4LDK5MdSMrhbJizAmaI=
+github.com/vektra/mockery/v2 v2.42.0/go.mod h1:XNTE9RIu3deGAGQRVjP1VZxGpQNm0YedZx4oDs3prr8=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c/go.mod h1:lB8K/P019DLNhemzwFU4jHLhdvlE6uDZjXFejJXr49I=
 github.com/xdg/stringprep v1.0.0/go.mod h1:Jhud4/sHMO4oL310DaZAKk9ZaJ08SJfe+sJh0HrGL1Y=
 github.com/xen0n/gosmopolitan v1.2.2 h1:/p2KTnMzwRexIW8GlKawsTWOxn7UHA+jCMF/V8HHtvU=

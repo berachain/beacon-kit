@@ -29,7 +29,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
@@ -38,7 +37,7 @@ import (
 // context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(
 	ctx context.Context,
-) engine.PayloadAttributer {
+) (engine.PayloadAttributer, error) {
 	var (
 		// NOTE: We have to use time.Now() and not the time on the block header coming from
 		// Comet or else we attempt to build a block at an equivalent timestamp to the last.
@@ -47,7 +46,7 @@ func (s *Service) getPayloadAttribute(
 		// are building.
 		t = uint64(time.Now().Unix()) + 1 //#nosec:G701 // won't overflow, time cannot be negative.
 		// TODO: RANDAO
-		prevRando = make([]byte, 32) //nolint:gomnd // TODO: later
+		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
 		// TODO: Cancun
 		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
 	)
@@ -59,13 +58,24 @@ func (s *Service) getPayloadAttribute(
 	// 	log.WithError(err).Error("Could not get randao mix to get payload attribute")
 	// 	return emptyAttri
 	// }
+	st := s.BeaconState(ctx)
 
-	return core.BuildPayloadAttributes(
-		s.BeaconCfg(),
-		s.BeaconState(ctx),
-		s.Logger(),
-		prevRando,
+	// Since beacon-kit is always post capella we can assume calling ExpectedWithdrawals
+	// is valid.
+	// TODO: need to make this so it is calling expected withdrawals from
+	// the next batch of withdrawals.
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		s.Logger().Error(
+			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil, err
+	}
+
+	return engine.NewPayloadAttributesContainer(
+		s.BeaconState(ctx).Version(),
+		t, prevRandao,
+		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+		withdrawals,
 		headRoot,
-		t,
 	)
 }
