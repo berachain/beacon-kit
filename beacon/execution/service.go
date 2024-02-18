@@ -27,10 +27,7 @@ package execution
 
 import (
 	"context"
-	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -44,8 +41,6 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// payloadCache is used to track currently building payload IDs for a given slot.
-	payloadCache *cache.PayloadIDCache
 }
 
 // New creates a new Service with the provided options.
@@ -80,30 +75,14 @@ func (s *Service) Status() error {
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) error {
-	var err error
-
-	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		_, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
-	}); e != nil {
-		return e
-	}
-
-	return err
+) (*enginev1.PayloadIDBytes, error) {
+	return s.notifyForkchoiceUpdate(ctx, fcuConfig)
 }
 
-// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetBuiltPayload(
-	ctx context.Context, slot primitives.Slot, headHash common.Hash,
+// GetPayload returns the payload and blobs bundle for the given slot.
+func (s *Service) GetPayload(
+	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.Get(
-		slot, headHash,
-	)
-	if !found {
-		return nil, nil, false, errors.New("payload not found")
-	}
-
 	return s.engine.GetPayload(ctx, payloadID, slot)
 }
 

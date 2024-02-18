@@ -45,7 +45,9 @@ func (s *Service) postBlockProcess(
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-		// We rebuild for this slot incase it doesn't go through.
+		// If the incoming payload for this block is not valid, we submit a forkchoice to bring us back
+		// to the last valid one.
+		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
 		// TODO: Should introduce the concept of missed slots?
 		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), blk.GetSlot()); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
@@ -76,21 +78,32 @@ func (s *Service) sendFCU(
 ) error {
 	// If we are preparing all payloads and we are a validator, we delegate the responsibility
 	// of submitting our forkchoice update to the builder service in order to have it prepare
-	// a new execution payload for us.
+	// a new execution payload for us. We discard the response, since we don't really
+	// care about it in the context of processing the current block. As long as it doesn't error.
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		//#nosec:G701 // won't overflow, time cannot be negative.
-		_, _, _, err := s.bs.GetExecutionPayload(
+		_, _, _, err := s.bs.BuildLocalPayload(
 			ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
 		)
-		if err != nil {
-			return err
+		if err == nil {
+			return nil
 		}
+
+		// If we see an error here, we fallback to submitting a forkchoice without building a payload.
+		// Incase there is a block building issue, but the payload was still totally valid, we don't
+		// want this node to reject the block.
+		s.Logger().Error(
+			"failed to build local payload via builder service prepare all payloads",
+			"error", err)
+		telemetry.IncrCounter(1, MetricFailedToBuildLocalPayload)
 	}
 
-	// Otherwise we just send the forkchoice update to the execution client with no attributes.
+	// If we did not return above we just send the forkchoice update to the execution client
+	// with no attributes.
 	// By not passing any attributes, the execution client will NOT build a new execution payload.
-	return s.en.NotifyForkchoiceUpdate(
+	_, err := s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash: headEth1Hash,
 		})
+	return err
 }

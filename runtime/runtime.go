@@ -36,7 +36,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
 	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	"github.com/itsdevbear/bolaris/execution/engine"
@@ -101,9 +100,6 @@ func NewDefaultBeaconKitRuntime(
 		&cfg.Beacon, bsp, gcd, logger,
 	)
 
-	// Create a payloadCache for the execution service and validator service to share.
-	payloadCache := cache.NewPayloadIDCache()
-
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
@@ -136,14 +132,12 @@ func NewDefaultBeaconKitRuntime(
 	executionService := execution.New(
 		baseService.WithName("execution"),
 		execution.WithEngineCaller(engineClient),
-		execution.WithPayloadCache(payloadCache),
 	)
 
-	// Build the validator service.
+	// Build the local builder service.
 	builderService := builder.NewService(
-		baseService.WithName("validator"),
-		builder.WithEngineCaller(engineClient),
-		builder.WithPayloadCache(payloadCache),
+		baseService.WithName("local-builder"),
+		builder.WithExecutionService(executionService),
 	)
 
 	// Build the blockchain service
