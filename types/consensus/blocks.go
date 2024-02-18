@@ -106,16 +106,19 @@ func BeaconKitBlockFromSSZ(
 	bz []byte,
 	forkVersion int,
 ) (BeaconKitBlock, error) {
+	var block BeaconKitBlock
 	switch forkVersion {
 	case version.Deneb:
-		return nil, errors.New("TODO: Deneb block")
+		// TODO: deneb block
+		// block = &consensusv1.BeaconKitBlockDeneb{}
 	case version.Capella:
-		block := &consensusv1.BeaconKitBlockCapella{}
-		if err := block.UnmarshalSSZ(bz); err != nil {
-			return nil, err
-		}
-		return block, nil
+		block = &consensusv1.BeaconKitBlockCapella{}
 	default:
 		return nil, ErrForkVersionNotSupported
 	}
+
+	if err := block.UnmarshalSSZ(bz); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
