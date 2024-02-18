@@ -41,7 +41,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
-	github.com/vektra/mockery/v2 v2.41.0
+	github.com/vektra/mockery/v2 v2.42.0
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
 	golang.org/x/sync v0.6.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac
