@@ -59,7 +59,7 @@ contract BeaconDepositContract {
     ///
     /// @param validatorPubkey The public key of the validator being withdrawn from.
     /// @param withdrawalCredentials The withdrawalCredentials for the withdrawal
-    /// @param amount The amount of the withdrawal in denominated in Gwei.
+    /// @param amount The amount of the withdrawal denominated in Gwei.
     event Withdrawal(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
