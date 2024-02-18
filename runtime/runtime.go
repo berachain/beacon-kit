@@ -35,12 +35,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/state"
-<<<<<<< HEAD
 	"github.com/itsdevbear/bolaris/beacon/sync"
-=======
-	localbuilder "github.com/itsdevbear/bolaris/builder/local"
-	"github.com/itsdevbear/bolaris/cache"
->>>>>>> 7b0273e (rename)
 	"github.com/itsdevbear/bolaris/config"
 	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	"github.com/itsdevbear/bolaris/execution/engine"

@@ -30,13 +30,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-<<<<<<< HEAD
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	builder "github.com/itsdevbear/bolaris/execution/builder/local"
-=======
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
-	localbuilder "github.com/itsdevbear/bolaris/builder/local"
->>>>>>> 7b0273e (rename)
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
@@ -54,15 +49,9 @@ type CosmosApp interface {
 
 func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	var (
-<<<<<<< HEAD
 		chainService   *blockchain.Service
 		builderService *builder.Service
 		syncService    *sync.Service
-=======
-		chainService        *blockchain.Service
-		localBuilderService *localbuilder.Service
-		syncService         *initialsync.Service
->>>>>>> 7b0273e (rename)
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		return err
@@ -72,11 +61,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		panic(err)
 	}
 
-<<<<<<< HEAD
 	if err := r.services.FetchService(&builderService); err != nil {
-=======
-	if err := r.services.FetchService(&localBuilderService); err != nil {
->>>>>>> 7b0273e (rename)
 		panic(err)
 	}
 
@@ -87,10 +72,6 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		builderService,
 		syncService,
 		chainService,
-<<<<<<< HEAD
-=======
-		localBuilderService,
->>>>>>> 7b0273e (rename)
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 	)
