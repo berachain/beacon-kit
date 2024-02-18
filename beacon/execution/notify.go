@@ -69,7 +69,7 @@ func (s *Service) notifyNewPayload(
 		return true, nil
 	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
-			"head_eth1_hash", payload.GetBlockHash(),
+			"head_eth1_hash", common.Bytes2Hex(payload.GetBlockHash()),
 			"proposing_slot", beaconState.Slot,
 		)
 		return false, nil
