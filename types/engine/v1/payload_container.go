@@ -30,14 +30,10 @@ import (
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
 	fssz "github.com/prysmaticlabs/fastssz"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
-
-var _ interfaces.ExecutionPayload = (*ExecutionPayloadContainer)(nil)
 
 // Version returns the version identifier for the ExecutionPayloadDeneb.
 func (p *ExecutionPayloadContainer) Version() int {
@@ -113,11 +109,11 @@ func (p *ExecutionPayloadContainer) GetTransactionsRoot() []byte {
 }
 
 // GetWithdrawals retrieves the withdrawals from the payload.
-func (p *ExecutionPayloadContainer) GetWithdrawals() []*enginev1.Withdrawal {
+func (p *ExecutionPayloadContainer) GetWithdrawals() []*Withdrawal {
 	if p.IsBlinded() {
-		return []*enginev1.Withdrawal{}
+		return []*Withdrawal{}
 	}
-	return p.getPayload().(interface{ GetWithdrawals() []*enginev1.Withdrawal }).GetWithdrawals()
+	return p.getPayload().(interface{ GetWithdrawals() []*Withdrawal }).GetWithdrawals()
 }
 
 // GetWithdrawalsRoot retrieves the withdrawals root from the payload.
@@ -126,8 +122,8 @@ func (p *ExecutionPayloadContainer) GetWithdrawalsRoot() []byte {
 	if p.IsBlinded() {
 		return payload.(interface{ GetWithdrawalsRoot() []byte }).GetWithdrawalsRoot()
 	}
-	return sha256.HashRootAndMixinLengthAsSlice[*enginev1.Withdrawal](
-		payload.(interface{ GetWithdrawals() []*enginev1.Withdrawal }).GetWithdrawals())
+	return sha256.HashRootAndMixinLengthAsSlice[*Withdrawal](
+		payload.(interface{ GetWithdrawals() []*Withdrawal }).GetWithdrawals())
 }
 
 // HashTreeRoot calculates the hash tree root of the payload.
