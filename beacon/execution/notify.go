@@ -80,6 +80,8 @@ func (s *Service) notifyNewPayload(
 
 	return false, err
 }
+
+// notifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginev1.PayloadIDBytes, error) {

@@ -80,17 +80,19 @@ func (s *Service) Status() error {
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) error {
-	var err error
-
+) (*enginev1.PayloadIDBytes, error) {
+	var (
+		err       error
+		payloadID *enginev1.PayloadIDBytes
+	)
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
 	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		_, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
+		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
 	}); e != nil {
-		return e
+		return nil, e
 	}
 
-	return err
+	return payloadID, err
 }
 
 // GetBuiltPayload returns the payload and blobs bundle for the given slot.
