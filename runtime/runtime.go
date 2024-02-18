@@ -38,7 +38,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/builder"
+	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"

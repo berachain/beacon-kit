@@ -31,7 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/execution/builder"
+	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
