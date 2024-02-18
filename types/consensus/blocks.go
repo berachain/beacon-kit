@@ -122,3 +122,39 @@ func BeaconKitBlockFromSSZ(
 	}
 	return block, nil
 }
+
+// BlockContainerFromBlock converts a ReadOnlyBeaconKitBlock interface
+// into a BeaconKitBlockContainer pointer.
+func BlockContainerFromBlock(
+	block ReadOnlyBeaconKitBlock,
+) *consensusv1.BeaconKitBlockContainer {
+	container := &consensusv1.BeaconKitBlockContainer{}
+	switch block := block.(type) {
+	case *consensusv1.BeaconKitBlockCapella:
+		container.Block = &consensusv1.BeaconKitBlockContainer_Capella{
+			Capella: block,
+		}
+	// case *BlindedBeaconKitBlockCapella:
+	// 	container.Block = &BeaconKitBlockContainer_CapellaBlinded{
+	// 		CapellaBlinded: block,
+	// 	}
+	default:
+		return nil
+	}
+	return container
+}
+
+// BlockFromContainer extracts a ReadOnlyBeaconKitBlock interface
+// from a given BeaconKitBlockContainer.
+func BlockFromContainer(
+	container *consensusv1.BeaconKitBlockContainer,
+) ReadOnlyBeaconKitBlock {
+	switch block := container.GetBlock().(type) {
+	case *consensusv1.BeaconKitBlockContainer_Capella:
+		return block.Capella
+	// case *BeaconKitBlockContainer_CapellaBlinded:
+	// 	return block.CapellaBlinded
+	default:
+		return nil
+	}
+}

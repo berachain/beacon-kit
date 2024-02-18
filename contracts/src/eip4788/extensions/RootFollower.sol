@@ -17,8 +17,6 @@ abstract contract RootFollower is IRootFollower, Ownable {
     uint256 private constant HISTORY_BUFFER_LENGTH = 256;
     /// @dev The selector for "getCoinbase(uint256)"
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
-    /// @dev The selector for "BytesNotInBuffer()"
-    bytes4 private constant BYTES_NOT_IN_BUFFER_SELECTOR = 0x68c0ab1c;
     /// @dev The beacon roots contract address.
     address private constant BEACON_ROOT_ADDRESS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
@@ -82,13 +80,17 @@ abstract contract RootFollower is IRootFollower, Ownable {
      * Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure.
      */
     function _getCoinbase(uint256 _block) internal view returns (address _coinbase) {
+        // Check if _block is in the buffer range
+        if (
+            (_block < FixedPointMathLib.zeroFloorSub(block.number, HISTORY_BUFFER_LENGTH))
+                || (_block > block.number)
+        ) {
+            revert Errors.BlockNotInBuffer();
+        }
         assembly ("memory-safe") {
             mstore(0, GET_COINBASE_SELECTOR)
             mstore(0x04, _block)
-            if iszero(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20)) {
-                mstore(0, BYTES_NOT_IN_BUFFER_SELECTOR)
-                revert(0, 0x04)
-            }
+            pop(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20))
             _coinbase := mload(0)
         }
     }
@@ -115,8 +117,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
     }
 
     /**
-     * @dev Resets the count to a specified block number.
-     * @param _block The block number to reset the count to.
+     * @dev Resets the next actionable block to the inputted block number
+     * @param _block The block number to reset actionable block to.
      */
     function _resetCount(uint256 _block) internal {
         // Reverts if the block number is in the future.
@@ -131,7 +133,9 @@ abstract contract RootFollower is IRootFollower, Ownable {
         // Emit an event to capture a block count reset.
         emit BlockCountReset(_block, _LAST_PROCESSED_BLOCK);
 
-        // Sets the last processed block to the specified block number.
-        _LAST_PROCESSED_BLOCK = _block;
+        // Sets the actionable block to the inputted block.
+        unchecked {
+            _LAST_PROCESSED_BLOCK = _block - 1;
+        }
     }
 }

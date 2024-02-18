@@ -23,42 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusv1
-
-import "github.com/itsdevbear/bolaris/types/consensus/interfaces"
-
-// BlockContainerFromBlock converts a ReadOnlyBeaconKitBlock interface
-// into a BeaconKitBlockContainer pointer.
-func BlockContainerFromBlock(
-	block interfaces.ReadOnlyBeaconKitBlock,
-) *BeaconKitBlockContainer {
-	container := &BeaconKitBlockContainer{}
-	switch block := block.(type) {
-	case *BeaconKitBlockCapella:
-		container.Block = &BeaconKitBlockContainer_Capella{
-			Capella: block,
-		}
-	// case *BlindedBeaconKitBlockCapella:
-	// 	container.Block = &BeaconKitBlockContainer_CapellaBlinded{
-	// 		CapellaBlinded: block,
-	// 	}
-	default:
-		return nil
-	}
-	return container
-}
-
-// BlockFromContainer extracts a ReadOnlyBeaconKitBlock interface
-// from a given BeaconKitBlockContainer.
-func BlockFromContainer(
-	container *BeaconKitBlockContainer,
-) interfaces.ReadOnlyBeaconKitBlock {
-	switch block := container.GetBlock().(type) {
-	case *BeaconKitBlockContainer_Capella:
-		return block.Capella
-	// case *BeaconKitBlockContainer_CapellaBlinded:
-	// 	return block.CapellaBlinded
-	default:
-		return nil
-	}
-}
+package local

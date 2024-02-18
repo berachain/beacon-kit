@@ -34,7 +34,7 @@ import (
 	types "github.com/itsdevbear/bolaris/execution/builder/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
-	consensusinterfaces "github.com/itsdevbear/bolaris/types/consensus/interfaces"
+
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	"github.com/sourcegraph/conc/iter"
@@ -71,7 +71,7 @@ func (s *Service) Status() error         { return nil }
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-) (consensusinterfaces.ReadOnlyBeaconKitBlock, error) {
+) (consensus.ReadOnlyBeaconKitBlock, error) {
 	// Process all builders, both local and remote
 	localBuilders := s.builders.LocalBuilders()
 	// TODO: handle remote builders.
