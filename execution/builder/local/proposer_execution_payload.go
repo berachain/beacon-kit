@@ -102,13 +102,10 @@ func (s *Service) BuildLocalPayload(
 		st = s.BeaconState(ctx)
 		// TODO: RANDAO
 		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
+		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 		// TODO: Cancun
 		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
 	)
-	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
-	// if err != nil {
-	// 	return nil, false, err
-	// }
 
 	// Build the forkchoice state.
 	f := &enginev1.ForkchoiceState{
@@ -117,6 +114,7 @@ func (s *Service) BuildLocalPayload(
 		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
 	}
 
+	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		s.Logger().Error(
@@ -124,6 +122,7 @@ func (s *Service) BuildLocalPayload(
 		return nil, nil, false, err
 	}
 
+	// Build the payload attributes.
 	attrs, err := engine.NewPayloadAttributesContainer(
 		st.Version(),
 		timestamp,
@@ -144,6 +143,7 @@ func (s *Service) BuildLocalPayload(
 		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
+	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err := s.en.GetPayload(
 		ctx, primitives.PayloadID(*payloadIDBytes), slot,
 	)
