@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package localbuilder
 
 import (
 	"context"
@@ -32,9 +32,6 @@ import (
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
-
-type BlockBuilder interface {
-}
 
 // TODO: Decouple from ABCI and have this validator run on a seperate thread
 // have it configured itself and not be a service persay.

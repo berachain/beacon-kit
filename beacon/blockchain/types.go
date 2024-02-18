@@ -39,13 +39,17 @@ type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) error
+	) (*enginev1.PayloadIDBytes, error)
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(ctx context.Context, preStateHeader engine.ExecutionPayload) (bool, error)
+}
 
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
+type BuilderService interface {
+	BuildLocalPayload(
+		ctx context.Context,
+		parentEth1Hash common.Hash,
+		slot primitives.Slot,
+		timestamp uint64,
 	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

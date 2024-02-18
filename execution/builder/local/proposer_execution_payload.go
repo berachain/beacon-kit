@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package localbuilder
 
 import (
 	"context"
@@ -32,20 +32,17 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/state"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/pkg/errors"
 )
 
-func (s *Service) getLocalPayload(
+func (s *Service) GetOrBuildLocalPayload(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock, st state.BeaconState,
+	slot primitives.Slot,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
 	// logFields := logrus.Fields{
@@ -90,19 +87,25 @@ func (s *Service) getLocalPayload(
 
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
+	//#nosec:G701 // won't overflow, time cannot be negative.
+	return s.BuildLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
+}
 
-	// TODO: Randao
+// GetExecutionPayload retrieves the execution payload for the given slot.
+func (s *Service) BuildLocalPayload(
+	ctx context.Context,
+	parentEth1Hash common.Hash,
+	slot primitives.Slot,
+	timestamp uint64,
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	var (
-		t = uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
+		st = s.BeaconState(ctx)
 		// TODO: RANDAO
 		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
+		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 		// TODO: Cancun
 		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
 	)
-	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
-	// if err != nil {
-	// 	return nil, false, err
-	// }
 
 	// Build the forkchoice state.
 	f := &enginev1.ForkchoiceState{
@@ -111,6 +114,7 @@ func (s *Service) getLocalPayload(
 		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
 	}
 
+	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		s.Logger().Error(
@@ -118,9 +122,10 @@ func (s *Service) getLocalPayload(
 		return nil, nil, false, err
 	}
 
+	// Build the payload attributes.
 	attrs, err := engine.NewPayloadAttributesContainer(
 		st.Version(),
-		t,
+		timestamp,
 		prevRandao,
 		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 		withdrawals,
@@ -130,16 +135,18 @@ func (s *Service) getLocalPayload(
 		return nil, nil, false, errors.Wrap(err, "could not create payload attributes")
 	}
 
-	var payloadIDBytes *enginev1.PayloadIDBytes
-	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attrs)
+	// Notify the execution client of the forkchoice update.
+	var payloadID *enginev1.PayloadIDBytes
+	payloadID, _, err = s.en.ForkchoiceUpdated(ctx, f, attrs)
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
-	} else if payloadIDBytes == nil {
+	} else if payloadID == nil {
 		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
+	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err := s.en.GetPayload(
-		ctx, primitives.PayloadID(*payloadIDBytes), slot,
+		ctx, primitives.PayloadID(*payloadID), slot,
 	)
 	if err != nil {
 		return nil, nil, false, err

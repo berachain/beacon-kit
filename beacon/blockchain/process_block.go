@@ -27,30 +27,35 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
 )
+
+// TODO: calculate this based off of all the comet timeouts.
+const approximateBlkTime = 1 * time.Second
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
-	ctx context.Context, block consensus.ReadOnlyBeaconKitBlock, isValidPayload bool,
+	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock, isValidPayload bool,
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-		// We rebuild for this slot incase it doesn't go through.
+		// If the incoming payload for this block is not valid, we submit a forkchoice to bring us back
+		// to the last valid one.
+		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
 		// TODO: Should introduce the concept of missed slots?
-		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), block.GetSlot()); err != nil {
+		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), blk.GetSlot()); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
 		}
 		return ErrInvalidPayload
 	}
 
-	executionPayload, err := block.ExecutionPayload()
+	executionPayload, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
 	}
@@ -64,30 +69,41 @@ func (s *Service) postBlockProcess(
 	// TODO: we should probably just have a validator job in the background that is
 	// constantly building new payloads and then not worry about anything here triggering
 	// payload builds.
-	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), block.GetSlot()+1)
+	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), blk.GetSlot()+1)
 }
 
 // sendFCU sends a forkchoice update to the execution client.
 func (s *Service) sendFCU(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
-	var (
-		attrs engine.PayloadAttributer
-		err   error
-	)
+	// If we are preparing all payloads and we are a validator, we delegate the responsibility
+	// of submitting our forkchoice update to the builder service in order to have it prepare
+	// a new execution payload for us. We discard the response, since we don't really
+	// care about it in the context of processing the current block. As long as it doesn't error.
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
-		attrs, err = s.getPayloadAttribute(ctx)
-		if err != nil {
-			return err
+		//#nosec:G701 // won't overflow, time cannot be negative.
+		_, _, _, err := s.bs.BuildLocalPayload(
+			ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
+		)
+		if err == nil {
+			return nil
 		}
-	} else {
-		attrs = engine.EmptyPayloadAttributesWithVersion(s.BeaconState(ctx).Version())
+
+		// If we see an error here, we fallback to submitting a forkchoice without building a payload.
+		// Incase there is a block building issue, but the payload was still totally valid, we don't
+		// want this node to reject the block.
+		s.Logger().Error(
+			"failed to build local payload via builder service prepare all payloads",
+			"error", err)
+		telemetry.IncrCounter(1, MetricFailedToBuildLocalPayload)
 	}
 
-	return s.en.NotifyForkchoiceUpdate(
+	// If we did not return above we just send the forkchoice update to the execution client
+	// with no attributes.
+	// By not passing any attributes, the execution client will NOT build a new execution payload.
+	_, err := s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:  headEth1Hash,
-			ProposingSlot: proposingSlot,
-			Attributes:    attrs,
+			HeadEth1Hash: headEth1Hash,
 		})
+	return err
 }
