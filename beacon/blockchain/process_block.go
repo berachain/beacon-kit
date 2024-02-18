@@ -45,7 +45,9 @@ func (s *Service) postBlockProcess(
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-		// We rebuild for this slot incase it doesn't go through.
+		// If the incoming payload for this block is not valid, we submit a forkchoice to bring us back
+		// to the last valid one.
+		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
 		// TODO: Should introduce the concept of missed slots?
 		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), blk.GetSlot()); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
