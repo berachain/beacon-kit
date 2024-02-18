@@ -135,17 +135,18 @@ func (s *Service) BuildLocalPayload(
 		return nil, nil, false, errors.Wrap(err, "could not create payload attributes")
 	}
 
-	var payloadIDBytes *enginev1.PayloadIDBytes
-	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attrs)
+	// Notify the execution client of the forkchoice update.
+	var payloadID *enginev1.PayloadIDBytes
+	payloadID, _, err = s.en.ForkchoiceUpdated(ctx, f, attrs)
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
-	} else if payloadIDBytes == nil {
+	} else if payloadID == nil {
 		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err := s.en.GetPayload(
-		ctx, primitives.PayloadID(*payloadIDBytes), slot,
+		ctx, primitives.PayloadID(*payloadID), slot,
 	)
 	if err != nil {
 		return nil, nil, false, err

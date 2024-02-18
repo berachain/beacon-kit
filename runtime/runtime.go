@@ -139,9 +139,9 @@ func NewDefaultBeaconKitRuntime(
 		execution.WithPayloadCache(payloadCache),
 	)
 
-	// Build the validator service.
+	// Build the local builder service
 	builderService := builder.NewService(
-		baseService.WithName("validator"),
+		baseService.WithName("local-builder"),
 		builder.WithEngineCaller(engineClient),
 		builder.WithPayloadCache(payloadCache),
 	)
