@@ -26,8 +26,8 @@
 package consensus
 
 import (
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
-	"github.com/itsdevbear/bolaris/types/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 

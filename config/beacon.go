@@ -27,8 +27,8 @@ package config
 
 import (
 	"github.com/itsdevbear/bolaris/io/cli/parser"
-	"github.com/itsdevbear/bolaris/types/primitives"
-	"github.com/itsdevbear/bolaris/types/version"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
 // Beacon conforms to the BeaconKitConfig interface.

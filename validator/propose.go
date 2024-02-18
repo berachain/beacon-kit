@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
-	"github.com/itsdevbear/bolaris/types/primitives"
 )
 
 // BuildBeaconBlock builds a new beacon block.

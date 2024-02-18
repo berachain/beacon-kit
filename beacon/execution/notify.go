@@ -33,10 +33,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	"github.com/itsdevbear/bolaris/types/primitives"
-	"github.com/itsdevbear/bolaris/types/version"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.

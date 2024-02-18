@@ -28,9 +28,9 @@ package consensusv1
 import (
 	"errors"
 
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	"github.com/itsdevbear/bolaris/types/version"
 )
 
 // IsNil checks if the BeaconKitBlock is nil or not.

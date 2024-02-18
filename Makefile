@@ -192,8 +192,8 @@ test-unit-fuzz:
 	go test ./cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Marshal ./types/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Unmarshal ./types/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/... -fuzztime=${SHORT_FUZZ_TIME}
@@ -373,7 +373,7 @@ sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
 	@sszgen -path ./types/consensus/v1 -objs Deposit,BeaconKitBlockCapella,BlindedBeaconKitBlockCapella \
-    --include ./types/primitives,\
+    --include ./types/consensus/primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
 
 ##############################################################################

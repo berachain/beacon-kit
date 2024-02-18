@@ -35,9 +35,9 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/state"
 
 	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	"github.com/itsdevbear/bolaris/types/primitives"
 	"github.com/pkg/errors"
 )
 

@@ -29,7 +29,7 @@ import (
 	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	"github.com/itsdevbear/bolaris/math"
-	"github.com/itsdevbear/bolaris/types/version"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 	fssz "github.com/prysmaticlabs/fastssz"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	"google.golang.org/protobuf/proto"

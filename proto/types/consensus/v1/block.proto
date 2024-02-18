@@ -35,7 +35,7 @@ option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv
 // BeaconKitBlockCapella represents a beacon kit block during capella network upgrade.
 message BeaconKitBlockCapella {
   // Beacon chain slot that this block represents.
-  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/primitives.Slot"];
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
 
   // BeaconBlockBody contains the body of the beacon block.
   BeaconKitBlockBodyCapella body = 2;
@@ -63,7 +63,7 @@ message BeaconKitBlockBodyCapella {
 // BeaconKitBlockDeneb represents a beacon kit block during deneb network upgrade.
 message BeaconKitBlockDeneb {
   // Beacon chain slot that this block represents.
-  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/primitives.Slot"];
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
 
   // BeaconBlockBody contains the body of the beacon block.
   BeaconKitBlockBodyDeneb body = 2;

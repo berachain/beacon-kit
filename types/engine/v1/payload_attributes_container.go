@@ -26,7 +26,7 @@
 package enginev1
 
 import (
-	"github.com/itsdevbear/bolaris/types/version"
+	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"google.golang.org/protobuf/proto"
 )
 
