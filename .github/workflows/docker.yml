@@ -37,7 +37,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest-large
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -69,7 +69,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: examples/beacond/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          # TODO: Re-introduce linux/arm64 later.
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

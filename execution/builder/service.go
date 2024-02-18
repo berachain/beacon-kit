@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusinterfaces "github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	engineinterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
+	"github.com/itsdevbear/bolaris/types/engine"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -90,7 +90,7 @@ func (s *Service) RequestBestBlock(
 
 	processBuilders := func(
 		builders []*types.BuilderEntry,
-	) ([]engineinterfaces.ExecutionPayload, error) {
+	) ([]engine.ExecutionPayload, error) {
 		resps := iter.Map[*types.BuilderEntry, *concResponse](
 			builders,
 			func(b **types.BuilderEntry) *concResponse {
@@ -115,7 +115,7 @@ func (s *Service) RequestBestBlock(
 		)
 
 		// Filter out any blocks with bad errors.
-		var out []engineinterfaces.ExecutionPayload
+		var out []engine.ExecutionPayload
 		for _, resp := range resps {
 			if resp.err != nil || resp.response == nil {
 				continue

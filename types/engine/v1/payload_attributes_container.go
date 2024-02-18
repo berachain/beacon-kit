@@ -26,57 +26,16 @@
 package enginev1
 
 import (
-	"errors"
-
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine/interfaces"
-	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
-
-// NewPayloadAttributesContainer creates a new PayloadAttributesContainer.
-func NewPayloadAttributesContainer(
-	v int,
-	timestamp uint64, prevRandao []byte,
-	suggestedFeeReceipient []byte,
-	withdrawals []*v1.Withdrawal,
-	parentBeaconBlockRoot []byte,
-) (interfaces.PayloadAttributer, error) {
-	switch v {
-	case version.Deneb:
-		return &PayloadAttributesContainer{
-			Attributes: &PayloadAttributesContainer_V3{
-				V3: &v1.PayloadAttributesV3{
-					Timestamp:             timestamp,
-					PrevRandao:            prevRandao,
-					SuggestedFeeRecipient: suggestedFeeReceipient,
-					Withdrawals:           withdrawals,
-					ParentBeaconBlockRoot: parentBeaconBlockRoot,
-				},
-			},
-		}, nil
-	case version.Capella:
-		return &PayloadAttributesContainer{
-			Attributes: &PayloadAttributesContainer_V2{
-				V2: &v1.PayloadAttributesV2{
-					Timestamp:             timestamp,
-					PrevRandao:            prevRandao,
-					SuggestedFeeRecipient: suggestedFeeReceipient,
-					Withdrawals:           withdrawals,
-				},
-			},
-		}, nil
-	default:
-		return nil, errors.New("invalid version")
-	}
-}
 
 // Version returns the consensus version for the Capella upgrade.
 func (w *PayloadAttributesContainer) Version() int {
 	switch w.ToProto().(type) {
-	case *v1.PayloadAttributesV3:
+	case *PayloadAttributesV3:
 		return version.Deneb
-	case *v1.PayloadAttributesV2:
+	case *PayloadAttributesV2:
 		return version.Capella
 	default:
 		return 0
@@ -111,9 +70,9 @@ func (w *PayloadAttributesContainer) ToProto() proto.Message {
 func (w *PayloadAttributesContainer) GetPrevRandao() []byte {
 	payload := w.ToProto()
 	switch p := payload.(type) {
-	case *v1.PayloadAttributesV3:
+	case *PayloadAttributesV3:
 		return p.GetPrevRandao()
-	case *v1.PayloadAttributesV2:
+	case *PayloadAttributesV2:
 		return p.GetPrevRandao()
 	default:
 		return nil
@@ -124,9 +83,9 @@ func (w *PayloadAttributesContainer) GetPrevRandao() []byte {
 func (w *PayloadAttributesContainer) GetTimestamp() uint64 {
 	payload := w.ToProto()
 	switch p := payload.(type) {
-	case *v1.PayloadAttributesV3:
+	case *PayloadAttributesV3:
 		return p.GetTimestamp()
-	case *v1.PayloadAttributesV2:
+	case *PayloadAttributesV2:
 		return p.GetTimestamp()
 	default:
 		return 0
@@ -138,9 +97,9 @@ func (w *PayloadAttributesContainer) GetTimestamp() uint64 {
 func (w *PayloadAttributesContainer) GetSuggestedFeeRecipient() []byte {
 	payload := w.ToProto()
 	switch p := payload.(type) {
-	case *v1.PayloadAttributesV3:
+	case *PayloadAttributesV3:
 		return p.GetSuggestedFeeRecipient()
-	case *v1.PayloadAttributesV2:
+	case *PayloadAttributesV2:
 		return p.GetSuggestedFeeRecipient()
 	default:
 		return nil
@@ -148,12 +107,12 @@ func (w *PayloadAttributesContainer) GetSuggestedFeeRecipient() []byte {
 }
 
 // GetWithdrawals fetches the list of withdrawals from the PayloadAttributesContainer.
-func (w *PayloadAttributesContainer) GetWithdrawals() []*v1.Withdrawal {
+func (w *PayloadAttributesContainer) GetWithdrawals() []*Withdrawal {
 	payload := w.ToProto()
 	switch p := payload.(type) {
-	case *v1.PayloadAttributesV3:
+	case *PayloadAttributesV3:
 		return p.GetWithdrawals()
-	case *v1.PayloadAttributesV2:
+	case *PayloadAttributesV2:
 		return p.GetWithdrawals()
 	default:
 		return nil

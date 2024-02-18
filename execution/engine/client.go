@@ -38,8 +38,8 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/pkg/errors"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // Caller is implemented by engineClient.
@@ -149,9 +149,14 @@ func (s *engineClient) GetPayload(
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
-	fn := s.GetPayloadV2
-	if s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) == version.Deneb {
+	var fn func(
+		context.Context, enginev1.PayloadIDBytes,
+	) (*enginev1.ExecutionPayloadContainer, error)
+	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
+	case version.Deneb:
 		fn = s.GetPayloadV3
+	default:
+		fn = s.GetPayloadV2
 	}
 
 	result, err := fn(dctx, enginev1.PayloadIDBytes(payloadID))

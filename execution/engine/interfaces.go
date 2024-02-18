@@ -30,10 +30,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Caller defines a client that can interact with an Ethereum
@@ -71,6 +71,6 @@ type Caller interface {
 // to an execution client's engine API.
 type PayloadReconstructor interface {
 	ReconstructFullBlock(
-		ctx context.Context, blindedBlock interfaces.ReadOnlyBeaconKitBlock,
-	) (interfaces.BeaconKitBlock, error)
+		ctx context.Context, blindedBlock consensus.ReadOnlyBeaconKitBlock,
+	) (consensus.BeaconKitBlock, error)
 }

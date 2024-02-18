@@ -26,20 +26,66 @@
 package engine
 
 import (
+	"errors"
+
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// EmptyExecutionPayloadWithVersion returns an empty execution payload for the given version.
-func EmptyPayloadAttributesWithVersion(v int) PayloadAttributer {
+// NewPayloadAttributesContainer creates a new PayloadAttributesContainer.
+func NewPayloadAttributesContainer(
+	v int,
+	timestamp uint64, prevRandao []byte,
+	suggestedFeeReceipient []byte,
+	withdrawals []*enginev1.Withdrawal,
+	parentBeaconBlockRoot []byte,
+) (PayloadAttributer, error) {
 	switch v {
 	case version.Deneb:
 		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V3{},
+			Attributes: &enginev1.PayloadAttributesContainer_V3{
+				V3: &enginev1.PayloadAttributesV3{
+					Timestamp:             timestamp,
+					PrevRandao:            prevRandao,
+					SuggestedFeeRecipient: suggestedFeeReceipient,
+					Withdrawals:           withdrawals,
+					ParentBeaconBlockRoot: parentBeaconBlockRoot,
+				},
+			},
+		}, nil
+	case version.Capella:
+		return &enginev1.PayloadAttributesContainer{
+			Attributes: &enginev1.PayloadAttributesContainer_V2{
+				V2: &enginev1.PayloadAttributesV2{
+					Timestamp:             timestamp,
+					PrevRandao:            prevRandao,
+					SuggestedFeeRecipient: suggestedFeeReceipient,
+					Withdrawals:           withdrawals,
+				},
+			},
+		}, nil
+	default:
+		return nil, errors.New("invalid version")
+	}
+}
+
+// EmptyPayloadAttributesWithVersion creates a new PayloadAttributesContainer
+// with no attributes.
+func EmptyPayloadAttributesWithVersion(
+	v int,
+) PayloadAttributer {
+	switch v {
+	case version.Deneb:
+		return &enginev1.PayloadAttributesContainer{
+			Attributes: &enginev1.PayloadAttributesContainer_V3{
+				V3: nil,
+			},
 		}
 	case version.Capella:
 		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V2{},
+			Attributes: &enginev1.PayloadAttributesContainer_V2{
+				V2: nil,
+			},
 		}
 	default:
 		return nil

@@ -31,7 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // BeaconStateProvider provides access to the current beacon state.
@@ -41,7 +41,7 @@ type BeaconStateProvider interface {
 }
 
 // BeaconState is the interface for the beacon state. It
-// is a combination of the read-only and write-only beacon state interfaces.
+// is a combination of the read-only and write-only beacon state consensus.
 type BeaconState interface {
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
