@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package localbuilder
 
 import (
 	"context"
@@ -90,11 +90,11 @@ func (s *Service) getLocalPayload(
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
 	//#nosec:G701 // won't overflow, time cannot be negative.
-	return s.GetExecutionPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
+	return s.BuildLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
 }
 
 // GetExecutionPayload retrieves the execution payload for the given slot.
-func (s *Service) GetExecutionPayload(
+func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	parentEth1Hash common.Hash,
 	slot primitives.Slot,

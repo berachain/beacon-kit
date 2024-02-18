@@ -46,7 +46,7 @@ type ExecutionService interface {
 }
 
 type BuilderService interface {
-	GetExecutionPayload(
+	BuildLocalPayload(
 		ctx context.Context,
 		parentEth1Hash common.Hash,
 		slot primitives.Slot,
