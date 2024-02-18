@@ -1,0 +1,73 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+syntax = "proto3";
+
+package execution.builder.v1alpha1;
+
+import "ethereum/eth/ext/options.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "types/engine/v1/payload_container.proto";
+
+option go_package = "github.com/itsdevbear/bolaris/execution/builder/types";
+
+// BuilderService is the service provided by the builder.
+service BuilderService {
+  // RequestBestBlock requests the best available block from the builder.
+  rpc GetExecutionPayload(GetExecutionPayloadRequest) returns (GetExecutionPayloadResponse) {
+    option (google.api.http) = {post: "/builder/v1alpha1/execution_payload"};
+  }
+
+  // Status checks to see if builder is healthy.
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc Status(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {get: "/builder/v1alpha1/status"};
+  }
+}
+
+// RequestBuiltExecutionPayload is the request to the RequestBestBlock RPC.
+message GetExecutionPayloadRequest {
+  // slot is the slot of the block to request.
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
+
+  // parent_hash is the hash of execution layer block the proposer will build on.
+  string parent_hash = 2; //[(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/engine/ExecutionHash"];
+
+  // blinded is true if the block should be blinded.
+  bool blinded = 3;
+}
+
+// BuiltExecutionPayloadResponse is the response to the RequestBestBlock RPC.
+message GetExecutionPayloadResponse {
+  // override is true if the block should override the current best block.
+  // this field should only be taken into account if the block builder is
+  // a TRUSTED party.
+  bool override = 1;
+
+  // block_container is the block requested.
+  types.engine.v1.ExecutionPayloadContainer payload_container = 2;
+}

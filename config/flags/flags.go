@@ -49,7 +49,7 @@ const (
 	DenebForkEpoch = forkRoot + "deneb-fork-epoch"
 
 	// Validator Config.
-	validator               = beaconKitRoot + "validator"
+	validator               = beaconConfigRoot + "validator."
 	SuggestedFeeRecipient   = validator + "suggested-fee-recipient"
 	Graffiti                = validator + "graffiti"
 	PrepareAllPayloads      = validator + "prepare-all-payloads"

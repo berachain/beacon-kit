@@ -30,6 +30,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
@@ -63,4 +64,13 @@ type Caller interface {
 	//
 	// BlockByHash retrieves the block by its hash.
 	HeaderByHash(ctx context.Context, hash common.Hash) (*gethcoretypes.Header, error)
+}
+
+// ExecutionPayloadRebuilder specifies a service capable of reassembling a complete beacon
+// block, inclusive of an execution payload, using a signed beacon block and access
+// to an execution client's engine API.
+type PayloadReconstructor interface {
+	ReconstructFullBlock(
+		ctx context.Context, blindedBlock interfaces.ReadOnlyBeaconKitBlock,
+	) (interfaces.BeaconKitBlock, error)
 }

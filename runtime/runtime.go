@@ -34,13 +34,13 @@ import (
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/builder"
-	"github.com/itsdevbear/bolaris/builder/local"
-	buildertypes "github.com/itsdevbear/bolaris/builder/types"
+	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/execution/builder"
+	"github.com/itsdevbear/bolaris/execution/builder/local"
+	buildertypes "github.com/itsdevbear/bolaris/execution/builder/types"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
@@ -112,8 +112,7 @@ func NewDefaultBeaconKitRuntime(
 		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
 		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
 		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),
-		eth.WithJWTSecret(jwtSecret),
-		eth.WithLogger(logger),
+		eth.WithJWTSecret(jwtSecret), eth.WithLogger(logger),
 		eth.WithRequiredChainID(cfg.Engine.RequiredChainID),
 	)
 	if err != nil {
@@ -122,8 +121,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the Notification Service.
 	notificationService := notify.NewService(
-		notify.WithGCD(gcd),
-		notify.WithLogger(logger),
+		notify.WithGCD(gcd), notify.WithLogger(logger),
 	)
 
 	// NewClient wraps the eth1 client and provides the interface for the
@@ -148,10 +146,10 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the sync service.
-	syncService := initialsync.NewService(
-		baseService.WithName("initial-sync"),
-		initialsync.WithEthClient(eth1Client),
-		initialsync.WithExecutionService(executionService),
+	syncService := sync.NewService(
+		baseService.WithName("sync"),
+		sync.WithEthClient(eth1Client),
+		sync.WithExecutionService(executionService),
 	)
 
 	// Build the local block builder.
@@ -181,10 +179,8 @@ func NewDefaultBeaconKitRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
-		WithConfig(cfg),
-		WithLogger(logger),
-		WithServiceRegistry(serviceRegistry),
-		WithBeaconStateProvider(bsp),
+		WithConfig(cfg), WithLogger(logger),
+		WithServiceRegistry(serviceRegistry), WithBeaconStateProvider(bsp),
 		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
 		// This is necessary for the eth1 client to be able to shut down gracefully.
 		WithEth1Client(eth1Client),
@@ -212,7 +208,7 @@ func (r *BeaconKitRuntime) FetchService(service interface{}) error {
 
 // InitialSyncCheck.
 func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
-	var syncService *initialsync.Service
+	var syncService *sync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
 		return err
 	}

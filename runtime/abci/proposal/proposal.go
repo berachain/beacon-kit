@@ -30,14 +30,14 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/itsdevbear/bolaris/builder"
+	"github.com/itsdevbear/bolaris/execution/builder"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 )
@@ -45,11 +45,10 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg *config.ABCI
-
+	cfg         *config.ABCI
+	bb          *builder.Service
 	bc          *blockchain.Service
-	ss          *initialsync.Service
-	bb          builder.BeaconBlockBuilder
+	ss          *sync.Service
 	nextPrepare sdk.PrepareProposalHandler
 	nextProcess sdk.ProcessProposalHandler
 }
@@ -57,9 +56,9 @@ type Handler struct {
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
 	cfg *config.ABCI,
-	ss *initialsync.Service,
+	bb *builder.Service,
+	ss *sync.Service,
 	bc *blockchain.Service,
-	bb builder.BeaconBlockBuilder,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
 ) *Handler {
@@ -82,7 +81,7 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// TODO: Make this more sophisticated.
-	if bsp := h.ss.CheckSyncStatus(ctx); bsp.Status == initialsync.StatusExecutionAhead {
+	if bsp := h.ss.CheckSyncStatus(ctx); bsp.Status == sync.StatusExecutionAhead {
 		return nil, fmt.Errorf("err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status)
 	}
 
@@ -122,11 +121,6 @@ func (h *Handler) ProcessProposalHandler(
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
-
-	// TODO: Make this more sophisticated.
-	if bsp := h.ss.CheckSyncStatus(ctx); bsp.Status != initialsync.StatusSynced {
-		return nil, fmt.Errorf("err: %w, status: %d", ErrClientNotSynced, bsp.Status)
-	}
 
 	// Extract the beacon block from the ABCI request.
 	//
