@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
@@ -49,19 +48,16 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	// TEMPORARY, needs to be handled better.
-	if _, err = s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
-		HeadEth1Hash: common.Hash(payload.GetBlockHash()),
-		Attributes:   nil,
-	}); err != nil {
-		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
-	}
-
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)
+
+	// TEMPORARY, needs to be handled better, this is a hack.
+	if err = s.sendFCU(ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()); err != nil {
+		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
+	}
 
 	return nil
 }
