@@ -31,16 +31,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
-	ctx context.Context, block interfaces.ReadOnlyBeaconKitBlock, isValidPayload bool,
+	ctx context.Context, block consensus.ReadOnlyBeaconKitBlock, isValidPayload bool,
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
+		// We rebuild for this slot incase it doesn't go through.
+		// TODO: Should introduce the concept of missed slots?
+		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), block.GetSlot()); err != nil {
+			s.Logger().Error("failed to send forkchoice update", "error", err)
+		}
 		return ErrInvalidPayload
 	}
 
@@ -58,7 +64,17 @@ func (s *Service) postBlockProcess(
 	// TODO: we should probably just have a validator job in the background that is
 	// constantly building new payloads and then not worry about anything here triggering
 	// payload builds.
-	var attrs engine.PayloadAttributer
+	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), block.GetSlot()+1)
+}
+
+// sendFCU sends a forkchoice update to the execution client.
+func (s *Service) sendFCU(
+	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
+) error {
+	var (
+		attrs engine.PayloadAttributer
+		err   error
+	)
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		attrs, err = s.getPayloadAttribute(ctx)
 		if err != nil {
@@ -70,8 +86,8 @@ func (s *Service) postBlockProcess(
 
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:  common.Hash(executionPayload.GetBlockHash()),
-			ProposingSlot: block.GetSlot() + 1,
+			HeadEth1Hash:  headEth1Hash,
+			ProposingSlot: proposingSlot,
 			Attributes:    attrs,
 		})
 }
