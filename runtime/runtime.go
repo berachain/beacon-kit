@@ -47,6 +47,8 @@ import (
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/itsdevbear/bolaris/validator"
 )
 
@@ -58,6 +60,7 @@ type BeaconKitRuntime struct {
 	logger    log.Logger
 	ethclient *eth.Eth1Client
 	fscp      BeaconStateProvider
+	vcp       ValsetChangeProvider
 	services  *service.Registry
 }
 
@@ -65,6 +68,15 @@ type BeaconKitRuntime struct {
 // beacon state to the runtime.
 type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
+}
+
+// ValsetChangeProvider is an interface that provides the
+// ability to apply changes to the validator set.
+type ValsetChangeProvider interface {
+	ApplyChanges(
+		ctx context.Context,
+		deposits []*consensusv1.Deposit,
+		withdrawals []*enginev1.Withdrawal) error
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -84,7 +96,10 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default services.
 func NewDefaultBeaconKitRuntime(
-	cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
+	cfg *config.Config,
+	bsp BeaconStateProvider,
+	vcp ValsetChangeProvider,
+	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
@@ -95,16 +110,14 @@ func NewDefaultBeaconKitRuntime(
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
 		dispatch.WithLogger(logger),
-		dispatch.WithDispatchQueue("dispatch.forkchoice", dispatch.QueueTypeSerial),
-	)
+		dispatch.WithDispatchQueue("dispatch.forkchoice", dispatch.QueueTypeSerial))
 	if err != nil {
 		return nil, err
 	}
 
 	// Create the base service, we will the  create shallow copies for each service.
 	baseService := service.NewBaseService(
-		&cfg.Beacon, bsp, gcd, logger,
-	)
+		&cfg.Beacon, bsp, vcp, gcd, logger)
 
 	// Create a payloadCache for the execution service and validator service to share.
 	payloadCache := cache.NewPayloadIDCache()
@@ -117,8 +130,7 @@ func NewDefaultBeaconKitRuntime(
 		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),
 		eth.WithJWTSecret(jwtSecret),
 		eth.WithLogger(logger),
-		eth.WithRequiredChainID(cfg.Engine.RequiredChainID),
-	)
+		eth.WithRequiredChainID(cfg.Engine.RequiredChainID))
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +138,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the Notification Service.
 	notificationService := notify.NewService(
 		notify.WithGCD(gcd),
-		notify.WithLogger(logger),
-	)
+		notify.WithLogger(logger))
 
 	// NewClient wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
@@ -156,28 +167,24 @@ func NewDefaultBeaconKitRuntime(
 		execution.WithStakingService(stakingService),
 		execution.WithEngineCaller(engineClient),
 		execution.WithPayloadCache(payloadCache),
-		execution.WithLogProcessor(logProcessor),
-	)
+		execution.WithLogProcessor(logProcessor))
 
 	// Build the blockchain service
 	chainService := blockchain.NewService(
 		baseService.WithName("blockchain"),
-		blockchain.WithExecutionService(executionService),
-	)
+		blockchain.WithExecutionService(executionService))
 
 	// Build the sync service.
 	syncService := sync.NewService(
 		baseService.WithName("sync"),
 		sync.WithEthClient(eth1Client),
-		sync.WithExecutionService(executionService),
-	)
+		sync.WithExecutionService(executionService))
 
 	// Build the validator service.
 	validatorService := validator.NewService(
 		baseService.WithName("validator"),
 		validator.WithEngineCaller(engineClient),
-		validator.WithPayloadCache(payloadCache),
-	)
+		validator.WithPayloadCache(payloadCache))
 
 	// Create the service registry.
 	serviceRegistry := service.NewRegistry(
@@ -187,8 +194,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(executionService),
 		service.WithService(chainService),
 		service.WithService(notificationService),
-		service.WithService(validatorService),
-	)
+		service.WithService(validatorService))
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
@@ -196,6 +202,7 @@ func NewDefaultBeaconKitRuntime(
 		WithLogger(logger),
 		WithServiceRegistry(serviceRegistry),
 		WithBeaconStateProvider(bsp),
+		WithValsetChangeProvider(vcp),
 		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
 		// This is necessary for the eth1 client to be able to shut down gracefully.
 		WithEth1Client(eth1Client),

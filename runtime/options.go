@@ -68,6 +68,15 @@ func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
 	}
 }
 
+// WithValsetChangeProvider is an Option that sets the ValsetChangeProvider
+// of the BeaconKitRuntime.
+func WithValsetChangeProvider(vcp ValsetChangeProvider) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.vcp = vcp
+		return nil
+	}
+}
+
 // WithEth1Client is an Option that sets the Eth1Client of the BeaconKitRuntime.
 func WithEth1Client(ethclient *eth.Eth1Client) Option {
 	return func(r *BeaconKitRuntime) error {

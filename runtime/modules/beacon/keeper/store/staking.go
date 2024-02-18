@@ -27,59 +27,17 @@ package store
 
 import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-type Deposit struct {
-	*consensusv1.Deposit
+// StoreDeposits pushes the deposits to the queue.
+func (s *BeaconStore) StoreDeposits(deposit []*consensusv1.Deposit) error {
+	return s.deposits.PushMulti(s.sdkCtx, deposit)
 }
 
-// NewDeposit creates a new deposit.
-func NewDeposit(pubkey []byte, amount uint64, withdrawalCredentials []byte) *Deposit {
-	return &Deposit{
-		Deposit: &consensusv1.Deposit{
-			Pubkey:                pubkey,
-			Amount:                amount,
-			WithdrawalCredentials: withdrawalCredentials,
-		},
-	}
-}
-
-// commitDeposits commits the cached deposits to the queue.
-func (s *BeaconStore) commitDeposits(depositCache []*Deposit) error {
-	err := s.deposits.PushMulti(s.sdkCtx, depositCache)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// PersistDeposits commits the cached deposits to the queue
-// and processes the queued deposits.
-func (s *BeaconStore) PersistDeposits(depositCache []*Deposit, n uint64) ([]*Deposit, error) {
-	var err error
-	if len(depositCache) > 0 {
-		if err = s.commitDeposits(depositCache); err != nil {
-			return nil, err
-		}
-	}
-	depositsToProcess, err := s.deposits.PopMulti(s.sdkCtx, n)
-	if err != nil {
-		return nil, err
-	}
-	for _, deposit := range depositsToProcess {
-		// TODO: If an error occurs in the middle of processing deposits,
-		// should we continue to process the remaining deposits?
-		if err = s.processDeposit(deposit); err != nil {
-			return nil, err
-		}
-	}
-	return depositsToProcess, nil
-}
-
-// processDeposit processes a deposit with the staking keeper.
-func (s *BeaconStore) processDeposit(deposit *Deposit) error {
-	_, err := s.stakingKeeper.Delegate(s.sdkCtx, deposit)
-	return err
+// GetDeposits returns the first n deposits in the queue.
+func (s *BeaconStore) GetDeposits(n uint64) ([]*consensusv1.Deposit, error) {
+	return s.deposits.PopMulti(s.sdkCtx, n)
 }
 
 // GetStakingNonce returns the latest staking nonce in the previous block.
@@ -90,4 +48,12 @@ func (s *BeaconStore) GetStakingNonce() (uint64, error) {
 		return 0, err
 	}
 	return headIdx, nil
+}
+
+// TODO: maybe BeaconState interface needs to be glue'd together outside of
+// x/beacon, since we are going to need to get withdrawls from the x/beacon_staking.
+// TODO: We might want to build BeaconState from a variety of sources, not just
+// the x/beacon module.
+func (s *BeaconStore) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
+	return []*enginev1.Withdrawal{}, nil
 }

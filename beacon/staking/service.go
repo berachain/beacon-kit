@@ -30,14 +30,14 @@ import (
 
 	"cosmossdk.io/log"
 
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/service"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // Service is responsible for handling staking events.
 type Service struct {
 	service.BaseService
-	depositCache []*store.Deposit
+	depositCache []*consensusv1.Deposit
 	logger       log.Logger
 }
 

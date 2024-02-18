@@ -32,10 +32,13 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
-	"github.com/itsdevbear/bolaris/runtime/modules/staking"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
+
+var _ state.BeaconState = &BeaconStore{}
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
 // that provides access to all beacon related data.
@@ -49,10 +52,7 @@ type BeaconStore struct {
 	cfg *config.Beacon
 
 	// deposits is a list of deposits that are queued to be processed.
-	deposits *collections.Queue[*Deposit]
-
-	// stakingKeeper is the staking keeper, wrapping SDK x/staking.
-	stakingKeeper staking.Staking
+	deposits *collections.Queue[*consensusv1.Deposit]
 
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
@@ -63,17 +63,15 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
-	deposits *collections.Queue[*Deposit],
-	stakingKeeper staking.Staking,
+	deposits *collections.Queue[*consensusv1.Deposit],
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return &BeaconStore{
-		sdkCtx:        sdkCtx,
-		KVStore:       sdkCtx.KVStore(storeKey),
-		deposits:      deposits,
-		stakingKeeper: stakingKeeper,
-		cfg:           cfg,
+		sdkCtx:   sdkCtx,
+		KVStore:  sdkCtx.KVStore(storeKey),
+		deposits: deposits,
+		cfg:      cfg,
 	}
 }

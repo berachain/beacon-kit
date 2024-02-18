@@ -23,43 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package encoding
+package consensusv1
 
 import (
 	"cosmossdk.io/collections/codec"
-
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-type DepositValue struct{}
+var _ codec.ValueCodec[*Deposit] = &Deposit{}
 
-var _ codec.ValueCodec[*store.Deposit] = DepositValue{}
-
-func (DepositValue) Encode(value *store.Deposit) ([]byte, error) {
+func (*Deposit) Encode(value *Deposit) ([]byte, error) {
 	return value.MarshalSSZ()
 }
 
-func (DepositValue) Decode(b []byte) (*store.Deposit, error) {
-	value := &store.Deposit{Deposit: &consensusv1.Deposit{}}
-	if err := value.UnmarshalSSZ(b); err != nil {
+func (*Deposit) Decode(b []byte) (*Deposit, error) {
+	var v = &Deposit{}
+	if err := v.UnmarshalSSZ(b); err != nil {
 		return nil, err
 	}
-	return value, nil
+	return v, nil
 }
 
-func (DepositValue) EncodeJSON(_ *store.Deposit) ([]byte, error) {
+func (*Deposit) EncodeJSON(_ *Deposit) ([]byte, error) {
 	panic("not implemented")
 }
 
-func (DepositValue) DecodeJSON(_ []byte) (*store.Deposit, error) {
+func (*Deposit) DecodeJSON(_ []byte) (*Deposit, error) {
 	panic("not implemented")
 }
 
-func (DepositValue) Stringify(value *store.Deposit) string {
+func (*Deposit) Stringify(value *Deposit) string {
 	return value.String()
 }
 
-func (d DepositValue) ValueType() string {
+func (*Deposit) ValueType() string {
 	return "Deposit"
 }

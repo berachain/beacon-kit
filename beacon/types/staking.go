@@ -25,24 +25,18 @@
 
 package types
 
-import "context"
+import (
+	"context"
+
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+)
 
 type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []Deposit, []Withdrawal) error
+	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }
 
 type Staking interface {
 	// Delegate delegates the deposit to the validator.
-	Delegate(ctx context.Context, deposit Deposit) (uint64, error)
+	Delegate(ctx context.Context, deposit *consensusv1.Deposit) (uint64, error)
 }
-
-type Deposit interface {
-	GetPubkey() []byte
-	GetAmount() uint64
-	// Codec methods
-	MarshalSSZ() ([]byte, error)
-	UnmarshalSSZ([]byte) error
-	String() string
-}
-
-type Withdrawal interface{}

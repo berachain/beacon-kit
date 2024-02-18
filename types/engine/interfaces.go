@@ -27,8 +27,8 @@ package engine
 
 import (
 	"github.com/itsdevbear/bolaris/math"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	ssz "github.com/prysmaticlabs/fastssz"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -30,8 +30,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
@@ -102,11 +102,12 @@ type ReadOnlyForkChoice interface {
 
 // WriteOnlyStaking defines a struct which only has write access to staking methods.
 type WriteOnlyStaking interface {
-	PersistDeposits(cache []*store.Deposit, n uint64) ([]*store.Deposit, error)
+	StoreDeposits(deposits []*consensusv1.Deposit) error
 }
 
 // ReadOnlyStaking defines a struct which has read access to staking methods.
 type ReadOnlyStaking interface {
+	GetDeposits(n uint64) ([]*consensusv1.Deposit, error)
 	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
 	GetStakingNonce() (uint64, error)
 }

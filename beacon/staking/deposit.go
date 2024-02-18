@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/errors"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 // ProcessDeposit processes a deposit log from the execution layer
@@ -58,7 +58,7 @@ func (s *Service) ProcessDeposit(
 			ErrInvalidNonce, "expected nonce %d, got %d", expectedNonce, nonce,
 		)
 	}
-	deposit := store.NewDeposit(
+	deposit := consensus.NewDeposit(
 		validatorPubkey,
 		amount,
 		withdrawalCredentials,
@@ -73,9 +73,20 @@ func (s *Service) ProcessDeposit(
 // PersistDeposits persists the queued deposists to the keeper.
 func (s *Service) PersistDeposits(ctx context.Context) error {
 	beaconState := s.BeaconState(ctx)
-	// Pop deposits, up to MaxDepositsPerBlock, from the queue
-	// and persist them to the staking keeper.
-	_, err := beaconState.PersistDeposits(s.depositCache, s.BeaconCfg().Limits.MaxDepositsPerBlock)
+
+	// Push the cached deposits to the beacon state's queue.
+	err := beaconState.StoreDeposits(s.depositCache)
+	if err != nil {
+		return err
+	}
 	s.depositCache = nil
-	return err
+
+	// Get deposits, up to MaxDepositsPerBlock, from the queue.
+	deposits, err := beaconState.GetDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
+	if err != nil {
+		return err
+	}
+
+	// Apply deposists to the staking keeper.
+	return s.ValsetChangeProvider.ApplyChanges(ctx, deposits, nil)
 }

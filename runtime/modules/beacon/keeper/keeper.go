@@ -36,25 +36,29 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
+	beacon "github.com/itsdevbear/bolaris/beacon/types"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/lib/encoding"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	"github.com/itsdevbear/bolaris/runtime/modules/staking"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	storeKey      storetypes.StoreKey
-	deposits      *collections.Queue[*store.Deposit]
+	deposits      *collections.Queue[*consensusv1.Deposit]
 	stakingKeeper staking.Staking
 	beaconCfg     *config.Beacon
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
 var _ state.BeaconStateProvider = &Keeper{}
+
+var _ beacon.ValsetChangeProvider = &Keeper{}
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
@@ -63,10 +67,10 @@ func NewKeeper(
 	beaconCfg *config.Beacon,
 ) *Keeper {
 	kvs := sdkruntime.NewKVStoreService(storeKey)
-	depositQueue := collections.NewQueue[*store.Deposit](
+	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		sdkcollections.NewSchemaBuilder(kvs),
 		"deposit_queue",
-		encoding.DepositValue{})
+		&consensusv1.Deposit{})
 	return &Keeper{
 		storeKey:      storeKey,
 		deposits:      depositQueue,
@@ -82,9 +86,22 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 		ctx,
 		k.storeKey,
 		k.deposits,
-		k.stakingKeeper,
 		k.beaconCfg,
 	)
+}
+
+func (k *Keeper) ApplyChanges(
+	ctx context.Context,
+	deposits []*consensusv1.Deposit,
+	_ []*enginev1.Withdrawal,
+) error {
+	for _, deposit := range deposits {
+		_, err := k.stakingKeeper.Delegate(ctx, deposit)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // InitGenesis initializes the genesis state of the beacon module.

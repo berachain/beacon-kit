@@ -35,9 +35,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/itsdevbear/bolaris/lib/encoding"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -48,10 +47,10 @@ func Test_DepositQueue(t *testing.T) {
 
 	t.Run("should return correct deposits", func(t *testing.T) {
 		ctx := testutil.DefaultContext(sk, tsk)
-		dq := collections.NewQueue[*store.Deposit](
+		dq := collections.NewQueue[*consensusv1.Deposit](
 			sdkcollections.NewSchemaBuilder(kvs),
 			"deposit_queue",
-			encoding.DepositValue{})
+			&consensusv1.Deposit{})
 
 		_, err := dq.Peek(ctx)
 		require.Equal(t, sdkcollections.ErrNotFound, err)
@@ -100,12 +99,6 @@ func Test_DepositQueue(t *testing.T) {
 	})
 }
 
-func newDeposit(pubkey []byte, amount uint64) *store.Deposit {
-	return &store.Deposit{
-		Deposit: &consensusv1.Deposit{
-			WithdrawalCredentials: common.BytesToAddress(pubkey).Bytes(),
-			Pubkey:                pubkey,
-			Amount:                amount,
-		},
-	}
+func newDeposit(pubkey []byte, amount uint64) *consensusv1.Deposit {
+	return consensus.NewDeposit(pubkey, amount, common.BytesToAddress(pubkey).Bytes())
 }
