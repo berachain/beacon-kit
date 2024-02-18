@@ -32,7 +32,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// BuildBeaconBlock builds a new beacon block.
+// RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
 ) (consensus.BeaconKitBlock, error) {
