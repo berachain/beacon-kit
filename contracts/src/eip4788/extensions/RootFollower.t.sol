@@ -23,14 +23,11 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         // Setup the block number
         uint256 blockNum = 1;
         vm.roll(blockNum);
-        address expected = address(0);
 
-        // Set the coinbase of block 1 to be address(0)
-        vm.mockCall(
-            BEACON_ROOT_ADDRESS,
-            abi.encodeWithSelector(GET_COINBASE_SELECTOR, abi.encode(blockNum)),
-            abi.encode(expected)
-        );
+        (bool success, bytes memory result) =
+            BEACON_ROOT_ADDRESS.call(abi.encodeWithSelector(GET_COINBASE_SELECTOR, blockNum));
+        assertEq(success, true);
+        address expected = abi.decode(result, (address));
 
         // Get the next actionable block and assert it
         assertEq(1, rootFollower.getNextActionableBlock());
