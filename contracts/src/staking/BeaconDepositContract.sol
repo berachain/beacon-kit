@@ -47,9 +47,9 @@ contract BeaconDepositContract {
     /// @dev DepositAmountTooLow is thrown when the specified deposit amount is below
     ///      the minimum.
     error DepositAmountTooLow();
-    
+
     /// @dev Deposit is emitted when a deposit is made to the contract.
-    /// 
+    ///
     /// @param validatorPubkey The public key of the validator being deposited to.
     /// @param withdrawalCredentials The withdrawalCredentials for the deposit
     /// @param amount The amount of the deposit in denominated in Gwei.
@@ -69,10 +69,7 @@ contract BeaconDepositContract {
     /// @dev msg.sender deposits the `amount` of tokens to `validatorPubkey`.
     /// @param validatorPubkey The validator's public key.
     /// @param amount The amount of tokens to deposit.
-    function deposit(
-        bytes calldata validatorPubkey,
-        uint64 amount
-    ) external {
+    function deposit(bytes calldata validatorPubkey, uint64 amount) external {
         // Ensure the deposit amount is above the minimum.
         if (amount < MINIMUM_DEPOSIT_IN_GWEI) {
             revert DepositAmountTooLow();
@@ -85,9 +82,7 @@ contract BeaconDepositContract {
     /// @dev msg.sender withdraws the `amount` of tokens from `validatorPubkey`.
     /// @param validatorPubkey The validator's public key.
     /// @param amount The amount of tokens to undelegate.
-    function withdraw(
-        bytes calldata validatorPubkey, uint64 amount
-    ) external {
+    function withdraw(bytes calldata validatorPubkey, uint64 amount) external {
         emit Withdrawal(validatorPubkey, abi.encodePacked(msg.sender), amount);
     }
 }
