@@ -28,11 +28,11 @@ package local
 const (
 	prefix = "beaconkit.builder."
 
-	// MetricGetBuiltPayloadHit is used to count the number of times a built
+	// MetricsPayloadIDCacheHit is used to count the number of times a built
 	// payload retrieval is attempted and found.
 	MetricsPayloadIDCacheHit = prefix + "payload-id-cache-hit"
 
-	// MetricGetBuiltPayloadMiss is used to count the number of times a built
+	// MetricGetPayloadMiss is used to count the number of times a built
 	// payload retrieval is attempted but not found.
 	MetricsPayloadIDCacheMiss = prefix + "payload-id-cache-miss"
 
