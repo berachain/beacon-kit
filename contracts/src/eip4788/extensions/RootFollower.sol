@@ -90,6 +90,7 @@ abstract contract RootFollower is IRootFollower, Ownable {
         assembly ("memory-safe") {
             mstore(0, GET_COINBASE_SELECTOR)
             mstore(0x04, _block)
+            pop(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20))
             _coinbase := mload(0)
         }
     }
