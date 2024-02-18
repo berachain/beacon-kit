@@ -137,7 +137,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the validator service.
 	builderService := builder.NewService(
 		baseService.WithName("validator"),
-		builder.WithEngineCaller(engineClient),
+		builder.WithExecutionService(executionService),
 	)
 
 	// Build the blockchain service

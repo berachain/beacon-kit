@@ -28,7 +28,6 @@ package execution
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -42,8 +41,6 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// payloadCache is used to track currently building payload IDs for a given slot.
-	payloadCache *cache.PayloadIDCache
 }
 
 // New creates a new Service with the provided options.
@@ -82,7 +79,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 	return s.notifyForkchoiceUpdate(ctx, fcuConfig)
 }
 
-// GetBuiltPayload returns the payload and blobs bundle for the given slot.
+// GetPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {

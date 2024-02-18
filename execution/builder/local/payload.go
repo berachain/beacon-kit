@@ -23,28 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package local
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	"github.com/pkg/errors"
 )
 
-func (s *Service) getLocalPayload(
+func (s *Service) GetOrBuildLocalPayload(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock,
+	slot primitives.Slot,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
 	// logFields := logrus.Fields{
@@ -90,11 +89,11 @@ func (s *Service) getLocalPayload(
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
 	//#nosec:G701 // won't overflow, time cannot be negative.
-	return s.GetExecutionPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
+	return s.BuildLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
 }
 
 // GetExecutionPayload retrieves the execution payload for the given slot.
-func (s *Service) GetExecutionPayload(
+func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	parentEth1Hash common.Hash,
 	slot primitives.Slot,
@@ -104,21 +103,12 @@ func (s *Service) GetExecutionPayload(
 		st = s.BeaconState(ctx)
 		// TODO: RANDAO
 		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
+		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 		// TODO: Cancun
 		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
 	)
-	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
-	// if err != nil {
-	// 	return nil, false, err
-	// }
 
-	// Build the forkchoice state.
-	f := &enginev1.ForkchoiceState{
-		HeadBlockHash:      parentEth1Hash.Bytes(),
-		SafeBlockHash:      s.BeaconState(ctx).GetSafeEth1BlockHash().Bytes(),
-		FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
-	}
-
+	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		s.Logger().Error(
@@ -126,6 +116,7 @@ func (s *Service) GetExecutionPayload(
 		return nil, nil, false, err
 	}
 
+	// Build the payload attributes.
 	attrs, err := engine.NewPayloadAttributesContainer(
 		st.Version(),
 		timestamp,
@@ -138,16 +129,41 @@ func (s *Service) GetExecutionPayload(
 		return nil, nil, false, errors.Wrap(err, "could not create payload attributes")
 	}
 
-	var payloadIDBytes *enginev1.PayloadIDBytes
-	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attrs)
+	fcuConfig := &execution.FCUConfig{
+		HeadEth1Hash:  parentEth1Hash,
+		ProposingSlot: slot,
+		Attributes:    attrs,
+	}
+
+	// Notify the execution client of the forkchoice update.
+	var payloadID *enginev1.PayloadIDBytes
+	payloadID, err = s.en.NotifyForkchoiceUpdate(ctx, fcuConfig)
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
-	} else if payloadIDBytes == nil {
+	}
+
+	// If the forkchoice update call has an attribute, update the payload ID cache.
+	hasAttr := fcuConfig.Attributes != nil && !fcuConfig.Attributes.IsEmpty()
+	if hasAttr && payloadID != nil {
+		s.Logger().Info("forkchoice updated with payload attributes for proposal",
+			"head_eth1_hash", fcuConfig.HeadEth1Hash,
+			"proposing_slot", fcuConfig.ProposingSlot,
+			"payload_id", fmt.Sprintf("%#x", payloadID),
+		)
+		s.payloadCache.Set(
+			fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
+	} else if hasAttr && payloadID == nil {
+		s.Logger().Warn(
+			"local block builder received nil payload ID on VALID engine response",
+			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
+			"proposing_slot", fcuConfig.ProposingSlot,
+		)
 		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
+	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err := s.en.GetPayload(
-		ctx, primitives.PayloadID(*payloadIDBytes), slot,
+		ctx, primitives.PayloadID(*payloadID), slot,
 	)
 	if err != nil {
 		return nil, nil, false, err

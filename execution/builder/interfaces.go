@@ -25,22 +25,17 @@
 
 package local
 
-const (
-	prefix = "beaconkit.builder."
+import (
+	"context"
 
-	// MetricGetBuiltPayloadHit is used to count the number of times a built
-	// payload retrieval is attempted and found.
-	MetricsPayloadIDCacheHit = prefix + "payload-id-cache-hit"
-
-	// MetricGetBuiltPayloadMiss is used to count the number of times a built
-	// payload retrieval is attempted but not found.
-	MetricsPayloadIDCacheMiss = prefix + "payload-id-cache-miss"
-
-	// MetricErrorRetrievingPayload is used to count the number of times an error
-	// occurs when attempting to retrieve a built payload.
-	MetricsPayloadIDCacheError = prefix + "get-payload-error"
-
-	// MetricLocalBuilderReceivedNilPayload is used to count the number of times
-	// the local builder receives a nil payload.
-	MetricsLocalBuilderReceivedNilPayload = prefix + "local-builder-received-nil-payload"
+	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
+
+// BeaconBlockBuilder is the interface for building blocks.
+type BeaconBlockBuilder interface {
+	RequestBestBlock(
+		ctx context.Context,
+		slot primitives.Slot,
+	) (consensus.ReadOnlyBeaconKitBlock, error)
+}
