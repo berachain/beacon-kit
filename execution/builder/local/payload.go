@@ -147,15 +147,15 @@ func (s *Service) BuildLocalPayload(
 			"proposing_slot", fcuConfig.ProposingSlot,
 		)
 		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
-	} else {
-		s.Logger().Info("forkchoice updated with payload attributes for proposal",
-			"head_eth1_hash", fcuConfig.HeadEth1Hash,
-			"proposing_slot", fcuConfig.ProposingSlot,
-			"payload_id", fmt.Sprintf("%#x", payloadID),
-		)
-		s.payloadCache.Set(
-			fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
 	}
+
+	s.Logger().Info("forkchoice updated with payload attributes for proposal",
+		"head_eth1_hash", fcuConfig.HeadEth1Hash,
+		"proposing_slot", fcuConfig.ProposingSlot,
+		"payload_id", fmt.Sprintf("%#x", payloadID),
+	)
+	s.payloadCache.Set(
+		fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
 
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err := s.en.GetPayload(
