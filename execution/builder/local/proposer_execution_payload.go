@@ -86,6 +86,19 @@ func (b *Builder) getLocalPayload(
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
 
+	// TODO: Randao
+	var (
+		t = uint64(time.Now().Unix()) //#nosec:G701 // won't overflow, time cannot be negative.
+		// TODO: RANDAO
+		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
+		// TODO: Cancun
+		headRoot = make([]byte, 32) //nolint:gomnd // TODO: Cancun
+	)
+	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
+	// if err != nil {
+	// 	return nil, false, err
+	// }
+
 	// Build the forkchoice state.
 	f := &enginev1.ForkchoiceState{
 		HeadBlockHash:      parentEth1Hash.Bytes(),
@@ -93,15 +106,6 @@ func (b *Builder) getLocalPayload(
 		FinalizedBlockHash: b.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
 	}
 
-	// Build the payload attributes.
-	t := uint64(time.Now().Unix()) // todo: the proper mathematics for time must be done.
-	headRoot := make([]byte, 32)   //nolint:gomnd // todo: cancaun
-	prevRandao := make([]byte, 32) //nolint:gomnd // todo: randao
-
-	// Since beacon-kit is always post capella we can assume calling ExpectedWithdrawals
-	// is valid.
-	// TODO: need to make this so it is calling expected withdrawals from
-	// the next batch of withdrawals.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		b.Logger().Error(
@@ -111,13 +115,14 @@ func (b *Builder) getLocalPayload(
 
 	attrs, err := engine.NewPayloadAttributesContainer(
 		st.Version(),
-		t, prevRandao,
+		t,
+		prevRandao,
 		b.BeaconCfg().Validator.SuggestedFeeRecipient[:],
 		withdrawals,
 		headRoot,
 	)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, false, errors.Wrap(err, "could not create payload attributes")
 	}
 
 	var payloadIDBytes *enginev1.PayloadIDBytes

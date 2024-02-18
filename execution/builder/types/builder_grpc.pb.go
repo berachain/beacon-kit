@@ -27,7 +27,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: builder/v1alpha1/builder.proto
+// source: execution/builder/v1alpha1/builder.proto
 
 package types
 
@@ -45,8 +45,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BuilderService_GetExecutionPayload_FullMethodName = "/builder.v1alpha1.BuilderService/GetExecutionPayload"
-	BuilderService_Status_FullMethodName              = "/builder.v1alpha1.BuilderService/Status"
+	BuilderService_GetExecutionPayload_FullMethodName = "/execution.builder.v1alpha1.BuilderService/GetExecutionPayload"
+	BuilderService_Status_FullMethodName              = "/execution.builder.v1alpha1.BuilderService/Status"
 )
 
 // BuilderServiceClient is the client API for BuilderService service.
@@ -163,7 +163,7 @@ func _BuilderService_Status_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var BuilderService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "builder.v1alpha1.BuilderService",
+	ServiceName: "execution.builder.v1alpha1.BuilderService",
 	HandlerType: (*BuilderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -176,5 +176,5 @@ var BuilderService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "builder/v1alpha1/builder.proto",
+	Metadata: "execution/builder/v1alpha1/builder.proto",
 }

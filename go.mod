@@ -44,6 +44,7 @@ require (
 	github.com/vektra/mockery/v2 v2.41.0
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
 	golang.org/x/sync v0.6.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac
 	google.golang.org/grpc v1.61.1
 	google.golang.org/protobuf v1.32.0
 )
@@ -427,7 +428,6 @@ require (
 	google.golang.org/api v0.153.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240102182953-50ed04b92917 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
