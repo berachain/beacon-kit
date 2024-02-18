@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package builder
 
 import (
 	"context"
@@ -44,7 +44,7 @@ import (
 func (s *Service) getLocalPayload(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconKitBlock, st state.BeaconState,
-) (engine.ExecutionPayload, bool, error) {
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	slot := blk.GetSlot()
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
@@ -62,7 +62,7 @@ func (s *Service) getLocalPayload(
 
 	parentEth1Hash, err := s.getParentEth1Hash(ctx)
 	if err != nil {
-		return nil, false, err
+		return nil, nil, false, err
 	}
 
 	// If we have a payload ID in the cache, we can return the payload from the cache.
@@ -72,16 +72,17 @@ func (s *Service) getLocalPayload(
 			pidCpy          primitives.PayloadID
 			payload         engine.ExecutionPayload
 			overrideBuilder bool
+			blobsBundle     *enginev1.BlobsBundle
 		)
 
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
-		if payload, _, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot); err == nil {
+		if payload, blobsBundle, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 			//  Return the cached payload ID.
-			return payload, overrideBuilder, nil
+			return payload, blobsBundle, overrideBuilder, nil
 		}
 		s.Logger().Warn("could not get cached payload from execution client", "error", err)
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheError)
@@ -114,7 +115,7 @@ func (s *Service) getLocalPayload(
 	if err != nil {
 		s.Logger().Error(
 			"Could not get expected withdrawals to get payload attribute", "error", err)
-		return nil, false, err
+		return nil, nil, false, err
 	}
 
 	attrs, err := engine.NewPayloadAttributesContainer(
@@ -126,31 +127,31 @@ func (s *Service) getLocalPayload(
 		headRoot,
 	)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "could not create payload attributes")
+		return nil, nil, false, errors.Wrap(err, "could not create payload attributes")
 	}
 
 	var payloadIDBytes *enginev1.PayloadIDBytes
 	payloadIDBytes, _, err = s.en.ForkchoiceUpdated(ctx, f, attrs)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "could not prepare payload")
+		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
 	} else if payloadIDBytes == nil {
-		return nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
+		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
 	}
 
-	payload, bundle, overrideBuilder, err := s.en.GetPayload(
+	payload, blobsBundle, overrideBuilder, err := s.en.GetPayload(
 		ctx, primitives.PayloadID(*payloadIDBytes), slot,
 	)
 	if err != nil {
-		return nil, false, err
+		return nil, nil, false, err
 	}
 
 	// TODO: Dencun
-	_ = bundle
+	_ = blobsBundle
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 
 	s.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
-	return payload, overrideBuilder, nil
+	return payload, blobsBundle, overrideBuilder, nil
 }
 
 // getParentEth1Hash retrieves the parent block hash for the given slot.

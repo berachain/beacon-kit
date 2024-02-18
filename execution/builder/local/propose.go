@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package builder
 
 import (
 	"context"
@@ -48,12 +48,12 @@ func (s *Service) BuildBeaconBlock(
 		slot          = beaconState.Slot()
 	)
 
-	// // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
-	_ = s.beaconKitValKey
-	// _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
-	// if err != nil {
-	// 	return nil, err
-	// }
+	// // // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
+	// _ = s.beaconKitValKey
+	// // _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
+	// // if err != nil {
+	// // 	return nil, err
+	// // }
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := consensus.EmptyBeaconKitBlock(
@@ -63,10 +63,15 @@ func (s *Service) BuildBeaconBlock(
 		return nil, err
 	}
 
-	executionData, overrideBuilder, err := s.getLocalPayload(ctx, beaconBlock, beaconState)
+	executionData, blobsBundle, overrideBuilder, err := s.getLocalPayload(
+		ctx, beaconBlock, beaconState,
+	)
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: Dencun
+	_ = blobsBundle
 
 	// TODO: allow external block builders to override the payload.
 	_ = overrideBuilder

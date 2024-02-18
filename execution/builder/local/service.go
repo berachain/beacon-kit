@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package builder
 
 import (
 	"context"
@@ -31,7 +31,6 @@ import (
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/validator/key"
 )
 
 type BlockBuilder interface {
@@ -41,9 +40,8 @@ type BlockBuilder interface {
 // have it configured itself and not be a service persay.
 type Service struct {
 	service.BaseService
-	beaconKitValKey key.BeaconKitValKey
-	en              engine.Caller
-	payloadCache    *cache.PayloadIDCache
+	en           engine.Caller
+	payloadCache *cache.PayloadIDCache
 }
 
 func NewService(
