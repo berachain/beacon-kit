@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 )
 
@@ -49,12 +48,12 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	if err = s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
-		HeadEth1Hash: common.Hash(payload.GetBlockHash()),
-		Attributes:   nil,
-	}); err != nil {
-		s.Logger().Error("failed to notify forkchoice update", "error", err)
-	}
+	// if err = s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
+	// 	HeadEth1Hash: common.Hash(payload.GetBlockHash()),
+	// 	Attributes:   nil,
+	// }); err != nil {
+	// 	s.Logger().Error("failed to notify forkchoice update", "error", err)
+	// }
 
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)

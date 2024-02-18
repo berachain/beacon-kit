@@ -23,36 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package capella
+package consensusv1
 
 import (
 	"errors"
 
-	"github.com/holiman/uint256"
-	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
-
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	// TODO: fix jank sszgen import naming requirement
-	v11 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // BeaconKitBlock implements the BeaconKitBlock interface.
 var _ interfaces.BeaconKitBlock = (*BeaconKitBlockCapella)(nil)
-
-// BeaconKitBlockFromState assembles a new beacon block
-// from the given state and execution data.
-func BeaconKitBlockFromState(
-	beaconState state.ReadOnlyBeaconState,
-	executionData engine.ExecutionPayload,
-) (interfaces.BeaconKitBlock, error) {
-	return NewBeaconKitBlock(
-		beaconState.Slot(),
-		executionData,
-	)
-}
 
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
@@ -90,7 +76,7 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 	executionData engine.ExecutionPayload,
 ) error {
 	var ok bool
-	b.Body.ExecutionPayload, ok = executionData.ToProto().(*v11.ExecutionPayloadCapella)
+	b.Body.ExecutionPayload, ok = executionData.ToProto().(*v1.ExecutionPayloadCapella)
 	// b.Body.ExecutionPayload, err = executionData.PbCapella()
 	if !ok {
 		return errors.New("failed to convert execution data to capella payload")
@@ -105,6 +91,10 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlockCapella) ExecutionPayload() (engine.ExecutionPayload, error) {
-	return engine.WrappedExecutionPayloadCapella(b.GetBody().GetExecutionPayload(),
-		uint256.NewInt(0).SetBytes(b.GetPayloadValue()))
+	return &enginev1.ExecutionPayloadContainer{
+		Payload: &enginev1.ExecutionPayloadContainer_Capella{
+			Capella: b.GetBody().GetExecutionPayload(),
+		},
+		PayloadValue: b.GetPayloadValue(),
+	}, nil
 }
