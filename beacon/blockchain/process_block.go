@@ -78,6 +78,7 @@ func (s *Service) sendFCU(
 	// of submitting our forkchoice update to the builder service in order to have it prepare
 	// a new execution payload for us.
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
+		//#nosec:G701 // won't overflow, time cannot be negative.
 		_, _, _, err := s.bs.GetExecutionPayload(
 			ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
 		)

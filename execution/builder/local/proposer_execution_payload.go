@@ -89,6 +89,7 @@ func (s *Service) getLocalPayload(
 
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
+	//#nosec:G701 // won't overflow, time cannot be negative.
 	return s.GetExecutionPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
 }
 
@@ -101,7 +102,6 @@ func (s *Service) GetExecutionPayload(
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	var (
 		st = s.BeaconState(ctx)
-		//#nosec:G701 // won't overflow, time cannot be negative.
 		// TODO: RANDAO
 		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
 		// TODO: Cancun
