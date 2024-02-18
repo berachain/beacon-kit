@@ -39,14 +39,14 @@ type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) (*enginev1.PayloadIDBytes, error)
+	) error
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(ctx context.Context, preStateHeader engine.ExecutionPayload) (bool, error)
 }
 
 type BuilderService interface {
-	BuildLocalPayload(
+	GetExecutionPayload(
 		ctx context.Context,
 		parentEth1Hash common.Hash,
 		slot primitives.Slot,

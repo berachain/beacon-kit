@@ -33,7 +33,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 type (
@@ -76,5 +75,5 @@ type executionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) (*enginev1.PayloadIDBytes, error)
+	) error
 }

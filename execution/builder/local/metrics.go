@@ -23,24 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package local
+package builder
 
 const (
-	prefix = "beaconkit.builder."
-
 	// MetricGetBuiltPayloadHit is used to count the number of times a built
 	// payload retrieval is attempted and found.
-	MetricsPayloadIDCacheHit = prefix + "payload-id-cache-hit"
+	MetricsPayloadIDCacheHit = "beaconkit.validator.payload-id-cache-hit"
 
 	// MetricGetBuiltPayloadMiss is used to count the number of times a built
 	// payload retrieval is attempted but not found.
-	MetricsPayloadIDCacheMiss = prefix + "payload-id-cache-miss"
+	MetricsPayloadIDCacheMiss = "beaconkit.validator.payload-id-cache-miss"
 
 	// MetricErrorRetrievingPayload is used to count the number of times an error
 	// occurs when attempting to retrieve a built payload.
-	MetricsPayloadIDCacheError = prefix + "get-payload-error"
-
-	// MetricLocalBuilderReceivedNilPayload is used to count the number of times
-	// the local builder receives a nil payload.
-	MetricsLocalBuilderReceivedNilPayload = prefix + "local-builder-received-nil-payload"
+	MetricsPayloadIDCacheError = "beaconkit.validator.get-payload-error"
 )
