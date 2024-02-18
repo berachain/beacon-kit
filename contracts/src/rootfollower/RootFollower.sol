@@ -17,8 +17,6 @@ abstract contract RootFollower is IRootFollower, Ownable {
     uint256 private constant HISTORY_BUFFER_LENGTH = 256;
     /// @dev The selector for "getCoinbase(uint256)"
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
-    /// @dev The selector for "BytesNotInBuffer()"
-    bytes4 private constant BYTES_NOT_IN_BUFFER_SELECTOR = 0x68c0ab1c;
     /// @dev The beacon roots contract address.
     address private constant BEACON_ROOT_ADDRESS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
@@ -82,13 +80,13 @@ abstract contract RootFollower is IRootFollower, Ownable {
      * Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure.
      */
     function _getCoinbase(uint256 _block) internal view returns (address _coinbase) {
+        // Check if _block is in the buffer range
+        if ((_block < block.number - HISTORY_BUFFER_LENGTH) || (_block > block.number)) {
+            revert Errors.BlockNotInBuffer();
+        }
         assembly ("memory-safe") {
             mstore(0, GET_COINBASE_SELECTOR)
             mstore(0x04, _block)
-            if iszero(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20)) {
-                mstore(0, BYTES_NOT_IN_BUFFER_SELECTOR)
-                revert(0, 0x04)
-            }
             _coinbase := mload(0)
         }
     }
