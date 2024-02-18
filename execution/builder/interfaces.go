@@ -23,19 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package localbuilder
 
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// BeaconBlockBuilder is the interface for building blocks.
-type BeaconBlockBuilder interface {
-	RequestBestBlock(
-		ctx context.Context,
-		slot primitives.Slot,
-	) (consensus.ReadOnlyBeaconKitBlock, error)
+type ExecutionService interface {
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context, fcuConfig *execution.FCUConfig,
+	) (*enginev1.PayloadIDBytes, error)
+
+	// GetPayload gets a payload for a given payload ID and slot.
+	GetPayload(
+		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

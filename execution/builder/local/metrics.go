@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package local
+package localbuilder
 
 const (
 	prefix = "beaconkit.builder."
@@ -32,7 +32,7 @@ const (
 	// payload retrieval is attempted and found.
 	MetricsPayloadIDCacheHit = prefix + "payload-id-cache-hit"
 
-	// MetricGetBuiltPayloadMiss is used to count the number of times a built
+	// MetricGetPayloadMiss is used to count the number of times a built
 	// payload retrieval is attempted but not found.
 	MetricsPayloadIDCacheMiss = prefix + "payload-id-cache-miss"
 
