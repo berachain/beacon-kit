@@ -55,7 +55,7 @@ type BeaconKitBlockCapella struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Beacon chain slot that this block represents.
-	Slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"`
+	Slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/itsdevbear/bolaris/types/primitives.Slot"`
 	// BeaconBlockBody contains the body of the beacon block.
 	Body *BeaconKitBlockBodyCapella `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	// The payload value of the block.
@@ -199,7 +199,7 @@ type BeaconKitBlockDeneb struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Beacon chain slot that this block represents.
-	Slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"`
+	Slot github_com_itsdevbear_bolaris_types_consensus_primitives.Slot `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/itsdevbear/bolaris/types/primitives.Slot"`
 	// BeaconBlockBody contains the body of the beacon block.
 	Body *BeaconKitBlockBodyDeneb `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	// The payload value of the block.

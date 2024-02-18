@@ -28,7 +28,7 @@ package builder
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/types/consensus/interfaces"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -37,5 +37,5 @@ type BeaconBlockBuilder interface {
 	RequestBestBlock(
 		ctx context.Context,
 		slot primitives.Slot,
-	) (interfaces.ReadOnlyBeaconKitBlock, error)
+	) (consensus.ReadOnlyBeaconKitBlock, error)
 }
