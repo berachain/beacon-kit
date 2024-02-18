@@ -140,7 +140,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithExecutionService(executionService),
 	)
 
-	// Build the blockchain service
+	// Build the blockchain service.
 	chainService := blockchain.NewService(
 		baseService.WithName("blockchain"),
 		blockchain.WithBuilderService(builderService),
