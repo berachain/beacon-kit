@@ -75,8 +75,8 @@ func (s *Service) sendFCU(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
 	// If we are preparing all payloads and we are a validator, we delegate the responsibility
-	// of submitting our forkchoice update to the builder service. Otherwise we
-	// just do it here.
+	// of submitting our forkchoice update to the builder service in order to have it prepare
+	// a new execution payload for us.
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		_, _, _, err := s.bs.GetExecutionPayload(
 			ctx, headEth1Hash, proposingSlot, uint64(time.Now().Unix())+approximateSecondsPerBlock,
@@ -87,6 +87,7 @@ func (s *Service) sendFCU(
 	}
 
 	// Otherwise we just send the forkchoice update to the execution client with no attributes.
+	// By not passing any attributes, the execution client will NOT build a new execution payload.
 	return s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash: headEth1Hash,
