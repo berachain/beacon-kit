@@ -15,8 +15,8 @@ contract BeaconDepositContractTest is SoladyTest {
 
     /// @dev Set up the test environment by deploying a new BeaconRootsContract.
     function setUp() public virtual {
-        // etch the BeaconRootsContract to the BEACON_ROOT_ADDRESS
-        vm.etch(BEACON_DEPOSIT_ADDRESS, vm.getDeployedCode("BeaconRootsContract.sol"));
+        // etch the BeaconDepositContract to the BEACON_DEPOSIT_ADDRESS
+        vm.etch(BEACON_DEPOSIT_ADDRESS, vm.getDeployedCode("BeaconDepositContract.sol"));
         // take a snapshot of the clean state
         snapshot = vm.snapshot();
     }
@@ -58,9 +58,7 @@ contract BeaconDepositContractTest is SoladyTest {
         vm.expectEmit(true, true, true, true);
         emit BeaconDepositContract.Withdrawal(VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, amount);
 
-        // Setup and call the withdrawal function (mocking as needed)
-        // Note: Actual withdrawal logic would depend on the contract's implementation details
-        // which are not provided in the context. This is a placeholder for withdrawal testing.
+        // Setup and call the withdrawal function
         depositContract.withdraw(VALIDATOR_PUBKEY, amount);
     }
 }
