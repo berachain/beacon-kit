@@ -31,13 +31,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // GetExecutionPayload builds a new beacon block.
 func (b *Builder) GetExecutionPayload(
 	ctx context.Context, parentEth1Hash common.Hash, slot primitives.Slot,
-) (*enginev1.ExecutionPayloadContainer, bool, error) {
+) (engine.ExecutionPayload, bool, error) {
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
@@ -59,5 +58,5 @@ func (b *Builder) GetExecutionPayload(
 	_ = blobsBundle
 
 	// Return the block.
-	return enginev1.PayloadContainerFromPayload(executionData), overrideBuilder, err
+	return executionData, overrideBuilder, err
 }

@@ -32,10 +32,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/core"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
+	bkenginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/pkg/errors"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
@@ -87,13 +87,6 @@ func (b *Builder) getLocalPayload(
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
 
-	// TODO: Randao
-	random := make([]byte, 32) //nolint:gomnd // todo: randao
-	// random, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
-	// if err != nil {
-	// 	return nil, false, err
-	// }
-
 	// Build the forkchoice state.
 	f := &enginev1.ForkchoiceState{
 		HeadBlockHash:      parentEth1Hash.Bytes(),
@@ -102,20 +95,34 @@ func (b *Builder) getLocalPayload(
 	}
 
 	// Build the payload attributes.
-	t := time.Now()              // todo: the proper mathematics for time must be done.
-	headRoot := make([]byte, 32) //nolint:gomnd // todo: cancaun
-	attr := core.BuildPayloadAttributes(
-		b.BeaconCfg(),
-		st,
-		b.Logger(),
-		random,
+	t := uint64(time.Now().Unix()) // todo: the proper mathematics for time must be done.
+	headRoot := make([]byte, 32)   //nolint:gomnd // todo: cancaun
+	prevRandao := make([]byte, 32) //nolint:gomnd // todo: randao
+
+	// Since beacon-kit is always post capella we can assume calling ExpectedWithdrawals
+	// is valid.
+	// TODO: need to make this so it is calling expected withdrawals from
+	// the next batch of withdrawals.
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		b.Logger().Error(
+			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil, nil, false, err
+	}
+
+	attrs, err := bkenginev1.NewPayloadAttributesContainer(
+		st.Version(),
+		t, prevRandao,
+		b.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+		withdrawals,
 		headRoot,
-		//#nosec:G701 // won't overflow.
-		uint64(t.Unix()),
 	)
+	if err != nil {
+		return nil, nil, false, err
+	}
 
 	var payloadIDBytes *enginev1.PayloadIDBytes
-	payloadIDBytes, _, err = b.en.ForkchoiceUpdated(ctx, f, attr)
+	payloadIDBytes, _, err = b.en.ForkchoiceUpdated(ctx, f, attrs)
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
 	} else if payloadIDBytes == nil {

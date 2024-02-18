@@ -30,6 +30,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/execution/builder/types"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -63,10 +64,15 @@ func (c *Client) GetExecutionPayload(
 		return nil, err
 	}
 
+	payload, ok := executionPayload.(*enginev1.ExecutionPayloadContainer)
+	if !ok {
+		return nil, err
+	}
+
 	// Return the response.
 	return &types.GetExecutionPayloadResponse{
 		Override:         shouldOverride,
-		PayloadContainer: executionPayload,
+		PayloadContainer: payload,
 	}, nil
 }
 

@@ -50,5 +50,6 @@ lint:
     - ENUM_NO_ALLOW_ALIAS
   ignore:
     - beacon/module/v1alpha1/module.proto
+    - types/engine/v1/execution_engine.proto
     - ethereum
   

@@ -131,10 +131,6 @@ func (s *engineClient) ForkchoiceUpdated(
 func (s *engineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-	if attrs == nil {
-		return nil, ErrNilAttributesPassedToClient
-	}
-
 	switch v := attrs.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
@@ -153,48 +149,15 @@ func (s *engineClient) GetPayload(
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
 
-	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
-	case version.Deneb:
-		return s.getPayloadDeneb(dctx, payloadID)
-	case version.Capella:
-		return s.getPayloadCapella(ctx, payloadID)
-	default:
-		return nil, nil, false, ErrInvalidGetPayloadVersion
+	fn := s.GetPayloadV2
+	if s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) == version.Deneb {
+		fn = s.GetPayloadV3
 	}
-}
 
-// handleDenebFork processes the Deneb fork version.
-func (s *engineClient) getPayloadDeneb(
-	ctx context.Context, payloadID primitives.PayloadID,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	result, err := s.GetPayloadV3(ctx, enginev1.PayloadIDBytes(payloadID))
-	if err != nil {
-		return nil, nil, false, err
-	}
-	ed, err := engine.WrappedExecutionPayloadDeneb(
-		result.GetPayload(), PayloadValueToWei(result.GetValue()),
-	)
+	result, err := fn(dctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
 		return nil, nil, false, err
 	}
 
-	return ed, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
-}
-
-// handleCapellaFork processes the Capella fork version.
-func (s *engineClient) getPayloadCapella(
-	ctx context.Context, payloadID primitives.PayloadID,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	result, err := s.GetPayloadV2(ctx, enginev1.PayloadIDBytes(payloadID))
-	if err != nil {
-		return nil, nil, false, err
-	}
-	ed, err := engine.WrappedExecutionPayloadCapella(
-		result.GetPayload(), PayloadValueToWei(result.GetValue()),
-	)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	return ed, nil, false, nil
+	return result, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
 }

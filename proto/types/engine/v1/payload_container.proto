@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -43,4 +43,10 @@ message ExecutionPayloadContainer {
     // deneb_header is the blinded block.
     ethereum.engine.v1.ExecutionPayloadHeaderDeneb deneb_header = 4;
   }
+  // value is a byte array representing the value associated with the container.
+  bytes payload_value = 1001;
+  // blobs_bundle encapsulates a collection of blobs associated with the container.
+  ethereum.engine.v1.BlobsBundle blobs_bundle = 1002;
+  // should_override_builder indicates whether the default builder should be overridden.
+  bool should_override_builder = 1003;
 }

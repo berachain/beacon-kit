@@ -30,7 +30,7 @@ package execution.builder.v1alpha1;
 import "ethereum/eth/ext/options.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
-import "types/engine/v1/container.proto";
+import "types/engine/v1/payload_container.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/execution/builder/types";
 

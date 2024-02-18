@@ -37,7 +37,6 @@ import (
 	consensusinterfaces "github.com/itsdevbear/bolaris/types/consensus/interfaces"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	engineinterfaces "github.com/itsdevbear/bolaris/types/engine/interfaces"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -121,7 +120,7 @@ func (s *Service) RequestBestBlock(
 			if resp.err != nil || resp.response == nil {
 				continue
 			}
-			out = append(out, enginev1.PayloadFromContainer(resp.response.GetPayloadContainer()))
+			out = append(out, resp.response.GetPayloadContainer())
 		}
 
 		// If no builders returned a block, return an error
