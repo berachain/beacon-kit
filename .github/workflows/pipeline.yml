@@ -55,11 +55,14 @@ jobs:
 
         os: [beacon-kit-runner]
     container:
-      image: alpine:latest
+      image: ubuntu:latest
       options: --user root
     name: ${{ matrix.args }}
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Setup
+        run: |
+          apt install make
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Foundry
