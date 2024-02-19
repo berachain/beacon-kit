@@ -35,21 +35,3 @@ type Service struct {
 	bs BuilderService
 	en ExecutionService
 }
-<<<<<<< HEAD
-=======
-
-// // NewService returns a new Service.
-// func NewService(
-// 	base service.BaseService,
-// 	opts ...service) *Service {
-// 	s := &Service{
-// 		BaseService: base,
-// 	}
-// 	for _, opt := range opts {
-// 		if err := opt(s); err != nil {
-// 			s.Logger().Error("Failed to apply option", "error", err)
-// 		}
-// 	}
-// 	return s
-// }
->>>>>>> 6b4744c (feat(setup): Use base service setup depinjector)
