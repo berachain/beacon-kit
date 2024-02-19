@@ -28,7 +28,6 @@ package localbuilder
 import (
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/engine"
 )
 
 // Option is a functional option for the service.
@@ -38,14 +37,6 @@ type Option func(*Service) error
 func WithBuilderConfig(cfg *config.Builder) Option {
 	return func(s *Service) error {
 		s.cfg = cfg
-		return nil
-	}
-}
-
-// WithEngineCaller sets the engine caller.
-func WithEngineCaller(caller engine.Caller) Option {
-	return func(s *Service) error {
-		s.en = caller
 		return nil
 	}
 }

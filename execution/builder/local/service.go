@@ -30,7 +30,6 @@ import (
 
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -39,7 +38,6 @@ import (
 type Service struct {
 	service.BaseService
 	cfg          *config.Builder
-	en           engine.Caller
 	es           ExecutionService
 	payloadCache *cache.PayloadIDCache
 }

@@ -142,7 +142,6 @@ func NewDefaultBeaconKitRuntime(
 	builderService := builder.NewService(
 		baseService.WithName("local-builder"),
 		builder.WithBuilderConfig(&cfg.Builder),
-		builder.WithEngineCaller(engineClient),
 		builder.WithExecutionService(executionService),
 		builder.WithPayloadCache(payloadCache),
 	)
