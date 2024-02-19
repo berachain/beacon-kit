@@ -87,6 +87,11 @@ func (s *Service) GetOrBuildLocalPayload(
 
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
+	s.Logger().Warn(
+		"could not find payload in cache, building new payload",
+		"slot", slot, "parent_eth1-hash", parentEth1Hash.Hex(),
+	)
+
 	//#nosec:G701 // won't overflow, time cannot be negative.
 	return s.BuildAndWaitForLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
 }
@@ -166,7 +171,7 @@ func (s *Service) BuildAndWaitForLocalPayload(
 	var duration time.Duration
 	nowUnix := uint64(time.Now().Unix())
 	if timestamp <= nowUnix {
-		duration = 500 * time.Millisecond
+		duration = 500 * time.Millisecond //nolint:gomnd // for now.
 	} else {
 		duration = time.Duration(timestamp-nowUnix) * time.Second
 	}
