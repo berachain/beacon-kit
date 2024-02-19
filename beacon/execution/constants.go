@@ -23,19 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package execution
 
-import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+const (
+	forkchoiceDispatchQueue = "dispatch.forkchoice"
 )
-
-// BeaconBlockBuilder is the interface for building blocks.
-type BeaconBlockBuilder interface {
-	RequestBestBlock(
-		ctx context.Context,
-		slot primitives.Slot,
-	) (consensus.ReadOnlyBeaconKitBlock, error)
-}

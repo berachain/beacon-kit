@@ -37,7 +37,7 @@ import (
 )
 
 // TODO: calculate this based off of all the comet timeouts.
-const approximateBlkTime = 3 * time.Second
+const approximateBlkTime = 1 * time.Second
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(

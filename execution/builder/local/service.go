@@ -23,12 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package local
+package localbuilder
 
 import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -36,7 +37,7 @@ import (
 // have it configured itself and not be a service persay.
 type Service struct {
 	service.BaseService
-	en           ExecutionService
+	en           engine.Caller
 	payloadCache *cache.PayloadIDCache
 }
 
@@ -45,8 +46,7 @@ func NewService(
 	opts ...Option,
 ) *Service {
 	s := &Service{
-		BaseService:  base,
-		payloadCache: cache.NewPayloadIDCache(),
+		BaseService: base,
 	}
 
 	for _, opt := range opts {

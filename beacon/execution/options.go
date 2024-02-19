@@ -26,6 +26,7 @@
 package execution
 
 import (
+	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
 )
 
@@ -35,6 +36,14 @@ type Option func(*Service) error
 func WithEngineCaller(ec engine.Caller) Option {
 	return func(s *Service) error {
 		s.engine = ec
+		return nil
+	}
+}
+
+// WithPayloadCache is an option to set the PayloadIDCache for the Service.
+func WithPayloadCache(pc *cache.PayloadIDCache) Option {
+	return func(s *Service) error {
+		s.payloadCache = pc
 		return nil
 	}
 }

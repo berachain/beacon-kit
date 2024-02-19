@@ -48,12 +48,10 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	// if err = s.en.NotifyForkchoiceUpdate(ctx, &execution.FCUConfig{
-	// 	HeadEth1Hash: common.Hash(payload.GetBlockHash()),
-	// 	Attributes:   nil,
-	// }); err != nil {
-	// 	s.Logger().Error("failed to notify forkchoice update", "error", err)
-	// }
+	// TEMPORARY, needs to be handled better, this is a hack.
+	if err = s.sendFCU(ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1); err != nil {
+		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
+	}
 
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)
