@@ -138,6 +138,8 @@ func NewBeaconKitApp(
 				logger,
 				// supply the beacon config
 				&(bkCfg.Beacon),
+				// supply the staking keeper
+				&app.StakingKeeper,
 			),
 		)
 	)
@@ -170,7 +172,7 @@ func NewBeaconKitApp(
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		bkCfg, app.BeaconKeeper, logger,
+		bkCfg, app.BeaconKeeper, app.Logger(),
 	); err != nil {
 		panic(err)
 	}

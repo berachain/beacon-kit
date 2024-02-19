@@ -65,6 +65,10 @@ type BeaconStateProvider interface {
 	ApplyValsetChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }
 
+type ValsetChangeProvider interface {
+	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+}
+
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime(

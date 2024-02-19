@@ -38,3 +38,7 @@ type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
 	ApplyValsetChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }
+
+type ValsetChangeProvider interface {
+	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+}
