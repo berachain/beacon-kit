@@ -93,3 +93,8 @@ func (s SSZUint64) HashTreeRootWith(hh *fssz.Hasher) error {
 	hh.PutUint64(uint64(s))
 	return nil
 }
+
+// String returns the string representation of the SSZUint64.
+func (s SSZUint64) String() string {
+	return fmt.Sprintf("%d", s)
+}
