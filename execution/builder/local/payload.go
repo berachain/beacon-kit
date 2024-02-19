@@ -99,7 +99,7 @@ func (s *Service) GetOrBuildLocalPayload(
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	parentEth1Hash common.Hash,
-	slot primitives.Slot,
+	_ primitives.Slot,
 	timestamp uint64,
 ) (*enginev1.PayloadIDBytes, error) {
 	var (
