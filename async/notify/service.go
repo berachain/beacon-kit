@@ -30,8 +30,8 @@ import (
 
 	"cosmossdk.io/log"
 
-	"github.com/prysmaticlabs/prysm/v4/async/event"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/core/feed"
+	"github.com/prysmaticlabs/prysm/v5/async/event"
+	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
 )
 
 // Service represents the BeaconKit notification service. It is used to register

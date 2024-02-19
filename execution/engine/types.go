@@ -30,7 +30,7 @@ import (
 	"github.com/itsdevbear/bolaris/math"
 
 	// TODO: @ocnc to remove this GPL3 dependency.
-	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
+	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 )
 
 // PayloadValueToWei returns a Wei value given the payload's value.
