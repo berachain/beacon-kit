@@ -130,5 +130,5 @@ func (s *Service) validateExecutionOnBlock(
 		return false, err
 	}
 
-	return s.en.NotifyNewPayload(ctx, payload)
+	return s.es.NotifyNewPayload(ctx, payload)
 }

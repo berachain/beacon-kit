@@ -46,9 +46,9 @@ func WithBuilderService(bs BuilderService) service.Option[Service] {
 
 // WithExecutionService is a function that returns an Option.
 // It sets the ExecutionService of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) service.Option[Service] {
+func WithExecutionService(es ExecutionService) service.Option[Service] {
 	return func(s *Service) error {
-		s.en = en
+		s.es = es
 		return nil
 	}
 }

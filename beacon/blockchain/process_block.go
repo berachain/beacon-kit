@@ -95,7 +95,7 @@ func (s *Service) sendFCU(
 func (s *Service) sendFCUViaExecutionService(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
-	_, err := s.en.NotifyForkchoiceUpdate(
+	_, err := s.es.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  headEth1Hash,
 			ProposingSlot: proposingSlot,
