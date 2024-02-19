@@ -166,7 +166,7 @@ func (s *Service) BuildLocalPayload(
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
 			"proposing_slot", fcuConfig.ProposingSlot,
 		)
-		return nil, errors.New("received nil payload ID on VALID engine response")
+		return nil, ErrNilPayloadOnValidResponse
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes for proposal",
