@@ -26,8 +26,8 @@
 package localbuilder
 
 import (
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
 )
 
 // Option is a functional option for the service.
