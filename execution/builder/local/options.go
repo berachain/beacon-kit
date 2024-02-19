@@ -27,6 +27,7 @@ package localbuilder
 
 import (
 	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/execution/engine"
 )
 
@@ -45,6 +46,13 @@ func WithEngineCaller(caller engine.Caller) Option {
 func WithPayloadCache(pc *cache.PayloadIDCache) Option {
 	return func(s *Service) error {
 		s.payloadCache = pc
+		return nil
+	}
+}
+
+func WithBuilderConfig(cfg *config.Builder) Option {
+	return func(s *Service) error {
+		s.cfg = cfg
 		return nil
 	}
 }

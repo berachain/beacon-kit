@@ -167,17 +167,13 @@ func (s *Service) BuildAndWaitForLocalPayload(
 		return nil, nil, false, err
 	}
 
-	// Calculate the duration to wait for the payload to be delivered.
-	var duration time.Duration
-	nowUnix := uint64(time.Now().Unix())
-	if timestamp <= nowUnix {
-		duration = 500 * time.Millisecond //nolint:gomnd // for now.
-	} else {
-		duration = time.Duration(timestamp-nowUnix) * time.Second
-	}
-
+	// Wait for the payload to be delivered to the execution client.
+	s.Logger().Info(
+		"waiting for local payload to be delivered to execution client",
+		"slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
+	)
 	select {
-	case <-time.After(duration):
+	case <-time.After(s.cfg.LocalBuildPayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
 		break

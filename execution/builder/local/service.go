@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -37,6 +38,7 @@ import (
 // have it configured itself and not be a service persay.
 type Service struct {
 	service.BaseService
+	cfg          *config.Builder
 	en           engine.Caller
 	payloadCache *cache.PayloadIDCache
 }

@@ -44,6 +44,10 @@ const (
 	beaconConfigRoot   = beaconKitRoot + "beacon-config."
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
+	// Builder Config.
+	builderRoot              = beaconKitRoot + "builder."
+	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
+
 	// Fork Config.
 	forkRoot       = beaconConfigRoot + "forks."
 	DenebForkEpoch = forkRoot + "deneb-fork-epoch"
