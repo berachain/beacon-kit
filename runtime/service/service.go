@@ -26,6 +26,8 @@
 package service
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
 
 	"github.com/itsdevbear/bolaris/async/dispatch"
@@ -35,7 +37,6 @@ import (
 // BaseService is a base service that provides common functionality for all services.
 type BaseService struct {
 	BeaconStateProvider
-	ValsetChangeProvider
 	name   string
 	cfg    *config.Config
 	gcd    *dispatch.GrandCentralDispatch
@@ -46,16 +47,14 @@ type BaseService struct {
 func NewBaseService(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
-	vcp ValsetChangeProvider,
 	gcd *dispatch.GrandCentralDispatch,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
-		BeaconStateProvider:  bsp,
-		ValsetChangeProvider: vcp,
-		gcd:                  gcd,
-		logger:               logger,
-		cfg:                  cfg,
+		BeaconStateProvider: bsp,
+		gcd:                 gcd,
+		logger:              logger,
+		cfg:                 cfg,
 	}
 }
 
@@ -86,6 +85,12 @@ func (s *BaseService) BeaconCfg() *config.Beacon {
 func (s *BaseService) FeatureFlags() *config.FeatureFlags {
 	return &s.cfg.FeatureFlags
 }
+
+// Start is an intentional no-op for the BaseService.
+func (s *BaseService) Start(context.Context) {}
+
+// Status is an intentional no-op for the BaseService.
+func (s *BaseService) Status() error { return nil }
 
 // // DispatchEvent sends a value to the feed associated with the provided key.
 // func (s *BaseService) DispatchEvent(value dispatch.Event) int {
