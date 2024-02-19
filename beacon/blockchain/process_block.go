@@ -80,7 +80,7 @@ func (s *Service) sendFCU(
 	// of submitting our forkchoice update to the builder service in order to have it prepare
 	// a new execution payload for us. We discard the response, since we don't really
 	// care about it in the context of processing the current block. As long as it doesn't error.
-	if s.BeaconCfg().Validator.PrepareAllPayloads {
+	if s.FeatureFlags().PrepareAllPayloads {
 		//#nosec:G701 // won't overflow, time cannot be negative.
 		_, err := s.bs.BuildLocalPayload(
 			ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),

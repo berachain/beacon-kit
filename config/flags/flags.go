@@ -56,8 +56,11 @@ const (
 	validator               = beaconConfigRoot + "validator."
 	SuggestedFeeRecipient   = validator + "suggested-fee-recipient"
 	Graffiti                = validator + "graffiti"
-	PrepareAllPayloads      = validator + "prepare-all-payloads"
 	NumRandaoRevealsToTrack = validator + "num-randao-reveals-to-track"
+
+	// FeatureFlags Config.
+	featureFlagsRoot   = beaconKitRoot + "feature-flags."
+	PrepareAllPayloads = featureFlagsRoot + "prepare-all-payloads"
 
 	// Limits Config.
 	limitsRoot     = beaconConfigRoot + "limits."

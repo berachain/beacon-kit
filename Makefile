@@ -254,12 +254,12 @@ golangci-install:
 golangci:
 	@$(MAKE) golangci-install
 	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | xargs golangci-lint run  --timeout=10m --concurrency 8 -v 
+	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | xargs golangci-lint run  --timeout=10m --concurrency 8 -v 
 
 golangci-fix:
 	@$(MAKE) golangci-install
 	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | xargs golangci-lint run  --timeout=10m --fix --concurrency 8 -v 
+	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | xargs golangci-lint run  --timeout=10m --fix --concurrency 8 -v 
 
 
 #################

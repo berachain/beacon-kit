@@ -43,10 +43,11 @@ type BeaconKitConfig[T any] interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:    DefaultABCIConfig(),
-		Beacon:  DefaultBeaconConfig(),
-		Builder: DefaultBuilderConfig(),
-		Engine:  DefaultEngineConfig(),
+		ABCI:         DefaultABCIConfig(),
+		Beacon:       DefaultBeaconConfig(),
+		Builder:      DefaultBuilderConfig(),
+		Engine:       DefaultEngineConfig(),
+		FeatureFlags: DefaultFeatureFlagsConfig(),
 	}
 }
 
@@ -63,6 +64,9 @@ type Config struct {
 
 	// Engine is the configuration for the execution client.
 	Engine Engine
+
+	// FeatureFlags is the configuration for the feature flags.
+	FeatureFlags FeatureFlags
 }
 
 // Template returns the configuration template.
@@ -71,7 +75,8 @@ func (c Config) Template() string {
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################
-` + c.ABCI.Template() + c.Beacon.Template() + c.Builder.Template() + c.Engine.Template()
+` + c.ABCI.Template() + c.Beacon.Template() +
+		c.Builder.Template() + c.Engine.Template() + c.FeatureFlags.Template()
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
@@ -140,6 +145,12 @@ func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error
 		return nil, err
 	}
 	conf.Engine = *engineCfg
+
+	featureFlagsCfg, err := FeatureFlags{}.Parse(parser)
+	if err != nil {
+		return nil, err
+	}
+	conf.FeatureFlags = *featureFlagsCfg
 
 	return conf, nil
 }

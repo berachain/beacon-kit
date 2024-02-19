@@ -37,9 +37,9 @@ var _ BeaconKitConfig[Validator] = &Validator{}
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultValidatorConfig() Validator {
 	return Validator{
-		SuggestedFeeRecipient: common.Address{},
-		Graffiti:              "",
-		PrepareAllPayloads:    true,
+		SuggestedFeeRecipient:   common.Address{},
+		Graffiti:                "",
+		NumRandaoRevealsToTrack: 32, //nolint:gomnd // default.
 	}
 }
 
@@ -51,9 +51,6 @@ type Validator struct {
 
 	// Grafitti is the string that will be included in the graffiti field of the beacon block.
 	Graffiti string
-
-	// PrepareAllPayloads informs the engine to prepare a block on every slot.
-	PrepareAllPayloads bool
 
 	// Rando reveals to track
 	NumRandaoRevealsToTrack uint64
@@ -71,12 +68,6 @@ func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
 		return nil, err
 	}
 
-	if c.PrepareAllPayloads, err = parser.GetBool(
-		flags.PrepareAllPayloads,
-	); err != nil {
-		return nil, err
-	}
-
 	return &c, nil
 }
 
@@ -90,8 +81,5 @@ suggested-fee-recipient = "{{.BeaconKit.Beacon.Validator.SuggestedFeeRecipient}}
 
 # Graffiti string that will be included in the graffiti field of the beacon block.
 graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
-
-# Prepare all payloads informs the engine to prepare a block on every slot.
-prepare-all-payloads = {{.BeaconKit.Beacon.Validator.PrepareAllPayloads}}
 `
 }

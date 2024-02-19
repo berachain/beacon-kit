@@ -23,30 +23,46 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package config
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	bs BuilderService
-	en ExecutionService
+// FeatureFlags conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[FeatureFlags] = &FeatureFlags{}
+
+// DefaultFeaturesConfig returns the default FeatureFlags configuration.
+func DefaultFeatureFlagsConfig() FeatureFlags {
+	return FeatureFlags{
+		PrepareAllPayloads: true,
+	}
 }
 
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
+// Config represents the configuration struct for the FeatureFlags.
+type FeatureFlags struct {
+	// PrepareAllPayloads informs the engine to prepare a block on every slot.
+	PrepareAllPayloads bool
+}
+
+// Parse parses the configuration.
+func (c FeatureFlags) Parse(parser parser.AppOptionsParser) (*FeatureFlags, error) {
+	var err error
+	if c.PrepareAllPayloads, err = parser.GetBool(
+		flags.PrepareAllPayloads,
+	); err != nil {
+		return nil, err
 	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
+
+	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c FeatureFlags) Template() string {
+	return `
+[beacon-kit.feature-flags]
+# Prepare all payloads informs the engine to prepare a block on every slot.
+prepare-all-payloads = {{.BeaconKit.FeatureFlags.PrepareAllPayloads}}
+`
 }

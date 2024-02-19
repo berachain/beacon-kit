@@ -27,6 +27,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"cosmossdk.io/log"
@@ -39,7 +40,6 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-	"github.com/pkg/errors"
 )
 
 // Caller is implemented by engineClient.

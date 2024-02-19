@@ -34,6 +34,7 @@ import (
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/cache"
@@ -104,7 +105,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Create the base service, we will the  create shallow copies for each service.
 	baseService := service.NewBaseService(
-		&cfg.Beacon, bsp, vcp, gcd, logger,
+		cfg, bsp, gcd, logger,
 	)
 
 	// Create a payloadCache for the execution service and validator service to share.
@@ -159,6 +160,12 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithExecutionService(executionService),
 	)
 
+	// Build the staking service.
+	stakingService := staking.NewService(
+		baseService.WithName("staking"),
+		staking.WithValsetChangeProvider(vcp),
+	)
+
 	// Build the sync service.
 	syncService := sync.NewService(
 		baseService.WithName("sync"),
@@ -174,6 +181,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(chainService),
 		service.WithService(notificationService),
 		service.WithService(builderService),
+		service.WithService(stakingService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
