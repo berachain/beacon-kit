@@ -123,7 +123,7 @@ func (s *Service) notifyForkchoiceUpdate(
 		if err != nil {
 			// We have to return the error here since this function
 			// is recursive.
-			return payloadID, err
+			return nil, err
 		}
 		return payloadID, ErrBadBlockProduced
 	case err != nil:
