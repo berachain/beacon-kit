@@ -42,7 +42,7 @@ func WithBuilderConfig(cfg *config.Builder) Option {
 	}
 }
 
-// WithEngineCaller sets the engine caller,
+// WithEngineCaller sets the engine caller.
 func WithEngineCaller(caller engine.Caller) Option {
 	return func(s *Service) error {
 		s.en = caller
@@ -50,7 +50,7 @@ func WithEngineCaller(caller engine.Caller) Option {
 	}
 }
 
-// WithPayloadCache sets the payload cache,
+// WithPayloadCache sets the payload cache.
 func WithPayloadCache(pc *cache.PayloadIDCache) Option {
 	return func(s *Service) error {
 		s.payloadCache = pc
