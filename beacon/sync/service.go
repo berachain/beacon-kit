@@ -44,24 +44,6 @@ type Service struct {
 	es        executionService
 }
 
-// NewService creates a new initial sync service from
-// a given base and provided options.
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
 // CheckSyncStatus returns the current synchronization status of the beacon and execution chains.
 //
 // TODO, We need to add a handler than does the following after this function returns

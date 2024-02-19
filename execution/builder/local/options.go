@@ -28,13 +28,19 @@ package localbuilder
 import (
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// Option is a functional option for the service.
-type Option func(*Service) error
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
+		return nil
+	}
+}
 
 // WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *config.Builder) Option {
+func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
 	return func(s *Service) error {
 		s.cfg = cfg
 		return nil
@@ -42,7 +48,7 @@ func WithBuilderConfig(cfg *config.Builder) Option {
 }
 
 // WithExecutionService sets the execution service.
-func WithExecutionService(es ExecutionService) Option {
+func WithExecutionService(es ExecutionService) service.Option[Service] {
 	return func(s *Service) error {
 		s.es = es
 		return nil
@@ -50,7 +56,7 @@ func WithExecutionService(es ExecutionService) Option {
 }
 
 // WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
+func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
 	return func(s *Service) error {
 		s.payloadCache = pc
 		return nil

@@ -27,12 +27,19 @@ package execution
 
 import (
 	"github.com/itsdevbear/bolaris/execution/engine"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-type Option func(*Service) error
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
+		return nil
+	}
+}
 
 // WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec engine.Caller) Option {
+func WithEngineCaller(ec engine.Caller) service.Option[Service] {
 	return func(s *Service) error {
 		s.engine = ec
 		return nil

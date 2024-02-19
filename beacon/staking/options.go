@@ -25,13 +25,20 @@
 
 package staking
 
-// Option defines a function type that applies a configuration to the Service.
-type Option func(*Service) error
+import "github.com/itsdevbear/bolaris/runtime/service"
+
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
+		return nil
+	}
+}
 
 // WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
 // for the Service. This is used to inject the dependency that handles
 // the application of changes to the validator set.
-func WithValsetChangeProvider(vcp ValsetChangeProvider) Option {
+func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
 	return func(s *Service) error {
 		s.vcp = vcp
 		return nil

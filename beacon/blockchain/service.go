@@ -36,17 +36,17 @@ type Service struct {
 	en ExecutionService
 }
 
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}
+// // NewService returns a new Service.
+// func NewService(
+// 	base service.BaseService,
+// 	opts ...service) *Service {
+// 	s := &Service{
+// 		BaseService: base,
+// 	}
+// 	for _, opt := range opts {
+// 		if err := opt(s); err != nil {
+// 			s.Logger().Error("Failed to apply option", "error", err)
+// 		}
+// 	}
+// 	return s
+// }

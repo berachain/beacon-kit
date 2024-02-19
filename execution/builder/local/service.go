@@ -39,19 +39,3 @@ type Service struct {
 	es           ExecutionService
 	payloadCache *cache.PayloadIDCache
 }
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
