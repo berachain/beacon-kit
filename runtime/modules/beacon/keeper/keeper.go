@@ -31,6 +31,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkstakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
@@ -42,8 +43,9 @@ import (
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	storeKey  storetypes.StoreKey
-	beaconCfg *config.Beacon
+	storeKey      storetypes.StoreKey
+	beaconCfg     *config.Beacon
+	stakingKeeper *sdkstakingkeeper.Keeper
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -53,10 +55,12 @@ var _ state.BeaconStateProvider = &Keeper{}
 func NewKeeper(
 	storeKey storetypes.StoreKey,
 	beaconCfg *config.Beacon,
+	stakingKeeper *sdkstakingkeeper.Keeper,
 ) *Keeper {
 	return &Keeper{
-		storeKey:  storeKey,
-		beaconCfg: beaconCfg,
+		storeKey:      storeKey,
+		beaconCfg:     beaconCfg,
+		stakingKeeper: stakingKeeper,
 	}
 }
 

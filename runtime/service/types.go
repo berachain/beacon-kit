@@ -36,8 +36,5 @@ import (
 
 type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+	ApplyValsetChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }

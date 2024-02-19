@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	store "cosmossdk.io/store/types"
+	sdkstakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/itsdevbear/bolaris/config"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
@@ -51,6 +52,8 @@ type DepInjectInput struct {
 	Key       *store.KVStoreKey
 
 	BeaconKitConfig *config.Beacon
+
+	StakingKeeper *sdkstakingkeeper.Keeper
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -66,6 +69,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Key,
 		in.BeaconKitConfig,
+		in.StakingKeeper,
 	)
 	m := NewAppModule(k)
 

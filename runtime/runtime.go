@@ -62,10 +62,7 @@ type BeaconKitRuntime struct {
 // beacon state to the runtime.
 type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+	ApplyValsetChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -85,7 +82,7 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default services.
 func NewDefaultBeaconKitRuntime(
-	cfg *config.Config, bsp BeaconStateProvider, vcp ValsetChangeProvider, logger log.Logger,
+	cfg *config.Config, bsp BeaconStateProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
@@ -104,7 +101,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Create the base service, we will the  create shallow copies for each service.
 	baseService := service.NewBaseService(
-		&cfg.Beacon, bsp, vcp, gcd, logger,
+		&cfg.Beacon, bsp, gcd, logger,
 	)
 
 	// Create a payloadCache for the execution service and validator service to share.
