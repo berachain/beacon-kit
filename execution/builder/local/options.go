@@ -27,21 +27,29 @@ package localbuilder
 
 import (
 	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
+	"github.com/itsdevbear/bolaris/config"
 )
 
-// Option is a functional option for the validator service.
+// Option is a functional option for the service.
 type Option func(*Service) error
 
-// WithEngineCaller sets the engine caller for the validator service.
-func WithEngineCaller(caller engine.Caller) Option {
+// WithBuilderConfig sets the builder config.
+func WithBuilderConfig(cfg *config.Builder) Option {
 	return func(s *Service) error {
-		s.en = caller
+		s.cfg = cfg
 		return nil
 	}
 }
 
-// WithPayloadCache sets the payload cache for the validator service.
+// WithExecutionService sets the execution service.
+func WithExecutionService(es ExecutionService) Option {
+	return func(s *Service) error {
+		s.es = es
+		return nil
+	}
+}
+
+// WithPayloadCache sets the payload cache.
 func WithPayloadCache(pc *cache.PayloadIDCache) Option {
 	return func(s *Service) error {
 		s.payloadCache = pc

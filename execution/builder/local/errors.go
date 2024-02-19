@@ -25,42 +25,9 @@
 
 package localbuilder
 
-import (
-	"context"
+import "github.com/pkg/errors"
 
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	cfg          *config.Builder
-	es           ExecutionService
-	payloadCache *cache.PayloadIDCache
-}
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start(context.Context) {
-}
-
-func (s *Service) Status() error {
-	return nil
-}
+// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+// received on a VALID engine response.
+var ErrNilPayloadOnValidResponse = errors.New(
+	"received nil payload ID on VALID engine response")
