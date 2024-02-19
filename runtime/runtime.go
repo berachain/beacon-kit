@@ -104,7 +104,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Create the base service, we will the  create shallow copies for each service.
 	baseService := service.NewBaseService(
-		&cfg.Beacon, bsp, vcp, gcd, logger,
+		cfg, bsp, vcp, gcd, logger,
 	)
 
 	// Create a payloadCache for the execution service and validator service to share.

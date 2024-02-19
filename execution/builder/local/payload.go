@@ -53,7 +53,7 @@ func (s *Service) GetOrBuildLocalPayload(
 	// }
 
 	// TODO: Proposer-Builder Seperation Improvements Later.
-	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
+	// val, tracked := s.TrackedValidatorsCache.Validtor(vIdx)
 	// if !tracked {
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
