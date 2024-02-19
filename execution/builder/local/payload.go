@@ -87,17 +87,21 @@ func (s *Service) GetOrBuildLocalPayload(
 
 	// If we reach this point, we have a cache miss and must build a new payload.
 	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
+	s.Logger().Warn(
+		"could not find payload in cache, building new payload",
+		"slot", slot, "parent_eth1-hash", parentEth1Hash.Hex(),
+	)
+
 	//#nosec:G701 // won't overflow, time cannot be negative.
-	return s.BuildLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
+	return s.BuildAndWaitForLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
 }
 
-// GetExecutionPayload retrieves the execution payload for the given slot.
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	parentEth1Hash common.Hash,
-	slot primitives.Slot,
+	_ primitives.Slot,
 	timestamp uint64,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (*enginev1.PayloadIDBytes, error) {
 	var (
 		st = s.BeaconState(ctx)
 		// TODO: RANDAO
@@ -112,7 +116,7 @@ func (s *Service) BuildLocalPayload(
 	if err != nil {
 		s.Logger().Error(
 			"Could not get expected withdrawals to get payload attribute", "error", err)
-		return nil, nil, false, err
+		return nil, err
 	}
 
 	// Build the payload attributes.
@@ -125,7 +129,7 @@ func (s *Service) BuildLocalPayload(
 		headRoot,
 	)
 	if err != nil {
-		return nil, nil, false, errors.Wrap(err, "could not create payload attributes")
+		return nil, errors.Wrap(err, "could not create payload attributes")
 	}
 
 	// Notify the execution client of the forkchoice update.
@@ -140,12 +144,45 @@ func (s *Service) BuildLocalPayload(
 		attrs,
 	)
 	if err != nil {
-		return nil, nil, false, errors.Wrap(err, "could not prepare payload")
+		return nil, errors.Wrap(err, "could not prepare payload")
 	} else if payloadID == nil {
 		s.Logger().Warn(
 			"local block builder received nil payload ID on VALID engine response",
 		)
-		return nil, nil, false, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
+		return nil, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
+	}
+	return payloadID, nil
+}
+
+// GetExecutionPayload retrieves the execution payload for the given slot.
+func (s *Service) BuildAndWaitForLocalPayload(
+	ctx context.Context,
+	parentEth1Hash common.Hash,
+	slot primitives.Slot,
+	timestamp uint64,
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+	// Build the payload and wait for the execution client to return the payload ID.
+	payloadID, err := s.BuildLocalPayload(ctx, parentEth1Hash, slot, timestamp)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	// Calculate the duration to wait for the payload to be delivered.
+	var duration time.Duration
+	nowUnix := uint64(time.Now().Unix())
+	if timestamp <= nowUnix {
+		duration = 500 * time.Millisecond //nolint:gomnd // for now.
+	} else {
+		duration = time.Duration(timestamp-nowUnix) * time.Second
+	}
+
+	select {
+	case <-time.After(duration):
+		// We want to trigger delivery of the payload to the execution client
+		// before the timestamp expires.
+		break
+	case <-ctx.Done():
+		return nil, nil, false, ctx.Err()
 	}
 
 	// Get the payload from the execution client.
