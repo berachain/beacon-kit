@@ -143,14 +143,14 @@ func (s *Service) BuildLocalPayload(
 		/*TODO: introduce this feature && !s.cfg.Features.Get().PrepareAllPayloads*/
 		s.Logger().Error("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
-			"proposing_slot", fcuConfig.ProposingSlot,
+			"slot", fcuConfig.ProposingSlot,
 		)
 		return nil, ErrNilPayloadOnValidResponse
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes for proposal",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
-		"proposing_slot", fcuConfig.ProposingSlot,
+		"slot", fcuConfig.ProposingSlot,
 		"payload_id", fmt.Sprintf("%#x", *payloadID),
 	)
 	s.payloadCache.Set(

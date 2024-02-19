@@ -69,7 +69,7 @@ func (s *Service) notifyNewPayload(
 	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
 			"head_eth1_hash", common.Bytes2Hex(payload.GetBlockHash()),
-			"proposing_slot", beaconState.Slot,
+			"slot", beaconState.Slot,
 		)
 		return false, nil
 	case errors.Is(err, eth.ErrInvalidPayloadStatus):
@@ -107,7 +107,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
-			"proposing_slot", fcuConfig.ProposingSlot,
+			"slot", fcuConfig.ProposingSlot,
 		)
 		telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil
