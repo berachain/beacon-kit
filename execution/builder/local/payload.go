@@ -213,7 +213,7 @@ func (s *Service) ProcessLogs(ctx context.Context, blkNum uint64) error {
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
-	return s.st.PersistDeposits(ctx)
+	return s.sks.PersistDeposits(ctx)
 }
 
 // getParentEth1Hash retrieves the parent block hash for the given slot.

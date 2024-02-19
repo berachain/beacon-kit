@@ -42,9 +42,9 @@ func WithLogger(logger log.Logger) Option {
 }
 
 // WithStakingService is an Option that sets the StakingService for the StakingHandler.
-func WithStakingService(st *staking.Service) Option {
+func WithStakingService(sks *staking.Service) Option {
 	return func(h *Handler) error {
-		h.st = st
+		h.sks = sks
 		return nil
 	}
 }

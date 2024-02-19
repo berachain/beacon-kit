@@ -43,7 +43,7 @@ var _ callback.Handler = &Handler{}
 // Handler is a struct that implements the callback Handler interface.
 type Handler struct {
 	service.BaseService
-	st     *staking.Service
+	sks    *staking.Service
 	logger log.Logger
 }
 
@@ -84,7 +84,7 @@ func (s *Handler) Deposit(
 	// must agree on the encoding of uint values, i.e. little endian.
 	amount := encoding.DecodeUint64(amountBz)
 	nonce := encoding.DecodeUint64(nonceBz)
-	return s.st.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
+	return s.sks.ProcessDeposit(ctx, validatorPubkey, withdrawalCredentials, amount, nonce)
 }
 
 // Withdraw is a callback function that is called
@@ -98,5 +98,5 @@ func (s *Handler) Withdraw(
 	// TODO: The encoding lib abstract checker for big vs little endian
 	amount := encoding.DecodeUint64(amountBz)
 	nonce := encoding.DecodeUint64(nonceBz)
-	return s.st.ProcessWithdrawal(ctx, validatorPubkey, amount, nonce)
+	return s.sks.ProcessWithdrawal(ctx, validatorPubkey, amount, nonce)
 }

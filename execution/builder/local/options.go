@@ -70,9 +70,9 @@ func WithLogProcessor(lp *logs.Processor) Option {
 
 // WithStakingService is a function that returns an Option.
 // It sets the StakingService of the Service to the provided Service.
-func WithStakingService(st *staking.Service) Option {
+func WithStakingService(sks *staking.Service) Option {
 	return func(s *Service) error {
-		s.st = st
+		s.sks = sks
 		return nil
 	}
 }

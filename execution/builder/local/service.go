@@ -41,7 +41,7 @@ type Service struct {
 	service.BaseService
 	cfg          *config.Builder
 	es           ExecutionService
-	st           *staking.Service
+	sks          *staking.Service
 	payloadCache *cache.PayloadIDCache
 	// logProcessor is used to process logs from the execution client.
 	logProcessor *logs.Processor
