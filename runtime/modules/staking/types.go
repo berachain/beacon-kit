@@ -32,10 +32,6 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// StakingKeeper is an interface with low-level functions to handle deposits and withdrawals.
-type StakingKeeper interface {
-	// Delegate delegates the deposit to the validator.
-	Delegate(ctx context.Context, deposit *consensusv1.Deposit) (uint64, error)
-	// Undelegate undelegates the deposit from the validator.
-	Undelegate(ctx context.Context, withdrawal *enginev1.Withdrawal) (uint64, error)
+type ValsetChangeProvider interface {
+	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }

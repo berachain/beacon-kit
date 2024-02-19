@@ -40,7 +40,7 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-var _ StakingKeeper = &Keeper{}
+var _ ValsetChangeProvider = &Keeper{}
 
 // Keeper implements the StakingKeeper interface
 // as a wrapper around Cosmos SDK x/staking keeper.
@@ -55,8 +55,8 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 	}
 }
 
-// Delegate delegates the deposit to the validator.
-func (k *Keeper) Delegate(ctx context.Context, deposit *consensusv1.Deposit) (uint64, error) {
+// delegate delegates the deposit to the validator.
+func (k *Keeper) delegate(ctx context.Context, deposit *consensusv1.Deposit) (uint64, error) {
 	validatorPK := &ed25519.PubKey{}
 	err := validatorPK.Unmarshal(deposit.GetPubkey())
 	if err != nil {
@@ -79,8 +79,8 @@ func (k *Keeper) Delegate(ctx context.Context, deposit *consensusv1.Deposit) (ui
 	return newShares.BigInt().Uint64(), err
 }
 
-// Undelegate undelegates the deposit from the validator.
-func (k *Keeper) Undelegate(ctx context.Context, withdrawal *enginev1.Withdrawal) (uint64, error) {
+// undelegate undelegates the validator.
+func (k *Keeper) undelegate(_ context.Context, _ *enginev1.Withdrawal) (uint64, error) {
 	// TODO: implement undelegate
 	return 0, nil
 }
@@ -98,4 +98,25 @@ func (k *Keeper) createValidator(
 	val.Tokens = stake
 	val.DelegatorShares = sdkmath.LegacyNewDecFromInt(val.Tokens)
 	return val, err
+}
+
+// ApplyChanges applies the deposits and withdrawals to the underlying staking module.
+func (k *Keeper) ApplyChanges(
+	ctx context.Context,
+	deposits []*consensusv1.Deposit,
+	withdrawals []*enginev1.Withdrawal,
+) error {
+	for _, deposit := range deposits {
+		_, err := k.delegate(ctx, deposit)
+		if err != nil {
+			return err
+		}
+	}
+	for _, withdrawal := range withdrawals {
+		_, err := k.undelegate(ctx, withdrawal)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
