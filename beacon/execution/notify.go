@@ -64,8 +64,6 @@ func (s *Service) notifyNewPayload(
 		)
 	}
 	switch {
-	case err == nil:
-		return true, nil
 	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
 			"head_eth1_hash", common.Bytes2Hex(payload.GetBlockHash()),
@@ -74,10 +72,11 @@ func (s *Service) notifyNewPayload(
 		return false, nil
 	case errors.Is(err, eth.ErrInvalidPayloadStatus):
 		s.Logger().Error("invalid payload status", "last_valid_hash", fmt.Sprintf("%#x", lastValidHash))
-		err = ErrBadBlockProduced
+		return false, ErrBadBlockProduced
+	case err != nil:
+		return false, err
 	}
-
-	return false, err
+	return true, nil
 }
 
 // notifyForkchoiceUpdate notifies the execution client of a forkchoice update.
