@@ -26,8 +26,6 @@
 package localbuilder
 
 import (
-	"context"
-
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -56,11 +54,4 @@ func NewService(
 		}
 	}
 	return s
-}
-
-func (s *Service) Start(context.Context) {
-}
-
-func (s *Service) Status() error {
-	return nil
 }
