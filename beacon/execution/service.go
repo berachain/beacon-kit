@@ -43,23 +43,6 @@ type Service struct {
 	engine engine.Caller
 }
 
-// New creates a new Service with the provided options.
-func New(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	ec := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			ec.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-
-	return ec
-}
-
 // Start spawns any goroutines required by the service.
 func (s *Service) Start(context.Context) {}
 

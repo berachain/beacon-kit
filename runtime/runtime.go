@@ -35,7 +35,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/staking"
-	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	builder "github.com/itsdevbear/bolaris/execution/builder/local"
@@ -44,8 +43,6 @@ import (
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -57,16 +54,6 @@ type BeaconKitRuntime struct {
 	ethclient *eth.Eth1Client
 	fscp      BeaconStateProvider
 	services  *service.Registry
-}
-
-// BeaconStateProvider is an interface that provides the
-// beacon state to the runtime.
-type BeaconStateProvider interface {
-	BeaconState(ctx context.Context) state.BeaconState
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -140,56 +127,50 @@ func NewDefaultBeaconKitRuntime(
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the execution service.
-	executionService := execution.New(
-		baseService.WithName("execution"),
+	executionService := service.New[execution.Service](
+		execution.WithBaseService(baseService.WithName("execution")),
 		execution.WithEngineCaller(engineClient),
 	)
 
 	// Build the local builder service.
-	builderService := builder.NewService(
-		baseService.WithName("local-builder"),
+	builderService := service.New[builder.Service](
+		builder.WithBaseService(baseService.WithName("local-builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithExecutionService(executionService),
 		builder.WithPayloadCache(payloadCache),
 	)
 
-	// Build the blockchain service.
-	chainService := blockchain.NewService(
-		baseService.WithName("blockchain"),
+	chainService := service.New[blockchain.Service](
+		blockchain.WithBaseService(baseService.WithName("blockchain")),
 		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
 	)
 
 	// Build the staking service.
-	stakingService := staking.NewService(
-		baseService.WithName("staking"),
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.WithName("staking")),
 		staking.WithValsetChangeProvider(vcp),
 	)
 
 	// Build the sync service.
-	syncService := sync.NewService(
-		baseService.WithName("sync"),
+	syncService := service.New[sync.Service](
+		sync.WithBaseService(baseService.WithName("sync")),
 		sync.WithEthClient(eth1Client),
 		sync.WithExecutionService(executionService),
 	)
 
-	// Create the service registry.
-	serviceRegistry := service.NewRegistry(
-		service.WithLogger(logger),
-		service.WithService(syncService),
-		service.WithService(executionService),
-		service.WithService(chainService),
-		service.WithService(notificationService),
-		service.WithService(builderService),
-		service.WithService(stakingService),
-	)
-
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
-		WithConfig(cfg),
-		WithLogger(logger),
-		WithServiceRegistry(serviceRegistry),
-		WithBeaconStateProvider(bsp),
+		WithConfig(cfg), WithLogger(logger),
+		WithServiceRegistry(service.NewRegistry(
+			service.WithLogger(logger),
+			service.WithService(syncService),
+			service.WithService(executionService),
+			service.WithService(chainService),
+			service.WithService(notificationService),
+			service.WithService(builderService),
+			service.WithService(stakingService),
+		)), WithBeaconStateProvider(bsp),
 		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
 		// This is necessary for the eth1 client to be able to shut down gracefully.
 		WithEth1Client(eth1Client),

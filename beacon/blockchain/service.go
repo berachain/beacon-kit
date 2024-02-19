@@ -35,18 +35,3 @@ type Service struct {
 	bs BuilderService
 	en ExecutionService
 }
-
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}

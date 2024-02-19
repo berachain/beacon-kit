@@ -23,32 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package service
 
-import "github.com/itsdevbear/bolaris/runtime/service"
+// Option is a function type that takes a pointer to a Service and returns an error.
+type Option[T any] func(*T) error
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
+// New helps us to create a new Service with the provided options.
+func New[S any](opts ...Option[S]) *S {
+	var s S
+	for _, opt := range opts {
+		if err := opt(&s); err != nil {
+			panic(err)
+		}
 	}
-}
-
-// WithBuilderService is a function that returns an Option.
-// It sets the BuilderService of the Service to the provided Service.
-func WithBuilderService(bs BuilderService) service.Option[Service] {
-	return func(s *Service) error {
-		s.bs = bs
-		return nil
-	}
-}
-
-// WithExecutionService is a function that returns an Option.
-// It sets the ExecutionService of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) service.Option[Service] {
-	return func(s *Service) error {
-		s.en = en
-		return nil
-	}
+	return &s
 }
