@@ -62,6 +62,7 @@ import (
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
+	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
 	"github.com/itsdevbear/bolaris/types/cosmos"
 )
 
@@ -170,7 +171,9 @@ func NewBeaconKitApp(
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		bkCfg, app.BeaconKeeper, app.Logger(),
+		bkCfg, app.BeaconKeeper,
+		stakingwrapper.NewKeeper(app.StakingKeeper),
+		app.Logger(),
 	); err != nil {
 		panic(err)
 	}
