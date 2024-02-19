@@ -62,12 +62,6 @@ func NewService(
 	return s
 }
 
-// Start spawns any goroutines required by the service.
-func (s *Service) Start(context.Context) {}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }
-
 // CheckSyncStatus returns the current synchronization status of the beacon and execution chains.
 //
 // TODO, We need to add a handler than does the following after this function returns

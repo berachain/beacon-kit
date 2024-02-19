@@ -23,20 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package staking
 
 import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// Service is the blockchain service.
+// Service represents the staking service.
 type Service struct {
 	service.BaseService
-	bs BuilderService
-	en ExecutionService
+
+	// vcp is responsible for applying validator set changes.
+	vcp ValsetChangeProvider
 }
 
-// NewService returns a new Service.
+// NewService returns a new Staking Service.
 func NewService(
 	base service.BaseService,
 	opts ...Option) *Service {

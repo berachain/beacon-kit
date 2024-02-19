@@ -23,30 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package staking
 
-import (
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
+// Option defines a function type that applies a configuration to the Service.
+type Option func(*Service) error
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	bs BuilderService
-	en ExecutionService
-}
-
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
+// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
+// for the Service. This is used to inject the dependency that handles
+// the application of changes to the validator set.
+func WithValsetChangeProvider(vcp ValsetChangeProvider) Option {
+	return func(s *Service) error {
+		s.vcp = vcp
+		return nil
 	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
 }
