@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: Setup
         run: |
-          apt update && apt install make git jq
+          apt update && apt install make git jq -y
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Foundry
