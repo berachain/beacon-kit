@@ -1,0 +1,69 @@
+---
+id: {{operationId}}
+slug: {{slug}}
+---
+
+```
+{{httpMethod}} {{path}}
+```
+
+{{#with method}}
+
+{{#if summary}}**{{summary}}: **{{/if}}{{description}}
+
+
+## Parameters
+
+| name | in | type | required | description |
+| ---- | -- | ---- | -------- | ----------- |
+{{#each parameters}}
+| {{name}} | {{in}} | {{schema.type}} | {{#if required}}true{{else}}false{{/if}} | {{description}} |
+{{/each}}
+
+{{#if requestBody}}
+{{#with requestBody}}
+
+## Request Body
+
+{{#each content}}
+
+{{description}}
+
+| Headers      |                  |
+| ------------ | ---------------- |
+| content-type | {{@key}}         |
+
+{{{schemaSampleWithTitle @key schema "Example request"}}}
+
+{{/each}} {{! content }}
+{{/with}} {{! requestBody }}
+{{/if}}   {{! requestBody }}
+
+## Code Snippets
+
+{{#each ../snippets}}
+{{{codeSnippet content lang title}}}
+{{/each}}
+
+## Responses
+
+{{#each responses}}
+
+### {{@key}}
+
+{{description}}
+
+{{#each content}}
+| Headers      |                  |
+| ------------ | ---------------- |
+| content-type | {{@key}}         |
+
+**Example `response` for `{{@key}}`**
+
+{{{schemaSample @key schema}}}
+
+
+{{/each}} {{! content }}
+{{/each}} {{! responses }}
+
+{{/with}} {{! method }}
