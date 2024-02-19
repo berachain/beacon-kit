@@ -37,7 +37,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: beacon-kit-runner
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
