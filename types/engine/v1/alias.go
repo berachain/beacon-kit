@@ -25,7 +25,7 @@
 
 package enginev1
 
-import enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+import enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 
 type (
 	// ExecutionPayloadCapella is an alias for the Prysm ExecutionPayloadCapella.

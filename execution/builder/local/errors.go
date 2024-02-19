@@ -23,19 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package localbuilder
 
-import (
-	"context"
+import "github.com/pkg/errors"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-)
-
-// BeaconBlockBuilder is the interface for building blocks.
-type BeaconBlockBuilder interface {
-	RequestBestBlock(
-		ctx context.Context,
-		slot primitives.Slot,
-	) (consensus.ReadOnlyBeaconKitBlock, error)
-}
+// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+// received on a VALID engine response.
+var ErrNilPayloadOnValidResponse = errors.New(
+	"received nil payload ID on VALID engine response")

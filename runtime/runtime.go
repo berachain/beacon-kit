@@ -41,6 +41,7 @@ import (
 	stakinglogs "github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/beacon/sync"
+	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
 	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	"github.com/itsdevbear/bolaris/execution/engine"
@@ -118,6 +119,9 @@ func NewDefaultBeaconKitRuntime(
 	baseService := service.NewBaseService(
 		&cfg.Beacon, bsp, vcp, gcd, logger)
 
+	// Create a payloadCache for the execution service and validator service to share.
+	payloadCache := cache.NewPayloadIDCache()
+
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
 		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
@@ -166,12 +170,14 @@ func NewDefaultBeaconKitRuntime(
 	// Build the local builder service.
 	builderService := builder.NewService(
 		baseService.WithName("local-builder"),
+		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithExecutionService(executionService),
 		builder.WithStakingService(stakingService),
 		builder.WithLogProcessor(logProcessor),
+		builder.WithPayloadCache(payloadCache),
 	)
 
-	// Build the blockchain service
+	// Build the blockchain service.
 	chainService := blockchain.NewService(
 		baseService.WithName("blockchain"),
 		blockchain.WithBuilderService(builderService),

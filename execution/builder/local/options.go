@@ -23,21 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package local
+package localbuilder
 
 import (
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
+	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/config"
 )
 
-// Option is a functional option for the validator service.
+// Option is a functional option for the service.
 type Option func(*Service) error
 
-// WithExecutionService is a function that returns an Option.
-// It sets the ExecutionService of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) Option {
+// WithBuilderConfig sets the builder config.
+func WithBuilderConfig(cfg *config.Builder) Option {
 	return func(s *Service) error {
-		s.en = en
+		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithExecutionService sets the execution service.
+func WithExecutionService(es ExecutionService) Option {
+	return func(s *Service) error {
+		s.es = es
+		return nil
+	}
+}
+
+// WithPayloadCache sets the payload cache.
+func WithPayloadCache(pc *cache.PayloadIDCache) Option {
+	return func(s *Service) error {
+		s.payloadCache = pc
 		return nil
 	}
 }

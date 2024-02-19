@@ -32,7 +32,7 @@
 package consensusv1
 
 import (
-	_ "github.com/prysmaticlabs/prysm/v4/proto/eth/ext"
+	_ "github.com/prysmaticlabs/prysm/v5/proto/eth/ext"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

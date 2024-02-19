@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package local
+package localbuilder
 
 import (
 	"context"
@@ -41,7 +41,6 @@ type ExecutionService interface {
 	) (*enginev1.PayloadIDBytes, error)
 
 	// GetPayload gets a payload for a given payload ID and slot.
-	GetPayload(
-		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	GetPayload(ctx context.Context, payloadID primitives.PayloadID,
+		slot primitives.Slot) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

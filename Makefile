@@ -374,7 +374,7 @@ sszgen:
 	@echo "--> Running sszgen on all structs with ssz tags"
 	@sszgen -path ./types/consensus/v1 -objs Deposit,BeaconKitBlockCapella,BlindedBeaconKitBlockCapella \
     --include ./types/consensus/primitives,\
-	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v4@v4.2.1/proto/engine/v1
+	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0-rc.0/proto/engine/v1
 
 ##############################################################################
 ###                             Dependencies                                ###

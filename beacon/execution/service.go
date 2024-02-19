@@ -76,7 +76,18 @@ func (s *Service) Status() error {
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginev1.PayloadIDBytes, error) {
-	return s.notifyForkchoiceUpdate(ctx, fcuConfig)
+	var (
+		err       error
+		payloadID *enginev1.PayloadIDBytes
+	)
+	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
+	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
+	}); e != nil {
+		return nil, e
+	}
+
+	return payloadID, err
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
@@ -88,7 +99,8 @@ func (s *Service) GetPayload(
 
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
-func (s *Service) NotifyNewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
+func (s *Service) NotifyNewPayload(
+	ctx context.Context, payload enginetypes.ExecutionPayload,
 ) (bool, error) {
 	return s.notifyNewPayload(ctx, payload)
 }

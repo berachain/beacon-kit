@@ -49,7 +49,7 @@ func (s *Service) postBlockProcess(
 		// to the last valid one.
 		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
 		// TODO: Should introduce the concept of missed slots?
-		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), blk.GetSlot()); err != nil {
+		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), blk.GetSlot()+1); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
 		}
 		return ErrInvalidPayload
@@ -82,7 +82,7 @@ func (s *Service) sendFCU(
 	// care about it in the context of processing the current block. As long as it doesn't error.
 	if s.BeaconCfg().Validator.PrepareAllPayloads {
 		//#nosec:G701 // won't overflow, time cannot be negative.
-		_, _, _, err := s.bs.BuildLocalPayload(
+		_, err := s.bs.BuildLocalPayload(
 			ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
 		)
 		if err == nil {
@@ -92,7 +92,7 @@ func (s *Service) sendFCU(
 		// If we see an error here, we fallback to submitting a forkchoice without building a payload.
 		// Incase there is a block building issue, but the payload was still totally valid, we don't
 		// want this node to reject the block.
-		s.Logger().Error(
+		s.Logger().Warn(
 			"failed to build local payload via builder service prepare all payloads",
 			"error", err)
 		telemetry.IncrCounter(1, MetricFailedToBuildLocalPayload)
@@ -103,7 +103,8 @@ func (s *Service) sendFCU(
 	// By not passing any attributes, the execution client will NOT build a new execution payload.
 	_, err := s.en.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash: headEth1Hash,
+			HeadEth1Hash:  headEth1Hash,
+			ProposingSlot: proposingSlot,
 		})
 	return err
 }
