@@ -63,27 +63,6 @@ func (s *Service) GetOrBuildLocalPayload(
 		return nil, nil, false, err
 	}
 
-	// payloadID, found := s.payloadCache.Get(
-	// 	slot, parentEth1Hash,
-	// )
-	// if !found {
-	// 	// telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
-	// 	s.Logger().Warn(
-	// 		"could not find payload in cache, building new payload",
-	// 		"slot", slot, "parent_eth1_hash", headHash.Hex(),
-	// 	)
-	// 	return nil, nil, false, errors.New("payload not found")
-	// }
-
-	// return s.engine.GetPayload(ctx, payloadID, slot)
-
-	// // payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(ctx, slot, parentEth1Hash)
-	// if err == nil {
-	// 	// bundleCache.add(slot, bundle)
-	// 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
-	// 	//  Return the cached payload ID.
-	// 	return payload, blobsBundle, overrideBuilder, nil
-	// }
 	// If we have a payload ID in the cache, we can return the payload from the cache.
 	payloadID, found := s.payloadCache.Get(slot, parentEth1Hash)
 	if found && (payloadID != primitives.PayloadID{}) {
