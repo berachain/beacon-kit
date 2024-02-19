@@ -91,7 +91,8 @@ func (s *Service) sendFCU(
 	return s.sendFCUViaExecutionService(ctx, headEth1Hash, proposingSlot)
 }
 
-// sendFCUViaExecutionService sends a forkchoice update to the execution client via the execution service.
+// sendFCUViaExecutionService sends a forkchoice update to the
+// execution client via the execution service.
 func (s *Service) sendFCUViaExecutionService(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
@@ -103,7 +104,8 @@ func (s *Service) sendFCUViaExecutionService(
 	return err
 }
 
-// sendFCUViaLocalBuilder sends a forkchoice update to the execution client via the local builder service.
+// sendFCUViaLocalBuilder sends a forkchoice update to the
+// execution client via the local builder service.
 func (s *Service) sendFCUViaLocalBuilder(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
