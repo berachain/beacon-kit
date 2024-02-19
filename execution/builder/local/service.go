@@ -40,6 +40,7 @@ type Service struct {
 	service.BaseService
 	cfg          *config.Builder
 	en           engine.Caller
+	es           ExecutionService
 	payloadCache *cache.PayloadIDCache
 }
 

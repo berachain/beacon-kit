@@ -33,7 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
@@ -137,24 +136,6 @@ func (s *Service) notifyForkchoiceUpdate(
 	// TODO: the whole getting the execution payload off the block /
 	// the whole LastestExecutionPayload Premine thing "PremineGenesisConfig".
 	beaconState.SetLastValidHead(fcuConfig.HeadEth1Hash)
-
-	// If the forkchoice update call has an attribute, update the payload ID cache.
-	hasAttr := fcuConfig.Attributes != nil && !fcuConfig.Attributes.IsEmpty()
-	if hasAttr && payloadID != nil {
-		s.Logger().Info("forkchoice updated with payload attributes for proposal",
-			"head_eth1_hash", fcuConfig.HeadEth1Hash,
-			"proposing_slot", fcuConfig.ProposingSlot,
-			"payload_id", fmt.Sprintf("%#x", payloadID),
-		)
-		s.payloadCache.Set(
-			fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
-	} else if hasAttr && payloadID == nil {
-		/*TODO: introduce this feature && !s.cfg.Features.Get().PrepareAllPayloads*/
-		s.Logger().Error("received nil payload ID on VALID engine response",
-			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
-			"proposing_slot", fcuConfig.ProposingSlot,
-		)
-	}
 
 	return payloadID, nil
 }

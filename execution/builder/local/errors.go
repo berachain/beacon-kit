@@ -25,43 +25,9 @@
 
 package localbuilder
 
-import (
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/engine"
-)
+import "github.com/pkg/errors"
 
-// Option is a functional option for the service.
-type Option func(*Service) error
-
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *config.Builder) Option {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
-	}
-}
-
-// WithEngineCaller sets the engine caller.
-func WithEngineCaller(caller engine.Caller) Option {
-	return func(s *Service) error {
-		s.en = caller
-		return nil
-	}
-}
-
-// WithExecutionService sets the execution service.
-func WithExecutionService(es ExecutionService) Option {
-	return func(s *Service) error {
-		s.es = es
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
-	return func(s *Service) error {
-		s.payloadCache = pc
-		return nil
-	}
-}
+// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+// received on a VALID engine response.
+var ErrNilPayloadOnValidResponse = errors.New(
+	"received nil payload ID on VALID engine response")

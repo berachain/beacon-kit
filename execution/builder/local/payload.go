@@ -33,6 +33,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
@@ -62,9 +63,30 @@ func (s *Service) GetOrBuildLocalPayload(
 		return nil, nil, false, err
 	}
 
+	// payloadID, found := s.payloadCache.Get(
+	// 	slot, parentEth1Hash,
+	// )
+	// if !found {
+	// 	// telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
+	// 	s.Logger().Warn(
+	// 		"could not find payload in cache, building new payload",
+	// 		"slot", slot, "parent_eth1_hash", headHash.Hex(),
+	// 	)
+	// 	return nil, nil, false, errors.New("payload not found")
+	// }
+
+	// return s.engine.GetPayload(ctx, payloadID, slot)
+
+	// // payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(ctx, slot, parentEth1Hash)
+	// if err == nil {
+	// 	// bundleCache.add(slot, bundle)
+	// 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
+	// 	//  Return the cached payload ID.
+	// 	return payload, blobsBundle, overrideBuilder, nil
+	// }
 	// If we have a payload ID in the cache, we can return the payload from the cache.
-	payloadID, ok := s.payloadCache.Get(slot, parentEth1Hash)
-	if ok && (payloadID != primitives.PayloadID{}) {
+	payloadID, found := s.payloadCache.Get(slot, parentEth1Hash)
+	if found && (payloadID != primitives.PayloadID{}) {
 		var (
 			pidCpy          primitives.PayloadID
 			payload         engine.ExecutionPayload
@@ -75,7 +97,7 @@ func (s *Service) GetOrBuildLocalPayload(
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
-		if payload, blobsBundle, overrideBuilder, err = s.en.GetPayload(ctx, pidCpy, slot); err == nil {
+		if payload, blobsBundle, overrideBuilder, err = s.es.GetPayload(ctx, pidCpy, slot); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 			//  Return the cached payload ID.
@@ -85,13 +107,6 @@ func (s *Service) GetOrBuildLocalPayload(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheError)
 	}
 
-	// If we reach this point, we have a cache miss and must build a new payload.
-	telemetry.IncrCounter(1, MetricsPayloadIDCacheMiss)
-	s.Logger().Warn(
-		"could not find payload in cache, building new payload",
-		"slot", slot, "parent_eth1-hash", parentEth1Hash.Hex(),
-	)
-
 	//#nosec:G701 // won't overflow, time cannot be negative.
 	return s.BuildAndWaitForLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
 }
@@ -99,7 +114,7 @@ func (s *Service) GetOrBuildLocalPayload(
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	parentEth1Hash common.Hash,
-	_ primitives.Slot,
+	slot primitives.Slot,
 	timestamp uint64,
 ) (*enginev1.PayloadIDBytes, error) {
 	var (
@@ -132,25 +147,36 @@ func (s *Service) BuildLocalPayload(
 		return nil, errors.Wrap(err, "could not create payload attributes")
 	}
 
+	fcuConfig := &execution.FCUConfig{
+		HeadEth1Hash:  parentEth1Hash,
+		ProposingSlot: slot,
+		Attributes:    attrs,
+	}
+
 	// Notify the execution client of the forkchoice update.
 	var payloadID *enginev1.PayloadIDBytes
-	payloadID, _, err = s.en.ForkchoiceUpdated(
-		ctx,
-		&enginev1.ForkchoiceState{
-			HeadBlockHash:      parentEth1Hash.Bytes(),
-			SafeBlockHash:      s.BeaconState(ctx).GetSafeEth1BlockHash().Bytes(),
-			FinalizedBlockHash: s.BeaconState(ctx).GetFinalizedEth1BlockHash().Bytes(),
-		},
-		attrs,
+	payloadID, err = s.es.NotifyForkchoiceUpdate(
+		ctx, fcuConfig,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not prepare payload")
+		return nil, errors.Wrap(err, "error when notifying forkchoice update")
 	} else if payloadID == nil {
-		s.Logger().Warn(
-			"local block builder received nil payload ID on VALID engine response",
+		/*TODO: introduce this feature && !s.cfg.Features.Get().PrepareAllPayloads*/
+		s.Logger().Error("received nil payload ID on VALID engine response",
+			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
+			"proposing_slot", fcuConfig.ProposingSlot,
 		)
-		return nil, fmt.Errorf("nil payload with block hash: %#x", parentEth1Hash)
+		return nil, errors.New("received nil payload ID on VALID engine response")
 	}
+
+	s.Logger().Info("forkchoice updated with payload attributes for proposal",
+		"head_eth1_hash", fcuConfig.HeadEth1Hash,
+		"proposing_slot", fcuConfig.ProposingSlot,
+		"payload_id", fmt.Sprintf("%#x", *payloadID),
+	)
+	s.payloadCache.Set(
+		fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
+
 	return payloadID, nil
 }
 
