@@ -5,7 +5,7 @@ package consensusv1
 import (
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
-	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	v1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 )
 
 // MarshalSSZ ssz marshals the BeaconKitBlockCapella object

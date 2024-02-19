@@ -32,9 +32,9 @@
 package consensusv1
 
 import (
-	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	v1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	github_com_itsdevbear_bolaris_types_consensus_primitives "github.com/itsdevbear/bolaris/types/consensus/primitives"
-	_ "github.com/prysmaticlabs/prysm/v4/proto/eth/ext"
+	_ "github.com/prysmaticlabs/prysm/v5/proto/eth/ext"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
