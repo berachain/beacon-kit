@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: Setup
         run: |
-          apt update && apt install make git jq -y
+          apt update && apt install make git jq -y && git config --global --add safe.directory '*'
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Foundry
