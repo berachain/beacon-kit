@@ -40,6 +40,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// GetOrBuildLocalPayload attemps to pull a previously built payload
+// by reading a payloadID from the builder's cache. If it fails to
+// retrieve a payload, it will build a new payload and wait for the
+// execution client to return the payload.
 func (s *Service) GetOrBuildLocalPayload(
 	ctx context.Context,
 	slot primitives.Slot,
@@ -90,6 +94,53 @@ func (s *Service) GetOrBuildLocalPayload(
 	return s.BuildAndWaitForLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
 }
 
+// BuildAndWaitForLocalPayload, triggers a payload build process, waits
+// for a configuration specified period, and then retrieves the built
+// payload from the execution client.
+func (s *Service) BuildAndWaitForLocalPayload(
+	ctx context.Context,
+	parentEth1Hash common.Hash,
+	slot primitives.Slot,
+	timestamp uint64,
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+	// Build the payload and wait for the execution client to return the payload ID.
+	payloadID, err := s.BuildLocalPayload(ctx, parentEth1Hash, slot, timestamp)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	// Wait for the payload to be delivered to the execution client.
+	s.Logger().Info(
+		"waiting for local payload to be delivered to execution client",
+		"slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
+	)
+	select {
+	case <-time.After(s.cfg.LocalBuildPayloadTimeout):
+		// We want to trigger delivery of the payload to the execution client
+		// before the timestamp expires.
+		break
+	case <-ctx.Done():
+		return nil, nil, false, ctx.Err()
+	}
+
+	// Get the payload from the execution client.
+	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
+		ctx, primitives.PayloadID(*payloadID), slot,
+	)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	// TODO: Dencun
+	_ = blobsBundle
+	// bundleCache.add(slot, bundle)
+	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
+
+	s.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
+	return payload, blobsBundle, overrideBuilder, nil
+}
+
+// BuildLocalPayload builds a payload for the given slot and returns the payload ID.
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	parentEth1Hash common.Hash,
@@ -140,7 +191,6 @@ func (s *Service) BuildLocalPayload(
 	if err != nil {
 		return nil, errors.Wrap(err, "error when notifying forkchoice update")
 	} else if payloadID == nil {
-		/*TODO: introduce this feature && !s.cfg.Features.Get().PrepareAllPayloads*/
 		s.Logger().Error("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
 			"slot", fcuConfig.ProposingSlot,
@@ -157,50 +207,6 @@ func (s *Service) BuildLocalPayload(
 		fcuConfig.ProposingSlot, fcuConfig.HeadEth1Hash, primitives.PayloadID(payloadID[:]))
 
 	return payloadID, nil
-}
-
-// GetExecutionPayload retrieves the execution payload for the given slot.
-func (s *Service) BuildAndWaitForLocalPayload(
-	ctx context.Context,
-	parentEth1Hash common.Hash,
-	slot primitives.Slot,
-	timestamp uint64,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	// Build the payload and wait for the execution client to return the payload ID.
-	payloadID, err := s.BuildLocalPayload(ctx, parentEth1Hash, slot, timestamp)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	// Wait for the payload to be delivered to the execution client.
-	s.Logger().Info(
-		"waiting for local payload to be delivered to execution client",
-		"slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
-	)
-	select {
-	case <-time.After(s.cfg.LocalBuildPayloadTimeout):
-		// We want to trigger delivery of the payload to the execution client
-		// before the timestamp expires.
-		break
-	case <-ctx.Done():
-		return nil, nil, false, ctx.Err()
-	}
-
-	// Get the payload from the execution client.
-	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
-		ctx, primitives.PayloadID(*payloadID), slot,
-	)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	// TODO: Dencun
-	_ = blobsBundle
-	// bundleCache.add(slot, bundle)
-	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
-
-	s.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
-	return payload, blobsBundle, overrideBuilder, nil
 }
 
 // getParentEth1Hash retrieves the parent block hash for the given slot.
