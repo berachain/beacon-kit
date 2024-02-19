@@ -58,7 +58,7 @@ const (
 	Graffiti                = validator + "graffiti"
 	NumRandaoRevealsToTrack = validator + "num-randao-reveals-to-track"
 
-	// FeatureFlags Config
+	// FeatureFlags Config.
 	featureFlagsRoot   = beaconKitRoot + "feature-flags."
 	PrepareAllPayloads = featureFlagsRoot + "prepare-all-payloads"
 

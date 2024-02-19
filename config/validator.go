@@ -39,7 +39,7 @@ func DefaultValidatorConfig() Validator {
 	return Validator{
 		SuggestedFeeRecipient:   common.Address{},
 		Graffiti:                "",
-		NumRandaoRevealsToTrack: 32,
+		NumRandaoRevealsToTrack: 32, //nolint:gomnd // default.
 	}
 }
 
