@@ -29,6 +29,8 @@ on:
   pull_request:
   merge_group:
 
+
+
 concurrency:
   group: ci-${{ github.ref }}-tests
   # We don't want to cancel in progress on main. This is to allow
@@ -52,6 +54,9 @@ jobs:
           - "test-forge-fuzz"
 
         os: [beacon-kit-runner]
+    container:
+      image: alpine:latest
+      options: --user root
     name: ${{ matrix.args }}
     runs-on: ${{ matrix.os }}
     steps:
