@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: Setup
         run: |
-          apt install make
+          apt update && apt install make
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Foundry
