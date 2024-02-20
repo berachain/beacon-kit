@@ -216,7 +216,7 @@ type MockStore struct {
 }
 
 // OpenKVStore returns the underlying KVStore from the Store.
-func (s MockStore) OpenKVStore(ctx context.Context) store.KVStore {
+func (s MockStore) OpenKVStore(context.Context) store.KVStore {
 	return s.DB
 }
 

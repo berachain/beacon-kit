@@ -32,14 +32,10 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
-
-// rpcFinalizedBlockNumber is the latest finalized block number as a *big.Int.
-var rpcFinalizedBlockNumber = big.NewInt(int64(rpc.FinalizedBlockNumber))
 
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
@@ -156,6 +152,7 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	// First start by checking the sync status.
 	bss := s.CheckSyncStatus(ctx)
 	clFinalizedHash := bss.clFinalized
+	rpcFinalizedBlockNumber := big.NewInt(int64(rpc.FinalizedBlockNumber))
 
 	s.Logger().Info("verifying execution client is synced with consensus client 🔎")
 
@@ -180,7 +177,7 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	// execution client, have the same view of the world. This is
 	// important as we don't want to start the beacon chain until
 	// the execution chain is ready to start processing blocks.
-	for elLatestFinalizedHeader := new(ethtypes.Header); ; {
+	for {
 		// We forkchoice here to trigger the execution client to start syncing.
 		if _, err := s.es.NotifyForkchoiceUpdate(
 			ctx,
@@ -196,10 +193,10 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 
 		// Update the elLatestFinalizedHeader to the latest block to update the for loop
 		// exit variable.
-		var err error
-		if elLatestFinalizedHeader, err = s.ethClient.HeaderByNumber(
+		elLatestFinalizedHeader, err := s.ethClient.HeaderByNumber(
 			ctx, rpcFinalizedBlockNumber,
-		); err != nil {
+		)
+		if err != nil {
 			return err
 		}
 

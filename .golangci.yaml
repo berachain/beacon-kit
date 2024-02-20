@@ -1,7 +1,7 @@
 # This code is licensed under the terms of the MIT license https://opensource.org/license/mit
 # Copyright (c) 2021 Marat Reymers
 
-## Golden config for golangci-lint v1.55.2
+## Golden config for golangci-lint v1.56.2
 #
 # This is the best config for golangci-lint based on my experience and opinion.
 # It is very strict, but not extremely strict.
@@ -39,7 +39,8 @@ linters-settings:
       - map
 
   exhaustruct:
-    # List of regular expressions to exclude struct packages and names from check.
+    # List of regular expressions to exclude struct packages and their names from checks.
+    # Regular expressions must match complete canonical struct package/name/structname.
     # Default: []
     exclude:
       # std libs
@@ -159,6 +160,11 @@ linters-settings:
     # Tab width in spaces.
     # Default: 1
     tab-width: 4
+ 
+  inamedparam:
+    # Skips check for interface methods with only a single parameter.
+    # Default: false
+    skip-single-param: true
 
   nakedret:
     # Make an issue if func has more lines of code than this setting, and it has naked returns.
@@ -176,6 +182,11 @@ linters-settings:
     # Default: false
     require-specific: true
 
+  perfsprint:
+    # Optimizes into strings concatenation.
+    # Default: true
+    strconcat: false
+
   rowserrcheck:
     # database/sql is always checked
     # Default: []
@@ -187,6 +198,7 @@ linters-settings:
     # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
     # Default: false
     all: true
+
 
 linters:
   disable-all: true
@@ -250,6 +262,7 @@ linters:
     - revive # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
     - rowserrcheck # checks whether Err of rows is checked successfully
     - sloglint # ensure consistent code style when using log/slog
+    - spancheck # checks for mistakes with OpenTelemetry/Census spans
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
     - stylecheck # is a replacement for golint
     - tenv # detects using os.Setenv instead of t.Setenv since Go1.17
@@ -334,4 +347,7 @@ issues:
         - gosec
         - noctx
         - wrapcheck
-        - revive
+
+    # TODO: remove after PR is released https://github.com/golangci/golangci-lint/pull/4386
+    - text: "fmt.Sprintf can be replaced with string addition"
+      linters: [ perfsprint ]
