@@ -38,3 +38,14 @@ func SafeCopy(cp []byte) []byte {
 	}
 	return nil
 }
+
+// CopyAndReverseEndianess will copy the input byte slice and return the
+// flipped version of it.
+func CopyAndReverseEndianess(input []byte) []byte {
+	copied := make([]byte, len(input))
+	copy(copied, input)
+	for i, j := 0, len(copied)-1; i < j; i, j = i+1, j-1 {
+		copied[i], copied[j] = copied[j], copied[i]
+	}
+	return copied
+}

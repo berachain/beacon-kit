@@ -27,6 +27,7 @@ package bytes_test
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
@@ -60,6 +61,28 @@ func TestSafeCopy(t *testing.T) {
 				if tt.original[0] == copied[0] {
 					t.Errorf("Modifying the copied slice affected the original slice")
 				}
+			}
+		})
+	}
+}
+
+func TestReverseEndianness(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected []byte
+	}{
+		{name: "Even length", input: []byte{1, 2, 3, 4}, expected: []byte{4, 3, 2, 1}},
+		{name: "Odd length", input: []byte{1, 2, 3, 4, 5}, expected: []byte{5, 4, 3, 2, 1}},
+		{name: "Empty slice", input: []byte{}, expected: []byte{}},
+		{name: "Single element", input: []byte{1}, expected: []byte{1}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := byteslib.CopyAndReverseEndianess(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("ReverseEndianness(%v) = %v, want %v", tt.name, result, tt.expected)
 			}
 		})
 	}
