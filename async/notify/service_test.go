@@ -34,11 +34,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
-<<<<<<< HEAD
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
-=======
->>>>>>> 0b82f66 (chore(deps): remove more prysm deps)
 )
 
 type TestEvent struct {
