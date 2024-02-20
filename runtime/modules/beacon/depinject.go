@@ -30,7 +30,6 @@ import (
 	"cosmossdk.io/depinject"
 	store "cosmossdk.io/store/types"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
-
 	"github.com/itsdevbear/bolaris/config"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"

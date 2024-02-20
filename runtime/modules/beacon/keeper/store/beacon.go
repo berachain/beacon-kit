@@ -34,7 +34,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"

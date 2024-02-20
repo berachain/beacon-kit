@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
