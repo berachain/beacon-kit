@@ -33,16 +33,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/examples/beacond/app"
+	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
 	"github.com/itsdevbear/bolaris/io/file"
 	"github.com/stretchr/testify/mock"
-
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/itsdevbear/bolaris/examples/beacond/app"
-	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 )
 
 const (

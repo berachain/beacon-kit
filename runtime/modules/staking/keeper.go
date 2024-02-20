@@ -35,7 +35,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	sdkstaking "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )

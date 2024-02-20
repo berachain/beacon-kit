@@ -32,7 +32,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -40,7 +39,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetOrBuildLocalPayload attemps to pull a previously built payload
+// GetOrBuildLocalPayload attempts to pull a previously built payload
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
@@ -56,7 +55,7 @@ func (s *Service) GetOrBuildLocalPayload(
 	// 	"headRoot":       fmt.Sprintf("%#x", headRoot),
 	// }
 
-	// TODO: Proposer-Builder Seperation Improvements Later.
+	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")

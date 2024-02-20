@@ -31,7 +31,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
-
 	"github.com/pkg/errors"
 )
 

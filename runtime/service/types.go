@@ -28,10 +28,9 @@ package service
 import (
 	"context"
 
+	"github.com/itsdevbear/bolaris/beacon/state"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
-
-	"github.com/itsdevbear/bolaris/beacon/state"
 )
 
 type BeaconStateProvider interface {

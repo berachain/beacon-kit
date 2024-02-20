@@ -27,11 +27,8 @@ package engine
 
 import (
 	"github.com/holiman/uint256"
-	"github.com/itsdevbear/bolaris/math"
-
-	// TODO: @ocnc to remove this GPL3 dependency.
-
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
+	"github.com/itsdevbear/bolaris/math"
 )
 
 // PayloadValueToWei returns a Wei value given the payload's value.

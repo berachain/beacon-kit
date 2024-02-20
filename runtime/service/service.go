@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/config"
 )

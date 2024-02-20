@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
