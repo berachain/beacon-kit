@@ -83,11 +83,14 @@ func (s *Service) Start(ctx context.Context) {
 			subscription := feed.Subscribe(ch)
 
 			// Start a goroutine to listen for events and call the handler
-			go func(pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription) {
+			go func(
+				pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription,
+			) {
 				for {
 					select {
 					case event := <-ch:
-						// Use the dispatch queue to call the handler's Handle method asynchronously
+						// Use the dispatch queue to call the handler's Handle method
+						// asynchronously
 						if err := s.gcd.GetQueue(pair.queueID).Async(func() {
 							pair.handler.HandleNotification(event)
 						}); err != nil {

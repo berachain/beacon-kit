@@ -115,7 +115,8 @@ func TestSSZUint64_Serialization(t *testing.T) {
 				t.Fatalf("SSZUint64.MarshalSSZ() unexpected error = %v", err)
 			}
 			if !reflect.DeepEqual(tt.serializedBytes, serializedBytes) {
-				t.Errorf("SSZUint64.MarshalSSZ() = %v, want %v", serializedBytes, tt.serializedBytes)
+				t.Errorf("SSZUint64.MarshalSSZ() = %v, want %v",
+					serializedBytes, tt.serializedBytes)
 			}
 
 			htr, err := s.HashTreeRoot()

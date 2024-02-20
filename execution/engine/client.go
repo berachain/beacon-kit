@@ -80,10 +80,11 @@ func (s *engineClient) NewPayload(
 		return nil, err
 	}
 
-	// This case is only true when the payload is invalid, so `processPayloadStatusResult` below
-	// will return an error.
+	// This case is only true when the payload is invalid, so
+	// `processPayloadStatusResult` below will return an error.
 	if validationErr := result.GetValidationError(); validationErr != "" {
-		s.logger.Error("Got a validation error in newPayload", "err", errors.New(validationErr))
+		s.logger.Error(
+			"Got a validation error in newPayload", "err", errors.New(validationErr))
 	}
 
 	return processPayloadStatusResult(result)
@@ -127,7 +128,8 @@ func (s *engineClient) ForkchoiceUpdated(
 	return result.PayloadID, lastestValidHash, nil
 }
 
-// updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via JSON-RPC.
+// updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
+// JSON-RPC.
 func (s *engineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
@@ -141,8 +143,8 @@ func (s *engineClient) callUpdatedForkchoiceRPC(
 	}
 }
 
-// GetPayload calls the engine_getPayloadVX method via JSON-RPC.
-// It returns the execution data as well as the blobs bundle.
+// GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
+// the execution data as well as the blobs bundle.
 func (s *engineClient) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {

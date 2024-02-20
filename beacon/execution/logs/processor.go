@@ -77,7 +77,8 @@ func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.I
 	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
 	if finalBlock.Number().Cmp(blkNum) < 0 {
 		return errors.Wrapf(
-			ErrProcessingUnfinalizedBlock, "safe block %d is behind block %d", finalBlock.Number(), blkNum,
+			ErrProcessingUnfinalizedBlock,
+			"safe block %d is behind block %d", finalBlock.Number(), blkNum,
 		)
 	}
 

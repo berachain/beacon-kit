@@ -158,7 +158,7 @@ linters-settings:
     line-length: 99
     # Tab width in spaces.
     # Default: 1
-    tab-width: 1
+    tab-width: 4
 
   nakedret:
     # Make an issue if func has more lines of code than this setting, and it has naked returns.

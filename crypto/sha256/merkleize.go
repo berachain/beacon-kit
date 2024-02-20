@@ -118,14 +118,19 @@ func SafeMerkelizeVectorAndMixinLength(
 // 1. Compute HTR -> [HTR_byte_array]
 // 2. Append length -> [HTR_byte_array, length]
 // Step 3: Hash result -> Final HTR.
-func UnsafeMerkleizeVectorAndMixinLength(roots [][32]byte, maxRootsAllowed uint64) [32]byte {
-	return tree.GetHashFn().Mixin(UnsafeMerkleizeVector(roots, maxRootsAllowed), uint64(len(roots)))
+func UnsafeMerkleizeVectorAndMixinLength(
+	roots [][32]byte, maxRootsAllowed uint64,
+) [32]byte {
+	return tree.GetHashFn().Mixin(
+		UnsafeMerkleizeVector(roots, maxRootsAllowed), uint64(len(roots)))
 }
 
-// UnsafeMerkleizeVector is a function that computes the Hash Tree Root (HTR) for
-// a given list of tree roots. It simply calls the SafeMerkleizeVector function and
-// panics if an error is returned.
-func UnsafeMerkleizeVector(roots [][32]byte, maxRootsAllowed uint64) [32]byte {
+// UnsafeMerkleizeVector computes the Hash Tree Root (HTR) for a list of tree
+// roots by invoking the SafeMerkleizeVector function and panicking in case of
+// an error.
+func UnsafeMerkleizeVector(
+	roots [][32]byte, maxRootsAllowed uint64,
+) [32]byte {
 	root, err := SafeMerkleizeVector(roots, maxRootsAllowed)
 	if err != nil {
 		panic(err)
@@ -134,18 +139,20 @@ func UnsafeMerkleizeVector(roots [][32]byte, maxRootsAllowed uint64) [32]byte {
 }
 
 // The function SafeMerkleizeVector is designed to compute the Hash Tree Root (HTR)
-// for a given list of tree roots. It operates under the assumption that no safety checks
-// on the size of the list against a limit are needed (hence "Unsafe").
-// Here's a step-by-step explanation and a diagrammatic representation of its operation:
-
-// 1. Determine the depth required to cover the list, given a limit on the number of elements.
+// for a given list of tree roots. It operates under the assumption that no safety
+// checks on the size of the list against a limit are needed (hence "Unsafe").
+// Here's a step-by-step explanation and a diagrammatic representation of its
+// operation:
+//
+// 1. Determine the depth required to cover the list, given a limit on the number of
+//    elements.
 // 2. If the list is empty, return the zero hash at the calculated depth.
 // 3. Iterate over each level of depth:
-//    a. Check if the current list of roots has an odd length. If so, append a zero hash at
-//       the current depth to make it even.
-//    b. Hash pairs of elements (roots) together to form a new level of the tree, reducing
-//       the total number of elements by half. This step is repeated until a single root is
-//       obtained, representing the HTR of the list.
+//    a. Check if the current list of roots has an odd length. If so, append a zero
+//       hash at the current depth to make it even.
+//    b. Hash pairs of elements (roots) together to form a new level of the tree,
+//       reducing the total number of elements by half. This step is repeated until a
+//       single root is obtained, representing the HTR of the list.
 
 // Given roots: [R1, R2, R3]
 // Step 3a: Check for odd length -> [R1, R2, R3, Z]

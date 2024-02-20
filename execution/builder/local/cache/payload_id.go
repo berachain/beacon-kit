@@ -56,7 +56,8 @@ func NewPayloadIDCache() *PayloadIDCache {
 }
 
 // Get retrieves the payload ID associated with a given slot and eth1 hash.
-// It returns the found payload ID and a boolean indicating whether the lookup was successful.
+// It returns the found payload ID and a boolean indicating whether the lookup
+// was successful.
 func (p *PayloadIDCache) Get(
 	slot primitives.Slot, eth1Hash common.Hash,
 ) (primitives.PayloadID, bool) {
@@ -74,7 +75,8 @@ func (p *PayloadIDCache) Get(
 }
 
 // Set updates or inserts a payload ID for a given slot and eth1 hash.
-// It also prunes entries in the cache that are older than the historicalPayloadIDCacheSize limit.
+// It also prunes entries in the cache that are older than the
+// historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
 	slot primitives.Slot, eth1Hash common.Hash, pid primitives.PayloadID,
 ) {
@@ -103,8 +105,9 @@ func (p *PayloadIDCache) UnsafePrunePrior(slot primitives.Slot) {
 	p.prunePrior(slot)
 }
 
-// Prune removes payload IDs from the cache for slots less than the specified slot.
-// This method helps in managing the memory usage of the cache by discarding outdated entries.
+// Prune removes payload IDs from the cache for slots less than the specified
+// slot. This method helps in managing the memory usage of the cache by
+// discarding outdated entries.
 func (p *PayloadIDCache) prunePrior(slot primitives.Slot) {
 	for s := range p.slotToEth1HashToPayloadID {
 		if s < slot {
