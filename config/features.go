@@ -23,14 +23,46 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256
+package config
 
-import "errors"
-
-var (
-	// ErrOddLengthTreeRoots is returned when the input list length must be even.
-	ErrOddLengthTreeRoots = errors.New("input list length must be even")
-
-	// ErrMaxRootsExceeded is returned when the number of roots exceeds the maximum allowed.
-	ErrMaxRootsExceeded = errors.New("number of roots exceeds the maximum allowed")
+import (
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
+
+// FeatureFlags conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[FeatureFlags] = &FeatureFlags{}
+
+// DefaultFeaturesConfig returns the default FeatureFlags configuration.
+func DefaultFeatureFlagsConfig() FeatureFlags {
+	return FeatureFlags{
+		PrepareAllPayloads: true,
+	}
+}
+
+// Config represents the configuration struct for the FeatureFlags.
+type FeatureFlags struct {
+	// PrepareAllPayloads informs the engine to prepare a block on every slot.
+	PrepareAllPayloads bool
+}
+
+// Parse parses the configuration.
+func (c FeatureFlags) Parse(parser parser.AppOptionsParser) (*FeatureFlags, error) {
+	var err error
+	if c.PrepareAllPayloads, err = parser.GetBool(
+		flags.PrepareAllPayloads,
+	); err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}
+
+// Template returns the configuration template.
+func (c FeatureFlags) Template() string {
+	return `
+[beacon-kit.feature-flags]
+# Prepare all payloads informs the engine to prepare a block on every slot.
+prepare-all-payloads = {{.BeaconKit.FeatureFlags.PrepareAllPayloads}}
+`
+}

@@ -34,7 +34,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/core/feed"
+	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
 )
 
 type TestEvent struct {

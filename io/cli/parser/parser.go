@@ -30,13 +30,11 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/spf13/cast"
-
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/spf13/cast"
 )
 
 // baseTen is for the big.Int string conversation.

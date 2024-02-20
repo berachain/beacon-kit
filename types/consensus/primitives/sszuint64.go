@@ -51,8 +51,9 @@ func (s *SSZUint64) SizeSSZ() int {
 	return eight
 }
 
-// MarshalSSZTo appends the SSZ-encoded byte slice of SSZUint64 to the provided destination slice.
-// It returns the resulting slice and an error if any occurs during marshaling.
+// MarshalSSZTo appends the SSZ-encoded byte slice of SSZUint64 to the provided
+// destination slice. It returns the resulting slice and an error if any occurs
+// during marshaling.
 func (s *SSZUint64) MarshalSSZTo(dst []byte) ([]byte, error) {
 	marshalled, err := s.MarshalSSZ()
 	if err != nil {
@@ -92,4 +93,9 @@ func (s SSZUint64) HashTreeRoot() ([32]byte, error) {
 func (s SSZUint64) HashTreeRootWith(hh *fssz.Hasher) error {
 	hh.PutUint64(uint64(s))
 	return nil
+}
+
+// String returns the string representation of the SSZUint64.
+func (s SSZUint64) String() string {
+	return fmt.Sprintf("%d", s)
 }

@@ -44,9 +44,9 @@ func NewGenerateJWTCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate-jwt-secret",
 		Short: "Generates a new JWT authentication secret",
-		Long: `This command generates a new JWT authentication secret and writes it to a file.
-If no output file path is specified, it uses the default file name 
-"jwt.hex" in the current directory.`,
+		Long: `This command generates a new JWT authentication secret and 
+writes it to a file. If no output file path is specified, it uses the default 
+file name "jwt.hex" in the current directory.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Get the file path from the command flags.
 			outputPath, err := getFilePath(cmd)

@@ -28,7 +28,6 @@ package config
 import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/spf13/cobra"
@@ -43,22 +42,30 @@ type BeaconKitConfig[T any] interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		Engine: DefaultEngineConfig(),
-		Beacon: DefaultBeaconConfig(),
-		ABCI:   DefaultABCIConfig(),
+		ABCI:         DefaultABCIConfig(),
+		Beacon:       DefaultBeaconConfig(),
+		Builder:      DefaultBuilderConfig(),
+		Engine:       DefaultEngineConfig(),
+		FeatureFlags: DefaultFeatureFlagsConfig(),
 	}
 }
 
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
-	// Engine is the configuration for the execution client.
-	Engine Engine
+	// ABCI is the configuration for ABCI related settings.
+	ABCI ABCI
 
 	// Beacon is the configuration for the fork epochs.
 	Beacon Beacon
 
-	// ABCI is the configuration for ABCI related settings.
-	ABCI ABCI
+	// Builder is the configuration for the local build payload timeout.
+	Builder Builder
+
+	// Engine is the configuration for the execution client.
+	Engine Engine
+
+	// FeatureFlags is the configuration for the feature flags.
+	FeatureFlags FeatureFlags
 }
 
 // Template returns the configuration template.
@@ -67,7 +74,8 @@ func (c Config) Template() string {
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################
-` + c.Engine.Template() + c.Beacon.Template() + c.ABCI.Template()
+` + c.ABCI.Template() + c.Beacon.Template() +
+		c.Builder.Template() + c.Engine.Template() + c.FeatureFlags.Template()
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
@@ -108,12 +116,13 @@ func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error
 		beaconCfg *Beacon
 		abciCfg   *ABCI
 	)
-	// Read Engine Client Config
-	engineCfg, err = Engine{}.Parse(parser)
+
+	// Read ABCI Config
+	abciCfg, err = ABCI{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
-	conf.Engine = *engineCfg
+	conf.ABCI = *abciCfg
 
 	// Read Beacon Config
 	beaconCfg, err = Beacon{}.Parse(parser)
@@ -122,12 +131,25 @@ func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error
 	}
 	conf.Beacon = *beaconCfg
 
-	// Read ABCI Config
-	abciCfg, err = ABCI{}.Parse(parser)
+	// Read Bilder Config
+	builderCfg, err := Builder{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
-	conf.ABCI = *abciCfg
+	conf.Builder = *builderCfg
+
+	// Read Engine Client Config
+	engineCfg, err = Engine{}.Parse(parser)
+	if err != nil {
+		return nil, err
+	}
+	conf.Engine = *engineCfg
+
+	featureFlagsCfg, err := FeatureFlags{}.Parse(parser)
+	if err != nil {
+		return nil, err
+	}
+	conf.FeatureFlags = *featureFlagsCfg
 
 	return conf, nil
 }

@@ -26,6 +26,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -62,6 +63,7 @@ import (
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
+	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
 	"github.com/itsdevbear/bolaris/types/cosmos"
 )
 
@@ -170,7 +172,9 @@ func NewBeaconKitApp(
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		bkCfg, app.BeaconKeeper, app.Logger(),
+		bkCfg, app.BeaconKeeper,
+		stakingwrapper.NewKeeper(app.StakingKeeper),
+		app.Logger(),
 	); err != nil {
 		panic(err)
 	}
@@ -191,6 +195,14 @@ func NewBeaconKitApp(
 
 	// Load the app.
 	if err = app.Load(loadLatest); err != nil {
+		panic(err)
+	}
+
+	ctx := cosmos.NewEmptyContextWithMS(context.Background(), app.CommitMultiStore())
+	app.BeaconKitRunner.StartServices(ctx)
+
+	// Initial check for execution client sync.
+	if err := app.BeaconKitRunner.InitialSyncCheck(ctx); err != nil {
 		panic(err)
 	}
 
@@ -241,10 +253,4 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
 	app.BeaconKitRunner.SetCometCfg(v.Config)
-	app.BeaconKitRunner.StartServices(ctx)
-
-	// Initial check for execution client sync.
-	if err := app.BeaconKitRunner.InitialSyncCheck(ctx); err != nil {
-		panic(err)
-	}
 }

@@ -32,11 +32,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/io/cli/parser/mocks"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParser(t *testing.T) {

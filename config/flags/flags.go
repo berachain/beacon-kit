@@ -44,6 +44,10 @@ const (
 	beaconConfigRoot   = beaconKitRoot + "beacon-config."
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
+	// Builder Config.
+	builderRoot              = beaconKitRoot + "builder."
+	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
+
 	// Fork Config.
 	forkRoot       = beaconConfigRoot + "forks."
 	DenebForkEpoch = forkRoot + "deneb-fork-epoch"
@@ -52,8 +56,11 @@ const (
 	validator               = beaconConfigRoot + "validator."
 	SuggestedFeeRecipient   = validator + "suggested-fee-recipient"
 	Graffiti                = validator + "graffiti"
-	PrepareAllPayloads      = validator + "prepare-all-payloads"
 	NumRandaoRevealsToTrack = validator + "num-randao-reveals-to-track"
+
+	// FeatureFlags Config.
+	featureFlagsRoot   = beaconKitRoot + "feature-flags."
+	PrepareAllPayloads = featureFlagsRoot + "prepare-all-payloads"
 
 	// Limits Config.
 	limitsRoot     = beaconConfigRoot + "limits."

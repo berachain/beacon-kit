@@ -30,7 +30,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	sgconfig "github.com/itsdevbear/bolaris/config"
 )
 
