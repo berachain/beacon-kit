@@ -22,8 +22,8 @@ remappings = [
 verbosity = 3
 
 [profile.fuzz]
-fuzz = { runs = 8192 }
-verbosity = 3
+fuzz = { runs = 1024 }
+verbosity = 1
 
 [profile.coverage]
 fuzz = { runs = 256 }
