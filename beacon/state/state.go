@@ -104,7 +104,7 @@ type ReadOnlyForkChoice interface {
 
 // ReadWriteDeposits defines a struct which has read and write access to deposit methods.
 type ReadWriteDeposits interface {
-	PopDeposits(n uint64) ([]*consensusv1.Deposit, error)
+	EnqueueDeposits(n uint64) ([]*consensusv1.Deposit, error)
 }
 
 type WriteOnlyDeposits interface {
