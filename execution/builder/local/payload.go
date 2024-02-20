@@ -33,7 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
@@ -249,7 +248,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		"slot", slot,
 		"block_hash", common.BytesToHash(payload.GetBlockHash()),
 		"parent_hash", common.BytesToHash(payload.GetParentHash()),
-		"value", math.WeiAsEther(payload.GetValue()),
+		"value", payload.GetValue().AsEther(),
 		"override_builder", overrideBuilder,
 		"num_blobs", len(blobsBundle.GetBlobs()),
 	)

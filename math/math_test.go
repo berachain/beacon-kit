@@ -49,7 +49,8 @@ func TestWeiToGwei(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := math.WeiToGwei(tt.v); got != tt.want {
+			got := math.Wei{tt.v}.ToGwei()
+			if got != tt.want {
 				t.Errorf("WeiToGwei() = %v, want %v", got, tt.want)
 			}
 		})
@@ -58,7 +59,7 @@ func TestWeiToGwei(t *testing.T) {
 
 func TestWeiToGwei_CopyOk(t *testing.T) {
 	v := uint256.NewInt(1e9)
-	got := math.WeiToGwei(v)
+	got := math.Wei{v}.ToGwei()
 
 	require.Equal(t, math.Gwei(1), got, "conversion result mismatch")
 	require.Equal(t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
@@ -79,7 +80,8 @@ func TestWeiAsEther(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := math.WeiAsEther(tt.v); got != tt.want {
+			got := math.Wei{tt.v}.AsEther()
+			if got != tt.want {
 				t.Errorf("WeiAsEther() = %v, want %v", got, tt.want)
 			}
 		})
