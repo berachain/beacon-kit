@@ -23,26 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package logs
 
 import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
+// WithBaseService returns an Option that sets the BaseService for the Handler.
+func WithBaseService(base service.BaseService) service.Option[Handler] {
+	return func(s *Handler) error {
 		s.BaseService = base
 		return nil
 	}
 }
 
-// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
-// for the Service. This is used to inject the dependency that handles
-// the application of changes to the validator set.
-func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
-	return func(s *Service) error {
-		s.vcp = vcp
+func WithStakingService(sks StakingService) service.Option[Handler] {
+	return func(h *Handler) error {
+		h.sks = sks
 		return nil
 	}
 }

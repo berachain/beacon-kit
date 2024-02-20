@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,14 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package staking
 
-import enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+import (
+	"context"
 
-// TODO: maybe BeaconState interface needs to be glue'd together outside of
-// x/beacon, since we are going to need to get withdrawls from the x/beacon_staking.
-// TODO: We might want to build BeaconState from a variety of sources, not just
-// the x/beacon module.
-func (s *BeaconStore) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
-	return []*enginev1.Withdrawal{}, nil
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+)
+
+func (s *Service) ProcessWithdrawal(
+	_ context.Context,
+	_ *enginev1.Withdrawal,
+) error {
+	// TODO: implement
+	return nil
 }

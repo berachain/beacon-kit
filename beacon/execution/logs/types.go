@@ -25,11 +25,14 @@
 
 package logs
 
-import "github.com/ethereum/go-ethereum/accounts/abi"
+import (
+	"context"
 
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+)
+
+// Handler represents a struct that has the ability to ingest
+// an ethereum log and handle it.
 type Handler interface {
-	// ABIEvents() should return a map of Ethereum event names to abi `Event`.
-	// NOTE: this can be directly loaded from the `Events` field of an ABI struct,
-	// which can be built for a solidity library, interface, or contract.
-	ABIEvents() map[string]abi.Event
+	HandleLog(ctx context.Context, log *coretypes.Log) error
 }

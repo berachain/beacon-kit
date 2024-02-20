@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,26 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package abi
 
-import (
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
-// for the Service. This is used to inject the dependency that handles
-// the application of changes to the validator set.
-func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
-	return func(s *Service) error {
-		s.vcp = vcp
-		return nil
-	}
-}
+// This file is used to generate the go bindings for the deposit contract.
+// TODO: Change to the actual implementation of the deposit contract.
+//go:generate abigen --pkg abi --abi ../../../contracts/out/Staking.sol/Staking.abi.json --bin ../../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking

@@ -91,3 +91,13 @@ func EmptyPayloadAttributesWithVersion(
 		return nil
 	}
 }
+
+func NewWithdrawal(
+	_ []byte, // validatorPubkey
+	amount uint64,
+) *enginev1.Withdrawal {
+	// TODO: implement
+	return &enginev1.Withdrawal{
+		Amount: amount,
+	}
+}

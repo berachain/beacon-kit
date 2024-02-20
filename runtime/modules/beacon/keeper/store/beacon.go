@@ -28,11 +28,16 @@ package store
 import (
 	"context"
 
+	sdkcollections "cosmossdk.io/collections"
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/lib/store/collections"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
@@ -46,6 +51,9 @@ type BeaconStore struct {
 	// cfg is the beacon configuration.
 	cfg *config.Beacon
 
+	// deposits is a list of deposits that are queued to be processed.
+	deposits *collections.Queue[*consensusv1.Deposit]
+
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
 	lastValidHash *common.Hash
@@ -55,13 +63,19 @@ type BeaconStore struct {
 func NewBeaconStore(
 	ctx context.Context,
 	storeKey storetypes.StoreKey,
+	kvs corestore.KVStoreService,
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	depositQueue := collections.NewQueue[*consensusv1.Deposit](
+		sdkcollections.NewSchemaBuilder(kvs),
+		"deposit_queue",
+		&consensusv1.Deposit{})
 	return &BeaconStore{
-		sdkCtx:  sdkCtx,
-		KVStore: sdkCtx.KVStore(storeKey),
-		cfg:     cfg,
+		sdkCtx:   sdkCtx,
+		KVStore:  sdkCtx.KVStore(storeKey),
+		deposits: depositQueue,
+		cfg:      cfg,
 	}
 }

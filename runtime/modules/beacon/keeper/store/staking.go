@@ -23,26 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package store
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+// StoreDeposits pushes the deposits to the queue.
+func (s *BeaconStore) StoreDeposits(deposit []*consensusv1.Deposit) error {
+	return s.deposits.PushMulti(s.sdkCtx, deposit)
 }
 
-// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
-// for the Service. This is used to inject the dependency that handles
-// the application of changes to the validator set.
-func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
-	return func(s *Service) error {
-		s.vcp = vcp
-		return nil
-	}
+// GetDeposits returns the first n deposits in the queue.
+func (s *BeaconStore) GetDeposits(n uint64) ([]*consensusv1.Deposit, error) {
+	return s.deposits.PopMulti(s.sdkCtx, n)
+}
+
+// TODO: maybe BeaconState interface needs to be glue'd together outside of
+// x/beacon, since we are going to need to get withdrawls from the x/beacon_staking.
+// TODO: We might want to build BeaconState from a variety of sources, not just
+// the x/beacon module.
+func (s *BeaconStore) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
+	return []*enginev1.Withdrawal{}, nil
 }

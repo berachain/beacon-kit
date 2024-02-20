@@ -23,26 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package consensusv1
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"cosmossdk.io/collections/codec"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+// This is an assertion that Deposit implements the codec.ValueCodec interface.
+var _ codec.ValueCodec[*Deposit] = &Deposit{}
+
+func (*Deposit) Encode(value *Deposit) ([]byte, error) {
+	return value.MarshalSSZ()
 }
 
-// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
-// for the Service. This is used to inject the dependency that handles
-// the application of changes to the validator set.
-func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
-	return func(s *Service) error {
-		s.vcp = vcp
-		return nil
+func (*Deposit) Decode(b []byte) (*Deposit, error) {
+	var v = &Deposit{}
+	if err := v.UnmarshalSSZ(b); err != nil {
+		return nil, err
 	}
+	return v, nil
+}
+
+func (*Deposit) EncodeJSON(_ *Deposit) ([]byte, error) {
+	panic("not implemented")
+}
+
+func (*Deposit) DecodeJSON(_ []byte) (*Deposit, error) {
+	panic("not implemented")
+}
+
+func (*Deposit) Stringify(value *Deposit) string {
+	return value.String()
+}
+
+func (*Deposit) ValueType() string {
+	return "Deposit"
 }

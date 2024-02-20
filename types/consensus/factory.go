@@ -23,26 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package consensus
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
-// for the Service. This is used to inject the dependency that handles
-// the application of changes to the validator set.
-func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
-	return func(s *Service) error {
-		s.vcp = vcp
-		return nil
+// NewDeposit creates a new deposit.
+func NewDeposit(
+	pubkey []byte, amount uint64, withdrawalCredentials []byte,
+) *consensusv1.Deposit {
+	return &consensusv1.Deposit{
+		Pubkey:                pubkey,
+		Amount:                amount,
+		WithdrawalCredentials: withdrawalCredentials,
 	}
 }

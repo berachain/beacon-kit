@@ -177,6 +177,34 @@ func NewDefaultBeaconKitRuntime(
 	)
 }
 
+// newLogProcessor creates a new log processor with the provided services and options.
+// func newLogProcessor(
+// 	baseService *service.BaseService,
+// 	stakingService *staking.Service,
+// 	eth1Client *eth.Eth1Client,
+// 	cfg *config.Config,
+// ) (*logs.Processor, error) {
+// 	// Build the log processor.
+// 	handlers := make(map[common.Address]logs.Handler)
+// 	stakingLogHandler := service.New[stakinglogs.Handler](
+// 		baseService.WithName("staking"),
+// 		stakinglogs.WithStakingService(stakingService),
+// 	)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	callbackHandler, err := callback.NewFrom(stakingLogHandler)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
+// 	return logs.NewProcessor(
+// 		logs.WithEthClient(eth1Client),
+// 		logs.WithLogger(logger),
+// 		logs.WithHandlers(handlers),
+// 	)
+// }
+
 // StartServices starts all services in the BeaconKitRuntime's service registry.
 func (r *BeaconKitRuntime) StartServices(cmdCtx context.Context) {
 	// First try to start the eth1 client.

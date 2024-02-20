@@ -29,8 +29,8 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// Handler is the interface for all stateful precompiled contracts, which must
-// expose their ABI methods and precompile methods for stateful execution.
+// Handler is the interface for all execution contracts,
+// which must expose their ABI methods.
 type Handler interface {
 	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.
 	// NOTE: this can be directly loaded from the `Events` field of a Go-Ethereum ABI struct,
