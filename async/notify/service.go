@@ -28,8 +28,8 @@ package notify
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/prysmaticlabs/prysm/v5/async/event"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
 )
 

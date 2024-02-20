@@ -26,8 +26,8 @@
 package notify
 
 import (
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/prysmaticlabs/prysm/v5/async/event"
 )
 
 // WithBaseService is an option to set the BaseService for the Service.
