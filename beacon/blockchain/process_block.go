@@ -91,6 +91,11 @@ func (s *Service) sendFCU(
 			ctx, headEth1Hash, proposingSlot,
 		); err == nil {
 			return nil
+		} else {
+			s.Logger().Warn(
+				"failed to send forkchoice update - resending w/o payload...",
+				"error", err,
+			)
 		}
 	}
 
@@ -127,18 +132,12 @@ func (s *Service) sendFCUViaLocalBuilder(
 	if payloadID, err := s.bs.BuildLocalPayload(
 		ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
 	); payloadID == nil {
-		s.Logger().Warn(
-			"nil payloadID on local payload build via builder service prepare all payloads",
-		)
 		return ErrInvalidPayload
 	} else if err != nil {
 		// If we see an error here, we fallback to submitting a forkchoice without
 		// building a payload. In the case there is a block building issue, but the
 		// payload was still totally valid, we don't want this node to reject the
 		// block.
-		s.Logger().Warn(
-			"failed to send forkchoice update via local builder",
-			"error", err)
 		telemetry.IncrCounter(1, MetricFailedToBuildLocalPayload)
 		return err
 	}
