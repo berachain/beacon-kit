@@ -109,6 +109,12 @@ func (s *Service) sendFCUViaExecutionService(
 func (s *Service) sendFCUViaLocalBuilder(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
+	// Under the hood, the builder service will send a forkchoice update with attributes
+	// which in the case of a valid forkchoice update, will trigger a payload build.
+	//
+	//nolint:lll // link.
+	// https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md?plain=1#engine_forkchoiceupdatedv1
+	//
 	//#nosec:G701 // won't overflow, time cannot be negative.
 	if payloadID, err := s.bs.BuildLocalPayload(
 		ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
@@ -119,8 +125,8 @@ func (s *Service) sendFCUViaLocalBuilder(
 		return ErrInvalidPayload
 	} else if err != nil {
 		// If we see an error here, we fallback to submitting a forkchoice without building a payload.
-		// Incase there is a block building issue, but the payload was still totally valid, we don't
-		// want this node to reject the block.
+		// In the case there is a block building issue, but the payload was still totally valid,
+		// we don't want this node to reject the block.
 		s.Logger().Warn(
 			"failed to send forkchoice update via local builder",
 			"error", err)
