@@ -16,9 +16,9 @@ interface IRootFollower {
     event BlockCountReset(uint256 start, uint256 end);
 
     /// @dev Gets the address of the coinbase for the given block number. The size of
-    /// the BeaconRootsContract stores the coinbase for the last 256 blocks. Querying
-    /// a block number greater than the last 256 blocks will return an error. This also
-    /// implies that actions should be invoked within 256 blocks of being proposed.
+    /// the BeaconRootsContract stores the coinbase for the last 8191 blocks. Querying
+    /// a block number greater than the last 8191 blocks will return an error. This also
+    /// implies that actions should be invoked within 8191 blocks of being proposed.
     /// Otherwise any intended actions that were supposed to occur will be missed as the
     /// coinbase for the given block will no longer be available from the beacon root
     /// contract.
@@ -27,7 +27,7 @@ interface IRootFollower {
     function getCoinbase(uint256 blockNum) external view returns (address coinbase);
 
     /// @dev Gets the next block to be rewarded. This returns the greater of current
-    /// previously invoked block + 1, or current block number - 256 as that is the
+    /// previously invoked block + 1, or current block number - 8191 as that is the
     /// limitation on number of blocks that can be queried, and actioned upon.
     /// @return blockNum The block number of the next block to be invoked.
     function getNextActionableBlock() external view returns (uint256 blockNum);
