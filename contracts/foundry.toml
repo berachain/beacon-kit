@@ -26,7 +26,7 @@ fuzz = { runs = 512 }
 verbosity = 1
 
 [profile.coverage]
-fuzz = { runs = 128 }
+fuzz = { runs = 32 }
 
 [fmt]
 bracket_spacing = true

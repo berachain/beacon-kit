@@ -70,6 +70,10 @@ func NewBeaconKitRuntime(
 	return bkr, nil
 }
 
+func NewLightBeaconKitRuntime(
+	...
+)
+
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config, bsp BeaconStateProvider, vcp ValsetChangeProvider, logger log.Logger,
