@@ -26,11 +26,18 @@
 package math
 
 import (
+	"fmt"
+
 	"github.com/holiman/uint256"
 )
 
-// GweiPerEth is the number of Gwei in an Eth.
-const GweiPerEth = 1e9
+const (
+	// WeiPerEther is the number of Wei in an Eth.
+	WeiPerEther = 1e18
+
+	// GweiPerEther is the number of Gwei in an Eth.
+	GweiPerEther = 1e9
+)
 
 type (
 	// Wei is the smallest unit of Ether, represented as a pointer to a Uint256.
@@ -56,11 +63,18 @@ func WeiToGwei(v Wei) Gwei {
 		return 0
 	}
 	copied := new(uint256.Int).Set(v)
-	copied.Div(copied, uint256.NewInt(GweiPerEth))
+	copied.Div(copied, uint256.NewInt(GweiPerEther))
 	return Gwei(copied.Uint64())
 }
 
 // ZeroWei returns a zero Wei.
 func ZeroWei() Wei {
 	return uint256.NewInt(0)
+}
+
+// WeiAsEther returns the value of a Wei as an Ether.
+// FOR DISPLAY PURPOSES ONLY. Do not use for actual
+// blockchain things.
+func WeiAsEther(v Wei) string {
+	return fmt.Sprintf("%.4f", v.Float64()/WeiPerEther)
 }

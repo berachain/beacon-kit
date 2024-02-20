@@ -193,7 +193,9 @@ func (s *Eth1Client) GetPayloadV2(
 		Payload: &enginev1.ExecutionPayloadContainer_Capella{
 			Capella: result.GetPayload(),
 		},
-		PayloadValue: result.GetValue(),
+		PayloadValue:          result.GetValue(),
+		BlobsBundle:           &enginev1.BlobsBundle{},
+		ShouldOverrideBuilder: false,
 	}, nil
 }
 

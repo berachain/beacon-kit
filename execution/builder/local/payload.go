@@ -33,6 +33,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
@@ -79,9 +80,10 @@ func (s *Service) GetOrBuildLocalPayload(
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
-		if payload, blobsBundle, overrideBuilder, err = s.es.GetPayload(
-			ctx, pidCpy, slot,
-		); err == nil {
+		if payload, blobsBundle, overrideBuilder, err =
+			s.getPayloadFromExecutionClient(
+				ctx, pidCpy, slot,
+			); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 			//  Return the cached payload ID.
@@ -130,9 +132,10 @@ func (s *Service) BuildAndWaitForLocalPayload(
 	}
 
 	// Get the payload from the execution client.
-	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
-		ctx, primitives.PayloadID(*payloadID), slot,
-	)
+	payload, blobsBundle, overrideBuilder, err :=
+		s.getPayloadFromExecutionClient(
+			ctx, primitives.PayloadID(*payloadID), slot,
+		)
 	if err != nil {
 		return nil, nil, false, err
 	}
@@ -229,4 +232,22 @@ func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
 
 	// We always want the parent block to be the last finalized block.
 	return st.GetFinalizedEth1BlockHash(), nil
+}
+
+// getPayloadFromExecutionClient retrieves the payload and blobs bundle for the given slot.
+func (s *Service) getPayloadFromExecutionClient(
+	ctx context.Context,
+	payloadID primitives.PayloadID,
+	slot primitives.Slot,
+) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(ctx, payloadID, slot)
+	s.Logger().Info("payload retrieved from local builder 🏗️",
+		"slot", slot,
+		"block_hash", common.BytesToHash(payload.GetBlockHash()),
+		"parent_hash", common.BytesToHash(payload.GetParentHash()),
+		"value", math.WeiAsEther(payload.GetValue()),
+		"override_builder", overrideBuilder,
+		"num_blobs", len(blobsBundle.GetBlobs()),
+	)
+	return payload, blobsBundle, overrideBuilder, err
 }
