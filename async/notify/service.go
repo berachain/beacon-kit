@@ -28,9 +28,9 @@ package notify
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
 )
 
 // Service represents the BeaconKit notification service. It is used to register
@@ -62,12 +62,12 @@ func (s *Service) Start(ctx context.Context) {
 
 		for _, pair := range handlers {
 			// Create a channel for the handler
-			ch := make(chan interface{})
+			ch := make(chan *Event)
 			subscription := feed.Subscribe(ch)
 
 			// Start a goroutine to listen for events and call the handler
 			go func(
-				pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription,
+				pair eventHandlerQueuePair, ch <-chan *Event, subscription ethereum.Subscription,
 			) {
 				for {
 					select {
@@ -104,7 +104,7 @@ func (s *Service) RegisterFeed(name string) {
 		panic(ErrRegisterFeedServiceStarted)
 	}
 	if _, ok := s.feeds[name]; !ok {
-		s.feeds[name] = new(event.Feed)
+		s.feeds[name] = &event.Feed{}
 	}
 }
 
@@ -128,7 +128,7 @@ func (s *Service) RegisterHandler(name string, queueID string, handler EventHand
 }
 
 // Dispatch dispatches an event to all handlers associated with the provided key.
-func (s *Service) Dispatch(feedName string, event *feed.Event) {
+func (s *Service) Dispatch(feedName string, event any) {
 	feed, ok := s.feeds[feedName]
 	if ok {
 		feed.Send(event)
