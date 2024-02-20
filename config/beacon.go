@@ -43,7 +43,7 @@ type Beacon struct {
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
-	// Execution is the configuration for the execution layer.
+	// Execution is the configuration for the execution service.
 	Execution Execution
 }
 
