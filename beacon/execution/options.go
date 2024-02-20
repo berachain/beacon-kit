@@ -47,7 +47,7 @@ func WithEngineCaller(ec engine.Caller) service.Option[Service] {
 	}
 }
 
-func WithLogProcessor(lp logs.Processor) service.Option[Service] {
+func WithLogProcessor(lp *logs.Processor) service.Option[Service] {
 	return func(s *Service) error {
 		s.lp = lp
 		return nil

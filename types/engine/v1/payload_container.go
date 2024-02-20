@@ -28,10 +28,10 @@ package enginev1
 import (
 	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/crypto/sha256"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	"github.com/itsdevbear/bolaris/math"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	fssz "github.com/prysmaticlabs/fastssz"
-	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -77,7 +77,9 @@ func (p *ExecutionPayloadContainer) GetValue() math.Wei {
 	if p.PayloadValue == nil {
 		return math.ZeroWei()
 	}
-	return uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(p.GetPayloadValue()))
+
+	return uint256.NewInt(0).SetBytes(
+		byteslib.CopyAndReverseEndianess(p.GetPayloadValue()))
 }
 
 // GetBlockHash retrieves the block hash from the payload.

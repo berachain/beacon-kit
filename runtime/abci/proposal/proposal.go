@@ -30,16 +30,14 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	builder "github.com/itsdevbear/bolaris/execution/builder/local"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
+	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle

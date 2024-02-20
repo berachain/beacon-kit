@@ -30,13 +30,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/itsdevbear/bolaris/io/file"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/config/flags"
 	beaconprompt "github.com/itsdevbear/bolaris/io/cli/prompt"
+	"github.com/itsdevbear/bolaris/io/file"
 	"github.com/logrusorgru/aurora"
-
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +52,7 @@ TERMS AND CONDITIONS: %s
 
 
 Type "accept" to accept these terms and conditions [accept/decline]:`
-	// acceptTosPromptErrTextFormat is the the error prompt text for accepting the terms of use.
+	// acceptTosPromptErrTextFormat is the error prompt text for accepting the terms of use.
 	AcceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
 non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
 terms and conditions here: 

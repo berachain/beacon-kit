@@ -31,55 +31,38 @@ import (
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
-// Validator conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[Validator] = &Validator{}
+// Limits conforms to the BeaconKitConfig interface.
+var _ BeaconKitConfig[Execution] = &Execution{}
 
 // DefaultValidatorConfig returns the default validator configuration.
-func DefaultValidatorConfig() Validator {
-	return Validator{
-		SuggestedFeeRecipient:   common.Address{},
-		Graffiti:                "",
-		NumRandaoRevealsToTrack: 32, //nolint:gomnd // default.
+func DefaultExecutionConfig() Execution {
+	return Execution{
+		// TODO: This is the Ethereum deposit contract address.
+		// TODO: This default value will be changed later.
+		DepositContractAddress: common.HexToAddress("0x00000000219ab540356cBB839Cbe05303d7705Fa"),
 	}
 }
 
-// Config represents the configuration struct for the validator.
-type Validator struct {
-	// Suggested FeeRecipient is the address that will receive the transaction fees
-	// produced by any blocks from this node.
-	SuggestedFeeRecipient common.Address
-
-	// Graffiti is the string that will be included in the graffiti field of the beacon block.
-	Graffiti string
-
-	// Rando reveals to track
-	NumRandaoRevealsToTrack uint64
+// Execution represents the configuration struct for the execution layer on the beacon chain.
+type Execution struct {
+	DepositContractAddress common.Address
 }
 
 // Parse parses the configuration.
-func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
+func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 	var err error
-	if c.SuggestedFeeRecipient, err = parser.GetExecutionAddress(
-		flags.SuggestedFeeRecipient,
-	); err != nil {
+	c.DepositContractAddress, err = parser.GetExecutionAddress(flags.DepositContractAddress)
+	if err != nil {
 		return nil, err
 	}
-	if c.Graffiti, err = parser.GetString(flags.Graffiti); err != nil {
-		return nil, err
-	}
-
 	return &c, nil
 }
 
 // Template returns the configuration template.
-func (c Validator) Template() string {
+func (c Execution) Template() string {
 	return `
-[beacon-kit.beacon-config.validator]
-# Post bellatrix, this address will receive the transaction fees produced by any blocks 
-# from this node.
-suggested-fee-recipient = "{{.BeaconKit.Beacon.Validator.SuggestedFeeRecipient}}"
-
-# Graffiti string that will be included in the graffiti field of the beacon block.
-graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
+[beacon-kit.beacon-config.execution]
+# DepositContractAddress is the address of the deposit contract.
+deposit-contract-address = {{.BeaconKit.Beacon.Execution.DepositContractAddress}}
 `
 }

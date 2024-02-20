@@ -32,7 +32,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -40,7 +39,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetOrBuildLocalPayload attemps to pull a previously built payload
+// GetOrBuildLocalPayload attempts to pull a previously built payload
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
@@ -56,7 +55,7 @@ func (s *Service) GetOrBuildLocalPayload(
 	// 	"headRoot":       fmt.Sprintf("%#x", headRoot),
 	// }
 
-	// TODO: Proposer-Builder Seperation Improvements Later.
+	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
@@ -80,18 +79,25 @@ func (s *Service) GetOrBuildLocalPayload(
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		copy(pidCpy[:], payloadID[:])
-		if payload, blobsBundle, overrideBuilder, err = s.es.GetPayload(ctx, pidCpy, slot); err == nil {
+		if payload, blobsBundle, overrideBuilder, err = s.es.GetPayload(
+			ctx, pidCpy, slot,
+		); err == nil {
 			// bundleCache.add(slot, bundle)
 			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 			//  Return the cached payload ID.
 			return payload, blobsBundle, overrideBuilder, nil
 		}
-		s.Logger().Warn("could not get cached payload from execution client", "error", err)
+		s.Logger().Warn(
+			"could not get cached payload from execution client",
+			"error", err,
+		)
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheError)
 	}
 
 	//#nosec:G701 // won't overflow, time cannot be negative.
-	return s.BuildAndWaitForLocalPayload(ctx, parentEth1Hash, slot, uint64(time.Now().Unix()))
+	return s.BuildAndWaitForLocalPayload(
+		ctx, parentEth1Hash, slot, uint64(time.Now().Unix()),
+	)
 }
 
 // BuildAndWaitForLocalPayload, triggers a payload build process, waits
@@ -136,7 +142,9 @@ func (s *Service) BuildAndWaitForLocalPayload(
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 
-	s.Logger().Debug("received execution payload from local engine", "value", payload.GetValue())
+	s.Logger().Debug(
+		"received execution payload from local engine", "value", payload.GetValue(),
+	)
 	return payload, blobsBundle, overrideBuilder, nil
 }
 
@@ -198,7 +206,7 @@ func (s *Service) BuildLocalPayload(
 		return nil, ErrNilPayloadOnValidResponse
 	}
 
-	s.Logger().Info("forkchoice updated with payload attributes for proposal",
+	s.Logger().Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
 		"slot", fcuConfig.ProposingSlot,
 		"payload_id", fmt.Sprintf("%#x", *payloadID),

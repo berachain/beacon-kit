@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
@@ -79,6 +78,9 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config, bsp BeaconStateProvider, vcp ValsetChangeProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
+	// Set the module as beacon-kit to override the cosmos-sdk naming.
+	logger = logger.With("module", "beacon-kit")
+
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
 	if err != nil {
@@ -130,10 +132,23 @@ func NewDefaultBeaconKitRuntime(
 		engine.WithLogger(logger),
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
+	// Build the staking service.
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.WithName("staking")),
+		staking.WithValsetChangeProvider(vcp),
+	)
+
+	// Build the log processor.
+	logProcessor, err := newLogProcessor(baseService, stakingService, eth1Client)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.WithName("execution")),
 		execution.WithEngineCaller(engineClient),
+		execution.WithLogProcessor(logProcessor),
 	)
 
 	// Build the local builder service.
@@ -148,12 +163,6 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.WithName("blockchain")),
 		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
-	)
-
-	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.WithName("staking")),
-		staking.WithValsetChangeProvider(vcp),
 	)
 
 	// Build the sync service.
@@ -175,8 +184,9 @@ func NewDefaultBeaconKitRuntime(
 			service.WithService(builderService),
 			service.WithService(stakingService),
 		)), WithBeaconStateProvider(bsp),
-		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
-		// This is necessary for the eth1 client to be able to shut down gracefully.
+		// We put the eth1 client in the BeaconKitRuntime so we can attach the
+		// cmd.Context to it. This is necessary for the eth1 client to be able
+		// to shut down gracefully.
 		WithEth1Client(eth1Client),
 	)
 }
@@ -186,7 +196,6 @@ func newLogProcessor(
 	baseService *service.BaseService,
 	stakingService *staking.Service,
 	eth1Client *eth.Eth1Client,
-	cfg *config.Config,
 ) (*logs.Processor, error) {
 	// Build the log processor.
 	handlers := make(map[common.Address]logs.Handler)
@@ -200,21 +209,21 @@ func newLogProcessor(
 	if err != nil {
 		return nil, err
 	}
-	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
+	handlers[baseService.BeaconCfg().Execution.DepositContractAddress] = callbackHandler
 	return logs.NewProcessor(
 		logs.WithEthClient(eth1Client),
-		logs.WithLogger(logger),
+		logs.WithLogger(baseService.Logger()),
 		logs.WithHandlers(handlers),
 	)
 }
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StartServices(cmdCtx context.Context) {
+func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
 	// First try to start the eth1 client.
-	r.ethclient.Start(cmdCtx)
+	r.ethclient.Start(ctx)
 
 	// Then start all the other services.
-	r.services.StartAll(cmdCtx)
+	r.services.StartAll(ctx)
 }
 
 // SetCometCfg sets the CometBFTConfig for the runtime.
@@ -234,5 +243,5 @@ func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
 		return err
 	}
 
-	return syncService.CheckSyncStatusAndForkchoice(ctx)
+	return syncService.WaitForExecutionClientSync(ctx)
 }

@@ -81,9 +81,10 @@ func HashElement[H Hashable](el H) ([32]byte, error) {
 	return el.HashTreeRoot()
 }
 
-// HashElements hashes each element in the list and then returns each item as a 32 byte buffer.
-// Where each Element is hashed individually to produce a corresponding Root.
-// This process is applied to all elements in the input list, resulting in a list of roots.
+// HashElements hashes each element in the list and then returns each item as a
+// 32 byte buffer. Each element is individually hashed to produce a corresponding
+// root. This process is applied to all elements in the input list, resulting in a
+// list of roots.
 func HashElements[H Hashable](input []H) ([][32]byte, error) {
 	var (
 		err   error

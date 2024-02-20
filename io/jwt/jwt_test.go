@@ -95,8 +95,8 @@ func TestSecretString(t *testing.T) {
 		{
 			name: "mask secret correctly",
 			secret: jwt.Secret(
-				common.FromHex(
-					"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+
+				common.FromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
 			),
 			want: "0x123456**********************************************************",
 		},
@@ -139,7 +139,8 @@ func TestSecretBytes(t *testing.T) {
 
 func TestSecretHexWithFixedInput(t *testing.T) {
 	expectedHex := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-	// Since the secret is 32 bytes, its hex representation should be 64 characters long
+	// Since the secret is 32 bytes, its hex representation should be 64 characters
+	// long
 	expectedHexLength := 64
 	secret, err := jwt.NewFromHex(expectedHex)
 	if err != nil {
@@ -183,6 +184,9 @@ func TestSecretRoundTripEncoding(t *testing.T) {
 
 	// Compare the original and decoded secrets
 	if !reflect.DeepEqual(originalSecret, decodedSecret) {
-		t.Errorf("Round trip encoding failed. Original: %v, Decoded: %v", originalSecret, decodedSecret)
+		t.Errorf(
+			"Round trip encoding failed. Original: %v, Decoded: %v",
+			originalSecret, decodedSecret,
+		)
 	}
 }

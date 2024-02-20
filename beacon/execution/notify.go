@@ -54,13 +54,15 @@ func (s *Service) notifyNewPayload(
 		// var versionedHashes []common.Hash
 		// versionedHashes, err = kzgCommitmentsToVersionedHashes(blk.Block().Body())
 		// if err != nil {
-		// 	return false, errors.Wrap(err, "could not get versioned hashes to feed the engine")
+		// 	return false, errors.Wrap(err,
+		//      "could not get versioned hashes to feed the engine")
 		// }
 		// pr := common.Hash(blk.Block().ParentRoot())
 		// lastValidHash, err = s.engine.NewPayload(ctx, payload, versionedHashes, &pr)
 	} else {
 		lastValidHash, err = s.engine.NewPayload(
-			ctx, payload, []common.Hash{}, &common.Hash{}, /*empty version hashes and root before Deneb*/
+			/*empty version hashes and root before Deneb*/
+			ctx, payload, []common.Hash{}, &common.Hash{},
 		)
 	}
 	switch {
@@ -71,7 +73,10 @@ func (s *Service) notifyNewPayload(
 		)
 		return false, nil
 	case errors.Is(err, eth.ErrInvalidPayloadStatus):
-		s.Logger().Error("invalid payload status", "last_valid_hash", fmt.Sprintf("%#x", lastValidHash))
+		s.Logger().Error(
+			"invalid payload status",
+			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
+		)
 		return false, ErrBadBlockProduced
 	case err != nil:
 		return false, err

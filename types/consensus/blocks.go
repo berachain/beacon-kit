@@ -29,7 +29,6 @@ import (
 	"errors"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
-
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"

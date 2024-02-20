@@ -28,6 +28,7 @@ package localbuilder
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -36,6 +37,7 @@ import (
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
 ) (consensus.BeaconKitBlock, error) {
+	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
@@ -63,6 +65,11 @@ func (s *Service) RequestBestBlock(
 	if err != nil {
 		return nil, err
 	}
+
+	s.Logger().Info("payload retrieved from local builder 🏗️",
+		"hash", common.Bytes2Hex(executionData.GetBlockHash()),
+		"override_builder", overrideBuilder,
+	)
 
 	// TODO: Dencun
 	_ = blobsBundle

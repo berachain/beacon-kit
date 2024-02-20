@@ -43,7 +43,7 @@ type Service struct {
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
 	// lp processes logs from the execution layer.
-	lp logs.Processor
+	lp *logs.Processor
 }
 
 // Start spawns any goroutines required by the service.

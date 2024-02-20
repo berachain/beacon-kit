@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
 	"github.com/itsdevbear/bolaris/runtime/service"

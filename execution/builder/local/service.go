@@ -31,7 +31,7 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
+// TODO: Decouple from ABCI and have this validator run on a separate thread
 // have it configured itself and not be a service persay.
 type Service struct {
 	service.BaseService

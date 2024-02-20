@@ -62,8 +62,10 @@ func NewQueue[V any](
 			sdkcollections.NewPrefix(queueName),
 			queueName, sdkcollections.Uint64Key, valueCodec,
 		),
-		headSeq: sdkcollections.NewSequence(schema, sdkcollections.NewPrefix(headSeqName), headSeqName),
-		tailSeq: sdkcollections.NewSequence(schema, sdkcollections.NewPrefix(tailSeqName), tailSeqName),
+		headSeq: sdkcollections.NewSequence(
+			schema, sdkcollections.NewPrefix(headSeqName), headSeqName),
+		tailSeq: sdkcollections.NewSequence(
+			schema, sdkcollections.NewPrefix(tailSeqName), tailSeqName),
 	}
 }
 
@@ -112,7 +114,8 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 	return v, err
 }
 
-// PopMulti returns the top n elements of the queue and removes them from the queue.
+// PopMulti returns the top n elements of the queue and removes them from the
+// queue.
 func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -128,7 +131,8 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 		return nil, err
 	}
 	endIdx := min(tailIdx, headIdx+n)
-	ranger := new(sdkcollections.Range[uint64]).StartInclusive(headIdx).EndExclusive(endIdx)
+	ranger := new(sdkcollections.Range[uint64]).
+		StartInclusive(headIdx).EndExclusive(endIdx)
 	iter, err := q.container.Iterate(ctx, ranger)
 	if err != nil {
 		return nil, err

@@ -33,9 +33,8 @@ import (
 	"cosmossdk.io/core/store"
 	dba "cosmossdk.io/store/dbadapter"
 	db "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/require"
-
 	"github.com/itsdevbear/bolaris/lib/store/collections"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Queue(t *testing.T) {
@@ -89,12 +88,13 @@ func Test_Queue(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uint64(0), qlen, "Queue should be empty after clearing")
 
-		// Attempt to peek at the top value of the queue, expecting an error since the queue
-		// should now be empty
+		// Attempt to peek at the top value of the queue, expecting an error
+		// since the queue should now be empty
 		_, err = q.Peek(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 
-		// Attempt to pop an item from the queue, expecting an error since the queue is empty
+		// Attempt to pop an item from the queue, expecting an error since the
+		// queue is empty
 		_, err = q.Pop(ctx)
 		require.Equal(t, sdk.ErrNotFound, err)
 	})
@@ -118,11 +118,13 @@ func Test_PopMulti(t *testing.T) {
 		// Test length after pushes
 		qlen, err := q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(3), qlen, "Queue should have 3 items after 3 pushes")
+		require.Equal(t, uint64(3), qlen,
+			"Queue should have 3 items after 3 pushes")
 
 		mlen, err := mapLen[uint64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+		require.Equal(t, qlen, uint64(mlen),
+			"Queue length should match container length")
 
 		// Pop 2 items from the queue
 		items, err := q.PopMulti(ctx, 2)
@@ -131,11 +133,13 @@ func Test_PopMulti(t *testing.T) {
 
 		qlen, err = q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(1), qlen, "Queue should have 1 item after popping 2 items")
+		require.Equal(t, uint64(1), qlen,
+			"Queue should have 1 item after popping 2 items")
 
 		mlen, err = mapLen[uint64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+		require.Equal(t, qlen, uint64(mlen),
+			"Queue length should match container length")
 
 		items, err = q.PopMulti(ctx, 3)
 		require.NoError(t, err)
@@ -143,11 +147,13 @@ func Test_PopMulti(t *testing.T) {
 
 		qlen, err = q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(0), qlen, "Queue should be empty after popping all items")
+		require.Equal(t, uint64(0), qlen,
+			"Queue should be empty after popping all items")
 
 		mlen, err = mapLen[uint64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+		require.Equal(t, qlen, uint64(mlen),
+			"Queue length should match container length")
 
 		items, err = q.PopMulti(ctx, 3)
 		require.NoError(t, err)
@@ -167,11 +173,13 @@ func Test_PushMulti(t *testing.T) {
 		// Test length after pushes
 		qlen, err := q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(3), qlen, "Queue should have 3 items after 3 pushes")
+		require.Equal(t, uint64(3), qlen,
+			"Queue should have 3 items after 3 pushes")
 
 		mlen, err := mapLen[uint64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+		require.Equal(t, qlen, uint64(mlen),
+			"Queue length should match container length")
 
 		items, err := q.PopMulti(ctx, 4)
 		require.NoError(t, err)
@@ -179,11 +187,13 @@ func Test_PushMulti(t *testing.T) {
 
 		qlen, err = q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(0), qlen, "Queue should be empty after popping all items")
+		require.Equal(t, uint64(0), qlen,
+			"Queue should be empty after popping all items")
 
 		mlen, err = mapLen[uint64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, qlen, uint64(mlen), "Queue length should match container length")
+		require.Equal(t, qlen, uint64(mlen),
+			"Queue length should match container length")
 	})
 }
 
@@ -205,11 +215,14 @@ type MockStore struct {
 }
 
 // OpenKVStore returns the underlying KVStore from the Store.
-func (s MockStore) OpenKVStore(ctx context.Context) store.KVStore {
+func (s MockStore) OpenKVStore(context.Context) store.KVStore {
 	return s.DB
 }
 
-// deps initializes dependencies for testing, returning a KVStoreService and a context.
+// deps initializes dependencies for testing, returning a KVStoreService
+// and a context.
 func deps() (store.KVStoreService, context.Context) {
-	return &MockStore{Store: dba.Store{DB: db.NewMemDB()}}, context.Background()
+	return &MockStore{
+		Store: dba.Store{DB: db.NewMemDB()},
+	}, context.Background()
 }

@@ -71,14 +71,15 @@ func findMatchingEvent(
 	return ""
 }
 
-// tryMatchInputs returns true iff the argument types match between the Go implementation and the
-// ABI method.
+// tryMatchInputs returns true iff the argument types match between the Go
+// implementation and the ABI method.
 func tryMatchInputs(implMethod reflect.Method, abiMethod abi.Event) bool {
 	abiMethodNumIn := len(abiMethod.Inputs)
 	implMethodNumIn := implMethod.Type.NumIn()
 
-	// First two args of handler implementation are the receiver contract and the Context, so
-	// verify that the ABI method has exactly 2 fewer inputs than the implementation method.
+	// First two args of handler implementation are the receiver contract and
+	// the Context, so verify that the ABI method has exactly 2 fewer inputs
+	// than the implementation method.
 	if implMethodNumIn-2 != abiMethodNumIn {
 		return false
 	}
@@ -88,9 +89,9 @@ func tryMatchInputs(implMethod reflect.Method, abiMethod abi.Event) bool {
 		return true
 	}
 
-	// Validate that the input args types match ABI input arg types, excluding the
-	// first two args (receiver contract and Context). // We also need to handle topics
-	// separately, since they should all be common.Hash
+	// Validate that the input args types match ABI input arg types, excluding
+	// the first two args (receiver contract and Context). // We also need to
+	// handle topics separately, since they should all be common.Hash
 	var i = 2
 	for ; i < implMethodNumIn; i++ {
 		if !abiMethod.Inputs[i-2].Indexed {

@@ -29,16 +29,12 @@ import (
 	"context"
 	"math/big"
 
-	"cosmossdk.io/log"
-
 	"cosmossdk.io/errors"
-
+	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
-
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )
 
@@ -46,14 +42,14 @@ import (
 type Processor struct {
 	logger     log.Logger
 	eth1Client *eth.Eth1Client
-	handlers   map[common.Address]callback.LogHandler
+	handlers   map[common.Address]Handler
 }
 
 // NewProcessor creates a new instance of Processor with the provided options.
 // It applies each option to the Processor and returns an error if any of the options fail.
 func NewProcessor(opts ...Option) (*Processor, error) {
 	s := &Processor{
-		handlers: make(map[common.Address]callback.LogHandler),
+		handlers: make(map[common.Address]Handler),
 	}
 	for _, opt := range opts {
 		if err := opt(s); err != nil {
@@ -77,7 +73,8 @@ func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.I
 	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
 	if finalBlock.Number().Cmp(blkNum) < 0 {
 		return errors.Wrapf(
-			ErrProcessingUnfinalizedBlock, "safe block %d is behind block %d", finalBlock.Number(), blkNum,
+			ErrProcessingUnfinalizedBlock,
+			"safe block %d is behind block %d", finalBlock.Number(), blkNum,
 		)
 	}
 
