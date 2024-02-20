@@ -51,8 +51,8 @@ type BeaconStore struct {
 	// cfg is the beacon configuration.
 	cfg *config.Beacon
 
-	// deposits is a list of deposits that are queued to be processed.
-	deposits *collections.Queue[*consensusv1.Deposit]
+	// depositQueue is a list of depositQueue that are queued to be processed.
+	depositQueue *collections.Queue[*consensusv1.Deposit]
 
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
@@ -73,9 +73,9 @@ func NewBeaconStore(
 		"deposit_queue",
 		&consensusv1.Deposit{})
 	return &BeaconStore{
-		sdkCtx:   sdkCtx,
-		KVStore:  sdkCtx.KVStore(storeKey),
-		deposits: depositQueue,
-		cfg:      cfg,
+		sdkCtx:       sdkCtx,
+		KVStore:      sdkCtx.KVStore(storeKey),
+		depositQueue: depositQueue,
+		cfg:          cfg,
 	}
 }
