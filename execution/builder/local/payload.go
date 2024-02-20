@@ -226,7 +226,11 @@ func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
 	// The first slot should be proposed with the genesis block as parent.
 	st := s.BeaconState(ctx)
 	if st.Slot() == 1 {
-		return st.GenesisEth1Hash(), nil
+		genesisHash, err := st.GenesisEth1Hash()
+		if err != nil {
+			return common.Hash{}, err
+		}
+		return genesisHash, nil
 	}
 
 	// We always want the parent block to be the last finalized block.

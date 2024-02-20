@@ -23,18 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package encoding
 
 import (
+	"cosmossdk.io/collections/codec"
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
-func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash common.Hash) error {
-	return s.eth1GenesisHash.Set(s.sdkCtx, eth1GenesisHash)
+type Hash struct{}
+
+// This is an assertion that Deposit implements the codec.ValueCodec interface.
+var _ codec.ValueCodec[common.Hash] = Hash{}
+
+func (Hash) Decode(b []byte) (common.Hash, error) {
+	return common.BytesToHash(b), nil
 }
 
-// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
-func (s *BeaconStore) GenesisEth1Hash() (common.Hash, error) {
-	return s.eth1GenesisHash.Get(s.sdkCtx)
+// DecodeJSON implements codec.ValueCodec.
+func (Hash) DecodeJSON(_ []byte) (common.Hash, error) {
+	panic("unimplemented")
+}
+
+// Encode implements codec.ValueCodec.
+func (Hash) Encode(value common.Hash) ([]byte, error) {
+	return value[:], nil
+}
+
+// EncodeJSON implements codec.ValueCodec.
+func (Hash) EncodeJSON(_ common.Hash) ([]byte, error) {
+	panic("unimplemented")
+}
+
+// Stringify implements codec.ValueCodec.
+func (Hash) Stringify(value common.Hash) string {
+	return value.Hex()
+}
+
+// ValueType implements codec.ValueCodec.
+func (Hash) ValueType() string {
+	return "common.Hash"
 }

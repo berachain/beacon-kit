@@ -30,20 +30,17 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
+	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // BeaconStore is a wrapper around a KVStore sdk.Context
 // that provides access to all beacon related data.
 type BeaconStore struct {
-	store.KVStore
-
 	// sdkCtx is the context of the store.
 	sdkCtx sdk.Context
 
@@ -57,7 +54,10 @@ type BeaconStore struct {
 	fcSafeEth1BlockHash sdkcollections.Item[common.Hash]
 
 	// fcFinalizedEth1BlockHash is the finalized block hash.
-	fcFinalizedEth1BlockHas sdkcollections.Item[common.Hash]
+	fcFinalizedEth1BlockHash sdkcollections.Item[common.Hash]
+
+	// eth1GenesisHash is the Eth1 genesis hash.
+	eth1GenesisHash sdkcollections.Item[common.Hash]
 
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
@@ -67,20 +67,37 @@ type BeaconStore struct {
 // NewBeaconStore creates a new instance of BeaconStore.
 func NewBeaconStore(
 	ctx context.Context,
-	storeKey storetypes.StoreKey,
 	kvs corestore.KVStoreService,
 	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
-		sdkcollections.NewSchemaBuilder(kvs),
-		"deposit_queue",
+		schemaBuilder,
+		depositQueuePrefix,
 		&consensusv1.Deposit{})
+	fcSafeEth1BlockHash := sdkcollections.NewItem[common.Hash](
+		schemaBuilder,
+		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
+		fcSafeEth1BlockHashPrefix,
+		encoding.Hash{})
+	fcFinalizedEth1BlockHash := sdkcollections.NewItem[common.Hash](
+		schemaBuilder,
+		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
+		fcFinalizedEth1BlockHashPrefix,
+		encoding.Hash{})
+	eth1GenesisHash := sdkcollections.NewItem[common.Hash](
+		schemaBuilder,
+		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
+		eth1GenesisHashPrefix,
+		encoding.Hash{})
 	return &BeaconStore{
-		sdkCtx:       sdkCtx,
-		KVStore:      sdkCtx.KVStore(storeKey),
-		depositQueue: depositQueue,
-		cfg:          cfg,
+		sdkCtx:                   sdkCtx,
+		depositQueue:             depositQueue,
+		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
+		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
+		eth1GenesisHash:          eth1GenesisHash,
+		cfg:                      cfg,
 	}
 }

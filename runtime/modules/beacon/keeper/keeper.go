@@ -29,7 +29,6 @@ import (
 	"context"
 
 	corestore "cosmossdk.io/core/store"
-	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/state"
@@ -41,7 +40,6 @@ import (
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	storeKey  storetypes.StoreKey
 	kvs       corestore.KVStoreService
 	beaconCfg *config.Beacon
 }
@@ -51,12 +49,10 @@ var _ state.BeaconStateProvider = &Keeper{}
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
-	storeKey storetypes.StoreKey,
 	kvs corestore.KVStoreService,
 	beaconCfg *config.Beacon,
 ) *Keeper {
 	return &Keeper{
-		storeKey:  storeKey,
 		kvs:       kvs,
 		beaconCfg: beaconCfg,
 	}
@@ -67,7 +63,6 @@ func NewKeeper(
 func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return store.NewBeaconStore(
 		ctx,
-		k.storeKey,
 		k.kvs,
 		k.beaconCfg,
 	)
@@ -79,8 +74,12 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	hash := common.HexToHash(data.Eth1GenesisHash)
 
 	// At genesis, we assume that the genesis block is also safe and final.
-	beaconState.SetGenesisEth1Hash(hash)
-	err := beaconState.SetSafeEth1BlockHash(hash)
+	err := beaconState.SetGenesisEth1Hash(hash)
+	if err != nil {
+		// TODO: Should we panic in this case?
+		panic(err)
+	}
+	err = beaconState.SetSafeEth1BlockHash(hash)
 	if err != nil {
 		// TODO: Should we panic in this case?
 		panic(err)
@@ -93,8 +92,12 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 }
 
 // ExportGenesis exports the current state of the beacon module as genesis state.
-func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	return &types.GenesisState{
-		Eth1GenesisHash: k.BeaconState(ctx).GenesisEth1Hash().Hex(),
+func (k *Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
+	genesisHash, err := k.BeaconState(ctx).GenesisEth1Hash()
+	if err != nil {
+		return nil, err
 	}
+	return &types.GenesisState{
+		Eth1GenesisHash: genesisHash.Hex(),
+	}, nil
 }

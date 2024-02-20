@@ -59,10 +59,10 @@ func (s *BeaconStore) GetSafeEth1BlockHash() (common.Hash, error) {
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
 func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) error {
-	return s.fcFinalizedEth1BlockHas.Set(s.sdkCtx, finalizedBlockHash)
+	return s.fcFinalizedEth1BlockHash.Set(s.sdkCtx, finalizedBlockHash)
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
 func (s *BeaconStore) GetFinalizedEth1BlockHash() (common.Hash, error) {
-	return s.fcFinalizedEth1BlockHas.Get(s.sdkCtx)
+	return s.fcFinalizedEth1BlockHash.Get(s.sdkCtx)
 }

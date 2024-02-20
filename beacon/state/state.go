@@ -117,9 +117,9 @@ type ReadOnlyWithdrawals interface {
 }
 
 type ReadOnlyGenesis interface {
-	GenesisEth1Hash() common.Hash
+	GenesisEth1Hash() (common.Hash, error)
 }
 
 type WriteOnlyGenesis interface {
-	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
+	SetGenesisEth1Hash(genesisEth1Hash common.Hash) error
 }
