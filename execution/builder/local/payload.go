@@ -206,7 +206,7 @@ func (s *Service) BuildLocalPayload(
 		return nil, ErrNilPayloadOnValidResponse
 	}
 
-	s.Logger().Info("forkchoice updated with payload attributes for proposal",
+	s.Logger().Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
 		"slot", fcuConfig.ProposingSlot,
 		"payload_id", fmt.Sprintf("%#x", *payloadID),
