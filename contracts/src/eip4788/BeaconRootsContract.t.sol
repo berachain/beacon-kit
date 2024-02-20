@@ -8,7 +8,7 @@ import "../eip4788/BeaconRootsContract.sol";
 /// @title BeaconRootsContractBaseTest
 /// @dev This contract is a baseplate for tests that depend on the BeaconRootsContract.
 contract BeaconRootsContractBaseTest is SoladyTest {
-    uint256 internal constant HISTORY_BUFFER_LENGTH = 256;
+    uint256 internal constant HISTORY_BUFFER_LENGTH = 8191;
     uint256 internal constant BEACON_ROOT_OFFSET = HISTORY_BUFFER_LENGTH;
     uint256 internal constant COINBASE_OFFSET = BEACON_ROOT_OFFSET + HISTORY_BUFFER_LENGTH;
     uint256 internal constant BLOCK_MAPPING_OFFSET = COINBASE_OFFSET + HISTORY_BUFFER_LENGTH;
