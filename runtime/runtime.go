@@ -30,11 +30,15 @@ import (
 
 	"cosmossdk.io/log"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	"github.com/itsdevbear/bolaris/beacon/staking"
+	stakinglogs "github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	builder "github.com/itsdevbear/bolaris/execution/builder/local"
@@ -178,32 +182,31 @@ func NewDefaultBeaconKitRuntime(
 }
 
 // newLogProcessor creates a new log processor with the provided services and options.
-// func newLogProcessor(
-// 	baseService *service.BaseService,
-// 	stakingService *staking.Service,
-// 	eth1Client *eth.Eth1Client,
-// 	cfg *config.Config,
-// ) (*logs.Processor, error) {
-// 	// Build the log processor.
-// 	handlers := make(map[common.Address]logs.Handler)
-// 	stakingLogHandler := service.New[stakinglogs.Handler](
-// 		baseService.WithName("staking"),
-// 		stakinglogs.WithStakingService(stakingService),
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	callbackHandler, err := callback.NewFrom(stakingLogHandler)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
-// 	return logs.NewProcessor(
-// 		logs.WithEthClient(eth1Client),
-// 		logs.WithLogger(logger),
-// 		logs.WithHandlers(handlers),
-// 	)
-// }
+func newLogProcessor(
+	baseService *service.BaseService,
+	stakingService *staking.Service,
+	eth1Client *eth.Eth1Client,
+	cfg *config.Config,
+) (*logs.Processor, error) {
+	// Build the log processor.
+	handlers := make(map[common.Address]logs.Handler)
+	// TODO: It is strange to call `service.New` to create a log handler.
+	// TODO: Consider to move New to a more generic location.
+	stakingLogHandler := service.New[stakinglogs.Handler](
+		stakinglogs.WithBaseService(baseService.WithName("staking-logs")),
+		stakinglogs.WithStakingService(stakingService),
+	)
+	callbackHandler, err := callback.NewFrom(stakingLogHandler)
+	if err != nil {
+		return nil, err
+	}
+	handlers[cfg.Engine.DepositContractAddress] = callbackHandler
+	return logs.NewProcessor(
+		logs.WithEthClient(eth1Client),
+		logs.WithLogger(logger),
+		logs.WithHandlers(handlers),
+	)
+}
 
 // StartServices starts all services in the BeaconKitRuntime's service registry.
 func (r *BeaconKitRuntime) StartServices(cmdCtx context.Context) {

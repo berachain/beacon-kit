@@ -28,6 +28,7 @@ package execution
 import (
 	"context"
 
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -41,6 +42,8 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
+	// lp processes logs from the execution layer.
+	lp logs.Processor
 }
 
 // Start spawns any goroutines required by the service.

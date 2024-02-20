@@ -26,6 +26,7 @@
 package execution
 
 import (
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/execution/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -42,6 +43,13 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 func WithEngineCaller(ec engine.Caller) service.Option[Service] {
 	return func(s *Service) error {
 		s.engine = ec
+		return nil
+	}
+}
+
+func WithLogProcessor(lp logs.Processor) service.Option[Service] {
+	return func(s *Service) error {
+		s.lp = lp
 		return nil
 	}
 }
