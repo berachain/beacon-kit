@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,17 +26,15 @@
 package staking
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"context"
+
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// Service represents the staking service.
-type Service struct {
-	service.BaseService
-
-	// vcp is responsible for applying validator set changes.
-	vcp ValsetChangeProvider
-
-	// depositCache is a cache of deposits that have not yet been applied to store.
-	depositCache []*consensusv1.Deposit
+func (s *Service) ProcessWithdrawal(
+	_ context.Context,
+	_ *enginev1.Withdrawal,
+) error {
+	// TODO: implement
+	return nil
 }

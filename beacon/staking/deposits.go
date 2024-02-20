@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,17 +26,41 @@
 package staking
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"context"
+
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// Service represents the staking service.
-type Service struct {
-	service.BaseService
+// ProcessDeposit processes a deposit log from the execution layer
+// and puts the deposit to the beacon state.
+func (s *Service) ProcessDeposit(
+	_ context.Context,
+	deposit *consensusv1.Deposit,
+) error {
+	// Cache the deposit to be pushed to the queue later in batch.
+	s.depositCache = append(s.depositCache, deposit)
+	s.Logger().Info("delegating from execution layer",
+		"validatorPubkey", deposit.GetPubkey(), "amount", deposit.GetAmount())
+	return nil
+}
 
-	// vcp is responsible for applying validator set changes.
-	vcp ValsetChangeProvider
+// PersistDeposits persists the queued deposists to the keeper.
+func (s *Service) PersistDeposits(ctx context.Context) error {
+	beaconState := s.BeaconState(ctx)
 
-	// depositCache is a cache of deposits that have not yet been applied to store.
-	depositCache []*consensusv1.Deposit
+	// Push the cached deposits to the beacon state's queue.
+	err := beaconState.StoreDeposits(s.depositCache)
+	if err != nil {
+		return err
+	}
+	s.depositCache = nil
+
+	// Get deposits, up to MaxDepositsPerBlock, from the queue.
+	deposits, err := beaconState.PopDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
+	if err != nil {
+		return err
+	}
+
+	// Apply deposists to the staking keeper.
+	return s.vcp.ApplyChanges(ctx, deposits, nil)
 }
