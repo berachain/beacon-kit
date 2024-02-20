@@ -200,13 +200,15 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 		// TODO: properly handle if the EL loses connection, right now
 		// this function will just panic. This function should stay alive
 		// during EL node restarts / disconnections.
-		if err.Error() == "unknown block" {
-			// If the block is unknown, we can just continue and try again.
-			// We set elLatestFinalizedHeader to an empty Header to prevent
-			// a nil ptr dereference further down.
-			elLatestFinalizedHeader = &ethtypes.Header{}
-		} else if err != nil {
-			return err
+		if err != nil {
+			if err.Error() == "unknown block" {
+				// If the block is unknown, we can just continue and try again.
+				// We set elLatestFinalizedHeader to an empty Header to prevent
+				// a nil ptr dereference further down.
+				elLatestFinalizedHeader = &ethtypes.Header{}
+			} else {
+				return err
+			}
 		}
 
 		s.Logger().Info(

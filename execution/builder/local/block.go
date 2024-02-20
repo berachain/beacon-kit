@@ -67,7 +67,9 @@ func (s *Service) RequestBestBlock(
 	}
 
 	s.Logger().Info("payload retrieved from local builder 🏗️",
-		"hash", common.Bytes2Hex(executionData.GetBlockHash()), "override_builder", overrideBuilder)
+		"hash", common.Bytes2Hex(executionData.GetBlockHash()),
+		"override_builder", overrideBuilder,
+	)
 
 	// TODO: Dencun
 	_ = blobsBundle
