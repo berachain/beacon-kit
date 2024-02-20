@@ -74,6 +74,9 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config, bsp BeaconStateProvider, vcp ValsetChangeProvider, logger log.Logger,
 ) (*BeaconKitRuntime, error) {
+	// Set the module as beacon-kit to override the cosmos-sdk naming.
+	logger = logger.With("module", "beacon-kit")
+
 	// Get JWT Secret for eth1 connection.
 	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
 	if err != nil {

@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -196,7 +197,15 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 		elLatestFinalizedHeader, err := s.ethClient.HeaderByNumber(
 			ctx, rpcFinalizedBlockNumber,
 		)
-		if err != nil {
+		// TODO: properly handle if the EL loses connection, right now
+		// this function will just panic. This function should stay alive
+		// during EL node restarts / disconnections.
+		if err.Error() == "unknown block" {
+			// If the block is unknown, we can just continue and try again.
+			// We set elLatestFinalizedHeader to an empty Header to prevent
+			// a nil ptr dereference further down.
+			elLatestFinalizedHeader = &ethtypes.Header{}
+		} else if err != nil {
 			return err
 		}
 
