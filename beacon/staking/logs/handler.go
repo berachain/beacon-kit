@@ -60,13 +60,13 @@ func (s *Handler) ABIEvents() map[string]abi.Event {
 func (s *Handler) Deposit(
 	ctx context.Context,
 	validatorPubkey []byte,
-	withdrawalCredentials []byte,
+	withdrawalCredentials [20]byte,
 	amount uint64,
 ) error {
 	deposit := consensus.NewDeposit(
 		validatorPubkey,
 		amount,
-		withdrawalCredentials,
+		withdrawalCredentials[:],
 	)
 	return s.sks.ProcessDeposit(ctx, deposit)
 }
