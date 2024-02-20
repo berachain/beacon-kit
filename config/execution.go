@@ -62,6 +62,6 @@ func (c Execution) Template() string {
 	return `
 [beacon-kit.beacon-config.execution]
 # DepositContractAddress is the address of the deposit contract.
-deposit-contract-address = {{.BeaconKit.Beacon.Execution.DepositContractAddress}}
+deposit-contract-address = "{{.BeaconKit.Beacon.Execution.DepositContractAddress}}"
 `
 }
