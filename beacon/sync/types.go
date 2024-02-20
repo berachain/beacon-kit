@@ -29,7 +29,6 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
@@ -64,7 +63,6 @@ const (
 type ethClient interface {
 	HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error)
 	HeaderByHash(ctx context.Context, hash common.Hash) (*ethtypes.Header, error)
-	SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error)
 }
 
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
