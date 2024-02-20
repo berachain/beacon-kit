@@ -28,9 +28,11 @@ package keeper
 import (
 	"context"
 
+	corestore "cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
@@ -41,6 +43,7 @@ import (
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	storeKey  storetypes.StoreKey
+	kvs       corestore.KVStoreService
 	beaconCfg *config.Beacon
 }
 
@@ -50,10 +53,12 @@ var _ state.BeaconStateProvider = &Keeper{}
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	storeKey storetypes.StoreKey,
+	kvs corestore.KVStoreService,
 	beaconCfg *config.Beacon,
 ) *Keeper {
 	return &Keeper{
 		storeKey:  storeKey,
+		kvs:       kvs,
 		beaconCfg: beaconCfg,
 	}
 }
@@ -64,6 +69,7 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return store.NewBeaconStore(
 		ctx,
 		k.storeKey,
+		k.kvs,
 		k.beaconCfg,
 	)
 }
