@@ -80,8 +80,16 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 
 	// At genesis, we assume that the genesis block is also safe and final.
 	beaconState.SetGenesisEth1Hash(hash)
-	beaconState.SetSafeEth1BlockHash(hash)
-	beaconState.SetFinalizedEth1BlockHash(hash)
+	err := beaconState.SetSafeEth1BlockHash(hash)
+	if err != nil {
+		// TODO: Should we panic in this case?
+		panic(err)
+	}
+	err = beaconState.SetFinalizedEth1BlockHash(hash)
+	if err != nil {
+		// TODO: Should we panic in this case?
+		panic(err)
+	}
 }
 
 // ExportGenesis exports the current state of the beacon module as genesis state.

@@ -53,6 +53,12 @@ type BeaconStore struct {
 	// depositQueue is a list of depositQueue that are queued to be processed.
 	depositQueue *collections.Queue[*consensusv1.Deposit]
 
+	// fcSafeEth1BlockHash is the safe block hash.
+	fcSafeEth1BlockHash sdkcollections.Item[common.Hash]
+
+	// fcFinalizedEth1BlockHash is the finalized block hash.
+	fcFinalizedEth1BlockHas sdkcollections.Item[common.Hash]
+
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
 	lastValidHash *common.Hash

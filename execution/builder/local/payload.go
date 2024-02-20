@@ -221,7 +221,7 @@ func (s *Service) BuildLocalPayload(
 
 // getParentEth1Hash retrieves the parent block hash for the given slot.
 //
-//nolint:unparam // todo: review this later.
+
 func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
 	// The first slot should be proposed with the genesis block as parent.
 	st := s.BeaconState(ctx)
@@ -230,7 +230,7 @@ func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
 	}
 
 	// We always want the parent block to be the last finalized block.
-	return st.GetFinalizedEth1BlockHash(), nil
+	return st.GetFinalizedEth1BlockHash()
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the given slot.

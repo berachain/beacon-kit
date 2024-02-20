@@ -30,11 +30,3 @@ const (
 	// eth1GenesisHashKey is the key used to store the eth1 genesis hash.
 	eth1GenesisHashKey = "eth1_genesis_hash"
 )
-
-// Forkchoice Related Keys.
-const (
-	// forkchoiceSafeKey is the key used to store the safe block hash.
-	forkchoiceSafeKey = "fc_safe"
-	// forkchoiceFinalizedKey is the key used to store the finalized block hash.
-	forkchoiceFinalizedKey = "fc_finalized"
-)

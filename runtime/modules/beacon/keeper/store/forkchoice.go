@@ -40,41 +40,29 @@ func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
 
 // GetLastValidHead retrieves the last valid head from the store.
 // TODO: Make this in-mem thing more robust.
-func (s *BeaconStore) GetLastValidHead() common.Hash {
+func (s *BeaconStore) GetLastValidHead() (common.Hash, error) {
 	if s.lastValidHash == nil {
 		return s.GetSafeEth1BlockHash()
 	}
-	return *s.lastValidHash
+	return *s.lastValidHash, nil
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
-func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
-	s.Set([]byte(forkchoiceSafeKey), safeBlockHash[:])
+func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) error {
+	return s.fcSafeEth1BlockHash.Set(s.sdkCtx, safeBlockHash)
 }
 
 // GetSafeEth1BlockHash retrieves the safe block hash from the store.
-func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
-	bz := s.Get([]byte(forkchoiceSafeKey))
-	if bz == nil {
-		return common.Hash{}
-	}
-	var safeBlockHash common.Hash
-	copy(safeBlockHash[:], bz)
-	return safeBlockHash
+func (s *BeaconStore) GetSafeEth1BlockHash() (common.Hash, error) {
+	return s.fcSafeEth1BlockHash.Get(s.sdkCtx)
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
-	s.Set([]byte(forkchoiceFinalizedKey), finalizedBlockHash[:])
+func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) error {
+	return s.fcFinalizedEth1BlockHas.Set(s.sdkCtx, finalizedBlockHash)
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
-func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
-	bz := s.Get([]byte(forkchoiceFinalizedKey))
-	if bz == nil {
-		return common.Hash{}
-	}
-	var finalizedBlockHash common.Hash
-	copy(finalizedBlockHash[:], bz)
-	return finalizedBlockHash
+func (s *BeaconStore) GetFinalizedEth1BlockHash() (common.Hash, error) {
+	return s.fcFinalizedEth1BlockHas.Get(s.sdkCtx)
 }
