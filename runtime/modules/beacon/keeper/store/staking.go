@@ -30,13 +30,13 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// StoreDeposits pushes the deposits to the queue.
-func (s *BeaconStore) StoreDeposits(deposit []*consensusv1.Deposit) error {
+// Enqueue pushes the deposits to the queue.
+func (s *BeaconStore) EnqueueDeposits(deposit []*consensusv1.Deposit) error {
 	return s.depositQueue.PushMulti(s.sdkCtx, deposit)
 }
 
-// PopDeposits returns the first n deposits in the queue.
-func (s *BeaconStore) PopDeposits(n uint64) ([]*consensusv1.Deposit, error) {
+// DequeueDeposits returns the first n deposits in the queue.
+func (s *BeaconStore) DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error) {
 	return s.depositQueue.PopMulti(s.sdkCtx, n)
 }
 
