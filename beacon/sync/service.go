@@ -32,10 +32,14 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
+
+// rpcFinalizedBlockNumber is the latest finalized block number as a *big.Int.
+var rpcFinalizedBlockNumber = big.NewInt(int64(rpc.FinalizedBlockNumber))
 
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
@@ -173,38 +177,20 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	ticker := time.NewTicker(3 * time.Second) //nolint:gomnd // 3 seconds is fine.
 	defer ticker.Stop()
 
-	lastestFinalizedQuery := big.NewInt(int64(rpc.FinalizedBlockNumber))
-	elLatestFinalizedHeader, err := s.ethClient.HeaderByNumber(ctx, lastestFinalizedQuery)
-	if err != nil {
-		return err
-	}
-
 	s.Logger().Info("verifying execution client is synced with consensus client 🔎")
 
 	// We will spin here forever until the consensus client and the
 	// execution client, have the same view of the world. This is
 	// important as we don't want to start the beacon chain until
 	// the execution chain is ready to start processing blocks.
+	elLatestFinalizedHeader := new(ethtypes.Header)
 	for clFinalizedHash := bss.clFinalized; clFinalizedHash != elLatestFinalizedHeader.Hash(); {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			// Update the elLatestFinalizedHeader to the latest block to update the for loop
-			// exit variable.
-			elLatestFinalizedHeader, err = s.ethClient.HeaderByNumber(ctx, lastestFinalizedQuery)
-			if err != nil {
-				return err
-			}
-
-			s.Logger().Info(
-				"waiting execution client to sync with consensus client 🔎",
-				"cl_finalized", clFinalizedHash.Hex()[:8]+"...",
-				"el_finalized", elLatestFinalizedHeader.Hash().Hex()[:8]+"...",
-			)
-
 			// We forkchoice here to trigger the execution client to start syncing.
-			if _, err = s.es.NotifyForkchoiceUpdate(
+			if _, err := s.es.NotifyForkchoiceUpdate(
 				ctx,
 				&execution.FCUConfig{
 					HeadEth1Hash: clFinalizedHash,
@@ -215,6 +201,22 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 					"error", err,
 				)
 			}
+
+			// Update the elLatestFinalizedHeader to the latest block to update the for loop
+			// exit variable.
+			var err error
+			if elLatestFinalizedHeader, err = s.ethClient.HeaderByNumber(
+				ctx, rpcFinalizedBlockNumber,
+			); err != nil {
+				return err
+			}
+
+			s.Logger().Info(
+				"waiting for execution client to sync with consensus client 🔎",
+				"cl_finalized", clFinalizedHash.Hex()[:8]+"...",
+				"el_finalized", elLatestFinalizedHeader.Hash().Hex()[:8]+"...",
+			)
+
 		}
 	}
 
