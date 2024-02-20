@@ -63,7 +63,7 @@ func WeiFromBytes(bz []byte) Wei {
 }
 
 // ToGwei converts Wei to uint64 gwei.
-// The input `v` is copied before being modified.
+// It DOES not modify the underlying value.
 func (w Wei) ToGwei() Gwei {
 	if w.Int == nil {
 		return 0
