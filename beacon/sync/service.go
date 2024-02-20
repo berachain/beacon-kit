@@ -190,18 +190,18 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			s.Logger().Info(
-				"waiting for execution client to sync",
-				"cl_finalized", clFinalizedHash.Hex(),
-				"el_finalized", elLatestHeader.Hash().Hex(),
-			)
-
 			// Update the elLatestHeader to the latest block to update the for loop
 			// exit variable.
 			elLatestHeader, err = s.ethClient.HeaderByNumber(ctx, latestBlockNumberQuery)
 			if err != nil {
 				return err
 			}
+
+			s.Logger().Info(
+				"waiting execution client to sync with consensus client 🔎",
+				"cl_finalized", clFinalizedHash.Hex()[:8]+"...",
+				"el_finalized", elLatestHeader.Hash().Hex()[:8]+"...",
+			)
 
 			// We forkchoice here to trigger the execution client to start syncing.
 			if _, err = s.es.NotifyForkchoiceUpdate(
