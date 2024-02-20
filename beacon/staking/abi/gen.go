@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package contracts
+package abi
 
-//go:generate abigen --pkg contracts --abi ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./staking.abigen.go --type Staking
+// This file is used to generate the go bindings for the deposit contract.
+//go:generate abigen --pkg abi --abi ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./staking.abigen.go --type Staking
