@@ -37,9 +37,7 @@ var _ BeaconKitConfig[Execution] = &Execution{}
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultExecutionConfig() Execution {
 	return Execution{
-		// TODO: This is the Ethereum deposit contract address.
-		// TODO: This default value will be changed later.
-		DepositContractAddress: common.HexToAddress("0x00000000219ab540356cBB839Cbe05303d7705Fa"),
+		DepositContractAddress: common.Address{},
 	}
 }
 
@@ -51,8 +49,9 @@ type Execution struct {
 // Parse parses the configuration.
 func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 	var err error
-	c.DepositContractAddress, err = parser.GetExecutionAddress(flags.DepositContractAddress)
-	if err != nil {
+	if c.DepositContractAddress, err = parser.GetExecutionAddress(
+		flags.DepositContractAddress,
+	); err != nil {
 		return nil, err
 	}
 	return &c, nil
