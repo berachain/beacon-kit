@@ -36,7 +36,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-
 	"github.com/itsdevbear/bolaris/io/jwt"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
@@ -70,13 +69,16 @@ func NewEth1Client(opts ...Option) (*Eth1Client, error) {
 
 // Start the powchain service's main event loop.
 func (s *Eth1Client) Start(ctx context.Context) {
-	// Attempt an intial connection.
+	// Attempt an initial connection.
 	s.setupExecutionClientConnection(ctx)
 
 	// We will spin up the execution client connection in a loop until it is connected.
 	for !s.isConnected.Load() {
 		// If we enter this loop, the above connection attempt failed.
-		s.logger.Info("Waiting for connection to execution client...", "dial-url", s.dialURL.String())
+		s.logger.Info(
+			"Waiting for connection to execution client...",
+			"dial-url", s.dialURL.String(),
+		)
 		s.tryConnectionAfter(ctx, s.startupRetryInterval)
 	}
 

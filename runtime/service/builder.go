@@ -23,53 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package evm
+package service
 
-import (
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
-	store "cosmossdk.io/store/types"
-	"github.com/itsdevbear/bolaris/config"
-	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-)
+// Option is a function type that takes a pointer to a Service and returns an error.
+type Option[T any] func(*T) error
 
-//nolint:gochecknoinits // GRRRR fix later.
-func init() {
-	appmodule.Register(&modulev1alpha1.Module{},
-		appmodule.Provide(ProvideModule),
-	)
-}
-
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
-	depinject.In
-
-	ModuleKey depinject.OwnModuleKey
-	Config    *modulev1alpha1.Module
-	Key       *store.KVStoreKey
-
-	BeaconKitConfig *config.Beacon
-}
-
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
-	depinject.Out
-
-	Keeper *keeper.Keeper
-	Module appmodule.AppModule
-}
-
-// ProvideModule is a function that provides the module to the application.
-func ProvideModule(in DepInjectInput) DepInjectOutput {
-	k := keeper.NewKeeper(
-		in.Key,
-		in.BeaconKitConfig,
-	)
-	m := NewAppModule(k)
-
-	return DepInjectOutput{
-		Keeper: k,
-		Module: m,
+// New helps us to create a new Service with the provided options.
+func New[S any](opts ...Option[S]) *S {
+	var s S
+	for _, opt := range opts {
+		if err := opt(&s); err != nil {
+			panic(err)
+		}
 	}
+	return &s
 }

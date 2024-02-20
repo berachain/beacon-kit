@@ -23,53 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package evm
+package staking
 
-import (
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
-	store "cosmossdk.io/store/types"
-	"github.com/itsdevbear/bolaris/config"
-	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-)
+import "github.com/itsdevbear/bolaris/runtime/service"
 
-//nolint:gochecknoinits // GRRRR fix later.
-func init() {
-	appmodule.Register(&modulev1alpha1.Module{},
-		appmodule.Provide(ProvideModule),
-	)
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
+		return nil
+	}
 }
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
-	depinject.In
-
-	ModuleKey depinject.OwnModuleKey
-	Config    *modulev1alpha1.Module
-	Key       *store.KVStoreKey
-
-	BeaconKitConfig *config.Beacon
-}
-
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
-	depinject.Out
-
-	Keeper *keeper.Keeper
-	Module appmodule.AppModule
-}
-
-// ProvideModule is a function that provides the module to the application.
-func ProvideModule(in DepInjectInput) DepInjectOutput {
-	k := keeper.NewKeeper(
-		in.Key,
-		in.BeaconKitConfig,
-	)
-	m := NewAppModule(k)
-
-	return DepInjectOutput{
-		Keeper: k,
-		Module: m,
+// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
+// for the Service. This is used to inject the dependency that handles
+// the application of changes to the validator set.
+func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
+	return func(s *Service) error {
+		s.vcp = vcp
+		return nil
 	}
 }

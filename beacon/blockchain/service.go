@@ -26,8 +26,6 @@
 package blockchain
 
 import (
-	"context"
-
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -35,26 +33,5 @@ import (
 type Service struct {
 	service.BaseService
 	bs BuilderService
-	en ExecutionService
+	es ExecutionService
 }
-
-// NewService returns a new Service.
-func NewService(
-	base service.BaseService,
-	opts ...Option) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Logger().Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}
-
-// Start spawns any goroutines required by the service.
-func (s *Service) Start(context.Context) {}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }

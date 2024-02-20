@@ -51,5 +51,5 @@ type BuilderService interface {
 		parentEth1Hash common.Hash,
 		slot primitives.Slot,
 		timestamp uint64,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	) (*enginev1.PayloadIDBytes, error)
 }

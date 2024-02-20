@@ -26,40 +26,16 @@
 package localbuilder
 
 import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/execution/engine"
+	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a seperate thread
+// TODO: Decouple from ABCI and have this validator run on a separate thread
 // have it configured itself and not be a service persay.
 type Service struct {
 	service.BaseService
-	en           engine.Caller
+	cfg          *config.Builder
+	es           ExecutionService
 	payloadCache *cache.PayloadIDCache
-}
-
-func NewService(
-	base service.BaseService,
-	opts ...Option,
-) *Service {
-	s := &Service{
-		BaseService: base,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
-}
-
-func (s *Service) Start(context.Context) {
-}
-
-func (s *Service) Status() error {
-	return nil
 }

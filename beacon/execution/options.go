@@ -26,24 +26,22 @@
 package execution
 
 import (
-	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/execution/engine"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-type Option func(*Service) error
-
-// WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec engine.Caller) Option {
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
 	return func(s *Service) error {
-		s.engine = ec
+		s.BaseService = base
 		return nil
 	}
 }
 
-// WithPayloadCache is an option to set the PayloadIDCache for the Service.
-func WithPayloadCache(pc *cache.PayloadIDCache) Option {
+// WithEngineCaller is an option to set the Caller for the Service.
+func WithEngineCaller(ec engine.Caller) service.Option[Service] {
 	return func(s *Service) error {
-		s.payloadCache = pc
+		s.engine = ec
 		return nil
 	}
 }

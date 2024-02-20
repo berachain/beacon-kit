@@ -50,7 +50,7 @@ type (
 
 const (
 	// StatusWaiting indicates the initial status of the service, waiting for further actions.
-	StatusWaiting = Status(iota) //nolint:errname // initial status of the service.
+	StatusWaiting = Status(iota)
 	// StatusBeaconAhead indicates that the beacon chain is ahead of the execution chain.
 	StatusBeaconAhead
 	// StatusExecutionAhead indicates that the execution chain is ahead of the beacon chain.

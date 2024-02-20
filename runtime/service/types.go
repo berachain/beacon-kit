@@ -29,8 +29,14 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/beacon/state"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
+}
+
+type ValsetChangeProvider interface {
+	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
 }

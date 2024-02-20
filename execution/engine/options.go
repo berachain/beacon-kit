@@ -29,7 +29,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-
 	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )

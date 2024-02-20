@@ -25,11 +25,18 @@
 
 package sync
 
-// Option is a function that modifies the Service.
-type Option func(*Service) error
+import "github.com/itsdevbear/bolaris/runtime/service"
+
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
+		return nil
+	}
+}
 
 // WithEthClient is an Option that sets the ethClient of the Service.
-func WithEthClient(ethClient ethClient) Option {
+func WithEthClient(ethClient ethClient) service.Option[Service] {
 	return func(s *Service) error {
 		s.ethClient = ethClient
 		return nil
@@ -37,7 +44,7 @@ func WithEthClient(ethClient ethClient) Option {
 }
 
 // WithExecutionService is an Option that sets the ExecutionService of the Service.
-func WithExecutionService(es executionService) Option {
+func WithExecutionService(es executionService) service.Option[Service] {
 	return func(r *Service) error {
 		r.es = es
 		return nil

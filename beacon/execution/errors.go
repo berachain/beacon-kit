@@ -28,8 +28,23 @@ package execution
 import "errors"
 
 var (
-	ErrExecutionClientDisconnected  = errors.New("execution client disconnected")
-	ErrAcceptedSyncingPayloadStatus = errors.New("payload status is SYNCING or ACCEPTED")
-	ErrInvalidPayloadStatus         = errors.New("payload status is INVALID")
-	ErrBadBlockProduced             = errors.New("beacon chain has produced a bad block, RIP walrus")
+	// ErrExecutionClientDisconnected represents an error when
+	/// the execution client is disconnected.
+	ErrExecutionClientDisconnected = errors.New(
+		"execution client disconnected")
+
+	// ErrAcceptedSyncingPayloadStatus represents an error when
+	// the payload status is SYNCING or ACCEPTED.
+	ErrAcceptedSyncingPayloadStatus = errors.New(
+		"payload status is SYNCING or ACCEPTED")
+
+	// ErrInvalidPayloadStatus represents an error when the
+	// payload status is INVALID.
+	ErrInvalidPayloadStatus = errors.New(
+		"payload status is INVALID")
+
+	// ErrBadBlockProduced represents an error when the beacon
+	// chain has produced a bad block.
+	ErrBadBlockProduced = errors.New(
+		"beacon chain has produced a bad block, RIP walrus")
 )
