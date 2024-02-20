@@ -30,12 +30,13 @@ import (
 	"github.com/itsdevbear/bolaris/math"
 
 	// TODO: @ocnc to remove this GPL3 dependency.
-	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
+
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 )
 
 // PayloadValueToWei returns a Wei value given the payload's value.
 func PayloadValueToWei(value []byte) math.Wei {
 	// We have to convert big endian to little endian because the value is coming
 	// from the execution layer.
-	return uint256.NewInt(0).SetBytes(bytesutil.ReverseByteOrder(value))
+	return uint256.NewInt(0).SetBytes(byteslib.CopyAndReverseEndianess(value))
 }

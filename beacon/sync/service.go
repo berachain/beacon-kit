@@ -173,8 +173,8 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	ticker := time.NewTicker(3 * time.Second) //nolint:gomnd // 3 seconds is fine.
 	defer ticker.Stop()
 
-	latestBlockNumberQuery := big.NewInt(int64(rpc.LatestBlockNumber))
-	elLatestHeader, err := s.ethClient.HeaderByNumber(ctx, latestBlockNumberQuery)
+	lastestFinalizedQuery := big.NewInt(int64(rpc.FinalizedBlockNumber))
+	elLatestFinalizedHeader, err := s.ethClient.HeaderByNumber(ctx, lastestFinalizedQuery)
 	if err != nil {
 		return err
 	}
@@ -185,14 +185,14 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	// execution client, have the same view of the world. This is
 	// important as we don't want to start the beacon chain until
 	// the execution chain is ready to start processing blocks.
-	for clFinalizedHash := bss.clFinalized; clFinalizedHash != elLatestHeader.Hash(); {
+	for clFinalizedHash := bss.clFinalized; clFinalizedHash != elLatestFinalizedHeader.Hash(); {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			// Update the elLatestHeader to the latest block to update the for loop
+			// Update the elLatestFinalizedHeader to the latest block to update the for loop
 			// exit variable.
-			elLatestHeader, err = s.ethClient.HeaderByNumber(ctx, latestBlockNumberQuery)
+			elLatestFinalizedHeader, err = s.ethClient.HeaderByNumber(ctx, lastestFinalizedQuery)
 			if err != nil {
 				return err
 			}
@@ -200,7 +200,7 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 			s.Logger().Info(
 				"waiting execution client to sync with consensus client 🔎",
 				"cl_finalized", clFinalizedHash.Hex()[:8]+"...",
-				"el_finalized", elLatestHeader.Hash().Hex()[:8]+"...",
+				"el_finalized", elLatestFinalizedHeader.Hash().Hex()[:8]+"...",
 			)
 
 			// We forkchoice here to trigger the execution client to start syncing.
