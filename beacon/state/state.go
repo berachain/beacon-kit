@@ -108,7 +108,7 @@ type ReadWriteDeposits interface {
 }
 
 type WriteOnlyDeposits interface {
-	StoreDeposits([]*consensusv1.Deposit) error
+	EnqueueDeposits([]*consensusv1.Deposit) error
 }
 
 // ReadOnlyWithdrawals defines a struct which only has read access to withdrawal methods.
