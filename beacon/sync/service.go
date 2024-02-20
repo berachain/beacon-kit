@@ -155,6 +155,9 @@ func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	// First start by checking the sync status.
 	bss := s.CheckSyncStatus(ctx)
+	clFinalizedHash := bss.clFinalized
+
+	s.Logger().Info("verifying execution client is synced with consensus client 🔎")
 
 	// If the beacon chain is ahead of the execution chain, we need to trigger a
 	// forkchoice update to get the execution chain to start syncing, otherwise we
@@ -173,50 +176,50 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	if bytes.Equal(bss.clFinalized.Bytes(), (common.Hash{}).Bytes()) {
 		return nil
 	}
-
-	ticker := time.NewTicker(3 * time.Second) //nolint:gomnd // 3 seconds is fine.
-	defer ticker.Stop()
-
-	s.Logger().Info("verifying execution client is synced with consensus client 🔎")
-
 	// We will spin here forever until the consensus client and the
 	// execution client, have the same view of the world. This is
 	// important as we don't want to start the beacon chain until
 	// the execution chain is ready to start processing blocks.
-	elLatestFinalizedHeader := new(ethtypes.Header)
-	for clFinalizedHash := bss.clFinalized; clFinalizedHash != elLatestFinalizedHeader.Hash(); {
+	for elLatestFinalizedHeader := new(ethtypes.Header); ; {
+		// We forkchoice here to trigger the execution client to start syncing.
+		if _, err := s.es.NotifyForkchoiceUpdate(
+			ctx,
+			&execution.FCUConfig{
+				HeadEth1Hash: clFinalizedHash,
+			},
+		); err != nil {
+			s.Logger().Warn(
+				"failed to send forkchoice update",
+				"error", err,
+			)
+		}
+
+		// Update the elLatestFinalizedHeader to the latest block to update the for loop
+		// exit variable.
+		var err error
+		if elLatestFinalizedHeader, err = s.ethClient.HeaderByNumber(
+			ctx, rpcFinalizedBlockNumber,
+		); err != nil {
+			return err
+		}
+
+		s.Logger().Info(
+			"waiting for execution client to sync with consensus client 🔎",
+			"cl_finalized", clFinalizedHash.Hex()[:8]+"...",
+			"el_finalized", elLatestFinalizedHeader.Hash().Hex()[:8]+"...",
+		)
+
+		// If the execution client has caught up to the consensus client, we can
+		// break out of the loop.
+		if clFinalizedHash == elLatestFinalizedHeader.Hash() {
+			break
+		}
+
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-ticker.C:
-			// We forkchoice here to trigger the execution client to start syncing.
-			if _, err := s.es.NotifyForkchoiceUpdate(
-				ctx,
-				&execution.FCUConfig{
-					HeadEth1Hash: clFinalizedHash,
-				},
-			); err != nil {
-				s.Logger().Warn(
-					"failed to send forkchoice update",
-					"error", err,
-				)
-			}
-
-			// Update the elLatestFinalizedHeader to the latest block to update the for loop
-			// exit variable.
-			var err error
-			if elLatestFinalizedHeader, err = s.ethClient.HeaderByNumber(
-				ctx, rpcFinalizedBlockNumber,
-			); err != nil {
-				return err
-			}
-
-			s.Logger().Info(
-				"waiting for execution client to sync with consensus client 🔎",
-				"cl_finalized", clFinalizedHash.Hex()[:8]+"...",
-				"el_finalized", elLatestFinalizedHeader.Hash().Hex()[:8]+"...",
-			)
-
+		case <-time.After(3 * time.Second): //nolint:gomnd // 3 seconds is fine.
+			continue
 		}
 	}
 
