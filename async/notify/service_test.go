@@ -34,7 +34,6 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
-	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
 )
 
 type TestEvent struct {
@@ -97,7 +96,7 @@ func TestDispatch(t *testing.T) {
 	}()
 
 	// Dispatch an event
-	var event = &feed.Event{
+	event := &notify.Event{
 		Type: 1,
 		Data: "test",
 	}
