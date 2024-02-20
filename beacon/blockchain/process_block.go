@@ -43,13 +43,14 @@ const approximateBlkTime = 3 * time.Second
 func (s *Service) postBlockProcess(
 	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock, isValidPayload bool,
 ) error {
+	nextSlot := blk.GetSlot() + 1
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
 		// If the incoming payload for this block is not valid, we submit a forkchoice to bring us back
 		// to the last valid one.
 		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
 		// TODO: Should introduce the concept of missed slots?
-		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), blk.GetSlot()+1); err != nil {
+		if err := s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead(), nextSlot); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
 		}
 		return ErrInvalidPayload
@@ -69,7 +70,7 @@ func (s *Service) postBlockProcess(
 	// TODO: we should probably just have a validator job in the background that is
 	// constantly building new payloads and then not worry about anything here triggering
 	// payload builds.
-	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), blk.GetSlot()+1)
+	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), nextSlot)
 }
 
 // sendFCU sends a forkchoice update to the execution client.
@@ -109,6 +110,12 @@ func (s *Service) sendFCUViaExecutionService(
 func (s *Service) sendFCUViaLocalBuilder(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
+	// Under the hood, the builder service will send a forkchoice update with attributes
+	// which in the case of a valid forkchoice update, will trigger a payload build.
+	//
+	//nolint:lll // link.
+	// https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md?plain=1#engine_forkchoiceupdatedv1
+	//
 	//#nosec:G701 // won't overflow, time cannot be negative.
 	if payloadID, err := s.bs.BuildLocalPayload(
 		ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
@@ -119,8 +126,8 @@ func (s *Service) sendFCUViaLocalBuilder(
 		return ErrInvalidPayload
 	} else if err != nil {
 		// If we see an error here, we fallback to submitting a forkchoice without building a payload.
-		// Incase there is a block building issue, but the payload was still totally valid, we don't
-		// want this node to reject the block.
+		// In the case there is a block building issue, but the payload was still totally valid,
+		// we don't want this node to reject the block.
 		s.Logger().Warn(
 			"failed to send forkchoice update via local builder",
 			"error", err)

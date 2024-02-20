@@ -42,7 +42,7 @@ func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
 // TODO: Make this in-mem thing more robust.
 func (s *BeaconStore) GetLastValidHead() common.Hash {
 	if s.lastValidHash == nil {
-		return s.GetFinalizedEth1BlockHash()
+		return s.GetSafeEth1BlockHash()
 	}
 	return *s.lastValidHash
 }
