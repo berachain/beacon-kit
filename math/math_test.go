@@ -49,7 +49,8 @@ func TestWeiToGwei(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := math.WeiToGwei(tt.v); got != tt.want {
+			got := math.Wei{tt.v}.ToGwei()
+			if got != tt.want {
 				t.Errorf("WeiToGwei() = %v, want %v", got, tt.want)
 			}
 		})
@@ -58,8 +59,31 @@ func TestWeiToGwei(t *testing.T) {
 
 func TestWeiToGwei_CopyOk(t *testing.T) {
 	v := uint256.NewInt(1e9)
-	got := math.WeiToGwei(v)
+	got := math.Wei{v}.ToGwei()
 
 	require.Equal(t, math.Gwei(1), got, "conversion result mismatch")
 	require.Equal(t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
+}
+
+func TestWeiToEther(t *testing.T) {
+	tests := []struct {
+		name string
+		v    *uint256.Int
+		want string
+	}{
+		{"just below 1 Ether", uint256.NewInt(1e18 - 1e14), "0.9999"},
+		{"exactly 1 Ether", uint256.NewInt(1e18), "1.0000"},
+		{"1.5 Ether", uint256.NewInt(15e17), "1.5000"},
+		{"10 Ether", uint256.NewInt(1e19), "10.0000"},
+		{"large number", uint256.NewInt(1e18 - 1e17), "0.9000"},
+		{"edge case large number", uint256.NewInt(9999900000e9), "9.9999"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := math.Wei{tt.v}.ToEther()
+			if got != tt.want {
+				t.Errorf("WeiToEther() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

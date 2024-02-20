@@ -26,7 +26,6 @@
 package enginev1
 
 import (
-	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	"github.com/itsdevbear/bolaris/math"
@@ -75,11 +74,12 @@ func (p *ExecutionPayloadContainer) ToProto() proto.Message {
 // GetValue returns the value of the payload.
 func (p *ExecutionPayloadContainer) GetValue() math.Wei {
 	if p.PayloadValue == nil {
-		return math.ZeroWei()
+		return math.Wei{}
 	}
 
-	return uint256.NewInt(0).SetBytes(
-		byteslib.CopyAndReverseEndianess(p.GetPayloadValue()))
+	// We have to convert big endian to little endian because the value is coming
+	// from the execution layer.
+	return math.WeiFromBytes(byteslib.CopyAndReverseEndianess(p.GetPayloadValue()))
 }
 
 // GetBlockHash retrieves the block hash from the payload.

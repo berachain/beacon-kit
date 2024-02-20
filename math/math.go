@@ -26,41 +26,56 @@
 package math
 
 import (
+	"fmt"
+
 	"github.com/holiman/uint256"
 )
 
-// GweiPerEth is the number of Gwei in an Eth.
-const GweiPerEth = 1e9
+const (
+	// WeiPerEther is the number of Wei in an Eth.
+	WeiPerEther = 1e18
+
+	// GweiPerEther is the number of Gwei in an Eth.
+	GweiPerEther = 1e9
+
+	// WeiPerGwei is the number of Wei in a Gwei.
+	WeiPerGwei = 1e9
+)
 
 type (
 	// Wei is the smallest unit of Ether, represented as a pointer to a Uint256.
-	Wei = *uint256.Int
+	Wei struct {
+		*uint256.Int
+	}
+
 	// Gwei is a denomination of 1e9 Wei represented as an uint64.
 	Gwei uint64
 )
 
-// BytesToWei converts a byte slice to a Wei.
-func BytesToWei(v []byte) Wei {
-	return uint256.NewInt(0).SetBytes(v)
+// ZeroWei returns a zero Wei.
+func ZeroWei() Wei {
+	return Wei{uint256.NewInt(0)}
 }
 
-// WeiToBytes converts a Wei to a byte slice.
-func WeiToBytes(v Wei) []byte {
-	return v.Bytes()
+// WeiFromBytes converts a Wei to a byte slice.
+func WeiFromBytes(bz []byte) Wei {
+	return Wei{uint256.NewInt(0).SetBytes(bz)}
 }
 
-// WeiToGwei converts Wei to uint64 gwei.
-// The input `v` is copied before being modified.
-func WeiToGwei(v Wei) Gwei {
-	if v == nil {
+// ToGwei converts Wei to uint64 gwei.
+// It DOES not modify the underlying value.
+func (w Wei) ToGwei() Gwei {
+	if w.Int == nil {
 		return 0
 	}
-	copied := new(uint256.Int).Set(v)
-	copied.Div(copied, uint256.NewInt(GweiPerEth))
+	copied := new(uint256.Int).Set(w.Int)
+	copied.Div(copied, uint256.NewInt(WeiPerGwei))
 	return Gwei(copied.Uint64())
 }
 
-// ZeroWei returns a zero Wei.
-func ZeroWei() Wei {
-	return uint256.NewInt(0)
+// WeiToEther returns the value of a Wei as an Ether.
+// FOR DISPLAY PURPOSES ONLY. Do not use for actual
+// blockchain things.
+func (w Wei) ToEther() string {
+	return fmt.Sprintf("%.4f", w.Int.Float64()/WeiPerEther)
 }
