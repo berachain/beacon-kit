@@ -28,6 +28,7 @@ package localbuilder
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -66,7 +67,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	s.Logger().Info("payload retrieved from local builder 🏗️",
-		"hash", executionData.GetBlockHash(), "override_builder", overrideBuilder)
+		"hash", common.Bytes2Hex(executionData.GetBlockHash()), "override_builder", overrideBuilder)
 
 	// TODO: Dencun
 	_ = blobsBundle
