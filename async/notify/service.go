@@ -28,20 +28,19 @@ package notify
 import (
 	"context"
 
-	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Service represents the BeaconKit notification service. It is used to register
 // event feeds and handlers, and dispatch events to the handlers.
 // It leverages GrandCentralDispatch to dispatch events to handlers.
 type Service struct {
+	service.BaseService
+
 	// running is a boolean that indicates whether the service is running or not.
 	running bool
-
-	// logger is an instance of the logger.
-	logger log.Logger
 
 	// feeds is a map that holds the event feeds.
 	feeds map[string]*event.Feed
@@ -51,21 +50,6 @@ type Service struct {
 
 	// dispatch is an instance of GrandCentralDispatch.
 	gcd GrandCentralDispatch
-}
-
-// NewService creates a new Service.
-func NewService(opts ...Option) *Service {
-	s := &Service{
-		feeds:    make(map[string]*event.Feed),
-		handlers: make(map[string][]eventHandlerQueuePair),
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
 }
 
 // Start spawns any goroutines required by the service.
