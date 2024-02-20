@@ -29,8 +29,10 @@ import (
 	"bytes"
 	"context"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -144,10 +146,10 @@ func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 	}
 }
 
-// CheckSyncStatusAndForkchoice is a helper function that calls CheckSyncStatus
+// WaitForExecutionClientSync is a helper function that calls CheckSyncStatus
 // and then triggers a forkchoice update if the beacon chain is ahead of the
 // execution chain.
-func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
+func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	// First start by checking the sync status.
 	bss := s.CheckSyncStatus(ctx)
 
@@ -163,14 +165,68 @@ func (s *Service) CheckSyncStatusAndForkchoice(ctx context.Context) error {
 	}
 
 	// Only forkchoice update if the beacon chain has a valid finalized block.
-	if !bytes.Equal(bss.clFinalized.Bytes(), (common.Hash{}).Bytes()) {
-		_, err := s.es.NotifyForkchoiceUpdate(
-			ctx,
-			&execution.FCUConfig{
-				HeadEth1Hash: bss.clFinalized,
-			},
-		)
+	// This is a hack at genesis to prevent the forkchoice update from being
+	// called before InitGenesis, this should be fixed later on.
+	if bytes.Equal(bss.clFinalized.Bytes(), (common.Hash{}).Bytes()) {
+		return nil
+	}
+
+	clFinalized, err := s.ethClient.HeaderByHash(ctx, bss.clFinalized)
+	if err != nil {
 		return err
 	}
+
+	ticker := time.NewTicker(3 * time.Second) //nolint:gomnd // 3 seconds is fine.
+	defer ticker.Stop()
+
+	var elLatestHeader *types.Header
+	latestBlockNumberQuery := big.NewInt(int64(rpc.LatestBlockNumber))
+	elLatestHeader, err = s.ethClient.HeaderByNumber(ctx, latestBlockNumberQuery)
+	if err != nil {
+		return err
+	}
+
+	s.Logger().Info("verifying execution client is synced with consensus client 🔎")
+
+	// We will spin here forever until the consensus client and the
+	// execution client, have the same view of the world. This is
+	// important as we don't want to start the beacon chain until
+	// the execution chain is ready to start processing blocks.
+	for clFinalizedHash := clFinalized.Hash(); clFinalizedHash != elLatestHeader.Hash(); {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			s.Logger().Info(
+				"waiting for execution client to sync",
+				"cl_finalized", clFinalizedHash.Hex(),
+				"cl_finalized_num", clFinalized.Number.Uint64(),
+				"el_finalized", elLatestHeader.Hash().Hex(),
+				"el_finalized_num", elLatestHeader.Number.Uint64(),
+			)
+
+			// Update the elLatestHeader to the latest block to update the for loop
+			// exit variable.
+			elLatestHeader, err = s.ethClient.HeaderByNumber(ctx, latestBlockNumberQuery)
+			if err != nil {
+				return err
+			}
+
+			// We forkchoice here to trigger the execution client to start syncing.
+			if _, err = s.es.NotifyForkchoiceUpdate(
+				ctx,
+				&execution.FCUConfig{
+					HeadEth1Hash: clFinalizedHash,
+				},
+			); err != nil {
+				s.Logger().Warn(
+					"failed to send forkchoice update",
+					"error", err,
+				)
+			}
+		}
+	}
+
+	s.Logger().Info("execution client is synced with consensus client 🎉")
 	return nil
 }

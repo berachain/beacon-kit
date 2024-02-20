@@ -87,16 +87,14 @@ func (s *Service) sendFCU(
 		// If the forkchoice update was sent successfully, we return nil. Otherwise we
 		// ignore the error and fallthrough to attempt to send the forkchoice update to
 		// the execution client without a payload build.
-		if err := s.sendFCUViaLocalBuilder(
-			ctx, headEth1Hash, proposingSlot,
-		); err == nil {
+		err := s.sendFCUViaLocalBuilder(ctx, headEth1Hash, proposingSlot)
+		if err == nil {
 			return nil
-		} else {
-			s.Logger().Warn(
-				"failed to send forkchoice update - resending w/o payload...",
-				"error", err,
-			)
 		}
+		s.Logger().Warn(
+			"failed to send forkchoice update - resending w/o payload...",
+			"error", err,
+		)
 	}
 
 	// Send the forkchoice update to the execution client via the execution service.

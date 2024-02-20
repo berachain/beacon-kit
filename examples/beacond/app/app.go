@@ -26,6 +26,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -197,6 +198,14 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
+	ctx := cosmos.NewEmptyContextWithMS(context.Background(), app.CommitMultiStore())
+	app.BeaconKitRunner.StartServices(ctx)
+
+	// Initial check for execution client sync.
+	if err := app.BeaconKitRunner.InitialSyncCheck(ctx); err != nil {
+		panic(err)
+	}
+
 	return app
 }
 
@@ -244,10 +253,4 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
 	app.BeaconKitRunner.SetCometCfg(v.Config)
-	app.BeaconKitRunner.StartServices(ctx)
-
-	// Initial check for execution client sync.
-	if err := app.BeaconKitRunner.InitialSyncCheck(ctx); err != nil {
-		panic(err)
-	}
 }
