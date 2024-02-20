@@ -76,7 +76,10 @@ func (s *Eth1Client) Start(ctx context.Context) {
 	// We will spin up the execution client connection in a loop until it is connected.
 	for !s.isConnected.Load() {
 		// If we enter this loop, the above connection attempt failed.
-		s.logger.Info("Waiting for connection to execution client...", "dial-url", s.dialURL.String())
+		s.logger.Info(
+			"Waiting for connection to execution client...",
+			"dial-url", s.dialURL.String(),
+		)
 		s.tryConnectionAfter(ctx, s.startupRetryInterval)
 	}
 

@@ -35,3 +35,29 @@ type Service struct {
 	bs BuilderService
 	es ExecutionService
 }
+
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
+		return nil
+	}
+}
+
+// WithBuilderService is a function that returns an Option.
+// It sets the BuilderService of the Service to the provided Service.
+func WithBuilderService(bs BuilderService) service.Option[Service] {
+	return func(s *Service) error {
+		s.bs = bs
+		return nil
+	}
+}
+
+// WithExecutionService is a function that returns an Option.
+// It sets the ExecutionService of the Service to the provided Service.
+func WithExecutionService(es ExecutionService) service.Option[Service] {
+	return func(s *Service) error {
+		s.es = es
+		return nil
+	}
+}

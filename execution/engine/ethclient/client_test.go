@@ -114,7 +114,8 @@ func TestNewPayloadV2_BasicSanityCheck(t *testing.T) {
 			payload := &enginev1.ExecutionPayloadCapella{}
 
 			mockRPCClient.EXPECT().
-				CallContext(mock.Anything, mock.Anything, ethclient.NewPayloadMethodV2, payload).
+				CallContext(mock.Anything, mock.Anything,
+					ethclient.NewPayloadMethodV2, payload).
 				Return(tt.ret).
 				Once()
 

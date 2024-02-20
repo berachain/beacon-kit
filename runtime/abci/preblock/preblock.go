@@ -91,14 +91,17 @@ func NewBeaconPreBlockHandler(
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
 func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
-	return func(ctx sdk.Context, req *cometabci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+	return func(
+		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
+	) (*sdk.ResponsePreBlock, error) {
 		// Extract the beacon block from the ABCI request.
 		//
 		// TODO: I don't love how we have to use the BeaconConfig here.
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
 		beaconBlock, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
-			req, h.cfg.BeaconBlockPosition, h.chainService.BeaconCfg().ActiveForkVersion(
+			req, h.cfg.BeaconBlockPosition,
+			h.chainService.BeaconCfg().ActiveForkVersion(
 				primitives.Epoch(req.Height),
 			),
 		)

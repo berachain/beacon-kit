@@ -171,8 +171,9 @@ func NewDefaultBeaconKitRuntime(
 			service.WithService(builderService),
 			service.WithService(stakingService),
 		)), WithBeaconStateProvider(bsp),
-		// We put the eth1 client in the BeaconKitRuntime so we can attach the cmd.Context to it.
-		// This is necessary for the eth1 client to be able to shut down gracefully.
+		// We put the eth1 client in the BeaconKitRuntime so we can attach the
+		// cmd.Context to it. This is necessary for the eth1 client to be able
+		// to shut down gracefully.
 		WithEth1Client(eth1Client),
 	)
 }
