@@ -27,4 +27,4 @@ package abi
 
 // This file is used to generate the go bindings for the deposit contract.
 // TODO: Change to the actual implementation of the deposit contract.
-//go:generate abigen --pkg abi --abi ../../../contracts/out/Staking.sol/Staking.abi.json --bin ../../../contracts/out/Staking.sol/Staking.bin --out ./staking.abigen.go --type Staking
+//go:generate abigen --pkg abi --abi ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./staking.abigen.go --type Staking
