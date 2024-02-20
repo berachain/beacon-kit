@@ -28,6 +28,7 @@ package logs_test
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -40,19 +41,29 @@ var _ logs.StakingService = &mockStakingService{}
 type mockStakingService struct {
 	depositQueue    []*consensusv1.Deposit
 	withdrawalQueue []*enginev1.Withdrawal
+	mu              sync.RWMutex
 }
 
 func (m *mockStakingService) ProcessDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.depositQueue = append(m.depositQueue, deposit)
 	return nil
 }
 
 func (m *mockStakingService) PersistDeposits(_ context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.depositQueue = nil
 	return nil
 }
 
 func (m *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	if len(m.depositQueue) == 0 {
 		return nil, errors.New("no deposits")
 	}
@@ -60,11 +71,17 @@ func (m *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
 }
 
 func (m *mockStakingService) ProcessWithdrawal(_ context.Context, withdrawal *enginev1.Withdrawal) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.withdrawalQueue = append(m.withdrawalQueue, withdrawal)
 	return nil
 }
 
 func (m *mockStakingService) mostRecentWithdrawal() (*enginev1.Withdrawal, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	if len(m.withdrawalQueue) == 0 {
 		return nil, errors.New("no withdrawals")
 	}

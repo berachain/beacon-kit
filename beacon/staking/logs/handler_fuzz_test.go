@@ -1,0 +1,74 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+package logs_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/stretchr/testify/require"
+)
+
+func FuzzHandlerSimple(f *testing.F) {
+	// Setup
+	ctx := context.Background()
+	stakingService := &mockStakingService{}
+	callbackHandler, err := newCallbackHandler(stakingService)
+	require.NoError(f, err)
+
+	events, err := depositContractEvents()
+	require.NoError(f, err)
+
+	depositEventName := "Deposit"
+	depositEvent := events[depositEventName]
+
+	// withdrawalEventName := "Withdrawal"
+	// withdrawalEvent := events[withdrawalEventName]
+
+	f.Add([]byte("pubkey"), uint64(1), []byte("12345678901234567890"))
+	f.Fuzz(func(t *testing.T, pubKey []byte, amount uint64, withdrawalCredentials []byte) {
+		if len(withdrawalCredentials) != 20 {
+			t.Skip()
+		}
+		// Deposit
+		deposit := consensus.NewDeposit(pubKey, amount, withdrawalCredentials[:])
+		log, err := newLogFromDeposit(depositEvent, deposit)
+		require.NoError(t, err)
+
+		err = callbackHandler.HandleLog(ctx, &log)
+		require.NoError(t, err)
+
+		latestDeposit, err := stakingService.mostRecentDeposit()
+		require.NoError(t, err)
+		require.Equal(t, deposit.Pubkey, latestDeposit.Pubkey)
+		require.Equal(t, deposit.Amount, latestDeposit.Amount)
+		require.Equal(t, deposit.WithdrawalCredentials, latestDeposit.WithdrawalCredentials)
+
+		// err = stakingService.PersistDeposits(ctx)
+		// require.NoError(t, err)
+	})
+}
