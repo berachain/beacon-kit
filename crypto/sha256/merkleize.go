@@ -47,6 +47,8 @@ import (
 //	         [ Root ]  The root hash of the Merkle tree
 //
 // BuildMerkleRoot constructs a Hash Tree Root (HTR) from a list of elements.
+//
+//nolint:dupword
 func BuildMerkleRoot[T Hashable](elements []T, maxRootsAllowed uint64) ([32]byte, error) {
 	roots, err := HashElements(elements)
 	if err != nil {
@@ -81,6 +83,8 @@ func BuildMerkleRoot[T Hashable](elements []T, maxRootsAllowed uint64) ([32]byte
 // BuildMerkleRootAndMixinLength hashes each element in the list and then returns the HTR
 // of the corresponding list of roots. It then appends the length of the roots to the
 // end of the byteRoots and further hashes the result to return the final HTR.
+//
+//nolint:dupword
 func BuildMerkleRootAndMixinLength[T Hashable](
 	elements []T, maxRootsAllowed uint64,
 ) ([32]byte, error) {

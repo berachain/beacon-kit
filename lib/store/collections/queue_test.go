@@ -33,9 +33,8 @@ import (
 	"cosmossdk.io/core/store"
 	dba "cosmossdk.io/store/dbadapter"
 	db "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/require"
-
 	"github.com/itsdevbear/bolaris/lib/store/collections"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Queue(t *testing.T) {
@@ -216,7 +215,7 @@ type MockStore struct {
 }
 
 // OpenKVStore returns the underlying KVStore from the Store.
-func (s MockStore) OpenKVStore(ctx context.Context) store.KVStore {
+func (s MockStore) OpenKVStore(context.Context) store.KVStore {
 	return s.DB
 }
 

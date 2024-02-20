@@ -1,7 +1,7 @@
 # This code is licensed under the terms of the MIT license https://opensource.org/license/mit
 # Copyright (c) 2021 Marat Reymers
 
-## Golden config for golangci-lint v1.55.2
+## Golden config for golangci-lint v1.56.2
 #
 # This is the best config for golangci-lint based on my experience and opinion.
 # It is very strict, but not extremely strict.
@@ -39,7 +39,8 @@ linters-settings:
       - map
 
   exhaustruct:
-    # List of regular expressions to exclude struct packages and names from check.
+    # List of regular expressions to exclude struct packages and their names from checks.
+    # Regular expressions must match complete canonical struct package/name/structname.
     # Default: []
     exclude:
       # std libs
@@ -159,6 +160,11 @@ linters-settings:
     # Tab width in spaces.
     # Default: 1
     tab-width: 4
+ 
+  inamedparam:
+    # Skips check for interface methods with only a single parameter.
+    # Default: false
+    skip-single-param: true
 
   nakedret:
     # Make an issue if func has more lines of code than this setting, and it has naked returns.
@@ -168,7 +174,7 @@ linters-settings:
   nolintlint:
     # Exclude following linters from requiring an explanation.
     # Default: []
-    allow-no-explanation: [ funlen, gocognit, lll ]
+    allow-no-explanation: [ funlen, gocognit, lll, dupword]
     # Enable to require an explanation of nonzero length after each nolint directive.
     # Default: false
     require-explanation: true
@@ -187,6 +193,7 @@ linters-settings:
     # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
     # Default: false
     all: true
+
 
 linters:
   disable-all: true
@@ -250,6 +257,7 @@ linters:
     - revive # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
     - rowserrcheck # checks whether Err of rows is checked successfully
     - sloglint # ensure consistent code style when using log/slog
+    - spancheck # checks for mistakes with OpenTelemetry/Census spans
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
     - stylecheck # is a replacement for golint
     - tenv # detects using os.Setenv instead of t.Setenv since Go1.17
@@ -262,42 +270,42 @@ linters:
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - wastedassign # finds wasted assignment statements
     - whitespace # detects leading and trailing whitespace
-
+    
     ## you may want to enable
-    #- decorder # checks declaration order and count of types, constants, variables and functions
+    - decorder # checks declaration order and count of types, constants, variables and functions
     #- exhaustruct # [highly recommend to enable] checks if all structure fields are initialized
-    #- gci # controls golang package import order and makes it always deterministic
+    - gci # controls golang package import order and makes it always deterministic
     #- ginkgolinter # [if you use ginkgo/gomega] enforces standards of using ginkgo and gomega
     #- godox # detects FIXME, TODO and other comment keywords
-    #- goheader # checks is file header matches to pattern
+    - goheader # checks is file header matches to pattern
     #- inamedparam # [great idea, but too strict, need to ignore a lot of cases by default] reports interfaces with unnamed method parameters
     #- interfacebloat # checks the number of methods inside an interface
     #- ireturn # accept interfaces, return concrete types
-    #- prealloc # [premature optimization, but can be used in some cases] finds slice declarations that could potentially be preallocated
+    - prealloc # [premature optimization, but can be used in some cases] finds slice declarations that could potentially be preallocated
     #- tagalign # checks that struct tags are well aligned
     #- varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
     #- wrapcheck # checks that errors returned from external packages are wrapped
-    #- zerologlint # detects the wrong usage of zerolog that a user forgets to dispatch zerolog.Event
+    - zerologlint # detects the wrong usage of zerolog that a user forgets to dispatch zerolog.Event
 
     ## disabled
     #- containedctx # detects struct contained context.Context field
-    #- contextcheck # [too many false positives] checks the function whether use a non-inherited context
+    - contextcheck # [too many false positives] checks the function whether use a non-inherited context
     #- depguard # [replaced by gomodguard] checks if package imports are in a list of acceptable packages
-    #- dogsled # checks assignments with too many blank identifiers (e.g. x, _, _, _, := f())
-    #- dupword # [useless without config] checks for duplicate words in the source code
+    - dogsled # checks assignments with too many blank identifiers (e.g. x, _, _, _, := f())
+    - dupword # [useless without config] checks for duplicate words in the source code
     #- errchkjson # [don't see profit + I'm against of omitting errors like in the first example https://github.com/breml/errchkjson] checks types passed to the json encoding functions. Reports unsupported types and optionally reports occasions, where the check for the returned error can be omitted
     #- forcetypeassert # [replaced by errcheck] finds forced type assertions
     #- goerr113 # [too strict] checks the errors handling expressions
     #- gofmt # [replaced by goimports] checks whether code was gofmt-ed
     #- gofumpt # [replaced by goimports, gofumports is not available yet] checks whether code was gofumpt-ed
-    #- gosmopolitan # reports certain i18n/l10n anti-patterns in your Go codebase
-    #- grouper # analyzes expression groups
-    #- importas # enforces consistent import aliases
-    #- maintidx # measures the maintainability index of each function
-    #- misspell # [useless] finds commonly misspelled English words in comments
+    - gosmopolitan # reports certain i18n/l10n anti-patterns in your Go codebase
+    - grouper # analyzes expression groups
+    - importas # enforces consistent import aliases
+    - maintidx # measures the maintainability index of each function
+    - misspell # [useless] finds commonly misspelled English words in comments
     #- nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
     #- paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
-    #- tagliatelle # checks the struct tags
+    - tagliatelle # checks the struct tags
     #- thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
 
@@ -334,4 +342,7 @@ issues:
         - gosec
         - noctx
         - wrapcheck
-        - revive
+
+    # TODO: remove after PR is released https://github.com/golangci/golangci-lint/pull/4386
+    - text: "fmt.Sprintf can be replaced with string addition"
+      linters: [ perfsprint ]

@@ -49,7 +49,7 @@ type Validator struct {
 	// produced by any blocks from this node.
 	SuggestedFeeRecipient common.Address
 
-	// Grafitti is the string that will be included in the graffiti field of the beacon block.
+	// Graffiti is the string that will be included in the graffiti field of the beacon block.
 	Graffiti string
 
 	// Rando reveals to track

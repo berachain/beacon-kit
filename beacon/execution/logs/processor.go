@@ -29,15 +29,12 @@ import (
 	"context"
 	"math/big"
 
-	"cosmossdk.io/log"
-
 	"cosmossdk.io/errors"
-
+	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
-
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 )

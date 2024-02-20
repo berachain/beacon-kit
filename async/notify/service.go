@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-
 	"github.com/prysmaticlabs/prysm/v5/async/event"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
 )

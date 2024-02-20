@@ -26,20 +26,17 @@
 package evm
 
 import (
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-
 	"cosmossdk.io/core/appmodule"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
+	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 // ConsensusVersion defines the current x/beacon module consensus version.

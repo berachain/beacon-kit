@@ -99,7 +99,7 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 	return nil
 }
 
-// tryConnectionAfter attemps a connection after a given interval.
+// tryConnectionAfter attempts a connection after a given interval.
 func (s *Eth1Client) tryConnectionAfter(ctx context.Context, interval time.Duration) {
 	select {
 	case <-ctx.Done():

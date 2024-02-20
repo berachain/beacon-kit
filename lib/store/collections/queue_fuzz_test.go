@@ -29,9 +29,8 @@ import (
 	"testing"
 
 	sdk "cosmossdk.io/collections"
-	"github.com/stretchr/testify/require"
-
 	"github.com/itsdevbear/bolaris/lib/store/collections"
+	"github.com/stretchr/testify/require"
 )
 
 func FuzzQueueSimple(f *testing.F) {

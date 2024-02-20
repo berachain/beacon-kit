@@ -29,17 +29,14 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-
 	cometabci "github.com/cometbft/cometbft/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 type BeaconKeeper interface {
