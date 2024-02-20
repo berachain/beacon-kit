@@ -73,9 +73,9 @@ func (w Wei) ToGwei() Gwei {
 	return Gwei(copied.Uint64())
 }
 
-// WeiAsEther returns the value of a Wei as an Ether.
+// WeiToEther returns the value of a Wei as an Ether.
 // FOR DISPLAY PURPOSES ONLY. Do not use for actual
 // blockchain things.
-func (w Wei) AsEther() string {
+func (w Wei) ToEther() string {
 	return fmt.Sprintf("%.4f", w.Int.Float64()/WeiPerEther)
 }

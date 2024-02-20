@@ -248,7 +248,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		"slot", slot,
 		"block_hash", common.BytesToHash(payload.GetBlockHash()),
 		"parent_hash", common.BytesToHash(payload.GetParentHash()),
-		"value", payload.GetValue().AsEther(),
+		"value", payload.GetValue().ToEther(),
 		"override_builder", overrideBuilder,
 		"num_blobs", len(blobsBundle.GetBlobs()),
 	)

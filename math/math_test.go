@@ -65,7 +65,7 @@ func TestWeiToGwei_CopyOk(t *testing.T) {
 	require.Equal(t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
 }
 
-func TestWeiAsEther(t *testing.T) {
+func TestWeiToEther(t *testing.T) {
 	tests := []struct {
 		name string
 		v    *uint256.Int
@@ -80,9 +80,9 @@ func TestWeiAsEther(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := math.Wei{tt.v}.AsEther()
+			got := math.Wei{tt.v}.ToEther()
 			if got != tt.want {
-				t.Errorf("WeiAsEther() = %v, want %v", got, tt.want)
+				t.Errorf("WeiToEther() = %v, want %v", got, tt.want)
 			}
 		})
 	}
