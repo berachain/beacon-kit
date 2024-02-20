@@ -241,6 +241,10 @@ func (s *Service) getPayloadFromExecutionClient(
 	slot primitives.Slot,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(ctx, payloadID, slot)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
 	s.Logger().Info("payload retrieved from local builder 🏗️",
 		"slot", slot,
 		"block_hash", common.BytesToHash(payload.GetBlockHash()),
