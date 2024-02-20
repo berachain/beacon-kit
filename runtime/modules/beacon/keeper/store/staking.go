@@ -30,7 +30,7 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// Enqueue pushes the deposits to the queue.
+// EnqueueDeposits pushes the deposits to the queue.
 func (s *BeaconStore) EnqueueDeposits(deposit []*consensusv1.Deposit) error {
 	return s.depositQueue.PushMulti(s.sdkCtx, deposit)
 }
