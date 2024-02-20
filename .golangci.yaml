@@ -182,11 +182,6 @@ linters-settings:
     # Default: false
     require-specific: true
 
-  perfsprint:
-    # Optimizes into strings concatenation.
-    # Default: true
-    strconcat: false
-
   rowserrcheck:
     # database/sql is always checked
     # Default: []
