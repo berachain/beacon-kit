@@ -68,7 +68,8 @@ func (s *Service) notifyNewPayload(
 	switch {
 	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
-			"head_eth1_hash", common.Bytes2Hex(payload.GetBlockHash()),
+			"block_hash", common.BytesToHash(payload.GetBlockHash()),
+			"parent_hash", common.BytesToHash(payload.GetParentHash()),
 			"slot", beaconState.Slot,
 		)
 		return false, nil

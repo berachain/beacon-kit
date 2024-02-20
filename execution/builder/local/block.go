@@ -28,7 +28,6 @@ package localbuilder
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -59,17 +58,12 @@ func (s *Service) RequestBestBlock(
 		return nil, err
 	}
 
-	executionData, blobsBundle, overrideBuilder, err := s.GetOrBuildLocalPayload(
+	payload, blobsBundle, overrideBuilder, err := s.GetOrBuildLocalPayload(
 		ctx, slot,
 	)
 	if err != nil {
 		return nil, err
 	}
-
-	s.Logger().Info("payload retrieved from local builder 🏗️",
-		"hash", common.Bytes2Hex(executionData.GetBlockHash()),
-		"override_builder", overrideBuilder,
-	)
 
 	// TODO: Dencun
 	_ = blobsBundle
@@ -78,7 +72,7 @@ func (s *Service) RequestBestBlock(
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
-	if err = beaconBlock.AttachExecution(executionData); err != nil {
+	if err = beaconBlock.AttachExecution(payload); err != nil {
 		return nil, err
 	}
 
