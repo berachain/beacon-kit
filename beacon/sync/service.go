@@ -32,7 +32,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -171,17 +170,11 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 		return nil
 	}
 
-	clFinalized, err := s.ethClient.HeaderByHash(ctx, bss.clFinalized)
-	if err != nil {
-		return err
-	}
-
 	ticker := time.NewTicker(3 * time.Second) //nolint:gomnd // 3 seconds is fine.
 	defer ticker.Stop()
 
-	var elLatestHeader *types.Header
 	latestBlockNumberQuery := big.NewInt(int64(rpc.LatestBlockNumber))
-	elLatestHeader, err = s.ethClient.HeaderByNumber(ctx, latestBlockNumberQuery)
+	elLatestHeader, err := s.ethClient.HeaderByNumber(ctx, latestBlockNumberQuery)
 	if err != nil {
 		return err
 	}
@@ -192,7 +185,7 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	// execution client, have the same view of the world. This is
 	// important as we don't want to start the beacon chain until
 	// the execution chain is ready to start processing blocks.
-	for clFinalizedHash := clFinalized.Hash(); clFinalizedHash != elLatestHeader.Hash(); {
+	for clFinalizedHash := bss.clFinalized; clFinalizedHash != elLatestHeader.Hash(); {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -200,9 +193,7 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 			s.Logger().Info(
 				"waiting for execution client to sync",
 				"cl_finalized", clFinalizedHash.Hex(),
-				"cl_finalized_num", clFinalized.Number.Uint64(),
 				"el_finalized", elLatestHeader.Hash().Hex(),
-				"el_finalized_num", elLatestHeader.Number.Uint64(),
 			)
 
 			// Update the elLatestHeader to the latest block to update the for loop
