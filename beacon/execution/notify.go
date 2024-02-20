@@ -113,8 +113,19 @@ func (s *Service) notifyForkchoiceUpdate(
 	case errors.Is(err, eth.ErrInvalidPayloadStatus):
 		s.Logger().Error("invalid payload status", "error", err)
 		telemetry.IncrCounter(1, MetricsKeyInvalidPayloadStatus)
-		// Attempt to get the chain back into a valid state.
+		// Attempt to get the chain back into a valid state, by
+		// getting finding an ancestor block with a valid payload and
+		// forcing a recovery.
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
+			// TODO: we should get the last valid head off of the previous
+			// block.
+			// TODO: in the case of CometBFT BeaconKit, this could in theory
+			// just be the last finalized block, bc we are always inserting
+			// ontop of that, however making that assumption here feels
+			// a little coupled.
+			// TODO: right now GetLastValidHead() is going to either return
+			// the last valid block that was built, OR the
+			// last safe block, which tbh is also okay.
 			HeadEth1Hash:  beaconState.GetLastValidHead(),
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,

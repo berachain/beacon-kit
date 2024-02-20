@@ -28,10 +28,8 @@ package blockchain
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 
-	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"golang.org/x/sync/errgroup"
 )
@@ -53,7 +51,8 @@ func (s *Service) ReceiveBeaconBlock(
 	// TODO: Do we need to wait for the forkchoice to update?
 	// TODO: move the error group to use GCD.
 
-	// var postState state.BeaconState
+	// This go routine validators the consensus level aspects of the block.
+	// i.e: does it have a valid ancesor?
 	eg.Go(func() error {
 		err := s.validateStateTransition(groupCtx, blk)
 		if err != nil {
@@ -63,6 +62,8 @@ func (s *Service) ReceiveBeaconBlock(
 		return nil
 	})
 
+	// This go rountine validates the execution level aspects of the block.
+	// i.e: does newPayload return VALID?
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
@@ -75,27 +76,14 @@ func (s *Service) ReceiveBeaconBlock(
 	})
 
 	// Wait for the goroutines to finish.
-	wgErr := eg.Wait()
-	if wgErr != nil {
-		// If we receive accepted or syncing status, we can ignore the error. This is required as
-		// some execution clients will rely on a forkchoice update to forcibly set head.
-		//
-		//nolint:lll // hyperlink.
-		// https://github.com/ethereum/go-ethereum/blob/95741b18448aaacacd0edd8f73a9364bd3df8c92/eth/catalyst/api.go#L660
-		// TODO: we should probably handle this via the sync service and error here properly.
-		if !errors.Is(wgErr, eth.ErrAcceptedSyncingPayloadStatus) {
-			return wgErr
-		}
-	}
-
-	// If the block is valid, we can process it.
-	if err := s.postBlockProcess(
-		ctx, blk, isValidPayload,
-	); err != nil {
+	if err := eg.Wait(); err != nil {
 		return err
 	}
 
-	return wgErr
+	// If the block is valid, we can process it.
+	return s.postBlockProcess(
+		ctx, blk, isValidPayload,
+	)
 }
 
 // validateStateTransition validates the state transition of a given block.
@@ -118,6 +106,10 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
+	// TODO: Probably add RANDAO and Staking stuff here?
+
+	// TODO: how do we handle hard fork boundaries?
+
 	return nil
 }
 
@@ -130,5 +122,7 @@ func (s *Service) validateExecutionOnBlock(
 		return false, err
 	}
 
-	return s.en.NotifyNewPayload(ctx, payload)
+	// TODO: add some more safety checks here.
+
+	return s.es.NotifyNewPayload(ctx, payload)
 }
