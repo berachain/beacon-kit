@@ -71,11 +71,12 @@ func (s *Handler) Deposit(
 	return s.sks.ProcessDeposit(ctx, deposit)
 }
 
-// Withdraw is a callback function that is called
-// when a Withdraw event is emitted from the staking contract.
-func (s *Handler) Withdraw(
+// Withdrawal is a callback function that is called
+// when a Withdrawal event is emitted from the staking contract.
+func (s *Handler) Withdrawal(
 	ctx context.Context,
 	validatorPubkey []byte,
+	_ [20]byte,
 	amount uint64,
 ) error {
 	withdrawal := engine.NewWithdrawal(validatorPubkey, amount)
