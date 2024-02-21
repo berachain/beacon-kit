@@ -49,7 +49,7 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
 	// TEMPORARY, needs to be handled better, this is a hack.
-	if err = s.sendFCUViaExecutionService(
+	if err = s.sendFCU(
 		ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1,
 	); err != nil {
 		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
