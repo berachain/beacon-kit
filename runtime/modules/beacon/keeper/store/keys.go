@@ -25,16 +25,15 @@
 
 package store
 
-// Genesis Related Keys.
+// Genesis Related Prefix.
 const (
-	// eth1GenesisHashKey is the key used to store the eth1 genesis hash.
-	eth1GenesisHashKey = "eth1_genesis_hash"
+	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
+	eth1GenesisHashPrefix = "eth1_genesis_hash"
 )
 
-// Forkchoice Related Keys.
+// Collection prefixes.
 const (
-	// forkchoiceSafeKey is the key used to store the safe block hash.
-	forkchoiceSafeKey = "fc_safe"
-	// forkchoiceFinalizedKey is the key used to store the finalized block hash.
-	forkchoiceFinalizedKey = "fc_finalized"
+	depositQueuePrefix             = "deposit_queue"
+	fcSafeEth1BlockHashPrefix      = "fc_safe"
+	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
 )

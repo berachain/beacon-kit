@@ -61,12 +61,8 @@ func (s *Service) GetOrBuildLocalPayload(
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
 
-	parentEth1Hash, err := s.getParentEth1Hash(ctx)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
 	// If we have a payload ID in the cache, we can return the payload from the cache.
+	parentEth1Hash := s.getParentEth1Hash(ctx)
 	payloadID, found := s.payloadCache.Get(slot, parentEth1Hash)
 	if found && (payloadID != primitives.PayloadID{}) {
 		var (
@@ -74,6 +70,7 @@ func (s *Service) GetOrBuildLocalPayload(
 			payload         engine.ExecutionPayload
 			overrideBuilder bool
 			blobsBundle     *enginev1.BlobsBundle
+			err             error
 		)
 
 		// Payload ID is cache hit.
@@ -221,16 +218,16 @@ func (s *Service) BuildLocalPayload(
 
 // getParentEth1Hash retrieves the parent block hash for the given slot.
 //
-//nolint:unparam // todo: review this later.
-func (s *Service) getParentEth1Hash(ctx context.Context) (common.Hash, error) {
+
+func (s *Service) getParentEth1Hash(ctx context.Context) common.Hash {
 	// The first slot should be proposed with the genesis block as parent.
 	st := s.BeaconState(ctx)
 	if st.Slot() == 1 {
-		return st.GenesisEth1Hash(), nil
+		return st.GenesisEth1Hash()
 	}
 
 	// We always want the parent block to be the last finalized block.
-	return st.GetFinalizedEth1BlockHash(), nil
+	return st.GetFinalizedEth1BlockHash()
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the given slot.

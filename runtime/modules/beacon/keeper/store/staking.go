@@ -25,7 +25,20 @@
 
 package store
 
-import enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+import (
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+)
+
+// EnqueueDeposits pushes the deposits to the queue.
+func (s *BeaconStore) EnqueueDeposits(deposits []*consensusv1.Deposit) error {
+	return s.depositQueue.PushMulti(s.sdkCtx, deposits)
+}
+
+// DequeueDeposits returns the first numDequeue deposits in the queue.
+func (s *BeaconStore) DequeueDeposits(numDequeue uint64) ([]*consensusv1.Deposit, error) {
+	return s.depositQueue.PopMulti(s.sdkCtx, numDequeue)
+}
 
 // TODO: maybe BeaconState interface needs to be glue'd together outside of
 // x/beacon, since we are going to need to get withdrawls from the x/beacon_staking.

@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
@@ -56,6 +57,8 @@ type ReadOnlyBeaconState interface {
 	Version() int
 
 	// TODO: fill these in as we develop impl
+
+	ReadWriteDepositQueue
 
 	// ReadOnlyRandao
 	// WriteOnlyRandao
@@ -96,6 +99,12 @@ type ReadOnlyForkChoice interface {
 	GetLastValidHead() common.Hash
 	GetSafeEth1BlockHash() common.Hash
 	GetFinalizedEth1BlockHash() common.Hash
+}
+
+// ReadWriteDepositQueue defines a struct which has read and write access to deposit queue.
+type ReadWriteDepositQueue interface {
+	EnqueueDeposits([]*consensusv1.Deposit) error
+	DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error)
 }
 
 // ReadOnlyWithdrawals defines a struct which only has read access to withdrawal methods.

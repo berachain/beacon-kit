@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	store "cosmossdk.io/store/types"
+	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/itsdevbear/bolaris/config"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
@@ -63,7 +64,7 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
-		in.Key,
+		sdkruntime.NewKVStoreService(in.Key),
 		in.BeaconKitConfig,
 	)
 	m := NewAppModule(k)
