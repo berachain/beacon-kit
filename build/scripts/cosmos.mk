@@ -64,6 +64,9 @@ ifeq (boltdb,$(findstring boltdb,$(COSMOS_BUILD_OPTIONS)))
   build_tags += boltdb
 endif
 
+# always include pebble
+build_tags += pebbledb
+
 whitespace :=
 whitespace += $(whitespace)
 comma := ,
