@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,19 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package abi
 
-import (
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	cfg          *config.Builder
-	es           ExecutionService
-	payloadCache *cache.PayloadIDCache
-}
+// This file is used to generate the go bindings for the deposit contract.
+//go:generate abigen --pkg abi --abi ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./staking.abigen.go --type Staking

@@ -23,47 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package localbuilder
 
 import (
-	"time"
-
-	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/config"
-	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// Option is a function type that takes a pointer to an engineClient and returns an error.
-type Option func(*engineClient) error
-
-// WithEth1Client is a function that returns an Option.
-func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineClient) error {
-		s.Eth1Client = eth1Client
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
 		return nil
 	}
 }
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineClient) error {
-		s.beaconCfg = beaconCfg
+// WithBuilderConfig sets the builder config.
+func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
+	return func(s *Service) error {
+		s.cfg = cfg
 		return nil
 	}
 }
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *engineClient) error {
-		s.logger = logger.With("module", "beacon-kit.engine")
+// WithExecutionService sets the execution service.
+func WithExecutionService(es ExecutionService) service.Option[Service] {
+	return func(s *Service) error {
+		s.es = es
 		return nil
 	}
 }
 
-// WithEngineTimeout is an option to set the timeout for the engine.
-func WithEngineTimeout(engineTimeout time.Duration) Option {
-	return func(s *engineClient) error {
-		s.engineTimeout = engineTimeout
+// WithPayloadCache sets the payload cache.
+func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
+	return func(s *Service) error {
+		s.payloadCache = pc
 		return nil
 	}
 }

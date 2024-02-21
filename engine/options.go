@@ -23,42 +23,47 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package engine
 
 import (
+	"time"
+
+	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
+// Option is a function type that takes a pointer to an engineClient and returns an error.
+type Option func(*engineClient) error
+
+// WithEth1Client is a function that returns an Option.
+func WithEth1Client(eth1Client *eth.Eth1Client) Option {
+	return func(s *engineClient) error {
+		s.Eth1Client = eth1Client
 		return nil
 	}
 }
 
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *engineClient) error {
+		s.beaconCfg = beaconCfg
 		return nil
 	}
 }
 
-// WithExecutionService sets the execution service.
-func WithExecutionService(es ExecutionService) service.Option[Service] {
-	return func(s *Service) error {
-		s.es = es
+// WithLogger is an option to set the logger for the Eth1Client.
+func WithLogger(logger log.Logger) Option {
+	return func(s *engineClient) error {
+		s.logger = logger.With("module", "beacon-kit.engine")
 		return nil
 	}
 }
 
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
-	return func(s *Service) error {
-		s.payloadCache = pc
+// WithEngineTimeout is an option to set the timeout for the engine.
+func WithEngineTimeout(engineTimeout time.Duration) Option {
+	return func(s *engineClient) error {
+		s.engineTimeout = engineTimeout
 		return nil
 	}
 }

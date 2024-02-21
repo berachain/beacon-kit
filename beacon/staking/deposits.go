@@ -49,14 +49,14 @@ func (s *Service) PersistDeposits(ctx context.Context) error {
 	beaconState := s.BeaconState(ctx)
 
 	// Push the cached deposits to the beacon state's queue.
-	err := beaconState.StoreDeposits(s.depositCache)
+	err := beaconState.EnqueueDeposits(s.depositCache)
 	if err != nil {
 		return err
 	}
 	s.depositCache = nil
 
 	// Get deposits, up to MaxDepositsPerBlock, from the queue.
-	deposits, err := beaconState.PopDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
+	deposits, err := beaconState.DequeueDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
 	if err != nil {
 		return err
 	}

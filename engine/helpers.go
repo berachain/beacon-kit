@@ -26,7 +26,7 @@
 package engine
 
 import (
-	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 

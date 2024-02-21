@@ -36,7 +36,7 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
 // Processor is responsible for processing logs fr.
