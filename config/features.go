@@ -26,7 +26,6 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
@@ -35,34 +34,18 @@ var _ BeaconKitConfig[FeatureFlags] = &FeatureFlags{}
 
 // DefaultFeaturesConfig returns the default FeatureFlags configuration.
 func DefaultFeatureFlagsConfig() FeatureFlags {
-	return FeatureFlags{
-		PrepareAllPayloads: true,
-	}
+	return FeatureFlags{}
 }
 
 // Config represents the configuration struct for the FeatureFlags.
-type FeatureFlags struct {
-	// PrepareAllPayloads informs the engine to prepare a block on every slot.
-	PrepareAllPayloads bool
-}
+type FeatureFlags struct{}
 
 // Parse parses the configuration.
-func (c FeatureFlags) Parse(parser parser.AppOptionsParser) (*FeatureFlags, error) {
-	var err error
-	if c.PrepareAllPayloads, err = parser.GetBool(
-		flags.PrepareAllPayloads,
-	); err != nil {
-		return nil, err
-	}
-
+func (c FeatureFlags) Parse(_ parser.AppOptionsParser) (*FeatureFlags, error) {
 	return &c, nil
 }
 
 // Template returns the configuration template.
 func (c FeatureFlags) Template() string {
-	return `
-[beacon-kit.feature-flags]
-# Prepare all payloads informs the engine to prepare a block on every slot.
-prepare-all-payloads = {{.BeaconKit.FeatureFlags.PrepareAllPayloads}}
-`
+	return ``
 }

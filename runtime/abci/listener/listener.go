@@ -27,6 +27,7 @@ package listener
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	storetypes "cosmossdk.io/store/types"
@@ -70,8 +71,14 @@ func (l *BeaconListener) ListenFinalizeBlock(
 		uint64((time.Now().Add(time.Second)).Unix()), //
 		res.AppHash,
 	)
-	if err != nil {
+
+	switch {
+	case errors.Is(err, builder.ErrLocalBuildingDisabled):
+		l.bs.Logger().Info("local building is disabled, skipping payload building...")
+		return nil
+	case err != nil:
 		l.bs.Logger().Error("failed to build local payload", "error", err)
+		return err
 	}
 
 	return nil
