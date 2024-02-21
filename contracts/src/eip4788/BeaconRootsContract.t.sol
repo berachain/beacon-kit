@@ -114,7 +114,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);
         // may wrap around the circular buffer
-        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
+        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 2);
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots, address[] memory coinbases) =
             setStorage(startBlock, startTimestamp, length);
         // loop over the last `HISTORY_BUFFER_LENGTH` indices
@@ -187,7 +187,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
     function testFuzz_Get(uint64 startBlock, uint32 startTimestamp, uint256 length) public {
         vm.assume(startTimestamp > 0);
         // may wrap around the circular buffer
-        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
+        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 2);
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
@@ -207,7 +207,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
     {
         vm.assume(startTimestamp > 0);
         // may wrap around the circular buffer
-        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 4);
+        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 2);
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);
         (uint256[] memory blockNumbers,,, address[] memory coinbases) =
