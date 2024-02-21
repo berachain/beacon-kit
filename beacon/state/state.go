@@ -101,7 +101,7 @@ type ReadOnlyForkChoice interface {
 	GetFinalizedEth1BlockHash() common.Hash
 }
 
-// ReadWriteDeposits defines a struct which has read and write access to deposit methods.
+// ReadWriteDepositQueue defines a struct which has read and write access to deposit queue.
 type ReadWriteDepositQueue interface {
 	EnqueueDeposits([]*consensusv1.Deposit) error
 	DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error)
