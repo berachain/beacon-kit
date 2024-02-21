@@ -27,15 +27,7 @@ package evm
 
 import (
 	"cosmossdk.io/core/appmodule"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
-	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
@@ -44,44 +36,8 @@ const ConsensusVersion = 1
 
 var (
 	_ appmodule.HasServices = AppModule{}
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ appmodule.AppModule   = AppModule{}
 )
-
-// ==============================================================================
-// AppModuleBasic
-// ==============================================================================
-
-// AppModuleBasic defines the basic application module used by the evm module.
-type AppModuleBasic struct{}
-
-// Name returns the evm module's name.
-func (AppModuleBasic) Name() string {
-	return types.ModuleName
-}
-
-// RegisterLegacyAminoCodec registers the evm module's types on the given LegacyAmino codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
-	// x/beacon does not support amino.
-}
-
-// RegisterInterfaces registers the module's interface types.
-func (b AppModuleBasic) RegisterInterfaces(r cdctypes.InterfaceRegistry) {
-	types.RegisterInterfaces(r)
-}
-
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the evm module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *gwruntime.ServeMux) {}
-
-// GetTxCmd returns no root tx command for the evm module.
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
-}
-
-// GetQueryCmd returns the root query command for the evm module.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
-}
 
 // ==============================================================================
 // AppModule
@@ -89,7 +45,6 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	AppModuleBasic
 	keeper *keeper.Keeper
 }
 
@@ -98,19 +53,9 @@ func NewAppModule(
 	keeper *keeper.Keeper,
 ) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
-		keeper:         keeper,
+		keeper: keeper,
 	}
 }
-
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule) IsOnePerModuleType() {}
-
-// IsAppModule implements the appmodule.AppModule interface.
-func (am AppModule) IsAppModule() {}
-
-// RegisterInvariants registers the evm module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
@@ -120,3 +65,9 @@ func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
