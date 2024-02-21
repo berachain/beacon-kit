@@ -37,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -91,5 +92,20 @@ func TestBeaconStore(t *testing.T) {
 
 		require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
 		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
+	})
+
+	t.Run("should work with deposit", func(t *testing.T) {
+		var withdrawalCredentials [20]byte
+		copy(withdrawalCredentials[:], "12345678901234567890")
+		deposit := &consensusv1.Deposit{
+			Pubkey:                []byte("pubkey"),
+			WithdrawalCredentials: withdrawalCredentials[:],
+			Amount:                100,
+		}
+		err := beaconStore.EnqueueDeposits([]*consensusv1.Deposit{deposit})
+		require.NoError(t, err)
+		deposits, err := beaconStore.DequeueDeposits(1)
+		require.NoError(t, err)
+		require.Equal(t, deposit, deposits[0])
 	})
 }

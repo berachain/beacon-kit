@@ -39,10 +39,10 @@ type SSZMarshallable interface {
 	String() string
 }
 
-// SSZValueCodec provides methods to encode and decode values of a type that implements SSZMarshallable.
+// SSZValueCodec provides methods to encode and decode SSZ values.
 type SSZValueCodec[T SSZMarshallable] struct{}
 
-// This is an assertion that SSZValueCodec implements the codec.ValueCodec interface for SSZMarshallable types.
+// Assert that SSZValueCodec implements codec.ValueCodec.
 var _ codec.ValueCodec[SSZMarshallable] = SSZValueCodec[SSZMarshallable]{}
 
 // Encode marshals the provided value into its SSZ encoding.

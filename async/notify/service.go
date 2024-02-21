@@ -28,20 +28,19 @@ package notify
 import (
 	"context"
 
-	"cosmossdk.io/log"
-	"github.com/prysmaticlabs/prysm/v5/async/event"
-	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/event"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Service represents the BeaconKit notification service. It is used to register
 // event feeds and handlers, and dispatch events to the handlers.
 // It leverages GrandCentralDispatch to dispatch events to handlers.
 type Service struct {
+	service.BaseService
+
 	// running is a boolean that indicates whether the service is running or not.
 	running bool
-
-	// logger is an instance of the logger.
-	logger log.Logger
 
 	// feeds is a map that holds the event feeds.
 	feeds map[string]*event.Feed
@@ -51,21 +50,6 @@ type Service struct {
 
 	// dispatch is an instance of GrandCentralDispatch.
 	gcd GrandCentralDispatch
-}
-
-// NewService creates a new Service.
-func NewService(opts ...Option) *Service {
-	s := &Service{
-		feeds:    make(map[string]*event.Feed),
-		handlers: make(map[string][]eventHandlerQueuePair),
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
-	}
-	return s
 }
 
 // Start spawns any goroutines required by the service.
@@ -78,12 +62,12 @@ func (s *Service) Start(ctx context.Context) {
 
 		for _, pair := range handlers {
 			// Create a channel for the handler
-			ch := make(chan interface{})
+			ch := make(chan *Event)
 			subscription := feed.Subscribe(ch)
 
 			// Start a goroutine to listen for events and call the handler
 			go func(
-				pair eventHandlerQueuePair, ch <-chan interface{}, subscription event.Subscription,
+				pair eventHandlerQueuePair, ch <-chan *Event, subscription ethereum.Subscription,
 			) {
 				for {
 					select {
@@ -120,7 +104,7 @@ func (s *Service) RegisterFeed(name string) {
 		panic(ErrRegisterFeedServiceStarted)
 	}
 	if _, ok := s.feeds[name]; !ok {
-		s.feeds[name] = new(event.Feed)
+		s.feeds[name] = &event.Feed{}
 	}
 }
 
@@ -144,7 +128,7 @@ func (s *Service) RegisterHandler(name string, queueID string, handler EventHand
 }
 
 // Dispatch dispatches an event to all handlers associated with the provided key.
-func (s *Service) Dispatch(feedName string, event *feed.Event) {
+func (s *Service) Dispatch(feedName string, event any) {
 	feed, ok := s.feeds[feedName]
 	if ok {
 		feed.Send(event)

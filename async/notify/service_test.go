@@ -34,7 +34,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
-	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 type TestEvent struct {
@@ -62,8 +62,13 @@ func TestDispatch(t *testing.T) {
 		dispatch.WithLogger(log.NewNopLogger()),
 		dispatch.WithDispatchQueue(queueID, dispatch.QueueTypeSerial),
 	)
-	service := notify.NewService(
-		notify.WithLogger(log.NewNopLogger()),
+
+	baseService := service.NewBaseService(
+		nil, nil, gcd, log.NewNopLogger(),
+	)
+
+	service := service.New(
+		notify.WithBaseService(baseService.WithName("notify")),
 		notify.WithGCD(gcd),
 	)
 
@@ -97,7 +102,7 @@ func TestDispatch(t *testing.T) {
 	}()
 
 	// Dispatch an event
-	var event = &feed.Event{
+	event := &notify.Event{
 		Type: 1,
 		Data: "test",
 	}

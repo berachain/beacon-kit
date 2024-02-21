@@ -41,6 +41,17 @@ type EventHandler interface {
 	HandleNotification(event any)
 }
 
+// EventType is the type that defines the type of event.
+type EventType int
+
+// Data is the event that is sent with operation feed updates.
+type Event struct {
+	// Type is the type of event.
+	Type EventType
+	// Data is event-specific data.
+	Data interface{}
+}
+
 // eventHandlerQueuePair is a struct that holds an event handler and a queue ID.
 type eventHandlerQueuePair struct {
 	// handler is an object that implements the EventHandler interface.
