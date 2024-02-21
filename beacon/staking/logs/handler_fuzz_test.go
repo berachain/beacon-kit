@@ -27,6 +27,7 @@ package logs_test
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -51,16 +52,15 @@ func FuzzHandlerSimple(f *testing.F) {
 	// withdrawalEventName := "Withdrawal"
 	// withdrawalEvent := events[withdrawalEventName]
 
-	f.Add([]byte("pubkey"), uint64(1), []byte("12345678901234567890"))
-	f.Fuzz(func(t *testing.T, pubKey []byte, amount uint64, withdrawalCredentials []byte) {
-		if len(withdrawalCredentials) != 20 {
-			t.Skip()
-		}
-
+	f.Add([]byte("pubkey"), uint64(1))
+	f.Fuzz(func(t *testing.T, pubKey []byte, amount uint64) {
 		var (
 			deposit       *consensusv1.Deposit
 			latestDeposit *consensusv1.Deposit
 			log           coretypes.Log
+			// We don't fuzz withdrawalCredentials because it's a fixed length
+			// that prevents us from generating a variety of inputs.
+			withdrawalCredentials = []byte("12345678901234567890")
 		)
 
 		// Deposit
@@ -82,5 +82,58 @@ func FuzzHandlerSimple(f *testing.F) {
 
 		// err = stakingService.PersistDeposits(ctx)
 		// require.NoError(t, err)
+	})
+}
+
+func FuzzHandlerMulti(f *testing.F) {
+	// Setup
+	ctx := context.Background()
+	stakingService := &mockStakingService{}
+	callbackHandler, err := newCallbackHandler(stakingService)
+	require.NoError(f, err)
+
+	events, err := depositContractEvents()
+	require.NoError(f, err)
+
+	depositEventName := "Deposit"
+	depositEvent := events[depositEventName]
+
+	// withdrawalEventName := "Withdrawal"
+	// withdrawalEvent := events[withdrawalEventName]
+
+	f.Add(uint64(100), []byte("pubkey"), uint64(1))
+	f.Fuzz(func(t *testing.T, nDeposits uint64, seekPubKey []byte, initAmount uint64) {
+		var (
+			deposit       *consensusv1.Deposit
+			latestDeposit *consensusv1.Deposit
+			log           coretypes.Log
+			// We don't fuzz withdrawalCredentials because it's a fixed length
+			// that prevents us from generating a variety of inputs.
+			withdrawalCredentials = []byte("12345678901234567890")
+		)
+
+		for i := uint64(0); i < nDeposits; i++ {
+			i := i
+			// Deposit
+			var pubKey []byte
+			pubKey = append(pubKey, seekPubKey...)
+			pubKey = append(pubKey, []byte(strconv.Itoa(int(i)))...)
+			deposit = consensus.NewDeposit(pubKey, initAmount+i, withdrawalCredentials)
+			require.Equal(t, initAmount+i, deposit.GetAmount())
+			require.Equal(t, pubKey, deposit.GetPubkey())
+
+			log, err = newLogFromDeposit(depositEvent, deposit)
+			require.NoError(t, err)
+			err = callbackHandler.HandleLog(ctx, &log)
+			require.NoError(t, err)
+
+			latestDeposit, err = stakingService.mostRecentDeposit()
+			require.NoError(t, err)
+			require.Equal(t, deposit, latestDeposit)
+
+			require.Equal(t, int(i+1), stakingService.numDepositsInCache())
+		}
+		err = stakingService.PersistDeposits(ctx)
+		require.NoError(t, err)
 	})
 }

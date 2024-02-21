@@ -27,6 +27,7 @@ package logs_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -99,15 +100,12 @@ func Test_CallbackHandler(t *testing.T) {
 	})
 }
 
-func newLogFromDeposit(
-	event abi.Event,
-	deposit *consensusv1.Deposit,
-) (coretypes.Log, error) {
-	data, err := event.Inputs.Pack(
-		deposit.GetPubkey(),
-		[20]byte(deposit.GetWithdrawalCredentials()),
-		deposit.GetAmount(),
-	)
+// newLog creates a new log of an event from the given arguments.
+func newLog(event abi.Event, args ...interface{}) (coretypes.Log, error) {
+	if len(event.Inputs) != len(args) {
+		return coretypes.Log{}, errors.New("mismatched number of arguments")
+	}
+	data, err := event.Inputs.Pack(args...)
 	if err != nil {
 		return coretypes.Log{}, err
 	}
@@ -117,22 +115,28 @@ func newLogFromDeposit(
 	}, nil
 }
 
+// newLogFromDeposit creates a new log from the given deposit.
+func newLogFromDeposit(
+	event abi.Event,
+	deposit *consensusv1.Deposit,
+) (coretypes.Log, error) {
+	return newLog(event,
+		deposit.GetPubkey(),
+		[20]byte(deposit.GetWithdrawalCredentials()),
+		deposit.GetAmount(),
+	)
+}
+
+// newLogFromWithdrawal creates a new log from the given withdrawal.
 func newLogFromWithdrawal(
 	event abi.Event,
 	withdrawal *enginev1.Withdrawal,
 ) (coretypes.Log, error) {
-	data, err := event.Inputs.Pack(
+	return newLog(event,
 		[]byte{},
 		[20]byte{},
 		withdrawal.GetAmount(),
 	)
-	if err != nil {
-		return coretypes.Log{}, err
-	}
-	return coretypes.Log{
-		Topics: []common.Hash{event.ID},
-		Data:   data,
-	}, nil
 }
 
 func depositContractEvents() (map[string]abi.Event, error) {

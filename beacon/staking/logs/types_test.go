@@ -82,6 +82,13 @@ func (s *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
 	return s.depositCache[len(s.depositCache)-1], nil
 }
 
+func (s *mockStakingService) numDepositsInCache() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return len(s.depositCache)
+}
+
 // ProcessWithdrawal processes a withdrawal.
 func (s *mockStakingService) ProcessWithdrawal(
 	_ context.Context,
