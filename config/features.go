@@ -41,7 +41,7 @@ func DefaultFeatureFlagsConfig() FeatureFlags {
 type FeatureFlags struct{}
 
 // Parse parses the configuration.
-func (c FeatureFlags) Parse(parser parser.AppOptionsParser) (*FeatureFlags, error) {
+func (c FeatureFlags) Parse(_ parser.AppOptionsParser) (*FeatureFlags, error) {
 	return &c, nil
 }
 

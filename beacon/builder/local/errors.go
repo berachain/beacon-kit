@@ -42,4 +42,7 @@ var (
 	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
 		"cached payload not found on execution client",
 	)
+
+	// ErrLocalBuildingDisabled is returned when local building is disabled.
+	ErrLocalBuildingDisabled = errors.New("local building is disabled")
 )

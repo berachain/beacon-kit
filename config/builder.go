@@ -37,7 +37,7 @@ var _ BeaconKitConfig[Beacon] = Beacon{}
 
 // Beacon is the configuration for the beacon chain.
 type Builder struct {
-	// LocalBuilderEnabled determins if the local builder is enabled.
+	// LocalBuilderEnabled determines if the local builder is enabled.
 	LocalBuilderEnabled bool
 	// LocalBuildPayloadTimeout is the timeout parameter for local build payload.
 	// This should match, or be slightly less than the configured timeout on your
@@ -76,7 +76,7 @@ func (c Builder) Parse(parser parser.AppOptionsParser) (*Builder, error) {
 func (c Builder) Template() string {
 	return `
 [beacon-kit.builder]
-# LocalBuilderEnabled determins if the local payload builder is enabled.
+# LocalBuilderEnabled determines if the local payload builder is enabled.
 local-builder-enabled = {{ .BeaconKit.Builder.LocalBuilderEnabled }}
 
 # The timeout for local build payload. This should match, or be slightly less

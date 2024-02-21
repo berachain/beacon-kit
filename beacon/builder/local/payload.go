@@ -57,7 +57,7 @@ func (s *Service) BuildLocalPayload(
 	// If the local builder is disabled, we skip the payload building.
 	if !s.cfg.LocalBuilderEnabled {
 		s.Logger().Info("local builder is disabled, skipping payload building...")
-		return nil, nil
+		return nil, ErrLocalBuildingDisabled
 	}
 
 	// Get the expected withdrawals to include in this payload.
