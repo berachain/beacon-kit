@@ -3,10 +3,13 @@ module github.com/itsdevbear/bolaris
 go 1.22.0
 
 replace (
-	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20231011102018-ed14ec03b637
+	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20231024151304-4352ab1f349a
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20231024151304-4352ab1f349a
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20231024151304-4352ab1f349a
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20231024151304-4352ab1f349a
 	// Required until: https://github.com/cosmos/cosmos-db/pull/97 is merged, fixes pebbledb dep conflict.
 	github.com/cosmos/cosmos-db => github.com/itsdevbear/cosmos-db v0.0.0-20240221222005-7af8b3de2d76
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20231011102018-ed14ec03b637
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20231024151304-4352ab1f349a
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -23,7 +26,9 @@ require (
 	cosmossdk.io/math v1.2.0
 	cosmossdk.io/store v1.0.2
 	cosmossdk.io/tools/confix v0.1.1
+	cosmossdk.io/x/distribution v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/evidence v0.1.0
+	cosmossdk.io/x/gov v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
@@ -93,7 +98,7 @@ require (
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.312 // indirect
+	github.com/aws/aws-sdk-go v1.45.25 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect

@@ -84,7 +84,7 @@ func initAppConfig() (string, interface{}) {
 
 	srvCfg.Telemetry.Enabled = true
 	srvCfg.API.Enable = true
-	srvCfg.Telemetry.MetricsSink = "mem"
+	// srvCfg.Telemetry.MetricsSink = "mem"
 
 	srvCfg.AppDBBackend = "pebbledb"
 	customAppConfig := CustomAppConfig{

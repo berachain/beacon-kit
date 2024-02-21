@@ -47,6 +47,8 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	distrtypes "cosmossdk.io/x/distribution/types"
+	govtypes "cosmossdk.io/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -54,10 +56,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -65,7 +65,9 @@ import (
 	beaconv1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	beacontypes "github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 
+	_ "cosmossdk.io/x/distribution"                          // import for side-effects
 	_ "cosmossdk.io/x/evidence"                              // import for side-effects
+	_ "cosmossdk.io/x/gov"                                   // import for side-effects
 	_ "cosmossdk.io/x/upgrade"                               // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth"                  // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"        // import for side-effects
@@ -73,8 +75,6 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/bank"                  // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/consensus"             // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/crisis"                // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/distribution"          // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/gov"                   // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/mint"                  // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/slashing"              // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/staking"               // import for side-effects

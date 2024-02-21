@@ -30,13 +30,10 @@ import (
 	"fmt"
 	"log"
 
-	storetypes "cosmossdk.io/store/types"
-
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -83,6 +80,7 @@ func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool,
 //nolint:funlen,gocognit,gocyclo,cyclop // from sdk.
 func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
+	_ = applyAllowedAddrs
 
 	// check if there is a allowed address list
 	if len(jailAllowedAddrs) > 0 {
@@ -141,10 +139,12 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	}
 
 	// clear validator slash events
-	app.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
+
+	// app.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
+	// app.DistrKeeper.Delete
 
 	// clear validator historical rewards
-	app.DistrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
+	// app.DistrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
 
 	// set context height to zero
 	height := ctx.BlockHeight()
@@ -217,67 +217,67 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	}
 
 	// iterate through unbonding delegations, reset creation height
-	if err := app.StakingKeeper.IterateUnbondingDelegations(
-		ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) bool {
-			for i := range ubd.Entries {
-				ubd.Entries[i].CreationHeight = 0
-			}
-			if err := app.StakingKeeper.SetUnbondingDelegation(ctx, ubd); err != nil {
-				panic(err)
-			}
-			return false
-		}); err != nil {
-		panic(err)
-	}
+	// if err := app.StakingKeeper.IterateUnbondingDelegations(
+	// 	ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) bool {
+	// 		for i := range ubd.Entries {
+	// 			ubd.Entries[i].CreationHeight = 0
+	// 		}
+	// 		if err := app.StakingKeeper.SetUnbondingDelegation(ctx, ubd); err != nil {
+	// 			panic(err)
+	// 		}
+	// 		return false
+	// 	}); err != nil {
+	// 	panic(err)
+	// }
 
-	// Iterate through validators by power descending, reset bond heights, and
-	// update bond intra-tx counters.
-	store := ctx.KVStore(app.UnsafeFindStoreKey(stakingtypes.StoreKey))
-	iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
-	counter := int16(0)
+	// // Iterate through validators by power descending, reset bond heights, and
+	// // update bond intra-tx counters.
+	// store := ctx.KVStore(app.UnsafeFindStoreKey(stakingtypes.StoreKey))
+	// iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
+	// counter := int16(0)
 
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
-		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
-		if err != nil {
-			panic(err)
-		}
+	// for ; iter.Valid(); iter.Next() {
+	// 	addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
+	// 	validator, err := app.StakingKeeper.GetValidator(ctx, addr)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
 
-		validator.UnbondingHeight = 0
-		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
-			validator.Jailed = true
-		}
+	// 	validator.UnbondingHeight = 0
+	// 	if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
+	// 		validator.Jailed = true
+	// 	}
 
-		if err = app.StakingKeeper.SetValidator(ctx, validator); err != nil {
-			panic(err)
-		}
-		counter++
-	}
+	// 	if err = app.StakingKeeper.SetValidator(ctx, validator); err != nil {
+	// 		panic(err)
+	// 	}
+	// 	counter++
+	// }
 
-	if err := iter.Close(); err != nil {
-		app.Logger().Error("error while closing the key-value store reverse prefix iterator: ", err)
-		return
-	}
+	// if err := iter.Close(); err != nil {
+	// 	app.Logger().Error("error while closing the key-value store reverse prefix iterator: ", err)
+	// 	return
+	// }
 
-	_, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// _, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	/* Handle slashing state. */
+	// /* Handle slashing state. */
 
-	// reset start height on signing infos
-	err = app.SlashingKeeper.IterateValidatorSigningInfos(
-		ctx,
-		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) bool {
-			info.StartHeight = 0
-			if err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info); err != nil {
-				panic(err)
-			}
-			return false
-		},
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// // reset start height on signing infos
+	// err = app.SlashingKeeper.IterateValidatorSigningInfos(
+	// 	ctx,
+	// 	func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) bool {
+	// 		info.StartHeight = 0
+	// 		if err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info); err != nil {
+	// 			panic(err)
+	// 		}
+	// 		return false
+	// 	},
+	// )
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 }

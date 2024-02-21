@@ -38,7 +38,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -69,17 +68,16 @@ func initRootCmd(
 	beaconconfig.AddToSFlag(rootCmd)
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
+		genutilcli.InitCmd(basicManager),
 		// NewTestnetCmd(basicManager, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
-		pruning.Cmd(newApp, app.DefaultNodeHome),
+		pruning.Cmd(newApp),
 		snapshot.Cmd(newApp),
 	)
 
 	server.AddCommands(
-		rootCmd, app.DefaultNodeHome, newApp,
-		appExport, AddModuleInitFlags,
+		rootCmd, newApp, appExport, AddModuleInitFlags,
 	)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
@@ -100,7 +98,7 @@ func AddModuleInitFlags(startCmd *cobra.Command) {
 
 // GenesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.
 func GenesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, basicManager, app.DefaultNodeHome)
+	cmd := genutilcli.Commands(txConfig, basicManager)
 
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
@@ -119,7 +117,7 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		rpc.ValidatorCommand(),
+		// rpc.ValidatorCommand(),
 		server.QueryBlockCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		server.QueryBlocksCmd(),

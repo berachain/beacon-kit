@@ -150,15 +150,15 @@ func AddCommands(rootCmd *cobra.Command, defaultNodeHome string,
 		server.BootstrapStateCmd(appCreator),
 	)
 
-	startCmd := server.StartCmdWithOptions(appCreator, defaultNodeHome, opts)
+	startCmd := server.StartCmdWithOptions(appCreator, opts)
 	addStartFlags(startCmd)
 
 	rootCmd.AddCommand(
 		startCmd,
 		cometCmd,
-		server.ExportCmd(appExport, defaultNodeHome),
+		server.ExportCmd(appExport),
 		version.NewVersionCommand(),
-		server.NewRollbackCmd(appCreator, defaultNodeHome),
+		server.NewRollbackCmd(appCreator),
 	)
 }
 
@@ -179,7 +179,7 @@ func ProvideClientContext(
 
 	// Read the config again to overwrite the default values with the values from the config file
 	var err error
-	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(clientCtx)
+	clientCtx, err = config.ReadFromClientConfig(clientCtx)
 	if err != nil {
 		panic(err)
 	}
