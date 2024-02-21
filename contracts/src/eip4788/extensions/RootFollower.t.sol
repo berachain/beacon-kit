@@ -46,12 +46,12 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         assertEq(2, rootFollower.getNextActionableBlock());
     }
 
-    function test_OutOfBuffer() public {
+    function test_OutOfBuffer() public brutalizeMemory {
         // should succeed
         rootFollower.getCoinbase(1);
-        vm.roll(500);
+        vm.roll(10_000);
 
-        assertEq(500 - 256, rootFollower.getNextActionableBlock());
+        assertEq(10_000 - 8191, rootFollower.getNextActionableBlock());
 
         // Incrementing the block should fail now because out of buffer
         vm.expectRevert(Errors.AttemptedToIncrementOutOfBuffer.selector);
@@ -68,15 +68,15 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         vm.expectRevert(Errors.BlockDoesNotExist.selector);
         rootFollower.resetCount(100);
 
-        // Set block to 500
-        vm.roll(500);
+        // Set block to 10000
+        vm.roll(10_000);
 
         // Cannot reset to a block not in the buffer
         vm.expectRevert(Errors.BlockNotInBuffer.selector);
         rootFollower.resetCount(2);
 
         // Should successfully reset the block count
-        rootFollower.resetCount(500 - 256);
-        assertEq(500 - 256, rootFollower.getNextActionableBlock());
+        rootFollower.resetCount(10_000 - 8191);
+        assertEq(10_000 - 8191, rootFollower.getNextActionableBlock());
     }
 }

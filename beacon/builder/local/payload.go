@@ -54,6 +54,12 @@ func (s *Service) BuildLocalPayload(
 		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 	)
 
+	// If the local builder is disabled, we skip the payload building.
+	if !s.cfg.LocalBuilderEnabled {
+		s.Logger().Info("local builder is disabled, skipping payload building...")
+		return nil, ErrLocalBuildingDisabled
+	}
+
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {

@@ -35,8 +35,10 @@ import (
 // Beacon conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Beacon] = Beacon{}
 
-// Beacon is the configuration for the beacon chain.
+// Builder is the configuration for the payload builder.
 type Builder struct {
+	// LocalBuilderEnabled determines if the local builder is enabled.
+	LocalBuilderEnabled bool
 	// LocalBuildPayloadTimeout is the timeout parameter for local build payload.
 	// This should match, or be slightly less than the configured timeout on your
 	// execution client. It also must be less than timeout_proposal in the
@@ -47,18 +49,25 @@ type Builder struct {
 // DefaultBuilderConfig returns the default fork configuration.
 func DefaultBuilderConfig() Builder {
 	return Builder{
+		LocalBuilderEnabled:      true,
 		LocalBuildPayloadTimeout: 2 * time.Second, //nolint:gomnd // default config.
 	}
 }
 
 // Parse parses the configuration.
 func (c Builder) Parse(parser parser.AppOptionsParser) (*Builder, error) {
+	localBuilderEnabled, err := parser.GetBool(flags.LocalBuilderEnabled)
+	if err != nil {
+		return nil, err
+	}
+
 	payloadTimeout, err := parser.GetTimeDuration(flags.LocalBuildPayloadTimeout)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Builder{
+		LocalBuilderEnabled:      localBuilderEnabled,
 		LocalBuildPayloadTimeout: payloadTimeout,
 	}, nil
 }
@@ -67,6 +76,9 @@ func (c Builder) Parse(parser parser.AppOptionsParser) (*Builder, error) {
 func (c Builder) Template() string {
 	return `
 [beacon-kit.builder]
+# LocalBuilderEnabled determines if the local payload builder is enabled.
+local-builder-enabled = {{ .BeaconKit.Builder.LocalBuilderEnabled }}
+
 # The timeout for local build payload. This should match, or be slightly less
 # than the configured timeout on your execution client. It also must be less than
 # timeout_proposal in the CometBFT configuration.

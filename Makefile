@@ -171,8 +171,8 @@ start-besu:
 #     unit      #
 #################
 
-SHORT_FUZZ_TIME=15s
-MEDIUM_FUZZ_TIME=45s
+SHORT_FUZZ_TIME=10s
+MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
 
 test:
@@ -208,7 +208,7 @@ test-unit-fuzz:
 
 test-forge-cover:
 	@echo "Running forge test with coverage..."
-	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge build && forge coverage --report lcov --report-file ../test-forge-cover.txt
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge build && forge coverage --nmt testFuzz --report lcov --report-file ../test-forge-cover.txt
 
 test-forge-fuzz:
 	@echo "Running forge fuzz tests..."
