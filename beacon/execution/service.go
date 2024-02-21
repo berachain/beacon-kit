@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -27,76 +27,28 @@ package execution
 
 import (
 	"context"
-	"errors"
 
-	"cosmossdk.io/log"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/cache"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/engine"
+	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	enginetypes "github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Service is responsible for delivering beacon chain notifications to
 // the execution client.
 type Service struct {
+	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// beaconCfg is the beacon chain configuration.
-	beaconCfg *config.Beacon
-	// etherbase is the address to which block rewards are sent.
-	etherbase common.Address
-	// logger is the logger for the service.
-	logger log.Logger
-
-	// Forkchoice Related Fields
-	//
-	// fcsp is the fork choice store provider.
-	fcsp forkchoiceStoreProvider
-	// payloadCache is used to track currently building payload IDs for a given slot.
-	payloadCache *cache.PayloadIDCache
-	// fcd is the forkchoice dispatch queue. Anytime a forkchoice update is sent to the
-	// execution client, it must be sent through this queue to ensure that the ordering
-	// of forkchoice updates is respected.
-	gcd GrandCentralDispatch
-
-	stopCh chan *struct{}
-}
-
-// New creates a new Service with the provided options.
-func New(opts ...Option) *Service {
-	ec := &Service{
-		payloadCache: cache.NewPayloadIDCache(),
-		stopCh:       make(chan *struct{}),
-	}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			ec.logger.Error("Failed to apply option", "error", err)
-		}
-	}
-
-	return ec
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start() {
-	// go s.loop()
-}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.logger.Info("stopping service...")
-	// <-s.stopCh
-	return nil
-}
+func (s *Service) Start(context.Context) {}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
-	if !s.engine.ConnectedETH1() {
+	if !s.engine.IsConnected() {
 		return ErrExecutionClientDisconnected
 	}
 	return nil
@@ -105,66 +57,33 @@ func (s *Service) Status() error {
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
-	ctx context.Context, slot primitives.Slot, arg *NotifyForkchoiceUpdateArg,
-	withAttrs, withRetry, async bool,
-) error {
-	var err error
-
+	ctx context.Context, fcuConfig *FCUConfig,
+) (*enginev1.PayloadIDBytes, error) {
+	var (
+		err       error
+		payloadID *enginev1.PayloadIDBytes
+	)
 	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
-	// We receive a response from the execution client.
-	queue := s.gcd.GetQueue(forkchoiceDispatchQueue)
-	queueDispatchFn := queue.Sync
-	if async {
-		queueDispatchFn = queue.Async
+	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
+	}); e != nil {
+		return nil, e
 	}
 
-	// Dispatch in the selected manner.
-	queueDispatchFn(func() {
-		// TODO: we need to handle this whole retry thing better. It's ghetto af.
-		if withRetry {
-			err = s.notifyForkchoiceUpdateWithSyncingRetry(ctx, slot, arg, withAttrs)
-		}
-		err = s.notifyForkchoiceUpdate(ctx, slot, arg, withAttrs)
-	})
-
-	return err
+	return payloadID, err
 }
 
-// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetBuiltPayload(
-	ctx context.Context, slot primitives.Slot, headHash common.Hash,
-) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error) {
-	payloadID, found := s.payloadCache.PayloadID(
-		slot, headHash,
-	)
-	if !found {
-		return nil, nil, false, errors.New("payload not found")
-	}
-
+// GetPayload returns the payload and blobs bundle for the given slot.
+func (s *Service) GetPayload(
+	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	return s.engine.GetPayload(ctx, payloadID, slot)
 }
 
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
-func (s *Service) NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-	preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
+func (s *Service) NotifyNewPayload(
+	ctx context.Context, payload enginetypes.ExecutionPayload,
 ) (bool, error) {
-	// var lastValidHash []byte
-	// if blk.Version() >= version.Deneb {
-	// 	var versionedHashes []common.Hash
-	// 	versionedHashes, err = kzgCommitmentsToVersionedHashes(blk.Block().Body())
-	// 	if err != nil {
-	// 		return false, errors.Wrap(err, "could not get versioned hashes to feed the engine")
-	// 	}
-	// 	pr := common.Hash(blk.Block().ParentRoot())
-	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload
-	//			(ctx, payload, versionedHashes, &pr)
-	// } else {
-	// 	lastValidHash, err = s.cfg.ExecutionEngineCaller.NewPayload(ctx, payload,
-	// []common.Hash{}, &common.Hash{} /*empty version hashes and root before Deneb*/)
-	// }
-
-	lastValidHash, err := s.engine.NewPayload(ctx, preStateHeader,
-		[]common.Hash{}, &common.Hash{} /* TODO: empty version hashes and root before Deneb*/)
-	return lastValidHash != nil, err
+	return s.notifyNewPayload(ctx, payload)
 }

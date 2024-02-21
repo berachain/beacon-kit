@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,50 +26,22 @@
 package execution
 
 import (
-	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/beacon/execution/engine"
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/engine"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-type Option func(*Service) error
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
 	return func(s *Service) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *Service) error {
-		s.logger = logger.With("module", "beacon-kit-execution")
-		return nil
-	}
-}
-
-// WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider
-// for the Service.
-func WithForkChoiceStoreProvider(fcsp forkchoiceStoreProvider) Option {
-	return func(s *Service) error {
-		s.fcsp = fcsp
+		s.BaseService = base
 		return nil
 	}
 }
 
 // WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec engine.Caller) Option {
+func WithEngineCaller(ec engine.Caller) service.Option[Service] {
 	return func(s *Service) error {
 		s.engine = ec
-		return nil
-	}
-}
-
-// WithGCD is an option to set the GrandCentralDispatch for the Service.
-func WithGCD(gcd GrandCentralDispatch) Option {
-	return func(s *Service) error {
-		s.gcd = gcd
 		return nil
 	}
 }

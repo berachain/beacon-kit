@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -39,6 +39,17 @@ type GrandCentralDispatch interface {
 // EventHandler is the interface that wraps the basic Handle method.
 type EventHandler interface {
 	HandleNotification(event any)
+}
+
+// EventType is the type that defines the type of event.
+type EventType int
+
+// Data is the event that is sent with operation feed updates.
+type Event struct {
+	// Type is the type of event.
+	Type EventType
+	// Data is event-specific data.
+	Data interface{}
 }
 
 // eventHandlerQueuePair is a struct that holds an event handler and a queue ID.

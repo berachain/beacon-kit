@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -28,46 +28,54 @@ package config
 import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/itsdevbear/bolaris/cmd/flags"
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/spf13/cobra"
 )
 
-// Config is the main configuration struct for the Polaris chain.
-type Config struct {
-	// ExecutionClient is the configuration for the execution client.
-	ExecutionClient Client
-
-	// BeaconConfig is the configuration for the fork epochs.
-	BeaconConfig Beacon
+// BeaconKitConfig is the interface for a sub-config of the global BeaconKit configuration.
+type BeaconKitConfig[T any] interface {
+	Template() string
+	Parse(parser parser.AppOptionsParser) (*T, error)
 }
 
-// DefaultConfig returns the default configuration for a polaris chain.
+// DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ExecutionClient: Client{
-			RPCDialURL:      "http://localhost:8551",
-			RPCTimeout:      5, //nolint:gomnd // default config.
-			RPCRetries:      3, //nolint:gomnd // default config.
-			JWTSecretPath:   "./app/jwt.hex",
-			RequiredChainID: 7, //nolint:gomnd // default config.
-		},
-		BeaconConfig: DefaultBeaconConfig(),
+		ABCI:         DefaultABCIConfig(),
+		Beacon:       DefaultBeaconConfig(),
+		Builder:      DefaultBuilderConfig(),
+		Engine:       DefaultEngineConfig(),
+		FeatureFlags: DefaultFeatureFlagsConfig(),
 	}
 }
 
-// Client is the configuration struct for the execution client.
-type Client struct {
-	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL string
-	// RPCTimeout is the RPC timeout for execution client requests.
-	RPCTimeout uint64
-	// RPCRetries is the number of retries before shutting down consensus client.
-	RPCRetries uint64
-	// JWTSecretPath is the path to the JWT secret.
-	JWTSecretPath string
-	// RequiredChainID is the chain id that the consensus client must be connected to.
-	RequiredChainID uint64
+// Config is the main configuration struct for the BeaconKit chain.
+type Config struct {
+	// ABCI is the configuration for ABCI related settings.
+	ABCI ABCI
+
+	// Beacon is the configuration for the fork epochs.
+	Beacon Beacon
+
+	// Builder is the configuration for the local build payload timeout.
+	Builder Builder
+
+	// Engine is the configuration for the execution client.
+	Engine Engine
+
+	// FeatureFlags is the configuration for the feature flags.
+	FeatureFlags FeatureFlags
+}
+
+// Template returns the configuration template.
+func (c Config) Template() string {
+	return `
+###############################################################################
+###                                BeaconKit                                ###
+###############################################################################
+` + c.ABCI.Template() + c.Beacon.Template() +
+		c.Builder.Template() + c.Engine.Template() + c.FeatureFlags.Template()
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
@@ -96,70 +104,82 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
-	return readConfigFromAppOptsParser(AppOptionsParser{AppOptions: opts})
+	return readConfigFromAppOptsParser(parser.AppOptionsParser{AppOptions: opts})
 }
 
-// TODO: cleanup parsing logic.
-func readConfigFromAppOptsParser(parser AppOptionsParser) (*Config, error) {
-	var err error
-	conf := &Config{}
+// readConfigFromAppOptsParser reads the configuration options from the given.
+func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error) {
+	var (
+		err       error
+		conf      = &Config{}
+		engineCfg *Engine
+		beaconCfg *Beacon
+		abciCfg   *ABCI
+	)
 
-	if conf.ExecutionClient.RPCDialURL, err = parser.GetString(flags.RPCDialURL); err != nil {
+	// Read ABCI Config
+	abciCfg, err = ABCI{}.Parse(parser)
+	if err != nil {
 		return nil, err
 	}
-	if conf.ExecutionClient.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
-		return nil, err
-	}
-	if conf.ExecutionClient.RPCTimeout, err = parser.GetUint64(
-		flags.RPCTimeout,
-	); err != nil {
-		return nil, err
-	}
-	if conf.ExecutionClient.JWTSecretPath, err = parser.GetString(
-		flags.JWTSecretPath,
-	); err != nil {
-		return nil, err
-	}
-	if conf.ExecutionClient.RequiredChainID, err = parser.GetUint64(
-		flags.RequiredChainID,
-	); err != nil {
-		return nil, err
-	}
+	conf.ABCI = *abciCfg
 
-	if conf.BeaconConfig.AltairForkEpoch, err = parser.GetEpoch(
-		flags.AltairForkEpoch,
-	); err != nil {
+	// Read Beacon Config
+	beaconCfg, err = Beacon{}.Parse(parser)
+	if err != nil {
 		return nil, err
 	}
+	conf.Beacon = *beaconCfg
 
-	if conf.BeaconConfig.BellatrixForkEpoch, err = parser.GetEpoch(
-		flags.BellatrixForkEpoch,
-	); err != nil {
+	// Read Bilder Config
+	builderCfg, err := Builder{}.Parse(parser)
+	if err != nil {
 		return nil, err
 	}
+	conf.Builder = *builderCfg
 
-	if conf.BeaconConfig.CapellaForkEpoch, err = parser.GetEpoch(
-		flags.CapellaForkEpoch,
-	); err != nil {
+	// Read Engine Client Config
+	engineCfg, err = Engine{}.Parse(parser)
+	if err != nil {
 		return nil, err
 	}
+	conf.Engine = *engineCfg
 
-	if conf.BeaconConfig.DenebForkEpoch, err = parser.GetEpoch(
-		flags.DenebForkEpoch,
-	); err != nil {
+	featureFlagsCfg, err := FeatureFlags{}.Parse(parser)
+	if err != nil {
 		return nil, err
 	}
+	conf.FeatureFlags = *featureFlagsCfg
 
 	return conf, nil
 }
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
-	defaultCfg := DefaultConfig().ExecutionClient
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.JWTSecretPath,
+	defaultCfg := DefaultConfig()
+	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
 		"path to the execution client secret")
-	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.RPCDialURL, "rpc dial url")
-	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.RPCRetries, "rpc retries")
-	startCmd.Flags().Uint64(flags.RPCTimeout, defaultCfg.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.RequiredChainID, "required chain id")
+	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Duration(flags.RPCStartupCheckInterval,
+		defaultCfg.Engine.RPCStartupCheckInterval,
+		"rpc startup check interval")
+	startCmd.Flags().Duration(flags.RPCHealthCheckInteval,
+		defaultCfg.Engine.RPCHealthCheckInterval,
+		"rpc health check interval")
+	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
+		defaultCfg.Engine.RPCJWTRefreshInterval,
+		"rpc jwt refresh interval")
+	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
+		"required chain id")
+	startCmd.Flags().String(flags.SuggestedFeeRecipient,
+		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(),
+		"suggested fee recipient",
+	)
+}
+
+// AddToSFlag adds the terms of service flag to the given command.
+func AddToSFlag(rootCmd *cobra.Command) {
+	rootCmd.PersistentFlags().Bool(flags.BeaconKitAcceptTos, false, "accept the terms of service")
 }

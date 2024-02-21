@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -30,30 +30,26 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/types"
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
-
-type forkChoiceStoreProvider interface {
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
-}
 
 type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 	NotifyForkchoiceUpdate(
-		ctx context.Context, slot primitives.Slot,
-		arg *execution.NotifyForkchoiceUpdateArg, withAttrs, withRetry, async bool,
-	) error
+		ctx context.Context, fcuConfig *execution.FCUConfig,
+	) (*enginev1.PayloadIDBytes, error)
 
 	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context /*preStateVersion*/, _ int,
-		preStateHeader interfaces.ExecutionData, /*, blk interfaces.ReadOnlySignedBeaconBlock*/
-	) (bool, error)
+	NotifyNewPayload(ctx context.Context, preStateHeader engine.ExecutionPayload) (bool, error)
+}
 
-	// GetBuiltPayload returns the payload and blobs bundle for the given slot.
-	GetBuiltPayload(
-		ctx context.Context, slot primitives.Slot, headHash common.Hash,
-	) (interfaces.ExecutionData, *enginev1.BlobsBundle, bool, error)
+type BuilderService interface {
+	BuildLocalPayload(
+		ctx context.Context,
+		parentEth1Hash common.Hash,
+		slot primitives.Slot,
+		timestamp uint64,
+	) (*enginev1.PayloadIDBytes, error)
 }

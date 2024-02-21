@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,15 +26,70 @@
 syntax = "proto3";
 package types.consensus.v1;
 
-import "gogoproto/gogo.proto";
+import "ethereum/engine/v1/execution_engine.proto";
+import "ethereum/eth/ext/options.proto";
+import "types/consensus/v1/deposit.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1";
+option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
 
-// GenericBeaconKitBlock defines the data of a beacon block that is injected by the proposer.
-message BaseBeaconKitBlock {
-  uint64 slot = 1 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
-  uint64 time = 2;
-  uint64 value = 3 [(gogoproto.casttype) = "github.com/prysmaticlabs/prysm/v4/math.Gwei"];
-  uint64 version = 4;
-  bytes exec_data = 5;
+// BeaconKitBlockCapella represents a beacon kit block during capella network upgrade.
+message BeaconKitBlockCapella {
+  // Beacon chain slot that this block represents.
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
+
+  // BeaconBlockBody contains the body of the beacon block.
+  BeaconKitBlockBodyCapella body = 2;
+
+  // The payload value of the block.
+  bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
+}
+
+// BeaconKitBlockBodyCapella represents the body of a beacon block in Capella.
+message BeaconKitBlockBodyCapella {
+  // The validators RANDAO reveal 96 byte value.
+  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
+
+  // 32 byte field of arbitrary data. This field may contain any data and
+  // is not used for anything other than a fun message.
+  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // Deposits from the execution chain, at most MAX_DEPOSITS_PER_BLOCK.
+  repeated Deposit deposits = 3 [(ethereum.eth.ext.ssz_max) = "16"];
+
+  // Execution payload from the execution chain. New in Bellatrix network upgrade.
+  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
+}
+
+// BeaconKitBlockDeneb represents a beacon kit block during deneb network upgrade.
+message BeaconKitBlockDeneb {
+  // Beacon chain slot that this block represents.
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
+
+  // BeaconBlockBody contains the body of the beacon block.
+  BeaconKitBlockBodyDeneb body = 2;
+
+  // The payload value of the block.
+  bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
+}
+
+// BeaconKitBlockBodyDeneb represents the body of a beacon block in Deneb.
+message BeaconKitBlockBodyDeneb {
+  // The validators RANDAO reveal 96 byte value.
+  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
+
+  // 32 byte field of arbitrary data. This field may contain any data and
+  // is not used for anything other than a fun message.
+  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // Deposits from the execution chain, at most MAX_DEPOSITS_PER_BLOCK.
+  repeated Deposit deposits = 3 [(ethereum.eth.ext.ssz_max) = "16"];
+
+  // Execution payload from the execution chain. New in Bellatrix network upgrade.
+  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
+
+  // At most MAX_BLOBS_PER_BLOCK. New in Deneb network upgrade.
+  repeated bytes blob_kzg_commitments = 5 [
+    (ethereum.eth.ext.ssz_size) = "?,48",
+    (ethereum.eth.ext.ssz_max) = "max_blob_commitments.size"
+  ];
 }

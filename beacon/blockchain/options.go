@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -25,44 +25,30 @@
 
 package blockchain
 
-import (
-	"cosmossdk.io/log"
+import "github.com/itsdevbear/bolaris/runtime/service"
 
-	"github.com/itsdevbear/bolaris/config"
-)
+// WithBaseService returns an Option that sets the BaseService for the Service.
+func WithBaseService(base service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = base
+		return nil
+	}
+}
 
-// Option is a function type that takes a pointer to a Service and returns an error.
-type Option func(*Service) error
+// WithBuilderService is a function that returns an Option.
+// It sets the BuilderService of the Service to the provided Service.
+func WithBuilderService(bs BuilderService) service.Option[Service] {
+	return func(s *Service) error {
+		s.bs = bs
+		return nil
+	}
+}
 
 // WithExecutionService is a function that returns an Option.
-// It sets the Service of the Service to the provided Service.
-func WithExecutionService(en ExecutionService) Option {
+// It sets the ExecutionService of the Service to the provided Service.
+func WithExecutionService(es ExecutionService) service.Option[Service] {
 	return func(s *Service) error {
-		s.en = en
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *Service) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *Service) error {
-		s.logger = logger.With("module", "beacon-kit-blockchain")
-		return nil
-	}
-}
-
-// WithForkChoiceStoreProvider is an option to set the ForkChoiceStoreProvider for the Service.
-func WithForkChoiceStoreProvider(fcsp forkChoiceStoreProvider) Option {
-	return func(s *Service) error {
-		s.fcsp = fcsp
+		s.es = es
 		return nil
 	}
 }

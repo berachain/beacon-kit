@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -30,7 +30,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	initialsync "github.com/itsdevbear/bolaris/beacon/initial-sync"
+	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
@@ -48,8 +49,9 @@ type CosmosApp interface {
 
 func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 	var (
-		chainService *blockchain.Service
-		syncService  *initialsync.Service
+		chainService   *blockchain.Service
+		builderService *builder.Service
+		syncService    *sync.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		return err
@@ -59,9 +61,16 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		panic(err)
 	}
 
+	if err := r.services.FetchService(&builderService); err != nil {
+		panic(err)
+	}
+
 	// Build and Register Prepare and Process Proposal Handlers.
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
 	proposalHandler := proposal.NewHandler(
+		&r.cfg.ABCI,
+		builderService,
+		syncService,
 		chainService,
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
@@ -71,7 +80,9 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 
 	// Build and Register Preblock Handler.
 	app.SetPreBlocker(
-		preblock.NewBeaconPreBlockHandler(r.logger, r.fscp, syncService, nil).PreBlocker(),
+		preblock.NewBeaconPreBlockHandler(
+			&r.cfg.ABCI, r.logger, chainService, syncService, nil,
+		).PreBlocker(),
 	)
 	return nil
 }

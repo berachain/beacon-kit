@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -25,22 +25,28 @@
 
 package notify
 
-import "cosmossdk.io/log"
+import (
+	"github.com/ethereum/go-ethereum/event"
+	"github.com/itsdevbear/bolaris/runtime/service"
+)
 
-type Option func(*Service) error
-
-// WithGCD is an option to set the GrandCentralDispatch for the Service.
-func WithGCD(gcd GrandCentralDispatch) Option {
+// WithBaseService is an option to set the BaseService for the Service.
+func WithBaseService(bs service.BaseService) service.Option[Service] {
 	return func(s *Service) error {
-		s.gcd = gcd
+		s.BaseService = bs
+
+		// We piggyback initialization of the feeds and handlers maps here.
+		s.feeds = make(map[string]*event.Feed)
+		s.handlers = make(map[string][]eventHandlerQueuePair)
 		return nil
 	}
 }
 
-// WithLogger is an option to set the logger for the Service.
-func WithLogger(logger log.Logger) Option {
+// WithGCD is an option to set the GrandCentralDispatch for the Service.
+func WithGCD(gcd GrandCentralDispatch) service.Option[Service] {
 	return func(s *Service) error {
-		s.logger = logger.With("module", "beacon-kit-notify")
+		s.gcd = gcd
+
 		return nil
 	}
 }

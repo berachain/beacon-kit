@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,51 +26,68 @@
 package proposal
 
 import (
-	"errors"
+	"fmt"
+	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	sync "github.com/itsdevbear/bolaris/beacon/sync"
+	"github.com/itsdevbear/bolaris/config"
+	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// TODO: Need to have the wait for syncing phase at the start to allow the Execution Client
-// to sync up and the consensus client shouldn't join the validator set yet.
-const PayloadPosition = 0
-
-// Handler is a struct that encapsulates the necessary components to handle the proposal processes.
+// Handler is a struct that encapsulates the necessary components to handle
+// the proposal processes.
 type Handler struct {
+	cfg             *config.ABCI
+	builderService  *builder.Service
+	beaconChain     *blockchain.Service
+	syncService     *sync.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
-	beaconChain     *blockchain.Service
 }
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
+	cfg *config.ABCI,
+	builderService *builder.Service,
+	syncService *sync.Service,
 	beaconChain *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
+		cfg:             cfg,
+		builderService:  builderService,
+		syncService:     syncService,
 		beaconChain:     beaconChain,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
 	}
 }
 
+// PrepareProposalHandler is a wrapper around the prepare proposal handler
+// that injects the beacon block into the proposal.
 func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
+	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// We start by requesting a block from the execution client. This may be from pulling
-	// a previously built payload from the local cache via `getPayload()` or it may be
+	// TODO: Make this more sophisticated.
+	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == sync.StatusExecutionAhead {
+		return nil, fmt.Errorf("err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status)
+	}
+
+	// We start by requesting the validator service to build us a block. This may
+	// be from pulling a previously built payload from the local cache or it may be
 	// by asking for a forkchoice from the execution client, depending on timing.
-	block, err := h.beaconChain.GetOrBuildBlock(
-		ctx, primitives.Slot(req.Height), uint64(req.Time.UTC().Unix()),
+	block, err := h.builderService.RequestBestBlock(
+		ctx, primitives.Slot(req.Height),
 	)
 
 	if err != nil {
@@ -79,7 +96,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Marshal the block into bytes.
-	bz, err := block.Marshal()
+	bz, err := block.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
@@ -95,13 +112,23 @@ func (h *Handler) PrepareProposalHandler(
 	return resp, nil
 }
 
+// ProcessProposalHandler is a wrapper around the process proposal handler
+// that extracts the beacon block from the proposal and processes it.
 func (h *Handler) ProcessProposalHandler(
 	ctx sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
+	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
-	// Extract the beacon kit block from the proposal and unmarshal it.
-	block, err := h.extractAndUnmarshalBlock(req)
+	// Extract the beacon block from the ABCI request.
+	//
+	// TODO: I don't love how we have to use the BeaconConfig here.
+	// TODO: Block factory struct?
+	// TODO: Use protobuf and .(type)?
+	block, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
+		req, h.cfg.BeaconBlockPosition,
+		h.beaconChain.BeaconCfg().ActiveForkVersion(primitives.Epoch(req.Height)),
+	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
@@ -109,31 +136,28 @@ func (h *Handler) ProcessProposalHandler(
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	if err = h.beaconChain.ProcessReceivedBlock(
+	if err = h.beaconChain.ReceiveBeaconBlock(
 		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	// Run the remainder of the proposal.
-	return h.processProposal(ctx, req)
+	// Run the remainder of the proposal. We remove the beacon block from the proposal
+	// before passing it to the next handler.
+	return h.processProposal(ctx, h.RemoveBeaconBlockFromTxs(req))
 }
 
-// extractAndUnmarshalBlock extracts the block from the proposal and unmarshals it.
-func (h *Handler) extractAndUnmarshalBlock(
+// removeBeaconBlockFromTxs removes the beacon block from the proposal.
+// TODO: optimize this function to avoid the giga memory copy.
+func (h *Handler) RemoveBeaconBlockFromTxs(
 	req *abci.RequestProcessProposal,
-) (*consensusv1.BaseBeaconKitBlock, error) {
-	// Extract the marshalled payload from the proposal
-	if len(req.Txs) == 0 {
-		return nil, errors.New("no transactions in proposal")
-	}
-	bz := req.Txs[PayloadPosition]
-	req.Txs = req.Txs[1:]
+) *abci.RequestProcessProposal {
+	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconBlockPosition)
+	return req
+}
 
-	block := &consensusv1.BaseBeaconKitBlock{}
-	if err := block.Unmarshal(bz); err != nil {
-		return nil, err
-	}
-	return block, nil
+// removeAtIndex removes an element at a given index from a slice.
+func removeAtIndex[T any](s []T, index uint) []T {
+	return append(s[:index], s[index+1:]...)
 }

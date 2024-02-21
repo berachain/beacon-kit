@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -27,20 +27,27 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/prysmaticlabs/prysm/v4/runtime"
+	"github.com/itsdevbear/bolaris/config"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Option is a function that modifies the BeaconKitRuntime.
 type Option func(*BeaconKitRuntime) error
 
-// WithService is an Option that registers a service with the BeaconKitRuntime's service registry.
-func WithService(svc runtime.Service) Option {
-	// The function returns an Option that, when called, registers the service and returns nil.
+// WithConfig is an Option that sets the configuration of the BeaconKitRuntime.
+func WithConfig(cfg *config.Config) Option {
 	return func(r *BeaconKitRuntime) error {
-		r.mu.Lock()
-		defer r.mu.Unlock()
-		return r.services.RegisterService(svc)
+		r.cfg = cfg
+		return nil
+	}
+}
+
+// WithServiceRegistry is an Option that sets the service registry of the BeaconKitRuntime.
+func WithServiceRegistry(reg *service.Registry) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.services = reg
+		return nil
 	}
 }
 
@@ -52,19 +59,19 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
-// WithForkChoiceStoreProvider is an Option that sets the ForkChoiceStoreProvider
+// WithBeaconStateProvider is an Option that sets the BeaconStateProvider
 // of the BeaconKitRuntime.
-func WithForkChoiceStoreProvider(fscp ForkChoiceStoreProvider) Option {
+func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
 		return nil
 	}
 }
 
-// WithDispatcher is an Option that sets the GrandCentralDispatch of the BeaconKitRuntime.
-func WithDispatcher(dispatcher *dispatch.GrandCentralDispatch) Option {
+// WithEth1Client is an Option that sets the Eth1Client of the BeaconKitRuntime.
+func WithEth1Client(ethclient *eth.Eth1Client) Option {
 	return func(r *BeaconKitRuntime) error {
-		r.dispatcher = dispatcher
+		r.ethclient = ethclient
 		return nil
 	}
 }

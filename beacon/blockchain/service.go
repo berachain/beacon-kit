@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,37 +26,12 @@
 package blockchain
 
 import (
-	"cosmossdk.io/log"
-
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
+// Service is the blockchain service.
 type Service struct {
-	beaconCfg *config.Beacon
-	logger    log.Logger
-	fcsp      forkChoiceStoreProvider
-	en        ExecutionService
+	service.BaseService
+	bs BuilderService
+	es ExecutionService
 }
-
-func NewService(opts ...Option) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.logger.Error("Failed to apply option", "error", err)
-		}
-	}
-	return s
-}
-
-// Start spawns any goroutines required by the service.
-func (s *Service) Start() {}
-
-// Stop terminates all goroutines belonging to the service,
-// blocking until they are all terminated.
-func (s *Service) Stop() error {
-	s.logger.Info("stopping service...")
-	return nil
-}
-
-// Status returns error if the service is not considered healthy.
-func (s *Service) Status() error { return nil }

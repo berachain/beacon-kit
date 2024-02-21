@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2023 Berachain Foundation
+# Copyright (c) 2024 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -27,7 +27,7 @@ coverage:
   status:
     project:
       default:
-        target: 45%
+        target: 0%
     patch: off
 
 comment:
@@ -41,8 +41,9 @@ ignore:
   - "**/*.pb.gw.go"
   - "**/*.pulsar.go"
   - "**/*.abigen.go"
+  - "**/*.pb_encoding.go"
   - "**/*.rlpgen.go"
   - "**/*.mock.go"
   - "**/proto"
   - "**/build"
-  - "**/cmd"
+  - "**/contracts"

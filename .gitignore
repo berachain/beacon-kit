@@ -7,6 +7,9 @@ bin/
 ./out/
 data/
 site/
+contracts/cache
+contracts/out
+*.hex
 
 ##########
 # Golang #
@@ -18,6 +21,7 @@ site/
 *.dll
 *.so
 *.dylib
+*.info
 
 # Test binary, built with `go test -c`
 *.test

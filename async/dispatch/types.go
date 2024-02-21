@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -28,17 +28,18 @@ package dispatch
 import (
 	"time"
 
-	"github.com/itsdevbear/bolaris/async/dispatch/queues"
+	"github.com/itsdevbear/bolaris/async/dispatch/queue"
 )
 
 // Queue represents a queue of work items to be executed. It's interface is inspired by
 // Apple's Grand Central Dispatch (GCD) API.
 // https://developer.apple.com/documentation/dispatch/dispatchqueue
+// TODO: use error groups
 type Queue interface {
-	Async(queues.WorkItem)
-	AsyncAfter(time.Duration, queues.WorkItem)
-	Sync(queues.WorkItem)
-	AsyncAndWait(queues.WorkItem)
+	Async(queue.WorkItem) error
+	AsyncAfter(time.Duration, queue.WorkItem) error
+	Sync(queue.WorkItem) error
+	AsyncAndWait(queue.WorkItem) error
 }
 
 // Event represents actions that occur during consensus. Listeners can

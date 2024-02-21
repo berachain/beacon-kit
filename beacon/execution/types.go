@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -29,43 +29,29 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/itsdevbear/bolaris/types"
+	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/types/engine"
 )
 
-// forkchoiceStoreProvider is an interface that wraps the basic ForkChoiceStore method.
-type forkchoiceStoreProvider interface {
-	// ForkChoiceStore returns a fork choice store in the provided context.
-	ForkChoiceStore(ctx context.Context) types.ForkChoiceStore
+// BeaconStateProvider is an interface that wraps the basic BeaconState method.
+type BeaconStateProvider interface {
+	// BeaconState provides access to the underlying beacon state.
+	BeaconState(ctx context.Context) state.BeaconState
 }
 
-// GrandCentralDispatch is an interface that wraps the basic GetQueue method.
-// It is used to retrieve a dispatch queue by its ID.
-type GrandCentralDispatch interface {
-	// GetQueue returns a queue with the provided ID.
-	GetQueue(id string) dispatch.Queue
-}
+// FCUConfig is a struct that holds the configuration for a fork choice update.
+type FCUConfig struct {
+	// HeadEth1Hash is the hash of the head eth1 block we are updating the
+	// execution client's head to be.
+	HeadEth1Hash common.Hash
 
-// NotifyForkchoiceUpdateArg is the argument for the forkchoice
-// update notification `notifyForkchoiceUpdate`.
-type NotifyForkchoiceUpdateArg struct {
-	// headHash is the hash of the head block we are building ontop of.=
-	headHash common.Hash
-	// safeHash is the hash of the last safe block.
-	safeHash common.Hash
-	// finalHash is the hash of the last finalized block.
-	finalHash common.Hash
-}
+	// ProposingSlot is the slot that the execution client should propose a block
+	// for if Attributes neither nil nor empty.
+	ProposingSlot primitives.Slot
 
-// NewNotifyForkchoiceUpdateArg creates a new NotifyForkchoiceUpdateArg.
-func NewNotifyForkchoiceUpdateArg(
-	headHash common.Hash,
-	safeHash common.Hash,
-	finalHash common.Hash,
-) *NotifyForkchoiceUpdateArg {
-	return &NotifyForkchoiceUpdateArg{
-		headHash:  headHash,
-		safeHash:  safeHash,
-		finalHash: finalHash,
-	}
+	// Attributes is a list of payload attributes to include in a forkchoice update
+	// to the execution client. It is used to signal to the execution client that
+	// it should build a payload.
+	Attributes engine.PayloadAttributer
 }

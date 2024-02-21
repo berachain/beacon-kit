@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package notify_test
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -33,7 +34,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/core/feed"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 type TestEvent struct {
@@ -61,8 +62,13 @@ func TestDispatch(t *testing.T) {
 		dispatch.WithLogger(log.NewNopLogger()),
 		dispatch.WithDispatchQueue(queueID, dispatch.QueueTypeSerial),
 	)
-	service := notify.NewService(
-		notify.WithLogger(log.NewNopLogger()),
+
+	baseService := service.NewBaseService(
+		nil, nil, gcd, log.NewNopLogger(),
+	)
+
+	service := service.New(
+		notify.WithBaseService(baseService.WithName("notify")),
 		notify.WithGCD(gcd),
 	)
 
@@ -76,13 +82,10 @@ func TestDispatch(t *testing.T) {
 	}
 
 	// Start the service
-	service.Start()
-	defer func() {
-		if err = service.Stop(); err != nil {
-			t.Fatalf("Failed to stop service: %v", err)
-		}
-	}()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
+	service.Start(ctx)
 	// Use a channel to wait for the event to be received
 	eventReceived := make(chan struct{})
 	go func() {
@@ -99,7 +102,7 @@ func TestDispatch(t *testing.T) {
 	}()
 
 	// Dispatch an event
-	var event = &feed.Event{
+	event := &notify.Event{
 		Type: 1,
 		Data: "test",
 	}

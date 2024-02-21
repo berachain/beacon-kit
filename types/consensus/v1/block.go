@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,56 +23,50 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v1
+package consensusv1
 
 import (
-	"github.com/itsdevbear/bolaris/types/consensus/v1/interfaces"
+	"errors"
+
+	"github.com/itsdevbear/bolaris/types/consensus/version"
+	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// BaseBeaconKitBlock implements the BeaconKitBlock interface.
-var _ interfaces.BeaconKitBlock = (*BaseBeaconKitBlock)(nil)
-
-// NewBaseBeaconKitBlock creates a new beacon block.
-func NewBaseBeaconKitBlock(
-	slot Slot,
-	time uint64,
-	executionData interfaces.ExecutionData,
-	version int,
-) (interfaces.BeaconKitBlock, error) {
-	execData, err := executionData.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-
-	value, err := executionData.ValueInGwei()
-	if err != nil {
-		return nil, err
-	}
-
-	return &BaseBeaconKitBlock{
-		Slot:     slot,
-		Time:     time,
-		ExecData: execData,
-		Value:    Gwei(value),
-		Version:  uint64(version),
-	}, nil
-}
-
-// IsNil checks if the BaseBeaconKitBlock is nil or not.
-func (b *BaseBeaconKitBlock) IsNil() bool {
+// IsNil checks if the BeaconKitBlock is nil or not.
+func (b *BeaconKitBlockCapella) IsNil() bool {
 	return b == nil
 }
 
-// SetExecutionData sets the execution data of the block.
-func (b *BaseBeaconKitBlock) SetExecutionData(executionData interfaces.ExecutionData) error {
-	var err error
-	b.ExecData, err = executionData.MarshalSSZ()
-	return err
+// Version returns the version of the block.
+func (b *BeaconKitBlockCapella) Version() int {
+	return version.Capella
 }
 
-// ExecutionData returns the execution data of the block.
-func (b *BaseBeaconKitBlock) ExecutionData() interfaces.ExecutionData {
-	// Safe to ignore the error since we successfully marshalled the data before.
-	data, _ := BytesToExecutionData(b.ExecData, b.Value, int(b.Version))
-	return data
+// AttachExecution attaches the given execution data to the block.
+func (b *BeaconKitBlockCapella) AttachExecution(
+	executionData engine.ExecutionPayload,
+) error {
+	var ok bool
+	b.Body.ExecutionPayload, ok = executionData.ToProto().(*enginev1.ExecutionPayloadCapella)
+	// b.Body.ExecutionPayload, err = executionData.PbCapella()
+	if !ok {
+		return errors.New("failed to convert execution data to capella payload")
+	}
+
+	// TODO: this needs to be done better, really hood rn.
+	payloadValueBz := make([]byte, 32) //nolint:gomnd // 32 bytes for uint256.
+	copy(payloadValueBz, executionData.GetValue().Bytes())
+	b.PayloadValue = payloadValueBz
+	return nil
+}
+
+// Execution returns the execution data of the block.
+func (b *BeaconKitBlockCapella) ExecutionPayload() (engine.ExecutionPayload, error) {
+	return &enginev1.ExecutionPayloadContainer{
+		Payload: &enginev1.ExecutionPayloadContainer_Capella{
+			Capella: b.GetBody().GetExecutionPayload(),
+		},
+		PayloadValue: b.GetPayloadValue(),
+	}, nil
 }
