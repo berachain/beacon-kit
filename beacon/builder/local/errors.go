@@ -27,7 +27,19 @@ package localbuilder
 
 import "github.com/pkg/errors"
 
-// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
-// received on a VALID engine response.
-var ErrNilPayloadOnValidResponse = errors.New(
-	"received nil payload ID on VALID engine response")
+var (
+	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+	// received on a VALID engine response.
+	ErrNilPayloadOnValidResponse = errors.New(
+		"received nil payload ID on VALID engine response")
+
+	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
+	// cache.
+	ErrPayloadIDNotFound = errors.New("payload ID not found in cache")
+
+	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
+	// payloadID is not found on the execution client.
+	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
+		"cached payload not found on execution client",
+	)
+)

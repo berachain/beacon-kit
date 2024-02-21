@@ -51,8 +51,8 @@ func TestBeaconStore(t *testing.T) {
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	kv := ctx.KVStore(storeKey)
 
-	beaconStore := store.NewBeaconStore(ctx, kvs, &config.DefaultConfig().Beacon)
-
+	beaconStore := store.NewBeaconStore(kvs, &config.DefaultConfig().Beacon)
+	beaconStore = beaconStore.WithContext(ctx)
 	t.Run("should return correct hashes", func(t *testing.T) {
 		safeHash := common.HexToHash("0x123")
 		beaconStore.SetSafeEth1BlockHash(safeHash)
