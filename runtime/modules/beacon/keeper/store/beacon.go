@@ -99,8 +99,8 @@ func NewBeaconStore(
 	}
 }
 
-// WithCtx returns the BeaconStore with the given context.
-func (s *BeaconStore) WithCtx(ctx context.Context) *BeaconStore {
+// WithContext( returns the BeaconStore with the given context.
+func (s *BeaconStore) WithContext(ctx context.Context) *BeaconStore {
 	s.sdkCtx = sdk.UnwrapSDKContext(ctx)
 	return s
 }
