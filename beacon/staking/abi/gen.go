@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,30 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package notify
+package abi
 
-import (
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-// WithBaseService is an option to set the BaseService for the Service.
-func WithBaseService(bs service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = bs
-
-		// We piggyback initialization of the feeds and handlers maps here.
-		s.feeds = make(map[string]*event.Feed)
-		s.handlers = make(map[string][]eventHandlerQueuePair)
-		return nil
-	}
-}
-
-// WithGCD is an option to set the GrandCentralDispatch for the Service.
-func WithGCD(gcd GrandCentralDispatch) service.Option[Service] {
-	return func(s *Service) error {
-		s.gcd = gcd
-
-		return nil
-	}
-}
+// This file is used to generate the go bindings for the deposit contract.
+//go:generate abigen --pkg abi --abi ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./staking.abigen.go --type Staking

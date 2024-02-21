@@ -115,9 +115,9 @@ func NewDefaultBeaconKitRuntime(
 	}
 
 	// Build the Notification Service.
-	notificationService := notify.NewService(
+	notificationService := service.New(
+		notify.WithBaseService(baseService.WithName("notify")),
 		notify.WithGCD(gcd),
-		notify.WithLogger(logger),
 	)
 
 	// NewClient wraps the eth1 client and provides the interface for the
