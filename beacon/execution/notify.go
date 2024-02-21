@@ -98,14 +98,16 @@ func (s *Service) notifyForkchoiceUpdate(
 		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(beaconState.Version())
 	}
 
+	fcs := &enginev1.ForkchoiceState{
+		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
+		SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
+		FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
+	}
+
 	// Notify the execution engine of the forkchoice update.
 	payloadID, _, err := s.engine.ForkchoiceUpdated(
 		ctx,
-		&enginev1.ForkchoiceState{
-			HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
-			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
-			FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
-		},
+		fcs,
 		fcuConfig.Attributes,
 	)
 	switch {
