@@ -65,6 +65,9 @@ func initRootCmd(
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
+	// add the flag to automagically accept the TOS
+	beaconconfig.AddToSFlag(rootCmd)
+
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
 		// NewTestnetCmd(basicManager, banktypes.GenesisBalancesIterator{}),
