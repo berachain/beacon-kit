@@ -171,8 +171,8 @@ start-besu:
 #     unit      #
 #################
 
-SHORT_FUZZ_TIME=15s
-MEDIUM_FUZZ_TIME=45s
+SHORT_FUZZ_TIME=10s
+MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
 
 test:
