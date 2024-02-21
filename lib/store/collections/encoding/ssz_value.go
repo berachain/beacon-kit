@@ -27,23 +27,30 @@ package encoding
 
 import (
 	"cosmossdk.io/collections/codec"
+	fssz "github.com/prysmaticlabs/fastssz"
 )
 
+// SSZMarshallable defines an interface for types that can be
+// marshaled and unmarshaled using SSZ encoding,
+// and also provides a string representation of the type.
 type SSZMarshallable interface {
-	MarshalSSZ() ([]byte, error)
-	UnmarshalSSZ([]byte) error
+	fssz.Marshaler
+	fssz.Unmarshaler
 	String() string
 }
 
+// SSZValueCodec provides methods to encode and decode values of a type that implements SSZMarshallable.
 type SSZValueCodec[T SSZMarshallable] struct{}
 
-// This is an assertion that Deposit implements the codec.ValueCodec interface.
+// This is an assertion that SSZValueCodec implements the codec.ValueCodec interface for SSZMarshallable types.
 var _ codec.ValueCodec[SSZMarshallable] = SSZValueCodec[SSZMarshallable]{}
 
+// Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 	return value.MarshalSSZ()
 }
 
+// Decode unmarshals the provided bytes into a value of type T.
 func (SSZValueCodec[T]) Decode(b []byte) (T, error) {
 	var v T
 	if err := v.UnmarshalSSZ(b); err != nil {
@@ -52,18 +59,22 @@ func (SSZValueCodec[T]) Decode(b []byte) (T, error) {
 	return v, nil
 }
 
+// EncodeJSON is not implemented and will panic if called.
 func (SSZValueCodec[T]) EncodeJSON(_ T) ([]byte, error) {
 	panic("not implemented")
 }
 
+// DecodeJSON is not implemented and will panic if called.
 func (SSZValueCodec[T]) DecodeJSON(_ []byte) (T, error) {
 	panic("not implemented")
 }
 
+// Stringify returns the string representation of the provided value.
 func (SSZValueCodec[T]) Stringify(value T) string {
 	return value.String()
 }
 
+// ValueType returns the name of the interface that this codec is intended for.
 func (SSZValueCodec[T]) ValueType() string {
 	return "SSZMarshallable"
 }

@@ -61,9 +61,8 @@ func (s *Service) GetOrBuildLocalPayload(
 	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
 	// }
 
-	parentEth1Hash := s.getParentEth1Hash(ctx)
-
 	// If we have a payload ID in the cache, we can return the payload from the cache.
+	parentEth1Hash := s.getParentEth1Hash(ctx)
 	payloadID, found := s.payloadCache.Get(slot, parentEth1Hash)
 	if found && (payloadID != primitives.PayloadID{}) {
 		var (
