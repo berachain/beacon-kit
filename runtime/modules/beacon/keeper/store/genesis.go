@@ -31,11 +31,13 @@ import (
 
 // SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
 func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
+	// #nosec // Error is ignored on purpose.
 	_ = s.eth1GenesisHash.Set(s.sdkCtx, eth1GenesisHash)
 }
 
 // GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
 func (s *BeaconStore) GenesisEth1Hash() common.Hash {
+	// #nosec // Error is ignored on purpose.
 	genesisHash, _ := s.eth1GenesisHash.Get(s.sdkCtx)
 	return genesisHash
 }
