@@ -46,6 +46,7 @@ const (
 
 	// Builder Config.
 	builderRoot              = beaconKitRoot + "builder."
+	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
 	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
 
 	// Fork Config.
@@ -63,8 +64,8 @@ const (
 	DepositContractAddress = executionRoot + "deposit-contract-address"
 
 	// FeatureFlags Config.
-	featureFlagsRoot   = beaconKitRoot + "feature-flags."
-	PrepareAllPayloads = featureFlagsRoot + "prepare-all-payloads"
+	featureFlagsRoot = beaconKitRoot + "feature-flags."
+	_                = featureFlagsRoot
 
 	// Limits Config.
 	limitsRoot     = beaconConfigRoot + "limits."
