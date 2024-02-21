@@ -23,30 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package notify
-
-import (
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-// WithBaseService is an option to set the BaseService for the Service.
-func WithBaseService(bs service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = bs
-
-		// We piggyback initialization of the feeds and handlers maps here.
-		s.feeds = make(map[string]*event.Feed)
-		s.handlers = make(map[string][]eventHandlerQueuePair)
-		return nil
-	}
-}
-
-// WithGCD is an option to set the GrandCentralDispatch for the Service.
-func WithGCD(gcd GrandCentralDispatch) service.Option[Service] {
-	return func(s *Service) error {
-		s.gcd = gcd
-
-		return nil
-	}
-}
+package runtime
