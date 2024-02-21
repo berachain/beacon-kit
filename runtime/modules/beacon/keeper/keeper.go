@@ -74,30 +74,14 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	hash := common.HexToHash(data.Eth1GenesisHash)
 
 	// At genesis, we assume that the genesis block is also safe and final.
-	err := beaconState.SetGenesisEth1Hash(hash)
-	if err != nil {
-		// TODO: Should we panic in this case?
-		panic(err)
-	}
-	err = beaconState.SetSafeEth1BlockHash(hash)
-	if err != nil {
-		// TODO: Should we panic in this case?
-		panic(err)
-	}
-	err = beaconState.SetFinalizedEth1BlockHash(hash)
-	if err != nil {
-		// TODO: Should we panic in this case?
-		panic(err)
-	}
+	beaconState.SetGenesisEth1Hash(hash)
+	beaconState.SetSafeEth1BlockHash(hash)
+	beaconState.SetFinalizedEth1BlockHash(hash)
 }
 
 // ExportGenesis exports the current state of the beacon module as genesis state.
-func (k *Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
-	genesisHash, err := k.BeaconState(ctx).GenesisEth1Hash()
-	if err != nil {
-		return nil, err
-	}
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		Eth1GenesisHash: genesisHash.Hex(),
-	}, nil
+		Eth1GenesisHash: k.BeaconState(ctx).GenesisEth1Hash().Hex(),
+	}
 }

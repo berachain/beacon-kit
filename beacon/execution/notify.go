@@ -99,20 +99,12 @@ func (s *Service) notifyForkchoiceUpdate(
 	}
 
 	// Notify the execution engine of the forkchoice update.
-	safeBlockHash, err := beaconState.GetSafeEth1BlockHash()
-	if err != nil {
-		return nil, err
-	}
-	finalizedBlockHash, err := beaconState.GetFinalizedEth1BlockHash()
-	if err != nil {
-		return nil, err
-	}
 	payloadID, _, err := s.engine.ForkchoiceUpdated(
 		ctx,
 		&enginev1.ForkchoiceState{
 			HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
-			SafeBlockHash:      safeBlockHash.Bytes(),
-			FinalizedBlockHash: finalizedBlockHash.Bytes(),
+			SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
+			FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
 		},
 		fcuConfig.Attributes,
 	)
@@ -130,11 +122,6 @@ func (s *Service) notifyForkchoiceUpdate(
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
-		var lastValidHead common.Hash
-		lastValidHead, err = beaconState.GetLastValidHead()
-		if err != nil {
-			return nil, err
-		}
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
 			// TODO: we should get the last valid head off of the previous
 			// block.
@@ -145,7 +132,7 @@ func (s *Service) notifyForkchoiceUpdate(
 			// TODO: right now GetLastValidHead() is going to either return
 			// the last valid block that was built, OR the
 			// last safe block, which tbh is also okay.
-			HeadEth1Hash:  lastValidHead,
+			HeadEth1Hash:  beaconState.GetLastValidHead(),
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,
 		})

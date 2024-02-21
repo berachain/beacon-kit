@@ -57,12 +57,7 @@ type Service struct {
 func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 	// First lets grab the beacon chains view of the last finalized execution
 	// layer block.
-	finalHash, err := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
-	if err != nil {
-		s.Logger().Error("failed to get the finalized block hash", "error", err)
-		// TODO: Is it the right status to return here?
-		return &BeaconSyncProgress{Status: StatusBeaconAhead}
-	}
+	finalHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 
 	// If the chain hasn't been started met, we are at genesis, and we can't
 	// really do anything. This is to handle calling this function before

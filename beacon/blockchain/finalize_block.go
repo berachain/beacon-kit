@@ -57,12 +57,8 @@ func (s *Service) FinalizeBeaconBlock(
 
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)
-	if err = state.SetFinalizedEth1BlockHash(eth1BlockHash); err != nil {
-		return err
-	}
-	if err = state.SetSafeEth1BlockHash(eth1BlockHash); err != nil {
-		return err
-	}
+	state.SetFinalizedEth1BlockHash(eth1BlockHash)
+	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)
 
 	return nil

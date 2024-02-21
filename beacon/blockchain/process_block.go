@@ -50,11 +50,9 @@ func (s *Service) postBlockProcess(
 		// to bring us back to the last valid one.
 		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
 		// TODO: Should introduce the concept of missed slots?
-		lastValidHash, err := s.BeaconState(ctx).GetLastValidHead()
-		if err != nil {
-			return err
-		}
-		if err = s.sendFCU(ctx, lastValidHash, nextSlot); err != nil {
+		if err := s.sendFCU(
+			ctx, s.BeaconState(ctx).GetLastValidHead(), nextSlot,
+		); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
 		}
 		return ErrInvalidPayload

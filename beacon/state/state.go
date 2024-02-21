@@ -91,15 +91,15 @@ type WriteOnlyBeaconState interface {
 // Write Only Fork Choice.
 type WriteOnlyForkChoice interface {
 	// Write Only Fork Choice.
-	SetSafeEth1BlockHash(safeBlockHash common.Hash) error
-	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) error
+	SetSafeEth1BlockHash(safeBlockHash common.Hash)
+	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
 	SetLastValidHead(lastValidHead common.Hash)
 }
 
 type ReadOnlyForkChoice interface {
-	GetLastValidHead() (common.Hash, error)
-	GetSafeEth1BlockHash() (common.Hash, error)
-	GetFinalizedEth1BlockHash() (common.Hash, error)
+	GetLastValidHead() common.Hash
+	GetSafeEth1BlockHash() common.Hash
+	GetFinalizedEth1BlockHash() common.Hash
 }
 
 // ReadWriteDeposits defines a struct which has read and write access to deposit methods.
@@ -117,9 +117,9 @@ type ReadOnlyWithdrawals interface {
 }
 
 type ReadOnlyGenesis interface {
-	GenesisEth1Hash() (common.Hash, error)
+	GenesisEth1Hash() common.Hash
 }
 
 type WriteOnlyGenesis interface {
-	SetGenesisEth1Hash(genesisEth1Hash common.Hash) error
+	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
 }
