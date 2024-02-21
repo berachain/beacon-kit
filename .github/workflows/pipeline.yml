@@ -53,7 +53,8 @@ jobs:
 
         os: [ubuntu-latest-large]
     name: ${{ matrix.args }}
-    runs-on: ${{ matrix.os }}
+    runs-on:
+      labels: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
