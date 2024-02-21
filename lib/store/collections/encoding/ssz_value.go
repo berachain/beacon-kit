@@ -26,6 +26,8 @@
 package encoding
 
 import (
+	"reflect"
+
 	"cosmossdk.io/collections/codec"
 	fssz "github.com/prysmaticlabs/fastssz"
 )
@@ -53,6 +55,7 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 // Decode unmarshals the provided bytes into a value of type T.
 func (SSZValueCodec[T]) Decode(b []byte) (T, error) {
 	var v T
+	v = reflect.New(reflect.TypeOf(v).Elem()).Interface().(T)
 	if err := v.UnmarshalSSZ(b); err != nil {
 		return v, err
 	}
