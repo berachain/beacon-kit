@@ -74,6 +74,11 @@ func FuzzHandlerSimple(f *testing.F) {
 		latestDeposit, err = stakingService.mostRecentDeposit()
 		require.NoError(t, err)
 		require.Equal(t, deposit, latestDeposit)
+		require.Equal(t, deposit.GetAmount(), latestDeposit.GetAmount())
+		require.Equal(t, deposit.GetPubkey(), latestDeposit.GetPubkey())
+		require.Equal(t,
+			deposit.GetWithdrawalCredentials(),
+			latestDeposit.GetWithdrawalCredentials())
 
 		// err = stakingService.PersistDeposits(ctx)
 		// require.NoError(t, err)
