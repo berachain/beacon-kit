@@ -58,8 +58,7 @@ type ReadOnlyBeaconState interface {
 
 	// TODO: fill these in as we develop impl
 
-	ReadWriteDeposits
-	WriteOnlyDeposits
+	ReadWriteDepositQueue
 
 	// ReadOnlyRandao
 	// WriteOnlyRandao
@@ -103,12 +102,9 @@ type ReadOnlyForkChoice interface {
 }
 
 // ReadWriteDeposits defines a struct which has read and write access to deposit methods.
-type ReadWriteDeposits interface {
-	DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error)
-}
-
-type WriteOnlyDeposits interface {
+type ReadWriteDepositQueue interface {
 	EnqueueDeposits([]*consensusv1.Deposit) error
+	DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error)
 }
 
 // ReadOnlyWithdrawals defines a struct which only has read access to withdrawal methods.
