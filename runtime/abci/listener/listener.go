@@ -57,6 +57,9 @@ func (l *BeaconListener) ListenFinalizeBlock(
 	// impossible in practice, IN THEORY the execution client could end up in a bad state.
 	//
 	// TODO: figure out if this is a real concern or not.
+	// TODO: we really should try to fork choice as soon as we have an AppHash, which
+	// is before here. This moved earlier forkchoice call should 100% not be finalizing
+	// the block on the EL.
 	_, err := l.bs.BuildLocalPayload(
 		ctx,
 		l.bs.BeaconState(ctx).GetFinalizedEth1BlockHash(),
