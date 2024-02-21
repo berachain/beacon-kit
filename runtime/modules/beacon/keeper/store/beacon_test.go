@@ -46,29 +46,50 @@ func TestBeaconStore(t *testing.T) {
 	keys := storetypes.NewKVStoreKeys(testName)
 	cms := integration.CreateMultiStore(keys, logger)
 	ctx := sdk.NewContext(cms, cmtproto.Header{}, true, logger)
-	kvs := sdkruntime.NewKVStoreService(keys[testName])
+	storeKey := keys[testName]
+	kvs := sdkruntime.NewKVStoreService(storeKey)
+	kv := ctx.KVStore(storeKey)
 
 	beaconStore := store.NewBeaconStore(ctx, kvs, &config.DefaultConfig().Beacon)
 
-	safeHash := common.HexToHash("0x123")
-	beaconStore.SetSafeEth1BlockHash(safeHash)
-	hash := beaconStore.GetSafeEth1BlockHash()
-	require.Equal(t, safeHash, hash)
-	hash.SetBytes([]byte("0x789"))
-	require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
-	newSafeHash := common.HexToHash("0x456")
-	beaconStore.SetSafeEth1BlockHash(newSafeHash)
-	require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
+	t.Run("should return correct hashes", func(t *testing.T) {
+		safeHash := common.HexToHash("0x123")
+		beaconStore.SetSafeEth1BlockHash(safeHash)
+		hash := beaconStore.GetSafeEth1BlockHash()
+		require.Equal(t, safeHash, hash)
+		hash.SetBytes([]byte("0x789"))
+		require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
+		newSafeHash := common.HexToHash("0x456")
+		beaconStore.SetSafeEth1BlockHash(newSafeHash)
+		require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
 
-	finalHash := common.HexToHash("0x456")
-	beaconStore.SetFinalizedEth1BlockHash(finalHash)
-	require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
-	// Recheck to make sure there is no collision.
-	require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
+		finalHash := common.HexToHash("0x456")
+		beaconStore.SetFinalizedEth1BlockHash(finalHash)
+		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
+		// Recheck to make sure there is no collision.
+		require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
 
-	genesisHash := common.HexToHash("0x789")
-	beaconStore.SetGenesisEth1Hash(genesisHash)
-	require.Equal(t, genesisHash, beaconStore.GenesisEth1Hash())
-	require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
-	require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
+		genesisHash := common.HexToHash("0x789")
+		beaconStore.SetGenesisEth1Hash(genesisHash)
+		require.Equal(t, genesisHash, beaconStore.GenesisEth1Hash())
+		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
+		require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
+	})
+
+	t.Run("should not have state breaking", func(t *testing.T) {
+		safeHash := common.HexToHash("0x123")
+		kv.Set([]byte("fc_safe"), safeHash.Bytes())
+		require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
+
+		finalHash := common.HexToHash("0x456")
+		kv.Set([]byte("fc_finalized"), finalHash.Bytes())
+		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
+
+		genesisHash := common.HexToHash("0x789")
+		kv.Set([]byte("eth1_genesis_hash"), genesisHash.Bytes())
+		require.Equal(t, genesisHash, beaconStore.GenesisEth1Hash())
+
+		require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
+		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
+	})
 }
