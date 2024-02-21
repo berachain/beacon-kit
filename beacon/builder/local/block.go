@@ -34,7 +34,7 @@ import (
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot,
+	ctx context.Context, slot primitives.Slot, parentBeaconRootHash []byte,
 ) (consensus.BeaconKitBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -58,8 +58,14 @@ func (s *Service) RequestBestBlock(
 		return nil, err
 	}
 
-	payload, blobsBundle, overrideBuilder, err := s.GetOrBuildLocalPayload(
-		ctx, slot,
+	// The first beacon block has no parent.
+	if slot == 1 {
+		parentBeaconRootHash = make([]byte, 32) //nolint:gomnd // 32 bytes.
+	}
+
+	// Get the payload for the block.
+	payload, blobsBundle, overrideBuilder, err := s.GetLocalPayload(
+		ctx, slot, parentBeaconRootHash, s.getParentEth1Hash(ctx),
 	)
 	if err != nil {
 		return nil, err

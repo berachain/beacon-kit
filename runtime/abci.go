@@ -26,12 +26,14 @@
 package runtime
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/sync"
+	"github.com/itsdevbear/bolaris/runtime/abci/listener"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
@@ -44,6 +46,7 @@ type CosmosApp interface {
 	SetVerifyVoteExtensionHandler(sdk.VerifyVoteExtensionHandler)
 	PreBlocker() sdk.PreBlocker
 	SetPreBlocker(sdk.PreBlocker)
+	SetStreamingManager(storetypes.StreamingManager)
 	Mempool() mempool.Mempool
 }
 
@@ -65,6 +68,15 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		panic(err)
 	}
 
+	app.SetStreamingManager(
+		storetypes.StreamingManager{
+			ABCIListeners: []storetypes.ABCIListener{
+				listener.NewBeaconListener(
+					builderService,
+				),
+			},
+		},
+	)
 	// Build and Register Prepare and Process Proposal Handlers.
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
 	proposalHandler := proposal.NewHandler(

@@ -51,5 +51,6 @@ type BuilderService interface {
 		parentEth1Hash common.Hash,
 		slot primitives.Slot,
 		timestamp uint64,
+		parentBeaconBlockRoot []byte,
 	) (*enginev1.PayloadIDBytes, error)
 }

@@ -87,7 +87,7 @@ func (h *Handler) PrepareProposalHandler(
 	// be from pulling a previously built payload from the local cache or it may be
 	// by asking for a forkchoice from the execution client, depending on timing.
 	block, err := h.builderService.RequestBestBlock(
-		ctx, primitives.Slot(req.Height),
+		ctx, primitives.Slot(req.Height), ctx.BlockHeader().AppHash,
 	)
 
 	if err != nil {

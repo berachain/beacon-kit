@@ -46,6 +46,11 @@ type FCUConfig struct {
 	// execution client's head to be.
 	HeadEth1Hash common.Hash
 
+	// UpdateFinalization is a boolean that signals to the execution service
+	// that this forkchoice update call should update the finalization of
+	// the execution chain.
+	UpdateFinalization bool
+
 	// ProposingSlot is the slot that the execution client should propose a block
 	// for if Attributes neither nil nor empty.
 	ProposingSlot primitives.Slot

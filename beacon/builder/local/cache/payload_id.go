@@ -28,7 +28,6 @@ package cache
 import (
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -40,34 +39,33 @@ const historicalPayloadIDCacheSize = 2
 // parent block hash. It is designed to improve the efficiency of payload ID retrieval by
 // caching recent entries.
 type PayloadIDCache struct {
-	// mu protects access to the slotToEth1HashToPayloadID map.
+	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
-	// slotToEth1HashToPayloadID maps a slot to a map of eth1 block hashes to payload IDs.
-	slotToEth1HashToPayloadID map[primitives.Slot]map[common.Hash]primitives.PayloadID
+	// slotToStateRootToPayloadID maps a slot to a map of state roots to payload IDs.
+	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]primitives.PayloadID
 }
 
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
 // It prepares the internal data structures for storing payload ID mappings.
 func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
-		mu:                        sync.RWMutex{},
-		slotToEth1HashToPayloadID: make(map[primitives.Slot]map[common.Hash]primitives.PayloadID),
+		mu:                         sync.RWMutex{},
+		slotToStateRootToPayloadID: make(map[primitives.Slot]map[[32]byte]primitives.PayloadID),
 	}
 }
 
 // Get retrieves the payload ID associated with a given slot and eth1 hash.
 // It returns the found payload ID and a boolean indicating whether the lookup
 // was successful.
-func (p *PayloadIDCache) Get(
-	slot primitives.Slot, eth1Hash common.Hash,
+func (p *PayloadIDCache) Get(slot primitives.Slot, stateRoot [32]byte,
 ) (primitives.PayloadID, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	innerMap, ok := p.slotToEth1HashToPayloadID[slot]
+	innerMap, ok := p.slotToStateRootToPayloadID[slot]
 	if !ok {
 		return primitives.PayloadID{}, false
 	}
-	pid, ok := innerMap[eth1Hash]
+	pid, ok := innerMap[stateRoot]
 	if !ok {
 		return primitives.PayloadID{}, false
 	}
@@ -78,7 +76,7 @@ func (p *PayloadIDCache) Get(
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
-	slot primitives.Slot, eth1Hash common.Hash, pid primitives.PayloadID,
+	slot primitives.Slot, stateRoot [32]byte, pid primitives.PayloadID,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -89,12 +87,12 @@ func (p *PayloadIDCache) Set(
 	}
 
 	// Update the cache with the new payload ID.
-	innerMap, exists := p.slotToEth1HashToPayloadID[slot]
+	innerMap, exists := p.slotToStateRootToPayloadID[slot]
 	if !exists {
-		innerMap = make(map[common.Hash]primitives.PayloadID)
-		p.slotToEth1HashToPayloadID[slot] = innerMap
+		innerMap = make(map[[32]byte]primitives.PayloadID)
+		p.slotToStateRootToPayloadID[slot] = innerMap
 	}
-	innerMap[eth1Hash] = pid
+	innerMap[stateRoot] = pid
 }
 
 // UnsafePrunePrior removes payload IDs from the cache for slots less than
@@ -109,9 +107,9 @@ func (p *PayloadIDCache) UnsafePrunePrior(slot primitives.Slot) {
 // slot. This method helps in managing the memory usage of the cache by
 // discarding outdated entries.
 func (p *PayloadIDCache) prunePrior(slot primitives.Slot) {
-	for s := range p.slotToEth1HashToPayloadID {
+	for s := range p.slotToStateRootToPayloadID {
 		if s < slot {
-			delete(p.slotToEth1HashToPayloadID, s)
+			delete(p.slotToStateRootToPayloadID, s)
 		}
 	}
 }
