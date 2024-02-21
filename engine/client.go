@@ -33,7 +33,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
-	eth "github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"

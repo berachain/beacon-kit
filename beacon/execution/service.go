@@ -28,7 +28,7 @@ package execution
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/execution/engine"
+	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	enginetypes "github.com/itsdevbear/bolaris/types/engine"

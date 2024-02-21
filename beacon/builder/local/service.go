@@ -26,39 +26,16 @@
 package localbuilder
 
 import (
+	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
-	}
-}
-
-// WithExecutionService sets the execution service.
-func WithExecutionService(es ExecutionService) service.Option[Service] {
-	return func(s *Service) error {
-		s.es = es
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
-	return func(s *Service) error {
-		s.payloadCache = pc
-		return nil
-	}
+// TODO: Decouple from ABCI and have this validator run on a separate thread
+// have it configured itself and not be a service persay.
+type Service struct {
+	service.BaseService
+	cfg          *config.Builder
+	es           ExecutionService
+	payloadCache *cache.PayloadIDCache
 }

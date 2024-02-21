@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/node"
-	"github.com/itsdevbear/bolaris/execution/engine/ethclient"
+	"github.com/itsdevbear/bolaris/engine/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/stretchr/testify/require"
 )

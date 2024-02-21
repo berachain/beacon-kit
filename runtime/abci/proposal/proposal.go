@@ -33,9 +33,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
-	builder "github.com/itsdevbear/bolaris/execution/builder/local"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
