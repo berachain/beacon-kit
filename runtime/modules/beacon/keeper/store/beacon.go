@@ -66,12 +66,9 @@ type BeaconStore struct {
 
 // NewBeaconStore creates a new instance of BeaconStore.
 func NewBeaconStore(
-	ctx context.Context,
 	kvs corestore.KVStoreService,
-	// TODO: should this be stored in on-chain params?
 	cfg *config.Beacon,
 ) *BeaconStore {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		schemaBuilder,
@@ -91,13 +88,19 @@ func NewBeaconStore(
 		schemaBuilder,
 		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
 		eth1GenesisHashPrefix,
-		sdkcollections.BytesValue)
+		sdkcollections.BytesValue,
+	)
 	return &BeaconStore{
-		sdkCtx:                   sdkCtx,
 		depositQueue:             depositQueue,
 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
 		eth1GenesisHash:          eth1GenesisHash,
 		cfg:                      cfg,
 	}
+}
+
+// WithContext( returns the BeaconStore with the given context.
+func (s *BeaconStore) WithContext(ctx context.Context) *BeaconStore {
+	s.sdkCtx = sdk.UnwrapSDKContext(ctx)
+	return s
 }

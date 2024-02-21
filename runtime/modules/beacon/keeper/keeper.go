@@ -40,8 +40,8 @@ import (
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	kvs       corestore.KVStoreService
-	beaconCfg *config.Beacon
+	kvs         corestore.KVStoreService
+	beaconStore *store.BeaconStore
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -53,19 +53,15 @@ func NewKeeper(
 	beaconCfg *config.Beacon,
 ) *Keeper {
 	return &Keeper{
-		kvs:       kvs,
-		beaconCfg: beaconCfg,
+		kvs:         kvs,
+		beaconStore: store.NewBeaconStore(kvs, beaconCfg),
 	}
 }
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key for the x/beacon module.
 func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
-	return store.NewBeaconStore(
-		ctx,
-		k.kvs,
-		k.beaconCfg,
-	)
+	return k.beaconStore.WithContext(ctx)
 }
 
 // InitGenesis initializes the genesis state of the beacon module.
