@@ -45,59 +45,62 @@ type mockStakingService struct {
 }
 
 // CacheDeposit caches a deposit.
-func (m *mockStakingService) CacheDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (s *mockStakingService) CacheDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	m.depositCache = append(m.depositCache, deposit)
+	s.depositCache = append(s.depositCache, deposit)
 	return nil
 }
 
 // PersistDeposits persists the deposits to the queue.
 // The mockStakingService does not maintain a beacon state,
 // so this method does nothing but clear the cache.
-func (m *mockStakingService) PersistDeposits(_ context.Context) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (s *mockStakingService) PersistDeposits(_ context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	m.depositCache = nil
+	s.depositCache = nil
 	return nil
 }
 
 // ProcessDeposits is a no-op for the mockStakingService,
 // because mockStakingService does not have an underlying
 // staking module.
-func (m *mockStakingService) ProcessDeposits(_ context.Context) error {
+func (s *mockStakingService) ProcessDeposits(_ context.Context) error {
 	return nil
 }
 
 // mostRecentDeposit returns the most recent deposit added into the cache.
-func (m *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+func (s *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
-	if len(m.depositCache) == 0 {
+	if len(s.depositCache) == 0 {
 		return nil, errors.New("no deposits")
 	}
-	return m.depositCache[len(m.depositCache)-1], nil
+	return s.depositCache[len(s.depositCache)-1], nil
 }
 
 // ProcessWithdrawal processes a withdrawal.
-func (m *mockStakingService) ProcessWithdrawal(_ context.Context, withdrawal *enginev1.Withdrawal) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (s *mockStakingService) ProcessWithdrawal(
+	_ context.Context,
+	withdrawal *enginev1.Withdrawal,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	m.withdrawalQueue = append(m.withdrawalQueue, withdrawal)
+	s.withdrawalQueue = append(s.withdrawalQueue, withdrawal)
 	return nil
 }
 
 // mostRecentWithdrawal returns the most recent withdrawal added into the queue.
-func (m *mockStakingService) mostRecentWithdrawal() (*enginev1.Withdrawal, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+func (s *mockStakingService) mostRecentWithdrawal() (*enginev1.Withdrawal, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
-	if len(m.withdrawalQueue) == 0 {
+	if len(s.withdrawalQueue) == 0 {
 		return nil, errors.New("no withdrawals")
 	}
-	return m.withdrawalQueue[len(m.withdrawalQueue)-1], nil
+	return s.withdrawalQueue[len(s.withdrawalQueue)-1], nil
 }

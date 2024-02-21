@@ -29,7 +29,9 @@ import (
 	"context"
 	"testing"
 
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/types/consensus"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -54,19 +56,24 @@ func FuzzHandlerSimple(f *testing.F) {
 		if len(withdrawalCredentials) != 20 {
 			t.Skip()
 		}
+
+		var (
+			deposit       *consensusv1.Deposit
+			latestDeposit *consensusv1.Deposit
+			log           coretypes.Log
+		)
+
 		// Deposit
-		deposit := consensus.NewDeposit(pubKey, amount, withdrawalCredentials[:])
-		log, err := newLogFromDeposit(depositEvent, deposit)
+		deposit = consensus.NewDeposit(pubKey, amount, withdrawalCredentials)
+		log, err = newLogFromDeposit(depositEvent, deposit)
 		require.NoError(t, err)
 
 		err = callbackHandler.HandleLog(ctx, &log)
 		require.NoError(t, err)
 
-		latestDeposit, err := stakingService.mostRecentDeposit()
+		latestDeposit, err = stakingService.mostRecentDeposit()
 		require.NoError(t, err)
-		require.Equal(t, deposit.Pubkey, latestDeposit.Pubkey)
-		require.Equal(t, deposit.Amount, latestDeposit.Amount)
-		require.Equal(t, deposit.WithdrawalCredentials, latestDeposit.WithdrawalCredentials)
+		require.Equal(t, deposit, latestDeposit)
 
 		// err = stakingService.PersistDeposits(ctx)
 		// require.NoError(t, err)

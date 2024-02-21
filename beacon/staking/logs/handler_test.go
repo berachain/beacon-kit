@@ -32,8 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/stretchr/testify/require"
-
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
@@ -42,6 +40,7 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_CallbackHandler(t *testing.T) {
@@ -61,22 +60,30 @@ func Test_CallbackHandler(t *testing.T) {
 	withdrawalEvent := events[withdrawalEventName]
 
 	t.Run("should add correct deposits and withdrawals into staking service", func(t *testing.T) {
-		deposit := consensus.NewDeposit(
+		var (
+			deposit          *consensusv1.Deposit
+			latestDeposit    *consensusv1.Deposit
+			withdrawal       *enginev1.Withdrawal
+			latestWithdrawal *enginev1.Withdrawal
+			log              coretypes.Log
+		)
+
+		deposit = consensus.NewDeposit(
 			[]byte("pubkey"),
 			10000,
 			[]byte("12345678901234567890"),
 		)
-		log, err := newLogFromDeposit(depositEvent, deposit)
+		log, err = newLogFromDeposit(depositEvent, deposit)
 		require.NoError(t, err)
 
 		err = callbackHandler.HandleLog(ctx, &log)
 		require.NoError(t, err)
 
-		latestDeposit, err := stakingService.mostRecentDeposit()
+		latestDeposit, err = stakingService.mostRecentDeposit()
 		require.NoError(t, err)
 		require.Equal(t, deposit, latestDeposit)
 
-		withdrawal := engine.NewWithdrawal(
+		withdrawal = engine.NewWithdrawal(
 			[]byte("pubkey"),
 			10000,
 		)
@@ -86,20 +93,23 @@ func Test_CallbackHandler(t *testing.T) {
 		err = callbackHandler.HandleLog(ctx, &log)
 		require.NoError(t, err)
 
-		latestWithdrawal, err := stakingService.mostRecentWithdrawal()
+		latestWithdrawal, err = stakingService.mostRecentWithdrawal()
 		require.NoError(t, err)
 		require.Equal(t, withdrawal, latestWithdrawal)
 	})
 }
 
-func newLogFromDeposit(event abi.Event, deposit *consensusv1.Deposit) (coretypes.Log, error) {
-	data, error := event.Inputs.Pack(
-		deposit.Pubkey,
-		[20]byte(deposit.WithdrawalCredentials),
-		deposit.Amount,
+func newLogFromDeposit(
+	event abi.Event,
+	deposit *consensusv1.Deposit,
+) (coretypes.Log, error) {
+	data, err := event.Inputs.Pack(
+		deposit.GetPubkey(),
+		[20]byte(deposit.GetWithdrawalCredentials()),
+		deposit.GetAmount(),
 	)
-	if error != nil {
-		return coretypes.Log{}, error
+	if err != nil {
+		return coretypes.Log{}, err
 	}
 	return coretypes.Log{
 		Topics: []common.Hash{event.ID},
@@ -107,14 +117,17 @@ func newLogFromDeposit(event abi.Event, deposit *consensusv1.Deposit) (coretypes
 	}, nil
 }
 
-func newLogFromWithdrawal(event abi.Event, withdrawal *enginev1.Withdrawal) (coretypes.Log, error) {
-	data, error := event.Inputs.Pack(
+func newLogFromWithdrawal(
+	event abi.Event,
+	withdrawal *enginev1.Withdrawal,
+) (coretypes.Log, error) {
+	data, err := event.Inputs.Pack(
 		[]byte{},
 		[20]byte{},
-		withdrawal.Amount,
+		withdrawal.GetAmount(),
 	)
-	if error != nil {
-		return coretypes.Log{}, error
+	if err != nil {
+		return coretypes.Log{}, err
 	}
 	return coretypes.Log{
 		Topics: []common.Hash{event.ID},
