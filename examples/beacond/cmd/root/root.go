@@ -94,18 +94,18 @@ func NewRootCmd() *cobra.Command {
 			cmd.SetErr(cmd.ErrOrStderr())
 
 			clientCtx = clientCtx.WithCmdContext(cmd.Context())
-			initClientCtx, err := client.ReadPersistentCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.ReadPersistentCommandFlags(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
+			clientCtx, err = config.ReadFromClientConfig(clientCtx)
 			if err != nil {
 				return err
 			}
 
 			if err = tos.VerifyTosAcceptedOrPrompt(
-				app.AppName, app.TermsOfServiceURL, initClientCtx, cmd,
+				app.AppName, app.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
 				return err
 			}
