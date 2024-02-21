@@ -37,12 +37,12 @@ import (
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm
 // module.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+func (AppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the evm module.
-func (AppModuleBasic) ValidateGenesis(
+func (AppModule) ValidateGenesis(
 	_ codec.JSONCodec,
 	_ client.TxEncodingConfig,
 	_ json.RawMessage,
