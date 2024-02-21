@@ -44,7 +44,7 @@ type mockStakingService struct {
 	mu              sync.RWMutex
 }
 
-// CacheDeposit caches a deposit.
+// AcceptDeposit pushes a deposit into queue.
 func (s *mockStakingService) AcceptDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -53,7 +53,7 @@ func (s *mockStakingService) AcceptDeposit(_ context.Context, deposit *consensus
 	return nil
 }
 
-// ApplyDeposits does nothing but clears the cache,
+// ApplyDeposits does nothing but clears the queue,
 // because mockStakingService does not have an underlying
 // staking module.
 func (s *mockStakingService) ApplyDeposits(_ context.Context) error {
@@ -64,7 +64,7 @@ func (s *mockStakingService) ApplyDeposits(_ context.Context) error {
 	return nil
 }
 
-// mostRecentDeposit returns the most recent deposit added into the cache.
+// mostRecentDeposit returns the most recent deposit added into the queue.
 func (s *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -75,6 +75,7 @@ func (s *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
 	return s.depositQueue[len(s.depositQueue)-1], nil
 }
 
+// numPendingDeposits returns the number of pending deposits in the queue.
 func (s *mockStakingService) numPendingDeposits() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
