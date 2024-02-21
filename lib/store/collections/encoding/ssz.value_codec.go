@@ -23,39 +23,47 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusv1
+package encoding
 
 import (
 	"cosmossdk.io/collections/codec"
 )
 
-// This is an assertion that Deposit implements the codec.ValueCodec interface.
-var _ codec.ValueCodec[*Deposit] = &Deposit{}
+type SSZMarshallable interface {
+	MarshalSSZ() ([]byte, error)
+	UnmarshalSSZ([]byte) error
+	String() string
+}
 
-func (*Deposit) Encode(value *Deposit) ([]byte, error) {
+type SSZValueCodec[T SSZMarshallable] struct{}
+
+// This is an assertion that Deposit implements the codec.ValueCodec interface.
+var _ codec.ValueCodec[SSZMarshallable] = SSZValueCodec[SSZMarshallable]{}
+
+func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 	return value.MarshalSSZ()
 }
 
-func (*Deposit) Decode(b []byte) (*Deposit, error) {
-	var v = &Deposit{}
+func (SSZValueCodec[T]) Decode(b []byte) (T, error) {
+	var v T
 	if err := v.UnmarshalSSZ(b); err != nil {
-		return nil, err
+		return v, err
 	}
 	return v, nil
 }
 
-func (*Deposit) EncodeJSON(_ *Deposit) ([]byte, error) {
+func (SSZValueCodec[T]) EncodeJSON(_ T) ([]byte, error) {
 	panic("not implemented")
 }
 
-func (*Deposit) DecodeJSON(_ []byte) (*Deposit, error) {
+func (SSZValueCodec[T]) DecodeJSON(_ []byte) (T, error) {
 	panic("not implemented")
 }
 
-func (*Deposit) Stringify(value *Deposit) string {
+func (SSZValueCodec[T]) Stringify(value T) string {
 	return value.String()
 }
 
-func (*Deposit) ValueType() string {
-	return "Deposit"
+func (SSZValueCodec[T]) ValueType() string {
+	return "SSZMarshallable"
 }
