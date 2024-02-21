@@ -43,8 +43,6 @@ type Beacon struct {
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
-	// Execution is the configuration for the execution service.
-	Execution Execution
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
@@ -53,7 +51,6 @@ func DefaultBeaconConfig() Beacon {
 		Forks:     DefaultForksConfig(),
 		Limits:    DefaultLimitsConfig(),
 		Validator: DefaultValidatorConfig(),
-		Execution: DefaultExecutionConfig(),
 	}
 }
 
@@ -74,7 +71,6 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 		forks     *Forks
 		limits    *Limits
 		validator *Validator
-		execution *Execution
 	)
 
 	// Parse the forks configuration.
@@ -95,17 +91,10 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 	}
 	c.Validator = *validator
 
-	// Parse the execution configuration.
-	if execution, err = c.Execution.Parse(parser); err != nil {
-		return nil, err
-	}
-	c.Execution = *execution
-
 	return &c, nil
 }
 
 // Template returns the configuration template.
 func (c Beacon) Template() string {
-	return c.Forks.Template() + c.Limits.Template() +
-		c.Validator.Template() + c.Execution.Template()
+	return c.Forks.Template() + c.Limits.Template() + c.Validator.Template()
 }

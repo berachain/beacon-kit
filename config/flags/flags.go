@@ -58,10 +58,6 @@ const (
 	Graffiti                = validator + "graffiti"
 	NumRandaoRevealsToTrack = validator + "num-randao-reveals-to-track"
 
-	// Execution Config.
-	executionRoot          = beaconConfigRoot + "execution."
-	DepositContractAddress = executionRoot + "deposit-contract-address"
-
 	// FeatureFlags Config.
 	featureFlagsRoot   = beaconKitRoot + "feature-flags."
 	PrepareAllPayloads = featureFlagsRoot + "prepare-all-payloads"
