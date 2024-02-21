@@ -53,6 +53,10 @@ func NewBeaconListener(bs *builder.Service) *BeaconListener {
 func (l *BeaconListener) ListenFinalizeBlock(
 	ctx context.Context, req abci.RequestFinalizeBlock, res abci.ResponseFinalizeBlock,
 ) error {
+	// Technically speaking, there is a chance FinalizeBlock fails after this call. While seemingly
+	// impossible in practice, IN THEORY the execution client could end up in a bad state.
+	//
+	// TODO: figure out if this is a real concern or not.
 	_, err := l.bs.BuildLocalPayload(
 		ctx,
 		l.bs.BeaconState(ctx).GetFinalizedEth1BlockHash(),
