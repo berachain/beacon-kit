@@ -31,34 +31,19 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// CacheDeposit puts a deposit into the cache in the staking service.
-func (s *Service) CacheDeposit(
-	_ context.Context,
-	deposit *consensusv1.Deposit,
-) error {
-	// Cache the deposit, to be pushed to the queue later in batch.
-	s.depositCache = append(s.depositCache, deposit)
-	s.Logger().Info("delegating from execution layer",
-		"validatorPubkey", deposit.GetPubkey(), "amount", deposit.GetAmount())
-	return nil
-}
-
-// PersistDeposits moves the deposits from cache into the beacon state's queue.
-func (s *Service) PersistDeposits(ctx context.Context) error {
-	beaconState := s.BeaconState(ctx)
-
-	// Push the cached deposits to the beacon state's queue.
-	err := beaconState.EnqueueDeposits(s.depositCache)
+// AcceptDeposit records a deposit in the beacon state's queue.
+func (s *Service) AcceptDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
+	// Push the deposit to the beacon state's queue.
+	err := s.BeaconState(ctx).EnqueueDeposits([]*consensusv1.Deposit{deposit})
 	if err != nil {
 		return err
 	}
-	s.depositCache = nil
 	return nil
 }
 
-// ProcessDeposits processes the deposits in the beacon state's queue,
+// ApplyDeposits processes the deposits in the beacon state's queue,
 // up to MaxDepositsPerBlock, by applying them to the underlying staking module.
-func (s *Service) ProcessDeposits(ctx context.Context) error {
+func (s *Service) ApplyDeposits(ctx context.Context) error {
 	beaconState := s.BeaconState(ctx)
 
 	// Get deposits, up to MaxDepositsPerBlock, from the queue
