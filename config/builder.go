@@ -35,7 +35,7 @@ import (
 // Beacon conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Beacon] = Beacon{}
 
-// Beacon is the configuration for the beacon chain.
+// Builder is the configuration for the payload builder.
 type Builder struct {
 	// LocalBuilderEnabled determines if the local builder is enabled.
 	LocalBuilderEnabled bool
