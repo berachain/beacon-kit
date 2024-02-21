@@ -31,20 +31,20 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// ProcessDeposit processes a deposit log from the execution layer
-// and puts the deposit to the beacon state.
-func (s *Service) ProcessDeposit(
+// CacheDeposit puts a deposit into the cache in the staking service.
+func (s *Service) CacheDeposit(
 	_ context.Context,
 	deposit *consensusv1.Deposit,
 ) error {
-	// Cache the deposit to be pushed to the queue later in batch.
+	// Cache the deposit, to be pushed to the queue later in batch.
 	s.depositCache = append(s.depositCache, deposit)
 	s.Logger().Info("delegating from execution layer",
 		"validatorPubkey", deposit.GetPubkey(), "amount", deposit.GetAmount())
 	return nil
 }
 
-// PersistDeposits persists the queued deposists to the keeper.
+// PersistDeposits moves the deposits from cache into the beacon state,
+// and then applies the pending deposits to the staking keeper.
 func (s *Service) PersistDeposits(ctx context.Context) error {
 	beaconState := s.BeaconState(ctx)
 
