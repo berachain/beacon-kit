@@ -49,6 +49,7 @@ import (
 
 	distrtypes "cosmossdk.io/x/distribution/types"
 	govtypes "cosmossdk.io/x/gov/types"
+	slashingtypes "cosmossdk.io/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -59,7 +60,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	beaconv1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
@@ -68,6 +68,7 @@ import (
 	_ "cosmossdk.io/x/distribution"                          // import for side-effects
 	_ "cosmossdk.io/x/evidence"                              // import for side-effects
 	_ "cosmossdk.io/x/gov"                                   // import for side-effects
+	_ "cosmossdk.io/x/slashing"                              // import for side-effects
 	_ "cosmossdk.io/x/upgrade"                               // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth"                  // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"        // import for side-effects
@@ -76,7 +77,6 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/consensus"             // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/crisis"                // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/mint"                  // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/slashing"              // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/staking"               // import for side-effects
 	_ "github.com/itsdevbear/bolaris/runtime/modules/beacon" // import for side-effects
 )

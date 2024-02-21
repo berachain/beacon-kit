@@ -3,13 +3,15 @@ module github.com/itsdevbear/bolaris
 go 1.22.0
 
 replace (
-	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20231024151304-4352ab1f349a
-	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20231024151304-4352ab1f349a
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20231024151304-4352ab1f349a
-	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20231024151304-4352ab1f349a
+	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20231025152832-86eaeed5199e
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20231025152832-86eaeed5199e
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20231025152832-86eaeed5199e
+	// github.com/cosmos/cosmos-sdk/x/staking => github.com/cosmos/cosmos-sdk/x/staking 2a6640d4884b2286c87115cc1d403956192f5c6b
+	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20231025152832-86eaeed5199e
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20231025152832-86eaeed5199e
 	// Required until: https://github.com/cosmos/cosmos-db/pull/97 is merged, fixes pebbledb dep conflict.
 	github.com/cosmos/cosmos-db => github.com/itsdevbear/cosmos-db v0.0.0-20240221222005-7af8b3de2d76
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20231024151304-4352ab1f349a
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20231025152832-86eaeed5199e
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -29,6 +31,7 @@ require (
 	cosmossdk.io/x/distribution v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/gov v0.0.0-20230925135524-a1bc045b3190
+	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
