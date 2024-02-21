@@ -3,8 +3,10 @@ module github.com/itsdevbear/bolaris
 go 1.22.0
 
 replace (
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20231011102018-ed14ec03b637
 	// Required until: https://github.com/cosmos/cosmos-db/pull/97 is merged, fixes pebbledb dep conflict.
 	github.com/cosmos/cosmos-db => github.com/itsdevbear/cosmos-db v0.0.0-20240221222005-7af8b3de2d76
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20231011102018-ed14ec03b637
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -14,7 +16,7 @@ require (
 	cosmossdk.io/api v0.7.3
 	cosmossdk.io/client/v2 v2.0.0-beta.1.0.20240219165639-7dbed2fc0c3e
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v0.11.0
+	cosmossdk.io/core v0.12.0
 	cosmossdk.io/depinject v1.0.0-alpha.4
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.3.1
@@ -27,7 +29,7 @@ require (
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.1-0.20231026072645-8a5e4f599be7
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
-	github.com/cosmos/cosmos-sdk v0.50.4
+	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.12
@@ -65,6 +67,7 @@ require (
 	cloud.google.com/go/storage v1.35.1 // indirect
 	connectrpc.com/connect v1.14.0 // indirect
 	connectrpc.com/otelconnect v0.7.0 // indirect
+	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 // indirect
 	cosmossdk.io/x/tx v0.13.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/4meepo/tagalign v1.3.3 // indirect
@@ -76,7 +79,6 @@ require (
 	github.com/Antonboom/testifylint v1.1.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
-	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
 	github.com/GaijinEntertainment/go-exhaustruct/v3 v3.2.0 // indirect
@@ -117,7 +119,6 @@ require (
 	github.com/chavacava/garif v0.1.0 // indirect
 	github.com/chigopher/pathlib v0.19.1 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
-	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
