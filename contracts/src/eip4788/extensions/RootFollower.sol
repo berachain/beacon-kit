@@ -14,7 +14,7 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev The length of the history buffer.
-    uint256 private constant HISTORY_BUFFER_LENGTH = 256;
+    uint256 private constant HISTORY_BUFFER_LENGTH = 8191;
     /// @dev The selector for "getCoinbase(uint256)"
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
     /// @dev The beacon roots contract address.

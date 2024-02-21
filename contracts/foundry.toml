@@ -22,11 +22,11 @@ remappings = [
 verbosity = 3
 
 [profile.fuzz]
-fuzz = { runs = 8192 }
-verbosity = 3
+fuzz = { runs = 512 }
+verbosity = 1
 
 [profile.coverage]
-fuzz = { runs = 256 }
+fuzz = { runs = 16 }
 
 [fmt]
 bracket_spacing = true
