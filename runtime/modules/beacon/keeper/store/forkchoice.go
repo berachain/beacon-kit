@@ -50,25 +50,25 @@ func (s *BeaconStore) GetLastValidHead() common.Hash {
 // SetSafeEth1BlockHash sets the safe block hash in the store.
 func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
 	// #nosec // Error is ignored on purpose.
-	_ = s.fcSafeEth1BlockHash.Set(s.sdkCtx, safeBlockHash)
+	_ = s.fcSafeEth1BlockHash.Set(s.sdkCtx, safeBlockHash[:])
 }
 
 // GetSafeEth1BlockHash retrieves the safe block hash from the store.
 func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
 	// #nosec // Error is ignored on purpose.
 	safeHash, _ := s.fcSafeEth1BlockHash.Get(s.sdkCtx)
-	return safeHash
+	return common.BytesToHash(safeHash)
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
 func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
 	// #nosec // Error is ignored on purpose.
-	_ = s.fcFinalizedEth1BlockHash.Set(s.sdkCtx, finalizedBlockHash)
+	_ = s.fcFinalizedEth1BlockHash.Set(s.sdkCtx, finalizedBlockHash[:])
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
 func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
 	// #nosec // Error is ignored on purpose.
 	finalHash, _ := s.fcFinalizedEth1BlockHash.Get(s.sdkCtx)
-	return finalHash
+	return common.BytesToHash(finalHash)
 }

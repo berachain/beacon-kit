@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
-	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -51,13 +50,13 @@ type BeaconStore struct {
 	depositQueue *collections.Queue[*consensusv1.Deposit]
 
 	// fcSafeEth1BlockHash is the safe block hash.
-	fcSafeEth1BlockHash sdkcollections.Item[common.Hash]
+	fcSafeEth1BlockHash sdkcollections.Item[[]byte]
 
 	// fcFinalizedEth1BlockHash is the finalized block hash.
-	fcFinalizedEth1BlockHash sdkcollections.Item[common.Hash]
+	fcFinalizedEth1BlockHash sdkcollections.Item[[]byte]
 
 	// eth1GenesisHash is the Eth1 genesis hash.
-	eth1GenesisHash sdkcollections.Item[common.Hash]
+	eth1GenesisHash sdkcollections.Item[[]byte]
 
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
@@ -73,26 +72,25 @@ func NewBeaconStore(
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
-	hashValueCodec := encoding.Hash{}
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
 		&consensusv1.Deposit{})
-	fcSafeEth1BlockHash := sdkcollections.NewItem[common.Hash](
+	fcSafeEth1BlockHash := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
 		fcSafeEth1BlockHashPrefix,
-		hashValueCodec)
-	fcFinalizedEth1BlockHash := sdkcollections.NewItem[common.Hash](
+		sdkcollections.BytesValue)
+	fcFinalizedEth1BlockHash := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
 		fcFinalizedEth1BlockHashPrefix,
-		hashValueCodec)
-	eth1GenesisHash := sdkcollections.NewItem[common.Hash](
+		sdkcollections.BytesValue)
+	eth1GenesisHash := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
 		eth1GenesisHashPrefix,
-		hashValueCodec)
+		sdkcollections.BytesValue)
 	return &BeaconStore{
 		sdkCtx:                   sdkCtx,
 		depositQueue:             depositQueue,
