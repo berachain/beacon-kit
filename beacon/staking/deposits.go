@@ -43,8 +43,7 @@ func (s *Service) CacheDeposit(
 	return nil
 }
 
-// PersistDeposits moves the deposits from cache into the beacon state,
-// and then applies the pending deposits to the staking keeper.
+// PersistDeposits moves the deposits from cache into the beacon state's queue.
 func (s *Service) PersistDeposits(ctx context.Context) error {
 	beaconState := s.BeaconState(ctx)
 
@@ -54,13 +53,21 @@ func (s *Service) PersistDeposits(ctx context.Context) error {
 		return err
 	}
 	s.depositCache = nil
+	return nil
+}
 
-	// Get deposits, up to MaxDepositsPerBlock, from the queue.
+// ApplyDeposits processes the deposits in the beacon state's queue,
+// up to MaxDepositsPerBlock, by applying them to the underlying staking module.
+func (s *Service) ApplyDeposits(ctx context.Context) error {
+	beaconState := s.BeaconState(ctx)
+
+	// Get deposits, up to MaxDepositsPerBlock, from the queue
+	// to apply to the underlying low-level staking module (e.g Cosmos SDK's x/staking).
 	deposits, err := beaconState.DequeueDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
 	if err != nil {
 		return err
 	}
 
-	// Apply deposists to the staking keeper.
+	// Apply deposists to the underlying staking module.
 	return s.vcp.ApplyChanges(ctx, deposits, nil)
 }
