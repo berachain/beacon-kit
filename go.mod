@@ -3,6 +3,8 @@ module github.com/itsdevbear/bolaris
 go 1.22.0
 
 replace (
+	// Required until: https://github.com/cosmos/cosmos-db/pull/97 is merged, fixes pebbledb dep conflict.
+	github.com/cosmos/cosmos-db => github.com/itsdevbear/cosmos-db v0.0.0-20240221222005-7af8b3de2d76
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -23,7 +25,7 @@ require (
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
-	github.com/cosmos/cosmos-db v1.0.0
+	github.com/cosmos/cosmos-db v1.0.1-0.20231026072645-8a5e4f599be7
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.50.4
 	github.com/cosmos/gogoproto v1.4.11
@@ -121,7 +123,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft-db v0.9.1 // indirect
+	github.com/cometbft/cometbft-db v0.11.0 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.15.1 // indirect

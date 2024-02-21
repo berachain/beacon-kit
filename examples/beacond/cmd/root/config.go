@@ -46,6 +46,8 @@ func initCometBFTConfig() *cmtcfg.Config {
 	consensus.TimeoutPrecommit = time.Second * 1
 	consensus.TimeoutCommit = time.Second * 3
 
+	cfg.DBBackend = "pebbledb"
+
 	// Disable the indexer
 	cfg.TxIndex.Indexer = "null"
 	return cfg
@@ -84,6 +86,7 @@ func initAppConfig() (string, interface{}) {
 	srvCfg.API.Enable = true
 	srvCfg.Telemetry.MetricsSink = "mem"
 
+	srvCfg.AppDBBackend = "pebbledb"
 	customAppConfig := CustomAppConfig{
 		Config:    *srvCfg,
 		BeaconKit: *beaconconfig.DefaultConfig(),
