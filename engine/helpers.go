@@ -23,19 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package engine
 
 import (
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	cfg          *config.Builder
-	es           ExecutionService
-	payloadCache *cache.PayloadIDCache
+// processPayloadStatusResult processes the payload status result and
+// returns the latest valid hash or an error.
+func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) {
+	switch result.GetStatus() {
+	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
+		return nil, eth.ErrInvalidBlockHashPayloadStatus
+	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
+		return nil, eth.ErrAcceptedSyncingPayloadStatus
+	case enginev1.PayloadStatus_INVALID:
+		return result.GetLatestValidHash(), eth.ErrInvalidPayloadStatus
+	case enginev1.PayloadStatus_VALID:
+		return result.GetLatestValidHash(), nil
+	case enginev1.PayloadStatus_UNKNOWN:
+		fallthrough
+	default:
+		return nil, eth.ErrUnknownPayloadStatus
+	}
 }

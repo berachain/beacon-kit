@@ -30,7 +30,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/execution/builder/local/cache"
+	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/stretchr/testify/require"
 )

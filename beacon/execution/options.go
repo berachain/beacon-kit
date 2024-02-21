@@ -26,7 +26,7 @@
 package execution
 
 import (
-	"github.com/itsdevbear/bolaris/execution/engine"
+	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
