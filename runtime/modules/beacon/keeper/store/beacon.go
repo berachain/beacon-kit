@@ -73,6 +73,7 @@ func NewBeaconStore(
 ) *BeaconStore {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+	hashValueCodec := encoding.Hash{}
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
@@ -81,17 +82,17 @@ func NewBeaconStore(
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
 		fcSafeEth1BlockHashPrefix,
-		encoding.Hash{})
+		hashValueCodec)
 	fcFinalizedEth1BlockHash := sdkcollections.NewItem[common.Hash](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
 		fcFinalizedEth1BlockHashPrefix,
-		encoding.Hash{})
+		hashValueCodec)
 	eth1GenesisHash := sdkcollections.NewItem[common.Hash](
 		schemaBuilder,
 		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
 		eth1GenesisHashPrefix,
-		encoding.Hash{})
+		hashValueCodec)
 	return &BeaconStore{
 		sdkCtx:                   sdkCtx,
 		depositQueue:             depositQueue,
