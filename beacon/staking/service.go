@@ -27,7 +27,6 @@ package staking
 
 import (
 	"github.com/itsdevbear/bolaris/runtime/service"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // Service represents the staking service.
@@ -36,7 +35,4 @@ type Service struct {
 
 	// vcp is responsible for applying validator set changes.
 	vcp ValsetChangeProvider
-
-	// depositCache is a cache of deposits that have not yet been applied to store.
-	depositCache []*consensusv1.Deposit
 }
