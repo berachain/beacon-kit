@@ -201,7 +201,10 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 		// this function will just panic. This function should stay alive
 		// during EL node restarts / disconnections.
 		if err != nil {
-			if err.Error() == "unknown block" {
+			// TODO: different execution clients are going to handle this
+			// differently, we should probably have a way to handle this
+			// more gracefully.
+			if err.Error() == "Unknown block" || err.Error() == "unknown block" {
 				// If the block is unknown, we can just continue and try again.
 				// We set elLatestFinalizedHeader to an empty Header to prevent
 				// a nil ptr dereference further down.

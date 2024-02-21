@@ -58,7 +58,7 @@ func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
 func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
 	safeHash, err := s.fcSafeEth1BlockHash.Get(s.sdkCtx)
 	if err != nil {
-		panic(err)
+		safeHash = []byte{}
 	}
 	return common.BytesToHash(safeHash)
 }
@@ -74,7 +74,7 @@ func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) 
 func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
 	finalHash, err := s.fcFinalizedEth1BlockHash.Get(s.sdkCtx)
 	if err != nil {
-		panic(err)
+		finalHash = []byte{}
 	}
 	return common.BytesToHash(finalHash)
 }

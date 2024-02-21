@@ -27,7 +27,6 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
@@ -35,9 +34,6 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
-
-// TODO: calculate this based off of all the comet timeouts.
-const approximateBlkTime = 3 * time.Second
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
@@ -80,64 +76,11 @@ func (s *Service) postBlockProcess(
 func (s *Service) sendFCU(
 	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
 ) error {
-	// If we are preparing all payloads and we are a validator,
-	// we delegate the responsibility of submitting our forkchoice update to the
-	// builder service.
-	if s.FeatureFlags().PrepareAllPayloads {
-		// If the forkchoice update was sent successfully, we return nil. Otherwise we
-		// ignore the error and fallthrough to attempt to send the forkchoice update to
-		// the execution client without a payload build.
-		err := s.sendFCUViaLocalBuilder(ctx, headEth1Hash, proposingSlot)
-		if err == nil {
-			return nil
-		}
-		s.Logger().Warn(
-			"failed to send forkchoice update - resending w/o payload...",
-			"error", err,
-		)
-	}
-
 	// Send the forkchoice update to the execution client via the execution service.
-	return s.sendFCUViaExecutionService(ctx, headEth1Hash, proposingSlot)
-}
-
-// sendFCUViaExecutionService sends a forkchoice update to the
-// execution client via the execution service.
-func (s *Service) sendFCUViaExecutionService(
-	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
-) error {
 	_, err := s.es.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  headEth1Hash,
 			ProposingSlot: proposingSlot,
 		})
 	return err
-}
-
-// sendFCUViaLocalBuilder sends a forkchoice update to the execution client
-// via the local builder service.
-func (s *Service) sendFCUViaLocalBuilder(
-	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
-) error {
-	// Under the hood, the builder service will send a forkchoice update with
-	// attributes which in the case of a valid forkchoice update, will trigger a
-	// payload build.
-	//
-	//nolint:lll
-	// https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md?plain=1#engine_forkchoiceupdatedv1
-	//
-	//#nosec:G701 // won't overflow, time cannot be negative.
-	if payloadID, err := s.bs.BuildLocalPayload(
-		ctx, headEth1Hash, proposingSlot, uint64((time.Now().Add(approximateBlkTime)).Unix()),
-	); payloadID == nil {
-		return ErrInvalidPayload
-	} else if err != nil {
-		// If we see an error here, we fallback to submitting a forkchoice without
-		// building a payload. In the case there is a block building issue, but the
-		// payload was still totally valid, we don't want this node to reject the
-		// block.
-		telemetry.IncrCounter(1, MetricFailedToBuildLocalPayload)
-		return err
-	}
-	return nil
 }
