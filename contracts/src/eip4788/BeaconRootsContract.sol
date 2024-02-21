@@ -15,11 +15,12 @@ contract BeaconRootsContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev HISTORY_BUFFER_LENGTH is the length of the circular buffer for storing beacon roots
-    /// and coinbases.
-    uint256 private constant HISTORY_BUFFER_LENGTH = 256;
+    /// and coinbases. It is 8191 as defined in:
+    /// https://eips.ethereum.org/EIPS/eip-4788#specification
+    uint256 private constant HISTORY_BUFFER_LENGTH = 8191;
 
     /// @dev SYSTEM_ADDRESS is the address that is allowed to call the set function as defined in
-    /// EIP-4788.
+    /// EIP-4788: https://eips.ethereum.org/EIPS/eip-4788#specification
     address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
 
     /// @dev The selector for "getCoinbase(uint256)".
