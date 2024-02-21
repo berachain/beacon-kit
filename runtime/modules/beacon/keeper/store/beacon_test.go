@@ -63,8 +63,12 @@ func TestBeaconStore(t *testing.T) {
 	finalHash := common.HexToHash("0x456")
 	beaconStore.SetFinalizedEth1BlockHash(finalHash)
 	require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
+	// Recheck to make sure there is no collision.
+	require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
 
 	genesisHash := common.HexToHash("0x789")
 	beaconStore.SetGenesisEth1Hash(genesisHash)
 	require.Equal(t, genesisHash, beaconStore.GenesisEth1Hash())
+	require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
+	require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
 }
