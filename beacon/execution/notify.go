@@ -99,15 +99,9 @@ func (s *Service) notifyForkchoiceUpdate(
 	}
 
 	fcs := &enginev1.ForkchoiceState{
-		HeadBlockHash: fcuConfig.HeadEth1Hash[:],
-	}
-
-	if fcuConfig.UpdateFinalization {
-		fcs.SafeBlockHash = beaconState.GetSafeEth1BlockHash().Bytes()
-		fcs.FinalizedBlockHash = beaconState.GetFinalizedEth1BlockHash().Bytes()
-	} else {
-		fcs.SafeBlockHash = common.Hash{}.Bytes()
-		fcs.FinalizedBlockHash = common.Hash{}.Bytes()
+		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
+		SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
+		FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
 	}
 
 	// Notify the execution engine of the forkchoice update.

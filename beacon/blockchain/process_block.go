@@ -79,9 +79,8 @@ func (s *Service) sendFCU(
 	// Send the forkchoice update to the execution client via the execution service.
 	_, err := s.es.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:       headEth1Hash,
-			ProposingSlot:      proposingSlot,
-			UpdateFinalization: true,
+			HeadEth1Hash:  headEth1Hash,
+			ProposingSlot: proposingSlot,
 		})
 	return err
 }

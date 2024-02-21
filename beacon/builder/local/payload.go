@@ -79,8 +79,6 @@ func (s *Service) BuildLocalPayload(
 		HeadEth1Hash:  parentEth1Hash,
 		ProposingSlot: slot,
 		Attributes:    attrs,
-		// Builder currently does not finalize blocks, only triggers payload builds.
-		UpdateFinalization: false,
 	}
 
 	// Notify the execution client of the forkchoice update.
