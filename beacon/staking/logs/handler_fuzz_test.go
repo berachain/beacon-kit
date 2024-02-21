@@ -31,6 +31,7 @@ import (
 	"testing"
 
 	coretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
@@ -39,11 +40,11 @@ import (
 func FuzzHandlerSimple(f *testing.F) {
 	// Setup
 	ctx := context.Background()
-	stakingService := &mockStakingService{}
-	callbackHandler, err := newCallbackHandler(stakingService)
+	stakingService := &mocks.StakingService{}
+	callbackHandler, err := mocks.NewCallbackHandler(stakingService)
 	require.NoError(f, err)
 
-	events, err := depositContractEvents()
+	events, err := mocks.DepositContractEvents()
 	require.NoError(f, err)
 
 	depositEventName := "Deposit"
@@ -65,13 +66,13 @@ func FuzzHandlerSimple(f *testing.F) {
 
 		// Deposit
 		deposit = consensus.NewDeposit(pubKey, amount, withdrawalCredentials)
-		log, err = newLogFromDeposit(depositEvent, deposit)
+		log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
 		require.NoError(t, err)
 
 		err = callbackHandler.HandleLog(ctx, &log)
 		require.NoError(t, err)
 
-		latestDeposit, err = stakingService.mostRecentDeposit()
+		latestDeposit, err = stakingService.MostRecentDeposit()
 		require.NoError(t, err)
 		require.Equal(t, deposit, latestDeposit)
 		require.Equal(t, deposit.GetAmount(), latestDeposit.GetAmount())
@@ -88,11 +89,11 @@ func FuzzHandlerSimple(f *testing.F) {
 func FuzzHandlerMulti(f *testing.F) {
 	// Setup
 	ctx := context.Background()
-	stakingService := &mockStakingService{}
-	callbackHandler, err := newCallbackHandler(stakingService)
+	stakingService := &mocks.StakingService{}
+	callbackHandler, err := mocks.NewCallbackHandler(stakingService)
 	require.NoError(f, err)
 
-	events, err := depositContractEvents()
+	events, err := mocks.DepositContractEvents()
 	require.NoError(f, err)
 
 	depositEventName := "Deposit"
@@ -122,16 +123,16 @@ func FuzzHandlerMulti(f *testing.F) {
 			require.Equal(t, initAmount+i, deposit.GetAmount())
 			require.Equal(t, pubKey, deposit.GetPubkey())
 
-			log, err = newLogFromDeposit(depositEvent, deposit)
+			log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
 			require.NoError(t, err)
 			err = callbackHandler.HandleLog(ctx, &log)
 			require.NoError(t, err)
 
-			latestDeposit, err = stakingService.mostRecentDeposit()
+			latestDeposit, err = stakingService.MostRecentDeposit()
 			require.NoError(t, err)
 			require.Equal(t, deposit, latestDeposit)
 
-			require.Equal(t, int(i+1), stakingService.numPendingDeposits())
+			require.Equal(t, int(i+1), stakingService.NumPendingDeposits())
 		}
 		err = stakingService.ApplyDeposits(ctx)
 		require.NoError(t, err)

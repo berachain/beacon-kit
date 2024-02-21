@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs_test
+package mocks
 
 import (
 	"context"
@@ -35,17 +35,17 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-var _ logs.StakingService = &mockStakingService{}
+var _ logs.StakingService = &StakingService{}
 
-// mockStakingService is a mock implementation of the staking service.
-type mockStakingService struct {
+// StakingService is a mock implementation of the staking service.
+type StakingService struct {
 	depositQueue    []*consensusv1.Deposit
 	withdrawalQueue []*enginev1.Withdrawal
 	mu              sync.RWMutex
 }
 
 // AcceptDeposit pushes a deposit into queue.
-func (s *mockStakingService) AcceptDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
+func (s *StakingService) AcceptDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -56,7 +56,7 @@ func (s *mockStakingService) AcceptDeposit(_ context.Context, deposit *consensus
 // ApplyDeposits does nothing but clears the queue,
 // because mockStakingService does not have an underlying
 // staking module.
-func (s *mockStakingService) ApplyDeposits(_ context.Context) error {
+func (s *StakingService) ApplyDeposits(_ context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -64,8 +64,8 @@ func (s *mockStakingService) ApplyDeposits(_ context.Context) error {
 	return nil
 }
 
-// mostRecentDeposit returns the most recent deposit added into the queue.
-func (s *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
+// MostRecentDeposit returns the most recent deposit added into the queue.
+func (s *StakingService) MostRecentDeposit() (*consensusv1.Deposit, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -75,8 +75,8 @@ func (s *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
 	return s.depositQueue[len(s.depositQueue)-1], nil
 }
 
-// numPendingDeposits returns the number of pending deposits in the queue.
-func (s *mockStakingService) numPendingDeposits() int {
+// NumPendingDeposits returns the number of pending deposits in the queue.
+func (s *StakingService) NumPendingDeposits() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -84,7 +84,7 @@ func (s *mockStakingService) numPendingDeposits() int {
 }
 
 // ProcessWithdrawal processes a withdrawal.
-func (s *mockStakingService) ProcessWithdrawal(
+func (s *StakingService) ProcessWithdrawal(
 	_ context.Context,
 	withdrawal *enginev1.Withdrawal,
 ) error {
@@ -95,8 +95,8 @@ func (s *mockStakingService) ProcessWithdrawal(
 	return nil
 }
 
-// mostRecentWithdrawal returns the most recent withdrawal added into the queue.
-func (s *mockStakingService) mostRecentWithdrawal() (*enginev1.Withdrawal, error) {
+// MostRecentWithdrawal returns the most recent withdrawal added into the queue.
+func (s *StakingService) MostRecentWithdrawal() (*enginev1.Withdrawal, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

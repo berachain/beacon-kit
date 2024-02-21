@@ -79,6 +79,8 @@ func (s *Handler) Withdrawal(
 	_ [20]byte,
 	amount uint64,
 ) error {
-	withdrawal := engine.NewWithdrawal(validatorPubkey, amount)
-	return s.sks.ProcessWithdrawal(ctx, withdrawal)
+	return s.sks.ProcessWithdrawal(
+		ctx,
+		engine.NewWithdrawal(validatorPubkey, amount),
+	)
 }

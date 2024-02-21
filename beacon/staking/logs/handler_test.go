@@ -27,16 +27,10 @@ package logs_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -47,11 +41,11 @@ import (
 func Test_CallbackHandler(t *testing.T) {
 	// Setup
 	ctx := context.Background()
-	stakingService := &mockStakingService{}
-	callbackHandler, err := newCallbackHandler(stakingService)
+	stakingService := &mocks.StakingService{}
+	callbackHandler, err := mocks.NewCallbackHandler(stakingService)
 	require.NoError(t, err)
 
-	events, err := depositContractEvents()
+	events, err := mocks.DepositContractEvents()
 	require.NoError(t, err)
 
 	depositEventName := "Deposit"
@@ -74,13 +68,13 @@ func Test_CallbackHandler(t *testing.T) {
 			10000,
 			[]byte("12345678901234567890"),
 		)
-		log, err = newLogFromDeposit(depositEvent, deposit)
+		log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
 		require.NoError(t, err)
 
 		err = callbackHandler.HandleLog(ctx, &log)
 		require.NoError(t, err)
 
-		latestDeposit, err = stakingService.mostRecentDeposit()
+		latestDeposit, err = stakingService.MostRecentDeposit()
 		require.NoError(t, err)
 		require.Equal(t, deposit, latestDeposit)
 
@@ -88,72 +82,14 @@ func Test_CallbackHandler(t *testing.T) {
 			[]byte("pubkey"),
 			10000,
 		)
-		log, err = newLogFromWithdrawal(withdrawalEvent, withdrawal)
+		log, err = mocks.NewLogFromWithdrawal(withdrawalEvent, withdrawal)
 		require.NoError(t, err)
 
 		err = callbackHandler.HandleLog(ctx, &log)
 		require.NoError(t, err)
 
-		latestWithdrawal, err = stakingService.mostRecentWithdrawal()
+		latestWithdrawal, err = stakingService.MostRecentWithdrawal()
 		require.NoError(t, err)
 		require.Equal(t, withdrawal, latestWithdrawal)
 	})
-}
-
-// newLog creates a new log of an event from the given arguments.
-func newLog(event abi.Event, args ...interface{}) (coretypes.Log, error) {
-	if len(event.Inputs) != len(args) {
-		return coretypes.Log{}, errors.New("mismatched number of arguments")
-	}
-	data, err := event.Inputs.Pack(args...)
-	if err != nil {
-		return coretypes.Log{}, err
-	}
-	return coretypes.Log{
-		Topics: []common.Hash{event.ID},
-		Data:   data,
-	}, nil
-}
-
-// newLogFromDeposit creates a new log from the given deposit.
-func newLogFromDeposit(
-	event abi.Event,
-	deposit *consensusv1.Deposit,
-) (coretypes.Log, error) {
-	return newLog(event,
-		deposit.GetPubkey(),
-		[20]byte(deposit.GetWithdrawalCredentials()),
-		deposit.GetAmount(),
-	)
-}
-
-// newLogFromWithdrawal creates a new log from the given withdrawal.
-func newLogFromWithdrawal(
-	event abi.Event,
-	withdrawal *enginev1.Withdrawal,
-) (coretypes.Log, error) {
-	return newLog(event,
-		[]byte{},
-		[20]byte{},
-		withdrawal.GetAmount(),
-	)
-}
-
-func depositContractEvents() (map[string]abi.Event, error) {
-	stakingAbi, err := stakingabi.StakingMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-	return stakingAbi.Events, nil
-}
-
-func newCallbackHandler(stakingService logs.StakingService) (callback.LogHandler, error) {
-	logHander := service.New[logs.Handler](
-		logs.WithStakingService(stakingService),
-	)
-	callbackHandler, err := callback.NewFrom(logHander)
-	if err != nil {
-		return nil, err
-	}
-	return callbackHandler, nil
 }
