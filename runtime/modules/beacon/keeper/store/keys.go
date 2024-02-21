@@ -34,6 +34,6 @@ const (
 // Collection prefixes.
 const (
 	depositQueuePrefix             = "deposit_queue"
-	fcSafeEth1BlockHashPrefix      = "fc_safe_eth1_block_hash"
-	fcFinalizedEth1BlockHashPrefix = "fc_finalized_eth1_block_hash"
+	fcSafeEth1BlockHashPrefix      = "fc_safe"
+	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
 )
