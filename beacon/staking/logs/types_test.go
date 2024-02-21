@@ -39,35 +39,28 @@ var _ logs.StakingService = &mockStakingService{}
 
 // mockStakingService is a mock implementation of the staking service.
 type mockStakingService struct {
-	depositCache    []*consensusv1.Deposit
+	depositQueue    []*consensusv1.Deposit
 	withdrawalQueue []*enginev1.Withdrawal
 	mu              sync.RWMutex
 }
 
 // CacheDeposit caches a deposit.
-func (s *mockStakingService) CacheDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
+func (s *mockStakingService) AcceptDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.depositCache = append(s.depositCache, deposit)
+	s.depositQueue = append(s.depositQueue, deposit)
 	return nil
 }
 
-// PersistDeposits persists the deposits to the queue.
-// The mockStakingService does not maintain a beacon state,
-// so this method does nothing but clear the cache.
-func (s *mockStakingService) PersistDeposits(_ context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.depositCache = nil
-	return nil
-}
-
-// ProcessDeposits is a no-op for the mockStakingService,
+// ApplyDeposits does nothing but clears the cache,
 // because mockStakingService does not have an underlying
 // staking module.
-func (s *mockStakingService) ProcessDeposits(_ context.Context) error {
+func (s *mockStakingService) ApplyDeposits(_ context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.depositQueue = nil
 	return nil
 }
 
@@ -76,17 +69,17 @@ func (s *mockStakingService) mostRecentDeposit() (*consensusv1.Deposit, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if len(s.depositCache) == 0 {
+	if len(s.depositQueue) == 0 {
 		return nil, errors.New("no deposits")
 	}
-	return s.depositCache[len(s.depositCache)-1], nil
+	return s.depositQueue[len(s.depositQueue)-1], nil
 }
 
-func (s *mockStakingService) numDepositsInCache() int {
+func (s *mockStakingService) numPendingDeposits() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return len(s.depositCache)
+	return len(s.depositQueue)
 }
 
 // ProcessWithdrawal processes a withdrawal.

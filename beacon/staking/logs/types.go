@@ -34,8 +34,7 @@ import (
 
 // StakingService is the interface for the staking service.
 type StakingService interface {
-	CacheDeposit(ctx context.Context, deposit *consensusv1.Deposit) error
-	PersistDeposits(ctx context.Context) error
-	ProcessDeposits(ctx context.Context) error
+	AcceptDeposit(ctx context.Context, deposit *consensusv1.Deposit) error
+	ApplyDeposits(ctx context.Context) error
 	ProcessWithdrawal(ctx context.Context, withdrawal *enginev1.Withdrawal) error
 }

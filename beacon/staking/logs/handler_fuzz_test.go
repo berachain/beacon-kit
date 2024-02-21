@@ -131,9 +131,9 @@ func FuzzHandlerMulti(f *testing.F) {
 			require.NoError(t, err)
 			require.Equal(t, deposit, latestDeposit)
 
-			require.Equal(t, int(i+1), stakingService.numDepositsInCache())
+			require.Equal(t, int(i+1), stakingService.numPendingDeposits())
 		}
-		err = stakingService.PersistDeposits(ctx)
+		err = stakingService.ApplyDeposits(ctx)
 		require.NoError(t, err)
 	})
 }
