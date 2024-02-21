@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2023 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package logs
 
 import (
 	"context"
@@ -32,7 +32,10 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// ValsetChangeProvider is the interface for applying validator set changes.
-type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+// StakingService is the interface for the staking service.
+type StakingService interface {
+	CacheDeposit(ctx context.Context, deposit *consensusv1.Deposit) error
+	PersistDeposits(ctx context.Context) error
+	ProcessDeposits(ctx context.Context) error
+	ProcessWithdrawal(ctx context.Context, withdrawal *enginev1.Withdrawal) error
 }

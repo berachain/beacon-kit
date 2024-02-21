@@ -91,3 +91,14 @@ func EmptyPayloadAttributesWithVersion(
 		return nil
 	}
 }
+
+// NewWithdrawal creates a new Withdrawal.
+func NewWithdrawal(
+	_ []byte, // validatorPubkey
+	amount uint64,
+) *enginev1.Withdrawal {
+	// TODO: implement
+	return &enginev1.Withdrawal{
+		Amount: amount,
+	}
+}
