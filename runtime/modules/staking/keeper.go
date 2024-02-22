@@ -30,11 +30,11 @@ import (
 	"errors"
 
 	sdkmath "cosmossdk.io/math"
+	sdkkeeper "cosmossdk.io/x/staking/keeper"
+	sdkstaking "cosmossdk.io/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	sdkstaking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
