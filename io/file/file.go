@@ -86,6 +86,17 @@ func MkdirAll(dirPath string) error {
 	return os.MkdirAll(absDirPath, os.ModePerm)
 }
 
+// MkdirEphemeral creates a new temporary directory in the directory dir with a name
+// beginning with prefix and returns the path of the new directory.
+func MkdirEphemeral(dir, prefix, fallback string) string {
+	out, err := os.MkdirTemp(dir, prefix)
+	if err != nil {
+		out = fallback
+	}
+	defer os.RemoveAll(out)
+	return out
+}
+
 // CreateFile creates or truncates a file at the specified path.
 func CreateFile(filePath string) error {
 	absFilePath, err := AbsPath(filePath)

@@ -28,7 +28,6 @@ package root
 import (
 	"errors"
 	"io"
-	"os"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
@@ -211,14 +210,4 @@ func appExport(
 	}
 
 	return beaconApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
-}
-
-var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
-	dir, err := os.MkdirTemp("", "beacond")
-	if err != nil {
-		dir = app.DefaultNodeHome
-	}
-	defer os.RemoveAll(dir)
-
-	return dir
 }

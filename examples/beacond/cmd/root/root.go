@@ -50,6 +50,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
+	"github.com/itsdevbear/bolaris/io/file"
 
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
@@ -66,7 +67,9 @@ func NewRootCmd() *cobra.Command {
 			app.AppConfig(),
 			depinject.Supply(
 				log.NewNopLogger(),
-				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+				simtestutil.NewAppOptionsWithFlagHome(
+					file.MkdirEphemeral("", "beacond", app.DefaultNodeHome),
+				),
 				&beaconconfig.Beacon{},
 			),
 			depinject.Provide(
