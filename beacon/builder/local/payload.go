@@ -261,7 +261,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		return nil, nil, false, err
 	}
 
-	s.Logger().Info("payload retrieved from local builder 🏗️",
+	s.Logger().Info("payload retrieved from local builder 🏗️ ",
 		"slot", slot,
 		"block_hash", common.BytesToHash(payload.GetBlockHash()),
 		"parent_hash", common.BytesToHash(payload.GetParentHash()),
