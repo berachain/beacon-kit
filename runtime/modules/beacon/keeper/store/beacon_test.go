@@ -34,7 +34,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
@@ -45,13 +44,12 @@ func TestBeaconStore(t *testing.T) {
 	logger := sdklog.NewNopLogger()
 	keys := storetypes.NewKVStoreKeys(testName)
 	cms := integration.CreateMultiStore(keys, logger)
-
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	kv := ctx.KVStore(storeKey)
-	env := sdkruntime.NewEnvironment(kvs, logger)
-	beaconStore := store.NewBeaconStore(env, &config.DefaultConfig().Beacon)
+
+	beaconStore := store.NewBeaconStore(kvs)
 	beaconStore = beaconStore.WithContext(ctx)
 	t.Run("should return correct hashes", func(t *testing.T) {
 		safeHash := common.HexToHash("0x123")

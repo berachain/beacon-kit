@@ -70,7 +70,7 @@ func (s *Service) BuildLocalPayload(
 
 	// Build the payload attributes.
 	attrs, err := engine.NewPayloadAttributesContainer(
-		st.Version(),
+		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
 		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],

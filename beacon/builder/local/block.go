@@ -52,7 +52,7 @@ func (s *Service) RequestBestBlock(
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := consensus.EmptyBeaconKitBlock(
-		slot, s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+		slot, s.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
 		return nil, err
