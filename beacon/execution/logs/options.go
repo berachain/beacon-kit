@@ -28,7 +28,6 @@ package logs
 import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
@@ -44,7 +43,7 @@ func WithEthClient(eth1Client *eth.Eth1Client) Option {
 }
 
 // WithContractAddr is an Option that sets the contract address for the Processor.
-func WithHandlers(handlers map[common.Address]callback.LogHandler) Option {
+func WithHandlers(handlers map[common.Address]Handler) Option {
 	return func(p *Processor) error {
 		p.handlers = handlers
 		return nil

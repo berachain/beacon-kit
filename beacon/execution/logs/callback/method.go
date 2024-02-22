@@ -35,7 +35,7 @@ type logSig common.Hash
 // method attaches a specific abi.Event to a golang struct to process it.
 type method struct {
 	// rcvr is the receiver of the method's executable.
-	rcvr Handler
+	rcvr ContractHandler
 
 	// abiEvent is the abi.Event corresponding to this methods executable.
 	abiEvent abi.Event
@@ -46,7 +46,7 @@ type method struct {
 
 // newMethod creates and returns a new `method` with the given abiEvent, and executable.
 func newMethod(
-	rcvr Handler, abiEvent abi.Event, execute reflect.Method,
+	rcvr ContractHandler, abiEvent abi.Event, execute reflect.Method,
 ) *method {
 	return &method{
 		rcvr:     rcvr,

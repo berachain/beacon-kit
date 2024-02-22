@@ -28,6 +28,7 @@ package callback
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -35,4 +36,14 @@ import (
 // an ethereum log and handle it.
 type LogHandler interface {
 	HandleLog(ctx context.Context, log *coretypes.Log) error
+}
+
+// ContractHandler is the interface for all contracts in the execution layer,
+// which must expose their ABI methods and events so that callback
+// can select corresponding methods to process them.
+type ContractHandler interface {
+	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.
+	// NOTE: this can be directly loaded from the `Events` field of a Go-Ethereum ABI struct,
+	// which can be built for a solidity library, interface, or contract.
+	ABIEvents() map[string]abi.Event
 }

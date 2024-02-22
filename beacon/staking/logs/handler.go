@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
-var _ callback.Handler = &Handler{}
+var _ callback.ContractHandler = &Handler{}
 
 // Handler is a struct that implements the callback Handler interface.
 type Handler struct {

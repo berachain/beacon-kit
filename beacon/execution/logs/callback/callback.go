@@ -25,21 +25,11 @@ import (
 	"errors"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// Handler is the interface for all stateful precompiled contracts, which must
-// expose their ABI methods and precompile methods for stateful execution.
-type Handler interface {
-	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.
-	// NOTE: this can be directly loaded from the `Events` field of a Go-Ethereum ABI struct,
-	// which can be built for a solidity library, interface, or contract.
-	ABIEvents() map[string]abi.Event
-}
-
 // wrappedHandler is a container for running the underlying handler functions
-// and building.
+// and building, which implements the LogHandler interface.
 type wrappedHandler struct {
 	// sigsToFns is a map of log signatures to their corresponding handler fn.
 	sigsToFns map[logSig]*method
@@ -48,7 +38,7 @@ type wrappedHandler struct {
 // New creates and returns a new `wrappedHandler` with the given method ids
 // precompile functions map.
 func NewFrom(
-	si Handler,
+	si ContractHandler,
 ) (LogHandler, error) {
 	// We take all of the functions from the handler and build a map that
 	// maps an ethereum log to a corresponding function to handle it.
