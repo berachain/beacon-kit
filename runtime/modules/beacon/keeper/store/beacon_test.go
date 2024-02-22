@@ -30,7 +30,6 @@ import (
 
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -46,7 +45,7 @@ func TestBeaconStore(t *testing.T) {
 	logger := sdklog.NewNopLogger()
 	keys := storetypes.NewKVStoreKeys(testName)
 	cms := integration.CreateMultiStore(keys, logger)
-	ctx := sdk.NewContext(cms, cmtproto.Header{}, true, logger)
+	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	kv := ctx.KVStore(storeKey)

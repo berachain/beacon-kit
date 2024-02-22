@@ -98,7 +98,7 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	}
 
 	/* Just to be safe, assert the invariants on current state. */
-	app.CrisisKeeper.AssertInvariants(ctx)
+	// app.CrisisKeeper.AssertInvariants(ctx)
 
 	/* Handle fee distribution state. */
 

@@ -70,9 +70,9 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	// _ "github.com/itsdevbear/bolaris/runtime/modules/beacon"
-	// beaconv1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
-	// beacontypes "github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
+	_ "github.com/itsdevbear/bolaris/runtime/modules/beacon"
+	beaconv1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
+	beacontypes "github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
 
 const AppName = "BeaconKitApp"
@@ -224,10 +224,10 @@ var (
 				Name:   consensustypes.ModuleName,
 				Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
 			},
-			// {
-			// 	Name:   beacontypes.ModuleName,
-			// 	Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
-			// },
+			{
+				Name:   beacontypes.ModuleName,
+				Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
+			},
 			{
 				Name:   pooltypes.ModuleName,
 				Config: appconfig.WrapAny(&poolmodulev1.Module{}),

@@ -40,7 +40,10 @@ import (
 	bankkeeper "cosmossdk.io/x/bank/keeper"
 	distrkeeper "cosmossdk.io/x/distribution/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
+	"cosmossdk.io/x/gov"
+	govclient "cosmossdk.io/x/gov/client"
 	govkeeper "cosmossdk.io/x/gov/keeper"
+	govtypes "cosmossdk.io/x/gov/types"
 	mintkeeper "cosmossdk.io/x/mint/keeper"
 	_ "cosmossdk.io/x/protocolpool"
 	poolkeeper "cosmossdk.io/x/protocolpool/keeper"
@@ -59,7 +62,8 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
@@ -104,7 +108,6 @@ type BeaconApp struct {
 	MintKeeper            mintkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	GovKeeper             *govkeeper.Keeper
-	CrisisKeeper          *crisiskeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
@@ -132,8 +135,7 @@ func NewBeaconKitApp(
 
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
-			BeaconAppConfig,
-			depinject.Provide(),
+			AppConfig(),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
@@ -145,7 +147,8 @@ func NewBeaconKitApp(
 		)
 	)
 
-	if err := depinject.Inject(appConfig,
+	if err := depinject.Inject(
+		appConfig,
 		&appBuilder,
 		&app.appCodec,
 		&app.legacyAmino,
@@ -158,11 +161,11 @@ func NewBeaconKitApp(
 		&app.MintKeeper,
 		&app.DistrKeeper,
 		&app.GovKeeper,
-		&app.CrisisKeeper,
+		// &app.CrisisKeeper,
 		&app.UpgradeKeeper,
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
-		// &app.BeaconKeeper,
+		&app.BeaconKeeper,
 		&app.PoolKeeper,
 	); err != nil {
 		panic(err)
@@ -193,7 +196,7 @@ func NewBeaconKitApp(
 	}
 
 	/****  Module Options ****/
-	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
+	// app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
 	// Load the app.
 	if err = app.Load(loadLatest); err != nil {
@@ -255,4 +258,21 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
 	app.BeaconKitRunner.SetCometCfg(v.Config)
+}
+
+// AppConfig returns the default app config.
+func AppConfig() depinject.Config {
+	return depinject.Configs(
+		// appconfig.LoadYAML(AppConfigYAML),
+		BeaconAppConfig,
+		depinject.Supply(
+			// supply custom module basics
+			map[string]module.AppModuleBasic{
+				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				govtypes.ModuleName: gov.NewAppModuleBasic(
+					[]govclient.ProposalHandler{},
+				),
+			},
+		),
+	)
 }
