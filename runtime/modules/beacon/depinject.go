@@ -27,9 +27,9 @@ package evm
 
 import (
 	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
-	store "cosmossdk.io/store/types"
-	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
+	"cosmossdk.io/depinject/appconfig"
 	"github.com/itsdevbear/bolaris/config"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
@@ -37,8 +37,8 @@ import (
 
 //nolint:gochecknoinits // GRRRR fix later.
 func init() {
-	appmodule.Register(&modulev1alpha1.Module{},
-		appmodule.Provide(ProvideModule),
+	appconfig.RegisterModule(&modulev1alpha1.Module{},
+		appconfig.Provide(ProvideModule),
 	)
 }
 
@@ -46,11 +46,10 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	ModuleKey depinject.OwnModuleKey
-	Config    *modulev1alpha1.Module
-	Key       *store.KVStoreKey
+	Config *modulev1alpha1.Module
 
 	BeaconKitConfig *config.Beacon
+	StoreService    store.KVStoreService
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -64,7 +63,7 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
-		sdkruntime.NewKVStoreService(in.Key),
+		in.StoreService,
 		in.BeaconKitConfig,
 	)
 	m := NewAppModule(k)
