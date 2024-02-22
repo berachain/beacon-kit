@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -53,11 +54,14 @@ type Eth1Client struct {
 	jwtRefreshInterval   time.Duration
 	healthCheckInterval  time.Duration
 	dialURL              *url.URL
+	capabilities         map[string]struct{}
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided context and options.
 func NewEth1Client(opts ...Option) (*Eth1Client, error) {
-	c := &Eth1Client{}
+	c := &Eth1Client{
+		capabilities: make(map[string]struct{}),
+	}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
 			return nil, err
@@ -70,7 +74,7 @@ func NewEth1Client(opts ...Option) (*Eth1Client, error) {
 // Start the powchain service's main event loop.
 func (s *Eth1Client) Start(ctx context.Context) {
 	// Attempt an initial connection.
-	s.setupExecutionClientConnection(ctx)
+	s.tryConnectionAfter(ctx, 0)
 
 	// We will spin up the execution client connection in a loop until it is connected.
 	for !s.isConnected.Load() {
@@ -82,10 +86,32 @@ func (s *Eth1Client) Start(ctx context.Context) {
 		s.tryConnectionAfter(ctx, s.startupRetryInterval)
 	}
 
+	if err := s.exchangeCapabilitiesWithExecutionClient(ctx); err != nil {
+		s.logger.Error("could not exchange capabilities", "error", err)
+		return
+	}
+
 	// If we reached this point, the execution client is connected so we can start
 	// the health check & jwt refresh loops.
 	go s.healthCheckLoop(ctx)
 	go s.jwtRefreshLoop(ctx)
+}
+
+// exchangeCapabilitiesWithExecutionClient calls the engine_exchangeCapabilities method via JSON-RPC.
+// It then stores the capabilities in the Eth1Client's capabilities map for later reference.
+func (s *Eth1Client) exchangeCapabilitiesWithExecutionClient(ctx context.Context) error {
+	capabilities, err := s.ExchangeCapabilities(ctx, beaconKitCapabilities())
+	if err != nil {
+		return err
+	}
+
+	capabilitiesMap := make(map[string]struct{})
+	for _, capability := range capabilities {
+		capabilitiesMap[capability] = struct{}{}
+		s.logger.Info("capability exchanged", "capability", capability)
+	}
+
+	return nil
 }
 
 // IsConnected returns the connection status of the Ethereum 1 client.
@@ -217,4 +243,29 @@ func (s *Eth1Client) ExecutionBlockByNumber(ctx context.Context, num rpc.BlockNu
 	err := s.GethRPCClient.CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, s.handleRPCError(err)
+}
+
+// GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
+func (s *Eth1Client) GetClientVersionV1(ctx context.Context) ([]ethengine.ClientVersionV1, error) {
+	result := make([]ethengine.ClientVersionV1, 0)
+	if err := s.Client.Client().CallContext(
+		ctx, &result, GetClientVersionV1, nil,
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// ExchangeCapabilities calls the engine_exchangeCapabilities method via JSON-RPC.
+func (c *Eth1Client) ExchangeCapabilities(
+	ctx context.Context,
+	capabilities []string,
+) ([]string, error) {
+	result := make([]string, 0)
+	if err := c.Client.Client().CallContext(
+		ctx, &result, ExchangeCapabilities, &capabilities,
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
