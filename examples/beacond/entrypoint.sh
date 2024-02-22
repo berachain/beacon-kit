@@ -24,9 +24,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-KEYS[0]="dev0"
-KEYS[1]="dev1"
-KEYS[2]="dev2"
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
 # Remember to change to other types of keyring like 'file' in-case exposing to outside world,
@@ -75,37 +72,32 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf "$HOMEDIR"
 
 	# # Set moniker and chain-id (Moniker can be anything, chain-id must be an integer)
-	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR"
-
+	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR" --beacon-kit.accept-tos > /dev/null 2>&1
+	
 	# Set client config
 	./build/bin/beacond config set client keyring-backend $KEYRING --home "$HOMEDIR"
 	./build/bin/beacond config set client chain-id "$CHAINID" --home "$HOMEDIR"
 
 	# If keys exist they should be deleted
-	for KEY in "${KEYS[@]}"; do
-		./build/bin/beacond keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
-	done
+	./build/bin/beacond keys add dev --no-backup --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR" 
+
 
 	# Change parameter token denominations to abgt
-	
 	jq '.app_state["staking"]["params"]["bond_denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
-	jq '.app_state["crisis"]["constant_fee"]["denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.app_state["mint"]["params"]["mint_denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.consensus["params"]["block"]["max_gas"]="30000000"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 	# Allocate genesis accounts (cosmos formatted addresses)
-	for KEY in "${KEYS[@]}"; do
-		./build/bin/beacond genesis add-genesis-account $KEY 100000000000000000000000000abgt --keyring-backend $KEYRING --home "$HOMEDIR"
-	done
-
+	./build/bin/beacond genesis add-genesis-account dev 100000000000000000000000000abgt --keyring-backend $KEYRING --home "$HOMEDIR"
+	
 	# Test Account
 	# absurd surge gather author blanket acquire proof struggle runway attract cereal quiz tattoo shed almost sudden survey boring film memory picnic favorite verb tank
 	# 0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306
 	./build/bin/beacond genesis add-genesis-account cosmos1yrene6g2zwjttemf0c65fscg8w8c55w58yh8rl 69000000000000000000000000abgt --keyring-backend $KEYRING --home "$HOMEDIR"
 
 	# Sign genesis transaction
-	./build/bin/beacond genesis gentx ${KEYS[0]} 1000000000000000000000abgt --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR"
+	./build/bin/beacond genesis gentx dev 1000000000000000000000abgt --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" 
 	## In case you want to create multiple validators at genesis
 	## 1. Back to `./build/bin/beacond keys add` step, init more keys
 	## 2. Back to `./build/bin/beacond add-genesis-account` step, add balance for those
@@ -114,10 +106,10 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	## 5. Copy the `gentx-*` folders under `~/.cloned./build/bin/beacond/config/gentx/` folders into the original `~/../build/bin/beacond/config/gentx`
 
 	# Collect genesis tx
-	./build/bin/beacond genesis collect-gentxs --home "$HOMEDIR"
+	./build/bin/beacond genesis collect-gentxs --home "$HOMEDIR" > /dev/null 2>&1
 
 	# Run this to ensure everything worked and that the genesis file is setup correctly
-	./build/bin/beacond genesis validate-genesis --home "$HOMEDIR"
+	./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1
 
 	if [[ $1 == "pending" ]]; then
 		echo "pending mode is on, please wait for the first block committed."

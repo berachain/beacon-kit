@@ -27,19 +27,30 @@ package app
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	dbm "github.com/cosmos/cosmos-db"
-
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	authkeeper "cosmossdk.io/x/auth/keeper"
+	bankkeeper "cosmossdk.io/x/bank/keeper"
+	distrkeeper "cosmossdk.io/x/distribution/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
+	"cosmossdk.io/x/gov"
+	govclient "cosmossdk.io/x/gov/client"
+	govkeeper "cosmossdk.io/x/gov/keeper"
+	govtypes "cosmossdk.io/x/gov/types"
+	mintkeeper "cosmossdk.io/x/mint/keeper"
+	_ "cosmossdk.io/x/protocolpool"
+	poolkeeper "cosmossdk.io/x/protocolpool/keeper"
+	slashingkeeper "cosmossdk.io/x/slashing/keeper"
+	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -50,16 +61,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
@@ -86,6 +90,23 @@ var (
 	DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
 )
 
+// AppConfig returns the default app config.
+func AppConfig() depinject.Config {
+	return depinject.Configs(
+		// appconfig.LoadYAML(AppConfigYAML),
+		BeaconAppConfig,
+		depinject.Supply(
+			// supply custom module basics
+			map[string]module.AppModuleBasic{
+				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				govtypes.ModuleName: gov.NewAppModuleBasic(
+					[]govclient.ProposalHandler{},
+				),
+			},
+		),
+	)
+}
+
 // BeaconApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -104,10 +125,10 @@ type BeaconApp struct {
 	MintKeeper            mintkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	GovKeeper             *govkeeper.Keeper
-	CrisisKeeper          *crisiskeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
+	PoolKeeper            poolkeeper.Keeper
 
 	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
@@ -131,8 +152,7 @@ func NewBeaconKitApp(
 
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
-			MakeAppConfig(bech32Prefix),
-			depinject.Provide(),
+			AppConfig(),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
@@ -144,7 +164,8 @@ func NewBeaconKitApp(
 		)
 	)
 
-	if err := depinject.Inject(appConfig,
+	if err := depinject.Inject(
+		appConfig,
 		&appBuilder,
 		&app.appCodec,
 		&app.legacyAmino,
@@ -157,11 +178,11 @@ func NewBeaconKitApp(
 		&app.MintKeeper,
 		&app.DistrKeeper,
 		&app.GovKeeper,
-		&app.CrisisKeeper,
 		&app.UpgradeKeeper,
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
+		&app.PoolKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -189,9 +210,6 @@ func NewBeaconKitApp(
 	if err = app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		panic(err)
 	}
-
-	/****  Module Options ****/
-	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
 	// Load the app.
 	if err = app.Load(loadLatest); err != nil {

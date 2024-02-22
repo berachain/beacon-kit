@@ -30,9 +30,16 @@ import (
 	"io"
 	"os"
 
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/itsdevbear/bolaris/examples/beacond/app"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	"cosmossdk.io/client/v2/offchain"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	dbm "github.com/cosmos/cosmos-db"
+	authcmd "cosmossdk.io/x/auth/client/cli"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -46,13 +53,9 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
 	beaconconfig "github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/examples/beacond/app"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func initRootCmd(
@@ -69,38 +72,36 @@ func initRootCmd(
 	beaconconfig.AddToSFlag(rootCmd)
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
+		genutilcli.InitCmd(basicManager),
 		// NewTestnetCmd(basicManager, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
-		pruning.Cmd(newApp, app.DefaultNodeHome),
+		pruning.Cmd(newApp),
 		snapshot.Cmd(newApp),
 	)
 
 	server.AddCommands(
-		rootCmd, app.DefaultNodeHome, newApp,
-		appExport, AddModuleInitFlags,
+		rootCmd, newApp, AddModuleInitFlags,
 	)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
-		GenesisCommand(txConfig, basicManager),
+		genesisCommand(txConfig, basicManager, appExport),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
-		// offchain.OffChain(),
+		offchain.OffChain(),
 	)
 }
 
 func AddModuleInitFlags(startCmd *cobra.Command) {
-	crisis.AddModuleInitFlags(startCmd)
 	beaconconfig.AddBeaconKitFlags(startCmd)
 }
 
-// GenesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.
-func GenesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, basicManager, app.DefaultNodeHome)
+// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
+func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, appExport servertypes.AppExporter, cmds ...*cobra.Command) *cobra.Command {
+	cmd := genutilcli.Commands(txConfig, basicManager, appExport)
 
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
@@ -119,11 +120,12 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		rpc.ValidatorCommand(),
+		rpc.QueryEventForTxCmd(),
 		server.QueryBlockCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		server.QueryBlocksCmd(),
 		authcmd.QueryTxCmd(),
+		server.QueryBlockResultsCmd(),
 	)
 
 	return cmd
@@ -147,6 +149,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
+		authcmd.GetSimulateCmd(),
 	)
 
 	return cmd

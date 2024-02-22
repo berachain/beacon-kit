@@ -86,8 +86,9 @@ func SetupCosmosConfig() {
 
 	// We use CoinType == 60 to match Ethereum.
 	// This is not strictly necessary, though highly recommended.
-	config.SetCoinType(60) //nolint:gomnd // its okay.
-	config.SetPurpose(sdk.Purpose)
+	// TODO: add to app config
+	// config.SetCoinType(60) //nolint:gomnd // its okay.
+	// config.SetPurpose(sdk.Purpose)
 	config.Seal()
 }
 

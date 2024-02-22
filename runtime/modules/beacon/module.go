@@ -37,6 +37,7 @@ const ConsensusVersion = 1
 var (
 	_ appmodule.HasServices = AppModule{}
 	_ appmodule.AppModule   = AppModule{}
+	// _ appmodule.HasGenesis  = AppModule{}.
 )
 
 // ==============================================================================

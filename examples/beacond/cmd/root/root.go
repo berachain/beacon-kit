@@ -34,20 +34,18 @@ import (
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+	"cosmossdk.io/x/auth/tx"
+	authtxconfig "cosmossdk.io/x/auth/tx/config"
+	"cosmossdk.io/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/spf13/cobra"
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
@@ -57,8 +55,6 @@ import (
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.
-//
-
 func NewRootCmd() *cobra.Command {
 	var (
 		autoCliOpts        autocli.AppOptions
@@ -67,7 +63,7 @@ func NewRootCmd() *cobra.Command {
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
-			app.MakeAppConfig(""),
+			app.AppConfig(),
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
@@ -93,13 +89,8 @@ func NewRootCmd() *cobra.Command {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
-			clientCtx = clientCtx.WithCmdContext(cmd.Context())
+			clientCtx = clientCtx.WithCmdContext(cmd.Context()).WithViper("")
 			clientCtx, err := client.ReadPersistentCommandFlags(clientCtx, cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err = config.ReadFromClientConfig(clientCtx)
 			if err != nil {
 				return err
 			}
@@ -107,6 +98,12 @@ func NewRootCmd() *cobra.Command {
 			if err = tos.VerifyTosAcceptedOrPrompt(
 				app.AppName, app.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
+				return err
+			}
+
+			customClientTemplate, customClientConfig := initClientConfig()
+			clientCtx, err = config.CreateClientConfig(clientCtx, customClientTemplate, customClientConfig)
+			if err != nil {
 				return err
 			}
 
@@ -130,56 +127,32 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-// add server commands.
-func AddCommands(rootCmd *cobra.Command, defaultNodeHome string,
-	appCreator servertypes.AppCreator, appExport servertypes.AppExporter,
-	addStartFlags servertypes.ModuleInitFlags, opts server.StartCmdOptions) {
-	cometCmd := &cobra.Command{
-		Use:     "comet",
-		Aliases: []string{"cometbft", "tendermint"},
-		Short:   "CometBFT subcommands",
-	}
-
-	cometCmd.AddCommand(
-		server.ShowNodeIDCmd(),
-		server.ShowValidatorCmd(),
-		server.ShowAddressCmd(),
-		server.VersionCmd(),
-		cmtcmd.ResetAllCmd,
-		cmtcmd.ResetStateCmd,
-		server.BootstrapStateCmd(appCreator),
-	)
-
-	startCmd := server.StartCmdWithOptions(appCreator, defaultNodeHome, opts)
-	addStartFlags(startCmd)
-
-	rootCmd.AddCommand(
-		startCmd,
-		cometCmd,
-		server.ExportCmd(appExport, defaultNodeHome),
-		version.NewVersionCommand(),
-		server.NewRollbackCmd(appCreator, defaultNodeHome),
-	)
-}
-
 func ProvideClientContext(
 	appCodec codec.Codec,
 	interfaceRegistry codectypes.InterfaceRegistry,
 	txConfigOpts tx.ConfigOptions,
 	legacyAmino *codec.LegacyAmino,
+	addressCodec address.Codec,
+	validatorAddressCodec runtime.ValidatorAddressCodec,
+	consensusAddressCodec runtime.ConsensusAddressCodec,
 ) client.Context {
+	var err error
+
 	clientCtx := client.Context{}.
 		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
 		WithLegacyAmino(legacyAmino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
+		WithAddressCodec(addressCodec).
+		WithValidatorAddressCodec(validatorAddressCodec).
+		WithConsensusAddressCodec(consensusAddressCodec).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("") // In simapp, we don't use any prefix for env variables.
+		WithViper("") // uses by default the binary name as prefix
 
-	// Read the config again to overwrite the default values with the values from the config file
-	var err error
-	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(clientCtx)
+	// Read the config to overwrite the default values with the values from the config file
+	customClientTemplate, customClientConfig := initClientConfig()
+	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(clientCtx, customClientTemplate, customClientConfig)
 	if err != nil {
 		panic(err)
 	}

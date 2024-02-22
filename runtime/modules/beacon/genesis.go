@@ -26,12 +26,12 @@
 package evm
 
 import (
+	"context"
 	"encoding/json"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
 
@@ -53,7 +53,7 @@ func (AppModule) ValidateGenesis(
 // InitGenesis performs genesis initialization for the evm module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(
-	ctx sdk.Context,
+	ctx context.Context,
 	cdc codec.JSONCodec,
 	bz json.RawMessage,
 ) []abci.ValidatorUpdate {
@@ -65,6 +65,6 @@ func (am AppModule) InitGenesis(
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx context.Context, cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
 }
