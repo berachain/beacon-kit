@@ -45,7 +45,7 @@ import (
 type Handler struct {
 	cfg             *config.ABCI
 	builderService  *builder.Service
-	beaconChain     *blockchain.Service
+	chainService    *blockchain.Service
 	syncService     *sync.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
@@ -56,7 +56,7 @@ func NewHandler(
 	cfg *config.ABCI,
 	builderService *builder.Service,
 	syncService *sync.Service,
-	beaconChain *blockchain.Service,
+	chainService *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
@@ -64,7 +64,7 @@ func NewHandler(
 		cfg:             cfg,
 		builderService:  builderService,
 		syncService:     syncService,
-		beaconChain:     beaconChain,
+		chainService:    chainService,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
 	}
@@ -122,12 +122,11 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Extract the beacon block from the ABCI request.
 	//
-	// TODO: I don't love how we have to use the BeaconConfig here.
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
 	block, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
-		h.beaconChain.BeaconCfg().ActiveForkVersion(primitives.Epoch(req.Height)),
+		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
@@ -136,7 +135,7 @@ func (h *Handler) ProcessProposalHandler(
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	if err = h.beaconChain.ReceiveBeaconBlock(
+	if err = h.chainService.ReceiveBeaconBlock(
 		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
