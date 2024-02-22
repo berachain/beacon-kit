@@ -158,6 +158,7 @@ func NewBeaconKitApp(
 	}
 
 	// Build the app using the app builder.
+	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	/**** Start of BeaconKit Configuration ****/

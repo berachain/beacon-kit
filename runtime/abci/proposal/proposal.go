@@ -96,7 +96,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Marshal the block into bytes.
-	bz, err := block.MarshalSSZ()
+	beaconBz, err := block.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
@@ -108,7 +108,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Inject the beacon kit block into the proposal.
-	resp.Txs = append([][]byte{bz}, resp.Txs...)
+	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 	return resp, nil
 }
 
@@ -142,21 +142,18 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
+	// We have to keep a copy of beaconBz to re-inject it into the proposal after
+	// the underlying process proposal handler has run. This is to avoid making a copy
+	// of the entire request.
+	//
+	// TODO: there has to be a more friendly way to handle this, but hey it works.
+	beaconBz := req.Txs[h.cfg.BeaconBlockPosition]
+	defer func() {
+		req.Txs = append([][]byte{beaconBz}, req.Txs...)
+	}()
+	req.Txs = append(req.Txs[:h.cfg.BeaconBlockPosition], req.Txs[h.cfg.BeaconBlockPosition+1:]...)
+
 	// Run the remainder of the proposal. We remove the beacon block from the proposal
 	// before passing it to the next handler.
-	return h.processProposal(ctx, h.RemoveBeaconBlockFromTxs(req))
-}
-
-// removeBeaconBlockFromTxs removes the beacon block from the proposal.
-// TODO: optimize this function to avoid the giga memory copy.
-func (h *Handler) RemoveBeaconBlockFromTxs(
-	req *abci.RequestProcessProposal,
-) *abci.RequestProcessProposal {
-	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconBlockPosition)
-	return req
-}
-
-// removeAtIndex removes an element at a given index from a slice.
-func removeAtIndex[T any](s []T, index uint) []T {
-	return append(s[:index], s[index+1:]...)
+	return h.processProposal(ctx, req)
 }
