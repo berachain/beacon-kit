@@ -27,22 +27,17 @@ package logs
 
 import (
 	"context"
-	"math/big"
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rpc"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
 // Processor is responsible for processing logs fr.
 type Processor struct {
-	logger     log.Logger
-	eth1Client *eth.Eth1Client
-	handlers   map[common.Address]Handler
+	logger   log.Logger
+	handlers map[common.Address]Handler
 }
 
 // NewProcessor creates a new instance of Processor with the provided options.
@@ -59,75 +54,29 @@ func NewProcessor(opts ...Option) (*Processor, error) {
 	return s, nil
 }
 
-// ProcessFinalizedETH1Block processes logs from an eth1 block, but before doing so
-// it checks if the block is safe to process.
-func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.Int) error {
-	// Get the safe block number from the eth1 client.
-	// TODO do we want to come up with a heuristic around when we check the execution client,
-	// vs when we check the forkchoice store.
-	finalBlock, err := s.eth1Client.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
-	if err != nil {
-		return err
-	}
-
-	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
-	if finalBlock.Number().Cmp(blkNum) < 0 {
-		return errors.Wrapf(
-			ErrProcessingUnfinalizedBlock,
-			"safe block %d is behind block %d", finalBlock.Number(), blkNum,
-		)
-	}
-
-	return s.ProcessETH1Block(ctx, finalBlock.Number())
-}
-
-// GatherLogsFromEth1Block gathers all the logs from the provided eth1 block.
-func (s *Processor) GatherLogsFromEth1Block(
-	ctx context.Context, blkNum *big.Int,
-) ([]coretypes.Log, error) {
-	// Gather all the addresses we have handlers for.
-	addresses := make([]common.Address, 0)
-	for addr := range s.handlers {
-		addresses = append(addresses, addr)
-	}
-
-	// Create a filter query for the block, to acquire all logs from contracts
-	// that we care about.
-	query := ethereum.FilterQuery{
-		Addresses: addresses,
-		FromBlock: blkNum,
-		ToBlock:   blkNum,
-	}
-
-	// Gather all the logs from this block.
-	return s.eth1Client.FilterLogs(ctx, query)
-}
-
-// ProcessETH1Block processes logs from the provided eth1 block.
-func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
-	// Gather all the logs from this block.
-	logs, err := s.GatherLogsFromEth1Block(ctx, blkNum)
-	if err != nil {
-		return err
-	}
-
+// ProcessLogs processes logs from the provided Eth1 block.
+func (s *Processor) ProcessLogs(
+	ctx context.Context,
+	logs []coretypes.Log,
+	blkNum uint64,
+) error {
 	// Process each log.
-	for i, filterLog := range logs {
+	for i, log := range logs {
 		// Skip logs that are not from the block we are processing.
 		// This should never happen, but defensively check anyway.
-		if filterLog.BlockNumber != blkNum.Uint64() {
+		if log.BlockNumber != blkNum {
 			continue
 		}
 
 		// Skip logs that are not from the addresses we care about.
 		// This should never happen, but defensively check anyway.
-		handler, found := s.handlers[filterLog.Address]
+		handler, found := s.handlers[log.Address]
 		if !found {
 			continue
 		}
 
 		// Process the log with the handler.
-		if err = handler.HandleLog(ctx, &logs[i]); err != nil {
+		if err := handler.HandleLog(ctx, &logs[i]); err != nil {
 			return errors.Wrap(err, "could not process log")
 		}
 	}

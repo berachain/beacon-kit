@@ -28,24 +28,15 @@ package logs
 import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
 // Option is a function that applies a specific configuration to the Processor.
 type Option func(*Processor) error
 
-// WithEthClient is an Option that sets the Ethereum client for the Processor.
-func WithEthClient(eth1Client *eth.Eth1Client) Option {
+// WithHandler is an Option that sets the handler of a contract address for the Processor.
+func WithHandler(contractAddr common.Address, handler Handler) Option {
 	return func(p *Processor) error {
-		p.eth1Client = eth1Client
-		return nil
-	}
-}
-
-// WithContractAddr is an Option that sets the contract address for the Processor.
-func WithHandlers(handlers map[common.Address]Handler) Option {
-	return func(p *Processor) error {
-		p.handlers = handlers
+		p.handlers[contractAddr] = handler
 		return nil
 	}
 }

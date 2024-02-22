@@ -29,6 +29,10 @@ import (
 	"context"
 	"math/big"
 
+	"cosmossdk.io/errors"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -42,8 +46,6 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
-	// lp is the processor for logs.
-	lp LogProcessor
 }
 
 // Start spawns any goroutines required by the service.
@@ -91,7 +93,55 @@ func (s *Service) NotifyNewPayload(
 	return s.notifyNewPayload(ctx, payload)
 }
 
-// ProcessFinalizedLogs processes logs from the execution client for a finalized block.
-func (s *Service) ProcessFinalizedLogs(ctx context.Context, blkNum uint64) error {
-	return s.lp.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
+// HandleLogsInFinalizedETH1Block handles logs in the finalized block
+// received from the execution client with the given handlers.
+func (s *Service) HandleLogsInFinalizedETH1Block(
+	ctx context.Context,
+	blkNum uint64,
+	handlers map[common.Address]LogHandler,
+) error {
+	// Get the block from the eth1 client and
+	// check if the block is safe to process.
+	// TODO: Do we want to come up with a heuristic around
+	// when we check the execution client,
+	// vs when we check the forkchoice store.
+	finalBlock, err := s.engine.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+	if err != nil {
+		return err
+	}
+
+	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
+	if finalBlock.Number().Uint64() < blkNum {
+		return errors.Wrapf(
+			ErrProcessingUnfinalizedBlock,
+			"safe block %d is behind block %d", finalBlock.Number(), blkNum,
+		)
+	}
+
+	// Gather all the logs corresponding to the handlers from this block.
+	addresses := make([]common.Address, 0)
+	for addr := range handlers {
+		addresses = append(addresses, addr)
+	}
+	logsInBlock, err := s.engine.GetLogs(ctx, blkNum, blkNum, addresses)
+	if err != nil {
+		return err
+	}
+
+	// Create a log processor and process the logs.
+	// TODO: Should we create a new processor here?
+	processorOptions := []logs.Option{}
+	for addr, handler := range handlers {
+		processorOptions = append(processorOptions, logs.WithHandler(addr, handler))
+	}
+	processorOptions = append(
+		processorOptions,
+		logs.WithLogger(s.Logger().With("module", "logs_processor")),
+	)
+	processor, err := logs.NewProcessor(processorOptions...)
+	if err != nil {
+		return err
+	}
+
+	return processor.ProcessLogs(ctx, logsInBlock, blkNum)
 }

@@ -27,6 +27,7 @@ package engine
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
@@ -59,6 +60,12 @@ type Caller interface {
 	// ExecutionBlockByHash retrieves the execution block by its hash.
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 		withTxs bool) (*enginev1.ExecutionBlock, error)
+	// GetLogs retrieves the logs from the Ethereum execution node.
+	GetLogs(
+		ctx context.Context, fromBlock, toBlock uint64, addresses []common.Address,
+	) ([]gethcoretypes.Log, error)
+	// BlockByNumber retrieves the block by its number.
+	BlockByNumber(ctx context.Context, blkNum *big.Int) (*gethcoretypes.Block, error)
 
 	// Eth Namespace Methods
 	//

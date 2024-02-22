@@ -45,11 +45,3 @@ func WithEngineCaller(ec engine.Caller) service.Option[Service] {
 		return nil
 	}
 }
-
-// WithLogProcessor is an option to set the LogProcessor for the Service.
-func WithLogProcessor(lp LogProcessor) service.Option[Service] {
-	return func(s *Service) error {
-		s.lp = lp
-		return nil
-	}
-}
