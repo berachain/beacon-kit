@@ -53,7 +53,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
@@ -222,11 +221,6 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
-}
-
-// SimulationManager implements the SimulationApp interface.
-func (app *BeaconApp) SimulationManager() *module.SimulationManager {
-	return nil
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
