@@ -201,9 +201,6 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 		elLatestFinalizedHeader, err := s.ethClient.HeaderByNumber(
 			ctx, rpcFinalizedBlockNumber,
 		)
-		// TODO: properly handle if the EL loses connection, right now
-		// this function will just panic. This function should stay alive
-		// during EL node restarts / disconnections.
 		if err != nil {
 			// If the block is unknown or the call errors, we can just continue and try again.
 			// We set elLatestFinalizedHeader to an empty Header to prevent
