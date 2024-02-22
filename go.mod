@@ -5,6 +5,7 @@ go 1.22.0
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240221095859-541df89f2bb4
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240221095859-541df89f2bb4
+	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
 	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240220231713-0cf0c285ea90
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240221095859-541df89f2bb4
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240220231713-0cf0c285ea90
