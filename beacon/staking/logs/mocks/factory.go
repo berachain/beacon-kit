@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	logprocessor "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
@@ -89,7 +88,7 @@ func DepositContractEvents() (map[string]abi.Event, error) {
 }
 
 // NewCallbackHandler creates a new callback handler from the given staking service.
-func NewCallbackHandler(stakingService logs.StakingService) (logprocessor.Handler, error) {
+func NewCallbackHandler(stakingService logs.StakingService) (callback.LogHandler, error) {
 	logHander := service.New[logs.Handler](
 		logs.WithStakingService(stakingService),
 	)
