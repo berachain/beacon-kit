@@ -104,7 +104,7 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 
 	// withdraw all validator commission
 	if err := app.StakingKeeper.IterateValidators(ctx,
-		func(_ int64, val stakingtypes.ValidatorI) bool {
+		func(_ int64, val sdk.ValidatorI) bool {
 			valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(
 				val.GetOperator())
 			if err != nil {
@@ -152,7 +152,7 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 
 	// reinitialize all validators
 	if err := app.StakingKeeper.IterateValidators(
-		ctx, func(_ int64, val stakingtypes.ValidatorI) bool {
+		ctx, func(_ int64, val sdk.ValidatorI) bool {
 			valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 			if err != nil {
 				panic(err)

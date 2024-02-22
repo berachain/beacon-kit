@@ -28,6 +28,7 @@ package evm
 import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/depinject/appconfig"
 	store "cosmossdk.io/store/types"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/itsdevbear/bolaris/config"
@@ -37,8 +38,8 @@ import (
 
 //nolint:gochecknoinits // GRRRR fix later.
 func init() {
-	appmodule.Register(&modulev1alpha1.Module{},
-		appmodule.Provide(ProvideModule),
+	appconfig.RegisterModule(&modulev1alpha1.Module{},
+		appconfig.Provide(ProvideModule),
 	)
 }
 

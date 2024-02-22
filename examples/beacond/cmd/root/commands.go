@@ -30,10 +30,16 @@ import (
 	"io"
 	"os"
 
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/itsdevbear/bolaris/examples/beacond/app"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	"cosmossdk.io/client/v2/offchain"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	authcmd "cosmossdk.io/x/auth/client/cli"
-	dbm "github.com/cosmos/cosmos-db"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -48,10 +54,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
 	beaconconfig "github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/examples/beacond/app"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func initRootCmd(
@@ -83,11 +87,11 @@ func initRootCmd(
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
-		GenesisCommand(txConfig, basicManager),
+		genesisCommand(txConfig, basicManager, appExport),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
-		// offchain.OffChain(),
+		offchain.OffChain(),
 	)
 }
 
@@ -96,8 +100,8 @@ func AddModuleInitFlags(startCmd *cobra.Command) {
 	beaconconfig.AddBeaconKitFlags(startCmd)
 }
 
-// GenesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.
-func GenesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
+// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
+func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, appExport servertypes.AppExporter, cmds ...*cobra.Command) *cobra.Command {
 	cmd := genutilcli.Commands(txConfig, basicManager, appExport)
 
 	for _, subCmd := range cmds {

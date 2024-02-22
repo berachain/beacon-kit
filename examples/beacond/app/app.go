@@ -27,26 +27,27 @@ package app
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	dbm "github.com/cosmos/cosmos-db"
-
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	evidencekeeper "cosmossdk.io/x/evidence/keeper"
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-
 	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
 	distrkeeper "cosmossdk.io/x/distribution/keeper"
+	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	govkeeper "cosmossdk.io/x/gov/keeper"
 	mintkeeper "cosmossdk.io/x/mint/keeper"
+	_ "cosmossdk.io/x/protocolpool"
+	poolkeeper "cosmossdk.io/x/protocolpool/keeper"
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
+	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -59,7 +60,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
-
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
@@ -108,6 +108,7 @@ type BeaconApp struct {
 	UpgradeKeeper         *upgradekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
+	PoolKeeper            poolkeeper.Keeper
 
 	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
@@ -131,7 +132,7 @@ func NewBeaconKitApp(
 
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
-			MakeAppConfig(bech32Prefix),
+			BeaconAppConfig,
 			depinject.Provide(),
 			depinject.Supply(
 				// supply the application options
@@ -161,7 +162,8 @@ func NewBeaconKitApp(
 		&app.UpgradeKeeper,
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
-		&app.BeaconKeeper,
+		// &app.BeaconKeeper,
+		&app.PoolKeeper,
 	); err != nil {
 		panic(err)
 	}
