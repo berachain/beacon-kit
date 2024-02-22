@@ -32,18 +32,21 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"cosmossdk.io/collections"
+	storetypes "cosmossdk.io/store/types"
+	slashingtypes "cosmossdk.io/x/slashing/types"
 	"cosmossdk.io/x/staking"
 	stakingtypes "cosmossdk.io/x/staking/types"
+
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
-func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool,
-	jailAllowedAddrs, modulesToExport []string) (servertypes.ExportedApp, error) {
+func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs, modulesToExport []string) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
-	ctx := app.NewContext(true).WithBlockHeader(cmtproto.Header{Height: app.LastBlockHeight()})
+	ctx := app.NewContextLegacy(true, cmtproto.Header{Height: app.LastBlockHeight()})
 
 	// We export at last height + 1, because that's the height at which
 	// CometBFT will start InitChain.
@@ -76,11 +79,8 @@ func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool,
 // NOTE zero height genesis is a temporary feature which will be deprecated
 //
 //	in favor of export at a block height
-//
-//nolint:funlen,gocognit,gocyclo,cyclop // from sdk.
 func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
-	_ = applyAllowedAddrs
 
 	// check if there is a allowed address list
 	if len(jailAllowedAddrs) > 0 {
@@ -97,33 +97,27 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 		allowedAddrsMap[addr] = true
 	}
 
-	/* Just to be safe, assert the invariants on current state. */
-	// app.CrisisKeeper.AssertInvariants(ctx)
-
 	/* Handle fee distribution state. */
 
 	// withdraw all validator commission
-	if err := app.StakingKeeper.IterateValidators(ctx,
-		func(_ int64, val sdk.ValidatorI) bool {
-			valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(
-				val.GetOperator())
-			if err != nil {
-				panic(err)
-			}
-			_, err = app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
-			if err != nil {
-				panic(err)
-			}
-			return false
-		}); err != nil {
+	err := app.StakingKeeper.IterateValidators(ctx, func(_ int64, val sdk.ValidatorI) (stop bool) {
+		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+		if err != nil {
+			panic(err)
+		}
+		_, _ = app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
+		return false
+	})
+	if err != nil {
 		panic(err)
 	}
 
 	// withdraw all delegator rewards
-	dels, delErr := app.StakingKeeper.GetAllDelegations(ctx)
-	if delErr != nil {
-		log.Fatal(delErr)
+	dels, err := app.StakingKeeper.GetAllDelegations(ctx)
+	if err != nil {
+		panic(err)
 	}
+
 	for _, delegation := range dels {
 		valAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 		if err != nil {
@@ -132,50 +126,51 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 
 		delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 
-		_, err = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
-		if err != nil {
-			panic(err)
-		}
+		_, _ = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
 	}
 
 	// clear validator slash events
-
-	// app.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
-	// app.DistrKeeper.Delete
+	err = app.DistrKeeper.ValidatorSlashEvents.Clear(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
 
 	// clear validator historical rewards
-	// app.DistrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
+	err = app.DistrKeeper.ValidatorHistoricalRewards.Clear(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
 
 	// set context height to zero
 	height := ctx.BlockHeight()
 	ctx = ctx.WithBlockHeight(0)
 
 	// reinitialize all validators
-	if err := app.StakingKeeper.IterateValidators(
-		ctx, func(_ int64, val sdk.ValidatorI) bool {
-			valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
-			if err != nil {
-				panic(err)
-			}
-			// donate any unwithdrawn outstanding reward fraction tokens to the community pool
-			scraps, err := app.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, valBz)
-			if err != nil {
-				panic(err)
-			}
-			feePool, err := app.DistrKeeper.FeePool.Get(ctx)
-			if err != nil {
-				panic(err)
-			}
-			feePool.CommunityPool = feePool.CommunityPool.Add(scraps...)
-			if err = app.DistrKeeper.FeePool.Set(ctx, feePool); err != nil {
-				panic(err)
-			}
+	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val sdk.ValidatorI) (stop bool) {
+		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+		if err != nil {
+			panic(err)
+		}
+		// donate any unwithdrawn outstanding reward tokens to the community pool
+		rewards, err := app.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, valBz)
+		if err != nil {
+			panic(err)
+		}
+		feePool, err := app.DistrKeeper.FeePool.Get(ctx)
+		if err != nil {
+			panic(err)
+		}
+		feePool.DecimalPool = feePool.DecimalPool.Add(rewards...) // distribution will allocate this to the protocolpool eventually
+		if err := app.DistrKeeper.FeePool.Set(ctx, feePool); err != nil {
+			panic(err)
+		}
 
-			if err = app.DistrKeeper.Hooks().AfterValidatorCreated(ctx, valBz); err != nil {
-				panic(err)
-			}
-			return false
-		}); err != nil {
+		if err := app.DistrKeeper.Hooks().AfterValidatorCreated(ctx, valBz); err != nil {
+			panic(err)
+		}
+		return false
+	})
+	if err != nil {
 		panic(err)
 	}
 
@@ -187,12 +182,12 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 		}
 		delAddr := sdk.MustAccAddressFromBech32(del.DelegatorAddress)
 
-		if err = app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr); err != nil {
+		if err := app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr); err != nil {
 			// never called as BeforeDelegationCreated always returns nil
 			panic(fmt.Errorf("error while incrementing period: %w", err))
 		}
 
-		if err = app.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr); err != nil {
+		if err := app.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr); err != nil {
 			// never called as AfterDelegationModified always returns nil
 			panic(fmt.Errorf("error while creating a new delegation period record: %w", err))
 		}
@@ -200,84 +195,88 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 
 	// reset context height
 	ctx = ctx.WithBlockHeight(height)
+
 	/* Handle staking state. */
 
 	// iterate through redelegations, reset creation height
-	if err := app.StakingKeeper.IterateRedelegations(
-		ctx, func(_ int64, red stakingtypes.Redelegation) bool {
-			for i := range red.Entries {
-				red.Entries[i].CreationHeight = 0
-			}
-			if err := app.StakingKeeper.SetRedelegation(ctx, red); err != nil {
-				panic(err)
-			}
-			return false
-		}); err != nil {
+	err = app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) (stop bool) {
+		for i := range red.Entries {
+			red.Entries[i].CreationHeight = 0
+		}
+		err = app.StakingKeeper.SetRedelegation(ctx, red)
+		if err != nil {
+			panic(err)
+		}
+		return false
+	})
+	if err != nil {
 		panic(err)
 	}
 
 	// iterate through unbonding delegations, reset creation height
-	// if err := app.StakingKeeper.IterateUnbondingDelegations(
-	// 	ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) bool {
-	// 		for i := range ubd.Entries {
-	// 			ubd.Entries[i].CreationHeight = 0
-	// 		}
-	// 		if err := app.StakingKeeper.SetUnbondingDelegation(ctx, ubd); err != nil {
-	// 			panic(err)
-	// 		}
-	// 		return false
-	// 	}); err != nil {
-	// 	panic(err)
-	// }
+	err = app.StakingKeeper.UnbondingDelegations.Walk(
+		ctx,
+		nil,
+		func(key collections.Pair[[]byte, []byte], ubd stakingtypes.UnbondingDelegation) (stop bool, err error) {
+			for i := range ubd.Entries {
+				ubd.Entries[i].CreationHeight = 0
+			}
+			err = app.StakingKeeper.SetUnbondingDelegation(ctx, ubd)
+			if err != nil {
+				return true, err
+			}
+			return false, err
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	// Iterate through validators by power descending, reset bond heights, and
+	// update bond intra-tx counters.
+	store := ctx.KVStore(app.kvStoreKeys()[stakingtypes.StoreKey])
+	iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
+	counter := int16(0)
 
-	// // Iterate through validators by power descending, reset bond heights, and
-	// // update bond intra-tx counters.
-	// store := ctx.KVStore(app.UnsafeFindStoreKey(stakingtypes.StoreKey))
-	// iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
-	// counter := int16(0)
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
+		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
+		if err != nil {
+			panic("expected validator, not found")
+		}
 
-	// for ; iter.Valid(); iter.Next() {
-	// 	addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
-	// 	validator, err := app.StakingKeeper.GetValidator(ctx, addr)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
+		validator.UnbondingHeight = 0
+		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
+			validator.Jailed = true
+		}
 
-	// 	validator.UnbondingHeight = 0
-	// 	if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
-	// 		validator.Jailed = true
-	// 	}
+		if err = app.StakingKeeper.SetValidator(ctx, validator); err != nil {
+			panic(err)
+		}
+		counter++
+	}
 
-	// 	if err = app.StakingKeeper.SetValidator(ctx, validator); err != nil {
-	// 		panic(err)
-	// 	}
-	// 	counter++
-	// }
+	if err := iter.Close(); err != nil {
+		app.Logger().Error("error while closing the key-value store reverse prefix iterator: ", err)
+		return
+	}
 
-	// if err := iter.Close(); err != nil {
-	// 	app.Logger().Error("error while closing the key-value store reverse prefix iterator: ", err)
-	// 	return
-	// }
+	_, err = app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// _, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	/* Handle slashing state. */
 
-	// /* Handle slashing state. */
-
-	// // reset start height on signing infos
-	// err = app.SlashingKeeper.IterateValidatorSigningInfos(
-	// 	ctx,
-	// 	func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) bool {
-	// 		info.StartHeight = 0
-	// 		if err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info); err != nil {
-	// 			panic(err)
-	// 		}
-	// 		return false
-	// 	},
-	// )
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	// reset start height on signing infos
+	err = app.SlashingKeeper.ValidatorSigningInfo.Walk(ctx, nil, func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool, err error) {
+		info.StartHeight = 0
+		err = app.SlashingKeeper.ValidatorSigningInfo.Set(ctx, addr, info)
+		if err != nil {
+			return true, err
+		}
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
 }
