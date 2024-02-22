@@ -39,7 +39,6 @@ import (
 // Keeper maintains the link to data storage and exposes access to the underlying
 // `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	kvs         corestore.KVStoreService
 	beaconStore *store.BeaconStore
 }
 
@@ -52,7 +51,6 @@ func NewKeeper(
 	beaconCfg *config.Beacon,
 ) *Keeper {
 	return &Keeper{
-		kvs:         kvs,
 		beaconStore: store.NewBeaconStore(kvs, beaconCfg),
 	}
 }

@@ -212,34 +212,6 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	// /****  Module Options ****/
-	// // NOTE: Any module instantiated in the module manager that is later modified
-	// // must be passed by reference here.
-	// app.ModuleManager = module.NewManager(
-	// 	genutil.NewAppModule(
-	// 		app.AuthKeeper, app.StakingKeeper, app,
-	// 		txConfig,
-	// 	),
-	// 	accounts.NewAppModule(app.AccountKeeper),
-	// 	auth.NewAppModule(appCodec, app.AuthKeeper, authsims.RandomGenesisAccounts),
-	// 	vesting.NewAppModule(app.AuthKeeper, app.BankKeeper),
-	// 	bank.NewAppModule(appCodec, app.BankKeeper, app.AuthKeeper),
-	// 	feegrantmodule.NewAppModule(appCodec, app.AuthKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-	// 	gov.NewAppModule(appCodec, &app.GovKeeper, app.AuthKeeper, app.BankKeeper, app.PoolKeeper),
-	// 	mint.NewAppModule(appCodec, app.MintKeeper, app.AuthKeeper, nil),
-	// 	slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AuthKeeper, app.BankKeeper, app.StakingKeeper, app.interfaceRegistry),
-	// 	distr.NewAppModule(appCodec, app.DistrKeeper, app.AuthKeeper, app.BankKeeper, app.StakingKeeper, app.PoolKeeper),
-	// 	staking.NewAppModule(appCodec, app.StakingKeeper, app.AuthKeeper, app.BankKeeper),
-	// 	upgrade.NewAppModule(app.UpgradeKeeper, app.AuthKeeper.AddressCodec()),
-	// 	evidence.NewAppModule(app.EvidenceKeeper),
-	// 	authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AuthKeeper, app.BankKeeper, app.interfaceRegistry),
-	// 	groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AuthKeeper, app.BankKeeper, app.interfaceRegistry),
-	// 	nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AuthKeeper, app.BankKeeper, app.interfaceRegistry),
-	// 	consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
-	// 	circuit.NewAppModule(appCodec, app.CircuitKeeper),
-	// 	protocolpool.NewAppModule(appCodec, app.PoolKeeper, app.AuthKeeper, app.BankKeeper),
-	// )
-
 	// Load the app.
 	if err = app.Load(loadLatest); err != nil {
 		panic(err)
