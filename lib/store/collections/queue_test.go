@@ -238,8 +238,8 @@ func (s MockStore) Has(key []byte) (bool, error) {
 }
 
 // Iterator wraps the underlying DB's Iterator method panicing on error.
-func (dsa MockStore) Iterator(start, end []byte) (store.Iterator, error) {
-	iter, err := dsa.DB.Iterator(start, end)
+func (s MockStore) Iterator(start, end []byte) (store.Iterator, error) {
+	iter, err := s.DB.Iterator(start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +248,8 @@ func (dsa MockStore) Iterator(start, end []byte) (store.Iterator, error) {
 }
 
 // ReverseIterator wraps the underlying DB's ReverseIterator method panicing on error.
-func (dsa MockStore) ReverseIterator(start, end []byte) (store.Iterator, error) {
-	iter, err := dsa.DB.ReverseIterator(start, end)
+func (s MockStore) ReverseIterator(start, end []byte) (store.Iterator, error) {
+	iter, err := s.DB.ReverseIterator(start, end)
 	if err != nil {
 		return nil, err
 	}
