@@ -26,7 +26,6 @@
 package app
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"io"
@@ -60,7 +59,6 @@ import (
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
-	"github.com/itsdevbear/bolaris/types/cosmos"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -193,7 +191,7 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	ctx := cosmos.NewEmptyContextWithMS(context.Background(), app.CommitMultiStore())
+	ctx := app.NewContext(true)
 	app.BeaconKitRunner.StartServices(ctx)
 
 	// Initial check for execution client sync.
@@ -234,7 +232,6 @@ func (app *BeaconApp) SimulationManager() *module.SimulationManager {
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
-	ctx := cosmos.NewEmptyContextWithMS(apiSvr.ClientCtx.CmdContext, app.CommitMultiStore())
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(
@@ -243,7 +240,7 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		panic(err)
 	}
 
-	v, ok := ctx.Value(server.ServerContextKey).(*server.Context)
+	v, ok := apiSvr.ClientCtx.CmdContext.Value(server.ServerContextKey).(*server.Context)
 	if !ok {
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
