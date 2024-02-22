@@ -29,14 +29,6 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Handler.
-func WithBaseService(base service.BaseService) service.Option[Handler] {
-	return func(s *Handler) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
 // WithStakingService returns an Option that sets the StakingService for the Handler.
 func WithStakingService(sks StakingService) service.Option[Handler] {
 	return func(h *Handler) error {

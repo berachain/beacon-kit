@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
-	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/engine"
 )
@@ -40,8 +39,6 @@ var _ callback.ContractHandler = &Handler{}
 
 // Handler is a struct that implements the callback Handler interface.
 type Handler struct {
-	service.BaseService
-
 	// sks is the staking service.
 	sks StakingService
 }

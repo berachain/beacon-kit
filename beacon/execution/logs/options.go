@@ -42,10 +42,10 @@ func WithEthClient(eth1Client *eth.Eth1Client) Option {
 	}
 }
 
-// WithContractAddr is an Option that sets the contract address for the Processor.
-func WithHandlers(handlers map[common.Address]Handler) Option {
+// WithHandler is an Option that sets the handler of a contract address for the Processor.
+func WithHandler(contractAddr common.Address, handler Handler) Option {
 	return func(p *Processor) error {
-		p.handlers = handlers
+		p.handlers[contractAddr] = handler
 		return nil
 	}
 }
