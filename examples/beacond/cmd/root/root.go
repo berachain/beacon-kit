@@ -65,7 +65,7 @@ func NewRootCmd() *cobra.Command {
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
-			app.BeaconAppConfig,
+			app.AppConfig(),
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),

@@ -3,28 +3,10 @@ module github.com/itsdevbear/bolaris
 go 1.22.0
 
 replace (
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240221095859-541df89f2bb4
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240221095859-541df89f2bb4
-	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240221095859-541df89f2bb4
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/crisis => cosmossdk.io/x/crisis v0.0.0-20240221095859-541df89f2bb4
-	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240221095859-541df89f2bb4
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.0.0-20240220231713-0cf0c285ea90
-	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240220231713-0cf0c285ea90
 	// Required until: https://github.com/cosmos/cosmos-db/pull/97 is merged, fixes pebbledb dep conflict.
 	github.com/cosmos/cosmos-db => github.com/itsdevbear/cosmos-db v0.0.0-20240221222005-7af8b3de2d76
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240221095859-541df89f2bb4
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
-	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
 require (
@@ -83,8 +65,6 @@ require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.32.0-20231115204500-e097f827e652.1 // indirect
-	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.32.0-20230509103710-5e5b9fdd0180.1 // indirect
-	buf.build/gen/go/tendermint/tendermint/protocolbuffers/go v1.32.0-20231117195010-33ed361a9051.1 // indirect
 	cloud.google.com/go v0.112.0 // indirect
 	cloud.google.com/go/compute v1.23.4 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -92,7 +72,6 @@ require (
 	cloud.google.com/go/storage v1.36.0 // indirect
 	connectrpc.com/connect v1.14.0 // indirect
 	connectrpc.com/otelconnect v0.7.0 // indirect
-	cosmossdk.io/x/accounts v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/tx v0.13.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/4meepo/tagalign v1.3.3 // indirect
@@ -164,8 +143,8 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20231025140028-3c0104f4b233 // indirect
 	github.com/crate-crypto/go-kzg-4844 v0.7.0 // indirect
-	github.com/creachadair/atomicfile v0.3.1 // indirect
-	github.com/creachadair/tomledit v0.0.24 // indirect
+	github.com/creachadair/atomicfile v0.3.3 // indirect
+	github.com/creachadair/tomledit v0.0.25 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
 	github.com/daixiang0/gci v0.12.1 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
@@ -484,4 +463,36 @@ require (
 	rsc.io/qr v0.2.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
+)
+
+replace (
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240210224712-72a56d9933c5
+	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240210224712-72a56d9933c5
+	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240210224712-72a56d9933c5
+	cosmossdk.io/tools/confix => cosmossdk.io/tools/confix v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/feegrant => cosmossdk.io/x/feegrant v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/nft => cosmossdk.io/x/nft v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240210224712-72a56d9933c5
+	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.1-0.20240210224712-72a56d9933c5
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240210224712-72a56d9933c5
+
+	// use cosmos fork of keyring
+	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240210224712-72a56d9933c5
+	// replace broken goleveldb
+	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
