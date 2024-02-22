@@ -92,6 +92,6 @@ func (s *Service) NotifyNewPayload(
 }
 
 // ProcessFinalizedLogs processes logs from the execution client for a finalized block.
-func (s *Service) ProcessFinalizedLogs(ctx context.Context, blockNum uint64) error {
-	return s.lp.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blockNum))
+func (s *Service) ProcessFinalizedLogs(ctx context.Context, blkNum uint64) error {
+	return s.lp.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
 }

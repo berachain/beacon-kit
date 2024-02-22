@@ -42,7 +42,7 @@ type BeaconStateProvider interface {
 }
 
 type LogProcessor interface {
-	ProcessFinalizedETH1Block(ctx context.Context, blockNum *big.Int) error
+	ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.Int) error
 }
 
 // FCUConfig is a struct that holds the configuration for a fork choice update.
