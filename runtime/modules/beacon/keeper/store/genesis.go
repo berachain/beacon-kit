@@ -40,7 +40,7 @@ func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
 func (s *BeaconStore) GenesisEth1Hash() common.Hash {
 	genesisHash, err := s.eth1GenesisHash.Get(s.sdkCtx)
 	if err != nil {
-		panic(err)
+		panic("failed to get genesis eth1hash")
 	}
 	return common.BytesToHash(genesisHash)
 }

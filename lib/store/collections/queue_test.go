@@ -216,7 +216,45 @@ type MockStore struct {
 
 // OpenKVStore returns the underlying KVStore from the Store.
 func (s MockStore) OpenKVStore(context.Context) store.KVStore {
-	return s.DB
+	return s
+}
+
+func (s MockStore) Delete(key []byte) error {
+	s.Store.Delete(key)
+	return nil
+}
+
+func (s MockStore) Set(key, value []byte) error {
+	s.Store.Set(key, value)
+	return nil
+}
+
+func (s MockStore) Get(key []byte) ([]byte, error) {
+	return s.Store.Get(key), nil
+}
+
+func (s MockStore) Has(key []byte) (bool, error) {
+	return s.Store.Has(key), nil
+}
+
+// Iterator wraps the underlying DB's Iterator method panicing on error.
+func (s MockStore) Iterator(start, end []byte) (store.Iterator, error) {
+	iter, err := s.DB.Iterator(start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	return iter, nil
+}
+
+// ReverseIterator wraps the underlying DB's ReverseIterator method panicing on error.
+func (s MockStore) ReverseIterator(start, end []byte) (store.Iterator, error) {
+	iter, err := s.DB.ReverseIterator(start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	return iter, nil
 }
 
 // deps initializes dependencies for testing, returning a KVStoreService
