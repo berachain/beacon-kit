@@ -1,0 +1,61 @@
+---
+id:
+slug: pets-post
+---
+
+```
+POST /pets
+```
+
+**Create a pet: **
+
+## Parameters
+
+| name | in  | type | required | description |
+| ---- | --- | ---- | -------- | ----------- |
+
+## Request Body
+
+| Headers      |                  |
+| ------------ | ---------------- |
+| content-type | application/json |
+
+```json title="Example request"
+{
+  "id": 0,
+  "name": "string",
+  "tag": "string"
+}
+```
+
+## Code Snippets
+
+```shell title="Shell + Curl"
+curl --request POST \
+  --url http://petstore.swagger.io/v1/pets \
+  --header 'content-type: application/json' \
+  --data '{"id":0,"name":"string","tag":"string"}'
+```
+
+## Responses
+
+### 201
+
+Null response
+
+### default
+
+unexpected error
+
+| Headers      |                  |
+| ------------ | ---------------- |
+| content-type | application/json |
+
+**Example `response` for `application/json`**
+
+```json
+{
+  "code": 0,
+  "message": "string"
+}
+```

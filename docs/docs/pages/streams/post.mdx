@@ -1,0 +1,44 @@
+---
+id:
+slug: streams-post
+---
+
+```
+POST /streams
+```
+
+subscribes a client to receive out-of-band data
+
+## Parameters
+
+| name        | in    | type   | required | description                                                      |
+| ----------- | ----- | ------ | -------- | ---------------------------------------------------------------- |
+| callbackUrl | query | string | true     | the location where data will be sent. Must be network accessible |
+
+by the source server
+|
+
+## Code Snippets
+
+```shell title="Shell + Curl"
+curl --request POST \
+  --url 'http://undefinedundefined/streams?callbackUrl=https%3A%2F%2Ftonys-server.com'
+```
+
+## Responses
+
+### 201
+
+subscription successfully created
+
+| Headers      |                  |
+| ------------ | ---------------- |
+| content-type | application/json |
+
+**Example `response` for `application/json`**
+
+```json
+{
+  "subscriptionId": "2531329f-fb09-4ef7-887e-84e648214436"
+}
+```
