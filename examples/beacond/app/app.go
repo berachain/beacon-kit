@@ -38,15 +38,12 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
-	distrkeeper "cosmossdk.io/x/distribution/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	"cosmossdk.io/x/gov"
 	govclient "cosmossdk.io/x/gov/client"
-	govkeeper "cosmossdk.io/x/gov/keeper"
 	govtypes "cosmossdk.io/x/gov/types"
 	mintkeeper "cosmossdk.io/x/mint/keeper"
 	_ "cosmossdk.io/x/protocolpool"
-	poolkeeper "cosmossdk.io/x/protocolpool/keeper"
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
@@ -123,12 +120,9 @@ type BeaconApp struct {
 	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
-	DistrKeeper           distrkeeper.Keeper
-	GovKeeper             *govkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
-	PoolKeeper            poolkeeper.Keeper
 
 	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
@@ -176,13 +170,10 @@ func NewBeaconKitApp(
 		&app.StakingKeeper,
 		&app.SlashingKeeper,
 		&app.MintKeeper,
-		&app.DistrKeeper,
-		&app.GovKeeper,
 		&app.UpgradeKeeper,
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
-		&app.PoolKeeper,
 	); err != nil {
 		panic(err)
 	}

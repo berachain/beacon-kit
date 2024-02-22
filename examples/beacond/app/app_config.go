@@ -31,12 +31,9 @@ import (
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
 	bankmodulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
-	distrmodulev1 "cosmossdk.io/api/cosmos/distribution/module/v1"
 	evidencemodulev1 "cosmossdk.io/api/cosmos/evidence/module/v1"
 	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
-	govmodulev1 "cosmossdk.io/api/cosmos/gov/module/v1"
 	mintmodulev1 "cosmossdk.io/api/cosmos/mint/module/v1"
-	poolmodulev1 "cosmossdk.io/api/cosmos/protocolpool/module/v1"
 	slashingmodulev1 "cosmossdk.io/api/cosmos/slashing/module/v1"
 	stakingmodulev1 "cosmossdk.io/api/cosmos/staking/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
@@ -206,10 +203,6 @@ var (
 				Config: appconfig.WrapAny(&upgrademodulev1.Module{}),
 			},
 			{
-				Name:   distrtypes.ModuleName,
-				Config: appconfig.WrapAny(&distrmodulev1.Module{}),
-			},
-			{
 				Name:   evidencetypes.ModuleName,
 				Config: appconfig.WrapAny(&evidencemodulev1.Module{}),
 			},
@@ -218,20 +211,12 @@ var (
 				Config: appconfig.WrapAny(&mintmodulev1.Module{}),
 			},
 			{
-				Name:   govtypes.ModuleName,
-				Config: appconfig.WrapAny(&govmodulev1.Module{}),
-			},
-			{
 				Name:   consensustypes.ModuleName,
 				Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
 			},
 			{
 				Name:   beacontypes.ModuleName,
 				Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
-			},
-			{
-				Name:   pooltypes.ModuleName,
-				Config: appconfig.WrapAny(&poolmodulev1.Module{}),
 			},
 		},
 	})
