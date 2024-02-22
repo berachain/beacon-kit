@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/types/engine"
 )
 
-var _ callback.Handler = &Handler{}
+var _ callback.ContractHandler = &Handler{}
 
 // Handler is a struct that implements the callback Handler interface.
 type Handler struct {
@@ -68,7 +68,7 @@ func (s *Handler) Deposit(
 		amount,
 		withdrawalCredentials[:],
 	)
-	return s.sks.AcceptDeposit(ctx, deposit)
+	return s.sks.AcceptDepositIntoQueue(ctx, deposit)
 }
 
 // Withdrawal is a callback function that is called

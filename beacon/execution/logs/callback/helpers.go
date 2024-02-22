@@ -30,7 +30,10 @@ import (
 // This function matches each Go implementation to the ABI's respective function.
 // It searches for the ABI function in the go struct and performs basic validation on
 // the implemented function.
-func buildIDsToMethods(si Handler, contractImpl reflect.Value) (map[logSig]*method, error) {
+func buildIDsToMethods(
+	si ContractHandler,
+	contractImpl reflect.Value,
+) (map[logSig]*method, error) {
 	contractEventsABI := si.ABIEvents()
 	contractImplType := contractImpl.Type()
 	idsToMethods := make(map[logSig]*method)

@@ -31,8 +31,8 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// AcceptDeposit records a deposit in the beacon state's queue.
-func (s *Service) AcceptDeposit(ctx context.Context, deposit *consensusv1.Deposit) error {
+// AcceptDepositIntoQueue records a deposit in the beacon state's queue.
+func (s *Service) AcceptDepositIntoQueue(ctx context.Context, deposit *consensusv1.Deposit) error {
 	// Push the deposit to the beacon state's queue.
 	err := s.BeaconState(ctx).EnqueueDeposits([]*consensusv1.Deposit{deposit})
 	if err != nil {

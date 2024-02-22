@@ -27,6 +27,7 @@ package execution
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -36,11 +37,13 @@ import (
 )
 
 // Service is responsible for delivering beacon chain notifications to
-// the execution client.
+// the execution client and processing logs received from the execution client.
 type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
+	// lp is the processor for logs.
+	lp LogProcessor
 }
 
 // Start spawns any goroutines required by the service.
@@ -86,4 +89,9 @@ func (s *Service) NotifyNewPayload(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 ) (bool, error) {
 	return s.notifyNewPayload(ctx, payload)
+}
+
+// ProcessFinalizedLogs processes logs from the execution client for a finalized block.
+func (s *Service) ProcessFinalizedLogs(ctx context.Context, blkNum uint64) error {
+	return s.lp.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
 }

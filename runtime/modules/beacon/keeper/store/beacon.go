@@ -38,7 +38,7 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// BeaconStore is a wrapper around a KVStore sdk.Context
+// BeaconStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type BeaconStore struct {
 	// sdkCtx is the context of the store.
