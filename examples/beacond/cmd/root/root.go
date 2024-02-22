@@ -58,7 +58,7 @@ import (
 func NewRootCmd() *cobra.Command {
 	var (
 		autoCliOpts        autocli.AppOptions
-		moduleBasicManager module.BasicManager
+		moduleBasicManager *module.Manager
 		clientCtx          client.Context
 	)
 	if err := depinject.Inject(
