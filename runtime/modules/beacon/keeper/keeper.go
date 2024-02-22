@@ -51,7 +51,7 @@ func NewKeeper(
 	beaconCfg *config.Beacon,
 ) *Keeper {
 	return &Keeper{
-		beaconStore: store.NewBeaconStore(env.KVStoreService, beaconCfg),
+		beaconStore: store.NewBeaconStore(env, beaconCfg),
 	}
 }
 

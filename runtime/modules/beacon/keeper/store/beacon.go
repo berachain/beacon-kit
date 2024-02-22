@@ -29,8 +29,7 @@ import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	corestore "cosmossdk.io/core/store"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/core/appmodule"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
@@ -41,8 +40,8 @@ import (
 // BeaconStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type BeaconStore struct {
-	// sdkCtx is the context of the store.
-	sdkCtx sdk.Context
+	ctx context.Context
+	env appmodule.Environment
 
 	// cfg is the beacon configuration.
 	cfg *config.Beacon
@@ -66,10 +65,10 @@ type BeaconStore struct {
 
 // NewBeaconStore creates a new instance of BeaconStore.
 func NewBeaconStore(
-	kvs corestore.KVStoreService,
+	env appmodule.Environment,
 	cfg *config.Beacon,
 ) *BeaconStore {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
@@ -91,6 +90,7 @@ func NewBeaconStore(
 		sdkcollections.BytesValue,
 	)
 	return &BeaconStore{
+		env:                      env,
 		depositQueue:             depositQueue,
 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
@@ -101,6 +101,6 @@ func NewBeaconStore(
 
 // WithContext( returns the BeaconStore with the given context.
 func (s *BeaconStore) WithContext(ctx context.Context) *BeaconStore {
-	s.sdkCtx = sdk.UnwrapSDKContext(ctx)
+	s.ctx = ctx
 	return s
 }

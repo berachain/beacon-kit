@@ -32,13 +32,16 @@ import (
 // TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
 // Slot returns the current slot of the beacon chain by converting the block height to a slot.
 func (s *BeaconStore) Slot() primitives.Slot {
-	return primitives.Slot(s.sdkCtx.BlockHeight())
+	return primitives.Slot(
+		s.env.HeaderService.GetHeaderInfo(s.ctx).Height)
 }
 
 // TODO: move these? It feels coupled to this x/beacon. But it's okay for now.
 // Time returns the current time of the beacon chain in Unix timestamp format.
 func (s *BeaconStore) Time() uint64 {
-	return uint64(s.sdkCtx.BlockTime().Unix()) //#nosec:G701 // won't realistically overflow.
+	//#nosec:G701 // won't realistically overflow.
+	return uint64(
+		s.env.HeaderService.GetHeaderInfo(s.ctx).Time.Unix())
 }
 
 // Version returns the active fork version of the beacon chain based on the current slot.

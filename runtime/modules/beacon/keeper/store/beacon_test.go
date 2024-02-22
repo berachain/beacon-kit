@@ -45,12 +45,13 @@ func TestBeaconStore(t *testing.T) {
 	logger := sdklog.NewNopLogger()
 	keys := storetypes.NewKVStoreKeys(testName)
 	cms := integration.CreateMultiStore(keys, logger)
+
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	kv := ctx.KVStore(storeKey)
-
-	beaconStore := store.NewBeaconStore(kvs, &config.DefaultConfig().Beacon)
+	env := sdkruntime.NewEnvironment(kvs, logger)
+	beaconStore := store.NewBeaconStore(env, &config.DefaultConfig().Beacon)
 	beaconStore = beaconStore.WithContext(ctx)
 	t.Run("should return correct hashes", func(t *testing.T) {
 		safeHash := common.HexToHash("0x123")
