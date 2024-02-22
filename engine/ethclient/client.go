@@ -97,17 +97,17 @@ func (s *Eth1Client) Start(ctx context.Context) {
 	go s.jwtRefreshLoop(ctx)
 }
 
-// exchangeCapabilitiesWithExecutionClient calls the engine_exchangeCapabilities method via JSON-RPC.
-// It then stores the capabilities in the Eth1Client's capabilities map for later reference.
+// exchangeCapabilitiesWithExecutionClient calls the engine_exchangeCapabilities method via
+// JSON-RPC. It then stores the capabilities in the Eth1Client's capabilities map for later
+// reference.
 func (s *Eth1Client) exchangeCapabilitiesWithExecutionClient(ctx context.Context) error {
 	capabilities, err := s.ExchangeCapabilities(ctx, beaconKitCapabilities())
 	if err != nil {
 		return err
 	}
 
-	capabilitiesMap := make(map[string]struct{})
 	for _, capability := range capabilities {
-		capabilitiesMap[capability] = struct{}{}
+		s.capabilities[capability] = struct{}{}
 		s.logger.Info("capability exchanged", "capability", capability)
 	}
 
@@ -257,12 +257,12 @@ func (s *Eth1Client) GetClientVersionV1(ctx context.Context) ([]ethengine.Client
 }
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via JSON-RPC.
-func (c *Eth1Client) ExchangeCapabilities(
+func (s *Eth1Client) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,
 ) ([]string, error) {
 	result := make([]string, 0)
-	if err := c.Client.Client().CallContext(
+	if err := s.Client.Client().CallContext(
 		ctx, &result, ExchangeCapabilities, &capabilities,
 	); err != nil {
 		return nil, err
