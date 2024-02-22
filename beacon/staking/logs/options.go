@@ -23,16 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package logs
 
 import (
-	"context"
-
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// ValsetChangeProvider is the interface for applying validator set changes.
-type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+// WithBaseService returns an Option that sets the BaseService for the Handler.
+func WithBaseService(base service.BaseService) service.Option[Handler] {
+	return func(s *Handler) error {
+		s.BaseService = base
+		return nil
+	}
+}
+
+// WithStakingService returns an Option that sets the StakingService for the Handler.
+func WithStakingService(sks StakingService) service.Option[Handler] {
+	return func(h *Handler) error {
+		h.sks = sks
+		return nil
+	}
 }

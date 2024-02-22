@@ -187,6 +187,8 @@ test-unit-cover:
 	@echo "Running unit tests with coverage..."
 	go test -race -coverprofile=test-unit-cover.txt -covermode=atomic ./...
 
+# On MacOS, if there is a linking issue on the fuzz tests, 
+# use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
 	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
@@ -197,6 +199,8 @@ test-unit-fuzz:
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzHandlerSimple ./beacon/staking/logs/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzHandlerMulti ./beacon/staking/logs/ -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
 #     forge     #
