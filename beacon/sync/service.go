@@ -232,6 +232,6 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 		}
 	}
 
-	s.Logger().Info("execution client is synced with consensus client 🎉")
+	s.Logger().Info("execution client is synchronized with consensus client 🎉")
 	return nil
 }
