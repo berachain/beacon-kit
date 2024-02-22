@@ -122,7 +122,6 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Extract the beacon block from the ABCI request.
 	//
-	// TODO: I don't love how we have to use the BeaconConfig here.
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
 	block, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
