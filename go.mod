@@ -3,37 +3,40 @@ module github.com/itsdevbear/bolaris
 go 1.22.0
 
 replace (
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20231027092504-21e69bad0437
-	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20231027092504-21e69bad0437
-	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20231027092504-21e69bad0437
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20231027092504-21e69bad0437
-	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20231028070948-7bef0227f9ae
-	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20231027092504-21e69bad0437
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20231027092504-21e69bad0437
-	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20231027092504-21e69bad0437
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20231130111812-7aa5635baaa8
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20231130111812-7aa5635baaa8
 	// Required until: https://github.com/cosmos/cosmos-db/pull/97 is merged, fixes pebbledb dep conflict.
 	github.com/cosmos/cosmos-db => github.com/itsdevbear/cosmos-db v0.0.0-20240221222005-7af8b3de2d76
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20231027092504-21e69bad0437
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20231130111812-7aa5635baaa8
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
 require (
-	cosmossdk.io/api v0.7.3
-	cosmossdk.io/client/v2 v2.0.0-20231027092504-21e69bad0437
+	cosmossdk.io/api v0.7.3-0.20231130111812-7aa5635baaa8
+	cosmossdk.io/client/v2 v2.0.0-20231130111812-7aa5635baaa8
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v0.12.0
+	cosmossdk.io/core v0.12.1-0.20231114100755-569e3ff6a0d7
 	cosmossdk.io/depinject v1.0.0-alpha.4
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.2.0
 	cosmossdk.io/store v1.0.2
 	cosmossdk.io/tools/confix v0.1.1
+	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/bank v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/distribution v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/evidence v0.1.0
-	cosmossdk.io/x/gov v0.0.0-20230925135524-a1bc045b3190
+	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a
 	cosmossdk.io/x/mint v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
@@ -242,8 +245,8 @@ require (
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
-	github.com/gorilla/handlers v1.5.1 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/gorilla/handlers v1.5.2 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
@@ -258,7 +261,7 @@ require (
 	github.com/hashicorp/go-getter v1.7.3 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
-	github.com/hashicorp/go-metrics v0.5.2 // indirect
+	github.com/hashicorp/go-metrics v0.5.3 // indirect
 	github.com/hashicorp/go-plugin v1.5.2 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
@@ -317,6 +320,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mbilski/exhaustivestruct v1.2.0 // indirect
+	github.com/mdp/qrterminal/v3 v3.2.0 // indirect
 	github.com/mgechev/revive v1.3.7 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -342,7 +346,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/peterh/liner v1.2.0 // indirect
-	github.com/petermattis/goid v0.0.0-20230904192822-1876fd5063bc // indirect
+	github.com/petermattis/goid v0.0.0-20231126143041-f558c26febf5 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/profile v1.7.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -461,6 +465,7 @@ require (
 	nhooyr.io/websocket v1.8.7 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
 	rsc.io/markdown v0.0.0-20231214224604-88bb533a6020 // indirect
+	rsc.io/qr v0.2.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )

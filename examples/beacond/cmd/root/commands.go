@@ -32,6 +32,7 @@ import (
 
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
+	authcmd "cosmossdk.io/x/auth/client/cli"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -45,7 +46,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	beaconconfig "github.com/itsdevbear/bolaris/config"
@@ -77,7 +77,7 @@ func initRootCmd(
 	)
 
 	server.AddCommands(
-		rootCmd, newApp, appExport, AddModuleInitFlags,
+		rootCmd, newApp, AddModuleInitFlags,
 	)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
@@ -98,7 +98,7 @@ func AddModuleInitFlags(startCmd *cobra.Command) {
 
 // GenesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.
 func GenesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, basicManager)
+	cmd := genutilcli.Commands(txConfig, basicManager, appExport)
 
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)

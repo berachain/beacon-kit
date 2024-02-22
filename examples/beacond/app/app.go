@@ -40,6 +40,7 @@ import (
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
+	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
 	distrkeeper "cosmossdk.io/x/distribution/keeper"
 	govkeeper "cosmossdk.io/x/gov/keeper"
@@ -56,7 +57,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 

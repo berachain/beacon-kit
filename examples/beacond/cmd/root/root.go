@@ -34,6 +34,9 @@ import (
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"cosmossdk.io/x/auth/tx"
+	authtxconfig "cosmossdk.io/x/auth/tx/config"
+	"cosmossdk.io/x/auth/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -45,9 +48,6 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/spf13/cobra"
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
@@ -156,7 +156,7 @@ func AddCommands(rootCmd *cobra.Command, defaultNodeHome string,
 	rootCmd.AddCommand(
 		startCmd,
 		cometCmd,
-		server.ExportCmd(appExport),
+		// server.ExportCmd(appExport),
 		version.NewVersionCommand(),
 		server.NewRollbackCmd(appCreator),
 	)
