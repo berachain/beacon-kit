@@ -53,7 +53,6 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
 	Slot() primitives.Slot
-	Time() uint64
 	Version() int
 
 	// TODO: fill these in as we develop impl

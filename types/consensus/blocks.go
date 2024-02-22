@@ -28,7 +28,6 @@ package consensus
 import (
 	"errors"
 
-	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
@@ -73,30 +72,6 @@ func EmptyBeaconKitBlock(
 	version int,
 ) (BeaconKitBlock, error) {
 	return NewBeaconKitBlock(slot, nil, version)
-}
-
-// EmptyBeaconKitBlockFromState assembles a new beacon block
-// with no execution data from the given state.
-func EmptyBeaconKitBlockFromState(
-	beaconState state.BeaconState,
-) (BeaconKitBlock, error) {
-	return EmptyBeaconKitBlock(
-		beaconState.Slot(),
-		beaconState.Version(),
-	)
-}
-
-// BeaconKitBlockFromState assembles a new beacon block
-// from the given state and execution data.
-func BeaconKitBlockFromState(
-	beaconState state.ReadOnlyBeaconState,
-	executionData engine.ExecutionPayload,
-) (BeaconKitBlock, error) {
-	return NewBeaconKitBlock(
-		beaconState.Slot(),
-		executionData,
-		beaconState.Version(),
-	)
 }
 
 // BeaconKitBlockFromSSZ assembles a new beacon block
