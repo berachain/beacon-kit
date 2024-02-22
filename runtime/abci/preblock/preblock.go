@@ -98,9 +98,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		// TODO: Use protobuf and .(type)?
 		beaconBlock, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
 			req, h.cfg.BeaconBlockPosition,
-			h.chainService.BeaconCfg().ActiveForkVersion(
-				primitives.Epoch(req.Height),
-			),
+			h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 		)
 		if err != nil {
 			return nil, err
