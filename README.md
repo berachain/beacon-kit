@@ -7,7 +7,7 @@
 
 ![](.github/assets/banner.png)
 
-## What is BeaconKit
+## What is BeaconKit?
 
 BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to create a flexible, customizable consensus layer tailored for Ethereum-based blockchains. The framework offers the most user-friendly way to build and operate an EVM blockchain, while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
 
