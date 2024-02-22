@@ -88,13 +88,13 @@ func MkdirAll(dirPath string) error {
 
 // MkdirEphemeral creates a new temporary directory in the directory dir with a name
 // beginning with prefix and returns the path of the new directory.
-func MkdirEphemeral(dir, prefix, fallback string) string {
-	out, err := os.MkdirTemp(dir, prefix)
+func MkdirEphemeral(in, prefix, fallback string) string {
+	dir, err := os.MkdirTemp(in, prefix)
 	if err != nil {
-		out = fallback
+		dir = fallback
 	}
-	defer os.RemoveAll(out)
-	return out
+	defer os.RemoveAll(dir)
+	return dir
 }
 
 // CreateFile creates or truncates a file at the specified path.
