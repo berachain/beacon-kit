@@ -72,7 +72,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf "$HOMEDIR"
 
 	# # Set moniker and chain-id (Moniker can be anything, chain-id must be an integer)
-	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR" --beacon-kit.accept-tos > /dev/null 2>&1
+	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR" --beacon-kit.accept-tos
 	
 	# Set client config
 	./build/bin/beacond config set client keyring-backend $KEYRING --home "$HOMEDIR"

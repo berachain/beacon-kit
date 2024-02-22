@@ -39,9 +39,6 @@ import (
 	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
-	"cosmossdk.io/x/gov"
-	govclient "cosmossdk.io/x/gov/client"
-	govtypes "cosmossdk.io/x/gov/types"
 	mintkeeper "cosmossdk.io/x/mint/keeper"
 	_ "cosmossdk.io/x/protocolpool"
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
@@ -59,8 +56,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
@@ -92,15 +87,6 @@ func AppConfig() depinject.Config {
 	return depinject.Configs(
 		// appconfig.LoadYAML(AppConfigYAML),
 		BeaconAppConfig,
-		depinject.Supply(
-			// supply custom module basics
-			map[string]module.AppModuleBasic{
-				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-				govtypes.ModuleName: gov.NewAppModuleBasic(
-					[]govclient.ProposalHandler{},
-				),
-			},
-		),
 	)
 }
 

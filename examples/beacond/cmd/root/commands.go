@@ -63,7 +63,7 @@ func initRootCmd(
 	txConfig client.TxConfig,
 	interfaceRegistry codectypes.InterfaceRegistry,
 	appCodec codec.Codec,
-	basicManager module.BasicManager,
+	mm *module.Manager,
 ) {
 	cfg := sdk.GetConfig()
 	cfg.Seal()
@@ -72,7 +72,7 @@ func initRootCmd(
 	beaconconfig.AddToSFlag(rootCmd)
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(basicManager),
+		genutilcli.InitCmd(mm),
 		// NewTestnetCmd(basicManager, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
@@ -87,7 +87,7 @@ func initRootCmd(
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
-		genesisCommand(txConfig, basicManager, appExport),
+		genesisCommand(txConfig, mm, appExport),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
@@ -100,8 +100,8 @@ func AddModuleInitFlags(startCmd *cobra.Command) {
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
-func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, appExport servertypes.AppExporter, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, basicManager, appExport)
+func genesisCommand(txConfig client.TxConfig, mm *module.Manager, appExport servertypes.AppExporter, cmds ...*cobra.Command) *cobra.Command {
+	cmd := genutilcli.Commands(txConfig, mm, appExport)
 
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)

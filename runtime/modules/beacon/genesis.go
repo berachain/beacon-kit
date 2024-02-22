@@ -29,7 +29,6 @@ import (
 	"context"
 	"encoding/json"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
@@ -56,11 +55,10 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	cdc codec.JSONCodec,
 	bz json.RawMessage,
-) []abci.ValidatorUpdate {
+) {
 	var gs types.GenesisState
 	cdc.MustUnmarshalJSON(bz, &gs)
 	am.keeper.InitGenesis(ctx, gs)
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
