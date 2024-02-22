@@ -27,6 +27,7 @@ package execution
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/state"
@@ -38,6 +39,10 @@ import (
 type BeaconStateProvider interface {
 	// BeaconState provides access to the underlying beacon state.
 	BeaconState(ctx context.Context) state.BeaconState
+}
+
+type LogProcessor interface {
+	ProcessFinalizedETH1Block(ctx context.Context, blockNum *big.Int) error
 }
 
 // FCUConfig is a struct that holds the configuration for a fork choice update.
