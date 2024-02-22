@@ -68,7 +68,7 @@ func (s *Handler) Deposit(
 		amount,
 		withdrawalCredentials[:],
 	)
-	return s.sks.AcceptDeposit(ctx, deposit)
+	return s.sks.AcceptDepositIntoQueue(ctx, deposit)
 }
 
 // Withdrawal is a callback function that is called
