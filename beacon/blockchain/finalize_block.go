@@ -44,14 +44,15 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// Process logs from the finalized block with the execution service.
+	// Process logs from the finalized execution block with the execution service.
 	if err = s.es.ProcessFinalizedLogs(ctx, payload.GetBlockNumber()); err != nil {
 		s.Logger().Error("failed to process finalized logs", "error", err)
 		return err
 	}
 
 	// Apply deposits to the staking service.
-	// After logs are processed, deposists are already added into the beacon state.
+	// Deposists were already added into the beacon state,
+	// after logs from the finalized block had been processed.
 	if err = s.sks.ApplyDeposits(ctx); err != nil {
 		s.Logger().Error("failed to apply deposits", "error", err)
 		return err
