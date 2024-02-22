@@ -142,9 +142,23 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
+	// We have to keep a copy of beaconBz to re-inject it into the proposal after
+	// the underlying process proposal handler has run. This is to avoid making a copy
+	// of the entire request.
+	//
+	// TODO: there has to be a more friendly way to handle this, but hey it works.
+	beaconBz := req.Txs[h.cfg.BeaconBlockPosition]
+
 	// Run the remainder of the proposal. We remove the beacon block from the proposal
 	// before passing it to the next handler.
-	return h.processProposal(ctx, h.RemoveBeaconBlockFromTxs(req))
+	res, err := h.processProposal(ctx, h.RemoveBeaconBlockFromTxs(req))
+	if err != nil {
+		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
+	}
+
+	// Re-inject the beacon block into the proposal.
+	req.Txs = append([][]byte{beaconBz}, req.Txs...)
+	return res, nil
 }
 
 // removeBeaconBlockFromTxs removes the beacon block from the proposal.
