@@ -1,0 +1,18 @@
+{
+  "name": "beacon-kit-docs",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vocs dev",
+    "build": "vocs build",
+    "preview": "vocs preview"
+  },
+  "dependencies": {
+    "@types/react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "swagger-ui-react": "^5.11.7",
+    "typescript": "latest",
+    "vocs": "latest"
+  }
+}
