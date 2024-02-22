@@ -124,5 +124,5 @@ func (s *Service) validateExecutionOnBlock(
 
 	// TODO: add some more safety checks here.
 
-	return s.es.NotifyNewPayload(ctx, payload)
+	return s.es.NotifyNewPayload(ctx, payload, blk.GetSlot())
 }

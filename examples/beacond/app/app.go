@@ -53,7 +53,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
@@ -126,8 +125,6 @@ func NewBeaconKitApp(
 	var (
 		app        = &BeaconApp{}
 		appBuilder *runtime.AppBuilder
-		bkCfg      = beaconkitconfig.MustReadConfigFromAppOpts(appOpts)
-
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
 			AppConfig(),
@@ -136,8 +133,6 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
-				// supply the beacon config
-				&(bkCfg.Beacon),
 			),
 		)
 	)
@@ -168,7 +163,7 @@ func NewBeaconKitApp(
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		bkCfg, app.BeaconKeeper,
+		beaconkitconfig.MustReadConfigFromAppOpts(appOpts), app.BeaconKeeper,
 		stakingwrapper.NewKeeper(app.StakingKeeper),
 		app.Logger(),
 	); err != nil {
@@ -222,11 +217,6 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
-}
-
-// SimulationManager implements the SimulationApp interface.
-func (app *BeaconApp) SimulationManager() *module.SimulationManager {
-	return nil
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided

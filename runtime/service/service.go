@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all services.
@@ -90,6 +91,11 @@ func (s *BaseService) Start(context.Context) {}
 
 // Status is an intentional no-op for the BaseService.
 func (s *BaseService) Status() error { return nil }
+
+// ActiveForkVersionForSlot returns the active fork version for the given slot.
+func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) int {
+	return s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
+}
 
 // // DispatchEvent sends a value to the feed associated with the provided key.
 // func (s *BaseService) DispatchEvent(value dispatch.Event) int {

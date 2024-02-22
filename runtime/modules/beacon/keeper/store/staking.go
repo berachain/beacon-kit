@@ -32,12 +32,12 @@ import (
 
 // EnqueueDeposits pushes the deposits to the queue.
 func (s *BeaconStore) EnqueueDeposits(deposits []*consensusv1.Deposit) error {
-	return s.depositQueue.PushMulti(s.sdkCtx, deposits)
+	return s.depositQueue.PushMulti(s.ctx, deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (s *BeaconStore) DequeueDeposits(numDequeue uint64) ([]*consensusv1.Deposit, error) {
-	return s.depositQueue.PopMulti(s.sdkCtx, numDequeue)
+	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
 // TODO: maybe BeaconState interface needs to be glue'd together outside of
