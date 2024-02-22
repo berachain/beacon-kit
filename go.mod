@@ -8,26 +8,26 @@ replace (
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240220150322-52106a66cba9
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240220150322-52106a66cba9
 	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240220150322-52106a66cba9
-	cosmossdk.io/tools/confix => cosmossdk.io/tools/confix v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240221095004-54765572e03a
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240221095004-54765572e03a
-	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20240221095004-54765572e03a
-	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240221095004-54765572e03a
-	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240220150322-52106a66cba9
-	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.1-0.20240210224712-72a56d9933c5
-	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240220150322-52106a66cba9
+	cosmossdk.io/tools/confix => cosmossdk.io/tools/confix v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240221095859-541df89f2bb4
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240221095859-541df89f2bb4
+	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20240221095859-541df89f2bb4
+	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240221095859-541df89f2bb4
+	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240220165102-8cb798d7bf05
+	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.1-0.20240221095859-541df89f2bb4
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240221095859-541df89f2bb4
 	// Required until: https://github.com/cosmos/cosmos-db/pull/97 is merged, fixes pebbledb dep conflict.
 	github.com/cosmos/cosmos-db => github.com/itsdevbear/cosmos-db v0.0.0-20240221222005-7af8b3de2d76
 	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240220150322-52106a66cba9
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240220165102-8cb798d7bf05
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 	// replace broken goleveldb

@@ -178,7 +178,6 @@ func NewBeaconKitApp(
 		&app.MintKeeper,
 		&app.DistrKeeper,
 		&app.GovKeeper,
-		// &app.CrisisKeeper,
 		&app.UpgradeKeeper,
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
