@@ -148,7 +148,7 @@ func (h *Handler) ProcessProposalHandler(
 	//
 	// TODO: there has to be a more friendly way to handle this, but hey it works.
 	beaconBz := req.Txs[h.cfg.BeaconBlockPosition]
-	defer func() { // Re-inject the beacon block into the proposal.
+	defer func() {
 		req.Txs = append([][]byte{beaconBz}, req.Txs...)
 	}()
 
