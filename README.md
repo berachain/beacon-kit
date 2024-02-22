@@ -1,4 +1,4 @@
-# beacon-kit 
+# beacon-kit
 
 [![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
 [![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
@@ -7,14 +7,13 @@
 
 ![](.github/assets/banner.png)
 
-
-## What is BeaconKit?
+## What is BeaconKit
 
 BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to create a flexible, customizable consensus layer tailored for Ethereum-based blockchains. The framework offers the most user-friendly way to build and operate an EVM blockchain, while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
 
 First there was EVM Compatibility; next, EVM Equivalence; and now with BeaconKit, **EVM Identicality**.
 
-## Why BeaconKit? 
+## Why BeaconKit?
 
 TODO: Talk about Polaris / Ethermint compatibility issue.
 
@@ -29,16 +28,18 @@ Through utilizing the [Ethereum Engine API](https://github.com/ethereum/executio
 - **Reth**: A Rust-based Ethereum client, focusing on performance and reliability.
 
 ## Documentation
-BeaconKit leverages `pkgsite` for it's core documentation, you can run `pkgsite` locally and run a web-ui of the 
+
+BeaconKit leverages `pkgsite` for it's core documentation, you can run `pkgsite` locally and run a web-ui of the
 latest documentation:
 
 ```bash
-make pkgsite 
+make pkgsite
 ```
 
 ## Running a Local Development Network
 
 **Prerequisites:**
+
 - [Docker](https://docs.docker.com/engine/install/)
 - [Golang 1.22.0+](https://go.dev/doc/install)
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
@@ -46,16 +47,18 @@ make pkgsite
 Start by opening two terminals side-by-side:
 
 **Terminal 1:**
+
 ```bash
 # Start the sample BeaconKit Consensus Client:
 make start
 ```
 
 **Terminal 2:**
+
 ```bash
 # Start an Ethereum Execution Client:
 make start-reth # or start-geth start-besu start-erigon start-nethermind
 ```
 
-The account with `private-key=0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306` corresponding 
+The account with `private-key=0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306` corresponding
 with `address=0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4` is preloaded with the native EVM token.
