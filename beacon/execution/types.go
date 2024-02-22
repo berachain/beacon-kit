@@ -41,6 +41,8 @@ type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
 
+// LogProcessor is an interface with a method
+// to process logs from the execution client.
 type LogProcessor interface {
 	ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.Int) error
 }
