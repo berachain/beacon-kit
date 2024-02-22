@@ -45,7 +45,10 @@ type StakingService struct {
 }
 
 // AcceptDepositIntoQueue pushes a deposit into queue.
-func (s *StakingService) AcceptDepositIntoQueue(_ context.Context, deposit *consensusv1.Deposit) error {
+func (s *StakingService) AcceptDepositIntoQueue(
+	_ context.Context,
+	deposit *consensusv1.Deposit,
+) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
