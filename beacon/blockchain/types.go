@@ -61,6 +61,6 @@ type BuilderService interface {
 
 // StakingService is the interface for staking service.
 type StakingService interface {
-	AcceptDeposit(ctx context.Context, deposit *consensusv1.Deposit) error
+	AcceptDepositIntoQueue(ctx context.Context, deposit *consensusv1.Deposit) error
 	ApplyDeposits(ctx context.Context) error
 }

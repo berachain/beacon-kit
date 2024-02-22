@@ -44,8 +44,11 @@ type StakingService struct {
 	mu              sync.RWMutex
 }
 
-// AcceptDeposit pushes a deposit into queue.
-func (s *StakingService) AcceptDeposit(_ context.Context, deposit *consensusv1.Deposit) error {
+// AcceptDepositIntoQueue pushes a deposit into queue.
+func (s *StakingService) AcceptDepositIntoQueue(
+	_ context.Context,
+	deposit *consensusv1.Deposit,
+) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

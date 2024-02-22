@@ -44,6 +44,22 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
+	// TEMPORARY, needs to be handled better, this is a hack.
+	if err = s.sendFCU(
+		ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1,
+	); err != nil {
+		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
+	}
+
+	eth1BlockHash := common.Hash(payload.GetBlockHash())
+	state := s.BeaconState(ctx)
+	state.SetFinalizedEth1BlockHash(eth1BlockHash)
+	state.SetSafeEth1BlockHash(eth1BlockHash)
+	state.SetLastValidHead(eth1BlockHash)
+
+	// At this point, the execution block has been finalized.
+	// It is safe to fetch the logs from the block and process them.
+
 	// Process logs from the finalized execution block with the execution service.
 	if err = s.es.ProcessFinalizedLogs(ctx, payload.GetBlockNumber()); err != nil {
 		s.Logger().Error("failed to process finalized logs", "error", err)
@@ -59,19 +75,6 @@ func (s *Service) FinalizeBeaconBlock(
 	}
 
 	// TODO: PROCESS VOLUNTARY EXITS HERE
-
-	// TEMPORARY, needs to be handled better, this is a hack.
-	if err = s.sendFCU(
-		ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1,
-	); err != nil {
-		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
-	}
-
-	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	state := s.BeaconState(ctx)
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
-	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetLastValidHead(eth1BlockHash)
 
 	return nil
 }
