@@ -43,6 +43,7 @@ type ExecutionPayloadBody interface {
 	IsBlinded() bool
 	ToProto() proto.Message
 	GetBlockHash() []byte
+	GetBlockNumber() uint64
 	GetParentHash() []byte
 	GetValue() math.Wei
 }

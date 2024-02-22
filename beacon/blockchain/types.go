@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
@@ -43,6 +44,9 @@ type ExecutionService interface {
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(ctx context.Context, preStateHeader engine.ExecutionPayload) (bool, error)
+
+	// ProcessFinalizedLogs processes logs in the finalized execution block.
+	ProcessFinalizedLogs(ctx context.Context, blkNum uint64) error
 }
 
 type BuilderService interface {
@@ -53,4 +57,10 @@ type BuilderService interface {
 		timestamp uint64,
 		parentBeaconBlockRoot []byte,
 	) (*enginev1.PayloadIDBytes, error)
+}
+
+// StakingService is the interface for staking service.
+type StakingService interface {
+	AcceptDeposit(ctx context.Context, deposit *consensusv1.Deposit) error
+	ApplyDeposits(ctx context.Context) error
 }

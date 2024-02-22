@@ -87,6 +87,11 @@ func (p *ExecutionPayloadContainer) GetBlockHash() []byte {
 	return p.getPayload().(interface{ GetBlockHash() []byte }).GetBlockHash()
 }
 
+// GetBlockNumber retrieves the block number from the payload.
+func (p *ExecutionPayloadContainer) GetBlockNumber() uint64 {
+	return p.getPayload().(interface{ GetBlockNumber() uint64 }).GetBlockNumber()
+}
+
 // GetParentHash retrieves the parent hash from the payload.
 func (p *ExecutionPayloadContainer) GetParentHash() []byte {
 	return p.getPayload().(interface{ GetParentHash() []byte }).GetParentHash()

@@ -44,8 +44,19 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// TODO: PROCESS LOGS HERE
-	// TODO: PROCESS DEPOSITS HERE
+	// Process logs from the finalized block with the execution service.
+	if err = s.es.ProcessFinalizedLogs(ctx, payload.GetBlockNumber()); err != nil {
+		s.Logger().Error("failed to process finalized logs", "error", err)
+		return err
+	}
+
+	// Apply deposits to the staking service.
+	// After logs are processed, deposists are already added into the beacon state.
+	if err = s.sks.ApplyDeposits(ctx); err != nil {
+		s.Logger().Error("failed to apply deposits", "error", err)
+		return err
+	}
+
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
 	// TEMPORARY, needs to be handled better, this is a hack.
