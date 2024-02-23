@@ -67,7 +67,7 @@ func TestLogFactory(t *testing.T) {
 	require.NoError(t, err)
 
 	valType := reflect.TypeOf(val.Interface())
-	require.NotEqual(t, nil, valType)
+	require.NotNil(t, valType)
 	require.Equal(t, reflect.Ptr, valType.Kind())
 	require.Equal(t, depositType, valType.Elem())
 
