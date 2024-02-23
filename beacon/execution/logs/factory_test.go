@@ -33,8 +33,10 @@ import (
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -48,9 +50,20 @@ func TestLogFactory(t *testing.T) {
 	contractAddress := common.HexToAddress("0x1234")
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
-	factory.RegisterABI(contractAddress, stakingAbi)
 
+	depositSig := ethcrypto.Keccak256Hash([]byte("Deposit(bytes,bytes,uint64)"))
 	depositName := "Deposit"
+	depositType := reflect.TypeOf(consensusv1.Deposit{})
+
+	withdrawalSig := ethcrypto.Keccak256Hash([]byte("Withdrawal(bytes,bytes,uint64)"))
+	withdrawalName := "Withdrawal"
+	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
+
+	allocator := service.New[logs.TypeAllocator](
+		logs.WithABI(stakingAbi),
+		logs.WithNameAndType(depositSig, depositName, depositType),
+		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
+	)
 
 	deposit := consensus.NewDeposit(
 		[]byte("pubkey"),
@@ -65,13 +78,7 @@ func TestLogFactory(t *testing.T) {
 	// An error is expected because the event has not been registered.
 	require.Error(t, err)
 
-	depositType := reflect.TypeOf(consensusv1.Deposit{})
-	err = factory.RegisterEvent(
-		contractAddress,
-		depositName,
-		depositType,
-	)
-	require.NoError(t, err)
+	factory.AddTypeAllocator(contractAddress, allocator)
 
 	val, err := factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
@@ -85,15 +92,6 @@ func TestLogFactory(t *testing.T) {
 	require.True(t, ok)
 	require.NoError(t, err)
 	require.Equal(t, deposit, newDeposit)
-
-	withdrawalName := "Withdrawal"
-	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
-	err = factory.RegisterEvent(
-		contractAddress,
-		withdrawalName,
-		withdrawalType,
-	)
-	require.NoError(t, err)
 
 	withdrawal := engine.NewWithdrawal([]byte("pubkey"), 10000)
 	log, err = newLogFromWithdrawal(

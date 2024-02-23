@@ -37,14 +37,22 @@ import (
 // Ethereum logs into objects with the appropriate types.
 type Factory struct {
 	// addressToAbi maps contract addresses to their Registry.
-	addressToRegistry map[common.Address]*TypeRegistry
+	addressToAllocator map[common.Address]*TypeAllocator
 }
 
 // NewFactory returns a new Factory.
 func NewFactory() *Factory {
 	return &Factory{
-		addressToRegistry: make(map[common.Address]*TypeRegistry),
+		addressToAllocator: make(map[common.Address]*TypeAllocator),
 	}
+}
+
+// RegisterABI registers a contract ABI with the factory.
+func (f *Factory) AddTypeAllocator(
+	contractAddress common.Address,
+	allocator *TypeAllocator,
+) {
+	f.addressToAllocator[contractAddress] = allocator
 }
 
 // UnmarshalEthLog unmarshals an Ethereum log into an object
@@ -57,7 +65,7 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 	// Get the ABI, type, and name of the event from the factory.
 	// This function only processes logs from contracts and events
 	// that have been registered with the factory.
-	registry, ok := f.addressToRegistry[log.Address]
+	registry, ok := f.addressToAllocator[log.Address]
 	if !ok {
 		return reflect.Value{}, errors.New("registry not found for contract address")
 	}

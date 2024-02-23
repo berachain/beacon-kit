@@ -25,38 +25,45 @@
 
 package logs
 
-// // RegisterEvent registers information of an event with the factory.
-// func (f *Factory) RegisterEvent(
-// 	contractAddress common.Address,
-// 	eventName string,
-// 	eventType reflect.Type,
-// ) error {
-// 	registry, ok := f.addressToRegistry[contractAddress]
-// 	if !ok {
-// 		return errors.New("registry not found for contract address")
-// 	}
-// 	return registry.RegisterEvent(eventName, eventType)
-// }
+import (
+	"errors"
+	"fmt"
+	"reflect"
 
-// // RegisterWithCallback allows a service to register a contract ABI
-// // and event information with the factory.
-// func (f *Factory) RegisterWithCallback(registrant LogRegistrant) error {
-// 	contractAddresses := registrant.GetAddresses()
-// 	for _, contractAddress := range contractAddresses {
-// 		contractAbi := registrant.GetABI(contractAddress)
-// 		f.RegisterABI(contractAddress, contractAbi)
-// 		for eventName, event := range contractAbi.Events {
-// 			eventID := event.ID
-// 			eventType := registrant.GetType(eventID)
-// 			if eventType == nil {
-// 				continue
-// 			}
-// 			if err := f.RegisterEvent(
-// 				contractAddress, eventName, eventType,
-// 			); err != nil {
-// 				return err
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
+	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/runtime/service"
+)
+
+// WithABI returns an Option for registering
+// the contract ABI with the TypeAllocator.
+func WithABI(contractAbi *ethabi.ABI) service.Option[TypeAllocator] {
+	return func(a *TypeAllocator) error {
+		a.abi = contractAbi
+		a.sigToName = make(map[common.Hash]string)
+		a.sigToType = make(map[common.Hash]reflect.Type)
+		return nil
+	}
+}
+
+// WithNameAndType returns an Option for registering
+// an event name and type under the given even signature
+// with the TypeAllocator.
+func WithNameAndType(
+	sig common.Hash,
+	name string,
+	t reflect.Type,
+) service.Option[TypeAllocator] {
+	return func(a *TypeAllocator) error {
+		event, ok := a.abi.Events[name]
+		if !ok {
+			return errors.New("event not found in ABI")
+		}
+		if event.ID != sig {
+			return fmt.Errorf("event %s signature does not match, expected %s, got %s", name, event.ID.Hex(), sig.Hex())
+		}
+		a.sigToName[sig] = name
+		a.sigToType[sig] = t
+		return nil
+	}
+}

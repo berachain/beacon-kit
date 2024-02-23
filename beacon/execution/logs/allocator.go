@@ -33,12 +33,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// TypeRegistry is a struct that stores registered types
+// TypeAllocator is a struct that stores registered types
 // corresponding to events in each contract.
 // The information is used to allocate empty objects
 // of the registed types, into which the log data
 // can be unmarshaled.
-type TypeRegistry struct {
+type TypeAllocator struct {
 	abi       *ethabi.ABI
 	sigToName map[common.Hash]string
 	sigToType map[common.Hash]reflect.Type
@@ -46,18 +46,17 @@ type TypeRegistry struct {
 	// based on their names like the current callback logic.
 }
 
-// NewTypeRegistry returns a new TypeRegistry
+// NewTypeAllocator creates a new TypeAllocator
 // for multiple events in a contract.
-func NewTypeRegistry(abi *ethabi.ABI) *TypeRegistry {
-	return &TypeRegistry{
-		abi:       abi,
+func NewTypeAllocator() *TypeAllocator {
+	return &TypeAllocator{
 		sigToName: make(map[common.Hash]string),
 		sigToType: make(map[common.Hash]reflect.Type),
 	}
 }
 
-// RegisterEvent registers type of an event with the registry.
-func (r *TypeRegistry) RegisterEvent(
+// RegisterEvent registers type of an event with the alocator.
+func (r *TypeAllocator) RegisterEvent(
 	eventName string,
 	eventType reflect.Type,
 ) error {
@@ -70,14 +69,14 @@ func (r *TypeRegistry) RegisterEvent(
 	return nil
 }
 
-// GetABI returns the ABI of the contract.
-func (r *TypeRegistry) GetABI() *ethabi.ABI {
+// GetABI returns the ABI of the contract from the allocator.
+func (r *TypeAllocator) GetABI() *ethabi.ABI {
 	return r.abi
 }
 
 // GetName returns the name of the event
 // corresponding to the signature.
-func (r *TypeRegistry) GetName(sig common.Hash) (string, error) {
+func (r *TypeAllocator) GetName(sig common.Hash) (string, error) {
 	name, ok := r.sigToName[sig]
 	if !ok {
 		return "", errors.New("event not found in registry")
@@ -87,7 +86,7 @@ func (r *TypeRegistry) GetName(sig common.Hash) (string, error) {
 
 // Allocate returns an empty object of the type,
 // which is registered with the signature.
-func (r *TypeRegistry) Allocate(sig common.Hash) (reflect.Value, error) {
+func (r *TypeAllocator) Allocate(sig common.Hash) (reflect.Value, error) {
 	eventType, ok := r.sigToType[sig]
 	if !ok {
 		return reflect.Value{}, errors.New("event type not found in registry")
