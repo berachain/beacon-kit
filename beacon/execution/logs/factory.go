@@ -40,21 +40,6 @@ type Factory struct {
 	addressToAllocator map[common.Address]*TypeAllocator
 }
 
-// NewFactory returns a new Factory.
-func NewFactory() *Factory {
-	return &Factory{
-		addressToAllocator: make(map[common.Address]*TypeAllocator),
-	}
-}
-
-// RegisterABI registers a contract ABI with the factory.
-func (f *Factory) AddTypeAllocator(
-	contractAddress common.Address,
-	allocator *TypeAllocator,
-) {
-	f.addressToAllocator[contractAddress] = allocator
-}
-
 // UnmarshalEthLog unmarshals an Ethereum log into an object
 // with the appropriate type, based on the registered event
 // corresponding to the log.

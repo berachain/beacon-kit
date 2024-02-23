@@ -45,8 +45,6 @@ import (
 )
 
 func TestLogFactory(t *testing.T) {
-	factory := logs.NewFactory()
-
 	contractAddress := common.HexToAddress("0x1234")
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
@@ -74,11 +72,10 @@ func TestLogFactory(t *testing.T) {
 	require.NoError(t, err)
 	log.Address = contractAddress
 
-	_, err = factory.UnmarshalEthLog(log)
-	// An error is expected because the event has not been registered.
-	require.Error(t, err)
-
-	factory.AddTypeAllocator(contractAddress, allocator)
+	factory := service.New[logs.Factory](
+		logs.WithInitilizer(),
+		logs.WithTypeAllocator(contractAddress, allocator),
+	)
 
 	val, err := factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
