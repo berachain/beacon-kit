@@ -62,7 +62,7 @@ func Test_CallbackHandler(t *testing.T) {
 				latestDeposit    *consensusv1.Deposit
 				withdrawal       *enginev1.Withdrawal
 				latestWithdrawal *enginev1.Withdrawal
-				log              coretypes.Log
+				log              *coretypes.Log
 			)
 
 			deposit = consensus.NewDeposit(
@@ -73,7 +73,7 @@ func Test_CallbackHandler(t *testing.T) {
 			log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
 			require.NoError(t, err)
 
-			err = callbackHandler.HandleLog(ctx, &log)
+			err = callbackHandler.HandleLog(ctx, log)
 			require.NoError(t, err)
 
 			latestDeposit, err = stakingService.MostRecentDeposit()
@@ -87,7 +87,7 @@ func Test_CallbackHandler(t *testing.T) {
 			log, err = mocks.NewLogFromWithdrawal(withdrawalEvent, withdrawal)
 			require.NoError(t, err)
 
-			err = callbackHandler.HandleLog(ctx, &log)
+			err = callbackHandler.HandleLog(ctx, log)
 			require.NoError(t, err)
 
 			latestWithdrawal, err = stakingService.MostRecentWithdrawal()
