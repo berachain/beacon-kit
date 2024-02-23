@@ -60,5 +60,6 @@ func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
 	if chainID.Uint64() != s.chainID {
 		return fmt.Errorf("wanted chain ID %d, got %d", s.chainID, chainID.Uint64())
 	}
+
 	return nil
 }

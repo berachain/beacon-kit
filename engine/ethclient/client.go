@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -70,7 +71,7 @@ func NewEth1Client(opts ...Option) (*Eth1Client, error) {
 // Start the powchain service's main event loop.
 func (s *Eth1Client) Start(ctx context.Context) {
 	// Attempt an initial connection.
-	s.setupExecutionClientConnection(ctx)
+	s.tryConnectionAfter(ctx, 0)
 
 	// We will spin up the execution client connection in a loop until it is connected.
 	for !s.isConnected.Load() {
@@ -217,4 +218,29 @@ func (s *Eth1Client) ExecutionBlockByNumber(ctx context.Context, num rpc.BlockNu
 	err := s.GethRPCClient.CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, s.handleRPCError(err)
+}
+
+// GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
+func (s *Eth1Client) GetClientVersionV1(ctx context.Context) ([]ethengine.ClientVersionV1, error) {
+	result := make([]ethengine.ClientVersionV1, 0)
+	if err := s.Client.Client().CallContext(
+		ctx, &result, GetClientVersionV1, nil,
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// ExchangeCapabilities calls the engine_exchangeCapabilities method via JSON-RPC.
+func (s *Eth1Client) ExchangeCapabilities(
+	ctx context.Context,
+	capabilities []string,
+) ([]string, error) {
+	result := make([]string, 0)
+	if err := s.Client.Client().CallContext(
+		ctx, &result, ExchangeCapabilities, &capabilities,
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
 }

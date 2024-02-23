@@ -25,6 +25,20 @@
 
 package ethclient
 
+// BeaconKitSupportedCapabilities returns the full list of capabilities
+// of the beacon kit client.
+func BeaconKitSupportedCapabilities() []string {
+	return []string{
+		NewPayloadMethodV2,
+		NewPayloadMethodV3,
+		ForkchoiceUpdatedMethodV2,
+		ForkchoiceUpdatedMethodV3,
+		GetPayloadMethodV2,
+		GetPayloadMethodV3,
+		GetClientVersionV1,
+	}
+}
+
 // Constants for JSON-RPC method names.
 const (
 	// NewPayloadMethodV2 is the method name for creating a new payload in Capella.
@@ -45,4 +59,6 @@ const (
 	BlockByNumberMethod = "eth_getBlockByNumber"
 	// ExchangeCapabilities is the method name for exchanging capabilities with the peer.
 	ExchangeCapabilities = "engine_exchangeCapabilities"
+	// GetClientVersionV1 is the method name for retrieving the capabilities of the peer.
+	GetClientVersionV1 = "engine_getClientVersionV1"
 )

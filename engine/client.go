@@ -46,6 +46,8 @@ var _ Caller = (*engineClient)(nil)
 // engineClient is a struct that holds a pointer to an Eth1Client.
 type engineClient struct {
 	*eth.Eth1Client
+
+	capabilities  map[string]struct{}
 	engineTimeout time.Duration
 	beaconCfg     *config.Beacon
 	logger        log.Logger
@@ -54,7 +56,9 @@ type engineClient struct {
 // NewClient creates a new engine client engineClient.
 // It takes an Eth1Client as an argument and returns a pointer to an engineClient.
 func NewClient(opts ...Option) Caller {
-	ec := &engineClient{}
+	ec := &engineClient{
+		capabilities: make(map[string]struct{}),
+	}
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
 			panic(err)
@@ -62,6 +66,14 @@ func NewClient(opts ...Option) Caller {
 	}
 
 	return ec
+}
+
+// Start starts the engine client.
+func (s *engineClient) Start(ctx context.Context) {
+	s.Eth1Client.Start(ctx)
+	if _, err := s.ExchangeCapabilities(ctx); err != nil {
+		s.logger.Error("failed to exchange capabilities", "err", err)
+	}
 }
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
@@ -165,4 +177,32 @@ func (s *engineClient) GetPayload(
 	}
 
 	return result, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
+}
+
+// ExchangeCapabilities calls the engine_exchangeCapabilities method via JSON-RPC.
+func (s *engineClient) ExchangeCapabilities(ctx context.Context) ([]string, error) {
+	result, err := s.Eth1Client.ExchangeCapabilities(
+		ctx, eth.BeaconKitSupportedCapabilities(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Capture and log the capabilities that the execution client has.
+	for _, capability := range result {
+		s.logger.Info("exchanged capability", "capability", capability)
+		s.capabilities[capability] = struct{}{}
+	}
+
+	// Log the capabilities that the execution client does not have.
+	for _, capability := range eth.BeaconKitSupportedCapabilities() {
+		if _, exists := s.capabilities[capability]; !exists {
+			s.logger.Warn(
+				"your execution client may require an update 🚸",
+				"unsupported_capability", capability,
+			)
+		}
+	}
+
+	return result, nil
 }
