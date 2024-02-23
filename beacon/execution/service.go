@@ -28,11 +28,10 @@ package execution
 import (
 	"context"
 	"math/big"
+	"reflect"
 
 	"cosmossdk.io/errors"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -46,6 +45,8 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution client.
 	engine engine.Caller
+	// logFactory is the factory for creating objects from Ethereum logs.
+	logFactory LogFactory
 }
 
 // Start spawns any goroutines required by the service.
@@ -93,13 +94,13 @@ func (s *Service) NotifyNewPayload(
 	return s.notifyNewPayload(ctx, payload)
 }
 
-// HandleLogsInFinalizedETH1Block handles logs in the finalized block
-// received from the execution client with the given handlers.
-func (s *Service) HandleLogsInFinalizedETH1Block(
+// GetLogsInFinalizedETH1Block gets logs in the finalized block
+// received from the execution client and converts those logs
+// into appropriate objects that can be consumed by other services.
+func (s *Service) GetLogsInFinalizedETH1Block(
 	ctx context.Context,
 	blkNum uint64,
-	handlers map[common.Address]LogHandler,
-) error {
+) ([]reflect.Value, error) {
 	// Get the block from the eth1 client and
 	// check if the block is safe to process.
 	// TODO: Do we want to come up with a heuristic around
@@ -107,41 +108,40 @@ func (s *Service) HandleLogsInFinalizedETH1Block(
 	// vs when we check the forkchoice store.
 	finalBlock, err := s.engine.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
 	if finalBlock.Number().Uint64() < blkNum {
-		return errors.Wrapf(
+		return nil, errors.Wrapf(
 			ErrProcessingUnfinalizedBlock,
 			"safe block %d is behind block %d", finalBlock.Number(), blkNum,
 		)
 	}
 
 	// Gather all the logs corresponding to the handlers from this block.
-	addresses := make([]common.Address, 0)
-	for addr := range handlers {
-		addresses = append(addresses, addr)
-	}
-	logsInBlock, err := s.engine.GetLogs(ctx, blkNum, blkNum, addresses)
+	registeredAddrs := s.logFactory.GetRegisteredAddresses()
+	logsInBlock, err := s.engine.GetLogs(ctx, blkNum, blkNum, registeredAddrs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Create a log processor and process the logs.
-	// TODO: Should we create a new processor here?
-	processorOptions := []logs.Option{}
-	for addr, handler := range handlers {
-		processorOptions = append(processorOptions, logs.WithHandler(addr, handler))
-	}
-	processorOptions = append(
-		processorOptions,
-		logs.WithLogger(s.Logger().With("module", "logs_processor")),
-	)
-	processor, err := logs.NewProcessor(processorOptions...)
-	if err != nil {
-		return err
-	}
+	// Unmarshal the logs into objects.
+	vals := make([]reflect.Value, 0, len(logsInBlock))
+	for i, log := range logsInBlock {
+		// Skip logs that are not from the block we are processing
+		// or not registered with the log factory.
+		// This should never happen, but defensively check anyway.
+		if log.BlockNumber != blkNum || !s.logFactory.IsRegisteredLog(&logsInBlock[i]) {
+			continue
+		}
 
-	return processor.ProcessLogs(ctx, logsInBlock, blkNum)
+		var val reflect.Value
+		val, err = s.logFactory.UnmarshalEthLog(&logsInBlock[i])
+		if err != nil {
+			return nil, errors.Wrap(err, "could not unmarshal log")
+		}
+		vals = append(vals, val)
+	}
+	return vals, nil
 }

@@ -27,9 +27,10 @@ package execution
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -41,10 +42,12 @@ type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
 
-// LogHandler represents a struct that has the ability to ingest
-// an Ethereum log and handle it.
-type LogHandler interface {
-	HandleLog(ctx context.Context, log *coretypes.Log) error
+// LogFactory is an interface that can unmarshal Ethereum logs into
+// objects, in the form of reflect.Value, with appropriate types for each type of logs.
+type LogFactory interface {
+	GetRegisteredAddresses() []common.Address
+	IsRegisteredLog(log *ethtypes.Log) bool
+	UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error)
 }
 
 // FCUConfig is a struct that holds the configuration for a fork choice update.

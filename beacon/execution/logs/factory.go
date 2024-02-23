@@ -102,3 +102,29 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 	}
 	return reflect.ValueOf(into), nil
 }
+
+// GetRegisteredAddresses returns the addresses of the contracts
+// that have been registered with the factory.
+func (f *Factory) GetRegisteredAddresses() []common.Address {
+	addresses := make([]common.Address, 0, len(f.addressToAbi))
+	for addr := range f.addressToAbi {
+		addresses = append(addresses, addr)
+	}
+	return addresses
+}
+
+// IsRegisteredLog returns true if its corresponding event
+// has been registered with the factory.
+func (f *Factory) IsRegisteredLog(log *ethtypes.Log) bool {
+	if _, ok := f.addressToAbi[log.Address]; !ok {
+		return false
+	}
+	sig := log.Topics[0]
+	if _, ok := f.sigToType[sig]; !ok {
+		return false
+	}
+	if _, ok := f.sigToName[sig]; !ok {
+		return false
+	}
+	return true
+}
