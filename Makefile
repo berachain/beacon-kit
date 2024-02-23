@@ -230,7 +230,7 @@ test-e2e-no-build:
 ###############################################################################
 
 format:
-	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golangci-fix
+	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix
 
 lint:
 	@$(MAKE) license buf-lint forge-lint golangci
@@ -401,13 +401,11 @@ repo-rinse: |
 	git submodule update --init --recursive
 
 
-.PHONY: build build-linux-amd64 build-linux-arm64 \
-	$(BUILD_TARGETS) clean \
-	forge-build forge-clean proto proto-build docker-build generate \
-	abigen-install mockery-install mockery \
-	start test-unit test-unit-cover test-forge-cover test-forge-fuzz \
-	test-e2e test-e2e-no-build hive-setup hive-view test-hive \
-	test-hive-v test-localnet test-localnet-no-build format lint \
+.PHONY: clean format lint \
+	buf-install buf-lint-fix buf-lint \
+	sszgen-install sszgen-clean sszgen proto-clean \
+	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
+	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
 	license-install license license-fix \
-	gosec-install gosec buf-install buf-lint-fix buf-lint sync tidy repo-rinse
+	gosec-install gosec golines tidy repo-rinse

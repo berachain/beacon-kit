@@ -26,7 +26,7 @@
 
 
 # Define the root directory of your Go project
-ROOT_DIR="./"
+ROOT_DIR="."
 
 # Find all .go files in the project directory and its subdirectories, ignoring .pb.go and .pb_encoding.go files
 find "${ROOT_DIR}" -type f -name "*.go" ! -name "*.pb.go" ! -name "*.pb_encoding.go" | while read -r file; do

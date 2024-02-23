@@ -74,7 +74,8 @@ func getFilePath(cmd *cobra.Command) (string, error) {
 	}
 
 	// If no path is specified, try to get the cosmos client context and use
-	// the configured home directory to write the secret to the default file name.
+	// the configured home directory to write the secret to the default file
+	// name.
 	if specifiedFilePath == "" {
 		clientCtx, ok := cmd.Context().
 			Value(client.ClientContextKey).(*client.Context)
