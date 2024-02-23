@@ -23,19 +23,54 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package logs
 
 import (
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"errors"
+
+	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// NewDeposit creates a new deposit.
-func NewDeposit(
-	pubkey []byte, amount uint64, withdrawalCredentials []byte,
-) *consensusv1.Deposit {
-	return &consensusv1.Deposit{
-		ValidatorPubkey:       pubkey,
-		Amount:                amount,
-		WithdrawalCredentials: withdrawalCredentials,
+type Factory struct {
+	addressToAbi map[common.Address]*ethabi.ABI
+	sigToName    map[common.Hash]string
+}
+
+func NewFactory() *Factory {
+	return &Factory{
+		addressToAbi: make(map[common.Address]*ethabi.ABI),
+		sigToName:    make(map[common.Hash]string),
 	}
+}
+
+func (f *Factory) RegisterLog(
+	contractAddress common.Address,
+	contractAbi *ethabi.ABI,
+	eventName string,
+) {
+	eventID := contractAbi.Events[eventName].ID
+	f.addressToAbi[contractAddress] = contractAbi
+	f.sigToName[eventID] = eventName
+}
+
+func (f *Factory) UnmarshalEthLogInto(log *ethtypes.Log, into any) error {
+	var (
+		contractAbi *ethabi.ABI
+		eventName   string
+		ok          bool
+	)
+
+	if contractAbi, ok = f.addressToAbi[log.Address]; !ok {
+		return errors.New("abi not found for log address")
+	}
+	if eventName, ok = f.sigToName[log.Topics[0]]; !ok {
+		return errors.New("name not found for log signature")
+	}
+
+	if err := contractAbi.UnpackIntoInterface(into, eventName, log.Data); err != nil {
+		return err
+	}
+	return nil
 }
