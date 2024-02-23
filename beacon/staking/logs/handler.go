@@ -28,9 +28,9 @@ package logs
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	stakingabi "github.com/itsdevbear/bolaris/beacon/staking/abi"
+	"github.com/itsdevbear/bolaris/contracts/abi"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -47,8 +47,8 @@ type Handler struct {
 }
 
 // ABIEvents returns the events defined in the staking contract ABI.
-func (s *Handler) ABIEvents() map[string]abi.Event {
-	stakingAbi, err := stakingabi.StakingMetaData.GetAbi()
+func (s *Handler) ABIEvents() map[string]ethabi.Event {
+	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	if err != nil {
 		panic(err)
 	}
@@ -60,13 +60,13 @@ func (s *Handler) ABIEvents() map[string]abi.Event {
 func (s *Handler) Deposit(
 	ctx context.Context,
 	validatorPubkey []byte,
-	withdrawalCredentials [20]byte,
+	withdrawalCredentials []byte,
 	amount uint64,
 ) error {
 	deposit := consensus.NewDeposit(
 		validatorPubkey,
 		amount,
-		withdrawalCredentials[:],
+		withdrawalCredentials,
 	)
 	return s.sks.AcceptDepositIntoQueue(ctx, deposit)
 }
@@ -76,7 +76,7 @@ func (s *Handler) Deposit(
 func (s *Handler) Withdrawal(
 	ctx context.Context,
 	validatorPubkey []byte,
-	_ [20]byte,
+	_ []byte,
 	amount uint64,
 ) error {
 	return s.sks.ProcessWithdrawal(

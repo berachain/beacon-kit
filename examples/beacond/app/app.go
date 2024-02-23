@@ -26,7 +26,6 @@
 package app
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"io"
@@ -39,9 +38,6 @@ import (
 	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
-	"cosmossdk.io/x/gov"
-	govclient "cosmossdk.io/x/gov/client"
-	govtypes "cosmossdk.io/x/gov/types"
 	mintkeeper "cosmossdk.io/x/mint/keeper"
 	_ "cosmossdk.io/x/protocolpool"
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
@@ -59,13 +55,10 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
-	"github.com/itsdevbear/bolaris/types/cosmos"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -92,15 +85,6 @@ func AppConfig() depinject.Config {
 	return depinject.Configs(
 		// appconfig.LoadYAML(AppConfigYAML),
 		BeaconAppConfig,
-		depinject.Supply(
-			// supply custom module basics
-			map[string]module.AppModuleBasic{
-				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-				govtypes.ModuleName: gov.NewAppModuleBasic(
-					[]govclient.ProposalHandler{},
-				),
-			},
-		),
 	)
 }
 
@@ -207,7 +191,7 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	ctx := cosmos.NewEmptyContextWithMS(context.Background(), app.CommitMultiStore())
+	ctx := app.NewContext(true)
 	app.BeaconKitRunner.StartServices(ctx)
 
 	// Initial check for execution client sync.
@@ -248,7 +232,6 @@ func (app *BeaconApp) SimulationManager() *module.SimulationManager {
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
-	ctx := cosmos.NewEmptyContextWithMS(apiSvr.ClientCtx.CmdContext, app.CommitMultiStore())
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 	// register swagger API in app.go so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(
@@ -257,7 +240,7 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		panic(err)
 	}
 
-	v, ok := ctx.Value(server.ServerContextKey).(*server.Context)
+	v, ok := apiSvr.ClientCtx.CmdContext.Value(server.ServerContextKey).(*server.Context)
 	if !ok {
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}

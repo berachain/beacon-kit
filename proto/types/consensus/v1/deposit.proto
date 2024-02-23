@@ -34,7 +34,7 @@ option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv
 message Deposit {
   // Public key of the validator, which is compatible to the implementations
   // of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is preferred.
-  bytes pubkey = 1 [
+  bytes validator_pubkey = 1 [
     (ethereum.eth.ext.ssz_max) = "96",
     (ethereum.eth.ext.spec_name) = "pubkey"
   ];

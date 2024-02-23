@@ -34,7 +34,7 @@ func NewDeposit(
 	pubkey []byte, amount uint64, withdrawalCredentials []byte,
 ) *consensusv1.Deposit {
 	return &consensusv1.Deposit{
-		Pubkey:                pubkey,
+		ValidatorPubkey:       pubkey,
 		Amount:                amount,
 		WithdrawalCredentials: withdrawalCredentials,
 	}

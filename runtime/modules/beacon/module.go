@@ -27,7 +27,9 @@ package evm
 
 import (
 	"cosmossdk.io/core/appmodule"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	"google.golang.org/grpc"
 )
 
@@ -37,7 +39,7 @@ const ConsensusVersion = 1
 var (
 	_ appmodule.HasServices = AppModule{}
 	_ appmodule.AppModule   = AppModule{}
-	// _ appmodule.HasGenesis  = AppModule{}.
+	_ module.HasGenesis     = AppModule{}
 )
 
 // ==============================================================================
@@ -56,6 +58,11 @@ func NewAppModule(
 	return AppModule{
 		keeper: keeper,
 	}
+}
+
+// Name is the name of this module.
+func (am AppModule) Name() string {
+	return types.ModuleName
 }
 
 // RegisterServices registers module services.

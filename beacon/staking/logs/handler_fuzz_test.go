@@ -58,7 +58,7 @@ func FuzzHandlerSimple(f *testing.F) {
 		var (
 			deposit       *consensusv1.Deposit
 			latestDeposit *consensusv1.Deposit
-			log           coretypes.Log
+			log           *coretypes.Log
 			// We don't fuzz withdrawalCredentials because it's a fixed length
 			// that prevents us from generating a variety of inputs.
 			withdrawalCredentials = []byte("12345678901234567890")
@@ -69,14 +69,14 @@ func FuzzHandlerSimple(f *testing.F) {
 		log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
 		require.NoError(t, err)
 
-		err = callbackHandler.HandleLog(ctx, &log)
+		err = callbackHandler.HandleLog(ctx, log)
 		require.NoError(t, err)
 
 		latestDeposit, err = stakingService.MostRecentDeposit()
 		require.NoError(t, err)
 		require.Equal(t, deposit, latestDeposit)
 		require.Equal(t, deposit.GetAmount(), latestDeposit.GetAmount())
-		require.Equal(t, deposit.GetPubkey(), latestDeposit.GetPubkey())
+		require.Equal(t, deposit.GetValidatorPubkey(), latestDeposit.GetValidatorPubkey())
 		require.Equal(t,
 			deposit.GetWithdrawalCredentials(),
 			latestDeposit.GetWithdrawalCredentials())
@@ -107,7 +107,7 @@ func FuzzHandlerMulti(f *testing.F) {
 		var (
 			deposit       *consensusv1.Deposit
 			latestDeposit *consensusv1.Deposit
-			log           coretypes.Log
+			log           *coretypes.Log
 			// We don't fuzz withdrawalCredentials because it's a fixed length
 			// that prevents us from generating a variety of inputs.
 			withdrawalCredentials = []byte("12345678901234567890")
@@ -121,11 +121,11 @@ func FuzzHandlerMulti(f *testing.F) {
 			pubKey = append(pubKey, []byte(strconv.Itoa(int(i)))...)
 			deposit = consensus.NewDeposit(pubKey, initAmount+i, withdrawalCredentials)
 			require.Equal(t, initAmount+i, deposit.GetAmount())
-			require.Equal(t, pubKey, deposit.GetPubkey())
+			require.Equal(t, pubKey, deposit.GetValidatorPubkey())
 
 			log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
 			require.NoError(t, err)
-			err = callbackHandler.HandleLog(ctx, &log)
+			err = callbackHandler.HandleLog(ctx, log)
 			require.NoError(t, err)
 
 			latestDeposit, err = stakingService.MostRecentDeposit()

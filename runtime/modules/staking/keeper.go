@@ -57,7 +57,7 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 // delegate delegates the deposit to the validator.
 func (k *Keeper) delegate(ctx context.Context, deposit *consensusv1.Deposit) (uint64, error) {
 	validatorPK := &ed25519.PubKey{}
-	err := validatorPK.Unmarshal(deposit.GetPubkey())
+	err := validatorPK.Unmarshal(deposit.GetValidatorPubkey())
 	if err != nil {
 		return 0, err
 	}

@@ -27,7 +27,6 @@ package evm
 
 import (
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/itsdevbear/bolaris/config"
@@ -49,7 +48,7 @@ type DepInjectInput struct {
 	Config *modulev1alpha1.Module
 
 	BeaconKitConfig *config.Beacon
-	StoreService    store.KVStoreService
+	Environment     appmodule.Environment
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -63,7 +62,7 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
-		in.StoreService,
+		in.Environment,
 		in.BeaconKitConfig,
 	)
 	m := NewAppModule(k)

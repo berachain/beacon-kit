@@ -54,14 +54,14 @@ contract BeaconDepositContract {
     /// @param validatorPubkey The public key of the validator being deposited to.
     /// @param withdrawalCredentials The withdrawalCredentials for the deposit
     /// @param amount The amount of the deposit in denominated in Gwei.
-    event Deposit(bytes validatorPubkey, bytes20 withdrawalCredentials, uint64 amount);
+    event Deposit(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount);
 
     /// @dev Withdrawal is emitted when a withdrawal is made from the contract.
     ///
     /// @param validatorPubkey The public key of the validator being withdrawn from.
     /// @param withdrawalCredentials The withdrawalCredentials for the withdrawal
     /// @param amount The amount of the withdrawal denominated in Gwei.
-    event Withdrawal(bytes validatorPubkey, bytes20 withdrawalCredentials, uint64 amount);
+    event Withdrawal(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                    STAKING FUNCTIONS                       */
@@ -79,7 +79,7 @@ contract BeaconDepositContract {
         // TODO: Properly Handle Token Logic.
 
         // Emit the deposit event.
-        emit Deposit(validatorPubkey, bytes20(uint160(msg.sender)), amount);
+        emit Deposit(validatorPubkey, abi.encodePacked(msg.sender), amount);
     }
 
     /// @dev msg.sender withdraws the `amount` of tokens from `validatorPubkey`.
@@ -88,6 +88,6 @@ contract BeaconDepositContract {
     function withdraw(bytes calldata validatorPubkey, uint64 amount) external payable {
         // TODO: Properly Handle Token Logic.
 
-        emit Withdrawal(validatorPubkey, bytes20(uint160(msg.sender)), amount);
+        emit Withdrawal(validatorPubkey, abi.encodePacked(msg.sender), amount);
     }
 }
