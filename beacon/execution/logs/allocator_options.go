@@ -49,6 +49,7 @@ func WithABI(contractAbi *ethabi.ABI) service.Option[TypeAllocator] {
 // WithNameAndType returns an Option for registering
 // an event name and type under the given even signature
 // with the TypeAllocator.
+// NOTE: WithABI must be called before this function.
 func WithNameAndType(
 	sig common.Hash,
 	name string,
@@ -60,7 +61,10 @@ func WithNameAndType(
 			return errors.New("event not found in ABI")
 		}
 		if event.ID != sig {
-			return fmt.Errorf("event %s signature does not match, expected %s, got %s", name, event.ID.Hex(), sig.Hex())
+			return fmt.Errorf(
+				"event %s signature does not match, expected %s, got %s",
+				name, event.ID.Hex(), sig.Hex(),
+			)
 		}
 		a.sigToName[sig] = name
 		a.sigToType[sig] = t

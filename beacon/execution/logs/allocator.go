@@ -36,7 +36,7 @@ import (
 // TypeAllocator is a struct that stores registered types
 // corresponding to events in each contract.
 // The information is used to allocate empty objects
-// of the registed types, into which the log data
+// of the registered types, into which the log data
 // can be unmarshaled.
 type TypeAllocator struct {
 	abi       *ethabi.ABI

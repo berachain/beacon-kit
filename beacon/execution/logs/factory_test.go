@@ -49,11 +49,15 @@ func TestLogFactory(t *testing.T) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
 
-	depositSig := ethcrypto.Keccak256Hash([]byte("Deposit(bytes,bytes,uint64)"))
+	depositSig := ethcrypto.Keccak256Hash(
+		[]byte("Deposit(bytes,bytes,uint64)"),
+	)
 	depositName := "Deposit"
 	depositType := reflect.TypeOf(consensusv1.Deposit{})
 
-	withdrawalSig := ethcrypto.Keccak256Hash([]byte("Withdrawal(bytes,bytes,uint64)"))
+	withdrawalSig := ethcrypto.Keccak256Hash(
+		[]byte("Withdrawal(bytes,bytes,uint64)"),
+	)
 	withdrawalName := "Withdrawal"
 	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
 
