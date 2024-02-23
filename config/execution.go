@@ -60,6 +60,7 @@ func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 
 // Template returns the configuration template.
 func (c Execution) Template() string {
+	//nolint:lll
 	return `
 [beacon-kit.beacon-config.execution]
 # DepositContractAddress is the address of the deposit contract.

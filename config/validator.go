@@ -75,6 +75,7 @@ func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
 
 // Template returns the configuration template.
 func (c Validator) Template() string {
+	//nolint:lll
 	return `
 [beacon-kit.beacon-config.validator]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 

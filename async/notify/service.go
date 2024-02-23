@@ -68,7 +68,9 @@ func (s *Service) Start(ctx context.Context) {
 
 			// Start a goroutine to listen for events and call the handler
 			go func(
-				pair eventHandlerQueuePair, ch <-chan *Event, subscription ethereum.Subscription,
+				pair eventHandlerQueuePair,
+				ch <-chan *Event,
+				subscription ethereum.Subscription,
 			) {
 				for {
 					select {

@@ -56,10 +56,15 @@ type Limits struct {
 // Parse parses the configuration.
 func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 	var err error
-	if c.MaxDepositsPerBlock, err = parser.GetUint64(flags.MaxDeposits); err != nil {
+	if c.MaxDepositsPerBlock, err = parser.GetUint64(
+		flags.MaxDeposits,
+	); err != nil {
 		return nil, err
 	}
-	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(flags.MaxWithdrawals); err != nil {
+
+	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(
+		flags.MaxWithdrawals,
+	); err != nil {
 		return nil, err
 	}
 
@@ -68,6 +73,7 @@ func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 
 // Template returns the configuration template.
 func (c Limits) Template() string {
+	//nolint:lll
 	return `
 [beacon-kit.beacon-config.limits]
 # MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.

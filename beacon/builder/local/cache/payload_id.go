@@ -42,7 +42,9 @@ const historicalPayloadIDCacheSize = 2
 type PayloadIDCache struct {
 	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
-	// slotToStateRootToPayloadID is used for storing payload ID mappings.
+
+	// slotToStateRootToPayloadID is used for storing payload ID mappings
+	//nolint:lll
 	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]primitives.PayloadID
 }
 

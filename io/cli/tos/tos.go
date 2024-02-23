@@ -62,6 +62,7 @@ Type "accept" to accept these terms and conditions [accept/decline]:`
 non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
 terms and conditions here: 
 %s`
+	//nolint:lll
 	DeclinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 
@@ -127,12 +128,15 @@ func saveTosAccepted(dataDir string, cmd *cobra.Command) {
 	if err != nil {
 		cmd.PrintErrf("error checking directory: %s\n", dataDir)
 	}
+
 	if !dataDirExists {
 		if err = file.MkdirAll(dataDir); err != nil {
 			cmd.PrintErrf("error creating directory: %s\n", dataDir)
 		}
 	}
-	if err = file.WriteFile(filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
+
+	if err = file.WriteFile(
+		filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
 		cmd.PrintErrf(
 			"error writing %s to file: %s\n",
 			flags.BeaconKitAcceptTos,

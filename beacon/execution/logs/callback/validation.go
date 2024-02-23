@@ -89,7 +89,9 @@ func validateArrayOrSlice(
 			)
 		}
 
-		if err := validateStruct(implMethodVarType.Elem(), abiMethodVarType.Elem()); err != nil {
+		if err := validateStruct(
+			implMethodVarType.Elem(), abiMethodVarType.Elem(),
+		); err != nil {
 			return err
 		}
 	}

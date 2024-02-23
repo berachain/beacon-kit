@@ -265,6 +265,13 @@ golangci-fix:
 	@echo "--> Running linter"
 	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | xargs golangci-lint run  --timeout=10m --fix --concurrency 8 -v 
 
+#################
+#    golines    #
+#################
+
+golines:
+	@echo "--> Running golines"
+	@./build/scripts/golines.sh
 
 #################
 #    license    #

@@ -77,6 +77,7 @@ func (c Builder) Parse(parser parser.AppOptionsParser) (*Builder, error) {
 
 // Template returns the configuration template.
 func (c Builder) Template() string {
+	//nolint:lll
 	return `
 [beacon-kit.builder]
 # LocalBuilderEnabled determines if the local payload builder is enabled.

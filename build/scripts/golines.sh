@@ -28,8 +28,8 @@
 # Define the root directory of your Go project
 ROOT_DIR="./"
 
-# Find all .go files in the project directory and its subdirectories, ignoring .pb.go files
-find "${ROOT_DIR}" -type f -name "*.go" ! -name "*.pb.go" | while read -r file; do
+# Find all .go files in the project directory and its subdirectories, ignoring .pb.go and .pb_encoding.go files
+find "${ROOT_DIR}" -type f -name "*.go" ! -name "*.pb.go" ! -name "*.pb_encoding.go" | while read -r file; do
     echo "Processing $file..."
     golines --reformat-tags --shorten-comments --write-output --max-len=80 "$file"
 done
