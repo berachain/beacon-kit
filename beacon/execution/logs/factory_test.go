@@ -46,11 +46,12 @@ func TestLogFactory(t *testing.T) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
 	eventName := "Deposit"
+	depositType := reflect.TypeOf(consensusv1.Deposit{})
 	factory.RegisterEvent(
 		contractAddress,
 		stakingAbi,
 		eventName,
-		reflect.TypeOf(consensusv1.Deposit{}),
+		depositType,
 	)
 
 	deposit := consensus.NewDeposit(
@@ -62,9 +63,10 @@ func TestLogFactory(t *testing.T) {
 	require.NoError(t, err)
 	log.Address = contractAddress
 
-	var obj any
-	obj, err = factory.UnmarshalEthLog(log)
-	newDeposit, ok := obj.(*consensusv1.Deposit)
+	val, err := factory.UnmarshalEthLog(log)
+	require.NoError(t, err)
+
+	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
 	require.True(t, ok)
 	require.NoError(t, err)
 	require.Equal(t, deposit, newDeposit)

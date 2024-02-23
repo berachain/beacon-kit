@@ -35,7 +35,7 @@ import (
 )
 
 // Factory is a struct that can be used to unmarshal
-// Ethereum logs into the appropriate type.
+// Ethereum logs into objects with the appropriate types.
 type Factory struct {
 	// addressToAbi is a map of contract addresses to their ABIs.
 	addressToAbi map[common.Address]*ethabi.ABI
@@ -70,7 +70,7 @@ func (f *Factory) RegisterEvent(
 // UnmarshalEthLog unmarshals an Ethereum log into an object
 // with the appropriate type, based on the registered event
 // corresponding to the log.
-func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (any, error) {
+func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 	var (
 		contractAbi *ethabi.ABI
 		eventType   reflect.Type
@@ -85,20 +85,20 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (any, error) {
 	// This function only processes logs from contracts and events
 	// that have been registered with the factory.
 	if contractAbi, ok = f.addressToAbi[log.Address]; !ok {
-		return nil, errors.New("abi not found for log address")
+		return reflect.Value{}, errors.New("abi not found for log address")
 	}
 	if eventType, ok = f.sigToType[sig]; !ok {
-		return nil, errors.New("type not found for log signature")
+		return reflect.Value{}, errors.New("type not found for log signature")
 	}
 	if eventName, ok = f.sigToName[sig]; !ok {
-		return nil, errors.New("name not found for log signature")
+		return reflect.Value{}, errors.New("name not found for log signature")
 	}
 
 	// Create a new instance of the event type.
 	into := reflect.New(eventType).Interface()
 	// Unpack the log data into the new instance.
 	if err := contractAbi.UnpackIntoInterface(into, eventName, log.Data); err != nil {
-		return nil, err
+		return reflect.Value{}, err
 	}
-	return into, nil
+	return reflect.ValueOf(into), nil
 }
