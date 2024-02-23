@@ -35,7 +35,7 @@ import (
 
 // RegisterABI registers a contract ABI with the factory.
 func (f *Factory) RegisterABI(contractAddress common.Address, abi *ethabi.ABI) {
-	f.addressToRegistry[contractAddress] = NewRegistry(abi)
+	f.addressToRegistry[contractAddress] = NewTypeRegistry(abi)
 }
 
 // RegisterEvent registers information of an event with the factory.

@@ -37,13 +37,13 @@ import (
 // Ethereum logs into objects with the appropriate types.
 type Factory struct {
 	// addressToAbi maps contract addresses to their Registry.
-	addressToRegistry map[common.Address]*Registry
+	addressToRegistry map[common.Address]*TypeRegistry
 }
 
 // NewFactory returns a new Factory.
 func NewFactory() *Factory {
 	return &Factory{
-		addressToRegistry: make(map[common.Address]*Registry),
+		addressToRegistry: make(map[common.Address]*TypeRegistry),
 	}
 }
 
@@ -64,20 +64,24 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 
 	contractAbi := registry.GetABI()
 
-	eventType, eventName, err := registry.GetTypeAndName(sig)
+	eventName, err := registry.GetName(sig)
 	if err != nil {
 		return reflect.Value{}, err
 	}
 
-	// Create a new instance of the event type.
-	into := reflect.New(eventType).Interface()
+	// Allocate an empty object, which we can unmarshal the log data into.
+	into, err := registry.Allocate(sig)
+	if err != nil {
+		return reflect.Value{}, err
+	}
 
 	// Unpack the log data into the new instance.
+	intoPtr := into.Interface()
 	if err = contractAbi.UnpackIntoInterface(
-		into, eventName, log.Data,
+		intoPtr, eventName, log.Data,
 	); err != nil {
 		return reflect.Value{}, err
 	}
 
-	return reflect.ValueOf(into), nil
+	return reflect.ValueOf(intoPtr), nil
 }
