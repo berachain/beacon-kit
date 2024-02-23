@@ -27,7 +27,6 @@ package logs
 
 import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/common"
 )
 
 // WithTypeAllocator returns an Option for
@@ -36,20 +35,9 @@ import (
 func WithTypeAllocator(
 	contractAddress ethcommon.Address,
 	allocator *TypeAllocator,
-) common.Option[Factory] {
+) Option[Factory] {
 	return func(f *Factory) error {
 		f.addressToAllocator[contractAddress] = allocator
-		return nil
-	}
-}
-
-// WithInitializer returns an Option for initializing the Factory.
-// With this function called at the beginning,
-// WithTypeAllocator does not need to check
-// if the map was initialized or not.
-func WithInitializer() common.Option[Factory] {
-	return func(f *Factory) error {
-		f.addressToAllocator = make(map[ethcommon.Address]*TypeAllocator)
 		return nil
 	}
 }

@@ -40,6 +40,19 @@ type Factory struct {
 	addressToAllocator map[common.Address]*TypeAllocator
 }
 
+// NewFactory creates a new Factory with the given options.
+func NewFactory(opts ...Option[Factory]) (*Factory, error) {
+	f := &Factory{
+		addressToAllocator: make(map[common.Address]*TypeAllocator),
+	}
+	for _, opt := range opts {
+		if err := opt(f); err != nil {
+			return nil, err
+		}
+	}
+	return f, nil
+}
+
 // UnmarshalEthLog unmarshals an Ethereum log into an object
 // with the appropriate type, based on the registered event
 // corresponding to the log.

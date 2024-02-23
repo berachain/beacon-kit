@@ -35,7 +35,6 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/common"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -61,16 +60,16 @@ func TestLogFactory(t *testing.T) {
 	withdrawalName := "Withdrawal"
 	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
 
-	allocator := common.New[logs.TypeAllocator](
+	allocator := logs.New[logs.TypeAllocator](
 		logs.WithABI(stakingAbi),
 		logs.WithNameAndType(depositSig, depositName, depositType),
 		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
 	)
 
-	factory := common.New[logs.Factory](
-		logs.WithInitializer(),
+	factory, err := logs.NewFactory(
 		logs.WithTypeAllocator(contractAddress, allocator),
 	)
+	require.NoError(t, err)
 
 	deposit := consensus.NewDeposit(
 		[]byte("pubkey"),
