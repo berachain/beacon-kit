@@ -36,7 +36,6 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
-	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/engine"
@@ -61,14 +60,14 @@ func TestLogFactory(t *testing.T) {
 	withdrawalName := "Withdrawal"
 	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
 
-	allocator := service.New[logs.TypeAllocator](
+	allocator := logs.New[logs.TypeAllocator](
 		logs.WithABI(stakingAbi),
 		logs.WithNameAndType(depositSig, depositName, depositType),
 		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
 	)
 
-	factory := service.New[logs.Factory](
-		logs.WithInitilizer(),
+	factory := logs.New[logs.Factory](
+		logs.WithInitializer(),
 		logs.WithTypeAllocator(contractAddress, allocator),
 	)
 

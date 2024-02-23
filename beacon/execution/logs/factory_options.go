@@ -27,7 +27,6 @@ package logs
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // WithTypeAllocator returns an Option for
@@ -36,7 +35,7 @@ import (
 func WithTypeAllocator(
 	contractAddress common.Address,
 	allocator *TypeAllocator,
-) service.Option[Factory] {
+) Option[Factory] {
 	return func(f *Factory) error {
 		f.addressToAllocator[contractAddress] = allocator
 		return nil
@@ -47,7 +46,7 @@ func WithTypeAllocator(
 // With this function called at the beginning,
 // WithTypeAllocator does not need to check
 // if the map was initialized or not.
-func WithInitializer() service.Option[Factory] {
+func WithInitializer() Option[Factory] {
 	return func(f *Factory) error {
 		f.addressToAllocator = make(map[common.Address]*TypeAllocator)
 		return nil

@@ -32,12 +32,11 @@ import (
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // WithABI returns an Option for registering
 // the contract ABI with the TypeAllocator.
-func WithABI(contractAbi *ethabi.ABI) service.Option[TypeAllocator] {
+func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
 	return func(a *TypeAllocator) error {
 		a.abi = contractAbi
 		a.sigToName = make(map[common.Hash]string)
@@ -54,7 +53,7 @@ func WithNameAndType(
 	sig common.Hash,
 	name string,
 	t reflect.Type,
-) service.Option[TypeAllocator] {
+) Option[TypeAllocator] {
 	return func(a *TypeAllocator) error {
 		event, ok := a.abi.Events[name]
 		if !ok {

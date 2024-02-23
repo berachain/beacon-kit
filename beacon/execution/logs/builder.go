@@ -24,3 +24,18 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package logs
+
+// Option is a function type that takes a pointer
+// to an object to build and returns an error.
+type Option[T any] func(*T) error
+
+// New helps us to create a new object with the provided options.
+func New[S any](opts ...Option[S]) *S {
+	var s S
+	for _, opt := range opts {
+		if err := opt(&s); err != nil {
+			panic(err)
+		}
+	}
+	return &s
+}
