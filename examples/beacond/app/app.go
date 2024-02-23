@@ -110,6 +110,7 @@ type BeaconApp struct {
 	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
 	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
+	stopSyncCh      chan struct{}
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -123,7 +124,9 @@ func NewBeaconKitApp(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	var (
-		app        = &BeaconApp{}
+		app = &BeaconApp{
+			stopSyncCh: make(chan struct{}, 1),
+		}
 		appBuilder *runtime.AppBuilder
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
@@ -190,11 +193,6 @@ func NewBeaconKitApp(
 	ctx := app.NewContext(true)
 	app.BeaconKitRunner.StartServices(ctx)
 
-	// Initial check for execution client sync.
-	if err := app.BeaconKitRunner.InitialSyncCheck(ctx); err != nil {
-		panic(err)
-	}
-
 	return app
 }
 
@@ -235,5 +233,13 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	if !ok {
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
+
+	// Initial check for execution client sync.
+	go app.BeaconKitRunner.StartSyncCheck(app.NewContext(true), apiSvr.ClientCtx)
 	app.BeaconKitRunner.SetCometCfg(v.Config)
+}
+
+func (app *BeaconApp) Close() error {
+	app.BeaconKitRunner.Close()
+	return app.App.Close()
 }

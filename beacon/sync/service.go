@@ -31,6 +31,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -48,6 +49,11 @@ type Service struct {
 	service.BaseService
 	ethClient ethClient
 	es        executionService
+	clientCtx client.Context
+}
+
+func (s *Service) SetClientContext(clientCtx client.Context) {
+	s.clientCtx = clientCtx
 }
 
 // CheckSyncStatus returns the current synchronization status of the beacon and

@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
@@ -53,6 +54,8 @@ type BeaconKitRuntime struct {
 	ethclient *eth.Eth1Client
 	fscp      BeaconStateProvider
 	services  *service.Registry
+
+	stopCh chan struct{}
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -60,7 +63,9 @@ type BeaconKitRuntime struct {
 func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{}
+	bkr := &BeaconKitRuntime{
+		stopCh: make(chan struct{}, 1),
+	}
 	for _, opt := range opts {
 		if err := opt(bkr); err != nil {
 			return nil, err
@@ -186,17 +191,33 @@ func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
 	r.services.StartAll(ctx)
 }
 
+// StartSyncCheck starts the sync check for the runtime.
+func (r *BeaconKitRuntime) StartSyncCheck(ctx context.Context, clientCtx client.Context) {
+	var syncService *sync.Service
+	if err := r.services.FetchService(&syncService); err != nil {
+		panic(err)
+	}
+
+	syncService.SetClientContext(clientCtx)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		if err := syncService.WaitForExecutionClientSync(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	<-r.stopCh
+}
+
 // SetCometCfg sets the CometBFTConfig for the runtime.
 func (r *BeaconKitRuntime) SetCometCfg(cometCfg CometBFTConfig) {
 	r.cometCfg = cometCfg
 }
 
-// InitialSyncCheck.
-func (r *BeaconKitRuntime) InitialSyncCheck(ctx context.Context) error {
-	var syncService *sync.Service
-	if err := r.services.FetchService(&syncService); err != nil {
-		return err
-	}
-
-	return syncService.WaitForExecutionClientSync(ctx)
+// Close closes the runtime.
+func (r *BeaconKitRuntime) Close() {
+	close(r.stopCh)
 }
