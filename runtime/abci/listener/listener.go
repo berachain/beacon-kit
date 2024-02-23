@@ -28,23 +28,28 @@ package listener
 import (
 	"context"
 	"errors"
-	"time"
 
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // BeaconListener is the implementation of the ABCIListener interface.
 type BeaconListener struct {
-	bs *builder.Service
+	chainService *blockchain.Service
+	logger       log.Logger
 }
 
 // NewBeaconListener returns a new BeaconListener.
-func NewBeaconListener(bs *builder.Service) *BeaconListener {
+func NewBeaconListener(
+	logger log.Logger,
+	chainService *blockchain.Service) *BeaconListener {
 	return &BeaconListener{
-		bs: bs,
+		logger:       logger,
+		chainService: chainService,
 	}
 }
 
@@ -67,27 +72,9 @@ func (l *BeaconListener) ListenFinalizeBlock(
 	// AppHash, which is before here. This moved earlier forkchoice call
 	// should 100% not be finalizing
 	// the block on the EL.
-	_, err := l.bs.BuildLocalPayload(
-		ctx,
-		l.bs.BeaconState(ctx).GetFinalizedEth1BlockHash(),
-		primitives.Slot(req.Height)+1,
-		// .Add(time.Second) is a temporary fix to avoid issues,
-		// .Add(timeout_commit) is likely more proper here.
-		//#nosec:G701 // TODO: Really need to figure out this time thing.
-		uint64((time.Now().Add(time.Second)).Unix()), //
-		res.AppHash,
-	)
-
-	switch {
-	case errors.Is(err, builder.ErrLocalBuildingDisabled):
-		l.bs.Logger().Info(
-			"local building is disabled, skipping payload building...",
-		)
-		return nil
-	case err != nil:
-		l.bs.Logger().Error(
-			"failed to build local payload", "error", err,
-		)
+	if err := l.chainService.PostFinalizeBeaconBlock(
+		ctx, primitives.Slot(req.Height), res.AppHash,
+	); err != nil && !errors.Is(err, builder.ErrLocalBuildingDisabled) {
 		return err
 	}
 

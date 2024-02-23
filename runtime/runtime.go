@@ -152,16 +152,17 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
-	chainService := service.New[blockchain.Service](
-		blockchain.WithBaseService(baseService.WithName("blockchain")),
-		blockchain.WithBuilderService(builderService),
-		blockchain.WithExecutionService(executionService),
-	)
-
 	// Build the staking service.
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.WithName("staking")),
 		staking.WithValsetChangeProvider(vcp),
+	)
+
+	chainService := service.New[blockchain.Service](
+		blockchain.WithBaseService(baseService.WithName("blockchain")),
+		blockchain.WithBuilderService(builderService),
+		blockchain.WithExecutionService(executionService),
+		blockchain.WithStakingService(stakingService),
 	)
 
 	// Build the sync service.

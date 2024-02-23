@@ -26,6 +26,7 @@
 package runtime
 
 import (
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,6 +42,7 @@ import (
 // CosmosApp is an interface that defines the methods needed for the Cosmos
 // setup.
 type CosmosApp interface {
+	Logger() log.Logger
 	baseapp.ProposalTxVerifier
 	SetPrepareProposal(sdk.PrepareProposalHandler)
 	SetProcessProposal(sdk.ProcessProposalHandler)
@@ -73,7 +75,8 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		storetypes.StreamingManager{
 			ABCIListeners: []storetypes.ABCIListener{
 				listener.NewBeaconListener(
-					builderService,
+					app.Logger().With("module", "beacon-listener"),
+					chainService,
 				),
 			},
 		},

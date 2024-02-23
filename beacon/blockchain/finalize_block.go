@@ -27,9 +27,13 @@ package blockchain
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -62,6 +66,39 @@ func (s *Service) FinalizeBeaconBlock(
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)
+
+	return nil
+}
+
+// PostFinalizeBeaconBlock is called after a beacon block has been finalized.
+func (s *Service) PostFinalizeBeaconBlock(
+	ctx context.Context,
+	slot primitives.Slot,
+	parentBeaconBlockHash []byte,
+) error {
+	_, err := s.bs.BuildLocalPayload(
+		ctx,
+		s.BeaconState(ctx).GetFinalizedEth1BlockHash(),
+		slot+1,
+		// .Add(time.Second) is a temporary fix to avoid issues,
+		// .Add(timeout_commit) is likely more proper here.
+		//#nosec:G701 // TODO: Really need to figure out this time thing.
+		uint64((time.Now().Add(time.Second)).Unix()), //
+		parentBeaconBlockHash,
+	)
+
+	switch {
+	case errors.Is(err, localbuilder.ErrLocalBuildingDisabled):
+		s.Logger().Info(
+			"local building is disabled, skipping payload building...",
+		)
+		return nil
+	case err != nil:
+		s.Logger().Error(
+			"failed to build local payload", "error", err,
+		)
+		return err
+	}
 
 	return nil
 }

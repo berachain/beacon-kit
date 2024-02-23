@@ -35,6 +35,7 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
+// BuilderService is the interface for the builder service.
 type BuilderService interface {
 	BuildLocalPayload(
 		ctx context.Context,
