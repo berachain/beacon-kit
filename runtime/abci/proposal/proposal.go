@@ -26,7 +26,6 @@
 package proposal
 
 import (
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -78,13 +77,8 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// TODO: Make this more sophisticated.
-	//nolint:lll // couldnt fix.
-	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == sync.StatusExecutionAhead {
-		return nil, fmt.Errorf(
-			"err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status,
-		)
-	}
+	// Block until the sync service is synced.
+	h.syncService.WaitForSync(ctx)
 
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it

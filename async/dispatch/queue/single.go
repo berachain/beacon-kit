@@ -25,31 +25,38 @@
 
 package queue
 
-// SingleDispatchQueue dispatches a single item at a time, maintaining order.
+// SingleDispatchQueue is a dispatch queue that dispatches a single item at a time.
+// It respects the order of items added to the queue and will always
+// process the freshest item that was MOST recently added to the queue.
 type SingleDispatchQueue struct {
 	*DispatchQueue
 }
 
-// NewSingleDispatchQueue creates a new instance.
+// NewSingleDispatchQueue creates a new SingleDispatchQueue.
 func NewSingleDispatchQueue() *SingleDispatchQueue {
-	return &SingleDispatchQueue{DispatchQueue: NewDispatchQueue(1, 1)}
+	q := &SingleDispatchQueue{
+		DispatchQueue: NewDispatchQueue(1, 1),
+	}
+	return q
 }
 
-// Async executes a work item asynchronously, replacing any pending item.
+// Async adds a work item to the queue to be executed asynchronously.
 func (q *SingleDispatchQueue) Async(item WorkItem) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	// Replace the pending item with the new one.
+	// Remove the currently pending item before
+	// adding the new one to the channel.
 	select {
 	case <-q.queue:
-		// Adjust WaitGroup for the removed item.
+		// Decrement the WaitGroup as the corresponding wg.Add(1) from the item
+		// that is being removed from the channel is never called.
 		q.wg.Done()
 	default:
-		// No action for an empty queue.
+		// If there is no item in the channel, do nothing.
 	}
 
-	// Queue the new item.
+	// Push the new item.
 	q.wg.Add(1)
 	q.queue <- item
 	return nil

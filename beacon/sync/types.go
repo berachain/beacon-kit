@@ -27,10 +27,8 @@ package sync
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/state"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
@@ -63,19 +61,6 @@ const (
 	// are synchronized.
 	StatusSynced
 )
-
-// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum
-// package.
-type ethClient interface {
-	HeaderByNumber(
-		ctx context.Context,
-		number *big.Int,
-	) (*ethtypes.Header, error)
-	HeaderByHash(
-		ctx context.Context,
-		hash common.Hash,
-	) (*ethtypes.Header, error)
-}
 
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
 type BeaconStateProvider interface {

@@ -26,30 +26,30 @@
 package sync
 
 import (
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"context"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
+// CheckELSync checks if the execution layer is syncing.
+func (s *Service) CheckELSync(ctx context.Context) error {
+	// Call the ethClient to get the sync progress
+	progress, err := s.ethClient.SyncProgress(ctx)
+	if err != nil {
+		return err
 	}
-}
 
-// WithEthClient sets the ethClient of the Service.
-func WithEthClient(ethClient *eth.Eth1Client) service.Option[Service] {
-	return func(s *Service) error {
-		s.ethClient = ethClient
+	// Exit early if the node does not return a progress.
+	// This means the node is in sync at the eth1 layer.
+	if progress == nil {
+		s.Logger().Info("execution client is synchronized eth1 head.")
 		return nil
 	}
-}
 
-// WithExecutionService sets the ExecutionService of the Service.
-func WithExecutionService(es executionService) service.Option[Service] {
-	return func(r *Service) error {
-		r.es = es
-		return nil
-	}
+	s.Logger().Warn(
+		"execution client is attemping to sync.... ",
+		"current_eth1", progress.CurrentBlock,
+		"highest_eth1", progress.HighestBlock,
+		"starting_eth1", progress.StartingBlock,
+	)
+
+	return ErrExecutionClientIsSyncing
 }

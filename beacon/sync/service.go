@@ -29,6 +29,7 @@ import (
 	"bytes"
 	"context"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -36,6 +37,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -47,13 +49,32 @@ const syncCheckInterval = 3 * time.Second
 // of both the beacon and execution chains.
 type Service struct {
 	service.BaseService
-	ethClient ethClient
-	es        executionService
-	clientCtx client.Context
+	ethClient        *eth.Eth1Client
+	es               executionService
+	clientCtx        client.Context
+	notifySyncSignal chan struct{}
+
+	mutex  sync.RWMutex
+	synced bool
+}
+
+func (s *Service) IsSynced() bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.synced
 }
 
 func (s *Service) SetClientContext(clientCtx client.Context) {
 	s.clientCtx = clientCtx
+}
+
+func (s *Service) Start(ctx context.Context) {
+	s.notifySyncSignal = make(chan struct{})
+
+	go func() {
+		<-ctx.Done()
+		close(s.notifySyncSignal)
+	}()
 }
 
 // CheckSyncStatus returns the current synchronization status of the beacon and
@@ -67,8 +88,9 @@ func (s *Service) SetClientContext(clientCtx client.Context) {
 func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 	// First lets grab the beacon chains view of the last finalized execution
 	// layer block.
-	finalHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	s.RequestSyncProgress(ctx)
 
+	finalHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 	// If the chain hasn't been started met, we are at genesis, and we can't
 	// really do anything. This is to handle calling this function before
 	// InitGenesis has been called. If InitGenesis has previously been called,
