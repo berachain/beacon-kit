@@ -31,16 +31,17 @@ import (
 	"reflect"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/common"
 )
 
 // WithABI returns an Option for registering
 // the contract ABI with the TypeAllocator.
-func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
+func WithABI(contractAbi *ethabi.ABI) common.Option[TypeAllocator] {
 	return func(a *TypeAllocator) error {
 		a.abi = contractAbi
-		a.sigToName = make(map[common.Hash]string)
-		a.sigToType = make(map[common.Hash]reflect.Type)
+		a.sigToName = make(map[ethcommon.Hash]string)
+		a.sigToType = make(map[ethcommon.Hash]reflect.Type)
 		return nil
 	}
 }
@@ -50,10 +51,10 @@ func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
 // with the TypeAllocator.
 // NOTE: WithABI must be called before this function.
 func WithNameAndType(
-	sig common.Hash,
+	sig ethcommon.Hash,
 	name string,
 	t reflect.Type,
-) Option[TypeAllocator] {
+) common.Option[TypeAllocator] {
 	return func(a *TypeAllocator) error {
 		event, ok := a.abi.Events[name]
 		if !ok {

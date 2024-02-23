@@ -31,10 +31,11 @@ import (
 	"testing"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/common"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -44,7 +45,7 @@ import (
 )
 
 func TestLogFactory(t *testing.T) {
-	contractAddress := common.HexToAddress("0x1234")
+	contractAddress := ethcommon.HexToAddress("0x1234")
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
 
@@ -60,13 +61,13 @@ func TestLogFactory(t *testing.T) {
 	withdrawalName := "Withdrawal"
 	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
 
-	allocator := logs.New[logs.TypeAllocator](
+	allocator := common.New[logs.TypeAllocator](
 		logs.WithABI(stakingAbi),
 		logs.WithNameAndType(depositSig, depositName, depositType),
 		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
 	)
 
-	factory := logs.New[logs.Factory](
+	factory := common.New[logs.Factory](
 		logs.WithInitializer(),
 		logs.WithTypeAllocator(contractAddress, allocator),
 	)
@@ -118,7 +119,7 @@ func newLog(event ethabi.Event, args ...interface{}) (*coretypes.Log, error) {
 		return nil, err
 	}
 	return &coretypes.Log{
-		Topics: []common.Hash{event.ID},
+		Topics: []ethcommon.Hash{event.ID},
 		Data:   data,
 	}, nil
 }
