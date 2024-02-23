@@ -28,14 +28,13 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Option is a function that modifies the BeaconKitRuntime.
 type Option func(*BeaconKitRuntime) error
 
-// WithConfig is an Option that sets the configuration of the BeaconKitRuntime.
+// WithConfig sets the configuration of the BeaconKitRuntime.
 func WithConfig(cfg *config.Config) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.cfg = cfg
@@ -43,7 +42,7 @@ func WithConfig(cfg *config.Config) Option {
 	}
 }
 
-// WithServiceRegistry is an Option that sets the service registry of the BeaconKitRuntime.
+// WithServiceRegistry sets the service registry of the BeaconKitRuntime.
 func WithServiceRegistry(reg *service.Registry) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.services = reg
@@ -51,7 +50,7 @@ func WithServiceRegistry(reg *service.Registry) Option {
 	}
 }
 
-// WithLogger is an Option that sets the logger of the BeaconKitRuntime.
+// WithLogger sets the logger of the BeaconKitRuntime.
 func WithLogger(logger log.Logger) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.logger = logger.With("module", "beacon-kit-runtime")
@@ -59,19 +58,11 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
-// WithBeaconStateProvider is an Option that sets the BeaconStateProvider
+// WithBeaconStateProvider sets the BeaconStateProvider
 // of the BeaconKitRuntime.
 func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
-		return nil
-	}
-}
-
-// WithEth1Client is an Option that sets the Eth1Client of the BeaconKitRuntime.
-func WithEth1Client(ethclient *eth.Eth1Client) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.ethclient = ethclient
 		return nil
 	}
 }

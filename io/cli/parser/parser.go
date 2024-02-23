@@ -179,7 +179,8 @@ func handleError[T any](
 // the result. If the cast fails, it returns an error. If the flag's value is empty,
 // it returns a nil pointer.
 func handleErrorPtr[T any](
-	c *AppOptionsParser, castFn func(interface{}) (T, error), flag string) (*T, error) {
+	c *AppOptionsParser, castFn func(interface{}) (T, error), flag string,
+) (*T, error) {
 	var num string
 	var err error
 	if num, err = cast.ToStringE((c.Get(flag))); err != nil {

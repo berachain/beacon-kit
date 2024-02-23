@@ -139,7 +139,8 @@ func FuzzQueueMulti(f *testing.F) {
 
 		ml, err := mapLen[int64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, l, uint64(ml), "Queue length should match container length")
+		require.Equal(
+			t, l, uint64(ml), "Queue length should match container length")
 
 		// n2 >= n1
 		poppedItems, err := q.PopMulti(ctx, uint64(n2))
@@ -157,7 +158,8 @@ func FuzzQueueMulti(f *testing.F) {
 
 		ml, err = mapLen[int64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, l, uint64(ml), "Queue length should match container length")
+		require.Equal(
+			t, l, uint64(ml), "Queue length should match container length")
 
 		for i := int64(0); i < n3; i++ {
 			trackedItems = append(trackedItems, n1+i)
@@ -173,7 +175,8 @@ func FuzzQueueMulti(f *testing.F) {
 
 		ml, err = mapLen[int64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, l, uint64(ml), "Queue length should match container length")
+		require.Equal(
+			t, l, uint64(ml), "Queue length should match container length")
 
 		// n3 >= n4
 		poppedItems, err = q.PopMulti(ctx, uint64(n4))
@@ -189,7 +192,8 @@ func FuzzQueueMulti(f *testing.F) {
 
 		ml, err = mapLen[int64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, l, uint64(ml), "Queue length should match container length")
+		require.Equal(
+			t, l, uint64(ml), "Queue length should match container length")
 
 		poppedItems, err = q.PopMulti(ctx, uint64(n3))
 		require.NoError(t, err)
@@ -204,6 +208,7 @@ func FuzzQueueMulti(f *testing.F) {
 
 		ml, err = mapLen[int64](ctx, q.Container())
 		require.NoError(t, err)
-		require.Equal(t, l, uint64(ml), "Queue length should match container length")
+		require.Equal(
+			t, l, uint64(ml), "Queue length should match container length")
 	})
 }

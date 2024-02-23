@@ -48,12 +48,11 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg       *config.Config
-	cometCfg  CometBFTConfig
-	logger    log.Logger
-	ethclient *eth.Eth1Client
-	fscp      BeaconStateProvider
-	services  *service.Registry
+	cfg      *config.Config
+	cometCfg CometBFTConfig
+	logger   log.Logger
+	fscp     BeaconStateProvider
+	services *service.Registry
 
 	stopCh chan struct{}
 }
@@ -97,13 +96,10 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
-	// Create the base service, we will the  create shallow copies for each service.
+	// Create the base service, we will the create shallow copies for each service.
 	baseService := service.NewBaseService(
 		cfg, bsp, gcd, logger,
 	)
-
-	// Create a payloadCache for the execution service and validator service to share.
-	payloadCache := cache.NewPayloadIDCache()
 
 	// Create the eth1 client that will be used to interact with the execution client.
 	eth1Client, err := eth.NewEth1Client(
@@ -144,7 +140,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBaseService(baseService.WithName("local-builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithExecutionService(executionService),
-		builder.WithPayloadCache(payloadCache),
+		builder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
 	chainService := service.New[blockchain.Service](
@@ -178,10 +174,6 @@ func NewDefaultBeaconKitRuntime(
 			service.WithService(builderService),
 			service.WithService(stakingService),
 		)), WithBeaconStateProvider(bsp),
-		// We put the eth1 client in the BeaconKitRuntime so we can attach the
-		// cmd.Context to it. This is necessary for the eth1 client to be able
-		// to shut down gracefully.
-		WithEth1Client(eth1Client),
 	)
 }
 

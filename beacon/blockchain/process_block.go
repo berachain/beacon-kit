@@ -59,16 +59,14 @@ func (s *Service) postBlockProcess(
 		return err
 	}
 
-	// We notify the execution client of the new block, and wait for it to return
-	// a payload ID. If the payload ID is nil, we return an error. One thing to
-	// notice here however is that we pass in `slot+1` to the execution client. We
-	// do this so that we can begin building the next block in the background while
-	// we are finalizing this block. We are okay pushing this asynchonous work to
-	// the execution client, as it is designed for it.
+	// We notify the execution client of the new block and await a payload ID.
+	// If the payload ID is nil, an error is returned. Notably, we pass `slot+1`
+	// to the execution client. This allows us to start building the next block
+	// in the background while finalizing the current one. This asynchronous
+	// task is suitable for the execution client's design.
 	//
-	// TODO: we should probably just have a validator job in the background that is
-	// constantly building new payloads and then not worry about anything here
-	// triggering payload builds.
+	// TODO: Consider implementing a background validator job for continuous
+	// payload building, eliminating the need for trigger-based builds here.
 	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), nextSlot)
 }
 

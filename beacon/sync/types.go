@@ -49,13 +49,17 @@ type (
 )
 
 const (
-	// StatusWaiting indicates the initial status of the service, waiting for further actions.
+	// StatusWaiting indicates the initial status of the service, waiting
+	// for further actions.
 	StatusWaiting = Status(iota)
-	// StatusBeaconAhead indicates that the beacon chain is ahead of the execution chain.
+	// StatusBeaconAhead indicates that the beacon chain is ahead of the
+	//  execution chain.
 	StatusBeaconAhead
-	// StatusExecutionAhead indicates that the execution chain is ahead of the beacon chain.
+	// StatusExecutionAhead indicates that the execution chain is ahead
+	// of the beacon chain.
 	StatusExecutionAhead
-	// StatusSynced indicates that both the beacon and execution chains are synchronized.
+	// StatusSynced indicates that both the beacon and execution chains
+	// are synchronized.
 	StatusSynced
 )
 

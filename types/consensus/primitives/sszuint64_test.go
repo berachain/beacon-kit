@@ -96,6 +96,7 @@ func TestSSZUint64_Serialization(t *testing.T) {
 			serializedBytes: hexutil.MustDecode(
 				"0xd20a1feb8ca954ab"),
 			root: hexutil.MustDecode(
+
 				"0xd20a1feb8ca954ab000000000000000000000000000000000000000000000000"),
 		},
 		{

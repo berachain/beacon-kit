@@ -39,7 +39,8 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// BuildLocalPayload builds a payload for the given slot and returns the payload ID.
+// BuildLocalPayload builds a payload for the given slot and
+// returns the payload ID.
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	parentEth1Hash common.Hash,
@@ -169,8 +170,8 @@ func (s *Service) GetLocalPayload(
 	)
 }
 
-// getPayloadFromCachedPayloadIDs attempts to retrieve a payload from the execution
-// chain via a payload ID that is stored in the builder's cache.
+// getPayloadFromCachedPayloadIDs attempts to retrieve a payload from the
+// execution client via a payload ID that is stored in the builder's cache.
 func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,

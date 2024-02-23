@@ -58,7 +58,8 @@ func (s *Service) notifyNewPayload(
 		//      "could not get versioned hashes to feed the engine")
 		// }
 		// pr := common.Hash(blk.Block().ParentRoot())
-		// lastValidHash, err = s.engine.NewPayload(ctx, payload, versionedHashes, &pr)
+		// lastValidHash, err = s.engine.NewP
+		// ayload(ctx, payload, versionedHashes, &pr)
 	} else {
 		lastValidHash, err = s.engine.NewPayload(
 			/*empty version hashes and root before Deneb*/

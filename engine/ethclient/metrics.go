@@ -29,40 +29,54 @@ const (
 	// MetricBaseKey is the base key for all metrics.
 	MetricBaseKey = "beacon-kit.engine.ethclient."
 
-	// MetricKeyParseErrorCount represents the metric key for counting parse errors.
+	// MetricKeyParseErrorCount represents the metric key
+	// for counting parse errors.
 	MetricKeyParseErrorCount = MetricBaseKey + "parse_error_count"
 
-	// MetricKeyInvalidRequestCount represents the metric key for counting invalid requests.
-	MetricKeyInvalidRequestCount = MetricBaseKey + "invalid_request_count"
+	// MetricKeyInvalidRequestCount represents the metric key
+	// for counting invalid requests.
+	MetricKeyInvalidRequestCount = MetricBaseKey +
+		"invalid_request_count"
 
-	// MetricKeyMethodNotFoundCount represents the metric key for counting instances
+	// MetricKeyMethodNotFoundCount represents the metric key
+	// for counting instances
 	// where a method is not found.
-	MetricKeyMethodNotFoundCount = MetricBaseKey + "method_not_found_count"
+	MetricKeyMethodNotFoundCount = MetricBaseKey +
+		"method_not_found_count"
 
-	// MetricKeyInvalidParamsCount represents the metric key for counting instances of
+	// MetricKeyInvalidParamsCount represents the metric key
+	// for counting instances of
 	// invalid parameters.
-	MetricKeyInvalidParamsCount = MetricBaseKey + "invalid_params_count"
+	MetricKeyInvalidParamsCount = MetricBaseKey +
+		"invalid_params_count"
 
-	// MetricKeyInternalErrorCount represents the metric key for counting internal errors.
-	MetricKeyInternalErrorCount = MetricBaseKey + "internal_error_count"
+	// MetricKeyInternalErrorCount represents the metric key
+	// for counting internal errors.
+	MetricKeyInternalErrorCount = MetricBaseKey +
+		"internal_error_count"
 
-	// MetricKeyUnknownPayloadErrorCount represents the metric key for counting unknown
-	// payload errors.
-	MetricKeyUnknownPayloadErrorCount = MetricBaseKey + "unknown_payload_error_count"
+	// MetricKeyUnknownPayloadErrorCount represents the metric key
+	// for counting unknown payload errors.
+	MetricKeyUnknownPayloadErrorCount = MetricBaseKey +
+		"unknown_payload_error_count"
 
-	// MetricKeyInvalidForkchoiceStateCount represents the metric key for counting
-	// invalid fork choice state errors.
-	MetricKeyInvalidForkchoiceStateCount = MetricBaseKey + "invalid_forkchoice_state_count"
+	// MetricKeyInvalidForkchoiceStateCount represents the metric key
+	// for counting invalid fork choice state errors.
+	MetricKeyInvalidForkchoiceStateCount = MetricBaseKey +
+		"invalid_forkchoice_state_count"
 
-	// MetricKeyInvalidPayloadAttributesCount represents the metric key for counting
-	// invalid payload attribute errors.
-	MetricKeyInvalidPayloadAttributesCount = MetricBaseKey + "invalid_payload_attributes_count"
+	// MetricKeyInvalidPayloadAttributesCount represents the metric key
+	// for counting invalid payload attribute errors.
+	MetricKeyInvalidPayloadAttributesCount = MetricBaseKey +
+		"invalid_payload_attributes_count"
 
-	// MetricKeyRequestTooLargeCount represents the metric key for counting instances where a
-	// request is too large.
-	MetricKeyRequestTooLargeCount = MetricBaseKey + "request_too_large_count"
+	// MetricKeyRequestTooLargeCount represents the metric key
+	// for counting instances where a request is too large.
+	MetricKeyRequestTooLargeCount = MetricBaseKey +
+		"request_too_large_count"
 
-	// MetricKeyInternalServerErrorCount represents the metric key for counting internal server
-	// errors.
-	MetricKeyInternalServerErrorCount = MetricBaseKey + "internal_server_error_count"
+	// MetricKeyInternalServerErrorCount represents the metric key
+	// for counting internal server errors.
+	MetricKeyInternalServerErrorCount = MetricBaseKey +
+		"internal_server_error_count"
 )

@@ -79,10 +79,13 @@ func getFilePath(cmd *cobra.Command) (string, error) {
 		if !ok {
 			return "", ErrNoClientCtx
 		}
-		specifiedFilePath = filepath.Join(clientCtx.HomeDir+"/config/", DefaultSecretFileName)
+		specifiedFilePath = filepath.Join(
+			clientCtx.HomeDir+"/config/", DefaultSecretFileName,
+		)
 	}
 
-	return specifiedFilePath, nil // Use default secret file name if no path is specified
+	// Use default secret file name if no path is specified
+	return specifiedFilePath, nil
 }
 
 // generateAuthSecretInFile writes a newly generated JWT secret to a specified file.

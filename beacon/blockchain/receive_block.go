@@ -86,10 +86,9 @@ func (s *Service) ReceiveBeaconBlock(
 	)
 }
 
-// validateStateTransition validates the state transition of a given block.
-// TODO: add more rules and modularize, I am unsure if this is the best / correct place for this.
-// It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
-// but maybe not the most extensible.
+// validateStateTransition checks a block's state transition.
+// TODO: Expand rules, consider modularity. Current implementation
+// is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
 ) error {

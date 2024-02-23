@@ -61,8 +61,10 @@ func TestWeiToGwei_CopyOk(t *testing.T) {
 	v := uint256.NewInt(1e9)
 	got := math.Wei{v}.ToGwei()
 
-	require.Equal(t, math.Gwei(1), got, "conversion result mismatch")
-	require.Equal(t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
+	require.Equal(
+		t, math.Gwei(1), got, "conversion result mismatch")
+	require.Equal(
+		t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
 }
 
 func TestWeiToEther(t *testing.T) {

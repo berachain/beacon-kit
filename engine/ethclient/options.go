@@ -48,7 +48,7 @@ func WithEndpointDialURL(dialURL string) Option {
 	}
 }
 
-// WithJWTSecret is an option to set the JWT secret for the Eth1Client.
+// WithJWTSecret sets the JWT secret for the Eth1Client.
 func WithJWTSecret(secret *jwt.Secret) Option {
 	return func(s *Eth1Client) error {
 		if secret == nil {
@@ -59,7 +59,7 @@ func WithJWTSecret(secret *jwt.Secret) Option {
 	}
 }
 
-// WithStartupRetryInterval is an option to set the startup retry interval for the Eth1Client.
+// WithStartupRetryInterval sets the startup retry interval for the Eth1Client.
 func WithStartupRetryInterval(interval time.Duration) Option {
 	return func(s *Eth1Client) error {
 		s.startupRetryInterval = interval
@@ -67,7 +67,7 @@ func WithStartupRetryInterval(interval time.Duration) Option {
 	}
 }
 
-// WithJWTRefreshInterval is an option to set the JWT refresh interval for the Eth1Client.
+// WithJWTRefreshInterval sets the JWT refresh interval for the Eth1Client.
 func WithJWTRefreshInterval(interval time.Duration) Option {
 	return func(s *Eth1Client) error {
 		s.jwtRefreshInterval = interval
@@ -75,7 +75,7 @@ func WithJWTRefreshInterval(interval time.Duration) Option {
 	}
 }
 
-// WithHealthCheckInterval is an option to set the health check interval for the Eth1Client.
+// WithHealthCheckInterval sets the health check interval for the Eth1Client.
 func WithHealthCheckInterval(interval time.Duration) Option {
 	return func(s *Eth1Client) error {
 		s.healthCheckInterval = interval
@@ -83,7 +83,7 @@ func WithHealthCheckInterval(interval time.Duration) Option {
 	}
 }
 
-// WithLogger is an option to set the logger for the Eth1Client.
+// WithLogger sets the logger for the Eth1Client.
 func WithLogger(logger log.Logger) Option {
 	return func(s *Eth1Client) error {
 		s.logger = logger.With("module", "beacon-kit-execution")
@@ -91,7 +91,7 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
-// WithRequiredChainID is an option to set the required
+// WithRequiredChainID sets the required
 // chain ID for the Eth1Client.
 func WithRequiredChainID(chainID uint64) Option {
 	return func(s *Eth1Client) error {

@@ -63,6 +63,8 @@ func (am AppModule) InitGenesis(
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
-func (am AppModule) ExportGenesis(ctx context.Context, cdc codec.JSONCodec) json.RawMessage {
+func (am AppModule) ExportGenesis(
+	ctx context.Context, cdc codec.JSONCodec,
+) json.RawMessage {
 	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
 }

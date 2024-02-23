@@ -31,6 +31,8 @@ const (
 	MetricReceivedInvalidPayload = "beaconkit.blockchain.received_invalid_payload"
 
 	// MetricFailedToBuildLocalPayload is used to count the number of times the
-	// local builder fails to build a payload when triggered via the chain service.
+	// local builder fails to build a payload when triggered via
+	// the chain service.
+	//nolint:lll
 	MetricFailedToBuildLocalPayload = "beaconkit.blockchain.failed_to_build_local_payload"
 )

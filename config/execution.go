@@ -41,7 +41,8 @@ func DefaultExecutionConfig() Execution {
 	}
 }
 
-// Execution represents the configuration struct for the execution layer on the beacon chain.
+// Execution represents the configuration struct for the
+// execution layer on the beacon chain.
 type Execution struct {
 	DepositContractAddress common.Address
 }

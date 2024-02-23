@@ -44,22 +44,26 @@ const (
 	two = 2
 )
 
-// BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the number of
-// routines set to runtime.GOMAXPROCS(0)-1.
+// BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
+// number of routines set to runtime.GOMAXPROCS(0)-1.
 func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
-	return BuildParentTreeRootsWithNRoutines(inputList, runtime.GOMAXPROCS(0)-1)
+	return BuildParentTreeRootsWithNRoutines(
+		inputList, runtime.GOMAXPROCS(0)-1,
+	)
 }
 
-// BuildParentTreeRootsWithNRoutines optimizes the hashing of a list of roots by utilizing
-// CPU-specific vector instructions and parallel processing. This method adapts to the host
-// machine's hardware configuration for potential performance gains over sequential hashing.
-func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte, error) {
-	// Validate the input list length.
+// BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
+// using CPU-specific vector instructions and parallel processing. This
+// method adapts to the host machine's hardware for potential performance
+// gains over sequential hashing.
+func BuildParentTreeRootsWithNRoutines(
+	inputList [][32]byte, n int,
+) ([][32]byte, error) {
+	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
 		return nil, ErrOddLengthTreeRoots
 	}
-
 	// Build output variables
 	outputLength := inputLength / two
 	outputList := make([][32]byte, outputLength)
@@ -76,8 +80,8 @@ func BuildParentTreeRootsWithNRoutines(inputList [][32]byte, n int) ([][32]byte,
 	twiceGroupSize := two * groupSize
 	eg := new(errgroup.Group)
 
-	// if n is 0 the parallelization is disabled and the whole inputList is hashed in the main
-	// goroutine at the end of this function.
+	// if n is 0 the parallelization is disabled and the whole inputList is
+	// hashed in the main goroutine at the end of this function.
 	for j := 0; j <= n; j++ {
 		// capture loop variable
 		cj := j

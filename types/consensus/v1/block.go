@@ -48,10 +48,12 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 	executionData engine.ExecutionPayload,
 ) error {
 	var ok bool
-	b.Body.ExecutionPayload, ok = executionData.ToProto().(*enginev1.ExecutionPayloadCapella)
+	b.Body.ExecutionPayload, ok = executionData.
+		ToProto().(*enginev1.ExecutionPayloadCapella)
 	// b.Body.ExecutionPayload, err = executionData.PbCapella()
 	if !ok {
-		return errors.New("failed to convert execution data to capella payload")
+		return errors.New(
+			"failed to convert execution data to capella payload")
 	}
 
 	// TODO: this needs to be done better, really hood rn.
@@ -62,7 +64,9 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlockCapella) ExecutionPayload() (engine.ExecutionPayload, error) {
+func (b *BeaconKitBlockCapella) ExecutionPayload() (
+	engine.ExecutionPayload, error,
+) {
 	return &enginev1.ExecutionPayloadContainer{
 		Payload: &enginev1.ExecutionPayloadContainer_Capella{
 			Capella: b.GetBody().GetExecutionPayload(),

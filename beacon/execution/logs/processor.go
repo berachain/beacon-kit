@@ -38,6 +38,9 @@ import (
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
+//nolint:gochecknoglobals // no sense reallocating over and over.
+var rpcFinalizedBlockQuery = big.NewInt(int64(rpc.FinalizedBlockNumber))
+
 // Processor is responsible for processing logs fr.
 type Processor struct {
 	logger     log.Logger
@@ -46,7 +49,8 @@ type Processor struct {
 }
 
 // NewProcessor creates a new instance of Processor with the provided options.
-// It applies each option to the Processor and returns an error if any of the options fail.
+// It applies each option to the Processor and returns an error if any of the
+// options fail.
 func NewProcessor(opts ...Option) (*Processor, error) {
 	s := &Processor{
 		handlers: make(map[common.Address]Handler),
@@ -59,13 +63,15 @@ func NewProcessor(opts ...Option) (*Processor, error) {
 	return s, nil
 }
 
-// ProcessFinalizedETH1Block processes logs from an eth1 block, but before doing so
-// it checks if the block is safe to process.
-func (s *Processor) ProcessFinalizedETH1Block(ctx context.Context, blkNum *big.Int) error {
+// ProcessFinalizedETH1Block processes logs from an eth1 block, but before
+// doing so it checks if the block is safe to process.
+func (s *Processor) ProcessFinalizedETH1Block(
+	ctx context.Context, blkNum *big.Int,
+) error {
 	// Get the safe block number from the eth1 client.
-	// TODO do we want to come up with a heuristic around when we check the execution client,
-	// vs when we check the forkchoice store.
-	finalBlock, err := s.eth1Client.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+	// TODO do we want to come up with a heuristic around when we check the
+	// execution client, vs when we check the forkchoice store.
+	finalBlock, err := s.eth1Client.BlockByNumber(ctx, rpcFinalizedBlockQuery)
 	if err != nil {
 		return err
 	}

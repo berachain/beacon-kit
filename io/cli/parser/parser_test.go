@@ -44,57 +44,57 @@ func TestParser(t *testing.T) {
 
 	parserUnderTest = parser.NewAppOptionsParser(appOpts)
 
-	t.Run("should set and retrieve a string option", func(t *testing.T) {
+	t.Run("should set and retrieve a string", func(t *testing.T) {
 		value := "testValue"
 		runTest(t, appOpts, parserUnderTest.GetString, value)
 	})
 
-	t.Run("should set and retrieve an integer option", func(t *testing.T) {
+	t.Run("should set and retrieve an integer", func(t *testing.T) {
 		value := int(42)
 		runTest(t, appOpts, parserUnderTest.GetInt, value)
 	})
 
-	t.Run("should handle an int64 option", func(t *testing.T) {
+	t.Run("should handle an int64", func(t *testing.T) {
 		value := int64(42)
 		runTest(t, appOpts, parserUnderTest.GetInt64, value)
 	})
 
-	t.Run("should set and retrieve a uint64 option", func(t *testing.T) {
+	t.Run("should set and retrieve a uint64", func(t *testing.T) {
 		value := uint64(42)
 		runTest(t, appOpts, parserUnderTest.GetUint64, value)
 	})
 
-	t.Run("should set and retrieve a pointer to a uint64 option", func(t *testing.T) {
+	t.Run("should set and retrieve a ptr to a uint64", func(t *testing.T) {
 		value := uint64(42)
 		runTestWithOutput(t, appOpts, parserUnderTest.GetUint64Ptr, "42", &value)
 	})
 
-	t.Run("should set and retrieve a big.Int option", func(t *testing.T) {
+	t.Run("should set and retrieve a big.Int", func(t *testing.T) {
 		value := new(big.Int).SetInt64(42)
 		runTestWithOutput(t, appOpts, parserUnderTest.GetBigInt, "42", value)
 	})
 
-	t.Run("should set and retrieve a float64 option", func(t *testing.T) {
+	t.Run("should set and retrieve a float64", func(t *testing.T) {
 		value := 3.14159
 		runTest(t, appOpts, parserUnderTest.GetFloat64, value)
 	})
 
-	t.Run("should set and retrieve a boolean option", func(t *testing.T) {
+	t.Run("should set and retrieve a boolean", func(t *testing.T) {
 		value := true
 		runTest(t, appOpts, parserUnderTest.GetBool, value)
 	})
 
-	t.Run("should set and retrieve a string slice option", func(t *testing.T) {
+	t.Run("should set and retrieve a string slice", func(t *testing.T) {
 		value := []string{"apple", "banana", "cherry"}
 		runTest(t, appOpts, parserUnderTest.GetStringSlice, value)
 	})
 
-	t.Run("should set and retrieve a time.Duration option", func(t *testing.T) {
+	t.Run("should set and retrieve a time.Duration", func(t *testing.T) {
 		value := time.Second * 10
 		runTest(t, appOpts, parserUnderTest.GetTimeDuration, value)
 	})
 
-	t.Run("should set and retrieve a common.Address option", func(t *testing.T) {
+	t.Run("should set and retrieve a common.Address", func(t *testing.T) {
 		addressStr := "0x18df82c7e422a42d47345ed86b0e935e9718ebda"
 		runTestWithOutput(
 			t, appOpts, parserUnderTest.GetExecutionAddress, addressStr,
@@ -115,7 +115,7 @@ func TestParser(t *testing.T) {
 			t, appOpts, parserUnderTest.GetCommonAddressList, addressStrs, expectedAddresses)
 	})
 
-	t.Run("should set and retrieve a hexutil.Bytes option", func(t *testing.T) {
+	t.Run("should set and retrieve a hexutil.Bytes", func(t *testing.T) {
 		bytesStr := "0x1234567890abcdef"
 		expectedBytes := hexutil.MustDecode(bytesStr)
 		runTest(t, appOpts, parserUnderTest.GetHexutilBytes, expectedBytes)

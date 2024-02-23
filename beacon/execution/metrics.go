@@ -28,6 +28,7 @@ package execution
 const (
 	// MetricsKeyAcceptedSyncingPayloadStatus is used to count the number of times an
 	// accepted or syncing payload status is received.
+	//nolint:lll
 	MetricsKeyAcceptedSyncingPayloadStatus = "beaconkit.execution.accepted_syncing_payload_status"
 	// MetricsInvalidPayloadStatus is used to count the number of times an
 	// invalid payload status is received.

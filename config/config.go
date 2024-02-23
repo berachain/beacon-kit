@@ -109,7 +109,9 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 }
 
 // readConfigFromAppOptsParser reads the configuration options from the given.
-func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error) {
+func readConfigFromAppOptsParser(
+	parser parser.AppOptionsParser,
+) (*Config, error) {
 	var (
 		err       error
 		conf      = &Config{}
@@ -158,12 +160,17 @@ func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
+	startCmd.Flags().String(
+		flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
 		"path to the execution client secret")
-	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
-	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
-	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Duration(flags.RPCStartupCheckInterval,
+	startCmd.Flags().String(
+		flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(
+		flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+	startCmd.Flags().Duration(
+		flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Duration(
+		flags.RPCStartupCheckInterval,
 		defaultCfg.Engine.RPCStartupCheckInterval,
 		"rpc startup check interval")
 	startCmd.Flags().Duration(flags.RPCHealthCheckInteval,
@@ -172,7 +179,8 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval")
-	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
+	startCmd.Flags().Uint64(
+		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
 		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(),
@@ -182,5 +190,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 
 // AddToSFlag adds the terms of service flag to the given command.
 func AddToSFlag(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().Bool(flags.BeaconKitAcceptTos, false, "accept the terms of service")
+	rootCmd.PersistentFlags().Bool(
+		flags.BeaconKitAcceptTos, false, "accept the terms of service")
 }

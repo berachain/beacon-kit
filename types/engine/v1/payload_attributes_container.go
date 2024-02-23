@@ -106,7 +106,8 @@ func (w *PayloadAttributesContainer) GetSuggestedFeeRecipient() []byte {
 	}
 }
 
-// GetWithdrawals fetches the list of withdrawals from the PayloadAttributesContainer.
+// GetWithdrawals fetches the list of withdrawals from the
+// PayloadAttributesContainer.
 func (w *PayloadAttributesContainer) GetWithdrawals() []*Withdrawal {
 	payload := w.ToProto()
 	switch p := payload.(type) {

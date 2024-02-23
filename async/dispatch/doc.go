@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// dispatch provides GrandCentralDispatch a system designed for managing concurrent
-// code execution in BeaconKit. It runs in BeaconKit rather than the usual suspects of macOS,
-// iOS, watchOS, and tvOS ;)
+// Package dispatch provides GrandCentralDispatch a system designed for
+// managing concurrent code execution in BeaconKit. It runs in BeaconKit
+// rather than the usual suspects of macOS, iOS, watchOS, and tvOS ;)
 package dispatch

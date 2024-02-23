@@ -91,7 +91,9 @@ func NewGrandCentralDispatch(opts ...Option) (*GrandCentralDispatch, error) {
 }
 
 // Dispatch sends a value to the feed associated with the provided key.
-func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Queue {
+func (gcd *GrandCentralDispatch) CreateQueue(
+	id string, queueType QueueType,
+) Queue {
 	gcd.mu.Lock()
 	defer gcd.mu.Unlock()
 
@@ -108,7 +110,9 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	case QueueTypeSerial:
 		queue = dqueue.NewDispatchQueue(1, DefaultQueueSize)
 	case QueueTypeConcur:
-		queue = dqueue.NewDispatchQueue(DefaultConcurrentQueueWorkerCount, DefaultQueueSize)
+		queue = dqueue.NewDispatchQueue(
+			DefaultConcurrentQueueWorkerCount, DefaultQueueSize,
+		)
 	default:
 		panic("unknown queue type")
 	}

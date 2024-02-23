@@ -35,7 +35,7 @@ import (
 // Engine conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Engine] = &Engine{}
 
-// DefaultEngineConfig returns the default configuration for the execution client.
+// DefaultEngineConfig is the default configuration for the engine client.
 func DefaultEngineConfig() Engine {
 	return Engine{
 		RPCDialURL:              "http://localhost:8551",

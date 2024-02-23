@@ -35,7 +35,8 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-// setupExecutionClientConnections dials the execution client and ensures the chain ID is correct.
+// setupExecutionClientConnections dials the execution client and
+// ensures the chain ID is correct.
 func (s *Eth1Client) setupExecutionClientConnection(ctx context.Context) {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(ctx); err != nil {
@@ -72,7 +73,8 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 
 	// Construct the headers for the execution client.
 	// New headers must be constructed each time the client is dialed
-	// to periodically generate a new JWT token, as the existing one will eventually expire.
+	// to periodically generate a new JWT token, as the existing one will
+	// eventually expire.
 	headers, err := s.BuildHeaders()
 	if err != nil {
 		return err
@@ -100,7 +102,9 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 }
 
 // tryConnectionAfter attempts a connection after a given interval.
-func (s *Eth1Client) tryConnectionAfter(ctx context.Context, interval time.Duration) {
+func (s *Eth1Client) tryConnectionAfter(
+	ctx context.Context, interval time.Duration,
+) {
 	select {
 	case <-ctx.Done():
 		return

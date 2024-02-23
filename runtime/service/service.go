@@ -75,8 +75,9 @@ func (s *BaseService) GCD() *dispatch.GrandCentralDispatch {
 	return s.gcd
 }
 
-// BeaconCfg returns the configuration settings of the beacon node from the BaseService.
-// It provides access to various configuration parameters used by the beacon node.
+// BeaconCfg returns the configuration settings of the beacon node from
+// the BaseService. It provides access to various configuration parameters
+// used by the beacon node.
 func (s *BaseService) BeaconCfg() *config.Beacon {
 	return &s.cfg.Beacon
 }

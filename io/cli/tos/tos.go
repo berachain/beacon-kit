@@ -42,6 +42,7 @@ const (
 	// acceptTosFilename is the name of the file that stores the accepted terms of use.
 	acceptTosFilename = "tosaccepted"
 	// acceptTosPromptTextFormat is the format for the prompt text for accepting the terms of use.
+	//nolint:lll
 	acceptTosPromptTextFormat = `
 %s Terms of Use
 
@@ -53,6 +54,7 @@ TERMS AND CONDITIONS: %s
 
 Type "accept" to accept these terms and conditions [accept/decline]:`
 	// acceptTosPromptErrTextFormat is the error prompt text for accepting the terms of use.
+	//nolint:lll
 	AcceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
 non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
 terms and conditions here: 
@@ -84,7 +86,8 @@ func VerifyTosAcceptedOrPrompt(
 		return nil
 	}
 
-	if ok, err := cmd.Flags().GetBool(flags.BeaconKitAcceptTos); ok && err == nil {
+	if ok, err := cmd.Flags().
+		GetBool(flags.BeaconKitAcceptTos); ok && err == nil {
 		saveTosAccepted(homedir, cmd)
 		return nil
 	}

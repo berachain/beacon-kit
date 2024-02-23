@@ -108,9 +108,11 @@ func (s *Service) RegisterFeed(name string) {
 	}
 }
 
-// RegisterHandler registers a new handler associated with the provided key. It also
-// takes a queueID which is used to dispatch the handler on.
-func (s *Service) RegisterHandler(name string, queueID string, handler EventHandler) error {
+// RegisterHandler registers a new handler associated with the provided key.
+// It also takes a queueID which is used to dispatch the handler on.
+func (s *Service) RegisterHandler(
+	name string, queueID string, handler EventHandler,
+) error {
 	if s.running {
 		panic(ErrRegisterFeedServiceStarted)
 	}
@@ -127,7 +129,8 @@ func (s *Service) RegisterHandler(name string, queueID string, handler EventHand
 	return nil
 }
 
-// Dispatch dispatches an event to all handlers associated with the provided key.
+// Dispatch dispatches an event to all handlers associated
+// with the provided key.
 func (s *Service) Dispatch(feedName string, event any) {
 	feed, ok := s.feeds[feedName]
 	if ok {
