@@ -93,14 +93,11 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	) (*sdk.ResponsePreBlock, error) {
 		// Extract the beacon block from the ABCI request.
 		//
-		// TODO: I don't love how we have to use the BeaconConfig here.
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
 		beaconBlock, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
 			req, h.cfg.BeaconBlockPosition,
-			h.chainService.BeaconCfg().ActiveForkVersion(
-				primitives.Epoch(req.Height),
-			),
+			h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 		)
 		if err != nil {
 			return nil, err

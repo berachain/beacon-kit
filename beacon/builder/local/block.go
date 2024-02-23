@@ -52,7 +52,7 @@ func (s *Service) RequestBestBlock(
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := consensus.EmptyBeaconKitBlock(
-		slot, s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+		slot, s.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
 		return nil, err
@@ -63,9 +63,13 @@ func (s *Service) RequestBestBlock(
 		parentBeaconRootHash = make([]byte, 32) //nolint:gomnd // 32 bytes.
 	}
 
+	// TODO: right now parent is ALWAYS the previously finalized. But
+	// maybe not forever?
+	parentEth1Hash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
+
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.GetLocalPayload(
-		ctx, slot, parentBeaconRootHash, s.getParentEth1Hash(ctx),
+		ctx, slot, parentBeaconRootHash, parentEth1Hash,
 	)
 	if err != nil {
 		return nil, err

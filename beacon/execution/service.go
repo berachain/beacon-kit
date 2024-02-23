@@ -47,7 +47,9 @@ type Service struct {
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start(context.Context) {}
+func (s *Service) Start(ctx context.Context) {
+	s.engine.Start(ctx)
+}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
@@ -86,9 +88,9 @@ func (s *Service) GetPayload(
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(
-	ctx context.Context, payload enginetypes.ExecutionPayload,
+	ctx context.Context, payload enginetypes.ExecutionPayload, slot primitives.Slot,
 ) (bool, error) {
-	return s.notifyNewPayload(ctx, payload)
+	return s.notifyNewPayload(ctx, payload, slot)
 }
 
 // ProcessFinalizedLogs processes logs from the execution client for a finalized block.

@@ -53,7 +53,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
@@ -111,6 +110,7 @@ type BeaconApp struct {
 	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
 	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
+	stopSyncCh      chan struct{}
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -124,10 +124,10 @@ func NewBeaconKitApp(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	var (
-		app        = &BeaconApp{}
+		app = &BeaconApp{
+			stopSyncCh: make(chan struct{}, 1),
+		}
 		appBuilder *runtime.AppBuilder
-		bkCfg      = beaconkitconfig.MustReadConfigFromAppOpts(appOpts)
-
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
 			AppConfig(),
@@ -136,8 +136,6 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
-				// supply the beacon config
-				&(bkCfg.Beacon),
 			),
 		)
 	)
@@ -163,12 +161,13 @@ func NewBeaconKitApp(
 	}
 
 	// Build the app using the app builder.
+	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	/**** Start of BeaconKit Configuration ****/
 	var err error
 	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		bkCfg, app.BeaconKeeper,
+		beaconkitconfig.MustReadConfigFromAppOpts(appOpts), app.BeaconKeeper,
 		stakingwrapper.NewKeeper(app.StakingKeeper),
 		app.Logger(),
 	); err != nil {
@@ -193,11 +192,6 @@ func NewBeaconKitApp(
 
 	ctx := app.NewContext(true)
 	app.BeaconKitRunner.StartServices(ctx)
-
-	// Initial check for execution client sync.
-	if err := app.BeaconKitRunner.InitialSyncCheck(ctx); err != nil {
-		panic(err)
-	}
 
 	return app
 }
@@ -224,11 +218,6 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	return keys
 }
 
-// SimulationManager implements the SimulationApp interface.
-func (app *BeaconApp) SimulationManager() *module.SimulationManager {
-	return nil
-}
-
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
@@ -244,5 +233,13 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	if !ok {
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
+
+	// Initial check for execution client sync.
+	go app.BeaconKitRunner.StartSyncCheck(app.NewContext(true), apiSvr.ClientCtx)
 	app.BeaconKitRunner.SetCometCfg(v.Config)
+}
+
+func (app *BeaconApp) Close() error {
+	app.BeaconKitRunner.Close()
+	return app.App.Close()
 }

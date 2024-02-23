@@ -50,8 +50,6 @@ import (
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
-
-	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main function.
@@ -67,7 +65,6 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-				&beaconconfig.Beacon{},
 			),
 			depinject.Provide(
 				ProvideClientContext,
