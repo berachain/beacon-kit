@@ -34,12 +34,18 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+// Factory is a struct that can be used to unmarshal
+// Ethereum logs into the appropriate type.
 type Factory struct {
+	// addressToAbi is a map of contract addresses to their ABIs.
 	addressToAbi map[common.Address]*ethabi.ABI
-	sigToName    map[common.Hash]string
-	sigToType    map[common.Hash]reflect.Type
+	// sigToName is a map of event signatures to their names.
+	sigToName map[common.Hash]string
+	// sigToType is a map of event signatures to their corresponding types.
+	sigToType map[common.Hash]reflect.Type
 }
 
+// NewFactory returns a new Factory.
 func NewFactory() *Factory {
 	return &Factory{
 		addressToAbi: make(map[common.Address]*ethabi.ABI),
@@ -48,7 +54,8 @@ func NewFactory() *Factory {
 	}
 }
 
-func (f *Factory) RegisterLog(
+// RegisterEvent registers information of an event with the factory.
+func (f *Factory) RegisterEvent(
 	contractAddress common.Address,
 	contractAbi *ethabi.ABI,
 	eventName string,
@@ -60,6 +67,9 @@ func (f *Factory) RegisterLog(
 	f.sigToType[eventID] = eventType
 }
 
+// UnmarshalEthLog unmarshals an Ethereum log into an object
+// with the appropriate type, based on the registered event
+// corresponding to the log.
 func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (any, error) {
 	var (
 		contractAbi *ethabi.ABI
@@ -68,7 +78,12 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (any, error) {
 		ok          bool
 	)
 
+	// Get the event signature from the log.
 	sig := log.Topics[0]
+
+	// Get the ABI, type, and name of the event from the factory.
+	// This function only processes logs from contracts and events
+	// that have been registered with the factory.
 	if contractAbi, ok = f.addressToAbi[log.Address]; !ok {
 		return nil, errors.New("abi not found for log address")
 	}
@@ -79,7 +94,9 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (any, error) {
 		return nil, errors.New("name not found for log signature")
 	}
 
+	// Create a new instance of the event type.
 	into := reflect.New(eventType).Interface()
+	// Unpack the log data into the new instance.
 	if err := contractAbi.UnpackIntoInterface(into, eventName, log.Data); err != nil {
 		return nil, err
 	}
