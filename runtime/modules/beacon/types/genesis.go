@@ -27,6 +27,6 @@ package types
 
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		Eth1GenesisHash: "dce0851ece0b39877b75808b393d6918764d63e1611a051706fddf41fed4a18b",
+		Eth1GenesisHash: "cb66586e1853bf1350851dc367bb97eea14ea449ab96274c0afe8a3e6a86ef26",
 	}
 }
