@@ -33,6 +33,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
 	"github.com/itsdevbear/bolaris/types/engine"
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
@@ -40,16 +41,15 @@ import (
 
 // notifyNewPayload notifies the execution client of a new payload.
 func (s *Service) notifyNewPayload(
-	ctx context.Context, payload engine.ExecutionPayload,
+	ctx context.Context, payload engine.ExecutionPayload, slot primitives.Slot,
 ) (bool, error) {
 	var (
 		lastValidHash []byte
 		err           error
-		beaconState   = s.BeaconState(ctx)
 	)
 
 	//nolint:revive // okay for now.
-	if beaconState.Version() >= version.Deneb {
+	if s.ActiveForkVersionForSlot(slot) >= version.Deneb {
 		// TODO: Deneb
 		// var versionedHashes []common.Hash
 		// versionedHashes, err = kzgCommitmentsToVersionedHashes(blk.Block().Body())
@@ -70,7 +70,7 @@ func (s *Service) notifyNewPayload(
 		s.Logger().Info("new payload called with optimistic block",
 			"block_hash", common.BytesToHash(payload.GetBlockHash()),
 			"parent_hash", common.BytesToHash(payload.GetParentHash()),
-			"slot", beaconState.Slot,
+			"slot", slot,
 		)
 		return false, nil
 	case errors.Is(err, eth.ErrInvalidPayloadStatus):
@@ -95,7 +95,8 @@ func (s *Service) notifyForkchoiceUpdate(
 	// if isValidator && PrepareAllPayloads {
 	// Ensure we don't pass a nil attribute to the execution engine.
 	if fcuConfig.Attributes == nil {
-		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(beaconState.Version())
+		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(
+			s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot))
 	}
 
 	fcs := &enginev1.ForkchoiceState{

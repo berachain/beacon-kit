@@ -1,0 +1,60 @@
+---
+id:
+slug: pets-pet-id-get
+---
+
+```
+GET /pets/{petId}
+```
+
+**Info for a specific pet: **
+
+## Parameters
+
+| name  | in   | type   | required | description                   |
+| ----- | ---- | ------ | -------- | ----------------------------- |
+| petId | path | string | true     | The id of the pet to retrieve |
+
+## Code Snippets
+
+```shell title="Shell + Curl"
+curl --request GET \
+  --url http://petstore.swagger.io/v1/pets/%7BpetId%7D
+```
+
+## Responses
+
+### 200
+
+Expected response to a valid request
+
+| Headers      |                  |
+| ------------ | ---------------- |
+| content-type | application/json |
+
+**Example `response` for `application/json`**
+
+```json
+{
+  "id": 0,
+  "name": "string",
+  "tag": "string"
+}
+```
+
+### default
+
+unexpected error
+
+| Headers      |                  |
+| ------------ | ---------------- |
+| content-type | application/json |
+
+**Example `response` for `application/json`**
+
+```json
+{
+  "code": 0,
+  "message": "string"
+}
+```

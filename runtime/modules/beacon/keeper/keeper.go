@@ -31,7 +31,6 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/state"
-	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
@@ -48,10 +47,9 @@ var _ state.BeaconStateProvider = &Keeper{}
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
-	beaconCfg *config.Beacon,
 ) *Keeper {
 	return &Keeper{
-		beaconStore: store.NewBeaconStore(env.KVStoreService, beaconCfg),
+		beaconStore: store.NewBeaconStore(env.KVStoreService),
 	}
 }
 

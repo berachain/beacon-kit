@@ -128,3 +128,4 @@ func (f *Factory) IsRegisteredLog(log *ethtypes.Log) bool {
 	}
 	return true
 }
+

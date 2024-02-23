@@ -42,7 +42,9 @@ type ExecutionService interface {
 	) (*enginev1.PayloadIDBytes, error)
 
 	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(ctx context.Context, preStateHeader engine.ExecutionPayload) (bool, error)
+	NotifyNewPayload(
+		ctx context.Context, preStateHeader engine.ExecutionPayload, slot primitives.Slot,
+	) (bool, error)
 }
 
 type BuilderService interface {

@@ -45,7 +45,7 @@ import (
 type Handler struct {
 	cfg             *config.ABCI
 	builderService  *builder.Service
-	beaconChain     *blockchain.Service
+	chainService    *blockchain.Service
 	syncService     *sync.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
@@ -56,7 +56,7 @@ func NewHandler(
 	cfg *config.ABCI,
 	builderService *builder.Service,
 	syncService *sync.Service,
-	beaconChain *blockchain.Service,
+	chainService *blockchain.Service,
 	prepareProposal sdk.PrepareProposalHandler,
 	processProposal sdk.ProcessProposalHandler,
 ) *Handler {
@@ -64,7 +64,7 @@ func NewHandler(
 		cfg:             cfg,
 		builderService:  builderService,
 		syncService:     syncService,
-		beaconChain:     beaconChain,
+		chainService:    chainService,
 		prepareProposal: prepareProposal,
 		processProposal: processProposal,
 	}
@@ -96,7 +96,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Marshal the block into bytes.
-	bz, err := block.MarshalSSZ()
+	beaconBz, err := block.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
@@ -108,7 +108,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Inject the beacon kit block into the proposal.
-	resp.Txs = append([][]byte{bz}, resp.Txs...)
+	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 	return resp, nil
 }
 
@@ -122,12 +122,11 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Extract the beacon block from the ABCI request.
 	//
-	// TODO: I don't love how we have to use the BeaconConfig here.
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
 	block, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
-		h.beaconChain.BeaconCfg().ActiveForkVersion(primitives.Epoch(req.Height)),
+		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
@@ -136,28 +135,25 @@ func (h *Handler) ProcessProposalHandler(
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	if err = h.beaconChain.ReceiveBeaconBlock(
+	if err = h.chainService.ReceiveBeaconBlock(
 		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
 		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
+	// We have to keep a copy of beaconBz to re-inject it into the proposal after
+	// the underlying process proposal handler has run. This is to avoid making a copy
+	// of the entire request.
+	//
+	// TODO: there has to be a more friendly way to handle this, but hey it works.
+	beaconBz := req.Txs[h.cfg.BeaconBlockPosition]
+	defer func() {
+		req.Txs = append([][]byte{beaconBz}, req.Txs...)
+	}()
+	req.Txs = append(req.Txs[:h.cfg.BeaconBlockPosition], req.Txs[h.cfg.BeaconBlockPosition+1:]...)
+
 	// Run the remainder of the proposal. We remove the beacon block from the proposal
 	// before passing it to the next handler.
-	return h.processProposal(ctx, h.RemoveBeaconBlockFromTxs(req))
-}
-
-// removeBeaconBlockFromTxs removes the beacon block from the proposal.
-// TODO: optimize this function to avoid the giga memory copy.
-func (h *Handler) RemoveBeaconBlockFromTxs(
-	req *abci.RequestProcessProposal,
-) *abci.RequestProcessProposal {
-	req.Txs = removeAtIndex(req.Txs, h.cfg.BeaconBlockPosition)
-	return req
-}
-
-// removeAtIndex removes an element at a given index from a slice.
-func removeAtIndex[T any](s []T, index uint) []T {
-	return append(s[:index], s[index+1:]...)
+	return h.processProposal(ctx, req)
 }
