@@ -29,7 +29,6 @@ import (
 	"errors"
 	"reflect"
 
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -37,72 +36,58 @@ import (
 // Factory is a struct that can be used to unmarshal
 // Ethereum logs into objects with the appropriate types.
 type Factory struct {
-	// addressToAbi is a map of contract addresses to their ABIs.
-	addressToAbi map[common.Address]*ethabi.ABI
-	// sigToName is a map of event signatures to their names.
-	sigToName map[common.Hash]string
-	// sigToType is a map of event signatures to their corresponding types.
-	sigToType map[common.Hash]reflect.Type
+	// addressToAbi maps contract addresses to their Registry.
+	addressToAllocator map[common.Address]*TypeAllocator
 }
 
-// NewFactory returns a new Factory.
-func NewFactory() *Factory {
-	return &Factory{
-		addressToAbi: make(map[common.Address]*ethabi.ABI),
-		sigToName:    make(map[common.Hash]string),
-		sigToType:    make(map[common.Hash]reflect.Type),
+// NewFactory creates a new Factory with the given options.
+func NewFactory(opts ...Option[Factory]) (*Factory, error) {
+	f := &Factory{
+		addressToAllocator: make(map[common.Address]*TypeAllocator),
 	}
-}
-
-// RegisterEvent registers information of an event with the factory.
-func (f *Factory) RegisterEvent(
-	contractAddress common.Address,
-	contractAbi *ethabi.ABI,
-	eventName string,
-	eventType reflect.Type,
-) {
-	eventID := contractAbi.Events[eventName].ID
-	f.addressToAbi[contractAddress] = contractAbi
-	f.sigToName[eventID] = eventName
-	f.sigToType[eventID] = eventType
+	for _, opt := range opts {
+		if err := opt(f); err != nil {
+			return nil, err
+		}
+	}
+	return f, nil
 }
 
 // UnmarshalEthLog unmarshals an Ethereum log into an object
 // with the appropriate type, based on the registered event
 // corresponding to the log.
 func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
-	var (
-		contractAbi *ethabi.ABI
-		eventType   reflect.Type
-		eventName   string
-		ok          bool
-	)
-
 	// Get the event signature from the log.
 	sig := log.Topics[0]
 
 	// Get the ABI, type, and name of the event from the factory.
 	// This function only processes logs from contracts and events
 	// that have been registered with the factory.
-	if contractAbi, ok = f.addressToAbi[log.Address]; !ok {
-		return reflect.Value{}, errors.New("abi not found for log address")
-	}
-	if eventType, ok = f.sigToType[sig]; !ok {
-		return reflect.Value{}, errors.New("type not found for log signature")
-	}
-	if eventName, ok = f.sigToName[sig]; !ok {
-		return reflect.Value{}, errors.New("name not found for log signature")
+	registry, ok := f.addressToAllocator[log.Address]
+	if !ok {
+		return reflect.Value{}, errors.New("registry not found for contract address")
 	}
 
-	// Create a new instance of the event type.
-	into := reflect.New(eventType).Interface()
+	contractAbi := registry.GetABI()
+
+	eventName, err := registry.GetName(sig)
+	if err != nil {
+		return reflect.Value{}, err
+	}
+
+	// Allocate an empty object, which we can unmarshal the log data into.
+	into, err := registry.Allocate(sig)
+	if err != nil {
+		return reflect.Value{}, err
+	}
 
 	// Unpack the log data into the new instance.
-	if err := contractAbi.UnpackIntoInterface(
-		into, eventName, log.Data,
+	intoPtr := into.Interface()
+	if err = contractAbi.UnpackIntoInterface(
+		intoPtr, eventName, log.Data,
 	); err != nil {
 		return reflect.Value{}, err
 	}
 
-	return reflect.ValueOf(into), nil
+	return reflect.ValueOf(intoPtr), nil
 }
