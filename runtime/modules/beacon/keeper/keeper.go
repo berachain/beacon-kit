@@ -35,8 +35,8 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
 
-// Keeper maintains the link to data storage and exposes access to the underlying
-// `BeaconState` methods for the x/beacon module.
+// Keeper maintains the link to data storage and exposes access to the
+// underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	beaconStore *store.BeaconStore
 }
@@ -54,12 +54,12 @@ func NewKeeper(
 }
 
 // BeaconState returns the beacon state struct initialized with a given
-// context and the store key for the x/beacon module.
+// context and the store key.
 func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return k.beaconStore.WithContext(ctx)
 }
 
-// InitGenesis initializes the genesis state of the beacon module.
+// InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(ctx context.Context, data types.GenesisState) {
 	beaconState := k.BeaconState(ctx)
 	hash := common.HexToHash(data.Eth1GenesisHash)
@@ -70,7 +70,7 @@ func (k *Keeper) InitGenesis(ctx context.Context, data types.GenesisState) {
 	beaconState.SetFinalizedEth1BlockHash(hash)
 }
 
-// ExportGenesis exports the current state of the beacon module as genesis state.
+// ExportGenesis exports the current state of the module as genesis state.
 func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Eth1GenesisHash: k.BeaconState(ctx).GenesisEth1Hash().Hex(),

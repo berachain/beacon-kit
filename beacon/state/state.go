@@ -35,7 +35,8 @@ import (
 
 // BeaconStateProvider provides access to the current beacon state.
 type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state based on the supplied context.
+	// BeaconState returns the current beacon state based on the supplied
+	// context.
 	BeaconState(ctx context.Context) BeaconState
 }
 
@@ -78,13 +79,13 @@ type ReadOnlyForkChoice interface {
 	GetFinalizedEth1BlockHash() common.Hash
 }
 
-// ReadWriteDepositQueue defines a struct which has read and write access to deposit queue.
+// ReadWriteDepositQueue has read and write access to deposit queue.
 type ReadWriteDepositQueue interface {
 	EnqueueDeposits([]*consensusv1.Deposit) error
 	DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error)
 }
 
-// ReadOnlyWithdrawals defines a struct which only has read access to withdrawal methods.
+// ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
 	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
 }

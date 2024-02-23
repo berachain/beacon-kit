@@ -44,7 +44,8 @@ type Caller interface {
 	// Start
 	Start(context.Context)
 
-	// IsConnected returns true if the client is connected to the execution node.
+	// IsConnected returns true if the client is connected to the execution
+	// node.
 	IsConnected() bool
 
 	// Engine API Related Methods
@@ -52,13 +53,18 @@ type Caller interface {
 	// NewPayload creates a new payload for the Ethereum execution node.
 	NewPayload(ctx context.Context, payload engine.ExecutionPayload,
 		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
+
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
-		ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
+		ctx context.Context, state *enginev1.ForkchoiceState,
+		attrs engine.PayloadAttributer,
 	) (*enginev1.PayloadIDBytes, []byte, error)
+
 	// GetPayload retrieves the payload from the Ethereum execution node.
-	GetPayload(ctx context.Context, payloadID primitives.PayloadID,
-		slot primitives.Slot) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	GetPayload(
+		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+
 	// ExecutionBlockByHash retrieves the execution block by its hash.
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 		withTxs bool) (*enginev1.ExecutionBlock, error)
@@ -66,12 +72,15 @@ type Caller interface {
 	// Eth Namespace Methods
 	//
 	// BlockByHash retrieves the block by its hash.
-	HeaderByHash(ctx context.Context, hash common.Hash) (*gethcoretypes.Header, error)
+	HeaderByHash(
+		ctx context.Context,
+		hash common.Hash,
+	) (*gethcoretypes.Header, error)
 }
 
-// ExecutionPayloadRebuilder specifies a service capable of reassembling a complete beacon
-// block, inclusive of an execution payload, using a signed beacon block and access
-// to an execution client's engine API.
+// ExecutionPayloadRebuilder specifies a service capable of reassembling a
+// complete beacon block, inclusive of an execution payload, using a signed
+// beacon block and access to an execution client's engine API.
 type PayloadReconstructor interface {
 	ReconstructFullBlock(
 		ctx context.Context, blindedBlock consensus.ReadOnlyBeaconKitBlock,

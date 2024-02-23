@@ -60,7 +60,12 @@ func Test_Queue(t *testing.T) {
 		// Test length after first push
 		qlen, err = q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(1), qlen, "Queue should have 1 item after first push")
+		require.Equal(
+			t,
+			uint64(1),
+			qlen,
+			"Queue should have 1 item after first push",
+		)
 
 		err = q.Push(ctx, 2)
 		require.NoError(t, err)
@@ -68,7 +73,12 @@ func Test_Queue(t *testing.T) {
 		// Test length after second push
 		qlen, err = q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(2), qlen, "Queue should have 2 items after second push")
+		require.Equal(
+			t,
+			uint64(2),
+			qlen,
+			"Queue should have 2 items after second push",
+		)
 
 		v, err := q.Pop(ctx)
 		require.NoError(t, err)
@@ -77,7 +87,12 @@ func Test_Queue(t *testing.T) {
 		// Test length after first pop
 		qlen, err = q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(1), qlen, "Queue should have 1 item after first pop")
+		require.Equal(
+			t,
+			uint64(1),
+			qlen,
+			"Queue should have 1 item after first pop",
+		)
 
 		v, err = q.Pop(ctx)
 		require.NoError(t, err)
@@ -86,7 +101,12 @@ func Test_Queue(t *testing.T) {
 		// Test length after clearing the queue
 		qlen, err = q.Len(ctx)
 		require.NoError(t, err)
-		require.Equal(t, uint64(0), qlen, "Queue should be empty after clearing")
+		require.Equal(
+			t,
+			uint64(0),
+			qlen,
+			"Queue should be empty after clearing",
+		)
 
 		// Attempt to peek at the top value of the queue, expecting an error
 		// since the queue should now be empty
@@ -247,7 +267,8 @@ func (s MockStore) Iterator(start, end []byte) (store.Iterator, error) {
 	return iter, nil
 }
 
-// ReverseIterator wraps the underlying DB's ReverseIterator method panicing on error.
+// ReverseIterator wraps the underlying DB's ReverseIterator method panicing on
+// error.
 func (s MockStore) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	iter, err := s.DB.ReverseIterator(start, end)
 	if err != nil {

@@ -25,7 +25,8 @@
 
 package service
 
-// Option is a function type that takes a pointer to a Service and returns an error.
+// Option is a function type that takes a pointer to a Service and returns an
+// error.
 type Option[T any] func(*T) error
 
 // New helps us to create a new Service with the provided options.

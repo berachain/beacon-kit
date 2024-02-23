@@ -87,8 +87,11 @@ func DepositContractEvents() (map[string]ethabi.Event, error) {
 	return stakingAbi.Events, nil
 }
 
-// NewCallbackHandler creates a new callback handler from the given staking service.
-func NewCallbackHandler(stakingService logs.StakingService) (callback.LogHandler, error) {
+// NewCallbackHandler creates a new callback handler from the given staking
+// service.
+func NewCallbackHandler(
+	stakingService logs.StakingService,
+) (callback.LogHandler, error) {
 	logHander := service.New[logs.Handler](
 		logs.WithStakingService(stakingService),
 	)

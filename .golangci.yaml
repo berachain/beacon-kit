@@ -156,10 +156,10 @@ linters-settings:
     # Max line length, lines longer will be reported.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option.
     # Default: 120.
-    line-length: 99
+    line-length: 80
     # Tab width in spaces.
     # Default: 1
-    tab-width: 4
+    tab-width: 1
  
   inamedparam:
     # Skips check for interface methods with only a single parameter.
@@ -174,7 +174,7 @@ linters-settings:
   nolintlint:
     # Exclude following linters from requiring an explanation.
     # Default: []
-    allow-no-explanation: [ funlen, gocognit, lll, dupword]
+    allow-no-explanation: [ funlen, gocognit, lll, dupword, gomnd ]
     # Enable to require an explanation of nonzero length after each nolint directive.
     # Default: false
     require-explanation: true
@@ -326,7 +326,7 @@ issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
   # Default: 3
-  max-same-issues: 50
+  max-same-issues: 3
 
   exclude-rules:
     - source: "(noinspection|TODO)"

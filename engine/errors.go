@@ -28,14 +28,19 @@ package engine
 import "github.com/pkg/errors"
 
 var (
-	// ErrNilAttributesPassedToClient is returned when nil attributes are passed to the client.
-	ErrNilAttributesPassedToClient = errors.New("nil attributes passed to client")
+	// ErrNilAttributesPassedToClient is returned when nil attributes are
+	// passed to the client.
+	ErrNilAttributesPassedToClient = errors.New(
+		"nil attributes passed to client",
+	)
 	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
 	// attributes was provided.
-	ErrInvalidPayloadAttributeVersion = errors.New("invalid payload attribute version")
-	// ErrInvalidPayloadType indicates an invalid payload type was provided for an RPC call.
+	ErrInvalidPayloadAttributeVersion = errors.New(
+		"invalid payload attribute version")
+	// ErrInvalidPayloadType indicates an invalid payload type
+	// was provided for an RPC call.
 	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
-	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was provided for
-	// getting a payload.
+	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
+	// provided for getting a payload.
 	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
 )

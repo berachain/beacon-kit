@@ -55,7 +55,9 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 }
 
 // delegate delegates the deposit to the validator.
-func (k *Keeper) delegate(ctx context.Context, deposit *consensusv1.Deposit) (uint64, error) {
+func (k *Keeper) delegate(
+	ctx context.Context, deposit *consensusv1.Deposit,
+) (uint64, error) {
 	validatorPK := &ed25519.PubKey{}
 	err := validatorPK.Unmarshal(deposit.GetValidatorPubkey())
 	if err != nil {
@@ -63,7 +65,9 @@ func (k *Keeper) delegate(ctx context.Context, deposit *consensusv1.Deposit) (ui
 	}
 	amount := deposit.GetAmount()
 	valConsAddr := sdk.GetConsAddress(validatorPK)
-	validator, err := k.stakingKeeper.GetValidator(ctx, sdk.ValAddress(valConsAddr))
+	validator, err := k.stakingKeeper.GetValidator(
+		ctx, sdk.ValAddress(valConsAddr),
+	)
 	if err != nil {
 		if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
 			validator, err = k.createValidator(validatorPK, amount)
@@ -79,12 +83,15 @@ func (k *Keeper) delegate(ctx context.Context, deposit *consensusv1.Deposit) (ui
 }
 
 // undelegate undelegates the validator.
-func (k *Keeper) undelegate(_ context.Context, _ *enginev1.Withdrawal) (uint64, error) {
+func (k *Keeper) undelegate(
+	_ context.Context, _ *enginev1.Withdrawal,
+) (uint64, error) {
 	// TODO: implement undelegate
 	return 0, nil
 }
 
-// createValidator creates a new validator with the given public key and amount of tokens.
+// createValidator creates a new validator with the given public
+// key and amount of tokens.
 func (k *Keeper) createValidator(
 	validatorPK sdkcrypto.PubKey,
 	amount uint64) (sdkstaking.Validator, error) {
@@ -99,7 +106,8 @@ func (k *Keeper) createValidator(
 	return val, err
 }
 
-// ApplyChanges applies the deposits and withdrawals to the underlying staking module.
+// ApplyChanges applies the deposits and withdrawals to the underlying
+// staking module.
 func (k *Keeper) ApplyChanges(
 	ctx context.Context,
 	deposits []*consensusv1.Deposit,

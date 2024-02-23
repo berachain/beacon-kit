@@ -96,9 +96,13 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 
 	// Create a new instance of the event type.
 	into := reflect.New(eventType).Interface()
+
 	// Unpack the log data into the new instance.
-	if err := contractAbi.UnpackIntoInterface(into, eventName, log.Data); err != nil {
+	if err := contractAbi.UnpackIntoInterface(
+		into, eventName, log.Data,
+	); err != nil {
 		return reflect.Value{}, err
 	}
+
 	return reflect.ValueOf(into), nil
 }

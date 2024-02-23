@@ -45,11 +45,13 @@ func DefaultValidatorConfig() Validator {
 
 // Config represents the configuration struct for the validator.
 type Validator struct {
-	// Suggested FeeRecipient is the address that will receive the transaction fees
+	// Suggested FeeRecipient is the address that will receive the transaction
+	// fees
 	// produced by any blocks from this node.
 	SuggestedFeeRecipient common.Address
 
-	// Graffiti is the string that will be included in the graffiti field of the beacon block.
+	// Graffiti is the string that will be included in the
+	// graffiti field of the beacon block.
 	Graffiti string
 
 	// Rando reveals to track
@@ -73,6 +75,7 @@ func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
 
 // Template returns the configuration template.
 func (c Validator) Template() string {
+	//nolint:lll
 	return `
 [beacon-kit.beacon-config.validator]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 

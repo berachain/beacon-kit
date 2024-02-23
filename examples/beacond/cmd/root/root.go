@@ -52,7 +52,8 @@ import (
 	"github.com/itsdevbear/bolaris/io/cli/tos"
 )
 
-// NewRootCmd creates a new root command for simd. It is called once in the main function.
+// NewRootCmd creates a new root command for simd. It is called once in the main
+// function.
 func NewRootCmd() *cobra.Command {
 	var (
 		autoCliOpts        autocli.AppOptions
@@ -87,7 +88,10 @@ func NewRootCmd() *cobra.Command {
 			cmd.SetErr(cmd.ErrOrStderr())
 
 			clientCtx = clientCtx.WithCmdContext(cmd.Context()).WithViper("")
-			clientCtx, err := client.ReadPersistentCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.ReadPersistentCommandFlags(
+				clientCtx,
+				cmd.Flags(),
+			)
 			if err != nil {
 				return err
 			}
@@ -99,7 +103,11 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			customClientTemplate, customClientConfig := initClientConfig()
-			clientCtx, err = config.CreateClientConfig(clientCtx, customClientTemplate, customClientConfig)
+			clientCtx, err = config.CreateClientConfig(
+				clientCtx,
+				customClientTemplate,
+				customClientConfig,
+			)
 			if err != nil {
 				return err
 			}
@@ -111,11 +119,22 @@ func NewRootCmd() *cobra.Command {
 			customAppTemplate, customAppConfig := initAppConfig()
 			customCMTConfig := initCometBFTConfig()
 
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
+			return server.InterceptConfigsPreRunHandler(
+				cmd,
+				customAppTemplate,
+				customAppConfig,
+				customCMTConfig,
+			)
 		},
 	}
 
-	initRootCmd(rootCmd, clientCtx.TxConfig, clientCtx.InterfaceRegistry, clientCtx.Codec, moduleBasicManager)
+	initRootCmd(
+		rootCmd,
+		clientCtx.TxConfig,
+		clientCtx.InterfaceRegistry,
+		clientCtx.Codec,
+		moduleBasicManager,
+	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
 		panic(err)
@@ -147,15 +166,23 @@ func ProvideClientContext(
 		WithHomeDir(app.DefaultNodeHome).
 		WithViper("") // uses by default the binary name as prefix
 
-	// Read the config to overwrite the default values with the values from the config file
+	// Read the config to overwrite the default values with the values from the
+	// config file
 	customClientTemplate, customClientConfig := initClientConfig()
-	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(clientCtx, customClientTemplate, customClientConfig)
+	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(
+		clientCtx,
+		customClientTemplate,
+		customClientConfig,
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	// textual is enabled by default, we need to re-create the tx config grpc instead of bank keeper.
-	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.NewGRPCCoinMetadataQueryFn(clientCtx)
+	// textual is enabled by default, we need to re-create the tx config grpc
+	// instead of bank keeper.
+	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.NewGRPCCoinMetadataQueryFn(
+		clientCtx,
+	)
 	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
 	if err != nil {
 		panic(err)
@@ -165,8 +192,14 @@ func ProvideClientContext(
 	return clientCtx
 }
 
-func ProvideKeyring(clientCtx client.Context, addressCodec address.Codec) (clientv2keyring.Keyring, error) {
-	kb, err := client.NewKeyringFromBackend(clientCtx, clientCtx.Keyring.Backend())
+func ProvideKeyring(
+	clientCtx client.Context,
+	addressCodec address.Codec,
+) (clientv2keyring.Keyring, error) {
+	kb, err := client.NewKeyringFromBackend(
+		clientCtx,
+		clientCtx.Keyring.Backend(),
+	)
 	if err != nil {
 		return nil, err
 	}

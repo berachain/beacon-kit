@@ -38,36 +38,56 @@ import (
 )
 
 func Test_HashTreeRootEqualInputs(t *testing.T) {
-	// Test with slices of varying sizes to ensure robustness across different conditions
+	// Test with slices of varying sizes to ensure robustness across different
+	// conditions
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
-		t.Run(fmt.Sprintf("Size%d", size*sha256.MinParallelizationSize), func(t *testing.T) {
-			largeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
-			secondLargeSlice := make([][32]byte, size*sha256.MinParallelizationSize)
-			// Assuming hash reduces size by half
-			hash1 := make([][32]byte, size*sha256.MinParallelizationSize/2)
-			var hash2 [][32]byte
-			var err error
+		t.Run(
+			fmt.Sprintf("Size%d", size*sha256.MinParallelizationSize),
+			func(t *testing.T) {
+				largeSlice := make(
+					[][32]byte,
+					size*sha256.MinParallelizationSize,
+				)
+				secondLargeSlice := make(
+					[][32]byte,
+					size*sha256.MinParallelizationSize,
+				)
+				// Assuming hash reduces size by half
+				hash1 := make([][32]byte, size*sha256.MinParallelizationSize/2)
+				var hash2 [][32]byte
+				var err error
 
-			wg := sync.WaitGroup{}
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				var tempHash [][32]byte
-				tempHash, err = sha256.BuildParentTreeRoots(largeSlice)
-				copy(hash1, tempHash)
-			}()
-			wg.Wait()
-			require.NoError(t, err)
+				wg := sync.WaitGroup{}
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					var tempHash [][32]byte
+					tempHash, err = sha256.BuildParentTreeRoots(largeSlice)
+					copy(hash1, tempHash)
+				}()
+				wg.Wait()
+				require.NoError(t, err)
 
-			hash2, err = sha256.BuildParentTreeRoots(secondLargeSlice)
-			require.NoError(t, err)
+				hash2, err = sha256.BuildParentTreeRoots(secondLargeSlice)
+				require.NoError(t, err)
 
-			require.Equal(t, len(hash1), len(hash2), "Hash lengths should be equal")
-			for i, r := range hash1 {
-				require.Equal(t, r, hash2[i], fmt.Sprintf("Hash mismatch at index %d", i))
-			}
-		})
+				require.Equal(
+					t,
+					len(hash1),
+					len(hash2),
+					"Hash lengths should be equal",
+				)
+				for i, r := range hash1 {
+					require.Equal(
+						t,
+						r,
+						hash2[i],
+						fmt.Sprintf("Hash mismatch at index %d", i),
+					)
+				}
+			},
+		)
 	}
 }
 
@@ -79,14 +99,30 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 		size    int
 		wantErr bool
 	}{
-		{"BelowMinParallelizationSize", sha256.MinParallelizationSize / 2, false},
+		{
+			"BelowMinParallelizationSize",
+			sha256.MinParallelizationSize / 2,
+			false,
+		},
 		{"AtMinParallelizationSize", sha256.MinParallelizationSize, false},
-		{"AboveMinParallelizationSize", sha256.MinParallelizationSize * 2, false},
+		{
+			"AboveMinParallelizationSize",
+			sha256.MinParallelizationSize * 2,
+			false,
+		},
 		{"SmallSize", 16, false},
 		{"MediumSize", 64, false},
 		{"LargeSize", 128, false},
-		{"TestRemainderStartIndexSmall", sha256.MinParallelizationSize + 6, false},
-		{"TestRemainderStartIndexBig", sha256.MinParallelizationSize - 2, false},
+		{
+			"TestRemainderStartIndexSmall",
+			sha256.MinParallelizationSize + 6,
+			false,
+		},
+		{
+			"TestRemainderStartIndexBig",
+			sha256.MinParallelizationSize - 2,
+			false,
+		},
 		{"TestOddLength", sha256.MinParallelizationSize + 1, true},
 	}
 
@@ -101,7 +137,12 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 					inputList[i][j] = byte(randGen.Intn(256))
 				}
 			}
-			requireGoHashTreeEquivalence(t, inputList, runtime.GOMAXPROCS(0)-1, tc.wantErr)
+			requireGoHashTreeEquivalence(
+				t,
+				inputList,
+				runtime.GOMAXPROCS(0)-1,
+				tc.wantErr,
+			)
 		})
 	}
 }
@@ -111,5 +152,9 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
 	_, err := sha256.BuildParentTreeRootsWithNRoutines(inputList, 0)
-	require.NoError(t, err, "BuildParentTreeRootsWithNRoutines should handle n=0 without error")
+	require.NoError(
+		t,
+		err,
+		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
+	)
 }

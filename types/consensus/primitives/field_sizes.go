@@ -26,10 +26,12 @@
 package primitives
 
 const (
-	// MaxTxsPerPayloadLength defines the maximum number of transactions that can
+	// MaxTxsPerPayloadLength defines the maximum number of transactions that
+	// can
 	// be included in a payload.
 	MaxTxsPerPayloadLength = 1048576
-	// MaxBytesPerTxLength defines the maximum number of bytes that can be included
+	// MaxBytesPerTxLength defines the maximum number of bytes that can be
+	// included
 	// in a transaction.
 	MaxBytesPerTxLength = 1073741824
 	// MaxWithdrawalsPerPayloadLength defines the

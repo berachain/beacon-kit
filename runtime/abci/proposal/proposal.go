@@ -79,13 +79,17 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// TODO: Make this more sophisticated.
+	//nolint:lll // couldnt fix.
 	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == sync.StatusExecutionAhead {
-		return nil, fmt.Errorf("err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status)
+		return nil, fmt.Errorf(
+			"err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status,
+		)
 	}
 
-	// We start by requesting the validator service to build us a block. This may
-	// be from pulling a previously built payload from the local cache or it may be
-	// by asking for a forkchoice from the execution client, depending on timing.
+	// We start by requesting the validator service to build us a block. This
+	// may be from pulling a previously built payload from the local cache or it
+	// may be by asking for a forkchoice from the execution client, depending on
+	// timing.
 	block, err := h.builderService.RequestBestBlock(
 		ctx, primitives.Slot(req.Height), ctx.BlockHeader().AppHash,
 	)
@@ -129,7 +133,8 @@ func (h *Handler) ProcessProposalHandler(
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
+		return &abci.ResponseProcessProposal{
+			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
 	// If we get any sort of error from the execution client, we bubble
@@ -139,21 +144,25 @@ func (h *Handler) ProcessProposalHandler(
 		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
-		return &abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}, err
+		return &abci.ResponseProcessProposal{
+			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	// We have to keep a copy of beaconBz to re-inject it into the proposal after
-	// the underlying process proposal handler has run. This is to avoid making a copy
-	// of the entire request.
+	// We have to keep a copy of beaconBz to re-inject it into the proposal
+	// after the underlying process proposal handler has run. This is to avoid
+	// making a
+	// copy of the entire request.
 	//
-	// TODO: there has to be a more friendly way to handle this, but hey it works.
-	beaconBz := req.Txs[h.cfg.BeaconBlockPosition]
+	// TODO: there has to be a more friendly way to handle this, but hey it
+	// works.
+	pos := h.cfg.BeaconBlockPosition
+	beaconBz := req.Txs[pos]
 	defer func() {
 		req.Txs = append([][]byte{beaconBz}, req.Txs...)
 	}()
-	req.Txs = append(req.Txs[:h.cfg.BeaconBlockPosition], req.Txs[h.cfg.BeaconBlockPosition+1:]...)
+	req.Txs = append(
+		req.Txs[:pos], req.Txs[pos+1:]...,
+	)
 
-	// Run the remainder of the proposal. We remove the beacon block from the proposal
-	// before passing it to the next handler.
 	return h.processProposal(ctx, req)
 }

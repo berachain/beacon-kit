@@ -53,12 +53,14 @@ type FCUConfig struct {
 	// execution client's head to be.
 	HeadEth1Hash common.Hash
 
-	// ProposingSlot is the slot that the execution client should propose a block
+	// ProposingSlot is the slot that the execution client should propose a
+	// block
 	// for if Attributes neither nil nor empty.
 	ProposingSlot primitives.Slot
 
-	// Attributes is a list of payload attributes to include in a forkchoice update
-	// to the execution client. It is used to signal to the execution client that
+	// Attributes is a list of payload attributes to include in a forkchoice
+	// update to the execution client. It is used to signal to the execution
+	// client that
 	// it should build a payload.
 	Attributes engine.PayloadAttributer
 }

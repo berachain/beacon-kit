@@ -74,6 +74,7 @@ require (
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20230228205207-28762a7b9294
 	github.com/prysmaticlabs/prysm/v5 v5.0.0
+	github.com/segmentio/golines v0.12.2
 	github.com/sourcegraph/conc v0.3.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
@@ -120,6 +121,8 @@ require (
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.0 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
 	github.com/alecthomas/go-check-sumtype v0.1.4 // indirect
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
+	github.com/alecthomas/units v0.0.0-20231202071711-9a357b53e9c9 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.2 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
@@ -176,6 +179,7 @@ require (
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
 	github.com/daixiang0/gci v0.12.1 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
+	github.com/dave/dst v0.27.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.3.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
@@ -341,6 +345,7 @@ require (
 	github.com/mbilski/exhaustivestruct v1.2.0 // indirect
 	github.com/mdp/qrterminal/v3 v3.2.0 // indirect
 	github.com/mgechev/revive v1.3.7 // indirect
+	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
@@ -432,6 +437,7 @@ require (
 	github.com/urfave/cli/v2 v2.25.7 // indirect
 	github.com/uudashr/gocognit v1.1.2 // indirect
 	github.com/vbatts/tar-split v0.11.5 // indirect
+	github.com/x-cray/logrus-prefixed-formatter v0.5.2 // indirect
 	github.com/xen0n/gosmopolitan v1.2.2 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
@@ -475,6 +481,7 @@ require (
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240205150955-31a09d347014 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240221002015-b0ce06bbee7c // indirect
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

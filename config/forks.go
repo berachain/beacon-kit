@@ -37,7 +37,9 @@ var _ BeaconKitConfig[Forks] = &Forks{}
 // DefaultForksConfig returns the default forks configuration.
 func DefaultForksConfig() Forks {
 	return Forks{
-		DenebForkEpoch: primitives.Epoch(4294967295), //nolint:gomnd // we want it disabled rn.
+		DenebForkEpoch: primitives.Epoch(
+			4294967295, //nolint:gomnd
+		),
 	}
 }
 

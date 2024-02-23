@@ -34,5 +34,9 @@ import (
 
 // ValsetChangeProvider is the interface for applying validator set changes.
 type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+	ApplyChanges(
+		context.Context,
+		[]*consensusv1.Deposit,
+		[]*enginev1.Withdrawal,
+	) error
 }

@@ -33,5 +33,9 @@ import (
 )
 
 type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+	ApplyChanges(
+		context.Context,
+		[]*consensusv1.Deposit,
+		[]*enginev1.Withdrawal,
+	) error
 }

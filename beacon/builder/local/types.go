@@ -35,12 +35,14 @@ import (
 )
 
 type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, fcuConfig *execution.FCUConfig,
 	) (*enginev1.PayloadIDBytes, error)
 
 	// GetPayload gets a payload for a given payload ID and slot.
-	GetPayload(ctx context.Context, payloadID primitives.PayloadID,
-		slot primitives.Slot) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	GetPayload(
+		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

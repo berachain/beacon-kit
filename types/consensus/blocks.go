@@ -49,8 +49,8 @@ func NewBeaconKitBlock(
 		block = &consensusv1.BeaconKitBlockCapella{
 			Slot: slot,
 			Body: &consensusv1.BeaconKitBlockBodyCapella{
-				RandaoReveal: make([]byte, 96), //nolint:gomnd // 96 bytes for RandaoReveal.
-				Graffiti:     make([]byte, 32), //nolint:gomnd // 32 bytes for Graffiti.
+				RandaoReveal: make([]byte, 96), //nolint:gomnd
+				Graffiti:     make([]byte, 32), //nolint:gomnd
 			},
 		}
 	default:

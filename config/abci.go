@@ -42,7 +42,8 @@ func DefaultABCIConfig() ABCI {
 
 // ABCI is a configuration struct for the cosmos proposal handler.
 type ABCI struct {
-	// BeaconBlockPosition is the position of the beacon block in the cometbft proposal.
+	// BeaconBlockPosition is the position of the beacon block
+	// in the cometbft proposal.
 	BeaconBlockPosition uint
 }
 

@@ -47,5 +47,9 @@ type BeaconStateProvider interface {
 // ValsetChangeProvider is an interface that provides the
 // ability to apply changes to the validator set.
 type ValsetChangeProvider interface {
-	ApplyChanges(context.Context, []*consensusv1.Deposit, []*enginev1.Withdrawal) error
+	ApplyChanges(
+		context.Context,
+		[]*consensusv1.Deposit,
+		[]*enginev1.Withdrawal,
+	) error
 }

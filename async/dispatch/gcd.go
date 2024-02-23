@@ -39,8 +39,11 @@ const (
 	// DefaultQueueSize is the default size of a queue.
 	DefaultQueueSize = uint16(64) // todo: make this configurable.
 
-	// DefaultConcurrentQueueWorkerCount is the default size of a concurrent queue.
-	DefaultConcurrentQueueWorkerCount = uint16(64) // todo: make this configurable.
+	// DefaultConcurrentQueueWorkerCount is the default size of a concurrent
+	// queue.
+	DefaultConcurrentQueueWorkerCount = uint16(
+		64,
+	) // todo: make this configurable.
 )
 
 // QueueType represents the type of a queue.
@@ -91,7 +94,9 @@ func NewGrandCentralDispatch(opts ...Option) (*GrandCentralDispatch, error) {
 }
 
 // Dispatch sends a value to the feed associated with the provided key.
-func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Queue {
+func (gcd *GrandCentralDispatch) CreateQueue(
+	id string, queueType QueueType,
+) Queue {
 	gcd.mu.Lock()
 	defer gcd.mu.Unlock()
 
@@ -108,12 +113,20 @@ func (gcd *GrandCentralDispatch) CreateQueue(id string, queueType QueueType) Que
 	case QueueTypeSerial:
 		queue = dqueue.NewDispatchQueue(1, DefaultQueueSize)
 	case QueueTypeConcur:
-		queue = dqueue.NewDispatchQueue(DefaultConcurrentQueueWorkerCount, DefaultQueueSize)
+		queue = dqueue.NewDispatchQueue(
+			DefaultConcurrentQueueWorkerCount, DefaultQueueSize,
+		)
 	default:
 		panic("unknown queue type")
 	}
 
-	gcd.logger.Info("intialized new dispatch queue", "id", id, "type", queueType)
+	gcd.logger.Info(
+		"intialized new dispatch queue",
+		"id",
+		id,
+		"type",
+		queueType,
+	)
 	gcd.queues[id] = queue
 	return queue
 }

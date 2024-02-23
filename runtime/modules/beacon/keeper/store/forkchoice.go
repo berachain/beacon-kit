@@ -48,8 +48,8 @@ func (s *BeaconStore) GetLastValidHead() common.Hash {
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
-func (s *BeaconStore) SetSafeEth1BlockHash(safeBlockHash common.Hash) {
-	if err := s.fcSafeEth1BlockHash.Set(s.ctx, safeBlockHash[:]); err != nil {
+func (s *BeaconStore) SetSafeEth1BlockHash(blockHash common.Hash) {
+	if err := s.fcSafeEth1BlockHash.Set(s.ctx, blockHash[:]); err != nil {
 		panic(err)
 	}
 }
@@ -64,8 +64,8 @@ func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (s *BeaconStore) SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash) {
-	if err := s.fcFinalizedEth1BlockHash.Set(s.ctx, finalizedBlockHash[:]); err != nil {
+func (s *BeaconStore) SetFinalizedEth1BlockHash(blockHash common.Hash) {
+	if err := s.fcFinalizedEth1BlockHash.Set(s.ctx, blockHash[:]); err != nil {
 		panic(err)
 	}
 }

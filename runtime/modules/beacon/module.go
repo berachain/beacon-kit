@@ -42,10 +42,6 @@ var (
 	_ module.HasGenesis     = AppModule{}
 )
 
-// ==============================================================================
-// AppModule
-// ==============================================================================
-
 // AppModule implements an application module for the evm module.
 type AppModule struct {
 	keeper *keeper.Keeper

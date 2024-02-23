@@ -76,7 +76,11 @@ func FuzzHandlerSimple(f *testing.F) {
 		require.NoError(t, err)
 		require.Equal(t, deposit, latestDeposit)
 		require.Equal(t, deposit.GetAmount(), latestDeposit.GetAmount())
-		require.Equal(t, deposit.GetValidatorPubkey(), latestDeposit.GetValidatorPubkey())
+		require.Equal(
+			t,
+			deposit.GetValidatorPubkey(),
+			latestDeposit.GetValidatorPubkey(),
+		)
 		require.Equal(t,
 			deposit.GetWithdrawalCredentials(),
 			latestDeposit.GetWithdrawalCredentials())
@@ -103,38 +107,45 @@ func FuzzHandlerMulti(f *testing.F) {
 	// withdrawalEvent := events[withdrawalEventName]
 
 	f.Add(uint64(100), []byte("pubkey"), uint64(1))
-	f.Fuzz(func(t *testing.T, nDeposits uint64, seekPubKey []byte, initAmount uint64) {
-		var (
-			deposit       *consensusv1.Deposit
-			latestDeposit *consensusv1.Deposit
-			log           *coretypes.Log
-			// We don't fuzz withdrawalCredentials because it's a fixed length
-			// that prevents us from generating a variety of inputs.
-			withdrawalCredentials = []byte("12345678901234567890")
-		)
+	f.Fuzz(
+		func(t *testing.T, nDeposits uint64, seekPubKey []byte, initAmount uint64) {
+			var (
+				deposit       *consensusv1.Deposit
+				latestDeposit *consensusv1.Deposit
+				log           *coretypes.Log
+				// We don't fuzz withdrawalCredentials because it's a fixed
+				// length
+				// that prevents us from generating a variety of inputs.
+				withdrawalCredentials = []byte("12345678901234567890")
+			)
 
-		for i := uint64(0); i < nDeposits; i++ {
-			i := i
-			// Deposit
-			var pubKey []byte
-			pubKey = append(pubKey, seekPubKey...)
-			pubKey = append(pubKey, []byte(strconv.Itoa(int(i)))...)
-			deposit = consensus.NewDeposit(pubKey, initAmount+i, withdrawalCredentials)
-			require.Equal(t, initAmount+i, deposit.GetAmount())
-			require.Equal(t, pubKey, deposit.GetValidatorPubkey())
+			for i := uint64(0); i < nDeposits; i++ {
+				i := i
+				// Deposit
+				var pubKey []byte
+				pubKey = append(pubKey, seekPubKey...)
+				pubKey = append(pubKey, []byte(strconv.Itoa(int(i)))...)
+				deposit = consensus.NewDeposit(
+					pubKey,
+					initAmount+i,
+					withdrawalCredentials,
+				)
+				require.Equal(t, initAmount+i, deposit.GetAmount())
+				require.Equal(t, pubKey, deposit.GetValidatorPubkey())
 
-			log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
+				log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
+				require.NoError(t, err)
+				err = callbackHandler.HandleLog(ctx, log)
+				require.NoError(t, err)
+
+				latestDeposit, err = stakingService.MostRecentDeposit()
+				require.NoError(t, err)
+				require.Equal(t, deposit, latestDeposit)
+
+				require.Equal(t, int(i+1), stakingService.NumPendingDeposits())
+			}
+			err = stakingService.ApplyDeposits(ctx)
 			require.NoError(t, err)
-			err = callbackHandler.HandleLog(ctx, log)
-			require.NoError(t, err)
-
-			latestDeposit, err = stakingService.MostRecentDeposit()
-			require.NoError(t, err)
-			require.Equal(t, deposit, latestDeposit)
-
-			require.Equal(t, int(i+1), stakingService.NumPendingDeposits())
-		}
-		err = stakingService.ApplyDeposits(ctx)
-		require.NoError(t, err)
-	})
+		},
+	)
 }

@@ -49,7 +49,7 @@ type Registry struct {
 	// services is a map of service type -> service instance.
 	services map[reflect.Type]Basic
 	// serviceTypes is an ordered slice of registered service types.
-	serviceTypes []reflect.Type // keep an ordered slice of registered service types.
+	serviceTypes []reflect.Type
 }
 
 // NewRegistry starts a registry instance for convenience.
@@ -98,8 +98,9 @@ func (s *Registry) RegisterService(service Basic) error {
 }
 
 // FetchService takes in a struct pointer and sets the value of that pointer
-// to a service currently stored in the service registry. This ensures the input argument is
-// set to the right pointer that refers to the originally registered service.
+// to a service currently stored in the service registry. This ensures the
+// input argument is set to the right pointer that refers to the originally
+// registered service.
 func (s *Registry) FetchService(service interface{}) error {
 	if reflect.TypeOf(service).Kind() != reflect.Ptr {
 		return errInputIsNotPointer(reflect.TypeOf(service))

@@ -28,8 +28,13 @@ package jwt
 import "errors"
 
 var (
-	// ErrLengthMismatch is returned when the JWT secret length is not as expected.
-	ErrLengthMismatch = errors.New("JWT secret length mismatch")
-	// ErrContainsIllegalCharacter is returned when the JWT secret contains illegal characters.
-	ErrContainsIllegalCharacter = errors.New("JWT secret contains illegal character(s)")
+	// ErrLengthMismatch is returned when a JWT secret length is not as
+	// expected.
+	ErrLengthMismatch = errors.New(
+		"JWT secret length mismatch")
+
+	// ErrContainsIllegalCharacter is returned when a JWT secret contains
+	// illegal characters.
+	ErrContainsIllegalCharacter = errors.New(
+		"JWT secret contains illegal character(s)")
 )

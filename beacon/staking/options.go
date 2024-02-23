@@ -27,18 +27,21 @@ package staking
 
 import "github.com/itsdevbear/bolaris/runtime/service"
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
+// WithBaseService sets the BaseService for the Service.
+func WithBaseService(
+	base service.BaseService,
+) service.Option[Service] {
 	return func(s *Service) error {
 		s.BaseService = base
 		return nil
 	}
 }
 
-// WithValsetChangeProvider returns an Option that sets the ValsetChangeProvider
-// for the Service. This is used to inject the dependency that handles
-// the application of changes to the validator set.
-func WithValsetChangeProvider(vcp ValsetChangeProvider) service.Option[Service] {
+// WithValsetChangeProvider returns an Option that sets
+// the ValsetChangeProvider for the Service.
+func WithValsetChangeProvider(
+	vcp ValsetChangeProvider,
+) service.Option[Service] {
 	return func(s *Service) error {
 		s.vcp = vcp
 		return nil

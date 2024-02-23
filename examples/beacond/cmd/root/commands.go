@@ -99,8 +99,14 @@ func AddModuleInitFlags(startCmd *cobra.Command) {
 	beaconconfig.AddBeaconKitFlags(startCmd)
 }
 
-// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
-func genesisCommand(txConfig client.TxConfig, mm *module.Manager, appExport servertypes.AppExporter, cmds ...*cobra.Command) *cobra.Command {
+// genesisCommand builds genesis-related `simd genesis` command. Users may
+// provide application specific commands as a parameter
+func genesisCommand(
+	txConfig client.TxConfig,
+	mm *module.Manager,
+	appExport servertypes.AppExporter,
+	cmds ...*cobra.Command,
+) *cobra.Command {
 	cmd := genutilcli.Commands(txConfig, mm, appExport)
 
 	for _, subCmd := range cmds {
@@ -172,7 +178,8 @@ func newApp(
 	)
 }
 
-// appExport creates a new BeaconApp (optionally at a given height) and exports state.
+// appExport creates a new BeaconApp (optionally at a given height) and exports
+// state.
 func appExport(
 	logger log.Logger,
 	db dbm.DB,
@@ -192,7 +199,9 @@ func appExport(
 
 	viperAppOpts, ok := appOpts.(*viper.Viper)
 	if !ok {
-		return servertypes.ExportedApp{}, errors.New("appOpts is not viper.Viper")
+		return servertypes.ExportedApp{}, errors.New(
+			"appOpts is not viper.Viper",
+		)
 	}
 
 	// overwrite the FlagInvCheckPeriod
@@ -201,7 +210,14 @@ func appExport(
 
 	var beaconApp *app.BeaconApp
 	if height != -1 {
-		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, false, "", appOpts)
+		beaconApp = app.NewBeaconKitApp(
+			logger,
+			db,
+			traceStore,
+			false,
+			"",
+			appOpts,
+		)
 
 		if err := beaconApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
@@ -210,7 +226,11 @@ func appExport(
 		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
 	}
 
-	return beaconApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+	return beaconApp.ExportAppStateAndValidators(
+		forZeroHeight,
+		jailAllowedAddrs,
+		modulesToExport,
+	)
 }
 
 var tempDir = func() string { //nolint:gochecknoglobals // from sdk.

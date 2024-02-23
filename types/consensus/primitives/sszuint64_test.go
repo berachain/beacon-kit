@@ -46,7 +46,11 @@ func TestSSZUint64_UnmarshalSSZ_InvalidBufferLength(t *testing.T) {
 	}
 	expectedErrMsg := "expected buffer of length"
 	if !strings.Contains(err.Error(), expectedErrMsg) {
-		t.Errorf("Expected error message to contain %q, got: %v", expectedErrMsg, err)
+		t.Errorf(
+			"Expected error message to contain %q, got: %v",
+			expectedErrMsg,
+			err,
+		)
 	}
 }
 
@@ -68,7 +72,11 @@ func TestSSZUint64_MarshalUnmarshal_RoundTrip(t *testing.T) {
 				t.Fatalf("Failed to unmarshal: %v", err)
 			}
 			if original != unmarshalled {
-				t.Errorf("Round-trip mismatch: original %d, after %d", original, unmarshalled)
+				t.Errorf(
+					"Round-trip mismatch: original %d, after %d",
+					original,
+					unmarshalled,
+				)
 			}
 		})
 	}
@@ -87,16 +95,19 @@ func TestSSZUint64_Serialization(t *testing.T) {
 			serializedBytes: hexutil.MustDecode(
 				"0xffffffffffffffff"),
 			root: hexutil.MustDecode(
-				"0xffffffffffffffff000000000000000000000000000000000000000000000000"),
+				"0xffffffffffffffff000000000000000000000000000000000000000000000000",
+			),
 		},
 		{
 			name:  "random",
 			value: 12345678901234567890,
-			// NOTE hexutil is little endian, SSZ is big endian, so we flip hex here to compensate.
+			// NOTE hexutil is little endian, SSZ is big endian, so we flip hex
+			// here to compensate.
 			serializedBytes: hexutil.MustDecode(
 				"0xd20a1feb8ca954ab"),
 			root: hexutil.MustDecode(
-				"0xd20a1feb8ca954ab000000000000000000000000000000000000000000000000"),
+				"0xd20a1feb8ca954ab000000000000000000000000000000000000000000000000",
+			),
 		},
 		{
 			name:  "zero",
@@ -104,7 +115,8 @@ func TestSSZUint64_Serialization(t *testing.T) {
 			serializedBytes: hexutil.MustDecode(
 				"0x0000000000000000"),
 			root: hexutil.MustDecode(
-				"0x0000000000000000000000000000000000000000000000000000000000000000"),
+				"0x0000000000000000000000000000000000000000000000000000000000000000",
+			),
 		},
 	}
 	for _, tt := range tests {
@@ -124,7 +136,11 @@ func TestSSZUint64_Serialization(t *testing.T) {
 				t.Fatalf("SSZUint64.HashTreeRoot() unexpected error = %v", err)
 			}
 			if !reflect.DeepEqual(tt.root, htr[:]) {
-				t.Errorf("SSZUint64.HashTreeRoot() = %v, want %v", htr[:], tt.root)
+				t.Errorf(
+					"SSZUint64.HashTreeRoot() = %v, want %v",
+					htr[:],
+					tt.root,
+				)
 			}
 		})
 	}

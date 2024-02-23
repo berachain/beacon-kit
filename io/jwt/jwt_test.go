@@ -37,7 +37,9 @@ import (
 
 func TestNewFromHex(t *testing.T) {
 	wantValid := jwt.Secret(
-		common.FromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+		common.FromHex(
+			"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+		),
 	)
 	tests := []struct {
 		name    string
@@ -46,13 +48,15 @@ func TestNewFromHex(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "valid hex string w/ 0x prefix",
+			name: "valid hex string w/ 0x prefix",
+			//nolint:lll
 			hexStr:  "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			want:    &(wantValid),
 			wantErr: false,
 		},
 		{
-			name:    "valid hex string no 0x prefix",
+			name: "valid hex string no 0x prefix",
+
 			hexStr:  "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			want:    &(wantValid),
 			wantErr: false,
@@ -95,8 +99,9 @@ func TestSecretString(t *testing.T) {
 		{
 			name: "mask secret correctly",
 			secret: jwt.Secret(
-
-				common.FromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+				common.FromHex(
+					"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+				),
 			),
 			want: "0x123456**********************************************************",
 		},
@@ -123,7 +128,8 @@ func TestNewRandom(t *testing.T) {
 	if len(secret.Bytes()) != 32 {
 		t.Errorf(
 			"NewRandom() generated a secret of incorrect length: got %d, want %d",
-			len(secret.Bytes()), 32,
+			len(secret.Bytes()),
+			32,
 		)
 	}
 }
@@ -138,8 +144,10 @@ func TestSecretBytes(t *testing.T) {
 }
 
 func TestSecretHexWithFixedInput(t *testing.T) {
+	//nolint:lll
 	expectedHex := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-	// Since the secret is 32 bytes, its hex representation should be 64 characters
+	// Since the secret is 32 bytes, its hex representation should be 64
+	// characters
 	// long
 	expectedHexLength := 64
 	secret, err := jwt.NewFromHex(expectedHex)
@@ -156,14 +164,18 @@ func TestSecretHexWithFixedInput(t *testing.T) {
 		t.Errorf("Hex() length = %d, want %d", len(hexStr), expectedHexLength)
 	}
 
-	// Strip the '0x' prefix and check if the remaining string is a valid hexadecimal.
+	// Strip the '0x' prefix and check if the remaining string is valid hex.
 	hexStr = strings.TrimPrefix(hexStr, "0x")
 	if len(hexStr) != expectedHexLength {
-		t.Errorf("Hex() length after stripping '0x' = %d, want %d", len(hexStr), expectedHexLength)
+		t.Errorf(
+			"Hex() length after stripping '0x' = %d, want %d",
+			len(hexStr), expectedHexLength)
 	}
 
 	if !jwt.HexRegexp.MatchString(hexStr) {
-		t.Errorf("Hex() output does not match hexadecimal format, got: %s", hexStr)
+		t.Errorf(
+			"Hex() output does not match hexadecimal format, got: %s", hexStr,
+		)
 	}
 }
 

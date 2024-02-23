@@ -56,7 +56,8 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		err := s.validateStateTransition(groupCtx, blk)
 		if err != nil {
-			s.Logger().Error("failed to validate state transition", "error", err)
+			s.Logger().
+				Error("failed to validate state transition", "error", err)
 			return err
 		}
 		return nil
@@ -69,7 +70,8 @@ func (s *Service) ReceiveBeaconBlock(
 		if isValidPayload, err = s.validateExecutionOnBlock(
 			groupCtx, blk,
 		); err != nil {
-			s.Logger().Error("failed to notify engine of new payload", "error", err)
+			s.Logger().
+				Error("failed to notify engine of new payload", "error", err)
 			return err
 		}
 		return nil
@@ -86,10 +88,9 @@ func (s *Service) ReceiveBeaconBlock(
 	)
 }
 
-// validateStateTransition validates the state transition of a given block.
-// TODO: add more rules and modularize, I am unsure if this is the best / correct place for this.
-// It's also not very modular, its just hardcoded to single slot finality for now, which is fine,
-// but maybe not the most extensible.
+// validateStateTransition checks a block's state transition.
+// TODO: Expand rules, consider modularity. Current implementation
+// is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
 ) error {
@@ -102,7 +103,8 @@ func (s *Service) validateStateTransition(
 	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
-			executionData.GetParentHash(), finalizedHash,
+			executionData.GetParentHash(),
+			finalizedHash,
 		)
 	}
 

@@ -33,8 +33,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// validateArg uses reflection to verify the implementation arg matches the ABI arg.
-func validateArg(implMethodVar reflect.Value, abiMethodVar reflect.Value) error {
+// validateArg uses reflection to verify the implementation arg matches the ABI
+// arg.
+func validateArg(
+	implMethodVar reflect.Value, abiMethodVar reflect.Value,
+) error {
 	implMethodVarType := implMethodVar.Type()
 	abiMethodVarType := abiMethodVar.Type()
 
@@ -52,14 +55,19 @@ func validateArg(implMethodVar reflect.Value, abiMethodVar reflect.Value) error 
 		// If it's `any` (reflect.Interface), we leave it to the implementer
 		// to make sure that it is used/converted correctly.
 	default:
-		return fmt.Errorf("type mismatch: %v != %v", implMethodVarType, abiMethodVarType)
+		return fmt.Errorf("type mismatch: %v != %v", implMethodVarType,
+			abiMethodVarType)
 	}
 
 	return nil
 }
 
-// validateString checks if the implementation type is a string, the ABI type must be a string.
-func validateString(implMethodVarType reflect.Type, abiMethodVarType reflect.Type) error {
+// validateString checks if the implementation type is a string,
+// the ABI type must be a string.
+func validateString(
+	implMethodVarType reflect.Type,
+	abiMethodVarType reflect.Type,
+) error {
 	if abiMethodVarType.Kind() != reflect.String {
 		return fmt.Errorf(
 			"type mismatch: %v != %v", implMethodVarType, abiMethodVarType,
@@ -68,9 +76,12 @@ func validateString(implMethodVarType reflect.Type, abiMethodVarType reflect.Typ
 	return nil
 }
 
-// validateArrayOrSlice checks if the array is not a slice/array of structs, return an error.
-// If it is a slice/array of structs, check if the struct fields match.
-func validateArrayOrSlice(implMethodVarType reflect.Type, abiMethodVarType reflect.Type) error {
+// validateArrayOrSlice checks if the array is not a slice/array of structs,
+// return an error. If it is a slice/array of structs, check if the struct
+// fields match.
+func validateArrayOrSlice(
+	implMethodVarType reflect.Type, abiMethodVarType reflect.Type,
+) error {
 	if implMethodVarType.Elem() != abiMethodVarType.Elem() {
 		if implMethodVarType.Elem().Kind() != reflect.Struct {
 			return fmt.Errorf(
@@ -78,7 +89,9 @@ func validateArrayOrSlice(implMethodVarType reflect.Type, abiMethodVarType refle
 			)
 		}
 
-		if err := validateStruct(implMethodVarType.Elem(), abiMethodVarType.Elem()); err != nil {
+		if err := validateStruct(
+			implMethodVarType.Elem(), abiMethodVarType.Elem(),
+		); err != nil {
 			return err
 		}
 	}
@@ -87,7 +100,9 @@ func validateArrayOrSlice(implMethodVarType reflect.Type, abiMethodVarType refle
 
 // validateSameKind checks if it's a struct, check all the fields to match.
 // If the types (primitives) match, we're good.
-func validateSameKind(implMethodVarType reflect.Type, abiMethodVarType reflect.Type) error {
+func validateSameKind(
+	implMethodVarType reflect.Type, abiMethodVarType reflect.Type,
+) error {
 	if implMethodVarType.Kind() == reflect.Struct {
 		if err := validateStruct(implMethodVarType, abiMethodVarType); err != nil {
 			return err
@@ -99,7 +114,9 @@ func validateSameKind(implMethodVarType reflect.Type, abiMethodVarType reflect.T
 // validatePointer checks if the corresponding ABI type must be a struct.
 // Any implementation type that is a pointer must point to a struct.
 // Check if the struct fields match.
-func validatePointer(implMethodVarType reflect.Type, abiMethodVarType reflect.Type) error {
+func validatePointer(
+	implMethodVarType reflect.Type, abiMethodVarType reflect.Type,
+) error {
 	if abiMethodVarType.Kind() != reflect.Struct {
 		return fmt.Errorf(
 			"type mismatch: %v != %v", implMethodVarType, abiMethodVarType,
@@ -115,10 +132,14 @@ func validatePointer(implMethodVarType reflect.Type, abiMethodVarType reflect.Ty
 	return validateStruct(implMethodVarType.Elem(), abiMethodVarType)
 }
 
-// validateStruct checks to make sure that the implementation struct's fields match the ABI
+// validateStruct checks to make sure that the implementation struct's fields
+// match the ABI
 // struct's fields.
-func validateStruct(implMethodVarType reflect.Type, abiMethodVarType reflect.Type) error {
-	if implMethodVarType.Kind() != reflect.Struct || abiMethodVarType.Kind() != reflect.Struct {
+func validateStruct(
+	implMethodVarType reflect.Type, abiMethodVarType reflect.Type,
+) error {
+	if implMethodVarType.Kind() != reflect.Struct ||
+		abiMethodVarType.Kind() != reflect.Struct {
 		return errors.New("validateStruct: not a struct")
 	}
 

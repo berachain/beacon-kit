@@ -39,7 +39,8 @@ import (
 )
 
 // initCometBFTConfig helps to override default CometBFT Config values.
-// return cmtcfg.DefaultConfig if no custom configuration is required for the application.
+// return cmtcfg.DefaultConfig if no custom configuration is required for the
+// application.
 func initCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
@@ -68,7 +69,8 @@ func initClientConfig() (string, interface{}) {
 		GasConfig GasConfig `mapstructure:"gas"`
 	}
 
-	// Optionally allow the chain developer to overwrite the SDK's default client config.
+	// Optionally allow the chain developer to overwrite the SDK's default
+	// client config.
 	clientCfg := clientconfig.DefaultConfig()
 
 	// The SDK's default keyring backend is set to "os".
@@ -86,14 +88,17 @@ func initClientConfig() (string, interface{}) {
 		},
 	}
 
-	// The default SDK app template is defined in serverconfig.DefaultConfigTemplate.
+	// The default SDK app template is defined in
+	// serverconfig.DefaultConfigTemplate.
 	// We append the custom config template to the default one.
 	// And we set the default config to the custom app template.
-	customClientConfigTemplate := clientconfig.DefaultClientConfigTemplate + strings.TrimSpace(`
+	customClientConfigTemplate := clientconfig.DefaultClientConfigTemplate + strings.TrimSpace(
+		`
 # This is default the gas adjustment factor used in tx commands.
 # It can be overwritten by the --gas-adjustment flag in each tx command.
 gas-adjustment = {{ .GasConfig.GasAdjustment }}
-`)
+`,
+	)
 
 	return customClientConfigTemplate, customClientConfig
 }
@@ -124,7 +129,8 @@ func initAppConfig() (string, interface{}) {
 	//
 	// In BeaconApp, we set the min gas prices to 0.
 	srvCfg.MinGasPrices = "0stake"
-	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
+	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by
+	// default
 	srvCfg.IAVLCacheSize = 10000
 
 	srvCfg.Telemetry.Enabled = true

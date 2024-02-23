@@ -38,7 +38,8 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
 
-// CosmosApp is an interface that defines the methods needed for the Cosmos setup.
+// CosmosApp is an interface that defines the methods needed for the Cosmos
+// setup.
 type CosmosApp interface {
 	baseapp.ProposalTxVerifier
 	SetPrepareProposal(sdk.PrepareProposalHandler)
@@ -78,7 +79,10 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		},
 	)
 	// Build and Register Prepare and Process Proposal Handlers.
-	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
+	defaultProposalHandler := baseapp.NewDefaultProposalHandler(
+		app.Mempool(),
+		app,
+	)
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
 		builderService,

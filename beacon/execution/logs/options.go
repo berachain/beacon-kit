@@ -34,7 +34,7 @@ import (
 // Option is a function that applies a specific configuration to the Processor.
 type Option func(*Processor) error
 
-// WithEthClient is an Option that sets the Ethereum client for the Processor.
+// WithEthClient  sets the Ethereum client for the Processor.
 func WithEthClient(eth1Client *eth.Eth1Client) Option {
 	return func(p *Processor) error {
 		p.eth1Client = eth1Client
@@ -42,7 +42,7 @@ func WithEthClient(eth1Client *eth.Eth1Client) Option {
 	}
 }
 
-// WithContractAddr is an Option that sets the contract address for the Processor.
+// WithContractAddr sets the contract address for the Processor.
 func WithHandlers(handlers map[common.Address]Handler) Option {
 	return func(p *Processor) error {
 		p.handlers = handlers
@@ -50,7 +50,7 @@ func WithHandlers(handlers map[common.Address]Handler) Option {
 	}
 }
 
-// WithLogger is an Option that sets the logger for the Processor.
+// WithLogger  sets the logger for the Processor.
 func WithLogger(logger log.Logger) Option {
 	return func(p *Processor) error {
 		p.logger = logger.With("module", "beacon-kit-log-processor")

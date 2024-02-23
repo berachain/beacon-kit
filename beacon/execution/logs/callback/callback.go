@@ -53,7 +53,10 @@ func NewFrom(
 }
 
 // HandleLog calls the function that matches the given log's signature.
-func (sc *wrappedHandler) HandleLog(ctx context.Context, log *coretypes.Log) error {
+func (sc *wrappedHandler) HandleLog(
+	ctx context.Context,
+	log *coretypes.Log,
+) error {
 	// Extract the method ID from the input and load the method.
 	if log == nil {
 		return errors.New("log is nil")

@@ -39,9 +39,12 @@ import (
 )
 
 const (
-	// acceptTosFilename is the name of the file that stores the accepted terms of use.
+	// acceptTosFilename is the name of the file that stores the accepted terms
+	// of use.
 	acceptTosFilename = "tosaccepted"
-	// acceptTosPromptTextFormat is the format for the prompt text for accepting the terms of use.
+	// acceptTosPromptTextFormat is the format for the prompt text for accepting
+	// the terms of use.
+	//nolint:lll
 	acceptTosPromptTextFormat = `
 %s Terms of Use
 
@@ -52,11 +55,14 @@ TERMS AND CONDITIONS: %s
 
 
 Type "accept" to accept these terms and conditions [accept/decline]:`
-	// acceptTosPromptErrTextFormat is the error prompt text for accepting the terms of use.
+	// acceptTosPromptErrTextFormat is the error prompt text for accepting the
+	// terms of use.
+	//nolint:lll
 	AcceptTosPromptErrTextFormat = `could not scan text input, if you are trying to run in 
 non-interactive environment, you can use the --accept-terms-of-use flag after reading the 
 terms and conditions here: 
 %s`
+	//nolint:lll
 	DeclinedErrorString = "you have to accept Terms and Conditions in order to continue"
 )
 
@@ -72,7 +78,8 @@ func BuildErrorPromptText(tosLink string) string {
 		Sprintf(AcceptTosPromptErrTextFormat, tosLink)
 }
 
-// VerifyTosAcceptedOrPrompt checks if Tos was accepted before or asks to accept.
+// VerifyTosAcceptedOrPrompt checks if Tos was accepted before or asks to
+// accept.
 func VerifyTosAcceptedOrPrompt(
 	appName, tosLink string,
 	clientCtx client.Context,
@@ -84,7 +91,8 @@ func VerifyTosAcceptedOrPrompt(
 		return nil
 	}
 
-	if ok, err := cmd.Flags().GetBool(flags.BeaconKitAcceptTos); ok && err == nil {
+	if ok, err := cmd.Flags().
+		GetBool(flags.BeaconKitAcceptTos); ok && err == nil {
 		saveTosAccepted(homedir, cmd)
 		return nil
 	}
@@ -120,13 +128,19 @@ func saveTosAccepted(dataDir string, cmd *cobra.Command) {
 	if err != nil {
 		cmd.PrintErrf("error checking directory: %s\n", dataDir)
 	}
+
 	if !dataDirExists {
 		if err = file.MkdirAll(dataDir); err != nil {
 			cmd.PrintErrf("error creating directory: %s\n", dataDir)
 		}
 	}
-	if err = file.WriteFile(filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
-		cmd.PrintErrf("error writing %s to file: %s\n", flags.BeaconKitAcceptTos,
-			filepath.Join(dataDir, acceptTosFilename))
+
+	if err = file.WriteFile(
+		filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
+		cmd.PrintErrf(
+			"error writing %s to file: %s\n",
+			flags.BeaconKitAcceptTos,
+			filepath.Join(dataDir, acceptTosFilename),
+		)
 	}
 }

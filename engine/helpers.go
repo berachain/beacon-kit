@@ -32,7 +32,9 @@ import (
 
 // processPayloadStatusResult processes the payload status result and
 // returns the latest valid hash or an error.
-func processPayloadStatusResult(result *enginev1.PayloadStatus) ([]byte, error) {
+func processPayloadStatusResult(
+	result *enginev1.PayloadStatus,
+) ([]byte, error) {
 	switch result.GetStatus() {
 	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
 		return nil, eth.ErrInvalidBlockHashPayloadStatus

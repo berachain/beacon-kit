@@ -48,18 +48,24 @@ func NewBeaconListener(bs *builder.Service) *BeaconListener {
 	}
 }
 
-// ListenFinalizeBlock updates the streaming service with the latest FinalizeBlock messages
+// ListenFinalizeBlock updates the streaming service with the latest
+// FinalizeBlock messages
 //
-// TODO: Optimistic Execution chains can trigger their builder to start building earlier.
+// TODO: Optimistic Execution chains can trigger their builder to start
+// building earlier.
 func (l *BeaconListener) ListenFinalizeBlock(
-	ctx context.Context, req abci.RequestFinalizeBlock, res abci.ResponseFinalizeBlock,
+	ctx context.Context,
+	req abci.RequestFinalizeBlock,
+	res abci.ResponseFinalizeBlock,
 ) error {
-	// Technically speaking, there is a chance FinalizeBlock fails after this call. While seemingly
-	// impossible in practice, IN THEORY the execution client could end up in a bad state.
+	// Technically speaking, there is a chance FinalizeBlock fails after this
+	// call. While seemingly impossible in practice, IN THEORY the execution
+	// client could end up in a bad state.
 	//
 	// TODO: figure out if this is a real concern or not.
-	// TODO: we really should try to fork choice as soon as we have an AppHash, which
-	// is before here. This moved earlier forkchoice call should 100% not be finalizing
+	// TODO: we really should try to fork choice as soon as we have an
+	// AppHash, which is before here. This moved earlier forkchoice call
+	// should 100% not be finalizing
 	// the block on the EL.
 	_, err := l.bs.BuildLocalPayload(
 		ctx,
@@ -74,20 +80,27 @@ func (l *BeaconListener) ListenFinalizeBlock(
 
 	switch {
 	case errors.Is(err, builder.ErrLocalBuildingDisabled):
-		l.bs.Logger().Info("local building is disabled, skipping payload building...")
+		l.bs.Logger().Info(
+			"local building is disabled, skipping payload building...",
+		)
 		return nil
 	case err != nil:
-		l.bs.Logger().Error("failed to build local payload", "error", err)
+		l.bs.Logger().Error(
+			"failed to build local payload", "error", err,
+		)
 		return err
 	}
 
 	return nil
 }
 
-// ListenCommit updates the steaming service with the latest Commit messages and state changes.
+// ListenCommit updates the steaming service with the latest Commit messages
+// and state changes.
 func (*BeaconListener) ListenCommit(
 	context.Context, abci.ResponseCommit, []*storetypes.StoreKVPair,
 ) error {
-	// TODO: we can perform our block finalization here, opposed to PreBlocker() if we desired to.
+	// TODO: we can perform our block finalization here, opposed to PreBlocker()
+	// if we
+	// desired to.
 	return nil
 }

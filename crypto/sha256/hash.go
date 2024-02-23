@@ -57,7 +57,8 @@ func HashRootBz(input [][]byte) [32]byte {
 	return UnsafeMerkleizeVector(HashArray(input), uint64(len(input)))
 }
 
-// HashRootBzBytes returns the SHA256 merkle root of the input bytes as a byte slice.
+// HashRootBzBytes returns the SHA256 merkle root of the input bytes as a byte
+// slice.
 func HashRootBzAsSlice(input [][]byte) []byte {
 	bz := HashRootBz(input)
 	return bz[:]
@@ -66,7 +67,10 @@ func HashRootBzAsSlice(input [][]byte) []byte {
 // HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
 // the length mixed in.
 func HashRootAndMixinLengthBz(input [][]byte) [32]byte {
-	return UnsafeMerkleizeVectorAndMixinLength(HashArray(input), uint64(len(input)))
+	return UnsafeMerkleizeVectorAndMixinLength(
+		HashArray(input),
+		uint64(len(input)),
+	)
 }
 
 // HashRootAndMixinLength returns the SHA256 merkle root of the input bytes with
@@ -82,8 +86,9 @@ func HashElement[H Hashable](el H) ([32]byte, error) {
 }
 
 // HashElements hashes each element in the list and then returns each item as a
-// 32 byte buffer. Each element is individually hashed to produce a corresponding
-// root. This process is applied to all elements in the input list, resulting in a
+// 32 byte buffer. Each element is individually hashed to produce a
+// corresponding root. This process is applied to all elements in the input
+// list, resulting in a
 // list of roots.
 func HashElements[H Hashable](input []H) ([][32]byte, error) {
 	var (
@@ -116,7 +121,8 @@ func HashRoot[H Hashable](input []H) [32]byte {
 	return b
 }
 
-// HashRootAsSlice returns the SHA256 merkle root of the input bytes as a byte slice.
+// HashRootAsSlice returns the SHA256 merkle root of the input bytes as a byte
+// slice.
 func HashRootAsSlice[H Hashable](input []H) []byte {
 	bz := HashRoot(input)
 	return bz[:]
@@ -132,7 +138,8 @@ func HashRootAndMixinLength[H Hashable](input []H) [32]byte {
 	return b
 }
 
-// HashRootAndMixinLengthAsSlice returns the SHA256 merkle root of the input bytes with
+// HashRootAndMixinLengthAsSlice returns the SHA256 merkle root of the input
+// bytes with
 // the length mixed in as a byte slice.
 func HashRootAndMixinLengthAsSlice[H Hashable](input []H) []byte {
 	bz := HashRootAndMixinLength(input)
