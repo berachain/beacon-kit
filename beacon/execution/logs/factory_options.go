@@ -43,11 +43,11 @@ func WithTypeAllocator(
 	}
 }
 
-// WithInitilizer returns an Option for initializing the Factory.
+// WithInitializer returns an Option for initializing the Factory.
 // With this function called at the beginning,
 // WithTypeAllocator does not need to check
 // if the map was initialized or not.
-func WithInitilizer() service.Option[Factory] {
+func WithInitializer() service.Option[Factory] {
 	return func(f *Factory) error {
 		f.addressToAllocator = make(map[common.Address]*TypeAllocator)
 		return nil
