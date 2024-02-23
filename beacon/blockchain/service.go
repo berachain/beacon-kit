@@ -34,4 +34,5 @@ type Service struct {
 	service.BaseService
 	bs BuilderService
 	es ExecutionService
+	ss StakingService
 }

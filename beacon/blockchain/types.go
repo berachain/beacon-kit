@@ -35,6 +35,17 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
+// BuilderService is the interface for the builder service.
+type BuilderService interface {
+	BuildLocalPayload(
+		ctx context.Context,
+		parentEth1Hash common.Hash,
+		slot primitives.Slot,
+		timestamp uint64,
+		parentBeaconBlockRoot []byte,
+	) (*enginev1.PayloadIDBytes, error)
+}
+
 type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
@@ -51,12 +62,4 @@ type ExecutionService interface {
 	) (bool, error)
 }
 
-type BuilderService interface {
-	BuildLocalPayload(
-		ctx context.Context,
-		parentEth1Hash common.Hash,
-		slot primitives.Slot,
-		timestamp uint64,
-		parentBeaconBlockRoot []byte,
-	) (*enginev1.PayloadIDBytes, error)
-}
+type StakingService interface{}
