@@ -27,6 +27,7 @@ package logs_test
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
@@ -49,6 +50,7 @@ func TestLogFactory(t *testing.T) {
 		contractAddress,
 		stakingAbi,
 		eventName,
+		reflect.TypeOf(consensusv1.Deposit{}),
 	)
 
 	deposit := consensus.NewDeposit(
@@ -60,9 +62,11 @@ func TestLogFactory(t *testing.T) {
 	require.NoError(t, err)
 	log.Address = contractAddress
 
-	newDeposit := &consensusv1.Deposit{}
-	err = factory.UnmarshalEthLogInto(log, newDeposit)
+	var obj any
+	obj, err = factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
+	newDeposit, ok := obj.(*consensusv1.Deposit)
+	require.True(t, ok)
 	require.Equal(t, deposit, newDeposit)
 }
 
