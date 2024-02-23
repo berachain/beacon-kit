@@ -93,11 +93,9 @@ func TestBeaconStore(t *testing.T) {
 	})
 
 	t.Run("should work with deposit", func(t *testing.T) {
-		var withdrawalCredentials [20]byte
-		copy(withdrawalCredentials[:], "12345678901234567890")
 		deposit := &consensusv1.Deposit{
-			Pubkey:                []byte("pubkey"),
-			WithdrawalCredentials: withdrawalCredentials[:],
+			ValidatorPubkey:       []byte("pubkey"),
+			WithdrawalCredentials: []byte("12345678901234567890"),
 			Amount:                100,
 		}
 		err := beaconStore.EnqueueDeposits([]*consensusv1.Deposit{deposit})

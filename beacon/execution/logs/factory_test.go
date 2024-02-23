@@ -23,21 +23,59 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package logs_test
 
 import (
 	"errors"
+	"reflect"
+	"testing"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	"github.com/stretchr/testify/require"
 )
+
+func TestLogFactory(t *testing.T) {
+	factory := logs.NewFactory()
+	contractAddress := common.HexToAddress("0x1234")
+	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	require.NoError(t, err)
+	eventName := "Deposit"
+	depositType := reflect.TypeOf(consensusv1.Deposit{})
+	factory.RegisterEvent(
+		contractAddress,
+		stakingAbi,
+		eventName,
+		depositType,
+	)
+
+	deposit := consensus.NewDeposit(
+		[]byte("pubkey"),
+		10000,
+		[]byte("12345678901234567890"),
+	)
+	log, err := newLogFromDeposit(stakingAbi.Events[eventName], deposit)
+	require.NoError(t, err)
+	log.Address = contractAddress
+
+	val, err := factory.UnmarshalEthLog(log)
+	require.NoError(t, err)
+
+	valType := reflect.TypeOf(val.Interface())
+	require.NotNil(t, valType)
+	require.Equal(t, reflect.Ptr, valType.Kind())
+	require.Equal(t, depositType, valType.Elem())
+
+	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
+	require.True(t, ok)
+	require.NoError(t, err)
+	require.Equal(t, deposit, newDeposit)
+}
 
 // newLog creates a new log of an event from the given arguments.
 func newLog(event ethabi.Event, args ...interface{}) (*coretypes.Log, error) {
@@ -55,7 +93,7 @@ func newLog(event ethabi.Event, args ...interface{}) (*coretypes.Log, error) {
 }
 
 // NewLogFromDeposit creates a new log from the given deposit.
-func NewLogFromDeposit(
+func newLogFromDeposit(
 	event ethabi.Event,
 	deposit *consensusv1.Deposit,
 ) (*coretypes.Log, error) {
@@ -64,37 +102,4 @@ func NewLogFromDeposit(
 		deposit.GetWithdrawalCredentials(),
 		deposit.GetAmount(),
 	)
-}
-
-// NewLogFromWithdrawal creates a new log from the given withdrawal.
-func NewLogFromWithdrawal(
-	event ethabi.Event,
-	withdrawal *enginev1.Withdrawal,
-) (*coretypes.Log, error) {
-	return newLog(event,
-		[]byte{},
-		[]byte{},
-		withdrawal.GetAmount(),
-	)
-}
-
-// DepositContractEvents returns the events defined in the staking contract ABI.
-func DepositContractEvents() (map[string]ethabi.Event, error) {
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-	return stakingAbi.Events, nil
-}
-
-// NewCallbackHandler creates a new callback handler from the given staking service.
-func NewCallbackHandler(stakingService logs.StakingService) (callback.LogHandler, error) {
-	logHander := service.New[logs.Handler](
-		logs.WithStakingService(stakingService),
-	)
-	callbackHandler, err := callback.NewFrom(logHander)
-	if err != nil {
-		return nil, err
-	}
-	return callbackHandler, nil
 }
