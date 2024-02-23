@@ -41,6 +41,9 @@ import (
 type Caller interface {
 	// Generic Methods
 	//
+	// Start
+	Start(context.Context)
+
 	// IsConnected returns true if the client is connected to the execution node.
 	IsConnected() bool
 

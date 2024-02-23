@@ -54,14 +54,11 @@ type Eth1Client struct {
 	jwtRefreshInterval   time.Duration
 	healthCheckInterval  time.Duration
 	dialURL              *url.URL
-	capabilities         map[string]struct{}
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided context and options.
 func NewEth1Client(opts ...Option) (*Eth1Client, error) {
-	c := &Eth1Client{
-		capabilities: make(map[string]struct{}),
-	}
+	c := &Eth1Client{}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
 			return nil, err
@@ -86,32 +83,10 @@ func (s *Eth1Client) Start(ctx context.Context) {
 		s.tryConnectionAfter(ctx, s.startupRetryInterval)
 	}
 
-	if err := s.exchangeCapabilitiesWithExecutionClient(ctx); err != nil {
-		s.logger.Error("could not exchange capabilities", "error", err)
-		return
-	}
-
 	// If we reached this point, the execution client is connected so we can start
 	// the health check & jwt refresh loops.
 	go s.healthCheckLoop(ctx)
 	go s.jwtRefreshLoop(ctx)
-}
-
-// exchangeCapabilitiesWithExecutionClient calls the engine_exchangeCapabilities method via
-// JSON-RPC. It then stores the capabilities in the Eth1Client's capabilities map for later
-// reference.
-func (s *Eth1Client) exchangeCapabilitiesWithExecutionClient(ctx context.Context) error {
-	capabilities, err := s.ExchangeCapabilities(ctx, beaconKitCapabilities())
-	if err != nil {
-		return err
-	}
-
-	for _, capability := range capabilities {
-		s.capabilities[capability] = struct{}{}
-		s.logger.Info("capability exchanged", "capability", capability)
-	}
-
-	return nil
 }
 
 // IsConnected returns the connection status of the Ethereum 1 client.

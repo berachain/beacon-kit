@@ -71,7 +71,7 @@ func (s *Registry) StartAll(ctx context.Context) {
 	s.logger.Info("starting services", "num", len(s.serviceTypes))
 	for _, kind := range s.serviceTypes {
 		s.logger.Info("starting service", "type", kind)
-		go s.services[kind].Start(ctx)
+		s.services[kind].Start(ctx)
 	}
 }
 

@@ -47,7 +47,9 @@ type Service struct {
 }
 
 // Start spawns any goroutines required by the service.
-func (s *Service) Start(context.Context) {}
+func (s *Service) Start(ctx context.Context) {
+	s.engine.Start(ctx)
+}
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {

@@ -25,9 +25,9 @@
 
 package ethclient
 
-// beaconKitCapabilities returns the capabilities
+// BeaconKitSupportedCapabilities returns the full list of capabilities
 // of the beacon kit client.
-func beaconKitCapabilities() []string {
+func BeaconKitSupportedCapabilities() []string {
 	return []string{
 		NewPayloadMethodV2,
 		NewPayloadMethodV3,
@@ -35,7 +35,6 @@ func beaconKitCapabilities() []string {
 		ForkchoiceUpdatedMethodV3,
 		GetPayloadMethodV2,
 		GetPayloadMethodV3,
-		ExchangeCapabilities,
 		GetClientVersionV1,
 	}
 }
