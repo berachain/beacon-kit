@@ -45,9 +45,9 @@ type BeaconStateProvider interface {
 // LogFactory is an interface that can unmarshal Ethereum logs into
 // objects, in the form of reflect.Value, with appropriate types for each type of logs.
 type LogFactory interface {
+	UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error)
 	GetRegisteredAddresses() []common.Address
 	IsRegisteredLog(log *ethtypes.Log) bool
-	UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error)
 }
 
 // FCUConfig is a struct that holds the configuration for a fork choice update.

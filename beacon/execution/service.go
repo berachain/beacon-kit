@@ -130,9 +130,15 @@ func (s *Service) GetLogsInFinalizedETH1Block(
 	vals := make([]reflect.Value, 0, len(logsInBlock))
 	for i, log := range logsInBlock {
 		// Skip logs that are not from the block we are processing
-		// or not registered with the log factory.
 		// This should never happen, but defensively check anyway.
-		if log.BlockNumber != blkNum || !s.logFactory.IsRegisteredLog(&logsInBlock[i]) {
+		if log.BlockNumber != blkNum {
+			continue
+		}
+
+		// Skip logs that are not registered with the factory.
+		// They may be from unregistered contracts (defensive check)
+		// or emitted from unregisted events in the registered contracts.
+		if !s.logFactory.IsRegisteredLog(&logsInBlock[i]) {
 			continue
 		}
 
