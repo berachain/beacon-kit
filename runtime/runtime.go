@@ -36,6 +36,7 @@ import (
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
@@ -125,6 +126,12 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithGCD(gcd),
 	)
 
+	// Build the staking service.
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.WithName("staking")),
+		staking.WithValsetChangeProvider(vcp),
+	)
+
 	// NewClient wraps the eth1 client and provides the interface for the
 	// blockchain service to interact with the execution client.
 	engineClient := engine.NewClient(
@@ -133,10 +140,18 @@ func NewDefaultBeaconKitRuntime(
 		engine.WithLogger(logger),
 		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
+	// logFactory is used by the execution service to unmarshal
+	// logs retrieved from the engine client.
+	logFactory := logs.NewFactory()
+
+	// TODO: Staking service registers its events
+	// of interest with the log factory here.
+
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.WithName("execution")),
 		execution.WithEngineCaller(engineClient),
+		execution.WithLogFactory(logFactory),
 	)
 
 	// Build the local builder service.
@@ -151,12 +166,6 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.WithName("blockchain")),
 		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
-	)
-
-	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.WithName("staking")),
-		staking.WithValsetChangeProvider(vcp),
 	)
 
 	// Build the sync service.

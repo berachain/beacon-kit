@@ -45,3 +45,11 @@ func WithEngineCaller(ec engine.Caller) service.Option[Service] {
 		return nil
 	}
 }
+
+// WithLogFactory is an option to set the LogFactory for the Service.
+func WithLogFactory(f LogFactory) service.Option[Service] {
+	return func(s *Service) error {
+		s.logFactory = f
+		return nil
+	}
+}
