@@ -67,6 +67,11 @@ func TestLogFactory(t *testing.T) {
 		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
 	)
 
+	factory := service.New[logs.Factory](
+		logs.WithInitilizer(),
+		logs.WithTypeAllocator(contractAddress, allocator),
+	)
+
 	deposit := consensus.NewDeposit(
 		[]byte("pubkey"),
 		10000,
@@ -76,17 +81,12 @@ func TestLogFactory(t *testing.T) {
 	require.NoError(t, err)
 	log.Address = contractAddress
 
-	factory := service.New[logs.Factory](
-		logs.WithInitilizer(),
-		logs.WithTypeAllocator(contractAddress, allocator),
-	)
-
 	val, err := factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
 
 	valType := reflect.TypeOf(val.Interface())
 	require.NotNil(t, valType)
-	// require.Equal(t, reflect.Ptr, valType.Kind())
+	require.Equal(t, reflect.Ptr, valType.Kind())
 	require.Equal(t, depositType, valType.Elem())
 
 	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
