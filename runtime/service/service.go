@@ -99,8 +99,6 @@ func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) int {
 	return s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
 }
 
-func (s *BaseService) EventListener() {}
-
 // // DispatchEvent sends a value to the feed associated with the provided key.
 // func (s *BaseService) DispatchEvent(value dispatch.Event) int {
 // 	return s.gcd.Dispatch(value)
