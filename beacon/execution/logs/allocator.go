@@ -46,29 +46,6 @@ type TypeAllocator struct {
 	// based on their names like the current callback logic.
 }
 
-// NewTypeAllocator creates a new TypeAllocator
-// for multiple events in a contract.
-func NewTypeAllocator() *TypeAllocator {
-	return &TypeAllocator{
-		sigToName: make(map[common.Hash]string),
-		sigToType: make(map[common.Hash]reflect.Type),
-	}
-}
-
-// RegisterEvent registers type of an event with the alocator.
-func (r *TypeAllocator) RegisterEvent(
-	eventName string,
-	eventType reflect.Type,
-) error {
-	event, ok := r.abi.Events[eventName]
-	if !ok {
-		return errors.New("event not found in ABI")
-	}
-	r.sigToName[event.ID] = eventName
-	r.sigToType[event.ID] = eventType
-	return nil
-}
-
 // GetABI returns the ABI of the contract from the allocator.
 func (r *TypeAllocator) GetABI() *ethabi.ABI {
 	return r.abi
