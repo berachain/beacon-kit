@@ -65,6 +65,7 @@ func TestLogFactory(t *testing.T) {
 
 	val, err := factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
+	require.Equal(t, depositType, reflect.TypeOf(val.Interface()).Elem())
 
 	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
 	require.True(t, ok)
