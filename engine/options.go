@@ -33,7 +33,8 @@ import (
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 )
 
-// Option is a function type that takes a pointer to an engineClient and returns an error.
+// Option is a function type that takes a pointer to an engineClient and returns
+// an error.
 type Option func(*engineClient) error
 
 // WithEth1Client is a function that returns an Option.

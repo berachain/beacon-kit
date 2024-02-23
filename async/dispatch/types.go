@@ -31,7 +31,8 @@ import (
 	"github.com/itsdevbear/bolaris/async/dispatch/queue"
 )
 
-// Queue represents a queue of work items to be executed. It's interface is inspired by
+// Queue represents a queue of work items to be executed. It's interface is
+// inspired by
 // Apple's Grand Central Dispatch (GCD) API.
 // https://developer.apple.com/documentation/dispatch/dispatchqueue
 // TODO: use error groups

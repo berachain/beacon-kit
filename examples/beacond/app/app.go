@@ -87,7 +87,8 @@ func AppConfig() depinject.Config {
 	)
 }
 
-// BeaconApp extends an ABCI application, but with most of its parameters exported.
+// BeaconApp extends an ABCI application, but with most of its parameters
+// exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
 type BeaconApp struct {
@@ -220,9 +221,13 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (app *BeaconApp) RegisterAPIRoutes(
+	apiSvr *api.Server,
+	apiConfig config.APIConfig,
+) {
 	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
-	// register swagger API in app.go so that other applications can override easily
+	// register swagger API in app.go so that other applications can override
+	// easily
 	if err := server.RegisterSwaggerAPI(
 		apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger,
 	); err != nil {
@@ -235,7 +240,10 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	}
 
 	// Initial check for execution client sync.
-	go app.BeaconKitRunner.StartSyncCheck(app.NewContext(true), apiSvr.ClientCtx)
+	go app.BeaconKitRunner.StartSyncCheck(
+		app.NewContext(true),
+		apiSvr.ClientCtx,
+	)
 	app.BeaconKitRunner.SetCometCfg(v.Config)
 }
 

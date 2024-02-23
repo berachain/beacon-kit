@@ -41,7 +41,8 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-// Eth1Client is a struct that holds the Ethereum 1 client and its configuration.
+// Eth1Client is a struct that holds the Ethereum 1 client and
+// its configuration.
 type Eth1Client struct {
 	GethRPCClient
 	*ethclient.Client
@@ -56,7 +57,8 @@ type Eth1Client struct {
 	dialURL              *url.URL
 }
 
-// NewEth1Client creates a new Ethereum 1 client with the provided context and options.
+// NewEth1Client creates a new Ethereum 1 client with the provided
+// context and options.
 func NewEth1Client(opts ...Option) (*Eth1Client, error) {
 	c := &Eth1Client{}
 	for _, opt := range opts {
@@ -73,7 +75,8 @@ func (s *Eth1Client) Start(ctx context.Context) {
 	// Attempt an initial connection.
 	s.tryConnectionAfter(ctx, 0)
 
-	// We will spin up the execution client connection in a loop until it is connected.
+	// We will spin up the execution client connection in a
+	// loop until it is connected.
 	for !s.isConnected.Load() {
 		// If we enter this loop, the above connection attempt failed.
 		s.logger.Info(
@@ -83,7 +86,8 @@ func (s *Eth1Client) Start(ctx context.Context) {
 		s.tryConnectionAfter(ctx, s.startupRetryInterval)
 	}
 
-	// If we reached this point, the execution client is connected so we can start
+	// If we reached this point, the execution client is connected so we can
+	// start
 	// the health check & jwt refresh loops.
 	go s.healthCheckLoop(ctx)
 	go s.jwtRefreshLoop(ctx)
@@ -123,22 +127,29 @@ func (s *Eth1Client) NewPayloadV2(
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV3,
+	ctx context.Context,
+	state *enginev1.ForkchoiceState,
+	attrs *enginev1.PayloadAttributesV3,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
 // ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV2(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs *enginev1.PayloadAttributesV2,
+	ctx context.Context,
+	state *enginev1.ForkchoiceState,
+	attrs *enginev1.PayloadAttributesV2,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV2, state, attrs)
 }
 
-// forkchoiceUpdateCall is a helper function to call to any version of the forkchoiceUpdated
-// method.
+// forkchoiceUpdateCall is a helper function to call to any version
+// of the forkchoiceUpdates method.
 func (s *Eth1Client) forkchoiceUpdateCall(
-	ctx context.Context, method string, state *enginev1.ForkchoiceState, attrs any,
+	ctx context.Context,
+	method string,
+	state *enginev1.ForkchoiceState,
+	attrs any,
 ) (*ForkchoiceUpdatedResponse, error) {
 	result := &ForkchoiceUpdatedResponse{}
 
@@ -202,7 +213,8 @@ func (s *Eth1Client) GetPayloadV2(
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
-func (s *Eth1Client) ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool,
+func (s *Eth1Client) ExecutionBlockByHash(
+	ctx context.Context, hash common.Hash, withTxs bool,
 ) (*enginev1.ExecutionBlock, error) {
 	result := &enginev1.ExecutionBlock{}
 	err := s.GethRPCClient.CallContext(
@@ -210,9 +222,10 @@ func (s *Eth1Client) ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 	return result, s.handleRPCError(err)
 }
 
-// ExecutionBlockByNumber fetches an execution engine block by number by calling
-// eth_getBlockByNumber via JSON-RPC.
-func (s *Eth1Client) ExecutionBlockByNumber(ctx context.Context, num rpc.BlockNumber, withTxs bool,
+// ExecutionBlockByNumber fetches an execution engine block by number
+// by calling eth_getBlockByNumber via JSON-RPC.
+func (s *Eth1Client) ExecutionBlockByNumber(
+	ctx context.Context, num rpc.BlockNumber, withTxs bool,
 ) (*enginev1.ExecutionBlock, error) {
 	result := &enginev1.ExecutionBlock{}
 	err := s.GethRPCClient.CallContext(
@@ -221,7 +234,9 @@ func (s *Eth1Client) ExecutionBlockByNumber(ctx context.Context, num rpc.BlockNu
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *Eth1Client) GetClientVersionV1(ctx context.Context) ([]ethengine.ClientVersionV1, error) {
+func (s *Eth1Client) GetClientVersionV1(
+	ctx context.Context,
+) ([]ethengine.ClientVersionV1, error) {
 	result := make([]ethengine.ClientVersionV1, 0)
 	if err := s.Client.Client().CallContext(
 		ctx, &result, GetClientVersionV1, nil,
@@ -231,7 +246,8 @@ func (s *Eth1Client) GetClientVersionV1(ctx context.Context) ([]ethengine.Client
 	return result, nil
 }
 
-// ExchangeCapabilities calls the engine_exchangeCapabilities method via JSON-RPC.
+// ExchangeCapabilities calls the engine_exchangeCapabilities method via
+// JSON-RPC.
 func (s *Eth1Client) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,

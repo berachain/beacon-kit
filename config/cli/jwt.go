@@ -57,11 +57,12 @@ file name "jwt.hex" in the current directory.`,
 			return generateAuthSecretInFile(cmd, outputPath)
 		},
 	}
-	cmd.Flags().StringP(FlagOutputPath, "o", "", "Optional output file path for the JWT secret")
+	cmd.Flags().StringP(
+		FlagOutputPath, "o", "", "Optional output file path for the JWT secret")
 	return cmd
 }
 
-// getFilePath retrieves the file path for the JWT secret from the command flags.
+// getFilePath retrieves the file path for the JWT secret from the command flag.
 // If no path is specified, it returns the default secret file name.
 func getFilePath(cmd *cobra.Command) (string, error) {
 	specifiedFilePath, err := cmd.Flags().GetString(FlagOutputPath)
@@ -73,19 +74,25 @@ func getFilePath(cmd *cobra.Command) (string, error) {
 	}
 
 	// If no path is specified, try to get the cosmos client context and use
-	// the configured home directory to write the secret to the default file name.
+	// the configured home directory to write the secret to the default file
+	// name.
 	if specifiedFilePath == "" {
-		clientCtx, ok := cmd.Context().Value(client.ClientContextKey).(*client.Context)
+		clientCtx, ok := cmd.Context().
+			Value(client.ClientContextKey).(*client.Context)
 		if !ok {
 			return "", ErrNoClientCtx
 		}
-		specifiedFilePath = filepath.Join(clientCtx.HomeDir+"/config/", DefaultSecretFileName)
+		specifiedFilePath = filepath.Join(
+			clientCtx.HomeDir+"/config/", DefaultSecretFileName,
+		)
 	}
 
-	return specifiedFilePath, nil // Use default secret file name if no path is specified
+	// Use default secret file name if no path is specified
+	return specifiedFilePath, nil
 }
 
-// generateAuthSecretInFile writes a newly generated JWT secret to a specified file.
+// generateAuthSecretInFile writes a newly generated JWT secret
+// to a specified file.
 func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 	var err error
 	fileDir := filepath.Dir(fileName)
@@ -93,18 +100,25 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 	if err != nil {
 		return err
 	}
+
 	if !exists {
 		if err = file.MkdirAll(fileDir); err != nil {
 			return err
 		}
 	}
+
 	secret, err := jwt.NewRandom()
 	if err != nil {
 		return err
 	}
+
 	if err = file.WriteFile(fileName, []byte(secret.Hex())); err != nil {
 		return err
 	}
-	cmd.Printf("Successfully wrote new JSON-RPC authentication secret to: %s", fileName)
+
+	cmd.Printf(
+		"Successfully wrote new JSON-RPC authentication secret to: %s",
+		fileName,
+	)
 	return nil
 }

@@ -39,7 +39,8 @@ import (
 type Service struct {
 	service.BaseService
 
-	// running is a boolean that indicates whether the service is running or not.
+	// running is a boolean that indicates whether the service is running or
+	// not.
 	running bool
 
 	// feeds is a map that holds the event feeds.
@@ -67,25 +68,30 @@ func (s *Service) Start(ctx context.Context) {
 
 			// Start a goroutine to listen for events and call the handler
 			go func(
-				pair eventHandlerQueuePair, ch <-chan *Event, subscription ethereum.Subscription,
+				pair eventHandlerQueuePair,
+				ch <-chan *Event,
+				subscription ethereum.Subscription,
 			) {
 				for {
 					select {
 					case event := <-ch:
-						// Use the dispatch queue to call the handler's Handle method
+						// Use the dispatch queue to call the handler's Handle
+						// method
 						// asynchronously
 						if err := s.gcd.GetQueue(pair.queueID).Async(func() {
 							pair.handler.HandleNotification(event)
 						}); err != nil {
-							// Choosing to panic here because it doesn't make sense for the
-							// service we're controlling to have stopped the queue
+							// Choosing to panic here because it doesn't make
+							// sense for the service we're controlling to have
+							// stopped the queue
 							panic(err)
 						}
 					case <-subscription.Err():
 						return
 					case <-ctx.Done():
 						s.running = false
-						// This will receive a value when the stop channel is closed
+						// This will receive a value when the stop channel is
+						// closed
 						return
 					}
 				}
@@ -108,9 +114,11 @@ func (s *Service) RegisterFeed(name string) {
 	}
 }
 
-// RegisterHandler registers a new handler associated with the provided key. It also
-// takes a queueID which is used to dispatch the handler on.
-func (s *Service) RegisterHandler(name string, queueID string, handler EventHandler) error {
+// RegisterHandler registers a new handler associated with the provided key.
+// It also takes a queueID which is used to dispatch the handler on.
+func (s *Service) RegisterHandler(
+	name string, queueID string, handler EventHandler,
+) error {
 	if s.running {
 		panic(ErrRegisterFeedServiceStarted)
 	}
@@ -127,7 +135,8 @@ func (s *Service) RegisterHandler(name string, queueID string, handler EventHand
 	return nil
 }
 
-// Dispatch dispatches an event to all handlers associated with the provided key.
+// Dispatch dispatches an event to all handlers associated
+// with the provided key.
 func (s *Service) Dispatch(feedName string, event any) {
 	feed, ok := s.feeds[feedName]
 	if ok {

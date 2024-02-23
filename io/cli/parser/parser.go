@@ -50,32 +50,46 @@ type AppOptionsParser struct {
 	servertypes.AppOptions
 }
 
-// NewAppOptionsParser creates a new instance of AppOptionsParser with the provided
+// NewAppOptionsParser creates a new instance of AppOptionsParser with the
+// provided
 // AppOptions.
 func NewAppOptionsParser(opts servertypes.AppOptions) *AppOptionsParser {
 	return &AppOptionsParser{opts}
 }
 
 // GetExecutionAddress returns the common.Address for the provided key.
-func (c *AppOptionsParser) GetExecutionAddress(key string) (common.Address, error) {
+func (c *AppOptionsParser) GetExecutionAddress(
+	key string,
+) (common.Address, error) {
 	addressStr, err := c.GetString(key)
 	if err != nil {
 		return common.Address{}, err
 	}
 	if !common.IsHexAddress(addressStr) {
-		return common.Address{}, fmt.Errorf("invalid address: %s flag %s", addressStr, key)
+		return common.Address{}, fmt.Errorf(
+			"invalid address: %s flag %s",
+			addressStr,
+			key,
+		)
 	}
 	return common.HexToAddress(addressStr), nil
 }
 
-// GetCommonAddressList retrieves a list of common.Address from a configuration key.
-func (c *AppOptionsParser) GetCommonAddressList(key string) ([]common.Address, error) {
+// GetCommonAddressList retrieves a list of common.Address from a configuration
+// key.
+func (c *AppOptionsParser) GetCommonAddressList(
+	key string,
+) ([]common.Address, error) {
 	addresses := make([]common.Address, 0)
 	addressStrs := cast.ToStringSlice(c.Get(key))
 	for _, addressStr := range addressStrs {
 		address := common.HexToAddress(addressStr)
 		if !common.IsHexAddress(addressStr) {
-			return nil, fmt.Errorf("invalid address in list: %s flag %s", addressStr, key)
+			return nil, fmt.Errorf(
+				"invalid address in list: %s flag %s",
+				addressStr,
+				key,
+			)
 		}
 		addresses = append(addresses, address)
 	}
@@ -152,7 +166,8 @@ func (c *AppOptionsParser) GetTimeDuration(key string) (time.Duration, error) {
 	return handleError(c, cast.ToDurationE, key)
 }
 
-// isNilRepresentation returns true if the provided value is "<nil>", "null" or "".
+// isNilRepresentation returns true if the provided value is "<nil>", "null" or
+// "".
 // it is used to determine when we need to initialize a nil ptr for a value to
 // prevent the sdk from panicking on startup due to weird value.
 func (c *AppOptionsParser) isNilRepresentation(value string) bool {
@@ -160,10 +175,14 @@ func (c *AppOptionsParser) isNilRepresentation(value string) bool {
 }
 
 // handleError handles an error for a given flag in the AppOptionsParser.
-// It attempts to cast the flag's value using the provided castFn and returns the result.
+// It attempts to cast the flag's value using the provided castFn and returns
+// the result.
 // If the cast fails, it returns an error.
 func handleError[T any](
-	c *AppOptionsParser, castFn func(interface{}) (T, error), flag string) (T, error) {
+	c *AppOptionsParser,
+	castFn func(interface{}) (T, error),
+	flag string,
+) (T, error) {
 	var val T
 	var err error
 	if val, err = castFn(c.Get(flag)); err != nil {
@@ -175,21 +194,31 @@ func handleError[T any](
 }
 
 // handleErrorPtr handles an error for a given flag in the AppOptionsParser.
-// It attempts to cast the flag's value using the provided castFn and returns a pointer to
-// the result. If the cast fails, it returns an error. If the flag's value is empty,
+// It attempts to cast the flag's value using the provided castFn and returns a
+// pointer to the result. If the cast fails, it returns an error. If the flag's
+// value is empty,
 // it returns a nil pointer.
 func handleErrorPtr[T any](
-	c *AppOptionsParser, castFn func(interface{}) (T, error), flag string) (*T, error) {
+	c *AppOptionsParser, castFn func(interface{}) (T, error), flag string,
+) (*T, error) {
 	var num string
 	var err error
 	if num, err = cast.ToStringE((c.Get(flag))); err != nil {
-		return nil, fmt.Errorf("error while reading string: %w flag: %s", err, flag)
+		return nil, fmt.Errorf(
+			"error while reading string: %w flag: %s",
+			err,
+			flag,
+		)
 	} else if c.isNilRepresentation(num) {
 		return (*T)(nil), nil
 	}
 	var val T
 	if val, err = castFn(num); err != nil {
-		return nil, fmt.Errorf("error while converting to value: %w flag: %s", err, flag)
+		return nil, fmt.Errorf(
+			"error while converting to value: %w flag: %s",
+			err,
+			flag,
+		)
 	}
 	return &val, nil
 }
@@ -200,7 +229,10 @@ func handleErrorPtr[T any](
 func handleBigInt(numStr interface{}) (big.Int, error) {
 	num, ok := new(big.Int).SetString(numStr.(string), baseTen)
 	if !ok {
-		return big.Int{}, fmt.Errorf("invalid big.Int string: %s", numStr.(string))
+		return big.Int{}, fmt.Errorf(
+			"invalid big.Int string: %s",
+			numStr.(string),
+		)
 	}
 	return *num, nil
 }

@@ -33,7 +33,8 @@ import (
 // Option is a function that applies a specific configuration to the Processor.
 type Option func(*Processor) error
 
-// WithHandler is an Option that sets the handler of a contract address for the Processor.
+// WithHandler is an Option that sets the handler
+// of a contract address for the Processor.
 func WithHandler(contractAddr common.Address, handler Handler) Option {
 	return func(p *Processor) error {
 		p.handlers[contractAddr] = handler
@@ -41,7 +42,7 @@ func WithHandler(contractAddr common.Address, handler Handler) Option {
 	}
 }
 
-// WithLogger is an Option that sets the logger for the Processor.
+// WithLogger  sets the logger for the Processor.
 func WithLogger(logger log.Logger) Option {
 	return func(p *Processor) error {
 		p.logger = logger.With("module", "beacon-kit-log-processor")

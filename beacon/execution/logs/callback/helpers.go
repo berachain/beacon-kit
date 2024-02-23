@@ -27,8 +27,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-// This function matches each Go implementation to the ABI's respective function.
-// It searches for the ABI function in the go struct and performs basic validation on
+// This function matches each Go implementation to the ABI's respective
+// function. It searches for the ABI function in the go struct and performs
+// basic validation on
 // the implemented function.
 func buildIDsToMethods(
 	si ContractHandler,
@@ -48,7 +49,8 @@ func buildIDsToMethods(
 		idsToMethods[logSig(contractEventsABI[eventName].ID)] = method
 	}
 
-	// verify that every abi method has a corresponding precompile implementation
+	// verify that every abi method has a corresponding precompile
+	// implementation
 	for _, abiMethod := range contractEventsABI {
 		if _, found := idsToMethods[logSig(abiMethod.ID)]; !found {
 			return nil, errors.New("error finding method for event")
@@ -58,7 +60,8 @@ func buildIDsToMethods(
 	return idsToMethods, nil
 }
 
-// findMatchingEvent finds the ABI method that matches the given impl method. It returns the
+// findMatchingEvent finds the ABI method that matches the given impl method. It
+// returns the
 // key in the ABI methods map that matches the impl method.
 func findMatchingEvent(
 	implMethod reflect.Method, eventABI map[string]abi.Event,
@@ -106,7 +109,9 @@ func tryMatchInputs(implMethod reflect.Method, abiMethod abi.Event) bool {
 		implMethodParamType := implMethod.Type.In(i)
 		abiMethodParamType := abiMethod.Inputs[i-2].Type.GetType()
 		if validateArg(
-			reflect.New(implMethodParamType).Elem(), reflect.New(abiMethodParamType).Elem(),
+			reflect.New(implMethodParamType).
+				Elem(),
+			reflect.New(abiMethodParamType).Elem(),
 		) != nil {
 			return false
 		}

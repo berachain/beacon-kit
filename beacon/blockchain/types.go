@@ -36,14 +36,18 @@ import (
 )
 
 type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
 	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
+		ctx context.Context,
+		fcuConfig *execution.FCUConfig,
 	) (*enginev1.PayloadIDBytes, error)
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(
-		ctx context.Context, preStateHeader engine.ExecutionPayload, slot primitives.Slot,
+		ctx context.Context,
+		preStateHeader engine.ExecutionPayload,
+		slot primitives.Slot,
 	) (bool, error)
 }
 

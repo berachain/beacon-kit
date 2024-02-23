@@ -47,21 +47,21 @@ type ExecutionPayloadBody interface {
 	GetValue() math.Wei
 }
 
-// ExecutionPayload is the interface for the execution data of a block.
+// ExecutionPayload represents the execution data of a block.
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
 	GetWithdrawals() []*enginev1.Withdrawal
 }
 
-// ExecutionPayloadHeader is the interface representing an execution payload header.
+// ExecutionPayloadHeader represents an execution payload header.
 type ExecutionPayloadHeader interface {
 	ExecutionPayloadBody
 	GetTransactionsRoot() []byte
 	GetWithdrawalsRoot() []byte
 }
 
-// PayloadAttributer is the interface for the payload attributes of a block.
+// PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
 	Version() int
 	IsEmpty() bool

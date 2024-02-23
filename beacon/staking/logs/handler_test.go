@@ -54,42 +54,45 @@ func Test_CallbackHandler(t *testing.T) {
 	withdrawalEventName := "Withdrawal"
 	withdrawalEvent := events[withdrawalEventName]
 
-	t.Run("should add correct deposits and withdrawals into staking service", func(t *testing.T) {
-		var (
-			deposit          *consensusv1.Deposit
-			latestDeposit    *consensusv1.Deposit
-			withdrawal       *enginev1.Withdrawal
-			latestWithdrawal *enginev1.Withdrawal
-			log              *coretypes.Log
-		)
+	t.Run(
+		"should add correct deposits and withdrawals into staking service",
+		func(t *testing.T) {
+			var (
+				deposit          *consensusv1.Deposit
+				latestDeposit    *consensusv1.Deposit
+				withdrawal       *enginev1.Withdrawal
+				latestWithdrawal *enginev1.Withdrawal
+				log              *coretypes.Log
+			)
 
-		deposit = consensus.NewDeposit(
-			[]byte("pubkey"),
-			10000,
-			[]byte("12345678901234567890"),
-		)
-		log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
-		require.NoError(t, err)
+			deposit = consensus.NewDeposit(
+				[]byte("pubkey"),
+				10000,
+				[]byte("12345678901234567890"),
+			)
+			log, err = mocks.NewLogFromDeposit(depositEvent, deposit)
+			require.NoError(t, err)
 
-		err = callbackHandler.HandleLog(ctx, log)
-		require.NoError(t, err)
+			err = callbackHandler.HandleLog(ctx, log)
+			require.NoError(t, err)
 
-		latestDeposit, err = stakingService.MostRecentDeposit()
-		require.NoError(t, err)
-		require.Equal(t, deposit, latestDeposit)
+			latestDeposit, err = stakingService.MostRecentDeposit()
+			require.NoError(t, err)
+			require.Equal(t, deposit, latestDeposit)
 
-		withdrawal = engine.NewWithdrawal(
-			[]byte("pubkey"),
-			10000,
-		)
-		log, err = mocks.NewLogFromWithdrawal(withdrawalEvent, withdrawal)
-		require.NoError(t, err)
+			withdrawal = engine.NewWithdrawal(
+				[]byte("pubkey"),
+				10000,
+			)
+			log, err = mocks.NewLogFromWithdrawal(withdrawalEvent, withdrawal)
+			require.NoError(t, err)
 
-		err = callbackHandler.HandleLog(ctx, log)
-		require.NoError(t, err)
+			err = callbackHandler.HandleLog(ctx, log)
+			require.NoError(t, err)
 
-		latestWithdrawal, err = stakingService.MostRecentWithdrawal()
-		require.NoError(t, err)
-		require.Equal(t, withdrawal, latestWithdrawal)
-	})
+			latestWithdrawal, err = stakingService.MostRecentWithdrawal()
+			require.NoError(t, err)
+			require.Equal(t, withdrawal, latestWithdrawal)
+		},
+	)
 }

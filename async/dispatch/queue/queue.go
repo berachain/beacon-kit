@@ -82,13 +82,18 @@ func (q *DispatchQueue) Async(execute WorkItem) error {
 	return nil
 }
 
-// AsyncAfter adds a work item to the queue to be executed after a specified duration.
-func (q *DispatchQueue) AsyncAfter(deadline time.Duration, execute WorkItem) error {
+// AsyncAfter adds a work item to the queue to be executed after a
+//
+//	specified duration.
+func (q *DispatchQueue) AsyncAfter(
+	deadline time.Duration, execute WorkItem,
+) error {
 	time.Sleep(deadline)
 	return q.Async(execute)
 }
 
-// Sync adds a work item to the queue and waits for its execution to complete.
+// Sync adds a work item to the queue and waits for its execution
+// to complete.
 func (q *DispatchQueue) Sync(execute WorkItem) error {
 	done := make(chan struct{})
 	if err := q.Async(func() {
@@ -101,7 +106,8 @@ func (q *DispatchQueue) Sync(execute WorkItem) error {
 	return nil
 }
 
-// AsyncAndWait adds a work item to the queue and waits for all work items to complete.
+// AsyncAndWait adds a work item to the queue and waits for all work
+// items to complete.
 func (q *DispatchQueue) AsyncAndWait(execute WorkItem) error {
 	if err := q.Async(execute); err != nil {
 		return err
@@ -110,8 +116,8 @@ func (q *DispatchQueue) AsyncAndWait(execute WorkItem) error {
 	return nil
 }
 
-// Stop stops the queue, preventing new work items from being added and waits for all
-// in-flight work items to complete.
+// Stop stops the queue, preventing new work items from being added
+// and waits for all in-flight work items to complete.
 func (q *DispatchQueue) Stop() {
 	q.mu.Lock()
 	defer q.mu.Unlock()

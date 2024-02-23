@@ -37,14 +37,18 @@ import (
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
-	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock, isValidPayload bool,
+	ctx context.Context,
+	blk consensus.ReadOnlyBeaconKitBlock,
+	isValidPayload bool,
 ) error {
 	nextSlot := blk.GetSlot() + 1
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-		// If the incoming payload for this block is not valid, we submit a forkchoice
+		// If the incoming payload for this block is not valid, we submit a
+		// forkchoice
 		// to bring us back to the last valid one.
-		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
+		// TODO: Is doing this potentially the cause of the weird Geth SnapSync
+		// issue?
 		// TODO: Should introduce the concept of missed slots?
 		if err := s.sendFCU(
 			ctx, s.BeaconState(ctx).GetLastValidHead(), nextSlot,
@@ -59,24 +63,29 @@ func (s *Service) postBlockProcess(
 		return err
 	}
 
-	// We notify the execution client of the new block, and wait for it to return
-	// a payload ID. If the payload ID is nil, we return an error. One thing to
-	// notice here however is that we pass in `slot+1` to the execution client. We
-	// do this so that we can begin building the next block in the background while
-	// we are finalizing this block. We are okay pushing this asynchonous work to
-	// the execution client, as it is designed for it.
+	// We notify the execution client of the new block and await a payload ID.
+	// If the payload ID is nil, an error is returned. Notably, we pass `slot+1`
+	// to the execution client. This allows us to start building the next block
+	// in the background while finalizing the current one. This asynchronous
+	// task is suitable for the execution client's design.
 	//
-	// TODO: we should probably just have a validator job in the background that is
-	// constantly building new payloads and then not worry about anything here
-	// triggering payload builds.
-	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), nextSlot)
+	// TODO: Consider implementing a background validator job for continuous
+	// payload building, eliminating the need for trigger-based builds here.
+	return s.sendFCU(
+		ctx,
+		common.Hash(executionPayload.GetBlockHash()),
+		nextSlot,
+	)
 }
 
 // sendFCU sends a forkchoice update to the execution client.
 func (s *Service) sendFCU(
-	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
+	ctx context.Context,
+	headEth1Hash common.Hash,
+	proposingSlot primitives.Slot,
 ) error {
-	// Send the forkchoice update to the execution client via the execution service.
+	// Send the forkchoice update to the execution client via the execution
+	// service.
 	_, err := s.es.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  headEth1Hash,

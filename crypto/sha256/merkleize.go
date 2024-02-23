@@ -49,7 +49,10 @@ import (
 // BuildMerkleRoot constructs a Hash Tree Root (HTR) from a list of elements.
 //
 //nolint:dupword
-func BuildMerkleRoot[T Hashable](elements []T, maxRootsAllowed uint64) ([32]byte, error) {
+func BuildMerkleRoot[T Hashable](
+	elements []T,
+	maxRootsAllowed uint64,
+) ([32]byte, error) {
 	roots, err := HashElements(elements)
 	if err != nil {
 		return [32]byte{}, err
@@ -57,7 +60,8 @@ func BuildMerkleRoot[T Hashable](elements []T, maxRootsAllowed uint64) ([32]byte
 	return SafeMerkleizeVector(roots, maxRootsAllowed)
 }
 
-// We can visualize the process of building a Merkle tree and mixing in the length as follows:
+// We can visualize the process of building a Merkle tree and mixing in
+// the length as follows:
 //
 // [Element1] [Element2] ... [ElementN]
 //
@@ -72,17 +76,23 @@ func BuildMerkleRoot[T Hashable](elements []T, maxRootsAllowed uint64) ([32]byte
 //	   [       Merkle Tree       ]  Combine hashes to form the tree
 //	             |
 //	             v
-//	         [ Intermediate Root ]  The intermediate root hash of the Merkle tree
-//	             |
-//	             v
-//	     [Intermediate Root + Length]  Append the length of the roots to the intermediate root
-//	             |
-//	             v
-//	         [ Final Root ]  Hash the result to return the final HTR
+//	         [ Intermediate Root ]  The intermediate root hash of the Merkle
 //
-// BuildMerkleRootAndMixinLength hashes each element in the list and then returns the HTR
-// of the corresponding list of roots. It then appends the length of the roots to the
-// end of the byteRoots and further hashes the result to return the final HTR.
+// tree
+//
+//	        |
+//	        v
+//	[Intermediate Root + Length]  Append the length to the intermediate
+//
+// root
+//
+//	    |
+//	    v
+//	[ Final Root ]  Hash the result to return the final HTR
+//
+// BuildMerkleRootAndMixinLength hashes each list element, returning the HTR
+// for the roots list. It appends roots' length to byteRoots, then hashes
+// this result to yield the final HTR.
 //
 //nolint:dupword
 func BuildMerkleRootAndMixinLength[T Hashable](
@@ -96,7 +106,8 @@ func BuildMerkleRootAndMixinLength[T Hashable](
 }
 
 // SafeMerkelizeVectorAndMixinLength takes a list of roots and returns the HTR
-// of the corresponding list of roots. It then appends the length of the roots to the
+// of the corresponding list of roots. It then appends the length of the roots
+// to the
 // end of the byteRoots and further hashes the result to return the final HTR.
 func SafeMerkelizeVectorAndMixinLength(
 	roots [][32]byte, maxRootsAllowed uint64,
@@ -108,20 +119,19 @@ func SafeMerkelizeVectorAndMixinLength(
 	return tree.GetHashFn().Mixin(byteRoots, uint64(len(roots))), nil
 }
 
-// UnsafeMerkleizeVectorAndMixinLength is a function that operates on a list of tree roots.
-// Initially, it computes the Hash Tree Root (HTR) for the given list. Subsequently, it
-// appends the length of the list to the end of the computed byte array of roots. This
-// appended byte array is then hashed again to produce the final HTR. This process can be
-// visualized as follows:
+// UnsafeMerkleizeVectorAndMixinLength processes a list of tree roots. It first
+// calculates the Hash Tree Root (HTR) for the list. Then, it appends the list's
+// length to the HTR byte array. This modified array is hashed to get the final
+// HTR. The steps are:
 //
-// Step 1: Compute HTR for list of roots -> HTR([Root1, Root2, ..., RootN])
-// Step 2: Append length of list to byte array -> [HTR_byte_array, length]
-// Step 3: Hash the result from Step 2 -> HTR([HTR_byte_array, length])
+// Step 1: Calculate HTR for roots -> HTR([Root1, Root2, ..., RootN])
+// Step 2: Append list length to array -> [HTR_byte_array, length]
+// Step 3: Hash the modified array -> HTR([HTR_byte_array, length])
 //
-// Given roots: [R1, R2, ..., RN]
-// 1. Compute HTR -> [HTR_byte_array]
+// For roots: [R1, R2, ..., RN]
+// 1. Calculate HTR -> [HTR_byte_array]
 // 2. Append length -> [HTR_byte_array, length]
-// Step 3: Hash result -> Final HTR.
+// 3. Hash modified array -> Final HTR.
 func UnsafeMerkleizeVectorAndMixinLength(
 	roots [][32]byte, maxRootsAllowed uint64,
 ) [32]byte {
@@ -142,20 +152,22 @@ func UnsafeMerkleizeVector(
 	return root
 }
 
-// The function SafeMerkleizeVector is designed to compute the Hash Tree Root (HTR)
-// for a given list of tree roots. It operates under the assumption that no safety
+// The function SafeMerkleizeVector is designed to compute the Hash Tree Root
+// (HTR) for a given list of tree roots. It operates under the assumption that
+// no safety
 // checks on the size of the list against a limit are needed (hence "Unsafe").
 // Here's a step-by-step explanation and a diagrammatic representation of its
 // operation:
 //
-// 1. Determine the depth required to cover the list, given a limit on the number of
+// 1. Determine the depth required to cover the list, given a limit on the
+// number of
 //    elements.
 // 2. If the list is empty, return the zero hash at the calculated depth.
 // 3. Iterate over each level of depth:
-//    a. Check if the current list of roots has an odd length. If so, append a zero
+// a. Check if the current list of roots has an odd length. If so, append a zero
 //       hash at the current depth to make it even.
-//    b. Hash pairs of elements (roots) together to form a new level of the tree,
-//       reducing the total number of elements by half. This step is repeated until a
+// b. Hash pairs of elements (roots) together to form a new level of the tree,
+// reducing the total number of elements by half. This step is repeated until a
 //       single root is obtained, representing the HTR of the list.
 
 // Given roots: [R1, R2, R3]
@@ -165,7 +177,10 @@ func UnsafeMerkleizeVector(
 //	Repeat -> [H(H(R1,R2), H(R3,Z))]
 //
 // Result: The final HTR is H(H(R1,R2), H(R3,Z)).
-func SafeMerkleizeVector(roots [][32]byte, maxRootsAllowed uint64) ([32]byte, error) {
+func SafeMerkleizeVector(
+	roots [][32]byte,
+	maxRootsAllowed uint64,
+) ([32]byte, error) {
 	var err error
 
 	// If the list of roots is empty, return the zero hash.
@@ -173,7 +188,8 @@ func SafeMerkleizeVector(roots [][32]byte, maxRootsAllowed uint64) ([32]byte, er
 		return [32]byte{}, nil
 	}
 
-	// If the number of elements in the list exceeds the maximum allowed, return an error.
+	// If the number of elements in the list exceeds the maximum allowed, return
+	// an error.
 	if uint64(len(roots)) > maxRootsAllowed {
 		return [32]byte{}, ErrMaxRootsExceeded
 	}
@@ -181,10 +197,12 @@ func SafeMerkleizeVector(roots [][32]byte, maxRootsAllowed uint64) ([32]byte, er
 	// Determine the max possible depth of the tree given maxRootsAllowed.
 	depth := tree.CoverDepth(maxRootsAllowed)
 
-	// Iterate over each level of depth in the tree. The loop is repeated until a single
+	// Iterate over each level of depth in the tree. The loop is repeated until
+	// a single
 	// root is obtained, representing the HTR of the list.
 	for i := uint8(0); i < depth; i++ {
-		// If the current level of the tree has an odd number of roots, append the corresponding
+		// If the current level of the tree has an odd number of roots, append
+		// the corresponding
 		// zero hash for that depth to make it even.
 		if len(roots)%2 != 0 {
 			roots = append(roots, tree.ZeroHashes[i])

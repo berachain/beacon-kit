@@ -59,7 +59,8 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 
 		p, ok = cacheUnderTest.Get(primitives.Slot(slot), r)
 		require.True(t, ok)
-		require.Equal(t, newPid, p, "PayloadID should be overwritten with the new value")
+		require.Equal(
+			t, newPid, p, "PayloadID should be overwritten with the new value")
 
 		// Prune and verify deletion
 		cacheUnderTest.UnsafePrunePrior(primitives.Slot(slot) + 1)
@@ -76,7 +77,9 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		var r [32]byte
 		if len(_r) > 32 {
 			// Expecting an error or specific handling of oversized input
-			t.Skip("Skipping test due to intentionally invalid input size for root.")
+			t.Skip(
+				"Skipping test due to intentionally invalid input size for root.",
+			)
 		}
 		copy(r[:], _r)
 		var paddedPayload [8]byte
@@ -114,7 +117,9 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 		var ok bool
 		go func() {
 			defer wg.Done()
-			time.Sleep(10 * time.Millisecond) // Small delay to let the Set operation proceed
+			time.Sleep(
+				10 * time.Millisecond,
+			) // Small delay to let the Set operation proceed
 			var r [32]byte
 			copy(r[:], _r)
 			_, ok = cacheUnderTest.Get(primitives.Slot(slot), r)

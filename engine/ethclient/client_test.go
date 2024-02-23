@@ -77,7 +77,10 @@ func TestNewPayloadV3_BasicSanityCheck(t *testing.T) {
 				Once()
 
 			_, err := client.NewPayloadV3(
-				context.Background(), payload, tt.versionedHashes, tt.parentBlockRoot,
+				context.Background(),
+				payload,
+				tt.versionedHashes,
+				tt.parentBlockRoot,
 			)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -164,7 +167,11 @@ func TestForkchoiceUpdatedV3_BasicSanityCheck(t *testing.T) {
 				Return(tt.ret).
 				Once()
 
-			_, err := client.ForkchoiceUpdatedV3(context.Background(), tt.state, tt.attrs)
+			_, err := client.ForkchoiceUpdatedV3(
+				context.Background(),
+				tt.state,
+				tt.attrs,
+			)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -211,7 +218,11 @@ func TestForkchoiceUpdatedV2_BasicSanityCheck(t *testing.T) {
 				Return(tt.ret).
 				Once()
 
-			_, err := client.ForkchoiceUpdatedV2(context.Background(), tt.state, tt.attrs)
+			_, err := client.ForkchoiceUpdatedV2(
+				context.Background(),
+				tt.state,
+				tt.attrs,
+			)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

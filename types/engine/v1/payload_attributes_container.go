@@ -54,7 +54,8 @@ func (w *PayloadAttributesContainer) IsEmpty() bool {
 	}
 }
 
-// ToProto converts the PayloadAttributesContainer to its protobuf representation.
+// ToProto converts the PayloadAttributesContainer to its protobuf
+// representation.
 func (w *PayloadAttributesContainer) ToProto() proto.Message {
 	switch p := w.GetAttributes().(type) {
 	case *PayloadAttributesContainer_V3:
@@ -66,7 +67,8 @@ func (w *PayloadAttributesContainer) ToProto() proto.Message {
 	}
 }
 
-// GetPrevRandao retrieves the previous RANDAO value from the PayloadAttributesContainer.
+// GetPrevRandao retrieves the previous RANDAO value from the
+// PayloadAttributesContainer.
 func (w *PayloadAttributesContainer) GetPrevRandao() []byte {
 	payload := w.ToProto()
 	switch p := payload.(type) {
@@ -106,7 +108,8 @@ func (w *PayloadAttributesContainer) GetSuggestedFeeRecipient() []byte {
 	}
 }
 
-// GetWithdrawals fetches the list of withdrawals from the PayloadAttributesContainer.
+// GetWithdrawals fetches the list of withdrawals from the
+// PayloadAttributesContainer.
 func (w *PayloadAttributesContainer) GetWithdrawals() []*Withdrawal {
 	payload := w.ToProto()
 	switch p := payload.(type) {

@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 // notify contains a notification service used for in-app communication.
-// It is used to register event feeds and handlers, and dispatch events to the handlers and
+// It is used to register event feeds and handlers, and dispatch events to the
+// handlers and
 // leverages GrandCentralDispatch to dispatch events to handlers.
 package notify

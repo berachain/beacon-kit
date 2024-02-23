@@ -33,7 +33,12 @@ import (
 
 // GethRPCClient is an interface for the Geth RPC client.
 type GethRPCClient interface {
-	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	CallContext(
+		ctx context.Context,
+		result interface{},
+		method string,
+		args ...interface{},
+	) error
 }
 
 // ForkchoiceUpdatedResponse is the response kind received by the

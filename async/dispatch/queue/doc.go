@@ -23,5 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// queue contains queue implementations for dispatching tasks via GrandCentralDispatch.
+// queue contains queue implementations for dispatching tasks
+// via GrandCentralDispatch.
 package queue

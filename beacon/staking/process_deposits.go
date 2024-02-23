@@ -32,7 +32,10 @@ import (
 )
 
 // AcceptDepositIntoQueue records a deposit in the beacon state's queue.
-func (s *Service) AcceptDepositIntoQueue(ctx context.Context, deposit *consensusv1.Deposit) error {
+func (s *Service) AcceptDepositIntoQueue(
+	ctx context.Context,
+	deposit *consensusv1.Deposit,
+) error {
 	// Push the deposit to the beacon state's queue.
 	err := s.BeaconState(ctx).EnqueueDeposits([]*consensusv1.Deposit{deposit})
 	if err != nil {
@@ -47,8 +50,11 @@ func (s *Service) ApplyDeposits(ctx context.Context) error {
 	beaconState := s.BeaconState(ctx)
 
 	// Get deposits, up to MaxDepositsPerBlock, from the queue
-	// to apply to the underlying low-level staking module (e.g Cosmos SDK's x/staking).
-	deposits, err := beaconState.DequeueDeposits(s.BeaconCfg().Limits.MaxDepositsPerBlock)
+	// to apply to the underlying low-level staking module (e.g Cosmos SDK's
+	// x/staking).
+	deposits, err := beaconState.DequeueDeposits(
+		s.BeaconCfg().Limits.MaxDepositsPerBlock,
+	)
 	if err != nil {
 		return err
 	}

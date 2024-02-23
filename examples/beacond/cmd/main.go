@@ -41,7 +41,8 @@ func main() {
 	config.SetupCosmosConfig()
 	rootCmd := root.NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome); err != nil {
-		log.NewLogger(rootCmd.OutOrStderr()).Error("failure when running app", "error", err)
+		log.NewLogger(rootCmd.OutOrStderr()).
+			Error("failure when running app", "error", err)
 		os.Exit(1)
 	}
 }

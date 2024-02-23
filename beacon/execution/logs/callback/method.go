@@ -29,7 +29,8 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// logSig is a fixed length byte array that represents the method ID of a precompile method.
+// logSig is a fixed length byte array that represents the signature
+// to a specific type of log.
 type logSig common.Hash
 
 // method attaches a specific abi.Event to a golang struct to process it.
@@ -44,7 +45,8 @@ type method struct {
 	execute reflect.Method
 }
 
-// newMethod creates and returns a new `method` with the given abiEvent, and executable.
+// newMethod creates and returns a new
+// `method` with the given abiEvent, and executable.
 func newMethod(
 	rcvr ContractHandler, abiEvent abi.Event, execute reflect.Method,
 ) *method {
@@ -65,14 +67,24 @@ func (m *method) Call(ctx context.Context, log *coretypes.Log) error {
 	}
 
 	// Convert topics to common.Hash
-	reflectedUnpackedArgs := make([]reflect.Value, 0, (len(topics)-1)+len(unpackedArgs))
+	reflectedUnpackedArgs := make(
+		[]reflect.Value,
+		0,
+		(len(topics)-1)+len(unpackedArgs),
+	)
 	for _, topic := range topics[1:] {
-		reflectedUnpackedArgs = append(reflectedUnpackedArgs, reflect.ValueOf(topic))
+		reflectedUnpackedArgs = append(
+			reflectedUnpackedArgs,
+			reflect.ValueOf(topic),
+		)
 	}
 
 	// Convert the unpacked args to reflect values.
 	for _, unpacked := range unpackedArgs {
-		reflectedUnpackedArgs = append(reflectedUnpackedArgs, reflect.ValueOf(unpacked))
+		reflectedUnpackedArgs = append(
+			reflectedUnpackedArgs,
+			reflect.ValueOf(unpacked),
+		)
 	}
 
 	// Call the executable the reflected values.

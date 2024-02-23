@@ -27,5 +27,5 @@ package primitives
 
 import "errors"
 
-// ErrInvalidBufferSize is an error indicating that the provided buffer size is invalid.
+// ErrInvalidBufferSize indicates that the provided buffer size is invalid.
 var ErrInvalidBufferSize = errors.New("invalid buffer size")

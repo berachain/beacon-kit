@@ -31,19 +31,23 @@ import (
 )
 
 // EnqueueDeposits pushes the deposits to the queue.
-func (s *BeaconStore) EnqueueDeposits(deposits []*consensusv1.Deposit) error {
+func (s *BeaconStore) EnqueueDeposits(
+	deposits []*consensusv1.Deposit,
+) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
-func (s *BeaconStore) DequeueDeposits(numDequeue uint64) ([]*consensusv1.Deposit, error) {
+func (s *BeaconStore) DequeueDeposits(
+	numDequeue uint64,
+) ([]*consensusv1.Deposit, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
-// TODO: maybe BeaconState interface needs to be glue'd together outside of
-// x/beacon, since we are going to need to get withdrawls from the x/beacon_staking.
-// TODO: We might want to build BeaconState from a variety of sources, not just
-// the x/beacon module.
+// TODO: Consider consolidating BeaconState interface externally to x/beacon
+// to facilitate withdrawals from x/beacon_staking.
+// TODO: Explore constructing BeaconState from multiple sources beyond
+// just x/beacon.
 func (s *BeaconStore) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
 	return []*enginev1.Withdrawal{}, nil
 }

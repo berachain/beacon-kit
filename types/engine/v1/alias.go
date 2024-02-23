@@ -28,35 +28,34 @@ package enginev1
 import enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 
 type (
-	// ExecutionPayloadCapella is an alias for the Prysm ExecutionPayloadCapella.
+	// ExecutionPayloadCapella alias for Prysm's version.
 	ExecutionPayloadCapella = enginev1.ExecutionPayloadCapella
-	// ExecutionPayloadCapellaWithValue is an alias for the Prysm ExecutionPayloadCapellaWithValue.
+	// ExecutionPayloadCapellaWithValue alias for Prysm's version.
 	ExecutionPayloadCapellaWithValue = enginev1.ExecutionPayloadCapellaWithValue
-	// ExecutionPayloadHeader is an alias for the Prysm ExecutionPayloadHeader.
+	// ExecutionPayloadHeaderCapella alias for Prysm's version.
 	ExecutionPayloadHeaderCapella = enginev1.ExecutionPayloadHeaderCapella
-	// ExecutionPayloadDeneb is an alias for the Prysm ExecutionPayloadDeneb.
+	// ExecutionPayloadDeneb alias for Prysm's version.
 	ExecutionPayloadDeneb = enginev1.ExecutionPayloadDeneb
-	// ExecutionPayloadDenebWithValueAndBlobsBundle is an alias for the Prysm
-	// ExecutionPayloadDenebWithValueAndBlobsBundle.
+	// ExecutionPayloadDenebWithValueAndBlobsBundle alias for Prysm's version.
 	//nolint:lll // alias.
 	ExecutionPayloadDenebWithValueAndBlobsBundle = enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle
-	// ExecutionPayloadHeaderDeneb is an alias for the Prysm ExecutionPayloadHeaderDeneb.
+	// ExecutionPayloadHeaderDeneb alias for Prysm's version.
 	ExecutionPayloadHeaderDeneb = enginev1.ExecutionPayloadHeaderDeneb
-	// BlobsBundle is an alias for the Prysm BlobsBundle.
+	// BlobsBundle alias for Prysm's version.
 	BlobsBundle = enginev1.BlobsBundle
-	// Withdrawal is an alias for the Prysm Withdrawal.
+	// Withdrawal alias for Prysm's version.
 	Withdrawal = enginev1.Withdrawal
-	// ForkchoiceState is an alias for the Prysm ForkchoiceState.
+	// ForkchoiceState alias for Prysm's version.
 	ForkchoiceState = enginev1.ForkchoiceState
-	// PayloadAttributesContainer is an alias for the Prysm PayloadAttributesV2.
+	// PayloadAttributesV2 alias for Prysm's PayloadAttributesV2.
 	PayloadAttributesV2 = enginev1.PayloadAttributesV2
-	// PayloadAttributesContainer is an alias for the Prysm PayloadAttributesV3.
+	// PayloadAttributesV3 alias for Prysm's PayloadAttributesV3.
 	PayloadAttributesV3 = enginev1.PayloadAttributesV3
-	// PayloadAttributesContainer is an alias for the Prysm PayloadAttributesContainer.
+	// PayloadIDBytes alias for Prysm's PayloadAttributesContainer.
 	PayloadIDBytes = enginev1.PayloadIDBytes
-	// PayloadStatus is an alias for the Prysm PayloadStatus.
+	// PayloadStatus alias for Prysm's version.
 	PayloadStatus = enginev1.PayloadStatus
-	// ExecutionBlock is an alias for the Prysm ExecutionBlock.
+	// ExecutionBlock alias for Prysm's version.
 	ExecutionBlock = enginev1.ExecutionBlock
 )
 

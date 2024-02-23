@@ -41,11 +41,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// ExportAppStateAndValidators exports the state of the application for a genesis
+// ExportAppStateAndValidators exports the state of the application for a
+// genesis
 // file.
-func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs, modulesToExport []string) (servertypes.ExportedApp, error) {
+func (app *BeaconApp) ExportAppStateAndValidators(
+	forZeroHeight bool,
+	jailAllowedAddrs, modulesToExport []string,
+) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
-	ctx := app.NewContextLegacy(true, cmtproto.Header{Height: app.LastBlockHeight()})
+	ctx := app.NewContextLegacy(
+		true,
+		cmtproto.Header{Height: app.LastBlockHeight()},
+	)
 
 	// We export at last height + 1, because that's the height at which
 	// CometBFT will start InitChain.
@@ -55,7 +62,11 @@ func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool, jailAllowe
 		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
 	}
 
-	genState, err := app.ModuleManager.ExportGenesisForModules(ctx, app.appCodec, modulesToExport)
+	genState, err := app.ModuleManager.ExportGenesisForModules(
+		ctx,
+		app.appCodec,
+		modulesToExport,
+	)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
@@ -78,7 +89,10 @@ func (app *BeaconApp) ExportAppStateAndValidators(forZeroHeight bool, jailAllowe
 // NOTE zero height genesis is a temporary feature which will be deprecated
 //
 //	in favor of export at a block height
-func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
+func (app *BeaconApp) prepForZeroHeightGenesis(
+	ctx sdk.Context,
+	jailAllowedAddrs []string,
+) {
 	applyAllowedAddrs := false
 
 	// check if there is a allowed address list
@@ -108,16 +122,19 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	/* Handle staking state. */
 
 	// iterate through redelegations, reset creation height
-	err := app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) (stop bool) {
-		for i := range red.Entries {
-			red.Entries[i].CreationHeight = 0
-		}
-		err := app.StakingKeeper.SetRedelegation(ctx, red)
-		if err != nil {
-			panic(err)
-		}
-		return false
-	})
+	err := app.StakingKeeper.IterateRedelegations(
+		ctx,
+		func(_ int64, red stakingtypes.Redelegation) (stop bool) {
+			for i := range red.Entries {
+				red.Entries[i].CreationHeight = 0
+			}
+			err := app.StakingKeeper.SetRedelegation(ctx, red)
+			if err != nil {
+				panic(err)
+			}
+			return false
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -143,11 +160,16 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	// Iterate through validators by power descending, reset bond heights, and
 	// update bond intra-tx counters.
 	store := ctx.KVStore(app.kvStoreKeys()[stakingtypes.StoreKey])
-	iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
+	iter := storetypes.KVStoreReversePrefixIterator(
+		store,
+		stakingtypes.ValidatorsKey,
+	)
 	counter := int16(0)
 
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
+		addr := sdk.ValAddress(
+			stakingtypes.AddressFromValidatorsKey(iter.Key()),
+		)
 		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
 		if err != nil {
 			panic("expected validator, not found")
@@ -165,7 +187,8 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	}
 
 	if err := iter.Close(); err != nil {
-		app.Logger().Error("error while closing the key-value store reverse prefix iterator: ", err)
+		app.Logger().
+			Error("error while closing the key-value store reverse prefix iterator: ", err)
 		return
 	}
 
@@ -177,14 +200,18 @@ func (app *BeaconApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	/* Handle slashing state. */
 
 	// reset start height on signing infos
-	err = app.SlashingKeeper.ValidatorSigningInfo.Walk(ctx, nil, func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool, err error) {
-		info.StartHeight = 0
-		err = app.SlashingKeeper.ValidatorSigningInfo.Set(ctx, addr, info)
-		if err != nil {
-			return true, err
-		}
-		return false, nil
-	})
+	err = app.SlashingKeeper.ValidatorSigningInfo.Walk(
+		ctx,
+		nil,
+		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool, err error) {
+			info.StartHeight = 0
+			err = app.SlashingKeeper.ValidatorSigningInfo.Set(ctx, addr, info)
+			if err != nil {
+				return true, err
+			}
+			return false, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}

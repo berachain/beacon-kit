@@ -33,7 +33,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// BeaconKitConfig is the interface for a sub-config of the global BeaconKit configuration.
+// BeaconKitConfig is the interface for a sub-config of the global BeaconKit
+// configuration.
 type BeaconKitConfig[T any] interface {
 	Template() string
 	Parse(parser parser.AppOptionsParser) (*T, error)
@@ -78,7 +79,8 @@ func (c Config) Template() string {
 		c.Builder.Template() + c.Engine.Template() + c.FeatureFlags.Template()
 }
 
-// SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
+// SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with
+// the
 // semantics of etheruem.
 func SetupCosmosConfig() {
 	// set the address prefixes
@@ -105,11 +107,15 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
-	return readConfigFromAppOptsParser(parser.AppOptionsParser{AppOptions: opts})
+	return readConfigFromAppOptsParser(
+		parser.AppOptionsParser{AppOptions: opts},
+	)
 }
 
 // readConfigFromAppOptsParser reads the configuration options from the given.
-func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error) {
+func readConfigFromAppOptsParser(
+	parser parser.AppOptionsParser,
+) (*Config, error) {
 	var (
 		err       error
 		conf      = &Config{}
@@ -158,12 +164,17 @@ func readConfigFromAppOptsParser(parser parser.AppOptionsParser) (*Config, error
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
-	startCmd.Flags().String(flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
+	startCmd.Flags().String(
+		flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
 		"path to the execution client secret")
-	startCmd.Flags().String(flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
-	startCmd.Flags().Uint64(flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
-	startCmd.Flags().Duration(flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Duration(flags.RPCStartupCheckInterval,
+	startCmd.Flags().String(
+		flags.RPCDialURL, defaultCfg.Engine.RPCDialURL, "rpc dial url")
+	startCmd.Flags().Uint64(
+		flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+	startCmd.Flags().Duration(
+		flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Duration(
+		flags.RPCStartupCheckInterval,
 		defaultCfg.Engine.RPCStartupCheckInterval,
 		"rpc startup check interval")
 	startCmd.Flags().Duration(flags.RPCHealthCheckInteval,
@@ -172,7 +183,8 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval")
-	startCmd.Flags().Uint64(flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
+	startCmd.Flags().Uint64(
+		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
 		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(),
@@ -182,5 +194,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 
 // AddToSFlag adds the terms of service flag to the given command.
 func AddToSFlag(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().Bool(flags.BeaconKitAcceptTos, false, "accept the terms of service")
+	rootCmd.PersistentFlags().Bool(
+		flags.BeaconKitAcceptTos, false, "accept the terms of service")
 }

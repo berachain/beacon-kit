@@ -35,7 +35,7 @@ import (
 // Engine conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Engine] = &Engine{}
 
-// DefaultEngineConfig returns the default configuration for the execution client.
+// DefaultEngineConfig is the default configuration for the engine client.
 func DefaultEngineConfig() Engine {
 	return Engine{
 		RPCDialURL:              "http://localhost:8551",
@@ -53,7 +53,8 @@ func DefaultEngineConfig() Engine {
 type Engine struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL string
-	// RPCRetries is the number of retries before shutting down consensus client.
+	// RPCRetries is the number of retries before shutting down consensus
+	// client.
 	RPCRetries uint64
 	// RPCTimeout is the RPC timeout for execution client calls.
 	RPCTimeout time.Duration
@@ -65,7 +66,8 @@ type Engine struct {
 	RPCJWTRefreshInterval time.Duration
 	// JWTSecretPath is the path to the JWT secret.
 	JWTSecretPath string
-	// RequiredChainID is the chain id that the consensus client must be connected to.
+	// RequiredChainID is the chain id that the consensus client must be
+	// connected to.
 	RequiredChainID uint64
 }
 

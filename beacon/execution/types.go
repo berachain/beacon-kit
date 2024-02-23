@@ -42,8 +42,8 @@ type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
 
-// LogFactory is an interface that can unmarshal Ethereum logs into
-// objects, in the form of reflect.Value, with appropriate types for each type of logs.
+// LogFactory is an interface that can unmarshal Ethereum logs into objects,
+// in the form of reflect.Value, with appropriate types for each type of logs.
 type LogFactory interface {
 	UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error)
 	GetRegisteredAddresses() []common.Address
@@ -56,12 +56,14 @@ type FCUConfig struct {
 	// execution client's head to be.
 	HeadEth1Hash common.Hash
 
-	// ProposingSlot is the slot that the execution client should propose a block
+	// ProposingSlot is the slot that the execution client should propose a
+	// block
 	// for if Attributes neither nil nor empty.
 	ProposingSlot primitives.Slot
 
-	// Attributes is a list of payload attributes to include in a forkchoice update
-	// to the execution client. It is used to signal to the execution client that
+	// Attributes is a list of payload attributes to include in a forkchoice
+	// update to the execution client. It is used to signal to the execution
+	// client that
 	// it should build a payload.
 	Attributes engine.PayloadAttributer
 }

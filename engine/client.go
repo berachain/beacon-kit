@@ -57,7 +57,8 @@ type engineClient struct {
 }
 
 // NewClient creates a new engine client engineClient.
-// It takes an Eth1Client as an argument and returns a pointer to an engineClient.
+// It takes an Eth1Client as an argument and returns a pointer to an
+// engineClient.
 func NewClient(opts ...Option) Caller {
 	ec := &engineClient{
 		capabilities: make(map[string]struct{}),
@@ -88,7 +89,12 @@ func (s *engineClient) NewPayload(
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
-	result, err := s.callNewPayloadRPC(dctx, payload, versionedHashes, parentBlockRoot)
+	result, err := s.callNewPayloadRPC(
+		dctx,
+		payload,
+		versionedHashes,
+		parentBlockRoot,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +103,10 @@ func (s *engineClient) NewPayload(
 	// `processPayloadStatusResult` below will return an error.
 	if validationErr := result.GetValidationError(); validationErr != "" {
 		s.logger.Error(
-			"Got a validation error in newPayload", "err", errors.New(validationErr))
+			"Got a validation error in newPayload",
+			"err",
+			errors.New(validationErr),
+		)
 	}
 
 	return processPayloadStatusResult(result)
@@ -120,7 +129,9 @@ func (s *engineClient) callNewPayloadRPC(
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *engineClient) ForkchoiceUpdated(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
+	ctx context.Context,
+	state *enginev1.ForkchoiceState,
+	attrs engine.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
 	defer cancel()
@@ -144,7 +155,9 @@ func (s *engineClient) ForkchoiceUpdated(
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
 // JSON-RPC.
 func (s *engineClient) callUpdatedForkchoiceRPC(
-	ctx context.Context, state *enginev1.ForkchoiceState, attrs engine.PayloadAttributer,
+	ctx context.Context,
+	state *enginev1.ForkchoiceState,
+	attrs engine.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
 	switch v := attrs.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
@@ -201,8 +214,11 @@ func (s *engineClient) GetLogs(
 	return s.FilterLogs(ctx, query)
 }
 
-// ExchangeCapabilities calls the engine_exchangeCapabilities method via JSON-RPC.
-func (s *engineClient) ExchangeCapabilities(ctx context.Context) ([]string, error) {
+// ExchangeCapabilities calls the engine_exchangeCapabilities method via
+// JSON-RPC.
+func (s *engineClient) ExchangeCapabilities(
+	ctx context.Context,
+) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(
 		ctx, eth.BeaconKitSupportedCapabilities(),
 	)

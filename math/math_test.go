@@ -45,7 +45,11 @@ func TestWeiToGwei(t *testing.T) {
 		{"large number", uint256.NewInt(239489233849348394), 239489233},
 		{"1 Eth", uint256.NewInt(1e18), 1000000000},
 		{"1.5 Eth", uint256.NewInt(15e17), 1500000000},
-		{"edge case large number", uint256.NewInt(999999999999999999), 999999999},
+		{
+			"edge case large number",
+			uint256.NewInt(999999999999999999),
+			999999999,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -61,8 +65,10 @@ func TestWeiToGwei_CopyOk(t *testing.T) {
 	v := uint256.NewInt(1e9)
 	got := math.Wei{v}.ToGwei()
 
-	require.Equal(t, math.Gwei(1), got, "conversion result mismatch")
-	require.Equal(t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
+	require.Equal(
+		t, math.Gwei(1), got, "conversion result mismatch")
+	require.Equal(
+		t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
 }
 
 func TestWeiToEther(t *testing.T) {

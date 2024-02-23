@@ -43,7 +43,8 @@ import (
 // the execution client and processing logs received from the execution client.
 type Service struct {
 	service.BaseService
-	// engine gives the notifier access to the engine api of the execution client.
+	// engine gives the notifier access to the engine api of the execution
+	// client.
 	engine engine.Caller
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
@@ -71,7 +72,8 @@ func (s *Service) NotifyForkchoiceUpdate(
 		err       error
 		payloadID *enginev1.PayloadIDBytes
 	)
-	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
+	// Push the forkchoice request to the forkchoice dispatcher, we want to
+	// block until
 	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
 	}); e != nil {
@@ -91,7 +93,9 @@ func (s *Service) GetPayload(
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(
-	ctx context.Context, payload enginetypes.ExecutionPayload, slot primitives.Slot,
+	ctx context.Context,
+	payload enginetypes.ExecutionPayload,
+	slot primitives.Slot,
 ) (bool, error) {
 	return s.notifyNewPayload(ctx, payload, slot)
 }
@@ -108,12 +112,15 @@ func (s *Service) GetLogsInFinalizedETH1Block(
 	// TODO: Do we want to come up with a heuristic around
 	// when we check the execution client,
 	// vs when we check the forkchoice store.
-	finalBlock, err := s.engine.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+	finalBlock, err := s.engine.BlockByNumber(
+		ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
+	// Ensure we don't start processing the logs
+	// of a block that is ahead of the safe block.
 	if finalBlock.Number().Uint64() < blkNum {
 		return nil, errors.Wrapf(
 			ErrProcessingUnfinalizedBlock,

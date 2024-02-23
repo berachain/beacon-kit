@@ -36,10 +36,13 @@ import (
 )
 
 func Test_NewGenerateJWTCommand(t *testing.T) {
-	t.Run("command should be available and have correct use", func(t *testing.T) {
-		cmd := cli.NewGenerateJWTCommand()
-		require.Equal(t, "generate-jwt-secret", cmd.Use)
-	})
+	t.Run(
+		"command should be available and have correct use",
+		func(t *testing.T) {
+			cmd := cli.NewGenerateJWTCommand()
+			require.Equal(t, "generate-jwt-secret", cmd.Use)
+		},
+	)
 
 	t.Run("should create proper file in current directory", func(t *testing.T) {
 		cmd := cli.NewGenerateJWTCommand()
@@ -66,7 +69,12 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 
 	t.Run("creates proper file in nested specified folder", func(t *testing.T) {
 		rootDirectory := "data"
-		customOutputPath := filepath.Join(rootDirectory, "nest", "nested", "jwt.hex")
+		customOutputPath := filepath.Join(
+			rootDirectory,
+			"nest",
+			"nested",
+			"jwt.hex",
+		)
 		cmd := cli.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", customOutputPath})
 		require.NoError(t, cmd.Execute())
@@ -88,7 +96,8 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 		require.NoError(t, err)
 		tempFile.Close()
 
-		// Execute the command with the --force flag to override the existing file
+		// Execute the command with the --force flag to override the existing
+		// file
 		cmd := cli.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", tempFile.Name()})
 		require.NoError(t, cmd.Execute())

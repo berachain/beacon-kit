@@ -35,7 +35,7 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 	}
 }
 
-// WithEthClient is an Option that sets the ethClient of the Service.
+// WithEthClient sets the ethClient of the Service.
 func WithEthClient(ethClient ethClient) service.Option[Service] {
 	return func(s *Service) error {
 		s.ethClient = ethClient
@@ -43,7 +43,7 @@ func WithEthClient(ethClient ethClient) service.Option[Service] {
 	}
 }
 
-// WithExecutionService is an Option that sets the ExecutionService of the Service.
+// WithExecutionService sets the ExecutionService of the Service.
 func WithExecutionService(es executionService) service.Option[Service] {
 	return func(r *Service) error {
 		r.es = es

@@ -29,19 +29,22 @@ package service
 import "fmt"
 
 var (
-	// errServiceAlreadyExists defines an error for when a service already exists.
+	// errServiceAlreadyExists defines an error for when a service already
+	// exists.
 	errServiceAlreadyExists = func(serviceName string) error {
 		return fmt.Errorf("service already exists: %v", serviceName)
 	}
 
-	// errInputIsNotPointer defines an error for when the input must be of pointer type.
+	// errInputIsNotPointer defines an error for when the input must
+	// be of pointer type.
 	errInputIsNotPointer = func(valueType interface{}) error {
 		return fmt.Errorf(
-			"input must be of pointer type, received value type instead: %T", valueType,
+			"input must be of pointer type, received value type instead: %T",
+			valueType,
 		)
 	}
 
-	// errUnknownService defines an error for when an unknown service is encountered.
+	// errUnknownService defines is returned when an unknown service is seen.
 	errUnknownService = func(serviceType interface{}) error {
 		return fmt.Errorf("unknown service: %T", serviceType)
 	}

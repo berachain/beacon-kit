@@ -31,17 +31,20 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// historicalPayloadIDCacheSize defines the maximum number of slots to retain in the cache.
-// Beyond this number, older slots will be pruned to manage memory usage.
+// historicalPayloadIDCacheSize defines the maximum number of slots to retain
+// in the cache. Beyond this number, older slots will be pruned to manage
+// memory usage.
 const historicalPayloadIDCacheSize = 2
 
-// PayloadIDCache provides a mechanism to store and retrieve payload IDs based on slot and
-// parent block hash. It is designed to improve the efficiency of payload ID retrieval by
-// caching recent entries.
+// PayloadIDCache provides a mechanism to store and retrieve payload IDs based
+// on slot and parent block hash. It is designed to improve the efficiency of
+// payload ID retrieval by caching recent entries.
 type PayloadIDCache struct {
 	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
-	// slotToStateRootToPayloadID maps a slot to a map of state roots to payload IDs.
+
+	// slotToStateRootToPayloadID is used for storing payload ID mappings
+	//nolint:lll
 	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]primitives.PayloadID
 }
 
@@ -49,8 +52,10 @@ type PayloadIDCache struct {
 // It prepares the internal data structures for storing payload ID mappings.
 func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
-		mu:                         sync.RWMutex{},
-		slotToStateRootToPayloadID: make(map[primitives.Slot]map[[32]byte]primitives.PayloadID),
+		mu: sync.RWMutex{},
+		slotToStateRootToPayloadID: make(
+			map[primitives.Slot]map[[32]byte]primitives.PayloadID,
+		),
 	}
 }
 

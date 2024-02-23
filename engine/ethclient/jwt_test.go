@@ -42,12 +42,14 @@ func TestBuildHeaders(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name:      "valid JWT secret w/0x",
+			name: "valid JWT secret w/0x",
+			//nolint:lll
 			jwtSecret: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			wantErr:   false,
 		},
 		{
-			name:      "valid JWT secret w/o 0x",
+			name: "valid JWT secret w/o 0x",
+			//nolint:lll
 			jwtSecret: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			wantErr:   false,
 		},

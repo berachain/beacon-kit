@@ -31,63 +31,80 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/pkg/errors"
 )
 
-// ErrUnauthenticatedConnection indicates that the connection is not authenticated.
+// ErrUnauthenticatedConnection indicates that the connection is not
+// authenticated.
+//
+//nolint:lll
 const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
 	connection is not authenticated. If connecting to your execution client via HTTP, you 
 	will need to set up JWT authentication...`
 
 var (
-	// ErrInvalidJWTSecretLength signifies the JWT secret length is not correct.
+	// ErrInvalidJWTSecretLength indicates incorrect JWT secret length.
 	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
 	// ErrHTTPTimeout indicates a timeout error from http.Client.
 	ErrHTTPTimeout = errors.New("timeout from http.Client")
-	// ErrEmptyBlockHash denotes an empty block hash scenario.
+	// ErrEmptyBlockHash indicates an empty block hash scenario.
 	ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
-	// ErrNilResponse signifies that the execution client returned a nil response.
+	// ErrNilResponse indicates a nil response from the execution client.
 	ErrNilResponse = errors.New("nil response from execution client")
-	// ErrParse is associated with JSON-RPC code -32700, indicating a parsing error.
+	// ErrParse indicates a parsing error
+	// (JSON-RPC code -32700).
 	ErrParse = errors.New("invalid JSON was received by the server")
-	// ErrInvalidRequest is associated with JSON-RPC code -32600,
-	// indicating an invalid request object.
+	// ErrInvalidRequest indicates an invalid request object
+	// (JSON-RPC code -32600).
 	ErrInvalidRequest = errors.New("JSON sent is not valid request object")
-	// ErrMethodNotFound is associated with JSON-RPC code -32601,
-	// indicating a non-existent method was called.
+	// ErrMethodNotFound indicates a non-existent method call
+	// (JSON-RPC code -32601).
 	ErrMethodNotFound = errors.New("method not found")
-	// ErrInvalidParams is associated with JSON-RPC code -32602,
-	// indicating method parameters were invalid.
+	// ErrInvalidParams indicates invalid method parameters
+	// (JSON-RPC code -32602).
 	ErrInvalidParams = errors.New("invalid method parameter(s)")
-	// ErrInternal is associated with JSON-RPC code -32603,
-	// indicating an internal JSON-RPC error.
+	// ErrInternal indicates an internal JSON-RPC error
+	// (JSON-RPC code -32603).
 	ErrInternal = errors.New("internal JSON-RPC error")
-	// ErrServer is associated with JSON-RPC code -32000,
-	// indicating a client-side error during request processing.
-	ErrServer = errors.New("client error while processing request")
-	// ErrUnknownPayload is associated with JSON-RPC code -38001,
-	// indicating an unavailable or non-existent payload.
-	ErrUnknownPayload = errors.New("payload does not exist or is not available")
-	// ErrInvalidForkchoiceState is associated with JSON-RPC code -38002,
-	// indicating an invalid fork choice state.
-	ErrInvalidForkchoiceState = errors.New("invalid forkchoice state")
-	// ErrInvalidPayloadAttributes is associated with JSON-RPC code -38003,
-	// indicating invalid or inconsistent payload attributes.
-	ErrInvalidPayloadAttributes = errors.New("payload attributes are invalid / inconsistent")
-	// ErrUnknownPayloadStatus indicates an unknown status for the payload.
-	ErrUnknownPayloadStatus = errors.New("unknown payload status")
-	// ErrAcceptedSyncingPayloadStatus indicates a payload status of either SYNCING or ACCEPTED.
-	ErrAcceptedSyncingPayloadStatus = errors.New("payload status is SYNCING or ACCEPTED")
-	// ErrInvalidPayloadStatus indicates an invalid status for the payload.
-	ErrInvalidPayloadStatus = errors.New("payload status is INVALID")
+	// ErrServer indicates a client-side error during request processing
+	// (JSON-RPC code -32000).
+	ErrServer = errors.New(
+		"client error while processing request")
+	// ErrUnknownPayload indicates an unavailable or non-existent payload
+	// (JSON-RPC code -38001).
+	ErrUnknownPayload = errors.New(
+		"payload does not exist or is not available")
+	// ErrInvalidForkchoiceState indicates an invalid fork choice state
+	// (JSON-RPC code -38002).
+	ErrInvalidForkchoiceState = errors.New(
+		"invalid forkchoice state")
+	// ErrInvalidPayloadAttributes indicates invalid or inconsistent payload
+	// attributes
+	// (JSON-RPC code -38003).
+	ErrInvalidPayloadAttributes = errors.New(
+		"payload attributes are invalid / inconsistent")
+	// ErrUnknownPayloadStatus indicates an unknown payload status.
+	ErrUnknownPayloadStatus = errors.New(
+		"unknown payload status")
+	// ErrAcceptedSyncingPayloadStatus indicates a payload status of SYNCING or
+	// ACCEPTED.
+	ErrAcceptedSyncingPayloadStatus = errors.New(
+		"payload status is SYNCING or ACCEPTED")
+	// ErrInvalidPayloadStatus indicates an invalid payload status.
+	ErrInvalidPayloadStatus = errors.New(
+		"payload status is INVALID")
 	// ErrInvalidBlockHashPayloadStatus indicates a failure in validating the
 	// block hash for the payload.
-	ErrInvalidBlockHashPayloadStatus = errors.New("payload status is INVALID_BLOCK_HASH")
+	ErrInvalidBlockHashPayloadStatus = errors.New(
+		"payload status is INVALID_BLOCK_HASH")
 	// ErrRequestTooLarge indicates that the request size exceeded the limit.
-	ErrRequestTooLarge = errors.New("request too large")
-	// ErrUnsupportedVersion indicates a request for a block type with an unknown
-	// ExecutionPayload schema.
-	ErrUnsupportedVersion = errors.New("unknown ExecutionPayload schema for block version")
+	ErrRequestTooLarge = errors.New(
+		"request too large")
+	// ErrUnsupportedVersion indicates a request for a block type with an
+	// unknown ExecutionPayload schema.
+	ErrUnsupportedVersion = errors.New(
+		"unknown ExecutionPayload schema for block version")
 	// ErrNilJWTSecret indicates that the JWT secret is nil.
 	ErrNilJWTSecret = errors.New("nil JWT secret")
 )
@@ -103,10 +120,14 @@ func (s *Eth1Client) handleRPCError(err error) error {
 	e, ok := err.(gethRPC.Error) //nolint:errorlint // from prysm.
 	if !ok {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
-			s.logger.Error("HTTP authentication to your execution client is not working. " +
-				"Please ensure you are setting a correct value for the --jwt-secret flag in " +
-				"Prysm, or use an IPC connection if on the same machine.")
-			return fmt.Errorf("could not authenticate connection to execution client: %w", err)
+			authErrMsg := "HTTP authentication to your execution client " +
+				"is not working. Please ensure you are setting a correct " +
+				"value for the " + flags.JWTSecretPath +
+				"is set correctly, or use an IPC " +
+				"connection if on the same machine."
+			s.logger.Error(authErrMsg)
+			return fmt.Errorf("could not authenticate connection to "+
+				"execution client: %w", err)
 		}
 		return errors.Wrapf(err, "got an unexpected error in JSON-RPC response")
 	}
@@ -144,7 +165,8 @@ func (s *Eth1Client) handleRPCError(err error) error {
 		var errWithData gethRPC.DataError
 		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.
 		if !ok {
-			return errors.Wrapf(err, "got an unexpected error in JSON-RPC response")
+			return errors.Wrapf(
+				err, "got an unexpected error in JSON-RPC response")
 		}
 		return errors.Wrapf(ErrServer, "%v", errWithData.Error())
 	default:

@@ -27,12 +27,17 @@ package logs
 
 import (
 	"context"
+	"math/big"
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 )
+
+//nolint:gochecknoglobals // no sense reallocating over and over.
+var rpcFinalizedBlockQuery = big.NewInt(int64(rpc.FinalizedBlockNumber))
 
 // Processor is responsible for processing logs fr.
 type Processor struct {
@@ -41,7 +46,8 @@ type Processor struct {
 }
 
 // NewProcessor creates a new instance of Processor with the provided options.
-// It applies each option to the Processor and returns an error if any of the options fail.
+// It applies each option to the Processor and returns an error if any of the
+// options fail.
 func NewProcessor(opts ...Option) (*Processor, error) {
 	s := &Processor{
 		handlers: make(map[common.Address]Handler),
