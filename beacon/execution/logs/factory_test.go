@@ -108,7 +108,6 @@ func TestLogFactory(t *testing.T) {
 	// withdrawalType are mismatched,
 	// (no validatorPubkey in withdrawalType currently).
 	require.Error(t, err)
-
 }
 
 // newLog creates a new log of an event from the given arguments.

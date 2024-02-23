@@ -64,7 +64,9 @@ func (f *Factory) RegisterWithCallback(registrant LogRegistrant) error {
 			if eventType == nil {
 				continue
 			}
-			if err := f.RegisterEvent(contractAddress, eventName, eventType); err != nil {
+			if err := f.RegisterEvent(
+				contractAddress, eventName, eventType,
+			); err != nil {
 				return err
 			}
 		}
