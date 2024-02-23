@@ -37,31 +37,41 @@ import (
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/types/engine"
+	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestLogFactory(t *testing.T) {
 	factory := logs.NewFactory()
+
 	contractAddress := common.HexToAddress("0x1234")
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
-	eventName := "Deposit"
-	depositType := reflect.TypeOf(consensusv1.Deposit{})
-	factory.RegisterEvent(
-		contractAddress,
-		stakingAbi,
-		eventName,
-		depositType,
-	)
+	factory.RegisterABI(contractAddress, stakingAbi)
+
+	depositName := "Deposit"
 
 	deposit := consensus.NewDeposit(
 		[]byte("pubkey"),
 		10000,
 		[]byte("12345678901234567890"),
 	)
-	log, err := newLogFromDeposit(stakingAbi.Events[eventName], deposit)
+	log, err := newLogFromDeposit(stakingAbi.Events[depositName], deposit)
 	require.NoError(t, err)
 	log.Address = contractAddress
+
+	_, err = factory.UnmarshalEthLog(log)
+	// An error is expected because the event has not been registered.
+	require.Error(t, err)
+
+	depositType := reflect.TypeOf(consensusv1.Deposit{})
+	err = factory.RegisterEvent(
+		contractAddress,
+		depositName,
+		depositType,
+	)
+	require.NoError(t, err)
 
 	val, err := factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
@@ -75,6 +85,30 @@ func TestLogFactory(t *testing.T) {
 	require.True(t, ok)
 	require.NoError(t, err)
 	require.Equal(t, deposit, newDeposit)
+
+	withdrawalName := "Withdrawal"
+	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
+	err = factory.RegisterEvent(
+		contractAddress,
+		withdrawalName,
+		withdrawalType,
+	)
+	require.NoError(t, err)
+
+	withdrawal := engine.NewWithdrawal([]byte("pubkey"), 10000)
+	log, err = newLogFromWithdrawal(
+		stakingAbi.Events[withdrawalName],
+		withdrawal,
+	)
+	require.NoError(t, err)
+	log.Address = contractAddress
+
+	_, err = factory.UnmarshalEthLog(log)
+	// An error is expected because the event type in ABI and
+	// withdrawalType are mismatched,
+	// (no validatorPubkey in withdrawalType currently).
+	require.Error(t, err)
+
 }
 
 // newLog creates a new log of an event from the given arguments.
@@ -101,5 +135,17 @@ func newLogFromDeposit(
 		deposit.GetValidatorPubkey(),
 		deposit.GetWithdrawalCredentials(),
 		deposit.GetAmount(),
+	)
+}
+
+// newLogFromWithdrawal creates a new log from the given withdrawal.
+func newLogFromWithdrawal(
+	event ethabi.Event,
+	withdrawal *enginev1.Withdrawal,
+) (*coretypes.Log, error) {
+	return newLog(event,
+		[]byte{},
+		[]byte{},
+		withdrawal.GetAmount(),
 	)
 }

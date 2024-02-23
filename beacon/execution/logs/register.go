@@ -26,24 +26,48 @@
 package logs
 
 import (
-	"context"
+	"errors"
 	"reflect"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// Handler represents a struct that has the ability to ingest
-// an ethereum log and handle it.
-type Handler interface {
-	HandleLog(ctx context.Context, log *coretypes.Log) error
+// RegisterABI registers a contract ABI with the factory.
+func (f *Factory) RegisterABI(contractAddress common.Address, abi *ethabi.ABI) {
+	f.addressToRegistry[contractAddress] = NewRegistry(abi)
 }
 
-// LogRegistrant represents a struct that can register
-// a contract ABI and event information with the factory.
-type LogRegistrant interface {
-	GetAddresses() []common.Address
-	GetABI(contractAddress common.Address) *ethabi.ABI
-	GetType(eventID common.Hash) reflect.Type
+// RegisterEvent registers information of an event with the factory.
+func (f *Factory) RegisterEvent(
+	contractAddress common.Address,
+	eventName string,
+	eventType reflect.Type,
+) error {
+	registry, ok := f.addressToRegistry[contractAddress]
+	if !ok {
+		return errors.New("registry not found for contract address")
+	}
+	return registry.RegisterEvent(eventName, eventType)
+}
+
+// RegisterWithCallback allows a service to register a contract ABI
+// and event information with the factory.
+func (f *Factory) RegisterWithCallback(registrant LogRegistrant) error {
+	contractAddresses := registrant.GetAddresses()
+	for _, contractAddress := range contractAddresses {
+		contractAbi := registrant.GetABI(contractAddress)
+		f.RegisterABI(contractAddress, contractAbi)
+		for eventName, event := range contractAbi.Events {
+			eventID := event.ID
+			eventType := registrant.GetType(eventID)
+			if eventType == nil {
+				continue
+			}
+			if err := f.RegisterEvent(contractAddress, eventName, eventType); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
