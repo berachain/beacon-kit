@@ -27,10 +27,7 @@ package logs
 
 import (
 	"context"
-	"reflect"
 
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -38,12 +35,4 @@ import (
 // an ethereum log and handle it.
 type Handler interface {
 	HandleLog(ctx context.Context, log *coretypes.Log) error
-}
-
-// LogRegistrant represents a struct that can register
-// a contract ABI and event information with the factory.
-type LogRegistrant interface {
-	GetAddresses() []common.Address
-	GetABI(contractAddress common.Address) *ethabi.ABI
-	GetType(eventID common.Hash) reflect.Type
 }
