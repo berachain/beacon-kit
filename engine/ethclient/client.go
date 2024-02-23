@@ -86,7 +86,8 @@ func (s *Eth1Client) Start(ctx context.Context) {
 		s.tryConnectionAfter(ctx, s.startupRetryInterval)
 	}
 
-	// If we reached this point, the execution client is connected so we can start
+	// If we reached this point, the execution client is connected so we can
+	// start
 	// the health check & jwt refresh loops.
 	go s.healthCheckLoop(ctx)
 	go s.jwtRefreshLoop(ctx)
@@ -245,7 +246,8 @@ func (s *Eth1Client) GetClientVersionV1(
 	return result, nil
 }
 
-// ExchangeCapabilities calls the engine_exchangeCapabilities method via JSON-RPC.
+// ExchangeCapabilities calls the engine_exchangeCapabilities method via
+// JSON-RPC.
 func (s *Eth1Client) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,

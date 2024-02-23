@@ -30,7 +30,9 @@ import "github.com/pkg/errors"
 var (
 	// ErrNilAttributesPassedToClient is returned when nil attributes are
 	// passed to the client.
-	ErrNilAttributesPassedToClient = errors.New("nil attributes passed to client")
+	ErrNilAttributesPassedToClient = errors.New(
+		"nil attributes passed to client",
+	)
 	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
 	// attributes was provided.
 	ErrInvalidPayloadAttributeVersion = errors.New(

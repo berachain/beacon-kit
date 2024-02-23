@@ -42,8 +42,9 @@ type LogHandler interface {
 // which must expose their ABI methods and events so that callback
 // can select corresponding methods to process them.
 type ContractHandler interface {
-	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum abi `Event`.
-	// NOTE: this can be directly loaded from the `Events` field of a Go-Ethereum ABI struct,
+	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum
+	// abi `Event`. NOTE: this can be directly loaded from the `Events` field of
+	// a Go-Ethereum ABI struct,
 	// which can be built for a solidity library, interface, or contract.
 	ABIEvents() map[string]abi.Event
 }

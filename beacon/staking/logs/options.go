@@ -37,7 +37,8 @@ func WithBaseService(base service.BaseService) service.Option[Handler] {
 	}
 }
 
-// WithStakingService returns an Option that sets the StakingService for the Handler.
+// WithStakingService returns an Option that sets the StakingService for the
+// Handler.
 func WithStakingService(sks StakingService) service.Option[Handler] {
 	return func(h *Handler) error {
 		h.sks = sks

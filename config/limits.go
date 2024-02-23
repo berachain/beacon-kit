@@ -46,7 +46,8 @@ func DefaultLimitsConfig() Limits {
 	}
 }
 
-// Limits represents the configuration struct for the limits on the beacon chain.
+// Limits represents the configuration struct for the limits on the beacon
+// chain.
 type Limits struct {
 	MaxDepositsPerBlock      uint64
 	MaxWithdrawalsPerPayload uint64

@@ -99,8 +99,9 @@ func TestSecretString(t *testing.T) {
 		{
 			name: "mask secret correctly",
 			secret: jwt.Secret(
-
-				common.FromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+				common.FromHex(
+					"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+				),
 			),
 			want: "0x123456**********************************************************",
 		},
@@ -127,7 +128,8 @@ func TestNewRandom(t *testing.T) {
 	if len(secret.Bytes()) != 32 {
 		t.Errorf(
 			"NewRandom() generated a secret of incorrect length: got %d, want %d",
-			len(secret.Bytes()), 32,
+			len(secret.Bytes()),
+			32,
 		)
 	}
 }
@@ -144,7 +146,8 @@ func TestSecretBytes(t *testing.T) {
 func TestSecretHexWithFixedInput(t *testing.T) {
 	//nolint:lll
 	expectedHex := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-	// Since the secret is 32 bytes, its hex representation should be 64 characters
+	// Since the secret is 32 bytes, its hex representation should be 64
+	// characters
 	// long
 	expectedHexLength := 64
 	secret, err := jwt.NewFromHex(expectedHex)

@@ -81,9 +81,18 @@ var (
 		{Account: distrtypes.ModuleName},
 		{Account: pooltypes.ModuleName},
 		{Account: pooltypes.StreamAccount},
-		{Account: minttypes.ModuleName, Permissions: []string{authtypes.Minter}},
-		{Account: stakingtypes.BondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
-		{Account: stakingtypes.NotBondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
+		{
+			Account:     minttypes.ModuleName,
+			Permissions: []string{authtypes.Minter},
+		},
+		{
+			Account:     stakingtypes.BondedPoolName,
+			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
+		},
+		{
+			Account:     stakingtypes.NotBondedPoolName,
+			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
+		},
 		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner}},
 	}
 
@@ -110,10 +119,12 @@ var (
 					PreBlockers: []string{
 						upgradetypes.ModuleName,
 					},
-					// During begin block slashing happens after distr.BeginBlocker so that
-					// there is nothing left over in the validator fee pool, so as to keep the
+					// During begin block slashing happens after
+					// distr.BeginBlocker so that there is nothing left over in
+					// the validator fee pool, so as to keep the
 					// CanWithdrawInvariant invariant.
-					// NOTE: staking module is required if HistoricalEntries param > 0
+					// NOTE: staking module is required if HistoricalEntries
+					// param > 0
 					BeginBlockers: []string{
 						minttypes.ModuleName,
 						distrtypes.ModuleName,
@@ -132,9 +143,11 @@ var (
 							KvStoreKey: "acc",
 						},
 					},
-					// NOTE: The genutils module must occur after staking so that pools are
+					// NOTE: The genutils module must occur after staking so
+					// that pools are
 					// properly initialized with tokens from genesis accounts.
-					// NOTE: The genutils module must also occur after auth so that it can access the params from auth.
+					// NOTE: The genutils module must also occur after auth so
+					// that it can access the params from auth.
 					InitGenesis: []string{
 						authtypes.ModuleName,
 						banktypes.ModuleName,
@@ -150,10 +163,12 @@ var (
 						pooltypes.ModuleName,
 						beacontypes.ModuleName,
 					},
-					// When ExportGenesis is not specified, the export genesis module order
+					// When ExportGenesis is not specified, the export genesis
+					// module order
 					// is equal to the init genesis order
 					// ExportGenesis: []string{},
-					// Uncomment if you want to set a custom migration order here.
+					// Uncomment if you want to set a custom migration order
+					// here.
 					// OrderMigrations: []string{},
 				}),
 			},
@@ -162,9 +177,12 @@ var (
 				Config: appconfig.WrapAny(&authmodulev1.Module{
 					Bech32Prefix:             "cosmos",
 					ModuleAccountPermissions: moduleAccPerms,
-					// By default modules authority is the governance module. This is configurable with the following:
-					// Authority: "group", // A custom module authority can be set using a module name
-					// Authority: "cosmos1cwwv22j5ca08ggdv9c2uky355k908694z577tv", // or a specific address
+					// By default modules authority is the governance module.
+					// This is configurable with the following: Authority:
+					// "group", // A custom module authority can be set using a
+					// module name Authority:
+					// "cosmos1cwwv22j5ca08ggdv9c2uky355k908694z577tv", // or a
+					// specific address
 				}),
 			},
 			{
@@ -180,8 +198,9 @@ var (
 			{
 				Name: stakingtypes.ModuleName,
 				Config: appconfig.WrapAny(&stakingmodulev1.Module{
-					// NOTE: specifying a prefix is only necessary when using bech32 addresses
-					// If not specified, the auth Bech32Prefix appended with "valoper" and "valcons" is used by default
+					// NOTE: specifying a prefix is only necessary when using
+					// bech32 addresses If not specified, the auth Bech32Prefix
+					// appended with "valoper" and "valcons" is used by default
 					Bech32PrefixValidator: "cosmosvaloper",
 					Bech32PrefixConsensus: "cosmosvalcons",
 				}),

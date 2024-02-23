@@ -57,7 +57,8 @@ func (s *Service) BuildLocalPayload(
 
 	// If the local builder is disabled, we skip the payload building.
 	if !s.cfg.LocalBuilderEnabled {
-		s.Logger().Info("local builder is disabled, skipping payload building...")
+		s.Logger().
+			Info("local builder is disabled, skipping payload building...")
 		return nil, ErrLocalBuildingDisabled
 	}
 
@@ -143,14 +144,19 @@ func (s *Service) GetLocalPayload(
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
-	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer index")
+	// 	logrus.WithFields(logFields).Warn("could not find tracked proposer
+	// index")
 	// }
 
 	// We first attempt to see if we previously fired off a payload built for
-	// this particular slot and parent block root. If we have, and we are able to
+	// this particular slot and parent block root. If we have, and we are able
+	// to
 	// retrieve it from our execution client, we can return it immediately.
 	payload, blobsBundle, overrideBuilder, err := s.getPayloadFromCachedPayloadIDs(
-		ctx, slot, parentBeaconBlockRoot)
+		ctx,
+		slot,
+		parentBeaconBlockRoot,
+	)
 	if err == nil {
 		return payload, blobsBundle, overrideBuilder, nil
 	}
@@ -166,7 +172,11 @@ func (s *Service) GetLocalPayload(
 	//
 	//#nosec:G701 // won't overflow, time cannot be negative.
 	return s.buildAndWaitForLocalPayload(
-		ctx, parentEth1Hash, slot, uint64(time.Now().Unix()), parentBeaconBlockRoot,
+		ctx,
+		parentEth1Hash,
+		slot,
+		uint64(time.Now().Unix()),
+		parentBeaconBlockRoot,
 	)
 }
 
@@ -177,8 +187,12 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	slot primitives.Slot,
 	parentBeaconBlockRoot []byte,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	// If we have a payload ID in the cache, we can return the payload from the cache.
-	payloadID, found := s.payloadCache.Get(slot, [32]byte(parentBeaconBlockRoot))
+	// If we have a payload ID in the cache, we can return the payload from the
+	// cache.
+	payloadID, found := s.payloadCache.Get(
+		slot,
+		[32]byte(parentBeaconBlockRoot),
+	)
 	if found && (payloadID != primitives.PayloadID{}) {
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
@@ -209,7 +223,8 @@ func (s *Service) buildAndWaitForLocalPayload(
 	timestamp uint64,
 	parentBeaconBlockRoot []byte,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	// Build the payload and wait for the execution client to return the payload ID.
+	// Build the payload and wait for the execution client to return the payload
+	// ID.
 	payloadID, err := s.BuildLocalPayload(
 		ctx, parentEth1Hash, slot, timestamp, parentBeaconBlockRoot,
 	)
@@ -251,13 +266,18 @@ func (s *Service) buildAndWaitForLocalPayload(
 	return payload, blobsBundle, overrideBuilder, nil
 }
 
-// getPayloadFromExecutionClient retrieves the payload and blobs bundle for the given slot.
+// getPayloadFromExecutionClient retrieves the payload and blobs bundle for the
+// given slot.
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID primitives.PayloadID,
 	slot primitives.Slot,
 ) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(ctx, payloadID, slot)
+	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
+		ctx,
+		payloadID,
+		slot,
+	)
 	if err != nil {
 		return nil, nil, false, err
 	}

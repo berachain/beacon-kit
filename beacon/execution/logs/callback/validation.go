@@ -33,7 +33,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// validateArg uses reflection to verify the implementation arg matches the ABI arg.
+// validateArg uses reflection to verify the implementation arg matches the ABI
+// arg.
 func validateArg(
 	implMethodVar reflect.Value, abiMethodVar reflect.Value,
 ) error {
@@ -63,7 +64,10 @@ func validateArg(
 
 // validateString checks if the implementation type is a string,
 // the ABI type must be a string.
-func validateString(implMethodVarType reflect.Type, abiMethodVarType reflect.Type) error {
+func validateString(
+	implMethodVarType reflect.Type,
+	abiMethodVarType reflect.Type,
+) error {
 	if abiMethodVarType.Kind() != reflect.String {
 		return fmt.Errorf(
 			"type mismatch: %v != %v", implMethodVarType, abiMethodVarType,
@@ -126,12 +130,14 @@ func validatePointer(
 	return validateStruct(implMethodVarType.Elem(), abiMethodVarType)
 }
 
-// validateStruct checks to make sure that the implementation struct's fields match the ABI
+// validateStruct checks to make sure that the implementation struct's fields
+// match the ABI
 // struct's fields.
 func validateStruct(
 	implMethodVarType reflect.Type, abiMethodVarType reflect.Type,
 ) error {
-	if implMethodVarType.Kind() != reflect.Struct || abiMethodVarType.Kind() != reflect.Struct {
+	if implMethodVarType.Kind() != reflect.Struct ||
+		abiMethodVarType.Kind() != reflect.Struct {
 		return errors.New("validateStruct: not a struct")
 	}
 

@@ -93,15 +93,16 @@ func BuildParentTreeRootsWithNRoutines(
 		// inputList:  [---------------------2*groupSize---------------------]
 		//              ^                    ^                    ^          ^
 		//              |                    |                    |          |
-		//             j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize  End
+		// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize  End
 		//
 		// outputList: [---------groupSize---------]
 		//              ^                         ^
 		//              |                         |
 		//             j*groupSize         (j+1)*groupSize
 		//
-		// Each goroutine processes a segment of inputList that is twice as large as the
-		// segment it fills in outputList. This is because the hash operation reduces the
+		// Each goroutine processes a segment of inputList that is twice as
+		// large as the segment it fills in outputList. This is because the hash
+		// operation reduces the
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(

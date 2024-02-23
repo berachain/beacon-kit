@@ -59,7 +59,10 @@ func Test_SafeMerkleizeVector(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			root, err := sha256.SafeMerkleizeVector(tt.roots, tt.maxRootsAllowed)
+			root, err := sha256.SafeMerkleizeVector(
+				tt.roots,
+				tt.maxRootsAllowed,
+			)
 			if !tt.wantErr {
 				require.NoError(t, err)
 			} else {

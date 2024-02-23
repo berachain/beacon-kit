@@ -93,9 +93,13 @@ func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 		common.BytesToHash(finalHash[:]))
 	if clFinalized == nil || err != nil {
 		// We need to fork choice to find the latest finalized block. This is
-		// trigger the execution chain to start asking it's peers to help it sync
+		// trigger the execution chain to start asking it's peers to help it
+		// sync
 		// and build the chain required for the following forkchoice.
-		return &BeaconSyncProgress{Status: StatusBeaconAhead, clFinalized: finalHash}
+		return &BeaconSyncProgress{
+			Status:      StatusBeaconAhead,
+			clFinalized: finalHash,
+		}
 	}
 
 	// If clFinalized != nil, then we know that the beacon chain is at or behind
@@ -107,7 +111,10 @@ func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 		// If we have something confirmed as finalized on the beacon chain, but
 		// we don't have anything confirmed as finalized on the execution chain,
 		// we need to forkchoice to find the latest finalized block.
-		return &BeaconSyncProgress{Status: StatusBeaconAhead, clFinalized: finalHash}
+		return &BeaconSyncProgress{
+			Status:      StatusBeaconAhead,
+			clFinalized: finalHash,
+		}
 	}
 
 	// Once we reach here, we can confirm that the consensus layer and the
@@ -124,7 +131,8 @@ func (s *Service) CheckSyncStatus(ctx context.Context) *BeaconSyncProgress {
 	if clBlockNum.Cmp(elBlockNum) == 0 || clBlockNum.Cmp(
 		new(big.Int).Add(elBlockNum, big.NewInt(1)),
 	) == 0 {
-		// The beacon chain and the execution chain are at the same number || The
+		// The beacon chain and the execution chain are at the same number ||
+		// The
 		// beacon chain is at most 1 block ahead of the execution chain.
 		s.Logger().Info(
 			"beacon and execution chains are synced ✅",
@@ -165,10 +173,12 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 	clFinalizedHash := bss.clFinalized
 	rpcFinalizedBlockNumber := big.NewInt(int64(rpc.FinalizedBlockNumber))
 
-	s.Logger().Info("verifying execution client is synced with consensus client 🔎")
+	s.Logger().
+		Info("verifying execution client is synced with consensus client 🔎")
 
 	// If the beacon chain is ahead of the execution chain, we need to trigger a
-	// forkchoice update to get the execution chain to start syncing, otherwise we
+	// forkchoice update to get the execution chain to start syncing, otherwise
+	// we
 	// can just return.
 	if bss.Status == StatusExecutionAhead {
 		s.Logger().Info(
@@ -202,13 +212,15 @@ func (s *Service) WaitForExecutionClientSync(ctx context.Context) error {
 			)
 		}
 
-		// Update the elLatestFinalizedHeader to the latest block to update the for loop
+		// Update the elLatestFinalizedHeader to the latest block to update the
+		// for loop
 		// exit variable.
 		elLatestFinalizedHeader, err := s.ethClient.HeaderByNumber(
 			ctx, rpcFinalizedBlockNumber,
 		)
 		if err != nil {
-			// If the block is unknown or the call errors, we can just continue and try again.
+			// If the block is unknown or the call errors, we can just continue
+			// and try again.
 			// We set elLatestFinalizedHeader to an empty Header to prevent
 			// a nil ptr dereference further down.
 			elLatestFinalizedHeader = &ethtypes.Header{}

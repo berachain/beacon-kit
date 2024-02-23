@@ -66,7 +66,13 @@ func TestParser(t *testing.T) {
 
 	t.Run("should set and retrieve a ptr to a uint64", func(t *testing.T) {
 		value := uint64(42)
-		runTestWithOutput(t, appOpts, parserUnderTest.GetUint64Ptr, "42", &value)
+		runTestWithOutput(
+			t,
+			appOpts,
+			parserUnderTest.GetUint64Ptr,
+			"42",
+			&value,
+		)
 	})
 
 	t.Run("should set and retrieve a big.Int", func(t *testing.T) {
@@ -102,18 +108,26 @@ func TestParser(t *testing.T) {
 		)
 	})
 
-	t.Run("should set and retrieve a list of common.Address options", func(t *testing.T) {
-		addressStrs := []string{
-			"0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
-			"0x18df82c7e422a42d47345ed86b0e935e9718ebda",
-		}
-		expectedAddresses := []common.Address{
-			common.HexToAddress(addressStrs[0]),
-			common.HexToAddress(addressStrs[1]),
-		}
-		runTestWithOutput(
-			t, appOpts, parserUnderTest.GetCommonAddressList, addressStrs, expectedAddresses)
-	})
+	t.Run(
+		"should set and retrieve a list of common.Address options",
+		func(t *testing.T) {
+			addressStrs := []string{
+				"0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
+				"0x18df82c7e422a42d47345ed86b0e935e9718ebda",
+			}
+			expectedAddresses := []common.Address{
+				common.HexToAddress(addressStrs[0]),
+				common.HexToAddress(addressStrs[1]),
+			}
+			runTestWithOutput(
+				t,
+				appOpts,
+				parserUnderTest.GetCommonAddressList,
+				addressStrs,
+				expectedAddresses,
+			)
+		},
+	)
 
 	t.Run("should set and retrieve a hexutil.Bytes", func(t *testing.T) {
 		bytesStr := "0x1234567890abcdef"
@@ -123,13 +137,20 @@ func TestParser(t *testing.T) {
 }
 
 func runTest[A any](
-	t *testing.T, appOpts *mocks.AppOptions, parser func(string) (A, error), value A,
+	t *testing.T,
+	appOpts *mocks.AppOptions,
+	parser func(string) (A, error),
+	value A,
 ) {
 	runTestWithOutput(t, appOpts, parser, value, value)
 }
 
 func runTestWithOutput[A, B any](
-	t *testing.T, appOpts *mocks.AppOptions, parser func(string) (B, error), value A, output B,
+	t *testing.T,
+	appOpts *mocks.AppOptions,
+	parser func(string) (B, error),
+	value A,
+	output B,
 ) {
 	appOpts.On("Get", mock.Anything).Return(value).Once()
 

@@ -59,7 +59,9 @@ func TestSafeCopy(t *testing.T) {
 			if len(copied) > 0 {
 				copied[0] = 10
 				if tt.original[0] == copied[0] {
-					t.Errorf("Modifying the copied slice affected the original slice")
+					t.Errorf(
+						"Modifying the copied slice affected the original slice",
+					)
 				}
 			}
 		})

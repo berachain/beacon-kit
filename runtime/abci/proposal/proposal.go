@@ -86,9 +86,10 @@ func (h *Handler) PrepareProposalHandler(
 		)
 	}
 
-	// We start by requesting the validator service to build us a block. This may
-	// be from pulling a previously built payload from the local cache or it may be
-	// by asking for a forkchoice from the execution client, depending on timing.
+	// We start by requesting the validator service to build us a block. This
+	// may be from pulling a previously built payload from the local cache or it
+	// may be by asking for a forkchoice from the execution client, depending on
+	// timing.
 	block, err := h.builderService.RequestBestBlock(
 		ctx, primitives.Slot(req.Height), ctx.BlockHeader().AppHash,
 	)
@@ -147,11 +148,13 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	// We have to keep a copy of beaconBz to re-inject it into the proposal after
-	// the underlying process proposal handler has run. This is to avoid making a
+	// We have to keep a copy of beaconBz to re-inject it into the proposal
+	// after the underlying process proposal handler has run. This is to avoid
+	// making a
 	// copy of the entire request.
 	//
-	// TODO: there has to be a more friendly way to handle this, but hey it works.
+	// TODO: there has to be a more friendly way to handle this, but hey it
+	// works.
 	pos := h.cfg.BeaconBlockPosition
 	beaconBz := req.Txs[pos]
 	defer func() {

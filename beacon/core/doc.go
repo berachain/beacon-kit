@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package core contains core functions, utilities, and state transitions required
+// Package core contains core functions, utilities, and state transitions
+// required
 // for the beacon chain to function properly.
 package core

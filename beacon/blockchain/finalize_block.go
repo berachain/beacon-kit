@@ -32,7 +32,8 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
-// FinalizeBeaconBlock finalizes a beacon block by processing the logs, deposits,
+// FinalizeBeaconBlock finalizes a beacon block by processing the logs,
+// deposits,
 // and voluntary exits. It also updates the finalized and safe eth1 block hashes
 // on the beacon state.
 func (s *Service) FinalizeBeaconBlock(
@@ -52,7 +53,8 @@ func (s *Service) FinalizeBeaconBlock(
 	if err = s.sendFCU(
 		ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1,
 	); err != nil {
-		s.Logger().Error("failed to notify forkchoice update in preblocker", "error", err)
+		s.Logger().
+			Error("failed to notify forkchoice update in preblocker", "error", err)
 	}
 
 	eth1BlockHash := common.Hash(payload.GetBlockHash())

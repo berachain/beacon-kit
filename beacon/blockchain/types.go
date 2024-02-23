@@ -36,7 +36,8 @@ import (
 )
 
 type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, fcuConfig *execution.FCUConfig,
 	) (*enginev1.PayloadIDBytes, error)

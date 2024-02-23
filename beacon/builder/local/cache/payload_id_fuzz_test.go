@@ -78,7 +78,8 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		if len(_r) > 32 {
 			// Expecting an error or specific handling of oversized input
 			t.Skip(
-				"Skipping test due to intentionally invalid input size for root.")
+				"Skipping test due to intentionally invalid input size for root.",
+			)
 		}
 		copy(r[:], _r)
 		var paddedPayload [8]byte
@@ -116,7 +117,9 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 		var ok bool
 		go func() {
 			defer wg.Done()
-			time.Sleep(10 * time.Millisecond) // Small delay to let the Set operation proceed
+			time.Sleep(
+				10 * time.Millisecond,
+			) // Small delay to let the Set operation proceed
 			var r [32]byte
 			copy(r[:], _r)
 			_, ok = cacheUnderTest.Get(primitives.Slot(slot), r)

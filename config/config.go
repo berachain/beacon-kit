@@ -33,7 +33,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// BeaconKitConfig is the interface for a sub-config of the global BeaconKit configuration.
+// BeaconKitConfig is the interface for a sub-config of the global BeaconKit
+// configuration.
 type BeaconKitConfig[T any] interface {
 	Template() string
 	Parse(parser parser.AppOptionsParser) (*T, error)
@@ -78,7 +79,8 @@ func (c Config) Template() string {
 		c.Builder.Template() + c.Engine.Template() + c.FeatureFlags.Template()
 }
 
-// SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with the
+// SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with
+// the
 // semantics of etheruem.
 func SetupCosmosConfig() {
 	// set the address prefixes
@@ -105,7 +107,9 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
-	return readConfigFromAppOptsParser(parser.AppOptionsParser{AppOptions: opts})
+	return readConfigFromAppOptsParser(
+		parser.AppOptionsParser{AppOptions: opts},
+	)
 }
 
 // readConfigFromAppOptsParser reads the configuration options from the given.

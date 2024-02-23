@@ -35,7 +35,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// requireGoHashTreeEquivalence is a helper function to ensure that the output of
+// requireGoHashTreeEquivalence is a helper function to ensure that the output
+// of
 // sha256.HashTreeRoot is equivalent to the output of gohashtree.Hash.
 func requireGoHashTreeEquivalence(
 	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
@@ -50,7 +51,10 @@ func requireGoHashTreeEquivalence(
 	go func() {
 		defer wg.Done()
 		var err error
-		output, err = sha256.BuildParentTreeRootsWithNRoutines(inputList, numRoutines)
+		output, err = sha256.BuildParentTreeRootsWithNRoutines(
+			inputList,
+			numRoutines,
+		)
 		if err != nil {
 			errChan <- fmt.Errorf("HashTreeRoot failed: %w", err)
 			return

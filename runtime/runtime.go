@@ -74,9 +74,13 @@ func NewBeaconKitRuntime(
 	return bkr, nil
 }
 
-// NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default services.
+// NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
+// services.
 func NewDefaultBeaconKitRuntime(
-	cfg *config.Config, bsp BeaconStateProvider, vcp ValsetChangeProvider, logger log.Logger,
+	cfg *config.Config,
+	bsp BeaconStateProvider,
+	vcp ValsetChangeProvider,
+	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -90,18 +94,23 @@ func NewDefaultBeaconKitRuntime(
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
 		dispatch.WithLogger(logger),
-		dispatch.WithDispatchQueue("dispatch.forkchoice", dispatch.QueueTypeSerial),
+		dispatch.WithDispatchQueue(
+			"dispatch.forkchoice",
+			dispatch.QueueTypeSerial,
+		),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create the base service, we will the create shallow copies for each service.
+	// Create the base service, we will the create shallow copies for each
+	// service.
 	baseService := service.NewBaseService(
 		cfg, bsp, gcd, logger,
 	)
 
-	// Create the eth1 client that will be used to interact with the execution client.
+	// Create the eth1 client that will be used to interact with the execution
+	// client.
 	eth1Client, err := eth.NewEth1Client(
 		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
 		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
@@ -184,7 +193,10 @@ func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
 }
 
 // StartSyncCheck starts the sync check for the runtime.
-func (r *BeaconKitRuntime) StartSyncCheck(ctx context.Context, clientCtx client.Context) {
+func (r *BeaconKitRuntime) StartSyncCheck(
+	ctx context.Context,
+	clientCtx client.Context,
+) {
 	var syncService *sync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
 		panic(err)

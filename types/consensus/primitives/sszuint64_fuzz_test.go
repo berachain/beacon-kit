@@ -48,9 +48,12 @@ func FuzzSSZUint64Marshal(f *testing.F) {
 			t.Fatal("Failed to unmarshal slot")
 		}
 
-		// Fuzz logic to check if the unmarshalled slot matches the original slot
+		// Fuzz logic to check if the unmarshalled slot matches the original
+		// slot
 		if newSSZUint64 != slot {
-			t.Fatal("SSZUint64 mismatch after round-trip marshalling/unmarshalling")
+			t.Fatal(
+				"SSZUint64 mismatch after round-trip marshalling/unmarshalling",
+			)
 		}
 	})
 }

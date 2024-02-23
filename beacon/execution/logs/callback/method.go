@@ -67,14 +67,24 @@ func (m *method) Call(ctx context.Context, log *coretypes.Log) error {
 	}
 
 	// Convert topics to common.Hash
-	reflectedUnpackedArgs := make([]reflect.Value, 0, (len(topics)-1)+len(unpackedArgs))
+	reflectedUnpackedArgs := make(
+		[]reflect.Value,
+		0,
+		(len(topics)-1)+len(unpackedArgs),
+	)
 	for _, topic := range topics[1:] {
-		reflectedUnpackedArgs = append(reflectedUnpackedArgs, reflect.ValueOf(topic))
+		reflectedUnpackedArgs = append(
+			reflectedUnpackedArgs,
+			reflect.ValueOf(topic),
+		)
 	}
 
 	// Convert the unpacked args to reflect values.
 	for _, unpacked := range unpackedArgs {
-		reflectedUnpackedArgs = append(reflectedUnpackedArgs, reflect.ValueOf(unpacked))
+		reflectedUnpackedArgs = append(
+			reflectedUnpackedArgs,
+			reflect.ValueOf(unpacked),
+		)
 	}
 
 	// Call the executable the reflected values.

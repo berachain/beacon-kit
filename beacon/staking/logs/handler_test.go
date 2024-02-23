@@ -55,7 +55,8 @@ func Test_CallbackHandler(t *testing.T) {
 	withdrawalEvent := events[withdrawalEventName]
 
 	t.Run(
-		"should add correct deposits and withdrawals into staking service", func(t *testing.T) {
+		"should add correct deposits and withdrawals into staking service",
+		func(t *testing.T) {
 			var (
 				deposit          *consensusv1.Deposit
 				latestDeposit    *consensusv1.Deposit
@@ -92,5 +93,6 @@ func Test_CallbackHandler(t *testing.T) {
 			latestWithdrawal, err = stakingService.MostRecentWithdrawal()
 			require.NoError(t, err)
 			require.Equal(t, withdrawal, latestWithdrawal)
-		})
+		},
+	)
 }

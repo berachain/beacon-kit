@@ -31,7 +31,8 @@ import (
 	"time"
 )
 
-// healthCheckLoop periodically checks the connection health of the execution client.
+// healthCheckLoop periodically checks the connection health of the execution
+// client.
 func (s *Eth1Client) healthCheckLoop(ctx context.Context) {
 	for {
 		select {
@@ -58,7 +59,11 @@ func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
 	}
 
 	if chainID.Uint64() != s.chainID {
-		return fmt.Errorf("wanted chain ID %d, got %d", s.chainID, chainID.Uint64())
+		return fmt.Errorf(
+			"wanted chain ID %d, got %d",
+			s.chainID,
+			chainID.Uint64(),
+		)
 	}
 
 	return nil

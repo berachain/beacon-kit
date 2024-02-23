@@ -35,7 +35,8 @@ import (
 
 // BeaconStateProvider provides access to the current beacon state.
 type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state based on the supplied context.
+	// BeaconState returns the current beacon state based on the supplied
+	// context.
 	BeaconState(ctx context.Context) BeaconState
 }
 

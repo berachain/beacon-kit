@@ -45,7 +45,11 @@ func TestInitCommand(t *testing.T) {
 	rootCmd.SetArgs([]string{
 		"init",           // Test the init cmd
 		"BeaconApp-test", // Moniker
-		fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json
+		fmt.Sprintf(
+			"--%s=%s",
+			cli.FlagOverwrite,
+			"true",
+		), // Overwrite genesis.json
 		fmt.Sprintf("--%s", beaconflags.BeaconKitAcceptTos),
 	})
 

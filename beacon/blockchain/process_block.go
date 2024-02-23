@@ -37,14 +37,18 @@ import (
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
-	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock, isValidPayload bool,
+	ctx context.Context,
+	blk consensus.ReadOnlyBeaconKitBlock,
+	isValidPayload bool,
 ) error {
 	nextSlot := blk.GetSlot() + 1
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-		// If the incoming payload for this block is not valid, we submit a forkchoice
+		// If the incoming payload for this block is not valid, we submit a
+		// forkchoice
 		// to bring us back to the last valid one.
-		// TODO: Is doing this potentially the cause of the weird Geth SnapSync issue?
+		// TODO: Is doing this potentially the cause of the weird Geth SnapSync
+		// issue?
 		// TODO: Should introduce the concept of missed slots?
 		if err := s.sendFCU(
 			ctx, s.BeaconState(ctx).GetLastValidHead(), nextSlot,
@@ -67,14 +71,21 @@ func (s *Service) postBlockProcess(
 	//
 	// TODO: Consider implementing a background validator job for continuous
 	// payload building, eliminating the need for trigger-based builds here.
-	return s.sendFCU(ctx, common.Hash(executionPayload.GetBlockHash()), nextSlot)
+	return s.sendFCU(
+		ctx,
+		common.Hash(executionPayload.GetBlockHash()),
+		nextSlot,
+	)
 }
 
 // sendFCU sends a forkchoice update to the execution client.
 func (s *Service) sendFCU(
-	ctx context.Context, headEth1Hash common.Hash, proposingSlot primitives.Slot,
+	ctx context.Context,
+	headEth1Hash common.Hash,
+	proposingSlot primitives.Slot,
 ) error {
-	// Send the forkchoice update to the execution client via the execution service.
+	// Send the forkchoice update to the execution client via the execution
+	// service.
 	_, err := s.es.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
 			HeadEth1Hash:  headEth1Hash,

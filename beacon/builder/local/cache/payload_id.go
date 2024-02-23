@@ -50,8 +50,10 @@ type PayloadIDCache struct {
 // It prepares the internal data structures for storing payload ID mappings.
 func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
-		mu:                         sync.RWMutex{},
-		slotToStateRootToPayloadID: make(map[primitives.Slot]map[[32]byte]primitives.PayloadID),
+		mu: sync.RWMutex{},
+		slotToStateRootToPayloadID: make(
+			map[primitives.Slot]map[[32]byte]primitives.PayloadID,
+		),
 	}
 }
 

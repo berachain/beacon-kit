@@ -34,7 +34,8 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// BaseService is a base service that provides common functionality for all services.
+// BaseService is a base service that provides common functionality for all
+// services.
 type BaseService struct {
 	BeaconStateProvider
 	name   string
@@ -103,7 +104,8 @@ func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) int {
 // 	return s.gcd.Dispatch(value)
 // }
 
-// // SubscribeToEvent subscribes a channel to the feed associated with the provided key.
+// // SubscribeToEvent subscribes a channel to the feed associated with the
+// provided key.
 // func (s *BaseService) SubscribeToEvent(key string, eventType reflect.Type) {
 // 	channel := make(chan dispatch.Event)
 // 	s.channels = append(s.channels, channel)

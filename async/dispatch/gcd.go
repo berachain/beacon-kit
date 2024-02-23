@@ -39,8 +39,11 @@ const (
 	// DefaultQueueSize is the default size of a queue.
 	DefaultQueueSize = uint16(64) // todo: make this configurable.
 
-	// DefaultConcurrentQueueWorkerCount is the default size of a concurrent queue.
-	DefaultConcurrentQueueWorkerCount = uint16(64) // todo: make this configurable.
+	// DefaultConcurrentQueueWorkerCount is the default size of a concurrent
+	// queue.
+	DefaultConcurrentQueueWorkerCount = uint16(
+		64,
+	) // todo: make this configurable.
 )
 
 // QueueType represents the type of a queue.
@@ -117,7 +120,13 @@ func (gcd *GrandCentralDispatch) CreateQueue(
 		panic("unknown queue type")
 	}
 
-	gcd.logger.Info("intialized new dispatch queue", "id", id, "type", queueType)
+	gcd.logger.Info(
+		"intialized new dispatch queue",
+		"id",
+		id,
+		"type",
+		queueType,
+	)
 	gcd.queues[id] = queue
 	return queue
 }

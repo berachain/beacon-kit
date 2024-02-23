@@ -39,7 +39,8 @@ import (
 type Service struct {
 	service.BaseService
 
-	// running is a boolean that indicates whether the service is running or not.
+	// running is a boolean that indicates whether the service is running or
+	// not.
 	running bool
 
 	// feeds is a map that holds the event feeds.
@@ -72,20 +73,23 @@ func (s *Service) Start(ctx context.Context) {
 				for {
 					select {
 					case event := <-ch:
-						// Use the dispatch queue to call the handler's Handle method
+						// Use the dispatch queue to call the handler's Handle
+						// method
 						// asynchronously
 						if err := s.gcd.GetQueue(pair.queueID).Async(func() {
 							pair.handler.HandleNotification(event)
 						}); err != nil {
-							// Choosing to panic here because it doesn't make sense for the
-							// service we're controlling to have stopped the queue
+							// Choosing to panic here because it doesn't make
+							// sense for the service we're controlling to have
+							// stopped the queue
 							panic(err)
 						}
 					case <-subscription.Err():
 						return
 					case <-ctx.Done():
 						s.running = false
-						// This will receive a value when the stop channel is closed
+						// This will receive a value when the stop channel is
+						// closed
 						return
 					}
 				}

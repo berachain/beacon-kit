@@ -76,7 +76,8 @@ func (s *Processor) ProcessFinalizedETH1Block(
 		return err
 	}
 
-	// Ensure we don't start processing the logs of a block that is ahead of the safe block.
+	// Ensure we don't start processing the logs of a block that is ahead of the
+	// safe block.
 	if finalBlock.Number().Cmp(blkNum) < 0 {
 		return errors.Wrapf(
 			ErrProcessingUnfinalizedBlock,
@@ -110,7 +111,10 @@ func (s *Processor) GatherLogsFromEth1Block(
 }
 
 // ProcessETH1Block processes logs from the provided eth1 block.
-func (s *Processor) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
+func (s *Processor) ProcessETH1Block(
+	ctx context.Context,
+	blkNum *big.Int,
+) error {
 	// Gather all the logs from this block.
 	logs, err := s.GatherLogsFromEth1Block(ctx, blkNum)
 	if err != nil {

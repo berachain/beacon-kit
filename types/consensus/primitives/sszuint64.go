@@ -69,7 +69,8 @@ func (s *SSZUint64) MarshalSSZ() ([]byte, error) {
 	return marshalled, nil
 }
 
-// UnmarshalSSZ unmarshals a SSZUint64 from SSZ-encoded data. It returns an error
+// UnmarshalSSZ unmarshals a SSZUint64 from SSZ-encoded data. It returns an
+// error
 // if the buffer size is incorrect.
 func (s *SSZUint64) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != s.SizeSSZ() {
@@ -88,7 +89,8 @@ func (s SSZUint64) HashTreeRoot() ([32]byte, error) {
 	return fssz.HashWithDefaultHasher(s)
 }
 
-// HashTreeRootWith computes the hash tree root of the SSZUint64 using the provided hasher.
+// HashTreeRootWith computes the hash tree root of the SSZUint64 using the
+// provided hasher.
 // It modifies the hasher's state and returns an error if any.
 func (s SSZUint64) HashTreeRootWith(hh *fssz.Hasher) error {
 	hh.PutUint64(uint64(s))

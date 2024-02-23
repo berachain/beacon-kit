@@ -54,7 +54,9 @@ func NewBeaconListener(bs *builder.Service) *BeaconListener {
 // TODO: Optimistic Execution chains can trigger their builder to start
 // building earlier.
 func (l *BeaconListener) ListenFinalizeBlock(
-	ctx context.Context, req abci.RequestFinalizeBlock, res abci.ResponseFinalizeBlock,
+	ctx context.Context,
+	req abci.RequestFinalizeBlock,
+	res abci.ResponseFinalizeBlock,
 ) error {
 	// Technically speaking, there is a chance FinalizeBlock fails after this
 	// call. While seemingly impossible in practice, IN THEORY the execution
@@ -97,7 +99,8 @@ func (l *BeaconListener) ListenFinalizeBlock(
 func (*BeaconListener) ListenCommit(
 	context.Context, abci.ResponseCommit, []*storetypes.StoreKVPair,
 ) error {
-	// TODO: we can perform our block finalization here, opposed to PreBlocker() if we
+	// TODO: we can perform our block finalization here, opposed to PreBlocker()
+	// if we
 	// desired to.
 	return nil
 }

@@ -40,7 +40,8 @@ type (
 	// Status represents the synchronization status of the initial sync service.
 	Status int
 
-	// BeaconSyncStatus represents the synchronization status of the beacon chain.
+	// BeaconSyncStatus represents the synchronization status of the beacon
+	// chain.
 	BeaconSyncProgress struct {
 		Status      Status
 		clFinalized common.Hash
@@ -63,10 +64,17 @@ const (
 	StatusSynced
 )
 
-// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum package.
+// ethClient is an interface that wraps the ChainSyncReader from the go-ethereum
+// package.
 type ethClient interface {
-	HeaderByNumber(ctx context.Context, number *big.Int) (*ethtypes.Header, error)
-	HeaderByHash(ctx context.Context, hash common.Hash) (*ethtypes.Header, error)
+	HeaderByNumber(
+		ctx context.Context,
+		number *big.Int,
+	) (*ethtypes.Header, error)
+	HeaderByHash(
+		ctx context.Context,
+		hash common.Hash,
+	) (*ethtypes.Header, error)
 }
 
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
@@ -75,9 +83,11 @@ type BeaconStateProvider interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
 
-// executionService defines an interface for interacting with the execution client.
+// executionService defines an interface for interacting with the execution
+// client.
 type executionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, fcuConfig *execution.FCUConfig,
 	) (*enginev1.PayloadIDBytes, error)

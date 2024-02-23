@@ -40,7 +40,8 @@ import (
 // the execution client and processing logs received from the execution client.
 type Service struct {
 	service.BaseService
-	// engine gives the notifier access to the engine api of the execution client.
+	// engine gives the notifier access to the engine api of the execution
+	// client.
 	engine engine.Caller
 	// lp is the processor for logs.
 	lp LogProcessor
@@ -68,7 +69,8 @@ func (s *Service) NotifyForkchoiceUpdate(
 		err       error
 		payloadID *enginev1.PayloadIDBytes
 	)
-	// Push the forkchoice request to the forkchoice dispatcher, we want to block until
+	// Push the forkchoice request to the forkchoice dispatcher, we want to
+	// block until
 	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
 	}); e != nil {
@@ -88,12 +90,18 @@ func (s *Service) GetPayload(
 // NotifyNewPayload notifies the execution client of a new payload.
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(
-	ctx context.Context, payload enginetypes.ExecutionPayload, slot primitives.Slot,
+	ctx context.Context,
+	payload enginetypes.ExecutionPayload,
+	slot primitives.Slot,
 ) (bool, error) {
 	return s.notifyNewPayload(ctx, payload, slot)
 }
 
-// ProcessFinalizedLogs processes logs from the execution client for a finalized block.
-func (s *Service) ProcessFinalizedLogs(ctx context.Context, blkNum uint64) error {
+// ProcessFinalizedLogs processes logs from the execution client for a finalized
+// block.
+func (s *Service) ProcessFinalizedLogs(
+	ctx context.Context,
+	blkNum uint64,
+) error {
 	return s.lp.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
 }

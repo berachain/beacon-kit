@@ -44,7 +44,8 @@ type Caller interface {
 	// Start
 	Start(context.Context)
 
-	// IsConnected returns true if the client is connected to the execution node.
+	// IsConnected returns true if the client is connected to the execution
+	// node.
 	IsConnected() bool
 
 	// Engine API Related Methods
@@ -71,7 +72,10 @@ type Caller interface {
 	// Eth Namespace Methods
 	//
 	// BlockByHash retrieves the block by its hash.
-	HeaderByHash(ctx context.Context, hash common.Hash) (*gethcoretypes.Header, error)
+	HeaderByHash(
+		ctx context.Context,
+		hash common.Hash,
+	) (*gethcoretypes.Header, error)
 }
 
 // ExecutionPayloadRebuilder specifies a service capable of reassembling a

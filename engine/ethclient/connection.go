@@ -55,7 +55,8 @@ func (s *Eth1Client) setupExecutionClientConnection(ctx context.Context) {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
 		} else if s.isConnected.Load() {
-			// This log gets spammy, we only log it when we first lose connection.
+			// This log gets spammy, we only log it when we first lose
+			// connection.
 			s.logger.Error("could not dial execution client", "error", err)
 		}
 
@@ -88,7 +89,10 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 	case "", "ipc":
 		client, err = rpc.DialIPC(ctx, s.dialURL.String())
 	default:
-		return fmt.Errorf("no known transport for URL scheme %q", s.dialURL.Scheme)
+		return fmt.Errorf(
+			"no known transport for URL scheme %q",
+			s.dialURL.Scheme,
+		)
 	}
 
 	// Check for an error when dialing the execution client.

@@ -45,7 +45,8 @@ func DefaultValidatorConfig() Validator {
 
 // Config represents the configuration struct for the validator.
 type Validator struct {
-	// Suggested FeeRecipient is the address that will receive the transaction fees
+	// Suggested FeeRecipient is the address that will receive the transaction
+	// fees
 	// produced by any blocks from this node.
 	SuggestedFeeRecipient common.Address
 

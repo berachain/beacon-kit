@@ -35,7 +35,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ErrUnauthenticatedConnection indicates that the connection is not authenticated.
+// ErrUnauthenticatedConnection indicates that the connection is not
+// authenticated.
 //
 //nolint:lll
 const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
@@ -78,14 +79,16 @@ var (
 	// (JSON-RPC code -38002).
 	ErrInvalidForkchoiceState = errors.New(
 		"invalid forkchoice state")
-	// ErrInvalidPayloadAttributes indicates invalid or inconsistent payload attributes
+	// ErrInvalidPayloadAttributes indicates invalid or inconsistent payload
+	// attributes
 	// (JSON-RPC code -38003).
 	ErrInvalidPayloadAttributes = errors.New(
 		"payload attributes are invalid / inconsistent")
 	// ErrUnknownPayloadStatus indicates an unknown payload status.
 	ErrUnknownPayloadStatus = errors.New(
 		"unknown payload status")
-	// ErrAcceptedSyncingPayloadStatus indicates a payload status of SYNCING or ACCEPTED.
+	// ErrAcceptedSyncingPayloadStatus indicates a payload status of SYNCING or
+	// ACCEPTED.
 	ErrAcceptedSyncingPayloadStatus = errors.New(
 		"payload status is SYNCING or ACCEPTED")
 	// ErrInvalidPayloadStatus indicates an invalid payload status.

@@ -50,7 +50,8 @@ func (p *ExecutionPayloadContainer) Version() int {
 	}
 }
 
-// IsBlinded indicates whether the payload is blinded. For ExecutionPayloadDeneb,
+// IsBlinded indicates whether the payload is blinded. For
+// ExecutionPayloadDeneb,
 // this is always false.
 func (p *ExecutionPayloadContainer) IsBlinded() bool {
 	switch p.GetPayload().(type) {
@@ -77,9 +78,12 @@ func (p *ExecutionPayloadContainer) GetValue() math.Wei {
 		return math.Wei{}
 	}
 
-	// We have to convert big endian to little endian because the value is coming
+	// We have to convert big endian to little endian because the value is
+	// coming
 	// from the execution layer.
-	return math.WeiFromBytes(byteslib.CopyAndReverseEndianess(p.GetPayloadValue()))
+	return math.WeiFromBytes(
+		byteslib.CopyAndReverseEndianess(p.GetPayloadValue()),
+	)
 }
 
 // GetBlockHash retrieves the block hash from the payload.
@@ -97,17 +101,20 @@ func (p *ExecutionPayloadContainer) GetTransactions() [][]byte {
 	if p.IsBlinded() {
 		return [][]byte{}
 	}
-	return p.getPayload().(interface{ GetTransactions() [][]byte }).GetTransactions()
+	return p.getPayload().(interface{ GetTransactions() [][]byte }).
+		GetTransactions()
 }
 
 // GetTransactionsRoot retrieves the transactions root from the payload.
 func (p *ExecutionPayloadContainer) GetTransactionsRoot() []byte {
 	payload := p.getPayload()
 	if p.IsBlinded() {
-		return payload.(interface{ GetTransactionsRoot() []byte }).GetTransactionsRoot()
+		return payload.(interface{ GetTransactionsRoot() []byte }).
+			GetTransactionsRoot()
 	}
 	return sha256.HashRootAndMixinLengthAsBzSlice(
-		payload.(interface{ GetTransactions() [][]byte }).GetTransactions())
+		payload.(interface{ GetTransactions() [][]byte }).
+			GetTransactions())
 }
 
 // GetWithdrawals retrieves the withdrawals from the payload.
@@ -115,14 +122,16 @@ func (p *ExecutionPayloadContainer) GetWithdrawals() []*Withdrawal {
 	if p.IsBlinded() {
 		return []*Withdrawal{}
 	}
-	return p.getPayload().(interface{ GetWithdrawals() []*Withdrawal }).GetWithdrawals()
+	return p.getPayload().(interface{ GetWithdrawals() []*Withdrawal }).
+		GetWithdrawals()
 }
 
 // GetWithdrawalsRoot retrieves the withdrawals root from the payload.
 func (p *ExecutionPayloadContainer) GetWithdrawalsRoot() []byte {
 	payload := p.getPayload()
 	if p.IsBlinded() {
-		return payload.(interface{ GetWithdrawalsRoot() []byte }).GetWithdrawalsRoot()
+		return payload.(interface{ GetWithdrawalsRoot() []byte }).
+			GetWithdrawalsRoot()
 	}
 	return sha256.HashRootAndMixinLengthAsSlice[*Withdrawal](
 		payload.(interface{ GetWithdrawals() []*Withdrawal }).GetWithdrawals())
@@ -130,10 +139,12 @@ func (p *ExecutionPayloadContainer) GetWithdrawalsRoot() []byte {
 
 // HashTreeRoot calculates the hash tree root of the payload.
 func (p *ExecutionPayloadContainer) HashTreeRoot() ([32]byte, error) {
-	return p.getPayload().(interface{ HashTreeRoot() ([32]byte, error) }).HashTreeRoot()
+	return p.getPayload().(interface{ HashTreeRoot() ([32]byte, error) }).
+		HashTreeRoot()
 }
 
-// HashTreeRootWith calculates the hash tree root of the payload using a provided hasher.
+// HashTreeRootWith calculates the hash tree root of the payload using a
+// provided hasher.
 func (p *ExecutionPayloadContainer) HashTreeRootWith(h *fssz.Hasher) error {
 	return p.getPayload().(interface {
 		HashTreeRootWith(h *fssz.Hasher) error
@@ -147,13 +158,17 @@ func (p *ExecutionPayloadContainer) MarshalSSZ() ([]byte, error) {
 
 // UnmarshalSSZ unmarshals SSZ-encoded bytes into the payload.
 func (p *ExecutionPayloadContainer) UnmarshalSSZ(bz []byte) error {
-	return p.getPayload().(interface{ UnmarshalSSZ([]byte) error }).UnmarshalSSZ(bz)
+	return p.getPayload().(interface{ UnmarshalSSZ([]byte) error }).UnmarshalSSZ(
+		bz,
+	)
 }
 
-// MarshalSSZTo marshals the payload into SSZ-encoded bytes and appends it to the
+// MarshalSSZTo marshals the payload into SSZ-encoded bytes and appends it to
+// the
 // provided byte slice.
 func (p *ExecutionPayloadContainer) MarshalSSZTo(bz []byte) ([]byte, error) {
-	return p.getPayload().(interface{ MarshalSSZTo([]byte) ([]byte, error) }).MarshalSSZTo(bz)
+	return p.getPayload().(interface{ MarshalSSZTo([]byte) ([]byte, error) }).
+		MarshalSSZTo(bz)
 }
 
 // SizeSSZ returns the size of the SSZ-encoded payload in bytes.
@@ -161,7 +176,8 @@ func (p *ExecutionPayloadContainer) SizeSSZ() int {
 	return p.getPayload().(interface{ SizeSSZ() int }).SizeSSZ()
 }
 
-// GetPayload returns the payload of the ExecutionPayloadContainer as an interface{}.
+// GetPayload returns the payload of the ExecutionPayloadContainer as an
+// interface{}.
 // The actual type of the returned value depends on which payload is set.
 // The caller will need to type assert the returned value to use it.
 func (p *ExecutionPayloadContainer) getPayload() proto.Message {

@@ -28,7 +28,8 @@ package jwt
 import "errors"
 
 var (
-	// ErrLengthMismatch is returned when a JWT secret length is not as expected.
+	// ErrLengthMismatch is returned when a JWT secret length is not as
+	// expected.
 	ErrLengthMismatch = errors.New(
 		"JWT secret length mismatch")
 

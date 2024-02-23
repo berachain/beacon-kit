@@ -29,7 +29,8 @@ package service
 import "fmt"
 
 var (
-	// errServiceAlreadyExists defines an error for when a service already exists.
+	// errServiceAlreadyExists defines an error for when a service already
+	// exists.
 	errServiceAlreadyExists = func(serviceName string) error {
 		return fmt.Errorf("service already exists: %v", serviceName)
 	}

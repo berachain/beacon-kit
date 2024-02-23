@@ -36,7 +36,8 @@ const (
 	// payload retrieval is attempted but not found.
 	MetricsPayloadIDCacheMiss = prefix + "payload-id-cache-miss"
 
-	// MetricErrorRetrievingPayload is used to count the number of times an error
+	// MetricErrorRetrievingPayload is used to count the number of times an
+	// error
 	// occurs when attempting to retrieve a built payload.
 	MetricsPayloadIDCacheError = prefix + "get-payload-error"
 

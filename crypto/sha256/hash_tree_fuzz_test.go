@@ -54,7 +54,10 @@ func FuzzHashTreeRoot(f *testing.F) {
 	// Just above MinParallelizationSize
 	f.Add(make([]byte, sha256.MinParallelizationSize+2), 64)
 	// Double MinParallelizationSize
-	f.Add(make([]byte, 2*sha256.MinParallelizationSize), runtime.GOMAXPROCS(0)-1)
+	f.Add(
+		make([]byte, 2*sha256.MinParallelizationSize),
+		runtime.GOMAXPROCS(0)-1,
+	)
 
 	f.Fuzz(func(t *testing.T, original []byte, numRoutines int) {
 		// Convert []byte to [][32]byte as required by HashTreeRoot
