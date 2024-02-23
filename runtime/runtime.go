@@ -204,7 +204,9 @@ func (r *BeaconKitRuntime) StartSyncCheck(ctx context.Context, clientCtx client.
 	defer cancel()
 
 	go func() {
-		_ = syncService.WaitForExecutionClientSync(ctx)
+		if err := syncService.WaitForExecutionClientSync(ctx); err != nil {
+			panic(err)
+		}
 	}()
 
 	<-r.stopCh
