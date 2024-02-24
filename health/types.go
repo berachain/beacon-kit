@@ -25,40 +25,8 @@
 
 package health
 
-import (
-	"context"
-	"time"
-
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
-
-const healthCheckInterval = 5 * time.Second
-
-type Service struct {
-	service.BaseService
-	svcRegistry *service.Registry
-}
-
-func (s *Service) Start(ctx context.Context) {
-	go s.reportingLoop(ctx)
-}
-
-func (s *Service) retrieveStatuses() []*serviceStatus {
-	var (
-		rawStatuses = s.svcRegistry.Statuses()
-		statuses    = make([]*serviceStatus, 0, len(rawStatuses))
-	)
-
-	for k, v := range rawStatuses {
-		s := &serviceStatus{
-			Name:    k.String(),
-			Healthy: true,
-		}
-		if v != nil {
-			s.Healthy = false
-			s.Err = v.Error()
-		}
-		statuses = append(statuses, s)
-	}
-	return statuses
+type serviceStatus struct {
+	Name    string `json:"service"`
+	Healthy bool   `json:"healthy"`
+	Err     string `json:"error"`
 }

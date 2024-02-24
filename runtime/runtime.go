@@ -77,6 +77,8 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
+//
+//nolint:funlen // todo fix.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -188,7 +190,7 @@ func NewDefaultBeaconKitRuntime(
 		health.WithServiceRegistry(svcRegistry),
 	)
 
-	if err := svcRegistry.RegisterService(healthService); err != nil {
+	if err = svcRegistry.RegisterService(healthService); err != nil {
 		return nil, err
 	}
 

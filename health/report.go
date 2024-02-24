@@ -27,7 +27,6 @@ package health
 
 import (
 	"context"
-	"reflect"
 	"time"
 )
 
@@ -45,39 +44,15 @@ func (s *Service) reportingLoop(ctx context.Context) {
 
 func (s *Service) reportStatuses() {
 	// Define a local struct to hold service type and error information.
-	type report struct {
-		svc reflect.Type // Service type
-		err error        // Error, if any
-	}
 
-	// Initialize slices to hold healthy and unhealthy service types.
-	var (
-		healthy   = make([]reflect.Type, 0) // List of healthy services
-		unhealthy = make(
-			[]report,
-			0,
-		) // List of unhealthy services with errors
-	)
+	svcStatuses := s.retrieveStatuses()
 
-	// Iterate over the statuses returned by the service registry.
-	for svcType, err := range s.svcRegistry.Statuses() {
-		if err == nil {
-			// If there's no error, consider the service healthy.
-			healthy = append(healthy, svcType)
+	for _, svc := range svcStatuses {
+		if svc.Healthy {
+			s.Logger().Info("reporting healthy 🌤️", "service", svc.Name)
 		} else {
-			// If there's an error, consider the service unhealthy.
-			unhealthy = append(unhealthy, report{svcType, err})
+			s.Logger().Error("reporting unhealthy ⛈️",
+				"service", svc.Name, "error", svc.Err)
 		}
-	}
-
-	// Log the healthy services.
-	for _, svcType := range healthy {
-		s.Logger().Info("reporting healthy 🍉", "service", svcType)
-	}
-
-	// Log the unhealthy services and their errors.
-	for _, r := range unhealthy {
-		s.Logger().Error("reporting unhealthy 🍉",
-			"service", r.svc, "err", r.err)
 	}
 }
