@@ -28,7 +28,7 @@ package service
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/beacon/core/state"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )

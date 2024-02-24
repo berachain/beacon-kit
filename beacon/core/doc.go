@@ -24,6 +24,5 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 // Package core contains core functions, utilities, and state transitions
-// required
-// for the beacon chain to function properly.
+// required for the beacon chain to function properly.
 package core

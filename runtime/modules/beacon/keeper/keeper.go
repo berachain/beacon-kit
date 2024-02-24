@@ -30,7 +30,7 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/beacon/core/state"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
