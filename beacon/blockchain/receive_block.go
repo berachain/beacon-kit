@@ -40,7 +40,6 @@ import (
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconKitBlock,
-	parentRootHash []byte,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -70,7 +69,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, blk, parentRootHash,
+			groupCtx, blk,
 		); err != nil {
 			s.Logger().
 				Error("failed to notify engine of new payload", "error", err)
@@ -123,15 +122,10 @@ func (s *Service) validateExecutionOnBlock(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconKitBlock,
-	parentRootHash []byte,
 ) (bool, error) {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return false, err
-	}
-
-	if blk.GetSlot() == 1 {
-		parentRootHash = common.Hash{}.Bytes()
 	}
 
 	// TODO: add some more safety checks here.
@@ -140,6 +134,6 @@ func (s *Service) validateExecutionOnBlock(
 		blk.GetSlot(),
 		payload,
 		[]common.Hash{},
-		common.Hash(parentRootHash),
+		common.Hash(blk.GetParentRoot()),
 	)
 }

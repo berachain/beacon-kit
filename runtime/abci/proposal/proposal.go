@@ -26,6 +26,7 @@
 package proposal
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -86,12 +87,18 @@ func (h *Handler) PrepareProposalHandler(
 		)
 	}
 
+	// TODO abstract this into BeaconState()
+	parentRoot := ctx.BlockHeader().AppHash
+	if req.Height == 1 {
+		parentRoot = make([]byte, 32) //nolint:gomnd //temp
+	}
+
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
 	block, err := h.builderService.RequestBestBlock(
-		ctx, primitives.Slot(req.Height), ctx.BlockHeader().AppHash,
+		ctx, primitives.Slot(req.Height), parentRoot,
 	)
 
 	if err != nil {
@@ -137,11 +144,26 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
+	// TODO abstract this into BeaconState()
+	parentRoot := ctx.BlockHeader().AppHash
+	if req.Height == 1 {
+		parentRoot = make([]byte, 32) //nolint:gomnd //temp
+	}
+
+	// TODO: move this to a better spot.
+	if !bytes.Equal(parentRoot, block.GetParentRoot()) {
+		return &abci.ResponseProcessProposal{
+				Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+				"parent root does not match, expected: %x, got: %x",
+				ctx.BlockHeader().AppHash, block.GetParentRoot(),
+			)
+	}
+
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block, ctx.BlockHeader().AppHash,
+		ctx, block,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
 		return &abci.ResponseProcessProposal{

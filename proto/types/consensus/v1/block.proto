@@ -37,8 +37,15 @@ message BeaconKitBlockDeneb {
   // Beacon chain slot that this block represents.
   uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
 
+  // 32 byte root of the parent block.
+  bytes parent_root = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // TODO: how do we even get this in ABCI?
+  // 32 byte root of the resulting state after processing this block.
+  bytes state_root = 3 [(ethereum.eth.ext.ssz_size) = "32"];
+
   // BeaconBlockBody contains the body of the beacon block.
-  BeaconKitBlockBodyDeneb body = 2;
+  BeaconKitBlockBodyDeneb body = 4;
 
   // The payload value of the block.
   bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
