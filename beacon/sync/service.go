@@ -28,8 +28,9 @@ package sync
 import (
 	"bytes"
 	"context"
+	"errors"
 	"math/big"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -51,27 +52,27 @@ type Service struct {
 	service.BaseService
 	ethClient        *eth.Eth1Client
 	es               executionService
-	clientCtx        client.Context
+	clientCtx        *client.Context
 	notifySyncSignal chan struct{}
-
-	mutex  sync.RWMutex
-	synced bool
+	synced           atomic.Bool
 }
 
-func (s *Service) IsSynced() bool {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	return s.synced
+func (s *Service) Status() error {
+	if !s.synced.Load() {
+		return errors.New("fallen out of sync")
+	}
+	return nil
 }
 
 func (s *Service) SetClientContext(clientCtx client.Context) {
-	s.clientCtx = clientCtx
+	s.clientCtx = &clientCtx
 }
 
 func (s *Service) Start(ctx context.Context) {
 	s.notifySyncSignal = make(chan struct{})
 
 	go func() {
+		s.syncLoop(ctx)
 		<-ctx.Done()
 		close(s.notifySyncSignal)
 	}()

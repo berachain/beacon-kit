@@ -77,8 +77,9 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// Block until the sync service is synced.
-	h.syncService.WaitForSync(ctx)
+	if err := h.syncService.Status(); err != nil {
+		return nil, err
+	}
 
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it

@@ -32,11 +32,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (s *Service) WaitForSync(ctx context.Context) {
-	s.Logger().Info(
-		"waiting for synchronization of beacon and execution chains 🍺⏰",
-	)
-	s.syncLoop(ctx)
+func (s *Service) WaitForSync(ctx context.Context) <-chan struct{} {
+	ch := make(chan struct{})
+	go func() {
+		for !s.synced.Load() {
+		}
+		ch <- struct{}{}
+	}()
+	return ch
 }
 
 // WaitForSync  checks whether the beacon node has sync to the latest head.
@@ -48,15 +51,16 @@ func (s *Service) syncLoop(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+			s.synced.Store(false)
 			return ctx.Err()
 		case <-ticker.C:
 			err = s.RequestSyncProgress(ctx)
 		}
 
 		if err == nil {
-			close(s.notifySyncSignal)
-			s.notifySyncSignal = make(chan struct{})
-			return nil
+			s.synced.Store(true)
+		} else {
+			s.synced.Store(false)
 		}
 	}
 }
@@ -76,53 +80,3 @@ func (s *Service) RequestSyncProgress(ctx context.Context) error {
 
 	return g.Wait()
 }
-
-// // WaitForSync  checks whether the beacon node has sync to the latest head.
-// // In the simpiliest form the initial sync should look like this.
-// //
-// // def waitForSync():
-// //
-// //	wg.Add(2)
-// //	Asynchronously start replaying Cosmos Blocks
-// //	Asyncronously start forkchoicing execution chain to get it to head
-// //	wg.Wait()
-// func (s *Service) WaitForSync(ctx context.Context) error {
-// 	cometClient := s.clientCtx.Client
-// 	res, err := cometClient.Status(ctx)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	t := time.Now()
-// 	ticker := time.NewTicker(1 * time.Second)
-// 	defer ticker.Stop()
-
-// 	for res.SyncInfo.CatchingUp {
-// 		s.Logger().Info(
-// 			"waiting for beacon node to sync to latest chain head",
-// 			"elapsed", time.Since(t),
-// 		)
-// 		select {
-// 		case <-ctx.Done():
-// 			return ctx.Err()
-// 		case <-ticker.C:
-// 			res, err = cometClient.Status(ctx)
-// 			if err != nil {
-// 				return err
-// 			}
-// 		}
-// 	}
-
-// 	s.Logger().Info(
-// 		"beacon node has synced to latest chain head", "elapsed", time.Since(t),
-// 	)
-// 	return nil
-// }
-
-// def waitForSync():
-// 		wg.Add(2)
-// 		Asynchronously start replaying Cosmos Blocks
-// 		Asyncronously start forkchoicing execution chain to get it to head
-// 		wg.Wait()
-
-// Then before we do any critical action, we also run this WaitForSync(..)
