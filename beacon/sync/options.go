@@ -26,7 +26,7 @@
 package sync
 
 import (
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 

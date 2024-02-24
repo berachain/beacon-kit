@@ -27,6 +27,7 @@ package service
 
 import (
 	"context"
+	"sync"
 
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
@@ -42,6 +43,12 @@ type BaseService struct {
 	cfg    *config.Config
 	gcd    *dispatch.GrandCentralDispatch
 	logger log.Logger
+
+	// statusErrMu protects statusErr.
+	statusErrMu *sync.RWMutex
+	// statusErr is the error returned
+	// by the last status check.
+	statusErr error
 }
 
 // NewBaseService creates a new BaseService and applies the provided options.
@@ -92,7 +99,18 @@ func (s *BaseService) FeatureFlags() *config.FeatureFlags {
 func (s *BaseService) Start(context.Context) {}
 
 // Status is an intentional no-op for the BaseService.
-func (s *BaseService) Status() error { return nil }
+func (s *BaseService) Status() error {
+	s.statusErrMu.RLock()
+	defer s.statusErrMu.RUnlock()
+	return s.statusErr
+}
+
+// SetStatus sets the status error of the BaseService.
+func (s *BaseService) SetStatus(err error) {
+	s.statusErrMu.Lock()
+	defer s.statusErrMu.Unlock()
+	s.statusErr = err
+}
 
 // ActiveForkVersionForSlot returns the active fork version for the given slot.
 func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) int {

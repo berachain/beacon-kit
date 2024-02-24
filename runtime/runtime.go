@@ -39,8 +39,8 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/engine"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
+	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/health"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -129,27 +129,26 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the Notification Service.
 	notificationService := service.New(
-		notify.WithBaseService(baseService.WithName("notify")),
+		notify.WithBaseService(baseService.ShallowCopy("notify")),
 		notify.WithGCD(gcd),
 	)
 
-	// NewClient wraps the eth1 client and provides the interface for the
-	// blockchain service to interact with the execution client.
-	engineClient := engine.NewClient(
-		engine.WithEth1Client(eth1Client),
-		engine.WithBeaconConfig(&cfg.Beacon),
-		engine.WithLogger(logger),
-		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
+	// Build the client to interact with the Engine API.
+	engineClient := engineclient.New(
+		engineclient.WithEth1Client(eth1Client),
+		engineclient.WithBeaconConfig(&cfg.Beacon),
+		engineclient.WithLogger(logger),
+		engineclient.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the execution service.
 	executionService := service.New[execution.Service](
-		execution.WithBaseService(baseService.WithName("execution")),
+		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
 	)
 
 	// Build the local builder service.
 	builderService := service.New[builder.Service](
-		builder.WithBaseService(baseService.WithName("local-builder")),
+		builder.WithBaseService(baseService.ShallowCopy("local-builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithExecutionService(executionService),
 		builder.WithPayloadCache(cache.NewPayloadIDCache()),
@@ -157,12 +156,12 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the staking service.
 	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.WithName("staking")),
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithValsetChangeProvider(vcp),
 	)
 
 	chainService := service.New[blockchain.Service](
-		blockchain.WithBaseService(baseService.WithName("blockchain")),
+		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithStakingService(stakingService),
@@ -170,7 +169,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the sync service.
 	syncService := service.New[sync.Service](
-		sync.WithBaseService(baseService.WithName("sync")),
+		sync.WithBaseService(baseService.ShallowCopy("sync")),
 		sync.WithEthClient(eth1Client),
 	)
 
@@ -185,7 +184,7 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	healthService := service.New[health.Service](
-		health.WithBaseService(baseService.WithName("health")),
+		health.WithBaseService(baseService.ShallowCopy("health")),
 		health.WithServiceRegistry(svcRegistry),
 	)
 

@@ -27,11 +27,10 @@ package sync
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"golang.org/x/sync/errgroup"
 )
@@ -48,19 +47,6 @@ type Service struct {
 	service.BaseService
 	ethClient *eth.Eth1Client
 	clientCtx *client.Context
-
-	// statusErrMu protects statusErr.
-	statusErrMu sync.Mutex
-	// statusErr is the error returned
-	// by the last status check.
-	statusErr error
-}
-
-// Status checks if the service is currently synced.
-func (s *Service) Status() error {
-	s.statusErrMu.Lock()
-	defer s.statusErrMu.Unlock()
-	return s.statusErr
 }
 
 // SetClientContext sets the client context for the service.
@@ -88,13 +74,10 @@ func (s *Service) syncLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			s.statusErr = ErrNotRunning
+			s.SetStatus(ErrNotRunning)
 			return
 		case <-ticker.C:
-			s.statusErrMu.Lock()
-			//#nosec:G703
-			s.statusErr = s.RequestSyncProgress(ctx)
-			s.statusErrMu.Unlock()
+			s.SetStatus(s.RequestSyncProgress(ctx))
 		}
 	}
 }

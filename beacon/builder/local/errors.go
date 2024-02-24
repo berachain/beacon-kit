@@ -31,7 +31,8 @@ var (
 	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
 	// received on a VALID engine response.
 	ErrNilPayloadOnValidResponse = errors.New(
-		"received nil payload ID on VALID engine response")
+		"received nil payload ID on VALID engine response",
+	)
 
 	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
 	// cache.

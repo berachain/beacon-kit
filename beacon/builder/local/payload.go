@@ -105,6 +105,8 @@ func (s *Service) BuildLocalPayload(
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
 			"slot", fcuConfig.ProposingSlot,
 		)
+
+		s.SetStatus(ErrNilPayloadOnValidResponse)
 		return nil, ErrNilPayloadOnValidResponse
 	}
 
@@ -120,6 +122,7 @@ func (s *Service) BuildLocalPayload(
 		primitives.PayloadID(payloadID[:]),
 	)
 
+	s.SetStatus(nil)
 	return payloadID, nil
 }
 
