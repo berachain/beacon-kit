@@ -36,6 +36,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// syncLoopInterval is the interval at which the sync loop checks for sync
+// status.
+//
+
+const syncLoopInterval = 6 * time.Second
+
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
 type Service struct {
@@ -76,7 +82,7 @@ func (s *Service) Start(ctx context.Context) {
 
 // syncLoop continuously runs and reports if our client is out of sync.
 func (s *Service) syncLoop(ctx context.Context) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(syncLoopInterval)
 	defer ticker.Stop()
 
 	for {
