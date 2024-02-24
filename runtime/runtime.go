@@ -41,6 +41,7 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/engine"
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	"github.com/itsdevbear/bolaris/health"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -172,18 +173,31 @@ func NewDefaultBeaconKitRuntime(
 		sync.WithExecutionService(executionService),
 	)
 
+	svcRegistry := service.NewRegistry(
+		service.WithLogger(logger),
+		service.WithService(syncService),
+		service.WithService(executionService),
+		service.WithService(chainService),
+		service.WithService(notificationService),
+		service.WithService(builderService),
+		service.WithService(stakingService),
+	)
+
+	healthService := service.New[health.Service](
+		health.WithBaseService(baseService.WithName("health")),
+		health.WithServiceRegistry(svcRegistry),
+	)
+
+	if err := svcRegistry.RegisterService(healthService); err != nil {
+		return nil, err
+	}
+
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
-		WithConfig(cfg), WithLogger(logger),
-		WithServiceRegistry(service.NewRegistry(
-			service.WithLogger(logger),
-			service.WithService(syncService),
-			service.WithService(executionService),
-			service.WithService(chainService),
-			service.WithService(notificationService),
-			service.WithService(builderService),
-			service.WithService(stakingService),
-		)), WithBeaconStateProvider(bsp),
+		WithBeaconStateProvider(bsp),
+		WithConfig(cfg),
+		WithLogger(logger),
+		WithServiceRegistry(svcRegistry),
 	)
 }
 
