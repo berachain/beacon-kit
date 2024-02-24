@@ -34,4 +34,7 @@ var (
 	ErrExecutionClientIsSyncing = errors.New(
 		"execution client is still syncing",
 	)
+	ErrNotRunning = errors.New(
+		"service is not running",
+	)
 )

@@ -27,8 +27,7 @@ package sync
 
 import (
 	"context"
-	"errors"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -44,15 +43,19 @@ type Service struct {
 	ethClient        *eth.Eth1Client
 	clientCtx        *client.Context
 	notifySyncSignal chan struct{}
-	synced           atomic.Bool
+
+	// statusErrMu protects statusErr.
+	statusErrMu sync.Mutex
+	// statusErr is the error returned
+	// by the last status check.
+	statusErr error
 }
 
 // Status checks if the service is currently synced.
 func (s *Service) Status() error {
-	if !s.synced.Load() {
-		return errors.New("fallen out of sync")
-	}
-	return nil
+	s.statusErrMu.Lock()
+	defer s.statusErrMu.Unlock()
+	return s.statusErr
 }
 
 // SetClientContext sets the client context for the service.
@@ -77,23 +80,18 @@ func (s *Service) Start(ctx context.Context) {
 
 // syncLoop continuously runs and reports if our client is out of sync.
 func (s *Service) syncLoop(ctx context.Context) {
-	var err error
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
-			s.synced.Store(false)
+			s.statusErr = ErrNotRunning
 			return
 		case <-ticker.C:
-			err = s.RequestSyncProgress(ctx)
-		}
-
-		if err == nil {
-			s.synced.Store(true)
-		} else {
-			s.synced.Store(false)
+			s.statusErrMu.Lock()
+			s.statusErr = s.RequestSyncProgress(ctx)
+			s.statusErrMu.Unlock()
 		}
 	}
 }
