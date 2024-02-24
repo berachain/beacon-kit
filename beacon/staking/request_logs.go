@@ -31,8 +31,8 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
