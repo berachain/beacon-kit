@@ -26,26 +26,18 @@
 package logs
 
 import (
-	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-// Option is a function that applies a specific configuration to the Processor.
-type Option func(*Processor) error
-
-// WithHandler is an Option that sets the handler
-// of a contract address for the Processor.
-func WithHandler(contractAddr common.Address, handler Handler) Option {
-	return func(p *Processor) error {
-		p.handlers[contractAddr] = handler
-		return nil
-	}
-}
-
-// WithLogger  sets the logger for the Processor.
-func WithLogger(logger log.Logger) Option {
-	return func(p *Processor) error {
-		p.logger = logger.With("module", "beacon-kit-log-processor")
+// WithTypeAllocator returns an Option for
+// registering the TypeAllocator under the given
+// address with the Factory.
+func WithTypeAllocator(
+	contractAddress ethcommon.Address,
+	allocator *TypeAllocator,
+) Option[Factory] {
+	return func(f *Factory) error {
+		f.addressToAllocator[contractAddress] = allocator
 		return nil
 	}
 }

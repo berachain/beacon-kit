@@ -101,8 +101,9 @@ func (s *Service) NotifyNewPayload(
 }
 
 // GetLogsInFinalizedETH1Block gets logs in the finalized block
-// received from the execution client and converts those logs
-// into appropriate objects that can be consumed by other services.
+// received from the execution client and uses LogFactory to
+// convert them into appropriate objects that can be consumed
+// by other services.
 func (s *Service) GetLogsInFinalizedETH1Block(
 	ctx context.Context,
 	blkNum uint64,

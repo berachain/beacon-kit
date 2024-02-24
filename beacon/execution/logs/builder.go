@@ -23,16 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package logs
 
-import (
-	"github.com/itsdevbear/bolaris/runtime/service"
-)
+// Option is a function type that takes a pointer
+// to an object to build and returns an error.
+type Option[T any] func(*T) error
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	bs BuilderService
-	es ExecutionService
-	ss StakingService
+// New helps us to create a new object with the provided options.
+func New[S any](opts ...Option[S]) *S {
+	var s S
+	for _, opt := range opts {
+		if err := opt(&s); err != nil {
+			panic(err)
+		}
+	}
+	return &s
 }
