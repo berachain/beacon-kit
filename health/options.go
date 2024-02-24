@@ -29,7 +29,7 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// WithBaseService sets the base service for the health service.
+// WithBaseService sets the base service on the health service.
 func WithBaseService(bs service.BaseService) service.Option[Service] {
 	return func(s *Service) error {
 		s.BaseService = bs
@@ -37,6 +37,7 @@ func WithBaseService(bs service.BaseService) service.Option[Service] {
 	}
 }
 
+// WithServiceRegistry sets the service registry on the health service.
 func WithServiceRegistry(sr *service.Registry) service.Option[Service] {
 	return func(s *Service) error {
 		s.svcRegistry = sr
