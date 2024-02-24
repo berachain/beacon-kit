@@ -26,6 +26,7 @@
 package logs
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
 
@@ -36,7 +37,7 @@ import (
 // Factory is a struct that can be used to unmarshal
 // Ethereum logs into objects with the appropriate types.
 type Factory struct {
-	// addressToAbi maps contract addresses to their Registry.
+	// addressToAbi maps contract addresses to Allocators for their events.
 	addressToAllocator map[common.Address]*TypeAllocator
 }
 
@@ -65,7 +66,7 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 	// that have been registered with the factory.
 	allocator, ok := f.addressToAllocator[log.Address]
 	if !ok {
-		return reflect.Value{}, errors.New("registry not found for contract address")
+		return reflect.Value{}, errors.New("allocator not found for contract address")
 	}
 
 	contractAbi := allocator.GetABI()
@@ -116,5 +117,5 @@ func (f *Factory) IsRegisteredLog(log *ethtypes.Log) bool {
 	if err != nil {
 		return false
 	}
-	return sig.Cmp(contractAbi.Events[eventName].ID) == 0
+	return bytes.Equal(sig.Bytes(), contractAbi.Events[eventName].ID.Bytes())
 }

@@ -39,6 +39,9 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
+//nolint:gochecknoglobals // TODO
+var rpcFinalizedBlockNumber = big.NewInt(int64(rpc.FinalizedBlockNumber))
+
 // Service is responsible for delivering beacon chain notifications to
 // the execution client and processing logs received from the execution client.
 type Service struct {
@@ -114,7 +117,7 @@ func (s *Service) GetLogsInFinalizedETH1Block(
 	// when we check the execution client,
 	// vs when we check the forkchoice store.
 	finalBlock, err := s.engine.BlockByNumber(
-		ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)),
+		ctx, rpcFinalizedBlockNumber,
 	)
 	if err != nil {
 		return nil, err
