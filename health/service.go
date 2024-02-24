@@ -46,22 +46,22 @@ func (s *Service) Start(ctx context.Context) {
 
 // retrieveStatuses returns the health status of all services.
 func (s *Service) retrieveStatuses() []*serviceStatus {
-	var (
-		rawStatuses = s.svcRegistry.Statuses()
-		statuses    = make([]*serviceStatus, 0, len(rawStatuses))
-	)
+	rawStatuses := s.svcRegistry.Statuses()
+	statuses := make([]*serviceStatus, len(rawStatuses))
 
+	i := 0
 	for k, v := range rawStatuses {
-		s := &serviceStatus{
+		healthy := v == nil
+		errMsg := ""
+		if !healthy {
+			errMsg = v.Error()
+		}
+		statuses[i] = &serviceStatus{
 			Name:    k.String(),
-			Healthy: true,
+			Healthy: healthy,
+			Err:     errMsg,
 		}
-
-		if v != nil {
-			s.Healthy = false
-			s.Err = v.Error()
-		}
-		statuses = append(statuses, s)
+		i++
 	}
 	return statuses
 }
