@@ -53,9 +53,10 @@ func (s *Service) reportStatuses() {
 	svcStatuses := s.retrieveStatuses()
 	for _, svc := range svcStatuses {
 		if svc.Healthy {
-			s.Logger().Info("reporting healthy 🌤️ ", "service", svc.Name)
+			s.Logger().
+				Info("service is reporting healthy 🌤️ ", "service", svc.Name)
 		} else {
-			s.Logger().Error("reporting unhealthy ⛈️ ",
+			s.Logger().Error("service is reporting unhealthy ⛈️ ",
 				"service", svc.Name, "error", svc.Err)
 		}
 	}
