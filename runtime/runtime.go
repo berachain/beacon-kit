@@ -170,6 +170,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.WithName("blockchain")),
 		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
+		blockchain.WithStakingService(stakingService),
 	)
 
 	// Build the sync service.
