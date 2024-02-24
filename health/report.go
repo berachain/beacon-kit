@@ -42,16 +42,14 @@ func (s *Service) reportingLoop(ctx context.Context) {
 	}
 }
 
+// reportStatuses logs the health status of all services.
 func (s *Service) reportStatuses() {
-	// Define a local struct to hold service type and error information.
-
 	svcStatuses := s.retrieveStatuses()
-
 	for _, svc := range svcStatuses {
 		if svc.Healthy {
-			s.Logger().Info("reporting healthy 🌤️", "service", svc.Name)
+			s.Logger().Info("reporting healthy 🌤️ ", "service", svc.Name)
 		} else {
-			s.Logger().Error("reporting unhealthy ⛈️",
+			s.Logger().Error("reporting unhealthy ⛈️ ",
 				"service", svc.Name, "error", svc.Err)
 		}
 	}
