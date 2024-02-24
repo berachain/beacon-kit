@@ -40,7 +40,6 @@ func (s *Service) CheckELSync(ctx context.Context) error {
 	// Exit early if the node does not return a progress.
 	// This means the node is in sync at the eth1 layer.
 	if progress == nil {
-		s.Logger().Info("execution client is synchronized eth1 head.")
 		return nil
 	}
 

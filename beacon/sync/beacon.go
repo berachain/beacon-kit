@@ -40,7 +40,6 @@ func (s *Service) CheckCLSync(ctx context.Context) error {
 	// Exit early if the node does not return a progress.
 	// This means the node is in sync at the eth1 layer.
 	if !resultStatus.SyncInfo.CatchingUp {
-		s.Logger().Info("beacon client is synchronized to head.")
 		return nil
 	}
 
