@@ -28,29 +28,28 @@ package consensusv1
 import (
 	"errors"
 
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // IsNil checks if the BeaconKitBlock is nil or not.
-func (b *BeaconKitBlockCapella) IsNil() bool {
+func (b *BeaconKitBlockDeneb) IsNil() bool {
 	return b == nil
 }
 
 // Version returns the version of the block.
-func (b *BeaconKitBlockCapella) Version() int {
-	return version.Capella
+func (b *BeaconKitBlockDeneb) Version() int {
+	return version.Deneb
 }
 
 // AttachExecution attaches the given execution data to the block.
-func (b *BeaconKitBlockCapella) AttachExecution(
-	executionData engine.ExecutionPayload,
+func (b *BeaconKitBlockDeneb) AttachExecution(
+	executionData enginetypes.ExecutionPayload,
 ) error {
 	var ok bool
 	b.Body.ExecutionPayload, ok = executionData.
-		ToProto().(*enginev1.ExecutionPayloadCapella)
-	// b.Body.ExecutionPayload, err = executionData.PbCapella()
+		ToProto().(*enginev1.ExecutionPayloadDeneb)
 	if !ok {
 		return errors.New(
 			"failed to convert execution data to capella payload")
@@ -64,13 +63,15 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlockCapella) ExecutionPayload() (
-	engine.ExecutionPayload, error,
+func (b *BeaconKitBlockDeneb) ExecutionPayload() (
+	enginetypes.ExecutionPayload, error,
 ) {
 	return &enginev1.ExecutionPayloadContainer{
-		Payload: &enginev1.ExecutionPayloadContainer_Capella{
-			Capella: b.GetBody().GetExecutionPayload(),
+		Payload: &enginev1.ExecutionPayloadContainer_Deneb{
+			Deneb: b.GetBody().GetExecutionPayload(),
 		},
-		PayloadValue: b.GetPayloadValue(),
+		PayloadValue:          b.GetPayloadValue(),
+		BlobsBundle:           &enginev1.BlobsBundle{},
+		ShouldOverrideBuilder: false,
 	}, nil
 }

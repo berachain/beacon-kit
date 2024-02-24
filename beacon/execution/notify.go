@@ -33,22 +33,25 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.
 func (s *Service) notifyNewPayload(
-	ctx context.Context, payload engine.ExecutionPayload, slot primitives.Slot,
+	ctx context.Context,
+	slot primitives.Slot,
+	payload enginetypes.ExecutionPayload,
+	versionedHashes []common.Hash,
+	parentBlockRoot common.Hash,
 ) (bool, error) {
 	var (
 		lastValidHash []byte
 		err           error
 	)
 
-	//nolint:revive // okay for now.
 	if s.ActiveForkVersionForSlot(slot) >= version.Deneb {
 		// TODO: Deneb
 		// var versionedHashes []common.Hash
@@ -61,6 +64,11 @@ func (s *Service) notifyNewPayload(
 		// pr := common.Hash(blk.Block().ParentRoot())
 		// lastValidHash, err = s.engine.NewP
 		// ayload(ctx, payload, versionedHashes, &pr)
+		// TODO:DENEB
+		lastValidHash, err = s.engine.NewPayload(
+			/*empty version hashes and root before Deneb*/
+			ctx, payload, versionedHashes, &parentBlockRoot,
+		)
 	} else {
 		lastValidHash, err = s.engine.NewPayload(
 			/*empty version hashes and root before Deneb*/
@@ -97,7 +105,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	// if isValidator && PrepareAllPayloads {
 	// Ensure we don't pass a nil attribute to the execution engine.
 	if fcuConfig.Attributes == nil {
-		fcuConfig.Attributes = engine.EmptyPayloadAttributesWithVersion(
+		fcuConfig.Attributes = enginetypes.EmptyPayloadAttributesWithVersion(
 			s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot))
 	}
 

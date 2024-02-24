@@ -26,8 +26,8 @@
 package consensus
 
 import (
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 
@@ -55,12 +55,13 @@ type ReadOnlyBeaconKitBlock interface {
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
+	GetParentRoot() []byte
 	// Execution returns the execution data of the block.
-	ExecutionPayload() (engine.ExecutionPayload, error)
+	ExecutionPayload() (enginetypes.ExecutionPayload, error)
 	Version() int
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
 type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(engine.ExecutionPayload) error
+	AttachExecution(enginetypes.ExecutionPayload) error
 }

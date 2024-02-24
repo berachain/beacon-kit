@@ -28,8 +28,8 @@ package staking
 import (
 	"context"
 
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 type ValsetChangeProvider interface {

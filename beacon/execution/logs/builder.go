@@ -23,26 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package logs
 
-import (
-	"context"
+// Option is a function type that takes a pointer
+// to an object to build and returns an error.
+type Option[T any] func(*T) error
 
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-)
-
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) (*enginev1.PayloadIDBytes, error)
-
-	// GetPayload gets a payload for a given payload ID and slot.
-	GetPayload(
-		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
-	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+// New helps us to create a new object with the provided options.
+func New[S any](opts ...Option[S]) *S {
+	var s S
+	for _, opt := range opts {
+		if err := opt(&s); err != nil {
+			panic(err)
+		}
+	}
+	return &s
 }

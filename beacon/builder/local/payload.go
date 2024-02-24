@@ -34,9 +34,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // BuildLocalPayload builds a payload for the given slot and
@@ -71,7 +71,7 @@ func (s *Service) BuildLocalPayload(
 	}
 
 	// Build the payload attributes.
-	attrs, err := engine.NewPayloadAttributesContainer(
+	attrs, err := enginetypes.NewPayloadAttributesContainer(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
@@ -132,7 +132,7 @@ func (s *Service) GetLocalPayload(
 	slot primitives.Slot,
 	parentBeaconBlockRoot []byte,
 	parentEth1Hash common.Hash,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// vIdx := blk.ProposerIndex()
 	// headRoot := blk.ParentRoot()
 	// logFields := logrus.Fields{
@@ -186,7 +186,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBeaconBlockRoot []byte,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.payloadCache.Get(
@@ -222,7 +222,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBeaconBlockRoot []byte,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
@@ -272,7 +272,7 @@ func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID primitives.PayloadID,
 	slot primitives.Slot,
-) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
 		ctx,
 		payloadID,

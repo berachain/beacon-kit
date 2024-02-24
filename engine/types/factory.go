@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package enginetypes
 
 import (
 	"errors"
 
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // NewPayloadAttributesContainer creates a new PayloadAttributesContainer.
@@ -53,17 +53,6 @@ func NewPayloadAttributesContainer(
 				},
 			},
 		}, nil
-	case version.Capella:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V2{
-				V2: &enginev1.PayloadAttributesV2{
-					Timestamp:             timestamp,
-					PrevRandao:            prevRandao,
-					SuggestedFeeRecipient: suggestedFeeReceipient,
-					Withdrawals:           withdrawals,
-				},
-			},
-		}, nil
 	default:
 		return nil, errors.New("invalid version")
 	}
@@ -79,12 +68,6 @@ func EmptyPayloadAttributesWithVersion(
 		return &enginev1.PayloadAttributesContainer{
 			Attributes: &enginev1.PayloadAttributesContainer_V3{
 				V3: nil,
-			},
-		}
-	case version.Capella:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V2{
-				V2: nil,
 			},
 		}
 	default:
