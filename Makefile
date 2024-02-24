@@ -383,7 +383,8 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1 -objs Deposit,BeaconKitBlockCapella,BlindedBeaconKitBlockCapella \
+	@sszgen -path ./types/consensus/v1 \
+	-objs Deposit,BeaconKitBlockDeneb,\
     --include ./types/consensus/primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
 
@@ -408,4 +409,4 @@ repo-rinse: |
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
 	license-install license license-fix \
-	gosec-install gosec golines tidy repo-rinse
+	gosec-install gosec golines tidy repo-rinse proto

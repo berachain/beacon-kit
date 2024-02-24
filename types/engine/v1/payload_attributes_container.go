@@ -30,13 +30,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Version returns the consensus version for the Capella upgrade.
+// Version returns the consensus version of the PayloadAttributesContainer.
 func (w *PayloadAttributesContainer) Version() int {
 	switch w.ToProto().(type) {
 	case *PayloadAttributesV3:
 		return version.Deneb
-	case *PayloadAttributesV2:
-		return version.Capella
 	default:
 		return 0
 	}
@@ -47,8 +45,6 @@ func (w *PayloadAttributesContainer) IsEmpty() bool {
 	switch w := w.GetAttributes().(type) {
 	case *PayloadAttributesContainer_V3:
 		return w.V3 == nil
-	case *PayloadAttributesContainer_V2:
-		return w.V2 == nil
 	default:
 		return true
 	}
@@ -60,8 +56,6 @@ func (w *PayloadAttributesContainer) ToProto() proto.Message {
 	switch p := w.GetAttributes().(type) {
 	case *PayloadAttributesContainer_V3:
 		return p.V3
-	case *PayloadAttributesContainer_V2:
-		return p.V2
 	default:
 		return nil
 	}

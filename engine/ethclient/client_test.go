@@ -91,47 +91,6 @@ func TestNewPayloadV3_BasicSanityCheck(t *testing.T) {
 	}
 }
 
-func TestNewPayloadV2_BasicSanityCheck(t *testing.T) {
-	tests := []struct {
-		name    string
-		ret     error
-		wantErr bool
-	}{
-		{
-			name:    "success",
-			ret:     nil,
-			wantErr: false,
-		},
-		{
-			name:    "rpc error",
-			ret:     errors.New("rpc call failed"),
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockRPCClient := new(mocks.GethRPCClient)
-			client := &ethclient.Eth1Client{GethRPCClient: mockRPCClient}
-
-			payload := &enginev1.ExecutionPayloadCapella{}
-
-			mockRPCClient.EXPECT().
-				CallContext(mock.Anything, mock.Anything,
-					ethclient.NewPayloadMethodV2, payload).
-				Return(tt.ret).
-				Once()
-
-			_, err := client.NewPayloadV2(context.Background(), payload)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestForkchoiceUpdatedV3_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -181,57 +140,6 @@ func TestForkchoiceUpdatedV3_BasicSanityCheck(t *testing.T) {
 	}
 }
 
-func TestForkchoiceUpdatedV2_BasicSanityCheck(t *testing.T) {
-	tests := []struct {
-		name    string
-		state   *enginev1.ForkchoiceState
-		attrs   *enginev1.PayloadAttributesV2
-		ret     error
-		wantErr bool
-	}{
-		{
-			name:    "nil response should error",
-			state:   &enginev1.ForkchoiceState{},
-			attrs:   &enginev1.PayloadAttributesV2{},
-			ret:     nil,
-			wantErr: true,
-		},
-		{
-			name:    "call context returns error",
-			state:   &enginev1.ForkchoiceState{},
-			attrs:   &enginev1.PayloadAttributesV2{},
-			ret:     errors.New("custom rpc error"),
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockRPCClient := new(mocks.GethRPCClient)
-			client := &ethclient.Eth1Client{GethRPCClient: mockRPCClient}
-
-			mockRPCClient.EXPECT().
-				CallContext(mock.Anything, mock.Anything,
-					ethclient.ForkchoiceUpdatedMethodV2,
-					tt.state, tt.attrs,
-				).
-				Return(tt.ret).
-				Once()
-
-			_, err := client.ForkchoiceUpdatedV2(
-				context.Background(),
-				tt.state,
-				tt.attrs,
-			)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestGetPayloadV3_BasicSanityCheck(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -266,49 +174,6 @@ func TestGetPayloadV3_BasicSanityCheck(t *testing.T) {
 				Once()
 
 			_, err := client.GetPayloadV3(context.Background(), tt.pid)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestGetPayloadV2_BasicSanityCheck(t *testing.T) {
-	tests := []struct {
-		name    string
-		pid     enginev1.PayloadIDBytes
-		ret     error
-		wantErr bool
-	}{
-		{
-			name:    "nil response is desired",
-			pid:     enginev1.PayloadIDBytes{},
-			ret:     nil,
-			wantErr: false,
-		},
-		{
-			name:    "call context returns error",
-			pid:     enginev1.PayloadIDBytes{},
-			ret:     errors.New("my custom rpc error"),
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockRPCClient := new(mocks.GethRPCClient)
-			client := &ethclient.Eth1Client{GethRPCClient: mockRPCClient}
-
-			mockRPCClient.EXPECT().
-				CallContext(mock.Anything, mock.Anything,
-					"engine_getPayloadV2", tt.pid,
-				).
-				Return(tt.ret).
-				Once()
-
-			_, err := client.GetPayloadV2(context.Background(), tt.pid)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

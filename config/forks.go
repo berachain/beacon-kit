@@ -38,7 +38,7 @@ var _ BeaconKitConfig[Forks] = &Forks{}
 func DefaultForksConfig() Forks {
 	return Forks{
 		DenebForkEpoch: primitives.Epoch(
-			4294967295, //nolint:gomnd
+			0,
 		),
 	}
 }

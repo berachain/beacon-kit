@@ -115,8 +115,6 @@ func (s *engineClient) callNewPayloadRPC(
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) (*enginev1.PayloadStatus, error) {
 	switch payloadPb := payload.ToProto().(type) {
-	case *enginev1.ExecutionPayloadCapella:
-		return s.NewPayloadV2(ctx, payloadPb)
 	case *enginev1.ExecutionPayloadDeneb:
 		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
 	default:
@@ -159,8 +157,6 @@ func (s *engineClient) callUpdatedForkchoiceRPC(
 	switch v := attrs.ToProto().(type) {
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
-	case *enginev1.PayloadAttributesV2:
-		return s.ForkchoiceUpdatedV2(ctx, state, v)
 	default:
 		return nil, ErrInvalidPayloadAttributeVersion
 	}
@@ -181,7 +177,7 @@ func (s *engineClient) GetPayload(
 	case version.Deneb:
 		fn = s.GetPayloadV3
 	default:
-		fn = s.GetPayloadV2
+		return nil, nil, false, ErrInvalidGetPayloadVersion
 	}
 
 	result, err := fn(dctx, enginev1.PayloadIDBytes(payloadID))

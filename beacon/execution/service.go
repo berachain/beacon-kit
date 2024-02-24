@@ -29,6 +29,7 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -91,10 +92,18 @@ func (s *Service) GetPayload(
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(
 	ctx context.Context,
-	payload enginetypes.ExecutionPayload,
 	slot primitives.Slot,
+	payload enginetypes.ExecutionPayload,
+	versionedHashes []common.Hash,
+	parentBlockRoot common.Hash,
 ) (bool, error) {
-	return s.notifyNewPayload(ctx, payload, slot)
+	return s.notifyNewPayload(
+		ctx,
+		slot,
+		payload,
+		versionedHashes,
+		parentBlockRoot,
+	)
 }
 
 // ProcessFinalizedLogs processes logs from the execution client for a finalized

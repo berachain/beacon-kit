@@ -30,6 +30,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"golang.org/x/sync/errgroup"
 )
@@ -39,6 +40,7 @@ import (
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconKitBlock,
+	parentRootHash []byte,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -68,12 +70,13 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, blk,
+			groupCtx, blk, parentRootHash,
 		); err != nil {
 			s.Logger().
 				Error("failed to notify engine of new payload", "error", err)
 			return err
 		}
+
 		return nil
 	})
 
@@ -117,14 +120,26 @@ func (s *Service) validateStateTransition(
 
 // validateExecutionOnBlock checks the validity of a proposed beacon block.
 func (s *Service) validateExecutionOnBlock(
-	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
+	// todo: parentRoot hashs should be on blk.
+	ctx context.Context,
+	blk consensus.ReadOnlyBeaconKitBlock,
+	parentRootHash []byte,
 ) (bool, error) {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return false, err
 	}
 
-	// TODO: add some more safety checks here.
+	if blk.GetSlot() == 1 {
+		parentRootHash = common.Hash{}.Bytes()
+	}
 
-	return s.es.NotifyNewPayload(ctx, payload, blk.GetSlot())
+	// TODO: add some more safety checks here.
+	return s.es.NotifyNewPayload(
+		ctx,
+		blk.GetSlot(),
+		payload,
+		[]common.Hash{},
+		common.Hash(parentRootHash),
+	)
 }

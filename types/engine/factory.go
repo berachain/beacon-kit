@@ -53,17 +53,6 @@ func NewPayloadAttributesContainer(
 				},
 			},
 		}, nil
-	case version.Capella:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V2{
-				V2: &enginev1.PayloadAttributesV2{
-					Timestamp:             timestamp,
-					PrevRandao:            prevRandao,
-					SuggestedFeeRecipient: suggestedFeeReceipient,
-					Withdrawals:           withdrawals,
-				},
-			},
-		}, nil
 	default:
 		return nil, errors.New("invalid version")
 	}
@@ -79,12 +68,6 @@ func EmptyPayloadAttributesWithVersion(
 		return &enginev1.PayloadAttributesContainer{
 			Attributes: &enginev1.PayloadAttributesContainer_V3{
 				V3: nil,
-			},
-		}
-	case version.Capella:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V2{
-				V2: nil,
 			},
 		}
 	default:

@@ -141,7 +141,7 @@ func (h *Handler) ProcessProposalHandler(
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block,
+		ctx, block, ctx.BlockHeader().AppHash,
 	); err != nil {
 		logger.Error("failed to validate block", "error", err)
 		return &abci.ResponseProcessProposal{

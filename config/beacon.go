@@ -58,13 +58,14 @@ func DefaultBeaconConfig() Beacon {
 }
 
 // ActiveForkVersion returns the active fork version for a given slot.
-func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
-	if epoch >= c.Forks.DenebForkEpoch {
-		return version.Deneb
-	}
+func (c Beacon) ActiveForkVersion(_ primitives.Epoch) int {
+	// Eventually we will need to add more forks here.
+	// if epoch >= c.Forks.ElectraForkEpoch {
+	// 	return version.Electra
+	// }
 
-	// In BeaconKit we assume the Capella fork is always active.
-	return version.Capella
+	// In BeaconKit we assume the Deneb fork is always active.
+	return version.Deneb
 }
 
 // Parse parses the configuration.

@@ -26,8 +26,6 @@
 package consensus
 
 import (
-	"errors"
-
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
@@ -44,11 +42,9 @@ func NewBeaconKitBlock(
 	var block BeaconKitBlock
 	switch forkVersion {
 	case version.Deneb:
-		return nil, errors.New("TODO: Deneb block")
-	case version.Capella:
-		block = &consensusv1.BeaconKitBlockCapella{
+		block = &consensusv1.BeaconKitBlockDeneb{
 			Slot: slot,
-			Body: &consensusv1.BeaconKitBlockBodyCapella{
+			Body: &consensusv1.BeaconKitBlockBodyDeneb{
 				RandaoReveal: make([]byte, 96), //nolint:gomnd
 				Graffiti:     make([]byte, 32), //nolint:gomnd
 			},
@@ -83,10 +79,7 @@ func BeaconKitBlockFromSSZ(
 	var block BeaconKitBlock
 	switch forkVersion {
 	case version.Deneb:
-		panic("TODO DENEB")
-		// block = &consensusv1.BeaconKitBlockDeneb{}
-	case version.Capella:
-		block = &consensusv1.BeaconKitBlockCapella{}
+		block = &consensusv1.BeaconKitBlockDeneb{}
 	default:
 		return nil, ErrForkVersionNotSupported
 	}

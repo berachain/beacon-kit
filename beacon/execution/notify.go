@@ -41,14 +41,17 @@ import (
 
 // notifyNewPayload notifies the execution client of a new payload.
 func (s *Service) notifyNewPayload(
-	ctx context.Context, payload engine.ExecutionPayload, slot primitives.Slot,
+	ctx context.Context,
+	slot primitives.Slot,
+	payload engine.ExecutionPayload,
+	versionedHashes []common.Hash,
+	parentBlockRoot common.Hash,
 ) (bool, error) {
 	var (
 		lastValidHash []byte
 		err           error
 	)
 
-	//nolint:revive // okay for now.
 	if s.ActiveForkVersionForSlot(slot) >= version.Deneb {
 		// TODO: Deneb
 		// var versionedHashes []common.Hash
@@ -61,6 +64,11 @@ func (s *Service) notifyNewPayload(
 		// pr := common.Hash(blk.Block().ParentRoot())
 		// lastValidHash, err = s.engine.NewP
 		// ayload(ctx, payload, versionedHashes, &pr)
+		// TODO:DENEB
+		lastValidHash, err = s.engine.NewPayload(
+			/*empty version hashes and root before Deneb*/
+			ctx, payload, versionedHashes, &parentBlockRoot,
+		)
 	} else {
 		lastValidHash, err = s.engine.NewPayload(
 			/*empty version hashes and root before Deneb*/

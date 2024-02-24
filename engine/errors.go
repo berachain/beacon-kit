@@ -40,6 +40,7 @@ var (
 	// ErrInvalidPayloadType indicates an invalid payload type
 	// was provided for an RPC call.
 	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
+
 	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
 	// provided for getting a payload.
 	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
