@@ -28,8 +28,8 @@ package enginetypes
 import (
 	"errors"
 
+	"github.com/itsdevbear/bolaris/config/version"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
 // NewPayloadAttributesContainer creates a new PayloadAttributesContainer.

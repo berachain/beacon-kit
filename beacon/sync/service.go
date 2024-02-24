@@ -92,6 +92,7 @@ func (s *Service) syncLoop(ctx context.Context) {
 			return
 		case <-ticker.C:
 			s.statusErrMu.Lock()
+			//#nosec:G703
 			s.statusErr = s.RequestSyncProgress(ctx)
 			s.statusErrMu.Unlock()
 		}

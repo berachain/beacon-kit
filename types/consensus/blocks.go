@@ -26,10 +26,10 @@
 package consensus
 
 import (
+	"github.com/itsdevbear/bolaris/config/version"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
 // BeaconKitBlock assembles a new beacon block from
