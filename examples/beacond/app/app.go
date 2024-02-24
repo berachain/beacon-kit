@@ -191,9 +191,6 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	ctx := app.NewContext(true)
-	app.BeaconKitRunner.StartServices(ctx)
-
 	return app
 }
 
@@ -240,10 +237,11 @@ func (app *BeaconApp) RegisterAPIRoutes(
 	}
 
 	// Initial check for execution client sync.
-	go app.BeaconKitRunner.StartSyncCheck(
+	go app.BeaconKitRunner.StartServices(
 		app.NewContext(true),
 		apiSvr.ClientCtx,
 	)
+
 	app.BeaconKitRunner.SetCometCfg(v.Config)
 }
 
