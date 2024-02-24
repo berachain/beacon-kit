@@ -32,8 +32,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/state"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // BeaconStateProvider is an interface that wraps the basic BeaconState method.
@@ -65,5 +65,5 @@ type FCUConfig struct {
 	// update to the execution client. It is used to signal to the execution
 	// client that
 	// it should build a payload.
-	Attributes engine.PayloadAttributer
+	Attributes enginetypes.PayloadAttributer
 }

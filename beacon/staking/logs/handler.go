@@ -31,9 +31,9 @@ import (
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 var _ callback.ContractHandler = &Handler{}
@@ -81,6 +81,6 @@ func (s *Handler) Withdrawal(
 ) error {
 	return s.sks.ProcessWithdrawal(
 		ctx,
-		engine.NewWithdrawal(validatorPubkey, amount),
+		enginetypes.NewWithdrawal(validatorPubkey, amount),
 	)
 }

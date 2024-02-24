@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // BeaconStateProvider provides access to the current beacon state.

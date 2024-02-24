@@ -34,9 +34,9 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // newLog creates a new log of an event from the given arguments.

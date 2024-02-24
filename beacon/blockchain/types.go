@@ -30,9 +30,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // BuilderService is the interface for the builder service.
@@ -58,7 +58,7 @@ type ExecutionService interface {
 	NotifyNewPayload(
 		ctx context.Context,
 		slot primitives.Slot,
-		payload engine.ExecutionPayload,
+		payload enginetypes.ExecutionPayload,
 		versionedHashes []common.Hash,
 		parentBlockRoot common.Hash,
 	) (bool, error)
