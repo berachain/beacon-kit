@@ -46,7 +46,6 @@ const syncCheckInterval = 3 * time.Second
 type Service struct {
 	service.BaseService
 	ethClient        *eth.Eth1Client
-	es               executionService
 	clientCtx        *client.Context
 	notifySyncSignal chan struct{}
 	synced           atomic.Bool

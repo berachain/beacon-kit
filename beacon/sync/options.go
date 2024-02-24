@@ -45,11 +45,3 @@ func WithEthClient(ethClient *eth.Eth1Client) service.Option[Service] {
 		return nil
 	}
 }
-
-// WithExecutionService sets the ExecutionService of the Service.
-func WithExecutionService(es executionService) service.Option[Service] {
-	return func(r *Service) error {
-		r.es = es
-		return nil
-	}
-}

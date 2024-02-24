@@ -169,7 +169,6 @@ func NewDefaultBeaconKitRuntime(
 	syncService := service.New[sync.Service](
 		sync.WithBaseService(baseService.WithName("sync")),
 		sync.WithEthClient(eth1Client),
-		sync.WithExecutionService(executionService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
