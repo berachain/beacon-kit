@@ -28,31 +28,18 @@ package ethclient
 import (
 	"context"
 	"fmt"
-	"time"
 )
 
-// healthCheckLoop periodically checks the connection health of the execution
-// client.
-func (s *Eth1Client) healthCheckLoop(ctx context.Context) {
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
 	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(s.healthCheckInterval):
-			if err := s.ensureCorrectExecutionChain(ctx); err != nil {
-				s.logger.Error("eth1 connection health check failed",
-					"dial-url", s.dialURL.String(),
-					"error", err,
-				)
-				s.isConnected.Store(false)
-			}
-		}
+		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
 	}
 }
 
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
-func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
+func (s *Eth1Client) CheckEth1ConnectionAndChainID(ctx context.Context) error {
 	chainID, err := s.Client.ChainID(ctx)
 	if err != nil {
 		return err

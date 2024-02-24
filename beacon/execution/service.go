@@ -55,10 +55,7 @@ func (s *Service) Start(ctx context.Context) {
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
-	if !s.engine.IsConnected() {
-		return ErrExecutionClientDisconnected
-	}
-	return nil
+	return s.engine.Status()
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.

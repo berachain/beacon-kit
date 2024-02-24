@@ -87,15 +87,8 @@ func (s *Eth1Client) Start(ctx context.Context) {
 	}
 
 	// If we reached this point, the execution client is connected so we can
-	// start
-	// the health check & jwt refresh loops.
-	go s.healthCheckLoop(ctx)
+	// start the jwt refresh loop.
 	go s.jwtRefreshLoop(ctx)
-}
-
-// IsConnected returns the connection status of the Ethereum 1 client.
-func (s *Eth1Client) IsConnected() bool {
-	return s.isConnected.Load()
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
