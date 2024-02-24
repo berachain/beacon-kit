@@ -23,42 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package queue
+package sync
 
-// SingleDispatchQueue is a dispatch queue that dispatches a single item at a
-// time.
-// It respects the order of items added to the queue and will always
-// process the freshest item that was MOST recently added to the queue.
-type SingleDispatchQueue struct {
-	*DispatchQueue
-}
+import (
+	"context"
+)
 
-// NewSingleDispatchQueue creates a new SingleDispatchQueue.
-func NewSingleDispatchQueue() *SingleDispatchQueue {
-	q := &SingleDispatchQueue{
-		DispatchQueue: NewDispatchQueue(1, 1),
-	}
-	return q
-}
-
-// Async adds a work item to the queue to be executed asynchronously.
-func (q *SingleDispatchQueue) Async(item WorkItem) error {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-
-	// Remove the currently pending item before
-	// adding the new one to the channel.
-	select {
-	case <-q.queue:
-		// Decrement the WaitGroup as the corresponding wg.Add(1) from the item
-		// that is being removed from the channel is never called.
-		q.wg.Done()
-	default:
-		// If there is no item in the channel, do nothing.
+// CheckELSync checks if the execution layer is syncing.
+func (s *Service) CheckELSync(ctx context.Context) error {
+	// Call the ethClient to get the sync progress
+	progress, err := s.ethClient.SyncProgress(ctx)
+	if err != nil {
+		return err
 	}
 
-	// Push the new item.
-	q.wg.Add(1)
-	q.queue <- item
-	return nil
+	// Exit early if the node does not return a progress.
+	// This means the node is in sync at the eth1 layer.
+	if progress == nil {
+		s.Logger().Info("execution client is synchronized eth1 head.")
+		return nil
+	}
+
+	s.Logger().Warn(
+		"execution client is attemping to sync.... ",
+		"current_eth1", progress.CurrentBlock,
+		"highest_eth1", progress.HighestBlock,
+		"starting_eth1", progress.StartingBlock,
+	)
+
+	return ErrExecutionClientIsSyncing
 }

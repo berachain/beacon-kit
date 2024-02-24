@@ -172,7 +172,6 @@ func NewDefaultBeaconKitRuntime(
 	syncService := service.New[sync.Service](
 		sync.WithBaseService(baseService.WithName("sync")),
 		sync.WithEthClient(eth1Client),
-		sync.WithExecutionService(executionService),
 	)
 
 	svcRegistry := service.NewRegistry(
@@ -203,14 +202,8 @@ func NewDefaultBeaconKitRuntime(
 	)
 }
 
-// StartServices starts all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
-	// Then start all the other services.
-	r.services.StartAll(ctx)
-}
-
-// StartSyncCheck starts the sync check for the runtime.
-func (r *BeaconKitRuntime) StartSyncCheck(
+// StartServices starts the services.
+func (r *BeaconKitRuntime) StartServices(
 	ctx context.Context,
 	clientCtx client.Context,
 ) {
@@ -224,12 +217,7 @@ func (r *BeaconKitRuntime) StartSyncCheck(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go func() {
-		if err := syncService.WaitForExecutionClientSync(ctx); err != nil {
-			panic(err)
-		}
-	}()
-
+	r.services.StartAll(ctx)
 	<-r.stopCh
 }
 

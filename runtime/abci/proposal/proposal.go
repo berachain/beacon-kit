@@ -79,12 +79,8 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// TODO: Make this more sophisticated.
-	//nolint:lll // couldnt fix.
-	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == sync.StatusExecutionAhead {
-		return nil, fmt.Errorf(
-			"err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status,
-		)
+	if err := h.syncService.Status(); err != nil {
+		return nil, err
 	}
 
 	// TODO abstract this into BeaconState()
