@@ -35,28 +35,33 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
+//nolint:gochecknoglobals // Avoid re-allocating these variables.
+var (
+	// Name, signature, and type of the Deposit event
+	// in the deposit contract.
+	depositName = "Deposit"
+	depositSig  = ethcrypto.Keccak256Hash(
+		[]byte("Deposit(bytes,bytes,uint64)"),
+	)
+	depositType = reflect.TypeOf(consensusv1.Deposit{})
+
+	// Name, signature, and type of the Withdrawal event
+	// in the deposit contract.
+	withdrawalName = "Withdrawal"
+	withdrawalSig  = ethcrypto.Keccak256Hash(
+		[]byte("Withdrawal(bytes,bytes,uint64)"),
+	)
+	withdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
+)
+
+// GetLogRequests returns a list of log requests from the staking service
+// to be sent to the log factory in the execution service.
 func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
 	depositContractAddr := s.BeaconCfg().Execution.DepositContractAddress
 	depositContractAbi, err := abi.StakingMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-
-	// Name, signature, and type of the Deposit event
-	// in the deposit contract.
-	depositName := "Deposit"
-	depositSig := ethcrypto.Keccak256Hash(
-		[]byte("Deposit(bytes,bytes,uint64)"),
-	)
-	depositType := reflect.TypeOf(consensusv1.Deposit{})
-
-	// Name, signature, and type of the Withdrawal event
-	// in the deposit contract.
-	withdrawalName := "Withdrawal"
-	withdrawalSig := ethcrypto.Keccak256Hash(
-		[]byte("Withdrawal(bytes,bytes,uint64)"),
-	)
-	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
 
 	allocator := logs.New[logs.TypeAllocator](
 		logs.WithABI(depositContractAbi),

@@ -27,21 +27,16 @@ package execution
 
 import (
 	"context"
-	"math/big"
 	"reflect"
 
 	"cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/engine"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
-
-//nolint:gochecknoglobals // no sense reallocating over and over.
-var rpcFinalizedBlockQuery = big.NewInt(int64(rpc.FinalizedBlockNumber))
 
 // Service is responsible for delivering beacon chain notifications to
 // the execution client and processing logs received from the execution client.
@@ -112,35 +107,14 @@ func (s *Service) NotifyNewPayload(
 	)
 }
 
-// GetLogsInFinalizedETH1Block gets logs in the finalized block
+// GetLogsInETH1Block gets logs in the Eth1 block
 // received from the execution client and uses LogFactory to
 // convert them into appropriate objects that can be consumed
 // by other services.
-func (s *Service) GetLogsInFinalizedETH1Block(
+func (s *Service) GetLogsInETH1Block(
 	ctx context.Context,
 	blkNum uint64,
 ) ([]reflect.Value, error) {
-	// Get the block from the eth1 client and
-	// check if the block is safe to process.
-	// TODO: Do we want to come up with a heuristic around
-	// when we check the execution client,
-	// vs when we check the forkchoice store.
-	finalBlock, err := s.engine.BlockByNumber(
-		ctx, rpcFinalizedBlockQuery,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Ensure we don't start processing the logs
-	// of a block that is ahead of the safe block.
-	if finalBlock.Number().Uint64() < blkNum {
-		return nil, errors.Wrapf(
-			ErrProcessingUnfinalizedBlock,
-			"safe block %d is behind block %d", finalBlock.Number(), blkNum,
-		)
-	}
-
 	// Gather all the logs corresponding to the handlers from this block.
 	registeredAddrs := s.logFactory.GetRegisteredAddresses()
 	logsInBlock, err := s.engine.GetLogs(ctx, blkNum, blkNum, registeredAddrs)

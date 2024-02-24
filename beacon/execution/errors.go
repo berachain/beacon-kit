@@ -47,8 +47,4 @@ var (
 	// chain has produced a bad block.
 	ErrBadBlockProduced = errors.New(
 		"beacon chain has produced a bad block, RIP walrus")
-
-	// ErrProcessingUnfinalizedBlock represents an error when
-	// the processing block is not finalized.
-	ErrProcessingUnfinalizedBlock = errors.New("cannot process unsafe block")
 )
