@@ -24,25 +24,17 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package types.engine.v1;
+package engine.types.v1;
 
 import "ethereum/engine/v1/execution_engine.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/engine/v1;enginev1";
+option go_package = "github.com/itsdevbear/bolaris/engine/types/v1;enginev1";
 
-// ExecutionPayloadContainer is a container for an execution payload.
-message ExecutionPayloadContainer {
-  // payload represents the payload of the execution.
-  oneof payload {
-    // deneb represents an execution payload for deneb
-    ethereum.engine.v1.ExecutionPayloadDeneb deneb = 1;
-    // deneb_header is the blinded block.
-    ethereum.engine.v1.ExecutionPayloadHeaderDeneb deneb_header = 2;
+// PayloadAttributesContainer is a container for payload attributes.
+message PayloadAttributesContainer {
+  // attributes represents the attributes of the payload.
+  oneof attributes {
+    // v3 are the payload attributes for deneb.
+    ethereum.engine.v1.PayloadAttributesV3 v3 = 2;
   }
-  // value is a byte array representing the value associated with the container.
-  bytes payload_value = 1001;
-  // blobs_bundle encapsulates a collection of blobs associated with the container.
-  ethereum.engine.v1.BlobsBundle blobs_bundle = 1002;
-  // should_override_builder indicates whether the default builder should be overridden.
-  bool should_override_builder = 1003;
 }

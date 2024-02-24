@@ -27,7 +27,7 @@
 // versions:
 // 	protoc-gen-go v1.32.0
 // 	protoc        (unknown)
-// source: types/engine/v1/payload_attributes_container.proto
+// source: engine/types/v1/payload_attributes_container.proto
 
 package enginev1
 
@@ -63,7 +63,7 @@ type PayloadAttributesContainer struct {
 func (x *PayloadAttributesContainer) Reset() {
 	*x = PayloadAttributesContainer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_types_engine_v1_payload_attributes_container_proto_msgTypes[0]
+		mi := &file_engine_types_v1_payload_attributes_container_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -76,7 +76,7 @@ func (x *PayloadAttributesContainer) String() string {
 func (*PayloadAttributesContainer) ProtoMessage() {}
 
 func (x *PayloadAttributesContainer) ProtoReflect() protoreflect.Message {
-	mi := &file_types_engine_v1_payload_attributes_container_proto_msgTypes[0]
+	mi := &file_engine_types_v1_payload_attributes_container_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -89,7 +89,7 @@ func (x *PayloadAttributesContainer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PayloadAttributesContainer.ProtoReflect.Descriptor instead.
 func (*PayloadAttributesContainer) Descriptor() ([]byte, []int) {
-	return file_types_engine_v1_payload_attributes_container_proto_rawDescGZIP(), []int{0}
+	return file_engine_types_v1_payload_attributes_container_proto_rawDescGZIP(), []int{0}
 }
 
 func (m *PayloadAttributesContainer) GetAttributes() isPayloadAttributesContainer_Attributes {
@@ -117,14 +117,14 @@ type PayloadAttributesContainer_V3 struct {
 
 func (*PayloadAttributesContainer_V3) isPayloadAttributesContainer_Attributes() {}
 
-var File_types_engine_v1_payload_attributes_container_proto protoreflect.FileDescriptor
+var File_engine_types_v1_payload_attributes_container_proto protoreflect.FileDescriptor
 
-var file_types_engine_v1_payload_attributes_container_proto_rawDesc = []byte{
-	0x0a, 0x32, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2f, 0x76,
+var file_engine_types_v1_payload_attributes_container_proto_rawDesc = []byte{
+	0x0a, 0x32, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x76,
 	0x31, 0x2f, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x5f, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62,
 	0x75, 0x74, 0x65, 0x73, 0x5f, 0x63, 0x6f, 0x6e, 0x74, 0x61, 0x69, 0x6e, 0x65, 0x72, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x65, 0x6e, 0x67, 0x69,
-	0x6e, 0x65, 0x2e, 0x76, 0x31, 0x1a, 0x29, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x2f,
+	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0f, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2e, 0x74, 0x79, 0x70,
+	0x65, 0x73, 0x2e, 0x76, 0x31, 0x1a, 0x29, 0x65, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75, 0x6d, 0x2f,
 	0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2f, 0x76, 0x31, 0x2f, 0x65, 0x78, 0x65, 0x63, 0x75, 0x74,
 	0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x22, 0x65, 0x0a, 0x1a, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x41, 0x74, 0x74, 0x72, 0x69,
@@ -135,30 +135,30 @@ var file_types_engine_v1_payload_attributes_container_proto_rawDesc = []byte{
 	0x73, 0x56, 0x33, 0x48, 0x00, 0x52, 0x02, 0x76, 0x33, 0x42, 0x0c, 0x0a, 0x0a, 0x61, 0x74, 0x74,
 	0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x42, 0x38, 0x5a, 0x36, 0x67, 0x69, 0x74, 0x68, 0x75,
 	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x74, 0x73, 0x64, 0x65, 0x76, 0x62, 0x65, 0x61, 0x72,
-	0x2f, 0x62, 0x6f, 0x6c, 0x61, 0x72, 0x69, 0x73, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x65,
-	0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x76,
+	0x2f, 0x62, 0x6f, 0x6c, 0x61, 0x72, 0x69, 0x73, 0x2f, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x2f,
+	0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x76,
 	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_types_engine_v1_payload_attributes_container_proto_rawDescOnce sync.Once
-	file_types_engine_v1_payload_attributes_container_proto_rawDescData = file_types_engine_v1_payload_attributes_container_proto_rawDesc
+	file_engine_types_v1_payload_attributes_container_proto_rawDescOnce sync.Once
+	file_engine_types_v1_payload_attributes_container_proto_rawDescData = file_engine_types_v1_payload_attributes_container_proto_rawDesc
 )
 
-func file_types_engine_v1_payload_attributes_container_proto_rawDescGZIP() []byte {
-	file_types_engine_v1_payload_attributes_container_proto_rawDescOnce.Do(func() {
-		file_types_engine_v1_payload_attributes_container_proto_rawDescData = protoimpl.X.CompressGZIP(file_types_engine_v1_payload_attributes_container_proto_rawDescData)
+func file_engine_types_v1_payload_attributes_container_proto_rawDescGZIP() []byte {
+	file_engine_types_v1_payload_attributes_container_proto_rawDescOnce.Do(func() {
+		file_engine_types_v1_payload_attributes_container_proto_rawDescData = protoimpl.X.CompressGZIP(file_engine_types_v1_payload_attributes_container_proto_rawDescData)
 	})
-	return file_types_engine_v1_payload_attributes_container_proto_rawDescData
+	return file_engine_types_v1_payload_attributes_container_proto_rawDescData
 }
 
-var file_types_engine_v1_payload_attributes_container_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_types_engine_v1_payload_attributes_container_proto_goTypes = []interface{}{
-	(*PayloadAttributesContainer)(nil), // 0: types.engine.v1.PayloadAttributesContainer
+var file_engine_types_v1_payload_attributes_container_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_engine_types_v1_payload_attributes_container_proto_goTypes = []interface{}{
+	(*PayloadAttributesContainer)(nil), // 0: engine.types.v1.PayloadAttributesContainer
 	(*v1.PayloadAttributesV3)(nil),     // 1: ethereum.engine.v1.PayloadAttributesV3
 }
-var file_types_engine_v1_payload_attributes_container_proto_depIdxs = []int32{
-	1, // 0: types.engine.v1.PayloadAttributesContainer.v3:type_name -> ethereum.engine.v1.PayloadAttributesV3
+var file_engine_types_v1_payload_attributes_container_proto_depIdxs = []int32{
+	1, // 0: engine.types.v1.PayloadAttributesContainer.v3:type_name -> ethereum.engine.v1.PayloadAttributesV3
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -166,13 +166,13 @@ var file_types_engine_v1_payload_attributes_container_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_types_engine_v1_payload_attributes_container_proto_init() }
-func file_types_engine_v1_payload_attributes_container_proto_init() {
-	if File_types_engine_v1_payload_attributes_container_proto != nil {
+func init() { file_engine_types_v1_payload_attributes_container_proto_init() }
+func file_engine_types_v1_payload_attributes_container_proto_init() {
+	if File_engine_types_v1_payload_attributes_container_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_types_engine_v1_payload_attributes_container_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_engine_types_v1_payload_attributes_container_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PayloadAttributesContainer); i {
 			case 0:
 				return &v.state
@@ -185,25 +185,25 @@ func file_types_engine_v1_payload_attributes_container_proto_init() {
 			}
 		}
 	}
-	file_types_engine_v1_payload_attributes_container_proto_msgTypes[0].OneofWrappers = []interface{}{
+	file_engine_types_v1_payload_attributes_container_proto_msgTypes[0].OneofWrappers = []interface{}{
 		(*PayloadAttributesContainer_V3)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_types_engine_v1_payload_attributes_container_proto_rawDesc,
+			RawDescriptor: file_engine_types_v1_payload_attributes_container_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_types_engine_v1_payload_attributes_container_proto_goTypes,
-		DependencyIndexes: file_types_engine_v1_payload_attributes_container_proto_depIdxs,
-		MessageInfos:      file_types_engine_v1_payload_attributes_container_proto_msgTypes,
+		GoTypes:           file_engine_types_v1_payload_attributes_container_proto_goTypes,
+		DependencyIndexes: file_engine_types_v1_payload_attributes_container_proto_depIdxs,
+		MessageInfos:      file_engine_types_v1_payload_attributes_container_proto_msgTypes,
 	}.Build()
-	File_types_engine_v1_payload_attributes_container_proto = out.File
-	file_types_engine_v1_payload_attributes_container_proto_rawDesc = nil
-	file_types_engine_v1_payload_attributes_container_proto_goTypes = nil
-	file_types_engine_v1_payload_attributes_container_proto_depIdxs = nil
+	File_engine_types_v1_payload_attributes_container_proto = out.File
+	file_engine_types_v1_payload_attributes_container_proto_rawDesc = nil
+	file_engine_types_v1_payload_attributes_container_proto_goTypes = nil
+	file_engine_types_v1_payload_attributes_container_proto_depIdxs = nil
 }

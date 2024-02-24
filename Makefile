@@ -409,4 +409,4 @@ repo-rinse: |
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
 	license-install license license-fix \
-	gosec-install gosec golines tidy repo-rinse proto
+	gosec-install gosec golines tidy repo-rinse proto build

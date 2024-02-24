@@ -31,10 +31,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/engine"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	enginetypes "github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Service is responsible for delivering beacon chain notifications to

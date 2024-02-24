@@ -36,10 +36,10 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,7 +93,7 @@ func TestLogFactory(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, deposit, newDeposit)
 
-	withdrawal := engine.NewWithdrawal([]byte("pubkey"), 10000)
+	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
 	log, err = newLogFromWithdrawal(
 		stakingAbi.Events[withdrawalName],
 		withdrawal,

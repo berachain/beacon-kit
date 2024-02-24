@@ -29,9 +29,9 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 type ExecutionService interface {
@@ -44,5 +44,5 @@ type ExecutionService interface {
 	// GetPayload gets a payload for a given payload ID and slot.
 	GetPayload(
 		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

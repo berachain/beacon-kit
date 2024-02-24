@@ -37,8 +37,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/io/jwt"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and
