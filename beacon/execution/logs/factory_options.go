@@ -25,23 +25,6 @@
 
 package logs
 
-import (
-	ethcommon "github.com/ethereum/go-ethereum/common"
-)
-
-// WithTypeAllocator returns an Option for
-// registering the TypeAllocator under the given
-// address with the Factory.
-func WithTypeAllocator(
-	contractAddress ethcommon.Address,
-	allocator *TypeAllocator,
-) Option[Factory] {
-	return func(f *Factory) error {
-		f.addressToAllocator[contractAddress] = allocator
-		return nil
-	}
-}
-
 // WithRequestsFrom returns an Option for
 // services sending log requests to the Factory.
 func WithRequestsFrom(

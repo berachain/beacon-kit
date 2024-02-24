@@ -33,8 +33,8 @@ import (
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -48,26 +48,14 @@ func TestLogFactory(t *testing.T) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
 
-	depositSig := ethcrypto.Keccak256Hash(
-		[]byte("Deposit(bytes,bytes,uint64)"),
-	)
 	depositName := "Deposit"
 	depositType := reflect.TypeOf(consensusv1.Deposit{})
 
-	withdrawalSig := ethcrypto.Keccak256Hash(
-		[]byte("Withdrawal(bytes,bytes,uint64)"),
-	)
 	withdrawalName := "Withdrawal"
-	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
 
-	allocator := logs.New[logs.TypeAllocator](
-		logs.WithABI(stakingAbi),
-		logs.WithNameAndType(depositSig, depositName, depositType),
-		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
-	)
-
+	mockService := &mocks.Service{}
 	factory, err := logs.NewFactory(
-		logs.WithTypeAllocator(contractAddress, allocator),
+		logs.WithRequestsFrom(mockService),
 	)
 	require.NoError(t, err)
 
