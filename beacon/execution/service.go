@@ -150,7 +150,7 @@ func (s *Service) GetLogsInFinalizedETH1Block(
 
 		// Skip logs that are not registered with the factory.
 		// They may be from unregistered contracts (defensive check)
-		// or emitted from unregisted events in the registered contracts.
+		// or emitted from unregistered events in the registered contracts.
 		if !s.logFactory.IsRegisteredLog(&logsInBlock[i]) {
 			continue
 		}
