@@ -28,10 +28,18 @@ package sync
 import "errors"
 
 var (
+	// ErrConsensusClientIsSyncing indicates that the consensus client
+	// is still in the process of syncing.
 	ErrConsensusClientIsSyncing = errors.New(
 		"consensus client is still syncing",
 	)
+	// ErrExecutionClientIsSyncing indicates that the execution client
+	// is still in the process of syncing.
 	ErrExecutionClientIsSyncing = errors.New(
 		"execution client is still syncing",
+	)
+	// ErrNotRunning indicates that the service is not currently running.
+	ErrNotRunning = errors.New(
+		"service is not running",
 	)
 )

@@ -33,11 +33,11 @@ import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/config/version"
 	eth "github.com/itsdevbear/bolaris/engine/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
 // Caller is implemented by engineClient.
