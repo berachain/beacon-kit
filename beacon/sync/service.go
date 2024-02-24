@@ -62,7 +62,10 @@ func (s *Service) Start(ctx context.Context) {
 	s.notifySyncSignal = make(chan struct{})
 
 	go func() {
-		_ = s.syncLoop(ctx)
+		err := s.syncLoop(ctx)
+		if err != nil {
+			panic("sync state is bad")
+		}
 		<-ctx.Done()
 		close(s.notifySyncSignal)
 	}()
