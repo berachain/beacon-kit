@@ -36,6 +36,7 @@ import (
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
@@ -146,7 +147,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// logFactory is used by the execution service to unmarshal
 	// logs retrieved from the engine client.
-	// logFactory := logs.NewFactory()
+	logFactory, err := logs.NewFactory()
 
 	// TODO: Staking service registers its events
 	// of interest with the log factory here.
@@ -155,7 +156,7 @@ func NewDefaultBeaconKitRuntime(
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.WithName("execution")),
 		execution.WithEngineCaller(engineClient),
-		// execution.WithLogFactory(logFactory),
+		execution.WithLogFactory(logFactory),
 	)
 
 	// Build the local builder service.
