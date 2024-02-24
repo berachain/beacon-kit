@@ -47,6 +47,7 @@ type Service struct {
 	synced           atomic.Bool
 }
 
+// Status checks if the service is currently synced.
 func (s *Service) Status() error {
 	if !s.synced.Load() {
 		return errors.New("fallen out of sync")
@@ -54,25 +55,28 @@ func (s *Service) Status() error {
 	return nil
 }
 
+// SetClientContext sets the client context for the service.
 func (s *Service) SetClientContext(clientCtx client.Context) {
 	s.clientCtx = &clientCtx
 }
 
+// Start initiates the synchronization service.
 func (s *Service) Start(ctx context.Context) {
 	s.notifySyncSignal = make(chan struct{})
 
+	// Start the synchronization loop in a new goroutine.
 	go func() {
-		err := s.syncLoop(ctx)
-		if err != nil {
-			panic("sync state is bad")
-		}
+		// Call syncLoop to continuously check and update the sync status.
+		s.syncLoop(ctx)
+		// Once the context is done, close
+		// the notifySyncSignal channel to signal completion.
 		<-ctx.Done()
 		close(s.notifySyncSignal)
 	}()
 }
 
 // syncLoop continuously runs and reports if our client is out of sync.
-func (s *Service) syncLoop(ctx context.Context) error {
+func (s *Service) syncLoop(ctx context.Context) {
 	var err error
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
@@ -81,7 +85,7 @@ func (s *Service) syncLoop(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			s.synced.Store(false)
-			return ctx.Err()
+			return
 		case <-ticker.C:
 			err = s.RequestSyncProgress(ctx)
 		}
@@ -94,6 +98,7 @@ func (s *Service) syncLoop(ctx context.Context) error {
 	}
 }
 
+// Request the sync progress from the consensus and execution clients.
 func (s *Service) RequestSyncProgress(ctx context.Context) error {
 	g, ctx := errgroup.WithContext(ctx)
 
