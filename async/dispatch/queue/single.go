@@ -25,7 +25,8 @@
 
 package queue
 
-// SingleDispatchQueue is a dispatch queue that dispatches a single item at a time.
+// SingleDispatchQueue is a dispatch queue that dispatches a single item at a
+// time.
 // It respects the order of items added to the queue and will always
 // process the freshest item that was MOST recently added to the queue.
 type SingleDispatchQueue struct {

@@ -37,10 +37,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// syncCheckInterval is the interval at which the sync status is checked
-// during WaitForExecutionClientSync.
-const syncCheckInterval = 3 * time.Second
-
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
 type Service struct {
@@ -66,23 +62,13 @@ func (s *Service) Start(ctx context.Context) {
 	s.notifySyncSignal = make(chan struct{})
 
 	go func() {
-		s.syncLoop(ctx)
+		_ = s.syncLoop(ctx)
 		<-ctx.Done()
 		close(s.notifySyncSignal)
 	}()
 }
 
-func (s *Service) WaitForSync(ctx context.Context) <-chan struct{} {
-	ch := make(chan struct{})
-	go func() {
-		for !s.synced.Load() {
-		}
-		ch <- struct{}{}
-	}()
-	return ch
-}
-
-// WaitForSync  checks whether the beacon node has sync to the latest head.
+// syncLoop continuously runs and reports if our client is out of sync.
 func (s *Service) syncLoop(ctx context.Context) error {
 	var err error
 	ticker := time.NewTicker(1 * time.Second)
