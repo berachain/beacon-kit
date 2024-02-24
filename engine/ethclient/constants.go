@@ -29,11 +29,8 @@ package ethclient
 // of the beacon kit client.
 func BeaconKitSupportedCapabilities() []string {
 	return []string{
-		NewPayloadMethodV2,
 		NewPayloadMethodV3,
-		ForkchoiceUpdatedMethodV2,
 		ForkchoiceUpdatedMethodV3,
-		GetPayloadMethodV2,
 		GetPayloadMethodV3,
 		GetClientVersionV1,
 	}
@@ -41,16 +38,10 @@ func BeaconKitSupportedCapabilities() []string {
 
 // Constants for JSON-RPC method names.
 const (
-	// NewPayloadMethodV2 for creating a new payload in Capella.
-	NewPayloadMethodV2 = "engine_newPayloadV2"
 	// NewPayloadMethodV3 for creating a new payload in Deneb.
 	NewPayloadMethodV3 = "engine_newPayloadV3"
-	// ForkchoiceUpdatedMethodV2 for updating fork choice in Capella.
-	ForkchoiceUpdatedMethodV2 = "engine_forkchoiceUpdatedV2"
 	// ForkchoiceUpdatedMethodV3 for updating fork choice in Deneb.
 	ForkchoiceUpdatedMethodV3 = "engine_forkchoiceUpdatedV3"
-	// GetPayloadMethodV2 for retrieving a payload in Capella.
-	GetPayloadMethodV2 = "engine_getPayloadV2"
 	// GetPayloadMethodV3 for retrieving a payload in Deneb.
 	GetPayloadMethodV3 = "engine_getPayloadV3"
 	// BlockByHashMethod for retrieving a block by its hash.

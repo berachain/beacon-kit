@@ -32,41 +32,20 @@ import "types/consensus/v1/deposit.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
 
-// BeaconKitBlockCapella represents a beacon kit block during capella network upgrade.
-message BeaconKitBlockCapella {
-  // Beacon chain slot that this block represents.
-  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
-
-  // BeaconBlockBody contains the body of the beacon block.
-  BeaconKitBlockBodyCapella body = 2;
-
-  // The payload value of the block.
-  bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
-}
-
-// BeaconKitBlockBodyCapella represents the body of a beacon block in Capella.
-message BeaconKitBlockBodyCapella {
-  // The validators RANDAO reveal 96 byte value.
-  bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
-
-  // 32 byte field of arbitrary data. This field may contain any data and
-  // is not used for anything other than a fun message.
-  bytes graffiti = 2 [(ethereum.eth.ext.ssz_size) = "32"];
-
-  // Deposits from the execution chain, at most MAX_DEPOSITS_PER_BLOCK.
-  repeated Deposit deposits = 3 [(ethereum.eth.ext.ssz_max) = "16"];
-
-  // Execution payload from the execution chain. New in Bellatrix network upgrade.
-  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
-}
-
 // BeaconKitBlockDeneb represents a beacon kit block during deneb network upgrade.
 message BeaconKitBlockDeneb {
   // Beacon chain slot that this block represents.
   uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
 
+  // 32 byte root of the parent block.
+  bytes parent_root = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // TODO: how do we even get this in ABCI?
+  // 32 byte root of the resulting state after processing this block.
+  bytes state_root = 3 [(ethereum.eth.ext.ssz_size) = "32"];
+
   // BeaconBlockBody contains the body of the beacon block.
-  BeaconKitBlockBodyDeneb body = 2;
+  BeaconKitBlockBodyDeneb body = 4;
 
   // The payload value of the block.
   bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
@@ -85,7 +64,7 @@ message BeaconKitBlockBodyDeneb {
   repeated Deposit deposits = 3 [(ethereum.eth.ext.ssz_max) = "16"];
 
   // Execution payload from the execution chain. New in Bellatrix network upgrade.
-  ethereum.engine.v1.ExecutionPayloadCapella execution_payload = 4;
+  ethereum.engine.v1.ExecutionPayloadDeneb execution_payload = 4;
 
   // At most MAX_BLOBS_PER_BLOCK. New in Deneb network upgrade.
   repeated bytes blob_kzg_commitments = 5 [

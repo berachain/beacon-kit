@@ -55,6 +55,7 @@ type ReadOnlyBeaconKitBlock interface {
 	GetSlot() primitives.Slot
 	// ProposerAddress() []byte
 	IsNil() bool
+	GetParentRoot() []byte
 	// Execution returns the execution data of the block.
 	ExecutionPayload() (engine.ExecutionPayload, error)
 	Version() int

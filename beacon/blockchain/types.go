@@ -57,8 +57,10 @@ type ExecutionService interface {
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(
 		ctx context.Context,
-		preStateHeader engine.ExecutionPayload,
 		slot primitives.Slot,
+		payload engine.ExecutionPayload,
+		versionedHashes []common.Hash,
+		parentBlockRoot common.Hash,
 	) (bool, error)
 }
 

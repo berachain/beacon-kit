@@ -34,8 +34,6 @@ option go_package = "github.com/itsdevbear/bolaris/types/engine/v1;enginev1";
 message PayloadAttributesContainer {
   // attributes represents the attributes of the payload.
   oneof attributes {
-    // v2 are the payload attributes for capella.
-    ethereum.engine.v1.PayloadAttributesV2 v2 = 1;
     // v3 are the payload attributes for deneb.
     ethereum.engine.v1.PayloadAttributesV3 v3 = 2;
   }

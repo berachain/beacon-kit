@@ -26,18 +26,13 @@
 syntax = "proto3";
 package types.consensus.v1;
 
-import "types/consensus/v1/block.proto";
-import "types/consensus/v1/block_blinded.proto";
+// import "types/consensus/v1/block.proto";
+// import "types/consensus/v1/block_blinded.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
 
 // BeaconKitBlockContainer is a container for beacon block.
 message BeaconKitBlockContainer {
-  // block is the beacon block.
-  oneof block {
-    // capella is the block.
-    types.consensus.v1.BeaconKitBlockCapella capella = 1;
-    // capella_blinded is the blinded block.
-    types.consensus.v1.BlindedBeaconKitBlockCapella capella_blinded = 2;
-  }
+  // // block is the beacon block.
+  // oneof block {}
 }

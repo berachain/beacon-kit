@@ -34,14 +34,10 @@ option go_package = "github.com/itsdevbear/bolaris/types/engine/v1;enginev1";
 message ExecutionPayloadContainer {
   // payload represents the payload of the execution.
   oneof payload {
-    // capella represents an execution payload for capella.
-    ethereum.engine.v1.ExecutionPayloadCapella capella = 1;
-    // capella_header is the blinded block.
-    ethereum.engine.v1.ExecutionPayloadHeaderCapella capella_header = 2;
     // deneb represents an execution payload for deneb
-    ethereum.engine.v1.ExecutionPayloadDeneb deneb = 3;
+    ethereum.engine.v1.ExecutionPayloadDeneb deneb = 1;
     // deneb_header is the blinded block.
-    ethereum.engine.v1.ExecutionPayloadHeaderDeneb deneb_header = 4;
+    ethereum.engine.v1.ExecutionPayloadHeaderDeneb deneb_header = 2;
   }
   // value is a byte array representing the value associated with the container.
   bytes payload_value = 1001;

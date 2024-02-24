@@ -30,6 +30,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"golang.org/x/sync/errgroup"
 )
@@ -74,6 +75,7 @@ func (s *Service) ReceiveBeaconBlock(
 				Error("failed to notify engine of new payload", "error", err)
 			return err
 		}
+
 		return nil
 	})
 
@@ -117,7 +119,9 @@ func (s *Service) validateStateTransition(
 
 // validateExecutionOnBlock checks the validity of a proposed beacon block.
 func (s *Service) validateExecutionOnBlock(
-	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
+	// todo: parentRoot hashs should be on blk.
+	ctx context.Context,
+	blk consensus.ReadOnlyBeaconKitBlock,
 ) (bool, error) {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
@@ -125,6 +129,11 @@ func (s *Service) validateExecutionOnBlock(
 	}
 
 	// TODO: add some more safety checks here.
-
-	return s.es.NotifyNewPayload(ctx, payload, blk.GetSlot())
+	return s.es.NotifyNewPayload(
+		ctx,
+		blk.GetSlot(),
+		payload,
+		[]common.Hash{},
+		common.Hash(blk.GetParentRoot()),
+	)
 }

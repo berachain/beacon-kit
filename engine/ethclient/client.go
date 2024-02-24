@@ -112,19 +112,6 @@ func (s *Eth1Client) NewPayloadV3(
 	return result, nil
 }
 
-// NewPayloadV2 calls the engine_newPayloadV2 method via JSON-RPC.
-func (s *Eth1Client) NewPayloadV2(
-	ctx context.Context, payload *enginev1.ExecutionPayloadCapella,
-) (*enginev1.PayloadStatus, error) {
-	result := &enginev1.PayloadStatus{}
-	if err := s.GethRPCClient.CallContext(
-		ctx, result, NewPayloadMethodV2, payload,
-	); err != nil {
-		return nil, s.handleRPCError(err)
-	}
-	return result, nil
-}
-
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
@@ -132,15 +119,6 @@ func (s *Eth1Client) ForkchoiceUpdatedV3(
 	attrs *enginev1.PayloadAttributesV3,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
-}
-
-// ForkchoiceUpdatedV2 calls the engine_forkchoiceUpdatedV2 method via JSON-RPC.
-func (s *Eth1Client) ForkchoiceUpdatedV2(
-	ctx context.Context,
-	state *enginev1.ForkchoiceState,
-	attrs *enginev1.PayloadAttributesV2,
-) (*ForkchoiceUpdatedResponse, error) {
-	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV2, state, attrs)
 }
 
 // forkchoiceUpdateCall is a helper function to call to any version
@@ -188,26 +166,6 @@ func (s *Eth1Client) GetPayloadV3(
 		PayloadValue:          result.GetValue(),
 		BlobsBundle:           result.GetBlobsBundle(),
 		ShouldOverrideBuilder: result.GetShouldOverrideBuilder(),
-	}, nil
-}
-
-// GetPayloadV2 calls the engine_getPayloadV2 method via JSON-RPC.
-func (s *Eth1Client) GetPayloadV2(
-	ctx context.Context, payloadID enginev1.PayloadIDBytes,
-) (*enginev1.ExecutionPayloadContainer, error) {
-	result := &enginev1.ExecutionPayloadCapellaWithValue{}
-	if err := s.GethRPCClient.CallContext(
-		ctx, result, GetPayloadMethodV2, payloadID,
-	); err != nil {
-		return nil, s.handleRPCError(err)
-	}
-	return &enginev1.ExecutionPayloadContainer{
-		Payload: &enginev1.ExecutionPayloadContainer_Capella{
-			Capella: result.GetPayload(),
-		},
-		PayloadValue:          result.GetValue(),
-		BlobsBundle:           &enginev1.BlobsBundle{},
-		ShouldOverrideBuilder: false,
 	}, nil
 }
 
