@@ -45,7 +45,7 @@ type BaseService struct {
 	logger log.Logger
 
 	// statusErrMu protects statusErr.
-	statusErrMu sync.RWMutex
+	statusErrMu *sync.RWMutex
 	// statusErr is the error returned
 	// by the last status check.
 	statusErr error

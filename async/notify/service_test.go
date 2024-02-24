@@ -68,7 +68,7 @@ func TestDispatch(t *testing.T) {
 	)
 
 	service := service.New(
-		notify.WithBaseService(baseService.WithName("notify")),
+		notify.WithBaseService(baseService.ShallowCopy("notify")),
 		notify.WithGCD(gcd),
 	)
 

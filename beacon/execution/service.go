@@ -30,7 +30,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/engine"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -43,7 +43,7 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution
 	// client.
-	engine engine.Caller
+	engine engineclient.Caller
 	// lp is the processor for logs.
 	lp LogProcessor
 }

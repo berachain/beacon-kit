@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"golang.org/x/sync/errgroup"
 )

@@ -34,7 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/config/version"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -53,10 +53,10 @@ type engineClient struct {
 	logger        log.Logger
 }
 
-// NewClient creates a new engine client engineClient.
+// New creates a new engine client engineClient.
 // It takes an Eth1Client as an argument and returns a pointer to an
 // engineClient.
-func NewClient(opts ...Option) Caller {
+func New(opts ...Option) Caller {
 	ec := &engineClient{
 		capabilities: make(map[string]struct{}),
 	}

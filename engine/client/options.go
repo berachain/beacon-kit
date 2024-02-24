@@ -30,7 +30,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 )
 
 // Option is a function type that takes a pointer to an engineClient and returns
