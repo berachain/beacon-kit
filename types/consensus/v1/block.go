@@ -28,9 +28,9 @@ package consensusv1
 import (
 	"errors"
 
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // IsNil checks if the BeaconKitBlock is nil or not.
@@ -45,7 +45,7 @@ func (b *BeaconKitBlockDeneb) Version() int {
 
 // AttachExecution attaches the given execution data to the block.
 func (b *BeaconKitBlockDeneb) AttachExecution(
-	executionData engine.ExecutionPayload,
+	executionData enginetypes.ExecutionPayload,
 ) error {
 	var ok bool
 	b.Body.ExecutionPayload, ok = executionData.
@@ -64,7 +64,7 @@ func (b *BeaconKitBlockDeneb) AttachExecution(
 
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlockDeneb) ExecutionPayload() (
-	engine.ExecutionPayload, error,
+	enginetypes.ExecutionPayload, error,
 ) {
 	return &enginev1.ExecutionPayloadContainer{
 		Payload: &enginev1.ExecutionPayloadContainer_Deneb{

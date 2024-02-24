@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package enginetypes
 
 import (
 	"errors"
 
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // NewPayloadAttributesContainer creates a new PayloadAttributesContainer.

@@ -26,17 +26,17 @@
 package consensus
 
 import (
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/version"
-	"github.com/itsdevbear/bolaris/types/engine"
 )
 
 // BeaconKitBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconKitBlock(
 	slot primitives.Slot,
-	executionData engine.ExecutionPayload,
+	executionData enginetypes.ExecutionPayload,
 	parentRoot []byte,
 	forkVersion int,
 ) (BeaconKitBlock, error) {

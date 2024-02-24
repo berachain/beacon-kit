@@ -30,10 +30,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/engine"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
 // Caller defines a client that can interact with an Ethereum
@@ -51,19 +51,19 @@ type Caller interface {
 	// Engine API Related Methods
 	//
 	// NewPayload creates a new payload for the Ethereum execution node.
-	NewPayload(ctx context.Context, payload engine.ExecutionPayload,
+	NewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
 		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
 
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
 		ctx context.Context, state *enginev1.ForkchoiceState,
-		attrs engine.PayloadAttributer,
+		attrs enginetypes.PayloadAttributer,
 	) (*enginev1.PayloadIDBytes, []byte, error)
 
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(
 		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
-	) (engine.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 
 	// ExecutionBlockByHash retrieves the execution block by its hash.
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,

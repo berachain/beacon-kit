@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/engine/ethclient"
 	"github.com/itsdevbear/bolaris/engine/ethclient/mocks"
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

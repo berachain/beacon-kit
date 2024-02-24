@@ -28,7 +28,7 @@ package ethclient
 import (
 	"context"
 
-	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
 // GethRPCClient is an interface for the Geth RPC client.
