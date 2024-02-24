@@ -42,9 +42,9 @@ func WithTypeAllocator(
 	}
 }
 
-// WithRequestsFromService returns an Option for
+// WithRequestsFrom returns an Option for
 // services sending log requests to the Factory.
-func WithRequestsFromService(
+func WithRequestsFrom(
 	s Service,
 ) Option[Factory] {
 	return func(f *Factory) error {

@@ -152,7 +152,7 @@ func NewDefaultBeaconKitRuntime(
 	// Services that want to request logs from the
 	// execution service can send requests to the log factory.
 	logFactory, err := logs.NewFactory(
-		logs.WithRequestsFromService(stakingService),
+		logs.WithRequestsFrom(stakingService),
 	)
 	if err != nil {
 		return nil, err
