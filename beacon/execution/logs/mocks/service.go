@@ -36,8 +36,13 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
+// Service is a mock service for testing.
+// It implements the logs.Service interface,
+// so that it can send requests to the log factory.
 type Service struct{}
 
+// GetLogRequests returns a list of log requests
+// to be sent to the log factory.
 func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
 	depositContractAddr := ethcommon.HexToAddress("0x1234")
 	depositContractAbi, err := abi.StakingMetaData.GetAbi()
