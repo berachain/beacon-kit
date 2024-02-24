@@ -30,8 +30,14 @@ import (
 	"time"
 )
 
+// reportingInterval is the interval at which the health service
+// logs the health status of services.
+const reportingInterval = 5 * time.Second
+
+// reportingLoop initiates a loop that periodically checks and
+// reports the health status of services.
 func (s *Service) reportingLoop(ctx context.Context) {
-	ticker := time.NewTicker(healthCheckInterval)
+	ticker := time.NewTicker(reportingInterval)
 	for {
 		select {
 		case <-ticker.C:
