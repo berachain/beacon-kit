@@ -40,9 +40,8 @@ import (
 // of both the beacon and execution chains.
 type Service struct {
 	service.BaseService
-	ethClient        *eth.Eth1Client
-	clientCtx        *client.Context
-	notifySyncSignal chan struct{}
+	ethClient *eth.Eth1Client
+	clientCtx *client.Context
 
 	// statusErrMu protects statusErr.
 	statusErrMu sync.Mutex
@@ -65,8 +64,6 @@ func (s *Service) SetClientContext(clientCtx client.Context) {
 
 // Start initiates the synchronization service.
 func (s *Service) Start(ctx context.Context) {
-	s.notifySyncSignal = make(chan struct{})
-
 	// Start the synchronization loop in a new goroutine.
 	go func() {
 		// Call syncLoop to continuously check and update the sync status.
@@ -74,7 +71,6 @@ func (s *Service) Start(ctx context.Context) {
 		// Once the context is done, close
 		// the notifySyncSignal channel to signal completion.
 		<-ctx.Done()
-		close(s.notifySyncSignal)
 	}()
 }
 
