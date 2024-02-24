@@ -34,23 +34,22 @@ import (
 )
 
 // IsNil checks if the BeaconKitBlock is nil or not.
-func (b *BeaconKitBlockCapella) IsNil() bool {
+func (b *BeaconKitBlockDeneb) IsNil() bool {
 	return b == nil
 }
 
 // Version returns the version of the block.
-func (b *BeaconKitBlockCapella) Version() int {
-	return version.Capella
+func (b *BeaconKitBlockDeneb) Version() int {
+	return version.Deneb
 }
 
 // AttachExecution attaches the given execution data to the block.
-func (b *BeaconKitBlockCapella) AttachExecution(
+func (b *BeaconKitBlockDeneb) AttachExecution(
 	executionData engine.ExecutionPayload,
 ) error {
 	var ok bool
 	b.Body.ExecutionPayload, ok = executionData.
-		ToProto().(*enginev1.ExecutionPayloadCapella)
-	// b.Body.ExecutionPayload, err = executionData.PbCapella()
+		ToProto().(*enginev1.ExecutionPayloadDeneb)
 	if !ok {
 		return errors.New(
 			"failed to convert execution data to capella payload")
@@ -64,13 +63,15 @@ func (b *BeaconKitBlockCapella) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlockCapella) ExecutionPayload() (
+func (b *BeaconKitBlockDeneb) ExecutionPayload() (
 	engine.ExecutionPayload, error,
 ) {
 	return &enginev1.ExecutionPayloadContainer{
-		Payload: &enginev1.ExecutionPayloadContainer_Capella{
-			Capella: b.GetBody().GetExecutionPayload(),
+		Payload: &enginev1.ExecutionPayloadContainer_Deneb{
+			Deneb: b.GetBody().GetExecutionPayload(),
 		},
-		PayloadValue: b.GetPayloadValue(),
+		PayloadValue:          b.GetPayloadValue(),
+		BlobsBundle:           &enginev1.BlobsBundle{},
+		ShouldOverrideBuilder: false,
 	}, nil
 }

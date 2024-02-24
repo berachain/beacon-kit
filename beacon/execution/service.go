@@ -31,6 +31,7 @@ import (
 	"reflect"
 
 	"cosmossdk.io/errors"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/engine"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -39,8 +40,8 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/types/engine/v1"
 )
 
-//nolint:gochecknoglobals // TODO
-var rpcFinalizedBlockNumber = big.NewInt(int64(rpc.FinalizedBlockNumber))
+//nolint:gochecknoglobals // no sense reallocating over and over.
+var rpcFinalizedBlockQuery = big.NewInt(int64(rpc.FinalizedBlockNumber))
 
 // Service is responsible for delivering beacon chain notifications to
 // the execution client and processing logs received from the execution client.
@@ -97,10 +98,18 @@ func (s *Service) GetPayload(
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(
 	ctx context.Context,
-	payload enginetypes.ExecutionPayload,
 	slot primitives.Slot,
+	payload enginetypes.ExecutionPayload,
+	versionedHashes []common.Hash,
+	parentBlockRoot common.Hash,
 ) (bool, error) {
-	return s.notifyNewPayload(ctx, payload, slot)
+	return s.notifyNewPayload(
+		ctx,
+		slot,
+		payload,
+		versionedHashes,
+		parentBlockRoot,
+	)
 }
 
 // GetLogsInFinalizedETH1Block gets logs in the finalized block
@@ -117,7 +126,7 @@ func (s *Service) GetLogsInFinalizedETH1Block(
 	// when we check the execution client,
 	// vs when we check the forkchoice store.
 	finalBlock, err := s.engine.BlockByNumber(
-		ctx, rpcFinalizedBlockNumber,
+		ctx, rpcFinalizedBlockQuery,
 	)
 	if err != nil {
 		return nil, err

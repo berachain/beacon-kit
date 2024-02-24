@@ -41,10 +41,6 @@ func (p *ExecutionPayloadContainer) Version() int {
 		return version.Deneb
 	case *ExecutionPayloadContainer_DenebHeader:
 		return version.Deneb
-	case *ExecutionPayloadContainer_Capella:
-		return version.Capella
-	case *ExecutionPayloadContainer_CapellaHeader:
-		return version.Capella
 	default:
 		return 0
 	}
@@ -58,10 +54,6 @@ func (p *ExecutionPayloadContainer) IsBlinded() bool {
 	case *ExecutionPayloadContainer_Deneb:
 		return false
 	case *ExecutionPayloadContainer_DenebHeader:
-		return true
-	case *ExecutionPayloadContainer_Capella:
-		return false
-	case *ExecutionPayloadContainer_CapellaHeader:
 		return true
 	}
 	return false
@@ -182,10 +174,6 @@ func (p *ExecutionPayloadContainer) SizeSSZ() int {
 // The caller will need to type assert the returned value to use it.
 func (p *ExecutionPayloadContainer) getPayload() proto.Message {
 	switch {
-	case p.GetCapella() != nil:
-		return p.GetCapella()
-	case p.GetCapellaHeader() != nil:
-		return p.GetCapellaHeader()
 	case p.GetDeneb() != nil:
 		return p.GetDeneb()
 	case p.GetDenebHeader() != nil:

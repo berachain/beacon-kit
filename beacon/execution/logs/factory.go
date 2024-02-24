@@ -66,7 +66,9 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 	// that have been registered with the factory.
 	allocator, ok := f.addressToAllocator[log.Address]
 	if !ok {
-		return reflect.Value{}, errors.New("allocator not found for contract address")
+		return reflect.Value{}, errors.New(
+			"allocator not found for contract address",
+		)
 	}
 
 	contractAbi := allocator.GetABI()
