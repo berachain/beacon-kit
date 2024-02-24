@@ -28,9 +28,6 @@ name: pipeline
 on:
   pull_request:
   merge_group:
-  push:
-    branches:
-      - main
 
 concurrency:
   group: ci-${{ github.ref }}-tests
