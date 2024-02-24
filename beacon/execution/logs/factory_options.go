@@ -41,3 +41,20 @@ func WithTypeAllocator(
 		return nil
 	}
 }
+
+// WithRequestsFromService returns an Option for
+// services sending log requests to the Factory.
+func WithRequestsFromService(
+	s Service,
+) Option[Factory] {
+	return func(f *Factory) error {
+		requests, err := s.GetLogRequests()
+		if err != nil {
+			return err
+		}
+		for _, req := range requests {
+			f.addressToAllocator[req.ContractAddress] = req.Allocator
+		}
+		return nil
+	}
+}

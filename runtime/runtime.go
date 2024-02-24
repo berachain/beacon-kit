@@ -77,6 +77,8 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
+//
+//nolint:funlen // This function is long because it sets up multiple services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -147,10 +149,14 @@ func NewDefaultBeaconKitRuntime(
 
 	// logFactory is used by the execution service to unmarshal
 	// logs retrieved from the engine client.
-	logFactory, err := logs.NewFactory()
-
-	// TODO: Staking service registers its events
-	// of interest with the log factory here.
+	// Services that want to request logs from the
+	// execution service can send requests to the log factory.
+	logFactory, err := logs.NewFactory(
+		logs.WithRequestsFromService(stakingService),
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the execution service.
 	executionService := service.New[execution.Service](
