@@ -42,7 +42,7 @@ type BuilderService interface {
 		parentEth1Hash common.Hash,
 		slot primitives.Slot,
 		timestamp uint64,
-		parentRoot []byte,
+		parentBlockRoot [32]byte,
 	) (*enginev1.PayloadIDBytes, error)
 }
 
@@ -60,7 +60,7 @@ type ExecutionService interface {
 		slot primitives.Slot,
 		payload enginetypes.ExecutionPayload,
 		versionedHashes []common.Hash,
-		parentBlockRoot common.Hash,
+		parentBlockRoot [32]byte,
 	) (bool, error)
 }
 

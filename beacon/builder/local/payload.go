@@ -46,11 +46,11 @@ func (s *Service) BuildLocalPayload(
 	parentEth1Hash common.Hash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentBeaconBlockRoot []byte,
+	parentBlockRoot [32]byte,
 ) (*enginev1.PayloadIDBytes, error) {
 	// Assemble the payload attributes.
 	attrs, err := s.getPayloadAttribute(
-		ctx, slot, timestamp, parentBeaconBlockRoot,
+		ctx, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w error when getting payload attributes", err)
@@ -58,7 +58,7 @@ func (s *Service) BuildLocalPayload(
 
 	fcuConfig := &execution.FCUConfig{
 		HeadEth1Hash:  parentEth1Hash,
-		ProposingSlot: slot + 1,
+		ProposingSlot: slot,
 		Attributes:    attrs,
 	}
 
@@ -91,7 +91,7 @@ func (s *Service) BuildLocalPayload(
 
 	s.payloadCache.Set(
 		fcuConfig.ProposingSlot,
-		[32]byte(parentBeaconBlockRoot),
+		parentBlockRoot,
 		primitives.PayloadID(payloadID[:]),
 	)
 
@@ -106,7 +106,7 @@ func (s *Service) BuildLocalPayload(
 func (s *Service) GetLocalPayload(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBeaconBlockRoot []byte,
+	parentBlockRoot [32]byte,
 	parentEth1Hash common.Hash,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// vIdx := blk.ProposerIndex()
@@ -131,7 +131,7 @@ func (s *Service) GetLocalPayload(
 	payload, blobsBundle, overrideBuilder, err := s.getPayloadFromCachedPayloadIDs(
 		ctx,
 		slot,
-		parentBeaconBlockRoot,
+		parentBlockRoot,
 	)
 	if err == nil {
 		return payload, blobsBundle, overrideBuilder, nil
@@ -152,7 +152,7 @@ func (s *Service) GetLocalPayload(
 		parentEth1Hash,
 		slot,
 		uint64(time.Now().Unix()),
-		parentBeaconBlockRoot,
+		parentBlockRoot,
 	)
 }
 
@@ -161,14 +161,11 @@ func (s *Service) GetLocalPayload(
 func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentRoot []byte,
+	parentBlockRoot [32]byte,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
-	payloadID, found := s.payloadCache.Get(
-		slot,
-		[32]byte(parentRoot),
-	)
+	payloadID, found := s.payloadCache.Get(slot, parentBlockRoot)
 	if found && (payloadID != primitives.PayloadID{}) {
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
@@ -197,12 +194,12 @@ func (s *Service) buildAndWaitForLocalPayload(
 	parentEth1Hash common.Hash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentRoot []byte,
+	parentBlockRoot [32]byte,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
-		ctx, parentEth1Hash, slot, timestamp, parentRoot,
+		ctx, parentEth1Hash, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
 		return nil, nil, false, err
@@ -249,7 +246,7 @@ func (s *Service) getPayloadAttribute(
 	ctx context.Context,
 	slot primitives.Slot,
 	timestamp uint64,
-	prevHeadRoot []byte,
+	prevHeadRoot [32]byte,
 ) (enginetypes.PayloadAttributer, error) {
 	var (
 		st = s.BeaconState(ctx)

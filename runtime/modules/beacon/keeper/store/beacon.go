@@ -53,6 +53,11 @@ type BeaconStore struct {
 	// eth1GenesisHash is the Eth1 genesis hash.
 	eth1GenesisHash sdkcollections.Item[[32]byte]
 
+	// parentBlockRoot provides access to the previous
+	// head block root for block construction as needed
+	// by eip-4788.
+	parentBlockRoot sdkcollections.Item[[]byte]
+
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
 	lastValidHash *common.Hash
@@ -85,11 +90,18 @@ func NewBeaconStore(
 		eth1GenesisHashPrefix,
 		encoding.Bytes32ValueCodec{},
 	)
+	parentBlockRoot := sdkcollections.NewItem[[]byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(parentBlockRootPrefix),
+		parentBlockRootPrefix,
+		sdkcollections.BytesValue,
+	)
 	return &BeaconStore{
 		depositQueue:             depositQueue,
 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
 		eth1GenesisHash:          eth1GenesisHash,
+		parentBlockRoot:          parentBlockRoot,
 	}
 }
 

@@ -40,6 +40,7 @@ import (
 func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconKitBlock,
+	blockRoot [32]byte,
 ) error {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
@@ -55,6 +56,7 @@ func (s *Service) FinalizeBeaconBlock(
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)
+	state.SetParentBlockRoot(blockRoot)
 
 	return nil
 }
@@ -63,15 +65,15 @@ func (s *Service) FinalizeBeaconBlock(
 func (s *Service) PostFinalizeBeaconBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBeaconBlockHash []byte,
 ) error {
 	var err error
+	state := s.BeaconState(ctx)
 	if s.BuilderCfg().LocalBuilderEnabled {
 		err = s.sendFCUWithAttributes(
 			ctx,
-			s.BeaconState(ctx).GetSafeEth1BlockHash(),
+			state.GetSafeEth1BlockHash(),
 			slot,
-			parentBeaconBlockHash,
+			state.GetParentBlockRoot(),
 		)
 	} else {
 		err = s.sendFCU(

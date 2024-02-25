@@ -53,15 +53,15 @@ func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	headEth1Hash common.Hash,
 	slot primitives.Slot,
-	parentRoot []byte,
+	parentBlockRoot [32]byte,
 ) error {
 	_, err := s.bs.BuildLocalPayload(
 		ctx,
 		headEth1Hash,
-		slot,
+		slot+1,
 		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
-		parentRoot,
+		parentBlockRoot,
 	)
 	return err
 }

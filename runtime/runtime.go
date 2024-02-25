@@ -212,7 +212,6 @@ func (r *BeaconKitRuntime) StartServices(
 	if err := r.services.FetchService(&syncService); err != nil {
 		panic(err)
 	}
-
 	syncService.SetClientContext(clientCtx)
 
 	ctx, cancel := context.WithCancel(ctx)

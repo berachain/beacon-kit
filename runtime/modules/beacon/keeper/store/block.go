@@ -25,16 +25,25 @@
 
 package store
 
-// Genesis Related Prefix.
-const (
-	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
-	eth1GenesisHashPrefix = "eth1_genesis_hash"
+import (
+	"github.com/ethereum/go-ethereum/common"
 )
 
-// Collection prefixes.
-const (
-	parentBlockRootPrefix          = "parent_block_root"
-	depositQueuePrefix             = "deposit_queue"
-	fcSafeEth1BlockHashPrefix      = "fc_safe"
-	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
-)
+// SetParentBlockRoot sets the parent block root in the BeaconStore.
+// It panics if there is an error setting the parent block root.
+func (s *BeaconStore) SetParentBlockRoot(parentRoot [32]byte) {
+	if err := s.parentBlockRoot.Set(s.ctx, parentRoot[:]); err != nil {
+		panic(err)
+	}
+}
+
+// GetParentBlockRoot retrieves the parent block root from the BeaconStore.
+// It returns an empty hash if there is an error retrieving the parent block
+// root.
+func (s *BeaconStore) GetParentBlockRoot() [32]byte {
+	parentRoot, err := s.parentBlockRoot.Get(s.ctx)
+	if err != nil {
+		parentRoot = []byte{}
+	}
+	return common.BytesToHash(parentRoot)
+}
