@@ -114,7 +114,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
 		engineclient.WithBeaconConfig(&cfg.Beacon),
-		engineclient.WithEndpointDialURL(cfg.Engine.RPCDialURL),
+		engineclient.WithEngineConfig(&cfg.Engine),
 		engineclient.WithJWTSecret(jwtSecret),
 		engineclient.WithLogger(logger),
 	)
