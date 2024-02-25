@@ -46,11 +46,11 @@ func (s *Service) BuildLocalPayload(
 	parentEth1Hash common.Hash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentBeaconBlockRoot [32]byte,
+	parentBlockRoot [32]byte,
 ) (*enginev1.PayloadIDBytes, error) {
 	// Assemble the payload attributes.
 	attrs, err := s.getPayloadAttribute(
-		ctx, slot, timestamp, parentBeaconBlockRoot,
+		ctx, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w error when getting payload attributes", err)
@@ -91,7 +91,7 @@ func (s *Service) BuildLocalPayload(
 
 	s.payloadCache.Set(
 		fcuConfig.ProposingSlot,
-		parentBeaconBlockRoot,
+		parentBlockRoot,
 		primitives.PayloadID(payloadID[:]),
 	)
 
