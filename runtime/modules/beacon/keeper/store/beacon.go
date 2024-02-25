@@ -71,7 +71,8 @@ func NewBeaconStore(
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
-		encoding.SSZValueCodec[*consensusv1.Deposit]{})
+		encoding.SSZValueCodec[*consensusv1.Deposit]{},
+	)
 	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
