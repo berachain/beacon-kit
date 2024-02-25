@@ -23,27 +23,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package blockchain
 
-import "github.com/pkg/errors"
+import (
+	"context"
+	"time"
 
-var (
-	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
-	// received on a VALID engine response.
-	ErrNilPayloadOnValidResponse = errors.New(
-		"received nil payload ID on VALID engine response",
-	)
-
-	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
-	// cache.
-	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
-
-	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
-	// payloadID is not found on the execution client.
-	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
-		"cached payload ID could not be resolved on execution client",
-	)
-
-	// ErrLocalBuildingDisabled is returned when local building is disabled.
-	ErrLocalBuildingDisabled = errors.New("local building is disabled")
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
+
+// sendFCU sends a forkchoice update to the execution client.
+func (s *Service) sendFCU(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+	proposingSlot primitives.Slot,
+) error {
+	// Send the forkchoice update to the execution client via the execution
+	// service.
+	_, err := s.es.NotifyForkchoiceUpdate(
+		ctx, &execution.FCUConfig{
+			HeadEth1Hash:  headEth1Hash,
+			ProposingSlot: proposingSlot,
+		})
+	return err
+}
+
+// sendFCUWithAttributes sends a forkchoice update to the
+// execution client with payload attributes. It does
+// so via the local builder service.
+func (s *Service) sendFCUWithAttributes(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+	slot primitives.Slot,
+	parentRoot []byte,
+) error {
+	_, err := s.bs.BuildLocalPayload(
+		ctx,
+		headEth1Hash,
+		slot,
+		//#nosec:G703
+		uint64(time.Now().Unix()),
+		parentRoot,
+	)
+	return err
+}

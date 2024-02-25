@@ -25,7 +25,10 @@
 
 package blockchain
 
-import "github.com/itsdevbear/bolaris/runtime/service"
+import (
+	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
+	"github.com/itsdevbear/bolaris/runtime/service"
+)
 
 // WithBaseService returns an Option that sets the BaseService for the Service.
 func WithBaseService(base service.BaseService) service.Option[Service] {
@@ -58,6 +61,15 @@ func WithStakingService(ss StakingService) service.Option[Service] {
 func WithExecutionService(es ExecutionService) service.Option[Service] {
 	return func(s *Service) error {
 		s.es = es
+		return nil
+	}
+}
+
+func WithPayloadCache(
+	payloadCache *cache.PayloadIDCache,
+) service.Option[Service] {
+	return func(s *Service) error {
+		s.payloadCache = payloadCache
 		return nil
 	}
 }
