@@ -41,7 +41,6 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/health"
-	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -87,12 +86,6 @@ func NewDefaultBeaconKitRuntime(
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
-	// Get JWT Secret for eth1 connection.
-	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
-	if err != nil {
-		return nil, err
-	}
-
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
 		dispatch.WithLogger(logger),
@@ -115,7 +108,6 @@ func NewDefaultBeaconKitRuntime(
 	engineClient := engineclient.New(
 		engineclient.WithBeaconConfig(&cfg.Beacon),
 		engineclient.WithEngineConfig(&cfg.Engine),
-		engineclient.WithJWTSecret(jwtSecret),
 		engineclient.WithLogger(logger),
 	)
 

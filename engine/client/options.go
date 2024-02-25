@@ -42,11 +42,20 @@ type Option func(*EngineClient) error
 func WithEngineConfig(cfg *config.Engine) Option {
 	return func(s *EngineClient) error {
 		s.cfg = cfg
+
+		// Load the dial URL from the config if it's not already set.
 		u, err := url.Parse(s.cfg.RPCDialURL)
 		if err != nil {
 			return err
 		}
 		s.dialURL = u
+
+		// Load the JWT secret from the config if it's not already set.
+		// Get JWT Secret for eth1 connection.
+		s.jwtSecret, err = jwt.NewFromFile(cfg.JWTSecretPath)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 }
