@@ -38,11 +38,11 @@ func (s *Service) postBlockProcess(
 	blk consensus.ReadOnlyBeaconKitBlock,
 	isValidPayload bool,
 ) error {
-	nextSlot := blk.GetSlot() + 1
 	if isValidPayload {
 		return nil
 	}
 
+	nextSlot := blk.GetSlot() + 1
 	telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
 
 	// If the incoming payload for this block is not valid, we submit a
@@ -58,25 +58,4 @@ func (s *Service) postBlockProcess(
 	}
 
 	return ErrInvalidPayload
-	// }
-
-	// executionPayload, err := blk.ExecutionPayload()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// // We notify the execution client of the new block and await a payload
-	// ID. // If the payload ID is nil, an error is returned. Notably, we pass
-	// `slot+1` // to the execution client. This allows us to start building the
-	// next block
-	// // in the background while finalizing the current one. This asynchronous
-	// // task is suitable for the execution client's design.
-	// //
-	// // TODO: Consider implementing a background validator job for continuous
-	// // payload building, eliminating the need for trigger-based builds here.
-	// return s.sendFCU(
-	// 	ctx,
-	// 	common.Hash(executionPayload.GetBlockHash()),
-	// 	nextSlot,
-	// )
 }
