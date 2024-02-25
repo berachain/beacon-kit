@@ -167,7 +167,6 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithStakingService(stakingService),
-		blockchain.WithPayloadCache(payloadCache),
 	)
 
 	// Build the sync service.
