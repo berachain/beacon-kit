@@ -39,12 +39,12 @@ contract BeraRootsContract is BeaconRootsContract {
 
     /// @dev Overriding the set function to include the distribution of the rewards.
     function set() internal override {
-        // first set the beacon root.
-        super.set();
-
         // if the distributor is set, distribute the rewards.
         if (address(__distributor) != address(0)) {
-            _distribute(getCoinbase());
+            _distribute(block.coinbase);
         }
+        
+        // Set the beacon root.
+        super.set();
     }
 }
