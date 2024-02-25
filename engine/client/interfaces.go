@@ -44,9 +44,8 @@ type Caller interface {
 	// Start
 	Start(context.Context)
 
-	// IsConnected returns true if the client is connected to the execution
-	// node.
-	IsConnected() bool
+	// Status returns the status of the execution client.
+	Status() error
 
 	// Engine API Related Methods
 	//

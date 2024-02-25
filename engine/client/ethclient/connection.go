@@ -33,7 +33,20 @@ import (
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/io/http"
 )
+
+// tryConnectionAfter attempts a connection after a given interval.
+func (s *Eth1Client) tryConnectionAfter(
+	ctx context.Context, interval time.Duration,
+) {
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(interval):
+		s.setupExecutionClientConnection(ctx)
+	}
+}
 
 // setupExecutionClientConnections dials the execution client and
 // ensures the chain ID is correct.
@@ -49,7 +62,7 @@ func (s *Eth1Client) setupExecutionClientConnection(ctx context.Context) {
 	}
 
 	// Ensure the execution client is connected to the correct chain.
-	if err := s.ensureCorrectExecutionChain(ctx); err != nil {
+	if err := s.CheckEth1ConnectionAndChainID(ctx); err != nil {
 		s.Client.Close()
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.
@@ -70,22 +83,18 @@ func (s *Eth1Client) setupExecutionClientConnection(ctx context.Context) {
 
 // DialExecutionRPCClient dials the execution client's RPC endpoint.
 func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
-	var client *rpc.Client
-
-	// Construct the headers for the execution client.
-	// New headers must be constructed each time the client is dialed
-	// to periodically generate a new JWT token, as the existing one will
-	// eventually expire.
-	headers, err := s.BuildHeaders()
-	if err != nil {
-		return err
-	}
+	var (
+		client *rpc.Client
+		err    error
+	)
 
 	// Dial the execution client based on the URL scheme.
 	switch s.dialURL.Scheme {
 	case "http", "https":
 		client, err = rpc.DialOptions(
-			ctx, s.dialURL.String(), rpc.WithHeaders(headers))
+			ctx, s.dialURL.String(), rpc.WithHeaders(
+				http.NewHeaderWithJWT(s.jwtSecret)),
+		)
 	case "", "ipc":
 		client, err = rpc.DialIPC(ctx, s.dialURL.String())
 	default:
@@ -103,16 +112,4 @@ func (s *Eth1Client) dialExecutionRPCClient(ctx context.Context) error {
 	s.Client = ethclient.NewClient(client)
 	s.GethRPCClient = client
 	return nil
-}
-
-// tryConnectionAfter attempts a connection after a given interval.
-func (s *Eth1Client) tryConnectionAfter(
-	ctx context.Context, interval time.Duration,
-) {
-	select {
-	case <-ctx.Done():
-		return
-	case <-time.After(interval):
-		s.setupExecutionClientConnection(ctx)
-	}
 }

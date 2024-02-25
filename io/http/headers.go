@@ -23,34 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package http
 
 import (
-	"context"
+	"errors"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/node"
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
-	for {
-		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
+// NewHeaderWithJWT creates a new HTTP header with a JWT token.
+func NewHeaderWithJWT(secret *jwt.Secret) http.Header {
+	header := http.Header{}
+	if err := AddJWTHeader(header, secret); err != nil {
+		panic(err)
 	}
+	return header
 }
 
-// BuildHeaders creates the headers for the execution client.
-func (s *Eth1Client) BuildHeaders() (http.Header, error) {
-	var (
-		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
-	)
-
+// AddJWTHeader adds a JWT header to the provided HTTP header.
+func AddJWTHeader(header http.Header, secret *jwt.Secret) error {
 	// Authenticate the execution node JSON-RPC endpoint.
-	if err := jwtAuthHandler(headers); err != nil {
-		return nil, err
+	jwtAuthHandler := node.NewJWTAuth(*secret)
+	if header == nil {
+		return errors.New("http.Header is nil")
 	}
 
-	// Add additional headers if provided.
-	return headers, nil
+	return jwtAuthHandler(header)
 }

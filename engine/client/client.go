@@ -77,6 +77,13 @@ func (s *engineClient) Start(ctx context.Context) {
 	}
 }
 
+// Status calls the engine_statusV1 method via JSON-RPC.
+func (s *engineClient) Status() error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.engineTimeout)
+	defer cancel()
+	return s.Eth1Client.CheckEth1ConnectionAndChainID(ctx)
+}
+
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *engineClient) NewPayload(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
