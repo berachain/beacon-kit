@@ -146,12 +146,14 @@ func NewDefaultBeaconKitRuntime(
 		execution.WithEngineCaller(engineClient),
 	)
 
+	payloadCache := cache.NewPayloadIDCache()
+
 	// Build the local builder service.
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("local-builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithExecutionService(executionService),
-		builder.WithPayloadCache(cache.NewPayloadIDCache()),
+		builder.WithPayloadCache(payloadCache),
 	)
 
 	// Build the staking service.

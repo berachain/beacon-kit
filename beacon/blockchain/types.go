@@ -42,7 +42,7 @@ type BuilderService interface {
 		parentEth1Hash common.Hash,
 		slot primitives.Slot,
 		timestamp uint64,
-		parentBeaconBlockRoot []byte,
+		parentRoot []byte,
 	) (*enginev1.PayloadIDBytes, error)
 }
 

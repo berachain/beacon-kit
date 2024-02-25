@@ -36,12 +36,12 @@ var (
 
 	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
 	// cache.
-	ErrPayloadIDNotFound = errors.New("payload ID not found in cache")
+	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
 
 	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
 	// payloadID is not found on the execution client.
 	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
-		"cached payload not found on execution client",
+		"cached payload ID could not be resolved on execution client",
 	)
 
 	// ErrLocalBuildingDisabled is returned when local building is disabled.

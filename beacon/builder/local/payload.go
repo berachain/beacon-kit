@@ -27,10 +27,10 @@ package localbuilder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
-	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
@@ -48,44 +48,17 @@ func (s *Service) BuildLocalPayload(
 	timestamp uint64,
 	parentBeaconBlockRoot []byte,
 ) (*enginev1.PayloadIDBytes, error) {
-	var (
-		st = s.BeaconState(ctx)
-		// TODO: RANDAO
-		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
-		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
-	)
-
-	// If the local builder is disabled, we skip the payload building.
-	if !s.cfg.LocalBuilderEnabled {
-		s.Logger().
-			Info("local builder is disabled, skipping payload building...")
-		return nil, ErrLocalBuildingDisabled
-	}
-
-	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		s.Logger().Error(
-			"Could not get expected withdrawals to get payload attribute", "error", err)
-		return nil, err
-	}
-
-	// Build the payload attributes.
-	attrs, err := enginetypes.NewPayloadAttributesContainer(
-		s.ActiveForkVersionForSlot(slot),
-		timestamp,
-		prevRandao,
-		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
-		withdrawals,
-		parentBeaconBlockRoot,
+	// Assemble the payload attributes.
+	attrs, err := s.getPayloadAttribute(
+		ctx, slot, timestamp, parentBeaconBlockRoot,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create payload attributes")
+		return nil, fmt.Errorf("%w error when getting payload attributes", err)
 	}
 
 	fcuConfig := &execution.FCUConfig{
 		HeadEth1Hash:  parentEth1Hash,
-		ProposingSlot: slot,
+		ProposingSlot: slot + 1,
 		Attributes:    attrs,
 	}
 
@@ -99,7 +72,7 @@ func (s *Service) BuildLocalPayload(
 		ctx, fcuConfig,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "error when notifying forkchoice update")
+		return nil, err
 	} else if payloadID == nil {
 		s.Logger().Error("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
@@ -164,10 +137,10 @@ func (s *Service) GetLocalPayload(
 		return payload, blobsBundle, overrideBuilder, nil
 	}
 
-	s.Logger().Warn(
-		"lookup failed during local payload retrieval",
-		"error", err,
-	)
+	s.Logger().Warn(fmt.Sprintf(
+		"%s, notifying execution client to construct a new payload ...",
+		err.Error(),
+	))
 
 	// Otherwise we have to trigger a new payload to be built, wait for it to be
 	// resolved and then return the data. This case should very rarely be hit
@@ -188,13 +161,13 @@ func (s *Service) GetLocalPayload(
 func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBeaconBlockRoot []byte,
+	parentRoot []byte,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.payloadCache.Get(
 		slot,
-		[32]byte(parentBeaconBlockRoot),
+		[32]byte(parentRoot),
 	)
 	if found && (payloadID != primitives.PayloadID{}) {
 		// Payload ID is cache hit.
@@ -224,12 +197,12 @@ func (s *Service) buildAndWaitForLocalPayload(
 	parentEth1Hash common.Hash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentBeaconBlockRoot []byte,
+	parentRoot []byte,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
-		ctx, parentEth1Hash, slot, timestamp, parentBeaconBlockRoot,
+		ctx, parentEth1Hash, slot, timestamp, parentRoot,
 	)
 	if err != nil {
 		return nil, nil, false, err
@@ -267,6 +240,46 @@ func (s *Service) buildAndWaitForLocalPayload(
 		"received execution payload from local engine", "value", payload.GetValue(),
 	)
 	return payload, blobsBundle, overrideBuilder, nil
+}
+
+// getPayloadAttributes returns the payload attributes for the given state and
+// slot. The attribute is required to initiate a payload build process in the
+// context of an `engine_forkchoiceUpdated` call.
+func (s *Service) getPayloadAttribute(
+	ctx context.Context,
+	slot primitives.Slot,
+	timestamp uint64,
+	prevHeadRoot []byte,
+) (enginetypes.PayloadAttributer, error) {
+	var (
+		st = s.BeaconState(ctx)
+		// TODO: RANDAO
+		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
+		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
+	)
+
+	// Get the expected withdrawals to include in this payload.
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		s.Logger().Error(
+			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil, err
+	}
+
+	// Build the payload attributes.
+	attrs, err := enginetypes.NewPayloadAttributesContainer(
+		s.ActiveForkVersionForSlot(slot),
+		timestamp,
+		prevRandao,
+		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+		withdrawals,
+		prevHeadRoot,
+	)
+	if err != nil {
+		return nil, errors.New("could not create payload attributes")
+	}
+
+	return attrs, nil
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the

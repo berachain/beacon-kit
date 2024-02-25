@@ -90,6 +90,10 @@ func (s *BaseService) BeaconCfg() *config.Beacon {
 	return &s.cfg.Beacon
 }
 
+func (s *BaseService) BuilderCfg() *config.Builder {
+	return &s.cfg.Builder
+}
+
 // FeatureFlags returns the feature flags from the BaseService.
 func (s *BaseService) FeatureFlags() *config.FeatureFlags {
 	return &s.cfg.FeatureFlags

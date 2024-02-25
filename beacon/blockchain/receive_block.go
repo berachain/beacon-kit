@@ -49,9 +49,6 @@ func (s *Service) ReceiveBeaconBlock(
 		isValidPayload bool
 	)
 
-	// TODO: Do we need to wait for the forkchoice to update?
-	// TODO: move the error group to use GCD.
-
 	// This go routine validators the consensus level aspects of the block.
 	// i.e: does it have a valid ancesor?
 	eg.Go(func() error {
@@ -86,7 +83,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// If the block is valid, we can process it.
 	return s.postBlockProcess(
-		ctx, blk, isValidPayload,
+		ctx, isValidPayload,
 	)
 }
 

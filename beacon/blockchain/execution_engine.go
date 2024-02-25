@@ -25,39 +25,43 @@
 
 package blockchain
 
-import "github.com/itsdevbear/bolaris/runtime/service"
+import (
+	"context"
+	"time"
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+)
+
+// sendFCU sends a forkchoice update to the execution client.
+func (s *Service) sendFCU(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+) error {
+	_, err := s.es.NotifyForkchoiceUpdate(
+		ctx, &execution.FCUConfig{
+			HeadEth1Hash: headEth1Hash,
+		})
+	return err
 }
 
-// WithBuilderService is a function that returns an Option.
-// It sets the BuilderService of the Service to the provided Service.
-func WithBuilderService(bs BuilderService) service.Option[Service] {
-	return func(s *Service) error {
-		s.bs = bs
-		return nil
-	}
-}
-
-// WithExecutionService is a function that returns an Option.
-// It sets the ExecutionService of the Service to the provided Service.
-func WithExecutionService(es ExecutionService) service.Option[Service] {
-	return func(s *Service) error {
-		s.es = es
-		return nil
-	}
-}
-
-// WithStakingService is a function that returns an Option.
-// It sets the StakingService of the Service to the provided Service.
-func WithStakingService(ss StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.ss = ss
-		return nil
-	}
+// sendFCUWithAttributes sends a forkchoice update to the
+// execution client with payload attributes. It does
+// so via the local builder service.
+func (s *Service) sendFCUWithAttributes(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+	slot primitives.Slot,
+	parentRoot []byte,
+) error {
+	_, err := s.bs.BuildLocalPayload(
+		ctx,
+		headEth1Hash,
+		slot,
+		//#nosec:G701 // won't realistically overflow.
+		uint64(time.Now().Unix()),
+		parentRoot,
+	)
+	return err
 }
