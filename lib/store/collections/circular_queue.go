@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package collections
 
 import (
@@ -7,8 +32,8 @@ import (
 	sdkcodec "cosmossdk.io/collections/codec"
 )
 
-// CircularQueue is a simple queue implementation that uses a map and two sequences.
-// TODO: Check atomicity of write operations.
+// CircularQueue is a simple queue implementation that uses a map and two
+// sequences.
 type CircularQueue[V any] struct {
 	queue *Queue[V]
 	size  uint64
@@ -28,12 +53,13 @@ func NewCircularQueue[V any](
 	}
 }
 
-// Peek wraps the peek method with a read lock.
+// Peek wraps the peek method.
 func (q *CircularQueue[V]) Peek(ctx context.Context) (V, error) {
 	return q.queue.Peek(ctx)
 }
 
-// Push pushes a new element to the queue and returns the element that was evicted
+// Push pushes a new element to the queue and returns the element that was
+// evicted
 // by the circular property of the queue.
 func (q *CircularQueue[V]) Push(ctx context.Context, item V) (V, error) {
 	var v V
@@ -41,14 +67,14 @@ func (q *CircularQueue[V]) Push(ctx context.Context, item V) (V, error) {
 		return v, err
 	}
 
-	len, err := q.queue.Len(ctx)
-	if err != nil {
+	if length, err := q.queue.Len(ctx); err != nil {
 		return v, err
-	}
-
-	if len > q.size {
+	} else if length > q.size {
 		v, err = q.queue.Pop(ctx)
+		if err != nil {
+			return v, err
+		}
 	}
 
-	return v, err
+	return v, nil
 }
