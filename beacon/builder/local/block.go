@@ -34,7 +34,7 @@ import (
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot, parentBlockRoot [32]byte,
+	ctx context.Context, slot primitives.Slot,
 ) (consensus.BeaconKitBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -49,6 +49,8 @@ func (s *Service) RequestBestBlock(
 	// // if err != nil {
 	// // 	return nil, err
 	// // }
+
+	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := consensus.EmptyBeaconKitBlock(

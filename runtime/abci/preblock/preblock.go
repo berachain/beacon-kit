@@ -108,7 +108,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Process the finalization of the beacon block.
 		if err = h.chainService.FinalizeBeaconBlock(
-			ctx, beaconBlock,
+			ctx, beaconBlock, [32]byte(req.Hash),
 		); err != nil {
 			return nil, err
 		}

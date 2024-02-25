@@ -54,6 +54,9 @@ type ReadOnlyBeaconState interface {
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
 
+	SetParentBlockRoot([32]byte)
+	GetParentBlockRoot() [32]byte
+
 	// TODO: Actually decouple epocha nd slot
 	// GetEpochBySlot(primitives.Slot) primitives.Epoch
 }

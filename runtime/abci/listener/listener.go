@@ -34,7 +34,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -74,7 +73,7 @@ func (l *BeaconListener) ListenFinalizeBlock(
 	// should 100% not be finalizing
 	// the block on the EL.
 	if err := l.chainService.PostFinalizeBeaconBlock(
-		ctx, primitives.Slot(req.Height), byteslib.ToBytes32(req.Hash),
+		ctx, primitives.Slot(req.Height),
 	); err != nil && !errors.Is(err, builder.ErrLocalBuildingDisabled) {
 		return err
 	}

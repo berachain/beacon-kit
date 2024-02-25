@@ -107,6 +107,15 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
+	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
+	if !bytes.Equal(parentBlockRoot[:], blk.GetParentRoot()) {
+		return fmt.Errorf(
+			"parent root does not match, expected: %x, got: %x",
+			parentBlockRoot,
+			blk.GetParentRoot(),
+		)
+	}
+
 	// TODO: Probably add RANDAO and Staking stuff here?
 
 	// TODO: how do we handle hard fork boundaries?
