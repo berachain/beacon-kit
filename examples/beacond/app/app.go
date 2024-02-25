@@ -186,6 +186,11 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
+	// Check for goleveldb cause bad project.
+	if appOpts.Get("app-db-backend") == "goleveldb" {
+		panic("goleveldb is not supported")
+	}
+
 	// Load the app.
 	if err = app.Load(loadLatest); err != nil {
 		panic(err)
