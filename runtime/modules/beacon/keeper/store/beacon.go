@@ -45,13 +45,13 @@ type BeaconStore struct {
 	depositQueue *collections.Queue[*consensusv1.Deposit]
 
 	// fcSafeEth1BlockHash is the safe block hash.
-	fcSafeEth1BlockHash sdkcollections.Item[[]byte]
+	fcSafeEth1BlockHash sdkcollections.Item[[32]byte]
 
 	// fcFinalizedEth1BlockHash is the finalized block hash.
-	fcFinalizedEth1BlockHash sdkcollections.Item[[]byte]
+	fcFinalizedEth1BlockHash sdkcollections.Item[[32]byte]
 
 	// eth1GenesisHash is the Eth1 genesis hash.
-	eth1GenesisHash sdkcollections.Item[[]byte]
+	eth1GenesisHash sdkcollections.Item[[32]byte]
 
 	// lastValidHash is the last valid head in the store.
 	// TODO: we need to handle this in a better way.
@@ -66,22 +66,24 @@ func NewBeaconStore(
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
-		&encoding.SSZValueCodec[*consensusv1.Deposit]{})
-	fcSafeEth1BlockHash := sdkcollections.NewItem[[]byte](
+		encoding.SSZValueCodec[*consensusv1.Deposit]{})
+	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
 		fcSafeEth1BlockHashPrefix,
-		sdkcollections.BytesValue)
-	fcFinalizedEth1BlockHash := sdkcollections.NewItem[[]byte](
+		encoding.Bytes32ValueCodec{},
+	)
+	fcFinalizedEth1BlockHash := sdkcollections.NewItem[[32]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
 		fcFinalizedEth1BlockHashPrefix,
-		sdkcollections.BytesValue)
-	eth1GenesisHash := sdkcollections.NewItem[[]byte](
+		encoding.Bytes32ValueCodec{},
+	)
+	eth1GenesisHash := sdkcollections.NewItem[[32]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
 		eth1GenesisHashPrefix,
-		sdkcollections.BytesValue,
+		encoding.Bytes32ValueCodec{},
 	)
 	return &BeaconStore{
 		depositQueue:             depositQueue,
