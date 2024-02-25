@@ -63,7 +63,7 @@ func (s *Service) FinalizeBeaconBlock(
 func (s *Service) PostFinalizeBeaconBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBeaconBlockHash []byte,
+	parentBlockRoot [32]byte,
 ) error {
 	var err error
 	if s.BuilderCfg().LocalBuilderEnabled {
@@ -71,7 +71,7 @@ func (s *Service) PostFinalizeBeaconBlock(
 			ctx,
 			s.BeaconState(ctx).GetSafeEth1BlockHash(),
 			slot,
-			parentBeaconBlockHash,
+			parentBlockRoot,
 		)
 	} else {
 		err = s.sendFCU(

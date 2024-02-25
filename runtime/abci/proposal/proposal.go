@@ -26,8 +26,6 @@
 package proposal
 
 import (
-	"bytes"
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -37,6 +35,7 @@ import (
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -83,18 +82,14 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
-	// TODO abstract this into BeaconState()
-	parentRoot := ctx.BlockHeader().AppHash
-	if req.Height == 1 {
-		parentRoot = make([]byte, 32) //nolint:gomnd //temp
-	}
-
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
 	block, err := h.builderService.RequestBestBlock(
-		ctx, primitives.Slot(req.Height), parentRoot,
+		ctx,
+		primitives.Slot(req.Height),
+		byteslib.ToBytes32(ctx.BlockHeader().AppHash),
 	)
 
 	if err != nil {
@@ -140,20 +135,18 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	// TODO abstract this into BeaconState()
-	parentRoot := ctx.BlockHeader().AppHash
-	if req.Height == 1 {
-		parentRoot = make([]byte, 32) //nolint:gomnd //temp
-	}
-
-	// TODO: move this to a better spot.
-	if !bytes.Equal(parentRoot, block.GetParentRoot()) {
-		return &abci.ResponseProcessProposal{
-				Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"parent root does not match, expected: %x, got: %x",
-				ctx.BlockHeader().AppHash, block.GetParentRoot(),
-			)
-	}
+	// TODO: Need to get access to the previous CometBFT BlockHas
+	// to perfrom validation check.
+	// // TODO abstract this into BeaconState()
+	// parentRoot := byteslib.ToBytes32(ctx.HeaderInfo().Hash)
+	// // TODO: move this to a better spot.
+	// if parentRoot != byteslib.ToBytes32(block.GetParentRoot()) {
+	// 	return &abci.ResponseProcessProposal{
+	// 			Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
+	// 			"parent root does not match, expected: %x, got: %x",
+	// 			parentRoot, block.GetParentRoot(),
+	// 		)
+	// }
 
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block

@@ -45,7 +45,7 @@ func (s *Service) notifyNewPayload(
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash,
-	parentBlockRoot common.Hash,
+	parentBlockRoot [32]byte,
 ) (bool, error) {
 	var (
 		lastValidHash []byte
@@ -65,9 +65,10 @@ func (s *Service) notifyNewPayload(
 		// lastValidHash, err = s.engine.NewP
 		// ayload(ctx, payload, versionedHashes, &pr)
 		// TODO:DENEB
+		h := common.Hash(parentBlockRoot)
 		lastValidHash, err = s.engine.NewPayload(
 			/*empty version hashes and root before Deneb*/
-			ctx, payload, versionedHashes, &parentBlockRoot,
+			ctx, payload, versionedHashes, &h,
 		)
 	} else {
 		lastValidHash, err = s.engine.NewPayload(

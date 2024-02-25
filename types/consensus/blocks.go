@@ -37,7 +37,7 @@ import (
 func NewBeaconKitBlock(
 	slot primitives.Slot,
 	executionData enginetypes.ExecutionPayload,
-	parentRoot []byte,
+	parentBlockRoot [32]byte,
 	forkVersion int,
 ) (BeaconKitBlock, error) {
 	var block BeaconKitBlock
@@ -46,7 +46,7 @@ func NewBeaconKitBlock(
 		block = &consensusv1.BeaconKitBlockDeneb{
 			Slot:       slot,
 			StateRoot:  make([]byte, 32), //nolint:gomnd
-			ParentRoot: parentRoot,
+			ParentRoot: parentBlockRoot[:],
 			Body: &consensusv1.BeaconKitBlockBodyDeneb{
 				RandaoReveal: make([]byte, 96), //nolint:gomnd
 				Graffiti:     make([]byte, 32), //nolint:gomnd
@@ -68,10 +68,10 @@ func NewBeaconKitBlock(
 // with no execution data.
 func EmptyBeaconKitBlock(
 	slot primitives.Slot,
-	parentRoot []byte,
+	parentBlockRoot [32]byte,
 	version int,
 ) (BeaconKitBlock, error) {
-	return NewBeaconKitBlock(slot, nil, parentRoot, version)
+	return NewBeaconKitBlock(slot, nil, parentBlockRoot, version)
 }
 
 // BeaconKitBlockFromSSZ assembles a new beacon block

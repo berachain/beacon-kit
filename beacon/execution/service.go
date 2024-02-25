@@ -92,7 +92,7 @@ func (s *Service) NotifyNewPayload(
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash,
-	parentBlockRoot common.Hash,
+	parentBlockRoot [32]byte,
 ) (bool, error) {
 	return s.notifyNewPayload(
 		ctx,
