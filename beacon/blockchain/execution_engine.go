@@ -63,7 +63,7 @@ func (s *Service) sendFCUWithAttributes(
 		ctx,
 		headEth1Hash,
 		slot,
-		//#nosec:G703
+		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
 		parentRoot,
 	)

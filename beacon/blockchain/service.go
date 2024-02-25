@@ -26,7 +26,6 @@
 package blockchain
 
 import (
-	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -36,6 +35,4 @@ type Service struct {
 	bs BuilderService
 	es ExecutionService
 	ss StakingService
-
-	payloadCache *cache.PayloadIDCache
 }
