@@ -40,7 +40,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/health"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -78,7 +77,7 @@ func NewBeaconKitRuntime(
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
-//nolint:funlen // todo fix.
+
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -112,33 +111,19 @@ func NewDefaultBeaconKitRuntime(
 		cfg, bsp, gcd, logger,
 	)
 
-	// Create the eth1 client that will be used to interact with the execution
-	// client.
-	eth1Client, err := eth.NewEth1Client(
-		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
-		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
-		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
-		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),
-		eth.WithJWTSecret(jwtSecret),
-		eth.WithLogger(logger),
-		eth.WithRequiredChainID(cfg.Engine.RequiredChainID),
+	// Build the client to interact with the Engine API.
+	engineClient := engineclient.New(
+		engineclient.WithBeaconConfig(&cfg.Beacon),
+		engineclient.WithEndpointDialURL(cfg.Engine.RPCDialURL),
+		engineclient.WithJWTSecret(jwtSecret),
+		engineclient.WithLogger(logger),
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	// Build the Notification Service.
 	notificationService := service.New(
 		notify.WithBaseService(baseService.ShallowCopy("notify")),
 		notify.WithGCD(gcd),
 	)
-
-	// Build the client to interact with the Engine API.
-	engineClient := engineclient.New(
-		engineclient.WithEth1Client(eth1Client),
-		engineclient.WithBeaconConfig(&cfg.Beacon),
-		engineclient.WithLogger(logger),
-		engineclient.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the execution service.
 	executionService := service.New[execution.Service](
@@ -172,17 +157,17 @@ func NewDefaultBeaconKitRuntime(
 	// Build the sync service.
 	syncService := service.New[sync.Service](
 		sync.WithBaseService(baseService.ShallowCopy("sync")),
-		sync.WithEthClient(eth1Client),
+		sync.WithEngineClient(engineClient),
 	)
 
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger),
-		service.WithService(syncService),
-		service.WithService(executionService),
-		service.WithService(chainService),
-		service.WithService(notificationService),
 		service.WithService(builderService),
+		service.WithService(chainService),
+		service.WithService(executionService),
+		service.WithService(notificationService),
 		service.WithService(stakingService),
+		service.WithService(syncService),
 	)
 
 	healthService := service.New[health.Service](

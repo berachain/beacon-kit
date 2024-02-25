@@ -29,8 +29,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
+	cosmosclient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"golang.org/x/sync/errgroup"
 )
@@ -45,12 +45,12 @@ const syncLoopInterval = 6 * time.Second
 // of both the beacon and execution chains.
 type Service struct {
 	service.BaseService
-	ethClient *eth.Eth1Client
-	clientCtx *client.Context
+	engineClient *client.EngineClient
+	clientCtx    *cosmosclient.Context
 }
 
 // SetClientContext sets the client context for the service.
-func (s *Service) SetClientContext(clientCtx client.Context) {
+func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
 	s.clientCtx = &clientCtx
 }
 

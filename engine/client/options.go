@@ -23,23 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package client
 
 import (
-	"time"
+	"net/url"
 
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
 // Option is a function type that takes a pointer to an engineClient and returns
 // an error.
-type Option func(*engineClient) error
+type Option func(*EngineClient) error
+
+// WithEngineConfig is a function that returns an Option.
+func WithEngineConfig(cfg *config.Engine) Option {
+	return func(s *EngineClient) error {
+		s.cfg = cfg
+		u, err := url.Parse(s.cfg.RPCDialURL)
+		if err != nil {
+			return err
+		}
+		s.dialURL = u
+		return nil
+	}
+}
 
 // WithEth1Client is a function that returns an Option.
 func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineClient) error {
+	return func(s *EngineClient) error {
 		s.Eth1Client = eth1Client
 		return nil
 	}
@@ -47,7 +61,7 @@ func WithEth1Client(eth1Client *eth.Eth1Client) Option {
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineClient) error {
+	return func(s *EngineClient) error {
 		s.beaconCfg = beaconCfg
 		return nil
 	}
@@ -55,16 +69,31 @@ func WithBeaconConfig(beaconCfg *config.Beacon) Option {
 
 // WithLogger is an option to set the logger for the Eth1Client.
 func WithLogger(logger log.Logger) Option {
-	return func(s *engineClient) error {
+	return func(s *EngineClient) error {
 		s.logger = logger.With("module", "beacon-kit.engine")
 		return nil
 	}
 }
 
-// WithEngineTimeout is an option to set the timeout for the engine.
-func WithEngineTimeout(engineTimeout time.Duration) Option {
-	return func(s *engineClient) error {
-		s.engineTimeout = engineTimeout
+// WithEndpointDialURL for authenticating the execution node JSON-RPC endpoint.
+func WithEndpointDialURL(dialURL string) Option {
+	return func(s *EngineClient) error {
+		u, err := url.Parse(dialURL)
+		if err != nil {
+			return err
+		}
+		s.dialURL = u
+		return nil
+	}
+}
+
+// WithJWTSecret sets the JWT secret for the Eth1Client.
+func WithJWTSecret(secret *jwt.Secret) Option {
+	return func(s *EngineClient) error {
+		if secret == nil {
+			return ErrNilJWTSecret
+		}
+		s.jwtSecret = secret
 		return nil
 	}
 }

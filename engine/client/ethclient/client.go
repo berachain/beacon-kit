@@ -27,68 +27,27 @@ package ethclient
 
 import (
 	"context"
-	"errors"
-	"net/url"
-	"sync/atomic"
-	"time"
 
-	"cosmossdk.io/log"
 	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and
 // its configuration.
 type Eth1Client struct {
-	GethRPCClient
 	*ethclient.Client
-
-	logger               log.Logger
-	isConnected          atomic.Bool
-	chainID              uint64
-	jwtSecret            *jwt.Secret
-	startupRetryInterval time.Duration
-	jwtRefreshInterval   time.Duration
-	healthCheckInterval  time.Duration
-	dialURL              *url.URL
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided
 // context and options.
-func NewEth1Client(opts ...Option) (*Eth1Client, error) {
-	c := &Eth1Client{}
-	for _, opt := range opts {
-		if err := opt(c); err != nil {
-			return nil, err
-		}
+func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
+	c := &Eth1Client{
+		Client: client,
 	}
-
 	return c, nil
-}
-
-// Start the powchain service's main event loop.
-func (s *Eth1Client) Start(ctx context.Context) {
-	// Attempt an initial connection.
-	s.tryConnectionAfter(ctx, 0)
-
-	// We will spin up the execution client connection in a
-	// loop until it is connected.
-	for !s.isConnected.Load() {
-		// If we enter this loop, the above connection attempt failed.
-		s.logger.Info(
-			"Waiting for connection to execution client...",
-			"dial-url", s.dialURL.String(),
-		)
-		s.tryConnectionAfter(ctx, s.startupRetryInterval)
-	}
-
-	// If we reached this point, the execution client is connected so we can
-	// start the jwt refresh loop.
-	go s.jwtRefreshLoop(ctx)
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
@@ -97,10 +56,10 @@ func (s *Eth1Client) NewPayloadV3(
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) (*enginev1.PayloadStatus, error) {
 	result := &enginev1.PayloadStatus{}
-	if err := s.GethRPCClient.CallContext(
+	if err := s.Client.Client().CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes, parentBlockRoot,
 	); err != nil {
-		return nil, s.handleRPCError(err)
+		return nil, err
 	}
 	return result, nil
 }
@@ -124,19 +83,14 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 ) (*ForkchoiceUpdatedResponse, error) {
 	result := &ForkchoiceUpdatedResponse{}
 
-	if err := s.GethRPCClient.CallContext(
+	if err := s.Client.Client().CallContext(
 		ctx, result, method, state, attrs,
 	); err != nil {
-		return nil, s.handleRPCError(err)
+		return nil, err
 	}
 
 	if result.Status == nil {
 		return nil, ErrNilResponse
-	} else if result.ValidationError != "" {
-		s.logger.Error(
-			"Got validation error in forkChoiceUpdated",
-			"err", errors.New(result.ValidationError),
-		)
 	}
 
 	return result, nil
@@ -147,10 +101,10 @@ func (s *Eth1Client) GetPayloadV3(
 	ctx context.Context, payloadID enginev1.PayloadIDBytes,
 ) (*enginev1.ExecutionPayloadContainer, error) {
 	result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
-	if err := s.GethRPCClient.CallContext(
+	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {
-		return nil, s.handleRPCError(err)
+		return nil, err
 	}
 	return &enginev1.ExecutionPayloadContainer{
 		Payload: &enginev1.ExecutionPayloadContainer_Deneb{
@@ -168,9 +122,9 @@ func (s *Eth1Client) ExecutionBlockByHash(
 	ctx context.Context, hash common.Hash, withTxs bool,
 ) (*enginev1.ExecutionBlock, error) {
 	result := &enginev1.ExecutionBlock{}
-	err := s.GethRPCClient.CallContext(
+	err := s.Client.Client().CallContext(
 		ctx, result, BlockByHashMethod, hash, withTxs)
-	return result, s.handleRPCError(err)
+	return result, err
 }
 
 // ExecutionBlockByNumber fetches an execution engine block by number
@@ -179,9 +133,9 @@ func (s *Eth1Client) ExecutionBlockByNumber(
 	ctx context.Context, num rpc.BlockNumber, withTxs bool,
 ) (*enginev1.ExecutionBlock, error) {
 	result := &enginev1.ExecutionBlock{}
-	err := s.GethRPCClient.CallContext(
+	err := s.Client.Client().CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
-	return result, s.handleRPCError(err)
+	return result, err
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
