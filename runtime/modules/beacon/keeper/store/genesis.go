@@ -31,7 +31,7 @@ import (
 
 // SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
 func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
-	if err := s.eth1GenesisHash.Set(s.ctx, eth1GenesisHash[:]); err != nil {
+	if err := s.eth1GenesisHash.Set(s.ctx, eth1GenesisHash); err != nil {
 		panic(err)
 	}
 }
@@ -42,5 +42,5 @@ func (s *BeaconStore) GenesisEth1Hash() common.Hash {
 	if err != nil {
 		panic("failed to get genesis eth1hash")
 	}
-	return common.BytesToHash(genesisHash)
+	return genesisHash
 }
