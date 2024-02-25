@@ -28,8 +28,6 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240222144449-b304cf755682
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
-// replace broken goleveldb
-// github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
 require (
