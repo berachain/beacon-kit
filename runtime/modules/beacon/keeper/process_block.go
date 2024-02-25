@@ -23,22 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package keeper
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"context"
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	"github.com/itsdevbear/bolaris/config/version"
+	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
-const ModuleName = "beacon"
+func (k *Keeper) ProcessBeaconBlock(
+	ctx context.Context,
+	beaconBlockBz *types.BeaconKitBlockContainer,
+) (*types.ProcessBeaconBlockResponse, error) {
+	cctx := sdk.UnwrapSDKContext(ctx)
+	if cctx.BlockHeight()%3 == 0 || cctx.BlockHeight()%4 == 0 {
+		k.chainService.Logger().Error("MISSED SLOT", "slot", cctx.BlockHeight())
+		return nil, errors.New("$$$$ MISSED SLOT $$$$$$$")
+	}
 
-// RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations(
-		(*sdk.Msg)(nil),
-		&BeaconKitBlockContainer{},
+	// Create a new beacon block from the given SSZ bytes.
+	blk, err := consensus.BeaconKitBlockFromSSZ(
+		beaconBlockBz.SszBlockBytes,
+		version.Deneb,
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+	// Process the finalization of the beacon block.
+	if err = k.chainService.FinalizeBeaconBlock(
+		ctx, blk,
+	); err != nil {
+		return nil, err
+	}
+
+	return &types.ProcessBeaconBlockResponse{}, nil
 }

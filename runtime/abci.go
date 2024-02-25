@@ -35,7 +35,6 @@ import (
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/runtime/abci/listener"
-	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
 
@@ -86,7 +85,7 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		app.Mempool(),
 		app,
 	)
-	proposalHandler := proposal.NewHandler(
+	r.ProposalHandler = proposal.NewHandler(
 		&r.cfg.ABCI,
 		builderService,
 		syncService,
@@ -94,14 +93,8 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		defaultProposalHandler.PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 	)
-	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
-	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
+	app.SetPrepareProposal(r.ProposalHandler.PrepareProposalHandler)
+	app.SetProcessProposal(r.ProposalHandler.ProcessProposalHandler)
 
-	// Build and Register Preblock Handler.
-	app.SetPreBlocker(
-		preblock.NewBeaconPreBlockHandler(
-			&r.cfg.ABCI, r.logger, chainService, syncService, nil,
-		).PreBlocker(),
-	)
 	return nil
 }

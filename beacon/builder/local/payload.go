@@ -107,7 +107,7 @@ func (s *Service) BuildLocalPayload(
 		)
 
 		s.SetStatus(ErrNilPayloadOnValidResponse)
-		return nil, ErrNilPayloadOnValidResponse
+		return nil, nil
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes",
@@ -239,6 +239,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	s.Logger().Info(
 		"waiting for local payload to be delivered to execution client",
 		"slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
+		"payload_id", fmt.Sprintf("%#x", *payloadID),
 	)
 	select {
 	case <-time.After(s.cfg.LocalBuildPayloadTimeout):

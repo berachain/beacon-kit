@@ -53,20 +53,16 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	// TEMPORARY, needs to be handled better, this is a hack.
-	if err = s.sendFCU(
-		ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1,
-	); err != nil {
-		s.Logger().
-			Error("failed to notify forkchoice update in preblocker", "error", err)
-	}
-
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
+
+	// Move the previously safe block to finalzied.
+	prevSafe := state.GetSafeEth1BlockHash()
+	state.SetFinalizedEth1BlockHash(prevSafe)
+
+	// Set the new block as the safe block.
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)
-
 	return nil
 }
 
@@ -76,14 +72,24 @@ func (s *Service) PostFinalizeBeaconBlock(
 	slot primitives.Slot,
 	parentBeaconBlockHash []byte,
 ) error {
+	// TEMPORARY, needs to be handled better, this is a hack.
+	// TEST TO SEE IF RESETTING THE HEAD.
+	if err := s.sendFCU(
+		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash(), slot+1,
+	); err != nil {
+		s.Logger().
+			Error("failed to notify forkchoice update in preblocker", "error", err)
+		return err
+	}
+
 	_, err := s.bs.BuildLocalPayload(
 		ctx,
-		s.BeaconState(ctx).GetFinalizedEth1BlockHash(),
+		s.BeaconState(ctx).GetSafeEth1BlockHash(),
 		slot+1,
 		// .Add(time.Second) is a temporary fix to avoid issues,
 		// .Add(timeout_commit) is likely more proper here.
 		//#nosec:G701 // TODO: Really need to figure out this time thing.
-		uint64((time.Now().Add(time.Second)).Unix()), //
+		uint64((time.Now().Add(time.Second)).Unix()), // VALID
 		parentBeaconBlockHash,
 	)
 
@@ -92,6 +98,7 @@ func (s *Service) PostFinalizeBeaconBlock(
 		s.Logger().Info(
 			"local building is disabled, skipping payload building...",
 		)
+
 		return nil
 	case err != nil:
 		s.Logger().Error(

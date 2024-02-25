@@ -50,6 +50,8 @@ import (
 
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
+	"github.com/itsdevbear/bolaris/lib/signing"
+	beacontypes "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/v1alpha1"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main
@@ -68,6 +70,7 @@ func NewRootCmd() *cobra.Command {
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 			),
 			depinject.Provide(
+				signing.ProvideNoopGetSigners[*beacontypes.BeaconKitBlockContainer],
 				ProvideClientContext,
 				ProvideKeyring,
 			),
@@ -183,6 +186,7 @@ func ProvideClientContext(
 	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.NewGRPCCoinMetadataQueryFn(
 		clientCtx,
 	)
+
 	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
 	if err != nil {
 		panic(err)

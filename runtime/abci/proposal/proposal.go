@@ -38,6 +38,7 @@ import (
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
+	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -50,6 +51,21 @@ type Handler struct {
 	syncService     *sync.Service
 	prepareProposal sdk.PrepareProposalHandler
 	processProposal sdk.ProcessProposalHandler
+	serializer      Serializer
+}
+
+type Serializer interface {
+	ToSdkTxBytes(
+		input consensus.BeaconKitBlock,
+		gasLimit uint64,
+	) ([]byte, error)
+	// FromSdkTxBytes(
+	// 	input []byte,
+	// ) (consensus.BeaconKitBlock, error)
+}
+
+func (h *Handler) SetSerializer(s Serializer) {
+	h.serializer = s
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -114,9 +130,26 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
-	// Inject the beacon kit block into the proposal.
-	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
-	return resp, nil
+	bz, err := h.serializer.ToSdkTxBytes(block, 100000)
+	if err != nil {
+		return nil, err
+	}
+
+	// Combine the payload envelope with the validator transactions.
+	allTxs := [][]byte{beaconBz, bz}
+
+	// If there are validator transactions, append them to the allTxs slice.
+	if len(resp.Txs) > 0 {
+		allTxs = append(allTxs, resp.Txs...)
+	}
+
+	// Return the payload and validator transactions as a transaction in the
+	// proposal.
+	return &abci.ResponsePrepareProposal{Txs: allTxs}, err
+
+	// // Inject the beacon kit block into the proposal.
+	// resp.Txs = append([][]byte{beaconBz, bz}, resp.Txs...)
+	// return resp, nil
 }
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
@@ -173,6 +206,7 @@ func (h *Handler) ProcessProposalHandler(
 	//
 	// TODO: there has to be a more friendly way to handle this, but hey it
 	// works.
+
 	pos := h.cfg.BeaconBlockPosition
 	beaconBz := req.Txs[pos]
 	defer func() {

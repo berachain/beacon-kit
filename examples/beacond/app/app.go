@@ -35,6 +35,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	authante "cosmossdk.io/x/auth/ante"
 	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
@@ -51,13 +52,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
+
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/lib/signing"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
+	"github.com/itsdevbear/bolaris/runtime/ante"
+	beacontypes "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/v1alpha1"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 //nolint:gochecknoinits // from sdk.
@@ -132,11 +139,15 @@ func NewBeaconKitApp(
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
 			AppConfig(),
+			depinject.Provide(
+				signing.ProvideNoopGetSigners[*beacontypes.BeaconKitBlockContainer],
+			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
 				// supply the logger
 				logger,
+				// signing.ProvideNoopGetSigners[*beacontypes.BeaconKitBlockContainer](),
 			),
 		)
 	)
@@ -178,6 +189,26 @@ func NewBeaconKitApp(
 	if err = app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
 		panic(err)
 	}
+
+	// Build cosmos ante handler for non-evm transactions.
+	cosmHandler, err := authante.NewAnteHandler(
+		authante.HandlerOptions{
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
+			FeegrantKeeper:  nil,
+			SigGasConsumer:  authante.DefaultSigVerificationGasConsumer,
+			SignModeHandler: app.txConfig.SignModeHandler(),
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	app.SetAnteHandler(
+		ante.NewAnteHandler(
+			cosmHandler,
+		).AnteHandler(),
+	)
 
 	/**** End of BeaconKit Configuration ****/
 
@@ -236,11 +267,38 @@ func (app *BeaconApp) RegisterAPIRoutes(
 		panic(fmt.Errorf("unexpected server context type: %T", v))
 	}
 
+	x := func(envelope consensus.BeaconKitBlock) (*beacontypes.BeaconKitBlockContainer, error) {
+		bz, err := envelope.MarshalSSZ()
+		if err != nil {
+			return nil, fmt.Errorf("failed to wrap payload: %w", err)
+		}
+
+		return &beacontypes.BeaconKitBlockContainer{
+			SszBlockBytes: bz,
+		}, nil
+	}
+
+	// p.WrappedMiner.Init(libtx.NewSerializer[*engine.ExecutionPayloadEnvelope](
+	// 	clientCtx.TxConfig, evmtypes.WrapPayload))
+	serializer := signing.NewSerializer[consensus.BeaconKitBlock](
+		apiSvr.ClientCtx.TxConfig,
+		x,
+	)
+
+	app.BeaconKitRunner.ProposalHandler.SetSerializer(serializer)
+
 	// Initial check for execution client sync.
 	go app.BeaconKitRunner.StartServices(
 		app.NewContext(true),
 		apiSvr.ClientCtx,
 	)
+
+	var bs = new(blockchain.Service)
+	err := app.BeaconKitRunner.FetchService(&bs)
+	if err != nil {
+		panic(err)
+	}
+	app.BeaconKeeper.SetChainService(bs)
 
 	app.BeaconKitRunner.SetCometCfg(v.Config)
 }

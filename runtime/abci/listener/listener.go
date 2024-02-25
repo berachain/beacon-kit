@@ -27,13 +27,11 @@ package listener
 
 import (
 	"context"
-	"errors"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -72,12 +70,9 @@ func (l *BeaconListener) ListenFinalizeBlock(
 	// AppHash, which is before here. This moved earlier forkchoice call
 	// should 100% not be finalizing
 	// the block on the EL.
-	if err := l.chainService.PostFinalizeBeaconBlock(
+	_ = l.chainService.PostFinalizeBeaconBlock(
 		ctx, primitives.Slot(req.Height), res.AppHash,
-	); err != nil && !errors.Is(err, builder.ErrLocalBuildingDisabled) {
-		return err
-	}
-
+	)
 	return nil
 }
 

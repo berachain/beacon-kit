@@ -30,6 +30,7 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
@@ -38,7 +39,8 @@ import (
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	beaconStore *store.BeaconStore
+	beaconStore  *store.BeaconStore
+	chainService *blockchain.Service
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -75,4 +77,8 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Eth1GenesisHash: k.BeaconState(ctx).GenesisEth1Hash().Hex(),
 	}
+}
+
+func (k *Keeper) SetChainService(s *blockchain.Service) {
+	k.chainService = s
 }

@@ -10,7 +10,7 @@ replace (
 	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240222144449-b304cf755682
 	cosmossdk.io/tools/confix => cosmossdk.io/tools/confix v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240222144449-b304cf755682
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240222144449-b304cf755682
+	cosmossdk.io/x/auth => github.com/berachain/cosmos-sdk/x/auth v0.0.0-20240224230101-66d985c005a2
 	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240222144449-b304cf755682
@@ -54,6 +54,7 @@ require (
 	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/tx v0.13.0
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
@@ -101,7 +102,6 @@ require (
 	connectrpc.com/connect v1.14.0 // indirect
 	connectrpc.com/otelconnect v0.7.0 // indirect
 	cosmossdk.io/x/accounts v0.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/x/tx v0.13.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/4meepo/tagalign v1.3.3 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect

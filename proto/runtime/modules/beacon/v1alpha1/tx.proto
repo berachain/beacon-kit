@@ -23,22 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+syntax = "proto3";
+package runtime.modules.beacon.v1alpha1;
 
-import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
-)
+import "cosmos/msg/v1/msg.proto";
+// import "types/consensus/v1/block.proto";
+// import "types/consensus/v1/block_blinded.proto";
 
-const ModuleName = "beacon"
+option go_package = "github.com/itsdevbear/bolaris/runtime/modules/beacon/types";
 
-// RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations(
-		(*sdk.Msg)(nil),
-		&BeaconKitBlockContainer{},
-	)
+// Msg defines the bank Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
 
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+  // Send defines a method for sending coins from one account to another account.
+  rpc ProcessBeaconBlock(BeaconKitBlockContainer) returns (ProcessBeaconBlockResponse);
 }
+
+// BeaconKitBlockContainer is a container for beacon block.
+message BeaconKitBlockContainer {
+  // // block is the beacon block.
+  // oneof block {}
+  bytes ssz_block_bytes = 1;
+}
+
+// BeaconKitBlockContainerResp is a container for beacon block response.
+message ProcessBeaconBlockResponse {}

@@ -43,17 +43,19 @@ import (
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/health"
 	"github.com/itsdevbear/bolaris/io/jwt"
+	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg      *config.Config
-	cometCfg CometBFTConfig
-	logger   log.Logger
-	fscp     BeaconStateProvider
-	services *service.Registry
+	cfg             *config.Config
+	cometCfg        CometBFTConfig
+	logger          log.Logger
+	fscp            BeaconStateProvider
+	services        *service.Registry
+	ProposalHandler *proposal.Handler
 
 	stopCh chan struct{}
 }
@@ -199,6 +201,12 @@ func NewDefaultBeaconKitRuntime(
 		WithLogger(logger),
 		WithServiceRegistry(svcRegistry),
 	)
+}
+
+func (r *BeaconKitRuntime) FetchService(
+	service interface{},
+) error {
+	return r.services.FetchService(service)
 }
 
 // StartServices starts the services.

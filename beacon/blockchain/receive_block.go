@@ -101,7 +101,7 @@ func (s *Service) validateStateTransition(
 		return err
 	}
 
-	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	finalizedHash := s.BeaconState(ctx).GetSafeEth1BlockHash()
 	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",

@@ -115,6 +115,10 @@ func (s *Service) notifyForkchoiceUpdate(
 		FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
 	}
 
+	fmt.Println("ForkchoiceState")
+	fmt.Println("HEAD", common.Hash(fcs.GetHeadBlockHash()))
+	fmt.Println("SAFE", common.Hash(fcs.GetSafeBlockHash()))
+	fmt.Println("FINALIZED", common.Hash(fcs.GetFinalizedBlockHash()))
 	// Notify the execution engine of the forkchoice update.
 	payloadID, _, err := s.engine.ForkchoiceUpdated(
 		ctx,

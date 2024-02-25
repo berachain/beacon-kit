@@ -26,19 +26,36 @@
 package types
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	protov2 "google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/protoadapt"
 )
 
-const ModuleName = "beacon"
+// // HasMsgs defines an interface a transaction must fulfill.
+// HasMsgs interface {
+// 	// GetMsgs gets the all the transaction's messages.
+// 	GetMsgs() []Msg
+// }
 
-// RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations(
-		(*sdk.Msg)(nil),
-		&BeaconKitBlockContainer{},
-	)
+// // Tx defines an interface a transaction must fulfill.
+// Tx interface {
+// 	HasMsgs
 
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+// 	// GetMsgsV2 gets the transaction's messages as
+// google.golang.org/protobuf/proto.Message's.
+// 	GetMsgsV2() ([]protov2.Message, error)
+// }
+
+var _ sdk.Tx = (*BeaconKitBlockContainer)(nil)
+
+// BeaconKitBlockContainer is a wrapper around a BeaconKitBlock that implements
+// the
+// sdk.Tx interface.
+
+func (bc *BeaconKitBlockContainer) GetMsgs() []sdk.Msg {
+	return []sdk.Msg{bc}
+}
+
+func (bc *BeaconKitBlockContainer) GetMsgsV2() ([]protov2.Message, error) {
+	return []protov2.Message{protoadapt.MessageV2Of(bc)}, nil
 }

@@ -27,6 +27,7 @@ package evm
 
 import (
 	"cosmossdk.io/core/appmodule"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
@@ -40,6 +41,7 @@ var (
 	_ appmodule.HasServices = AppModule{}
 	_ appmodule.AppModule   = AppModule{}
 	_ module.HasGenesis     = AppModule{}
+	// _ module.HasProposalMsgs = AppModule{}.
 )
 
 // AppModule implements an application module for the evm module.
@@ -61,9 +63,13 @@ func (am AppModule) Name() string {
 	return types.ModuleName
 }
 
+func (am AppModule) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
+}
+
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
-	// types.RegisterMsgServiceServer(registrar, am.keeper)
+func (am AppModule) RegisterServices(registrar grpc.ServiceRegistrar) error {
+	types.RegisterMsgServer(registrar, am.keeper)
 	return nil
 }
 
