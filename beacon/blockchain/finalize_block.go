@@ -66,13 +66,16 @@ func (s *Service) PostFinalizeBeaconBlock(
 	parentBeaconBlockHash []byte,
 ) error {
 	var err error
-	if !s.BuilderCfg().LocalBuilderEnabled {
-		err = s.sendFCU(
-			ctx, s.BeaconState(ctx).GetSafeEth1BlockHash(), slot)
-	} else {
+	if s.BuilderCfg().LocalBuilderEnabled {
 		err = s.sendFCUWithAttributes(
-			ctx, s.BeaconState(ctx).GetSafeEth1BlockHash(), slot, parentBeaconBlockHash,
+			ctx,
+			s.BeaconState(ctx).GetSafeEth1BlockHash(),
+			slot,
+			parentBeaconBlockHash,
 		)
+	} else {
+		err = s.sendFCU(
+			ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
 	}
 
 	return err

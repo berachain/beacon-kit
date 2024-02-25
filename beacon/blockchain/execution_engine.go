@@ -38,14 +38,10 @@ import (
 func (s *Service) sendFCU(
 	ctx context.Context,
 	headEth1Hash common.Hash,
-	proposingSlot primitives.Slot,
 ) error {
-	// Send the forkchoice update to the execution client via the execution
-	// service.
 	_, err := s.es.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
-			HeadEth1Hash:  headEth1Hash,
-			ProposingSlot: proposingSlot,
+			HeadEth1Hash: headEth1Hash,
 		})
 	return err
 }

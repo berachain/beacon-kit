@@ -83,7 +83,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// If the block is valid, we can process it.
 	return s.postBlockProcess(
-		ctx, blk, isValidPayload,
+		ctx, isValidPayload,
 	)
 }
 

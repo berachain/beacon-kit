@@ -29,20 +29,17 @@ import (
 	"context"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock,
 	isValidPayload bool,
 ) error {
 	if isValidPayload {
 		return nil
 	}
 
-	nextSlot := blk.GetSlot() + 1
 	telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
 
 	// If the incoming payload for this block is not valid, we submit a
@@ -52,7 +49,7 @@ func (s *Service) postBlockProcess(
 	// issue?
 	// TODO: Should introduce the concept of missed slots?
 	if err := s.sendFCU(
-		ctx, s.BeaconState(ctx).GetLastValidHead(), nextSlot,
+		ctx, s.BeaconState(ctx).GetLastValidHead(),
 	); err != nil {
 		s.Logger().Error("failed to send forkchoice update", "error", err)
 	}
