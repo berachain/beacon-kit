@@ -27,12 +27,13 @@ package localbuilder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
-	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -80,7 +81,7 @@ func (s *Service) BuildLocalPayload(
 		parentBeaconBlockRoot,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create payload attributes")
+		return nil, fmt.Errorf("could not create payload attributes: %w", err)
 	}
 
 	fcuConfig := &execution.FCUConfig{
@@ -99,15 +100,33 @@ func (s *Service) BuildLocalPayload(
 		ctx, fcuConfig,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "error when notifying forkchoice update")
+		return nil, fmt.Errorf(
+			"error when notifying forkchoice update: %w",
+			err,
+		)
 	} else if payloadID == nil {
 		s.Logger().Error("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
 			"slot", fcuConfig.ProposingSlot,
 		)
 
-		s.SetStatus(ErrNilPayloadOnValidResponse)
-		return nil, nil
+		prev, err := s.es.ExecutionBlockByNumber(
+			ctx,
+			rpc.LatestBlockNumber,
+			true,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if payloadID == nil {
+			s.SetStatus(ErrNilPayloadOnValidResponse)
+			return nil, ErrNilPayloadOnValidResponse
+		}
+
+		fmt.Println("RIP", prev.Hash, payloadID)
+
+		return payloadID, nil
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes",
@@ -155,12 +174,14 @@ func (s *Service) GetLocalPayload(
 	// this particular slot and parent block root. If we have, and we are able
 	// to
 	// retrieve it from our execution client, we can return it immediately.
+	fmt.Println("#333")
 	payload, blobsBundle, overrideBuilder, err := s.getPayloadFromCachedPayloadIDs(
 		ctx,
 		slot,
 		parentBeaconBlockRoot,
 	)
 	if err == nil {
+		fmt.Println("#444")
 		return payload, blobsBundle, overrideBuilder, nil
 	}
 
@@ -196,9 +217,11 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 		slot,
 		[32]byte(parentBeaconBlockRoot),
 	)
+	fmt.Println("HENLO GOODBYE")
 	if found && (payloadID != primitives.PayloadID{}) {
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
+		fmt.Println("PAYLOAD ID? NIL?", payloadID)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
 				ctx, primitives.PayloadID(payloadID[:]), slot,
@@ -232,6 +255,10 @@ func (s *Service) buildAndWaitForLocalPayload(
 		ctx, parentEth1Hash, slot, timestamp, parentBeaconBlockRoot,
 	)
 	if err != nil {
+		if errors.Is(err, ErrNilPayloadOnValidResponse) {
+			return nil, nil, false, nil
+		}
+
 		return nil, nil, false, err
 	}
 

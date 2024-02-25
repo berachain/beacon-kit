@@ -28,6 +28,7 @@ package localbuilder
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -45,4 +46,10 @@ type ExecutionService interface {
 	GetPayload(
 		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+
+	ExecutionBlockByNumber(
+		ctx context.Context,
+		num rpc.BlockNumber,
+		withTxs bool,
+	) (*enginev1.ExecutionBlock, error)
 }

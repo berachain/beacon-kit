@@ -92,12 +92,17 @@ func NewHandler(
 func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
+	fmt.Println("HELLOO SER THIS IS MY PREPARE PROPOSAL")
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
+
+	fmt.Println("X")
 
 	if err := h.syncService.Status(); err != nil {
 		return nil, err
 	}
+
+	fmt.Println("X")
 
 	// TODO abstract this into BeaconState()
 	parentRoot := ctx.BlockHeader().AppHash
@@ -105,6 +110,7 @@ func (h *Handler) PrepareProposalHandler(
 		parentRoot = make([]byte, 32) //nolint:gomnd //temp
 	}
 
+	// Introducing a more reliable way to generate a random sleep duration
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
@@ -113,10 +119,14 @@ func (h *Handler) PrepareProposalHandler(
 		ctx, primitives.Slot(req.Height), parentRoot,
 	)
 
+	fmt.Println("X")
+
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
 		return nil, err
 	}
+
+	fmt.Println("X")
 
 	// Marshal the block into bytes.
 	beaconBz, err := block.MarshalSSZ()
@@ -124,11 +134,15 @@ func (h *Handler) PrepareProposalHandler(
 		logger.Error("failed to marshal block", "error", err)
 	}
 
+	fmt.Println("X")
+
 	// Run the remainder of the prepare proposal handler.
 	resp, err := h.prepareProposal(ctx, req)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("X")
 
 	bz, err := h.serializer.ToSdkTxBytes(block, 100000)
 	if err != nil {
@@ -170,7 +184,7 @@ func (h *Handler) ProcessProposalHandler(
 	)
 	if err != nil {
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_REJECT}, err
+			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 
 	// TODO abstract this into BeaconState()

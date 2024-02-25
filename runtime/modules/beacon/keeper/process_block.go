@@ -40,7 +40,9 @@ func (k *Keeper) ProcessBeaconBlock(
 	beaconBlockBz *types.BeaconKitBlockContainer,
 ) (*types.ProcessBeaconBlockResponse, error) {
 	cctx := sdk.UnwrapSDKContext(ctx)
-	if cctx.BlockHeight()%3 == 0 || cctx.BlockHeight()%4 == 0 {
+	if cctx.BlockHeight()%2 == 0 || cctx.BlockHeight()%4 == 0 ||
+		cctx.BlockHeight()%5 == 0 ||
+		cctx.BlockHeight()%6 == 0 {
 		k.chainService.Logger().Error("MISSED SLOT", "slot", cctx.BlockHeight())
 		return nil, errors.New("$$$$ MISSED SLOT $$$$$$$")
 	}

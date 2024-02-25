@@ -30,6 +30,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -110,4 +111,12 @@ func (s *Service) ProcessFinalizedLogs(
 	blkNum uint64,
 ) error {
 	return s.lp.ProcessFinalizedETH1Block(ctx, new(big.Int).SetUint64(blkNum))
+}
+
+func (s *Service) ExecutionBlockByNumber(
+	ctx context.Context,
+	num rpc.BlockNumber,
+	withTxs bool,
+) (*enginev1.ExecutionBlock, error) {
+	return s.engine.ExecutionBlockByNumber(ctx, num, withTxs)
 }

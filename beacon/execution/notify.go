@@ -32,6 +32,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/config/version"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
@@ -131,6 +132,7 @@ func (s *Service) notifyForkchoiceUpdate(
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"slot", fcuConfig.ProposingSlot,
 		)
+
 		telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil
 	case errors.Is(err, eth.ErrInvalidPayloadStatus):
@@ -139,6 +141,15 @@ func (s *Service) notifyForkchoiceUpdate(
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
+		prev, err := s.engine.ExecutionBlockByNumber(
+			ctx,
+			rpc.SafeBlockNumber,
+			false,
+		)
+		if err != nil {
+			return nil, err
+		}
+
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
 			// TODO: we should get the last valid head off of the previous
 			// block.
@@ -148,8 +159,8 @@ func (s *Service) notifyForkchoiceUpdate(
 			// a little coupled.
 			// TODO: right now GetLastValidHead() is going to either return
 			// the last valid block that was built, OR the
-			// last safe block, which tbh is also okay.
-			HeadEth1Hash:  beaconState.GetLastValidHead(),
+			// last safe block, which tbh is also okay
+			HeadEth1Hash:  prev.Hash,
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,
 		})

@@ -30,6 +30,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus"
@@ -75,6 +76,12 @@ type Caller interface {
 		ctx context.Context,
 		hash common.Hash,
 	) (*gethcoretypes.Header, error)
+
+	ExecutionBlockByNumber(
+		ctx context.Context,
+		num rpc.BlockNumber,
+		withTxs bool,
+	) (*enginev1.ExecutionBlock, error)
 }
 
 // ExecutionPayloadRebuilder specifies a service capable of reassembling a

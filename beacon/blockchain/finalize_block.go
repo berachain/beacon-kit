@@ -69,23 +69,14 @@ func (s *Service) FinalizeBeaconBlock(
 // PostFinalizeBeaconBlock is called after a beacon block has been finalized.
 func (s *Service) PostFinalizeBeaconBlock(
 	ctx context.Context,
-	slot primitives.Slot,
+	currentSlot primitives.Slot,
 	parentBeaconBlockHash []byte,
 ) error {
-	// TEMPORARY, needs to be handled better, this is a hack.
-	// TEST TO SEE IF RESETTING THE HEAD.
-	if err := s.sendFCU(
-		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash(), slot+1,
-	); err != nil {
-		s.Logger().
-			Error("failed to notify forkchoice update in preblocker", "error", err)
-		return err
-	}
 
 	_, err := s.bs.BuildLocalPayload(
 		ctx,
 		s.BeaconState(ctx).GetSafeEth1BlockHash(),
-		slot+1,
+		currentSlot+1,
 		// .Add(time.Second) is a temporary fix to avoid issues,
 		// .Add(timeout_commit) is likely more proper here.
 		//#nosec:G701 // TODO: Really need to figure out this time thing.
@@ -98,6 +89,16 @@ func (s *Service) PostFinalizeBeaconBlock(
 		s.Logger().Info(
 			"local building is disabled, skipping payload building...",
 		)
+
+		// TEMPORARY, needs to be handled better, this is a hack.
+		// TEST TO SEE IF RESETTING THE HEAD.
+		if err := s.sendFCU(
+			ctx, s.BeaconState(ctx).GetSafeEth1BlockHash(), currentSlot,
+		); err != nil {
+			s.Logger().
+				Error("failed to notify forkchoice update in preblocker", "error", err)
+			return err
+		}
 
 		return nil
 	case err != nil:

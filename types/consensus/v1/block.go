@@ -47,6 +47,11 @@ func (b *BeaconKitBlockDeneb) Version() int {
 func (b *BeaconKitBlockDeneb) AttachExecution(
 	executionData enginetypes.ExecutionPayload,
 ) error {
+	if executionData == nil {
+		b.PayloadValue = make([]byte, 32) //nolint:gomnd // 32 bytes for uint256.
+		return nil
+	}
+
 	var ok bool
 	b.Body.ExecutionPayload, ok = executionData.
 		ToProto().(*enginev1.ExecutionPayloadDeneb)
