@@ -55,6 +55,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
+	cmdconfig "github.com/itsdevbear/bolaris/examples/beacond/cmd/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
@@ -132,6 +133,9 @@ func NewBeaconKitApp(
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
 			AppConfig(),
+			depinject.Provide(
+				cmdconfig.ProvideClientContext,
+			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,

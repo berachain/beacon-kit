@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/core/appmodule"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
@@ -47,9 +48,10 @@ var _ state.BeaconStateProvider = &Keeper{}
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
+	clientCtx client.Context,
 ) *Keeper {
 	return &Keeper{
-		beaconStore: store.NewBeaconStore(env.KVStoreService),
+		beaconStore: store.NewBeaconStore(env.KVStoreService, clientCtx),
 	}
 }
 

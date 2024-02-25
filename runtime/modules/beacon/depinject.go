@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	"github.com/cosmos/cosmos-sdk/client"
 	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 )
@@ -44,8 +45,9 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	Config      *modulev1alpha1.Module
-	Environment appmodule.Environment
+	Config        *modulev1alpha1.Module
+	Environment   appmodule.Environment
+	ClientContext client.Context
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -60,6 +62,7 @@ type DepInjectOutput struct {
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Environment,
+		in.ClientContext,
 	)
 	m := NewAppModule(k)
 
