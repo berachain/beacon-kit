@@ -42,12 +42,12 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg             *config.ABCI
-	builderService  *builder.Service
-	chainService    *blockchain.Service
-	syncService     *sync.Service
-	prepareProposal sdk.PrepareProposalHandler
-	processProposal sdk.ProcessProposalHandler
+	cfg            *config.ABCI
+	builderService *builder.Service
+	chainService   *blockchain.Service
+	syncService    *sync.Service
+	nextPrepare    sdk.PrepareProposalHandler
+	nextProcess    sdk.ProcessProposalHandler
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -56,16 +56,16 @@ func NewHandler(
 	builderService *builder.Service,
 	syncService *sync.Service,
 	chainService *blockchain.Service,
-	prepareProposal sdk.PrepareProposalHandler,
-	processProposal sdk.ProcessProposalHandler,
+	nextPrepare sdk.PrepareProposalHandler,
+	nextProcess sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
-		cfg:             cfg,
-		builderService:  builderService,
-		syncService:     syncService,
-		chainService:    chainService,
-		prepareProposal: prepareProposal,
-		processProposal: processProposal,
+		cfg:            cfg,
+		builderService: builderService,
+		syncService:    syncService,
+		chainService:   chainService,
+		nextPrepare:    nextPrepare,
+		nextProcess:    nextProcess,
 	}
 }
 
@@ -102,7 +102,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Run the remainder of the prepare proposal handler.
-	resp, err := h.prepareProposal(ctx, req)
+	resp, err := h.nextPrepare(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -160,5 +160,5 @@ func (h *Handler) ProcessProposalHandler(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
 
-	return h.processProposal(ctx, req)
+	return h.nextProcess(ctx, req)
 }

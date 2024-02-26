@@ -28,9 +28,7 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/sync"
@@ -39,28 +37,22 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
 
-// CosmosApp is an interface that defines the methods needed for the Cosmos
-// setup.
-type CosmosApp interface {
-	Logger() log.Logger
-	baseapp.ProposalTxVerifier
-	SetPrepareProposal(sdk.PrepareProposalHandler)
-	SetProcessProposal(sdk.ProcessProposalHandler)
-	SetVerifyVoteExtensionHandler(sdk.VerifyVoteExtensionHandler)
-	PreBlocker() sdk.PreBlocker
-	SetPreBlocker(sdk.PreBlocker)
-	SetStreamingManager(storetypes.StreamingManager)
-	Mempool() mempool.Mempool
-}
-
-func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
+func (r *BeaconKitRuntime) BuildABCIComponents(
+	nextPrepare sdk.PrepareProposalHandler,
+	nextProcess sdk.ProcessProposalHandler,
+	nextPreblocker sdk.PreBlocker,
+	logger log.Logger,
+) (
+	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
+	sdk.PreBlocker, storetypes.StreamingManager,
+) {
 	var (
 		chainService   *blockchain.Service
 		builderService *builder.Service
 		syncService    *sync.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
-		return err
+		panic(err)
 	}
 
 	if err := r.services.FetchService(&syncService); err != nil {
@@ -71,37 +63,28 @@ func (r *BeaconKitRuntime) RegisterApp(app CosmosApp) error {
 		panic(err)
 	}
 
-	app.SetStreamingManager(
-		storetypes.StreamingManager{
-			ABCIListeners: []storetypes.ABCIListener{
-				listener.NewBeaconListener(
-					app.Logger().With("module", "beacon-listener"),
-					chainService,
-				),
-			},
-		},
-	)
-	// Build and Register Prepare and Process Proposal Handlers.
-	defaultProposalHandler := baseapp.NewDefaultProposalHandler(
-		app.Mempool(),
-		app,
-	)
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
 		builderService,
 		syncService,
 		chainService,
-		defaultProposalHandler.PrepareProposalHandler(),
-		defaultProposalHandler.ProcessProposalHandler(),
+		nextPrepare,
+		nextProcess,
 	)
-	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler)
-	app.SetProcessProposal(proposalHandler.ProcessProposalHandler)
 
-	// Build and Register Preblock Handler.
-	app.SetPreBlocker(
-		preblock.NewBeaconPreBlockHandler(
-			&r.cfg.ABCI, r.logger, chainService, syncService, nil,
-		).PreBlocker(),
-	)
-	return nil
+	preBlocker := preblock.NewBeaconPreBlockHandler(
+		&r.cfg.ABCI, r.logger, chainService, syncService, nextPreblocker,
+	).PreBlocker()
+
+	return proposalHandler.PrepareProposalHandler,
+		proposalHandler.ProcessProposalHandler,
+		preBlocker,
+		storetypes.StreamingManager{
+			ABCIListeners: []storetypes.ABCIListener{
+				listener.NewBeaconListener(
+					logger.With("module", "beacon-listener"),
+					chainService,
+				),
+			},
+		}
 }

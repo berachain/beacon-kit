@@ -109,9 +109,8 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit required keepers
-	BeaconKeeper    *beaconkeeper.Keeper
-	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
-	stopSyncCh      chan struct{}
+	BeaconKeeper     *beaconkeeper.Keeper
+	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -124,25 +123,25 @@ func NewBeaconKitApp(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
-	var (
-		app = &BeaconApp{
-			stopSyncCh: make(chan struct{}, 1),
-		}
-		appBuilder *runtime.AppBuilder
-		// merge the AppConfig and other configuration in one config
-		appConfig = depinject.Configs(
+	app := &BeaconApp{}
+	appBuilder := &runtime.AppBuilder{}
+	if err := depinject.Inject(
+		depinject.Configs(
 			AppConfig(),
+			depinject.Provide(
+				beaconkitruntime.ProvideRuntime,
+			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
 				// supply the logger
 				logger,
+				// supply beaconkit options
+				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
+				// supply our custom staking wrapper.
+				stakingwrapper.NewKeeper(app.StakingKeeper),
 			),
-		)
-	)
-
-	if err := depinject.Inject(
-		appConfig,
+		),
 		&appBuilder,
 		&app.appCodec,
 		&app.legacyAmino,
@@ -157,6 +156,7 @@ func NewBeaconKitApp(
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
+		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
 	}
@@ -165,24 +165,26 @@ func NewBeaconKitApp(
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	/**** Start of BeaconKit Configuration ****/
-	var err error
-	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		beaconkitconfig.MustReadConfigFromAppOpts(appOpts), app.BeaconKeeper,
-		stakingwrapper.NewKeeper(app.StakingKeeper),
+	// Build all the ABCI Componenets.
+	prepare, process, preBlocker, streamingMgr := app.BeaconKitRuntime.BuildABCIComponents(
+		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
+			PrepareProposalHandler(),
+		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
+			ProcessProposalHandler(),
+		nil,
 		app.Logger(),
-	); err != nil {
-		panic(err)
-	}
+	)
 
-	if err = app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
-		panic(err)
-	}
+	// Set all the newly built ABCI Componenets on the App.
+	app.SetPrepareProposal(prepare)
+	app.SetProcessProposal(process)
+	app.SetPreBlocker(preBlocker)
+	app.SetStreamingManager(streamingMgr)
 
 	/**** End of BeaconKit Configuration ****/
 
 	// register streaming services
-	if err = app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
+	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		panic(err)
 	}
 
@@ -192,7 +194,7 @@ func NewBeaconKitApp(
 	}
 
 	// Load the app.
-	if err = app.Load(loadLatest); err != nil {
+	if err := app.Load(loadLatest); err != nil {
 		panic(err)
 	}
 
@@ -242,15 +244,15 @@ func (app *BeaconApp) RegisterAPIRoutes(
 	}
 
 	// Initial check for execution client sync.
-	go app.BeaconKitRunner.StartServices(
+	go app.BeaconKitRuntime.StartServices(
 		app.NewContext(true),
 		apiSvr.ClientCtx,
 	)
 
-	app.BeaconKitRunner.SetCometCfg(v.Config)
+	app.BeaconKitRuntime.SetCometCfg(v.Config)
 }
 
 func (app *BeaconApp) Close() error {
-	app.BeaconKitRunner.Close()
+	app.BeaconKitRuntime.Close()
 	return app.App.Close()
 }

@@ -110,10 +110,6 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 
 	# Run this to ensure everything worked and that the genesis file is setup correctly
 	./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1
-
-	if [[ $1 == "pending" ]]; then
-		echo "pending mode is on, please wait for the first block committed."
-	fi
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m
