@@ -25,7 +25,10 @@
 
 package staking
 
-import "github.com/itsdevbear/bolaris/runtime/service"
+import (
+	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/runtime/service"
+)
 
 // WithBaseService sets the BaseService for the Service.
 func WithBaseService(
@@ -44,6 +47,18 @@ func WithValsetChangeProvider(
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.vcp = vcp
+		return nil
+	}
+}
+
+// WithStakingContractABI returns an Option that sets the ABI
+// of the staking contract for the Service.
+func WithStakingContractABI() service.Option[Service] {
+	return func(s *Service) error {
+		var err error
+		if s.abi, err = abi.StakingMetaData.GetAbi(); err != nil {
+			return err
+		}
 		return nil
 	}
 }

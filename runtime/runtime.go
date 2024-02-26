@@ -137,6 +137,7 @@ func NewDefaultBeaconKitRuntime(
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.WithName("staking")),
 		staking.WithValsetChangeProvider(vcp),
+		staking.WithStakingContractABI(),
 	)
 
 	// NewClient wraps the eth1 client and provides the interface for the

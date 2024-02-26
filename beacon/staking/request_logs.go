@@ -30,7 +30,6 @@ import (
 
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
@@ -58,13 +57,9 @@ var (
 // to be sent to the log factory in the execution service.
 func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
 	depositContractAddr := s.BeaconCfg().Execution.DepositContractAddress
-	depositContractAbi, err := abi.StakingMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
 
 	allocator := logs.New[logs.TypeAllocator](
-		logs.WithABI(depositContractAbi),
+		logs.WithABI(s.abi),
 		logs.WithNameAndType(depositSig, depositName, depositType),
 		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
 	)
