@@ -1,0 +1,4 @@
+participants:
+  - el_client_type: geth
+    cl_client_type: beaconkit
+additional_services: []
