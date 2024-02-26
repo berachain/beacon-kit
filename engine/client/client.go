@@ -100,7 +100,7 @@ func (s *EngineClient) Start(ctx context.Context) {
 	go s.jwtRefreshLoop(ctx)
 }
 
-// Status calls verifies the chain ID via JSON-RPC. By proxy
+// Status verifies the chain ID via JSON-RPC. By proxy
 // we will also verify the connection to the execution client.
 func (s *EngineClient) Status() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.RPCTimeout)
