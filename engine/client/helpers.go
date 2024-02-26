@@ -23,10 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package client
 
 import (
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
@@ -37,16 +36,16 @@ func processPayloadStatusResult(
 ) ([]byte, error) {
 	switch result.GetStatus() {
 	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
-		return nil, eth.ErrInvalidBlockHashPayloadStatus
+		return nil, ErrInvalidBlockHashPayloadStatus
 	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
-		return nil, eth.ErrAcceptedSyncingPayloadStatus
+		return nil, ErrAcceptedSyncingPayloadStatus
 	case enginev1.PayloadStatus_INVALID:
-		return result.GetLatestValidHash(), eth.ErrInvalidPayloadStatus
+		return result.GetLatestValidHash(), ErrInvalidPayloadStatus
 	case enginev1.PayloadStatus_VALID:
 		return result.GetLatestValidHash(), nil
 	case enginev1.PayloadStatus_UNKNOWN:
 		fallthrough
 	default:
-		return nil, eth.ErrUnknownPayloadStatus
+		return nil, ErrUnknownPayloadStatus
 	}
 }

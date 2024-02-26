@@ -26,20 +26,8 @@
 package ethclient
 
 import (
-	"context"
-
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
-
-// GethRPCClient is an interface for the Geth RPC client.
-type GethRPCClient interface {
-	CallContext(
-		ctx context.Context,
-		result interface{},
-		method string,
-		args ...interface{},
-	) error
-}
 
 // ForkchoiceUpdatedResponse is the response kind received by the
 // engine_forkchoiceUpdatedV1 endpoint.

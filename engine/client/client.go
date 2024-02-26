@@ -23,43 +23,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package client
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/config/version"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/io/http"
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
-// Caller is implemented by engineClient.
-var _ Caller = (*engineClient)(nil)
+// Caller is implemented by EngineClient.
+var _ Caller = (*EngineClient)(nil)
 
-// engineClient is a struct that holds a pointer to an Eth1Client.
-type engineClient struct {
+// EngineClient is a struct that holds a pointer to an Eth1Client.
+type EngineClient struct {
 	*eth.Eth1Client
 
-	capabilities  map[string]struct{}
-	engineTimeout time.Duration
-	beaconCfg     *config.Beacon
-	logger        log.Logger
+	cfg          *config.Engine
+	beaconCfg    *config.Beacon
+	capabilities map[string]struct{}
+	logger       log.Logger
+	isConnected  atomic.Bool
+	jwtSecret    *jwt.Secret
 }
 
-// New creates a new engine client engineClient.
+// New creates a new engine client EngineClient.
 // It takes an Eth1Client as an argument and returns a pointer to an
-// engineClient.
-func New(opts ...Option) Caller {
-	ec := &engineClient{
+// EngineClient.
+func New(opts ...Option) *EngineClient {
+	ec := &EngineClient{
+		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
 	}
+
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
 			panic(err)
@@ -70,158 +75,138 @@ func New(opts ...Option) Caller {
 }
 
 // Start starts the engine client.
-func (s *engineClient) Start(ctx context.Context) {
-	s.Eth1Client.Start(ctx)
+func (s *EngineClient) Start(ctx context.Context) {
+	// Attempt an initial connection.
+	s.tryConnectionAfter(ctx, 0)
+
+	// We will spin up the execution client connection in a
+	// loop until it is connected.
+	for !s.isConnected.Load() {
+		// If we enter this loop, the above connection attempt failed.
+		s.logger.Info(
+			"Waiting for connection to execution client...",
+			"engine-dial-url", s.cfg.RPCDialURL.String(),
+		)
+		s.tryConnectionAfter(ctx, s.cfg.RPCStartupCheckInterval)
+	}
+
+	// Exchange capabilities with the execution client.
 	if _, err := s.ExchangeCapabilities(ctx); err != nil {
 		s.logger.Error("failed to exchange capabilities", "err", err)
 	}
+
+	// If we reached this point, the execution client is connected so we can
+	// start the jwt refresh loop.
+	go s.jwtRefreshLoop(ctx)
 }
 
-// Status calls the engine_statusV1 method via JSON-RPC.
-func (s *engineClient) Status() error {
-	ctx, cancel := context.WithTimeout(context.Background(), s.engineTimeout)
+// Status verifies the chain ID via JSON-RPC. By proxy
+// we will also verify the connection to the execution client.
+func (s *EngineClient) Status() error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.RPCTimeout)
 	defer cancel()
-	return s.Eth1Client.CheckEth1ConnectionAndChainID(ctx)
+	return s.VerifyChainID(ctx)
 }
 
-// NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *engineClient) NewPayload(
-	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
-) ([]byte, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
-	defer cancel()
-
-	// Call the appropriate RPC method based on the payload version.
-	result, err := s.callNewPayloadRPC(
-		dctx,
-		payload,
-		versionedHashes,
-		parentBlockRoot,
-	)
+// Checks the chain ID of the execution client to ensure
+// it matches local parameters of what Prysm expects.
+func (s *EngineClient) VerifyChainID(ctx context.Context) error {
+	chainID, err := s.Client.ChainID(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// This case is only true when the payload is invalid, so
-	// `processPayloadStatusResult` below will return an error.
-	if validationErr := result.GetValidationError(); validationErr != "" {
-		s.logger.Error(
-			"Got a validation error in newPayload",
-			"err",
-			errors.New(validationErr),
+	if chainID.Uint64() != s.cfg.RequiredChainID {
+		return fmt.Errorf(
+			"wanted chain ID %d, got %d",
+			s.cfg.RequiredChainID,
+			chainID.Uint64(),
 		)
 	}
 
-	return processPayloadStatusResult(result)
+	return nil
 }
 
-// callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
-func (s *engineClient) callNewPayloadRPC(
-	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
-) (*enginev1.PayloadStatus, error) {
-	switch payloadPb := payload.ToProto().(type) {
-	case *enginev1.ExecutionPayloadDeneb:
-		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
-	default:
-		return nil, ErrInvalidPayloadType
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
+	for {
+		s.tryConnectionAfter(ctx, s.cfg.RPCJWTRefreshInterval)
 	}
 }
 
-// ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *engineClient) ForkchoiceUpdated(
-	ctx context.Context,
-	state *enginev1.ForkchoiceState,
-	attrs enginetypes.PayloadAttributer,
-) (*enginev1.PayloadIDBytes, []byte, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
-	defer cancel()
-
-	if attrs == nil {
-		return nil, nil, ErrNilAttributesPassedToClient
-	}
-
-	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	lastestValidHash, err := processPayloadStatusResult(result.Status)
-	if err != nil {
-		return nil, lastestValidHash, err
-	}
-	return result.PayloadID, lastestValidHash, nil
-}
-
-// updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
-// JSON-RPC.
-func (s *engineClient) callUpdatedForkchoiceRPC(
-	ctx context.Context,
-	state *enginev1.ForkchoiceState,
-	attrs enginetypes.PayloadAttributer,
-) (*eth.ForkchoiceUpdatedResponse, error) {
-	switch v := attrs.ToProto().(type) {
-	case *enginev1.PayloadAttributesV3:
-		return s.ForkchoiceUpdatedV3(ctx, state, v)
-	default:
-		return nil, ErrInvalidPayloadAttributeVersion
+// tryConnectionAfter attempts a connection after a given interval.
+func (s *EngineClient) tryConnectionAfter(
+	ctx context.Context, interval time.Duration,
+) {
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(interval):
+		s.setupExecutionClientConnection(ctx)
 	}
 }
 
-// GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
-// the execution data as well as the blobs bundle.
-func (s *engineClient) GetPayload(
-	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
-	defer cancel()
-
-	var fn func(
-		context.Context, enginev1.PayloadIDBytes,
-	) (*enginev1.ExecutionPayloadContainer, error)
-	switch s.beaconCfg.ActiveForkVersion(primitives.Epoch(slot)) {
-	case version.Deneb:
-		fn = s.GetPayloadV3
-	default:
-		return nil, nil, false, ErrInvalidGetPayloadVersion
-	}
-
-	result, err := fn(dctx, enginev1.PayloadIDBytes(payloadID))
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	return result, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
-}
-
-// ExchangeCapabilities calls the engine_exchangeCapabilities method via
-// JSON-RPC.
-func (s *engineClient) ExchangeCapabilities(
-	ctx context.Context,
-) ([]string, error) {
-	result, err := s.Eth1Client.ExchangeCapabilities(
-		ctx, eth.BeaconKitSupportedCapabilities(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Capture and log the capabilities that the execution client has.
-	for _, capability := range result {
-		s.logger.Info("exchanged capability", "capability", capability)
-		s.capabilities[capability] = struct{}{}
-	}
-
-	// Log the capabilities that the execution client does not have.
-	for _, capability := range eth.BeaconKitSupportedCapabilities() {
-		if _, exists := s.capabilities[capability]; !exists {
-			s.logger.Warn(
-				"your execution client may require an update 🚸",
-				"unsupported_capability", capability,
-			)
+// setupExecutionClientConnections dials the execution client and
+// ensures the chain ID is correct.
+func (s *EngineClient) setupExecutionClientConnection(ctx context.Context) {
+	// Dial the execution client.
+	if err := s.dialExecutionRPCClient(ctx); err != nil {
+		// This log gets spammy, we only log it when we first lose connection.
+		if s.isConnected.Load() {
+			s.logger.Error("could not dial execution client", "error", err)
 		}
+		s.isConnected.Store(false)
+		return
 	}
 
-	return result, nil
+	// Ensure the execution client is connected to the correct chain.
+	if err := s.VerifyChainID(ctx); err != nil {
+		s.Client.Close()
+		if strings.Contains(err.Error(), "401 Unauthorized") {
+			// We always log this error as it is a critical error.
+			s.logger.Error(UnauthenticatedConnectionErrorStr)
+		} else if s.isConnected.Load() {
+			// This log gets spammy, we only log it when we first lose
+			// connection.
+			s.logger.Error("could not dial execution client", "error", err)
+		}
+
+		s.isConnected.Store(false)
+		return
+	}
+
+	// If we reached here the client is connected and we mark as such.
+	s.isConnected.Store(true)
+}
+
+// DialExecutionRPCClient dials the execution client's RPC endpoint.
+func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
+	var (
+		client *rpc.Client
+		err    error
+	)
+
+	// Dial the execution client based on the URL scheme.
+	switch s.cfg.RPCDialURL.Scheme {
+	case "http", "https":
+		client, err = rpc.DialOptions(
+			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(
+				http.NewHeaderWithJWT(s.jwtSecret)),
+		)
+	case "", "ipc":
+		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
+	default:
+		return fmt.Errorf(
+			"no known transport for URL scheme %q",
+			s.cfg.RPCDialURL.Scheme,
+		)
+	}
+
+	// Check for an error when dialing the execution client.
+	if err != nil {
+		return err
+	}
+
+	s.Client = ethclient.NewClient(client)
+	return nil
 }

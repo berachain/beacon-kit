@@ -26,7 +26,7 @@
 package sync
 
 import (
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
+	"github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -38,10 +38,12 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 	}
 }
 
-// WithEthClient sets the ethClient of the Service.
-func WithEthClient(ethClient *eth.Eth1Client) service.Option[Service] {
+// WithEngineClient sets the EngineClient of the Service.
+func WithEngineClient(
+	engineClient *client.EngineClient,
+) service.Option[Service] {
 	return func(s *Service) error {
-		s.ethClient = ethClient
+		s.engineClient = engineClient
 		return nil
 	}
 }

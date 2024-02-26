@@ -25,7 +25,7 @@ replace (
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.1-0.20240222144449-b304cf755682
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240222144449-b304cf755682
 	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240222144449-b304cf755682
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240225133822-7c05f4188bad
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 )

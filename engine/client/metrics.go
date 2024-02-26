@@ -23,11 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package client
 
 const (
 	// MetricBaseKey is the base key for all metrics.
-	MetricBaseKey = "beacon-kit.engine.ethclient."
+	MetricBaseKey = "beacon-kit.engine.client."
 
 	// MetricKeyParseErrorCount represents the metric key
 	// for counting parse errors.
