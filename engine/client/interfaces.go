@@ -27,7 +27,6 @@ package client
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
@@ -72,9 +71,6 @@ type Caller interface {
 	GetLogs(
 		ctx context.Context, fromBlock, toBlock uint64, addresses []common.Address,
 	) ([]gethcoretypes.Log, error)
-	// BlockByNumber retrieves the block by its number.
-	BlockByNumber(
-		ctx context.Context, blkNum *big.Int) (*gethcoretypes.Block, error)
 
 	// Eth Namespace Methods
 	//
