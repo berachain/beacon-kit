@@ -39,14 +39,16 @@ type Option func(*EngineClient) error
 // WithEngineConfig is a function that returns an Option.
 func WithEngineConfig(cfg *config.Engine) Option {
 	return func(s *EngineClient) error {
-		s.cfg = cfg
 		var err error
+
 		// Load the JWT secret from the config if it's not already set.
 		// Get JWT Secret for eth1 connection.
 		s.jwtSecret, err = jwt.NewFromFile(cfg.JWTSecretPath)
 		if err != nil {
 			return err
 		}
+
+		s.cfg = cfg
 		return nil
 	}
 }
@@ -71,17 +73,6 @@ func WithBeaconConfig(beaconCfg *config.Beacon) Option {
 func WithLogger(logger log.Logger) Option {
 	return func(s *EngineClient) error {
 		s.logger = logger.With("module", "beacon-kit.engine")
-		return nil
-	}
-}
-
-// WithJWTSecret sets the JWT secret for the Eth1Client.
-func WithJWTSecret(secret *jwt.Secret) Option {
-	return func(s *EngineClient) error {
-		if secret == nil {
-			return ErrNilJWTSecret
-		}
-		s.jwtSecret = secret
 		return nil
 	}
 }
