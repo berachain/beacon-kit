@@ -23,45 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package builder
 
 import (
-	"context"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
-	BuildLocalPayload(
-		ctx context.Context,
-		parentEth1Hash common.Hash,
-		slot primitives.Slot,
-		timestamp uint64,
-		parentBlockRoot [32]byte,
-	) (*enginev1.PayloadIDBytes, error)
+// WithBaseService sets the base service.
+func WithBaseService(svc service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = svc
+		return nil
+	}
 }
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		fcuConfig *execution.FCUConfig,
-	) (*enginev1.PayloadIDBytes, error)
-
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(
-		ctx context.Context,
-		slot primitives.Slot,
-		payload enginetypes.ExecutionPayload,
-		versionedHashes []common.Hash,
-		parentBlockRoot [32]byte,
-	) (bool, error)
+// WithBuilderConfig sets the builder config.
+func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
+	return func(s *Service) error {
+		s.cfg = cfg
+		return nil
+	}
 }
 
-type StakingService interface{}
+// WithLocalBuilder sets the local builder.
+func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
+	return func(s *Service) error {
+		s.localBuilder = builder
+		return nil
+	}
+}
+
+// WithRemoteBuilders sets the remote builders.
+func WithRemoteBuilders(builders ...PayloadBuilder) service.Option[Service] {
+	return func(s *Service) error {
+		s.remoteBuilders = append(s.remoteBuilders, builders...)
+		return nil
+	}
+}

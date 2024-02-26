@@ -30,7 +30,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	builder "github.com/itsdevbear/bolaris/beacon/builder"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/runtime/abci/listener"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
