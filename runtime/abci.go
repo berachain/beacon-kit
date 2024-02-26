@@ -37,7 +37,7 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
 
-func (r *BeaconKitRuntime) BuildABCIComponenets(
+func (r *BeaconKitRuntime) BuildABCIComponents(
 	childPrepare sdk.PrepareProposalHandler,
 	childProcess sdk.ProcessProposalHandler,
 	childPreblocker sdk.PreBlocker,
