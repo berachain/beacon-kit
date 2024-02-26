@@ -111,7 +111,6 @@ type BeaconApp struct {
 	// beacon-kit required keepers
 	BeaconKeeper    *beaconkeeper.Keeper
 	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
-	stopSyncCh      chan struct{}
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -125,18 +124,23 @@ func NewBeaconKitApp(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	var (
-		app = &BeaconApp{
-			stopSyncCh: make(chan struct{}, 1),
-		}
+		app        = &BeaconApp{}
 		appBuilder *runtime.AppBuilder
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
 			AppConfig(),
+			depinject.Provide(
+				beaconkitruntime.ProvideRuntime,
+			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
 				// supply the logger
 				logger,
+				// supply the database
+				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
+				// supply our custom staking wrapper.
+				stakingwrapper.NewKeeper(app.StakingKeeper),
 			),
 		)
 	)
@@ -157,6 +161,7 @@ func NewBeaconKitApp(
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
+		&app.BeaconKitRunner,
 	); err != nil {
 		panic(err)
 	}
@@ -165,24 +170,15 @@ func NewBeaconKitApp(
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	/**** Start of BeaconKit Configuration ****/
-	var err error
-	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		beaconkitconfig.MustReadConfigFromAppOpts(appOpts), app.BeaconKeeper,
-		stakingwrapper.NewKeeper(app.StakingKeeper),
-		app.Logger(),
-	); err != nil {
-		panic(err)
-	}
-
-	if err = app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
+	// TODO: FIg
+	if err := app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
 		panic(err)
 	}
 
 	/**** End of BeaconKit Configuration ****/
 
 	// register streaming services
-	if err = app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
+	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		panic(err)
 	}
 
@@ -192,7 +188,7 @@ func NewBeaconKitApp(
 	}
 
 	// Load the app.
-	if err = app.Load(loadLatest); err != nil {
+	if err := app.Load(loadLatest); err != nil {
 		panic(err)
 	}
 
