@@ -26,8 +26,6 @@
 package client
 
 import (
-	"net/url"
-
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
@@ -42,14 +40,7 @@ type Option func(*EngineClient) error
 func WithEngineConfig(cfg *config.Engine) Option {
 	return func(s *EngineClient) error {
 		s.cfg = cfg
-
-		// Load the dial URL from the config if it's not already set.
-		u, err := url.Parse(s.cfg.RPCDialURL)
-		if err != nil {
-			return err
-		}
-		s.dialURL = u
-
+		var err error
 		// Load the JWT secret from the config if it's not already set.
 		// Get JWT Secret for eth1 connection.
 		s.jwtSecret, err = jwt.NewFromFile(cfg.JWTSecretPath)
@@ -80,18 +71,6 @@ func WithBeaconConfig(beaconCfg *config.Beacon) Option {
 func WithLogger(logger log.Logger) Option {
 	return func(s *EngineClient) error {
 		s.logger = logger.With("module", "beacon-kit.engine")
-		return nil
-	}
-}
-
-// WithEndpointDialURL for authenticating the execution node JSON-RPC endpoint.
-func WithEndpointDialURL(dialURL string) Option {
-	return func(s *EngineClient) error {
-		u, err := url.Parse(dialURL)
-		if err != nil {
-			return err
-		}
-		s.dialURL = u
 		return nil
 	}
 }
