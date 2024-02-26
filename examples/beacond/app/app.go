@@ -123,11 +123,10 @@ func NewBeaconKitApp(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
-	var (
-		app        = &BeaconApp{}
-		appBuilder *runtime.AppBuilder
-		// merge the AppConfig and other configuration in one config
-		appConfig = depinject.Configs(
+	app := &BeaconApp{}
+	appBuilder := &runtime.AppBuilder{}
+	if err := depinject.Inject(
+		depinject.Configs(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
@@ -142,11 +141,7 @@ func NewBeaconKitApp(
 				// supply our custom staking wrapper.
 				stakingwrapper.NewKeeper(app.StakingKeeper),
 			),
-		)
-	)
-
-	if err := depinject.Inject(
-		appConfig,
+		),
 		&appBuilder,
 		&app.appCodec,
 		&app.legacyAmino,
