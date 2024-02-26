@@ -1,36 +1,45 @@
-// SPDX-License-Identifier: MIT
-//
-// Copyright (c) 2024 Berachain Foundation
-//
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
-
-package localbuilder
+package builder
 
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/config"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
+
+// PayloadBuilder represents a service that is responsible for
+// building eth1 blocks.
+type PayloadBuilder interface {
+	GetBestPayload(
+		ctx context.Context,
+		slot primitives.Slot,
+		parentBlockRoot [32]byte,
+		parentEth1Hash common.Hash,
+	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+}
+
+// Service is responsible for building beacon blocks.
+type Service struct {
+	service.BaseService
+	cfg *config.Builder
+
+	// localBuilder represents the local block builder, this builder
+	// is connected to this nodes execution client via the EngineAPI.
+	// Building blocks is done by submitting forkchoice updates through.
+	// The local Builder.
+	localBuilder   PayloadBuilder
+	remoteBuilders []PayloadBuilder
+}
+
+// LocalBuilder returns the local builder.
+func (s *Service) LocalBuilder() PayloadBuilder {
+	return s.localBuilder
+}
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
@@ -65,7 +74,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1Hash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 
 	// Get the payload for the block.
-	payload, blobsBundle, overrideBuilder, err := s.GetLocalPayload(
+	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
 		ctx, slot, parentBlockRoot, parentEth1Hash,
 	)
 	if err != nil {

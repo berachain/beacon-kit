@@ -33,7 +33,8 @@ import (
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	builder "github.com/itsdevbear/bolaris/beacon/builder"
+	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/staking"
@@ -124,11 +125,17 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the local builder service.
+	localBuilder := service.New[localbuilder.Service](
+		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
+		localbuilder.WithBuilderConfig(&cfg.Builder),
+		localbuilder.WithExecutionService(executionService),
+		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+	)
+
 	builderService := service.New[builder.Service](
-		builder.WithBaseService(baseService.ShallowCopy("local-builder")),
+		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
-		builder.WithExecutionService(executionService),
-		builder.WithPayloadCache(cache.NewPayloadIDCache()),
+		builder.WithLocalBuilder(localBuilder),
 	)
 
 	// Build the staking service.
@@ -139,8 +146,8 @@ func NewDefaultBeaconKitRuntime(
 
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
-		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
+		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithStakingService(stakingService),
 	)
 
