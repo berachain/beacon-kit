@@ -23,25 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package health
 
-import "github.com/pkg/errors"
-
-var (
-	// ErrNilAttributesPassedToClient is returned when nil attributes are
-	// passed to the client.
-	ErrNilAttributesPassedToClient = errors.New(
-		"nil attributes passed to client",
-	)
-	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
-	// attributes was provided.
-	ErrInvalidPayloadAttributeVersion = errors.New(
-		"invalid payload attribute version")
-	// ErrInvalidPayloadType indicates an invalid payload type
-	// was provided for an RPC call.
-	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
-
-	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
-	// provided for getting a payload.
-	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
+import (
+	"context"
+	"time"
 )
+
+// reportingInterval is the interval at which the health service
+// logs the health status of services.
+const reportingInterval = 5 * time.Second
+
+// reportingLoop initiates a loop that periodically checks and
+// reports the health status of services.
+func (s *Service) reportingLoop(ctx context.Context) {
+	ticker := time.NewTicker(reportingInterval)
+	for {
+		select {
+		case <-ticker.C:
+			s.reportStatuses()
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+// reportStatuses logs the health status of all services.
+func (s *Service) reportStatuses() {
+	svcStatuses := s.retrieveStatuses()
+	for _, svc := range svcStatuses {
+		if svc.Healthy {
+			s.Logger().
+				Info("service is reporting healthy 🌤️ ", "service", svc.Name)
+		} else {
+			s.Logger().Error("service is reporting unhealthy ⛈️ ",
+				"service", svc.Name, "error", svc.Err)
+		}
+	}
+}

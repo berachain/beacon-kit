@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package client
 
 import (
 	"fmt"
@@ -107,10 +107,27 @@ var (
 		"unknown ExecutionPayload schema for block version")
 	// ErrNilJWTSecret indicates that the JWT secret is nil.
 	ErrNilJWTSecret = errors.New("nil JWT secret")
+
+	// ErrNilAttributesPassedToClient is returned when nil attributes are
+	// passed to the client.
+	ErrNilAttributesPassedToClient = errors.New(
+		"nil attributes passed to client")
+
+	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
+	// attributes was provided.
+	ErrInvalidPayloadAttributeVersion = errors.New(
+		"invalid payload attribute version")
+	// ErrInvalidPayloadType indicates an invalid payload type
+	// was provided for an RPC call.
+	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
+
+	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
+	// provided for getting a payload.
+	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
 )
 
 // Handles errors received from the RPC server according to the specification.
-func (s *Eth1Client) handleRPCError(err error) error {
+func (s *EngineClient) handleRPCError(err error) error {
 	if err == nil {
 		return nil
 	}

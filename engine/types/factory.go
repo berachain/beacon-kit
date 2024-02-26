@@ -28,8 +28,8 @@ package enginetypes
 import (
 	"errors"
 
+	"github.com/itsdevbear/bolaris/config/version"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
 // NewPayloadAttributesContainer creates a new PayloadAttributesContainer.
@@ -38,7 +38,7 @@ func NewPayloadAttributesContainer(
 	timestamp uint64, prevRandao []byte,
 	suggestedFeeReceipient []byte,
 	withdrawals []*enginev1.Withdrawal,
-	parentBeaconBlockRoot []byte,
+	parentBeaconBlockRoot [32]byte,
 ) (PayloadAttributer, error) {
 	switch v {
 	case version.Deneb:
@@ -49,7 +49,7 @@ func NewPayloadAttributesContainer(
 					PrevRandao:            prevRandao,
 					SuggestedFeeRecipient: suggestedFeeReceipient,
 					Withdrawals:           withdrawals,
-					ParentBeaconBlockRoot: parentBeaconBlockRoot,
+					ParentBeaconBlockRoot: parentBeaconBlockRoot[:],
 				},
 			},
 		}, nil

@@ -26,8 +26,6 @@
 package proposal
 
 import (
-	"bytes"
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -79,18 +77,8 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// TODO: Make this more sophisticated.
-	//nolint:lll // couldnt fix.
-	if bsp := h.syncService.CheckSyncStatus(ctx); bsp.Status == sync.StatusExecutionAhead {
-		return nil, fmt.Errorf(
-			"err: %w, status: %d", ErrValidatorClientNotSynced, bsp.Status,
-		)
-	}
-
-	// TODO abstract this into BeaconState()
-	parentRoot := ctx.BlockHeader().AppHash
-	if req.Height == 1 {
-		parentRoot = make([]byte, 32) //nolint:gomnd //temp
+	if err := h.syncService.Status(); err != nil {
+		return nil, err
 	}
 
 	// We start by requesting the validator service to build us a block. This
@@ -98,7 +86,8 @@ func (h *Handler) PrepareProposalHandler(
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
 	block, err := h.builderService.RequestBestBlock(
-		ctx, primitives.Slot(req.Height), parentRoot,
+		ctx,
+		primitives.Slot(req.Height),
 	)
 
 	if err != nil {
@@ -142,21 +131,6 @@ func (h *Handler) ProcessProposalHandler(
 	if err != nil {
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_REJECT}, err
-	}
-
-	// TODO abstract this into BeaconState()
-	parentRoot := ctx.BlockHeader().AppHash
-	if req.Height == 1 {
-		parentRoot = make([]byte, 32) //nolint:gomnd //temp
-	}
-
-	// TODO: move this to a better spot.
-	if !bytes.Equal(parentRoot, block.GetParentRoot()) {
-		return &abci.ResponseProcessProposal{
-				Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"parent root does not match, expected: %x, got: %x",
-				ctx.BlockHeader().AppHash, block.GetParentRoot(),
-			)
 	}
 
 	// If we get any sort of error from the execution client, we bubble

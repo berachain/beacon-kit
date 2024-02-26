@@ -31,7 +31,7 @@ import (
 
 	"cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/engine"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -44,7 +44,7 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution
 	// client.
-	engine engine.Caller
+	engine engineclient.Caller
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
 }
@@ -56,10 +56,7 @@ func (s *Service) Start(ctx context.Context) {
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
-	if !s.engine.IsConnected() {
-		return ErrExecutionClientDisconnected
-	}
-	return nil
+	return s.engine.Status()
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
@@ -96,7 +93,7 @@ func (s *Service) NotifyNewPayload(
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash,
-	parentBlockRoot common.Hash,
+	parentBlockRoot [32]byte,
 ) (bool, error) {
 	return s.notifyNewPayload(
 		ctx,

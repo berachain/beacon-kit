@@ -32,7 +32,7 @@ import (
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/beacon/core/state"
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
@@ -108,7 +108,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Process the finalization of the beacon block.
 		if err = h.chainService.FinalizeBeaconBlock(
-			ctx, beaconBlock,
+			ctx, beaconBlock, [32]byte(req.Hash),
 		); err != nil {
 			return nil, err
 		}

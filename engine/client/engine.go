@@ -23,69 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package client
 
 import (
 	"context"
 	"errors"
 	"math/big"
-	"time"
 
-	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/config"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
+	"github.com/itsdevbear/bolaris/config/version"
+	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 )
 
-// Caller is implemented by engineClient.
-var _ Caller = (*engineClient)(nil)
-
-// engineClient is a struct that holds a pointer to an Eth1Client.
-type engineClient struct {
-	*eth.Eth1Client
-
-	capabilities  map[string]struct{}
-	engineTimeout time.Duration
-	beaconCfg     *config.Beacon
-	logger        log.Logger
-}
-
-// NewClient creates a new engine client engineClient.
-// It takes an Eth1Client as an argument and returns a pointer to an
-// engineClient.
-func NewClient(opts ...Option) Caller {
-	ec := &engineClient{
-		capabilities: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			panic(err)
-		}
-	}
-
-	return ec
-}
-
-// Start starts the engine client.
-func (s *engineClient) Start(ctx context.Context) {
-	s.Eth1Client.Start(ctx)
-	if _, err := s.ExchangeCapabilities(ctx); err != nil {
-		s.logger.Error("failed to exchange capabilities", "err", err)
-	}
-}
-
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *engineClient) NewPayload(
+func (s *EngineClient) NewPayload(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) ([]byte, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
+	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
@@ -113,7 +73,7 @@ func (s *engineClient) NewPayload(
 }
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
-func (s *engineClient) callNewPayloadRPC(
+func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
 ) (*enginev1.PayloadStatus, error) {
@@ -126,12 +86,12 @@ func (s *engineClient) callNewPayloadRPC(
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *engineClient) ForkchoiceUpdated(
+func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
+	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	if attrs == nil {
@@ -140,7 +100,7 @@ func (s *engineClient) ForkchoiceUpdated(
 
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, s.handleRPCError(err)
 	}
 
 	lastestValidHash, err := processPayloadStatusResult(result.Status)
@@ -152,7 +112,7 @@ func (s *engineClient) ForkchoiceUpdated(
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
 // JSON-RPC.
-func (s *engineClient) callUpdatedForkchoiceRPC(
+func (s *EngineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context,
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
@@ -161,16 +121,16 @@ func (s *engineClient) callUpdatedForkchoiceRPC(
 	case *enginev1.PayloadAttributesV3:
 		return s.ForkchoiceUpdatedV3(ctx, state, v)
 	default:
-		return nil, ErrInvalidPayloadAttributeVersion
+		return nil, ErrInvalidPayloadAttributes
 	}
 }
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *engineClient) GetPayload(
+func (s *EngineClient) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.engineTimeout)
+	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	var fn func(
@@ -185,7 +145,7 @@ func (s *engineClient) GetPayload(
 
 	result, err := fn(dctx, enginev1.PayloadIDBytes(payloadID))
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, false, s.handleRPCError(err)
 	}
 
 	return result, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
@@ -193,7 +153,7 @@ func (s *engineClient) GetPayload(
 
 // GetLogs retrieves the logs from the Ethereum execution node.
 // It calls the eth_getLogs method via JSON-RPC.
-func (s *engineClient) GetLogs(
+func (s *EngineClient) GetLogs(
 	ctx context.Context,
 	fromBlock, toBlock uint64,
 	addresses []common.Address,
@@ -212,14 +172,14 @@ func (s *engineClient) GetLogs(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *engineClient) ExchangeCapabilities(
+func (s *EngineClient) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(
 		ctx, eth.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {
-		return nil, err
+		return nil, s.handleRPCError(err)
 	}
 
 	// Capture and log the capabilities that the execution client has.

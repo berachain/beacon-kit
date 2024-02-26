@@ -23,28 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package http
 
 import (
-	"context"
+	"errors"
+	"net/http"
 
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/ethereum/go-ethereum/node"
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
-// GethRPCClient is an interface for the Geth RPC client.
-type GethRPCClient interface {
-	CallContext(
-		ctx context.Context,
-		result interface{},
-		method string,
-		args ...interface{},
-	) error
+// NewHeaderWithJWT creates a new HTTP header with a JWT token.
+func NewHeaderWithJWT(secret *jwt.Secret) http.Header {
+	header := http.Header{}
+	if err := AddJWTHeader(header, secret); err != nil {
+		panic(err)
+	}
+	return header
 }
 
-// ForkchoiceUpdatedResponse is the response kind received by the
-// engine_forkchoiceUpdatedV1 endpoint.
-type ForkchoiceUpdatedResponse struct {
-	Status          *enginev1.PayloadStatus  `json:"payloadStatus"`
-	PayloadID       *enginev1.PayloadIDBytes `json:"payloadId"`
-	ValidationError string                   `json:"validationError"`
+// AddJWTHeader adds a JWT header to the provided HTTP header.
+func AddJWTHeader(header http.Header, secret *jwt.Secret) error {
+	// Authenticate the execution node JSON-RPC endpoint.
+	jwtAuthHandler := node.NewJWTAuth(*secret)
+	if header == nil {
+		return errors.New("http.Header is nil")
+	}
+
+	return jwtAuthHandler(header)
 }

@@ -23,34 +23,45 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package blockchain
 
 import (
 	"context"
-	"net/http"
+	"time"
 
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
-	for {
-		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
-	}
+// sendFCU sends a forkchoice update to the execution client.
+func (s *Service) sendFCU(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+) error {
+	_, err := s.es.NotifyForkchoiceUpdate(
+		ctx, &execution.FCUConfig{
+			HeadEth1Hash: headEth1Hash,
+		})
+	return err
 }
 
-// BuildHeaders creates the headers for the execution client.
-func (s *Eth1Client) BuildHeaders() (http.Header, error) {
-	var (
-		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
+// sendFCUWithAttributes sends a forkchoice update to the
+// execution client with payload attributes. It does
+// so via the local builder service.
+func (s *Service) sendFCUWithAttributes(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+	slot primitives.Slot,
+	parentBlockRoot [32]byte,
+) error {
+	_, err := s.bs.BuildLocalPayload(
+		ctx,
+		headEth1Hash,
+		slot+1,
+		//#nosec:G701 // won't realistically overflow.
+		uint64(time.Now().Unix()),
+		parentBlockRoot,
 	)
-
-	// Authenticate the execution node JSON-RPC endpoint.
-	if err := jwtAuthHandler(headers); err != nil {
-		return nil, err
-	}
-
-	// Add additional headers if provided.
-	return headers, nil
+	return err
 }

@@ -40,9 +40,8 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/engine"
-	eth "github.com/itsdevbear/bolaris/engine/ethclient"
-	"github.com/itsdevbear/bolaris/io/jwt"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
+	"github.com/itsdevbear/bolaris/health"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -78,7 +77,7 @@ func NewBeaconKitRuntime(
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
-//nolint:funlen // This function is long because it sets up multiple services.
+
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -87,12 +86,6 @@ func NewDefaultBeaconKitRuntime(
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
-
-	// Get JWT Secret for eth1 connection.
-	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
-	if err != nil {
-		return nil, err
-	}
 
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
@@ -112,41 +105,25 @@ func NewDefaultBeaconKitRuntime(
 		cfg, bsp, gcd, logger,
 	)
 
-	// Create the eth1 client that will be used to interact with the execution
-	// client.
-	eth1Client, err := eth.NewEth1Client(
-		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
-		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
-		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
-		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),
-		eth.WithJWTSecret(jwtSecret),
-		eth.WithLogger(logger),
-		eth.WithRequiredChainID(cfg.Engine.RequiredChainID),
+	// Build the client to interact with the Engine API.
+	engineClient := engineclient.New(
+		engineclient.WithBeaconConfig(&cfg.Beacon),
+		engineclient.WithEngineConfig(&cfg.Engine),
+		engineclient.WithLogger(logger),
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	// Build the Notification Service.
 	notificationService := service.New(
-		notify.WithBaseService(baseService.WithName("notify")),
+		notify.WithBaseService(baseService.ShallowCopy("notify")),
 		notify.WithGCD(gcd),
 	)
 
 	// Build the staking service.
 	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.WithName("staking")),
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithValsetChangeProvider(vcp),
 		staking.WithStakingContractABI(),
 	)
-
-	// NewClient wraps the eth1 client and provides the interface for the
-	// blockchain service to interact with the execution client.
-	engineClient := engine.NewClient(
-		engine.WithEth1Client(eth1Client),
-		engine.WithBeaconConfig(&cfg.Beacon),
-		engine.WithLogger(logger),
-		engine.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// logFactory is used by the execution service to unmarshal
 	// logs retrieved from the engine client.
@@ -161,21 +138,21 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the execution service.
 	executionService := service.New[execution.Service](
-		execution.WithBaseService(baseService.WithName("execution")),
+		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
 		execution.WithLogFactory(logFactory),
 	)
 
 	// Build the local builder service.
 	builderService := service.New[builder.Service](
-		builder.WithBaseService(baseService.WithName("local-builder")),
+		builder.WithBaseService(baseService.ShallowCopy("local-builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithExecutionService(executionService),
 		builder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
 	chainService := service.New[blockchain.Service](
-		blockchain.WithBaseService(baseService.WithName("blockchain")),
+		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithStakingService(stakingService),
@@ -183,34 +160,40 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the sync service.
 	syncService := service.New[sync.Service](
-		sync.WithBaseService(baseService.WithName("sync")),
-		sync.WithEthClient(eth1Client),
-		sync.WithExecutionService(executionService),
+		sync.WithBaseService(baseService.ShallowCopy("sync")),
+		sync.WithEngineClient(engineClient),
 	)
+
+	svcRegistry := service.NewRegistry(
+		service.WithLogger(logger),
+		service.WithService(builderService),
+		service.WithService(chainService),
+		service.WithService(executionService),
+		service.WithService(notificationService),
+		service.WithService(stakingService),
+		service.WithService(syncService),
+	)
+
+	healthService := service.New[health.Service](
+		health.WithBaseService(baseService.ShallowCopy("health")),
+		health.WithServiceRegistry(svcRegistry),
+	)
+
+	if err = svcRegistry.RegisterService(healthService); err != nil {
+		return nil, err
+	}
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
-		WithConfig(cfg), WithLogger(logger),
-		WithServiceRegistry(service.NewRegistry(
-			service.WithLogger(logger),
-			service.WithService(syncService),
-			service.WithService(executionService),
-			service.WithService(chainService),
-			service.WithService(notificationService),
-			service.WithService(builderService),
-			service.WithService(stakingService),
-		)), WithBeaconStateProvider(bsp),
+		WithBeaconStateProvider(bsp),
+		WithConfig(cfg),
+		WithLogger(logger),
+		WithServiceRegistry(svcRegistry),
 	)
 }
 
-// StartServices starts all services in the BeaconKitRuntime's service registry.
-func (r *BeaconKitRuntime) StartServices(ctx context.Context) {
-	// Then start all the other services.
-	r.services.StartAll(ctx)
-}
-
-// StartSyncCheck starts the sync check for the runtime.
-func (r *BeaconKitRuntime) StartSyncCheck(
+// StartServices starts the services.
+func (r *BeaconKitRuntime) StartServices(
 	ctx context.Context,
 	clientCtx client.Context,
 ) {
@@ -218,18 +201,12 @@ func (r *BeaconKitRuntime) StartSyncCheck(
 	if err := r.services.FetchService(&syncService); err != nil {
 		panic(err)
 	}
-
 	syncService.SetClientContext(clientCtx)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go func() {
-		if err := syncService.WaitForExecutionClientSync(ctx); err != nil {
-			panic(err)
-		}
-	}()
-
+	r.services.StartAll(ctx)
 	<-r.stopCh
 }
 

@@ -25,8 +25,11 @@
 
 package service
 
-// WithName sets the name of the BaseService.
-func (s BaseService) WithName(name string) BaseService {
+import "sync"
+
+// ShallowCopy copies the base service and replaces it's name.
+func (s BaseService) ShallowCopy(name string) BaseService {
 	s.logger = s.logger.With("service", name)
+	s.statusErrMu = new(sync.RWMutex)
 	return s
 }

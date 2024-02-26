@@ -33,6 +33,7 @@ const (
 
 // Collection prefixes.
 const (
+	parentBlockRootPrefix          = "parent_block_root"
 	depositQueuePrefix             = "deposit_queue"
 	fcSafeEth1BlockHashPrefix      = "fc_safe"
 	fcFinalizedEth1BlockHashPrefix = "fc_finalized"

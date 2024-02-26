@@ -61,7 +61,7 @@ func NewBeaconListener(
 func (l *BeaconListener) ListenFinalizeBlock(
 	ctx context.Context,
 	req abci.RequestFinalizeBlock,
-	res abci.ResponseFinalizeBlock,
+	_ abci.ResponseFinalizeBlock,
 ) error {
 	// Technically speaking, there is a chance FinalizeBlock fails after this
 	// call. While seemingly impossible in practice, IN THEORY the execution
@@ -69,11 +69,11 @@ func (l *BeaconListener) ListenFinalizeBlock(
 	//
 	// TODO: figure out if this is a real concern or not.
 	// TODO: we really should try to fork choice as soon as we have an
-	// AppHash, which is before here. This moved earlier forkchoice call
+	// BlockHash, which is before here. This moved earlier forkchoice call
 	// should 100% not be finalizing
 	// the block on the EL.
 	if err := l.chainService.PostFinalizeBeaconBlock(
-		ctx, primitives.Slot(req.Height), res.AppHash,
+		ctx, primitives.Slot(req.Height),
 	); err != nil && !errors.Is(err, builder.ErrLocalBuildingDisabled) {
 		return err
 	}

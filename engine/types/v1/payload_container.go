@@ -26,10 +26,10 @@
 package enginev1
 
 import (
+	"github.com/itsdevbear/bolaris/config/version"
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	"github.com/itsdevbear/bolaris/math"
-	"github.com/itsdevbear/bolaris/types/consensus/version"
 	fssz "github.com/prysmaticlabs/fastssz"
 	"google.golang.org/protobuf/proto"
 )

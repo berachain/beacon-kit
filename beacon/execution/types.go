@@ -31,7 +31,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/state"
+	"github.com/itsdevbear/bolaris/beacon/core/state"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )

@@ -27,11 +27,8 @@ package blockchain
 
 import (
 	"context"
-	"errors"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -43,6 +40,7 @@ import (
 func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconKitBlock,
+	blockRoot [32]byte,
 ) error {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
@@ -53,19 +51,12 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	// TEMPORARY, needs to be handled better, this is a hack.
-	if err = s.sendFCU(
-		ctx, common.Hash(payload.GetBlockHash()), blk.GetSlot()+1,
-	); err != nil {
-		s.Logger().
-			Error("failed to notify forkchoice update in preblocker", "error", err)
-	}
-
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	state.SetLastValidHead(eth1BlockHash)
+	state.SetParentBlockRoot(blockRoot)
 
 	return nil
 }
@@ -74,31 +65,20 @@ func (s *Service) FinalizeBeaconBlock(
 func (s *Service) PostFinalizeBeaconBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBeaconBlockHash []byte,
 ) error {
-	_, err := s.bs.BuildLocalPayload(
-		ctx,
-		s.BeaconState(ctx).GetFinalizedEth1BlockHash(),
-		slot+1,
-		// .Add(time.Second) is a temporary fix to avoid issues,
-		// .Add(timeout_commit) is likely more proper here.
-		//#nosec:G701 // TODO: Really need to figure out this time thing.
-		uint64((time.Now().Add(time.Second)).Unix()), //
-		parentBeaconBlockHash,
-	)
-
-	switch {
-	case errors.Is(err, localbuilder.ErrLocalBuildingDisabled):
-		s.Logger().Info(
-			"local building is disabled, skipping payload building...",
+	var err error
+	state := s.BeaconState(ctx)
+	if s.BuilderCfg().LocalBuilderEnabled {
+		err = s.sendFCUWithAttributes(
+			ctx,
+			state.GetSafeEth1BlockHash(),
+			slot,
+			state.GetParentBlockRoot(),
 		)
-		return nil
-	case err != nil:
-		s.Logger().Error(
-			"failed to build local payload", "error", err,
-		)
-		return err
+	} else {
+		err = s.sendFCU(
+			ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
 	}
 
-	return nil
+	return err
 }

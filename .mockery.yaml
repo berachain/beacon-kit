@@ -33,7 +33,7 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/itsdevbear/bolaris/engine/ethclient:
+  github.com/itsdevbear/bolaris/engine/client/ethclient:
     config:
       recursive: True
       with-expecter: true

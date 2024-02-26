@@ -44,20 +44,20 @@ func WithBuilderService(bs BuilderService) service.Option[Service] {
 	}
 }
 
-// WithStakingService is a function that returns an Option.
-// It sets the StakingService of the Service to the provided Service.
-func WithStakingService(ss StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.ss = ss
-		return nil
-	}
-}
-
 // WithExecutionService is a function that returns an Option.
 // It sets the ExecutionService of the Service to the provided Service.
 func WithExecutionService(es ExecutionService) service.Option[Service] {
 	return func(s *Service) error {
 		s.es = es
+		return nil
+	}
+}
+
+// WithStakingService is a function that returns an Option.
+// It sets the StakingService of the Service to the provided Service.
+func WithStakingService(ss StakingService) service.Option[Service] {
+	return func(s *Service) error {
+		s.ss = ss
 		return nil
 	}
 }

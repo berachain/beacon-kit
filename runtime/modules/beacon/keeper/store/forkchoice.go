@@ -49,7 +49,7 @@ func (s *BeaconStore) GetLastValidHead() common.Hash {
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
 func (s *BeaconStore) SetSafeEth1BlockHash(blockHash common.Hash) {
-	if err := s.fcSafeEth1BlockHash.Set(s.ctx, blockHash[:]); err != nil {
+	if err := s.fcSafeEth1BlockHash.Set(s.ctx, blockHash); err != nil {
 		panic(err)
 	}
 }
@@ -58,14 +58,14 @@ func (s *BeaconStore) SetSafeEth1BlockHash(blockHash common.Hash) {
 func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
 	safeHash, err := s.fcSafeEth1BlockHash.Get(s.ctx)
 	if err != nil {
-		safeHash = []byte{}
+		safeHash = common.Hash{}
 	}
-	return common.BytesToHash(safeHash)
+	return safeHash
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
 func (s *BeaconStore) SetFinalizedEth1BlockHash(blockHash common.Hash) {
-	if err := s.fcFinalizedEth1BlockHash.Set(s.ctx, blockHash[:]); err != nil {
+	if err := s.fcFinalizedEth1BlockHash.Set(s.ctx, blockHash); err != nil {
 		panic(err)
 	}
 }
@@ -74,7 +74,7 @@ func (s *BeaconStore) SetFinalizedEth1BlockHash(blockHash common.Hash) {
 func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
 	finalHash, err := s.fcFinalizedEth1BlockHash.Get(s.ctx)
 	if err != nil {
-		finalHash = []byte{}
+		finalHash = common.Hash{}
 	}
-	return common.BytesToHash(finalHash)
+	return finalHash
 }
