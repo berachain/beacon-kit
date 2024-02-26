@@ -48,8 +48,6 @@ import (
 	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	_ "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main
