@@ -170,7 +170,7 @@ func NewBeaconKitApp(
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// TODO: FIg
+	// TODO: Figure out how to not have to do this.
 	if err := app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
 		panic(err)
 	}
