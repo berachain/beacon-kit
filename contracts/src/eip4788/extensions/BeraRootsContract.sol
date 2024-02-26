@@ -21,7 +21,7 @@ contract BeraRootsContract {
     /// @dev The selector for "distribute(uint256)".
     bytes4 private constant DISTRIBUTE_SELECTOR = 0x63453ae1;
 
-    /// @dev The assigned wallet to bootstrap the system. Needs to be known before chain start. //
+    /// @dev The assigned wallet to bootstrap the system. Needs to be known before chain start.
     /// TODO: REAL ADDRESS.
     address constant DISTRIBUTOR_SETTER = address(0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4);
 
@@ -94,10 +94,10 @@ contract BeraRootsContract {
     /**
      * @notice get an address from the msg.data if thats all that is in the msg.data
      */
-    function _getAddressFromMsgData(bytes memory data) private pure returns (address addr) {
-        assembly {
-            addr := mload(add(data, 20))
-        }
+    function _getAddressFromMsgData(bytes memory data) private pure returns (address) {
+        (address addr, bool success) = abi.decode(data, (address, bool));
+        require(success, "BeraRootsContract: invalid distributor address");
+        return addr;
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
