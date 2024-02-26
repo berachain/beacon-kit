@@ -38,9 +38,9 @@ import (
 )
 
 func (r *BeaconKitRuntime) BuildABCIComponents(
-	childPrepare sdk.PrepareProposalHandler,
-	childProcess sdk.ProcessProposalHandler,
-	childPreblocker sdk.PreBlocker,
+	nextPrepare sdk.PrepareProposalHandler,
+	nextProcess sdk.ProcessProposalHandler,
+	nextPreblocker sdk.PreBlocker,
 	logger log.Logger,
 ) (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
@@ -68,12 +68,12 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		builderService,
 		syncService,
 		chainService,
-		childPrepare,
-		childProcess,
+		nextPrepare,
+		nextProcess,
 	)
 
 	preBlocker := preblock.NewBeaconPreBlockHandler(
-		&r.cfg.ABCI, r.logger, chainService, syncService, childPreblocker,
+		&r.cfg.ABCI, r.logger, chainService, syncService, nextPreblocker,
 	).PreBlocker()
 
 	return proposalHandler.PrepareProposalHandler,
