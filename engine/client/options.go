@@ -36,6 +36,14 @@ import (
 // an error.
 type Option func(*EngineClient) error
 
+// WithBeaconConfig is an option to set the beacon configuration.
+func WithBeaconConfig(beaconCfg *config.Beacon) Option {
+	return func(s *EngineClient) error {
+		s.beaconCfg = beaconCfg
+		return nil
+	}
+}
+
 // WithEngineConfig is a function that returns an Option.
 func WithEngineConfig(cfg *config.Engine) Option {
 	return func(s *EngineClient) error {
@@ -61,18 +69,10 @@ func WithEth1Client(eth1Client *eth.Eth1Client) Option {
 	}
 }
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *EngineClient) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
+// WithLogger is an option to set the logger for the EngineClient.
 func WithLogger(logger log.Logger) Option {
 	return func(s *EngineClient) error {
-		s.logger = logger.With("module", "beacon-kit.engine")
+		s.logger = logger.With("module", "beacon-kit.engine.client")
 		return nil
 	}
 }
