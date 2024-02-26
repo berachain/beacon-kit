@@ -137,7 +137,7 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
-				// supply the database
+				// supply beaconkit options
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 				// supply our custom staking wrapper.
 				stakingwrapper.NewKeeper(app.StakingKeeper),
