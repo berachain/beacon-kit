@@ -51,19 +51,31 @@ contract BeraRootsContract {
     /*                        ENTRYPOINT                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev Conforming to EIP-4788, plus additional paths for setting and distributing block
-    /// rewards:
-    /// 1. If the contract is called by the DISTRIBUTOR_SETTER, the distributor is not set and the
-    ///  the distributor is set to the address in the calldata.
-    /// 2. If it is called by any other address, there are two possible scenarios:
-    ///    a. If the calldata is the 32-byte encoded timestamp, the function will return the beacon
-    /// block root.
-    ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)" appended with the
-    /// 32-byte encoded block number, the function will return the coinbase for the given block
-    /// number.
-    ///   c. If the distributor is set, the contract will call the distributor
-    /// `distribute(address)` function with the
-    ///      current block's coinbase as the argument.
+    /**
+     * @dev Fallback function that is called when no other function matches the called signature.
+     * The function behavior depends on the `msg.sender` and `msg.data` values. This method conforms 
+     * to EIP-4788, with additional functionality to set the distributor address, and call `distribute()` method.
+     *
+     * There are two main code paths this function can take:
+     *
+     * 1. If `msg.sender` is equal to `SYSTEM_ADDRESS`:
+     *    - The `set` function is called.
+     *    - If `_distributor` is set (not the zero address), a call is made to the `_distributor`
+     * contract with the `DISTRIBUTE_SELECTOR` and `block.coinbase` as arguments.
+     *    - If the call to `_distributor` is successful, the `Distributed` event is emitted with
+     * `block.coinbase` and `block.number` as arguments.
+     *    - If the call to `_distributor` is not successful, the `Distributed` event is emitted
+     * with `address(0)` and `0` as arguments.
+     *
+     * 2. If `msg.sender` is not equal to `SYSTEM_ADDRESS`:
+     *    - If `msg.data` is 36 bytes long and its first 4 bytes match `GET_COINBASE_SELECTOR`, the
+     * `getCoinbase` function is called.
+     *    - If `msg.sender` is equal to `DISTRIBUTOR_SETTER` and `_distributor` is not set (is the
+     * zero address), `_distributor` is set to the address encoded in `msg.data`.
+     *    - If neither of the above conditions are met, the `get` function is called. This code
+     * path assumes that if the first 32 bytes of `msg.data` is a timestamp, the first 4 bytes must
+     * be 0.
+     */
     fallback() external {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
@@ -148,8 +160,6 @@ contract BeraRootsContract {
             // set the coinbase
             let coinbase_idx := add(block_idx, _coinbases.slot)
             sstore(coinbase_idx, coinbase())
-            // load the distributor address to memory.
-            let distributor := sload(_distributor.slot)
         }
     }
 
