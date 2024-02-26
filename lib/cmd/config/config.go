@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:govet,gomnd,lll // from sdk.
+//nolint:gomnd,lll // from sdk.
 package config
 
 import (
@@ -34,7 +34,6 @@ import (
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
-
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
 

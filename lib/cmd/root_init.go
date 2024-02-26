@@ -23,26 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package root
+package cmd
 
 import (
-	"errors"
-	"io"
-	"os"
-
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/itsdevbear/bolaris/examples/beacond/app"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"cosmossdk.io/client/v2/offchain"
-	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	authcmd "cosmossdk.io/x/auth/client/cli"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -54,16 +42,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-
 	beaconconfig "github.com/itsdevbear/bolaris/config"
+	"github.com/spf13/cobra"
 )
 
-func initRootCmd(
+func InitRootCommand(
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
-	interfaceRegistry codectypes.InterfaceRegistry,
-	appCodec codec.Codec,
+	_ codectypes.InterfaceRegistry,
+	_ codec.Codec,
 	mm *module.Manager,
+	newApp servertypes.AppCreator,
+	appExport servertypes.AppExporter,
 ) {
 	cfg := sdk.GetConfig()
 	cfg.Seal()
@@ -81,7 +71,7 @@ func initRootCmd(
 	)
 
 	server.AddCommands(
-		rootCmd, newApp, AddModuleInitFlags,
+		rootCmd, newApp, beaconconfig.AddBeaconKitFlags,
 	)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
@@ -95,12 +85,8 @@ func initRootCmd(
 	)
 }
 
-func AddModuleInitFlags(startCmd *cobra.Command) {
-	beaconconfig.AddBeaconKitFlags(startCmd)
-}
-
 // genesisCommand builds genesis-related `simd genesis` command. Users may
-// provide application specific commands as a parameter
+// provide application specific commands as a parameter.
 func genesisCommand(
 	txConfig client.TxConfig,
 	mm *module.Manager,
@@ -121,7 +107,7 @@ func queryCommand() *cobra.Command {
 		Aliases:                    []string{"q"},
 		Short:                      "Querying subcommands",
 		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2,
+		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
 		RunE:                       client.ValidateCmd,
 	}
 
@@ -142,7 +128,7 @@ func txCommand() *cobra.Command {
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
 		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2,
+		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
 		RunE:                       client.ValidateCmd,
 	}
 
@@ -159,86 +145,4 @@ func txCommand() *cobra.Command {
 	)
 
 	return cmd
-}
-
-// newApp creates the application.
-func newApp(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) servertypes.Application {
-	baseappOptions := server.DefaultBaseappOptions(appOpts)
-
-	return app.NewBeaconKitApp(
-		logger, db, traceStore, true,
-		"",
-		appOpts,
-		baseappOptions...,
-	)
-}
-
-// appExport creates a new BeaconApp (optionally at a given height) and exports
-// state.
-func appExport(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	height int64,
-	forZeroHeight bool,
-	jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions,
-	modulesToExport []string,
-) (servertypes.ExportedApp, error) {
-	// this check is necessary as we use the flag in x/upgrade.
-	// we can exit more gracefully by checking the flag here.
-	homePath, ok := appOpts.Get(flags.FlagHome).(string)
-	if !ok || homePath == "" {
-		return servertypes.ExportedApp{}, errors.New("application home not set")
-	}
-
-	viperAppOpts, ok := appOpts.(*viper.Viper)
-	if !ok {
-		return servertypes.ExportedApp{}, errors.New(
-			"appOpts is not viper.Viper",
-		)
-	}
-
-	// overwrite the FlagInvCheckPeriod
-	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
-	appOpts = viperAppOpts
-
-	var beaconApp *app.BeaconApp
-	if height != -1 {
-		beaconApp = app.NewBeaconKitApp(
-			logger,
-			db,
-			traceStore,
-			false,
-			"",
-			appOpts,
-		)
-
-		if err := beaconApp.LoadHeight(height); err != nil {
-			return servertypes.ExportedApp{}, err
-		}
-	} else {
-		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
-	}
-
-	return beaconApp.ExportAppStateAndValidators(
-		forZeroHeight,
-		jailAllowedAddrs,
-		modulesToExport,
-	)
-}
-
-var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
-	dir, err := os.MkdirTemp("", "beacond")
-	if err != nil {
-		dir = app.DefaultNodeHome
-	}
-	defer os.RemoveAll(dir)
-
-	return dir
 }

@@ -27,20 +27,27 @@
 package root
 
 import (
+	"errors"
+	"io"
+	"os"
+
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/spf13/cobra"
-
-	cmdconfig "github.com/itsdevbear/bolaris/examples/beacond/cmd/config"
-
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
+	"github.com/itsdevbear/bolaris/lib/cmd"
+	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main
@@ -119,12 +126,14 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(
+	cmd.InitRootCommand(
 		rootCmd,
 		clientCtx.TxConfig,
 		clientCtx.InterfaceRegistry,
 		clientCtx.Codec,
 		moduleBasicManager,
+		newApp,
+		appExport,
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
@@ -132,4 +141,86 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	return rootCmd
+}
+
+// newApp creates the application.
+func newApp(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) servertypes.Application {
+	baseappOptions := server.DefaultBaseappOptions(appOpts)
+
+	return app.NewBeaconKitApp(
+		logger, db, traceStore, true,
+		"",
+		appOpts,
+		baseappOptions...,
+	)
+}
+
+// appExport creates a new BeaconApp (optionally at a given height) and exports
+// state.
+func appExport(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	height int64,
+	forZeroHeight bool,
+	jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions,
+	modulesToExport []string,
+) (servertypes.ExportedApp, error) {
+	// this check is necessary as we use the flag in x/upgrade.
+	// we can exit more gracefully by checking the flag here.
+	homePath, ok := appOpts.Get(flags.FlagHome).(string)
+	if !ok || homePath == "" {
+		return servertypes.ExportedApp{}, errors.New("application home not set")
+	}
+
+	viperAppOpts, ok := appOpts.(*viper.Viper)
+	if !ok {
+		return servertypes.ExportedApp{}, errors.New(
+			"appOpts is not viper.Viper",
+		)
+	}
+
+	// overwrite the FlagInvCheckPeriod
+	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+	appOpts = viperAppOpts
+
+	var beaconApp *app.BeaconApp
+	if height != -1 {
+		beaconApp = app.NewBeaconKitApp(
+			logger,
+			db,
+			traceStore,
+			false,
+			"",
+			appOpts,
+		)
+
+		if err := beaconApp.LoadHeight(height); err != nil {
+			return servertypes.ExportedApp{}, err
+		}
+	} else {
+		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
+	}
+
+	return beaconApp.ExportAppStateAndValidators(
+		forZeroHeight,
+		jailAllowedAddrs,
+		modulesToExport,
+	)
+}
+
+var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
+	dir, err := os.MkdirTemp("", "beacond")
+	if err != nil {
+		dir = app.DefaultNodeHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }
