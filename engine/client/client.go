@@ -28,7 +28,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -55,7 +54,6 @@ type EngineClient struct {
 	logger       log.Logger
 	isConnected  atomic.Bool
 	jwtSecret    *jwt.Secret
-	dialURL      *url.URL
 }
 
 // New creates a new engine client EngineClient.
@@ -87,7 +85,7 @@ func (s *EngineClient) Start(ctx context.Context) {
 		// If we enter this loop, the above connection attempt failed.
 		s.logger.Info(
 			"Waiting for connection to execution client...",
-			"dial-url", s.dialURL.String(),
+			"engine-dial-url", s.cfg.RPCDialURL.String(),
 		)
 		s.tryConnectionAfter(ctx, s.cfg.RPCStartupCheckInterval)
 	}
@@ -189,18 +187,18 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 	)
 
 	// Dial the execution client based on the URL scheme.
-	switch s.dialURL.Scheme {
+	switch s.cfg.RPCDialURL.Scheme {
 	case "http", "https":
 		client, err = rpc.DialOptions(
-			ctx, s.dialURL.String(), rpc.WithHeaders(
+			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(
 				http.NewHeaderWithJWT(s.jwtSecret)),
 		)
 	case "", "ipc":
-		client, err = rpc.DialIPC(ctx, s.dialURL.String())
+		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
 	default:
 		return fmt.Errorf(
 			"no known transport for URL scheme %q",
-			s.dialURL.Scheme,
+			s.cfg.RPCDialURL.Scheme,
 		)
 	}
 
