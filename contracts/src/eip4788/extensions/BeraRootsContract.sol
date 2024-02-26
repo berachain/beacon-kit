@@ -1,6 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+/**
+ * @title BeraRootsContract
+ * @author Berachain Team
+ * @dev This contract is designed to store and manage beacon roots and coinbases in a circular buffer.
+ * It also provides functionality to set a distributor address and call a `distribute()` method on it.
+ * The contract conforms to EIP-4788, with additional functionality to set the distributor address.
+ * 
+ * The contract has a fallback function that behaves differently based on the `msg.sender` and `msg.data` values.
+ * If the `msg.sender` is the system address, the `set` function is called and if a distributor is set, a call is made to the distributor contract.
+ * If the `msg.sender` is not the system address, the function checks `msg.data` and either calls `getCoinbase`, sets the distributor, or calls `get`.
+ * 
+ * The contract also includes functions to get a beacon root for a given timestamp (`get`) and to set the beacon root and coinbase for the current block (`set`).
+ * The `getCoinbase` function retrieves the coinbase for a given block number.
+ */
 contract BeraRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
@@ -82,7 +96,6 @@ contract BeraRootsContract {
                 getCoinbase();
             } else if (msg.sender == DISTRIBUTOR_SETTER && _distributor == address(0)) {
                 _distributor = _getAddressFromMsgData(msg.data);
-                return;
             } else {
                 // if the first 32 bytes is a timestamp, the first 4 bytes must be 0
                 get();
