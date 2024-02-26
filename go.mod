@@ -4,13 +4,13 @@ go 1.22.0
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240222144449-b304cf755682
+	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240226214332-e0daf4dc54d1
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240222144449-b304cf755682
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240222144449-b304cf755682
 	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240222144449-b304cf755682
 	cosmossdk.io/tools/confix => cosmossdk.io/tools/confix v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240222144449-b304cf755682
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240222144449-b304cf755682
+	cosmossdk.io/x/auth => github.com/berachain/cosmos-sdk/x/auth v0.0.0-20240226214332-e0daf4dc54d1
 	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240222144449-b304cf755682
@@ -21,11 +21,12 @@ replace (
 	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240222144449-b304cf755682
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240222144449-b304cf755682
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240222144449-b304cf755682
+	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240226214332-e0daf4dc54d1
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.1-0.20240222144449-b304cf755682
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240222144449-b304cf755682
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240226150756-5d5016776ff4
 	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240225133822-7c05f4188bad
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240226214332-e0daf4dc54d1
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
 )
@@ -52,7 +53,7 @@ require (
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
-	github.com/cosmos/cosmos-db v1.0.1
+	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gogoproto v1.4.11
@@ -300,6 +301,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.4.0 // indirect
 	github.com/influxdata/influxdb1-client v0.0.0-20220302092344-a9ab5670611c // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
+	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240226135442-10e4707bd0ca // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jdx/go-netrc v1.0.0 // indirect
 	github.com/jgautheron/goconst v1.7.0 // indirect
@@ -313,7 +315,7 @@ require (
 	github.com/kisielk/errcheck v1.7.0 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.4 // indirect
-	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -462,7 +464,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
-	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a // indirect
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231219180239-dc181d75b848 // indirect
 	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/net v0.21.0 // indirect

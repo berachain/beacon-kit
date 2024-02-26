@@ -46,13 +46,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func InitRootCommand(
+func InitRootCommand[T servertypes.Application](
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
 	_ codectypes.InterfaceRegistry,
 	_ codec.Codec,
 	mm *module.Manager,
-	newApp servertypes.AppCreator,
+	newApp servertypes.AppCreator[T],
 	appExport servertypes.AppExporter,
 ) {
 	cfg := sdk.GetConfig()
