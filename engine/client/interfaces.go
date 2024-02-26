@@ -67,6 +67,7 @@ type Caller interface {
 	// ExecutionBlockByHash retrieves the execution block by its hash.
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 		withTxs bool) (*enginev1.ExecutionBlock, error)
+
 	// GetLogs retrieves the logs from the Ethereum execution node.
 	GetLogs(
 		ctx context.Context, fromBlock, toBlock uint64, addresses []common.Address,

@@ -28,11 +28,8 @@ package client
 import (
 	"context"
 	"errors"
-	"math/big"
 
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/config/version"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
@@ -149,25 +146,6 @@ func (s *EngineClient) GetPayload(
 	}
 
 	return result, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
-}
-
-// GetLogs retrieves the logs from the Ethereum execution node.
-// It calls the eth_getLogs method via JSON-RPC.
-func (s *EngineClient) GetLogs(
-	ctx context.Context,
-	fromBlock, toBlock uint64,
-	addresses []common.Address,
-) ([]coretypes.Log, error) {
-	// Create a filter query for the block, to acquire all logs from contracts
-	// that we care about.
-	query := ethereum.FilterQuery{
-		Addresses: addresses,
-		FromBlock: new(big.Int).SetUint64(fromBlock),
-		ToBlock:   new(big.Int).SetUint64(toBlock),
-	}
-
-	// Gather all the logs according to the query.
-	return s.FilterLogs(ctx, query)
 }
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
