@@ -109,8 +109,8 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit required keepers
-	BeaconKeeper    *beaconkeeper.Keeper
-	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
+	BeaconKeeper     *beaconkeeper.Keeper
+	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -156,7 +156,7 @@ func NewBeaconKitApp(
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
-		&app.BeaconKitRunner,
+		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
 	}
@@ -165,10 +165,21 @@ func NewBeaconKitApp(
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// TODO: Figure out how to not have to do this.
-	if err := app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
-		panic(err)
-	}
+	// Build all the ABCI Componenets.
+	prepare, process, preBlocker, streamingMgr := app.BeaconKitRuntime.BuildABCIComponenets(
+		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
+			PrepareProposalHandler(),
+		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
+			ProcessProposalHandler(),
+		nil,
+		app.Logger(),
+	)
+
+	// Set all the newly built ABCI Componenets on the App.
+	app.SetPrepareProposal(prepare)
+	app.SetProcessProposal(process)
+	app.SetPreBlocker(preBlocker)
+	app.SetStreamingManager(streamingMgr)
 
 	/**** End of BeaconKit Configuration ****/
 
@@ -233,15 +244,15 @@ func (app *BeaconApp) RegisterAPIRoutes(
 	}
 
 	// Initial check for execution client sync.
-	go app.BeaconKitRunner.StartServices(
+	go app.BeaconKitRuntime.StartServices(
 		app.NewContext(true),
 		apiSvr.ClientCtx,
 	)
 
-	app.BeaconKitRunner.SetCometCfg(v.Config)
+	app.BeaconKitRuntime.SetCometCfg(v.Config)
 }
 
 func (app *BeaconApp) Close() error {
-	app.BeaconKitRunner.Close()
+	app.BeaconKitRuntime.Close()
 	return app.App.Close()
 }
