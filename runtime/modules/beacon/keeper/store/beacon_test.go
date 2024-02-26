@@ -30,7 +30,6 @@ import (
 
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/client"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,7 +49,7 @@ func TestBeaconStore(t *testing.T) {
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	kv := ctx.KVStore(storeKey)
 
-	beaconStore := store.NewBeaconStore(kvs, client.Context{})
+	beaconStore := store.NewBeaconStore(kvs)
 	beaconStore = beaconStore.WithContext(ctx)
 	t.Run("should return correct hashes", func(t *testing.T) {
 		safeHash := common.HexToHash("0x123")
