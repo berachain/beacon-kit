@@ -23,32 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sync
+package health
 
 import (
 	"context"
+	"time"
 )
 
-// CheckELSync checks if the execution layer is syncing.
-func (s *Service) CheckCLSync(ctx context.Context) error {
-	// Call the ethClient to get the sync progress
-	resultStatus, err := s.clientCtx.Client.Status(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Exit early if the node does not return a progress.
-	// This means the node is in sync at the eth1 layer.
-	if !resultStatus.SyncInfo.CatchingUp {
-		return nil
-	}
-
-	s.Logger().Warn(
-		"beacon client is attemping to sync.... ",
-		"current_beacon", resultStatus.SyncInfo.LatestBlockHeight,
-		"highest_beacon", resultStatus.SyncInfo.CatchingUp,
-		"starting_beacon", resultStatus.SyncInfo.EarliestBlockHeight,
+// WaitForHealthyOf waits for the specified services to be healthy.
+func (s *Service) WaitForHealthyOf(
+	ctx context.Context,
+	callerID string,
+	services ...string,
+) error {
+	healthyCh := make(chan struct{})
+	timeout := time.After(
+		3 * time.Second, //nolint:gomnd // TODO: configurable.
 	)
 
-	return ErrConsensusClientIsSyncing
+	// Start a goroutine to wait for the service(s) to be healthy.
+	go func() {
+		s.svcRegistry.WaitForHealthy(ctx, services...)
+		close(healthyCh)
+	}()
+
+	// Wait for either the services to become healthy,
+	// athe context to be done, or the timeout.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-healthyCh:
+		// Services became healthy before the timeout.
+		return nil
+	case <-timeout:
+		s.Logger().Warn(
+			"detected potential service degradation...",
+			"caller", callerID, "services", services)
+		return ErrHealthCheckTimeout
+	}
 }

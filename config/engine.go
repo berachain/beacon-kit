@@ -46,7 +46,7 @@ func DefaultEngineConfig() Engine {
 		RPCRetries:              3,                //nolint:gomnd // default config.
 		RPCTimeout:              2 * time.Second,  //nolint:gomnd // default config.
 		RPCStartupCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
-		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
+		RPCJWTRefreshInterval:   15 * time.Second, //nolint:gomnd // default config.
 		JWTSecretPath:           "./jwt.hex",
 		RequiredChainID:         80086, //nolint:gomnd // default config.
 	}
