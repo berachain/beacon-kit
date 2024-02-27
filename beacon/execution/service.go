@@ -30,7 +30,6 @@ import (
 	"reflect"
 	"sort"
 
-	"cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
@@ -38,6 +37,7 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -157,7 +157,7 @@ func (s *Service) ProcessLogs(
 
 			val, err := s.logFactory.UnmarshalEthLog(log)
 			if err != nil {
-				return errors.Wrap(err, "could not unmarshal log")
+				return errors.Wrapf(err, "%s", "could not unmarshal log")
 			}
 			logResults[i] = &logResult{val: &val, index: i}
 			return nil

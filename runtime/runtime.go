@@ -72,6 +72,8 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
+//
+//nolint:funlen // This function is long because it sets up the services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -113,7 +115,11 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the staking service.
-	stakingService := newStakingService(baseService, vcp)
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
+		staking.WithValsetChangeProvider(vcp),
+		staking.WithStakingContractABI(),
+	)
 
 	// logFactory is used by the execution service to unmarshal
 	// logs retrieved from the engine client.
@@ -199,16 +205,4 @@ func (r *BeaconKitRuntime) StartServices(
 	}
 	syncService.SetClientContext(clientCtx)
 	r.services.StartAll(ctx)
-}
-
-// newStakingService creates a new staking service.
-func newStakingService(
-	baseService *service.BaseService,
-	vcp ValsetChangeProvider,
-) *staking.Service {
-	return service.New[staking.Service](
-		staking.WithBaseService(baseService.ShallowCopy("staking")),
-		staking.WithValsetChangeProvider(vcp),
-		staking.WithStakingContractABI(),
-	)
 }
