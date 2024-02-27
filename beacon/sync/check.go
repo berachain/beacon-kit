@@ -31,7 +31,7 @@ import (
 
 // CheckELSync checks if the execution layer is syncing.
 func (s *Service) CheckCLSync(ctx context.Context) {
-	// Call the ethClient to get the sync progress
+	// Call the CometBFT Client to get the sync progress.
 	resultStatus, err := s.clientCtx.Client.Status(ctx)
 	s.isSyncedCond.L.Lock()
 	defer s.isSyncedCond.L.Unlock()
