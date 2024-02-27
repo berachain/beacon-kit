@@ -26,8 +26,8 @@
 package app
 
 import (
+	"context"
 	_ "embed"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -49,12 +49,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
+	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
@@ -109,9 +107,8 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit required keepers
-	BeaconKeeper    *beaconkeeper.Keeper
-	BeaconKitRunner *beaconkitruntime.BeaconKitRuntime
-	stopSyncCh      chan struct{}
+	BeaconKeeper     *beaconkeeper.Keeper
+	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -124,26 +121,29 @@ func NewBeaconKitApp(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
-	var (
-		app = &BeaconApp{
-			stopSyncCh: make(chan struct{}, 1),
-		}
-		appBuilder *runtime.AppBuilder
-		// merge the AppConfig and other configuration in one config
-		appConfig = depinject.Configs(
+	app := &BeaconApp{}
+	appBuilder := &runtime.AppBuilder{}
+	clientCtx := client.Context{}
+	if err := depinject.Inject(
+		depinject.Configs(
 			AppConfig(),
+			depinject.Provide(
+				beaconkitruntime.ProvideRuntime,
+				cmdconfig.ProvideClientContext,
+			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
 				// supply the logger
 				logger,
+				// supply beaconkit options
+				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
+				// supply our custom staking wrapper.
+				stakingwrapper.NewKeeper(app.StakingKeeper),
 			),
-		)
-	)
-
-	if err := depinject.Inject(
-		appConfig,
+		),
 		&appBuilder,
+		&clientCtx,
 		&app.appCodec,
 		&app.legacyAmino,
 		&app.txConfig,
@@ -157,6 +157,7 @@ func NewBeaconKitApp(
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
+		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
 	}
@@ -165,46 +166,56 @@ func NewBeaconKitApp(
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	/**** Start of BeaconKit Configuration ****/
-	var err error
-	if app.BeaconKitRunner, err = beaconkitruntime.NewDefaultBeaconKitRuntime(
-		beaconkitconfig.MustReadConfigFromAppOpts(appOpts), app.BeaconKeeper,
-		stakingwrapper.NewKeeper(app.StakingKeeper),
+	// Build all the ABCI Componenets.
+	prepare, process, preBlocker, streamingMgr := app.BeaconKitRuntime.BuildABCIComponents(
+		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
+			PrepareProposalHandler(),
+		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
+			ProcessProposalHandler(),
+		nil,
 		app.Logger(),
-	); err != nil {
-		panic(err)
-	}
+	)
 
-	if err = app.BeaconKitRunner.RegisterApp(app.BaseApp); err != nil {
-		panic(err)
-	}
+	// Set all the newly built ABCI Componenets on the App.
+	app.SetPrepareProposal(prepare)
+	app.SetProcessProposal(process)
+	app.SetPreBlocker(preBlocker)
+	app.SetStreamingManager(streamingMgr)
 
 	/**** End of BeaconKit Configuration ****/
 
 	// register streaming services
-	if err = app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
+	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		panic(err)
 	}
 
+	// Check for goleveldb cause bad project.
+	if appOpts.Get("app-db-backend") == "goleveldb" {
+		panic("goleveldb is not supported")
+	}
+
 	// Load the app.
-	if err = app.Load(loadLatest); err != nil {
+	if err := app.Load(loadLatest); err != nil {
 		panic(err)
 	}
 
 	return app
 }
 
-// Name returns the name of the App.
-func (app *BeaconApp) Name() string { return app.BaseApp.Name() }
-
-// LegacyAmino returns BeaconApp's amino codec.
-//
-// NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (app *BeaconApp) LegacyAmino() *codec.LegacyAmino {
-	return app.legacyAmino
+// PostStartup is called after the app has started up and CometBFT is connected.
+func (app *BeaconApp) PostStartup(
+	ctx context.Context,
+	clientCtx client.Context,
+) error {
+	// Initial check for execution client sync.
+	app.BeaconKitRuntime.StartServices(
+		ctx,
+		clientCtx,
+	)
+	return nil
 }
 
+// kvStoreKeys returns the KVStoreKeys for the app.
 func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	keys := make(map[string]*storetypes.KVStoreKey)
 	for _, k := range app.GetStoreKeys() {
@@ -214,38 +225,4 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
-}
-
-// RegisterAPIRoutes registers all application module routes with the provided
-// API server.
-func (app *BeaconApp) RegisterAPIRoutes(
-	apiSvr *api.Server,
-	apiConfig config.APIConfig,
-) {
-	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
-	// register swagger API in app.go so that other applications can override
-	// easily
-	if err := server.RegisterSwaggerAPI(
-		apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger,
-	); err != nil {
-		panic(err)
-	}
-
-	v, ok := apiSvr.ClientCtx.CmdContext.Value(server.ServerContextKey).(*server.Context)
-	if !ok {
-		panic(fmt.Errorf("unexpected server context type: %T", v))
-	}
-
-	// Initial check for execution client sync.
-	go app.BeaconKitRunner.StartServices(
-		app.NewContext(true),
-		apiSvr.ClientCtx,
-	)
-
-	app.BeaconKitRunner.SetCometCfg(v.Config)
-}
-
-func (app *BeaconApp) Close() error {
-	app.BeaconKitRunner.Close()
-	return app.App.Close()
 }

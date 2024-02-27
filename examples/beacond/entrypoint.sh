@@ -79,7 +79,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond config set client chain-id "$CHAINID" --home "$HOMEDIR"
 
 	# If keys exist they should be deleted
-	./build/bin/beacond keys add dev --no-backup --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR" 
+	./build/bin/beacond keys add dev --no-backup --keyring-backend $KEYRING --home "$HOMEDIR" 
 
 
 	# Change parameter token denominations to abgt
@@ -87,7 +87,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.app_state["mint"]["params"]["mint_denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.consensus["params"]["block"]["max_gas"]="30000000"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
-
+	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	# Allocate genesis accounts (cosmos formatted addresses)
 	./build/bin/beacond genesis add-genesis-account dev 100000000000000000000000000abgt --keyring-backend $KEYRING --home "$HOMEDIR"
 	
@@ -110,10 +110,6 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 
 	# Run this to ensure everything worked and that the genesis file is setup correctly
 	./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1
-
-	if [[ $1 == "pending" ]]; then
-		echo "pending mode is on, please wait for the first block committed."
-	fi
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m

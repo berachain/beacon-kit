@@ -38,7 +38,7 @@ func NewPayloadAttributesContainer(
 	timestamp uint64, prevRandao []byte,
 	suggestedFeeReceipient []byte,
 	withdrawals []*enginev1.Withdrawal,
-	parentBeaconBlockRoot []byte,
+	parentBeaconBlockRoot [32]byte,
 ) (PayloadAttributer, error) {
 	switch v {
 	case version.Deneb:
@@ -49,7 +49,7 @@ func NewPayloadAttributesContainer(
 					PrevRandao:            prevRandao,
 					SuggestedFeeRecipient: suggestedFeeReceipient,
 					Withdrawals:           withdrawals,
-					ParentBeaconBlockRoot: parentBeaconBlockRoot,
+					ParentBeaconBlockRoot: parentBeaconBlockRoot[:],
 				},
 			},
 		}, nil

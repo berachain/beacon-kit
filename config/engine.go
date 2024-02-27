@@ -26,6 +26,7 @@
 package config
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/itsdevbear/bolaris/config/flags"
@@ -38,21 +39,23 @@ var _ BeaconKitConfig[Engine] = &Engine{}
 // DefaultEngineConfig is the default configuration for the engine client.
 func DefaultEngineConfig() Engine {
 	return Engine{
-		RPCDialURL:              "http://localhost:8551",
+		RPCDialURL: &url.URL{
+			Scheme: "http",
+			Host:   "localhost:8551",
+		},
 		RPCRetries:              3,                //nolint:gomnd // default config.
 		RPCTimeout:              2 * time.Second,  //nolint:gomnd // default config.
 		RPCStartupCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
-		RPCHealthCheckInterval:  5 * time.Second,  //nolint:gomnd // default config.
 		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
 		JWTSecretPath:           "./jwt.hex",
-		RequiredChainID:         7, //nolint:gomnd // default config.
+		RequiredChainID:         80086, //nolint:gomnd // default config.
 	}
 }
 
 // Engine is the configuration struct for the execution client.
 type Engine struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL string
+	RPCDialURL *url.URL
 	// RPCRetries is the number of retries before shutting down consensus
 	// client.
 	RPCRetries uint64
@@ -60,8 +63,6 @@ type Engine struct {
 	RPCTimeout time.Duration
 	// RPCStartupCheckInterval is the Interval for the startup check.
 	RPCStartupCheckInterval time.Duration
-	// HealthCheckInterval is the Interval for the health check.
-	RPCHealthCheckInterval time.Duration
 	// JWTRefreshInterval is the Interval for the JWT refresh.
 	RPCJWTRefreshInterval time.Duration
 	// JWTSecretPath is the path to the JWT secret.
@@ -74,7 +75,7 @@ type Engine struct {
 // Parse parses the configuration.
 func (c Engine) Parse(parser parser.AppOptionsParser) (*Engine, error) {
 	var err error
-	if c.RPCDialURL, err = parser.GetString(flags.RPCDialURL); err != nil {
+	if c.RPCDialURL, err = parser.GetURL(flags.RPCDialURL); err != nil {
 		return nil, err
 	}
 	if c.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
@@ -90,11 +91,7 @@ func (c Engine) Parse(parser parser.AppOptionsParser) (*Engine, error) {
 	); err != nil {
 		return nil, err
 	}
-	if c.RPCHealthCheckInterval, err = parser.GetTimeDuration(
-		flags.RPCHealthCheckInteval,
-	); err != nil {
-		return nil, err
-	}
+
 	if c.RPCJWTRefreshInterval, err = parser.GetTimeDuration(
 		flags.RPCJWTRefreshInterval,
 	); err != nil {
@@ -127,9 +124,6 @@ rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"
 
 # Interval for the startup check.
 rpc-startup-check-interval = "{{ .BeaconKit.Engine.RPCStartupCheckInterval }}"
-
-# Interval for the health check.
-rpc-health-check-interval = "{{ .BeaconKit.Engine.RPCHealthCheckInterval }}"
 
 # Interval for the JWT refresh.
 rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"

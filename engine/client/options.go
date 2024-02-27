@@ -23,48 +23,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package client
 
 import (
-	"time"
-
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
 // Option is a function type that takes a pointer to an engineClient and returns
 // an error.
-type Option func(*engineClient) error
+type Option func(*EngineClient) error
 
-// WithEth1Client is a function that returns an Option.
-func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *engineClient) error {
-		s.Eth1Client = eth1Client
-		return nil
-	}
-}
-
-// WithLogger is an option to set the logger for the Eth1Client.
+// WithBeaconConfig is an option to set the beacon configuration.
 func WithBeaconConfig(beaconCfg *config.Beacon) Option {
-	return func(s *engineClient) error {
+	return func(s *EngineClient) error {
 		s.beaconCfg = beaconCfg
 		return nil
 	}
 }
 
-// WithLogger is an option to set the logger for the Eth1Client.
-func WithLogger(logger log.Logger) Option {
-	return func(s *engineClient) error {
-		s.logger = logger.With("module", "beacon-kit.engine")
+// WithEngineConfig is a function that returns an Option.
+func WithEngineConfig(cfg *config.Engine) Option {
+	return func(s *EngineClient) error {
+		var err error
+
+		// Load the JWT secret from the config if it's not already set.
+		// Get JWT Secret for eth1 connection.
+		s.jwtSecret, err = jwt.NewFromFile(cfg.JWTSecretPath)
+		if err != nil {
+			return err
+		}
+
+		s.cfg = cfg
 		return nil
 	}
 }
 
-// WithEngineTimeout is an option to set the timeout for the engine.
-func WithEngineTimeout(engineTimeout time.Duration) Option {
-	return func(s *engineClient) error {
-		s.engineTimeout = engineTimeout
+// WithEth1Client is a function that returns an Option.
+func WithEth1Client(eth1Client *eth.Eth1Client) Option {
+	return func(s *EngineClient) error {
+		s.Eth1Client = eth1Client
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the EngineClient.
+func WithLogger(logger log.Logger) Option {
+	return func(s *EngineClient) error {
+		s.logger = logger.With("module", "beacon-kit.engine.client")
 		return nil
 	}
 }

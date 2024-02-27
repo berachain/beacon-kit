@@ -35,14 +35,14 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// BuilderService is the interface for the builder service.
-type BuilderService interface {
+// LocalBuilder is the interface for the builder service.
+type LocalBuilder interface {
 	BuildLocalPayload(
 		ctx context.Context,
 		parentEth1Hash common.Hash,
 		slot primitives.Slot,
 		timestamp uint64,
-		parentBeaconBlockRoot []byte,
+		parentBlockRoot [32]byte,
 	) (*enginev1.PayloadIDBytes, error)
 }
 
@@ -60,7 +60,7 @@ type ExecutionService interface {
 		slot primitives.Slot,
 		payload enginetypes.ExecutionPayload,
 		versionedHashes []common.Hash,
-		parentBlockRoot common.Hash,
+		parentBlockRoot [32]byte,
 	) (bool, error)
 }
 

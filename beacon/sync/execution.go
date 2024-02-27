@@ -32,7 +32,7 @@ import (
 // CheckELSync checks if the execution layer is syncing.
 func (s *Service) CheckELSync(ctx context.Context) error {
 	// Call the ethClient to get the sync progress
-	progress, err := s.ethClient.SyncProgress(ctx)
+	progress, err := s.engineClient.SyncProgress(ctx)
 	if err != nil {
 		return err
 	}

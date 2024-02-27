@@ -23,8 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:govet,gomnd,lll // from sdk.
-package root
+//nolint:gomnd,lll // from sdk.
+package config
 
 import (
 	"strings"
@@ -34,9 +34,12 @@ import (
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
-
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
+
+func InitCometBFTConfig() *cmtcfg.Config {
+	return initCometBFTConfig()
+}
 
 // initCometBFTConfig helps to override default CometBFT Config values.
 // return cmtcfg.DefaultConfig if no custom configuration is required for the
@@ -54,6 +57,10 @@ func initCometBFTConfig() *cmtcfg.Config {
 	// Disable the indexer
 	cfg.TxIndex.Indexer = "null"
 	return cfg
+}
+
+func InitClientConfig() (string, interface{}) {
+	return initClientConfig()
 }
 
 // initAppConfig helps to override default client config template and configs.
@@ -101,6 +108,10 @@ gas-adjustment = {{ .GasConfig.GasAdjustment }}
 	)
 
 	return customClientConfigTemplate, customClientConfig
+}
+
+func InitAppConfig() (string, interface{}) {
+	return initAppConfig()
 }
 
 // initAppConfig helps to override default appConfig template and configs.

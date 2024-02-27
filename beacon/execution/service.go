@@ -50,15 +50,12 @@ type Service struct {
 
 // Start spawns any goroutines required by the service.
 func (s *Service) Start(ctx context.Context) {
-	s.engine.Start(ctx)
+	go s.engine.Start(ctx)
 }
 
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
-	if !s.engine.IsConnected() {
-		return ErrExecutionClientDisconnected
-	}
-	return nil
+	return s.engine.Status()
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
@@ -95,7 +92,7 @@ func (s *Service) NotifyNewPayload(
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash,
-	parentBlockRoot common.Hash,
+	parentBlockRoot [32]byte,
 ) (bool, error) {
 	return s.notifyNewPayload(
 		ctx,

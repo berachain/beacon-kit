@@ -32,7 +32,7 @@ import (
 
 // reportingInterval is the interval at which the health service
 // logs the health status of services.
-const reportingInterval = 5 * time.Second
+const reportingInterval = 10 * time.Second
 
 // reportingLoop initiates a loop that periodically checks and
 // reports the health status of services.
@@ -56,8 +56,8 @@ func (s *Service) reportStatuses() {
 			s.Logger().
 				Info("service is reporting healthy 🌤️ ", "service", svc.Name)
 		} else {
-			s.Logger().Error("service is reporting unhealthy ⛈️ ",
-				"service", svc.Name, "error", svc.Err)
+			s.Logger().Error("service is reporting unhealthy 🌧️ ",
+				"service", svc.Name, "status", svc.Err)
 		}
 	}
 }
