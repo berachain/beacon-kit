@@ -28,6 +28,7 @@ package parser
 import (
 	"fmt"
 	"math/big"
+	"net/url"
 	"time"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -164,6 +165,15 @@ func (c *AppOptionsParser) GetStringSlice(key string) ([]string, error) {
 // GetTimeDuration retrieves a time.Duration value from a configuration key.
 func (c *AppOptionsParser) GetTimeDuration(key string) (time.Duration, error) {
 	return handleError(c, cast.ToDurationE, key)
+}
+
+// GetURL retrieves a url.URL value from a configuration key.
+func (c *AppOptionsParser) GetURL(key string) (*url.URL, error) {
+	url, err := url.Parse(c.Get(key).(string))
+	if err != nil {
+		return nil, err
+	}
+	return url, nil
 }
 
 // isNilRepresentation returns true if the provided value is "<nil>", "null" or

@@ -54,6 +54,9 @@ type ReadOnlyBeaconState interface {
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
 
+	SetParentBlockRoot([32]byte)
+	GetParentBlockRoot() [32]byte
+
 	// TODO: Actually decouple epocha nd slot
 	// GetEpochBySlot(primitives.Slot) primitives.Epoch
 }
@@ -73,6 +76,7 @@ type WriteOnlyForkChoice interface {
 	SetLastValidHead(lastValidHead common.Hash)
 }
 
+// ReadOnlyForkChoice.
 type ReadOnlyForkChoice interface {
 	GetLastValidHead() common.Hash
 	GetSafeEth1BlockHash() common.Hash

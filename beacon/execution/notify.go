@@ -33,7 +33,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config/version"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
+	"github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -45,7 +45,7 @@ func (s *Service) notifyNewPayload(
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash,
-	parentBlockRoot common.Hash,
+	parentBlockRoot [32]byte,
 ) (bool, error) {
 	var (
 		lastValidHash []byte
@@ -65,9 +65,10 @@ func (s *Service) notifyNewPayload(
 		// lastValidHash, err = s.engine.NewP
 		// ayload(ctx, payload, versionedHashes, &pr)
 		// TODO:DENEB
+		h := common.Hash(parentBlockRoot)
 		lastValidHash, err = s.engine.NewPayload(
 			/*empty version hashes and root before Deneb*/
-			ctx, payload, versionedHashes, &parentBlockRoot,
+			ctx, payload, versionedHashes, &h,
 		)
 	} else {
 		lastValidHash, err = s.engine.NewPayload(
@@ -76,14 +77,14 @@ func (s *Service) notifyNewPayload(
 		)
 	}
 	switch {
-	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
 			"block_hash", common.BytesToHash(payload.GetBlockHash()),
 			"parent_hash", common.BytesToHash(payload.GetParentHash()),
 			"slot", slot,
 		)
 		return false, nil
-	case errors.Is(err, eth.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus):
 		s.Logger().Error(
 			"invalid payload status",
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
@@ -122,14 +123,14 @@ func (s *Service) notifyForkchoiceUpdate(
 		fcuConfig.Attributes,
 	)
 	switch {
-	case errors.Is(err, eth.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"slot", fcuConfig.ProposingSlot,
 		)
 		telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil
-	case errors.Is(err, eth.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus):
 		s.Logger().Error("invalid payload status", "error", err)
 		telemetry.IncrCounter(1, MetricsKeyInvalidPayloadStatus)
 		// Attempt to get the chain back into a valid state, by

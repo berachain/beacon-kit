@@ -23,19 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient_test
+package http_test
 
 import (
 	"net/http"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/node"
-	"github.com/itsdevbear/bolaris/engine/client/ethclient"
+	iohttp "github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/stretchr/testify/require"
 )
 
-func TestBuildHeaders(t *testing.T) {
+func TestNewHeaderWithJWT(t *testing.T) {
 	tests := []struct {
 		name      string
 		jwtSecret string
@@ -43,13 +43,13 @@ func TestBuildHeaders(t *testing.T) {
 	}{
 		{
 			name: "valid JWT secret w/0x",
-			//nolint:lll
+			//nolint:lll // test case.
 			jwtSecret: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			wantErr:   false,
 		},
 		{
 			name: "valid JWT secret w/o 0x",
-			//nolint:lll
+			//nolint:lll // test case.
 			jwtSecret: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			wantErr:   false,
 		},
@@ -62,29 +62,28 @@ func TestBuildHeaders(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a new JWT secret
 			jwtSecret, err := jwt.NewFromHex(tt.jwtSecret)
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("Failed to create JWT secret: %v", err)
-				} else {
-					return
 				}
+				return
 			}
 
-			// Create a new Eth1Client with the JWT secret
-			client := &ethclient.Eth1Client{}
-			if err = ethclient.WithJWTSecret(jwtSecret)(client); err != nil {
-				if !tt.wantErr {
-					t.Errorf("Failed to set JWT secret option: %v", err)
-				}
-			}
-			headers, err := client.BuildHeaders()
-
+			var headers http.Header
 			if tt.wantErr {
-				require.Error(t, err)
+				require.PanicsWithValue(
+					t,
+					"http.Header is nil",
+					func() { headers = iohttp.NewHeaderWithJWT(jwtSecret) },
+					"Expected panic for nil JWT secret",
+				)
 			} else {
-				require.NoError(t, err)
+				require.NotPanics(t,
+					func() {
+						headers = iohttp.NewHeaderWithJWT(jwtSecret)
+					}, "Unexpected panic for valid JWT secret",
+				)
 				require.NotNil(t, headers)
 				require.IsType(t, http.Header{}, headers)
 				fn := node.NewJWTAuth(*jwtSecret)
@@ -100,4 +99,23 @@ func TestBuildHeaders(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAddJWTHeader(t *testing.T) {
+	secret, err := jwt.NewFromHex(
+		"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+	)
+	require.NoError(t, err)
+
+	header := http.Header{}
+	err = iohttp.AddJWTHeader(header, secret)
+	require.NoError(t, err)
+
+	authHeader := header.Get("Authorization")
+	require.NotEmpty(t, authHeader)
+	require.Contains(t, authHeader, "Bearer ")
+
+	// Test with nil header
+	err = iohttp.AddJWTHeader(nil, secret)
+	require.EqualError(t, err, "http.Header is nil")
 }

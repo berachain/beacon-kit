@@ -33,16 +33,15 @@ import (
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	builder "github.com/itsdevbear/bolaris/beacon/builder"
+	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/health"
-	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -50,12 +49,9 @@ import (
 // service registry.
 type BeaconKitRuntime struct {
 	cfg      *config.Config
-	cometCfg CometBFTConfig
 	logger   log.Logger
 	fscp     BeaconStateProvider
 	services *service.Registry
-
-	stopCh chan struct{}
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -63,9 +59,7 @@ type BeaconKitRuntime struct {
 func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{
-		stopCh: make(chan struct{}, 1),
-	}
+	bkr := &BeaconKitRuntime{}
 	for _, opt := range opts {
 		if err := opt(bkr); err != nil {
 			return nil, err
@@ -78,7 +72,7 @@ func NewBeaconKitRuntime(
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
-//nolint:funlen // todo fix.
+
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -87,12 +81,6 @@ func NewDefaultBeaconKitRuntime(
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
-
-	// Get JWT Secret for eth1 connection.
-	jwtSecret, err := jwt.NewFromFile(cfg.Engine.JWTSecretPath)
-	if err != nil {
-		return nil, err
-	}
 
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
@@ -112,33 +100,18 @@ func NewDefaultBeaconKitRuntime(
 		cfg, bsp, gcd, logger,
 	)
 
-	// Create the eth1 client that will be used to interact with the execution
-	// client.
-	eth1Client, err := eth.NewEth1Client(
-		eth.WithStartupRetryInterval(cfg.Engine.RPCStartupCheckInterval),
-		eth.WithHealthCheckInterval(cfg.Engine.RPCHealthCheckInterval),
-		eth.WithJWTRefreshInterval(cfg.Engine.RPCJWTRefreshInterval),
-		eth.WithEndpointDialURL(cfg.Engine.RPCDialURL),
-		eth.WithJWTSecret(jwtSecret),
-		eth.WithLogger(logger),
-		eth.WithRequiredChainID(cfg.Engine.RequiredChainID),
+	// Build the client to interact with the Engine API.
+	engineClient := engineclient.New(
+		engineclient.WithBeaconConfig(&cfg.Beacon),
+		engineclient.WithEngineConfig(&cfg.Engine),
+		engineclient.WithLogger(logger),
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	// Build the Notification Service.
 	notificationService := service.New(
 		notify.WithBaseService(baseService.ShallowCopy("notify")),
 		notify.WithGCD(gcd),
 	)
-
-	// Build the client to interact with the Engine API.
-	engineClient := engineclient.New(
-		engineclient.WithEth1Client(eth1Client),
-		engineclient.WithBeaconConfig(&cfg.Beacon),
-		engineclient.WithLogger(logger),
-		engineclient.WithEngineTimeout(cfg.Engine.RPCTimeout))
 
 	// Build the execution service.
 	executionService := service.New[execution.Service](
@@ -147,11 +120,17 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the local builder service.
+	localBuilder := service.New[localbuilder.Service](
+		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
+		localbuilder.WithBuilderConfig(&cfg.Builder),
+		localbuilder.WithExecutionService(executionService),
+		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+	)
+
 	builderService := service.New[builder.Service](
-		builder.WithBaseService(baseService.ShallowCopy("local-builder")),
+		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
-		builder.WithExecutionService(executionService),
-		builder.WithPayloadCache(cache.NewPayloadIDCache()),
+		builder.WithLocalBuilder(localBuilder),
 	)
 
 	// Build the staking service.
@@ -162,25 +141,25 @@ func NewDefaultBeaconKitRuntime(
 
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
-		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
+		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithStakingService(stakingService),
 	)
 
 	// Build the sync service.
 	syncService := service.New[sync.Service](
 		sync.WithBaseService(baseService.ShallowCopy("sync")),
-		sync.WithEthClient(eth1Client),
+		sync.WithEngineClient(engineClient),
 	)
 
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger),
-		service.WithService(syncService),
-		service.WithService(executionService),
-		service.WithService(chainService),
-		service.WithService(notificationService),
 		service.WithService(builderService),
+		service.WithService(chainService),
+		service.WithService(executionService),
+		service.WithService(notificationService),
 		service.WithService(stakingService),
+		service.WithService(syncService),
 	)
 
 	healthService := service.New[health.Service](
@@ -210,22 +189,6 @@ func (r *BeaconKitRuntime) StartServices(
 	if err := r.services.FetchService(&syncService); err != nil {
 		panic(err)
 	}
-
 	syncService.SetClientContext(clientCtx)
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	r.services.StartAll(ctx)
-	<-r.stopCh
-}
-
-// SetCometCfg sets the CometBFTConfig for the runtime.
-func (r *BeaconKitRuntime) SetCometCfg(cometCfg CometBFTConfig) {
-	r.cometCfg = cometCfg
-}
-
-// Close closes the runtime.
-func (r *BeaconKitRuntime) Close() {
-	close(r.stopCh)
 }

@@ -23,48 +23,53 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package runtime
 
 import (
-	"context"
-	"fmt"
-	"time"
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/config"
 )
 
-// healthCheckLoop periodically checks the connection health of the execution
-// client.
-func (s *Eth1Client) healthCheckLoop(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(s.healthCheckInterval):
-			if err := s.ensureCorrectExecutionChain(ctx); err != nil {
-				s.logger.Error("eth1 connection health check failed",
-					"dial-url", s.dialURL.String(),
-					"error", err,
-				)
-				s.isConnected.Store(false)
-			}
-		}
+//nolint:gochecknoinits // GRRRR fix later.
+func init() {
+	if err := depinject.Inject(
+		depinject.Provide(ProvideRuntime),
+	); err != nil {
+		panic(err)
 	}
 }
 
-// Checks the chain ID of the execution client to ensure
-// it matches local parameters of what Prysm expects.
-func (s *Eth1Client) ensureCorrectExecutionChain(ctx context.Context) error {
-	chainID, err := s.Client.ChainID(ctx)
+// DepInjectInput is the input for the dep inject framework.
+type DepInjectInput struct {
+	depinject.In
+
+	Config *config.Config
+	Bsp    BeaconStateProvider
+	Vcp    ValsetChangeProvider
+	Logger log.Logger
+}
+
+// DepInjectOutput is the output for the dep inject framework.
+type DepInjectOutput struct {
+	depinject.Out
+
+	Runtime *BeaconKitRuntime
+}
+
+// ProvideModule is a function that provides the module to the application.
+func ProvideRuntime(in DepInjectInput) DepInjectOutput {
+	r, err := NewDefaultBeaconKitRuntime(
+		in.Config,
+		in.Bsp,
+		in.Vcp,
+		in.Logger,
+	)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
-	if chainID.Uint64() != s.chainID {
-		return fmt.Errorf(
-			"wanted chain ID %d, got %d",
-			s.chainID,
-			chainID.Uint64(),
-		)
+	return DepInjectOutput{
+		Runtime: r,
 	}
-
-	return nil
 }

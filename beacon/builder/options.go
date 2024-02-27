@@ -23,34 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package builder
 
 import (
-	"context"
-	"net/http"
-
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *Eth1Client) jwtRefreshLoop(ctx context.Context) {
-	for {
-		s.tryConnectionAfter(ctx, s.jwtRefreshInterval)
+// WithBaseService sets the base service.
+func WithBaseService(svc service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = svc
+		return nil
 	}
 }
 
-// BuildHeaders creates the headers for the execution client.
-func (s *Eth1Client) BuildHeaders() (http.Header, error) {
-	var (
-		headers        = http.Header{}
-		jwtAuthHandler = node.NewJWTAuth(*s.jwtSecret)
-	)
-
-	// Authenticate the execution node JSON-RPC endpoint.
-	if err := jwtAuthHandler(headers); err != nil {
-		return nil, err
+// WithBuilderConfig sets the builder config.
+func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
+	return func(s *Service) error {
+		s.cfg = cfg
+		return nil
 	}
+}
 
-	// Add additional headers if provided.
-	return headers, nil
+// WithLocalBuilder sets the local builder.
+func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
+	return func(s *Service) error {
+		s.localBuilder = builder
+		return nil
+	}
+}
+
+// WithRemoteBuilders sets the remote builders.
+func WithRemoteBuilders(builders ...PayloadBuilder) service.Option[Service] {
+	return func(s *Service) error {
+		s.remoteBuilders = append(s.remoteBuilders, builders...)
+		return nil
+	}
 }

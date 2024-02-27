@@ -23,27 +23,58 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sync
+package collections
 
 import (
-	"github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"context"
+
+	sdkcollections "cosmossdk.io/collections"
+	sdkcodec "cosmossdk.io/collections/codec"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
+// CircularQueue is a simple queue implementation that uses a map and two
+// sequences.
+type CircularQueue[V any] struct {
+	queue *Queue[V]
+	size  uint64
+}
+
+// NewCircularQueue creates a new queue with the provided prefix and name.
+func NewCircularQueue[V any](
+	schema *sdkcollections.SchemaBuilder, name string,
+	valueCodec sdkcodec.ValueCodec[V],
+	size uint64,
+) *CircularQueue[V] {
+	return &CircularQueue[V]{
+		queue: NewQueue[V](
+			schema, name, valueCodec,
+		),
+		size: size,
 	}
 }
 
-// WithEngineClient sets the EngineClient of the Service.
-func WithEngineClient(
-	engineClient *client.EngineClient,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.engineClient = engineClient
-		return nil
+// Peek wraps the peek method.
+func (q *CircularQueue[V]) Peek(ctx context.Context) (V, error) {
+	return q.queue.Peek(ctx)
+}
+
+// Push pushes a new element to the queue and returns the element that was
+// evicted
+// by the circular property of the queue.
+func (q *CircularQueue[V]) Push(ctx context.Context, item V) (V, error) {
+	var v V
+	if err := q.queue.Push(ctx, item); err != nil {
+		return v, err
 	}
+
+	if length, err := q.queue.Len(ctx); err != nil {
+		return v, err
+	} else if length > q.size {
+		v, err = q.queue.Pop(ctx)
+		if err != nil {
+			return v, err
+		}
+	}
+
+	return v, nil
 }

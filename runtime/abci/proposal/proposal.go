@@ -26,15 +26,13 @@
 package proposal
 
 import (
-	"bytes"
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	builder "github.com/itsdevbear/bolaris/beacon/builder"
 	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
@@ -44,12 +42,12 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg             *config.ABCI
-	builderService  *builder.Service
-	chainService    *blockchain.Service
-	syncService     *sync.Service
-	prepareProposal sdk.PrepareProposalHandler
-	processProposal sdk.ProcessProposalHandler
+	cfg            *config.ABCI
+	builderService *builder.Service
+	chainService   *blockchain.Service
+	syncService    *sync.Service
+	nextPrepare    sdk.PrepareProposalHandler
+	nextProcess    sdk.ProcessProposalHandler
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -58,16 +56,16 @@ func NewHandler(
 	builderService *builder.Service,
 	syncService *sync.Service,
 	chainService *blockchain.Service,
-	prepareProposal sdk.PrepareProposalHandler,
-	processProposal sdk.ProcessProposalHandler,
+	nextPrepare sdk.PrepareProposalHandler,
+	nextProcess sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
-		cfg:             cfg,
-		builderService:  builderService,
-		syncService:     syncService,
-		chainService:    chainService,
-		prepareProposal: prepareProposal,
-		processProposal: processProposal,
+		cfg:            cfg,
+		builderService: builderService,
+		syncService:    syncService,
+		chainService:   chainService,
+		nextPrepare:    nextPrepare,
+		nextProcess:    nextProcess,
 	}
 }
 
@@ -83,18 +81,13 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
-	// TODO abstract this into BeaconState()
-	parentRoot := ctx.BlockHeader().AppHash
-	if req.Height == 1 {
-		parentRoot = make([]byte, 32) //nolint:gomnd //temp
-	}
-
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
 	block, err := h.builderService.RequestBestBlock(
-		ctx, primitives.Slot(req.Height), parentRoot,
+		ctx,
+		primitives.Slot(req.Height),
 	)
 
 	if err != nil {
@@ -109,7 +102,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Run the remainder of the prepare proposal handler.
-	resp, err := h.prepareProposal(ctx, req)
+	resp, err := h.nextPrepare(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -140,21 +133,6 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	// TODO abstract this into BeaconState()
-	parentRoot := ctx.BlockHeader().AppHash
-	if req.Height == 1 {
-		parentRoot = make([]byte, 32) //nolint:gomnd //temp
-	}
-
-	// TODO: move this to a better spot.
-	if !bytes.Equal(parentRoot, block.GetParentRoot()) {
-		return &abci.ResponseProcessProposal{
-				Status: abci.ResponseProcessProposal_REJECT}, fmt.Errorf(
-				"parent root does not match, expected: %x, got: %x",
-				ctx.BlockHeader().AppHash, block.GetParentRoot(),
-			)
-	}
-
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
@@ -182,5 +160,5 @@ func (h *Handler) ProcessProposalHandler(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
 
-	return h.processProposal(ctx, req)
+	return h.nextProcess(ctx, req)
 }

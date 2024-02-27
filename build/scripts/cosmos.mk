@@ -67,6 +67,9 @@ endif
 # always include pebble
 build_tags += pebbledb
 
+# always include blst
+build_tags += blst
+
 whitespace :=
 whitespace += $(whitespace)
 comma := ,

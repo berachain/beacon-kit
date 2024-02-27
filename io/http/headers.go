@@ -23,18 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package http
 
-// Genesis Related Prefix.
-const (
-	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
-	eth1GenesisHashPrefix = "eth1_genesis_hash"
+import (
+	"errors"
+	"net/http"
+
+	"github.com/ethereum/go-ethereum/node"
+	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
-// Collection prefixes.
-const (
-	parentBlockRootPrefix          = "parent_block_root"
-	depositQueuePrefix             = "deposit_queue"
-	fcSafeEth1BlockHashPrefix      = "fc_safe"
-	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
-)
+// NewHeaderWithJWT creates a new HTTP header with a JWT token.
+func NewHeaderWithJWT(secret *jwt.Secret) http.Header {
+	header := http.Header{}
+	if err := AddJWTHeader(header, secret); err != nil {
+		panic(err)
+	}
+	return header
+}
+
+// AddJWTHeader adds a JWT header to the provided HTTP header.
+func AddJWTHeader(header http.Header, secret *jwt.Secret) error {
+	// Authenticate the execution node JSON-RPC endpoint.
+	jwtAuthHandler := node.NewJWTAuth(*secret)
+	if header == nil {
+		return errors.New("http.Header is nil")
+	}
+
+	return jwtAuthHandler(header)
+}

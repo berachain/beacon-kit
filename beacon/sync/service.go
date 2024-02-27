@@ -29,8 +29,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
+	cosmosclient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"golang.org/x/sync/errgroup"
 )
@@ -45,13 +45,8 @@ const syncLoopInterval = 6 * time.Second
 // of both the beacon and execution chains.
 type Service struct {
 	service.BaseService
-	ethClient *eth.Eth1Client
-	clientCtx *client.Context
-}
-
-// SetClientContext sets the client context for the service.
-func (s *Service) SetClientContext(clientCtx client.Context) {
-	s.clientCtx = &clientCtx
+	engineClient *client.EngineClient
+	clientCtx    *cosmosclient.Context
 }
 
 // Start initiates the synchronization service.
@@ -64,6 +59,11 @@ func (s *Service) Start(ctx context.Context) {
 		// the notifySyncSignal channel to signal completion.
 		<-ctx.Done()
 	}()
+}
+
+// SetClientContext sets the client context for the service.
+func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
+	s.clientCtx = &clientCtx
 }
 
 // syncLoop continuously runs and reports if our client is out of sync.

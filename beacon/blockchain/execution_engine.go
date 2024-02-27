@@ -23,18 +23,45 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package blockchain
 
-// Genesis Related Prefix.
-const (
-	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
-	eth1GenesisHashPrefix = "eth1_genesis_hash"
+import (
+	"context"
+	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// Collection prefixes.
-const (
-	parentBlockRootPrefix          = "parent_block_root"
-	depositQueuePrefix             = "deposit_queue"
-	fcSafeEth1BlockHashPrefix      = "fc_safe"
-	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
-)
+// sendFCU sends a forkchoice update to the execution client.
+func (s *Service) sendFCU(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+) error {
+	_, err := s.es.NotifyForkchoiceUpdate(
+		ctx, &execution.FCUConfig{
+			HeadEth1Hash: headEth1Hash,
+		})
+	return err
+}
+
+// sendFCUWithAttributes sends a forkchoice update to the
+// execution client with payload attributes. It does
+// so via the local builder service.
+func (s *Service) sendFCUWithAttributes(
+	ctx context.Context,
+	headEth1Hash common.Hash,
+	slot primitives.Slot,
+	parentBlockRoot [32]byte,
+) error {
+	_, err := s.lb.BuildLocalPayload(
+		ctx,
+		headEth1Hash,
+		slot+1,
+		//#nosec:G701 // won't realistically overflow.
+		uint64(time.Now().Unix()),
+		parentBlockRoot,
+	)
+	return err
+}
