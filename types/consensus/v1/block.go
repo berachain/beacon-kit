@@ -49,7 +49,7 @@ func (b *BeaconKitBlockDeneb) AttachExecution(
 ) error {
 	var ok bool
 	if executionData == nil {
-		b.PayloadValue = make([]byte, 32)
+		b.PayloadValue = make([]byte, 32) //nolint:gomnd // fix later.
 		return nil
 	}
 	b.Body.ExecutionPayload, ok = executionData.

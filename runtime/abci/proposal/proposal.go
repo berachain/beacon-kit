@@ -78,7 +78,10 @@ func (h *Handler) PrepareProposalHandler(
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// We block until the sync service is healthy.
-	if err := h.healthService.WaitForHealthyOf(ctx, "prepare-proposal", "sync"); err != nil {
+	if err := h.healthService.WaitForHealthyOf(
+		ctx, "prepare-proposal", "sync",
+	); err != nil {
+		logger.Error("failed to wait for healthy sync service", "error", err)
 		return &abci.ResponsePrepareProposal{}, nil
 	}
 
@@ -130,6 +133,11 @@ func (h *Handler) ProcessProposalHandler(
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
+		logger.Warn(
+			"proposer failed to include a valid beacon block",
+			"status",
+			err,
+		)
 		// slash them somehow.
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil

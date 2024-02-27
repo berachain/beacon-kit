@@ -27,7 +27,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/types/consensus"
@@ -43,7 +42,6 @@ func (s *Service) FinalizeBeaconBlock(
 	blk consensus.ReadOnlyBeaconKitBlock,
 	blockRoot [32]byte,
 ) error {
-	fmt.Println("FINALIZE")
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
@@ -55,7 +53,6 @@ func (s *Service) FinalizeBeaconBlock(
 
 	if payload == nil {
 		// SLASH THE PROPOSER HERE
-		fmt.Println("REEEE")
 		return nil
 	}
 
@@ -73,7 +70,6 @@ func (s *Service) PostFinalizeBeaconBlock(
 	ctx context.Context,
 	slot primitives.Slot,
 ) error {
-
 	var err error
 	state := s.BeaconState(ctx)
 
