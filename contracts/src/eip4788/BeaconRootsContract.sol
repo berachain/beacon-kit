@@ -95,7 +95,7 @@ contract BeaconRootsContract {
 
     /// @dev Sets the beacon root and coinbase for the current block.
     /// This function is called internally and utilizes assembly for direct storage access.
-    function set() internal virtual {
+    function set() internal {
         assembly ("memory-safe") {
             let block_idx := mod(number(), HISTORY_BUFFER_LENGTH)
             // clean the key in the mapping for the stale timestamp in the block index to be
