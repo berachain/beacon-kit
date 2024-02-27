@@ -44,10 +44,10 @@ func (s *Service) Start(ctx context.Context) {
 	go s.reportingLoop(ctx)
 }
 
-// retrieveStatuses returns the health status of all services.
-func (s *Service) retrieveStatuses(services ...string) []*serviceStatus {
+// RetrieveStatuses returns the health status of all services.
+func (s *Service) RetrieveStatuses(services ...string) []*ServiceStatus {
 	rawStatuses := s.svcRegistry.Statuses(services...)
-	statuses := make([]*serviceStatus, len(rawStatuses))
+	statuses := make([]*ServiceStatus, len(rawStatuses))
 
 	i := 0
 	for k, v := range rawStatuses {
@@ -56,7 +56,7 @@ func (s *Service) retrieveStatuses(services ...string) []*serviceStatus {
 		if !healthy {
 			errMsg = v.Error()
 		}
-		statuses[i] = &serviceStatus{
+		statuses[i] = &ServiceStatus{
 			Name:    k,
 			Healthy: healthy,
 			Err:     errMsg,

@@ -61,3 +61,12 @@ func WithStakingService(ss StakingService) service.Option[Service] {
 		return nil
 	}
 }
+
+// WithHealthService is a function that returns an Option.
+// It sets the HealthService of the Service to the provided Service.
+func WithHealthService(hs HealthService) service.Option[Service] {
+	return func(s *Service) error {
+		s.hs = hs
+		return nil
+	}
+}

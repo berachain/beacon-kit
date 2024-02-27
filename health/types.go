@@ -25,7 +25,7 @@
 
 package health
 
-type serviceStatus struct {
+type ServiceStatus struct {
 	Name    string `json:"service"`
 	Healthy bool   `json:"healthy"`
 	Err     string `json:"error"`

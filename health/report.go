@@ -50,7 +50,7 @@ func (s *Service) reportingLoop(ctx context.Context) {
 
 // reportStatuses logs the health status of all services.
 func (s *Service) reportStatuses() {
-	svcStatuses := s.retrieveStatuses()
+	svcStatuses := s.RetrieveStatuses()
 	for _, svc := range svcStatuses {
 		if svc.Healthy {
 			s.Logger().

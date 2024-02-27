@@ -28,3 +28,4 @@ package blockchain
 import "errors"
 
 var ErrInvalidPayload = errors.New("invalid payload")
+var ErrInvalidNumberOfStatuses = errors.New("invalid number of statuses")

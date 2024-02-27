@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -42,10 +43,6 @@ func (s *Service) FinalizeBeaconBlock(
 	blk consensus.ReadOnlyBeaconKitBlock,
 	blockRoot [32]byte,
 ) error {
-	if err := s.hs.WaitForHealthyOfServices(ctx, s.Name(), "sync"); err != nil {
-		return err
-	}
-
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
@@ -74,6 +71,24 @@ func (s *Service) PostFinalizeBeaconBlock(
 	ctx context.Context,
 	slot primitives.Slot,
 ) error {
+	// Check if the execution client is syncing.
+	statuses := s.hs.RetrieveStatuses("sync")
+	if len(statuses) == 0 {
+		s.Logger().Error("no statuses returned from health service")
+		return nil
+	}
+	status := statuses[0]
+	if status.Err != "" {
+		if status.Err == sync.ErrExecutionClientIsSyncing.Error() {
+			s.Logger().Info("execution client is syncing, skipping forkchoice update")
+			return nil
+		}
+
+		s.Logger().Info("sync service is not healthy, starting exec sync loop")
+		// TODO: start snapsync
+		return nil
+	}
+
 	var err error
 	state := s.BeaconState(ctx)
 
