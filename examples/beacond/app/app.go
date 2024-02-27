@@ -26,6 +26,7 @@
 package app
 
 import (
+	"context"
 	_ "embed"
 	"io"
 	"os"
@@ -198,17 +199,18 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
+	return app
+}
+
+// PostStartup is called after the app has started up and CometBFT is connected.
+func (app *BeaconApp) PostStartup(ctx context.Context, clientCtx client.Context) error {
 	// Initial check for execution client sync.
 	app.BeaconKitRuntime.StartServices(
 		app.NewContext(true),
 		clientCtx,
 	)
-
-	return app
+	return nil
 }
-
-// Name returns the name of the App.
-func (app *BeaconApp) Name() string { return app.BaseApp.Name() }
 
 // LegacyAmino returns BeaconApp's amino codec.
 //
