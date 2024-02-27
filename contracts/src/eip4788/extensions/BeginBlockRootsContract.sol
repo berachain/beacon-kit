@@ -187,7 +187,7 @@ contract BeginBlockRootsContract {
     {
         // Decode the data to get the BeginBlocker struct, user must send a message that is
         // encoded:
-        // abi.encode(i, action, contractAddress, selector)
+        // abi.encode(i, action, contractAddress, selector, admin)
         (uint256 i, bytes32 action, address contractAddress, bytes4 selector, address admin) =
             abi.decode(data, (uint256, bytes32, address, bytes4, address));
         return (i, action, BeginBlocker(contractAddress, selector), admin);
@@ -275,7 +275,6 @@ contract BeginBlockRootsContract {
             (bool success,) = beginBlockers[i].contractAddress.call(
                 abi.encodeWithSelector(beginBlockers[i].selector)
             );
-            
             emit BeginBlockerCalled(
                 beginBlockers[i].contractAddress,
                 block.coinbase,
