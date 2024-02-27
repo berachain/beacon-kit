@@ -46,6 +46,7 @@ type LocalBuilder interface {
 	) (*enginev1.PayloadIDBytes, error)
 }
 
+// ExecutionService is the interface for the execution service.
 type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
@@ -64,4 +65,11 @@ type ExecutionService interface {
 	) (bool, error)
 }
 
+// StakingService is the interface for the staking service.
 type StakingService interface{}
+
+// HealthService is the interface for the health service.
+type HealthService interface {
+	// WaitForHealthyOfServices waits for the services to become healthy.
+	WaitForHealthyOfServices(ctx context.Context, services ...string) error
+}

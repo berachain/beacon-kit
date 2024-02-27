@@ -42,6 +42,10 @@ func (s *Service) FinalizeBeaconBlock(
 	blk consensus.ReadOnlyBeaconKitBlock,
 	blockRoot [32]byte,
 ) error {
+	if err := s.hs.WaitForHealthyOfServices(ctx, s.Name(), "sync"); err != nil {
+		return err
+	}
+
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return err

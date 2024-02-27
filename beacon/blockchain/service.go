@@ -35,4 +35,5 @@ type Service struct {
 	lb LocalBuilder
 	es ExecutionService
 	ss StakingService
+	hs HealthService
 }
