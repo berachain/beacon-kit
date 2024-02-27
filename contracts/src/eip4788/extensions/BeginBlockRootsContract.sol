@@ -272,19 +272,16 @@ contract BeginBlockRootsContract {
      */
     function _run() private {
         for (uint256 i = 0; i < beginBlockers.length; i++) {
-            // Call the BeginBlocker function.
             (bool success,) = beginBlockers[i].contractAddress.call(
                 abi.encodeWithSelector(beginBlockers[i].selector)
             );
-            // If the BeginBlocker function call was successful, emit an event.
-            if (success) {
-                emit BeginBlockerCalled(
-                    beginBlockers[i].contractAddress,
-                    block.coinbase,
-                    beginBlockers[i].selector,
-                    success
-                );
-            }
+            
+            emit BeginBlockerCalled(
+                beginBlockers[i].contractAddress,
+                block.coinbase,
+                beginBlockers[i].selector,
+                success
+            );
         }
     }
 }
