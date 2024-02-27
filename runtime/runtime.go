@@ -189,7 +189,6 @@ func (r *BeaconKitRuntime) StartServices(
 	ctx context.Context,
 	clientCtx client.Context,
 ) {
-
 	var syncService *sync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
 		panic(err)

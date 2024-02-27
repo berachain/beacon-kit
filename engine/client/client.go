@@ -76,13 +76,21 @@ func New(opts ...Option) *EngineClient {
 func (s *EngineClient) Start(ctx context.Context) {
 	for {
 		if err := s.setupExecutionClientConnection(ctx); err != nil {
-			s.logger.Error("attemping to connection to execution client 🚒 ", "err", err)
+			s.logger.Error(
+				"attemping to connection to execution client 🚒 ",
+				"err",
+				err,
+			)
 			continue
 		}
 		break
 	}
 
-	s.logger.Info("connected to execution client 🔌", "dial-url", s.cfg.RPCDialURL.String())
+	s.logger.Info(
+		"connected to execution client 🔌",
+		"dial-url",
+		s.cfg.RPCDialURL.String(),
+	)
 
 	// Exchange capabilities with the execution client.
 	if _, err := s.ExchangeCapabilities(ctx); err != nil {
@@ -139,7 +147,9 @@ func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 
 // setupExecutionClientConnections dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient) setupExecutionClientConnection(ctx context.Context) error {
+func (s *EngineClient) setupExecutionClientConnection(
+	ctx context.Context,
+) error {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(ctx); err != nil {
 		return err
