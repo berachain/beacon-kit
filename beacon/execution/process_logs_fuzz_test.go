@@ -26,9 +26,11 @@
 package execution_test
 
 import (
+	"reflect"
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
@@ -38,38 +40,44 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestProcessLogs(t *testing.T) {
+func FuzzProcessLogs(f *testing.F) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
 
 	mockLogService := &logmocks.Service{}
 	logFactory, err := logs.NewFactory(
 		logs.WithRequestsFrom(mockLogService),
 	)
-	require.NoError(t, err)
+	require.NoError(f, err)
 
 	executionService := service.New[execution.Service](
 		execution.WithLogFactory(logFactory),
 	)
 
-	blkNum := uint64(100)
-	depositFactor := 3
-	numDepositLogs := 10
-	logs, err := mocks.CreateDepositLogs(
-		numDepositLogs,
-		depositFactor,
-		contractAddress,
-		blkNum,
-	)
-	require.NoError(t, err)
+	f.Add(uint64(100), 3, 10)
+	f.Fuzz(func(t *testing.T, blkNum uint64, depositFactor, numDepositLogs int) {
+		if depositFactor <= 0 || numDepositLogs <= 0 {
+			t.Skip()
+		}
 
-	vals, err := executionService.ProcessLogs(logs, blkNum)
-	require.NoError(t, err)
-	require.Len(t, vals, numDepositLogs)
+		var logs []ethtypes.Log
+		logs, err = mocks.CreateDepositLogs(
+			numDepositLogs,
+			depositFactor,
+			contractAddress,
+			blkNum,
+		)
+		require.NoError(t, err)
 
-	// Check if the values are returned in the correct order.
-	for i, val := range vals {
-		processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
-		require.True(t, ok)
-		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
-	}
+		var vals []*reflect.Value
+		vals, err = executionService.ProcessLogs(logs, blkNum)
+		require.NoError(t, err)
+		require.Len(t, vals, numDepositLogs)
+
+		// Check if the values are returned in the correct order.
+		for i, val := range vals {
+			processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
+			require.True(t, ok)
+			require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
+		}
+	})
 }

@@ -201,6 +201,7 @@ test-unit-fuzz:
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHandlerSimple ./beacon/staking/logs/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHandlerMulti ./beacon/staking/logs/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
 #     forge     #

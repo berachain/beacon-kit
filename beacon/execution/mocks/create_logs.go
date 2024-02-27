@@ -23,53 +23,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution_test
+package mocks
 
 import (
-	"testing"
-
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
-	"github.com/itsdevbear/bolaris/beacon/execution/mocks"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	"github.com/stretchr/testify/require"
+	"github.com/itsdevbear/bolaris/beacon/staking"
+	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
-func TestProcessLogs(t *testing.T) {
-	contractAddress := ethcommon.HexToAddress("0x1234")
-
-	mockLogService := &logmocks.Service{}
-	logFactory, err := logs.NewFactory(
-		logs.WithRequestsFrom(mockLogService),
-	)
-	require.NoError(t, err)
-
-	executionService := service.New[execution.Service](
-		execution.WithLogFactory(logFactory),
-	)
-
-	blkNum := uint64(100)
-	depositFactor := 3
-	numDepositLogs := 10
-	logs, err := mocks.CreateDepositLogs(
-		numDepositLogs,
-		depositFactor,
-		contractAddress,
-		blkNum,
-	)
-	require.NoError(t, err)
-
-	vals, err := executionService.ProcessLogs(logs, blkNum)
-	require.NoError(t, err)
-	require.Len(t, vals, numDepositLogs)
-
-	// Check if the values are returned in the correct order.
-	for i, val := range vals {
-		processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
-		require.True(t, ok)
-		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
+// CreateDepositLogs creates mock deposit logs.
+func CreateDepositLogs(
+	numDepositLogs int,
+	factor int,
+	contractAddress ethcommon.Address,
+	blkNum uint64,
+) ([]ethtypes.Log, error) {
+	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	if err != nil {
+		return nil, err
 	}
+
+	// Create deposit logs.
+	numLogs := factor*(numDepositLogs-1) + 1
+
+	logs := make([]ethtypes.Log, 0, numLogs)
+	for i := 0; i < numLogs; i++ {
+		deposit := consensus.NewDeposit(
+			[]byte("pubkey"),
+			uint64(i),
+			[]byte("12345678901234567890"),
+		)
+		var log *ethtypes.Log
+		log, err = logmocks.NewLogFromDeposit(
+			stakingAbi.Events[staking.DepositName],
+			deposit,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if i%factor == 0 {
+			log.Address = contractAddress
+			log.BlockNumber = blkNum
+		} else if i%2 == 0 {
+			log.BlockNumber = blkNum
+		}
+
+		logs = append(logs, *log)
+	}
+	return logs, nil
 }
