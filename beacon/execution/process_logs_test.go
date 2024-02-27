@@ -111,7 +111,7 @@ func TestProcessLogs(t *testing.T) {
 	log.Address = contractAddress
 	log.BlockNumber = blkNum
 	logs = append(logs, *log)
-	vals, err = executionService.ProcessLogs(logs, blkNum)
+	_, err = executionService.ProcessLogs(logs, blkNum)
 	// This is an expected error as currently we cannot
 	// unmarsal a withdrawal log into a Withdrawal object.
 	require.Error(t, err)
