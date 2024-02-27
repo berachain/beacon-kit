@@ -3,6 +3,49 @@ pragma solidity ^0.8.24;
 
 import { BeaconRootsContract } from "../BeaconRootsContract.sol";
 
+/**
+ * @title BeginBlockRootsContract
+ * @author Berachain Team.
+ *
+ * @dev This contract provides a fallback function that is called when a non-function payload is
+ * sent to the contract.
+ *
+ * The contract behavior is as follows:
+ *
+ * - When a message is received:
+ *   - If the sender is not the system address:
+ *     - If the sender is the admin, it performs a CRUD operation with the message data.
+ *     - Otherwise:
+ *       - If the message data length is 36 and the first 4 bytes match the
+ * `GET_COINBASE_SELECTOR`, it calls `getCoinbase()`.
+ *       - Otherwise, it calls `get()`.
+ *   - If the sender is the system address, it calls `set()` and `run()`.
+ *
+ *
+ * Message received
+ * |
+ * |--- Sender is not the system address:
+ * |    |
+ * |    |--- Sender is the admin:
+ * |    |    |
+ * |    |    `--- Perform CRUD operation with the message data.
+ * |    |
+ * |    `--- Sender is not the admin:
+ * |         |
+ * |         |--- Message data length is 36 and the first 4 bytes match the
+ * `GET_COINBASE_SELECTOR`:
+ * |         |    |
+ * |         |    `--- Call `getCoinbase()`.
+ * |         |
+ * |         `--- Message data length is not 36 or the first 4 bytes do not match the
+ * `GET_COINBASE_SELECTOR`:
+ * |              |
+ * |              `--- Call `get()`.
+ * |
+ * `--- Sender is the system address:
+ *      |
+ *      `--- Call `set()` and `run()`.
+ */
 contract BeginBlockRootsContract is BeaconRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                    EVENTS/ERRORS                           */
@@ -60,6 +103,34 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /*                        ENTRYPOINT                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /**
+     * @dev Fallback function that is called when a non-function payload is sent to the contract.
+     * @dev This fallback adheres to the EIP-4788 specification with added BeginBlocker
+     * functionality.
+     *
+     * The function behavior is as follows:
+     *
+     * Sender is not the system address:
+     * |
+     * |--- Sender is the admin:
+     * |    |
+     * |    `--- Perform CRUD operation with the message data.
+     * |
+     * |--- Sender is not the admin:
+     *      |
+     *      |--- Message data length is 36 and the first 4 bytes match the `GET_COINBASE_SELECTOR`:
+     *      |    |
+     *      |    `--- Call `getCoinbase()`.
+     *      |
+     *      `--- Message data length is not 36 or the first 4 bytes do not match the
+     * `GET_COINBASE_SELECTOR`:
+     *           |
+     *           `--- Call `get()`.
+     *
+     * Sender is the system address:
+     * |
+     * `--- Call `set()` and `run()`.
+     */
     fallback() external override {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.sender == ADMIN) {
@@ -84,9 +155,29 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /**
      * @dev Performs the CRUD operation based on the action specified in the input data.
      * @param data The input data containing the index, action, and BeginBlocker. The action can be
-     * "set" or "remove".
-     * If the action is "set", the function will add the BeginBlocker at the given index.
-     * If the action is "remove", the function will remove the BeginBlocker at the given index.
+     * "set", "remove", or "update_admin".
+     *
+     * The function behavior is as follows:
+     *
+     * - If the action is "set", the function will add the BeginBlocker at the given index.
+     * - If the action is "remove", the function will remove the BeginBlocker at the given index.
+     * - If the action is "update_admin", the function will update the ADMIN address if the new
+     * admin address is not zero.
+     *
+     *
+     * Action received
+     * |
+     * |--- Action is "set":
+     * |    |
+     * |    `--- Add the BeginBlocker at the given index.
+     * |
+     * |--- Action is "remove":
+     * |    |
+     * |    `--- Remove the BeginBlocker at the given index.
+     * |
+     * `--- Action is "update_admin":
+     *      |
+     *      `--- If the new admin address is not zero, update the ADMIN address.
      */
     function crud(bytes calldata data) private {
         // Decode the data we get from the message.
@@ -160,6 +251,35 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * @param i The index of the BeginBlocker.
      * @param beginBlocker The BeginBlocker struct containing the contract address and the
      * selector.
+     *
+     * The function behavior is as follows:
+     *
+     * - If the index `i` is greater than the length of the `beginBlockers` array, it reverts the
+     * transaction with a `BeginBlockerDoesNotExist` error.
+     * - If the index `i` is equal to the length of the `beginBlockers` array, it adds the
+     * `beginBlocker` to the end of the array.
+     * - If the index `i` is less than the length of the `beginBlockers` array, it adds an empty
+     * element to the end of the array, then shifts all elements from index `i` onwards one place
+     * to the right, and finally places the `beginBlocker` at index `i`.
+     *
+     *
+     * Index `i` received
+     * |
+     * |--- `i` is greater than the length of the `beginBlockers` array:
+     * |    |
+     * |    `--- Revert the transaction with a `BeginBlockerDoesNotExist` error.
+     * |
+     * |--- `i` is equal to the length of the `beginBlockers` array:
+     * |    |
+     * |    `--- Add the `beginBlocker` to the end of the array.
+     * |
+     * `--- `i` is less than the length of the `beginBlockers` array:
+     *      |
+     *      |--- Add an empty element to the end of the array.
+     *      |
+     *      |--- Shift all elements from index `i` onwards one place to the right.
+     *      |
+     *      `--- Place the `beginBlocker` at index `i`.
      */
     function _add(uint256 i, BeginBlocker memory beginBlocker) private {
         // cache the length of the array.
@@ -190,6 +310,33 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /**
      * @dev Removes the BeginBlocker at the given index.
      * @param i The index of the BeginBlocker.
+     *
+     * The function behavior is as follows:
+     *
+     * - If the index `i` is greater than or equal to the length of the `beginBlockers` array, it
+     * reverts the transaction with a `BeginBlockerDoesNotExist` error.
+     * - If the index `i` is equal to the length of the `beginBlockers` array minus 1 (i.e., it's
+     * the last element), it removes the last element from the array.
+     * - If the index `i` is less than the length of the `beginBlockers` array minus 1, it shifts
+     * all elements from index `i+1` onwards one place to the left, overwriting the element at
+     * index `i`, and then removes the last element from the array.
+     *
+     * Index `i` received
+     * |
+     * |--- `i` is greater than or equal to the length of the `beginBlockers` array:
+     * |    |
+     * |    `--- Revert the transaction with a `BeginBlockerDoesNotExist` error.
+     * |
+     * |--- `i` is equal to the length of the `beginBlockers` array minus 1:
+     * |    |
+     * |    `--- Remove the last element from the array.
+     * |
+     * `--- `i` is less than the length of the `beginBlockers` array minus 1:
+     *      |
+     *      |--- Shift all elements from index `i+1` onwards one place to the left, overwriting the
+     * element at index `i`.
+     *      |
+     *      `--- Remove the last element from the array.
      */
     function _remove(uint256 i) private {
         // Cache the length of the array.
