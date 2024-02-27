@@ -7,6 +7,8 @@ pragma solidity ^0.8.24;
  * @dev This contract is designed to store and manage beacon roots and coinbases in a circular buffer.
  * It also provides functionality to set a distributor address and call a `distribute()` method on it.
  * The contract conforms to EIP-4788, with additional functionality to set the distributor address.
+ * @dev This is called BeraRoots since it does berachain specific call to distribute block rewards, but that can be 
+ * removed or replaced for other use cases.
  * 
  * The contract has a fallback function that behaves differently based on the `msg.sender` and `msg.data` values.
  * If the `msg.sender` is the system address, the `set` function is called and if a distributor is set, a call is made to the distributor contract.
@@ -14,6 +16,7 @@ pragma solidity ^0.8.24;
  * 
  * The contract also includes functions to get a beacon root for a given timestamp (`get`) and to set the beacon root and coinbase for the current block (`set`).
  * The `getCoinbase` function retrieves the coinbase for a given block number.
+ * TODO: figure out how we are going to do the genesis/initialization of the contract/chain.
  */
 contract BeraRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -102,10 +105,11 @@ contract BeraRootsContract {
             }
         } else {
             set();
-            // if the distributor is set, call it.
+            
+            // Berachain specific call to the distributor every block. 
             if (_distributor != address(0)) {
                 (bool success,) = address(_distributor).call(
-                    abi.encodeWithSelector(DISTRIBUTE_SELECTOR, block.coinbase)
+                    abi.encodeWithSelector(DISTRIBUTE_SELECTOR)
                 );
                 if (!success) {
                     emit Distributed(address(0), 0);
@@ -114,15 +118,6 @@ contract BeraRootsContract {
                 }
             }
         }
-    }
-
-    /**
-     * @notice get an address from the msg.data if thats all that is in the msg.data
-     */
-    function _getAddressFromMsgData(bytes memory data) private pure returns (address) {
-        (address addr, bool success) = abi.decode(data, (address, bool));
-        require(success, "BeraRootsContract: invalid distributor address");
-        return addr;
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -192,5 +187,17 @@ contract BeraRootsContract {
             mstore(0, sload(coinbase_idx))
             return(0, 0x20)
         }
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                       BERACHAIN                            */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /**
+     * @notice get an address from the msg.data if thats all that is in the msg.data
+     */
+    function _getAddressFromMsgData(bytes memory data) private pure returns (address) {
+        (address addr) = abi.decode(data, (address));
+        return addr;
     }
 }
