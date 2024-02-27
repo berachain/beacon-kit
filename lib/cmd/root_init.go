@@ -26,9 +26,12 @@
 package cmd
 
 import (
+	"context"
+
 	"cosmossdk.io/client/v2/offchain"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	authcmd "cosmossdk.io/x/auth/client/cli"
+	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -41,9 +44,11 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	beaconconfig "github.com/itsdevbear/bolaris/config"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 func InitRootCommand[T servertypes.Application](
@@ -53,6 +58,10 @@ func InitRootCommand[T servertypes.Application](
 	_ codec.Codec,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
+	postSetupFn func(
+		app T, svrCtx *server.Context,
+		clientCtx client.Context, ctx context.Context, g *errgroup.Group,
+	) error,
 	appExport servertypes.AppExporter,
 ) {
 	cfg := sdk.GetConfig()
@@ -70,8 +79,12 @@ func InitRootCommand[T servertypes.Application](
 		snapshot.Cmd(newApp),
 	)
 
-	server.AddCommands(
-		rootCmd, newApp, beaconconfig.AddBeaconKitFlags,
+	startCmdOptions := server.StartCmdOptions[T]{
+		PostSetup: postSetupFn,
+	}
+
+	AddCommands(
+		rootCmd, newApp, startCmdOptions, beaconconfig.AddBeaconKitFlags,
 	)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
@@ -82,6 +95,41 @@ func InitRootCommand[T servertypes.Application](
 		txCommand(),
 		keys.Commands(),
 		offchain.OffChain(),
+	)
+}
+
+func AddCommands[T servertypes.Application](
+	rootCmd *cobra.Command,
+	appCreator servertypes.AppCreator[T],
+	opts server.StartCmdOptions[T],
+	addStartFlags servertypes.ModuleInitFlags,
+) {
+	cometCmd := &cobra.Command{
+		Use:     "comet",
+		Aliases: []string{"cometbft", "tendermint"},
+		Short:   "CometBFT subcommands",
+	}
+
+	cometCmd.AddCommand(
+		server.ShowNodeIDCmd(),
+		server.ShowValidatorCmd(),
+		server.ShowAddressCmd(),
+		server.VersionCmd(),
+		cmtcmd.ResetAllCmd,
+		cmtcmd.ResetStateCmd,
+		server.BootstrapStateCmd(appCreator),
+	)
+
+	startCmd := server.StartCmdWithOptions(appCreator, opts)
+	if addStartFlags != nil {
+		addStartFlags(startCmd)
+	}
+
+	rootCmd.AddCommand(
+		startCmd,
+		cometCmd,
+		version.NewVersionCommand(),
+		server.NewRollbackCmd(appCreator),
 	)
 }
 

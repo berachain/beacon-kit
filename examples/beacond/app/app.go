@@ -26,6 +26,7 @@
 package app
 
 import (
+	"context"
 	_ "embed"
 	"io"
 	"os"
@@ -198,26 +199,23 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	// Initial check for execution client sync.
-	app.BeaconKitRuntime.StartServices(
-		app.NewContext(true),
-		clientCtx,
-	)
-
 	return app
 }
 
-// Name returns the name of the App.
-func (app *BeaconApp) Name() string { return app.BaseApp.Name() }
-
-// LegacyAmino returns BeaconApp's amino codec.
-//
-// NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (app *BeaconApp) LegacyAmino() *codec.LegacyAmino {
-	return app.legacyAmino
+// PostStartup is called after the app has started up and CometBFT is connected.
+func (app *BeaconApp) PostStartup(
+	ctx context.Context,
+	clientCtx client.Context,
+) error {
+	// Initial check for execution client sync.
+	app.BeaconKitRuntime.StartServices(
+		ctx,
+		clientCtx,
+	)
+	return nil
 }
 
+// kvStoreKeys returns the KVStoreKeys for the app.
 func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	keys := make(map[string]*storetypes.KVStoreKey)
 	for _, k := range app.GetStoreKeys() {
@@ -227,9 +225,4 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
-}
-
-func (app *BeaconApp) Close() error {
-	app.BeaconKitRuntime.Close()
-	return app.App.Close()
 }

@@ -52,8 +52,6 @@ type BeaconKitRuntime struct {
 	logger   log.Logger
 	fscp     BeaconStateProvider
 	services *service.Registry
-
-	stopCh chan struct{}
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -61,9 +59,7 @@ type BeaconKitRuntime struct {
 func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{
-		stopCh: make(chan struct{}, 1),
-	}
+	bkr := &BeaconKitRuntime{}
 	for _, opt := range opts {
 		if err := opt(bkr); err != nil {
 			return nil, err
@@ -194,16 +190,5 @@ func (r *BeaconKitRuntime) StartServices(
 		panic(err)
 	}
 	syncService.SetClientContext(clientCtx)
-
-	go func() {
-		cctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-		r.services.StartAll(cctx)
-		<-r.stopCh
-	}()
-}
-
-// Close closes the runtime.
-func (r *BeaconKitRuntime) Close() {
-	close(r.stopCh)
+	r.services.StartAll(ctx)
 }

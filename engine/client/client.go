@@ -81,6 +81,7 @@ func (s *EngineClient) Start(ctx context.Context) {
 				"err",
 				err,
 			)
+			time.Sleep(s.cfg.RPCStartupCheckInterval)
 			continue
 		}
 		break
@@ -132,10 +133,10 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 // jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
-			ticker.Stop()
 			return
 		case <-ticker.C:
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
