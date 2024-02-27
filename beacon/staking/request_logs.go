@@ -28,28 +28,34 @@ package staking
 import (
 	"reflect"
 
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-//nolint:gochecknoglobals // Avoid re-allocating these variables.
-var (
-	// Name, signature, and type of the Deposit event
+const (
+	// Name of the Deposit event
 	// in the deposit contract.
 	depositName = "Deposit"
-	depositSig  = ethcrypto.Keccak256Hash(
-		[]byte("Deposit(bytes,bytes,uint64)"),
-	)
-	depositType = reflect.TypeOf(consensusv1.Deposit{})
 
-	// Name, signature, and type of the Withdrawal event
+	// Name the Withdrawal event
 	// in the deposit contract.
 	withdrawalName = "Withdrawal"
-	withdrawalSig  = ethcrypto.Keccak256Hash(
-		[]byte("Withdrawal(bytes,bytes,uint64)"),
-	)
+)
+
+//nolint:gochecknoglobals,lll // Avoid re-allocating these variables.
+var (
+	// Signature and type of the Deposit event
+	// in the deposit contract.
+	// keccak256("Deposit(bytes,bytes,uint64)")
+	DepositSig  = common.HexToHash("163244a852f099315d72dcfbb5b1031ca0365543f2ac1849bdb69b01d8648b18")
+	depositType = reflect.TypeOf(consensusv1.Deposit{})
+
+	// Signature and type of the Withdrawal event
+	// in the deposit contract.
+	// keccak256("Withdrawal(bytes,bytes,uint64)")
+	WithdrawalSig  = common.HexToHash("3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4")
 	withdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
 )
 
@@ -60,8 +66,8 @@ func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
 
 	allocator := logs.New[logs.TypeAllocator](
 		logs.WithABI(s.abi),
-		logs.WithNameAndType(depositSig, depositName, depositType),
-		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
+		logs.WithNameAndType(DepositSig, depositName, depositType),
+		logs.WithNameAndType(WithdrawalSig, withdrawalName, withdrawalType),
 	)
 
 	request := logs.LogRequest{
