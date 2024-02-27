@@ -58,7 +58,10 @@ func InitRootCommand[T servertypes.Application](
 	_ codec.Codec,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
-	postSetupFn func(app T, svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error,
+	postSetupFn func(
+		app T, svrCtx *server.Context,
+		clientCtx client.Context, ctx context.Context, g *errgroup.Group,
+	) error,
 	appExport servertypes.AppExporter,
 ) {
 	cfg := sdk.GetConfig()
@@ -95,7 +98,12 @@ func InitRootCommand[T servertypes.Application](
 	)
 }
 
-func AddCommands[T servertypes.Application](rootCmd *cobra.Command, appCreator servertypes.AppCreator[T], opts server.StartCmdOptions[T], addStartFlags servertypes.ModuleInitFlags) {
+func AddCommands[T servertypes.Application](
+	rootCmd *cobra.Command,
+	appCreator servertypes.AppCreator[T],
+	opts server.StartCmdOptions[T],
+	addStartFlags servertypes.ModuleInitFlags,
+) {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
 		Aliases: []string{"cometbft", "tendermint"},
