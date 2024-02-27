@@ -2,20 +2,41 @@
 pragma solidity ^0.8.24;
 
 /**
- * @title BeraRootsContract
+ * @title BeginBlockRootsContract
  * @author Berachain Team
- * @dev This contract is designed to store and manage beacon roots and coinbases in a circular buffer.
- * It also provides functionality to set a distributor address and call a `distribute()` method on it.
+ * @dev This contract is designed to store and manage beacon roots and coinbases in a circular
+ * buffer.
+ * It also provides functionality to set a distributor address and call a `distribute()` method on
+ * it.
  * The contract conforms to EIP-4788, with additional functionality to set the distributor address.
- * 
- * The contract has a fallback function that behaves differently based on the `msg.sender` and `msg.data` values.
- * If the `msg.sender` is the system address, the `set` function is called and if a distributor is set, a call is made to the distributor contract.
- * If the `msg.sender` is not the system address, the function checks `msg.data` and either calls `getCoinbase`, sets the distributor, or calls `get`.
- * 
- * The contract also includes functions to get a beacon root for a given timestamp (`get`) and to set the beacon root and coinbase for the current block (`set`).
+ *
+ * The contract has a fallback function that behaves differently based on the `msg.sender` and
+ * `msg.data` values.
+ * If the `msg.sender` is the system address, the `set` function is called and if a distributor is
+ * set, a call is made to the distributor contract.
+ * If the `msg.sender` is not the system address, the function checks `msg.data` and either calls
+ * `getCoinbase`, sets the distributor, or calls `get`.
+ *
+ * The contract also includes functions to get a beacon root for a given timestamp (`get`) and to
+ * set the beacon root and coinbase for the current block (`set`).
  * The `getCoinbase` function retrieves the coinbase for a given block number.
+ *
+ * TODO: Change the DISTRIBUTOR_SETTER to the real address that is not the genesis address for
+ * production.
  */
-contract BeraRootsContract {
+contract BeginBlockRootsContract {
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        STRUCT                              */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @dev BeginBlocker is a struct that allows this contract to make low-level calls in a loop
+    /// to.
+    /// @dev The BeginBlocker call must take in valCons as a parameter, `xxx(address valCons)`.
+    struct BeginBlocker {
+        address contractAddress;
+        bytes4 selector;
+    }
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -39,8 +60,21 @@ contract BeraRootsContract {
     /// TODO: REAL ADDRESS.
     address constant DISTRIBUTOR_SETTER = address(0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4);
 
-    /// @dev The event emitted when the distributor is called. All set to 0 if the call fails.
-    event Distributed(address indexed coinbase, uint256 indexed blockNumber);
+    /**
+     * @dev Event emitted when a BeginBlocker is called.
+     * @param contractAddress the address of the contract that was called.
+     * @param selector the selector of the function that was called.
+     * @param valCons the validator contract that was called.
+     * @param blockNumber the block number that the call was made in.
+     * @param success whether the call was successful.
+     */
+    event BeginBlockerCalled(
+        address indexed contractAddress,
+        bytes4 indexed selector,
+        address indexed valCons,
+        uint256 blockNumber,
+        bool success
+    );
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        STORAGE                           */
@@ -58,71 +92,25 @@ contract BeraRootsContract {
     /// @dev The mapping of timestamps to block numbers.
     mapping(uint256 timestamp => uint256 blockNumber) private _blockNumbers;
 
-    /// @dev The distributor address.
-    address private _distributor;
+    /// @dev This is the list of BeginBlocker contracts that a chain can choose to call when a new
+    /// block is created.
+    BeginBlocker[] private _beginBlockers;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        ENTRYPOINT                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /**
-     * @dev Fallback function that is called when no other function matches the called signature.
-     * The function behavior depends on the `msg.sender` and `msg.data` values. This method conforms 
-     * to EIP-4788, with additional functionality to set the distributor address, and call `distribute()` method.
-     *
-     * There are two main code paths this function can take:
-     *
-     * 1. If `msg.sender` is equal to `SYSTEM_ADDRESS`:
-     *    - The `set` function is called.
-     *    - If `_distributor` is set (not the zero address), a call is made to the `_distributor`
-     * contract with the `DISTRIBUTE_SELECTOR` and `block.coinbase` as arguments.
-     *    - If the call to `_distributor` is successful, the `Distributed` event is emitted with
-     * `block.coinbase` and `block.number` as arguments.
-     *    - If the call to `_distributor` is not successful, the `Distributed` event is emitted
-     * with `address(0)` and `0` as arguments.
-     *
-     * 2. If `msg.sender` is not equal to `SYSTEM_ADDRESS`:
-     *    - If `msg.data` is 36 bytes long and its first 4 bytes match `GET_COINBASE_SELECTOR`, the
-     * `getCoinbase` function is called.
-     *    - If `msg.sender` is equal to `DISTRIBUTOR_SETTER` and `_distributor` is not set (is the
-     * zero address), `_distributor` is set to the address encoded in `msg.data`.
-     *    - If neither of the above conditions are met, the `get` function is called. This code
-     * path assumes that if the first 32 bytes of `msg.data` is a timestamp, the first 4 bytes must
-     * be 0.
-     */
     fallback() external {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
                 getCoinbase();
-            } else if (msg.sender == DISTRIBUTOR_SETTER && _distributor == address(0)) {
-                _distributor = _getAddressFromMsgData(msg.data);
             } else {
                 // if the first 32 bytes is a timestamp, the first 4 bytes must be 0
                 get();
             }
         } else {
             set();
-            // if the distributor is set, call it.
-            if (_distributor != address(0)) {
-                (bool success,) = address(_distributor).call(
-                    abi.encodeWithSelector(DISTRIBUTE_SELECTOR, block.coinbase)
-                );
-                if (!success) {
-                    emit Distributed(address(0), 0);
-                } else {
-                    emit Distributed(block.coinbase, block.number);
-                }
-            }
         }
-    }
-
-    /**
-     * @notice get an address from the msg.data if thats all that is in the msg.data
-     */
-    function _getAddressFromMsgData(bytes memory data) private pure returns (address) {
-        (address addr, bool success) = abi.decode(data, (address, bool));
-        require(success, "BeraRootsContract: invalid distributor address");
-        return addr;
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -191,6 +179,78 @@ contract BeraRootsContract {
             let coinbase_idx := add(block_idx, _coinbases.slot)
             mstore(0, sload(coinbase_idx))
             return(0, 0x20)
+        }
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                         BeginBlocker                       */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+    /**
+     * @dev decode the data, the type of the data is (address, bytes4).
+     * @notice get the BeginBlocker from the data passed in the call.
+     * @param data the data passed in the call.
+     * @return the BeginBlocker struct.
+     */
+    function _parseBeginBlocker(bytes memory data)
+        internal
+        pure
+        returns (BeginBlocker memory, uint256)
+    {
+        (uint256 index, address contractAddress, bytes4 selector) =
+            abi.decode(data, (uint256, address, bytes4));
+        return (BeginBlocker(contractAddress, selector), index);
+    }
+
+    /**
+     * @dev Remove a BeginBlocker from the list of BeginBlockers.
+     * @param index the index of the BeginBlocker to remove.
+     */
+    function _removeBeginBlockerInOrder(uint256 index) internal {
+        // if the index is the last element, pop it off.
+        if (index == _beginBlockers.length - 1) {
+            _beginBlockers.pop();
+            return;
+        }
+
+        // if the index is the second to last element, switch the last and second to last elements.
+        if (index == _beginBlockers.length - 2) {
+            _beginBlockers[index] = _beginBlockers[index + 1];
+            _beginBlockers.pop();
+            return;
+        }
+
+        // for all other cases, shift the elements to the left and pop the last element.
+        for (uint256 i = index; i < _beginBlockers.length - 1; i++) {
+            _beginBlockers[i] = _beginBlockers[i + 1];
+        }
+        _beginBlockers.pop();
+    }
+
+    /// @dev Gets the BeginBlockers list from storage and does a low-level call to the contracts.
+    function _runBeginBlockers() internal {
+        for (uint256 i; i < _beginBlockers.length;) {
+            // cache the BeginBlocker from storage.
+            BeginBlocker memory beginBlocker = _beginBlockers[i];
+            // low-level call to the contract with the BeginBlocker's selector and valCons as the
+            // argument.
+            (bool success,) = beginBlocker.contractAddress.call(
+                abi.encodeWithSelector(beginBlocker.selector, block.coinbase)
+            );
+            // emit an event for the BeginBlocker call, including the success of the call for
+            // debugging.
+            emit BeginBlockerCalled(
+                beginBlocker.contractAddress,
+                beginBlocker.selector,
+                block.coinbase,
+                block.number,
+                success
+            );
+
+            unchecked {
+                ++i;
+            }
         }
     }
 }
