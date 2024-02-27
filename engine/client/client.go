@@ -74,10 +74,19 @@ func New(opts ...Option) *EngineClient {
 
 // Start starts the engine client.
 func (s *EngineClient) Start(ctx context.Context) {
-	// Wait for initial connection to the execution client.
-	s.initialStartupLoop(ctx)
+	for {
+		if err := s.setupExecutionClientConnection(ctx); err != nil {
+			s.logger.Error(
+				"attemping to connection to execution client 🚒 ",
+				"err",
+				err,
+			)
+			time.Sleep(s.cfg.RPCStartupCheckInterval)
+			continue
+		}
+		break
+	}
 
-	// Yay we are connected!
 	s.logger.Info(
 		"connected to execution client 🔌",
 		"dial-url",
@@ -92,21 +101,6 @@ func (s *EngineClient) Start(ctx context.Context) {
 	// If we reached this point, the execution client is connected so we can
 	// start the jwt refresh loop.
 	go s.jwtRefreshLoop(ctx)
-}
-
-// startTickerLoop starts a ticker loop that attempts to connect to the
-func (s *EngineClient) initialStartupLoop(ctx context.Context) {
-	s.startConnectionAttemptLoop(
-		ctx, s.cfg.RPCStartupCheckInterval,
-		"attemping to connection to execution client 🚒 ",
-	)
-}
-
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
-	s.startConnectionAttemptLoop(
-		ctx, s.cfg.RPCJWTRefreshInterval, "failed to refresh JWT token",
-	)
 }
 
 // Status verifies the chain ID via JSON-RPC. By proxy
@@ -134,6 +128,22 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// jwtRefreshLoop refreshes the JWT token for the execution client.
+func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
+	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.dialExecutionRPCClient(ctx); err != nil {
+				s.logger.Error("failed to refresh JWT token", "err", err)
+			}
+		}
+	}
 }
 
 // setupExecutionClientConnections dials the execution client and
@@ -188,26 +198,4 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 
 	s.Client = ethclient.NewClient(client)
 	return nil
-}
-
-// startConnectionAttemptLoop starts a ticker loop that attempts to connect to the
-func (s *EngineClient) startConnectionAttemptLoop(
-	ctx context.Context, interval time.Duration, errorMsg string,
-) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			if err := s.dialExecutionRPCClient(ctx); err != nil {
-				s.logger.Error(
-					errorMsg,
-					"err",
-					err,
-				)
-			}
-		}
-	}
 }
