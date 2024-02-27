@@ -28,6 +28,7 @@ package execution
 import (
 	"context"
 	"reflect"
+	"runtime"
 	"sort"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -136,12 +137,21 @@ func (s *Service) ProcessLogs(
 	}
 
 	eg := new(errgroup.Group)
+	// Use a semaphore to limit the number
+	// of concurrent goroutines.
+	sem := make(chan bool, runtime.NumCPU())
 	logResults := make([]*logResult, len(logs))
 	// Unmarshal the logs into objects.
 	for i := range logs {
 		i := i
 		log := &logs[i]
+		// Acquire a semaphore slot.
+		sem <- true
 		eg.Go(func() error {
+			defer func() {
+				// Release the semaphore slot when done.
+				<-sem
+			}()
 			// Skip logs that are not from the block we are processing
 			// This should never happen, but defensively check anyway.
 			if log.BlockNumber != blkNum {
