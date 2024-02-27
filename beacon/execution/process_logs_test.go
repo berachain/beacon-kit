@@ -33,6 +33,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
@@ -44,8 +45,6 @@ func TestProcessLogs(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
-
-	depositName := "Deposit"
 
 	mockLogService := &logmocks.Service{}
 	logFactory, err := logs.NewFactory(
@@ -72,7 +71,7 @@ func TestProcessLogs(t *testing.T) {
 		)
 		var log *ethtypes.Log
 		log, err = logmocks.NewLogFromDeposit(
-			stakingAbi.Events[depositName],
+			stakingAbi.Events[staking.DepositName],
 			deposit,
 		)
 		require.NoError(t, err)

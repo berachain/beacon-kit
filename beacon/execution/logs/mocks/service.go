@@ -26,14 +26,10 @@
 package mocks
 
 import (
-	"reflect"
-
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 var _ logs.Service = (*Service)(nil)
@@ -52,26 +48,18 @@ func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
 		return nil, err
 	}
 
-	// Name, signature, and type of the Deposit event
-	// in the deposit contract.
-	depositName := "Deposit"
-	depositSig := ethcrypto.Keccak256Hash(
-		[]byte("Deposit(bytes,bytes,uint64)"),
-	)
-	depositType := reflect.TypeOf(consensusv1.Deposit{})
-
-	// Name, signature, and type of the Withdrawal event
-	// in the deposit contract.
-	withdrawalName := "Withdrawal"
-	withdrawalSig := ethcrypto.Keccak256Hash(
-		[]byte("Withdrawal(bytes,bytes,uint64)"),
-	)
-	withdrawalType := reflect.TypeOf(enginev1.Withdrawal{})
-
 	allocator := logs.New[logs.TypeAllocator](
 		logs.WithABI(depositContractAbi),
-		logs.WithNameAndType(depositSig, depositName, depositType),
-		logs.WithNameAndType(withdrawalSig, withdrawalName, withdrawalType),
+		logs.WithNameAndType(
+			staking.DepositSig,
+			staking.DepositName,
+			staking.DepositType,
+		),
+		logs.WithNameAndType(
+			staking.WithdrawalSig,
+			staking.WithdrawalName,
+			staking.WithdrawalType,
+		),
 	)
 
 	request := logs.LogRequest{

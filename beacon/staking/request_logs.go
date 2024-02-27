@@ -36,11 +36,11 @@ import (
 const (
 	// Name of the Deposit event
 	// in the deposit contract.
-	depositName = "Deposit"
+	DepositName = "Deposit"
 
 	// Name the Withdrawal event
 	// in the deposit contract.
-	withdrawalName = "Withdrawal"
+	WithdrawalName = "Withdrawal"
 )
 
 //nolint:gochecknoglobals,lll // Avoid re-allocating these variables.
@@ -50,13 +50,13 @@ var (
 	// keccak256("Deposit(bytes,bytes,uint64)").
 	DepositSig = [32]byte{0x16, 0x32, 0x44, 0xa8, 0x52, 0xf0, 0x99, 0x31, 0x5d, 0x72, 0xdc, 0xfb, 0xb5, 0xb1, 0x03, 0x1c, 0xa0, 0x36, 0x55, 0x43, 0xf2, 0xac, 0x18, 0x49, 0xbd, 0xb6, 0x9b, 0x01, 0xd8, 0x64, 0x8b, 0x18}
 
-	depositType = reflect.TypeOf(consensusv1.Deposit{})
+	DepositType = reflect.TypeOf(consensusv1.Deposit{})
 
 	// Signature and type of the Withdrawal event
 	// in the deposit contract.
 	// keccak256("Withdrawal(bytes,bytes,uint64)").
 	WithdrawalSig  = [32]byte{0x3c, 0xd2, 0x41, 0x0b, 0x5f, 0x33, 0xd3, 0x96, 0x69, 0x54, 0x5e, 0x9f, 0x38, 0xba, 0x4d, 0x4c, 0x63, 0x18, 0xf2, 0xb8, 0xf1, 0xa3, 0x3f, 0x00, 0x1b, 0xf6, 0xc0, 0x3b, 0x2a, 0xb1, 0x80, 0xb4}
-	withdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
+	WithdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
 )
 
 // GetLogRequests returns a list of log requests from the staking service
@@ -66,8 +66,8 @@ func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
 
 	allocator := logs.New[logs.TypeAllocator](
 		logs.WithABI(s.abi),
-		logs.WithNameAndType(DepositSig, depositName, depositType),
-		logs.WithNameAndType(WithdrawalSig, withdrawalName, withdrawalType),
+		logs.WithNameAndType(DepositSig, DepositName, DepositType),
+		logs.WithNameAndType(WithdrawalSig, WithdrawalName, WithdrawalType),
 	)
 
 	request := logs.LogRequest{
