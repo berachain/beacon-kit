@@ -62,11 +62,11 @@ contract BeginBlockRootsContract is BeaconRootsContract {
 
     fallback() external override {
         if (msg.sender != SYSTEM_ADDRESS) {
-            if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
-                getCoinbase();
+            if (msg.sender == ADMIN) {
+                crud(msg.data);
             } else {
-                if (msg.sender == ADMIN) {
-                    crud(msg.data);
+                if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
+                    getCoinbase();
                 } else {
                     get();
                 }
@@ -158,20 +158,29 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * selector.
      */
     function _add(uint256 i, BeginBlocker memory beginBlocker) private {
-        // If the index is greater than the length of the array, we need to append the BeginBlocker
-        // to the end of the array.
-        if (i >= beginBlockers.length) {
+        // cache the length of the array.
+        uint256 length = beginBlockers.length;
+
+        // Check that we are not trying to add a BeginBlocker at an index that is greater than the
+        // lenght.
+        if (i > length) {
+            revert BeginBlockerDoesNotExist(i);
+        }
+        // Check if we are trying to add a BeginBlocker at the end of the array or at an index that
+        // we need to shift.
+        if (i == length) {
             beginBlockers.push(beginBlocker);
-            return;
+        } else {
+            beginBlockers.push(); // push a new empty element at the end of the array since we are
+                // going to fill it.
+            unchecked {
+                for (uint256 j = length; j > i;) {
+                    beginBlockers[j] = beginBlockers[j - 1];
+                    --j;
+                }
+            }
+            beginBlockers[i] = beginBlocker;
         }
-
-        // Shift all the elements after the index to the right by one.
-        for (uint256 j = beginBlockers.length; j > i; j--) {
-            beginBlockers[j] = beginBlockers[j - 1];
-        }
-
-        // Insert the BeginBlocker at the index.
-        beginBlockers[i] = beginBlocker;
     }
 
     /**
@@ -179,17 +188,26 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * @param i The index of the BeginBlocker.
      */
     function _remove(uint256 i) private {
+        // Cache the length of the array.
+        uint256 length = beginBlockers.length;
+
         // Check if we are trying to remove a BeginBlocker that does not exist.
-        if (i >= beginBlockers.length) {
+        if (i >= length) {
             revert BeginBlockerDoesNotExist(i);
         }
 
-        // Shift all the elements after the index to the left by one.
-        for (uint256 j = i; j < beginBlockers.length - 1; j++) {
-            beginBlockers[j] = beginBlockers[j + 1];
+        // Check if we are trying to remove the last BeginBlocker in the array.
+        if (i == length - 1) {
+            beginBlockers.pop();
+        } else {
+            unchecked {
+                for (uint256 j = i; j < length - 1;) {
+                    beginBlockers[j] = beginBlockers[j + 1];
+                    ++j;
+                }
+                // pop the last element from the array.
+                beginBlockers.pop();
+            }
         }
-
-        // Remove the last element from the array.
-        beginBlockers.pop();
     }
 }
