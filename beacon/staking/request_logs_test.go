@@ -28,6 +28,7 @@ package staking_test
 import (
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/stretchr/testify/require"
@@ -38,13 +39,13 @@ func TestLogSignatures(t *testing.T) {
 		ethcrypto.Keccak256Hash(
 			[]byte("Deposit(bytes,bytes,uint64)"),
 		),
-		staking.DepositSig,
+		common.Hash(staking.DepositSig),
 	)
 
 	require.Equal(t,
 		ethcrypto.Keccak256Hash(
 			[]byte("Withdrawal(bytes,bytes,uint64)"),
 		),
-		staking.WithdrawalSig,
+		common.Hash(staking.WithdrawalSig),
 	)
 }

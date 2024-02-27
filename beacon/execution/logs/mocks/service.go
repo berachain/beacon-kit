@@ -36,6 +36,8 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
+var _ logs.Service = (*Service)(nil)
+
 // Service is a mock service for testing.
 // It implements the logs.Service interface,
 // so that it can send requests to the log factory.

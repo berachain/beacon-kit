@@ -23,71 +23,80 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs_test
+package execution_test
 
 import (
-	"reflect"
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
+	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )
 
-func TestLogFactory(t *testing.T) {
+func TestProcessLogs(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
 
 	depositName := "Deposit"
-	depositType := reflect.TypeOf(consensusv1.Deposit{})
 
-	withdrawalName := "Withdrawal"
-
-	mockService := &mocks.Service{}
-	factory, err := logs.NewFactory(
-		logs.WithRequestsFrom(mockService),
+	mockLogService := &logmocks.Service{}
+	logFactory, err := logs.NewFactory(
+		logs.WithRequestsFrom(mockLogService),
 	)
 	require.NoError(t, err)
 
-	deposit := consensus.NewDeposit(
-		[]byte("pubkey"),
-		10000,
-		[]byte("12345678901234567890"),
+	executionService := service.New[execution.Service](
+		execution.WithLogFactory(logFactory),
 	)
-	log, err := mocks.NewLogFromDeposit(stakingAbi.Events[depositName], deposit)
+
+	blkNum := uint64(100)
+	logs := make([]ethtypes.Log, 0, 10)
+
+	depositFactor := 3
+	numDepositLogs := 10
+	numLogs := depositFactor*(numDepositLogs-1) + 1
+
+	for i := 0; i < numLogs; i++ {
+		deposit := consensus.NewDeposit(
+			[]byte("pubkey"),
+			uint64(i),
+			[]byte("12345678901234567890"),
+		)
+		var log *ethtypes.Log
+		log, err = logmocks.NewLogFromDeposit(
+			stakingAbi.Events[depositName],
+			deposit,
+		)
+		require.NoError(t, err)
+
+		// Only 4 logs in the block with the number blkNum,
+		// which are from the contract address.
+		if i%depositFactor == 0 {
+			log.Address = contractAddress
+			log.BlockNumber = blkNum
+		} else if i%2 == 0 {
+			log.BlockNumber = blkNum
+		}
+
+		logs = append(logs, *log)
+	}
+
+	vals, err := executionService.ProcessLogs(logs, blkNum)
 	require.NoError(t, err)
-	log.Address = contractAddress
+	require.Len(t, vals, numDepositLogs)
 
-	val, err := factory.UnmarshalEthLog(log)
-	require.NoError(t, err)
-
-	valType := reflect.TypeOf(val.Interface())
-	require.NotNil(t, valType)
-	require.Equal(t, reflect.Ptr, valType.Kind())
-	require.Equal(t, depositType, valType.Elem())
-
-	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
-	require.True(t, ok)
-	require.NoError(t, err)
-	require.Equal(t, deposit, newDeposit)
-
-	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
-	log, err = mocks.NewLogFromWithdrawal(
-		stakingAbi.Events[withdrawalName],
-		withdrawal,
-	)
-	require.NoError(t, err)
-	log.Address = contractAddress
-
-	_, err = factory.UnmarshalEthLog(log)
-	// An error is expected because the event type in ABI and
-	// withdrawalType are mismatched,
-	// (no validatorPubkey in withdrawalType currently).
-	require.Error(t, err)
+	// Check if the values are returned in the correct order.
+	for i, val := range vals {
+		processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
+		require.True(t, ok)
+		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
+	}
 }

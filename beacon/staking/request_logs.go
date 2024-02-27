@@ -28,7 +28,6 @@ package staking
 import (
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -49,13 +48,14 @@ var (
 	// Signature and type of the Deposit event
 	// in the deposit contract.
 	// keccak256("Deposit(bytes,bytes,uint64)").
-	DepositSig  = common.HexToHash("163244a852f099315d72dcfbb5b1031ca0365543f2ac1849bdb69b01d8648b18")
+	DepositSig = [32]byte{0x16, 0x32, 0x44, 0xa8, 0x52, 0xf0, 0x99, 0x31, 0x5d, 0x72, 0xdc, 0xfb, 0xb5, 0xb1, 0x03, 0x1c, 0xa0, 0x36, 0x55, 0x43, 0xf2, 0xac, 0x18, 0x49, 0xbd, 0xb6, 0x9b, 0x01, 0xd8, 0x64, 0x8b, 0x18}
+
 	depositType = reflect.TypeOf(consensusv1.Deposit{})
 
 	// Signature and type of the Withdrawal event
 	// in the deposit contract.
 	// keccak256("Withdrawal(bytes,bytes,uint64)").
-	WithdrawalSig  = common.HexToHash("3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4")
+	WithdrawalSig  = [32]byte{0x3c, 0xd2, 0x41, 0x0b, 0x5f, 0x33, 0xd3, 0x96, 0x69, 0x54, 0x5e, 0x9f, 0x38, 0xba, 0x4d, 0x4c, 0x63, 0x18, 0xf2, 0xb8, 0xf1, 0xa3, 0x3f, 0x00, 0x1b, 0xf6, 0xc0, 0x3b, 0x2a, 0xb1, 0x80, 0xb4}
 	withdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
 )
 
