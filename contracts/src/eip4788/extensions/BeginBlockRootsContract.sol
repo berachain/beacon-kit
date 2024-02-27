@@ -88,7 +88,7 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * If the action is "set", the function will add the BeginBlocker at the given index.
      * If the action is "remove", the function will remove the BeginBlocker at the given index.
      */
-    function crud(bytes memory data) private {
+    function crud(bytes calldata data) private {
         // Decode the data we get from the message.
         (uint256 i, bytes32 action, BeginBlocker memory beginBlocker, address admin) = _parse(data);
 
@@ -117,16 +117,20 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * the current block miner's address, the selector, and the success status.
      */
     function run() private {
-        for (uint256 i = 0; i < beginBlockers.length; i++) {
-            (bool success,) = beginBlockers[i].contractAddress.call(
-                abi.encodeWithSelector(beginBlockers[i].selector)
-            );
-            emit BeginBlockerCalled(
-                beginBlockers[i].contractAddress,
-                block.coinbase,
-                beginBlockers[i].selector,
-                success
-            );
+        unchecked {
+            uint256 length = beginBlockers.length;
+            for (uint256 i; i < length;) {
+                (bool success,) = beginBlockers[i].contractAddress.call(
+                    abi.encodeWithSelector(beginBlockers[i].selector)
+                );
+                emit BeginBlockerCalled(
+                    beginBlockers[i].contractAddress,
+                    block.coinbase,
+                    beginBlockers[i].selector,
+                    success
+                );
+                ++i;
+            }
         }
     }
 
@@ -138,7 +142,7 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * @return BeginBlocker The BeginBlocker struct containing the contract address and the
      * selector.
      */
-    function _parse(bytes memory data)
+    function _parse(bytes calldata data)
         private
         pure
         returns (uint256, bytes32, BeginBlocker memory, address)
