@@ -23,41 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package health
+package builder
 
 import (
-	"context"
-	"time"
+	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// reportingInterval is the interval at which the health service
-// logs the health status of services.
-const reportingInterval = 10 * time.Second
-
-// reportingLoop initiates a loop that periodically checks and
-// reports the health status of services.
-func (s *Service) reportingLoop(ctx context.Context) {
-	ticker := time.NewTicker(reportingInterval)
-	for {
-		select {
-		case <-ticker.C:
-			s.reportStatuses()
-		case <-ctx.Done():
-			return
-		}
+// WithBaseService sets the base service.
+func WithBaseService(svc service.BaseService) service.Option[Service] {
+	return func(s *Service) error {
+		s.BaseService = svc
+		return nil
 	}
 }
 
-// reportStatuses logs the health status of all services.
-func (s *Service) reportStatuses() {
-	svcStatuses := s.retrieveStatuses()
-	for _, svc := range svcStatuses {
-		if svc.Healthy {
-			s.Logger().
-				Info("service is reporting healthy 🌤️ ", "service", svc.Name)
-		} else {
-			s.Logger().Error("service is reporting unhealthy 🌧️ ",
-				"service", svc.Name, "status", svc.Err)
-		}
+// WithBuilderConfig sets the builder config.
+func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
+	return func(s *Service) error {
+		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithLocalBuilder sets the local builder.
+func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
+	return func(s *Service) error {
+		s.localBuilder = builder
+		return nil
+	}
+}
+
+// WithRemoteBuilders sets the remote builders.
+func WithRemoteBuilders(builders ...PayloadBuilder) service.Option[Service] {
+	return func(s *Service) error {
+		s.remoteBuilders = append(s.remoteBuilders, builders...)
+		return nil
 	}
 }

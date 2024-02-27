@@ -46,4 +46,3 @@ ignore:
   - "**/*.mock.go"
   - "**/proto"
   - "**/build"
-  - "**/contracts"

@@ -55,7 +55,6 @@ func (s *Service) FinalizeBeaconBlock(
 	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetLastValidHead(eth1BlockHash)
 	state.SetParentBlockRoot(blockRoot)
 
 	return nil

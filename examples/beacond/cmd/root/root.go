@@ -27,29 +27,29 @@
 package root
 
 import (
+	"context"
+	"errors"
+	"io"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
-	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
-	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"cosmossdk.io/x/auth/tx"
-	authtxconfig "cosmossdk.io/x/auth/tx/config"
-	"cosmossdk.io/x/auth/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/spf13/cobra"
-
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
+	"github.com/itsdevbear/bolaris/lib/cmd"
+	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main
@@ -68,8 +68,8 @@ func NewRootCmd() *cobra.Command {
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 			),
 			depinject.Provide(
-				ProvideClientContext,
-				ProvideKeyring,
+				cmdconfig.ProvideClientContext,
+				cmdconfig.ProvideKeyring,
 			),
 		),
 		&autoCliOpts,
@@ -102,7 +102,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customClientTemplate, customClientConfig := initClientConfig()
+			customClientTemplate, customClientConfig := cmdconfig.InitClientConfig()
 			clientCtx, err = config.CreateClientConfig(
 				clientCtx,
 				customClientTemplate,
@@ -116,8 +116,8 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
-			customCMTConfig := initCometBFTConfig()
+			customAppTemplate, customAppConfig := cmdconfig.InitAppConfig()
+			customCMTConfig := cmdconfig.InitCometBFTConfig()
 
 			return server.InterceptConfigsPreRunHandler(
 				cmd,
@@ -128,12 +128,21 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(
+	cmd.InitRootCommand(
 		rootCmd,
 		clientCtx.TxConfig,
 		clientCtx.InterfaceRegistry,
 		clientCtx.Codec,
 		moduleBasicManager,
+		newApp,
+		func(
+			_app servertypes.Application,
+			svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group,
+		) error {
+			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
+		},
+
+		appExport,
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
@@ -143,66 +152,84 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func ProvideClientContext(
-	appCodec codec.Codec,
-	interfaceRegistry codectypes.InterfaceRegistry,
-	txConfigOpts tx.ConfigOptions,
-	legacyAmino *codec.LegacyAmino,
-	addressCodec address.Codec,
-	validatorAddressCodec runtime.ValidatorAddressCodec,
-	consensusAddressCodec runtime.ConsensusAddressCodec,
-) client.Context {
-	var err error
+// newApp creates the application.
+func newApp(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) servertypes.Application {
+	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	clientCtx := client.Context{}.
-		WithCodec(appCodec).
-		WithInterfaceRegistry(interfaceRegistry).
-		WithLegacyAmino(legacyAmino).
-		WithInput(os.Stdin).
-		WithAccountRetriever(types.AccountRetriever{}).
-		WithAddressCodec(addressCodec).
-		WithValidatorAddressCodec(validatorAddressCodec).
-		WithConsensusAddressCodec(consensusAddressCodec).
-		WithHomeDir(app.DefaultNodeHome).
-		WithViper("") // uses by default the binary name as prefix
-
-	// Read the config to overwrite the default values with the values from the
-	// config file
-	customClientTemplate, customClientConfig := initClientConfig()
-	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(
-		clientCtx,
-		customClientTemplate,
-		customClientConfig,
+	return app.NewBeaconKitApp(
+		logger, db, traceStore, true,
+		"",
+		appOpts,
+		baseappOptions...,
 	)
-	if err != nil {
-		panic(err)
-	}
-
-	// textual is enabled by default, we need to re-create the tx config grpc
-	// instead of bank keeper.
-	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.NewGRPCCoinMetadataQueryFn(
-		clientCtx,
-	)
-	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
-	if err != nil {
-		panic(err)
-	}
-	clientCtx = clientCtx.WithTxConfig(txConfig)
-
-	return clientCtx
 }
 
-func ProvideKeyring(
-	clientCtx client.Context,
-	addressCodec address.Codec,
-) (clientv2keyring.Keyring, error) {
-	kb, err := client.NewKeyringFromBackend(
-		clientCtx,
-		clientCtx.Keyring.Backend(),
-	)
-	if err != nil {
-		return nil, err
+// appExport creates a new BeaconApp (optionally at a given height) and exports
+// state.
+func appExport(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	height int64,
+	forZeroHeight bool,
+	jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions,
+	modulesToExport []string,
+) (servertypes.ExportedApp, error) {
+	// this check is necessary as we use the flag in x/upgrade.
+	// we can exit more gracefully by checking the flag here.
+	homePath, ok := appOpts.Get(flags.FlagHome).(string)
+	if !ok || homePath == "" {
+		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
-	return keyring.NewAutoCLIKeyring(kb)
+	viperAppOpts, ok := appOpts.(*viper.Viper)
+	if !ok {
+		return servertypes.ExportedApp{}, errors.New(
+			"appOpts is not viper.Viper",
+		)
+	}
+
+	// overwrite the FlagInvCheckPeriod
+	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+	appOpts = viperAppOpts
+
+	var beaconApp *app.BeaconApp
+	if height != -1 {
+		beaconApp = app.NewBeaconKitApp(
+			logger,
+			db,
+			traceStore,
+			false,
+			"",
+			appOpts,
+		)
+
+		if err := beaconApp.LoadHeight(height); err != nil {
+			return servertypes.ExportedApp{}, err
+		}
+	} else {
+		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
+	}
+
+	return beaconApp.ExportAppStateAndValidators(
+		forZeroHeight,
+		jailAllowedAddrs,
+		modulesToExport,
+	)
+}
+
+var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
+	dir, err := os.MkdirTemp("", "beacond")
+	if err != nil {
+		dir = app.DefaultNodeHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }

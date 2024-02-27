@@ -61,9 +61,9 @@ type BeaconPreBlockHandler struct {
 	// node is currently syncing.
 	syncStatus *sync.Service
 
-	// childHandler is the next pre-block handler in the chain. This is always
+	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
-	childHandler sdk.PreBlocker
+	nextHandler sdk.PreBlocker
 }
 
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
@@ -73,14 +73,14 @@ func NewBeaconPreBlockHandler(
 	logger log.Logger,
 	chainService *blockchain.Service,
 	syncService *sync.Service,
-	childHandler sdk.PreBlocker,
+	nextHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
 		cfg:          cfg,
 		logger:       logger,
 		chainService: chainService,
 		syncStatus:   syncService,
-		childHandler: childHandler,
+		nextHandler:  nextHandler,
 	}
 }
 
@@ -116,11 +116,11 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		// If there is no child handler, we are done, this preblocker
 		// does not modify any consensus params so we return an empty
 		// response.
-		if h.childHandler == nil {
+		if h.nextHandler == nil {
 			return &sdk.ResponsePreBlock{}, nil
 		}
 
 		// Call the nested child handler.
-		return h.childHandler(ctx, req)
+		return h.nextHandler(ctx, req)
 	}
 }

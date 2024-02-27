@@ -99,11 +99,11 @@ func (s *Service) BuildLocalPayload(
 	return payloadID, nil
 }
 
-// GetLocalPayload attempts to pull a previously built payload
+// GetBestPayload attempts to pull a previously built payload
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
-func (s *Service) GetLocalPayload(
+func (s *Service) GetBestPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,

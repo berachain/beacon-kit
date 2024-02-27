@@ -55,7 +55,7 @@ func (s *Service) sendFCUWithAttributes(
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
 ) error {
-	_, err := s.bs.BuildLocalPayload(
+	_, err := s.lb.BuildLocalPayload(
 		ctx,
 		headEth1Hash,
 		slot+1,

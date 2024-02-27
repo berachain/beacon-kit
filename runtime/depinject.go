@@ -23,41 +23,53 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package health
+package runtime
 
 import (
-	"context"
-	"time"
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/config"
 )
 
-// reportingInterval is the interval at which the health service
-// logs the health status of services.
-const reportingInterval = 10 * time.Second
-
-// reportingLoop initiates a loop that periodically checks and
-// reports the health status of services.
-func (s *Service) reportingLoop(ctx context.Context) {
-	ticker := time.NewTicker(reportingInterval)
-	for {
-		select {
-		case <-ticker.C:
-			s.reportStatuses()
-		case <-ctx.Done():
-			return
-		}
+//nolint:gochecknoinits // GRRRR fix later.
+func init() {
+	if err := depinject.Inject(
+		depinject.Provide(ProvideRuntime),
+	); err != nil {
+		panic(err)
 	}
 }
 
-// reportStatuses logs the health status of all services.
-func (s *Service) reportStatuses() {
-	svcStatuses := s.retrieveStatuses()
-	for _, svc := range svcStatuses {
-		if svc.Healthy {
-			s.Logger().
-				Info("service is reporting healthy 🌤️ ", "service", svc.Name)
-		} else {
-			s.Logger().Error("service is reporting unhealthy 🌧️ ",
-				"service", svc.Name, "status", svc.Err)
-		}
+// DepInjectInput is the input for the dep inject framework.
+type DepInjectInput struct {
+	depinject.In
+
+	Config *config.Config
+	Bsp    BeaconStateProvider
+	Vcp    ValsetChangeProvider
+	Logger log.Logger
+}
+
+// DepInjectOutput is the output for the dep inject framework.
+type DepInjectOutput struct {
+	depinject.Out
+
+	Runtime *BeaconKitRuntime
+}
+
+// ProvideModule is a function that provides the module to the application.
+func ProvideRuntime(in DepInjectInput) DepInjectOutput {
+	r, err := NewDefaultBeaconKitRuntime(
+		in.Config,
+		in.Bsp,
+		in.Vcp,
+		in.Logger,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	return DepInjectOutput{
+		Runtime: r,
 	}
 }

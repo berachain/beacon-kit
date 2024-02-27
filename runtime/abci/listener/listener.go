@@ -46,7 +46,8 @@ type BeaconListener struct {
 // NewBeaconListener returns a new BeaconListener.
 func NewBeaconListener(
 	logger log.Logger,
-	chainService *blockchain.Service) *BeaconListener {
+	chainService *blockchain.Service,
+) *BeaconListener {
 	return &BeaconListener{
 		logger:       logger,
 		chainService: chainService,

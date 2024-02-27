@@ -35,8 +35,8 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// BuilderService is the interface for the builder service.
-type BuilderService interface {
+// LocalBuilder is the interface for the builder service.
+type LocalBuilder interface {
 	BuildLocalPayload(
 		ctx context.Context,
 		parentEth1Hash common.Hash,

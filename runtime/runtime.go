@@ -33,7 +33,8 @@ import (
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	builder "github.com/itsdevbear/bolaris/beacon/builder"
+	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
@@ -49,12 +50,9 @@ import (
 // service registry.
 type BeaconKitRuntime struct {
 	cfg      *config.Config
-	cometCfg CometBFTConfig
 	logger   log.Logger
 	fscp     BeaconStateProvider
 	services *service.Registry
-
-	stopCh chan struct{}
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -62,9 +60,7 @@ type BeaconKitRuntime struct {
 func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{
-		stopCh: make(chan struct{}, 1),
-	}
+	bkr := &BeaconKitRuntime{}
 	for _, opt := range opts {
 		if err := opt(bkr); err != nil {
 			return nil, err
@@ -144,17 +140,23 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the local builder service.
+	localBuilder := service.New[localbuilder.Service](
+		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
+		localbuilder.WithBuilderConfig(&cfg.Builder),
+		localbuilder.WithExecutionService(executionService),
+		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+	)
+
 	builderService := service.New[builder.Service](
-		builder.WithBaseService(baseService.ShallowCopy("local-builder")),
+		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
-		builder.WithExecutionService(executionService),
-		builder.WithPayloadCache(cache.NewPayloadIDCache()),
+		builder.WithLocalBuilder(localBuilder),
 	)
 
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
-		blockchain.WithBuilderService(builderService),
 		blockchain.WithExecutionService(executionService),
+		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithStakingService(stakingService),
 	)
 
@@ -202,20 +204,5 @@ func (r *BeaconKitRuntime) StartServices(
 		panic(err)
 	}
 	syncService.SetClientContext(clientCtx)
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	r.services.StartAll(ctx)
-	<-r.stopCh
-}
-
-// SetCometCfg sets the CometBFTConfig for the runtime.
-func (r *BeaconKitRuntime) SetCometCfg(cometCfg CometBFTConfig) {
-	r.cometCfg = cometCfg
-}
-
-// Close closes the runtime.
-func (r *BeaconKitRuntime) Close() {
-	close(r.stopCh)
 }
