@@ -29,10 +29,14 @@ import (
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/beacon/execution/mocks"
+	"github.com/itsdevbear/bolaris/beacon/staking"
+	"github.com/itsdevbear/bolaris/contracts/abi"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
@@ -40,6 +44,8 @@ import (
 
 func TestProcessLogs(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
+	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	require.NoError(t, err)
 
 	mockLogService := &logmocks.Service{}
 	logFactory, err := logs.NewFactory(
@@ -72,4 +78,41 @@ func TestProcessLogs(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
 	}
+
+	withdrawal := enginetypes.NewWithdrawal(
+		[]byte("pubkey"),
+		uint64(1000),
+	)
+
+	var log *ethtypes.Log
+	log, err = logmocks.NewLogFromWithdrawal(
+		stakingAbi.Events[staking.WithdrawalName],
+		withdrawal,
+	)
+	require.NoError(t, err)
+
+	log.Address = contractAddress
+	// This log is skipped because it is not
+	// from the block we are processing.
+	log.BlockNumber = blkNum + 1
+	logs = append(logs, *log)
+	vals, err = executionService.ProcessLogs(logs, blkNum)
+	require.NoError(t, err)
+	require.Len(t, vals, numDepositLogs)
+
+	// This log is skipped because it is not
+	// from the contract address of interest.
+	log.Address = ethcommon.HexToAddress("0x5678")
+	logs = append(logs, *log)
+	vals, err = executionService.ProcessLogs(logs, blkNum)
+	require.NoError(t, err)
+	require.Len(t, vals, numDepositLogs)
+
+	log.Address = contractAddress
+	log.BlockNumber = blkNum
+	logs = append(logs, *log)
+	vals, err = executionService.ProcessLogs(logs, blkNum)
+	// This is an expected error as currently we cannot
+	// unmarsal a withdrawal log into a Withdrawal object.
+	require.Error(t, err)
 }
