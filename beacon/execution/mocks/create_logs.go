@@ -26,6 +26,8 @@
 package mocks
 
 import (
+	"errors"
+
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
@@ -41,6 +43,10 @@ func CreateDepositLogs(
 	contractAddress ethcommon.Address,
 	blkNum uint64,
 ) ([]ethtypes.Log, error) {
+	if numDepositLogs <= 0 || factor <= 0 {
+		return nil, errors.New("invalid input")
+	}
+
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	if err != nil {
 		return nil, err
@@ -53,6 +59,7 @@ func CreateDepositLogs(
 	for i := 0; i < numLogs; i++ {
 		deposit := consensus.NewDeposit(
 			[]byte("pubkey"),
+			//#nosec:G701 // no overflow
 			uint64(i),
 			[]byte("12345678901234567890"),
 		)
