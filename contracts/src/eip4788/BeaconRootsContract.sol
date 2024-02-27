@@ -55,7 +55,7 @@ contract BeaconRootsContract {
     ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)" appended with the
     /// 32-byte encoded block number, the function will return the coinbase for the given block
     /// number.
-    fallback() external {
+    fallback() external virtual {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
                 getCoinbase();

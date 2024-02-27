@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-contract BeginBlockRootsContract {
+import { BeaconRootsContract } from "../BeaconRootsContract.sol";
+
+contract BeginBlockRootsContract is BeaconRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                    EVENTS/ERRORS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -42,18 +44,6 @@ contract BeginBlockRootsContract {
     /*                        STORAGE                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev The circular buffer for storing timestamps.
-    uint256[HISTORY_BUFFER_LENGTH] private _timestamps;
-
-    /// @dev The circular buffer for storing beacon roots.
-    bytes32[HISTORY_BUFFER_LENGTH] private _beaconRoots;
-
-    /// @dev The circular buffer for storing coinbases.
-    address[HISTORY_BUFFER_LENGTH] private _coinbases;
-
-    /// @dev The mapping of timestamps to block numbers.
-    mapping(uint256 timestamp => uint256 blockNumber) private _blockNumbers;
-
     /// @dev The BeginBlocker struct is used to store the calls we need to make at the beginning of
     /// each block.
     struct BeginBlocker {
@@ -81,90 +71,18 @@ contract BeginBlockRootsContract {
     /*                        ENTRYPOINT                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    fallback() external {
+    fallback() external override {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
                 getCoinbase();
             } else if (msg.sender == ADMIN) {
-                // Only the ADMIN can crud BeginBlockers and ADMIN.
-                _crud(msg.data);
+                crud(msg.data);
             } else {
                 get();
             }
         } else {
             set();
-
-            // Run all the BeginBlockers.
-            _run();
-        }
-    }
-
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                       BEACON ROOT                          */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @dev Retrieves the beacon root for a given timestamp.
-    /// This function is called internally and utilizes assembly for direct storage access.
-    /// Reverts if the calldata is not a 32-byte timestamp or if the timestamp is 0.
-    /// Reverts if the timestamp is not within the circular buffer.
-    /// @return The beacon root associated with the given timestamp.
-    function get() internal view returns (bytes32) {
-        assembly ("memory-safe") {
-            if iszero(and(eq(calldatasize(), 0x20), gt(calldataload(0), 0))) { revert(0, 0) }
-            // index block number from timestamp
-            mstore(0, calldataload(0))
-            mstore(0x20, _blockNumbers.slot)
-            let block_number := sload(keccak256(0, 0x40))
-            let block_idx := mod(block_number, HISTORY_BUFFER_LENGTH)
-            let _timestamp := sload(block_idx)
-            if iszero(eq(_timestamp, calldataload(0))) { revert(0, 0) }
-            let root_idx := add(block_idx, _beaconRoots.slot)
-            mstore(0, sload(root_idx))
-            return(0, 0x20)
-        }
-    }
-
-    /// @dev Sets the beacon root and coinbase for the current block.
-    /// This function is called internally and utilizes assembly for direct storage access.
-    function set() internal {
-        assembly ("memory-safe") {
-            let block_idx := mod(number(), HISTORY_BUFFER_LENGTH)
-            // clean the key in the mapping for the stale timestamp in the block index to be
-            // overridden
-            let stale_timestamp := sload(block_idx)
-            mstore(0, stale_timestamp)
-            mstore(0x20, _blockNumbers.slot)
-            sstore(keccak256(0, 0x40), 0)
-            // override the timestamp
-            sstore(block_idx, timestamp())
-            // set the current block number in the mapping
-            mstore(0, timestamp())
-            // 0x20 is already set
-            sstore(keccak256(0, 0x40), number())
-            // set the beacon root
-            let root_idx := add(block_idx, _beaconRoots.slot)
-            sstore(root_idx, calldataload(0))
-            // set the coinbase
-            let coinbase_idx := add(block_idx, _coinbases.slot)
-            sstore(coinbase_idx, coinbase())
-        }
-    }
-
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                         COINBASE                           */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @notice Retrieves the coinbase for a given block number.
-    /// @dev if called with a block number that is before the history buffer
-    /// it will return the coinbase for blockNumber + HISTORY_BUFFER_LENGTH * A
-    /// Where A is the number of times the buffer has cycled since the blockNumber
-    /// @return The coinbase for the given block number.
-    function getCoinbase() internal view returns (address) {
-        assembly ("memory-safe") {
-            let block_idx := mod(calldataload(4), HISTORY_BUFFER_LENGTH)
-            let coinbase_idx := add(block_idx, _coinbases.slot)
-            mstore(0, sload(coinbase_idx))
-            return(0, 0x20)
+            run();
         }
     }
 
@@ -242,7 +160,7 @@ contract BeginBlockRootsContract {
      * If the action is "set", the function will add the BeginBlocker at the given index.
      * If the action is "remove", the function will remove the BeginBlocker at the given index.
      */
-    function _crud(bytes memory data) private {
+    function crud(bytes memory data) private {
         // Decode the data we get from the message.
         (uint256 i, bytes32 action, BeginBlocker memory beginBlocker, address admin) = _parse(data);
 
@@ -270,7 +188,7 @@ contract BeginBlockRootsContract {
      * If the call is successful, it emits a BeginBlockerCalled event with the contract address,
      * the current block miner's address, the selector, and the success status.
      */
-    function _run() private {
+    function run() private {
         for (uint256 i = 0; i < beginBlockers.length; i++) {
             (bool success,) = beginBlockers[i].contractAddress.call(
                 abi.encodeWithSelector(beginBlockers[i].selector)
