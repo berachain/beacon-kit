@@ -45,6 +45,8 @@ type ReadOnlyBeaconKitBlockBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+
+	RandaoReveal() [96]byte
 }
 
 // ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
@@ -59,6 +61,7 @@ type ReadOnlyBeaconKitBlock interface {
 	// Execution returns the execution data of the block.
 	ExecutionPayload() (enginetypes.ExecutionPayload, error)
 	Version() int
+	RandaoReveal() [96]byte
 }
 
 // WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.

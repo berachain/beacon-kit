@@ -77,3 +77,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             TAG=${{ github.ref_name }}
+            BUILD_ARGS="pebbledb"

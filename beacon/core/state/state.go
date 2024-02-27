@@ -51,6 +51,8 @@ type BeaconState interface {
 type ReadOnlyBeaconState interface {
 	ReadOnlyForkChoice
 	ReadOnlyGenesis
+	ReadOnlyRandaoMixes
+
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
 
@@ -61,11 +63,23 @@ type ReadOnlyBeaconState interface {
 	// GetEpochBySlot(primitives.Slot) primitives.Epoch
 }
 
-// WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState interface {
-	WriteOnlyForkChoice
-	WriteOnlyGenesis
-	ReadOnlyWithdrawals
+// ReadOnlyGenesis is the interface for a read-only genesis.
+type ReadOnlyGenesis interface {
+	GenesisEth1Hash() common.Hash
+}
+
+// ReadOnlyForkChoice is the interface for a read-only fork choice.
+type ReadOnlyForkChoice interface {
+	GetLastValidHead() common.Hash
+	GetSafeEth1BlockHash() common.Hash
+	GetFinalizedEth1BlockHash() common.Hash
+}
+
+// ReadOnlyRandaoMixes defines a struct which only has read access to randao mixes methods.
+type ReadOnlyRandaoMixes interface {
+	RandaoMixes() [][]byte
+	RandaoMixAtIndex(idx uint64) ([]byte, error)
+	RandaoMixesLength() int
 }
 
 // Write Only Fork Choice.
@@ -76,10 +90,17 @@ type WriteOnlyForkChoice interface {
 	SetLastValidHead(lastValidHead common.Hash)
 }
 
-type ReadOnlyForkChoice interface {
-	GetLastValidHead() common.Hash
-	GetSafeEth1BlockHash() common.Hash
-	GetFinalizedEth1BlockHash() common.Hash
+// WriteOnlyBeaconState is the interface for a write-only beacon state.
+type WriteOnlyBeaconState interface {
+	WriteOnlyForkChoice
+	WriteOnlyGenesis
+	ReadOnlyWithdrawals
+}
+
+// WriteOnlyRandaoMixes defines a struct which only has write access to randao mixes methods.
+type WriteOnlyRandaoMixes interface {
+	SetRandaoMixes(val [][]byte) error
+	UpdateRandaoMixesAtIndex(idx uint64, val [32]byte) error
 }
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
@@ -91,10 +112,6 @@ type ReadWriteDepositQueue interface {
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
 	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
-}
-
-type ReadOnlyGenesis interface {
-	GenesisEth1Hash() common.Hash
 }
 
 type WriteOnlyGenesis interface {
