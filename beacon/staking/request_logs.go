@@ -48,13 +48,13 @@ const (
 var (
 	// Signature and type of the Deposit event
 	// in the deposit contract.
-	// keccak256("Deposit(bytes,bytes,uint64)")
+	// keccak256("Deposit(bytes,bytes,uint64)").
 	DepositSig  = common.HexToHash("163244a852f099315d72dcfbb5b1031ca0365543f2ac1849bdb69b01d8648b18")
 	depositType = reflect.TypeOf(consensusv1.Deposit{})
 
 	// Signature and type of the Withdrawal event
 	// in the deposit contract.
-	// keccak256("Withdrawal(bytes,bytes,uint64)")
+	// keccak256("Withdrawal(bytes,bytes,uint64)").
 	WithdrawalSig  = common.HexToHash("3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4")
 	withdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
 )

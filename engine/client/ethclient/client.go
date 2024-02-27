@@ -27,12 +27,9 @@ package ethclient
 
 import (
 	"context"
-	"math/big"
 
-	"github.com/ethereum/go-ethereum"
 	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -139,25 +136,6 @@ func (s *Eth1Client) ExecutionBlockByNumber(
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err
-}
-
-// GetLogs retrieves the logs from the Ethereum execution node.
-// It calls the eth_getLogs method via JSON-RPC.
-func (s *Eth1Client) GetLogs(
-	ctx context.Context,
-	fromBlock, toBlock uint64,
-	addresses []common.Address,
-) ([]coretypes.Log, error) {
-	// Create a filter query for the block, to acquire all logs from contracts
-	// that we care about.
-	query := ethereum.FilterQuery{
-		Addresses: addresses,
-		FromBlock: new(big.Int).SetUint64(fromBlock),
-		ToBlock:   new(big.Int).SetUint64(toBlock),
-	}
-
-	// Gather all the logs according to the query.
-	return s.FilterLogs(ctx, query)
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
