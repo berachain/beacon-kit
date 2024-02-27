@@ -56,8 +56,8 @@ func (s *Service) reportStatuses() {
 			s.Logger().
 				Info("service is reporting healthy 🌤️ ", "service", svc.Name)
 		} else {
-			s.Logger().Error("service is reporting unhealthy ⛈️ ",
-				"service", svc.Name, "error", svc.Err)
+			s.Logger().Error("service is reporting unhealthy 🌧️ ",
+				"service", svc.Name, "status", svc.Err)
 		}
 	}
 }
