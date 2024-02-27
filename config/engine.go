@@ -49,7 +49,7 @@ func DefaultEngineConfig() Engine {
 		RPCHealthCheckInterval:  5 * time.Second,  //nolint:gomnd // default config.
 		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
 		JWTSecretPath:           "./jwt.hex",
-		RequiredChainID:         7, //nolint:gomnd // default config.
+		RequiredChainID:         80086, //nolint:gomnd // default config.
 	}
 }
 

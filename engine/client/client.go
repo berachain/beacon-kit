@@ -152,9 +152,7 @@ func (s *EngineClient) setupExecutionClientConnection(ctx context.Context) {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(ctx); err != nil {
 		// This log gets spammy, we only log it when we first lose connection.
-		if s.isConnected.Load() {
-			s.logger.Error("could not dial execution client", "error", err)
-		}
+		s.logger.Error("could not dial execution client", "error", err)
 		s.isConnected.Store(false)
 		return
 	}
@@ -165,7 +163,7 @@ func (s *EngineClient) setupExecutionClientConnection(ctx context.Context) {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
-		} else if s.isConnected.Load() {
+		} else {
 			// This log gets spammy, we only log it when we first lose
 			// connection.
 			s.logger.Error("could not dial execution client", "error", err)
