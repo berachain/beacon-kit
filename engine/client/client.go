@@ -29,7 +29,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"cosmossdk.io/log"
@@ -52,7 +51,6 @@ type EngineClient struct {
 	beaconCfg    *config.Beacon
 	capabilities map[string]struct{}
 	logger       log.Logger
-	isConnected  atomic.Bool
 	jwtSecret    *jwt.Secret
 }
 
@@ -76,19 +74,15 @@ func New(opts ...Option) *EngineClient {
 
 // Start starts the engine client.
 func (s *EngineClient) Start(ctx context.Context) {
-	// Attempt an initial connection.
-	s.tryConnectionAfter(ctx, 0)
-
-	// We will spin up the execution client connection in a
-	// loop until it is connected.
-	for !s.isConnected.Load() {
-		// If we enter this loop, the above connection attempt failed.
-		s.logger.Info(
-			"Waiting for connection to execution client...",
-			"engine-dial-url", s.cfg.RPCDialURL.String(),
-		)
-		s.tryConnectionAfter(ctx, s.cfg.RPCStartupCheckInterval)
+	for {
+		if err := s.setupExecutionClientConnection(ctx); err != nil {
+			s.logger.Error("attemping to connection to execution client 🚒 ", "err", err)
+			continue
+		}
+		break
 	}
+
+	s.logger.Info("connected to execution client 🔌", "dial-url", s.cfg.RPCDialURL.String())
 
 	// Exchange capabilities with the execution client.
 	if _, err := s.ExchangeCapabilities(ctx); err != nil {
@@ -129,32 +123,26 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
+	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
 	for {
-		s.tryConnectionAfter(ctx, s.cfg.RPCJWTRefreshInterval)
-	}
-}
-
-// tryConnectionAfter attempts a connection after a given interval.
-func (s *EngineClient) tryConnectionAfter(
-	ctx context.Context, interval time.Duration,
-) {
-	select {
-	case <-ctx.Done():
-		return
-	case <-time.After(interval):
-		s.setupExecutionClientConnection(ctx)
+		select {
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			if err := s.dialExecutionRPCClient(ctx); err != nil {
+				s.logger.Error("failed to refresh JWT token", "err", err)
+			}
+		}
 	}
 }
 
 // setupExecutionClientConnections dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient) setupExecutionClientConnection(ctx context.Context) {
+func (s *EngineClient) setupExecutionClientConnection(ctx context.Context) error {
 	// Dial the execution client.
 	if err := s.dialExecutionRPCClient(ctx); err != nil {
-		// This log gets spammy, we only log it when we first lose connection.
-		s.logger.Error("could not dial execution client", "error", err)
-		s.isConnected.Store(false)
-		return
+		return err
 	}
 
 	// Ensure the execution client is connected to the correct chain.
@@ -163,18 +151,10 @@ func (s *EngineClient) setupExecutionClientConnection(ctx context.Context) {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
-		} else {
-			// This log gets spammy, we only log it when we first lose
-			// connection.
-			s.logger.Error("could not dial execution client", "error", err)
 		}
-
-		s.isConnected.Store(false)
-		return
+		return err
 	}
-
-	// If we reached here the client is connected and we mark as such.
-	s.isConnected.Store(true)
+	return nil
 }
 
 // DialExecutionRPCClient dials the execution client's RPC endpoint.

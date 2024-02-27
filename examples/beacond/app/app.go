@@ -27,7 +27,6 @@ package app
 
 import (
 	_ "embed"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -49,12 +48,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
+	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
@@ -125,11 +122,13 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
+	clientCtx := client.Context{}
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
+				cmdconfig.ProvideClientContext,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -143,6 +142,7 @@ func NewBeaconKitApp(
 			),
 		),
 		&appBuilder,
+		&clientCtx,
 		&app.appCodec,
 		&app.legacyAmino,
 		&app.txConfig,
@@ -198,6 +198,12 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
+	// Initial check for execution client sync.
+	app.BeaconKitRuntime.StartServices(
+		app.NewContext(true),
+		clientCtx,
+	)
+
 	return app
 }
 
@@ -221,35 +227,6 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
-}
-
-// RegisterAPIRoutes registers all application module routes with the provided
-// API server.
-func (app *BeaconApp) RegisterAPIRoutes(
-	apiSvr *api.Server,
-	apiConfig config.APIConfig,
-) {
-	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
-	// register swagger API in app.go so that other applications can override
-	// easily
-	if err := server.RegisterSwaggerAPI(
-		apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger,
-	); err != nil {
-		panic(err)
-	}
-
-	v, ok := apiSvr.ClientCtx.CmdContext.Value(server.ServerContextKey).(*server.Context)
-	if !ok {
-		panic(fmt.Errorf("unexpected server context type: %T", v))
-	}
-
-	// Initial check for execution client sync.
-	go app.BeaconKitRuntime.StartServices(
-		app.NewContext(true),
-		apiSvr.ClientCtx,
-	)
-
-	app.BeaconKitRuntime.SetCometCfg(v.Config)
 }
 
 func (app *BeaconApp) Close() error {

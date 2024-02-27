@@ -46,7 +46,6 @@ func DefaultEngineConfig() Engine {
 		RPCRetries:              3,                //nolint:gomnd // default config.
 		RPCTimeout:              2 * time.Second,  //nolint:gomnd // default config.
 		RPCStartupCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
-		RPCHealthCheckInterval:  5 * time.Second,  //nolint:gomnd // default config.
 		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
 		JWTSecretPath:           "./jwt.hex",
 		RequiredChainID:         80086, //nolint:gomnd // default config.
@@ -64,8 +63,6 @@ type Engine struct {
 	RPCTimeout time.Duration
 	// RPCStartupCheckInterval is the Interval for the startup check.
 	RPCStartupCheckInterval time.Duration
-	// HealthCheckInterval is the Interval for the health check.
-	RPCHealthCheckInterval time.Duration
 	// JWTRefreshInterval is the Interval for the JWT refresh.
 	RPCJWTRefreshInterval time.Duration
 	// JWTSecretPath is the path to the JWT secret.
@@ -94,11 +91,7 @@ func (c Engine) Parse(parser parser.AppOptionsParser) (*Engine, error) {
 	); err != nil {
 		return nil, err
 	}
-	if c.RPCHealthCheckInterval, err = parser.GetTimeDuration(
-		flags.RPCHealthCheckInteval,
-	); err != nil {
-		return nil, err
-	}
+
 	if c.RPCJWTRefreshInterval, err = parser.GetTimeDuration(
 		flags.RPCJWTRefreshInterval,
 	); err != nil {
@@ -131,9 +124,6 @@ rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"
 
 # Interval for the startup check.
 rpc-startup-check-interval = "{{ .BeaconKit.Engine.RPCStartupCheckInterval }}"
-
-# Interval for the health check.
-rpc-health-check-interval = "{{ .BeaconKit.Engine.RPCHealthCheckInterval }}"
 
 # Interval for the JWT refresh.
 rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"

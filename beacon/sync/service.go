@@ -49,11 +49,6 @@ type Service struct {
 	clientCtx    *cosmosclient.Context
 }
 
-// SetClientContext sets the client context for the service.
-func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
-	s.clientCtx = &clientCtx
-}
-
 // Start initiates the synchronization service.
 func (s *Service) Start(ctx context.Context) {
 	// Start the synchronization loop in a new goroutine.
@@ -64,6 +59,11 @@ func (s *Service) Start(ctx context.Context) {
 		// the notifySyncSignal channel to signal completion.
 		<-ctx.Done()
 	}()
+}
+
+// SetClientContext sets the client context for the service.
+func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
+	s.clientCtx = &clientCtx
 }
 
 // syncLoop continuously runs and reports if our client is out of sync.

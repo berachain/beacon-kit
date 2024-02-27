@@ -49,7 +49,6 @@ import (
 // service registry.
 type BeaconKitRuntime struct {
 	cfg      *config.Config
-	cometCfg CometBFTConfig
 	logger   log.Logger
 	fscp     BeaconStateProvider
 	services *service.Registry
@@ -190,22 +189,19 @@ func (r *BeaconKitRuntime) StartServices(
 	ctx context.Context,
 	clientCtx client.Context,
 ) {
+
 	var syncService *sync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
 		panic(err)
 	}
 	syncService.SetClientContext(clientCtx)
 
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	r.services.StartAll(ctx)
-	<-r.stopCh
-}
-
-// SetCometCfg sets the CometBFTConfig for the runtime.
-func (r *BeaconKitRuntime) SetCometCfg(cometCfg CometBFTConfig) {
-	r.cometCfg = cometCfg
+	go func() {
+		cctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		r.services.StartAll(cctx)
+		<-r.stopCh
+	}()
 }
 
 // Close closes the runtime.
