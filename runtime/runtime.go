@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/async/dispatch"
+	"github.com/itsdevbear/bolaris/async/notify"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder"
 	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
@@ -106,11 +107,11 @@ func NewDefaultBeaconKitRuntime(
 		engineclient.WithLogger(logger),
 	)
 
-	// // Build the Notification Service.
-	// notificationService := service.New(
-	// 	notify.WithBaseService(baseService.ShallowCopy("notify")),
-	// 	notify.WithGCD(gcd),
-	// )
+	// Build the Notification Service.
+	notificationService := service.New(
+		notify.WithBaseService(baseService.ShallowCopy("notify")),
+		notify.WithGCD(gcd),
+	)
 
 	// Build the execution service.
 	executionService := service.New[execution.Service](
@@ -156,7 +157,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(builderService),
 		service.WithService(chainService),
 		service.WithService(executionService),
-		// service.WithService(notificationService),
+		service.WithService(notificationService),
 		service.WithService(stakingService),
 		service.WithService(syncService),
 	)
