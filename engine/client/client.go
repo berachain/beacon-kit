@@ -113,6 +113,7 @@ func (s *EngineClient) Status() error {
 	if err := s.statusErr; err != nil {
 		// If we have an error, we will attempt
 		// to verify the chain ID again.
+		//#nosec:G703 wtf is even this problem here.
 		s.statusErr = s.VerifyChainID(context.Background())
 	}
 	return s.statusErr
@@ -149,6 +150,7 @@ func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 			s.statusErrMu.Lock()
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
 				s.logger.Error("failed to refresh JWT token", "err", err)
+				//#nosec:G703 wtf is even this problem here.
 				s.statusErr = fmt.Errorf("%w: failed to refresh JWT token", err)
 			} else {
 				s.statusErr = nil

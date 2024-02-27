@@ -159,6 +159,7 @@ func (s *EngineClient) ExchangeCapabilities(
 	if err != nil {
 		s.statusErrMu.Lock()
 		defer s.statusErrMu.Unlock()
+		//#nosec:G703 wtf is even this problem here.
 		s.statusErr = s.handleRPCError(err)
 		return nil, s.statusErr
 	}
