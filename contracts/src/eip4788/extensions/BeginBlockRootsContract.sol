@@ -13,6 +13,7 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * @param contractAddress The address of the contract that called the BeginBlocker function.
      * @param coinbase The address of the current block miner.
      * @param selector The function selector that was called.
+     * @param success The status of the call.
      */
     event BeginBlockerCalled(
         address indexed contractAddress, address indexed coinbase, bytes4 selector, bool success
@@ -28,17 +29,14 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev HISTORY_BUFFER_LENGTH is the length of the circular buffer for storing beacon roots
-    /// and coinbases. It is 8191 as defined in:
-    /// https://eips.ethereum.org/EIPS/eip-4788#specification
-    uint256 private constant HISTORY_BUFFER_LENGTH = 8191;
+    /// @dev Actions that can set a new BeginBlocker.
+    bytes32 private constant SET = keccak256("SET");
 
-    /// @dev SYSTEM_ADDRESS is the address that is allowed to call the set function as defined in
-    /// EIP-4788: https://eips.ethereum.org/EIPS/eip-4788#specification
-    address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+    /// @dev Action that can remove BeginBlockers from the array.
+    bytes32 private constant REMOVE = keccak256("REMOVE");
 
-    /// @dev The selector for "getCoinbase(uint256)".
-    bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
+    /// @dev Action that can update the ADMIN address.
+    bytes32 private constant UPDATE_ADMIN = keccak256("UPDATE_ADMIN");
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        STORAGE                           */
@@ -50,15 +48,6 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         address contractAddress;
         bytes4 selector;
     }
-
-    /// @dev Actions that can set a new BeginBlocker.
-    bytes32 private constant SET = keccak256("SET");
-
-    /// @dev Action that can remove BeginBlockers from the array.
-    bytes32 private constant REMOVE = keccak256("REMOVE");
-
-    /// @dev Action that can update the ADMIN address.
-    bytes32 private constant UPDATE_ADMIN = keccak256("UPDATE_ADMIN");
 
     /// @dev The ADMIN address is the only address that can add or remove BeginBlockers.
     address private ADMIN = address(0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4);
@@ -75,10 +64,12 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
                 getCoinbase();
-            } else if (msg.sender == ADMIN) {
-                crud(msg.data);
             } else {
-                get();
+                if (msg.sender == ADMIN) {
+                    crud(msg.data);
+                } else {
+                    get();
+                }
             }
         } else {
             set();
@@ -89,6 +80,55 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        BeginBlocker                        */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /**
+     * @dev Performs the CRUD operation based on the action specified in the input data.
+     * @param data The input data containing the index, action, and BeginBlocker. The action can be
+     * "set" or "remove".
+     * If the action is "set", the function will add the BeginBlocker at the given index.
+     * If the action is "remove", the function will remove the BeginBlocker at the given index.
+     */
+    function crud(bytes memory data) private {
+        // Decode the data we get from the message.
+        (uint256 i, bytes32 action, BeginBlocker memory beginBlocker, address admin) = _parse(data);
+
+        // Prefrom the CRUD operation.
+        if (action == SET) {
+            // If the action is "SET", we need to add the BeginBlocker at the given index.
+            _add(i, beginBlocker);
+        } else if (action == REMOVE) {
+            // If the action is "REMOVE", we need to remove the BeginBlocker at the given index.
+            _remove(i);
+        } else if (action == UPDATE_ADMIN) {
+            // If the action is "UPDATE_ADMIN", we need to update the ADMIN address.
+            // This can only be done by the current ADMIN, since we check that in the fallback
+            // method.
+            if (admin != address(0)) {
+                ADMIN = admin;
+            }
+        }
+    }
+
+    /**
+     * @dev Runs all the BeginBlocker functions stored in the contract.
+     * It iterates over the array of BeginBlockers and calls each one using its contract address
+     * and selector.
+     * If the call is successful, it emits a BeginBlockerCalled event with the contract address,
+     * the current block miner's address, the selector, and the success status.
+     */
+    function run() private {
+        for (uint256 i = 0; i < beginBlockers.length; i++) {
+            (bool success,) = beginBlockers[i].contractAddress.call(
+                abi.encodeWithSelector(beginBlockers[i].selector)
+            );
+            emit BeginBlockerCalled(
+                beginBlockers[i].contractAddress,
+                block.coinbase,
+                beginBlockers[i].selector,
+                success
+            );
+        }
+    }
 
     /**
      * @dev Parses the BeginBlocker message data.
@@ -151,54 +191,5 @@ contract BeginBlockRootsContract is BeaconRootsContract {
 
         // Remove the last element from the array.
         beginBlockers.pop();
-    }
-
-    /**
-     * @dev Performs the CRUD operation based on the action specified in the input data.
-     * @param data The input data containing the index, action, and BeginBlocker. The action can be
-     * "set" or "remove".
-     * If the action is "set", the function will add the BeginBlocker at the given index.
-     * If the action is "remove", the function will remove the BeginBlocker at the given index.
-     */
-    function crud(bytes memory data) private {
-        // Decode the data we get from the message.
-        (uint256 i, bytes32 action, BeginBlocker memory beginBlocker, address admin) = _parse(data);
-
-        // Prefrom the CRUD operation.
-        if (action == SET) {
-            // If the action is "SET", we need to add the BeginBlocker at the given index.
-            _add(i, beginBlocker);
-        } else if (action == REMOVE) {
-            // If the action is "REMOVE", we need to remove the BeginBlocker at the given index.
-            _remove(i);
-        } else if (action == UPDATE_ADMIN) {
-            // If the action is "UPDATE_ADMIN", we need to update the ADMIN address.
-            // This can only be done by the current ADMIN, since we check that in the fallback
-            // method.
-            if (admin != address(0)) {
-                ADMIN = admin;
-            }
-        }
-    }
-
-    /**
-     * @dev Runs all the BeginBlocker functions stored in the contract.
-     * It iterates over the array of BeginBlockers and calls each one using its contract address
-     * and selector.
-     * If the call is successful, it emits a BeginBlockerCalled event with the contract address,
-     * the current block miner's address, the selector, and the success status.
-     */
-    function run() private {
-        for (uint256 i = 0; i < beginBlockers.length; i++) {
-            (bool success,) = beginBlockers[i].contractAddress.call(
-                abi.encodeWithSelector(beginBlockers[i].selector)
-            );
-            emit BeginBlockerCalled(
-                beginBlockers[i].contractAddress,
-                block.coinbase,
-                beginBlockers[i].selector,
-                success
-            );
-        }
     }
 }

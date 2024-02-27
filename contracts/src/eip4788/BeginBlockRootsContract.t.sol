@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "../../lib/solady/test/utils/SoladyTest.sol";
-import "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import "./BeaconRootsContract.t.sol";
 import "./extensions/BeginBlockRootsContract.sol";
 
