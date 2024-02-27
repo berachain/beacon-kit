@@ -23,32 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sync
+package health
 
-import (
-	"context"
-)
+import "errors"
 
-// CheckELSync checks if the execution layer is syncing.
-func (s *Service) CheckELSync(ctx context.Context) error {
-	// Call the ethClient to get the sync progress
-	progress, err := s.engineClient.SyncProgress(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Exit early if the node does not return a progress.
-	// This means the node is in sync at the eth1 layer.
-	if progress == nil {
-		return nil
-	}
-
-	s.Logger().Warn(
-		"execution client is attemping to sync.... ",
-		"current_eth1", progress.CurrentBlock,
-		"highest_eth1", progress.HighestBlock,
-		"starting_eth1", progress.StartingBlock,
-	)
-
-	return ErrExecutionClientIsSyncing
-}
+// ErrHealthCheckTimeout is returned when a health check times out.
+var ErrHealthCheckTimeout = errors.New("health check timed out")

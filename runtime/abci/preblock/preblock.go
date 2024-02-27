@@ -33,7 +33,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
@@ -57,10 +56,6 @@ type BeaconPreBlockHandler struct {
 	// the beacon chain.
 	chainService *blockchain.Service
 
-	// syncStatus is the service that is responsible for determining if the
-	// node is currently syncing.
-	syncStatus *sync.Service
-
 	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
 	nextHandler sdk.PreBlocker
@@ -72,14 +67,12 @@ func NewBeaconPreBlockHandler(
 	cfg *config.ABCI,
 	logger log.Logger,
 	chainService *blockchain.Service,
-	syncService *sync.Service,
 	nextHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
 		cfg:          cfg,
 		logger:       logger,
 		chainService: chainService,
-		syncStatus:   syncService,
 		nextHandler:  nextHandler,
 	}
 }
@@ -102,15 +95,13 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				primitives.Slot(req.Height),
 			),
 		)
-		if err != nil {
-			return nil, err
-		}
-
-		// Process the finalization of the beacon block.
-		if err = h.chainService.FinalizeBeaconBlock(
-			ctx, beaconBlock, [32]byte(req.Hash),
-		); err != nil {
-			return nil, err
+		if err == nil {
+			// Process the finalization of the beacon block.
+			if err = h.chainService.FinalizeBeaconBlock(
+				ctx, beaconBlock, [32]byte(req.Hash),
+			); err != nil {
+				return nil, err
+			}
 		}
 
 		// If there is no child handler, we are done, this preblocker

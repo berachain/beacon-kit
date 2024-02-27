@@ -23,14 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package health
 
-import "sync"
+import (
+	"context"
+	"time"
+)
 
-// ShallowCopy copies the base service and replaces it's name.
-func (s BaseService) ShallowCopy(name string) BaseService {
-	s.logger = s.logger.With("service", name)
-	s.statusErrMu = new(sync.RWMutex)
-	s.name = name
-	return s
+// WaitForHealthyOf waits for the specified services to be healthy.
+func (s *Service) WaitForHealthyOf(
+	ctx context.Context,
+	callerID string,
+	services ...string,
+) error {
+	healthyCh := make(chan struct{})
+	timeout := time.After(
+		3 * time.Second, //nolint:gomnd // TODO: configurable.
+	)
+
+	// Start a goroutine to wait for the service(s) to be healthy.
+	go func() {
+		s.svcRegistry.WaitForHealthy(ctx, services...)
+		close(healthyCh)
+	}()
+
+	// Wait for either the services to become healthy,
+	// athe context to be done, or the timeout.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-healthyCh:
+		// Services became healthy before the timeout.
+		return nil
+	case <-timeout:
+		s.Logger().Warn(
+			"detected potential service degradation...",
+			"caller", callerID, "services", services)
+		return ErrHealthCheckTimeout
+	}
 }

@@ -30,14 +30,19 @@ import (
 	"reflect"
 
 	"cosmossdk.io/log"
+	"github.com/sourcegraph/conc"
 )
 
 // Basic is the minimal interface for a service.
 type Basic interface {
 	// Start spawns any goroutines required by the service.
 	Start(ctx context.Context)
+	// Name returns the name of the service.
+	Name() string
 	// Status returns error if the service is not considered healthy.
 	Status() error
+	// WaitForHealthy blocks until the service is healthy.
+	WaitForHealthy(ctx context.Context)
 }
 
 // Registry provides a useful pattern for managing services.
@@ -47,15 +52,15 @@ type Registry struct {
 	// logger is the logger for the Registry.
 	logger log.Logger
 	// services is a map of service type -> service instance.
-	services map[reflect.Type]Basic
+	services map[string]Basic
 	// serviceTypes is an ordered slice of registered service types.
-	serviceTypes []reflect.Type
+	serviceTypes []string
 }
 
 // NewRegistry starts a registry instance for convenience.
 func NewRegistry(opts ...RegistryOption) *Registry {
 	r := &Registry{
-		services: make(map[reflect.Type]Basic),
+		services: make(map[string]Basic),
 	}
 
 	for _, opt := range opts {
@@ -69,31 +74,45 @@ func NewRegistry(opts ...RegistryOption) *Registry {
 // StartAll initialized each service in order of registration.
 func (s *Registry) StartAll(ctx context.Context) {
 	s.logger.Info("starting services", "num", len(s.serviceTypes))
-	for _, kind := range s.serviceTypes {
-		s.logger.Info("starting service", "type", kind)
-		s.services[kind].Start(ctx)
+	for _, typeName := range s.serviceTypes {
+		s.logger.Info("starting service", "type", typeName)
+		s.services[typeName].Start(ctx)
 	}
 }
 
 // Statuses returns a map of Service type -> error. The map will be populated
 // with the results of each service.Status() method call.
-func (s *Registry) Statuses() map[reflect.Type]error {
-	m := make(map[reflect.Type]error, len(s.serviceTypes))
-	for _, kind := range s.serviceTypes {
-		m[kind] = s.services[kind].Status() //#nosec:G703 // todo:test.
+func (s *Registry) Statuses(services ...string) map[string]error {
+	if len(services) == 0 {
+		services = s.serviceTypes
+	}
+
+	m := make(map[string]error, len(services))
+	for _, typeName := range services {
+		m[typeName] = s.services[typeName].Status() //#nosec:G703 // todo:test.
 	}
 	return m
+}
+
+// Statuses returns a map of Service type -> error. The map will be populated
+// with the results of each service.Status() method call.
+func (s *Registry) WaitForHealthy(ctx context.Context, services ...string) {
+	wg := conc.NewWaitGroup()
+	for _, typeName := range services {
+		wg.Go(func() { s.services[typeName].WaitForHealthy(ctx) })
+	}
+	wg.Wait()
 }
 
 // RegisterService appends a service constructor function to the service
 // registry.
 func (s *Registry) RegisterService(service Basic) error {
-	kind := reflect.TypeOf(service)
-	if _, exists := s.services[kind]; exists {
-		return errServiceAlreadyExists(kind.String())
+	typeName := service.Name()
+	if _, exists := s.services[typeName]; exists {
+		return errServiceAlreadyExists(typeName)
 	}
-	s.services[kind] = service
-	s.serviceTypes = append(s.serviceTypes, kind)
+	s.services[typeName] = service
+	s.serviceTypes = append(s.serviceTypes, typeName)
 	return nil
 }
 
@@ -102,13 +121,30 @@ func (s *Registry) RegisterService(service Basic) error {
 // input argument is set to the right pointer that refers to the originally
 // registered service.
 func (s *Registry) FetchService(service interface{}) error {
-	if reflect.TypeOf(service).Kind() != reflect.Ptr {
-		return errInputIsNotPointer(reflect.TypeOf(service))
+	serviceType := reflect.TypeOf(service)
+	if serviceType.Kind() != reflect.Ptr ||
+		serviceType.Elem().Kind() != reflect.Ptr {
+		return errInputIsNotPointer(serviceType)
 	}
+
 	element := reflect.ValueOf(service).Elem()
-	if running, ok := s.services[element.Type()]; ok {
+
+	typeName := ""
+	for name, svc := range s.services {
+		svcType := reflect.TypeOf(svc)
+		if svcType.AssignableTo(serviceType.Elem()) {
+			typeName = name
+			break
+		}
+	}
+
+	if typeName == "" {
+		return errUnknownService(serviceType)
+	}
+
+	if running, ok := s.services[typeName]; ok {
 		element.Set(reflect.ValueOf(running))
 		return nil
 	}
-	return errUnknownService(reflect.TypeOf(service))
+	return errUnknownService(serviceType)
 }
