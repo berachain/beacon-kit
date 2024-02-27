@@ -7,44 +7,9 @@ import { BeaconRootsContract } from "../BeaconRootsContract.sol";
  * @title BeginBlockRootsContract
  * @author Berachain Team.
  *
- * @dev This contract provides a fallback function that is called when a non-function payload is
- * sent to the contract.
- *
- * The contract behavior is as follows:
- *
- * - When a message is received:
- *   - If the sender is not the system address:
- *     - If the sender is the admin, it performs a CRUD operation with the message data.
- *     - Otherwise:
- *       - If the message data length is 36 and the first 4 bytes match the
- * `GET_COINBASE_SELECTOR`, it calls `getCoinbase()`.
- *       - Otherwise, it calls `get()`.
- *   - If the sender is the system address, it calls `set()` and `run()`.
- *
- *
- * Message received
- * |
- * |--- Sender is not the system address:
- * |    |
- * |    |--- Sender is the admin:
- * |    |    |
- * |    |    `--- Perform CRUD operation with the message data.
- * |    |
- * |    `--- Sender is not the admin:
- * |         |
- * |         |--- Message data length is 36 and the first 4 bytes match the
- * `GET_COINBASE_SELECTOR`:
- * |         |    |
- * |         |    `--- Call `getCoinbase()`.
- * |         |
- * |         `--- Message data length is not 36 or the first 4 bytes do not match the
- * `GET_COINBASE_SELECTOR`:
- * |              |
- * |              `--- Call `get()`.
- * |
- * `--- Sender is the system address:
- *      |
- *      `--- Call `set()` and `run()`.
+ * @dev This contract extends the BeaconRootsContract and adds the BeginBlocker functionality,
+ * where the specified
+ * BeginBlockers are called at the beginning of each block.
  */
 contract BeginBlockRootsContract is BeaconRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -290,21 +255,16 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         if (i > length) {
             revert BeginBlockerDoesNotExist(i);
         }
-        // Check if we are trying to add a BeginBlocker at the end of the array or at an index that
-        // we need to shift.
-        if (i == length) {
-            beginBlockers.push(beginBlocker);
-        } else {
-            beginBlockers.push(); // push a new empty element at the end of the array since we are
-                // going to fill it.
-            unchecked {
-                for (uint256 j = length; j > i;) {
-                    beginBlockers[j] = beginBlockers[j - 1];
-                    --j;
-                }
+
+        // push a new empty element at the end of the array since we are going to fill it.
+        beginBlockers.push();
+        unchecked {
+            for (uint256 j = length; j > i;) {
+                beginBlockers[j] = beginBlockers[j - 1];
+                --j;
             }
-            beginBlockers[i] = beginBlocker;
         }
+        beginBlockers[i] = beginBlocker;
     }
 
     /**
@@ -342,23 +302,16 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         // Cache the length of the array.
         uint256 length = beginBlockers.length;
 
-        // Check if we are trying to remove a BeginBlocker that does not exist.
         if (i >= length) {
             revert BeginBlockerDoesNotExist(i);
         }
 
-        // Check if we are trying to remove the last BeginBlocker in the array.
-        if (i == length - 1) {
-            beginBlockers.pop();
-        } else {
-            unchecked {
-                for (uint256 j = i; j < length - 1;) {
-                    beginBlockers[j] = beginBlockers[j + 1];
-                    ++j;
-                }
-                // pop the last element from the array.
-                beginBlockers.pop();
+        unchecked {
+            for (uint256 j = i; j < length - 1;) {
+                beginBlockers[j] = beginBlockers[j + 1];
+                ++j;
             }
+            beginBlockers.pop();
         }
     }
 }
