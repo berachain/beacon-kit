@@ -71,5 +71,5 @@ type StakingService interface{}
 
 // HealthService is the interface for the health service.
 type HealthService interface {
-	RetrieveStatuses(serviceNames ...string) []*health.ServiceStatus
+	RetrieveStatus(serviceName string) *health.ServiceStatus
 }

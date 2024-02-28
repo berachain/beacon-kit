@@ -65,3 +65,17 @@ func (s *Service) RetrieveStatuses(services ...string) []*ServiceStatus {
 	}
 	return statuses
 }
+
+func (s *Service) RetrieveStatus(service string) *ServiceStatus {
+	status := s.svcRegistry.Status(service)
+	healthy := status == nil
+	errMsg := ""
+	if !healthy {
+		errMsg = status.Error()
+	}
+	return &ServiceStatus{
+		Name:    service,
+		Healthy: healthy,
+		Err:     errMsg,
+	}
+}

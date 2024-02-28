@@ -80,6 +80,10 @@ func (s *Registry) StartAll(ctx context.Context) {
 	}
 }
 
+func (s *Registry) Status(service string) error {
+	return s.services[service].Status()
+}
+
 // Statuses returns a map of Service type -> error. The map will be populated
 // with the results of each service.Status() method call.
 func (s *Registry) Statuses(services ...string) map[string]error {

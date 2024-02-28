@@ -72,12 +72,7 @@ func (s *Service) PostFinalizeBeaconBlock(
 	slot primitives.Slot,
 ) error {
 	// Check if the execution client is syncing.
-	statuses := s.hs.RetrieveStatuses("sync")
-	if len(statuses) == 0 {
-		s.Logger().Error("no statuses returned from health service")
-		return nil
-	}
-	status := statuses[0]
+	status := s.hs.RetrieveStatus("sync")
 	if status.Err != "" {
 		if status.Err == sync.ErrExecutionClientIsSyncing.Error() {
 			s.Logger().Info("execution client is syncing, skipping forkchoice update")
