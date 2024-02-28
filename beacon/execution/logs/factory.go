@@ -26,6 +26,7 @@
 package logs
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
 
@@ -36,7 +37,7 @@ import (
 // Factory is a struct that can be used to unmarshal
 // Ethereum logs into objects with the appropriate types.
 type Factory struct {
-	// addressToAbi maps contract addresses to their Registry.
+	// addressToAbi maps contract addresses to Allocators for their events.
 	addressToAllocator map[common.Address]*TypeAllocator
 }
 
@@ -63,22 +64,22 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 	// Get the ABI, type, and name of the event from the factory.
 	// This function only processes logs from contracts and events
 	// that have been registered with the factory.
-	registry, ok := f.addressToAllocator[log.Address]
+	allocator, ok := f.addressToAllocator[log.Address]
 	if !ok {
 		return reflect.Value{}, errors.New(
-			"registry not found for contract address",
+			"allocator not found for contract address",
 		)
 	}
 
-	contractAbi := registry.GetABI()
+	contractAbi := allocator.GetABI()
 
-	eventName, err := registry.GetName(sig)
+	eventName, err := allocator.GetName(sig)
 	if err != nil {
 		return reflect.Value{}, err
 	}
 
 	// Allocate an empty object, which we can unmarshal the log data into.
-	into, err := registry.Allocate(sig)
+	into, err := allocator.Allocate(sig)
 	if err != nil {
 		return reflect.Value{}, err
 	}
@@ -92,4 +93,31 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 	}
 
 	return reflect.ValueOf(intoPtr), nil
+}
+
+// GetRegisteredAddresses returns the addresses of the contracts
+// that have been registered with the factory.
+func (f *Factory) GetRegisteredAddresses() []common.Address {
+	addresses := make([]common.Address, 0, len(f.addressToAllocator))
+	for addr := range f.addressToAllocator {
+		addresses = append(addresses, addr)
+	}
+	return addresses
+}
+
+// IsRegisteredLog returns true if its corresponding event
+// has been registered with the factory.
+func (f *Factory) IsRegisteredLog(log *ethtypes.Log) bool {
+	allocator, ok := f.addressToAllocator[log.Address]
+	if !ok {
+		return false
+	}
+
+	sig := log.Topics[0]
+	contractAbi := allocator.GetABI()
+	eventName, err := allocator.GetName(sig)
+	if err != nil {
+		return false
+	}
+	return bytes.Equal(sig.Bytes(), contractAbi.Events[eventName].ID.Bytes())
 }

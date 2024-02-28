@@ -28,11 +28,15 @@ package client
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
@@ -135,6 +139,25 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// GetLogs retrieves the logs from the Ethereum execution client.
+// It calls the eth_getLogs method via JSON-RPC.
+func (s *EngineClient) GetLogs(
+	ctx context.Context,
+	fromBlock, toBlock uint64,
+	addresses []common.Address,
+) ([]coretypes.Log, error) {
+	// Create a filter query for the block, to acquire all logs
+	// from contracts that we care about.
+	query := ethereum.FilterQuery{
+		Addresses: addresses,
+		FromBlock: new(big.Int).SetUint64(fromBlock),
+		ToBlock:   new(big.Int).SetUint64(toBlock),
+	}
+
+	// Gather all the logs according to the query.
+	return s.FilterLogs(ctx, query)
 }
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
