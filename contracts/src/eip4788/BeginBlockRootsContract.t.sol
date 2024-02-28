@@ -5,7 +5,10 @@ import "./BeaconRootsContract.t.sol";
 import "./extensions/BeginBlockRootsContract.sol";
 
 contract MockExternalContract {
-    function succeed() external pure returns (bool) {
+    uint256 public timesCalled;
+
+    function succeed() external returns (bool) {
+        timesCalled = timesCalled + 1;
         return true;
     }
 
@@ -88,6 +91,49 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         vm.stopPrank();
     }
 
+    function test_SuccessCallsMulti() public {
+        // Set the BeginBlocker 10 times as the ADMIN address.
+        vm.startPrank(ADMIN);
+        for (uint256 i = 0; i < 10; i++) {
+            bytes memory crudMsg = _createCRUD(
+                i,
+                SET,
+                address(mockExternalContract),
+                mockExternalContract.succeed.selector,
+                address(0)
+            );
+
+            (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
+            assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
+        }
+        vm.stopPrank();
+
+        // Call the BeginBlocker and should run in a loop, 10 times incrementing the timesCalled.
+        _setRandomBeaconRoot();
+
+        assertEq(
+            10,
+            mockExternalContract.timesCalled(),
+            "BeginBlockRootsTest: BeginBlocker not called 10 times"
+        );
+    }
+
+    function test_FailCall() public {
+        vm.startPrank(ADMIN);
+        bytes memory crudMsg = _createCRUD(
+            0, SET, address(mockExternalContract), mockExternalContract.fail.selector, address(0)
+        );
+
+        (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
+        assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
+        vm.stopPrank();
+
+        // Call the BeginBlocker and this should revert, not updating the timesCalled, but setting
+        // the beacon root.
+        _setRandomBeaconRoot();
+        assertEq(0, mockExternalContract.timesCalled(), "BeginBlockRootsTest: BeginBlocker called");
+    }
+
     /// @dev Create a BeginBlockCRUD message.
     function _createCRUD(
         uint256 i,
@@ -101,5 +147,13 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         returns (bytes memory)
     {
         return abi.encode(i, action, contractAddress, selector, admin);
+    }
+
+    function _setRandomBeaconRoot() internal returns (bytes32) {
+        vm.prank(SYSTEM_ADDRESS);
+        bytes32 random = bytes32(_random());
+        (bool success,) = BEACON_ROOT_ADDRESS.call(abi.encode(random));
+        require(success, "BeginBlockRootsTest: failed to set random beacon root");
+        return random;
     }
 }
