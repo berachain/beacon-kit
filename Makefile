@@ -113,7 +113,7 @@ start-geth:
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
-	-p 8552:8551 \
+	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go \
@@ -123,10 +123,7 @@ start-geth:
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir .tmp/geth \
-	--syncmode full \
-	--bootnodes=enode://da750c78f751d818ca9badf22aada68c70dee8da84bf6a88e327e94935f9a916814875bec2b83d513514a0860c184831436c8947b928c84a52fe7b7015508628@eth-val-1:30303,enode://b0b8750a50805dbdbe835c56c002228315ce9b3d939fd16c1d3901501ce1d2062a0b1e981e111987eb30f6c000437595f7e5831557bae62ad8f817d86f8c4aa8@eth-val-2:30303,enode://186e0fc30188621d531f3cd950fd3f80ade919f4c3cc8d1657bc0c1ac1288a921bef4d9ed220c28d85b8346cb3f1248add56368cd7849879151a7504bd16de4f@eth-val-3:30303,enode://c9864a583f08edb4228ca1fff15396ade9c2598bfc3a7f371701ae7b76e6b2a87441ee7bdfdb1d9b2abe4c39ef884063f288c9ad2c23a22f96868dab73983270@eth-val-4:30303,enode://850f3d4c46d3be566367c2f615fab13eed78ac5cc85f1fdde4c0153a8ed33e0063abdc14ed528260b3e65e019e37aed35ac6944887b34be9adc7e0fcf8417d90@eth-val-5:30303
-	--networkid=80086
+	--datadir .tmp/geth
 
 # Start nethermind node
 start-nethermind:
