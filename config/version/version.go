@@ -31,4 +31,5 @@ const (
 	Bellatrix
 	Capella
 	Deneb
+	Electra
 )
