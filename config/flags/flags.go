@@ -53,6 +53,10 @@ const (
 	forkRoot       = beaconConfigRoot + "forks."
 	DenebForkEpoch = forkRoot + "deneb-fork-epoch"
 
+	// Sync Config.
+	sync     = beaconConfigRoot + "sync."
+	SyncMode = sync + "mode"
+
 	// Validator Config.
 	validator               = beaconConfigRoot + "validator."
 	SuggestedFeeRecipient   = validator + "suggested-fee-recipient"

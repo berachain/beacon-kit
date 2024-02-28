@@ -36,24 +36,27 @@ var _ BeaconKitConfig[Beacon] = Beacon{}
 
 // Beacon is the configuration for the beacon chain.
 type Beacon struct {
+	// Execution is the configuration for the execution service.
+	Execution Execution
 	// Forks is the configuration for the beacon chain forks.
 	Forks Forks
 	// Limits is the configuration for limits (max/min) on the beacon chain.
 	Limits Limits
+	// Sync is the configuration for the sync service.
+	Sync Sync
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
-	// Execution is the configuration for the execution service.
-	Execution Execution
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
+		Execution: DefaultExecutionConfig(),
 		Forks:     DefaultForksConfig(),
 		Limits:    DefaultLimitsConfig(),
+		Sync:      DefaultSyncConfig(),
 		Validator: DefaultValidatorConfig(),
-		Execution: DefaultExecutionConfig(),
 	}
 }
 
@@ -76,7 +79,14 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 		limits    *Limits
 		validator *Validator
 		execution *Execution
+		sync      *Sync
 	)
+
+	// Parse the execution configuration.
+	if execution, err = c.Execution.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Execution = *execution
 
 	// Parse the forks configuration.
 	if forks, err = c.Forks.Parse(parser); err != nil {
@@ -90,23 +100,26 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 	}
 	c.Limits = *limits
 
+	// Parse the sync configuration.
+	if sync, err = c.Sync.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Sync = *sync
+
 	// Parse the validator configuration.
 	if validator, err = c.Validator.Parse(parser); err != nil {
 		return nil, err
 	}
 	c.Validator = *validator
 
-	// Parse the execution configuration.
-	if execution, err = c.Execution.Parse(parser); err != nil {
-		return nil, err
-	}
-	c.Execution = *execution
-
 	return &c, nil
 }
 
 // Template returns the configuration template.
 func (c Beacon) Template() string {
-	return c.Forks.Template() + c.Limits.Template() +
-		c.Validator.Template() + c.Execution.Template()
+	return c.Forks.Template() +
+		c.Limits.Template() +
+		c.Sync.Template() +
+		c.Validator.Template() +
+		c.Execution.Template()
 }
