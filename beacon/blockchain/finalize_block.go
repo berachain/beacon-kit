@@ -68,23 +68,8 @@ func (s *Service) FinalizeBeaconBlock(
 // PostFinalizeBeaconBlock is called after a beacon block has been finalized.
 func (s *Service) PostFinalizeBeaconBlock(
 	ctx context.Context,
-	slot primitives.Slot,
+	_ primitives.Slot,
 ) error {
-	var err error
-	state := s.BeaconState(ctx)
-
-	// If the builder is enabled attempt to build a block locally.
-	if s.BuilderCfg().LocalBuilderEnabled {
-		if err = s.sendFCUWithAttributes(
-			ctx,
-			state.GetSafeEth1BlockHash(),
-			slot,
-			state.GetParentBlockRoot(),
-		); err == nil {
-			return nil
-		}
-	}
-
 	// If builder is not enabled, or failed to build, fallback to a vanilla fcu.
 	return s.sendFCU(
 		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
