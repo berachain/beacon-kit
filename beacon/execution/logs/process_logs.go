@@ -27,12 +27,9 @@ package logs
 
 import (
 	"reflect"
-	"runtime"
-	"sort"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
+	conciter "github.com/sourcegraph/conc/iter"
 )
 
 // ProcessLogs processes the logs received from the execution client
@@ -41,72 +38,40 @@ func (f *Factory) ProcessLogs(
 	logs []ethtypes.Log,
 	blkNum uint64,
 ) ([]*reflect.Value, error) {
-	type logResult struct {
-		val   *reflect.Value
-		index int
-	}
-
-	eg := new(errgroup.Group)
-	// Use a semaphore to limit the number
-	// of concurrent goroutines.
-	sem := make(chan bool, runtime.NumCPU())
-	logResults := make([]*logResult, len(logs))
-	// Unmarshal the logs into objects.
-	for i := range logs {
-		i := i
-		log := &logs[i]
-		// Acquire a semaphore slot.
-		sem <- true
-		eg.Go(func() error {
-			defer func() {
-				// Release the semaphore slot when done.
-				<-sem
-			}()
+	logValues, err := conciter.MapErr(
+		logs,
+		func(log *ethtypes.Log) (*reflect.Value, error) {
 			// Skip logs that are not from the block we are processing
 			// This should never happen, but defensively check anyway.
 			if log.BlockNumber != blkNum {
-				return nil
+				//nolint:nilnil // nil is expected here
+				return nil, nil
 			}
 
 			// Skip logs that are not registered with the factory.
 			// They may be from unregistered contracts (defensive check)
 			// or emitted from unregistered events in the registered contracts.
 			if !f.IsRegisteredLog(log) {
-				return nil
+				//nolint:nilnil // nil is expected here
+				return nil, nil
 			}
 
 			val, err := f.UnmarshalEthLog(log)
 			if err != nil {
-				return errors.Wrapf(err, "%s", "could not unmarshal log")
+				return nil, err
 			}
-			logResults[i] = &logResult{val: &val, index: i}
-			return nil
+			return &val, nil
 		})
-	}
 
-	// Wait for all goroutines to complete
-	// or return the first error encountered.
-	if err := eg.Wait(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	// Sort the result by the index of the log in the block.
-	sort.Slice(logResults, func(i, j int) bool {
-		if logResults[i] == nil {
-			return false
-		}
-		if logResults[j] == nil {
-			return true
-		}
-		return logResults[i].index < logResults[j].index
-	})
-
-	vals := make([]*reflect.Value, 0, len(logResults))
-	for _, res := range logResults {
-		if res != nil {
-			// At this point, we should not have any nil values
-			// or non-nil errors in the result.
-			vals = append(vals, res.val)
+	vals := make([]*reflect.Value, 0, len(logValues))
+	// Filter out nil values from the map
+	for _, val := range logValues {
+		if val != nil {
+			vals = append(vals, val)
 		}
 	}
 	return vals, nil
