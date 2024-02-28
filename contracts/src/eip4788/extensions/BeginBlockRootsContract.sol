@@ -252,7 +252,7 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         uint256 length = beginBlockers.length;
 
         // Check that we are not trying to add a BeginBlocker at an index that is greater than the
-        // lenght.
+        // length.
         if (i > length) {
             revert BeginBlockerDoesNotExist(i);
         }
