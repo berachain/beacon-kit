@@ -48,6 +48,7 @@ func MapErrNoNils[T, R any](input []T, f func(*T) (R, error)) ([]R, error) {
 	return nonNilElems, nil
 }
 
+// IsNil returns true if the given element is a nil pointer.
 func IsNil[T any](elem T) bool {
 	isPtr := reflect.TypeOf(elem).Kind() == reflect.Pointer
 	if !isPtr {
