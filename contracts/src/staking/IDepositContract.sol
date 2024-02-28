@@ -28,8 +28,11 @@ pragma solidity 0.8.24;
 /// @title IDepositContract
 /// @author Berachain Team.
 /// @dev This contract is a modified version fo the BeaconDepositContract as defined in the
-///      Ethereum 2.0 specification. It has been extended to also support trigger withdrawals
-///      from the consensus layer and redelegations of stakes.
+///      Ethereum 2.0 specification. It has been modified to be compatible with the BeaconKit.
+//  Differences:
+// 1. The deposit function has been modified to accept an amount of Ether or an ERC20 token.
+// 2. No state required for the contract, all the validation is done in the beaconkit.
+// 3. Added a redelegate and withdraw functions that mainly emit logs that are proccessed by the beaconkit.
 interface IDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        EVENTS                              */
@@ -37,19 +40,22 @@ interface IDepositContract {
 
     /// @notice A processed deposit event.
     event DepositEvent(
-        bytes pubkey, bytes withdrawal_credentials, bytes amount, bytes signature, bytes index
+        bytes pubkey,
+        bytes withdrawal_credentials,
+        bytes amount,
+        bytes signature
     );
 
     /// @notice A processed redelegation event.
     /// @dev We redelegate the `amount` from `pubkey0` to `pubkey1`.
-    event RedelegateEvent(bytes pubkey0, bytes pubkey1, bytes signature, bytes index);
+    event RedelegateEvent(bytes pubkey0, bytes pubkey1, bytes signature);
 
     /// @notice A processed withdrawal event.
     /// @dev We withdraw the total amount of the deposit.
     event WithdrawEvent(bytes pubkey, bytes signature);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                        DELEGATE                            */
+    /*                        WRITES                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
@@ -71,10 +77,6 @@ interface IDepositContract {
         external
         payable;
 
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                        REDELEGATE                          */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
     /**
      * @notice Submit a redelegation message.
      * @notice This function is only callable by the owner of the stake.
@@ -92,10 +94,6 @@ interface IDepositContract {
         external
         payable;
 
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                        WITHDRAW                            */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
     /**
      * @notice Submit a withdrawal message.
      * @notice This function is only callable by the owner of the stake.
@@ -110,20 +108,4 @@ interface IDepositContract {
     )
         external
         payable;
-
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                        READS                               */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /**
-     * @notice Query the current deposit root hash.
-     * @return The deposit root hash.
-     */
-    function get_deposit_root() external view returns (bytes32);
-
-    /**
-     * @notice Query the current deposit count.
-     * @return The deposit count encoded as a little endian 64-bit number.
-     */
-    function get_deposit_count() external view returns (bytes32);
 }
