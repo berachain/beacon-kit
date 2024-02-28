@@ -27,6 +27,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 
 	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
 	"cosmossdk.io/core/address"
@@ -40,6 +41,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/runtime"
 )
+
+//nolint:gochecknoglobals // todo:fix from sdk.
+var DefaultNodeHome string
+
+//nolint:gochecknoinits // from sdk.
+func init() {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
+}
+
+//
+//nolint:lll
+const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TERMS_OF_SERVICE.md"
 
 // ProvideClientContext returns a new client context with the given options.
 func ProvideClientContext(
@@ -62,7 +79,7 @@ func ProvideClientContext(
 		WithAddressCodec(addressCodec).
 		WithValidatorAddressCodec(validatorAddressCodec).
 		WithConsensusAddressCodec(consensusAddressCodec).
-		WithHomeDir(".beacond").
+		WithHomeDir(DefaultNodeHome).
 		WithViper("") // uses by default the binary name as prefix
 
 	// Read the config to overwrite the default values with the values from the
