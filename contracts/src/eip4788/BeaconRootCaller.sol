@@ -7,7 +7,8 @@ pragma solidity ^0.8.24;
 /// the current block timestamp.
 contract BeaconRootCaller {
     /// @notice The beacon root address, set as a constant for this test.
-    address internal constant BEACON_ROOT_ADDRESS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
+    address internal constant BEACON_ROOT_ADDRESS =
+        0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
     /// @notice Calls the beacon root address to retrieve the beacon block root.
     /// @dev Performs a static call to `BEACON_ROOT_ADDRESS` with the current

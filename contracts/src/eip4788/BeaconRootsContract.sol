@@ -2,9 +2,10 @@
 pragma solidity ^0.8.24;
 
 /// @title BeaconRootsContract
-/// @dev This contract is an implementation of the BeaconRootsContract as defined in EIP-4788.
-/// It has been extended to include a coinbase storage slot for each block for use with
-/// the Berachain Proof-of-Liquidity protocol.
+/// @dev This contract is an implementation of the BeaconRootsContract as
+/// defined in EIP-4788.
+/// It has been extended to include a coinbase storage slot for each block for
+/// use with the Berachain Proof-of-Liquidity protocol.
 /// @author https://eips.ethereum.org/EIPS/eip-4788
 /// @author itsdevbear@berachain.com
 /// @author rusty@berachain.com
@@ -14,14 +15,16 @@ contract BeaconRootsContract {
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev HISTORY_BUFFER_LENGTH is the length of the circular buffer for storing beacon roots
-    /// and coinbases. It is 8191 as defined in:
+    /// @dev HISTORY_BUFFER_LENGTH is the length of the circular buffer for
+    /// storing beacon roots and coinbases. It is 8191 as defined in:
     /// https://eips.ethereum.org/EIPS/eip-4788#specification
     uint256 private constant HISTORY_BUFFER_LENGTH = 8191;
 
-    /// @dev SYSTEM_ADDRESS is the address that is allowed to call the set function as defined in
+    /// @dev SYSTEM_ADDRESS is the address that is allowed to call the set
+    /// function as defined in
     /// EIP-4788: https://eips.ethereum.org/EIPS/eip-4788#specification
-    address internal constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+    address internal constant SYSTEM_ADDRESS =
+        0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
 
     /// @dev The selector for "getCoinbase(uint256)".
     bytes4 internal constant GET_COINBASE_SELECTOR = 0xe8e284b9;
@@ -46,21 +49,27 @@ contract BeaconRootsContract {
     /*                        ENTRYPOINT                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @notice Conforming to EIP-4788, this contract follows two execution paths:
-    /// 1. If it is called by the SYSTEM_ADDRESS, the calldata is the 32-byte encoded beacon block
-    /// root.
-    /// 2. If it is called by any other address, there are two possible scenarios:
-    ///    a. If the calldata is the 32-byte encoded timestamp, the function will return the beacon
-    /// block root.
-    ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)" appended with the
-    /// 32-byte encoded block number, the function will return the coinbase for the given block
-    /// number.
+    /// @notice Conforming to EIP-4788, this contract follows two execution
+    /// paths:
+    /// 1. If it is called by the SYSTEM_ADDRESS, the calldata is the 32-byte
+    /// encoded beacon block root.
+    /// 2. If it is called by any other address, there are two possible
+    /// scenarios:
+    ///    a. If the calldata is the 32-byte encoded timestamp, the function
+    /// will return the beacon block root.
+    ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)"
+    /// appended with the 32-byte encoded block number, the function will return
+    /// the coinbase for the given block number.
     fallback() external virtual {
         if (msg.sender != SYSTEM_ADDRESS) {
-            if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
+            if (
+                msg.data.length == 36
+                    && bytes4(msg.data) == GET_COINBASE_SELECTOR
+            ) {
                 getCoinbase();
             } else {
-                // if the first 32 bytes is a timestamp, the first 4 bytes must be 0
+                // if the first 32 bytes is a timestamp, the first 4 bytes must
+                // be 0
                 get();
             }
         } else {
@@ -73,13 +82,17 @@ contract BeaconRootsContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev Retrieves the beacon root for a given timestamp.
-    /// This function is called internally and utilizes assembly for direct storage access.
-    /// Reverts if the calldata is not a 32-byte timestamp or if the timestamp is 0.
+    /// This function is called internally and utilizes assembly for direct
+    /// storage access.
+    /// Reverts if the calldata is not a 32-byte timestamp or if the timestamp
+    /// is 0.
     /// Reverts if the timestamp is not within the circular buffer.
     /// @return The beacon root associated with the given timestamp.
     function get() internal view returns (bytes32) {
         assembly ("memory-safe") {
-            if iszero(and(eq(calldatasize(), 0x20), gt(calldataload(0), 0))) { revert(0, 0) }
+            if iszero(and(eq(calldatasize(), 0x20), gt(calldataload(0), 0))) {
+                revert(0, 0)
+            }
             // index block number from timestamp
             mstore(0, calldataload(0))
             mstore(0x20, _blockNumbers.slot)
@@ -94,12 +107,13 @@ contract BeaconRootsContract {
     }
 
     /// @dev Sets the beacon root and coinbase for the current block.
-    /// This function is called internally and utilizes assembly for direct storage access.
+    /// This function is called internally and utilizes assembly for direct
+    /// storage access.
     function set() internal {
         assembly ("memory-safe") {
             let block_idx := mod(number(), HISTORY_BUFFER_LENGTH)
-            // clean the key in the mapping for the stale timestamp in the block index to be
-            // overridden
+            // clean the key in the mapping for the stale timestamp in the block
+            // index to be overridden
             let stale_timestamp := sload(block_idx)
             mstore(0, stale_timestamp)
             mstore(0x20, _blockNumbers.slot)
@@ -126,7 +140,8 @@ contract BeaconRootsContract {
     /// @notice Retrieves the coinbase for a given block number.
     /// @dev if called with a block number that is before the history buffer
     /// it will return the coinbase for blockNumber + HISTORY_BUFFER_LENGTH * A
-    /// Where A is the number of times the buffer has cycled since the blockNumber
+    /// Where A is the number of times the buffer has cycled since the
+    /// blockNumber
     /// @return The coinbase for the given block number.
     function getCoinbase() internal view returns (address) {
         assembly ("memory-safe") {
