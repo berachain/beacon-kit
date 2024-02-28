@@ -73,17 +73,19 @@ func (s *Service) PostFinalizeBeaconBlock(
 	var err error
 	state := s.BeaconState(ctx)
 
+	// If the builder is enabled attempt to build a block locally.
 	if s.BuilderCfg().LocalBuilderEnabled {
-		err = s.sendFCUWithAttributes(
+		if err = s.sendFCUWithAttributes(
 			ctx,
 			state.GetSafeEth1BlockHash(),
 			slot,
 			state.GetParentBlockRoot(),
-		)
-	} else {
-		err = s.sendFCU(
-			ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
+		); err == nil {
+			return nil
+		}
 	}
 
-	return err
+	// If builder is not enabled, or failed to build, fallback to a vanilla fcu.
+	return s.sendFCU(
+		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
 }
