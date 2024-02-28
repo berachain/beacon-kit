@@ -12,9 +12,17 @@ import { BeaconRootsContract } from "../BeaconRootsContract.sol";
  * BeginBlockers are called at the beginning of each block.
  * @dev ADD THE STORAGE FOR ADMIN at slot 24_574 at genesis.
  * @dev Set slot 24_574 to an ADMIN address in your genesis file.
+ *
+ *  dP""b8  dP"Yb  .dP"Y8 8b    d8  dP"Yb  .dP"Y8     .dP"Y8 8888b.  88  dP
+ * dP   `" dP   Yb `Ybo." 88b  d88 dP   Yb `Ybo."     `Ybo."  8I  Yb 88odP
+ * Yb      Yb   dP o.`Y8b 88YbdP88 Yb   dP o.`Y8b     o.`Y8b  8I  dY 88"Yb
+ *  YboodP  YbodP  8bodP' 88 YY 88  YbodP  8bodP'     8bodP' 8888Y"  88  Yb
+ *
  *  Beacon-Kit BeginBlock:
  * |
- * |--- "Borrow" the logic of BeginBlock from https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go.
+ * |--- "Borrow" the logic of BeginBlock from
+ *  https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go.
+ *
  * |    |
  * |    `--- "Appreciate" the key components and behaviors
  * |
