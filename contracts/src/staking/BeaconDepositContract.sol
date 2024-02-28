@@ -71,6 +71,7 @@ contract BeaconDepositContract {
     /// @param validatorPubkey The validator's public key.
     /// @param amount The amount of tokens to deposit.
     function deposit(bytes calldata validatorPubkey, uint64 amount) external payable {
+        // TODO: Remove payable
         // Ensure the deposit amount is above the minimum.
         if (amount < MINIMUM_DEPOSIT_IN_GWEI) {
             revert InsufficientDeposit();
