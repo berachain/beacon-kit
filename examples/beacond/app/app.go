@@ -151,7 +151,7 @@ func NewBeaconKitApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Componenets.
-	prepare, process, preBlocker, streamingMgr := app.BeaconKitRuntime.BuildABCIComponents(
+	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			PrepareProposalHandler(),
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
@@ -164,7 +164,6 @@ func NewBeaconKitApp(
 	app.SetPrepareProposal(prepare)
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
-	app.SetStreamingManager(streamingMgr)
 
 	/**** End of BeaconKit Configuration ****/
 
