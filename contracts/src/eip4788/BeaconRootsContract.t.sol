@@ -65,14 +65,14 @@ contract BeaconRootsContractBaseTest is SoladyTest {
             blockNumbers[i] = startBlock + i;
             timestamps[i] = startTimestamp + i * BLOCK_INTERVAL
             // a random number between 1 and BLOCK_INTERVAL such that the
-                // timestamp is ever
-                // increasing
-                + FixedPointMathLib.min(
-                    1,
-                    FixedPointMathLib.fullMulDiv(
-                        _random(), BLOCK_INTERVAL, type(uint256).max
-                    )
-                );
+            // timestamp is ever
+            // increasing
+            + FixedPointMathLib.min(
+                1,
+                FixedPointMathLib.fullMulDiv(
+                    _random(), BLOCK_INTERVAL, type(uint256).max
+                )
+            );
             _timestamps[i % HISTORY_BUFFER_LENGTH] = timestamps[i];
             beaconRoots[i] = bytes32(_random());
             coinbases[i] = _randomNonZeroAddress();
