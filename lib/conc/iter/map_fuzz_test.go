@@ -23,52 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package iter_test
 
 import (
-	"fmt"
-	"reflect"
+	"testing"
 
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/lib/conc/iter"
+	"github.com/stretchr/testify/require"
 )
 
-// ProcessLogs processes the logs received from the execution client
-// in parallel but returns the values in the same order of the received logs.
-func (f *Factory) ProcessLogs(
-	logs []ethtypes.Log,
-	blkNum uint64,
-) ([]*reflect.Value, error) {
-	logValues, err := iter.MapErrNoNils(
-		logs,
-		func(log *ethtypes.Log) (*reflect.Value, error) {
-			// Skip logs that are not from the block we are processing
-			// This should never happen, but defensively check anyway.
-			if log.BlockNumber != blkNum {
-				return nil, fmt.Errorf(
-					"log from different block, expected %d, got %d",
-					blkNum, log.BlockNumber,
-				)
-			}
-
-			// Skip logs that are not registered with the factory.
-			// They may be from unregistered contracts (defensive check)
-			// or emitted from unregistered events in the registered contracts.
-			if !f.IsRegisteredLog(log) {
-				//nolint:nilnil // nil is expected here
+func FuzzMapErrNoNils(f *testing.F) {
+	f.Add(uint64(0))
+	f.Fuzz(func(t *testing.T, size uint64) {
+		input := make([]int, size)
+		for i := range input {
+			input[i] = i
+		}
+		f := func(i *int) (*int, error) {
+			if *i%2 == 0 {
 				return nil, nil
 			}
-
-			val, err := f.UnmarshalEthLog(log)
-			if err != nil {
-				return nil, err
+			return i, nil
+		}
+		expected := make([]*int, 0, size/2)
+		for i := range input {
+			if i%2 != 0 {
+				expected = append(expected, &input[i])
 			}
-			return &val, nil
-		})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return logValues, nil
+		}
+		actual, err := iter.MapErrNoNils(input, f)
+		require.NoError(t, err)
+		require.Equal(t, expected, actual)
+	})
 }

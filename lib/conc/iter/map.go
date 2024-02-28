@@ -23,52 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package iter
 
 import (
-	"fmt"
 	"reflect"
 
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/lib/conc/iter"
+	"github.com/sourcegraph/conc/iter"
 )
 
-// ProcessLogs processes the logs received from the execution client
-// in parallel but returns the values in the same order of the received logs.
-func (f *Factory) ProcessLogs(
-	logs []ethtypes.Log,
-	blkNum uint64,
-) ([]*reflect.Value, error) {
-	logValues, err := iter.MapErrNoNils(
-		logs,
-		func(log *ethtypes.Log) (*reflect.Value, error) {
-			// Skip logs that are not from the block we are processing
-			// This should never happen, but defensively check anyway.
-			if log.BlockNumber != blkNum {
-				return nil, fmt.Errorf(
-					"log from different block, expected %d, got %d",
-					blkNum, log.BlockNumber,
-				)
-			}
-
-			// Skip logs that are not registered with the factory.
-			// They may be from unregistered contracts (defensive check)
-			// or emitted from unregistered events in the registered contracts.
-			if !f.IsRegisteredLog(log) {
-				//nolint:nilnil // nil is expected here
-				return nil, nil
-			}
-
-			val, err := f.UnmarshalEthLog(log)
-			if err != nil {
-				return nil, err
-			}
-			return &val, nil
-		})
-
+// MapErrNoNils is a wrapper around MapErr
+// that filters out nil elements from the result.
+func MapErrNoNils[T, R any](input []T, f func(*T) (R, error)) ([]R, error) {
+	elems, err := iter.Mapper[T, R]{}.MapErr(input, f)
 	if err != nil {
 		return nil, err
 	}
 
-	return logValues, nil
+	nonNilElems := make([]R, 0, len(elems))
+	for _, elem := range elems {
+		if !IsNil(elem) {
+			nonNilElems = append(nonNilElems, elem)
+		}
+	}
+	return nonNilElems, nil
+}
+
+func IsNil[T any](elem T) bool {
+	isPtr := reflect.TypeOf(elem).Kind() == reflect.Pointer
+	if !isPtr {
+		return false
+	}
+	elemVal := reflect.ValueOf(elem).Interface()
+	nilVal := reflect.Zero(reflect.TypeOf(elem)).Interface()
+	return elemVal == nilVal
 }

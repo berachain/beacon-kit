@@ -23,52 +23,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package iter_test
 
 import (
-	"fmt"
-	"reflect"
+	"testing"
 
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/lib/conc/iter"
+	"github.com/stretchr/testify/require"
 )
 
-// ProcessLogs processes the logs received from the execution client
-// in parallel but returns the values in the same order of the received logs.
-func (f *Factory) ProcessLogs(
-	logs []ethtypes.Log,
-	blkNum uint64,
-) ([]*reflect.Value, error) {
-	logValues, err := iter.MapErrNoNils(
-		logs,
-		func(log *ethtypes.Log) (*reflect.Value, error) {
-			// Skip logs that are not from the block we are processing
-			// This should never happen, but defensively check anyway.
-			if log.BlockNumber != blkNum {
-				return nil, fmt.Errorf(
-					"log from different block, expected %d, got %d",
-					blkNum, log.BlockNumber,
-				)
-			}
-
-			// Skip logs that are not registered with the factory.
-			// They may be from unregistered contracts (defensive check)
-			// or emitted from unregistered events in the registered contracts.
-			if !f.IsRegisteredLog(log) {
-				//nolint:nilnil // nil is expected here
-				return nil, nil
-			}
-
-			val, err := f.UnmarshalEthLog(log)
-			if err != nil {
-				return nil, err
-			}
-			return &val, nil
-		})
-
-	if err != nil {
-		return nil, err
+func TestMapErrNoNils(t *testing.T) {
+	one := 1
+	two := 2
+	three := 3
+	four := 4
+	five := 5
+	input := []int{one, two, three, four, five}
+	f := func(i *int) (*int, error) {
+		if *i%2 == 0 {
+			return nil, nil
+		}
+		return i, nil
 	}
+	expected := []*int{&one, &three, &five}
+	actual, err := iter.MapErrNoNils(input, f)
+	require.NoError(t, err)
+	require.Len(t, actual, len(expected))
+	require.Equal(t, expected, actual)
+}
 
-	return logValues, nil
+func TestIsNil(t *testing.T) {
+	require.True(t, iter.IsNil((*int)(nil)))
+	require.True(t, iter.IsNil((**int)(nil)))
+	require.False(t, iter.IsNil(1))
+
+	a := 0
+	require.False(t, iter.IsNil(&a))
+
+	b := &a
+	require.False(t, iter.IsNil(b))
+
+	b = nil
+	require.True(t, iter.IsNil(b))
+
+	require.False(t, iter.IsNil(&struct{}{}))
 }
