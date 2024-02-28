@@ -23,18 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package beacon
 
-// Genesis Related Prefix.
-const (
-	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
-	eth1GenesisHashPrefix = "eth1_genesis_hash"
+import (
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// Collection prefixes.
-const (
-	parentBlockRootPrefix          = "parent_block_root"
-	depositQueuePrefix             = "deposit_queue"
-	fcSafeEth1BlockHashPrefix      = "fc_safe"
-	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
-)
+// EnqueueDeposits pushes the deposits to the queue.
+func (s *Store) EnqueueDeposits(
+	deposits []*consensusv1.Deposit,
+) error {
+	return s.depositQueue.PushMulti(s.ctx, deposits)
+}
+
+// DequeueDeposits returns the first numDequeue deposits in the queue.
+func (s *Store) DequeueDeposits(
+	numDequeue uint64,
+) ([]*consensusv1.Deposit, error) {
+	return s.depositQueue.PopMulti(s.ctx, numDequeue)
+}
+
+// TODO: Consider consolidating BeaconState interface externally to x/beacon
+// to facilitate withdrawals from x/beacon_staking.
+// TODO: Explore constructing BeaconState from multiple sources beyond
+// just x/beacon.
+func (s *Store) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
+	return []*enginev1.Withdrawal{}, nil
+}
