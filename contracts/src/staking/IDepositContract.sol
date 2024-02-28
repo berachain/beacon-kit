@@ -93,13 +93,13 @@ interface IDepositContract {
      * @param srcPub A BLS12-381 public key of the source validator.
      * @param dstPub A BLS12-381 public key of the destination validator.
      * @param amount The amount of the deposit.
-     * @param signiture A BLS12-381 signature from the redirector.
+     * @param signature A BLS12-381 signature from the redirector.
      */
     function redirect(
         bytes calldata srcPub,
         bytes calldata dstPub,
         uint64 amount,
-        bytes calldata signiture
+        bytes calldata signature
     )
         external
         payable;
@@ -109,12 +109,12 @@ interface IDepositContract {
      * @notice This function is only callable by the owner of the stake.
      * @param pubkey A BLS12-381 public key.
      * @param amount The amount of the deposit to be withdrawn.
-     * @param signiture A BLS12-381 signature of the withdrawer.
+     * @param signature A BLS12-381 signature of the withdrawer.
      */
     function withdraw(
         bytes calldata pubkey,
         uint64 amount,
-        bytes calldata signiture
+        bytes calldata signature
     )
         external
         payable;
