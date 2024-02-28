@@ -116,7 +116,8 @@ func (s *Service) ProcessLogsInETH1Block(
 		ctx,
 		blkNum,
 		blkNum,
-		s.logFactory.GetRegisteredAddresses())
+		s.logFactory.GetRegisteredAddresses(),
+	)
 	if err != nil {
 		return nil, err
 	}
