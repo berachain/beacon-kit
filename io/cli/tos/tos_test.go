@@ -36,11 +36,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
 	"github.com/itsdevbear/bolaris/io/file"
+	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -61,7 +61,7 @@ func TestAcceptTosFlag(t *testing.T) {
 		"--" + beaconflags.BeaconKitAcceptTos,
 	})
 
-	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
+	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -83,7 +83,7 @@ func TestAcceptWithCLI(t *testing.T) {
 		homeDir,
 	})
 
-	if err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome); err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
 
@@ -104,7 +104,7 @@ func TestDeclineWithCLI(t *testing.T) {
 		homeDir,
 	})
 
-	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
+	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
@@ -130,7 +130,7 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 		homeDir,
 	})
 
-	err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome)
+	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
