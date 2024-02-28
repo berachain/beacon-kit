@@ -157,7 +157,6 @@ func NewBeaconKitApp(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			ProcessProposalHandler(),
 		nil,
-		app.Logger(),
 	)
 
 	// Set all the newly built ABCI Componenets on the App.
