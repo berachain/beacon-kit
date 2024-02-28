@@ -111,7 +111,8 @@ func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
 	blkNum uint64,
 ) ([]*reflect.Value, error) {
-	// Gather all the logs corresponding to the handlers from this block.
+	// Gather all the logs corresponding to
+	// the addresses of interest from this block.
 	logsInBlock, err := s.engine.GetLogs(
 		ctx,
 		blkNum,
