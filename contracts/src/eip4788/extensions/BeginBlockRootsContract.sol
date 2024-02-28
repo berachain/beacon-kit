@@ -7,9 +7,9 @@ import { BeaconRootsContract } from "../BeaconRootsContract.sol";
  * @title BeginBlockRootsContract
  * @author Berachain Team.
  *
- * @dev This contract extends the BeaconRootsContract and adds the BeginBlocker functionality,
- * where the specified
- * BeginBlockers are called at the beginning of each block.
+ * @dev This contract extends the BeaconRootsContract and adds the BeginBlocker
+ * functionality, where the specified BeginBlockers are called at the beginning
+ * of each block.
  * @dev ADD THE STORAGE FOR ADMIN at slot 24_574 at genesis.
  * @dev Set slot 24_574 to an ADMIN address in your genesis file.
  *
@@ -51,13 +51,17 @@ contract BeginBlockRootsContract is BeaconRootsContract {
 
     /**
      * @dev Emitted when the BeginBlocker function is called.
-     * @param contractAddress The address of the contract that called the BeginBlocker function.
+     * @param contractAddress The address of the contract that called the
+     * BeginBlocker function.
      * @param coinbase The address of the current block miner.
      * @param selector The function selector that was called.
      * @param success The status of the call.
      */
     event BeginBlockerCalled(
-        address indexed contractAddress, address indexed coinbase, bytes4 selector, bool success
+        address indexed contractAddress,
+        address indexed coinbase,
+        bytes4 selector,
+        bool success
     );
 
     /**
@@ -83,18 +87,19 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /*                        STORAGE                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev The BeginBlocker struct is used to store the calls we need to make at the beginning of
-    /// each block.
+    /// @dev The BeginBlocker struct is used to store the calls we need to make
+    /// at the beginning of each block.
     struct BeginBlocker {
         address contractAddress;
         bytes4 selector;
     }
 
-    /// @dev The ADMIN address is the only address that can add or remove BeginBlockers.
+    /// @dev The ADMIN address is the only address that can add or remove
+    /// BeginBlockers.
     address private ADMIN = address(0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4);
 
-    /// @dev The list of BeginBlockers that we need to call at the beginning of each block, in
-    /// order.
+    /// @dev The list of BeginBlockers that we need to call at the beginning of
+    /// each block, in order.
     BeginBlocker[] public beginBlockers;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -102,9 +107,10 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
-     * @dev Fallback function that is called when a non-function payload is sent to the contract.
-     * @dev This fallback adheres to the EIP-4788 specification with added BeginBlocker
-     * functionality.
+     * @dev Fallback function that is called when a non-function payload is sent
+     * to the contract.
+     * @dev This fallback adheres to the EIP-4788 specification with added
+     * BeginBlocker functionality.
      *
      * The function behavior is as follows:
      *
@@ -120,8 +126,7 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      *      |    |
      *      |    `--- Call `getCoinbase()`.
      *      |
-     *      `--- Message data length is not 36 or the first 4 bytes do not match the
-     * `GET_COINBASE_SELECTOR`:
+     *      `--- Message data length is not 36 or the first 4 bytes do not match the `GET_COINBASE_SELECTOR`:
      *           |
      *           `--- Call `get()`.
      *
@@ -134,7 +139,10 @@ contract BeginBlockRootsContract is BeaconRootsContract {
             if (msg.sender == ADMIN) {
                 crud(msg.data);
             } else {
-                if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
+                if (
+                    msg.data.length == 36
+                        && bytes4(msg.data) == GET_COINBASE_SELECTOR
+                ) {
                     getCoinbase();
                 } else {
                     get();
@@ -151,16 +159,19 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
-     * @dev Performs the CRUD operation based on the action specified in the input data.
-     * @param data The input data containing the index, action, and BeginBlocker. The action can be
-     * "set", "remove", or "update_admin".
+     * @dev Performs the CRUD operation based on the action specified in the
+     * input data.
+     * @param data The input data containing the index, action, and
+     * BeginBlocker. The action can be "set", "remove", or "update_admin".
      *
      * The function behavior is as follows:
      *
-     * - If the action is "set", the function will add the BeginBlocker at the given index.
-     * - If the action is "remove", the function will remove the BeginBlocker at the given index.
-     * - If the action is "update_admin", the function will update the ADMIN address if the new
-     * admin address is not zero.
+     * - If the action is "set", the function will add the BeginBlocker at the
+     * given index.
+     * - If the action is "remove", the function will remove the BeginBlocker at
+     * the given index.
+     * - If the action is "update_admin", the function will update the ADMIN
+     * address if the new admin address is not zero.
      *
      *
      * Action received
@@ -179,19 +190,27 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      */
     function crud(bytes calldata data) private {
         // Decode the data we get from the message.
-        (uint256 i, bytes32 action, BeginBlocker memory beginBlocker, address admin) = _parse(data);
+        (
+            uint256 i,
+            bytes32 action,
+            BeginBlocker memory beginBlocker,
+            address admin
+        ) = _parse(data);
 
         // Prefrom the CRUD operation.
         if (action == SET) {
-            // If the action is "SET", we need to add the BeginBlocker at the given index.
+            // If the action is "SET", we need to add the BeginBlocker at the
+            // given index.
             _add(i, beginBlocker);
         } else if (action == REMOVE) {
-            // If the action is "REMOVE", we need to remove the BeginBlocker at the given index.
+            // If the action is "REMOVE", we need to remove the BeginBlocker at
+            // the given index.
             _remove(i);
         } else if (action == UPDATE_ADMIN) {
-            // If the action is "UPDATE_ADMIN", we need to update the ADMIN address.
-            // This can only be done by the current ADMIN, since we check that in the fallback
-            // method.
+            // If the action is "UPDATE_ADMIN", we need to update the ADMIN
+            // address.
+            // This can only be done by the current ADMIN, since we check that
+            // in the fallback method.
             if (admin != address(0)) {
                 ADMIN = admin;
             }
@@ -200,10 +219,11 @@ contract BeginBlockRootsContract is BeaconRootsContract {
 
     /**
      * @dev Runs all the BeginBlocker functions stored in the contract.
-     * It iterates over the array of BeginBlockers and calls each one using its contract address
-     * and selector.
-     * If the call is successful, it emits a BeginBlockerCalled event with the contract address,
-     * the current block miner's address, the selector, and the success status.
+     * It iterates over the array of BeginBlockers and calls each one using its
+     * contract address and selector.
+     * If the call is successful, it emits a BeginBlockerCalled event with the
+     * contract address, the current block miner's address, the selector, and
+     * the success status.
      */
     function run() private {
         unchecked {
@@ -225,40 +245,48 @@ contract BeginBlockRootsContract is BeaconRootsContract {
 
     /**
      * @dev Parses the BeginBlocker message data.
-     * @notice The input data must be encoded as: abi.encode(i, contractAddress, selector)
+     * @notice The input data must be encoded as: abi.encode(i, contractAddress,
+     * selector)
      * @param data The input data containing the BeginBlocker message.
      * @return i The index of the BeginBlocker.
-     * @return BeginBlocker The BeginBlocker struct containing the contract address and the
-     * selector.
+     * @return BeginBlocker The BeginBlocker struct containing the contract
+     * address and the selector.
      */
     function _parse(bytes calldata data)
         private
         pure
         returns (uint256, bytes32, BeginBlocker memory, address)
     {
-        // Decode the data to get the BeginBlocker struct, user must send a message that is
-        // encoded:
+        // Decode the data to get the BeginBlocker struct, user must send a
+        // message that is encoded:
         // abi.encode(i, action, contractAddress, selector, admin)
-        (uint256 i, bytes32 action, address contractAddress, bytes4 selector, address admin) =
-            abi.decode(data, (uint256, bytes32, address, bytes4, address));
+        (
+            uint256 i,
+            bytes32 action,
+            address contractAddress,
+            bytes4 selector,
+            address admin
+        ) = abi.decode(data, (uint256, bytes32, address, bytes4, address));
         return (i, action, BeginBlocker(contractAddress, selector), admin);
     }
 
     /**
      * @dev Sets the BeginBlocker at the given index.
      * @param i The index of the BeginBlocker.
-     * @param beginBlocker The BeginBlocker struct containing the contract address and the
-     * selector.
+     * @param beginBlocker The BeginBlocker struct containing the contract
+     * address and the selector.
      *
      * The function behavior is as follows:
      *
-     * - If the index `i` is greater than the length of the `beginBlockers` array, it reverts the
-     * transaction with a `BeginBlockerDoesNotExist` error.
-     * - If the index `i` is equal to the length of the `beginBlockers` array, it adds the
-     * `beginBlocker` to the end of the array.
-     * - If the index `i` is less than the length of the `beginBlockers` array, it adds an empty
-     * element to the end of the array, then shifts all elements from index `i` onwards one place
-     * to the right, and finally places the `beginBlocker` at index `i`.
+     * - If the index `i` is greater than the length of the `beginBlockers`
+     * array, it reverts the transaction with a `BeginBlockerDoesNotExist`
+     * error.
+     * - If the index `i` is equal to the length of the `beginBlockers` array,
+     * it adds the `beginBlocker` to the end of the array.
+     * - If the index `i` is less than the length of the `beginBlockers` array,
+     * it adds an empty element to the end of the array, then shifts all
+     * elements from index `i` onwards one place to the right, and finally
+     * places the `beginBlocker` at index `i`.
      *
      *
      * Index `i` received
@@ -283,13 +311,14 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         // cache the length of the array.
         uint256 length = beginBlockers.length;
 
-        // Check that we are not trying to add a BeginBlocker at an index that is greater than the
-        // length.
+        // Check that we are not trying to add a BeginBlocker at an index that
+        // is greater than the length.
         if (i > length) {
             revert BeginBlockerDoesNotExist(i);
         }
 
-        // push a new empty element at the end of the array since we are going to fill it.
+        // push a new empty element at the end of the array since we are going
+        // to fill it.
         beginBlockers.push();
         unchecked {
             for (uint256 j = length; j > i;) {
@@ -306,13 +335,16 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      *
      * The function behavior is as follows:
      *
-     * - If the index `i` is greater than or equal to the length of the `beginBlockers` array, it
+     * - If the index `i` is greater than or equal to the length of the
+     * `beginBlockers` array, it
      * reverts the transaction with a `BeginBlockerDoesNotExist` error.
-     * - If the index `i` is equal to the length of the `beginBlockers` array minus 1 (i.e., it's
-     * the last element), it removes the last element from the array.
-     * - If the index `i` is less than the length of the `beginBlockers` array minus 1, it shifts
-     * all elements from index `i+1` onwards one place to the left, overwriting the element at
-     * index `i`, and then removes the last element from the array.
+     * - If the index `i` is equal to the length of the `beginBlockers` array
+     * minus 1 (i.e., it's the last element), it removes the last element from
+     * the array.
+     * - If the index `i` is less than the length of the `beginBlockers` array
+     * minus 1, it shifts all elements from index `i+1` onwards one place to the
+     * left, overwriting the element at index `i`, and then removes the last
+     * element from the array.
      *
      * Index `i` received
      * |

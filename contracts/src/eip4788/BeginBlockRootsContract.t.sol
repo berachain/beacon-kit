@@ -18,11 +18,12 @@ contract MockExternalContract {
 }
 
 /// @title BeginBlockRootsTest
-/// @notice we inherit from the BeaconRootsContractTest to reuse the tests, since we should have
-/// the same behavior
-// as its just an extension of the BeaconRootsContract with additional fallback functionality.
+/// @dev we inherit from the BeaconRootsContractTest to reuse the tests,
+/// since we should have the same behavior as its just an extension of the
+/// BeaconRootsContract with additional fallback functionality.
 contract BeginBlockRootsTest is BeaconRootsContractTest {
-    /// @dev The ADMIN address is the only address that can add or remove BeginBlockers.
+    /// @dev The ADMIN address is the only address that can add or remove
+    /// BeginBlockers.
     address internal ADMIN = address(0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4);
 
     /// @dev Actions that can set a new BeginBlocker.
@@ -37,10 +38,14 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     /// @dev The BeginBlockRootsContract.
     BeginBlockRootsContract internal beginBlockRootsContract;
 
-    /// @dev override the setUp so that we can use our version of the BeginBlockRootsContract.
+    /// @dev override the setUp so that we can use our version of the
+    /// BeginBlockRootsContract.
     function setUp() public override {
         // etch the BeginBlockRootsContract to the BEACON_ROOT_ADDRESS.
-        vm.etch(BEACON_ROOT_ADDRESS, vm.getDeployedCode("BeginBlockRootsContract.sol"));
+        vm.etch(
+            BEACON_ROOT_ADDRESS,
+            vm.getDeployedCode("BeginBlockRootsContract.sol")
+        );
         // Deploy the MockExternalContract.
         mockExternalContract = new MockExternalContract();
         // Set the ADMIN address at the correct slot.
@@ -55,7 +60,8 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         beginBlockRootsContract = BeginBlockRootsContract(BEACON_ROOT_ADDRESS);
     }
 
-    /// @dev Test that we can set a new BeginBlocker contract and it will be set.
+    /// @dev Test that we can set a new BeginBlocker contract and it will be
+    /// set.
     function test_SimpleCRUD() public {
         bytes memory crudMsg = _createCRUD(
             0,
@@ -71,7 +77,8 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
 
         // Check that the BeginBlocker is set.
-        (address contractAddress, bytes4 selector) = beginBlockRootsContract.beginBlockers(0);
+        (address contractAddress, bytes4 selector) =
+            beginBlockRootsContract.beginBlockers(0);
         assertEq(
             address(mockExternalContract),
             contractAddress,
@@ -86,7 +93,9 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         // Remove the BeginBlocker.
         crudMsg = _createCRUD(0, REMOVE, address(0), bytes4(0), address(8));
         (success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
-        assertTrue(success, "BeginBlockRootsTest: failed to remove BeginBlocker");
+        assertTrue(
+            success, "BeginBlockRootsTest: failed to remove BeginBlocker"
+        );
 
         vm.stopPrank();
     }
@@ -104,11 +113,14 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
             );
 
             (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
-            assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
+            assertTrue(
+                success, "BeginBlockRootsTest: failed to set BeginBlocker"
+            );
         }
         vm.stopPrank();
 
-        // Call the BeginBlocker and should run in a loop, 10 times incrementing the timesCalled.
+        // Call the BeginBlocker and should run in a loop, 10 times incrementing
+        // the timesCalled.
         _setRandomBeaconRoot();
 
         assertEq(
@@ -121,17 +133,25 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     function test_FailCall() public {
         vm.startPrank(ADMIN);
         bytes memory crudMsg = _createCRUD(
-            0, SET, address(mockExternalContract), mockExternalContract.fail.selector, address(0)
+            0,
+            SET,
+            address(mockExternalContract),
+            mockExternalContract.fail.selector,
+            address(0)
         );
 
         (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
         assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
         vm.stopPrank();
 
-        // Call the BeginBlocker and this should revert, not updating the timesCalled, but setting
-        // the beacon root.
+        // Call the BeginBlocker and this should revert, not updating the
+        // timesCalled, but setting the beacon root.
         _setRandomBeaconRoot();
-        assertEq(0, mockExternalContract.timesCalled(), "BeginBlockRootsTest: BeginBlocker called");
+        assertEq(
+            0,
+            mockExternalContract.timesCalled(),
+            "BeginBlockRootsTest: BeginBlocker called"
+        );
     }
 
     /// @dev Create a BeginBlockCRUD message.
@@ -153,7 +173,9 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         vm.prank(SYSTEM_ADDRESS);
         bytes32 random = bytes32(_random());
         (bool success,) = BEACON_ROOT_ADDRESS.call(abi.encode(random));
-        require(success, "BeginBlockRootsTest: failed to set random beacon root");
+        require(
+            success, "BeginBlockRootsTest: failed to set random beacon root"
+        );
         return random;
     }
 }
