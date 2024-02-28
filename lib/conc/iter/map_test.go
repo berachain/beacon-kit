@@ -41,6 +41,7 @@ func TestMapErrNoNils(t *testing.T) {
 	input := []int{one, two, three, four, five}
 	f := func(i *int) (*int, error) {
 		if *i%2 == 0 {
+			//nolint:nilnil // nil is expected here for testing
 			return nil, nil
 		}
 		return i, nil

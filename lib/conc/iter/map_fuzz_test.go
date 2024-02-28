@@ -37,17 +37,18 @@ func FuzzMapErrNoNils(f *testing.F) {
 	f.Fuzz(func(t *testing.T, size uint64) {
 		input := make([]int, size)
 		for i := range input {
-			input[i] = i
+			input[i] = i + 1
 		}
 		f := func(i *int) (*int, error) {
 			if *i%2 == 0 {
+				//nolint:nilnil // nil is expected here for testing
 				return nil, nil
 			}
 			return i, nil
 		}
 		expected := make([]*int, 0, size/2)
 		for i := range input {
-			if i%2 != 0 {
+			if i%2 == 0 {
 				expected = append(expected, &input[i])
 			}
 		}
