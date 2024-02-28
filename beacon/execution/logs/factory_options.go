@@ -27,17 +27,11 @@ package logs
 
 // WithRequestsFrom returns an Option for
 // services sending log requests to the Factory.
-func WithRequestsFrom(
-	s Service,
+func WithRequest(
+	req *LogRequest,
 ) Option[Factory] {
 	return func(f *Factory) error {
-		requests, err := s.GetLogRequests()
-		if err != nil {
-			return err
-		}
-		for _, req := range requests {
-			f.addressToAllocator[req.ContractAddress] = req.Allocator
-		}
+		f.addressToAllocator[req.ContractAddress] = req.Allocator
 		return nil
 	}
 }

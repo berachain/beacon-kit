@@ -27,12 +27,6 @@ package logs
 
 import ethcommon "github.com/ethereum/go-ethereum/common"
 
-// Service is the interface for services
-// requesting logs from the execution service.
-type Service interface {
-	GetLogRequests() ([]LogRequest, error)
-}
-
 // LogRequest is a request for logs sent from a service.
 type LogRequest struct {
 	ContractAddress ethcommon.Address

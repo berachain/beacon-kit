@@ -33,7 +33,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/beacon/execution/mocks"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -43,9 +42,12 @@ import (
 func FuzzProcessLogs(f *testing.F) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
 
-	mockLogService := &logmocks.Service{}
+	stakingLogRequest, err := logs.NewStakingRequest(
+		contractAddress,
+	)
+	require.NoError(f, err)
 	logFactory, err := logs.NewFactory(
-		logs.WithRequestsFrom(mockLogService),
+		logs.WithRequest(stakingLogRequest),
 	)
 	require.NoError(f, err)
 

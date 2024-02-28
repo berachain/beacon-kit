@@ -44,14 +44,12 @@ func TestLogFactory(t *testing.T) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
 
-	depositName := "Deposit"
-	depositType := reflect.TypeOf(consensusv1.Deposit{})
-
-	withdrawalName := "Withdrawal"
-
-	mockService := &mocks.Service{}
+	stakingLogRequest, err := logs.NewStakingRequest(
+		contractAddress,
+	)
+	require.NoError(t, err)
 	factory, err := logs.NewFactory(
-		logs.WithRequestsFrom(mockService),
+		logs.WithRequest(stakingLogRequest),
 	)
 	require.NoError(t, err)
 
@@ -60,7 +58,10 @@ func TestLogFactory(t *testing.T) {
 		10000,
 		[]byte("12345678901234567890"),
 	)
-	log, err := mocks.NewLogFromDeposit(stakingAbi.Events[depositName], deposit)
+	log, err := mocks.NewLogFromDeposit(
+		stakingAbi.Events[logs.DepositName],
+		deposit,
+	)
 	require.NoError(t, err)
 	log.Address = contractAddress
 
@@ -70,7 +71,7 @@ func TestLogFactory(t *testing.T) {
 	valType := reflect.TypeOf(val.Interface())
 	require.NotNil(t, valType)
 	require.Equal(t, reflect.Ptr, valType.Kind())
-	require.Equal(t, depositType, valType.Elem())
+	require.Equal(t, logs.DepositType, valType.Elem())
 
 	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
 	require.True(t, ok)
@@ -79,7 +80,7 @@ func TestLogFactory(t *testing.T) {
 
 	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
 	log, err = mocks.NewLogFromWithdrawal(
-		stakingAbi.Events[withdrawalName],
+		stakingAbi.Events[logs.WithdrawalName],
 		withdrawal,
 	)
 	require.NoError(t, err)

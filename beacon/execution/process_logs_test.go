@@ -31,10 +31,9 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	execlogs "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/beacon/execution/mocks"
-	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -47,9 +46,12 @@ func TestProcessLogs(t *testing.T) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
 
-	mockLogService := &logmocks.Service{}
-	logFactory, err := logs.NewFactory(
-		logs.WithRequestsFrom(mockLogService),
+	stakingLogRequest, err := execlogs.NewStakingRequest(
+		contractAddress,
+	)
+	require.NoError(t, err)
+	logFactory, err := execlogs.NewFactory(
+		execlogs.WithRequest(stakingLogRequest),
 	)
 	require.NoError(t, err)
 
@@ -86,7 +88,7 @@ func TestProcessLogs(t *testing.T) {
 
 	var log *ethtypes.Log
 	log, err = logmocks.NewLogFromWithdrawal(
-		stakingAbi.Events[staking.WithdrawalName],
+		stakingAbi.Events[execlogs.WithdrawalName],
 		withdrawal,
 	)
 	require.NoError(t, err)

@@ -23,49 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package logs_test
 
 import (
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking"
-	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/stretchr/testify/require"
 )
 
-var _ logs.Service = (*Service)(nil)
-
-// Service is a mock service for testing.
-// It implements the logs.Service interface,
-// so that it can send requests to the log factory.
-type Service struct{}
-
-// GetLogRequests returns a list of log requests
-// to be sent to the log factory.
-func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
-	depositContractAddr := ethcommon.HexToAddress("0x1234")
-	depositContractAbi, err := abi.StakingMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-
-	allocator := logs.New[logs.TypeAllocator](
-		logs.WithABI(depositContractAbi),
-		logs.WithNameAndType(
-			staking.DepositSig,
-			staking.DepositName,
-			staking.DepositType,
+func TestLogSignatures(t *testing.T) {
+	require.Equal(t,
+		ethcrypto.Keccak256Hash(
+			[]byte("Deposit(bytes,bytes,uint64)"),
 		),
-		logs.WithNameAndType(
-			staking.WithdrawalSig,
-			staking.WithdrawalName,
-			staking.WithdrawalType,
-		),
+		common.Hash(logs.DepositSig),
 	)
 
-	request := logs.LogRequest{
-		ContractAddress: depositContractAddr,
-		Allocator:       allocator,
-	}
-
-	return []logs.LogRequest{request}, nil
+	require.Equal(t,
+		ethcrypto.Keccak256Hash(
+			[]byte("Withdrawal(bytes,bytes,uint64)"),
+		),
+		common.Hash(logs.WithdrawalSig),
+	)
 }

@@ -30,8 +30,8 @@ import (
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	logfactory "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
-	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	"github.com/itsdevbear/bolaris/types/consensus"
 )
@@ -65,7 +65,7 @@ func CreateDepositLogs(
 		)
 		var log *ethtypes.Log
 		log, err = logmocks.NewLogFromDeposit(
-			stakingAbi.Events[staking.DepositName],
+			stakingAbi.Events[logfactory.DepositName],
 			deposit,
 		)
 		if err != nil {

@@ -118,15 +118,18 @@ func NewDefaultBeaconKitRuntime(
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithValsetChangeProvider(vcp),
-		staking.WithStakingContractABI(),
 	)
 
 	// logFactory is used by the execution service to unmarshal
 	// logs retrieved from the engine client.
-	// Services that want to request logs from the
-	// execution service can send requests to the log factory.
+	stakingLogRequest, err := logs.NewStakingRequest(
+		cfg.Beacon.Execution.DepositContractAddress,
+	)
+	if err != nil {
+		return nil, err
+	}
 	logFactory, err := logs.NewFactory(
-		logs.WithRequestsFrom(stakingService),
+		logs.WithRequest(stakingLogRequest),
 	)
 	if err != nil {
 		return nil, err

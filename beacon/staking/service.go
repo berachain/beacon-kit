@@ -26,7 +26,6 @@
 package staking
 
 import (
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -36,7 +35,4 @@ type Service struct {
 
 	// vcp is responsible for applying validator set changes.
 	vcp ValsetChangeProvider
-
-	// abi is the ABI for the staking contract.
-	abi *ethabi.ABI
 }

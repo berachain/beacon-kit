@@ -23,12 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package logs
 
 import (
 	"reflect"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
@@ -59,21 +60,22 @@ var (
 	WithdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
 )
 
-// GetLogRequests returns a list of log requests from the staking service
-// to be sent to the log factory in the execution service.
-func (s *Service) GetLogRequests() ([]logs.LogRequest, error) {
-	depositContractAddr := s.BeaconCfg().Execution.DepositContractAddress
-
-	allocator := logs.New[logs.TypeAllocator](
-		logs.WithABI(s.abi),
-		logs.WithNameAndType(DepositSig, DepositName, DepositType),
-		logs.WithNameAndType(WithdrawalSig, WithdrawalName, WithdrawalType),
+// NewStakingRequest returns a log request for the staking service.
+func NewStakingRequest(
+	depositContractAddress ethcommon.Address,
+) (*LogRequest, error) {
+	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	allocator := New[TypeAllocator](
+		WithABI(stakingAbi),
+		WithNameAndType(DepositSig, DepositName, DepositType),
+		WithNameAndType(WithdrawalSig, WithdrawalName, WithdrawalType),
 	)
 
-	request := logs.LogRequest{
-		ContractAddress: depositContractAddr,
+	return &LogRequest{
+		ContractAddress: depositContractAddress,
 		Allocator:       allocator,
-	}
-
-	return []logs.LogRequest{request}, nil
+	}, nil
 }
