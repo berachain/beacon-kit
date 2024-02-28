@@ -29,6 +29,7 @@ import (
 	"reflect"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -63,18 +64,18 @@ var (
 // NewStakingRequest returns a log request for the staking service.
 func NewStakingRequest(
 	depositContractAddress ethcommon.Address,
-) (*LogRequest, error) {
+) (*logs.LogRequest, error) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	allocator := New[TypeAllocator](
-		WithABI(stakingAbi),
-		WithNameAndType(DepositSig, DepositName, DepositType),
-		WithNameAndType(WithdrawalSig, WithdrawalName, WithdrawalType),
+	allocator := logs.New[logs.TypeAllocator](
+		logs.WithABI(stakingAbi),
+		logs.WithNameAndType(DepositSig, DepositName, DepositType),
+		logs.WithNameAndType(WithdrawalSig, WithdrawalName, WithdrawalType),
 	)
 
-	return &LogRequest{
+	return &logs.LogRequest{
 		ContractAddress: depositContractAddress,
 		Allocator:       allocator,
 	}, nil

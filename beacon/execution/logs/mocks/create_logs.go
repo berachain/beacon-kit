@@ -30,8 +30,8 @@ import (
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	logfactory "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/runtime/logs"
 	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
@@ -54,7 +54,7 @@ func CreateDepositLogs(
 	// Create deposit logs.
 	numLogs := factor*(numDepositLogs-1) + 1
 
-	logs := make([]ethtypes.Log, 0, numLogs)
+	mockLogs := make([]ethtypes.Log, 0, numLogs)
 	for i := 0; i < numLogs; i++ {
 		deposit := consensus.NewDeposit(
 			[]byte("pubkey"),
@@ -64,21 +64,19 @@ func CreateDepositLogs(
 		)
 		var log *ethtypes.Log
 		log, err = NewLogFromDeposit(
-			stakingAbi.Events[logfactory.DepositName],
+			stakingAbi.Events[logs.DepositName],
 			deposit,
 		)
 		if err != nil {
 			return nil, err
 		}
 
+		log.BlockNumber = blkNum
 		if i%factor == 0 {
 			log.Address = contractAddress
-			log.BlockNumber = blkNum
-		} else if i%2 == 0 {
-			log.BlockNumber = blkNum
 		}
 
-		logs = append(logs, *log)
+		mockLogs = append(mockLogs, *log)
 	}
-	return logs, nil
+	return mockLogs, nil
 }

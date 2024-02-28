@@ -37,12 +37,13 @@ import (
 	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/health"
+	"github.com/itsdevbear/bolaris/runtime/logs"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -128,8 +129,8 @@ func NewDefaultBeaconKitRuntime(
 	if err != nil {
 		return nil, err
 	}
-	logFactory, err := logs.NewFactory(
-		logs.WithRequest(stakingLogRequest),
+	logFactory, err := loghandler.NewFactory(
+		loghandler.WithRequest(stakingLogRequest),
 	)
 	if err != nil {
 		return nil, err

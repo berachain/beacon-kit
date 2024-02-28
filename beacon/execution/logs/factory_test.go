@@ -30,10 +30,11 @@ import (
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	"github.com/itsdevbear/bolaris/runtime/logs"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
@@ -48,8 +49,8 @@ func TestLogFactory(t *testing.T) {
 		contractAddress,
 	)
 	require.NoError(t, err)
-	factory, err := logs.NewFactory(
-		logs.WithRequest(stakingLogRequest),
+	factory, err := loghandler.NewFactory(
+		loghandler.WithRequest(stakingLogRequest),
 	)
 	require.NoError(t, err)
 

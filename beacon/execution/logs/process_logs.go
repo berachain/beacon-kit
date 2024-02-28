@@ -30,7 +30,7 @@ import (
 	"reflect"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/lib/conc/iter"
+	"github.com/sourcegraph/conc/iter"
 )
 
 // ProcessLogs processes the logs received from the execution client
@@ -39,7 +39,7 @@ func (f *Factory) ProcessLogs(
 	logs []ethtypes.Log,
 	blkNum uint64,
 ) ([]*reflect.Value, error) {
-	logValues, err := iter.MapErrNoNils(
+	logValues, err := iter.MapErr(
 		logs,
 		func(log *ethtypes.Log) (*reflect.Value, error) {
 			// Skip logs that are not from the block we are processing
@@ -70,5 +70,13 @@ func (f *Factory) ProcessLogs(
 		return nil, err
 	}
 
-	return logValues, nil
+	// Filter out nil values
+	vals := make([]*reflect.Value, 0, len(logValues))
+	for _, val := range logValues {
+		if val != nil {
+			vals = append(vals, val)
+		}
+	}
+
+	return vals, nil
 }

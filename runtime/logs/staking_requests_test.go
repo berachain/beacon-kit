@@ -23,38 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package iter
+package logs_test
 
 import (
-	"reflect"
+	"testing"
 
-	"github.com/sourcegraph/conc/iter"
+	"github.com/ethereum/go-ethereum/common"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/itsdevbear/bolaris/runtime/logs"
+	"github.com/stretchr/testify/require"
 )
 
-// MapErrNoNils is a wrapper around MapErr
-// that filters out nil elements from the result.
-func MapErrNoNils[T, R any](input []T, f func(*T) (R, error)) ([]R, error) {
-	elems, err := iter.Mapper[T, R]{}.MapErr(input, f)
-	if err != nil {
-		return nil, err
-	}
+func TestLogSignatures(t *testing.T) {
+	require.Equal(t,
+		ethcrypto.Keccak256Hash(
+			[]byte("Deposit(bytes,bytes,uint64)"),
+		),
+		common.Hash(logs.DepositSig),
+	)
 
-	nonNilElems := make([]R, 0, len(elems))
-	for _, elem := range elems {
-		if !IsNil(elem) {
-			nonNilElems = append(nonNilElems, elem)
-		}
-	}
-	return nonNilElems, nil
-}
-
-// IsNil returns true if the given element is a nil pointer.
-func IsNil[T any](elem T) bool {
-	isPtr := reflect.TypeOf(elem).Kind() == reflect.Pointer
-	if !isPtr {
-		return false
-	}
-	elemVal := reflect.ValueOf(elem).Interface()
-	nilVal := reflect.Zero(reflect.TypeOf(elem)).Interface()
-	return elemVal == nilVal
+	require.Equal(t,
+		ethcrypto.Keccak256Hash(
+			[]byte("Withdrawal(bytes,bytes,uint64)"),
+		),
+		common.Hash(logs.WithdrawalSig),
+	)
 }
