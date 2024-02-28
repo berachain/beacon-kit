@@ -97,7 +97,7 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			if err = tos.VerifyTosAcceptedOrPrompt(
-				app.AppName, app.TermsOfServiceURL, clientCtx, cmd,
+				app.AppName, cmdconfig.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
 				return err
 			}
@@ -227,7 +227,7 @@ func appExport(
 var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
 	dir, err := os.MkdirTemp("", "beacond")
 	if err != nil {
-		dir = app.DefaultNodeHome
+		dir = cmdconfig.DefaultNodeHome
 	}
 	defer os.RemoveAll(dir)
 
