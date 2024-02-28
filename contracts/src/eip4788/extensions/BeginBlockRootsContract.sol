@@ -10,7 +10,31 @@ import { BeaconRootsContract } from "../BeaconRootsContract.sol";
  * @dev This contract extends the BeaconRootsContract and adds the BeginBlocker functionality,
  * where the specified
  * BeginBlockers are called at the beginning of each block.
- * @dev TODO: PLEASE ADD THE STORAGE FOR ADMIN at slot 24_574 at genesis.
+ * @dev ADD THE STORAGE FOR ADMIN at slot 24_574 at genesis.
+ * @dev Set slot 24_574 to an ADMIN address in your genesis file.
+ *  Beacon-Kit BeginBlock:
+ * |
+ * |--- "Borrow" the logic of BeginBlock from https://github.com/cosmos/cosmos-sdk/blob/main/types/module/module.go.
+ * |    |
+ * |    `--- "Appreciate" the key components and behaviors
+ * |
+ * `--- Implement in Solidity (with a cheeky grin)
+ *      |
+ *      |--- Create a struct to represent BeginBlocker
+ *      |    |
+ *      |    `--- Stuff it with necessary fields (e.g., contract address, selector)
+ *      |
+ *      |--- Implement CRUD operations for BeginBlocker
+ *      |    |
+ *      |    |--- Add: Sneak a BeginBlocker into a specific index, make others scooch over
+ *      |    |
+ *      |    |--- Remove: Yank a BeginBlocker from a specific index, others scooch back
+ *      |    |
+ *      |    `--- Update: Give a BeginBlocker a makeover at a specific index
+ *      |
+ *      `--- Implement the logic to call BeginBlocker
+ *           |
+ *           `--- For each BeginBlocker in the array, dial the contract and selector specified
  */
 contract BeginBlockRootsContract is BeaconRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
