@@ -23,24 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package beacon
 
 import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
-func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
-	if err := s.eth1GenesisHash.Set(s.ctx, eth1GenesisHash); err != nil {
+// SetParentBlockRoot sets the parent block root in the BeaconStore.
+// It panics if there is an error setting the parent block root.
+func (s *Store) SetParentBlockRoot(parentRoot [32]byte) {
+	if err := s.parentBlockRoot.Set(s.ctx, parentRoot[:]); err != nil {
 		panic(err)
 	}
 }
 
-// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
-func (s *BeaconStore) GenesisEth1Hash() common.Hash {
-	genesisHash, err := s.eth1GenesisHash.Get(s.ctx)
+// GetParentBlockRoot retrieves the parent block root from the BeaconStore.
+// It returns an empty hash if there is an error retrieving the parent block
+// root.
+func (s *Store) GetParentBlockRoot() [32]byte {
+	parentRoot, err := s.parentBlockRoot.Get(s.ctx)
 	if err != nil {
-		panic("failed to get genesis eth1hash")
+		parentRoot = []byte{}
 	}
-	return genesisHash
+	return common.BytesToHash(parentRoot)
 }

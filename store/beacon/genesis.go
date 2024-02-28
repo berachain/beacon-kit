@@ -23,31 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package beacon
 
 import (
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-// EnqueueDeposits pushes the deposits to the queue.
-func (s *BeaconStore) EnqueueDeposits(
-	deposits []*consensusv1.Deposit,
-) error {
-	return s.depositQueue.PushMulti(s.ctx, deposits)
+// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
+func (s *Store) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
+	if err := s.eth1GenesisHash.Set(s.ctx, eth1GenesisHash); err != nil {
+		panic(err)
+	}
 }
 
-// DequeueDeposits returns the first numDequeue deposits in the queue.
-func (s *BeaconStore) DequeueDeposits(
-	numDequeue uint64,
-) ([]*consensusv1.Deposit, error) {
-	return s.depositQueue.PopMulti(s.ctx, numDequeue)
-}
-
-// TODO: Consider consolidating BeaconState interface externally to x/beacon
-// to facilitate withdrawals from x/beacon_staking.
-// TODO: Explore constructing BeaconState from multiple sources beyond
-// just x/beacon.
-func (s *BeaconStore) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
-	return []*enginev1.Withdrawal{}, nil
+// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
+func (s *Store) GenesisEth1Hash() common.Hash {
+	genesisHash, err := s.eth1GenesisHash.Get(s.ctx)
+	if err != nil {
+		panic("failed to get genesis eth1hash")
+	}
+	return genesisHash
 }

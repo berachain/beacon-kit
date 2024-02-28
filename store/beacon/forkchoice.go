@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package beacon
 
 import (
 	"github.com/ethereum/go-ethereum/common"
@@ -31,7 +31,7 @@ import (
 
 // SetLastValidHead sets the last valid head in the store.
 // TODO: Make this in-mem thing more robust.
-func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
+func (s *Store) SetLastValidHead(lastValidHead common.Hash) {
 	if s.lastValidHash == nil {
 		s.lastValidHash = new(common.Hash)
 	}
@@ -40,7 +40,7 @@ func (s *BeaconStore) SetLastValidHead(lastValidHead common.Hash) {
 
 // GetLastValidHead retrieves the last valid head from the store.
 // TODO: Make this in-mem thing more robust.
-func (s *BeaconStore) GetLastValidHead() common.Hash {
+func (s *Store) GetLastValidHead() common.Hash {
 	if s.lastValidHash == nil {
 		return s.GetSafeEth1BlockHash()
 	}
@@ -48,14 +48,14 @@ func (s *BeaconStore) GetLastValidHead() common.Hash {
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
-func (s *BeaconStore) SetSafeEth1BlockHash(blockHash common.Hash) {
+func (s *Store) SetSafeEth1BlockHash(blockHash common.Hash) {
 	if err := s.fcSafeEth1BlockHash.Set(s.ctx, blockHash); err != nil {
 		panic(err)
 	}
 }
 
 // GetSafeEth1BlockHash retrieves the safe block hash from the store.
-func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
+func (s *Store) GetSafeEth1BlockHash() common.Hash {
 	safeHash, err := s.fcSafeEth1BlockHash.Get(s.ctx)
 	if err != nil {
 		safeHash = common.Hash{}
@@ -64,14 +64,14 @@ func (s *BeaconStore) GetSafeEth1BlockHash() common.Hash {
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (s *BeaconStore) SetFinalizedEth1BlockHash(blockHash common.Hash) {
+func (s *Store) SetFinalizedEth1BlockHash(blockHash common.Hash) {
 	if err := s.fcFinalizedEth1BlockHash.Set(s.ctx, blockHash); err != nil {
 		panic(err)
 	}
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
-func (s *BeaconStore) GetFinalizedEth1BlockHash() common.Hash {
+func (s *Store) GetFinalizedEth1BlockHash() common.Hash {
 	finalHash, err := s.fcFinalizedEth1BlockHash.Get(s.ctx)
 	if err != nil {
 		finalHash = common.Hash{}
