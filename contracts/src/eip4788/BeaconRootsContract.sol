@@ -21,10 +21,10 @@ contract BeaconRootsContract {
 
     /// @dev SYSTEM_ADDRESS is the address that is allowed to call the set function as defined in
     /// EIP-4788: https://eips.ethereum.org/EIPS/eip-4788#specification
-    address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+    address internal constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
 
     /// @dev The selector for "getCoinbase(uint256)".
-    bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
+    bytes4 internal constant GET_COINBASE_SELECTOR = 0xe8e284b9;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        STORAGE                           */
@@ -55,7 +55,7 @@ contract BeaconRootsContract {
     ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)" appended with the
     /// 32-byte encoded block number, the function will return the coinbase for the given block
     /// number.
-    fallback() external {
+    fallback() external virtual {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.data.length == 36 && bytes4(msg.data) == GET_COINBASE_SELECTOR) {
                 getCoinbase();

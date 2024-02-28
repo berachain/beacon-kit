@@ -26,10 +26,8 @@
 package config
 
 import (
-	"net/url"
-	"time"
-
 	"github.com/itsdevbear/bolaris/config/flags"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
@@ -39,70 +37,46 @@ var _ BeaconKitConfig[Engine] = &Engine{}
 // DefaultEngineConfig is the default configuration for the engine client.
 func DefaultEngineConfig() Engine {
 	return Engine{
-		RPCDialURL: &url.URL{
-			Scheme: "http",
-			Host:   "localhost:8551",
-		},
-		RPCRetries:              3,                //nolint:gomnd // default config.
-		RPCTimeout:              2 * time.Second,  //nolint:gomnd // default config.
-		RPCStartupCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
-		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
-		JWTSecretPath:           "./jwt.hex",
-		RequiredChainID:         80086, //nolint:gomnd // default config.
+		Config: engineclient.DefaultConfig(),
 	}
 }
 
 // Engine is the configuration struct for the execution client.
 type Engine struct {
-	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL *url.URL
-	// RPCRetries is the number of retries before shutting down consensus
-	// client.
-	RPCRetries uint64
-	// RPCTimeout is the RPC timeout for execution client calls.
-	RPCTimeout time.Duration
-	// RPCStartupCheckInterval is the Interval for the startup check.
-	RPCStartupCheckInterval time.Duration
-	// JWTRefreshInterval is the Interval for the JWT refresh.
-	RPCJWTRefreshInterval time.Duration
-	// JWTSecretPath is the path to the JWT secret.
-	JWTSecretPath string
-	// RequiredChainID is the chain id that the consensus client must be
-	// connected to.
-	RequiredChainID uint64
+	engineclient.Config
 }
 
 // Parse parses the configuration.
 func (c Engine) Parse(parser parser.AppOptionsParser) (*Engine, error) {
 	var err error
-	if c.RPCDialURL, err = parser.GetURL(flags.RPCDialURL); err != nil {
+	if c.Config.RPCDialURL, err = parser.GetURL(flags.RPCDialURL); err != nil {
 		return nil, err
 	}
-	if c.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
+	if c.Config.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
 		return nil, err
 	}
-	if c.RPCTimeout, err = parser.GetTimeDuration(
+	if c.Config.RPCTimeout, err = parser.GetTimeDuration(
 		flags.RPCTimeout,
 	); err != nil {
 		return nil, err
 	}
-	if c.RPCStartupCheckInterval, err = parser.GetTimeDuration(
+	if c.Config.RPCStartupCheckInterval, err = parser.GetTimeDuration(
 		flags.RPCStartupCheckInterval,
 	); err != nil {
 		return nil, err
 	}
 
-	if c.RPCJWTRefreshInterval, err = parser.GetTimeDuration(
+	if c.Config.RPCJWTRefreshInterval, err = parser.GetTimeDuration(
 		flags.RPCJWTRefreshInterval,
 	); err != nil {
 		return nil, err
 	}
-	if c.JWTSecretPath, err = parser.GetString(
+	if c.Config.JWTSecretPath, err = parser.GetString(
 		flags.JWTSecretPath,
 	); err != nil {
 		return nil, err
 	}
-	if c.RequiredChainID, err = parser.GetUint64(
+	if c.Config.RequiredChainID, err = parser.GetUint64(
 		flags.RequiredChainID,
 	); err != nil {
 		return nil, err
