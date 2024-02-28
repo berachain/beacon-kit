@@ -10,6 +10,7 @@ import { BeaconRootsContract } from "../BeaconRootsContract.sol";
  * @dev This contract extends the BeaconRootsContract and adds the BeginBlocker functionality,
  * where the specified
  * BeginBlockers are called at the beginning of each block.
+ * @dev TODO: PLEASE ADD THE STORAGE FOR ADMIN at slot 24_574 at genesis.
  */
 contract BeginBlockRootsContract is BeaconRootsContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/

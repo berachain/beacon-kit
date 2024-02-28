@@ -25,6 +25,9 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     /// @dev Actions that can set a new BeginBlocker.
     bytes32 private constant SET = keccak256("SET");
 
+    /// @dev Action that can remove BeginBlockers from the array.
+    bytes32 private constant REMOVE = keccak256("REMOVE");
+
     /// @dev The MockExternalContract.
     MockExternalContract internal mockExternalContract;
 
@@ -37,6 +40,10 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         vm.etch(BEACON_ROOT_ADDRESS, vm.getDeployedCode("BeginBlockRootsContract.sol"));
         // Deploy the MockExternalContract.
         mockExternalContract = new MockExternalContract();
+        // Set the ADMIN address at the correct slot.
+        bytes32 value = bytes32(uint256(uint160(ADMIN)));
+        bytes32 slot = bytes32(uint256(24_574));
+        vm.store(BEACON_ROOT_ADDRESS, slot, value);
         // take a snapshot of the clean state.
         snapshot = vm.snapshot();
         // set the initial storage of the BEACON_ROOT_ADDRESS
@@ -46,7 +53,7 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     }
 
     /// @dev Test that we can set a new BeginBlocker contract and it will be set.
-    function test_SetBeginBlocker() public {
+    function test_SimpleCRUD() public {
         bytes memory crudMsg = _createCRUD(
             0,
             SET,
@@ -56,22 +63,29 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         );
 
         // Set the BeginBlocker as the ADMIN address.
-        vm.prank(ADMIN);
+        vm.startPrank(ADMIN);
         (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
         assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
 
         // Check that the BeginBlocker is set.
         (address contractAddress, bytes4 selector) = beginBlockRootsContract.beginBlockers(0);
         assertEq(
-            contractAddress,
             address(mockExternalContract),
-            "BeginBlockRootsTest: contractAddress is not set"
+            contractAddress,
+            "BeginBlockRootsTest: BeginBlocker contract address not set"
         );
         assertEq(
-            selector,
             mockExternalContract.succeed.selector,
-            "BeginBlockRootsTest: selector is not set"
+            selector,
+            "BeginBlockRootsTest: BeginBlocker selector not set"
         );
+
+        // Remove the BeginBlocker.
+        crudMsg = _createCRUD(0, REMOVE, address(0), bytes4(0), address(8));
+        (success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
+        assertTrue(success, "BeginBlockRootsTest: failed to remove BeginBlocker");
+
+        vm.stopPrank();
     }
 
     /// @dev Create a BeginBlockCRUD message.
