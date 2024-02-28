@@ -33,8 +33,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder"
-	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/health"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -45,7 +45,7 @@ type Handler struct {
 	cfg            *config.ABCI
 	builderService *builder.Service
 	chainService   *blockchain.Service
-	syncService    *sync.Service
+	healthService  *health.Service
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
 }
@@ -54,7 +54,7 @@ type Handler struct {
 func NewHandler(
 	cfg *config.ABCI,
 	builderService *builder.Service,
-	syncService *sync.Service,
+	healthService *health.Service,
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
@@ -62,7 +62,7 @@ func NewHandler(
 	return &Handler{
 		cfg:            cfg,
 		builderService: builderService,
-		syncService:    syncService,
+		healthService:  healthService,
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
@@ -77,8 +77,12 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	if err := h.syncService.Status(); err != nil {
-		return nil, err
+	// We block until the sync service is healthy.
+	if err := h.healthService.WaitForHealthyOf(
+		ctx, "prepare-proposal", "sync",
+	); err != nil {
+		logger.Error("failed to wait for healthy sync service", "error", err)
+		return &abci.ResponsePrepareProposal{}, nil
 	}
 
 	// We start by requesting the validator service to build us a block. This
@@ -129,8 +133,14 @@ func (h *Handler) ProcessProposalHandler(
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
+		logger.Warn(
+			"proposer failed to include a valid beacon block",
+			"status",
+			err,
+		)
+		// slash them somehow.
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_REJECT}, err
+			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 
 	// If we get any sort of error from the execution client, we bubble

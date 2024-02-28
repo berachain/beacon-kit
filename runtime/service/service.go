@@ -109,6 +109,9 @@ func (s *BaseService) Status() error {
 	return s.statusErr
 }
 
+// WaitForHealthy is an intentional no-op for the BaseService.
+func (s *BaseService) WaitForHealthy(context.Context) {}
+
 // SetStatus sets the status error of the BaseService.
 func (s *BaseService) SetStatus(err error) {
 	s.statusErrMu.Lock()

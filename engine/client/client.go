@@ -29,6 +29,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"cosmossdk.io/log"
@@ -52,6 +53,9 @@ type EngineClient struct {
 	capabilities map[string]struct{}
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
+
+	statusErrMu sync.RWMutex
+	statusErr   error
 }
 
 // New creates a new engine client EngineClient.
@@ -76,11 +80,9 @@ func New(opts ...Option) *EngineClient {
 func (s *EngineClient) Start(ctx context.Context) {
 	for {
 		if err := s.setupExecutionClientConnection(ctx); err != nil {
-			s.logger.Error(
-				"attemping to connection to execution client 🚒 ",
-				"err",
-				err,
-			)
+			s.statusErrMu.Lock()
+			s.statusErr = err
+			s.statusErrMu.Unlock()
 			time.Sleep(s.cfg.RPCStartupCheckInterval)
 			continue
 		}
@@ -106,9 +108,15 @@ func (s *EngineClient) Start(ctx context.Context) {
 // Status verifies the chain ID via JSON-RPC. By proxy
 // we will also verify the connection to the execution client.
 func (s *EngineClient) Status() error {
-	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.RPCTimeout)
-	defer cancel()
-	return s.VerifyChainID(ctx)
+	s.statusErrMu.RLock()
+	defer s.statusErrMu.RUnlock()
+	if err := s.statusErr; err != nil {
+		// If we have an error, we will attempt
+		// to verify the chain ID again.
+		//#nosec:G703 wtf is even this problem here.
+		s.statusErr = s.VerifyChainID(context.Background())
+	}
+	return s.statusErr
 }
 
 // Checks the chain ID of the execution client to ensure
@@ -139,9 +147,15 @@ func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			s.statusErrMu.Lock()
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
 				s.logger.Error("failed to refresh JWT token", "err", err)
+				//#nosec:G703 wtf is even this problem here.
+				s.statusErr = fmt.Errorf("%w: failed to refresh JWT token", err)
+			} else {
+				s.statusErr = nil
 			}
+			s.statusErrMu.Unlock()
 		}
 	}
 }

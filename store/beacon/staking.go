@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package beacon
 
 import (
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -31,14 +31,14 @@ import (
 )
 
 // EnqueueDeposits pushes the deposits to the queue.
-func (s *BeaconStore) EnqueueDeposits(
+func (s *Store) EnqueueDeposits(
 	deposits []*consensusv1.Deposit,
 ) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
-func (s *BeaconStore) DequeueDeposits(
+func (s *Store) DequeueDeposits(
 	numDequeue uint64,
 ) ([]*consensusv1.Deposit, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
@@ -48,6 +48,6 @@ func (s *BeaconStore) DequeueDeposits(
 // to facilitate withdrawals from x/beacon_staking.
 // TODO: Explore constructing BeaconState from multiple sources beyond
 // just x/beacon.
-func (s *BeaconStore) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
+func (s *Store) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
 	return []*enginev1.Withdrawal{}, nil
 }

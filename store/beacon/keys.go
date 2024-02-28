@@ -23,14 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package beacon
 
-import "sync"
+// Genesis Related Prefix.
+const (
+	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
+	eth1GenesisHashPrefix = "eth1_genesis_hash"
+)
 
-// ShallowCopy copies the base service and replaces it's name.
-func (s BaseService) ShallowCopy(name string) BaseService {
-	s.logger = s.logger.With("service", name)
-	s.statusErrMu = new(sync.RWMutex)
-	s.name = name
-	return s
-}
+// Collection prefixes.
+const (
+	parentBlockRootPrefix          = "parent_block_root"
+	depositQueuePrefix             = "deposit_queue"
+	fcSafeEth1BlockHashPrefix      = "fc_safe"
+	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
+)
