@@ -25,7 +25,7 @@
 
 pragma solidity 0.8.24;
 
-/// @title BeaconDepositContract
+/// @title IDepositContract
 /// @author Berachain Team.
 /// @dev This contract is a modified version fo the BeaconDepositContract as defined in the
 ///      Ethereum 2.0 specification. It has been extended to also support trigger withdrawals
