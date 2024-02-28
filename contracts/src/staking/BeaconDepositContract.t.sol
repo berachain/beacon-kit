@@ -31,8 +31,8 @@ contract BeaconDepositContractTest is SoladyTest {
     function testDepositValidAmount() public {
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);
-        uint64 amount = 32 gwei; // Assuming Gwei to Ether conversion for
-            // simplicity
+        // Assuming Gwei to Ether conversion for simplicity
+        uint64 amount = 32 gwei;
 
         // Expect the Deposit event to be emitted with correct parameters
         vm.expectEmit(true, true, true, true);
@@ -62,8 +62,8 @@ contract BeaconDepositContractTest is SoladyTest {
     function testWithdrawalValidRequest() public {
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);
-        uint64 amount = 32 gwei; // Assuming Gwei to Ether conversion for
-            // simplicity
+        // Assuming Gwei to Ether conversion for simplicity
+        uint64 amount = 32 gwei;
 
         // Expect the Withdrawal event to be emitted with correct parameters
         vm.expectEmit(true, true, true, true);

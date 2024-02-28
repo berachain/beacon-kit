@@ -65,8 +65,7 @@ contract BeaconRootsContractBaseTest is SoladyTest {
             blockNumbers[i] = startBlock + i;
             timestamps[i] = startTimestamp + i * BLOCK_INTERVAL
             // a random number between 1 and BLOCK_INTERVAL such that the
-            // timestamp is ever
-            // increasing
+            // timestamp is ever increasing
             + FixedPointMathLib.min(
                 1,
                 FixedPointMathLib.fullMulDiv(
@@ -119,15 +118,13 @@ contract BeaconRootsContractBaseTest is SoladyTest {
 /// @dev This contract is used for testing the BeaconRootsContract.
 contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
     /// @dev Test the timestamps, beacon roots, and coinbases are stored
-    /// correctly in the circular
-    /// buffers.
+    /// correctly in the circular buffers.
     function test_Set() public {
         testFuzz_Set(0, 1, HISTORY_BUFFER_LENGTH);
     }
 
     /// @dev Fuzzing test the timestamps, beacon roots, and coinbases are stored
-    /// correctly in the
-    /// circular buffers.
+    /// correctly in the circular buffers.
     function testFuzz_Set(
         uint64 startBlock,
         uint32 startTimestamp,
@@ -283,8 +280,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
     }
 
     /// @dev Fuzzing test the beacon root is retrieved correctly from a
-    /// partially initialized
-    /// buffer.
+    /// partially initialized buffer.
     function testFuzz_PartiallyInitializedBuffer(uint256 length) public {
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);

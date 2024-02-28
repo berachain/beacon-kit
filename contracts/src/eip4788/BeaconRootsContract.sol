@@ -5,8 +5,7 @@ pragma solidity ^0.8.24;
 /// @dev This contract is an implementation of the BeaconRootsContract as
 /// defined in EIP-4788.
 /// It has been extended to include a coinbase storage slot for each block for
-/// use with
-/// the Berachain Proof-of-Liquidity protocol.
+/// use with the Berachain Proof-of-Liquidity protocol.
 /// @author https://eips.ethereum.org/EIPS/eip-4788
 /// @author itsdevbear@berachain.com
 /// @author rusty@berachain.com
@@ -17,8 +16,7 @@ contract BeaconRootsContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev HISTORY_BUFFER_LENGTH is the length of the circular buffer for
-    /// storing beacon roots
-    /// and coinbases. It is 8191 as defined in:
+    /// storing beacon roots and coinbases. It is 8191 as defined in:
     /// https://eips.ethereum.org/EIPS/eip-4788#specification
     uint256 private constant HISTORY_BUFFER_LENGTH = 8191;
 
@@ -54,18 +52,14 @@ contract BeaconRootsContract {
     /// @notice Conforming to EIP-4788, this contract follows two execution
     /// paths:
     /// 1. If it is called by the SYSTEM_ADDRESS, the calldata is the 32-byte
-    /// encoded beacon block
-    /// root.
+    /// encoded beacon block root.
     /// 2. If it is called by any other address, there are two possible
     /// scenarios:
     ///    a. If the calldata is the 32-byte encoded timestamp, the function
-    /// will return the beacon
-    /// block root.
+    /// will return the beacon block root.
     ///    b. If the calldata is the 4-bytes selector for "getCoinbase(uint256)"
-    /// appended with the
-    /// 32-byte encoded block number, the function will return the coinbase for
-    /// the given block
-    /// number.
+    /// appended with the 32-byte encoded block number, the function will return
+    /// the coinbase for the given block number.
     fallback() external {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (
@@ -119,8 +113,7 @@ contract BeaconRootsContract {
         assembly ("memory-safe") {
             let block_idx := mod(number(), HISTORY_BUFFER_LENGTH)
             // clean the key in the mapping for the stale timestamp in the block
-            // index to be
-            // overridden
+            // index to be overridden
             let stale_timestamp := sload(block_idx)
             mstore(0, stale_timestamp)
             mstore(0x20, _blockNumbers.slot)

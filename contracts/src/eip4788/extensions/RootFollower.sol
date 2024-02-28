@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity >=0.8.10;
 
 import { Errors } from "./Errors.sol";
@@ -82,10 +81,10 @@ abstract contract RootFollower is IRootFollower, Ownable {
 
     /// @dev Fetches the coinbase address for a block using inline assembly &
     /// `staticcall`.
+    /// @dev Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts
+    /// on failure.
     /// @param _block The block number to query.
     /// @return _coinbase The miner's address for the block.
-    /// Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on
-    /// failure.
     function _getCoinbase(uint256 _block)
         internal
         view

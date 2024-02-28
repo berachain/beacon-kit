@@ -27,10 +27,8 @@ pragma solidity 0.8.24;
 
 /// @title BeaconDepositContract
 /// @dev This contract is a modified version fo the BeaconDepositContract as
-/// defined in the
-///      Ethereum 2.0 specification. It has been extended to also support
-/// trigger withdrawals
-///      from the consensus layer.
+/// defined in the Ethereum 2.0 specification. It has been extended to also
+/// support trigger withdrawals from the consensus layer.
 /// @author itsdevbear@berachain.com
 /// @author po@berachain.com
 /// @author ocnc@berachain.com
@@ -48,8 +46,7 @@ contract BeaconDepositContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev InsufficientDeposit is thrown when the specified deposit amount is
-    /// below
-    ///      the minimum.
+    /// below the minimum.
     error InsufficientDeposit();
 
     /// @dev Deposit is emitted when a deposit is made to the contract.
