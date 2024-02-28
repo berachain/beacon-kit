@@ -31,7 +31,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder"
-	"github.com/itsdevbear/bolaris/beacon/sync"
+	"github.com/itsdevbear/bolaris/health"
 	"github.com/itsdevbear/bolaris/runtime/abci/listener"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
@@ -49,13 +49,13 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	var (
 		chainService   *blockchain.Service
 		builderService *builder.Service
-		syncService    *sync.Service
+		healthService  *health.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		panic(err)
 	}
 
-	if err := r.services.FetchService(&syncService); err != nil {
+	if err := r.services.FetchService(&healthService); err != nil {
 		panic(err)
 	}
 
@@ -66,14 +66,14 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
 		builderService,
-		syncService,
+		healthService,
 		chainService,
 		nextPrepare,
 		nextProcess,
 	)
 
 	preBlocker := preblock.NewBeaconPreBlockHandler(
-		&r.cfg.ABCI, r.logger, chainService, syncService, nextPreblocker,
+		&r.cfg.ABCI, r.logger, chainService, nextPreblocker,
 	).PreBlocker()
 
 	return proposalHandler.PrepareProposalHandler,

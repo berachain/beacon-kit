@@ -30,25 +30,55 @@ import (
 )
 
 // CheckELSync checks if the execution layer is syncing.
-func (s *Service) CheckCLSync(ctx context.Context) error {
-	// Call the ethClient to get the sync progress
+func (s *Service) CheckCLSync(ctx context.Context) {
+	// Call the CometBFT Client to get the sync progress.
 	resultStatus, err := s.clientCtx.Client.Status(ctx)
+	s.isSyncedCond.L.Lock()
+	defer s.isSyncedCond.L.Unlock()
 	if err != nil {
-		return err
+		s.isCLSynced = false
+		return
 	}
 
 	// Exit early if the node does not return a progress.
 	// This means the node is in sync at the eth1 layer.
-	if !resultStatus.SyncInfo.CatchingUp {
-		return nil
+	if resultStatus.SyncInfo.CatchingUp {
+		s.Logger().Warn(
+			"beacon client is attemping to sync.... ",
+			"current_beacon", resultStatus.SyncInfo.LatestBlockHeight,
+			"highest_beacon", resultStatus.SyncInfo.CatchingUp,
+			"starting_beacon", resultStatus.SyncInfo.EarliestBlockHeight,
+		)
+		s.isCLSynced = false
 	}
 
-	s.Logger().Warn(
-		"beacon client is attemping to sync.... ",
-		"current_beacon", resultStatus.SyncInfo.LatestBlockHeight,
-		"highest_beacon", resultStatus.SyncInfo.CatchingUp,
-		"starting_beacon", resultStatus.SyncInfo.EarliestBlockHeight,
-	)
+	// Else mark as synced
+	s.isCLSynced = true
+}
 
-	return ErrConsensusClientIsSyncing
+// CheckELSync checks if the execution layer is syncing.
+func (s *Service) CheckELSync(ctx context.Context) {
+	// Call the ethClient to get the sync progress
+	progress, err := s.engineClient.SyncProgress(ctx)
+	s.isSyncedCond.L.Lock()
+	defer s.isSyncedCond.L.Unlock()
+
+	if err != nil {
+		s.isELSynced = false
+		return
+	}
+
+	// Exit early if the node does not return a progress.
+	// This means the node is in sync at the eth1 layer.
+	if progress != nil {
+		s.Logger().Warn(
+			"execution client is attemping to sync.... ",
+			"current_eth1", progress.CurrentBlock,
+			"highest_eth1", progress.HighestBlock,
+			"starting_eth1", progress.StartingBlock,
+		)
+		s.isELSynced = false
+	}
+
+	s.isELSynced = true
 }

@@ -51,6 +51,11 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
+	if payload == nil {
+		// SLASH THE PROPOSER HERE
+		return nil
+	}
+
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
 	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
@@ -67,6 +72,7 @@ func (s *Service) PostFinalizeBeaconBlock(
 ) error {
 	var err error
 	state := s.BeaconState(ctx)
+
 	if s.BuilderCfg().LocalBuilderEnabled {
 		err = s.sendFCUWithAttributes(
 			ctx,
