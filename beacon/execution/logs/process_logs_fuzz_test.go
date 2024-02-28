@@ -30,66 +30,51 @@ import (
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/types/consensus"
+	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )
 
-func TestLogFactory(t *testing.T) {
+func FuzzProcessLogs(f *testing.F) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
-	require.NoError(t, err)
 
 	stakingLogRequest, err := logs.NewStakingRequest(
 		contractAddress,
 	)
-	require.NoError(t, err)
-	factory, err := loghandler.NewFactory(
+	require.NoError(f, err)
+	logFactory, err := loghandler.NewFactory(
 		loghandler.WithRequest(stakingLogRequest),
 	)
-	require.NoError(t, err)
+	require.NoError(f, err)
 
-	deposit := consensus.NewDeposit(
-		[]byte("pubkey"),
-		10000,
-		[]byte("12345678901234567890"),
-	)
-	log, err := mocks.NewLogFromDeposit(
-		stakingAbi.Events[logs.DepositName],
-		deposit,
-	)
-	require.NoError(t, err)
-	log.Address = contractAddress
+	f.Add(uint64(100), 3, 10)
+	f.Fuzz(func(t *testing.T, blkNum uint64, depositFactor, numDepositLogs int) {
+		if depositFactor <= 0 || numDepositLogs <= 0 {
+			t.Skip()
+		}
 
-	val, err := factory.UnmarshalEthLog(log)
-	require.NoError(t, err)
+		var logs []ethtypes.Log
+		logs, err = logmocks.CreateDepositLogs(
+			numDepositLogs,
+			depositFactor,
+			contractAddress,
+			blkNum,
+		)
+		require.NoError(t, err)
 
-	valType := reflect.TypeOf(val.Interface())
-	require.NotNil(t, valType)
-	require.Equal(t, reflect.Ptr, valType.Kind())
-	require.Equal(t, logs.DepositType, valType.Elem())
+		var vals []*reflect.Value
+		vals, err = logFactory.ProcessLogs(logs, blkNum)
+		require.NoError(t, err)
+		require.Len(t, vals, numDepositLogs)
 
-	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
-	require.True(t, ok)
-	require.NoError(t, err)
-	require.Equal(t, deposit, newDeposit)
-
-	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
-	log, err = mocks.NewLogFromWithdrawal(
-		stakingAbi.Events[logs.WithdrawalName],
-		withdrawal,
-	)
-	require.NoError(t, err)
-	log.Address = contractAddress
-
-	_, err = factory.UnmarshalEthLog(log)
-	// An error is expected because the event type in ABI and
-	// withdrawalType are mismatched,
-	// (no validatorPubkey in withdrawalType currently).
-	require.Error(t, err)
+		// Check if the values are returned in the correct order.
+		for i, val := range vals {
+			processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
+			require.True(t, ok)
+			require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
+		}
+	})
 }

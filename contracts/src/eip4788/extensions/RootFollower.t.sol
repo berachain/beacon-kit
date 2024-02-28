@@ -24,8 +24,9 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         uint256 blockNum = 1;
         vm.roll(blockNum);
 
-        (bool success, bytes memory result) =
-            BEACON_ROOT_ADDRESS.call(abi.encodeWithSelector(GET_COINBASE_SELECTOR, blockNum));
+        (bool success, bytes memory result) = BEACON_ROOT_ADDRESS.call(
+            abi.encodeWithSelector(GET_COINBASE_SELECTOR, blockNum)
+        );
         assertEq(success, true);
         address expected = abi.decode(result, (address));
 

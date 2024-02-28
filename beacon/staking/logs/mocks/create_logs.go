@@ -23,49 +23,60 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package mocks
 
 import (
-	"fmt"
-	"reflect"
+	"errors"
 
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs"
+	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
-// WithABI returns an Option for registering
-// the contract ABI with the TypeAllocator.
-func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		a.abi = contractAbi
-		a.sigToName = make(map[ethcommon.Hash]string)
-		a.sigToType = make(map[ethcommon.Hash]reflect.Type)
-		return nil
+// CreateDepositLogs creates mock deposit logs.
+func CreateDepositLogs(
+	numDepositLogs int,
+	factor int,
+	contractAddress ethcommon.Address,
+	blkNum uint64,
+) ([]ethtypes.Log, error) {
+	if numDepositLogs <= 0 || factor <= 0 {
+		return nil, errors.New("invalid input")
 	}
-}
 
-// WithNameAndType returns an Option for registering
-// an event name and type under the given even signature
-// with the TypeAllocator.
-// NOTE: WithABI must be called before this function.
-func WithNameAndType(
-	sig ethcommon.Hash,
-	name string,
-	t reflect.Type,
-) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		event, ok := a.abi.Events[name]
-		if !ok {
-			return fmt.Errorf("event %s not found in ABI", name)
-		}
-		if event.ID != sig {
-			return fmt.Errorf(
-				"event %s signature does not match, expected %s, got %s",
-				name, event.ID.Hex(), sig.Hex(),
-			)
-		}
-		a.sigToName[sig] = name
-		a.sigToType[sig] = t
-		return nil
+	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	if err != nil {
+		return nil, err
 	}
+
+	// Create deposit logs.
+	numLogs := factor*(numDepositLogs-1) + 1
+
+	mockLogs := make([]ethtypes.Log, 0, numLogs)
+	for i := 0; i < numLogs; i++ {
+		deposit := consensus.NewDeposit(
+			[]byte("pubkey"),
+			//#nosec:G701 // no overflow
+			uint64(i),
+			[]byte("12345678901234567890"),
+		)
+		var log *ethtypes.Log
+		log, err = NewLogFromDeposit(
+			stakingAbi.Events[logs.DepositName],
+			deposit,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		log.BlockNumber = blkNum
+		if i%factor == 0 {
+			log.Address = contractAddress
+		}
+
+		mockLogs = append(mockLogs, *log)
+	}
+	return mockLogs, nil
 }

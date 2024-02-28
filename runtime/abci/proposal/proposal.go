@@ -35,6 +35,7 @@ import (
 	builder "github.com/itsdevbear/bolaris/beacon/builder"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/health"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -133,25 +134,16 @@ func (h *Handler) ProcessProposalHandler(
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
-		logger.Warn(
-			"proposer failed to include a valid beacon block",
-			"status",
-			err,
-		)
-		// slash them somehow.
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
+			Status: abci.ResponseProcessProposal_ACCEPT}, err
 	}
 
-	// If we get any sort of error from the execution client, we bubble
-	// it up and reject the proposal, as we do not want to write a block
-	// finalization to the consensus layer that is invalid.
+	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block,
-	); err != nil {
-		logger.Error("failed to validate block", "error", err)
+		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
+		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_REJECT}, err
+			Status: abci.ResponseProcessProposal_ACCEPT}, err
 	}
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
