@@ -25,8 +25,8 @@
 
 package logs
 
-// WithRequestsFrom returns an Option for
-// services sending log requests to the Factory.
+// WithRequest returns an Option for setting
+// the allocator for a given contract address.
 func WithRequest(
 	req *LogRequest,
 ) Option[Factory] {
