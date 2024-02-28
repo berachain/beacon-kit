@@ -27,19 +27,13 @@ package execution
 
 import (
 	"context"
-	"reflect"
-	"runtime"
-	"sort"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 )
 
 // Service is responsible for delivering beacon chain notifications to
@@ -106,98 +100,4 @@ func (s *Service) NotifyNewPayload(
 		versionedHashes,
 		parentBlockRoot,
 	)
-}
-
-// GetLogsInETH1Block gets logs in the Eth1 block
-// received from the execution client and uses LogFactory to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service) GetLogsInETH1Block(
-	ctx context.Context,
-	blkNum uint64,
-) ([]*reflect.Value, error) {
-	// Gather all the logs corresponding to the handlers from this block.
-	registeredAddrs := s.logFactory.GetRegisteredAddresses()
-	logsInBlock, err := s.engine.GetLogs(ctx, blkNum, blkNum, registeredAddrs)
-	if err != nil {
-		return nil, err
-	}
-	return s.ProcessLogs(logsInBlock, blkNum)
-}
-
-// ProcessLogs processes the logs received from the execution client
-// in parallel but returns the values in the same order of the received logs.
-func (s *Service) ProcessLogs(
-	logs []ethtypes.Log,
-	blkNum uint64,
-) ([]*reflect.Value, error) {
-	type logResult struct {
-		val   *reflect.Value
-		index int
-	}
-
-	eg := new(errgroup.Group)
-	// Use a semaphore to limit the number
-	// of concurrent goroutines.
-	sem := make(chan bool, runtime.NumCPU())
-	logResults := make([]*logResult, len(logs))
-	// Unmarshal the logs into objects.
-	for i := range logs {
-		i := i
-		log := &logs[i]
-		// Acquire a semaphore slot.
-		sem <- true
-		eg.Go(func() error {
-			defer func() {
-				// Release the semaphore slot when done.
-				<-sem
-			}()
-			// Skip logs that are not from the block we are processing
-			// This should never happen, but defensively check anyway.
-			if log.BlockNumber != blkNum {
-				return nil
-			}
-
-			// Skip logs that are not registered with the factory.
-			// They may be from unregistered contracts (defensive check)
-			// or emitted from unregistered events in the registered contracts.
-			if !s.logFactory.IsRegisteredLog(log) {
-				return nil
-			}
-
-			val, err := s.logFactory.UnmarshalEthLog(log)
-			if err != nil {
-				return errors.Wrapf(err, "%s", "could not unmarshal log")
-			}
-			logResults[i] = &logResult{val: &val, index: i}
-			return nil
-		})
-	}
-
-	// Wait for all goroutines to complete
-	// or return the first error encountered.
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-
-	// Sort the result by the index of the log in the block.
-	sort.Slice(logResults, func(i, j int) bool {
-		if logResults[i] == nil {
-			return false
-		}
-		if logResults[j] == nil {
-			return true
-		}
-		return logResults[i].index < logResults[j].index
-	})
-
-	vals := make([]*reflect.Value, 0, len(logResults))
-	for _, res := range logResults {
-		if res != nil {
-			// At this point, we should not have any nil values
-			// or non-nil errors in the result.
-			vals = append(vals, res.val)
-		}
-	}
-	return vals, nil
 }

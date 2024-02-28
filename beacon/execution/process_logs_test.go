@@ -33,7 +33,6 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	execlogs "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
-	"github.com/itsdevbear/bolaris/beacon/execution/mocks"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/runtime/service"
@@ -62,7 +61,7 @@ func TestProcessLogs(t *testing.T) {
 	blkNum := uint64(100)
 	depositFactor := 3
 	numDepositLogs := 10
-	logs, err := mocks.CreateDepositLogs(
+	logs, err := logmocks.CreateDepositLogs(
 		numDepositLogs,
 		depositFactor,
 		contractAddress,

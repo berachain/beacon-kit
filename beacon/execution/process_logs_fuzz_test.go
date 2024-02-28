@@ -33,7 +33,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/execution/mocks"
+	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
@@ -62,7 +62,7 @@ func FuzzProcessLogs(f *testing.F) {
 		}
 
 		var logs []ethtypes.Log
-		logs, err = mocks.CreateDepositLogs(
+		logs, err = logmocks.CreateDepositLogs(
 			numDepositLogs,
 			depositFactor,
 			contractAddress,
