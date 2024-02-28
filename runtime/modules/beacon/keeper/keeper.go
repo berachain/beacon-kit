@@ -31,14 +31,14 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
+	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	beaconStore *store.BeaconStore
+	beaconStore *beaconstore.Store
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -49,7 +49,7 @@ func NewKeeper(
 	env appmodule.Environment,
 ) *Keeper {
 	return &Keeper{
-		beaconStore: store.NewBeaconStore(env.KVStoreService),
+		beaconStore: beaconstore.NewStore(env.KVStoreService),
 	}
 }
 

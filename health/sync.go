@@ -23,27 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package health
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"context"
+	"time"
 )
 
-// SetParentBlockRoot sets the parent block root in the BeaconStore.
-// It panics if there is an error setting the parent block root.
-func (s *BeaconStore) SetParentBlockRoot(parentRoot [32]byte) {
-	if err := s.parentBlockRoot.Set(s.ctx, parentRoot[:]); err != nil {
-		panic(err)
-	}
-}
+// WaitForHealthyOf waits for the specified services to be healthy.
+func (s *Service) WaitForHealthyOf(
+	ctx context.Context,
+	callerID string,
+	services ...string,
+) error {
+	healthyCh := make(chan struct{})
+	timeout := time.After(
+		3 * time.Second, //nolint:gomnd // TODO: configurable.
+	)
 
-// GetParentBlockRoot retrieves the parent block root from the BeaconStore.
-// It returns an empty hash if there is an error retrieving the parent block
-// root.
-func (s *BeaconStore) GetParentBlockRoot() [32]byte {
-	parentRoot, err := s.parentBlockRoot.Get(s.ctx)
-	if err != nil {
-		parentRoot = []byte{}
+	// Start a goroutine to wait for the service(s) to be healthy.
+	go func() {
+		s.svcRegistry.WaitForHealthy(ctx, services...)
+		close(healthyCh)
+	}()
+
+	// Wait for either the services to become healthy,
+	// athe context to be done, or the timeout.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-healthyCh:
+		// Services became healthy before the timeout.
+		return nil
+	case <-timeout:
+		s.Logger().Warn(
+			"detected potential service degradation...",
+			"caller", callerID, "services", services)
+		return ErrHealthCheckTimeout
 	}
-	return common.BytesToHash(parentRoot)
 }

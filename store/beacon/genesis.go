@@ -23,21 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package beacon
 
 import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
 // SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
-func (s *BeaconStore) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
+func (s *Store) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
 	if err := s.eth1GenesisHash.Set(s.ctx, eth1GenesisHash); err != nil {
 		panic(err)
 	}
 }
 
 // GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
-func (s *BeaconStore) GenesisEth1Hash() common.Hash {
+func (s *Store) GenesisEth1Hash() common.Hash {
 	genesisHash, err := s.eth1GenesisHash.Get(s.ctx)
 	if err != nil {
 		panic("failed to get genesis eth1hash")

@@ -23,32 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sync
+package beacon
 
 import (
-	"context"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-// CheckELSync checks if the execution layer is syncing.
-func (s *Service) CheckELSync(ctx context.Context) error {
-	// Call the ethClient to get the sync progress
-	progress, err := s.engineClient.SyncProgress(ctx)
+// SetParentBlockRoot sets the parent block root in the BeaconStore.
+// It panics if there is an error setting the parent block root.
+func (s *Store) SetParentBlockRoot(parentRoot [32]byte) {
+	if err := s.parentBlockRoot.Set(s.ctx, parentRoot[:]); err != nil {
+		panic(err)
+	}
+}
+
+// GetParentBlockRoot retrieves the parent block root from the BeaconStore.
+// It returns an empty hash if there is an error retrieving the parent block
+// root.
+func (s *Store) GetParentBlockRoot() [32]byte {
+	parentRoot, err := s.parentBlockRoot.Get(s.ctx)
 	if err != nil {
-		return err
+		parentRoot = []byte{}
 	}
-
-	// Exit early if the node does not return a progress.
-	// This means the node is in sync at the eth1 layer.
-	if progress == nil {
-		return nil
-	}
-
-	s.Logger().Warn(
-		"execution client is attemping to sync.... ",
-		"current_eth1", progress.CurrentBlock,
-		"highest_eth1", progress.HighestBlock,
-		"starting_eth1", progress.StartingBlock,
-	)
-
-	return ErrExecutionClientIsSyncing
+	return common.BytesToHash(parentRoot)
 }

@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package beacon
 
 import (
 	"context"
@@ -36,9 +36,9 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// BeaconStore is a wrapper around an sdk.Context
+// Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type BeaconStore struct {
+type Store struct {
 	ctx context.Context
 
 	// depositQueue is a list of depositQueue that are queued to be processed.
@@ -63,10 +63,10 @@ type BeaconStore struct {
 	lastValidHash *common.Hash
 }
 
-// NewBeaconStore creates a new instance of BeaconStore.
-func NewBeaconStore(
+// Store creates a new instance of Store.
+func NewStore(
 	kvs store.KVStoreService,
-) *BeaconStore {
+) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
 	depositQueue := collections.NewQueue[*consensusv1.Deposit](
 		schemaBuilder,
@@ -97,7 +97,7 @@ func NewBeaconStore(
 		parentBlockRootPrefix,
 		sdkcollections.BytesValue,
 	)
-	return &BeaconStore{
+	return &Store{
 		depositQueue:             depositQueue,
 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
@@ -106,8 +106,8 @@ func NewBeaconStore(
 	}
 }
 
-// WithContext( returns the BeaconStore with the given context.
-func (s *BeaconStore) WithContext(ctx context.Context) *BeaconStore {
+// WithContext( returns the Store with the given context.
+func (s *Store) WithContext(ctx context.Context) *Store {
 	s.ctx = ctx
 	return s
 }

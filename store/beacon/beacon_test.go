@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store_test
+package beacon_test
 
 import (
 	"testing"
@@ -34,7 +34,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper/store"
+	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )
@@ -49,7 +49,7 @@ func TestBeaconStore(t *testing.T) {
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	kv := ctx.KVStore(storeKey)
 
-	beaconStore := store.NewBeaconStore(kvs)
+	beaconStore := beaconstore.NewStore(kvs)
 	beaconStore = beaconStore.WithContext(ctx)
 	t.Run("should return correct hashes", func(t *testing.T) {
 		safeHash := common.HexToHash("0x123")
