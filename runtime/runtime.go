@@ -37,7 +37,9 @@ import (
 	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
@@ -72,7 +74,7 @@ func NewBeaconKitRuntime(
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
-
+//nolint:funlen // This function is long because it sets up the services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -113,10 +115,32 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithGCD(gcd),
 	)
 
+	// Build the staking service.
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
+		staking.WithValsetChangeProvider(vcp),
+	)
+
+	// logFactory is used by the execution service to unmarshal
+	// logs retrieved from the engine client.
+	stakingLogRequest, err := logs.NewStakingRequest(
+		cfg.Beacon.Execution.DepositContractAddress,
+	)
+	if err != nil {
+		return nil, err
+	}
+	logFactory, err := loghandler.NewFactory(
+		loghandler.WithRequest(stakingLogRequest),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
+		execution.WithLogFactory(logFactory),
 	)
 
 	// Build the local builder service.
@@ -131,12 +155,6 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
-	)
-
-	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.ShallowCopy("staking")),
-		staking.WithValsetChangeProvider(vcp),
 	)
 
 	chainService := service.New[blockchain.Service](
