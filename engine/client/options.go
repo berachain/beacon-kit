@@ -29,12 +29,7 @@ import (
 	"cosmossdk.io/log"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
-
-type beaconConfig interface {
-	ActiveForkVersion(primitives.Epoch) int
-}
 
 // Option is a function type that takes a pointer to an engineClient and returns
 // an error.
