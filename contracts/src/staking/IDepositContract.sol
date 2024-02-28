@@ -27,83 +27,93 @@ pragma solidity 0.8.24;
 
 /// @title IDepositContract
 /// @author Berachain Team.
-/// @dev This contract is a modified version fo the BeaconDepositContract as defined in the
-///      Ethereum 2.0 specification. It has been modified to be compatible with the BeaconKit.
-//  Differences:
-// 1. The deposit function has been modified to accept an amount of Ether or an ERC20 token.
-// 2. No state required for the contract, all the validation is done in the beaconkit.
-// 3. Added a redelegate and withdraw functions that mainly emit logs that are proccessed by the beaconkit.
+/// @dev This contract is the interdface of the deposit contract that the beaconkit uses to handle its
+/// delegate proof of stake system. It is derived from the Ethereum 2.0 specification but with an arbitrary
+/// staking backend for the chain, hence it is very flexible and can be used with ERC20s or the native token.
 interface IDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        EVENTS                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @notice A processed deposit event.
-    event DepositEvent(
-        bytes pubkey,
-        bytes withdrawal_credentials,
-        bytes amount,
+    /**
+     * @dev Emitted when a deposit is made.
+     * @notice the withdrawCredentials can be left empty if its not the first deposit.
+     * @param amount The amount of the deposit.
+     * @param pubKey The public key of the validator.
+     * @param withdrawalCredentials The withdrawal credentials of the validator.
+     * @param signature The signature of the depositor.
+     */
+    event Deposit(
+        uint64 amount,
+        bytes pubKey,
+        bytes withdrawalCredentials,
         bytes signature
     );
 
-    /// @notice A processed redelegation event.
-    /// @dev We redelegate the `amount` from `pubkey0` to `pubkey1`.
-    event RedelegateEvent(bytes pubkey0, bytes pubkey1, bytes signature);
+    /**
+     * @dev Emitted when a redirection is made.
+     * @param srcPub The public key of the source validator.
+     * @param dstPub The public key of the destination validator.
+     * @param amount The amount to be redirected.
+     * @param signature The signature of the redirector with the stake.
+     */
+    event Redirect(bytes srcPub, bytes dstPub, uint64 amount, bytes signature);
 
-    /// @notice A processed withdrawal event.
-    /// @dev We withdraw the total amount of the deposit.
-    event WithdrawEvent(bytes pubkey, bytes signature);
+    /**
+     * @dev Emitted when a withdrawal is made.
+     * @param pubKey The public key of the validator.
+     * @param amount The amount to be withdrawn from the validator.
+     * @param signature The signature of the withdrawer.
+     */
+    event Withdraw(bytes pubKey, uint64 amount, bytes signature);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        WRITES                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
-     * @notice Submit a Phase 0 DepositData object.
-     * @param amount The amount of the deposit in Gwei.
+     * @notice Submit a stake message to the Beaconchain.
+     * @param amount The amount of the deposit.
      * @param pubkey A BLS12-381 public key.
      * @param withdrawal_credentials Commitment to a public key for withdrawals.
-     * @param signature A BLS12-381 signature.
-     * @param deposit_data_root The SHA-256 hash of the SSZ-encoded DepositData object.
-     * Used as a protection against malformed input.
+     * @param signature A BLS12-381 signature from the depositor.
      */
     function deposit(
-        uint256 amount, // in Gwei even if an ERC20 token.
+        uint64 amount, // in Gwei even if an ERC20 token.
         bytes calldata pubkey,
         bytes calldata withdrawal_credentials,
-        bytes calldata signature,
-        bytes32 deposit_data_root
+        bytes calldata signature
     )
         external
         payable;
 
     /**
-     * @notice Submit a redelegation message.
+     * @notice Submit a redirect stake message.
      * @notice This function is only callable by the owner of the stake.
-     * @param pubkey0 A BLS12-381 public key.
-     * @param pubkey1 A BLS12-381 public key.
-     * @param amount The amount of the deposit in Gwei.
-     * @param signiture A BLS12-381 signature.
+     * @param srcPub A BLS12-381 public key of the source validator.
+     * @param dstPub A BLS12-381 public key of the destination validator.
+     * @param amount The amount of the deposit.
+     * @param signiture A BLS12-381 signature from the redirector.
      */
-    function redelegate(
-        bytes calldata pubkey0,
-        bytes calldata pubkey1,
-        uint256 amount,
+    function redirect(
+        bytes calldata srcPub,
+        bytes calldata dstPub,
+        uint64 amount,
         bytes calldata signiture
     )
         external
         payable;
 
     /**
-     * @notice Submit a withdrawal message.
+     * @notice Submit a withdrawal message to the Beaconchain.
      * @notice This function is only callable by the owner of the stake.
      * @param pubkey A BLS12-381 public key.
-     * @param amount The amount of the deposit in Gwei, even if stake token is an ERC20 token.
-     * @param signiture A BLS12-381 signature.
+     * @param amount The amount of the deposit to be withdrawn.
+     * @param signiture A BLS12-381 signature of the withdrawer.
      */
     function withdraw(
         bytes calldata pubkey,
-        uint256 amount,
+        uint64 amount,
         bytes calldata signiture
     )
         external
