@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "../../lib/solady/test/utils/SoladyTest.sol";
-import "../../lib/solady/src/utils/FixedPointMathLib.sol";
-import { BeaconDepositContract } from "./BeaconDepositContract.sol";
+import "@solady/test/utils/SoladyTest.sol";
+import "@solady/src/utils/FixedPointMathLib.sol";
+import "@src/staking/BeaconDepositContract.sol";
 
 /// @title BeaconDepositContractTest
 contract BeaconDepositContractTest is SoladyTest {
     address internal constant BEACON_DEPOSIT_ADDRESS =
         0x00000000219ab540356cBB839Cbe05303d7705Fa;
-    bytes WITHDRAWAL_CREDENTIALS = abi.encodePacked(address(this));
-    bytes VALIDATOR_PUBKEY = "validator_pubkey";
+    bytes internal WITHDRAWAL_CREDENTIALS = abi.encodePacked(address(this));
+    bytes internal VALIDATOR_PUBKEY = "validator_pubkey";
 
-    BeaconDepositContract depositContract =
+    BeaconDepositContract internal depositContract =
         BeaconDepositContract(BEACON_DEPOSIT_ADDRESS);
     uint256 internal snapshot;
 

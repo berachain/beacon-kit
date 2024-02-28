@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "@src/eip4788/extensions/BeginBlockRootsContract.sol";
 import "./BeaconRootsContract.t.sol";
-import "./extensions/BeginBlockRootsContract.sol";
 
 contract MockExternalContract {
     uint256 public timesCalled;
