@@ -39,7 +39,6 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
@@ -52,8 +51,8 @@ var _ Caller = (*EngineClient)(nil)
 type EngineClient struct {
 	*eth.Eth1Client
 
-	cfg          *config.Engine
-	beaconCfg    *config.Beacon
+	cfg          *Config
+	beaconCfg    beaconConfig
 	capabilities map[string]struct{}
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
