@@ -103,11 +103,11 @@ func (s *Service) NotifyNewPayload(
 	)
 }
 
-// GetLogsInETH1Block gets logs in the Eth1 block
+// ProcessLogsInETH1Block gets logs in the Eth1 block
 // received from the execution client and uses LogFactory to
 // convert them into appropriate objects that can be consumed
 // by other services.
-func (s *Service) GetLogsInETH1Block(
+func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
 	blkNum uint64,
 ) ([]*reflect.Value, error) {
