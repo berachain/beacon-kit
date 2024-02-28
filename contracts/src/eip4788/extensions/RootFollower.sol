@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity >=0.8.10;
 
 import { Errors } from "./Errors.sol";
@@ -18,7 +17,8 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /// @dev The selector for "getCoinbase(uint256)"
     bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
     /// @dev The beacon roots contract address.
-    address private constant BEACON_ROOT_ADDRESS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
+    address private constant BEACON_ROOT_ADDRESS =
+        0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          STORAGE                           */
@@ -36,7 +36,11 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IRootFollower
-    function getCoinbase(uint256 _block) public view returns (address coinbase) {
+    function getCoinbase(uint256 _block)
+        public
+        view
+        returns (address coinbase)
+    {
         return _getCoinbase(_block);
     }
 
@@ -45,7 +49,9 @@ abstract contract RootFollower is IRootFollower, Ownable {
         unchecked {
             return FixedPointMathLib.max(
                 _LAST_PROCESSED_BLOCK + 1,
-                FixedPointMathLib.zeroFloorSub(block.number, HISTORY_BUFFER_LENGTH)
+                FixedPointMathLib.zeroFloorSub(
+                    block.number, HISTORY_BUFFER_LENGTH
+                )
             );
         }
     }
@@ -73,15 +79,25 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*                     INTERNAL FUNCTIONS                     */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev Fetches the coinbase address for a block using inline assembly & `staticcall`.
+    /// @dev Fetches the coinbase address for a block using inline assembly &
+    /// `staticcall`.
+    /// @dev Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts
+    /// on failure.
     /// @param _block The block number to query.
     /// @return _coinbase The miner's address for the block.
-    /// Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts on failure.
-    function _getCoinbase(uint256 _block) internal view returns (address _coinbase) {
+    function _getCoinbase(uint256 _block)
+        internal
+        view
+        returns (address _coinbase)
+    {
         // Check if _block is in the buffer range
         if (
-            (_block < FixedPointMathLib.zeroFloorSub(block.number, HISTORY_BUFFER_LENGTH))
-                || (_block > block.number)
+            (
+                _block
+                    < FixedPointMathLib.zeroFloorSub(
+                        block.number, HISTORY_BUFFER_LENGTH
+                    )
+            ) || (_block > block.number)
         ) {
             revert Errors.BlockNotInBuffer();
         }
@@ -93,8 +109,10 @@ abstract contract RootFollower is IRootFollower, Ownable {
         }
     }
 
-    /// @dev Increments `_LAST_PROCESSED_BLOCK` if it's the next actionable block.
-    /// Reverts with `ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER` if the next block isn't actionable.
+    /// @dev Increments `_LAST_PROCESSED_BLOCK` if it's the next actionable
+    /// block.
+    /// Reverts with `ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER` if the next block
+    /// isn't actionable.
     /// Emits `AdvancedBlock` event after incrementing.
     function _incrementBlock() internal {
         uint256 processingBlock;

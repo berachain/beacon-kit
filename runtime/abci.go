@@ -26,13 +26,10 @@
 package runtime
 
 import (
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder"
 	"github.com/itsdevbear/bolaris/health"
-	"github.com/itsdevbear/bolaris/runtime/abci/listener"
 	"github.com/itsdevbear/bolaris/runtime/abci/preblock"
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
@@ -41,10 +38,9 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
 	nextPreblocker sdk.PreBlocker,
-	logger log.Logger,
 ) (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
-	sdk.PreBlocker, storetypes.StreamingManager,
+	sdk.PreBlocker,
 ) {
 	var (
 		chainService   *blockchain.Service
@@ -78,13 +74,5 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 
 	return proposalHandler.PrepareProposalHandler,
 		proposalHandler.ProcessProposalHandler,
-		preBlocker,
-		storetypes.StreamingManager{
-			ABCIListeners: []storetypes.ABCIListener{
-				listener.NewBeaconListener(
-					logger.With("module", "beacon-listener"),
-					chainService,
-				),
-			},
-		}
+		preBlocker
 }

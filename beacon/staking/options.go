@@ -25,7 +25,9 @@
 
 package staking
 
-import "github.com/itsdevbear/bolaris/runtime/service"
+import (
+	"github.com/itsdevbear/bolaris/runtime/service"
+)
 
 // WithBaseService sets the BaseService for the Service.
 func WithBaseService(

@@ -25,14 +25,10 @@
 
 package logs
 
-import (
-	"context"
+import ethcommon "github.com/ethereum/go-ethereum/common"
 
-	coretypes "github.com/ethereum/go-ethereum/core/types"
-)
-
-// Handler represents a struct that has the ability to ingest
-// an ethereum log and handle it.
-type Handler interface {
-	HandleLog(ctx context.Context, log *coretypes.Log) error
+// LogRequest is a request for logs sent from a service.
+type LogRequest struct {
+	ContractAddress ethcommon.Address
+	Allocator       *TypeAllocator
 }
