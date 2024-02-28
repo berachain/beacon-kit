@@ -31,10 +31,10 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs"
+	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/runtime/logs"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )

@@ -30,7 +30,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/itsdevbear/bolaris/runtime/logs"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/stretchr/testify/require"
 )
 
