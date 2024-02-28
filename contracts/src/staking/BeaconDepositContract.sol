@@ -82,6 +82,7 @@ contract BeaconDepositContract {
         uint64 amount
     )
         external
+        // TODO: Remove payable
         payable
     {
         // Ensure the deposit amount is above the minimum.
