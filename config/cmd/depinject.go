@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package cmd
 
 import (
 	"os"
@@ -84,7 +84,7 @@ func ProvideClientContext(
 
 	// Read the config to overwrite the default values with the values from the
 	// config file
-	customClientTemplate, customClientConfig := initClientConfig()
+	customClientTemplate, customClientConfig := InitClientConfig()
 	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(
 		clientCtx,
 		customClientTemplate,
