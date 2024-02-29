@@ -53,7 +53,9 @@ interface IDepositContract {
      * @param toPubKey The public key of the validator that is being redirected to.
      * @param amount The amount of stake be redirected.
      */
-    event Redirect(bytes indexed fromPubKey, bytes indexed toPubKey, uint64 amount);
+    event Redirect(
+        bytes indexed fromPubKey, bytes indexed toPubKey, uint64 amount
+    );
 
     /**
      * @dev Emitted when a deposit is made.
