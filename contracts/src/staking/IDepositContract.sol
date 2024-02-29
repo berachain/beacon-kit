@@ -41,7 +41,7 @@ interface IDepositContract {
      * @param signature the signature of the deposit message, only checked for creating a new validator.
      */
     event Deposit(
-        bytes validatorPubKey,
+        bytes indexed validatorPubKey,
         bytes stakingCredentials,
         uint64 amount,
         bytes signature
@@ -53,7 +53,7 @@ interface IDepositContract {
      * @param toPubKey The public key of the validator that is being redirected to.
      * @param amount The amount of stake be redirected.
      */
-    event Redirect(bytes fromPubKey, bytes toPubKey, uint64 amount);
+    event Redirect(bytes indexed fromPubKey, indexed toPubKey, uint64 amount);
 
     /**
      * @dev Emitted when a deposit is made.
@@ -62,7 +62,7 @@ interface IDepositContract {
      * @param amount The amount to be withdrawn from the validator.
      */
     event Withdraw(
-        bytes fromPubKey, bytes withdrawalCredentials, uint64 amount
+        bytes indexed fromPubKey, bytes withdrawalCredentials, uint64 amount
     );
 
     // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
