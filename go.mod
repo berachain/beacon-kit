@@ -24,6 +24,7 @@ replace (
 	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240226214332-e0daf4dc54d1
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.1-0.20240222144449-b304cf755682
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240222144449-b304cf755682
+	github.com/berachain/comet-bls12-381 => ../comet-bls12-381
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240226150756-5d5016776ff4
 	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240226214332-e0daf4dc54d1
@@ -51,6 +52,7 @@ require (
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/upgrade v0.1.1
+	github.com/berachain/comet-bls12-381 v0.0.0-00010101000000-000000000000
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.2

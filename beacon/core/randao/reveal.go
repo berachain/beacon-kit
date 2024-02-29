@@ -25,31 +25,50 @@
 
 package randao
 
-import "github.com/itsdevbear/bolaris/crypto/sha256"
+import (
+	"encoding/binary"
 
-// This is the internal representation of the randao reveal
-// Although it is 32 bytes now, it can change
-// We use the same size as Ed25519 sig
-// TODO: update to 96 bytes when moving to BLS
-type Reveal [32]byte
+	"github.com/berachain/comet-bls12-381/bls"
+	"github.com/berachain/comet-bls12-381/bls/blst"
+)
 
-// This is a hashed value of the signed reveal.
-type Mix [32]byte
+// Reveal represents the reveal of the validator for the current epoch.
+type Reveal [BLSSignatureLength]byte
 
-// This is the external representation of the randao random number
-// We fix this to 32 bytes.
-type RandomValue [32]byte
-
-func (m *Mix) MixInRandao(newReveal Reveal) error {
-	hash := sha256.Hash(newReveal[:])
-
-	if len(hash) != len(m) {
-		return ErrMixHashRevealLengthMismatch
+func (r Reveal) Verify(pubKey bls.PubKey, signingData SigningData) bool {
+	bytes, err := blst.SignatureFromBytes(r[:])
+	if err != nil {
+		panic(err)
 	}
 
-	for idx, b := range hash {
-		m[idx] ^= b
-	}
+	return bytes.Verify(pubKey, signingData.Marshall())
+}
 
-	return nil
+type Epoch uint64
+
+type SigningData struct {
+	Epoch   Epoch
+	ChainID string
+}
+
+// Marshall converts the signing data into a byte slice to be signed.
+// this includes the chain-id and the epoch.
+func (s SigningData) Marshall() []byte {
+	var buf []byte
+
+	// TODO maybe caching?
+	binary.LittleEndian.AppendUint64(buf, uint64(s.Epoch))
+	buf = append(buf, []byte(s.ChainID)...)
+
+	return buf
+}
+
+// NewRandaoReveal creates the randao reveal for a given signing data and private key.
+func NewRandaoReveal(signingData SigningData, privKey bls.SecretKey) (Reveal, error) {
+	sig := privKey.Sign(signingData.Marshall())
+
+	var reveal Reveal
+	copy(reveal[:], sig.Marshal())
+
+	return reveal, nil
 }
