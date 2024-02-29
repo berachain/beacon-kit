@@ -26,8 +26,6 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -49,19 +47,7 @@ func DefaultForksConfig() Forks {
 type Forks struct {
 	// ElectraForkEpoch is used to represent the assigned fork epoch for
 	// electra.
-	ElectraForkEpoch primitives.Epoch
-}
-
-// Parse parses the configuration.
-func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
-	var err error
-	if c.ElectraForkEpoch, err = parser.GetEpoch(
-		flags.ElectraForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	ElectraForkEpoch primitives.Epoch `mapstructure:"electra-fork-epoch"`
 }
 
 // Template returns the configuration template.
