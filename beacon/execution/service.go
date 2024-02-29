@@ -109,18 +109,23 @@ func (s *Service) NotifyNewPayload(
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	blkNum uint64,
+	blkHash common.Hash,
 ) ([]*reflect.Value, error) {
+	// Get the block header from the execution client.
+	header, err := s.engine.HeaderByHash(ctx, blkHash)
+	if err != nil {
+		return nil, err
+	}
 	// Gather all the logs corresponding to
 	// the addresses of interest from this block.
 	logsInBlock, err := s.engine.GetLogs(
 		ctx,
-		blkNum,
-		blkNum,
+		header.Number,
+		header.Number,
 		s.logFactory.GetRegisteredAddresses(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	return s.logFactory.ProcessLogs(logsInBlock, blkNum)
+	return s.logFactory.ProcessLogs(logsInBlock, header.Number.Uint64())
 }

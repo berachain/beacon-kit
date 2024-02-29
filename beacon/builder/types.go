@@ -23,47 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package builder
 
 import (
+	"context"
+	"reflect"
+
+	"github.com/ethereum/go-ethereum/common"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-	ssz "github.com/prysmaticlabs/fastssz"
 )
 
-// BeaconKitBlock is the interface for a beacon block.
-type BeaconKitBlock interface {
-	ReadOnlyBeaconKitBlock
-	WriteOnlyBeaconKitBlock
+// PayloadBuilder represents a service that is responsible for
+// building eth1 blocks.
+type PayloadBuilder interface {
+	GetBestPayload(
+		ctx context.Context,
+		slot primitives.Slot,
+		parentBlockRoot [32]byte,
+		parentEth1Hash common.Hash,
+	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }
 
-type BeaconBlockBody interface {
-	ReadOnlyBeaconKitBlockBody
+// ExecutionService represents a service that is responsible for
+// processing logs in an eth1 block.
+type ExecutionService interface {
+	// ProcessLogsInETH1Block processes logs in an eth1 block
+	// by unmarshaling them into appropriate values.
+	ProcessLogsInETH1Block(
+		ctx context.Context, blkHash common.Hash,
+	) ([]*reflect.Value, error)
 }
 
-type ReadOnlyBeaconKitBlockBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-}
+// StakingService represents a service that is responsible for
+// staking-related operations.
+type StakingService interface {
+	// AcceptDepositsIntoQueue accepts a list
+	// of deposits into the deposit queue.
+	AcceptDepositsIntoQueue(
+		ctx context.Context,
+		deposits []*consensusv1.Deposit,
+	) error
 
-// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconKitBlock interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	GetParentRoot() []byte
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (enginetypes.ExecutionPayload, error)
-	Version() int
-}
-
-// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(enginetypes.ExecutionPayload) error
-	AttachDeposits([]*consensusv1.Deposit) error
+	// DequeueDeposits dequeues deposits from the deposit queue.
+	DequeueDeposits(
+		ctx context.Context,
+	) ([]*consensusv1.Deposit, error)
 }

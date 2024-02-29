@@ -27,6 +27,7 @@ package client
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
@@ -69,8 +70,9 @@ type Caller interface {
 		withTxs bool) (*enginev1.ExecutionBlock, error)
 
 	// GetLogs retrieves the logs from the Ethereum execution node.
-	GetLogs(
-		ctx context.Context, fromBlock, toBlock uint64, addresses []common.Address,
+	GetLogs(ctx context.Context,
+		fromBlock, toBlock *big.Int,
+		addresses []common.Address,
 	) ([]gethcoretypes.Log, error)
 
 	// Eth Namespace Methods

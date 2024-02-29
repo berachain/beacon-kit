@@ -31,17 +31,28 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-// AcceptDepositIntoQueue records a deposit in the beacon state's queue.
-func (s *Service) AcceptDepositIntoQueue(
+// AcceptDepositsIntoQueue records a list
+// of deposits in the beacon state's queue.
+func (s *Service) AcceptDepositsIntoQueue(
 	ctx context.Context,
-	deposit *consensusv1.Deposit,
+	deposits []*consensusv1.Deposit,
 ) error {
-	// Push the deposit to the beacon state's queue.
-	err := s.BeaconState(ctx).EnqueueDeposits([]*consensusv1.Deposit{deposit})
+	// Push the deposits to the beacon state's queue.
+	err := s.BeaconState(ctx).EnqueueDeposits(deposits)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// DequeueDeposits returns up to MaxDepositsPerBlock deposits
+// from the beacon state's queue.
+func (s *Service) DequeueDeposits(
+	ctx context.Context,
+) ([]*consensusv1.Deposit, error) {
+	return s.BeaconState(ctx).DequeueDeposits(
+		s.BeaconCfg().Limits.MaxDepositsPerBlock,
+	)
 }
 
 // ApplyDeposits processes the deposits in the beacon state's queue,

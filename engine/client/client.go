@@ -145,15 +145,15 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 // It calls the eth_getLogs method via JSON-RPC.
 func (s *EngineClient) GetLogs(
 	ctx context.Context,
-	fromBlock, toBlock uint64,
+	fromBlock, toBlock *big.Int,
 	addresses []common.Address,
 ) ([]coretypes.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.
 	query := ethereum.FilterQuery{
 		Addresses: addresses,
-		FromBlock: new(big.Int).SetUint64(fromBlock),
-		ToBlock:   new(big.Int).SetUint64(toBlock),
+		FromBlock: fromBlock,
+		ToBlock:   toBlock,
 	}
 
 	// Gather all the logs according to the query.

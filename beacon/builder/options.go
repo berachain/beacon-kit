@@ -61,3 +61,11 @@ func WithRemoteBuilders(builders ...PayloadBuilder) service.Option[Service] {
 		return nil
 	}
 }
+
+// WithExecutionService sets the execution service.
+func WithExecutionService(es ExecutionService) service.Option[Service] {
+	return func(s *Service) error {
+		s.es = es
+		return nil
+	}
+}

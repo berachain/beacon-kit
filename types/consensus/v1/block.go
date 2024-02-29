@@ -66,6 +66,14 @@ func (b *BeaconKitBlockDeneb) AttachExecution(
 	return nil
 }
 
+// AttachDeposits attaches the given deposits to the block.
+func (b *BeaconKitBlockDeneb) AttachDeposits(
+	deposits []*Deposit,
+) error {
+	b.Body.Deposits = deposits
+	return nil
+}
+
 // Execution returns the execution data of the block.
 func (b *BeaconKitBlockDeneb) ExecutionPayload() (
 	enginetypes.ExecutionPayload, error,

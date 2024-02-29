@@ -27,31 +27,31 @@ package builder
 
 import (
 	"context"
+	"errors"
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
+	stakinglogs "github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/config"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/sourcegraph/conc/pool"
 )
-
-// PayloadBuilder represents a service that is responsible for
-// building eth1 blocks.
-type PayloadBuilder interface {
-	GetBestPayload(
-		ctx context.Context,
-		slot primitives.Slot,
-		parentBlockRoot [32]byte,
-		parentEth1Hash common.Hash,
-	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
-}
 
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
 	cfg *config.Builder
+
+	// es is the execution service that is responsible for
+	// processing logs in the eth1 block.
+	es ExecutionService
+
+	// ss is the staking service that is responsible for
+	// accepting deposits into the deposit queue.
+	ss StakingService
 
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -106,6 +106,18 @@ func (s *Service) RequestBestBlock(
 		return nil, err
 	}
 
+	p := pool.New().WithErrors()
+	// Using goroutines here with only one task
+	// is unnecessary, but it makes sense if we
+	// want to add more tasks in the future.
+	p.Go(func() error {
+		return s.handleLogs(ctx, common.BytesToHash(payload.GetBlockHash()))
+	})
+	err = p.Wait()
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: Dencun
 	_ = blobsBundle
 
@@ -117,6 +129,50 @@ func (s *Service) RequestBestBlock(
 		return nil, err
 	}
 
+	// Dequeue deposits, up to MaxDepositsPerBlock, from the deposit queue.
+	expectedDeposits, err := s.ss.DequeueDeposits(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Attach the deposits to the block.
+	if err = beaconBlock.AttachDeposits(expectedDeposits); err != nil {
+		return nil, err
+	}
+
 	// Return the block.
 	return beaconBlock, nil
+}
+
+// handleLogs processes logs into values and
+// does the appropriate action based on the log type.
+func (s *Service) handleLogs(ctx context.Context, blkHash common.Hash) error {
+	// Process logs in the eth1 block into values.
+	var logValues []*reflect.Value
+	logValues, err := s.es.ProcessLogsInETH1Block(ctx, blkHash)
+	if err != nil {
+		return err
+	}
+	// Process the log values based on their types.
+	// Deposits are accepted into the deposit queue.
+	deposits := make([]*consensusv1.Deposit, 0, len(logValues))
+	for _, logValue := range logValues {
+		logType := reflect.TypeOf(logValue.Interface())
+		if logType.Kind() == reflect.Ptr {
+			logType = logType.Elem()
+		}
+		switch logType {
+		case stakinglogs.DepositType:
+			deposit, ok := logValue.Interface().(*consensusv1.Deposit)
+			if !ok {
+				return errors.New("could not cast log value to deposit")
+			}
+			deposits = append(deposits, deposit)
+		case stakinglogs.WithdrawalType:
+		}
+	}
+	if err = s.ss.AcceptDepositsIntoQueue(ctx, deposits); err != nil {
+		return err
+	}
+	return nil
 }

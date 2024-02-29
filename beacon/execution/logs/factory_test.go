@@ -69,7 +69,8 @@ func TestLogFactory(t *testing.T) {
 	val, err := factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
 
-	valType := reflect.TypeOf(val.Interface())
+	valPtr := &val
+	valType := reflect.TypeOf(valPtr.Interface())
 	require.NotNil(t, valType)
 	require.Equal(t, reflect.Ptr, valType.Kind())
 	require.Equal(t, logs.DepositType, valType.Elem())
