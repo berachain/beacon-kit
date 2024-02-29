@@ -227,3 +227,4 @@ out
 
 # integration testing coverage
 coverage-test-unit-cover.txt
+.vercel
