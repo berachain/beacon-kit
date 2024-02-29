@@ -116,4 +116,4 @@ fi
 ./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
---home "$HOMEDIR" --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}
+--home "$HOMEDIR" --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} --beacon-kit.engine.rpc-dial-url xxxxxx.coms
