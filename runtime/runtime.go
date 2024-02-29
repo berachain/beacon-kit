@@ -156,6 +156,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
 		builder.WithExecutionService(executionService),
+		builder.WithStakingService(stakingService),
 	)
 
 	chainService := service.New[blockchain.Service](
