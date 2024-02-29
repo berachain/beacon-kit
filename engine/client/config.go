@@ -28,9 +28,6 @@ package client
 import (
 	"net/url"
 	"time"
-
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
 const (
@@ -77,44 +74,6 @@ func DefaultConfig() Config {
 		JWTSecretPath:           defaultJWTSecretPath,
 		RequiredChainID:         defaultRequiredChainID,
 	}
-}
-
-// Parse parses the configuration.
-func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
-	var err error
-	if c.RPCDialURL, err = parser.GetURL(flags.RPCDialURL); err != nil {
-		return nil, err
-	}
-	if c.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
-		return nil, err
-	}
-	if c.RPCTimeout, err = parser.GetTimeDuration(
-		flags.RPCTimeout,
-	); err != nil {
-		return nil, err
-	}
-	if c.RPCStartupCheckInterval, err = parser.GetTimeDuration(
-		flags.RPCStartupCheckInterval,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.RPCJWTRefreshInterval, err = parser.GetTimeDuration(
-		flags.RPCJWTRefreshInterval,
-	); err != nil {
-		return nil, err
-	}
-	if c.JWTSecretPath, err = parser.GetString(
-		flags.JWTSecretPath,
-	); err != nil {
-		return nil, err
-	}
-	if c.RequiredChainID, err = parser.GetUint64(
-		flags.RequiredChainID,
-	); err != nil {
-		return nil, err
-	}
-	return &c, nil
 }
 
 func (c Config) Template() string {

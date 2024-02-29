@@ -112,13 +112,20 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	cfg := Config{}
-	opts.(*viper.Viper).UnmarshalKey("beacon-kit", &cfg,
+	v := opts.(*viper.Viper).Sub("beacon-kit")
+	if err := v.UnmarshalExact(&cfg,
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
-			viperlib.StringToExecutionAddressFunc(),
-			viperlib.StringToDialURLFunc(),
 			mapstructure.StringToTimeDurationHookFunc(),
 			mapstructure.StringToSliceHookFunc(","),
-		)))
+			viperlib.StringToExecutionAddressFunc(),
+			viperlib.StringToDialURLFunc(),
+		))); err != nil {
+		return nil, fmt.Errorf(
+			"failed to read beacon-kit configuration: %w",
+			err,
+		)
+	}
+	fmt.Println("OOGA")
 	fmt.Println(cfg)
 	return &cfg, nil
 }
@@ -127,7 +134,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
 	startCmd.Flags().String(
-		flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
+		flags.JWTSecretPath, "DEFAULT",
 		"path to the execution client secret")
 	startCmd.Flags().String(
 		flags.RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")

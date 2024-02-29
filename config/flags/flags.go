@@ -40,7 +40,7 @@ const (
 	JWTSecretPath           = engineRoot + "jwt-secret-path"
 	RequiredChainID         = engineRoot + "required-chain-id"
 
-	// Beacon Config
+	// Beacon Config.
 	beaconConfigRoot   = beaconKitRoot + "beacon-config."
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
@@ -74,5 +74,5 @@ const (
 
 	// ABCI Config.
 	abciRoot            = beaconKitRoot + "abci."
-	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
+	BeaconBlockPosition = abciRoot + "beacon-block-position"
 )
