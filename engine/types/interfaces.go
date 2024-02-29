@@ -54,6 +54,11 @@ type ExecutionPayload interface {
 	GetWithdrawals() []*enginev1.Withdrawal
 }
 
+// GenesisExecutionPayload represents the execution data of a genesis block.
+type GenesisExecutionPayload interface {
+	GetPayload() ExecutionPayload
+}
+
 // ExecutionPayloadHeader represents an execution payload header.
 type ExecutionPayloadHeader interface {
 	ExecutionPayloadBody
