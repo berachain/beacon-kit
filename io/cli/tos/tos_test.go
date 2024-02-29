@@ -35,12 +35,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
+	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
 	beaconflags "github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
 	"github.com/itsdevbear/bolaris/io/file"
-	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
 	"github.com/stretchr/testify/mock"
 )
 
