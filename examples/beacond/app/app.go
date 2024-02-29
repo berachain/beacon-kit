@@ -147,7 +147,6 @@ func NewBeaconKitApp(
 	}
 
 	// Build the app using the app builder.
-	baseAppOptions = append(baseAppOptions /*baseapp.SetOptimisticExecution()*/)
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Componenets.
