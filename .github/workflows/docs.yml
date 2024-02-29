@@ -23,7 +23,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-name: docs-preview
+name: docs
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -33,17 +33,24 @@ on:
     paths:
       - 'docs/**'
       - 'vercel.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'vercel.json'
 
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: pnpm/action-setup@v3
         name: Install pnpm
         with:
           version: 8
           run_install: false
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Vercel CLI
         run: pnpm add -g vercel@latest
       - name: Install Dependencies
@@ -56,3 +63,25 @@ jobs:
         run: cd docs; vercel build -d --local-config=../vercel.json --scope=${{ secrets.VERCEL_TEAM_ID }} --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
         run: cd docs; vercel deploy --prebuilt --scope=${{ secrets.VERCEL_TEAM_ID }} --token=${{ secrets.VERCEL_TOKEN }}
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+      - uses: actions/checkout@v3
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+      - name: Install Dependencies
+        run: cd docs; pnpm install;
+      - name: Run Build
+        run: cd docs; pnpm build;
+      - name: Pull Vercel Environment Information
+        run: cd docs; vercel pull --yes --environment=production --scope=${{ secrets.VERCEL_TEAM_ID }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: cd docs; vercel build --prod -d --local-config=../vercel.json --scope=${{ secrets.VERCEL_TEAM_ID }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        run: cd docs; vercel deploy --prebuilt --prod --scope=${{ secrets.VERCEL_TEAM_ID }} --token=${{ secrets.VERCEL_TOKEN }}
