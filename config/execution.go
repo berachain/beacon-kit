@@ -26,8 +26,6 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -41,21 +39,9 @@ func DefaultExecutionConfig() Execution {
 	}
 }
 
-// Execution represents the configuration struct for the
 // execution layer on the beacon chain.
 type Execution struct {
-	DepositContractAddress primitives.ExecutionAddress
-}
-
-// Parse parses the configuration.
-func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
-	var err error
-	if c.DepositContractAddress, err = parser.GetExecutionAddress(
-		flags.DepositContractAddress,
-	); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	DepositContractAddress primitives.ExecutionAddress `mapstructure:"deposit-contract-address"`
 }
 
 // Template returns the configuration template.

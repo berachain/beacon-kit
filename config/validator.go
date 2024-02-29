@@ -26,9 +26,8 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Validator conforms to the BeaconKitConfig interface.
@@ -36,6 +35,7 @@ var _ BeaconKitConfig[Validator] = &Validator{}
 
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultValidatorConfig() Validator {
+	mapstructure.StringToSliceHookFunc(",")
 	return Validator{
 		SuggestedFeeRecipient:   primitives.ExecutionAddress{},
 		Graffiti:                "",
@@ -48,29 +48,13 @@ type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
-	SuggestedFeeRecipient primitives.ExecutionAddress
+	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
 
-	// Graffiti is the string that will be included in the
-	// graffiti field of the beacon block.
 	Graffiti string
 
+	// Graffiti is the string that will be included in the
 	// Rando reveals to track
-	NumRandaoRevealsToTrack uint64
-}
-
-// Parse parses the configuration.
-func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
-	var err error
-	if c.SuggestedFeeRecipient, err = parser.GetExecutionAddress(
-		flags.SuggestedFeeRecipient,
-	); err != nil {
-		return nil, err
-	}
-	if c.Graffiti, err = parser.GetString(flags.Graffiti); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	NumRandaoRevealsToTrack uint64 `mapstructure:"num-randao-reveals-to-track"`
 }
 
 // Template returns the configuration template.

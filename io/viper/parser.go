@@ -23,38 +23,59 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package viper
 
 import (
-	"github.com/itsdevbear/bolaris/primitives"
+	"net/url"
+	"reflect"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/mitchellh/mapstructure"
 )
 
-const defaultElectraForkEpoch = 9999999999999999
+// StringToSliceHookFunc returns a DecodeHookFunc that converts
+// string to []string by splitting on the given sep.
+func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (common.Address, error) {
+			return common.HexToAddress(s), nil
+		},
+	)
+}
 
-// Forks conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[Forks] = &Forks{}
+// StringToDialURLFunc returns a DecodeHookFunc that converts
+// string to *url.URL by parsing the string.
+func StringToDialURLFunc() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (*url.URL, error) {
+			url, err := url.Parse(s)
+			if err != nil {
+				return nil, err
+			}
+			return url, nil
+		},
+	)
+}
 
-// DefaultForksConfig returns the default forks configuration.
-func DefaultForksConfig() Forks {
-	return Forks{
-		ElectraForkEpoch: primitives.Epoch(
-			defaultElectraForkEpoch,
-		),
+// string to *jwt.Secret by reading the file at the given path.
+func StringTo[T any](
+	constructor func(string) (T, error),
+) mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{},
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		var retType T
+		if t != reflect.TypeOf(retType) {
+			return data, nil
+		}
+
+		// Convert it by parsing
+		return constructor(data.(string))
 	}
-}
-
-// Config represents the configuration struct for the forks.
-type Forks struct {
-	// ElectraForkEpoch is used to represent the assigned fork epoch for
-	// electra.
-	ElectraForkEpoch primitives.Epoch `mapstructure:"electra-fork-epoch"`
-}
-
-// Template returns the configuration template.
-func (c Forks) Template() string {
-	return `
-[beacon-kit.beacon-config.forks]
-# Electra fork epoch
-electra-fork-epoch = {{.BeaconKit.Beacon.Forks.ElectraForkEpoch}}
-`
 }

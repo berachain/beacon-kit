@@ -26,18 +26,22 @@
 package config
 
 import (
+	"fmt"
+
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
+	viperlib "github.com/itsdevbear/bolaris/io/viper"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // BeaconKitConfig is the interface for a sub-config of the global BeaconKit
 // configuration.
 type BeaconKitConfig[T any] interface {
 	Template() string
-	Parse(parser parser.AppOptionsParser) (*T, error)
 }
 
 // DefaultConfig returns the default configuration for a BeaconKit chain.
@@ -46,7 +50,7 @@ func DefaultConfig() *Config {
 		ABCI:         DefaultABCIConfig(),
 		Beacon:       DefaultBeaconConfig(),
 		Builder:      DefaultBuilderConfig(),
-		Engine:       DefaultEngineConfig(),
+		Engine:       engineclient.DefaultConfig(),
 		FeatureFlags: DefaultFeatureFlagsConfig(),
 	}
 }
@@ -54,19 +58,19 @@ func DefaultConfig() *Config {
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
 	// ABCI is the configuration for ABCI related settings.
-	ABCI ABCI
+	ABCI ABCI `mapstructure:"abci"`
 
 	// Beacon is the configuration for the fork epochs.
-	Beacon Beacon
+	Beacon Beacon `mapstructure:"beacon-config"`
 
 	// Builder is the configuration for the local build payload timeout.
-	Builder Builder
+	Builder Builder `mapstructure:"builder"`
 
 	// Engine is the configuration for the execution client.
-	Engine Engine
+	Engine engineclient.Config `mapstructure:"engine"`
 
 	// FeatureFlags is the configuration for the feature flags.
-	FeatureFlags FeatureFlags
+	FeatureFlags FeatureFlags `mapstructure:"feature_flags"`
 }
 
 // Template returns the configuration template.
@@ -107,58 +111,21 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
-	return readConfigFromAppOptsParser(
-		parser.AppOptionsParser{AppOptions: opts},
-	)
-}
-
-// readConfigFromAppOptsParser reads the configuration options from the given.
-func readConfigFromAppOptsParser(
-	parser parser.AppOptionsParser,
-) (*Config, error) {
-	var (
-		err       error
-		conf      = &Config{}
-		engineCfg *Engine
-		beaconCfg *Beacon
-		abciCfg   *ABCI
-	)
-
-	// Read ABCI Config
-	abciCfg, err = ABCI{}.Parse(parser)
-	if err != nil {
-		return nil, err
+	cfg := Config{}
+	v := opts.(*viper.Viper).Sub("beacon-kit")
+	if err := v.UnmarshalExact(&cfg,
+		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+			viperlib.StringToExecutionAddressFunc(),
+			viperlib.StringToDialURLFunc(),
+		))); err != nil {
+		return nil, fmt.Errorf(
+			"failed to read beacon-kit configuration: %w",
+			err,
+		)
 	}
-	conf.ABCI = *abciCfg
-
-	// Read Beacon Config
-	beaconCfg, err = Beacon{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.Beacon = *beaconCfg
-
-	// Read Bilder Config
-	builderCfg, err := Builder{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.Builder = *builderCfg
-
-	// Read Engine Client Config
-	engineCfg, err = Engine{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.Engine = *engineCfg
-
-	featureFlagsCfg, err := FeatureFlags{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.FeatureFlags = *featureFlagsCfg
-
-	return conf, nil
+	return &cfg, nil
 }
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
