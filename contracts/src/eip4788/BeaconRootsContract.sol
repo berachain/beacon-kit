@@ -34,15 +34,19 @@ contract BeaconRootsContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev The circular buffer for storing timestamps.
+    // slither-disable-next-line unused-state
     uint256[HISTORY_BUFFER_LENGTH] private _timestamps;
 
     /// @dev The circular buffer for storing beacon roots.
+    // slither-disable-next-line uninitialized-state
     bytes32[HISTORY_BUFFER_LENGTH] private _beaconRoots;
 
     /// @dev The circular buffer for storing coinbases.
+    // slither-disable-next-line uninitialized-state
     address[HISTORY_BUFFER_LENGTH] private _coinbases;
 
     /// @dev The mapping of timestamps to block numbers.
+    // slither-disable-next-line uninitialized-state
     mapping(uint256 timestamp => uint256 blockNumber) private _blockNumbers;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -102,6 +106,7 @@ contract BeaconRootsContract {
             if iszero(eq(_timestamp, calldataload(0))) { revert(0, 0) }
             let root_idx := add(block_idx, _beaconRoots.slot)
             mstore(0, sload(root_idx))
+            // slither-disable-next-line incorrect-return
             return(0, 0x20)
         }
     }
@@ -148,6 +153,7 @@ contract BeaconRootsContract {
             let block_idx := mod(calldataload(4), HISTORY_BUFFER_LENGTH)
             let coinbase_idx := add(block_idx, _coinbases.slot)
             mstore(0, sload(coinbase_idx))
+            // slither-disable-next-line incorrect-return
             return(0, 0x20)
         }
     }
