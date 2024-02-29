@@ -23,20 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package beacon
 
-import "github.com/itsdevbear/bolaris/crypto/sha256"
+import (
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+)
 
-// Mix is a hashed value of the signed reveal.
-type Mix [32]byte
+// SetLastValidHead sets the last valid head in the store.
+// TODO: Make this in-mem thing more robust.
+func (s *Store) SetRandaoMix(primitives.Epoch, randaotypes.Mix) error {
+	return nil
+}
 
-// MixWithReveal mixes the current mix with the new reveal and returns the new mix.
-func (m Mix) MixWithReveal(newReveal Reveal) Mix {
-	hash := sha256.Hash(newReveal.Marshal())
-
-	for idx, b := range hash {
-		m[idx] ^= b
-	}
-
-	return m
+// GetLastValidHead retrieves the last valid head from the store.
+// TODO: Make this in-mem thing more robust.
+func (s *Store) RandaoMix() (randaotypes.Mix, error) {
+	return randaotypes.Mix{}, nil
 }

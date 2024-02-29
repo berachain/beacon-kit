@@ -25,30 +25,6 @@
 
 package randao
 
-import (
-	"encoding/binary"
-)
-
-type Reveal interface {
-	Verify(pubKey []byte, signingData SigningData) bool
-	Marshal() []byte
-}
-
-type Epoch uint64
-
-type SigningData struct {
-	Epoch   Epoch
-	ChainID string
-}
-
-// Marshal converts the signing data into a byte slice to be signed.
-// this includes the chain-id and the epoch.
-func (s SigningData) Marshal() []byte {
-	var buf []byte
-
-	// TODO maybe caching?
-	binary.LittleEndian.AppendUint64(buf, uint64(s.Epoch))
-	buf = append(buf, []byte(s.ChainID)...)
-
-	return buf
+type Config struct {
+	EpochsPerHistoricalVector uint64 `mapstructure:"epochs-per-historical-vector"`
 }
