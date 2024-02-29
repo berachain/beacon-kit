@@ -38,6 +38,14 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 	}
 }
 
+// WithConfig returns an Option that sets the Config for the Service.
+func WithConfig(cfg *Config) service.Option[Service] {
+	return func(s *Service) error {
+		s.cfg = cfg
+		return nil
+	}
+}
+
 // WithEngineClient sets the EngineClient of the Service.
 func WithEngineClient(
 	engineClient *client.EngineClient,

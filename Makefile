@@ -96,7 +96,7 @@ start-reth:
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
-	--http.api eth \
+	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	
@@ -119,7 +119,7 @@ start-geth:
 	ethereum/client-go \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth \
+	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
@@ -331,7 +331,7 @@ slither:
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
 	trailofbits/eth-security-toolbox \
-	slither /contracts/src --config-file /contracts/slither.config.json
+	/bin/bash -c "cd /contracts && slither ./src/eip4788 && slither ./src/staking"
 
 
 #################

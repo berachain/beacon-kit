@@ -74,13 +74,13 @@ func (s *Service) BuildLocalPayload(
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
-		s.Logger().Error("received nil payload ID on VALID engine response",
+		s.Logger().Warn("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
 			"slot", fcuConfig.ProposingSlot,
 		)
 
 		s.SetStatus(ErrNilPayloadOnValidResponse)
-		return nil, ErrNilPayloadOnValidResponse
+		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes",
@@ -109,14 +109,6 @@ func (s *Service) GetBestPayload(
 	parentBlockRoot [32]byte,
 	parentEth1Hash common.Hash,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	// vIdx := blk.ProposerIndex()
-	// headRoot := blk.ParentRoot()
-	// logFields := logrus.Fields{
-	// 	"validatorIndex": vIdx,
-	// 	"slot":           slot,
-	// 	"headRoot":       fmt.Sprintf("%#x", headRoot),
-	// }
-
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -133,27 +125,27 @@ func (s *Service) GetBestPayload(
 		slot,
 		parentBlockRoot,
 	)
-	if err == nil {
-		return payload, blobsBundle, overrideBuilder, nil
+	if err != nil {
+		// If we see an error we have to trigger a new payload to be built, wait
+		// for it to be resolved and then return the data. This case should very
+		// rarely be hit
+		// if your consensus and execution clients are operating well.
+		s.Logger().Warn(fmt.Sprintf(
+			"%s, notifying execution client to construct a new payload ...",
+			err.Error(),
+		))
+
+		//#nosec:G701 // won't overflow, time cannot be negative.
+		payload, blobsBundle, overrideBuilder, err = s.buildAndWaitForLocalPayload(
+			ctx,
+			parentEth1Hash,
+			slot,
+			uint64(time.Now().Unix()),
+			parentBlockRoot,
+		)
 	}
 
-	s.Logger().Warn(fmt.Sprintf(
-		"%s, notifying execution client to construct a new payload ...",
-		err.Error(),
-	))
-
-	// Otherwise we have to trigger a new payload to be built, wait for it to be
-	// resolved and then return the data. This case should very rarely be hit
-	// if your consensus client is operating well.
-	//
-	//#nosec:G701 // won't overflow, time cannot be negative.
-	return s.buildAndWaitForLocalPayload(
-		ctx,
-		parentEth1Hash,
-		slot,
-		uint64(time.Now().Unix()),
-		parentBlockRoot,
-	)
+	return payload, blobsBundle, overrideBuilder, err
 }
 
 // getPayloadFromCachedPayloadIDs attempts to retrieve a payload from the

@@ -51,30 +51,36 @@ func FuzzProcessLogs(f *testing.F) {
 	require.NoError(f, err)
 
 	f.Add(uint64(100), 3, 10)
-	f.Fuzz(func(t *testing.T, blkNum uint64, depositFactor, numDepositLogs int) {
-		if depositFactor <= 0 || numDepositLogs <= 0 {
-			t.Skip()
-		}
+	f.Fuzz(
+		func(t *testing.T, blkNum uint64, depositFactor, numDepositLogs int) {
+			if depositFactor <= 0 || numDepositLogs <= 0 {
+				t.Skip()
+			}
 
-		var logs []ethtypes.Log
-		logs, err = logmocks.CreateDepositLogs(
-			numDepositLogs,
-			depositFactor,
-			contractAddress,
-			blkNum,
-		)
-		require.NoError(t, err)
+			var logs []ethtypes.Log
+			logs, err = logmocks.CreateDepositLogs(
+				numDepositLogs,
+				depositFactor,
+				contractAddress,
+				blkNum,
+			)
+			require.NoError(t, err)
 
-		var vals []*reflect.Value
-		vals, err = logFactory.ProcessLogs(logs, blkNum)
-		require.NoError(t, err)
-		require.Len(t, vals, numDepositLogs)
+			var vals []*reflect.Value
+			vals, err = logFactory.ProcessLogs(logs, blkNum)
+			require.NoError(t, err)
+			require.Len(t, vals, numDepositLogs)
 
-		// Check if the values are returned in the correct order.
-		for i, val := range vals {
-			processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
-			require.True(t, ok)
-			require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
-		}
-	})
+			// Check if the values are returned in the correct order.
+			for i, val := range vals {
+				processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
+				require.True(t, ok)
+				require.Equal(
+					t,
+					uint64(i*depositFactor),
+					processedDeposit.GetAmount(),
+				)
+			}
+		},
+	)
 }
