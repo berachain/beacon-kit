@@ -27,9 +27,6 @@ package randao
 
 import (
 	"encoding/binary"
-	"github.com/berachain/comet-bls12-381/bls/blst"
-
-	"github.com/berachain/comet-bls12-381/bls"
 )
 
 type RevealInterface interface {
@@ -54,36 +51,4 @@ func (s SigningData) Marshal() []byte {
 	buf = append(buf, []byte(s.ChainID)...)
 
 	return buf
-}
-
-// NewRandaoReveal creates the randao reveal for a given signing data and private key.
-func NewRandaoReveal(signingData SigningData, privKey bls.SecretKey) (Reveal, error) {
-	sig := privKey.Sign(signingData.Marshal())
-
-	var reveal Reveal
-	copy(reveal[:], sig.Marshal())
-
-	return reveal, nil
-}
-
-// Reveal represents the reveal of the validator for the current epoch.
-type Reveal [BLSSignatureLength]byte
-
-func (r Reveal) Verify(pubKey []byte, signingData SigningData) bool {
-	bytes, err := blst.SignatureFromBytes(r[:])
-	if err != nil {
-		panic(err)
-	}
-
-	p, err := blst.PublicKeyFromBytes(pubKey)
-	if err != nil {
-		panic(err)
-	}
-
-	return bytes.Verify(p, signingData.Marshal())
-}
-
-// Marshal returns the reveal as a byte slice.
-func (r Reveal) Marshal() []byte {
-	return r[:]
 }

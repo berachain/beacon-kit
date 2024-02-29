@@ -23,10 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package randao_test
 
 import (
 	"github.com/berachain/comet-bls12-381/bls/blst"
+	"github.com/itsdevbear/bolaris/beacon/core/randao"
+	blst2 "github.com/itsdevbear/bolaris/beacon/core/randao/blst"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -34,7 +36,7 @@ import (
 )
 
 func TestMix(t *testing.T) {
-	var initMix Mix = sha256.Hash([]byte("init"))
+	var initMix randao.Mix = sha256.Hash([]byte("init"))
 
 	pvKey1, err := blst.RandKey()
 	require.NoError(t, err)
@@ -42,13 +44,13 @@ func TestMix(t *testing.T) {
 	pvKey2, err := blst.RandKey()
 	require.NoError(t, err)
 
-	signingData := SigningData{
+	signingData := randao.SigningData{
 		Epoch:   12,
 		ChainID: "berachain-1",
 	}
 
 	// Reveal 1, first signer
-	reveal1, err := NewRandaoReveal(signingData, pvKey1)
+	reveal1, err := blst2.NewRandaoReveal(signingData, pvKey1)
 	require.NoError(t, err)
 
 	mix1 := initMix.MixWithReveal(reveal1)
@@ -56,7 +58,7 @@ func TestMix(t *testing.T) {
 	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1.Marshal())))
 
 	// Reveal 2, second signer
-	reveal2, err := NewRandaoReveal(signingData, pvKey2)
+	reveal2, err := blst2.NewRandaoReveal(signingData, pvKey2)
 	require.NoError(t, err)
 	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1.Marshal())))
 
@@ -71,11 +73,11 @@ func TestMix(t *testing.T) {
 	require.Equal(t, mix2, altMix2)    // but the second mix is the same
 }
 
-func xor(a, b [32]byte) Mix {
+func xor(a, b [32]byte) randao.Mix {
 	dst := make([]byte, len(a))
 	for i := range a {
 		dst[i] = a[i] ^ b[i]
 	}
 
-	return Mix(dst)
+	return randao.Mix(dst)
 }
