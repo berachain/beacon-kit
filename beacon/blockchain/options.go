@@ -55,7 +55,16 @@ func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
 
 // WithStakingService is a function that returns an Option.
 // It sets the StakingService of the Service to the provided Service.
-func WithStakingService(ss StakingService) service.Option[Service] {
+func WithStakingService(sks StakingService) service.Option[Service] {
+	return func(s *Service) error {
+		s.sks = sks
+		return nil
+	}
+}
+
+// WithSyncService is a function that returns an Option.
+// It sets the SyncService of the Service to the provided Service.
+func WithSyncService(ss SyncService) service.Option[Service] {
 	return func(s *Service) error {
 		s.ss = ss
 		return nil
