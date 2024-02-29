@@ -24,6 +24,9 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 name: docs-preview
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 on:
   pull_request:
