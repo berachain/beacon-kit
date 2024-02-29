@@ -38,7 +38,7 @@ interface IDepositContract {
      * @param validatorPubKey the public key of the validator who is being deposited for (if not a new validator).
      * @param stakingCredentials the public key of the operator(if new validator) or the delegator(if top up).
      * @param amount the amount of stake being deposited.
-     * @param signature the signature of the deposit message, only checked for creating a new validator.
+     * @param signature the signature of the deposit message, only checked when creating a new validator.
      */
     event Deposit(
         bytes indexed validatorPubKey,
