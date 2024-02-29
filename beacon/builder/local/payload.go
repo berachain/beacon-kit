@@ -74,13 +74,13 @@ func (s *Service) BuildLocalPayload(
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
-		s.Logger().Error("received nil payload ID on VALID engine response",
+		s.Logger().Warn("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
 			"slot", fcuConfig.ProposingSlot,
 		)
 
 		s.SetStatus(ErrNilPayloadOnValidResponse)
-		return nil, ErrNilPayloadOnValidResponse
+		return payloadID, nil
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes",
@@ -203,6 +203,8 @@ func (s *Service) buildAndWaitForLocalPayload(
 	)
 	if err != nil {
 		return nil, nil, false, err
+	} else if payloadID == nil {
+		return nil, nil, false, ErrNilPayloadOnValidResponse
 	}
 
 	// Wait for the payload to be delivered to the execution client.

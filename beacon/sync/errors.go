@@ -33,13 +33,27 @@ var (
 	ErrConsensusClientIsSyncing = errors.New(
 		"consensus client is still syncing",
 	)
+
 	// ErrExecutionClientIsSyncing indicates that the execution client
 	// is still in the process of syncing.
 	ErrExecutionClientIsSyncing = errors.New(
 		"execution client is still syncing",
 	)
+
 	// ErrNotRunning indicates that the service is not currently running.
 	ErrNotRunning = errors.New(
 		"service is not running",
+	)
+
+	// ErrInsufficientCLPeers indicates that the execution client does not have
+	// enough peers to be considered healthy.
+	ErrInsufficientCLPeers = errors.New(
+		"number of consensus client peers below configured threshold",
+	)
+
+	// ErrInsufficientExPeers indicates that the execution client does not have
+	// enough peers to be considered healthy.
+	ErrInsufficientELPeers = errors.New(
+		"number of execution client peers below configured threshold",
 	)
 )

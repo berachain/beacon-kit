@@ -96,7 +96,7 @@ start-reth:
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
-	--http.api eth \
+	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	
@@ -119,7 +119,7 @@ start-geth:
 	ethereum/client-go \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth \
+	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \

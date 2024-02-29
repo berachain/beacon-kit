@@ -23,17 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package sync
 
-import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+const (
+	defaultMinELPeers = 0
+	defaultMinCLPeers = 0
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	lb  LocalBuilder
-	es  ExecutionService
-	sks StakingService
-	ss  SyncService
+type Config struct {
+	MinELPeers uint64
+	MinCLPeers uint64
+}
+
+func DefaultConfig() *Config {
+	return &Config{
+		MinELPeers: defaultMinELPeers,
+		MinCLPeers: defaultMinCLPeers,
+	}
 }

@@ -27,6 +27,8 @@ package sync
 
 import (
 	"context"
+
+	"github.com/cometbft/cometbft/rpc/client"
 )
 
 // CheckELSync checks if the execution layer is syncing.
@@ -81,4 +83,31 @@ func (s *Service) CheckELSync(ctx context.Context) {
 	}
 
 	s.isELSynced = true
+}
+
+// UpdateNumCLPeers updates the number of peers connected at the consensus
+// layer.
+func (s *Service) UpdateNumCLPeers(ctx context.Context) {
+	// Call the CometBFT Client to get the sync progress.
+	netInfo, err := s.clientCtx.Client.(client.NetworkClient).NetInfo(ctx)
+	if err != nil {
+		s.clNumPeers = 0
+		return
+	}
+
+	//#nosec:G701 // if our number of peers overflows a int64
+	// we have bigger problems.
+	s.clNumPeers = uint64(netInfo.NPeers)
+}
+
+// UpdateNumELPeers updates the number of peers connected at the execution
+// layer.
+func (s *Service) UpdateNumELPeers(ctx context.Context) {
+	// Call the ethClient to get the sync progress
+	numPeers, err := s.engineClient.PeerCount(ctx)
+	if err != nil {
+		s.elNumPeers = 0
+		return
+	}
+	s.elNumPeers = numPeers
 }
