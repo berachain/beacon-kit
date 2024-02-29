@@ -87,8 +87,12 @@ def run(plan, args={}):
         [],
         {},
     )
+    
 
-    beacond_config = beacond.get_config(jwt_file)
+    # plan.print()
+    plan.print(el_client_context)
+
+    beacond_config = beacond.get_config(jwt_file, "http://el-0-reth-beaconkit:8551")
     plan.add_service(
         name = "beaconkit-node",
         config = beacond_config,

@@ -28,7 +28,7 @@ def build_beacond_docker_image():
     # temp workaround to get it working
     # run `make docker-build` before running kurtosis
     # make sure the image name and tag match, otherwise edit below
-    image = "beacond:0.0.3-alpha-7-g953778a0"
+    image = "beacond:0.0.3-alpha-18-g46f0329e"
 
     # image = ImageBuildSpec(
     #     image_name="berachain/beacond",
@@ -38,7 +38,7 @@ def build_beacond_docker_image():
     return image
 
 
-def get_config(jwt_file):
+def get_config(jwt_file, engine_dial_url):
     config = ServiceConfig(
         image=build_beacond_docker_image(),
         files = {
@@ -59,6 +59,8 @@ def get_config(jwt_file):
             "BEACOND_DEBUG": "false",
             "BEACOND_KEYRING_BACKEND": "test",
             "BEACOND_MINIMUM_GAS_PRICE": "0stake",
+            "BEACOND_ENGINE_DIAL_URL": engine_dial_url,
+            "BEACOND_ETH_CHAIN_ID": "80087",
         },
         ports=USED_PORTS,
     )
