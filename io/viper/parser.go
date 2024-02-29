@@ -23,26 +23,59 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package viper
 
 import (
-	"os"
+	"net/url"
+	"reflect"
 
-	"cosmossdk.io/log"
-
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-
-	"github.com/itsdevbear/bolaris/config"
-	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
-	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/mitchellh/mapstructure"
 )
 
-func main() {
-	config.SetupCosmosConfig()
-	rootCmd := root.NewRootCmd()
-	if err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome); err != nil {
-		log.NewLogger(rootCmd.OutOrStderr()).
-			Error("failure when running app", "error", err)
-		os.Exit(1)
+// StringToSliceHookFunc returns a DecodeHookFunc that converts
+// string to []string by splitting on the given sep.
+func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (common.Address, error) {
+			return common.HexToAddress(s), nil
+		},
+	)
+}
+
+// StringToDialURLFunc returns a DecodeHookFunc that converts
+// string to *url.URL by parsing the string.
+func StringToDialURLFunc() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (*url.URL, error) {
+			url, err := url.Parse(s)
+			if err != nil {
+				return nil, err
+			}
+			return url, nil
+		},
+	)
+}
+
+// string to *jwt.Secret by reading the file at the given path.
+func StringTo[T any](
+	constructor func(string) (T, error),
+) mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{},
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		var retType T
+		if t != reflect.TypeOf(retType) {
+			return data, nil
+		}
+
+		// Convert it by parsing
+		return constructor(data.(string))
 	}
 }

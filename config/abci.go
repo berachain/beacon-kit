@@ -25,11 +25,6 @@
 
 package config
 
-import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
-)
-
 // ABCI conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[ABCI] = ABCI{}
 
@@ -44,19 +39,7 @@ func DefaultABCIConfig() ABCI {
 type ABCI struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
-	BeaconBlockPosition uint
-}
-
-// Parse parses the configuration.
-func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
-	var err error
-	if c.BeaconBlockPosition, err = parser.GetUint(
-		flags.BeaconBlockPosition,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	BeaconBlockPosition uint `mapstructure:"beacon-block-proposal-position"`
 }
 
 // Template returns the configuration template for the abci config.

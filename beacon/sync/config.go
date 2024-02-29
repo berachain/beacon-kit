@@ -23,13 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cli
+package sync
 
-import "errors"
-
-var (
-	// ErrNoClientCtx indicates that the client context was not found.
-	ErrNoClientCtx = errors.New("client context not found")
-	// ErrNoHomeDir indicates that the home directory was not found.
-	ErrNoHomeDir = errors.New("home directory not found")
+const (
+	defaultMinELPeers = 0
+	defaultMinCLPeers = 0
 )
+
+// Confing represents the configuration struct for
+// the sync service.
+type Config struct {
+	MinELPeers uint64 `mapstructure:"min_el_peers"`
+	MinCLPeers uint64 `mapstructure:"min_cl_peers"`
+}
+
+func DefaultConfig() *Config {
+	return &Config{
+		MinELPeers: defaultMinELPeers,
+		MinCLPeers: defaultMinCLPeers,
+	}
+}

@@ -27,8 +27,11 @@ package blockchain
 
 import (
 	"context"
+	"errors"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
@@ -60,17 +63,27 @@ func (s *Service) postBlockProcess(
 	if err != nil {
 		return err
 	}
+	payloadBlockHash := common.Hash(payload.GetBlockHash())
+
+	// If the consensus client is still syncing we are going to skip forkchoice
+	// updates. This means that if the consensus client is still syncing, we
+	// will not be able to build a block locally.
+	//
+	// NOTE: Status() will return nil during the initial syncing phase.
+	if errors.Is(s.ss.Status(), sync.ErrConsensusClientIsSyncing) {
+		return nil
+	}
 
 	// If the builder is enabled attempt to build a block locally.
-	if s.BuilderCfg().LocalBuilderEnabled {
+	// If we are in the sync state, we skip building blocks optimistically.
+	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
 		if err = s.sendFCUWithAttributes(
-			ctx, [32]byte(payload.GetBlockHash()), blk.GetSlot(), blockHash,
+			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
 		); err == nil {
 			return nil
 		}
 	}
 
-	// If builder is not enabled, or failed to build, fallback to a vanilla
-	// fcu.
-	return s.sendFCU(ctx, [32]byte(payload.GetBlockHash()))
+	// Otherwise we send a forkchoice update to the execution client.
+	return s.sendFCU(ctx, payloadBlockHash)
 }

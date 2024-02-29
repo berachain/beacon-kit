@@ -27,6 +27,7 @@ package sync
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -38,9 +39,7 @@ import (
 
 // syncLoopInterval is the interval at which the sync loop checks for sync
 // status.
-//
-
-const syncLoopInterval = 6 * time.Second
+const syncLoopInterval = 5 * time.Second
 
 // Service is responsible for tracking the synchornization status
 // of both the beacon and execution chains.
@@ -48,12 +47,21 @@ type Service struct {
 	service.BaseService
 	engineClient *client.EngineClient
 	clientCtx    *cosmosclient.Context
+	cfg          *Config
 
+	isInitSync        bool
 	isSyncedLock      *sync.RWMutex
 	isSyncedCond      *sync.Cond
 	waitForSyncStopCh chan struct{}
 	isELSynced        bool
 	isCLSynced        bool
+	elNumPeers        uint64
+	clNumPeers        uint64
+}
+
+// SetClientContext sets the client context for the service.
+func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
+	s.clientCtx = &clientCtx
 }
 
 // Start initiates the synchronization service.
@@ -61,6 +69,10 @@ func (s *Service) Start(ctx context.Context) {
 	s.isSyncedLock = &sync.RWMutex{}
 	s.isSyncedCond = &sync.Cond{L: s.isSyncedLock}
 	s.waitForSyncStopCh = make(chan struct{})
+
+	// We optimistically assume we are going to be in the initial sync phase
+	// when the service first starts.
+	s.isInitSync = true
 
 	// Start the synchronization loop in a new goroutine.
 	go func() {
@@ -74,31 +86,16 @@ func (s *Service) Start(ctx context.Context) {
 	}()
 }
 
+// IsInitSync returns whether the service is in the initial sync phase.
+func (s *Service) IsInitSync() bool {
+	return s.isInitSync
+}
+
 // Status returns the current synchronization status.
 func (s *Service) Status() error {
 	s.isSyncedLock.RLock()
 	defer s.isSyncedLock.RUnlock()
-	if err := s.status(); err != nil {
-		return err
-	}
-	return s.BaseService.Status()
-}
-
-// status returns the current synchronization status.
-func (s *Service) status() error {
-	switch {
-	case !s.isCLSynced:
-		return ErrConsensusClientIsSyncing
-	case !s.isELSynced:
-		return ErrExecutionClientIsSyncing
-	default:
-		return nil
-	}
-}
-
-// SetClientContext sets the client context for the service.
-func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
-	s.clientCtx = &clientCtx
+	return errors.Join(s.status(), s.BaseService.Status())
 }
 
 // WaitForHealthy waits for the service to be synced.
@@ -108,7 +105,7 @@ func (s *Service) WaitForHealthy(ctx context.Context) {
 
 	// If we are not sync'd we immediately request sync progress.
 	if s.status() != nil {
-		go s.requestSyncProgress(ctx)
+		go s.updateClientSyncInfo(ctx)
 		for s.status() != nil {
 			select {
 			case <-s.waitForSyncStopCh:
@@ -123,27 +120,75 @@ func (s *Service) WaitForHealthy(ctx context.Context) {
 	}
 }
 
+// status returns the current synchronization status.
+func (s *Service) status() error {
+	var errs []error
+
+	// Ensure both the EL and CL have sufficient peers.
+	if s.elNumPeers < s.cfg.MinELPeers {
+		errs = append(errs, ErrInsufficientELPeers)
+	}
+	if s.clNumPeers < s.cfg.MinCLPeers {
+		errs = append(errs, ErrInsufficientCLPeers)
+	}
+
+	// If we are aware we are in the initial syncing phase, then
+	// we don't want to mark the service as unhealthy because it's
+	// supposed to be syncing atm...
+	if !s.isInitSync {
+		errs = append(errs, s.checkSyncStatus())
+	}
+
+	return errors.Join(errs...)
+}
+
+// CheckCLSync checks if the consensus layer is syncing.
+func (s *Service) checkSyncStatus() error {
+	var errs []error
+	if !s.isELSynced {
+		errs = append(errs, ErrExecutionClientIsSyncing)
+	}
+	if !s.isCLSynced {
+		errs = append(errs, ErrConsensusClientIsSyncing)
+	}
+	return errors.Join(errs...)
+}
+
 // syncLoop continuously runs and reports if our client is out of sync.
 func (s *Service) syncLoop(ctx context.Context) {
 	ticker := time.NewTicker(syncLoopInterval)
 	defer ticker.Stop()
 
 	for {
+		s.updateClientSyncInfo(ctx)
+
+		// This is the only place where
+		// we ever exit the initial sync phase.
+		if s.checkSyncStatus() == nil {
+			s.isInitSync = false
+		}
+
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			s.requestSyncProgress(ctx)
+			continue
 		}
 	}
 }
 
-// requestSyncProgress gets the sync progress from the consensus and execution
+// updateClientSyncInfo gets the sync progress from the consensus and execution
 // clients.
-func (s *Service) requestSyncProgress(ctx context.Context) {
+func (s *Service) updateClientSyncInfo(ctx context.Context) {
+	// We have to wait for the engine client to be fully
+	// spun up.
+	s.engineClient.WaitForHealthy(ctx)
+
 	wg := conc.NewWaitGroup()
 	wg.Go(func() { s.CheckCLSync(ctx) })
 	wg.Go(func() { s.CheckELSync(ctx) })
+	wg.Go(func() { s.UpdateNumCLPeers(ctx) })
+	wg.Go(func() { s.UpdateNumELPeers(ctx) })
 	wg.Wait()
 	if s.isCLSynced && s.isELSynced {
 		s.isSyncedCond.Broadcast()

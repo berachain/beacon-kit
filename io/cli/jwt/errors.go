@@ -23,17 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package jwt
 
-import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+import "errors"
+
+var (
+	// ErrNoClientCtx indicates that the client context was not found.
+	ErrNoClientCtx = errors.New("client context not found")
+	// ErrNoHomeDir indicates that the home directory was not found.
+	ErrNoHomeDir = errors.New("home directory not found")
 )
-
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	lb  LocalBuilder
-	es  ExecutionService
-	sks StakingService
-	ss  SyncService
-}

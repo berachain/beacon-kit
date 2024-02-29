@@ -37,28 +37,30 @@ const (
 	defaultRPCStartupCheckInterval = 5 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
-	defaultJWTSecretPath   = "./jwt.hex"
+	defaultJWTSecretPath   = "./examples/beacond/jwt.hex"
 	defaultRequiredChainID = 80086
 )
 
 // Config is the configuration struct for the execution client.
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL *url.URL
+	RPCDialURL *url.URL `mapstructure:"rpc-dial-url"`
 	// RPCRetries is the number of retries before shutting down consensus
 	// client.
-	RPCRetries uint64
+	RPCRetries uint64 `mapstructure:"rpc-retries"`
 	// RPCTimeout is the RPC timeout for execution client calls.
-	RPCTimeout time.Duration
+	RPCTimeout time.Duration `mapstructure:"rpc-timeout"`
 	// RPCStartupCheckInterval is the Interval for the startup check.
-	RPCStartupCheckInterval time.Duration
+	//
+	//nolint:lll
+	RPCStartupCheckInterval time.Duration `mapstructure:"rpc-startup-check-interval"`
 	// JWTRefreshInterval is the Interval for the JWT refresh.
-	RPCJWTRefreshInterval time.Duration
+	RPCJWTRefreshInterval time.Duration `mapstructure:"rpc-jwt-refresh-interval"`
 	// JWTSecretPath is the path to the JWT secret.
-	JWTSecretPath string
+	JWTSecretPath string `mapstructure:"jwt-secret-path"`
 	// RequiredChainID is the chain id that the consensus client must be
 	// connected to.
-	RequiredChainID uint64
+	RequiredChainID uint64 `mapstructure:"required-chain-id"`
 }
 
 // DefaultConfig is the default configuration for the engine client.
@@ -74,4 +76,30 @@ func DefaultConfig() Config {
 		JWTSecretPath:           defaultJWTSecretPath,
 		RequiredChainID:         defaultRequiredChainID,
 	}
+}
+
+func (c Config) Template() string {
+	return `
+[beacon-kit.engine]
+# HTTP url of the execution client JSON-RPC endpoint.
+rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"
+
+# Number of retries before shutting down consensus client.
+rpc-retries = "{{.BeaconKit.Engine.RPCRetries}}"
+
+# RPC timeout for execution client requests.
+rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"
+
+# Interval for the startup check.
+rpc-startup-check-interval = "{{ .BeaconKit.Engine.RPCStartupCheckInterval }}"
+
+# Interval for the JWT refresh.
+rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"
+
+# Path to the execution client JWT-secret
+jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
+
+# Required chain id for the execution client.
+required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
+`
 }

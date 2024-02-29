@@ -50,7 +50,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
-	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
+	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
