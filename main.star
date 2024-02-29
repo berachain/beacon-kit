@@ -12,8 +12,8 @@ eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/
 participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
 
 
-beacond = import_module('./src/beacond/beacond_launcher.star')
-static_files = import_module('./src/static_files/static_files.star')
+beacond = import_module('./e2e/kurtosis/src/beacond/beacond_launcher.star')
+static_files = import_module('./e2e/kurtosis/src/static_files/static_files.star')
 
 KURTOSIS_ETH_PACKAGE_URL = "github.com/kurtosis-tech/ethereum-package"
 
@@ -25,6 +25,13 @@ CL_CLIENT_TYPE = struct(
     beacond="beacond"
 )
 def run(plan, args={}):
+    jwt_file = plan.upload_files(
+        src=KURTOSIS_ETH_PACKAGE_URL + eth_static_files.JWT_PATH_FILEPATH,
+        name="jwt_file",
+    )
+
+
+
     plan.print("Your args: {}".format(args))
     args_with_right_defaults = input_parser.input_parser(plan, args)
     num_participants = len(args_with_right_defaults.participants)
@@ -38,10 +45,7 @@ def run(plan, args={}):
 
     plan.print(network_params)
 
-    jwt_file = plan.upload_files(
-        src=KURTOSIS_ETH_PACKAGE_URL + eth_static_files.JWT_PATH_FILEPATH,
-        name="jwt_file",
-    )
+
 
     genesis_file = plan.upload_files(
         static_files.GENESIS_FILEPATH,
@@ -84,6 +88,12 @@ def run(plan, args={}):
         {},
     )
 
+    beacond_config = beacond.get_config(jwt_file)
+    plan.add_service(
+        name = "beaconkit-node",
+        config = beacond_config,
+    )
+
     return el_client_context
 
     
@@ -112,3 +122,5 @@ def get_el_launcher(el_cl_data, jwt_file, network_params):
     
     return el_launchers
     
+
+

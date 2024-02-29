@@ -95,6 +95,12 @@ ARG APP_NAME
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 
+COPY ./examples/beacond/init.sh /usr/bin/init.sh
+
+RUN chmod +x /usr/bin/init.sh
+
+RUN mkdir -p /root/app
+
 RUN apk add bash jq sed curl
 
 #ENTRYPOINT [ "./beacond" ]
