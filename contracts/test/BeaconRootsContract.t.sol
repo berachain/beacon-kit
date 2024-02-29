@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "../../lib/solady/test/utils/SoladyTest.sol";
-import "../../lib/solady/src/utils/FixedPointMathLib.sol";
-import "../eip4788/BeaconRootsContract.sol";
+import "@solady/test/utils/SoladyTest.sol";
+import "@solady/src/utils/FixedPointMathLib.sol";
+import "@src/eip4788/BeaconRootsContract.sol";
 
 /// @title BeaconRootsContractBaseTest
 /// @dev This contract is a baseplate for tests that depend on the

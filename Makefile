@@ -331,7 +331,7 @@ slither:
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
 	trailofbits/eth-security-toolbox \
-	slither /contracts/src --config-file /contracts/slither.config.json
+	/bin/bash -c "cd /contracts && slither ./src/eip4788 && slither ./src/staking"
 
 
 #################

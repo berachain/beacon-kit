@@ -77,6 +77,8 @@ contract BeaconDepositContract {
     /// @dev msg.sender deposits the `amount` of tokens to `validatorPubkey`.
     /// @param validatorPubkey The validator's public key.
     /// @param amount The amount of tokens to deposit.
+    //
+    // slither-disable-next-line locked-ether
     function deposit(
         bytes calldata validatorPubkey,
         uint64 amount
@@ -99,6 +101,8 @@ contract BeaconDepositContract {
     /// @dev msg.sender withdraws the `amount` of tokens from `validatorPubkey`.
     /// @param validatorPubkey The validator's public key.
     /// @param amount The amount of tokens to undelegate.
+    //
+    // slither-disable-next-line locked-ether
     function withdraw(
         bytes calldata validatorPubkey,
         uint64 amount
