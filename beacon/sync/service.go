@@ -127,7 +127,8 @@ func (s *Service) status() error {
 	// Ensure both the EL and CL have sufficient peers.
 	if s.elNumPeers < s.cfg.MinELPeers {
 		errs = append(errs, ErrInsufficientELPeers)
-	} else if s.clNumPeers < s.cfg.MinCLPeers {
+	}
+	if s.clNumPeers < s.cfg.MinCLPeers {
 		errs = append(errs, ErrInsufficientCLPeers)
 	}
 
