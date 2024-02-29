@@ -25,11 +25,6 @@
 
 package config
 
-import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
-)
-
 // Limits conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Limits] = &Limits{}
 
@@ -49,26 +44,8 @@ func DefaultLimitsConfig() Limits {
 // Limits represents the configuration struct for the limits on the beacon
 // chain.
 type Limits struct {
-	MaxDepositsPerBlock      uint64
-	MaxWithdrawalsPerPayload uint64
-}
-
-// Parse parses the configuration.
-func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
-	var err error
-	if c.MaxDepositsPerBlock, err = parser.GetUint64(
-		flags.MaxDeposits,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(
-		flags.MaxWithdrawals,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	MaxDepositsPerBlock      uint64 `mapstructure:"max-deposits-per-block"`
+	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
 }
 
 // Template returns the configuration template.
