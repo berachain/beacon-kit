@@ -80,7 +80,7 @@ func (s *Service) BuildLocalPayload(
 		)
 
 		s.SetStatus(ErrNilPayloadOnValidResponse)
-		return payloadID, nil
+		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes",
@@ -203,8 +203,6 @@ func (s *Service) buildAndWaitForLocalPayload(
 	)
 	if err != nil {
 		return nil, nil, false, err
-	} else if payloadID == nil {
-		return nil, nil, false, ErrNilPayloadOnValidResponse
 	}
 
 	// Wait for the payload to be delivered to the execution client.
