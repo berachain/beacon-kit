@@ -132,7 +132,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
 	startCmd.Flags().String(
-		flags.JWTSecretPath, "DEFAULT",
+		flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
 		"path to the execution client secret")
 	startCmd.Flags().String(
 		flags.RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")
