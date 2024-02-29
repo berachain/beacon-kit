@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
+import { Ownable } from "@solady/src/auth/Ownable.sol";
+import { FixedPointMathLib } from "@solady/src/utils/FixedPointMathLib.sol";
+
 import { Errors } from "./Errors.sol";
 import { IRootFollower } from "./IRootFollower.sol";
-
-import { Ownable } from "@solady/auth/Ownable.sol";
-import { FixedPointMathLib } from "@solady/utils/FixedPointMathLib.sol";
 
 abstract contract RootFollower is IRootFollower, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
