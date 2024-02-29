@@ -91,13 +91,13 @@ interface IDepositContract {
      * @param stakingCredentials is the staking credentials of the validator. If this is the first deposit it is
      * validator operator public key, if subsequent deposit it is the depositors public key.
      * @param amount is the amount of stake native/ERC20 token to be deposited.
-     * @param signiture is the signiture used only on the first deposit.
+     * @param signature is the signature used only on the first deposit.
      */
     function deposit(
         bytes calldata validatorPubKey,
         bytes calldata stakingCredentials,
         uint64 amount,
-        bytes calldata signiture
+        bytes calldata signature
     )
         external
         payable;
