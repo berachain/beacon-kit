@@ -37,7 +37,7 @@ const (
 	defaultRPCStartupCheckInterval = 5 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
-	defaultJWTSecretPath   = "./jwt.hex"
+	defaultJWTSecretPath   = "./examples/beacond/jwt.hex"
 	defaultRequiredChainID = 80086
 )
 
