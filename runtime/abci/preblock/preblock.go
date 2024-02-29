@@ -95,6 +95,20 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				primitives.Slot(req.Height),
 			),
 		)
+
+		// Since during initial syncing process proposal is not called, we have
+		// to import the block into our execution client to validate it.
+		if false /* isInitSync */ {
+			// if you execution client already has this block, ignore....
+			if err = h.chainService.ReceiveBeaconBlock(
+				ctx, beaconBlock, [32]byte(req.Hash),
+			); err != nil {
+				// slash the proposer
+
+				return h.callNextHandler(ctx, req)
+			}
+		}
+
 		if err == nil {
 			// Process the finalization of the beacon block.
 			if err = h.chainService.FinalizeBeaconBlock(
@@ -112,6 +126,17 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		}
 
 		// Call the nested child handler.
-		return h.nextHandler(ctx, req)
+		return h.callNextHandler(ctx, req)
 	}
+}
+
+// callNextHandler calls the next pre-block handler in the chain.
+func (h *BeaconPreBlockHandler) callNextHandler(
+	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
+) (*sdk.ResponsePreBlock, error) {
+	if h.nextHandler == nil {
+		return &sdk.ResponsePreBlock{}, nil
+	}
+
+	return h.nextHandler(ctx, req)
 }

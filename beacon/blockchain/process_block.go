@@ -29,30 +29,48 @@ import (
 	"context"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
 	ctx context.Context,
+	blk consensus.ReadOnlyBeaconKitBlock,
+	blockHash [32]byte,
 	isValidPayload bool,
 ) error {
-	if isValidPayload {
-		return nil
+	if !isValidPayload {
+		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
+
+		// If the incoming payload for this block is not valid, we submit a
+		// forkchoice
+		// to bring us back to the last valid one.
+		// TODO: Is doing this potentially the cause of the weird Geth SnapSync
+		// issue?
+		// TODO: Should introduce the concept of missed slots?
+		if err := s.sendFCU(
+			ctx, s.BeaconState(ctx).GetLastValidHead(),
+		); err != nil {
+			s.Logger().Error("failed to send forkchoice update", "error", err)
+		}
+		return ErrInvalidPayload
 	}
 
-	telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-
-	// If the incoming payload for this block is not valid, we submit a
-	// forkchoice
-	// to bring us back to the last valid one.
-	// TODO: Is doing this potentially the cause of the weird Geth SnapSync
-	// issue?
-	// TODO: Should introduce the concept of missed slots?
-	if err := s.sendFCU(
-		ctx, s.BeaconState(ctx).GetLastValidHead(),
-	); err != nil {
-		s.Logger().Error("failed to send forkchoice update", "error", err)
+	payload, err := blk.ExecutionPayload()
+	if err != nil {
+		return err
 	}
 
-	return ErrInvalidPayload
+	// If the builder is enabled attempt to build a block locally.
+	if s.BuilderCfg().LocalBuilderEnabled {
+		if err = s.sendFCUWithAttributes(
+			ctx, [32]byte(payload.GetBlockHash()), blk.GetSlot(), blockHash,
+		); err == nil {
+			return nil
+		}
+	}
+
+	// If builder is not enabled, or failed to build, fallback to a vanilla
+	// fcu.
+	return s.sendFCU(ctx, [32]byte(payload.GetBlockHash()))
 }

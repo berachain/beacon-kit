@@ -29,30 +29,11 @@ import (
 	"errors"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs/callback"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/runtime/service"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
-
-// newLog creates a new log of an event from the given arguments.
-func newLog(event ethabi.Event, args ...interface{}) (*coretypes.Log, error) {
-	if len(event.Inputs) != len(args) {
-		return nil, errors.New("mismatched number of arguments")
-	}
-	data, err := event.Inputs.Pack(args...)
-	if err != nil {
-		return nil, err
-	}
-	return &coretypes.Log{
-		Topics: []common.Hash{event.ID},
-		Data:   data,
-	}, nil
-}
 
 // NewLogFromDeposit creates a new log from the given deposit.
 func NewLogFromDeposit(
@@ -78,26 +59,17 @@ func NewLogFromWithdrawal(
 	)
 }
 
-// DepositContractEvents returns the events defined in the staking contract ABI.
-func DepositContractEvents() (map[string]ethabi.Event, error) {
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+// newLog creates a new log of an event from the given arguments.
+func newLog(event ethabi.Event, args ...interface{}) (*coretypes.Log, error) {
+	if len(event.Inputs) != len(args) {
+		return nil, errors.New("mismatched number of arguments")
+	}
+	data, err := event.Inputs.Pack(args...)
 	if err != nil {
 		return nil, err
 	}
-	return stakingAbi.Events, nil
-}
-
-// NewCallbackHandler creates a new callback handler from the given staking
-// service.
-func NewCallbackHandler(
-	stakingService logs.StakingService,
-) (callback.LogHandler, error) {
-	logHander := service.New[logs.Handler](
-		logs.WithStakingService(stakingService),
-	)
-	callbackHandler, err := callback.NewFrom(logHander)
-	if err != nil {
-		return nil, err
-	}
-	return callbackHandler, nil
+	return &coretypes.Log{
+		Topics: []ethcommon.Hash{event.ID},
+		Data:   data,
+	}, nil
 }

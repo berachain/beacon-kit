@@ -23,23 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package logs_test
 
 import (
-	"context"
+	"testing"
 
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/ethereum/go-ethereum/common"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs"
+	"github.com/stretchr/testify/require"
 )
 
-// StakingService is the interface for the staking service.
-type StakingService interface {
-	AcceptDepositIntoQueue(
-		ctx context.Context,
-		deposit *consensusv1.Deposit,
-	) error
-	ProcessWithdrawal(
-		ctx context.Context,
-		withdrawal *enginev1.Withdrawal,
-	) error
+func TestLogSignatures(t *testing.T) {
+	require.Equal(t,
+		ethcrypto.Keccak256Hash(
+			[]byte("Deposit(bytes,bytes,uint64)"),
+		),
+		common.Hash(logs.DepositSig),
+	)
+
+	require.Equal(t,
+		ethcrypto.Keccak256Hash(
+			[]byte("Withdrawal(bytes,bytes,uint64)"),
+		),
+		common.Hash(logs.WithdrawalSig),
+	)
 }

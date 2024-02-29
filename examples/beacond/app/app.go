@@ -29,8 +29,6 @@ import (
 	"context"
 	_ "embed"
 	"io"
-	"os"
-	"path/filepath"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -58,23 +56,9 @@ import (
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
-//nolint:gochecknoinits // from sdk.
-func init() {
-	userHomeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
-}
-
-const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TERMS_OF_SERVICE.md"
-
 var (
 	_ runtime.AppI            = (*BeaconApp)(nil)
 	_ servertypes.Application = (*BeaconApp)(nil)
-	// DefaultNodeHome default home directories for the application daemon.
-	DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
 )
 
 // AppConfig returns the default app config.
@@ -167,20 +151,18 @@ func NewBeaconKitApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Componenets.
-	prepare, process, preBlocker, streamingMgr := app.BeaconKitRuntime.BuildABCIComponents(
+	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			PrepareProposalHandler(),
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			ProcessProposalHandler(),
 		nil,
-		app.Logger(),
 	)
 
 	// Set all the newly built ABCI Componenets on the App.
 	app.SetPrepareProposal(prepare)
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
-	app.SetStreamingManager(streamingMgr)
 
 	/**** End of BeaconKit Configuration ****/
 

@@ -23,54 +23,60 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package mocks
 
 import (
-	"cosmossdk.io/log"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
-	"github.com/itsdevbear/bolaris/io/jwt"
+	"errors"
+
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs"
+	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
-// Option is a function type that takes a pointer to an engineClient and returns
-// an error.
-type Option func(*EngineClient) error
-
-func WithBeaconConfig(beaconCfg beaconConfig) Option {
-	return func(s *EngineClient) error {
-		s.beaconCfg = beaconCfg
-		return nil
+// CreateDepositLogs creates mock deposit logs.
+func CreateDepositLogs(
+	numDepositLogs int,
+	factor int,
+	contractAddress ethcommon.Address,
+	blkNum uint64,
+) ([]ethtypes.Log, error) {
+	if numDepositLogs <= 0 || factor <= 0 {
+		return nil, errors.New("invalid input")
 	}
-}
 
-// WithEngineConfig is a function that returns an Option.
-func WithEngineConfig(cfg *Config) Option {
-	return func(s *EngineClient) error {
-		var err error
+	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
 
-		// Load the JWT secret from the config if it's not already set.
-		// Get JWT Secret for eth1 connection.
-		s.jwtSecret, err = jwt.NewFromFile(cfg.JWTSecretPath)
+	// Create deposit logs.
+	numLogs := factor*(numDepositLogs-1) + 1
+
+	mockLogs := make([]ethtypes.Log, 0, numLogs)
+	for i := 0; i < numLogs; i++ {
+		deposit := consensus.NewDeposit(
+			[]byte("pubkey"),
+			//#nosec:G701 // no overflow
+			uint64(i),
+			[]byte("12345678901234567890"),
+		)
+		var log *ethtypes.Log
+		log, err = NewLogFromDeposit(
+			stakingAbi.Events[logs.DepositName],
+			deposit,
+		)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		s.cfg = cfg
-		return nil
-	}
-}
+		log.BlockNumber = blkNum
+		if i%factor == 0 {
+			log.Address = contractAddress
+		}
 
-// WithEth1Client is a function that returns an Option.
-func WithEth1Client(eth1Client *eth.Eth1Client) Option {
-	return func(s *EngineClient) error {
-		s.Eth1Client = eth1Client
-		return nil
+		mockLogs = append(mockLogs, *log)
 	}
-}
-
-// WithLogger is an option to set the logger for the EngineClient.
-func WithLogger(logger log.Logger) Option {
-	return func(s *EngineClient) error {
-		s.logger = logger.With("module", "beacon-kit.engine.client")
-		return nil
-	}
+	return mockLogs, nil
 }

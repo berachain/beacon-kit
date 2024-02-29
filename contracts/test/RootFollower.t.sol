@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
 
-pragma solidity ^0.8.0;
-
-import { Errors } from "./Errors.sol";
-import { IRootFollower } from "./IRootFollower.sol";
-import { RootFollower } from "./RootFollower.sol";
-import { BeaconRootsContract } from "../BeaconRootsContract.sol";
-import { BeaconRootsContractBaseTest } from "../BeaconRootsContract.t.sol";
-import "forge-std/Test.sol";
+import { Errors } from "@src/eip4788/extensions/Errors.sol";
+import { IRootFollower } from "@src/eip4788/extensions/IRootFollower.sol";
+import { RootFollower } from "@src/eip4788/extensions/RootFollower.sol";
+import { BeaconRootsContract } from "@src/eip4788/BeaconRootsContract.sol";
+import { BeaconRootsContractBaseTest } from "./BeaconRootsContract.t.sol";
 
 contract RootFollowerUser is RootFollower { }
 
@@ -24,8 +22,9 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         uint256 blockNum = 1;
         vm.roll(blockNum);
 
-        (bool success, bytes memory result) =
-            BEACON_ROOT_ADDRESS.call(abi.encodeWithSelector(GET_COINBASE_SELECTOR, blockNum));
+        (bool success, bytes memory result) = BEACON_ROOT_ADDRESS.call(
+            abi.encodeWithSelector(GET_COINBASE_SELECTOR, blockNum)
+        );
         assertEq(success, true);
         address expected = abi.decode(result, (address));
 

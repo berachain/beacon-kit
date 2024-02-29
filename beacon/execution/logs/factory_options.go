@@ -25,19 +25,13 @@
 
 package logs
 
-import (
-	ethcommon "github.com/ethereum/go-ethereum/common"
-)
-
-// WithTypeAllocator returns an Option for
-// registering the TypeAllocator under the given
-// address with the Factory.
-func WithTypeAllocator(
-	contractAddress ethcommon.Address,
-	allocator *TypeAllocator,
+// WithRequest returns an Option for setting
+// the allocator for a given contract address.
+func WithRequest(
+	req *LogRequest,
 ) Option[Factory] {
 	return func(f *Factory) error {
-		f.addressToAllocator[contractAddress] = allocator
+		f.addressToAllocator[req.ContractAddress] = req.Allocator
 		return nil
 	}
 }

@@ -199,8 +199,7 @@ test-unit-fuzz:
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzHandlerSimple ./beacon/staking/logs/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzHandlerMulti ./beacon/staking/logs/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
 #     forge     #
@@ -332,7 +331,7 @@ slither:
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
 	trailofbits/eth-security-toolbox \
-	slither /contracts/src --config-file /contracts/slither.config.json
+	/bin/bash -c "cd /contracts && slither ./src/eip4788 && slither ./src/staking"
 
 
 #################
