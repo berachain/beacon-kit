@@ -57,15 +57,6 @@ func StringToDialURLFunc() mapstructure.DecodeHookFunc {
 	)
 }
 
-// // FilePathToJWTSecretFunc returns a DecodeHookFunc that converts
-// func FilePathToJWTSecretFunc() mapstructure.DecodeHookFunc {
-// 	return StringTo(
-// 		func(s string) (*jwt.Secret, error) {
-// 			return jwt.NewFromFile(s)
-// 		},
-// 	)
-// }
-
 // string to *jwt.Secret by reading the file at the given path.
 func StringTo[T any](
 	constructor func(string) (T, error),
