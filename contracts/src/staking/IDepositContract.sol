@@ -42,7 +42,7 @@ interface IDepositContract {
      */
     event Deposit(
         bytes indexed validatorPubKey,
-        bytes stakingCredentials,
+        bytes indexed stakingCredentials,
         uint64 amount,
         bytes signature
     );
@@ -58,13 +58,15 @@ interface IDepositContract {
     );
 
     /**
-     * @dev Emitted when a deposit is made.
+     * @dev Emitted when a withdraw is made from a validator.
      * @param fromPubKey The public key of the validator that is being withdrawn from.
      * @param withdrawalCredentials The public key of the account that will receive the withdrawal.
      * @param amount The amount to be withdrawn from the validator.
      */
     event Withdraw(
-        bytes indexed fromPubKey, bytes withdrawalCredentials, uint64 amount
+        bytes indexed fromPubKey,
+        bytes indexed withdrawalCredentials,
+        uint64 amount
     );
 
     // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
