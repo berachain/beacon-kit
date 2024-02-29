@@ -19,7 +19,7 @@ func TestReveal_Verify(t *testing.T) {
 	reveal, err := NewRandaoReveal(someSigningData, key)
 	require.NoError(t, err)
 
-	require.True(t, reveal.Verify(key.PublicKey(), someSigningData))
+	require.True(t, reveal.Verify(key.PublicKey().Marshal(), someSigningData))
 
 	// Test with wrong signing data
 	anotherSigningData := SigningData{
@@ -27,5 +27,5 @@ func TestReveal_Verify(t *testing.T) {
 		ChainID: "berachain-2",
 	}
 
-	require.False(t, reveal.Verify(key.PublicKey(), anotherSigningData))
+	require.False(t, reveal.Verify(key.PublicKey().Marshal(), anotherSigningData))
 }

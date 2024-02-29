@@ -53,16 +53,16 @@ func TestMix(t *testing.T) {
 
 	mix1 := initMix.MixWithReveal(reveal1)
 	require.NoError(t, err)
-	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1[:])))
+	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1.Marshal())))
 
 	// Reveal 2, second signer
 	reveal2, err := NewRandaoReveal(signingData, pvKey2)
 	require.NoError(t, err)
-	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1[:])))
+	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1.Marshal())))
 
 	mix2 := mix1.MixWithReveal(reveal2)
 	require.NoError(t, err)
-	require.Equal(t, mix2, xor(mix1, sha256.Hash(reveal2[:])))
+	require.Equal(t, mix2, xor(mix1, sha256.Hash(reveal2.Marshal())))
 
 	// XOR is commutative
 	altMix1 := initMix.MixWithReveal(reveal2)

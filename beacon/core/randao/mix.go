@@ -32,7 +32,7 @@ type Mix [32]byte
 
 // MixWithReveal mixes the current mix with the new reveal and returns the new mix.
 func (m Mix) MixWithReveal(newReveal Reveal) Mix {
-	hash := sha256.Hash(newReveal[:])
+	hash := sha256.Hash(newReveal.Marshal())
 
 	for idx, b := range hash {
 		m[idx] ^= b
