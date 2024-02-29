@@ -171,9 +171,6 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	// fmt.Println(appOpts.Get("beacon-kit"))
-	// fmt.Println(viperAppOpts)
-
 	// Check for goleveldb cause bad project.
 	if appOpts.Get("app-db-backend") == "goleveldb" {
 		panic("goleveldb is not supported")

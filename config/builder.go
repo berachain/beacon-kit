@@ -41,6 +41,8 @@ type Builder struct {
 	// timeout on your
 	// execution client. It also must be less than timeout_proposal in the
 	// CometBFT configuration.
+	//
+	//nolint:lll
 	LocalBuildPayloadTimeout time.Duration `mapstructure:"local-build-payload-timeout"`
 }
 

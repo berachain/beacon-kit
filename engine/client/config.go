@@ -51,6 +51,8 @@ type Config struct {
 	// RPCTimeout is the RPC timeout for execution client calls.
 	RPCTimeout time.Duration `mapstructure:"rpc-timeout"`
 	// RPCStartupCheckInterval is the Interval for the startup check.
+	//
+	//nolint:lll
 	RPCStartupCheckInterval time.Duration `mapstructure:"rpc-startup-check-interval"`
 	// JWTRefreshInterval is the Interval for the JWT refresh.
 	RPCJWTRefreshInterval time.Duration `mapstructure:"rpc-jwt-refresh-interval"`

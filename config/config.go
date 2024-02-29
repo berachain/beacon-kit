@@ -125,8 +125,6 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 			err,
 		)
 	}
-	fmt.Println("OOGA")
-	fmt.Println(cfg)
 	return &cfg, nil
 }
 
