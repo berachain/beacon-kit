@@ -29,7 +29,7 @@ import (
 	"encoding/binary"
 )
 
-type RevealInterface interface {
+type Reveal interface {
 	Verify(pubKey []byte, signingData SigningData) bool
 	Marshal() []byte
 }

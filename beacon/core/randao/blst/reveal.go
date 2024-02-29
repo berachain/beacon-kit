@@ -3,6 +3,7 @@ package blst
 import (
 	"github.com/berachain/comet-bls12-381/bls"
 	"github.com/berachain/comet-bls12-381/bls/blst"
+
 	"github.com/itsdevbear/bolaris/beacon/core/randao"
 )
 
@@ -29,7 +30,7 @@ func (r Reveal) Marshal() []byte {
 }
 
 // NewRandaoReveal creates the randao reveal for a given signing data and private key.
-func NewRandaoReveal(signingData randao.SigningData, privKey bls.SecretKey) (randao.RevealInterface, error) {
+func NewRandaoReveal(signingData randao.SigningData, privKey bls.SecretKey) (randao.Reveal, error) {
 	sig := privKey.Sign(signingData.Marshal())
 
 	var reveal Reveal
