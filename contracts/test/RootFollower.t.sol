@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
 
-pragma solidity ^0.8.0;
-
-import { Errors } from "./Errors.sol";
-import { IRootFollower } from "./IRootFollower.sol";
-import { RootFollower } from "./RootFollower.sol";
-import { BeaconRootsContract } from "../BeaconRootsContract.sol";
-import { BeaconRootsContractBaseTest } from "../BeaconRootsContract.t.sol";
-import "forge-std/Test.sol";
+import { Errors } from "@src/eip4788/extensions/Errors.sol";
+import { IRootFollower } from "@src/eip4788/extensions/IRootFollower.sol";
+import { RootFollower } from "@src/eip4788/extensions/RootFollower.sol";
+import { BeaconRootsContract } from "@src/eip4788/BeaconRootsContract.sol";
+import { BeaconRootsContractBaseTest } from "./BeaconRootsContract.t.sol";
 
 contract RootFollowerUser is RootFollower { }
 
