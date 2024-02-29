@@ -39,7 +39,7 @@ func DefaultABCIConfig() ABCI {
 type ABCI struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
-	BeaconBlockPosition uint `mapstructure:"beacon-block-position"`
+	BeaconBlockPosition uint `mapstructure:"beacon-block-proposal-position"`
 }
 
 // Template returns the configuration template for the abci config.
@@ -47,6 +47,6 @@ func (c ABCI) Template() string {
 	return `
 [beacon-kit.abci]
 # Position of the beacon block in the proposal
-beacon-block-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
+beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
 `
 }

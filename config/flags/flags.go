@@ -74,5 +74,5 @@ const (
 
 	// ABCI Config.
 	abciRoot            = beaconKitRoot + "abci."
-	BeaconBlockPosition = abciRoot + "beacon-block-position"
+	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
 )
