@@ -77,6 +77,7 @@ contract BeaconDepositContract {
     /// @dev msg.sender deposits the `amount` of tokens to `validatorPubkey`.
     /// @param validatorPubkey The validator's public key.
     /// @param amount The amount of tokens to deposit.
+    //
     // slither-disable-next-line locked-ether
     function deposit(
         bytes calldata validatorPubkey,
