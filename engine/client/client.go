@@ -159,6 +159,7 @@ func (s *EngineClient) WaitForHealthy(ctx context.Context) {
 	defer s.statusErrMu.Unlock()
 
 	for s.status(ctx) != nil {
+		// go s.refreshUntilHealthy(ctx)
 		select {
 		case <-ctx.Done():
 			return

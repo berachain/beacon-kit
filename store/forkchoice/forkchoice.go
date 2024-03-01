@@ -13,7 +13,7 @@ type Store struct {
 	ctx context.Context
 
 	// fcHeadEth1BlockHash is the head block hash.
-	fcHeadEth1BlockHash sdkcollections.Item[[32]byte]
+	fcHeadEth1BlockHash *common.Hash
 
 	// fcSafeEth1BlockHash is the safe block hash.
 	fcSafeEth1BlockHash sdkcollections.Item[[32]byte]
@@ -27,18 +27,9 @@ type Store struct {
 
 func NewStore(
 	kvs store.KVStoreService,
-	mss store.MemoryStoreService,
 ) *Store {
 
 	kvSchemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
-	memSchemaBuilder := sdkcollections.NewSchemaBuilderFromAccessor(mss.OpenMemoryStore)
-
-	fcHeadEth1BlockHash := sdkcollections.NewItem[[32]byte](
-		memSchemaBuilder,
-		sdkcollections.NewPrefix(fcHeadEth1BlockHashPrefix),
-		fcHeadEth1BlockHashPrefix,
-		encoding.Bytes32ValueCodec{},
-	)
 
 	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
 		kvSchemaBuilder,
@@ -60,7 +51,7 @@ func NewStore(
 	)
 
 	return &Store{
-		fcHeadEth1BlockHash:      fcHeadEth1BlockHash,
+		fcHeadEth1BlockHash:      nil,
 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
 		eth1GenesisHash:          eth1GenesisHash,
@@ -70,19 +61,16 @@ func NewStore(
 // SetLastValidHead sets the last valid head in the store.
 // TODO: Make this in-mem thing more robust.
 func (s *Store) SetLastValidHead(blockHash common.Hash) {
-	if err := s.fcHeadEth1BlockHash.Set(s.ctx, blockHash); err != nil {
-		panic(err)
-	}
+	s.fcHeadEth1BlockHash = &blockHash
 }
 
 // GetHeadHash retrieves the last valid head from the store.
 // TODO: Make this in-mem thing more robust.
-func (s *Store) GetHeadHash() common.Hash {
-	safeHash, err := s.fcSafeEth1BlockHash.Get(s.ctx)
-	if err != nil {
-		safeHash = common.Hash{}
+func (s *Store) GetLastValidHead() common.Hash {
+	if s.fcHeadEth1BlockHash == nil {
+		return s.GetSafeEth1BlockHash()
 	}
-	return safeHash
+	return *s.fcHeadEth1BlockHash
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
@@ -131,4 +119,10 @@ func (s *Store) GenesisEth1Hash() common.Hash {
 		panic("failed to get genesis eth1hash")
 	}
 	return genesisHash
+}
+
+// WithContext( returns the Store with the given context.
+func (s *Store) WithContext(ctx context.Context) *Store {
+	s.ctx = ctx
+	return s
 }

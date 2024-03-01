@@ -33,8 +33,9 @@ import (
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
-type BeaconStateProvider interface {
+type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
+	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
 }
 
 type ValsetChangeProvider interface {
