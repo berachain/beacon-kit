@@ -31,6 +31,7 @@ import { IStakeERC20 } from "./IStakeERC20.sol";
 
 /**
  * @title BeaconDepositContract
+ * @author Berachain Team
  * @notice A contract that handles deposits, withdrawals, and redirections of stake.
  * @dev Its events are used by the beacon chain to manage the staking process.
  */
@@ -52,6 +53,8 @@ contract BeaconDepositContract is IBeaconDepositContract {
     // | Name        | Type    | Slot | Offset | Bytes | Contract                                |
     // |-------------|---------|------|--------|-------|-----------------------------------------|
     // | STAKE_ASSET | address | 0    | 0      | 20    | src/staking/Deposit.sol:DepositContract |
+    //
+    // slither-disable-next-line constable-states
     address private STAKE_ASSET = NATIVE_ASSET;
 
     /// @dev The minimum amount of stake that can be deposited to prevent dust.
@@ -107,6 +110,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             _depositERC20(amount);
         }
 
+        // slither-disable-next-line reentrancy-events
         emit Deposit(validatorPubKey, stakingCredentials, amount, signature);
     }
 
