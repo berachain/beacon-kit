@@ -327,10 +327,10 @@ pkgsite:
 
 slither:
 	docker run \
-	-t \
+ 	-t \
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
-	-v ./.git:/.git \
+	-v ./.git:/contracts/.git \
 	trailofbits/eth-security-toolbox \
 	/bin/bash -c "cd /contracts && forge install && slither ./src/eip4788 && slither ./src/staking"
 
