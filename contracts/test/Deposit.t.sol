@@ -89,6 +89,17 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
+    function test_DepositWrongPubKey() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
+        depositContract.deposit(
+            bytes("wrong_public_key"),
+            STAKING_CREDENTIALS,
+            32e9,
+            _create96Byte()
+        );
+    }
+
     function testFuzz_DepositWrongStakingCredentials(
         bytes calldata stakingCredentials
     )
@@ -103,13 +114,20 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
+    function test_DepositWrongStakingCredentials() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
+        depositContract.deposit(
+            VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9, _create96Byte()
+        );
+    }
+
     function testFuzz_DepositWrongAmount(uint256 amount) public {
         vm.revertTo(snapshot);
         amount = _bound(amount, 1, 32e9 - 1);
-
-        vm.startPrank(depositor);
         stakeToken.mint(depositor, amount);
 
+        vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         depositContract.deposit(
             VALIDATOR_PUBKEY,
@@ -119,14 +137,24 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
+    function test_DepositWrongAmount() public {
+        vm.revertTo(snapshot);
+        stakeToken.mint(depositor, 32e9 - 1);
+        vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
+        vm.prank(depositor);
+        depositContract.deposit(
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 - 1, _create96Byte()
+        );
+    }
+
     function testFuzz_DepositWrongMultiple(uint256 amount) public {
         vm.revertTo(snapshot);
         amount = _bound(amount, 32e9 + 1, type(uint64).max);
         vm.assume(amount % 1e9 != 0);
 
-        vm.startPrank(depositor);
         stakeToken.mint(depositor, amount);
 
+        vm.prank(depositor);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         depositContract.deposit(
             VALIDATOR_PUBKEY,
@@ -136,11 +164,21 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
+    function test_DepositWrongMultiple() public {
+        vm.revertTo(snapshot);
+        stakeToken.mint(depositor, 32e9 + 1);
+        vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
+        vm.prank(depositor);
+        depositContract.deposit(
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 + 1, _create96Byte()
+        );
+    }
+
     function test_Deposit() public {
         vm.revertTo(snapshot);
-        vm.startPrank(depositor);
         stakeToken.mint(depositor, 32e9);
 
+        vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
         emit IDepositContract.Deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
@@ -159,14 +197,26 @@ contract DepositContractTest is SoladyTest {
         depositContract.redirect(fromPubKey, VALIDATOR_PUBKEY, 32e9);
     }
 
-    function test_fuzzWrongToPubKey(bytes calldata toPubKey) public {
+    function test_RedirectWrongFromPubKey() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
+        depositContract.redirect(bytes("wrong_pub_key"), VALIDATOR_PUBKEY, 32e9);
+    }
+
+    function testFuzz_WrongToPubKey(bytes calldata toPubKey) public {
         vm.revertTo(snapshot);
         vm.assume(toPubKey.length != 48);
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
         depositContract.redirect(VALIDATOR_PUBKEY, toPubKey, 32e9);
     }
 
-    function test_fuzzRedirectWrongAmount(uint256 amount) public {
+    function test_RedirectWrongToPubKey() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
+        depositContract.redirect(VALIDATOR_PUBKEY, bytes("wrong_pub_key"), 32e9);
+    }
+
+    function testFuzz_RedirectWrongAmount(uint256 amount) public {
         vm.revertTo(snapshot);
         amount = _bound(amount, 1, 32e9 / 10 - 1);
 
@@ -176,25 +226,41 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
+    function test_RedirectWrongAmount() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InsufficientRedirectAmount.selector);
+        depositContract.redirect(
+            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9 / 10 - 1
+        );
+    }
+
     function testRedirect() public {
         vm.revertTo(snapshot);
         vm.expectEmit(true, true, true, true);
 
-        vm.startBroadcast(depositor);
+        vm.prank(depositor);
         emit IDepositContract.Redirect(
             VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, _credential(depositor), 32e9
         );
         depositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9);
     }
 
-    function test_fuzzWithdrawWrongPubKey(bytes calldata pubKey) public {
+    function testFuzz_WithdrawWrongPubKey(bytes calldata pubKey) public {
         vm.revertTo(snapshot);
         vm.assume(pubKey.length != 48);
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
         depositContract.withdraw(pubKey, WITHDRAWAL_CREDENTIALS, 32e9);
     }
 
-    function test_fuzzWithdrawWrongWithdrawalCredentials(
+    function test_WithdrawWrongPubKey() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
+        depositContract.withdraw(
+            bytes("wrong_pub_key"), WITHDRAWAL_CREDENTIALS, 32e9
+        );
+    }
+
+    function testFuzz_WithdrawWrongWithdrawalCredentials(
         bytes calldata withdrawalCredentials
     )
         public
@@ -205,7 +271,15 @@ contract DepositContractTest is SoladyTest {
         depositContract.withdraw(VALIDATOR_PUBKEY, withdrawalCredentials, 32e9);
     }
 
-    function test_WithdrawWrongAmount(uint256 amount) public {
+    function test_WithdrawWrongWithdrawCredentials() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
+        depositContract.withdraw(
+            VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9
+        );
+    }
+
+    function testFuzz_WithdrawWrongAmount(uint256 amount) public {
         vm.revertTo(snapshot);
         amount = _bound(amount, 1, 32e9 / 10 - 1);
 
@@ -215,18 +289,26 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
+    function test_WithdrawWrongAmount() public {
+        vm.revertTo(snapshot);
+        vm.expectRevert(IDepositContract.InsufficientWithdrawAmount.selector);
+        depositContract.withdraw(
+            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9 / 10 - 1
+        );
+    }
+
     function testWithdraw() public {
         vm.revertTo(snapshot);
         vm.expectEmit(true, true, true, true);
 
-        vm.startBroadcast(depositor);
+        vm.prank(depositor);
         emit IDepositContract.Withdraw(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
         );
         depositContract.withdraw(VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9);
     }
 
-    function test_fuzzDepositNativeWrongMinAmount(uint256 amount) public {
+    function testFuzz_DepositNativeWrongMinAmount(uint256 amount) public {
         vm.revertTo(nativeSnapshot);
         amount = _bound(amount, 1, 32 gwei - 1);
         vm.deal(depositor, amount);
@@ -236,14 +318,35 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function test_DepositNativeNotDivisibleByGwei(uint256 amount) public {
+    function test_DepositNativeWrongMinAmount() public {
+        vm.revertTo(nativeSnapshot);
+        uint256 amount = 32 gwei - 1;
+        vm.deal(depositor, amount);
+        vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
+        depositContract.deposit{ value: amount }(
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+        );
+    }
+
+    function testFuzz_DepositNativeNotDivisibleByGwei(uint256 amount) public {
         vm.revertTo(nativeSnapshot);
         amount = _bound(amount, 32e9 + 1, uint256(type(uint64).max));
         vm.assume(amount % 1e9 != 0);
         vm.deal(depositor, amount);
-        vm.startPrank(depositor);
 
+        vm.prank(depositor);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
+        depositContract.deposit{ value: amount }(
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+        );
+    }
+
+    function test_DepositNativeNotDivisibleByGwei() public {
+        vm.revertTo(nativeSnapshot);
+        uint256 amount = 32e9 + 1;
+        vm.deal(depositor, amount);
+        vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
+        vm.prank(depositor);
         depositContract.deposit{ value: amount }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
@@ -252,7 +355,6 @@ contract DepositContractTest is SoladyTest {
     function test_DepositNative() public {
         vm.revertTo(nativeSnapshot);
         vm.deal(depositor, 1 ether);
-
         vm.expectEmit(true, true, true, true);
         emit IDepositContract.Deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte()
