@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@solady/test/utils/SoladyTest.sol";
-import "@solady/src/utils/FixedPointMathLib.sol";
-import "@src/staking/BeaconDepositContract.sol";
+import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
+import { BeaconDepositContract } from "@src/staking/BeaconDepositContract.sol";
 
 /// @title BeaconDepositContractTest
 contract BeaconDepositContractTest is SoladyTest {
