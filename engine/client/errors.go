@@ -44,67 +44,89 @@ const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID a
 	will need to set up JWT authentication...`
 
 var (
+	// ErrNotStarted indicates that the execution client is not started.
+	ErrNotStarted = errors.New("engine client is not started")
+
 	// ErrInvalidJWTSecretLength indicates incorrect JWT secret length.
 	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
+
 	// ErrHTTPTimeout indicates a timeout error from http.Client.
 	ErrHTTPTimeout = errors.New("timeout from http.Client")
+
 	// ErrEmptyBlockHash indicates an empty block hash scenario.
 	ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
+
 	// ErrNilResponse indicates a nil response from the execution client.
 	ErrNilResponse = errors.New("nil response from execution client")
+
 	// ErrParse indicates a parsing error
 	// (JSON-RPC code -32700).
 	ErrParse = errors.New("invalid JSON was received by the server")
+
 	// ErrInvalidRequest indicates an invalid request object
 	// (JSON-RPC code -32600).
 	ErrInvalidRequest = errors.New("JSON sent is not valid request object")
+
 	// ErrMethodNotFound indicates a non-existent method call
 	// (JSON-RPC code -32601).
 	ErrMethodNotFound = errors.New("method not found")
+
 	// ErrInvalidParams indicates invalid method parameters
 	// (JSON-RPC code -32602).
 	ErrInvalidParams = errors.New("invalid method parameter(s)")
+
 	// ErrInternal indicates an internal JSON-RPC error
 	// (JSON-RPC code -32603).
 	ErrInternal = errors.New("internal JSON-RPC error")
+
 	// ErrServer indicates a client-side error during request processing
 	// (JSON-RPC code -32000).
 	ErrServer = errors.New(
 		"client error while processing request")
+
 	// ErrUnknownPayload indicates an unavailable or non-existent payload
 	// (JSON-RPC code -38001).
 	ErrUnknownPayload = errors.New(
 		"payload does not exist or is not available")
+
 	// ErrInvalidForkchoiceState indicates an invalid fork choice state
 	// (JSON-RPC code -38002).
 	ErrInvalidForkchoiceState = errors.New(
 		"invalid forkchoice state")
+
 	// ErrInvalidPayloadAttributes indicates invalid or inconsistent payload
 	// attributes
 	// (JSON-RPC code -38003).
 	ErrInvalidPayloadAttributes = errors.New(
 		"payload attributes are invalid / inconsistent")
+
 	// ErrUnknownPayloadStatus indicates an unknown payload status.
 	ErrUnknownPayloadStatus = errors.New(
 		"unknown payload status")
+
 	// ErrAcceptedSyncingPayloadStatus indicates a payload status of SYNCING or
 	// ACCEPTED.
 	ErrAcceptedSyncingPayloadStatus = errors.New(
 		"payload status is SYNCING or ACCEPTED")
+
 	// ErrInvalidPayloadStatus indicates an invalid payload status.
 	ErrInvalidPayloadStatus = errors.New(
 		"payload status is INVALID")
+
 	// ErrInvalidBlockHashPayloadStatus indicates a failure in validating the
 	// block hash for the payload.
 	ErrInvalidBlockHashPayloadStatus = errors.New(
 		"payload status is INVALID_BLOCK_HASH")
+
 	// ErrRequestTooLarge indicates that the request size exceeded the limit.
 	ErrRequestTooLarge = errors.New(
 		"request too large")
+
 	// ErrUnsupportedVersion indicates a request for a block type with an
 	// unknown ExecutionPayload schema.
 	ErrUnsupportedVersion = errors.New(
 		"unknown ExecutionPayload schema for block version")
+
 	// ErrNilJWTSecret indicates that the JWT secret is nil.
 	ErrNilJWTSecret = errors.New("nil JWT secret")
 
