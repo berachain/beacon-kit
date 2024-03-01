@@ -31,7 +31,7 @@ import (
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	consensusv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
@@ -73,7 +73,7 @@ func FuzzProcessLogs(f *testing.F) {
 
 			// Check if the values are returned in the correct order.
 			for i, val := range vals {
-				processedDeposit, ok := val.Interface().(*consensusv1.Deposit)
+				processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
 				require.True(t, ok)
 				require.Equal(
 					t,

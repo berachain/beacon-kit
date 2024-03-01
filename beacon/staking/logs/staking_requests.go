@@ -29,7 +29,7 @@ import (
 	"reflect"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	consensusv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -85,7 +85,7 @@ var (
 		0x18,
 	}
 
-	DepositType = reflect.TypeOf(consensusv1.Deposit{})
+	DepositType = reflect.TypeOf(beacontypesv1.Deposit{})
 
 	// Signature and type of the Withdrawal event
 	// in the deposit contract.

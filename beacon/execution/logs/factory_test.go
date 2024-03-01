@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	consensusv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
@@ -73,7 +73,7 @@ func TestLogFactory(t *testing.T) {
 	require.Equal(t, reflect.Ptr, valType.Kind())
 	require.Equal(t, logs.DepositType, valType.Elem())
 
-	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
+	newDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
 	require.True(t, ok)
 	require.NoError(t, err)
 	require.Equal(t, deposit, newDeposit)
