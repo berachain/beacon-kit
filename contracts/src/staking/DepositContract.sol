@@ -101,49 +101,14 @@ contract DepositContract is IDepositContract {
             revert InvalidSignatureLength();
         }
 
-        // If the stake asset is the native asset, the deposit must be made with msg.value.
-        // Be carfule with casting to uint64, it can overflow so we check the value is less than uint64.max.
         if (STAKE_ASSET == NATIVE_ASSET) {
-            if (msg.value < MIN_DEPOSIT_AMOUNT) {
-                revert InsufficientDeposit();
-            }
-
-            if (msg.value % 1 gwei != 0) {
-                revert DepositNotMultipleOfGwei();
-            }
-
-            // Prevent overflow when casting to uint64.
-            if (msg.value > type(uint64).max) {
-                revert DepositValueTooHigh();
-            }
-
-            /// @dev Transfer the native stake asset to the zero address to burn it.
-            SafeTransferLib.safeTransferETH(address(0), msg.value);
-
-            emit Deposit(
-                validatorPubKey,
-                stakingCredentials,
-                uint64(msg.value),
-                signature
-            );
-        } else {
-            // Burn the staking asset from the sender, only this contract should be allowed to burn.
-            IStakeERC20(STAKE_ASSET).burn(msg.sender, amount);
-
-            if (amount < MIN_DEPOSIT_AMOUNT) {
-                revert InsufficientDeposit();
-            }
-
-            if (amount > type(uint64).max) {
-                revert DepositValueTooHigh();
-            }
-
-            if (amount % 1 gwei != 0) {
-                revert DepositNotMultipleOfGwei();
-            }
-
-            emit Deposit(validatorPubKey, stakingCredentials, amount, signature);
+            amount = _depositNative();
         }
+        else {
+            _depositERC20(amount);
+        }
+
+        emit Deposit(validatorPubKey, stakingCredentials, amount, signature);
     }
 
     /// @inheritdoc IDepositContract
@@ -199,5 +164,43 @@ contract DepositContract is IDepositContract {
     function _toCredentials(address addr) private pure returns (bytes memory) {
         // 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
         return abi.encodePacked(bytes1(0x01), bytes11(0x0), addr);
+    }
+    
+    /**
+     * @notice Validates the deposit amount and sends the native asset to the zero address.
+     */
+    function _depositNative() private returns (uint64) {
+        if (msg.value > type(uint64).max) {
+            revert DepositValueTooHigh();
+        }
+
+        if (msg.value < MIN_DEPOSIT_AMOUNT) {
+            revert InsufficientDeposit();
+        }
+
+        if (msg.value % 1 gwei != 0) {
+            revert DepositNotMultipleOfGwei();
+        }
+
+        SafeTransferLib.safeTransferETH(address(0), msg.value);
+
+        // Safe since we have already checked that the value is less than uint64.max.
+        return uint64(msg.value);
+    }
+    
+    /*
+     * @notice Validates the deposit amount and burns the staking asset from the sender.
+     * @param amount The amount of stake to deposit.
+     */
+    function _depositERC20(uint64 amount) private {
+        IStakeERC20(STAKE_ASSET).burn(msg.sender, amount);
+
+        if (amount < MIN_DEPOSIT_AMOUNT) {
+            revert InsufficientDeposit();
+        }
+
+        if (amount % 1 gwei != 0) {
+            revert DepositNotMultipleOfGwei();
+        }
     }
 }
