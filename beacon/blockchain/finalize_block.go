@@ -89,13 +89,3 @@ func (s *Service) FinalizeBeaconBlock(
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	return nil
 }
-
-// // PostFinalizeBeaconBlock is called after a beacon block has been finalized.
-// func (s *Service) PostFinalizeBeaconBlock(
-// 	ctx context.Context,
-// 	_ primitives.Slot,
-// ) error {
-// 	// If builder is not enabled, or failed to build, fallback to a vanilla fcu.
-// 	return s.sendFCU(
-// 		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
-// }
