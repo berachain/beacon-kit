@@ -160,7 +160,7 @@ contract DepositContract is IDepositContract {
             revert InsufficientRedirectAmount();
         }
 
-        emit Redirect(_toCredentials(msg.sender), fromPubKey, toPubKey, amount);
+        emit Redirect(fromPubKey, toPubKey, _toCredentials(msg.sender), amount);
     }
 
     /// @inheritdoc IDepositContract

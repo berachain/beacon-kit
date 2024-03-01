@@ -55,9 +55,9 @@ interface IDepositContract {
      * @param amount The amount of stake be redirected, in Gwei.
      */
     event Redirect(
-        bytes indexed stakingCredentials,
         bytes indexed fromPubKey,
         bytes indexed toPubKey,
+        bytes indexed stakingCredentials,
         uint64 amount
     );
 
