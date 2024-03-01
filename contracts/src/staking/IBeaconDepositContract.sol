@@ -25,10 +25,10 @@
 
 pragma solidity 0.8.24;
 
-/// @title IDepositContract
+/// @title IBeaconDepositContract
 /// @author Berachain Team.
 /// @dev This contract is used to create validator, deposit, redirect and withdraw stake from the Beaconchain.
-interface IDepositContract {
+interface IBeaconDepositContract {
     // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     // /*                        EVENTS                              */
     // /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
