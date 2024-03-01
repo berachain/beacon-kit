@@ -326,10 +326,7 @@ pkgsite:
 #################
 
 slither:
-	@cd contracts
-	@forge install
-	@cd ..
-	@docker run \
+	docker run \
 	-t \
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
