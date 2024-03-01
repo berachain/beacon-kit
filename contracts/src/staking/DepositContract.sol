@@ -47,28 +47,33 @@ contract DepositContract is IDepositContract {
 
     /// @dev The address of the staking asset.
     /// @notice defaults to the native asset but can be changed at genesis at slot!!!.
-    address public constant STAKE_ASSET = NATIVE_ASSET;
+    /// @notice to allow for the staking asset to be changed, we must store it in the contract storage.
+    /// @notice storage layout:
+    // | Name        | Type    | Slot | Offset | Bytes | Contract                                |
+    // |-------------|---------|------|--------|-------|-----------------------------------------|
+    // | STAKE_ASSET | address | 0    | 0      | 20    | src/staking/Deposit.sol:DepositContract |
+    address private STAKE_ASSET = NATIVE_ASSET;
 
     /// @dev The minimum amount of stake that can be deposited to prevent dust.
     /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
-    uint64 public constant MIN_DEPOSIT_AMOUNT = 32e9;
+    uint64 private constant MIN_DEPOSIT_AMOUNT = 32e9;
 
     /// @dev The minimum amount of stake that can be redirected to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
-    uint256 public constant MIN_REDIRECT_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
+    uint256 private constant MIN_REDIRECT_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
 
     /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
-    uint256 public constant MINIMUM_WITHDRAWAL_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
+    uint256 private constant MINIMUM_WITHDRAWAL_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
 
     /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
-    uint8 public constant PUBLIC_KEY_LENGTH = 48;
+    uint8 private constant PUBLIC_KEY_LENGTH = 48;
 
     /// @dev The length of the signature, SIGNATURE_LENGTH bytes.
-    uint8 public constant SIGNATURE_LENGTH = 96;
+    uint8 private constant SIGNATURE_LENGTH = 96;
 
     /// @dev The length of the credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-    uint8 public constant CREDENTIALS_LENGTH = 32;
+    uint8 private constant CREDENTIALS_LENGTH = 32;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
