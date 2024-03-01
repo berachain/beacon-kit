@@ -128,7 +128,6 @@ func AddCommands[T servertypes.Application](
 	rootCmd.AddCommand(
 		startCmd,
 		cometCmd,
-		beaconconfig.BeaconKitCommands(),
 		version.NewVersionCommand(),
 		server.NewRollbackCmd(appCreator),
 	)

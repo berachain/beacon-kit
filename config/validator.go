@@ -27,7 +27,8 @@ package config
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/mitchellh/mapstructure"
+	"github.com/itsdevbear/bolaris/config/flags"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
 // Validator conforms to the BeaconKitConfig interface.
@@ -35,9 +36,8 @@ var _ BeaconKitConfig[Validator] = &Validator{}
 
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultValidatorConfig() Validator {
-	mapstructure.StringToSliceHookFunc(",")
 	return Validator{
-		SuggestedFeeRecipient:   common.Address{0x01},
+		SuggestedFeeRecipient:   common.Address{},
 		Graffiti:                "",
 		NumRandaoRevealsToTrack: 32, //nolint:gomnd // default.
 	}
@@ -48,14 +48,29 @@ type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
-	SuggestedFeeRecipient common.Address `mapstructure:"suggested-fee-recipient"`
+	SuggestedFeeRecipient common.Address
 
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.
-	Graffiti string `mapstructure:"graffiti"`
+	Graffiti string
 
 	// Rando reveals to track
-	NumRandaoRevealsToTrack uint64 `mapstructure:"num-randao-reveals-to-track"`
+	NumRandaoRevealsToTrack uint64
+}
+
+// Parse parses the configuration.
+func (c Validator) Parse(parser parser.AppOptionsParser) (*Validator, error) {
+	var err error
+	if c.SuggestedFeeRecipient, err = parser.GetExecutionAddress(
+		flags.SuggestedFeeRecipient,
+	); err != nil {
+		return nil, err
+	}
+	if c.Graffiti, err = parser.GetString(flags.Graffiti); err != nil {
+		return nil, err
+	}
+
+	return &c, nil
 }
 
 // Template returns the configuration template.
