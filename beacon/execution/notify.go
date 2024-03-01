@@ -146,7 +146,7 @@ func (s *Service) notifyForkchoiceUpdate(
 			// TODO: right now GetLastValidHead() is going to either return
 			// the last valid block that was built, OR the
 			// last safe block, which tbh is also okay.
-			HeadEth1Hash:  forkChoicer.GetLastValidHead(),
+			HeadEth1Hash:  forkChoicer.GetSafeEth1BlockHash(),
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,
 		})

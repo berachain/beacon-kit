@@ -57,7 +57,7 @@ func (s *Service) FinalizeBeaconBlock(
 		// If something bad happens, we defensivelessly send a forkchoice update
 		// to bring us back to the last valid head.
 		if err != nil {
-			err = s.sendFCU(ctx, forkChoicer.GetLastValidHead())
+			err = s.sendFCU(ctx, forkChoicer.GetSafeEth1BlockHash())
 			s.Logger().Error(
 				"failed to send recovery forkchoice update", "error", err,
 			)

@@ -52,7 +52,7 @@ func (s *Service) postBlockProcess(
 		// issue?
 		// TODO: Should introduce the concept of missed slots?
 		if err := s.sendFCU(
-			ctx, s.ForkchoiceStore(ctx).GetLastValidHead(),
+			ctx, s.ForkchoiceStore(ctx).GetSafeEth1BlockHash(),
 		); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
 		}
