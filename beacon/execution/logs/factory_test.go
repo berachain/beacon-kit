@@ -30,6 +30,7 @@ import (
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
@@ -53,7 +54,7 @@ func TestLogFactory(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	deposit := consensus.NewDeposit(
+	deposit := beacontypes.NewDeposit(
 		[]byte("pubkey"),
 		10000,
 		[]byte("12345678901234567890"),
