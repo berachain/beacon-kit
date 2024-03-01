@@ -47,7 +47,7 @@ func DefaultEngineConfig() Engine {
 		RPCTimeout:              2 * time.Second,  //nolint:gomnd // default config.
 		RPCStartupCheckInterval: 5 * time.Second,  //nolint:gomnd // default config.
 		RPCJWTRefreshInterval:   30 * time.Second, //nolint:gomnd // default config.
-		JWTSecretPath:           "./jwt.hex",
+		JWTSecretPath:           "/root/ethgen/jwt.hex",
 		RequiredChainID:         80086, //nolint:gomnd // default config.
 	}
 }
