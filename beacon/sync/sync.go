@@ -42,20 +42,18 @@ func (s *Service) CheckCLSync(ctx context.Context) {
 		return
 	}
 
-	// Exit early if the node does not return a progress.
-	// This means the node is in sync at the eth1 layer.
-	if resultStatus.SyncInfo.CatchingUp {
+	// If we are not catchup, then say we are synced.
+	s.isCLSynced = !resultStatus.SyncInfo.CatchingUp
+
+	// Add a log if syncing.
+	if !resultStatus.SyncInfo.CatchingUp {
 		s.Logger().Warn(
 			"beacon client is attemping to sync.... ",
 			"current_beacon", resultStatus.SyncInfo.LatestBlockHeight,
 			"highest_beacon", resultStatus.SyncInfo.CatchingUp,
 			"starting_beacon", resultStatus.SyncInfo.EarliestBlockHeight,
 		)
-		s.isCLSynced = false
 	}
-
-	// Else mark as synced
-	s.isCLSynced = true
 }
 
 // CheckELSync checks if the execution layer is syncing.
@@ -64,25 +62,23 @@ func (s *Service) CheckELSync(ctx context.Context) {
 	progress, err := s.engineClient.SyncProgress(ctx)
 	s.isSyncedCond.L.Lock()
 	defer s.isSyncedCond.L.Unlock()
-
 	if err != nil {
 		s.isELSynced = false
 		return
 	}
 
-	// Exit early if the node does not return a progress.
-	// This means the node is in sync at the eth1 layer.
-	if progress != nil {
+	// If progress == nil, then we say the execution client is synced.
+	s.isCLSynced = progress == nil
+
+	// Add a log if syncing.
+	if !s.isCLSynced {
 		s.Logger().Warn(
 			"execution client is attemping to sync.... ",
 			"current_eth1", progress.CurrentBlock,
 			"highest_eth1", progress.HighestBlock,
 			"starting_eth1", progress.StartingBlock,
 		)
-		s.isELSynced = false
 	}
-
-	s.isELSynced = true
 }
 
 // UpdateNumCLPeers updates the number of peers connected at the consensus
