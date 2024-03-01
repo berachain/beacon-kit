@@ -38,7 +38,7 @@ type Bytes32KeyCodec struct{}
 // Assert that Bytes32ValueCodec implements codec.ValueCodec.
 var _ codec.KeyCodec[[32]byte] = Bytes32KeyCodec{}
 
-//nolint:gochecknoglobals // Those vars can be reused, no need to relocate.
+//nolint:gochecknoglobals // Those vars can be reused, no need to reallocate.
 var (
 	Bytes32Key   = Bytes32KeyCodec{}
 	Bytes32Value = codec.KeyToValueCodec(Bytes32Key)
