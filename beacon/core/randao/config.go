@@ -27,4 +27,5 @@ package randao
 
 type Config struct {
 	EpochsPerHistoricalVector uint64 `mapstructure:"epochs-per-historical-vector"`
+	ConfiguredPubKeyLength    uint64 `mapstructure:"configured-pubkey-length"`
 }

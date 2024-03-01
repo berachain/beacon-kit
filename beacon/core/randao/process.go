@@ -42,7 +42,11 @@ type beaconStateProvider interface {
 
 type blsSigner interface {
 	Sign([]byte) [bls12_381.SignatureLength]byte
-	Verify([32]byte, []byte, [bls12_381.SignatureLength]byte) bool
+	Verify(
+		[bls12_381.PubKeyLength]byte,
+		[]byte,
+		[bls12_381.SignatureLength]byte,
+	) bool
 }
 
 // Processor is the randao processor.
@@ -83,7 +87,7 @@ func (rs *Processor) BuildReveal(
 func (rs *Processor) ProcessRandao(
 	ctx context.Context,
 	epoch primitives.Epoch,
-	proposerPubkey [32]byte,
+	proposerPubkey [bls12_381.PubKeyLength]byte,
 	prevReveal types.Reveal,
 ) error {
 	st := rs.BeaconState(ctx)
@@ -120,7 +124,8 @@ func (rs *Processor) getDomain(
 
 	_ = sszBz
 
-	// We can also get the has tree root (trivial because this is one item but yeah)
+	// We can also get the has tree root (trivial because this is one item but
+	// yeah)
 
 	htr, err := epochSSZUInt64.HashTreeRoot()
 	if err != nil {
@@ -133,7 +138,7 @@ func (rs *Processor) getDomain(
 
 // VerifyReveal verifies the reveal of the proposer.
 func (Processor) VerifyReveal(
-	proposerPubkey []byte,
+	proposerPubkey [bls12_381.PubKeyLength]byte,
 	signature [bls12_381.SignatureLength]byte,
 	reveal types.Reveal,
 ) bool {
@@ -142,7 +147,7 @@ func (Processor) VerifyReveal(
 		panic(err)
 	}
 
-	p, err := blst.PublicKeyFromBytes(proposerPubkey)
+	p, err := blst.PublicKeyFromBytes(proposerPubkey[:])
 	if err != nil {
 		panic(err)
 	}

@@ -33,5 +33,6 @@ package bls12381
 //nolint:lll
 const (
 	SignatureLength = 96
+	PubKeyLength    = 48
 	SecretKeyLength = 32
 )
