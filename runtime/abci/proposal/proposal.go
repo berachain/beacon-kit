@@ -26,7 +26,6 @@
 package proposal
 
 import (
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -83,8 +82,8 @@ func (h *Handler) PrepareProposalHandler(
 	if err := h.healthService.WaitForHealthyOf(
 		ctx, "prepare-proposal", "sync",
 	); err != nil {
-		return &abci.ResponsePrepareProposal{},
-			fmt.Errorf("aborting due to: %w", err)
+		logger.Error("failed to wait for healthy sync service", "error", err)
+		return &abci.ResponsePrepareProposal{}, nil
 	}
 
 	// We start by requesting the validator service to build us a block. This
@@ -135,9 +134,8 @@ func (h *Handler) ProcessProposalHandler(
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
-		//nolint:nilerr // its okay for now todo.
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
+			Status: abci.ResponseProcessProposal_ACCEPT}, err
 	}
 
 	// Import the block into the execution client to validate it.
@@ -145,7 +143,7 @@ func (h *Handler) ProcessProposalHandler(
 		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
 		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
+			Status: abci.ResponseProcessProposal_ACCEPT}, err
 	}
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal

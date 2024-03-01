@@ -157,19 +157,17 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithLocalBuilder(localBuilder),
 	)
 
-	// Build the sync service.
-	syncService := service.New[sync.Service](
-		sync.WithBaseService(baseService.ShallowCopy("sync")),
-		sync.WithEngineClient(engineClient),
-		sync.WithConfig(sync.DefaultConfig()),
-	)
-
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithStakingService(stakingService),
-		blockchain.WithSyncService(syncService),
+	)
+
+	// Build the sync service.
+	syncService := service.New[sync.Service](
+		sync.WithBaseService(baseService.ShallowCopy("sync")),
+		sync.WithEngineClient(engineClient),
 	)
 
 	svcRegistry := service.NewRegistry(
