@@ -46,7 +46,7 @@ func (s *Service) CheckCLSync(ctx context.Context) {
 	s.isCLSynced = !resultStatus.SyncInfo.CatchingUp
 
 	// Add a log if syncing.
-	if !resultStatus.SyncInfo.CatchingUp {
+	if !s.isCLSynced {
 		s.Logger().Warn(
 			"beacon client is attemping to sync.... ",
 			"current_beacon", resultStatus.SyncInfo.LatestBlockHeight,
@@ -68,10 +68,10 @@ func (s *Service) CheckELSync(ctx context.Context) {
 	}
 
 	// If progress == nil, then we say the execution client is synced.
-	s.isCLSynced = progress == nil
+	s.isELSynced = progress == nil
 
 	// Add a log if syncing.
-	if !s.isCLSynced {
+	if !s.isELSynced {
 		s.Logger().Warn(
 			"execution client is attemping to sync.... ",
 			"current_eth1", progress.CurrentBlock,
