@@ -44,7 +44,37 @@ concurrency:
   cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' || github.event_name == 'pull_request' }}
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should-ignore: ${{ steps.set-ignore.outputs.ignore }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v42
+        with:
+          base_sha: ${{ github.head_ref }}
+          files: |
+            !docs/**
+            !vercel.json
+      - name: List all changed files
+        id: set-ignore
+        env:
+          ALL_CHANGED_FILES_COUNT: ${{ steps.changed-files.outputs.all_changed_files_count }}
+        run: |
+          if [ $ALL_CHANGED_FILES_COUNT -gt 0 ]
+          then
+            echo "ignore=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ignore=true" >> "$GITHUB_OUTPUT"
+          fi
   ci:
+    needs: check
+    if: needs.check.outputs.should-ignore == 'false'
     strategy:
       matrix:
         args: 
