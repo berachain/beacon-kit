@@ -52,6 +52,12 @@ func (s *Service) notifyNewPayload(
 		err           error
 	)
 
+	s.Logger().Info("notifying new payload",
+		"payload_block_hash", common.BytesToHash(payload.GetBlockHash()),
+		"parent_hash", common.BytesToHash(payload.GetParentHash()),
+		"for_slot", slot,
+	)
+
 	if s.ActiveForkVersionForSlot(slot) >= version.Deneb {
 		// TODO: Deneb
 		// var versionedHashes []common.Hash
@@ -115,6 +121,15 @@ func (s *Service) notifyForkchoiceUpdate(
 		SafeBlockHash:      forkChoicer.GetSafeEth1BlockHash().Bytes(),
 		FinalizedBlockHash: forkChoicer.GetFinalizedEth1BlockHash().Bytes(),
 	}
+
+	s.Logger().Info("notifying forkchoice update",
+		"head_eth1_hash", fcuConfig.HeadEth1Hash,
+		"safe_eth1_hash", forkChoicer.GetSafeEth1BlockHash(),
+		"finalized_eth1_hash", forkChoicer.GetFinalizedEth1BlockHash(),
+		"for_slot", fcuConfig.ProposingSlot,
+		"has_attributes", fcuConfig.Attributes != nil &&
+			!fcuConfig.Attributes.IsEmpty(),
+	)
 
 	// Notify the execution engine of the forkchoice update.
 	payloadID, _, err := s.engine.ForkchoiceUpdated(
