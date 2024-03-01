@@ -38,7 +38,7 @@ import (
 // BaseService is a base service that provides common functionality for all
 // services.
 type BaseService struct {
-	BeaconStateProvider
+	BeaconStorageBackend
 	name   string
 	cfg    *config.Config
 	gcd    *dispatch.GrandCentralDispatch
@@ -54,15 +54,15 @@ type BaseService struct {
 // NewBaseService creates a new BaseService and applies the provided options.
 func NewBaseService(
 	cfg *config.Config,
-	bsp BeaconStateProvider,
+	bsp BeaconStorageBackend,
 	gcd *dispatch.GrandCentralDispatch,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
-		BeaconStateProvider: bsp,
-		gcd:                 gcd,
-		logger:              logger,
-		cfg:                 cfg,
+		BeaconStorageBackend: bsp,
+		gcd:                  gcd,
+		logger:               logger,
+		cfg:                  cfg,
 	}
 }
 

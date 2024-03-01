@@ -26,55 +26,18 @@
 package beacon
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // SetLastValidHead sets the last valid head in the store.
 // TODO: Make this in-mem thing more robust.
-func (s *Store) SetLastValidHead(lastValidHead common.Hash) {
-	if s.lastValidHash == nil {
-		s.lastValidHash = new(common.Hash)
-	}
-	*s.lastValidHash = lastValidHead
+func (s *Store) SetRandaoMix(primitives.Epoch, randaotypes.Mix) error {
+	return nil
 }
 
 // GetLastValidHead retrieves the last valid head from the store.
 // TODO: Make this in-mem thing more robust.
-func (s *Store) GetLastValidHead() common.Hash {
-	if s.lastValidHash == nil {
-		return s.GetSafeEth1BlockHash()
-	}
-	return *s.lastValidHash
-}
-
-// SetSafeEth1BlockHash sets the safe block hash in the store.
-func (s *Store) SetSafeEth1BlockHash(blockHash common.Hash) {
-	if err := s.fcSafeEth1BlockHash.Set(s.ctx, blockHash); err != nil {
-		panic(err)
-	}
-}
-
-// GetSafeEth1BlockHash retrieves the safe block hash from the store.
-func (s *Store) GetSafeEth1BlockHash() common.Hash {
-	safeHash, err := s.fcSafeEth1BlockHash.Get(s.ctx)
-	if err != nil {
-		safeHash = common.Hash{}
-	}
-	return safeHash
-}
-
-// SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (s *Store) SetFinalizedEth1BlockHash(blockHash common.Hash) {
-	if err := s.fcFinalizedEth1BlockHash.Set(s.ctx, blockHash); err != nil {
-		panic(err)
-	}
-}
-
-// GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
-func (s *Store) GetFinalizedEth1BlockHash() common.Hash {
-	finalHash, err := s.fcFinalizedEth1BlockHash.Get(s.ctx)
-	if err != nil {
-		finalHash = common.Hash{}
-	}
-	return finalHash
+func (s *Store) RandaoMix() (randaotypes.Mix, error) {
+	return randaotypes.Mix{}, nil
 }

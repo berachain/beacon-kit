@@ -30,7 +30,6 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
@@ -44,23 +43,10 @@ type Store struct {
 	// depositQueue is a list of depositQueue that are queued to be processed.
 	depositQueue *collections.Queue[*consensusv1.Deposit]
 
-	// fcSafeEth1BlockHash is the safe block hash.
-	fcSafeEth1BlockHash sdkcollections.Item[[32]byte]
-
-	// fcFinalizedEth1BlockHash is the finalized block hash.
-	fcFinalizedEth1BlockHash sdkcollections.Item[[32]byte]
-
-	// eth1GenesisHash is the Eth1 genesis hash.
-	eth1GenesisHash sdkcollections.Item[[32]byte]
-
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
 	// by eip-4788.
 	parentBlockRoot sdkcollections.Item[[]byte]
-
-	// lastValidHash is the last valid head in the store.
-	// TODO: we need to handle this in a better way.
-	lastValidHash *common.Hash
 }
 
 // Store creates a new instance of Store.
@@ -73,24 +59,6 @@ func NewStore(
 		depositQueuePrefix,
 		encoding.SSZValueCodec[*consensusv1.Deposit]{},
 	)
-	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
-		schemaBuilder,
-		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
-		fcSafeEth1BlockHashPrefix,
-		encoding.Bytes32ValueCodec{},
-	)
-	fcFinalizedEth1BlockHash := sdkcollections.NewItem[[32]byte](
-		schemaBuilder,
-		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
-		fcFinalizedEth1BlockHashPrefix,
-		encoding.Bytes32ValueCodec{},
-	)
-	eth1GenesisHash := sdkcollections.NewItem[[32]byte](
-		schemaBuilder,
-		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
-		eth1GenesisHashPrefix,
-		encoding.Bytes32ValueCodec{},
-	)
 	parentBlockRoot := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(parentBlockRootPrefix),
@@ -98,11 +66,8 @@ func NewStore(
 		sdkcollections.BytesValue,
 	)
 	return &Store{
-		depositQueue:             depositQueue,
-		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
-		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
-		eth1GenesisHash:          eth1GenesisHash,
-		parentBlockRoot:          parentBlockRoot,
+		depositQueue:    depositQueue,
+		parentBlockRoot: parentBlockRoot,
 	}
 }
 

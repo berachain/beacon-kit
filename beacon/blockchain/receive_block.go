@@ -28,6 +28,7 @@ package blockchain
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -100,10 +101,10 @@ func (s *Service) validateStateTransition(
 	}
 
 	if executionData == nil || executionData.IsEmpty() {
-		return fmt.Errorf("block has no execution payload")
+		return errors.New("no payload in beacon block")
 	}
 
-	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	finalizedHash := s.ForkchoiceStore(ctx).GetFinalizedEth1BlockHash()
 	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",

@@ -45,7 +45,7 @@ type DepInjectInput struct {
 	depinject.In
 
 	Config *config.Config
-	Bsp    BeaconStateProvider
+	Bsp    BeaconStorageBackend
 	Vcp    ValsetChangeProvider
 	Logger log.Logger
 }
