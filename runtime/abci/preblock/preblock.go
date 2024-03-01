@@ -103,10 +103,10 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				primitives.Slot(req.Height),
 			),
 		)
-		if err != nil || req.Height%4 == 0 {
+		if err != nil {
 			// Call the nested child handler.
 			// TODO SLASH PROPOSER
-			// return h.callNextHandler(ctx, req)
+			// TODO: This is fucking hood as fuck.
 			beaconBlock, _ = consensus.EmptyBeaconKitBlock(
 				primitives.Slot(req.Height),
 				h.chainService.BeaconState(ctx).GetParentBlockRoot(),

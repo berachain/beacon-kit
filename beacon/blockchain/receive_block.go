@@ -94,20 +94,19 @@ func (s *Service) ReceiveBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
 ) error {
-	// executionData, err := blk.ExecutionPayload()
-	// if err != nil {
-	// 	return err
-	// }
+	executionData, err := blk.ExecutionPayload()
+	if err != nil {
+		return err
+	}
 
-	// finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
-	// if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
-	// 	return fmt.Errorf(
-	// 		"parent block with hash %x is not finalized, expected finalized hash
-	// %x",
-	// 		executionData.GetParentHash(),
-	// 		finalizedHash,
-	// 	)
-	// }
+	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
+		return fmt.Errorf(
+			"parent block with hash %x is not finalized, expected finalized hash %x",
+			executionData.GetParentHash(),
+			finalizedHash,
+		)
+	}
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if !bytes.Equal(parentBlockRoot[:], blk.GetParentRoot()) {
 		return fmt.Errorf(
