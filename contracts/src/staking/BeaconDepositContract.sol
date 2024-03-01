@@ -26,7 +26,6 @@
 pragma solidity 0.8.24;
 
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
-import { SafeTransferLib } from "@solady/src/utils/SafeTransferLib.sol";
 import { IStakeERC20 } from "./IStakeERC20.sol";
 
 /**
@@ -36,8 +35,6 @@ import { IStakeERC20 } from "./IStakeERC20.sol";
  * @dev Its events are used by the beacon chain to manage the staking process.
  */
 contract BeaconDepositContract is IBeaconDepositContract {
-    using SafeTransferLib for IStakeERC20;
-
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -185,7 +182,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert DepositNotMultipleOfGwei();
         }
 
-        SafeTransferLib.safeTransferETH(address(0), msg.value);
+        _safeTransferETH(address(0), msg.value);
 
         // Safe since we have already checked that the value is less than uint64.max.
         return uint64(msg.value);
@@ -204,6 +201,24 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
         if (amount % 1 gwei != 0) {
             revert DepositNotMultipleOfGwei();
+        }
+    }
+
+    /**
+     * @notice Safely transfers ETH to the given address.
+     * @dev From the Solady library.
+     * @param to The address to transfer the ETH to.
+     * @param amount The amount of ETH to transfer.
+     */
+    function _safeTransferETH(address to, uint256 amount) private {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(
+                call(gas(), to, amount, codesize(), 0x00, codesize(), 0x00)
+            ) {
+                mstore(0x00, 0xb12d13eb) // `ETHTransferFailed()`.
+                revert(0x1c, 0x04)
+            }
         }
     }
 }
