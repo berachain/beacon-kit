@@ -44,6 +44,14 @@ type Store struct {
 	// depositQueue is a list of depositQueue that are queued to be processed.
 	depositQueue *collections.Queue[*consensusv1.Deposit]
 
+	// logLastProcessedBlock is the map from log signatures
+	// to their last processed blocks.
+	logLastProcessedBlock sdkcollections.Map[[32]byte, uint64]
+
+	// logLastProcessedIndex is the map from log signatures
+	// to their last processed index in the last processed blocks.
+	logLastProcessedIndex sdkcollections.Map[[32]byte, uint64]
+
 	// fcSafeEth1BlockHash is the safe block hash.
 	fcSafeEth1BlockHash sdkcollections.Item[[32]byte]
 
@@ -73,23 +81,37 @@ func NewStore(
 		depositQueuePrefix,
 		encoding.SSZValueCodec[*consensusv1.Deposit]{},
 	)
+	logLastProcessedBlock := sdkcollections.NewMap[[32]byte, uint64](
+		schemaBuilder,
+		sdkcollections.NewPrefix(logLastProcessedBlockPrefix),
+		logLastProcessedBlockPrefix,
+		encoding.Bytes32Key,
+		sdkcollections.Uint64Value,
+	)
+	logLastProcessedIndex := sdkcollections.NewMap[[32]byte, uint64](
+		schemaBuilder,
+		sdkcollections.NewPrefix(logLastProcessedIndexPrefix),
+		logLastProcessedIndexPrefix,
+		encoding.Bytes32Key,
+		sdkcollections.Uint64Value,
+	)
 	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
 		fcSafeEth1BlockHashPrefix,
-		encoding.Bytes32ValueCodec{},
+		encoding.Bytes32Value,
 	)
 	fcFinalizedEth1BlockHash := sdkcollections.NewItem[[32]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
 		fcFinalizedEth1BlockHashPrefix,
-		encoding.Bytes32ValueCodec{},
+		encoding.Bytes32Value,
 	)
 	eth1GenesisHash := sdkcollections.NewItem[[32]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
 		eth1GenesisHashPrefix,
-		encoding.Bytes32ValueCodec{},
+		encoding.Bytes32Value,
 	)
 	parentBlockRoot := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
@@ -99,6 +121,8 @@ func NewStore(
 	)
 	return &Store{
 		depositQueue:             depositQueue,
+		logLastProcessedBlock:    logLastProcessedBlock,
+		logLastProcessedIndex:    logLastProcessedIndex,
 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
 		eth1GenesisHash:          eth1GenesisHash,

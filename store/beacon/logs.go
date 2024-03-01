@@ -25,18 +25,26 @@
 
 package beacon
 
-// Genesis Related Prefix.
-const (
-	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
-	eth1GenesisHashPrefix = "eth1_genesis_hash"
+import (
+	"github.com/ethereum/go-ethereum/common"
 )
 
-// Collection prefixes.
-const (
-	parentBlockRootPrefix          = "parent_block_root"
-	depositQueuePrefix             = "deposit_queue"
-	fcSafeEth1BlockHashPrefix      = "fc_safe"
-	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
-	logLastProcessedBlockPrefix    = "log_last_processed_block"
-	logLastProcessedIndexPrefix    = "log_last_processed_index"
-)
+// GetLastProcessedBlock retrieves the last processed block from the store.
+func (s *Store) GetLastProcessedBlock(logSig common.Hash) (uint64, error) {
+	return s.logLastProcessedBlock.Get(s.ctx, logSig)
+}
+
+// SetLastProcessedBlock sets the last processed block in the store.
+func (s *Store) SetLastProcessedBlock(logSig common.Hash, blockNum uint64) error {
+	return s.logLastProcessedBlock.Set(s.ctx, logSig, blockNum)
+}
+
+// GetLastProcessedIndex retrieves the last processed index from the store.
+func (s *Store) GetLastProcessedIndex(logSig common.Hash) (uint64, error) {
+	return s.logLastProcessedIndex.Get(s.ctx, logSig)
+}
+
+// SetLastProcessedIndex sets the last processed index in the store.
+func (s *Store) SetLastProcessedIndex(logSig common.Hash, index uint64) error {
+	return s.logLastProcessedIndex.Set(s.ctx, logSig, index)
+}
