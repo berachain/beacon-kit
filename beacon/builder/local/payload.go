@@ -66,7 +66,7 @@ func (s *Service) BuildLocalPayload(
 	var payloadID *enginev1.PayloadIDBytes
 	s.Logger().Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
-		"slot", slot, "parent_eth1_hash", parentEth1Hash,
+		"for_slot", slot, "parent_eth1_hash", parentEth1Hash,
 	)
 	payloadID, err = s.es.NotifyForkchoiceUpdate(
 		ctx, fcuConfig,
@@ -76,7 +76,7 @@ func (s *Service) BuildLocalPayload(
 	} else if payloadID == nil {
 		s.Logger().Warn("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
-			"slot", fcuConfig.ProposingSlot,
+			"for_slot", fcuConfig.ProposingSlot,
 		)
 
 		s.SetStatus(ErrNilPayloadOnValidResponse)
@@ -85,7 +85,7 @@ func (s *Service) BuildLocalPayload(
 
 	s.Logger().Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
-		"slot", fcuConfig.ProposingSlot,
+		"for_slot", fcuConfig.ProposingSlot,
 		"payload_id", fmt.Sprintf("%#x", *payloadID),
 	)
 
@@ -200,7 +200,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Wait for the payload to be delivered to the execution client.
 	s.Logger().Info(
 		"waiting for local payload to be delivered to execution client",
-		"slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
+		"for_slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
 	)
 	select {
 	case <-time.After(s.cfg.LocalBuildPayloadTimeout):
@@ -288,7 +288,7 @@ func (s *Service) getPayloadFromExecutionClient(
 	}
 
 	s.Logger().Info("payload retrieved from local builder 🏗️ ",
-		"slot", slot,
+		"for_slot", slot,
 		"block_hash", common.BytesToHash(payload.GetBlockHash()),
 		"parent_hash", common.BytesToHash(payload.GetParentHash()),
 		"value", payload.GetValue().ToEther(),

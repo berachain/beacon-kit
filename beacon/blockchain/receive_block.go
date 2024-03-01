@@ -107,7 +107,6 @@ func (s *Service) validateStateTransition(
 			finalizedHash,
 		)
 	}
-
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if !bytes.Equal(parentBlockRoot[:], blk.GetParentRoot()) {
 		return fmt.Errorf(

@@ -115,3 +115,17 @@ func (w *PayloadAttributesContainer) GetWithdrawals() []*Withdrawal {
 		return nil
 	}
 }
+
+// GetWithdrawals fetches the list of withdrawals from the
+// PayloadAttributesContainer.
+func (w *PayloadAttributesContainer) GetParentBeaconBlockRoot() []byte {
+	payload := w.ToProto()
+	switch p := payload.(type) {
+	case *PayloadAttributesV3:
+		return p.GetParentBeaconBlockRoot()
+	case *PayloadAttributesV2:
+		return nil
+	default:
+		return nil
+	}
+}

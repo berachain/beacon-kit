@@ -98,7 +98,7 @@ func (h *Handler) PrepareProposalHandler(
 
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
-		return nil, err
+		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Marshal the block into bytes.
