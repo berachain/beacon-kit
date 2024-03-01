@@ -29,9 +29,9 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -40,7 +40,7 @@ import (
 // on the beacon state.
 func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock,
+	blk beacontypes.ReadOnlyBeaconBuoy,
 	blockRoot [32]byte,
 ) error {
 	var (
