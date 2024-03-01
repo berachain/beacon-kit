@@ -81,7 +81,7 @@ func (s *Service) notifyNewPayload(
 		s.Logger().Info("new payload called with optimistic block",
 			"block_hash", common.BytesToHash(payload.GetBlockHash()),
 			"parent_hash", common.BytesToHash(payload.GetParentHash()),
-			"slot", slot,
+			"for_slot", slot,
 		)
 		return false, nil
 	case errors.Is(err, client.ErrInvalidPayloadStatus):
@@ -126,7 +126,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
-			"slot", fcuConfig.ProposingSlot,
+			"for_slot", fcuConfig.ProposingSlot,
 		)
 		telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil
@@ -164,7 +164,8 @@ func (s *Service) notifyForkchoiceUpdate(
 	// We can mark this Eth1Block as the latest valid block.
 	// TODO: maybe move to blockchain for IsCanonical and Head checks.
 	// TODO: the whole getting the execution payload off the block /
-	// the whole LastestExecutionPayload Premine thing "PremineGenesisConfig".
+	// the whole LastestExecutionPayload Premine thing
+	// "PremineGenesisConfig".
 	beaconState.SetLastValidHead(fcuConfig.HeadEth1Hash)
 
 	return payloadID, nil

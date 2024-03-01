@@ -41,6 +41,7 @@ type ExecutionPayloadBody interface {
 	ssz.HashRoot
 	Version() int
 	IsBlinded() bool
+	IsEmpty() bool
 	ToProto() proto.Message
 	GetBlockHash() []byte
 	GetParentHash() []byte
@@ -70,4 +71,5 @@ type PayloadAttributer interface {
 	GetTimestamp() uint64
 	GetSuggestedFeeRecipient() []byte
 	GetWithdrawals() []*enginev1.Withdrawal
+	GetParentBeaconBlockRoot() []byte
 }

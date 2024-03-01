@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
@@ -41,7 +42,28 @@ func (s *Service) FinalizeBeaconBlock(
 	blk consensus.ReadOnlyBeaconKitBlock,
 	blockRoot [32]byte,
 ) error {
-	payload, err := blk.ExecutionPayload()
+	var (
+		payload enginetypes.ExecutionPayload
+		err     error
+		state   = s.BeaconState(ctx)
+	)
+
+	defer func() {
+		// Always update the parent block root in the event
+		// that the beacon block is not valid.
+		state.SetParentBlockRoot(blockRoot)
+
+		// If something bad happens, we defensivelessly send a forkchoice update
+		// to bring us back to the last valid head.
+		if err != nil {
+			err = s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead())
+			s.Logger().Error(
+				"failed to send recovery forkchoice update", "error", err,
+			)
+		}
+	}()
+
+	payload, err = blk.ExecutionPayload()
 	if err != nil {
 		return err
 	}
@@ -50,16 +72,13 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	if payload == nil {
-		// SLASH THE PROPOSER HERE
-		return nil
+	if payload == nil || payload.IsEmpty() {
+		// TODO: Slash the proposer for not including a payload.
+		return ErrNoPayloadInBeaconBlock
 	}
 
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	state := s.BeaconState(ctx)
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetParentBlockRoot(blockRoot)
-
 	return nil
 }
