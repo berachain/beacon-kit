@@ -28,8 +28,6 @@ package enginetypes
 import (
 	"errors"
 
-	"github.com/ethereum/go-ethereum/beacon/engine"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/config/version"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
@@ -58,26 +56,6 @@ func NewPayloadAttributesContainer(
 	default:
 		return nil, errors.New("invalid version")
 	}
-}
-
-func NewExecutionPayloadFromEthBlock(block *coretypes.Block) (ExecutionPayload, error) {
-	ethPayload := engine.BlockToExecutableData(block, nil, nil).ExecutionPayload
-	withdrawals := make([]*enginev1.Withdrawal, len(ethPayload.Withdrawals))
-	for i, withdrawal := range ethPayload.Withdrawals {
-		withdrawals[i] = NewWithdrawal(
-			nil,
-			withdrawal.Amount,
-		)
-	}
-
-	// return NewPayloadAttributesContainer(
-	// 	version.Deneb,
-	// 	ethPayload.Timestamp,
-	// 	ethPayload.Random[:],
-	// 	ethPayload.FeeRecipient.Bytes(),
-	// 	withdrawals,
-	// 	ethPayload.ParentHash,
-	// )
 }
 
 // EmptyPayloadAttributesWithVersion creates a new PayloadAttributesContainer
