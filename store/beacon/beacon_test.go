@@ -104,4 +104,28 @@ func TestBeaconStore(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, deposit, deposits[0])
 	})
+
+	t.Run("should return correct log info", func(t *testing.T) {
+		logSig := common.HexToHash("0x123")
+		blkNum := uint64(100)
+		index := uint64(10)
+		err := beaconStore.SetLastProcessedBlock(logSig, blkNum)
+		require.NoError(t, err)
+		err = beaconStore.SetLastProcessedIndex(logSig, index)
+		require.NoError(t, err)
+
+		lastProcessedBlock, err := beaconStore.GetLastProcessedBlock(logSig)
+		require.NoError(t, err)
+		require.Equal(t, blkNum, lastProcessedBlock)
+
+		lastProcessedIndex, err := beaconStore.GetLastProcessedIndex(logSig)
+		require.NoError(t, err)
+		require.Equal(t, index, lastProcessedIndex)
+
+		invalidLogSig := common.HexToHash("0x456")
+		_, err = beaconStore.GetLastProcessedBlock(invalidLogSig)
+		require.Error(t, err)
+		_, err = beaconStore.GetLastProcessedIndex(invalidLogSig)
+		require.Error(t, err)
+	})
 }

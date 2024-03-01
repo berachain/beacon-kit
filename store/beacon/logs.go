@@ -35,7 +35,9 @@ func (s *Store) GetLastProcessedBlock(logSig common.Hash) (uint64, error) {
 }
 
 // SetLastProcessedBlock sets the last processed block in the store.
-func (s *Store) SetLastProcessedBlock(logSig common.Hash, blockNum uint64) error {
+func (s *Store) SetLastProcessedBlock(
+	logSig common.Hash, blockNum uint64,
+) error {
 	return s.logLastProcessedBlock.Set(s.ctx, logSig, blockNum)
 }
 

@@ -38,6 +38,7 @@ type Bytes32KeyCodec struct{}
 // Assert that Bytes32ValueCodec implements codec.ValueCodec.
 var _ codec.KeyCodec[[32]byte] = Bytes32KeyCodec{}
 
+//nolint:gochecknoglobals // Those vars can be reused, no need to relocate.
 var (
 	Bytes32Key   = Bytes32KeyCodec{}
 	Bytes32Value = codec.KeyToValueCodec(Bytes32Key)
@@ -89,13 +90,17 @@ func (Bytes32KeyCodec) KeyType() string {
 }
 
 // EncodeNonTerminal writes the key bytes into the buffer.
-func (b Bytes32KeyCodec) EncodeNonTerminal(buffer []byte, key [32]byte) (int, error) {
+func (b Bytes32KeyCodec) EncodeNonTerminal(
+	buffer []byte, key [32]byte,
+) (int, error) {
 	return b.Encode(buffer, key)
 }
 
 // DecodeNonTerminal reads the buffer provided and
 // returns the 32-byte key.
-func (b Bytes32KeyCodec) DecodeNonTerminal(buffer []byte) (int, [32]byte, error) {
+func (b Bytes32KeyCodec) DecodeNonTerminal(
+	buffer []byte,
+) (int, [32]byte, error) {
 	return b.Decode(buffer)
 }
 
