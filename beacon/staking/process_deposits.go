@@ -28,7 +28,7 @@ package staking
 import (
 	"context"
 
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	consensusv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 )
 
 // AcceptDepositIntoQueue records a deposit in the beacon state's queue.

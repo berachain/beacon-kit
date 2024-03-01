@@ -23,25 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+package consensus
 
-import "ethereum/eth/ext/options.proto";
+import (
+	consensusv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
+)
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
-
-// Deposit into the consensus layer from the deposit contract in the execution layer.
-message Deposit {
-  // Public key of the validator, which is compatible to the implementations
-  // of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is preferred.
-  bytes validator_pubkey = 1 [
-    (ethereum.eth.ext.ssz_max) = "96",
-    (ethereum.eth.ext.spec_name) = "pubkey"
-  ];
-
-  // A withdrawal credentials as a 20-byte Eth1 address.
-  bytes withdrawal_credentials = 2 [(ethereum.eth.ext.ssz_size) = "20"];
-
-  // Deposit amount in gwei.
-  uint64 amount = 3;
+// NewDeposit creates a new deposit.
+func NewDeposit(
+	pubkey []byte, amount uint64, withdrawalCredentials []byte,
+) *consensusv1.Deposit {
+	return &consensusv1.Deposit{
+		ValidatorPubkey:       pubkey,
+		Amount:                amount,
+		WithdrawalCredentials: withdrawalCredentials,
+	}
 }

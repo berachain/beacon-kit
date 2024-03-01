@@ -32,7 +32,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all

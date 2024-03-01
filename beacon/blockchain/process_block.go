@@ -31,14 +31,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock,
+	blk beacontypes.ReadOnlyBeaconBuoy,
 	blockHash [32]byte,
 	isValidPayload bool,
 ) error {

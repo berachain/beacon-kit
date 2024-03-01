@@ -28,7 +28,7 @@ package primitives_test
 import (
 	"testing"
 
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 func FuzzSSZUint64Marshal(f *testing.F) {

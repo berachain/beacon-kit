@@ -26,28 +26,27 @@
 package consensus
 
 import (
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/config/version"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
-// BeaconKitBlock assembles a new beacon block from
+// BeaconBuoy assembles a new beacon block from
 // the given slot, time, execution data, and version.
-func NewBeaconKitBlock(
+func NewBeaconBuoy(
 	slot primitives.Slot,
 	executionData enginetypes.ExecutionPayload,
 	parentBlockRoot [32]byte,
 	forkVersion int,
-) (BeaconKitBlock, error) {
-	var block BeaconKitBlock
+) (BeaconBuoy, error) {
+	var block BeaconBuoy
 	switch forkVersion {
 	case version.Deneb:
-		block = &consensusv1.BeaconKitBlockDeneb{
+		block = &beacontypesv1.BeaconBuoyDeneb{
 			Slot:       slot,
-			StateRoot:  make([]byte, 32), //nolint:gomnd
 			ParentRoot: parentBlockRoot[:],
-			Body: &consensusv1.BeaconKitBlockBodyDeneb{
+			Body: &beacontypesv1.BeaconBuoyBodyDeneb{
 				RandaoReveal: make([]byte, 96), //nolint:gomnd
 				Graffiti:     make([]byte, 32), //nolint:gomnd
 			},
@@ -64,26 +63,26 @@ func NewBeaconKitBlock(
 	return block, nil
 }
 
-// EmptyBeaconKitBlock assembles a new beacon block
+// EmptyBeaconBuoy assembles a new beacon block
 // with no execution data.
-func EmptyBeaconKitBlock(
+func EmptyBeaconBuoy(
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
 	version int,
-) (BeaconKitBlock, error) {
-	return NewBeaconKitBlock(slot, nil, parentBlockRoot, version)
+) (BeaconBuoy, error) {
+	return NewBeaconBuoy(slot, nil, parentBlockRoot, version)
 }
 
-// BeaconKitBlockFromSSZ assembles a new beacon block
+// BeaconBuoyFromSSZ assembles a new beacon block
 // from the given SSZ bytes and fork version.
-func BeaconKitBlockFromSSZ(
+func BeaconBuoyFromSSZ(
 	bz []byte,
 	forkVersion int,
-) (BeaconKitBlock, error) {
-	var block BeaconKitBlock
+) (BeaconBuoy, error) {
+	var block BeaconBuoy
 	switch forkVersion {
 	case version.Deneb:
-		block = &consensusv1.BeaconKitBlockDeneb{}
+		block = &beacontypesv1.BeaconBuoyDeneb{}
 	default:
 		return nil, ErrForkVersionNotSupported
 	}

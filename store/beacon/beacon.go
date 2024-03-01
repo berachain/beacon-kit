@@ -30,9 +30,9 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	consensusv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // Store is a wrapper around an sdk.Context

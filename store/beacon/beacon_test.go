@@ -33,8 +33,8 @@ import (
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	consensusv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )
 
