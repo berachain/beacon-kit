@@ -27,8 +27,6 @@ package config
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
 // Limits conforms to the BeaconKitConfig interface.
@@ -37,25 +35,14 @@ var _ BeaconKitConfig[Execution] = &Execution{}
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultExecutionConfig() Execution {
 	return Execution{
-		DepositContractAddress: common.Address{},
+		DepositContractAddress: common.Address{0x01},
 	}
 }
 
 // Execution represents the configuration struct for the
 // execution layer on the beacon chain.
 type Execution struct {
-	DepositContractAddress common.Address
-}
-
-// Parse parses the configuration.
-func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
-	var err error
-	if c.DepositContractAddress, err = parser.GetExecutionAddress(
-		flags.DepositContractAddress,
-	); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	DepositContractAddress common.Address `mapstructure:"deposit-contract-address"`
 }
 
 // Template returns the configuration template.

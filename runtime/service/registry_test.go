@@ -44,18 +44,20 @@ func TestRegistry_StartAll(t *testing.T) {
 
 	service1 := &mocks.Basic{}
 	service1.On("Start", mock.Anything).Return().Once()
+	service1.On("Name").Return("Service1")
 
-	service2 := &struct{ *mocks.Basic }{&mocks.Basic{}}
+	service2 := &mocks.Basic{}
 	service2.On("Start", mock.Anything).Return().Once()
+	service2.On("Name").Return("Service2")
 
 	err := registry.RegisterService(service1)
 	if err != nil {
-		t.Fatalf("Failed to register service1: %v", err)
+		t.Fatalf("Failed to register Service1: %v", err)
 	}
 
 	err = registry.RegisterService(service2)
 	if err != nil {
-		t.Fatalf("Failed to register service2: %v", err)
+		t.Fatalf("Failed to register Service2: %v", err)
 	}
 
 	registry.StartAll(context.Background())
@@ -71,18 +73,20 @@ func TestRegistry_Statuses(t *testing.T) {
 
 	service1 := &mocks.Basic{}
 	service1.On("Status").Return(nil).Twice()
+	service1.On("Name").Return("Service1")
 
-	service2 := struct{ *mocks.Basic }{&mocks.Basic{}}
+	service2 := &mocks.Basic{}
 	service2.On("Status").Return(nil).Twice()
+	service2.On("Name").Return("Service2")
 
 	err := registry.RegisterService(service1)
 	if err != nil {
-		t.Fatalf("Failed to register service1: %v", err)
+		t.Fatalf("Failed to register Service1: %v", err)
 	}
 
 	err = registry.RegisterService(service2)
 	if err != nil {
-		t.Fatalf("Failed to register service2: %v", err)
+		t.Fatalf("Failed to register Service2: %v", err)
 	}
 
 	statuses := registry.Statuses()
@@ -115,8 +119,9 @@ func TestRegistry_FetchService(t *testing.T) {
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := new(mocks.Basic)
+	service1.On("Name").Return("Service1")
 	if err := registry.RegisterService(service1); err != nil {
-		t.Fatalf("Failed to register service1: %v", err)
+		t.Fatalf("Failed to register Service1: %v", err)
 	}
 
 	var fetchedService *mocks.Basic

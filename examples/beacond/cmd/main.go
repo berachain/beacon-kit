@@ -33,14 +33,14 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/examples/beacond/app"
+	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
 	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
 )
 
 func main() {
 	config.SetupCosmosConfig()
 	rootCmd := root.NewRootCmd()
-	if err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
 		os.Exit(1)

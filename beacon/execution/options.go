@@ -46,10 +46,10 @@ func WithEngineCaller(ec engineclient.Caller) service.Option[Service] {
 	}
 }
 
-// WithLogProcessor is an option to set the LogProcessor for the Service.
-func WithLogProcessor(lp LogProcessor) service.Option[Service] {
+// WithLogFactory is an option to set the LogFactory for the Service.
+func WithLogFactory(f LogFactory) service.Option[Service] {
 	return func(s *Service) error {
-		s.lp = lp
+		s.logFactory = f
 		return nil
 	}
 }

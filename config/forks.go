@@ -26,10 +26,10 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
+
+const defaultElectraForkEpoch = 9999999999999999
 
 // Forks conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Forks] = &Forks{}
@@ -37,35 +37,24 @@ var _ BeaconKitConfig[Forks] = &Forks{}
 // DefaultForksConfig returns the default forks configuration.
 func DefaultForksConfig() Forks {
 	return Forks{
-		DenebForkEpoch: primitives.Epoch(
-			0,
+		ElectraForkEpoch: primitives.Epoch(
+			defaultElectraForkEpoch,
 		),
 	}
 }
 
 // Config represents the configuration struct for the forks.
 type Forks struct {
-	// DenebForkEpoch is used to represent the assigned fork epoch for deneb.
-	DenebForkEpoch primitives.Epoch
-}
-
-// Parse parses the configuration.
-func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
-	var err error
-	if c.DenebForkEpoch, err = parser.GetEpoch(
-		flags.DenebForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	// ElectraForkEpoch is used to represent the assigned fork epoch for
+	// electra.
+	ElectraForkEpoch primitives.Epoch `mapstructure:"electra-fork-epoch"`
 }
 
 // Template returns the configuration template.
 func (c Forks) Template() string {
 	return `
 [beacon-kit.beacon-config.forks]
-# Deneb fork epoch
-deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
+# Electra fork epoch
+electra-fork-epoch = {{.BeaconKit.Beacon.Forks.ElectraForkEpoch}}
 `
 }

@@ -27,32 +27,62 @@ package blockchain
 
 import (
 	"context"
+	"errors"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/sync"
+	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
 	ctx context.Context,
+	blk consensus.ReadOnlyBeaconKitBlock,
+	blockHash [32]byte,
 	isValidPayload bool,
 ) error {
-	if isValidPayload {
+	if !isValidPayload {
+		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
+
+		// If the incoming payload for this block is not valid, we submit a
+		// forkchoice
+		// to bring us back to the last valid one.
+		// TODO: Is doing this potentially the cause of the weird Geth SnapSync
+		// issue?
+		// TODO: Should introduce the concept of missed slots?
+		if err := s.sendFCU(
+			ctx, s.BeaconState(ctx).GetLastValidHead(),
+		); err != nil {
+			s.Logger().Error("failed to send forkchoice update", "error", err)
+		}
+		return ErrInvalidPayload
+	}
+
+	payload, err := blk.ExecutionPayload()
+	if err != nil {
+		return err
+	}
+	payloadBlockHash := common.Hash(payload.GetBlockHash())
+
+	// If the consensus client is still syncing we are going to skip forkchoice
+	// updates. This means that if the consensus client is still syncing, we
+	// will not be able to build a block locally.
+	//
+	// NOTE: Status() will return nil during the initial syncing phase.
+	if errors.Is(s.ss.Status(), sync.ErrConsensusClientIsSyncing) {
 		return nil
 	}
 
-	telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-
-	// If the incoming payload for this block is not valid, we submit a
-	// forkchoice
-	// to bring us back to the last valid one.
-	// TODO: Is doing this potentially the cause of the weird Geth SnapSync
-	// issue?
-	// TODO: Should introduce the concept of missed slots?
-	if err := s.sendFCU(
-		ctx, s.BeaconState(ctx).GetLastValidHead(),
-	); err != nil {
-		s.Logger().Error("failed to send forkchoice update", "error", err)
+	// If the builder is enabled attempt to build a block locally.
+	// If we are in the sync state, we skip building blocks optimistically.
+	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
+		if err = s.sendFCUWithAttributes(
+			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
+		); err == nil {
+			return nil
+		}
 	}
-
-	return ErrInvalidPayload
+	// Otherwise we send a forkchoice update to the execution client.
+	return s.sendFCU(ctx, payloadBlockHash)
 }

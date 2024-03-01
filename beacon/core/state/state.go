@@ -76,7 +76,7 @@ type WriteOnlyForkChoice interface {
 	SetLastValidHead(lastValidHead common.Hash)
 }
 
-// ReadOnlyForkChoice
+// ReadOnlyForkChoice.
 type ReadOnlyForkChoice interface {
 	GetLastValidHead() common.Hash
 	GetSafeEth1BlockHash() common.Hash

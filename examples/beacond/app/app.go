@@ -26,10 +26,9 @@
 package app
 
 import (
+	"context"
 	_ "embed"
 	"io"
-	"os"
-	"path/filepath"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -51,29 +50,15 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
-	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
+	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
-//nolint:gochecknoinits // from sdk.
-func init() {
-	userHomeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
-}
-
-const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TERMS_OF_SERVICE.md"
-
 var (
 	_ runtime.AppI            = (*BeaconApp)(nil)
 	_ servertypes.Application = (*BeaconApp)(nil)
-	// DefaultNodeHome default home directories for the application daemon.
-	DefaultNodeHome string //nolint:gochecknoglobals // from sdk.
 )
 
 // AppConfig returns the default app config.
@@ -162,24 +147,21 @@ func NewBeaconKitApp(
 	}
 
 	// Build the app using the app builder.
-	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Componenets.
-	prepare, process, preBlocker, streamingMgr := app.BeaconKitRuntime.BuildABCIComponents(
+	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			PrepareProposalHandler(),
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			ProcessProposalHandler(),
 		nil,
-		app.Logger(),
 	)
 
 	// Set all the newly built ABCI Componenets on the App.
 	app.SetPrepareProposal(prepare)
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
-	app.SetStreamingManager(streamingMgr)
 
 	/**** End of BeaconKit Configuration ****/
 
@@ -198,26 +180,23 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	// Initial check for execution client sync.
-	app.BeaconKitRuntime.StartServices(
-		app.NewContext(true),
-		clientCtx,
-	)
-
 	return app
 }
 
-// Name returns the name of the App.
-func (app *BeaconApp) Name() string { return app.BaseApp.Name() }
-
-// LegacyAmino returns BeaconApp's amino codec.
-//
-// NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (app *BeaconApp) LegacyAmino() *codec.LegacyAmino {
-	return app.legacyAmino
+// PostStartup is called after the app has started up and CometBFT is connected.
+func (app *BeaconApp) PostStartup(
+	ctx context.Context,
+	clientCtx client.Context,
+) error {
+	// Initial check for execution client sync.
+	app.BeaconKitRuntime.StartServices(
+		ctx,
+		clientCtx,
+	)
+	return nil
 }
 
+// kvStoreKeys returns the KVStoreKeys for the app.
 func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	keys := make(map[string]*storetypes.KVStoreKey)
 	for _, k := range app.GetStoreKeys() {
@@ -227,9 +206,4 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
-}
-
-func (app *BeaconApp) Close() error {
-	app.BeaconKitRuntime.Close()
-	return app.App.Close()
 }

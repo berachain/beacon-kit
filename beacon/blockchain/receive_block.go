@@ -40,6 +40,7 @@ import (
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconKitBlock,
+	blockHash [32]byte,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -83,7 +84,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// If the block is valid, we can process it.
 	return s.postBlockProcess(
-		ctx, isValidPayload,
+		ctx, blk, blockHash, isValidPayload,
 	)
 }
 
@@ -98,6 +99,10 @@ func (s *Service) validateStateTransition(
 		return err
 	}
 
+	if executionData == nil || executionData.IsEmpty() {
+		return fmt.Errorf("block has no execution payload")
+	}
+
 	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
 		return fmt.Errorf(
@@ -106,7 +111,6 @@ func (s *Service) validateStateTransition(
 			finalizedHash,
 		)
 	}
-
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if !bytes.Equal(parentBlockRoot[:], blk.GetParentRoot()) {
 		return fmt.Errorf(

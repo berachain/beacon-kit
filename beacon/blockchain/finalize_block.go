@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -42,7 +42,35 @@ func (s *Service) FinalizeBeaconBlock(
 	blk consensus.ReadOnlyBeaconKitBlock,
 	blockRoot [32]byte,
 ) error {
-	payload, err := blk.ExecutionPayload()
+	var (
+		payload enginetypes.ExecutionPayload
+		err     error
+		state   = s.BeaconState(ctx)
+	)
+
+	defer func() {
+		// Always update the parent block root in the event
+		// that the beacon block is not valid.
+		state.SetParentBlockRoot(blockRoot)
+
+		// If something bad happens, we defensivelessly send a forkchoice update
+		// to bring us back to the last valid head.
+		if err != nil {
+			err = s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead())
+			s.Logger().Error(
+				"failed to send recovery forkchoice update", "error", err,
+			)
+		}
+
+		s.Logger().Info(
+			"current forkchoice state",
+			"head_hash", state.GetLastValidHead().Hex(),
+			"safe_hash", state.GetSafeEth1BlockHash().Hex(),
+			"finalized_hash", state.GetFinalizedEth1BlockHash().Hex(),
+		)
+	}()
+
+	payload, err = blk.ExecutionPayload()
 	if err != nil {
 		return err
 	}
@@ -51,33 +79,13 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	state := s.BeaconState(ctx)
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
-	state.SetSafeEth1BlockHash(eth1BlockHash)
-	state.SetParentBlockRoot(blockRoot)
-
-	return nil
-}
-
-// PostFinalizeBeaconBlock is called after a beacon block has been finalized.
-func (s *Service) PostFinalizeBeaconBlock(
-	ctx context.Context,
-	slot primitives.Slot,
-) error {
-	var err error
-	state := s.BeaconState(ctx)
-	if s.BuilderCfg().LocalBuilderEnabled {
-		err = s.sendFCUWithAttributes(
-			ctx,
-			state.GetSafeEth1BlockHash(),
-			slot,
-			state.GetParentBlockRoot(),
-		)
-	} else {
-		err = s.sendFCU(
-			ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
+	if payload == nil || payload.IsEmpty() {
+		// TODO: Slash the proposer for not including a payload.
+		return ErrNoPayloadInBeaconBlock
 	}
 
-	return err
+	eth1BlockHash := common.Hash(payload.GetBlockHash())
+	state.SetFinalizedEth1BlockHash(eth1BlockHash)
+	state.SetSafeEth1BlockHash(eth1BlockHash)
+	return nil
 }

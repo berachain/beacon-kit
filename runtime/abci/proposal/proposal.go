@@ -26,6 +26,7 @@
 package proposal
 
 import (
+	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -33,8 +34,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder"
-	sync "github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
+	"github.com/itsdevbear/bolaris/health"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
@@ -45,7 +47,7 @@ type Handler struct {
 	cfg            *config.ABCI
 	builderService *builder.Service
 	chainService   *blockchain.Service
-	syncService    *sync.Service
+	healthService  *health.Service
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
 }
@@ -54,7 +56,7 @@ type Handler struct {
 func NewHandler(
 	cfg *config.ABCI,
 	builderService *builder.Service,
-	syncService *sync.Service,
+	healthService *health.Service,
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
@@ -62,7 +64,7 @@ func NewHandler(
 	return &Handler{
 		cfg:            cfg,
 		builderService: builderService,
-		syncService:    syncService,
+		healthService:  healthService,
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
@@ -77,8 +79,12 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	if err := h.syncService.Status(); err != nil {
-		return nil, err
+	// We block until the sync service is healthy.
+	if err := h.healthService.WaitForHealthyOf(
+		ctx, "prepare-proposal", "sync",
+	); err != nil {
+		return &abci.ResponsePrepareProposal{},
+			fmt.Errorf("aborting due to: %w", err)
 	}
 
 	// We start by requesting the validator service to build us a block. This
@@ -92,7 +98,7 @@ func (h *Handler) PrepareProposalHandler(
 
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
-		return nil, err
+		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Marshal the block into bytes.
@@ -129,19 +135,17 @@ func (h *Handler) ProcessProposalHandler(
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil {
+		//nolint:nilerr // its okay for now todo.
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_REJECT}, err
+			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 
-	// If we get any sort of error from the execution client, we bubble
-	// it up and reject the proposal, as we do not want to write a block
-	// finalization to the consensus layer that is invalid.
+	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block,
-	); err != nil {
-		logger.Error("failed to validate block", "error", err)
+		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
+		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_REJECT}, err
+			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal

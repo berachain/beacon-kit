@@ -31,5 +31,6 @@ import "sync"
 func (s BaseService) ShallowCopy(name string) BaseService {
 	s.logger = s.logger.With("service", name)
 	s.statusErrMu = new(sync.RWMutex)
+	s.name = name
 	return s
 }

@@ -28,13 +28,17 @@ package client
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
+	"sync"
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/config"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
@@ -47,11 +51,15 @@ var _ Caller = (*EngineClient)(nil)
 type EngineClient struct {
 	*eth.Eth1Client
 
-	cfg          *config.Engine
-	beaconCfg    *config.Beacon
+	cfg          *Config
+	beaconCfg    beaconConfig
 	capabilities map[string]struct{}
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
+
+	statusErrCond *sync.Cond
+	statusErrMu   *sync.RWMutex
+	statusErr     error
 }
 
 // New creates a new engine client EngineClient.
@@ -62,6 +70,9 @@ func New(opts ...Option) *EngineClient {
 		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
 	}
+
+	ec.statusErrMu = new(sync.RWMutex)
+	ec.statusErrCond = sync.NewCond(ec.statusErrMu)
 
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
@@ -76,24 +87,35 @@ func New(opts ...Option) *EngineClient {
 func (s *EngineClient) Start(ctx context.Context) {
 	for {
 		if err := s.setupExecutionClientConnection(ctx); err != nil {
-			s.logger.Error(
-				"attemping to connection to execution client 🚒 ",
-				"err",
-				err,
-			)
+			s.statusErrMu.Lock()
+			s.statusErr = err
+			s.statusErrMu.Unlock()
+			time.Sleep(s.cfg.RPCStartupCheckInterval)
 			continue
 		}
 		break
 	}
 
+	// Get the chain ID from the execution client.
+	chainID, err := s.ChainID(ctx)
+	if err != nil {
+		s.logger.Error("failed to get chain ID", "err", err)
+		return
+	}
+
+	// Log the chain ID.
 	s.logger.Info(
 		"connected to execution client 🔌",
 		"dial-url",
 		s.cfg.RPCDialURL.String(),
+		"chain-id",
+		chainID.Uint64(),
+		"required-chain-id",
+		s.cfg.RequiredChainID,
 	)
 
 	// Exchange capabilities with the execution client.
-	if _, err := s.ExchangeCapabilities(ctx); err != nil {
+	if _, err = s.ExchangeCapabilities(ctx); err != nil {
 		s.logger.Error("failed to exchange capabilities", "err", err)
 	}
 
@@ -105,9 +127,46 @@ func (s *EngineClient) Start(ctx context.Context) {
 // Status verifies the chain ID via JSON-RPC. By proxy
 // we will also verify the connection to the execution client.
 func (s *EngineClient) Status() error {
-	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.RPCTimeout)
-	defer cancel()
-	return s.VerifyChainID(ctx)
+	s.statusErrMu.RLock()
+	defer s.statusErrMu.RUnlock()
+	return s.status(context.Background())
+}
+
+// status returns the status of the engine client.
+func (s *EngineClient) status(ctx context.Context) error {
+	// If the client is not started, we return an error.
+	if s.Eth1Client.Client == nil {
+		return ErrNotStarted
+	}
+
+	if s.statusErr == nil {
+		// If we have an error, we will attempt
+		// to verify the chain ID again.
+		//#nosec:G703 wtf is even this problem here.
+		s.statusErr = s.VerifyChainID(ctx)
+	}
+
+	if s.statusErr == nil {
+		s.statusErrCond.Broadcast()
+	}
+
+	return s.statusErr
+}
+
+// WaitForHealthy waits for the engine client to be healthy.
+func (s *EngineClient) WaitForHealthy(ctx context.Context) {
+	s.statusErrMu.Lock()
+	defer s.statusErrMu.Unlock()
+
+	for s.status(ctx) != nil {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			// Then we wait until we are blessed tf up.
+			s.statusErrCond.Wait()
+		}
+	}
 }
 
 // Checks the chain ID of the execution client to ensure
@@ -129,18 +188,43 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 	return nil
 }
 
+// GetLogs retrieves the logs from the Ethereum execution client.
+// It calls the eth_getLogs method via JSON-RPC.
+func (s *EngineClient) GetLogs(
+	ctx context.Context,
+	fromBlock, toBlock uint64,
+	addresses []common.Address,
+) ([]coretypes.Log, error) {
+	// Create a filter query for the block, to acquire all logs
+	// from contracts that we care about.
+	query := ethereum.FilterQuery{
+		Addresses: addresses,
+		FromBlock: new(big.Int).SetUint64(fromBlock),
+		ToBlock:   new(big.Int).SetUint64(toBlock),
+	}
+
+	// Gather all the logs according to the query.
+	return s.FilterLogs(ctx, query)
+}
+
 // jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
-			ticker.Stop()
 			return
 		case <-ticker.C:
+			s.statusErrMu.Lock()
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
 				s.logger.Error("failed to refresh JWT token", "err", err)
+				//#nosec:G703 wtf is even this problem here.
+				s.statusErr = fmt.Errorf("%w: failed to refresh JWT token", err)
+			} else {
+				s.statusErr = nil
 			}
+			s.statusErrMu.Unlock()
 		}
 	}
 }

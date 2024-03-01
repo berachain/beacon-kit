@@ -26,7 +26,6 @@
 package logs
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -57,7 +56,7 @@ func WithNameAndType(
 	return func(a *TypeAllocator) error {
 		event, ok := a.abi.Events[name]
 		if !ok {
-			return errors.New("event not found in ABI")
+			return fmt.Errorf("event %s not found in ABI", name)
 		}
 		if event.ID != sig {
 			return fmt.Errorf(

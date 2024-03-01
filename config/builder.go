@@ -27,9 +27,6 @@ package config
 
 import (
 	"time"
-
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 )
 
 // Beacon conforms to the BeaconKitConfig interface.
@@ -38,13 +35,15 @@ var _ BeaconKitConfig[Beacon] = Beacon{}
 // Builder is the configuration for the payload builder.
 type Builder struct {
 	// LocalBuilderEnabled determines if the local builder is enabled.
-	LocalBuilderEnabled bool
+	LocalBuilderEnabled bool `mapstructure:"local-builder-enabled"`
 	// LocalBuildPayloadTimeout is the timeout parameter for local build
 	// payload. This should match, or be slightly less than the configured
 	// timeout on your
 	// execution client. It also must be less than timeout_proposal in the
 	// CometBFT configuration.
-	LocalBuildPayloadTimeout time.Duration
+	//
+	//nolint:lll
+	LocalBuildPayloadTimeout time.Duration `mapstructure:"local-build-payload-timeout"`
 }
 
 // DefaultBuilderConfig returns the default fork configuration.
@@ -53,26 +52,6 @@ func DefaultBuilderConfig() Builder {
 		LocalBuilderEnabled:      true,
 		LocalBuildPayloadTimeout: 2 * time.Second, //nolint:gomnd // default config.
 	}
-}
-
-// Parse parses the configuration.
-func (c Builder) Parse(parser parser.AppOptionsParser) (*Builder, error) {
-	localBuilderEnabled, err := parser.GetBool(flags.LocalBuilderEnabled)
-	if err != nil {
-		return nil, err
-	}
-
-	payloadTimeout, err := parser.GetTimeDuration(
-		flags.LocalBuildPayloadTimeout,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Builder{
-		LocalBuilderEnabled:      localBuilderEnabled,
-		LocalBuildPayloadTimeout: payloadTimeout,
-	}, nil
 }
 
 // Template returns the configuration template.

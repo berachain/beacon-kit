@@ -37,7 +37,9 @@ import (
 	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
 	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
 	"github.com/itsdevbear/bolaris/beacon/execution"
+	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
+	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
@@ -52,8 +54,6 @@ type BeaconKitRuntime struct {
 	logger   log.Logger
 	fscp     BeaconStateProvider
 	services *service.Registry
-
-	stopCh chan struct{}
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -61,9 +61,7 @@ type BeaconKitRuntime struct {
 func NewBeaconKitRuntime(
 	opts ...Option,
 ) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{
-		stopCh: make(chan struct{}, 1),
-	}
+	bkr := &BeaconKitRuntime{}
 	for _, opt := range opts {
 		if err := opt(bkr); err != nil {
 			return nil, err
@@ -76,7 +74,7 @@ func NewBeaconKitRuntime(
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
-
+//nolint:funlen // This function is long because it sets up the services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	bsp BeaconStateProvider,
@@ -117,10 +115,32 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithGCD(gcd),
 	)
 
+	// Build the staking service.
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
+		staking.WithValsetChangeProvider(vcp),
+	)
+
+	// logFactory is used by the execution service to unmarshal
+	// logs retrieved from the engine client.
+	stakingLogRequest, err := logs.NewStakingRequest(
+		cfg.Beacon.Execution.DepositContractAddress,
+	)
+	if err != nil {
+		return nil, err
+	}
+	logFactory, err := loghandler.NewFactory(
+		loghandler.WithRequest(stakingLogRequest),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
+		execution.WithLogFactory(logFactory),
 	)
 
 	// Build the local builder service.
@@ -137,10 +157,11 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithLocalBuilder(localBuilder),
 	)
 
-	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.ShallowCopy("staking")),
-		staking.WithValsetChangeProvider(vcp),
+	// Build the sync service.
+	syncService := service.New[sync.Service](
+		sync.WithBaseService(baseService.ShallowCopy("sync")),
+		sync.WithEngineClient(engineClient),
+		sync.WithConfig(sync.DefaultConfig()),
 	)
 
 	chainService := service.New[blockchain.Service](
@@ -148,12 +169,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithStakingService(stakingService),
-	)
-
-	// Build the sync service.
-	syncService := service.New[sync.Service](
-		sync.WithBaseService(baseService.ShallowCopy("sync")),
-		sync.WithEngineClient(engineClient),
+		blockchain.WithSyncService(syncService),
 	)
 
 	svcRegistry := service.NewRegistry(
@@ -194,16 +210,5 @@ func (r *BeaconKitRuntime) StartServices(
 		panic(err)
 	}
 	syncService.SetClientContext(clientCtx)
-
-	go func() {
-		cctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-		r.services.StartAll(cctx)
-		<-r.stopCh
-	}()
-}
-
-// Close closes the runtime.
-func (r *BeaconKitRuntime) Close() {
-	close(r.stopCh)
+	r.services.StartAll(ctx)
 }

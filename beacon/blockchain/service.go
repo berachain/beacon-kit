@@ -32,7 +32,8 @@ import (
 // Service is the blockchain service.
 type Service struct {
 	service.BaseService
-	lb LocalBuilder
-	es ExecutionService
-	ss StakingService
+	lb  LocalBuilder
+	es  ExecutionService
+	sks StakingService
+	ss  SyncService
 }

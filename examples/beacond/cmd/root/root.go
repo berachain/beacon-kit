@@ -27,6 +27,7 @@
 package root
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -42,11 +43,11 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
-	"github.com/itsdevbear/bolaris/lib/cmd"
-	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main
@@ -94,7 +95,7 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			// if err = tos.VerifyTosAcceptedOrPrompt(
-			// 	app.AppName, app.TermsOfServiceURL, clientCtx, cmd,
+			// 	app.AppName, cmdconfig.TermsOfServiceURL, clientCtx, cmd,
 			// ); err != nil {
 			// 	return err
 			// }
@@ -125,13 +126,20 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.InitRootCommand(
+	cmdconfig.InitRootCommand(
 		rootCmd,
 		clientCtx.TxConfig,
 		clientCtx.InterfaceRegistry,
 		clientCtx.Codec,
 		moduleBasicManager,
 		newApp,
+		func(
+			_app servertypes.Application,
+			svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group,
+		) error {
+			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
+		},
+
 		appExport,
 	)
 
@@ -217,7 +225,7 @@ func appExport(
 var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
 	dir, err := os.MkdirTemp("", "beacond")
 	if err != nil {
-		dir = app.DefaultNodeHome
+		dir = cmdconfig.DefaultNodeHome
 	}
 	defer os.RemoveAll(dir)
 
