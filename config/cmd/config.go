@@ -41,10 +41,10 @@ import (
 func InitCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
-	consensus.TimeoutPropose = 1 * time.Second
+	consensus.TimeoutPropose = 5 * time.Second
 	consensus.TimeoutPrevote = 1 * time.Second
 	consensus.TimeoutPrecommit = 1 * time.Second
-	consensus.TimeoutCommit = 1500 * time.Millisecond
+	consensus.TimeoutCommit = 3 * time.Second
 
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.DBBackend = "pebbledb"
