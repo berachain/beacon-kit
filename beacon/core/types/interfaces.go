@@ -27,28 +27,28 @@ package consensus
 
 import (
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 
-// BeaconKitBlock is the interface for a beacon block.
-type BeaconKitBlock interface {
-	ReadOnlyBeaconKitBlock
-	WriteOnlyBeaconKitBlock
+// BeaconBuoy is the interface for a beacon block.
+type BeaconBuoy interface {
+	ReadOnlyBeaconBuoy
+	WriteOnlyBeaconBuoy
 }
 
 type BeaconBlockBody interface {
-	ReadOnlyBeaconKitBlockBody
+	ReadOnlyBeaconBuoyBody
 }
 
-type ReadOnlyBeaconKitBlockBody interface {
+type ReadOnlyBeaconBuoyBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
 }
 
-// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconKitBlock interface {
+// ReadOnlyBeaconBuoy is the interface for a read-only beacon block.
+type ReadOnlyBeaconBuoy interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
@@ -61,7 +61,7 @@ type ReadOnlyBeaconKitBlock interface {
 	Version() int
 }
 
-// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconKitBlock interface {
+// WriteOnlyBeaconBuoy is the interface for a write-only beacon block.
+type WriteOnlyBeaconBuoy interface {
 	AttachExecution(enginetypes.ExecutionPayload) error
 }

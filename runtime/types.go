@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 type CometBFTConfig interface {
@@ -38,10 +38,11 @@ type CometBFTConfig interface {
 	PrivValidatorStateFile() string
 }
 
-// BeaconStateProvider is an interface that provides the
+// BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
-type BeaconStateProvider interface {
+type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
+	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
 }
 
 // ValsetChangeProvider is an interface that provides the
@@ -49,7 +50,7 @@ type BeaconStateProvider interface {
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
-		[]*consensusv1.Deposit,
+		[]*beacontypesv1.Deposit,
 		[]*enginev1.Withdrawal,
 	) error
 }

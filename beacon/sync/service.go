@@ -180,8 +180,6 @@ func (s *Service) syncLoop(ctx context.Context) {
 // updateClientSyncInfo gets the sync progress from the consensus and execution
 // clients.
 func (s *Service) updateClientSyncInfo(ctx context.Context) {
-	// We have to wait for the engine client to be fully
-	// spun up.
 	s.engineClient.WaitForHealthy(ctx)
 
 	wg := conc.NewWaitGroup()

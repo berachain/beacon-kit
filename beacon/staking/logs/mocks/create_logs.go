@@ -30,9 +30,9 @@ import (
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
-	"github.com/itsdevbear/bolaris/types/consensus"
 )
 
 // CreateDepositLogs creates mock deposit logs.
@@ -56,7 +56,7 @@ func CreateDepositLogs(
 
 	mockLogs := make([]ethtypes.Log, 0, numLogs)
 	for i := 0; i < numLogs; i++ {
-		deposit := consensus.NewDeposit(
+		deposit := beacontypes.NewDeposit(
 			[]byte("pubkey"),
 			//#nosec:G701 // no overflow
 			uint64(i),

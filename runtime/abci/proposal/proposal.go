@@ -37,8 +37,8 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/health"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
+	"github.com/itsdevbear/bolaris/primitives"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle
@@ -98,7 +98,7 @@ func (h *Handler) PrepareProposalHandler(
 
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
-		return nil, err
+		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Marshal the block into bytes.
@@ -130,7 +130,7 @@ func (h *Handler) ProcessProposalHandler(
 	//
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
-	block, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
+	block, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)

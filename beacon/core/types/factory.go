@@ -23,16 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+package consensus
 
-// import "types/consensus/v1/block.proto";
-// import "types/consensus/v1/block_blinded.proto";
+import beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
-
-// BeaconKitBlockContainer is a container for beacon block.
-message BeaconKitBlockContainer {
-  // // block is the beacon block.
-  // oneof block {}
+// NewDeposit creates a new deposit.
+func NewDeposit(
+	pubkey []byte, amount uint64, withdrawalCredentials []byte,
+) *beacontypesv1.Deposit {
+	return &beacontypesv1.Deposit{
+		ValidatorPubkey:       pubkey,
+		Amount:                amount,
+		WithdrawalCredentials: withdrawalCredentials,
+	}
 }

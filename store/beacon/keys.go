@@ -25,16 +25,8 @@
 
 package beacon
 
-// Genesis Related Prefix.
-const (
-	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
-	eth1GenesisHashPrefix = "eth1_genesis_hash"
-)
-
 // Collection prefixes.
 const (
-	parentBlockRootPrefix          = "parent_block_root"
-	depositQueuePrefix             = "deposit_queue"
-	fcSafeEth1BlockHashPrefix      = "fc_safe"
-	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
+	parentBlockRootPrefix = "parent_block_root"
+	depositQueuePrefix    = "deposit_queue"
 )

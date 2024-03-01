@@ -27,18 +27,18 @@ package preblock
 
 import (
 	"context"
-	"os"
 
 	"cosmossdk.io/log"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
+	"github.com/itsdevbear/bolaris/primitives"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 type BeaconKeeper interface {
@@ -96,7 +96,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		//
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
-		beaconBlock, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
+		beaconBlock, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
 			req,
 			h.cfg.BeaconBlockPosition,
 			h.chainService.ActiveForkVersionForSlot(
@@ -106,36 +106,45 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		if err != nil {
 			// Call the nested child handler.
 			// TODO SLASH PROPOSER
-			return h.callNextHandler(ctx, req)
+			// TODO: This is fucking hood as fuck.
+			beaconBlock, err = beacontypes.EmptyBeaconBuoy(
+				primitives.Slot(req.Height),
+				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
+				h.chainService.ActiveForkVersionForSlot(
+					primitives.Slot(req.Height),
+				),
+			)
+			if err != nil {
+				return &sdk.ResponsePreBlock{}, err
+			}
 		}
 
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
+
+		defer func() {
+			if err = h.chainService.FinalizeBeaconBlock(
+				ctx, beaconBlock, cometBlockHash,
+			); err != nil {
+				h.chainService.Logger().
+					Error("failed to finalize beacon block", "error", err)
+			}
+		}()
 
 		// Since during initial syncing process proposal is not called, we have
 		// to import the block into our execution client to validate it.
 		//
 		// TODO: we need to figure out this lifecycle on error propagation.
 		if h.syncService.IsInitSync() {
-			// if you execution client already has this block, ignore....
-			err = h.chainService.ReceiveBeaconBlock(
-				ctx,
-				beaconBlock,
-				cometBlockHash,
-			)
+			if err == nil {
+				// if you execution client already has this block, ignore....
+				err = h.chainService.ReceiveBeaconBlock(
+					ctx,
+					beaconBlock,
+					cometBlockHash,
+				)
+			}
 			return h.callNextHandler(ctx, req)
 		}
-
-		defer func() {
-			if err == nil {
-				// Process the finalization of the beacon block.
-				if err = h.chainService.FinalizeBeaconBlock(
-					ctx, beaconBlock, cometBlockHash,
-				); err != nil {
-					os.Exit(1)
-					return
-				}
-			}
-		}()
 
 		// Call the nested child handler.
 		return h.callNextHandler(ctx, req)
