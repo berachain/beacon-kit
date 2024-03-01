@@ -35,3 +35,4 @@ wrap_comments = false
 
 [rpc_endpoints]
 localhost = "http://localhost:8545"
+sepolia = "https://sepolia.gateway.tenderly.co"

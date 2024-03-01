@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import { console2 } from "@forge-std/console2.sol";
+import { StdChains } from "@forge-std/StdChains.sol";
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { FixedPointMathLib } from "@solady/src/utils/FixedPointMathLib.sol";
 import { BeaconRootsContract } from "@src/eip4788/BeaconRootsContract.sol";
@@ -332,5 +334,45 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
             setStorage(1, TIMESTAMP, length);
         validateBeaconRoots(timestamps, beaconRoots);
+    }
+}
+
+/// @title BeaconRootsContractForkTest
+/// @dev This contract is used for testing the BeaconRootsContract on a fork.
+contract BeaconRootsContractForkTest is
+    BeaconRootsContractBaseTest,
+    StdChains
+{
+    function setUp() public override {
+        vm.createSelectFork("sepolia");
+        assertGt(block.number, 1, "something went wrong");
+    }
+
+    /// @dev Test the `get` function in BeaconRootsContract on Sepolia testnet.
+    function testFork_Get() public {
+        console2.log("block number", block.number);
+        console2.log("block timestamp", block.timestamp);
+        (bool success, bytes32 beaconRoot) = callGet(block.timestamp);
+        assertTrue(success, "get: failed");
+        uint256 timestampIdx = block.timestamp % HISTORY_BUFFER_LENGTH;
+        bytes32 timestamp = vm.load(BEACON_ROOT_ADDRESS, bytes32(timestampIdx));
+        assertEq(block.timestamp, uint256(timestamp), "get: invalid timestamp");
+        bytes32 _beaconRoot = vm.load(
+            BEACON_ROOT_ADDRESS, bytes32(timestampIdx + BEACON_ROOT_OFFSET)
+        );
+        assertEq(beaconRoot, _beaconRoot, "get: invalid beacon root");
+    }
+
+    /// @dev Test the `set` function in BeaconRootsContract on Sepolia testnet.
+    function testFork_Set() public {
+        uint256 timestamp = _random();
+        vm.warp(timestamp);
+        bytes32 beaconRoot = bytes32(_random());
+        vm.prank(SYSTEM_ADDRESS);
+        (bool success,) = BEACON_ROOT_ADDRESS.call(abi.encode(beaconRoot));
+        assertTrue(success, "set failed");
+        (bool success2, bytes32 beaconRoot2) = callGet(timestamp);
+        assertTrue(success2, "get: failed");
+        assertEq(beaconRoot, beaconRoot2, "invalid beacon root");
     }
 }
