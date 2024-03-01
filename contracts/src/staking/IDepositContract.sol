@@ -90,7 +90,7 @@ interface IDepositContract {
     error InvalidPubKeyLength();
 
     /// @dev Error thrown when the withdrawal credentials length is not 32 bytes.
-    error InvalidWithdrawalCredentialsLength();
+    error InvalidCredentialsLength();
 
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();

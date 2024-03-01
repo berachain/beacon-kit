@@ -89,7 +89,7 @@ contract DepositContract is IDepositContract {
         }
 
         if (stakingCredentials.length != CREDENTIALS_LENGTH) {
-            revert InvalidWithdrawalCredentialsLength();
+            revert InvalidCredentialsLength();
         }
 
         if (signature.length != SIGNATURE_LENGTH) {
@@ -99,7 +99,7 @@ contract DepositContract is IDepositContract {
         // If the stake asset is the native asset, the deposit must be made with msg.value.
         // Be carfule with casting to uint64, it can overflow so we check the value is less than uint64.max.
         if (STAKE_ASSET == NATIVE_ASSET) {
-            if (msg.value >= MIN_DEPOSIT_AMOUNT) {
+            if (msg.value < MIN_DEPOSIT_AMOUNT) {
                 revert InsufficientDeposit();
             }
 
@@ -176,7 +176,7 @@ contract DepositContract is IDepositContract {
         }
 
         if (withdrawalCredentials.length != CREDENTIALS_LENGTH) {
-            revert InvalidWithdrawalCredentialsLength();
+            revert InvalidCredentialsLength();
         }
 
         if (amount < MINIMUM_WITHDRAWAL_AMOUNT) {
