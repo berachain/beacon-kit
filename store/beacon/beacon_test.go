@@ -33,7 +33,6 @@ import (
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
@@ -47,50 +46,9 @@ func TestBeaconStore(t *testing.T) {
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 	kvs := sdkruntime.NewKVStoreService(storeKey)
-	kv := ctx.KVStore(storeKey)
 
 	beaconStore := beaconstore.NewStore(kvs)
 	beaconStore = beaconStore.WithContext(ctx)
-	t.Run("should return correct hashes", func(t *testing.T) {
-		safeHash := common.HexToHash("0x123")
-		beaconStore.SetSafeEth1BlockHash(safeHash)
-		hash := beaconStore.GetSafeEth1BlockHash()
-		require.Equal(t, safeHash, hash)
-		hash.SetBytes([]byte("0x789"))
-		require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
-		newSafeHash := common.HexToHash("0x456")
-		beaconStore.SetSafeEth1BlockHash(newSafeHash)
-		require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
-
-		finalHash := common.HexToHash("0x456")
-		beaconStore.SetFinalizedEth1BlockHash(finalHash)
-		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
-		// Recheck to make sure there is no collision.
-		require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
-
-		genesisHash := common.HexToHash("0x789")
-		beaconStore.SetGenesisEth1Hash(genesisHash)
-		require.Equal(t, genesisHash, beaconStore.GenesisEth1Hash())
-		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
-		require.Equal(t, newSafeHash, beaconStore.GetSafeEth1BlockHash())
-	})
-
-	t.Run("should not have state breaking", func(t *testing.T) {
-		safeHash := common.HexToHash("0x123")
-		kv.Set([]byte("fc_safe"), safeHash.Bytes())
-		require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
-
-		finalHash := common.HexToHash("0x456")
-		kv.Set([]byte("fc_finalized"), finalHash.Bytes())
-		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
-
-		genesisHash := common.HexToHash("0x789")
-		kv.Set([]byte("eth1_genesis_hash"), genesisHash.Bytes())
-		require.Equal(t, genesisHash, beaconStore.GenesisEth1Hash())
-
-		require.Equal(t, safeHash, beaconStore.GetSafeEth1BlockHash())
-		require.Equal(t, finalHash, beaconStore.GetFinalizedEth1BlockHash())
-	})
 
 	t.Run("should work with deposit", func(t *testing.T) {
 		deposit := &consensusv1.Deposit{

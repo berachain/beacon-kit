@@ -30,11 +30,9 @@ const (
 	defaultMinCLPeers = 0
 )
 
-// Confing represents the configuration struct for
-// the sync service.
 type Config struct {
-	MinELPeers uint64 `mapstructure:"min_el_peers"`
-	MinCLPeers uint64 `mapstructure:"min_cl_peers"`
+	MinELPeers uint64
+	MinCLPeers uint64
 }
 
 func DefaultConfig() *Config {

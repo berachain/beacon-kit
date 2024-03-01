@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package jwt_test
+package cli_test
 
 import (
 	"os"
@@ -31,7 +31,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/io/cli/jwt"
+	"github.com/itsdevbear/bolaris/config/cli"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,25 +39,25 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 	t.Run(
 		"command should be available and have correct use",
 		func(t *testing.T) {
-			cmd := jwt.NewGenerateJWTCommand()
+			cmd := cli.NewGenerateJWTCommand()
 			require.Equal(t, "generate-jwt-secret", cmd.Use)
 		},
 	)
 
 	t.Run("should create proper file in current directory", func(t *testing.T) {
-		cmd := jwt.NewGenerateJWTCommand()
-		cmd.SetArgs([]string{"--output-path", jwt.DefaultSecretFileName})
+		cmd := cli.NewGenerateJWTCommand()
+		cmd.SetArgs([]string{"--output-path", cli.DefaultSecretFileName})
 		require.NoError(t, cmd.Execute())
 
 		// We check the file has the contents we expect.
-		checkAuthFileIntegrity(t, jwt.DefaultSecretFileName)
+		checkAuthFileIntegrity(t, cli.DefaultSecretFileName)
 
-		require.NoError(t, os.RemoveAll(jwt.DefaultSecretFileName))
+		require.NoError(t, os.RemoveAll(cli.DefaultSecretFileName))
 	})
 
 	t.Run("should create proper file in specified folder", func(t *testing.T) {
 		customOutput := filepath.Join("data", "jwt.hex")
-		cmd := jwt.NewGenerateJWTCommand()
+		cmd := cli.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", customOutput})
 		require.NoError(t, cmd.Execute())
 
@@ -75,7 +75,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 			"nested",
 			"jwt.hex",
 		)
-		cmd := jwt.NewGenerateJWTCommand()
+		cmd := cli.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", customOutputPath})
 		require.NoError(t, cmd.Execute())
 
@@ -98,7 +98,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 
 		// Execute the command with the --force flag to override the existing
 		// file
-		cmd := jwt.NewGenerateJWTCommand()
+		cmd := cli.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", tempFile.Name()})
 		require.NoError(t, cmd.Execute())
 

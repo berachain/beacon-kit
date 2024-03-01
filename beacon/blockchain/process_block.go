@@ -52,7 +52,7 @@ func (s *Service) postBlockProcess(
 		// issue?
 		// TODO: Should introduce the concept of missed slots?
 		if err := s.sendFCU(
-			ctx, s.BeaconState(ctx).GetLastValidHead(),
+			ctx, s.ForkchoiceStore(ctx).GetSafeEth1BlockHash(),
 		); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
 		}
@@ -82,8 +82,9 @@ func (s *Service) postBlockProcess(
 		); err == nil {
 			return nil
 		}
+		s.Logger().
+			Error("failed to send forkchoice update in postBlockProcess", "error", err)
 	}
-
 	// Otherwise we send a forkchoice update to the execution client.
 	return s.sendFCU(ctx, payloadBlockHash)
 }

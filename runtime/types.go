@@ -38,10 +38,11 @@ type CometBFTConfig interface {
 	PrivValidatorStateFile() string
 }
 
-// BeaconStateProvider is an interface that provides the
+// BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
-type BeaconStateProvider interface {
+type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
+	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
 }
 
 // ValsetChangeProvider is an interface that provides the

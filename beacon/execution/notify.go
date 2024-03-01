@@ -81,7 +81,7 @@ func (s *Service) notifyNewPayload(
 		s.Logger().Info("new payload called with optimistic block",
 			"block_hash", common.BytesToHash(payload.GetBlockHash()),
 			"parent_hash", common.BytesToHash(payload.GetParentHash()),
-			"slot", slot,
+			"for_slot", slot,
 		)
 		return false, nil
 	case errors.Is(err, client.ErrInvalidPayloadStatus):
@@ -100,7 +100,7 @@ func (s *Service) notifyNewPayload(
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginev1.PayloadIDBytes, error) {
-	beaconState := s.BeaconState(ctx)
+	forkChoicer := s.ForkchoiceStore(ctx)
 
 	// TODO: intercept here and ask builder service for payload attributes.
 	// if isValidator && PrepareAllPayloads {
@@ -112,8 +112,8 @@ func (s *Service) notifyForkchoiceUpdate(
 
 	fcs := &enginev1.ForkchoiceState{
 		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
-		SafeBlockHash:      beaconState.GetSafeEth1BlockHash().Bytes(),
-		FinalizedBlockHash: beaconState.GetFinalizedEth1BlockHash().Bytes(),
+		SafeBlockHash:      forkChoicer.GetSafeEth1BlockHash().Bytes(),
+		FinalizedBlockHash: forkChoicer.GetFinalizedEth1BlockHash().Bytes(),
 	}
 
 	// Notify the execution engine of the forkchoice update.
@@ -126,7 +126,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
-			"slot", fcuConfig.ProposingSlot,
+			"for_slot", fcuConfig.ProposingSlot,
 		)
 		telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil
@@ -137,16 +137,11 @@ func (s *Service) notifyForkchoiceUpdate(
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
-			// TODO: we should get the last valid head off of the previous
-			// block.
 			// TODO: in the case of CometBFT BeaconKit, this could in theory
 			// just be the last finalized block, bc we are always inserting
 			// ontop of that, however making that assumption here feels
 			// a little coupled.
-			// TODO: right now GetLastValidHead() is going to either return
-			// the last valid block that was built, OR the
-			// last safe block, which tbh is also okay.
-			HeadEth1Hash:  beaconState.GetLastValidHead(),
+			HeadEth1Hash:  forkChoicer.GetSafeEth1BlockHash(),
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,
 		})
@@ -160,12 +155,6 @@ func (s *Service) notifyForkchoiceUpdate(
 		s.Logger().Error("undefined execution engine error", "error", err)
 		return nil, err
 	}
-
-	// We can mark this Eth1Block as the latest valid block.
-	// TODO: maybe move to blockchain for IsCanonical and Head checks.
-	// TODO: the whole getting the execution payload off the block /
-	// the whole LastestExecutionPayload Premine thing "PremineGenesisConfig".
-	beaconState.SetLastValidHead(fcuConfig.HeadEth1Hash)
 
 	return payloadID, nil
 }

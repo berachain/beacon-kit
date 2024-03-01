@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@solady/test/utils/SoladyTest.sol";
-import "@solady/src/utils/FixedPointMathLib.sol";
-import "@src/staking/BeaconDepositContract.sol";
-import "@solady/src/tokens/ERC20.sol";
+import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
 import { IBeaconDepositContract } from
     "../src/staking/IBeaconDepositContract.sol";
+import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
+import { BeaconDepositContract } from "@src/staking/BeaconDepositContract.sol";
 
 // Mock ERC20 token that we will use as the stake token.
 contract ERC20Test is ERC20 {

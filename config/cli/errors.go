@@ -23,25 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package cli
 
-import (
-	"context"
+import "errors"
 
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+var (
+	// ErrNoClientCtx indicates that the client context was not found.
+	ErrNoClientCtx = errors.New("client context not found")
+	// ErrNoHomeDir indicates that the home directory was not found.
+	ErrNoHomeDir = errors.New("home directory not found")
 )
-
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*consensusv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
-}
