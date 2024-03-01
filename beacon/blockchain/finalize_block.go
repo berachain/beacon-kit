@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -91,12 +90,12 @@ func (s *Service) FinalizeBeaconBlock(
 	return nil
 }
 
-// PostFinalizeBeaconBlock is called after a beacon block has been finalized.
-func (s *Service) PostFinalizeBeaconBlock(
-	ctx context.Context,
-	_ primitives.Slot,
-) error {
-	// If builder is not enabled, or failed to build, fallback to a vanilla fcu.
-	return s.sendFCU(
-		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
-}
+// // PostFinalizeBeaconBlock is called after a beacon block has been finalized.
+// func (s *Service) PostFinalizeBeaconBlock(
+// 	ctx context.Context,
+// 	_ primitives.Slot,
+// ) error {
+// 	// If builder is not enabled, or failed to build, fallback to a vanilla fcu.
+// 	return s.sendFCU(
+// 		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
+// }

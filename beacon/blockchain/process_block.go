@@ -68,6 +68,8 @@ func (s *Service) postBlockProcess(
 		); err == nil {
 			return nil
 		}
+		s.Logger().
+			Error("failed to send forkchoice update in postBlockProcess", "error", err)
 	}
 
 	// If builder is not enabled, or failed to build, fallback to a vanilla

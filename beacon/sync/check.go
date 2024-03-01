@@ -50,6 +50,7 @@ func (s *Service) CheckCLSync(ctx context.Context) {
 			"starting_beacon", resultStatus.SyncInfo.EarliestBlockHeight,
 		)
 		s.isCLSynced = false
+		return
 	}
 
 	// Else mark as synced
@@ -78,6 +79,7 @@ func (s *Service) CheckELSync(ctx context.Context) {
 			"starting_eth1", progress.StartingBlock,
 		)
 		s.isELSynced = false
+		return
 	}
 
 	s.isELSynced = true
