@@ -99,6 +99,10 @@ func (s *Service) validateStateTransition(
 		return err
 	}
 
+	if executionData == nil || executionData.IsEmpty() {
+		return fmt.Errorf("block has no execution payload")
+	}
+
 	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
 	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
 		return fmt.Errorf(
