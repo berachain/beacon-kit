@@ -37,6 +37,4 @@ const (
 	depositQueuePrefix             = "deposit_queue"
 	fcSafeEth1BlockHashPrefix      = "fc_safe"
 	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
-	logLastProcessedBlockPrefix    = "log_last_processed_block"
-	logLastProcessedIndexPrefix    = "log_last_processed_index"
 )

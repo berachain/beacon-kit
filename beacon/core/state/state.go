@@ -53,7 +53,6 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyGenesis
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
-	ReadOnlyLog
 
 	SetParentBlockRoot([32]byte)
 	GetParentBlockRoot() [32]byte
@@ -67,7 +66,6 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyForkChoice
 	WriteOnlyGenesis
 	ReadOnlyWithdrawals
-	WriteOnlyLog
 }
 
 // Write Only Fork Choice.
@@ -102,16 +100,4 @@ type ReadOnlyGenesis interface {
 
 type WriteOnlyGenesis interface {
 	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
-}
-
-// ReadOnlyLog provides read-only methods for log info.
-type ReadOnlyLog interface {
-	GetLastProcessedBlock(logSig common.Hash) (uint64, error)
-	GetLastProcessedIndex(logSig common.Hash) (uint64, error)
-}
-
-// WriteOnlyLog provides write-only methods for log info.
-type WriteOnlyLog interface {
-	SetLastProcessedBlock(logSig common.Hash, blockNum uint64) error
-	SetLastProcessedIndex(logSig common.Hash, index uint64) error
 }
