@@ -28,7 +28,7 @@ def build_beacond_docker_image():
     # temp workaround to get it working
     # run `make docker-build` before running kurtosis
     # make sure the image name and tag match, otherwise edit below
-    image = "beacond:0.0.3-alpha-18-g46f0329e"
+    image = "beacond:0.0.3-alpha-19-g1c02a0c5"
 
     # image = ImageBuildSpec(
     #     image_name="berachain/beacond",
