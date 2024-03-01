@@ -103,30 +103,36 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_DepositWrongAmount(uint64 amount) public {
+    function testFuzz_DepositWrongAmount(uint256 amount) public {
         vm.revertTo(snapshot);
-        vm.assume(amount < 32e9); // minimum deposit amount.
+        amount = _bound(amount, 1, 32e9 - 1);
 
         vm.startPrank(depositor);
         stakeToken.mint(depositor, amount);
 
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         depositContract.deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, amount, _create96Byte()
+            VALIDATOR_PUBKEY,
+            STAKING_CREDENTIALS,
+            uint64(amount),
+            _create96Byte()
         );
     }
 
-    function testFuzz_DepositWrongMultiple(uint64 amount) public {
+    function testFuzz_DepositWrongMultiple(uint256 amount) public {
         vm.revertTo(snapshot);
-        vm.assume(amount > 32e9); // minimum deposit amount.
-        vm.assume(amount % 1e9 != 0); // multiple of Gwei.
+        amount = _bound(amount, 32e9 + 1, type(uint64).max);
+        vm.assume(amount % 1e9 != 0);
 
         vm.startPrank(depositor);
         stakeToken.mint(depositor, amount);
 
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         depositContract.deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, amount, _create96Byte()
+            VALIDATOR_PUBKEY,
+            STAKING_CREDENTIALS,
+            uint64(amount),
+            _create96Byte()
         );
     }
 
@@ -144,7 +150,7 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function test_fuzzRedirectWrongFromPubKey(bytes calldata fromPubKey)
+    function testFuzz_RedirectWrongFromPubKey(bytes calldata fromPubKey)
         public
     {
         vm.revertTo(snapshot);
@@ -160,12 +166,14 @@ contract DepositContractTest is SoladyTest {
         depositContract.redirect(VALIDATOR_PUBKEY, toPubKey, 32e9);
     }
 
-    function test_fuzzRedirectWrongAmount(uint64 amount) public {
+    function test_fuzzRedirectWrongAmount(uint256 amount) public {
         vm.revertTo(snapshot);
-        vm.assume(amount < (32e9 / 10)); // minimum redirect amount.
+        amount = _bound(amount, 1, 32e9 / 10 - 1);
 
         vm.expectRevert(IDepositContract.InsufficientRedirectAmount.selector);
-        depositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, amount);
+        depositContract.redirect(
+            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, uint64(amount)
+        );
     }
 
     function testRedirect() public {
@@ -197,12 +205,13 @@ contract DepositContractTest is SoladyTest {
         depositContract.withdraw(VALIDATOR_PUBKEY, withdrawalCredentials, 32e9);
     }
 
-    function test_WithdrawWrongAmount(uint64 amount) public {
+    function test_WithdrawWrongAmount(uint256 amount) public {
         vm.revertTo(snapshot);
-        vm.assume(amount < (32e9 / 10)); // minimum withdraw amount.
+        amount = _bound(amount, 1, 32e9 / 10 - 1);
+
         vm.expectRevert(IDepositContract.InsufficientWithdrawAmount.selector);
         depositContract.withdraw(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, amount
+            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, uint64(amount)
         );
     }
 
@@ -219,7 +228,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_fuzzDepositNativeWrongMinAmount(uint256 amount) public {
         vm.revertTo(nativeSnapshot);
-        vm.assume(amount < 32 gwei); // minimum deposit amount.
+        amount = _bound(amount, 1, 32 gwei - 1);
         vm.deal(depositor, amount);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         depositContract.deposit{ value: amount }(
@@ -229,8 +238,8 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositNativeNotDivisibleByGwei(uint256 amount) public {
         vm.revertTo(nativeSnapshot);
-        vm.assume(amount > 32e9); // minimum deposit amount.
-        vm.assume(amount % 1e9 != 0); // multiple of Gwei.
+        amount = _bound(amount, 32e9 + 1, uint256(type(uint64).max));
+        vm.assume(amount % 1e9 != 0);
         vm.deal(depositor, amount);
         vm.startPrank(depositor);
 
