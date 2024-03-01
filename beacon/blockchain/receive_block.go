@@ -101,7 +101,11 @@ func (s *Service) validateStateTransition(
 	}
 
 	if executionData == nil || executionData.IsEmpty() {
+<<<<<<< HEAD
 		return errors.New("block has no execution payload")
+=======
+		return errors.New("no payload in beacon block")
+>>>>>>> origin/main
 	}
 
 	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
