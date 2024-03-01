@@ -23,10 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package forkchoice
+
+// Genesis Related Prefix.
+const (
+	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
+	eth1GenesisHashPrefix = "eth1_genesis_hash"
+)
 
 // Collection prefixes.
 const (
-	parentBlockRootPrefix = "parent_block_root"
-	depositQueuePrefix    = "deposit_queue"
+	parentBlockRootPrefix          = "parent_block_root"
+	depositQueuePrefix             = "deposit_queue"
+	fcHeadEth1BlockHashPrefix      = "fc_head"
+	fcSafeEth1BlockHashPrefix      = "fc_safe"
+	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
 )

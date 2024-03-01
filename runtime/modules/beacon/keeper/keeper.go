@@ -33,12 +33,14 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
+	forkchoicestore "github.com/itsdevbear/bolaris/store/forkchoice"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	beaconStore *beaconstore.Store
+	beaconStore     *beaconstore.Store
+	forkchoiceStore *forkchoicestore.Store
 }
 
 // Assert Keeper implements BeaconStateProvider interface.
@@ -50,6 +52,8 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		beaconStore: beaconstore.NewStore(env.KVStoreService),
+		forkchoiceStore: forkchoicestore.NewStore(
+			env.KVStoreService, env.MemStoreService),
 	}
 }
 
@@ -57,6 +61,12 @@ func NewKeeper(
 // context and the store key.
 func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return k.beaconStore.WithContext(ctx)
+}
+
+// BeaconState returns the beacon state struct initialized with a given
+// context and the store key.
+func (k *Keeper) ForkchoiceStore(ctx context.Context) state.BeaconState {
+	return k.ForkchoiceStore.WithContext(ctx)
 }
 
 // InitGenesis initializes the genesis state of the module.

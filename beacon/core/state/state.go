@@ -49,7 +49,6 @@ type BeaconState interface {
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	ReadOnlyForkChoice
 	ReadOnlyGenesis
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
@@ -63,7 +62,6 @@ type ReadOnlyBeaconState interface {
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
-	WriteOnlyForkChoice
 	WriteOnlyGenesis
 	ReadOnlyWithdrawals
 }
