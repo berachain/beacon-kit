@@ -65,8 +65,3 @@ type ExecutionService interface {
 }
 
 type StakingService interface{}
-
-type SyncService interface {
-	IsInitSync() bool
-	Status() error
-}
