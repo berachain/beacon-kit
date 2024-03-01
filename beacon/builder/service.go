@@ -97,7 +97,7 @@ func (s *Service) RequestBestBlock(
 	// TODO: On restart should we query the execution client for
 	// the actual head? GetLastValidHead() will be GetLastSafe
 	// in the BeaconStore at startup.
-	parentEth1Hash := s.BeaconState(ctx).GetLastValidHead()
+	parentEth1Hash := s.ForkchoiceStore(ctx).GetLastValidHead()
 
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(

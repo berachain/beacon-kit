@@ -159,12 +159,31 @@ func (s *EngineClient) WaitForHealthy(ctx context.Context) {
 	defer s.statusErrMu.Unlock()
 
 	for s.status(ctx) != nil {
+		go s.refreshUntilHealthy(ctx)
 		select {
 		case <-ctx.Done():
 			return
 		default:
 			// Then we wait until we are blessed tf up.
 			s.statusErrCond.Wait()
+		}
+	}
+}
+
+// refreshUntilHealthy refreshes the engine client until it is healthy.
+// TODO: remove after hack testing done.
+func (s *EngineClient) refreshUntilHealthy(ctx context.Context) {
+	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.status(ctx); err == nil {
+				return
+			}
 		}
 	}
 }

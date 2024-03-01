@@ -36,8 +36,8 @@ import (
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
-// BeaconStateProvider is an interface that wraps the basic BeaconState method.
-type BeaconStateProvider interface {
+// BeaconStorageBackend is an interface that wraps the basic BeaconState method.
+type BeaconStorageBackend interface {
 	// BeaconState provides access to the underlying beacon state.
 	BeaconState(ctx context.Context) state.BeaconState
 }

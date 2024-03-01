@@ -104,7 +104,7 @@ func (s *Service) validateStateTransition(
 		return errors.New("no payload in beacon block")
 	}
 
-	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	finalizedHash := s.ForkchoiceStore(ctx).GetFinalizedEth1BlockHash()
 	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",

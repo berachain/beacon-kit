@@ -23,25 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package forkchoice
 
-import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+// Genesis Related Prefix.
+const (
+	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
+	eth1GenesisHashPrefix = "eth1_genesis_hash"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*consensusv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
-}
+// Collection prefixes.
+const (
+	parentBlockRootPrefix          = "parent_block_root"
+	depositQueuePrefix             = "deposit_queue"
+	fcHeadEth1BlockHashPrefix      = "fc_head"
+	fcSafeEth1BlockHashPrefix      = "fc_safe"
+	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
+)

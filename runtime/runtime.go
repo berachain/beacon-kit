@@ -52,7 +52,7 @@ import (
 type BeaconKitRuntime struct {
 	cfg      *config.Config
 	logger   log.Logger
-	fscp     BeaconStateProvider
+	fscp     BeaconStorageBackend
 	services *service.Registry
 }
 
@@ -77,7 +77,7 @@ func NewBeaconKitRuntime(
 //nolint:funlen // This function is long because it sets up the services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
-	bsp BeaconStateProvider,
+	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
@@ -99,7 +99,7 @@ func NewDefaultBeaconKitRuntime(
 	// Create the base service, we will the create shallow copies for each
 	// service.
 	baseService := service.NewBaseService(
-		cfg, bsp, gcd, logger,
+		cfg, bsb, gcd, logger,
 	)
 
 	// Build the client to interact with the Engine API.
@@ -193,7 +193,7 @@ func NewDefaultBeaconKitRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
-		WithBeaconStateProvider(bsp),
+		WithBeaconStorageBackend(bsb),
 		WithConfig(cfg),
 		WithLogger(logger),
 		WithServiceRegistry(svcRegistry),

@@ -43,9 +43,10 @@ func (s *Service) FinalizeBeaconBlock(
 	blockRoot [32]byte,
 ) error {
 	var (
-		payload enginetypes.ExecutionPayload
-		err     error
-		state   = s.BeaconState(ctx)
+		payload     enginetypes.ExecutionPayload
+		err         error
+		state       = s.BeaconState(ctx)
+		forkChoicer = s.ForkchoiceStore(ctx)
 	)
 
 	defer func() {
@@ -56,7 +57,7 @@ func (s *Service) FinalizeBeaconBlock(
 		// If something bad happens, we defensivelessly send a forkchoice update
 		// to bring us back to the last valid head.
 		if err != nil {
-			err = s.sendFCU(ctx, s.BeaconState(ctx).GetLastValidHead())
+			err = s.sendFCU(ctx, forkChoicer.GetLastValidHead())
 			s.Logger().Error(
 				"failed to send recovery forkchoice update", "error", err,
 			)
@@ -64,9 +65,9 @@ func (s *Service) FinalizeBeaconBlock(
 
 		s.Logger().Info(
 			"current forkchoice state",
-			"head_hash", state.GetLastValidHead().Hex(),
-			"safe_hash", state.GetSafeEth1BlockHash().Hex(),
-			"finalized_hash", state.GetFinalizedEth1BlockHash().Hex(),
+			"head_hash", forkChoicer.GetLastValidHead().Hex(),
+			"safe_hash", forkChoicer.GetSafeEth1BlockHash().Hex(),
+			"finalized_hash", forkChoicer.GetFinalizedEth1BlockHash().Hex(),
 		)
 	}()
 
@@ -85,7 +86,7 @@ func (s *Service) FinalizeBeaconBlock(
 	}
 
 	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	state.SetFinalizedEth1BlockHash(eth1BlockHash)
-	state.SetSafeEth1BlockHash(eth1BlockHash)
+	forkChoicer.SetFinalizedEth1BlockHash(eth1BlockHash)
+	forkChoicer.SetSafeEth1BlockHash(eth1BlockHash)
 	return nil
 }
