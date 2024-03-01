@@ -106,7 +106,7 @@ func (p *Processor) ProcessBlocksInBatch(
 	}
 	latestBlockHeight := latestHeader.Number.Uint64()
 
-	// Determine which is the earliest block to process
+	// Determine the earliest block to process
 	// by checking the last processed block number, which
 	// is still valid wrt the finalized block, among caches.
 	// By doing so, we can avoid processing the same block
