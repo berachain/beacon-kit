@@ -30,13 +30,13 @@ import (
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/types/consensus"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -54,7 +54,7 @@ func TestLogFactory(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	deposit := consensus.NewDeposit(
+	deposit := beacontypes.NewDeposit(
 		[]byte("pubkey"),
 		10000,
 		[]byte("12345678901234567890"),
@@ -74,7 +74,7 @@ func TestLogFactory(t *testing.T) {
 	require.Equal(t, reflect.Ptr, valType.Kind())
 	require.Equal(t, logs.DepositType, valType.Elem())
 
-	newDeposit, ok := val.Interface().(*consensusv1.Deposit)
+	newDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
 	require.True(t, ok)
 	require.NoError(t, err)
 	require.Equal(t, deposit, newDeposit)

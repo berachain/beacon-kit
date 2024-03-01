@@ -30,9 +30,9 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // Store is a wrapper around an sdk.Context
@@ -41,7 +41,7 @@ type Store struct {
 	ctx context.Context
 
 	// depositQueue is a list of depositQueue that are queued to be processed.
-	depositQueue *collections.Queue[*consensusv1.Deposit]
+	depositQueue *collections.Queue[*beacontypesv1.Deposit]
 
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
@@ -54,10 +54,10 @@ func NewStore(
 	kvs store.KVStoreService,
 ) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
-	depositQueue := collections.NewQueue[*consensusv1.Deposit](
+	depositQueue := collections.NewQueue[*beacontypesv1.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
-		encoding.SSZValueCodec[*consensusv1.Deposit]{},
+		encoding.SSZValueCodec[*beacontypesv1.Deposit]{},
 	)
 	parentBlockRoot := sdkcollections.NewItem[[]byte](
 		schemaBuilder,

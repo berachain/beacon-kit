@@ -49,7 +49,6 @@ type Service struct {
 	clientCtx    *cosmosclient.Context
 	cfg          *Config
 
-	started           bool
 	isInitSync        bool
 	isSyncedLock      *sync.RWMutex
 	isSyncedCond      *sync.Cond
@@ -96,9 +95,6 @@ func (s *Service) IsInitSync() bool {
 func (s *Service) Status() error {
 	s.isSyncedLock.RLock()
 	defer s.isSyncedLock.RUnlock()
-	if !s.started {
-		return errors.New("service not started")
-	}
 	return errors.Join(s.status(), s.BaseService.Status())
 }
 
