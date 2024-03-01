@@ -161,10 +161,10 @@ func (s *Service) notifyForkchoiceUpdate(
 		return nil, err
 	}
 
-	// // We can mark this Eth1Block as the latest valid block.
-	// // TODO: maybe move to blockchain for IsCanonical and Head checks.
-	// // TODO: the whole getting the execution payload off the block /
-	// // the whole LastestExecutionPayload Premine thing
+	// We can mark this Eth1Block as the latest valid block.
+	// TODO: maybe move to blockchain for IsCanonical and Head checks.
+	// TODO: the whole getting the execution payload off the block /
+	// the whole LastestExecutionPayload Premine thing
 	// "PremineGenesisConfig".
 	beaconState.SetLastValidHead(fcuConfig.HeadEth1Hash)
 
