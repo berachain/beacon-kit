@@ -61,6 +61,13 @@ func (s *Service) FinalizeBeaconBlock(
 				"failed to send recovery forkchoice update", "error", err,
 			)
 		}
+
+		s.Logger().Info(
+			"current forkchoice state",
+			"head_hash", state.GetLastValidHead().Hex(),
+			"safe_hash", state.GetSafeEth1BlockHash().Hex(),
+			"finalized_hash", state.GetFinalizedEth1BlockHash().Hex(),
+		)
 	}()
 
 	payload, err = blk.ExecutionPayload()
