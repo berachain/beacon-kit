@@ -26,20 +26,149 @@
 package logs
 
 import (
+	"context"
+
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
+	"github.com/pkg/errors"
 )
 
+// Cache is the interface for the cache of logs.
 type Cache interface {
+	// Update asks the cache to update itself with the given
+	// finalized block hash and block number (e.g discarding
+	// invalid cached items), and returns the
+	// last processed block number which is still valid
+	// with respect to the finalized block.
+	Update(
+		finalizedBlockHash ethcommon.Hash,
+		finalizedBlockNumber uint64,
+	) uint64
+	// ShouldProcess returns true if the cache
+	// determines that the log should be processed.
+	ShouldProcess(log *ethtypes.Log) bool
+	// Push pushes the log value container into the cache.
+	Push(container LogValueContainer) error
 }
 
+// LogValueContainer is the interface for the container of
+// the unmarsheled value of a log and other related information.
+type LogValueContainer interface{}
+
+type LogFactory interface {
+	GetRegisteredAddresses() []ethcommon.Address
+	ProcessLog(log *ethtypes.Log) (LogValueContainer, error)
+}
+
+// ReadOnlyForkChoiceProvider provides the read-only fork choice store.
+type ReadOnlyForkChoiceProvider interface {
+	ForkchoiceStore(ctx context.Context) state.ReadOnlyForkChoice
+}
 type Processor struct {
-	fcStore state.ReadOnlyForkChoice
+	fcp ReadOnlyForkChoiceProvider
+
+	// engine gives the access to the Engine API
+	// of the execution client.
+	engine engineclient.Caller
+
+	// logFactory is the factory for creating
+	// objects from Ethereum logs.
+	factory LogFactory
 
 	// sigToCache is a map of log signatures to their caches.
 	sigToCache map[ethcommon.Hash]Cache
 }
 
-func (p *Processor) ProcessBlocksInBatch() {
-	finalizedBlockHash := p.fcStore.GetFinalizedEth1BlockHash()
+// ProcessBlocksInBatch processes the blocks in batch,
+// from the last processed block (exclusive)
+// to the latest block (inclusive) for each cache.
+// This function will be called in a goroutine
+// to prediodically process the logs and backfill
+// the caches in background.
+func (p *Processor) ProcessBlocksInBatch(
+	ctx context.Context,
+) error {
+	// Get the latest finalized block hash and block number.
+	forkChoicer := p.fcp.ForkchoiceStore(ctx)
+	finalizedBlockHash := forkChoicer.GetFinalizedEth1BlockHash()
+	finalizedHeader, err := p.engine.HeaderByHash(ctx, finalizedBlockHash)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get finalized header")
+	}
+	finalizedBlockNumber := finalizedHeader.Number.Uint64()
+
+	// Get the latest header from the execution client.
+	latestHeader, err := p.engine.HeaderByNumber(ctx, nil)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get latest header")
+	}
+	latestBlockHeight := latestHeader.Number.Uint64()
+
+	// Determine which is the earliest block to process
+	// by checking the last processed block number, which
+	// is still valid wrt the finalized block, among caches.
+	// By doing so, we can avoid processing the same block
+	// multiple times for different types of logs.
+	sigToLastProcessedBlockNumber := make(map[ethcommon.Hash]uint64)
+	minLastProcessedBlockNumber := latestBlockHeight
+	for sig, cache := range p.sigToCache {
+		lastProcessedBlockNumber := cache.Update(
+			finalizedBlockHash,
+			finalizedBlockNumber,
+		)
+		sigToLastProcessedBlockNumber[sig] = lastProcessedBlockNumber
+		if lastProcessedBlockNumber < minLastProcessedBlockNumber {
+			minLastProcessedBlockNumber = lastProcessedBlockNumber
+		}
+	}
+
+	// If all caches have processed the latest block,
+	// we don't need to process it again.
+	if minLastProcessedBlockNumber == latestBlockHeight {
+		return nil
+	}
+
+	// Gather all the logs corresponding to
+	// the addresses of interest in the range
+	// from the last processed block to the latest block.
+	// TODO: Can we assume that the logs are returned in order?
+	// TODO: What if the block at minLastProcessedBlockNumber
+	// was partially processed.
+	batchedLogs, err := p.engine.GetLogs(
+		ctx,
+		minLastProcessedBlockNumber+1,
+		latestBlockHeight,
+		p.factory.GetRegisteredAddresses(),
+	)
+	if err != nil {
+		// TODO: Handle TooMuchDataRequestedError.
+		return errors.Wrapf(err, "failed to get logs")
+	}
+
+	// TODO: Use MapErr
+	for i := range batchedLogs {
+		log := &batchedLogs[i]
+		cache, ok := p.sigToCache[log.Topics[0]]
+		// Skip the log if it is not registered.
+		if !ok {
+			continue
+		}
+		// Cache determine if the log should be processed,
+		// based on its last processed block.
+		// TODO: Should we also consider the last processed index?
+		if cache.ShouldProcess(log) {
+			var container LogValueContainer
+			container, err = p.factory.ProcessLog(log)
+			if err != nil {
+				return errors.Wrapf(err, "failed to process log")
+			}
+			err = cache.Push(container)
+			if err != nil {
+				return errors.Wrapf(err, "failed to push container")
+			}
+		}
+	}
+	return nil
 }

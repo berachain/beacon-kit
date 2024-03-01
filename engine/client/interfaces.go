@@ -27,6 +27,7 @@ package client
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
@@ -75,10 +76,16 @@ type Caller interface {
 
 	// Eth Namespace Methods
 	//
-	// BlockByHash retrieves the block by its hash.
+	// HeaderByHash retrieves the block header by its hash.
 	HeaderByHash(
 		ctx context.Context,
 		hash common.Hash,
+	) (*gethcoretypes.Header, error)
+
+	// HeaderByNumber retrieves the block header by its number.
+	HeaderByNumber(
+		ctx context.Context,
+		number *big.Int,
 	) (*gethcoretypes.Header, error)
 }
 
