@@ -139,6 +139,10 @@ func (s *Service) validateExecutionOnBlock(
 		return false, err
 	}
 
+	if payload == nil || payload.IsEmpty() {
+		return false, errors.New("no payload in beacon block")
+	}
+
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(
 		ctx,
