@@ -112,7 +112,7 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 		return err
 	}
 
-	if err = file.WriteFile(fileName, []byte(secret.Hex())); err != nil {
+	if err = file.Write(fileName, []byte(secret.Hex())); err != nil {
 		return err
 	}
 

@@ -33,12 +33,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
+	"github.com/itsdevbear/bolaris/primitives"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 type BeaconKeeper interface {
@@ -96,7 +96,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		//
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
-		beaconBlock, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
+		beaconBlock, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
 			req,
 			h.cfg.BeaconBlockPosition,
 			h.chainService.ActiveForkVersionForSlot(
@@ -107,7 +107,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			// Call the nested child handler.
 			// TODO SLASH PROPOSER
 			// TODO: This is fucking hood as fuck.
-			beaconBlock, err = consensus.EmptyBeaconKitBlock(
+			beaconBlock, err = beacontypes.EmptyBeaconBuoy(
 				primitives.Slot(req.Height),
 				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
 				h.chainService.ActiveForkVersionForSlot(

@@ -40,6 +40,9 @@ on:
       - 'docs/**'
       - 'vercel.json'
 
+concurrency:
+  group: ci-docs-${{ github.ref }}
+
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest

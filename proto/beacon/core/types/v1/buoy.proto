@@ -24,35 +24,31 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 syntax = "proto3";
-package types.consensus.v1;
+package beacon.core.types.v1;
 
+import "beacon/core/types/v1/deposit.proto";
 import "ethereum/engine/v1/execution_engine.proto";
 import "ethereum/eth/ext/options.proto";
-import "types/consensus/v1/deposit.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
+option go_package = "github.com/itsdevbear/bolaris/beacon/core/types/v1;typesv1";
 
-// BeaconKitBlockDeneb represents a beacon kit block during deneb network upgrade.
-message BeaconKitBlockDeneb {
+// BeaconBuoyDeneb represents a beacon kit block during deneb network upgrade.
+message BeaconBuoyDeneb {
   // Beacon chain slot that this block represents.
-  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/types/consensus/primitives.Slot"];
+  uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/primitives.Slot"];
 
   // 32 byte root of the parent block.
   bytes parent_root = 2 [(ethereum.eth.ext.ssz_size) = "32"];
 
-  // TODO: how do we even get this in ABCI?
-  // 32 byte root of the resulting state after processing this block.
-  bytes state_root = 3 [(ethereum.eth.ext.ssz_size) = "32"];
-
   // BeaconBlockBody contains the body of the beacon block.
-  BeaconKitBlockBodyDeneb body = 4;
+  BeaconBuoyBodyDeneb body = 3;
 
   // The payload value of the block.
   bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
 }
 
-// BeaconKitBlockBodyDeneb represents the body of a beacon block in Deneb.
-message BeaconKitBlockBodyDeneb {
+// BeaconBuoyBodyDeneb represents the body of a beacon block in Deneb.
+message BeaconBuoyBodyDeneb {
   // The validators RANDAO reveal 96 byte value.
   bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
 
@@ -69,6 +65,6 @@ message BeaconKitBlockBodyDeneb {
   // At most MAX_BLOBS_PER_BLOCK. New in Deneb network upgrade.
   repeated bytes blob_kzg_commitments = 5 [
     (ethereum.eth.ext.ssz_size) = "?,48",
-    (ethereum.eth.ext.ssz_max) = "max_blob_commitments.size"
+    (ethereum.eth.ext.ssz_max) = "16"
   ];
 }
