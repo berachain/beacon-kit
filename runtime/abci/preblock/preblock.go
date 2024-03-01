@@ -107,13 +107,16 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			// Call the nested child handler.
 			// TODO SLASH PROPOSER
 			// TODO: This is fucking hood as fuck.
-			beaconBlock, _ = consensus.EmptyBeaconKitBlock(
+			beaconBlock, err = consensus.EmptyBeaconKitBlock(
 				primitives.Slot(req.Height),
 				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
 				h.chainService.ActiveForkVersionForSlot(
 					primitives.Slot(req.Height),
 				),
 			)
+			if err != nil {
+				return &sdk.ResponsePreBlock{}, err
+			}
 		}
 
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
