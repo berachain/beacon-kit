@@ -49,7 +49,6 @@ type Service struct {
 	clientCtx    *cosmosclient.Context
 	cfg          *Config
 
-	started           bool
 	isInitSync        bool
 	isSyncedLock      *sync.RWMutex
 	isSyncedCond      *sync.Cond
@@ -96,9 +95,6 @@ func (s *Service) IsInitSync() bool {
 func (s *Service) Status() error {
 	s.isSyncedLock.RLock()
 	defer s.isSyncedLock.RUnlock()
-	if !s.started {
-		return errors.New("service not started")
-	}
 	return errors.Join(s.status(), s.BaseService.Status())
 }
 
@@ -164,10 +160,6 @@ func (s *Service) syncLoop(ctx context.Context) {
 	defer ticker.Stop()
 
 	for {
-		// We have to wait for the engine client to be fully
-		// spun up.
-		s.engineClient.WaitForHealthy(ctx)
-
 		s.updateClientSyncInfo(ctx)
 
 		// This is the only place where
@@ -188,6 +180,9 @@ func (s *Service) syncLoop(ctx context.Context) {
 // updateClientSyncInfo gets the sync progress from the consensus and execution
 // clients.
 func (s *Service) updateClientSyncInfo(ctx context.Context) {
+	// We have to wait for the engine client to be fully
+	// spun up.
+	s.engineClient.WaitForHealthy(ctx)
 
 	wg := conc.NewWaitGroup()
 	wg.Go(func() { s.CheckCLSync(ctx) })

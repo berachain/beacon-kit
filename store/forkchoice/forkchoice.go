@@ -53,7 +53,6 @@ type Store struct {
 func NewStore(
 	kvs store.KVStoreService,
 ) *Store {
-
 	kvSchemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
 
 	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
