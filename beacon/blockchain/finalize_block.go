@@ -63,8 +63,7 @@ func (s *Service) FinalizeBeaconBlock(
 			}
 
 			s.Logger().Info(
-				"current forkchoice state",
-				"head_hash", forkChoicer.GetLastValidHead().Hex(),
+				"finalizing current forkchoice state",
 				"safe_hash", forkChoicer.GetSafeEth1BlockHash().Hex(),
 				"finalized_hash", forkChoicer.GetFinalizedEth1BlockHash().Hex(),
 			)

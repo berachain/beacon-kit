@@ -94,14 +94,12 @@ func (s *Service) RequestBestBlock(
 		return nil, err
 	}
 
-	// TODO: On restart should we query the execution client for
-	// the actual head? GetLastValidHead() will be GetLastSafe
-	// in the BeaconStore at startup.
-	parentEth1Hash := s.ForkchoiceStore(ctx).GetSafeEth1BlockHash()
-
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
-		ctx, slot, parentBlockRoot, parentEth1Hash,
+		ctx,
+		slot,
+		parentBlockRoot,
+		s.ForkchoiceStore(ctx).GetSafeEth1BlockHash(),
 	)
 	if err != nil {
 		return beaconBlock, err

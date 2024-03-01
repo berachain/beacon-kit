@@ -82,6 +82,8 @@ func (s *Service) postBlockProcess(
 		); err == nil {
 			return nil
 		}
+		s.Logger().
+			Error("failed to send forkchoice update in postBlockProcess", "error", err)
 	}
 	// Otherwise we send a forkchoice update to the execution client.
 	return s.sendFCU(ctx, payloadBlockHash)

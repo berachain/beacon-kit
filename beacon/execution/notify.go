@@ -137,15 +137,12 @@ func (s *Service) notifyForkchoiceUpdate(
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
-			// TODO: we should get the last valid head off of the previous
+			// TODO: we should get the last safe head off of the previous
 			// block.
 			// TODO: in the case of CometBFT BeaconKit, this could in theory
 			// just be the last finalized block, bc we are always inserting
 			// ontop of that, however making that assumption here feels
 			// a little coupled.
-			// TODO: right now GetLastValidHead() is going to either return
-			// the last valid block that was built, OR the
-			// last safe block, which tbh is also okay.
 			HeadEth1Hash:  forkChoicer.GetSafeEth1BlockHash(),
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,
@@ -160,13 +157,6 @@ func (s *Service) notifyForkchoiceUpdate(
 		s.Logger().Error("undefined execution engine error", "error", err)
 		return nil, err
 	}
-
-	// We can mark this Eth1Block as the latest valid block.
-	// TODO: maybe move to blockchain for IsCanonical and Head checks.
-	// TODO: the whole getting the execution payload off the block /
-	// the whole LastestExecutionPayload Premine thing
-	// "PremineGenesisConfig".
-	forkChoicer.SetLastValidHead(fcuConfig.HeadEth1Hash)
 
 	return payloadID, nil
 }

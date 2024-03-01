@@ -66,7 +66,9 @@ func (s *Service) BuildLocalPayload(
 	var payloadID *enginev1.PayloadIDBytes
 	s.Logger().Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
-		"for_slot", slot, "parent_eth1_hash", parentEth1Hash,
+		"for_slot", slot,
+		"parent_eth1_hash", parentEth1Hash,
+		"parent_block_root", common.Hash(parentBlockRoot),
 	)
 	payloadID, err = s.es.NotifyForkchoiceUpdate(
 		ctx, fcuConfig,
