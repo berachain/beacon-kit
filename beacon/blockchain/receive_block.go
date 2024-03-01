@@ -28,6 +28,7 @@ package blockchain
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -97,6 +98,10 @@ func (s *Service) validateStateTransition(
 	executionData, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
+	}
+
+	if executionData == nil || executionData.IsEmpty() {
+		return errors.New("block has no execution payload")
 	}
 
 	finalizedHash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()

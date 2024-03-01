@@ -25,6 +25,10 @@
 
 package config
 
+import (
+	"github.com/itsdevbear/bolaris/io/cli/parser"
+)
+
 // FeatureFlags conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[FeatureFlags] = &FeatureFlags{}
 
@@ -35,6 +39,11 @@ func DefaultFeatureFlagsConfig() FeatureFlags {
 
 // Config represents the configuration struct for the FeatureFlags.
 type FeatureFlags struct{}
+
+// Parse parses the configuration.
+func (c FeatureFlags) Parse(_ parser.AppOptionsParser) (*FeatureFlags, error) {
+	return &c, nil
+}
 
 // Template returns the configuration template.
 func (c FeatureFlags) Template() string {

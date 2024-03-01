@@ -26,7 +26,7 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/io/cli/jwt"
+	"github.com/itsdevbear/bolaris/config/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +37,7 @@ func BeaconKitCommands() *cobra.Command {
 		Short: "BeaconKit related commands",
 	}
 	cmd.AddCommand(
-		jwt.NewGenerateJWTCommand(),
+		cli.NewGenerateJWTCommand(),
 	)
 
 	return cmd

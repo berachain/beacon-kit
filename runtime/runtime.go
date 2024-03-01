@@ -105,7 +105,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
 		engineclient.WithBeaconConfig(&cfg.Beacon),
-		engineclient.WithEngineConfig(&cfg.Engine),
+		engineclient.WithEngineConfig(&cfg.Engine.Config),
 		engineclient.WithLogger(logger),
 	)
 
@@ -157,19 +157,17 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithLocalBuilder(localBuilder),
 	)
 
-	// Build the sync service.
-	syncService := service.New[sync.Service](
-		sync.WithBaseService(baseService.ShallowCopy("sync")),
-		sync.WithEngineClient(engineClient),
-		sync.WithConfig(sync.DefaultConfig()),
-	)
-
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithStakingService(stakingService),
-		blockchain.WithSyncService(syncService),
+	)
+
+	// Build the sync service.
+	syncService := service.New[sync.Service](
+		sync.WithBaseService(baseService.ShallowCopy("sync")),
+		sync.WithEngineClient(engineClient),
 	)
 
 	svcRegistry := service.NewRegistry(

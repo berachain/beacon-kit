@@ -33,11 +33,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -59,9 +57,6 @@ type BeaconPreBlockHandler struct {
 	// the beacon chain.
 	chainService *blockchain.Service
 
-	// syncService is the service that is responsible for syncing the beacon
-	// chain.
-	syncService *sync.Service
 	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
 	nextHandler sdk.PreBlocker
@@ -73,14 +68,12 @@ func NewBeaconPreBlockHandler(
 	cfg *config.ABCI,
 	logger log.Logger,
 	chainService *blockchain.Service,
-	syncService *sync.Service,
 	nextHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
 		cfg:          cfg,
 		logger:       logger,
 		chainService: chainService,
-		syncService:  syncService,
 		nextHandler:  nextHandler,
 	}
 }
@@ -103,21 +96,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				primitives.Slot(req.Height),
 			),
 		)
-		if err != nil {
-			// Call the nested child handler.
-			// TODO SLASH PROPOSER
-			// TODO: This is fucking hood as fuck.
-			beaconBlock, err = consensus.EmptyBeaconKitBlock(
-				primitives.Slot(req.Height),
-				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
-				h.chainService.ActiveForkVersionForSlot(
-					primitives.Slot(req.Height),
-				),
-			)
-			if err != nil {
-				return &sdk.ResponsePreBlock{}, err
-			}
-		}
 
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
 
@@ -132,18 +110,31 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Since during initial syncing process proposal is not called, we have
 		// to import the block into our execution client to validate it.
-		//
-		// TODO: we need to figure out this lifecycle on error propagation.
-		if h.syncService.IsInitSync() {
-			if err == nil {
-				// if you execution client already has this block, ignore....
-				err = h.chainService.ReceiveBeaconBlock(
-					ctx,
-					beaconBlock,
-					cometBlockHash,
-				)
+		if false /* isInitSync */ {
+			// if you execution client already has this block, ignore....
+			if err = h.chainService.ReceiveBeaconBlock(
+				ctx, beaconBlock, [32]byte(req.Hash),
+			); err != nil {
+				// slash the proposer
+
+				return h.callNextHandler(ctx, req)
 			}
-			return h.callNextHandler(ctx, req)
+		}
+
+		if err == nil {
+			// Process the finalization of the beacon block.
+			if err = h.chainService.FinalizeBeaconBlock(
+				ctx, beaconBlock, [32]byte(req.Hash),
+			); err != nil {
+				return nil, err
+			}
+		}
+
+		// If there is no child handler, we are done, this preblocker
+		// does not modify any consensus params so we return an empty
+		// response.
+		if h.nextHandler == nil {
+			return &sdk.ResponsePreBlock{}, nil
 		}
 
 		// Call the nested child handler.
@@ -155,9 +146,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 func (h *BeaconPreBlockHandler) callNextHandler(
 	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 ) (*sdk.ResponsePreBlock, error) {
-	// If there is no child handler, we are done, this preblocker
-	// does not modify any consensus params so we return an empty
-	// response.
 	if h.nextHandler == nil {
 		return &sdk.ResponsePreBlock{}, nil
 	}

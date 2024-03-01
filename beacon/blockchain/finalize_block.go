@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -61,6 +62,13 @@ func (s *Service) FinalizeBeaconBlock(
 				"failed to send recovery forkchoice update", "error", err,
 			)
 		}
+
+		s.Logger().Info(
+			"current forkchoice state",
+			"head_hash", state.GetLastValidHead().Hex(),
+			"safe_hash", state.GetSafeEth1BlockHash().Hex(),
+			"finalized_hash", state.GetFinalizedEth1BlockHash().Hex(),
+		)
 	}()
 
 	payload, err = blk.ExecutionPayload()
@@ -81,4 +89,14 @@ func (s *Service) FinalizeBeaconBlock(
 	state.SetFinalizedEth1BlockHash(eth1BlockHash)
 	state.SetSafeEth1BlockHash(eth1BlockHash)
 	return nil
+}
+
+// PostFinalizeBeaconBlock is called after a beacon block has been finalized.
+func (s *Service) PostFinalizeBeaconBlock(
+	ctx context.Context,
+	_ primitives.Slot,
+) error {
+	// If builder is not enabled, or failed to build, fallback to a vanilla fcu.
+	return s.sendFCU(
+		ctx, s.BeaconState(ctx).GetSafeEth1BlockHash())
 }

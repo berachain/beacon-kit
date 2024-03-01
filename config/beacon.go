@@ -27,6 +27,7 @@ package config
 
 import (
 	"github.com/itsdevbear/bolaris/config/version"
+	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
@@ -36,14 +37,14 @@ var _ BeaconKitConfig[Beacon] = Beacon{}
 // Beacon is the configuration for the beacon chain.
 type Beacon struct {
 	// Forks is the configuration for the beacon chain forks.
-	Forks Forks `mapstructure:"forks"`
+	Forks Forks
 	// Limits is the configuration for limits (max/min) on the beacon chain.
-	Limits Limits `mapstructure:"limits"`
+	Limits Limits
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
-	Validator Validator `mapstructure:"validator"`
+	Validator Validator
 	// Execution is the configuration for the execution service.
-	Execution Execution `mapstructure:"execution"`
+	Execution Execution
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
@@ -64,6 +65,43 @@ func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
 
 	// In BeaconKit we assume the Deneb fork is always active.
 	return version.Deneb
+}
+
+// Parse parses the configuration.
+func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
+	var (
+		err       error
+		forks     *Forks
+		limits    *Limits
+		validator *Validator
+		execution *Execution
+	)
+
+	// Parse the forks configuration.
+	if forks, err = c.Forks.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Forks = *forks
+
+	// Parse the limits configuration.
+	if limits, err = c.Limits.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Limits = *limits
+
+	// Parse the validator configuration.
+	if validator, err = c.Validator.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Validator = *validator
+
+	// Parse the execution configuration.
+	if execution, err = c.Execution.Parse(parser); err != nil {
+		return nil, err
+	}
+	c.Execution = *execution
+
+	return &c, nil
 }
 
 // Template returns the configuration template.
