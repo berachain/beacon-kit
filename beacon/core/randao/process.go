@@ -108,9 +108,26 @@ func (rs *Processor) computeSigningRoot(
 }
 
 func (rs *Processor) getDomain(
-	_ primitives.Epoch,
+	epoch primitives.Epoch,
 	_ []byte,
 ) types.Domain {
+	epochSSZUInt64 := primitives.SSZUint64(epoch)
+	sszBz, err := epochSSZUInt64.MarshalSSZ()
+	if err != nil {
+		// don't actually panic
+		panic(err)
+	}
+
+	_ = sszBz
+
+	// We can also get the has tree root (trivial because this is one item but yeah)
+
+	htr, err := epochSSZUInt64.HashTreeRoot()
+	if err != nil {
+		panic(err)
+	}
+
+	_ = htr
 	return types.BuildDomain()
 }
 
