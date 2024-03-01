@@ -96,14 +96,14 @@ func (s *Service) RequestBestBlock(
 
 	// TODO: right now parent is ALWAYS the previously finalized. But
 	// maybe not forever?
-	parentEth1Hash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
+	parentEth1Hash := s.BeaconState(ctx).GetLastValidHead()
 
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
 		ctx, slot, parentBlockRoot, parentEth1Hash,
 	)
 	if err != nil {
-		return nil, err
+		return beaconBlock, err
 	}
 
 	// TODO: Dencun

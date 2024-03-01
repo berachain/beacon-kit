@@ -83,7 +83,6 @@ func (s *Service) postBlockProcess(
 			return nil
 		}
 	}
-
 	// Otherwise we send a forkchoice update to the execution client.
 	return s.sendFCU(ctx, payloadBlockHash)
 }

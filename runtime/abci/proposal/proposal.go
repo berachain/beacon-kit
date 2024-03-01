@@ -26,6 +26,7 @@
 package proposal
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -96,9 +97,13 @@ func (h *Handler) PrepareProposalHandler(
 		primitives.Slot(req.Height),
 	)
 
+	if req.Height%5 == 0 || req.Height%4 == 0 || req.Height%6 == 0 {
+		return &abci.ResponsePrepareProposal{}, errors.New("REEE")
+	}
+
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
-		return nil, err
+		return &abci.ResponsePrepareProposal{}, nil
 	}
 
 	// Marshal the block into bytes.
