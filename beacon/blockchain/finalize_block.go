@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -56,19 +57,18 @@ func (s *Service) FinalizeBeaconBlock(
 
 		// If something bad happens, we defensivelessly send a forkchoice update
 		// to bring us back to the last valid head.
-		if err != nil {
-			err = s.sendFCU(ctx, forkChoicer.GetSafeEth1BlockHash())
-			s.Logger().Error(
-				"failed to send recovery forkchoice update", "error", err,
-			)
-		}
+		go func() {
+			if err != nil {
+				s.missedBlockTasks(ctx, blk.GetSlot(), blockRoot)
+			}
 
-		s.Logger().Info(
-			"current forkchoice state",
-			"head_hash", forkChoicer.GetLastValidHead().Hex(),
-			"safe_hash", forkChoicer.GetSafeEth1BlockHash().Hex(),
-			"finalized_hash", forkChoicer.GetFinalizedEth1BlockHash().Hex(),
-		)
+			s.Logger().Info(
+				"current forkchoice state",
+				"head_hash", forkChoicer.GetLastValidHead().Hex(),
+				"safe_hash", forkChoicer.GetSafeEth1BlockHash().Hex(),
+				"finalized_hash", forkChoicer.GetFinalizedEth1BlockHash().Hex(),
+			)
+		}()
 	}()
 
 	payload, err = blk.ExecutionPayload()
@@ -89,4 +89,40 @@ func (s *Service) FinalizeBeaconBlock(
 	forkChoicer.SetFinalizedEth1BlockHash(eth1BlockHash)
 	forkChoicer.SetSafeEth1BlockHash(eth1BlockHash)
 	return nil
+}
+
+// missed block tasks is called when a block is missed. It sends a forkchoice
+// update to the execution client to bring the client back to the last valid
+// head (safe).
+func (s *Service) missedBlockTasks(
+	ctx context.Context,
+	slot primitives.Slot,
+	blockRoot [32]byte,
+) {
+	forkChoicer := s.ForkchoiceStore(ctx)
+
+	// If we are in the sync state, we skip building blocks
+	// optimistically.
+	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
+		err := s.sendFCUWithAttributes(
+			ctx,
+			forkChoicer.GetSafeEth1BlockHash(),
+			slot,
+			blockRoot,
+		)
+		if err == nil {
+			return
+		}
+		s.Logger().Error(
+			"failed to send recovery forkchoice update w/attributes", "error", err,
+		)
+	}
+
+	// Otherwise we send a forkchoice update to the execution client.
+	err := s.sendFCU(ctx, forkChoicer.GetSafeEth1BlockHash())
+	if err != nil {
+		s.Logger().Error(
+			"failed to send recovery forkchoice update", "error", err,
+		)
+	}
 }
