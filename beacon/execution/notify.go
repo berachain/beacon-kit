@@ -137,8 +137,6 @@ func (s *Service) notifyForkchoiceUpdate(
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
-			// TODO: we should get the last safe head off of the previous
-			// block.
 			// TODO: in the case of CometBFT BeaconKit, this could in theory
 			// just be the last finalized block, bc we are always inserting
 			// ontop of that, however making that assumption here feels
