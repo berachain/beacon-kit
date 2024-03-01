@@ -28,12 +28,10 @@ package sync
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
 	cosmosclient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/sourcegraph/conc"
@@ -170,19 +168,6 @@ func (s *Service) syncLoop(ctx context.Context) {
 		// spun up.
 		s.engineClient.WaitForHealthy(ctx)
 
-		fmt.Println("SETTING FORKCHOICESTORE")
-		head, err := s.engineClient.ExecutionBlockByNumber(
-			ctx, rpc.LatestBlockNumber, false,
-		)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println("SET FORKCHOICE STATE")
-		s.ForkchoiceStore(ctx).SetLastValidHead(
-			head.Hash,
-		)
-		s.started = true
 		s.updateClientSyncInfo(ctx)
 
 		// This is the only place where
