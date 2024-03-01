@@ -98,12 +98,13 @@ func (s *Service) UpdateNumCLPeers(ctx context.Context) {
 
 // UpdateNumELPeers updates the number of peers connected at the execution
 // layer.
-func (s *Service) UpdateNumELPeers(ctx context.Context) {
-	// Call the ethClient to get the sync progress
-	numPeers, err := s.engineClient.PeerCount(ctx)
-	if err != nil {
-		s.elNumPeers = 0
-		return
-	}
-	s.elNumPeers = numPeers
+func (s *Service) UpdateNumELPeers(_ context.Context) {
+	// TODO: Net is not avail over the 8551 port?
+	// // Call the ethClient to get the sync progress
+	// numPeers, err := s.engineClient.PeerCount(ctx)
+	// if err != nil {
+	// 	s.elNumPeers = 0
+	// 	return
+	// }
+	s.elNumPeers = 0
 }
