@@ -37,9 +37,6 @@ import (
 type Store struct {
 	ctx context.Context
 
-	// fcHeadEth1BlockHash is the head block hash.
-	fcHeadEth1BlockHash *common.Hash
-
 	// fcSafeEth1BlockHash is the safe block hash.
 	fcSafeEth1BlockHash sdkcollections.Item[[32]byte]
 
@@ -75,26 +72,10 @@ func NewStore(
 	)
 
 	return &Store{
-		fcHeadEth1BlockHash:      nil,
 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
 		eth1GenesisHash:          eth1GenesisHash,
 	}
-}
-
-// SetLastValidHead sets the last valid head in the store.
-// TODO: Make this in-mem thing more robust.
-func (s *Store) SetLastValidHead(blockHash common.Hash) {
-	s.fcHeadEth1BlockHash = &blockHash
-}
-
-// GetHeadHash retrieves the last valid head from the store.
-// TODO: Make this in-mem thing more robust.
-func (s *Store) GetLastValidHead() common.Hash {
-	if s.fcHeadEth1BlockHash == nil {
-		return common.Hash{}
-	}
-	return *s.fcHeadEth1BlockHash
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.

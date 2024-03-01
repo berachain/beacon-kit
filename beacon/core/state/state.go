@@ -41,13 +41,11 @@ type WriteOnlyForkChoice interface {
 	// Write Only Fork Choice.
 	SetSafeEth1BlockHash(safeBlockHash common.Hash)
 	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
-	SetLastValidHead(lastValidHead common.Hash)
 	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
 }
 
 // ReadOnlyForkChoice.
 type ReadOnlyForkChoice interface {
-	GetLastValidHead() common.Hash
 	GetSafeEth1BlockHash() common.Hash
 	GetFinalizedEth1BlockHash() common.Hash
 	GenesisEth1Hash() common.Hash
