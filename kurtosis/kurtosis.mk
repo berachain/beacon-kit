@@ -5,15 +5,16 @@
 ###############################################################################
 
 # Starts a Kurtosis enclave containing a local devnet.
-start-kurtosis:
+start-devnet:
 	kurtosis run ./kurtosis --enclave my-local-devnet
 
 # Stops the running Kurtosis enclave
-stop-kurtosis:
+stop-devnet:
 	kurtosis enclave stop my-local-devnet
 
 # Removes the specified Kurtosis enclave
-rm-kurtosis:
+reset-devnet:
+	$(MAKE) stop-devnet
 	kurtosis enclave rm my-local-devnet
 
 # Installs buildifier, a tool for linting and formatting starlark files.
@@ -22,16 +23,16 @@ buildifier-install:
 	@go install github.com/bazelbuild/buildtools/buildifier
 
 # Lints Starlark (.star) files in the Kurtosis directory using buildifier
-buildifier-lint:
+star-lint:
 	@$(MAKE) buildifier-install
 	@echo "--> Running buildifier to format starlark files..."
 	find ./kurtosis -name "*.star" -exec buildifier -mode=check {} +
 
 # Automatically fixes formatting issues in Starlark (.star) files using buildifier
-buildifier-fix:
+star-fix:
 	@$(MAKE) buildifier-install
 	@echo "--> Running buildifier to format starlark files..."
-	find ./kurtosis -name "*.star" -exec buildifier {} +
+	find ./kurtosis -name "*.star" -exec buildifier --mode=fix {} +
 
 # Marks targets as not being associated with files
-.PHONY: start-kurtosis stop-kurtosis rm-kurtosis buildifier-install buildifier-lint buildifier-fix
+.PHONY: start-kurtosis stop-kurtosis rm-kurtosis buildifier-install star-lint star-fix
