@@ -40,12 +40,12 @@ contract BeaconRootsContractBaseTest is SoladyTest {
         // take a snapshot of the clean state
         snapshot = vm.snapshot();
         // set the initial storage of the BEACON_ROOT_ADDRESS
-        setStorage(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
+        setBeaconRoots(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
     }
 
     /// @dev Set the storage of the BeaconRootsContract by calling from the
     /// SYSTEM_ADDRESS.
-    function setStorage(
+    function setBeaconRoots(
         uint256 startBlock,
         uint256 startTimestamp,
         uint256 length
@@ -176,7 +176,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
             uint256[] memory timestamps,
             bytes32[] memory beaconRoots,
             address[] memory coinbases
-        ) = setStorage(startBlock, startTimestamp, length);
+        ) = setBeaconRoots(startBlock, startTimestamp, length);
         unchecked {
             // loop over the last `HISTORY_BUFFER_LENGTH` indices
             uint256 i = length - 1;
@@ -278,7 +278,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
-            setStorage(startBlock, startTimestamp, length);
+            setBeaconRoots(startBlock, startTimestamp, length);
         // The timestamp encoded in the calldata may be in the past.
         // But the block number and timestamp in the EVM must be the latest.
         validateBeaconRoots(timestamps, beaconRoots);
@@ -299,7 +299,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         // revert to the snapshot to get a fresh storage
         vm.revertTo(snapshot);
         (uint256[] memory blockNumbers,,, address[] memory coinbases) =
-            setStorage(startBlock, startTimestamp, length);
+            setBeaconRoots(startBlock, startTimestamp, length);
         unchecked {
             // loop over the last `HISTORY_BUFFER_LENGTH` indices
             uint256 i = length - 1;
@@ -332,7 +332,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         length = _bound(length, 1, HISTORY_BUFFER_LENGTH - 1);
         // The block number starts from 1.
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
-            setStorage(1, TIMESTAMP, length);
+            setBeaconRoots(1, TIMESTAMP, length);
         validateBeaconRoots(timestamps, beaconRoots);
     }
 }
@@ -352,15 +352,22 @@ contract BeaconRootsContractForkTest is
     function testFork_Get() public {
         console2.log("block number", block.number);
         console2.log("block timestamp", block.timestamp);
-        (bool success, bytes32 beaconRoot) = callGet(block.timestamp);
-        assertTrue(success, "get: failed");
-        uint256 timestampIdx = block.timestamp % HISTORY_BUFFER_LENGTH;
-        bytes32 timestamp = vm.load(BEACON_ROOT_ADDRESS, bytes32(timestampIdx));
-        assertEq(block.timestamp, uint256(timestamp), "get: invalid timestamp");
-        bytes32 _beaconRoot = vm.load(
-            BEACON_ROOT_ADDRESS, bytes32(timestampIdx + BEACON_ROOT_OFFSET)
-        );
-        assertEq(beaconRoot, _beaconRoot, "get: invalid beacon root");
+        for (uint256 i; i < 10; ++i) {
+            (bool success, bytes32 beaconRoot) = callGet(block.timestamp);
+            assertTrue(success, "get: failed");
+            uint256 timestampIdx = block.timestamp % HISTORY_BUFFER_LENGTH;
+            bytes32 timestamp =
+                vm.load(BEACON_ROOT_ADDRESS, bytes32(timestampIdx));
+            assertEq(
+                block.timestamp, uint256(timestamp), "get: invalid timestamp"
+            );
+            bytes32 _beaconRoot = vm.load(
+                BEACON_ROOT_ADDRESS, bytes32(timestampIdx + BEACON_ROOT_OFFSET)
+            );
+            assertEq(beaconRoot, _beaconRoot, "get: invalid beacon root");
+            // roll back to the previous block
+            vm.rollFork(block.number - 1);
+        }
     }
 
     /// @dev Test the `set` function in BeaconRootsContract on Sepolia testnet.
