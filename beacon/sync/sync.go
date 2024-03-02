@@ -73,7 +73,7 @@ func (s *Service) CheckELSync(ctx context.Context) {
 	// Add a log if syncing.
 	if !s.isELSynced {
 		s.Logger().Warn(
-			"execution client is attemping to sync.... ",
+			"your execution client is out of sync please investigate.... ",
 			"current_eth1", progress.CurrentBlock,
 			"highest_eth1", progress.HighestBlock,
 			"starting_eth1", progress.StartingBlock,

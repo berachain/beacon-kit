@@ -145,6 +145,7 @@ func (s *Service) status() error {
 // CheckCLSync checks if the consensus layer is syncing.
 func (s *Service) checkSyncStatus() error {
 	var errs []error
+
 	if !s.isELSynced {
 		errs = append(errs, ErrExecutionClientIsSyncing)
 	}
@@ -162,9 +163,11 @@ func (s *Service) syncLoop(ctx context.Context) {
 	for {
 		s.updateClientSyncInfo(ctx)
 
-		// This is the only place where
-		// we ever exit the initial sync phase.
-		if s.checkSyncStatus() == nil {
+		// As soon as the ConsensusClient is no longer syncing, we can
+		// assume we are no longer in the initial sync phase.
+		// TODO: Break out into another function, right now this gets
+		// called over and over and over.
+		if !errors.Is(s.checkSyncStatus(), ErrConsensusClientIsSyncing) {
 			s.isInitSync = false
 		}
 
