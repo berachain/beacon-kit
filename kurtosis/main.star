@@ -143,7 +143,7 @@ def run(plan, num_participants = 4, args = {}):
         my_peers.pop(n)
         persistent_peers = ",".join(my_peers)
 
-        beacond_config = beacond.get_config(jwt_file, engine_dial_url, cl_service_name, entrypoint=["bash"], cmd=["-c","/usr/bin/start.sh"], persistent_peers=persistent_peers)
+        beacond_config = beacond.get_config(jwt_file, engine_dial_url, cl_service_name, entrypoint = ["bash"], cmd = ["-c", "/usr/bin/start.sh"], persistent_peers = persistent_peers)
 
         # Add back in the node's config data and overwrite genesis.json with final genesis file
         beacond_config.files["/root"] = Directory(
@@ -157,4 +157,3 @@ def run(plan, num_participants = 4, args = {}):
             name = cl_service_name,
             config = beacond_config,
         )
-
