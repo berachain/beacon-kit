@@ -1,0 +1,3 @@
+CLIENTS = struct(
+    beacond = "beacond",
+)
