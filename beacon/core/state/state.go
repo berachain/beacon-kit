@@ -56,7 +56,6 @@ type ReadOnlyBeaconState interface {
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
 
-	WriteOnlyRandaoMixes
 	ReadOnlyRandaoMixes
 
 	SetParentBlockRoot([32]byte)
@@ -81,6 +80,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyForkChoice
 	WriteOnlyGenesis
 	ReadOnlyWithdrawals
+	WriteOnlyRandaoMixes
 }
 
 // Write Only Fork Choice.
