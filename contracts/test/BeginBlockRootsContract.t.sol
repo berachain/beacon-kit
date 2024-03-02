@@ -55,7 +55,7 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         // take a snapshot of the clean state.
         snapshot = vm.snapshot();
         // set the initial storage of the BEACON_ROOT_ADDRESS
-        setStorage(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
+        setBeaconRoots(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
         // set the BeginBlockRootsContract.
         beginBlockRootsContract = BeginBlockRootsContract(BEACON_ROOT_ADDRESS);
     }

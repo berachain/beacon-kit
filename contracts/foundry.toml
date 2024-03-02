@@ -3,7 +3,7 @@
 auto_detect_solc = false
 solc = "0.8.24"
 evm_version = "cancun"
-fuzz = { runs = 1024, seed = "42" }
+fuzz = { runs = 256, seed = "42" }
 gas_reports = ["*"]
 cache = true
 optimizer = true
@@ -17,7 +17,7 @@ verbosity = 3
 ignored_error_codes = [2394]
 
 [profile.fuzz]
-fuzz = { runs = 512 }
+fuzz = { runs = 1024 }
 verbosity = 1
 
 [profile.coverage]
