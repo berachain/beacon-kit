@@ -17,7 +17,7 @@ PROMETHEUS_PORT_ID = "prometheus"
 
 USED_PORTS = {
     # COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL, wait=None),
+    COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
     # COMETBFT_GRPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_GRPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # COMETBFT_REST_PORT_ID: shared_utils.new_port_spec(COMETBFT_REST_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
@@ -28,7 +28,7 @@ def build_beacond_docker_image():
     # temp workaround to get it working
     # run `make docker-build` before running kurtosis
     # make sure the image name and tag match, otherwise edit below
-    image = "beacond:0.0.3-alpha-20-gfbad5e52"
+    image = "beacond:0.0.5-alpha-17-g9b67165b"
 
     # TODO(build): Figure out a way to build the current repo's beacond image during kurtosis run
     # image = ImageBuildSpec(
@@ -38,17 +38,15 @@ def build_beacond_docker_image():
 
     return image
 
-
-def get_config(jwt_file, engine_dial_url, cl_service_name, persistent_peers="", expose_ports=True):
+def get_config(jwt_file, engine_dial_url, cl_service_name, persistent_peers = "", expose_ports = True):
     exposed_ports = {}
     if expose_ports:
         exposed_ports = USED_PORTS
-    
 
     config = ServiceConfig(
-        image=build_beacond_docker_image(),
+        image = build_beacond_docker_image(),
         files = {
-            "/root/app": jwt_file
+            "/root/app": jwt_file,
         },
         # entrypoint = [
         #     "bash",
@@ -69,7 +67,7 @@ def get_config(jwt_file, engine_dial_url, cl_service_name, persistent_peers="", 
             "BEACOND_ETH_CHAIN_ID": "80087",
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
         },
-        ports=exposed_ports,
+        ports = exposed_ports,
     )
 
     return config

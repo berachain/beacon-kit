@@ -36,6 +36,7 @@ package tools
 //nolint
 
 import (
+	_ "github.com/bazelbuild/buildtools/buildifier"
 	_ "github.com/bufbuild/buf/cmd/buf"
 	_ "github.com/cosmos/gosec/v2/cmd/gosec"
 	_ "github.com/ethereum/go-ethereum/cmd/abigen"

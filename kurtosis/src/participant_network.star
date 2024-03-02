@@ -1,12 +1,12 @@
 validator_keystores = import_module(
-    "./prelaunch_data_generator/validator_keystores/validator_keystore_generator.star"
+    "./prelaunch_data_generator/validator_keystores/validator_keystore_generator.star",
 )
 
 el_cl_genesis_data_generator = import_module(
-    "./prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star"
+    "./prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
 )
 el_cl_genesis_data = import_module(
-    "./prelaunch_data_generator/el_cl_genesis/el_cl_genesis_data.star"
+    "./prelaunch_data_generator/el_cl_genesis/el_cl_genesis_data.star",
 )
 
 input_parser = import_module("./package_io/input_parser.star")
@@ -34,13 +34,13 @@ validator_client = import_module("./validator_client/validator_client_launcher.s
 snooper = import_module("./snooper/snooper_engine_launcher.star")
 
 ethereum_metrics_exporter = import_module(
-    "./ethereum_metrics_exporter/ethereum_metrics_exporter_launcher.star"
+    "./ethereum_metrics_exporter/ethereum_metrics_exporter_launcher.star",
 )
 
 xatu_sentry = import_module("./xatu_sentry/xatu_sentry_launcher.star")
 
 genesis_constants = import_module(
-    "./prelaunch_data_generator/genesis_constants/genesis_constants.star"
+    "./prelaunch_data_generator/genesis_constants/genesis_constants.star",
 )
 participant_module = import_module("./participant.star")
 
@@ -61,33 +61,31 @@ CL_NODE_STARTUP_TIME = 5
 
 CL_CLIENT_CONTEXT_BOOTNODE = None
 
-
 def launch_participant_network(
-    plan,
-    participants,
-    network_params,
-    global_log_level,
-    jwt_file,
-    persistent,
-    xatu_sentry_params,
-    global_tolerations,
-    global_node_selectors,
-    parallel_keystore_generation=False,
-):
+        plan,
+        participants,
+        network_params,
+        global_log_level,
+        jwt_file,
+        persistent,
+        xatu_sentry_params,
+        global_tolerations,
+        global_node_selectors,
+        parallel_keystore_generation = False):
     network_id = network_params.network_id
     num_participants = len(participants)
     latest_block = ""
     cancun_time = 0
     prague_time = 0
 
-
-
     # We are running a kurtosis beaconkit network
     plan.print("Generating cl validator key stores")
     validator_data = None
     if not parallel_keystore_generation:
         validator_data = validator_keystores.generate_validator_keystores(
-            plan, network_params.preregistered_validator_keys_mnemonic, participants
+            plan,
+            network_params.preregistered_validator_keys_mnemonic,
+            participants,
         )
     else:
         validator_data = (
@@ -103,9 +101,9 @@ def launch_participant_network(
     # We need to send the same genesis time to both the EL and the CL to ensure that timestamp based forking works as expected
     final_genesis_timestamp = get_final_genesis_timestamp(
         plan,
-        network_params.genesis_delay
-        + CL_GENESIS_DATA_GENERATION_TIME
-        + num_participants * CL_NODE_STARTUP_TIME,
+        network_params.genesis_delay +
+        CL_GENESIS_DATA_GENERATION_TIME +
+        num_participants * CL_NODE_STARTUP_TIME,
     )
 
     # if preregistered validator count is 0 (default) then calculate the total number of validators from the participants
@@ -119,27 +117,30 @@ def launch_participant_network(
 
     # we are running bellatrix genesis (deprecated) - will be removed in the future
     if (
-        network_params.capella_fork_epoch > 0
-        and network_params.electra_fork_epoch == None
+        network_params.capella_fork_epoch > 0 and
+        network_params.electra_fork_epoch == None
     ):
         ethereum_genesis_generator_image = (
             constants.ETHEREUM_GENESIS_GENERATOR.bellatrix_genesis
         )
-    # we are running capella genesis - default behavior
+        # we are running capella genesis - default behavior
+
     elif (
-        network_params.capella_fork_epoch == 0
-        and network_params.electra_fork_epoch == None
-        and network_params.deneb_fork_epoch > 0
+        network_params.capella_fork_epoch == 0 and
+        network_params.electra_fork_epoch == None and
+        network_params.deneb_fork_epoch > 0
     ):
         ethereum_genesis_generator_image = (
             constants.ETHEREUM_GENESIS_GENERATOR.capella_genesis
         )
-    # we are running deneb genesis -  experimental, soon to become default
+        # we are running deneb genesis -  experimental, soon to become default
+
     elif network_params.deneb_fork_epoch == 0:
         ethereum_genesis_generator_image = (
             constants.ETHEREUM_GENESIS_GENERATOR.deneb_genesis
         )
-    # we are running electra - experimental
+        # we are running electra - experimental
+
     elif network_params.electra_fork_epoch != None:
         if network_params.electra_fork_epoch == 0:
             ethereum_genesis_generator_image = (
@@ -151,11 +152,11 @@ def launch_participant_network(
             )
     else:
         fail(
-            "Unsupported fork epoch configuration, need to define either capella_fork_epoch, deneb_fork_epoch or electra_fork_epoch"
+            "Unsupported fork epoch configuration, need to define either capella_fork_epoch, deneb_fork_epoch or electra_fork_epoch",
         )
 
     el_cl_genesis_config_template = read_file(
-        static_files.EL_CL_GENESIS_GENERATION_CONFIG_TEMPLATE_FILEPATH
+        static_files.EL_CL_GENESIS_GENERATION_CONFIG_TEMPLATE_FILEPATH,
     )
 
     el_cl_data = el_cl_genesis_data_generator.generate_el_cl_genesis_data(
@@ -179,7 +180,6 @@ def launch_participant_network(
         network_params.min_validator_withdrawability_delay,
         network_params.shard_committee_period,
     )
-
 
     el_launchers = {
         constants.EL_CLIENT_TYPE.geth: {
@@ -270,13 +270,16 @@ def launch_participant_network(
             global_node_selectors,
         )
         tolerations = input_parser.get_client_tolerations(
-            participant.el_tolerations, participant.tolerations, global_tolerations
+            participant.el_tolerations,
+            participant.tolerations,
+            global_tolerations,
         )
         if el_client_type not in el_launchers:
             fail(
                 "Unsupported launcher '{0}', need one of '{1}'".format(
-                    el_client_type, ",".join([el.name for el in el_launchers.keys()])
-                )
+                    el_client_type,
+                    ",".join([el.name for el in el_launchers.keys()]),
+                ),
             )
 
         el_launcher, launch_method = (
@@ -288,7 +291,9 @@ def launch_participant_network(
         index_str = shared_utils.zfill_custom(index + 1, len(str(len(participants))))
 
         el_service_name = "el-{0}-{1}-{2}".format(
-            index_str, el_client_type, cl_client_type
+            index_str,
+            el_client_type,
+            cl_client_type,
         )
 
         el_client_context = launch_method(
@@ -323,31 +328,33 @@ def launch_participant_network(
 
     plan.print("Launching CL network")
     prysm_password_relative_filepath = (
-        validator_data.prysm_password_relative_filepath
-        if network_params.network == constants.NETWORK_NAME.kurtosis
-        else None
+        validator_data.prysm_password_relative_filepath if network_params.network == constants.NETWORK_NAME.kurtosis else None
     )
     prysm_password_artifact_uuid = (
-        validator_data.prysm_password_artifact_uuid
-        if network_params.network == constants.NETWORK_NAME.kurtosis
-        else None
+        validator_data.prysm_password_artifact_uuid if network_params.network == constants.NETWORK_NAME.kurtosis else None
     )
     cl_launchers = {
         constants.CL_CLIENT_TYPE.lighthouse: {
             "launcher": lighthouse.new_lighthouse_launcher(
-                el_cl_data, jwt_file, network_params.network
+                el_cl_data,
+                jwt_file,
+                network_params.network,
             ),
             "launch_method": lighthouse.launch,
         },
         constants.CL_CLIENT_TYPE.lodestar: {
             "launcher": lodestar.new_lodestar_launcher(
-                el_cl_data, jwt_file, network_params.network
+                el_cl_data,
+                jwt_file,
+                network_params.network,
             ),
             "launch_method": lodestar.launch,
         },
         constants.CL_CLIENT_TYPE.nimbus: {
             "launcher": nimbus.new_nimbus_launcher(
-                el_cl_data, jwt_file, network_params.network
+                el_cl_data,
+                jwt_file,
+                network_params.network,
             ),
             "launch_method": nimbus.launch,
         },
@@ -376,10 +383,8 @@ def launch_participant_network(
     all_ethereum_metrics_exporter_contexts = []
     all_xatu_sentry_contexts = []
     preregistered_validator_keys_for_nodes = (
-        validator_data.per_node_keystores
-        if network_params.network == constants.NETWORK_NAME.kurtosis
-        or constants.NETWORK_NAME.shadowfork in network_params.network
-        else None
+        validator_data.per_node_keystores if network_params.network == constants.NETWORK_NAME.kurtosis or
+                                             constants.NETWORK_NAME.shadowfork in network_params.network else None
     )
 
     for index, participant in enumerate(participants):
@@ -393,8 +398,9 @@ def launch_participant_network(
         if cl_client_type not in cl_launchers:
             fail(
                 "Unsupported launcher '{0}', need one of '{1}'".format(
-                    cl_client_type, ",".join([cl.name for cl in cl_launchers.keys()])
-                )
+                    cl_client_type,
+                    ",".join([cl.name for cl in cl_launchers.keys()]),
+                ),
             )
 
         cl_launcher, launch_method = (
@@ -405,13 +411,13 @@ def launch_participant_network(
         index_str = shared_utils.zfill_custom(index + 1, len(str(len(participants))))
 
         cl_service_name = "cl-{0}-{1}-{2}".format(
-            index_str, cl_client_type, el_client_type
+            index_str,
+            cl_client_type,
+            el_client_type,
         )
         new_cl_node_validator_keystores = None
         if participant.validator_count != 0:
-            new_cl_node_validator_keystores = preregistered_validator_keys_for_nodes[
-                index
-            ]
+            new_cl_node_validator_keystores = preregistered_validator_keys_for_nodes[index]
 
         el_client_context = all_el_client_contexts[index]
 
@@ -419,7 +425,9 @@ def launch_participant_network(
         snooper_engine_context = None
         if participant.snooper_enabled:
             snooper_service_name = "snooper-{0}-{1}-{2}".format(
-                index_str, cl_client_type, el_client_type
+                index_str,
+                cl_client_type,
+                el_client_type,
             )
             snooper_engine_context = snooper.launch(
                 plan,
@@ -429,8 +437,8 @@ def launch_participant_network(
             )
             plan.print(
                 "Successfully added {0} snooper participants".format(
-                    snooper_engine_context
-                )
+                    snooper_engine_context,
+                ),
             )
         all_snooper_engine_contexts.append(snooper_engine_context)
 
@@ -520,8 +528,8 @@ def launch_participant_network(
             )
             plan.print(
                 "Successfully added {0} ethereum metrics exporter participants".format(
-                    ethereum_metrics_exporter_context
-                )
+                    ethereum_metrics_exporter_context,
+                ),
             )
 
         all_ethereum_metrics_exporter_contexts.append(ethereum_metrics_exporter_context)
@@ -544,8 +552,8 @@ def launch_participant_network(
             )
             plan.print(
                 "Successfully added {0} xatu sentry participants".format(
-                    xatu_sentry_context
-                )
+                    xatu_sentry_context,
+                ),
             )
 
         all_xatu_sentry_contexts.append(xatu_sentry_context)
@@ -553,6 +561,7 @@ def launch_participant_network(
     plan.print("Successfully added {0} CL participants".format(num_participants))
 
     all_validator_client_contexts = []
+
     # Some CL clients cannot run validator clients in the same process and need
     # a separate validator client
     _cls_that_need_separate_vc = [
@@ -571,8 +580,8 @@ def launch_participant_network(
             continue
 
         if (
-            cl_client_type in _cls_that_need_separate_vc
-            and not participant.use_separate_validator_client
+            cl_client_type in _cls_that_need_separate_vc and
+            not participant.use_separate_validator_client
         ):
             fail("{0} needs a separate validator client!".format(cl_client_type))
 
@@ -587,7 +596,7 @@ def launch_participant_network(
         index_str = shared_utils.zfill_custom(index + 1, len(str(len(participants))))
 
         plan.print(
-            "Using separate validator client for participant #{0}".format(index_str)
+            "Using separate validator client for participant #{0}".format(index_str),
         )
 
         vc_keystores = None
@@ -595,39 +604,38 @@ def launch_participant_network(
             vc_keystores = preregistered_validator_keys_for_nodes[index]
 
         validator_client_context = validator_client.launch(
-            plan=plan,
-            launcher=validator_client.new_validator_client_launcher(
-                el_cl_genesis_data=el_cl_data
+            plan = plan,
+            launcher = validator_client.new_validator_client_launcher(
+                el_cl_genesis_data = el_cl_data,
             ),
-            service_name="validator-client-{0}-{1}".format(
-                index_str, validator_client_type
+            service_name = "validator-client-{0}-{1}".format(
+                index_str,
+                validator_client_type,
             ),
-            validator_client_type=validator_client_type,
-            image=participant.validator_client_image,
-            participant_log_level=participant.validator_client_log_level,
-            global_log_level=global_log_level,
-            cl_client_context=cl_client_context,
-            el_client_context=el_client_context,
-            node_keystore_files=vc_keystores,
-            v_min_cpu=participant.v_min_cpu,
-            v_max_cpu=participant.v_max_cpu,
-            v_min_mem=participant.v_min_mem,
-            v_max_mem=participant.v_max_mem,
-            extra_params=participant.validator_extra_params,
-            extra_labels=participant.validator_extra_labels,
-            prysm_password_relative_filepath=prysm_password_relative_filepath,
-            prysm_password_artifact_uuid=prysm_password_artifact_uuid,
-            validator_tolerations=participant.validator_tolerations,
-            participant_tolerations=participant.tolerations,
-            global_tolerations=global_tolerations,
-            node_selectors=node_selectors,
+            validator_client_type = validator_client_type,
+            image = participant.validator_client_image,
+            participant_log_level = participant.validator_client_log_level,
+            global_log_level = global_log_level,
+            cl_client_context = cl_client_context,
+            el_client_context = el_client_context,
+            node_keystore_files = vc_keystores,
+            v_min_cpu = participant.v_min_cpu,
+            v_max_cpu = participant.v_max_cpu,
+            v_min_mem = participant.v_min_mem,
+            v_max_mem = participant.v_max_mem,
+            extra_params = participant.validator_extra_params,
+            extra_labels = participant.validator_extra_labels,
+            prysm_password_relative_filepath = prysm_password_relative_filepath,
+            prysm_password_artifact_uuid = prysm_password_artifact_uuid,
+            validator_tolerations = participant.validator_tolerations,
+            participant_tolerations = participant.tolerations,
+            global_tolerations = global_tolerations,
+            node_selectors = node_selectors,
         )
         all_validator_client_contexts.append(validator_client_context)
 
         if validator_client_context and validator_client_context.metrics_info:
-            validator_client_context.metrics_info[
-                "config"
-            ] = participant.prometheus_config
+            validator_client_context.metrics_info["config"] = participant.prometheus_config
 
     all_participants = []
 
@@ -646,9 +654,7 @@ def launch_participant_network(
         ethereum_metrics_exporter_context = None
 
         if participant.ethereum_metrics_exporter_enabled:
-            ethereum_metrics_exporter_context = all_ethereum_metrics_exporter_contexts[
-                index
-            ]
+            ethereum_metrics_exporter_context = all_ethereum_metrics_exporter_contexts[index]
         xatu_sentry_context = None
 
         if participant.xatu_sentry_enabled:
@@ -675,23 +681,21 @@ def launch_participant_network(
         el_cl_data.files_artifact_uuid,
     )
 
-
 # this is a python procedure so that Kurtosis can do idempotent runs
 # time.now() runs everytime bringing non determinism
 # note that the timestamp it returns is a string
 def get_final_genesis_timestamp(plan, padding):
     result = plan.run_python(
-        run="""
+        run = """
 import time
 import sys
 padding = int(sys.argv[1])
 print(int(time.time()+padding), end="")
 """,
-        args=[str(padding)],
-        store=[StoreSpec(src="/tmp", name="final-genesis-timestamp")],
+        args = [str(padding)],
+        store = [StoreSpec(src = "/tmp", name = "final-genesis-timestamp")],
     )
     return result.output
-
 
 def calculate_devnet_url(network):
     sf_suffix_mapping = {"hsf": "-hsf-", "gsf": "-gsf-", "ssf": "-ssf-"}
@@ -713,5 +717,8 @@ def calculate_devnet_url(network):
     )
 
     return "github.com/ethpandaops/{0}-devnets/network-configs/{1}{2}-{3}".format(
-        devnet_category, devnet_subname, network_type, devnet_number
+        devnet_category,
+        devnet_subname,
+        network_type,
+        devnet_number,
     )
