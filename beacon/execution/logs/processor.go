@@ -29,43 +29,10 @@ import (
 	"context"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/pkg/errors"
 )
 
-// Cache is the interface for the cache of logs.
-type Cache interface {
-	// Update asks the cache to update itself with the given
-	// finalized block hash and block number (e.g discarding
-	// invalid cached items), and returns the
-	// last processed block number which is still valid
-	// with respect to the finalized block.
-	Update(
-		finalizedBlockHash ethcommon.Hash,
-		finalizedBlockNumber uint64,
-	) uint64
-	// ShouldProcess returns true if the cache
-	// determines that the log should be processed.
-	ShouldProcess(log *ethtypes.Log) bool
-	// Push pushes the log value container into the cache.
-	Push(container LogValueContainer) error
-}
-
-// LogValueContainer is the interface for the container of
-// the unmarsheled value of a log and other related information.
-type LogValueContainer interface{}
-
-type LogFactory interface {
-	GetRegisteredAddresses() []ethcommon.Address
-	ProcessLog(log *ethtypes.Log) (LogValueContainer, error)
-}
-
-// ReadOnlyForkChoiceProvider provides the read-only fork choice store.
-type ReadOnlyForkChoiceProvider interface {
-	ForkchoiceStore(ctx context.Context) state.ReadOnlyForkChoice
-}
 type Processor struct {
 	fcp ReadOnlyForkChoiceProvider
 
@@ -78,7 +45,7 @@ type Processor struct {
 	factory LogFactory
 
 	// sigToCache is a map of log signatures to their caches.
-	sigToCache map[ethcommon.Hash]Cache
+	sigToCache map[ethcommon.Hash]LogCache
 }
 
 // ProcessBlocksInBatch processes the blocks in batch,
