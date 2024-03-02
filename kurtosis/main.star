@@ -143,7 +143,7 @@ def run(plan, num_participants = 4, args = {}):
         my_peers.pop(n)
         persistent_peers = ",".join(my_peers)
 
-        beacond_config = beacond.get_config(jwt_file, engine_dial_url, cl_service_name, persistent_peers)
+        beacond_config = beacond.get_config(jwt_file, engine_dial_url, cl_service_name, entrypoint=["bash"], cmd=["-c","/usr/bin/start.sh"], persistent_peers=persistent_peers)
 
         # Add back in the node's config data and overwrite genesis.json with final genesis file
         beacond_config.files["/root"] = Directory(
@@ -151,26 +151,10 @@ def run(plan, num_participants = 4, args = {}):
         )
         beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])
 
+        plan.print(beacond_config)
+
         plan.add_service(
             name = cl_service_name,
             config = beacond_config,
         )
 
-        plan.exec(
-            service_name = cl_service_name,
-            recipe = ExecRecipe(
-                command = ["mv", "/root/.tmp_genesis/genesis.json", "/root/.beacond/config/genesis.json"],
-            ),
-        )
-
-        exec_start_recipe = ExecRecipe(
-            # Start the node file
-            command = ["bash", "-c", "nohup /usr/bin/start.sh > output.log 2>&1 &"],
-        )
-        result = plan.wait(
-            service_name = cl_service_name,
-            recipe = exec_start_recipe,
-            field = "code",
-            assertion = "==",
-            target_value = 0,
-        )
