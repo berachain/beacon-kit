@@ -28,16 +28,16 @@ package staking
 import (
 	"context"
 
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 )
 
 // AcceptDepositIntoQueue records a deposit in the beacon state's queue.
 func (s *Service) AcceptDepositIntoQueue(
 	ctx context.Context,
-	deposit *consensusv1.Deposit,
+	deposit *beacontypesv1.Deposit,
 ) error {
 	// Push the deposit to the beacon state's queue.
-	err := s.BeaconState(ctx).EnqueueDeposits([]*consensusv1.Deposit{deposit})
+	err := s.BeaconState(ctx).EnqueueDeposits([]*beacontypesv1.Deposit{deposit})
 	if err != nil {
 		return err
 	}

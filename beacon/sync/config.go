@@ -23,16 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+package sync
 
-// import "types/consensus/v1/block.proto";
-// import "types/consensus/v1/block_blinded.proto";
+const (
+	defaultMinELPeers = 0
+	defaultMinCLPeers = 0
+)
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
+type Config struct {
+	MinELPeers uint64
+	MinCLPeers uint64
+}
 
-// BeaconKitBlockContainer is a container for beacon block.
-message BeaconKitBlockContainer {
-  // // block is the beacon block.
-  // oneof block {}
+func DefaultConfig() *Config {
+	return &Config{
+		MinELPeers: defaultMinELPeers,
+		MinCLPeers: defaultMinCLPeers,
+	}
 }

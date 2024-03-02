@@ -32,7 +32,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // LocalBuilder is the interface for the builder service.
@@ -65,3 +65,8 @@ type ExecutionService interface {
 }
 
 type StakingService interface{}
+
+type SyncService interface {
+	IsInitSync() bool
+	Status() error
+}

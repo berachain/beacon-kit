@@ -25,93 +25,200 @@
 
 pragma solidity 0.8.24;
 
-/// @title BeaconDepositContract
-/// @dev This contract is a modified version fo the BeaconDepositContract as
-/// defined in the Ethereum 2.0 specification. It has been extended to also
-/// support trigger withdrawals from the consensus layer.
-/// @author itsdevbear@berachain.com
-/// @author po@berachain.com
-/// @author ocnc@berachain.com
-contract BeaconDepositContract {
+import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
+import { IStakeERC20 } from "./IStakeERC20.sol";
+
+/**
+ * @title BeaconDepositContract
+ * @author Berachain Team
+ * @notice A contract that handles deposits, withdrawals, and redirections of stake.
+ * @dev Its events are used by the beacon chain to manage the staking process.
+ */
+contract BeaconDepositContract is IBeaconDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev MINIMUM_DEPOSIT_IN_GWEI is the minimum size of a deposit in Gwei.
-    //       1 ether = 1e9 gwei = 1e18 wei
-    uint256 private constant MINIMUM_DEPOSIT_IN_GWEI = 1e9;
+    /// @dev The address of the native asset as of EIP-7528.
+    address public constant NATIVE_ASSET =
+        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                        CONSTANTS                           */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @dev InsufficientDeposit is thrown when the specified deposit amount is
-    /// below the minimum.
-    error InsufficientDeposit();
-
-    /// @dev Deposit is emitted when a deposit is made to the contract.
-    ///
-    /// @param validatorPubkey The public key of the validator being deposited
-    /// to.
-    /// @param withdrawalCredentials The withdrawalCredentials for the deposit
-    /// @param amount The amount of the deposit in denominated in Gwei.
-    event Deposit(
-        bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount
-    );
-
-    /// @dev Withdrawal is emitted when a withdrawal is made from the contract.
-    ///
-    /// @param validatorPubkey The public key of the validator being withdrawn
-    /// from.
-    /// @param withdrawalCredentials The withdrawalCredentials for the
-    /// withdrawal
-    /// @param amount The amount of the withdrawal denominated in Gwei.
-    event Withdrawal(
-        bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount
-    );
-
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                    STAKING FUNCTIONS                       */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @dev msg.sender deposits the `amount` of tokens to `validatorPubkey`.
-    /// @param validatorPubkey The validator's public key.
-    /// @param amount The amount of tokens to deposit.
+    /// @dev The address of the staking asset.
+    /// @notice defaults to the native asset but can be changed at genesis at slot!!!.
+    /// @notice to allow for the staking asset to be changed, we must store it in the contract storage.
+    /// @notice storage layout:
+    // | Name        | Type    | Slot | Offset | Bytes | Contract                                |
+    // |-------------|---------|------|--------|-------|-----------------------------------------|
+    // | STAKE_ASSET | address | 0    | 0      | 20    | src/staking/Deposit.sol:DepositContract |
     //
-    // slither-disable-next-line locked-ether
+    // slither-disable-next-line constable-states
+    address private STAKE_ASSET = NATIVE_ASSET;
+
+    /// @dev The minimum amount of stake that can be deposited to prevent dust.
+    /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
+    uint64 private constant MIN_DEPOSIT_AMOUNT = 32e9;
+
+    /// @dev The minimum amount of stake that can be redirected to prevent dust.
+    /// leaving the buffer for their deposit to be slashed.
+    uint256 private constant MIN_REDIRECT_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
+
+    /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
+    /// leaving the buffer for their deposit to be slashed.
+    uint256 private constant MINIMUM_WITHDRAWAL_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
+
+    /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
+    uint8 private constant PUBLIC_KEY_LENGTH = 48;
+
+    /// @dev The length of the signature, SIGNATURE_LENGTH bytes.
+    uint8 private constant SIGNATURE_LENGTH = 96;
+
+    /// @dev The length of the credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+    uint8 private constant CREDENTIALS_LENGTH = 32;
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                            WRITES                          */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @inheritdoc IBeaconDepositContract
     function deposit(
-        bytes calldata validatorPubkey,
+        bytes calldata validatorPubKey,
+        bytes calldata stakingCredentials,
+        uint64 amount,
+        bytes calldata signature
+    )
+        external
+        payable
+    {
+        if (validatorPubKey.length != PUBLIC_KEY_LENGTH) {
+            revert InvalidPubKeyLength();
+        }
+
+        if (stakingCredentials.length != CREDENTIALS_LENGTH) {
+            revert InvalidCredentialsLength();
+        }
+
+        if (signature.length != SIGNATURE_LENGTH) {
+            revert InvalidSignatureLength();
+        }
+
+        if (STAKE_ASSET == NATIVE_ASSET) {
+            amount = _depositNative();
+        } else {
+            _depositERC20(amount);
+        }
+
+        // slither-disable-next-line reentrancy-events
+        emit Deposit(validatorPubKey, stakingCredentials, amount, signature);
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function redirect(
+        bytes calldata fromPubKey,
+        bytes calldata toPubKey,
         uint64 amount
     )
         external
-        // TODO: Remove payable
-        payable
     {
-        // Ensure the deposit amount is above the minimum.
-        if (amount < MINIMUM_DEPOSIT_IN_GWEI) {
+        if (
+            fromPubKey.length != PUBLIC_KEY_LENGTH
+                || toPubKey.length != PUBLIC_KEY_LENGTH
+        ) {
+            revert InvalidPubKeyLength();
+        }
+
+        if (amount < MIN_REDIRECT_AMOUNT) {
+            revert InsufficientRedirectAmount();
+        }
+
+        emit Redirect(fromPubKey, toPubKey, _toCredentials(msg.sender), amount);
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function withdraw(
+        bytes calldata validatorPubKey,
+        bytes calldata withdrawalCredentials,
+        uint64 amount
+    )
+        external
+    {
+        if (validatorPubKey.length != PUBLIC_KEY_LENGTH) {
+            revert InvalidPubKeyLength();
+        }
+
+        if (withdrawalCredentials.length != CREDENTIALS_LENGTH) {
+            revert InvalidCredentialsLength();
+        }
+
+        if (amount < MINIMUM_WITHDRAWAL_AMOUNT) {
+            revert InsufficientWithdrawAmount();
+        }
+
+        emit Withdraw(validatorPubKey, withdrawalCredentials, amount);
+    }
+
+    /**
+     * Transform an address into bytes for the credentials appending the 0x01 prefix.
+     * @param addr The address to transform.
+     * @return The credentials.
+     */
+    function _toCredentials(address addr) private pure returns (bytes memory) {
+        // 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+        return abi.encodePacked(bytes1(0x01), bytes11(0x0), addr);
+    }
+
+    /**
+     * @notice Validates the deposit amount and sends the native asset to the zero address.
+     */
+    function _depositNative() private returns (uint64) {
+        if (msg.value > type(uint64).max) {
+            revert DepositValueTooHigh();
+        }
+
+        if (msg.value < MIN_DEPOSIT_AMOUNT) {
             revert InsufficientDeposit();
         }
 
-        // TODO: Properly Handle Token Logic.
+        if (msg.value % 1 gwei != 0) {
+            revert DepositNotMultipleOfGwei();
+        }
 
-        // Emit the deposit event.
-        emit Deposit(validatorPubkey, abi.encodePacked(msg.sender), amount);
+        _safeTransferETH(address(0), msg.value);
+
+        // Safe since we have already checked that the value is less than uint64.max.
+        return uint64(msg.value);
     }
 
-    /// @dev msg.sender withdraws the `amount` of tokens from `validatorPubkey`.
-    /// @param validatorPubkey The validator's public key.
-    /// @param amount The amount of tokens to undelegate.
-    //
-    // slither-disable-next-line locked-ether
-    function withdraw(
-        bytes calldata validatorPubkey,
-        uint64 amount
-    )
-        external
-        payable
-    {
-        // TODO: Properly Handle Token Logic.
+    /*
+     * @notice Validates the deposit amount and burns the staking asset from the sender.
+     * @param amount The amount of stake to deposit.
+     */
+    function _depositERC20(uint64 amount) private {
+        IStakeERC20(STAKE_ASSET).burn(msg.sender, amount);
 
-        emit Withdrawal(validatorPubkey, abi.encodePacked(msg.sender), amount);
+        if (amount < MIN_DEPOSIT_AMOUNT) {
+            revert InsufficientDeposit();
+        }
+
+        if (amount % 1 gwei != 0) {
+            revert DepositNotMultipleOfGwei();
+        }
+    }
+
+    /**
+     * @notice Safely transfers ETH to the given address.
+     * @dev From the Solady library.
+     * @param to The address to transfer the ETH to.
+     * @param amount The amount of ETH to transfer.
+     */
+    function _safeTransferETH(address to, uint256 amount) private {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(
+                call(gas(), to, amount, codesize(), 0x00, codesize(), 0x00)
+            ) {
+                mstore(0x00, 0xb12d13eb) // `ETHTransferFailed()`.
+                revert(0x1c, 0x04)
+            }
+        }
     }
 }

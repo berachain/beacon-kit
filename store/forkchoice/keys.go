@@ -23,25 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+package forkchoice
 
-import "ethereum/eth/ext/options.proto";
+// Genesis Related Prefix.
+const (
+	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
+	eth1GenesisHashPrefix = "eth1_genesis_hash"
+)
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
-
-// Deposit into the consensus layer from the deposit contract in the execution layer.
-message Deposit {
-  // Public key of the validator, which is compatible to the implementations
-  // of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is preferred.
-  bytes validator_pubkey = 1 [
-    (ethereum.eth.ext.ssz_max) = "96",
-    (ethereum.eth.ext.spec_name) = "pubkey"
-  ];
-
-  // A withdrawal credentials as a 20-byte Eth1 address.
-  bytes withdrawal_credentials = 2 [(ethereum.eth.ext.ssz_size) = "20"];
-
-  // Deposit amount in gwei.
-  uint64 amount = 3;
-}
+// Collection prefixes.
+const (
+	parentBlockRootPrefix          = "parent_block_root"
+	depositQueuePrefix             = "deposit_queue"
+	fcSafeEth1BlockHashPrefix      = "fc_safe"
+	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
+)

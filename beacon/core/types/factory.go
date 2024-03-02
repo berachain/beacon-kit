@@ -25,43 +25,15 @@
 
 package consensus
 
-import (
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
-)
+import beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 
-// BeaconKitBlock is the interface for a beacon block.
-type BeaconKitBlock interface {
-	ReadOnlyBeaconKitBlock
-	WriteOnlyBeaconKitBlock
-}
-
-type BeaconBlockBody interface {
-	ReadOnlyBeaconKitBlockBody
-}
-
-type ReadOnlyBeaconKitBlockBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-}
-
-// ReadOnlyBeaconKitBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconKitBlock interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	GetParentRoot() []byte
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (enginetypes.ExecutionPayload, error)
-	Version() int
-}
-
-// WriteOnlyBeaconKitBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconKitBlock interface {
-	AttachExecution(enginetypes.ExecutionPayload) error
+// NewDeposit creates a new deposit.
+func NewDeposit(
+	pubkey []byte, amount uint64, withdrawalCredentials []byte,
+) *beacontypesv1.Deposit {
+	return &beacontypesv1.Deposit{
+		ValidatorPubkey:       pubkey,
+		Amount:                amount,
+		WithdrawalCredentials: withdrawalCredentials,
+	}
 }

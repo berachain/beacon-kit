@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BuildLocalPayload builds a payload for the given slot and
@@ -66,7 +66,9 @@ func (s *Service) BuildLocalPayload(
 	var payloadID *enginev1.PayloadIDBytes
 	s.Logger().Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
-		"slot", slot, "parent_eth1_hash", parentEth1Hash,
+		"for_slot", slot,
+		"parent_eth1_hash", parentEth1Hash,
+		"parent_block_root", common.Hash(parentBlockRoot),
 	)
 	payloadID, err = s.es.NotifyForkchoiceUpdate(
 		ctx, fcuConfig,
@@ -74,18 +76,18 @@ func (s *Service) BuildLocalPayload(
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
-		s.Logger().Error("received nil payload ID on VALID engine response",
+		s.Logger().Warn("received nil payload ID on VALID engine response",
 			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
-			"slot", fcuConfig.ProposingSlot,
+			"for_slot", fcuConfig.ProposingSlot,
 		)
 
 		s.SetStatus(ErrNilPayloadOnValidResponse)
-		return nil, ErrNilPayloadOnValidResponse
+		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
-		"slot", fcuConfig.ProposingSlot,
+		"for_slot", fcuConfig.ProposingSlot,
 		"payload_id", fmt.Sprintf("%#x", *payloadID),
 	)
 
@@ -109,14 +111,6 @@ func (s *Service) GetBestPayload(
 	parentBlockRoot [32]byte,
 	parentEth1Hash common.Hash,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	// vIdx := blk.ProposerIndex()
-	// headRoot := blk.ParentRoot()
-	// logFields := logrus.Fields{
-	// 	"validatorIndex": vIdx,
-	// 	"slot":           slot,
-	// 	"headRoot":       fmt.Sprintf("%#x", headRoot),
-	// }
-
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -133,27 +127,27 @@ func (s *Service) GetBestPayload(
 		slot,
 		parentBlockRoot,
 	)
-	if err == nil {
-		return payload, blobsBundle, overrideBuilder, nil
+	if err != nil {
+		// If we see an error we have to trigger a new payload to be built, wait
+		// for it to be resolved and then return the data. This case should very
+		// rarely be hit
+		// if your consensus and execution clients are operating well.
+		s.Logger().Warn(fmt.Sprintf(
+			"%s, notifying execution client to construct a new payload ...",
+			err.Error(),
+		))
+
+		//#nosec:G701 // won't overflow, time cannot be negative.
+		payload, blobsBundle, overrideBuilder, err = s.buildAndWaitForLocalPayload(
+			ctx,
+			parentEth1Hash,
+			slot,
+			uint64(time.Now().Unix()),
+			parentBlockRoot,
+		)
 	}
 
-	s.Logger().Warn(fmt.Sprintf(
-		"%s, notifying execution client to construct a new payload ...",
-		err.Error(),
-	))
-
-	// Otherwise we have to trigger a new payload to be built, wait for it to be
-	// resolved and then return the data. This case should very rarely be hit
-	// if your consensus client is operating well.
-	//
-	//#nosec:G701 // won't overflow, time cannot be negative.
-	return s.buildAndWaitForLocalPayload(
-		ctx,
-		parentEth1Hash,
-		slot,
-		uint64(time.Now().Unix()),
-		parentBlockRoot,
-	)
+	return payload, blobsBundle, overrideBuilder, err
 }
 
 // getPayloadFromCachedPayloadIDs attempts to retrieve a payload from the
@@ -208,7 +202,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Wait for the payload to be delivered to the execution client.
 	s.Logger().Info(
 		"waiting for local payload to be delivered to execution client",
-		"slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
+		"for_slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
 	)
 	select {
 	case <-time.After(s.cfg.LocalBuildPayloadTimeout):
@@ -296,7 +290,7 @@ func (s *Service) getPayloadFromExecutionClient(
 	}
 
 	s.Logger().Info("payload retrieved from local builder 🏗️ ",
-		"slot", slot,
+		"for_slot", slot,
 		"block_hash", common.BytesToHash(payload.GetBlockHash()),
 		"parent_hash", common.BytesToHash(payload.GetParentHash()),
 		"value", payload.GetValue().ToEther(),

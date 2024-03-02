@@ -33,23 +33,23 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
+	forkchoicestore "github.com/itsdevbear/bolaris/store/forkchoice"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	beaconStore *beaconstore.Store
+	beaconStore     *beaconstore.Store
+	forkchoiceStore *forkchoicestore.Store
 }
-
-// Assert Keeper implements BeaconStateProvider interface.
-var _ state.BeaconStateProvider = &Keeper{}
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
 ) *Keeper {
 	return &Keeper{
-		beaconStore: beaconstore.NewStore(env.KVStoreService),
+		beaconStore:     beaconstore.NewStore(env.KVStoreService),
+		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
 	}
 }
 
@@ -59,20 +59,26 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 	return k.beaconStore.WithContext(ctx)
 }
 
+// BeaconState returns the beacon state struct initialized with a given
+// context and the store key.
+func (k *Keeper) ForkchoiceStore(ctx context.Context) state.ForkchoiceStore {
+	return k.forkchoiceStore.WithContext(ctx)
+}
+
 // InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(ctx context.Context, data types.GenesisState) {
-	beaconState := k.BeaconState(ctx)
+	fcs := k.ForkchoiceStore(ctx)
 	hash := common.HexToHash(data.Eth1GenesisHash)
 
 	// At genesis, we assume that the genesis block is also safe and final.
-	beaconState.SetGenesisEth1Hash(hash)
-	beaconState.SetSafeEth1BlockHash(hash)
-	beaconState.SetFinalizedEth1BlockHash(hash)
+	fcs.SetGenesisEth1Hash(hash)
+	fcs.SetSafeEth1BlockHash(hash)
+	fcs.SetFinalizedEth1BlockHash(hash)
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
 func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	return &types.GenesisState{
-		Eth1GenesisHash: k.BeaconState(ctx).GenesisEth1Hash().Hex(),
+		Eth1GenesisHash: k.ForkchoiceStore(ctx).GenesisEth1Hash().Hex(),
 	}
 }

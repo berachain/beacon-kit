@@ -28,7 +28,7 @@ package cache
 import (
 	"sync"
 
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // historicalPayloadIDCacheSize defines the maximum number of slots to retain

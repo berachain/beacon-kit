@@ -27,15 +27,18 @@ package blockchain
 
 import (
 	"context"
+	"errors"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/itsdevbear/bolaris/types/consensus"
+	"github.com/ethereum/go-ethereum/common"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
+	"github.com/itsdevbear/bolaris/beacon/sync"
 )
 
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock,
+	blk beacontypes.ReadOnlyBeaconBuoy,
 	blockHash [32]byte,
 	isValidPayload bool,
 ) error {
@@ -49,7 +52,7 @@ func (s *Service) postBlockProcess(
 		// issue?
 		// TODO: Should introduce the concept of missed slots?
 		if err := s.sendFCU(
-			ctx, s.BeaconState(ctx).GetLastValidHead(),
+			ctx, s.ForkchoiceStore(ctx).GetSafeEth1BlockHash(),
 		); err != nil {
 			s.Logger().Error("failed to send forkchoice update", "error", err)
 		}
@@ -60,17 +63,28 @@ func (s *Service) postBlockProcess(
 	if err != nil {
 		return err
 	}
+	payloadBlockHash := common.Hash(payload.GetBlockHash())
+
+	// If the consensus client is still syncing we are going to skip forkchoice
+	// updates. This means that if the consensus client is still syncing, we
+	// will not be able to build a block locally.
+	//
+	// NOTE: Status() will return nil during the initial syncing phase.
+	if errors.Is(s.ss.Status(), sync.ErrConsensusClientIsSyncing) {
+		return nil
+	}
 
 	// If the builder is enabled attempt to build a block locally.
-	if s.BuilderCfg().LocalBuilderEnabled {
+	// If we are in the sync state, we skip building blocks optimistically.
+	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
 		if err = s.sendFCUWithAttributes(
-			ctx, [32]byte(payload.GetBlockHash()), blk.GetSlot(), blockHash,
+			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
 		); err == nil {
 			return nil
 		}
+		s.Logger().
+			Error("failed to send forkchoice update in postBlockProcess", "error", err)
 	}
-
-	// If builder is not enabled, or failed to build, fallback to a vanilla
-	// fcu.
-	return s.sendFCU(ctx, [32]byte(payload.GetBlockHash()))
+	// Otherwise we send a forkchoice update to the execution client.
+	return s.sendFCU(ctx, payloadBlockHash)
 }

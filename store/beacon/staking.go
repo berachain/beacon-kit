@@ -26,13 +26,13 @@
 package beacon
 
 import (
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 // EnqueueDeposits pushes the deposits to the queue.
 func (s *Store) EnqueueDeposits(
-	deposits []*consensusv1.Deposit,
+	deposits []*beacontypesv1.Deposit,
 ) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
 }
@@ -40,7 +40,7 @@ func (s *Store) EnqueueDeposits(
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (s *Store) DequeueDeposits(
 	numDequeue uint64,
-) ([]*consensusv1.Deposit, error) {
+) ([]*beacontypesv1.Deposit, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
