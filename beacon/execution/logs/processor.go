@@ -66,34 +66,21 @@ func (p *Processor) ProcessBlocksInBatch(
 	}
 	finalizedBlockNumber := finalizedHeader.Number.Uint64()
 
-	// Get the latest header from the execution client.
-	latestHeader, err := p.engine.HeaderByNumber(ctx, nil)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get latest header")
-	}
-	latestBlockHeight := latestHeader.Number.Uint64()
-
 	// Determine the earliest block to process
-	// by checking the last processed block number, which
-	// is still valid wrt the finalized block, among caches.
+	// by checking the last finalized blocks among caches.
 	// By doing so, we can avoid processing the same block
 	// multiple times for different types of logs.
-	sigToLastProcessedBlockNumber := make(map[ethcommon.Hash]uint64)
-	minLastProcessedBlockNumber := latestBlockHeight
-	for sig, cache := range p.sigToCache {
-		lastProcessedBlockNumber := cache.Update(
-			finalizedBlockHash,
-			finalizedBlockNumber,
-		)
-		sigToLastProcessedBlockNumber[sig] = lastProcessedBlockNumber
-		if lastProcessedBlockNumber < minLastProcessedBlockNumber {
-			minLastProcessedBlockNumber = lastProcessedBlockNumber
+	minLastFinalizedBlockInCache := finalizedBlockNumber
+	for _, cache := range p.sigToCache {
+		lastFinalizedBlockInCache := cache.LastFinalizedBlock()
+		if lastFinalizedBlockInCache < minLastFinalizedBlockInCache {
+			minLastFinalizedBlockInCache = lastFinalizedBlockInCache
 		}
 	}
 
-	// If all caches have processed the latest block,
+	// If all caches have processed the latest finalized block,
 	// we don't need to process it again.
-	if minLastProcessedBlockNumber == latestBlockHeight {
+	if minLastFinalizedBlockInCache == finalizedBlockNumber {
 		return nil
 	}
 
@@ -101,12 +88,10 @@ func (p *Processor) ProcessBlocksInBatch(
 	// the addresses of interest in the range
 	// from the last processed block to the latest block.
 	// TODO: Can we assume that the logs are returned in order?
-	// TODO: What if the block at minLastProcessedBlockNumber
-	// was partially processed.
 	batchedLogs, err := p.engine.GetLogs(
 		ctx,
-		minLastProcessedBlockNumber+1,
-		latestBlockHeight,
+		minLastFinalizedBlockInCache+1,
+		finalizedBlockNumber,
 		p.factory.GetRegisteredAddresses(),
 	)
 	if err != nil {
@@ -137,5 +122,11 @@ func (p *Processor) ProcessBlocksInBatch(
 			}
 		}
 	}
+
+	// Update the caches with the new finalized block.
+	for _, cache := range p.sigToCache {
+		cache.SetLastFinalizedBlock(finalizedBlockNumber)
+	}
+
 	return nil
 }

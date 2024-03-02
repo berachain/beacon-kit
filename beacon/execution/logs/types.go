@@ -41,20 +41,17 @@ type LogRequest struct {
 
 // LogCache is the interface for the cache of logs.
 type LogCache interface {
-	// Update asks the cache to update itself with the given
-	// finalized block hash and block number (e.g discarding
-	// invalid cached items), and returns the
-	// last block number which is still valid
-	// with respect to the finalized block.
-	Update(
-		finalizedBlockHash ethcommon.Hash,
-		finalizedBlockNumber uint64,
-	) uint64
 	// ShouldProcess returns true if the cache
 	// determines that the log should be processed.
 	ShouldProcess(log *ethtypes.Log) bool
 	// Push pushes the log value container into the cache.
 	Push(container LogValueContainer) error
+	// LastFinalizedBlock returns the block number of
+	// the last finalized block in cache.
+	LastFinalizedBlock() uint64
+	// SetLastFinalizedBlock sets the block number of
+	// the last finalized block in cache.
+	SetLastFinalizedBlock(blockNumber uint64)
 }
 
 // LogValueContainer is the interface for the container of
