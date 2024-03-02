@@ -1,14 +1,14 @@
 reth = import_module('github.com/kurtosis-tech/ethereum-package/src/el/reth/reth_launcher.star')
 input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
 
-def get_reth(plan, el_cl_data, jwt_file, el_service_name, network_params):
-    reth_launcher = get_launcher(el_cl_data, jwt_file, network_params)
+def get_reth(plan, evm_genesis_data, jwt_file, el_service_name, network_params):
+    reth_launcher = get_launcher(evm_genesis_data, jwt_file, network_params)
     return get_context(plan, reth_launcher["launcher"], el_service_name, reth_launcher["launch_method"])
 
-def get_launcher(el_cl_data, jwt_file, network_params):    
+def get_launcher(evm_genesis_data, jwt_file, network_params):    
     reth_launcher = {
         "launcher": reth.new_reth_launcher(
-            el_cl_data,
+            evm_genesis_data,
             jwt_file,
             network_params.network,
         ),

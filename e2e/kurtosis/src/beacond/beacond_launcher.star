@@ -17,7 +17,7 @@ PROMETHEUS_PORT_ID = "prometheus"
 
 USED_PORTS = {
     # COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL),
+    COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL, wait=None),
     # COMETBFT_GRPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_GRPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # COMETBFT_REST_PORT_ID: shared_utils.new_port_spec(COMETBFT_REST_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
@@ -28,8 +28,9 @@ def build_beacond_docker_image():
     # temp workaround to get it working
     # run `make docker-build` before running kurtosis
     # make sure the image name and tag match, otherwise edit below
-    image = "beacond:0.0.3-alpha-19-g1c02a0c5"
+    image = "beacond:0.0.3-alpha-20-gfbad5e52"
 
+    # TODO(build): Figure out a way to build the current repo's beacond image during kurtosis run
     # image = ImageBuildSpec(
     #     image_name="berachain/beacond",
     #     build_context_dir="examples/beacond"
@@ -38,31 +39,37 @@ def build_beacond_docker_image():
     return image
 
 
-def get_config(jwt_file, engine_dial_url):
+def get_config(jwt_file, engine_dial_url, cl_service_name, persistent_peers="", expose_ports=True):
+    exposed_ports = {}
+    if expose_ports:
+        exposed_ports = USED_PORTS
+    
+
     config = ServiceConfig(
         image=build_beacond_docker_image(),
         files = {
             "/root/app": jwt_file
         },
-        entrypoint = [
-            "bash",
-        ],
-        cmd=[
-            "-c",
-            "/usr/bin/init.sh",
-        ],
+        # entrypoint = [
+        #     "bash",
+        # ],
+        # cmd=[
+        #     "-c",
+        #     "/usr/bin/init.sh",
+        # ],
         env_vars = {
-            "BEACOND_MONIKER": "kurtosis",
+            "BEACOND_MONIKER": cl_service_name,
             "BEACOND_NET": "VALUE_2",
             "BEACOND_HOME": "/root/.beacond",
             "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
             "BEACOND_DEBUG": "false",
             "BEACOND_KEYRING_BACKEND": "test",
-            "BEACOND_MINIMUM_GAS_PRICE": "0stake",
+            "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
             "BEACOND_ENGINE_DIAL_URL": engine_dial_url,
             "BEACOND_ETH_CHAIN_ID": "80087",
+            "BEACOND_PERSISTENT_PEERS": persistent_peers,
         },
-        ports=USED_PORTS,
+        ports=exposed_ports,
     )
 
     return config

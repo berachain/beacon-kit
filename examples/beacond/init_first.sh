@@ -14,7 +14,7 @@ if [ ! -d "$BEACOND_HOME/config" ]; then
 	/usr/bin/beacond config set client chain-id "$BEACOND_CHAIN_ID" --home "$BEACOND_HOME"
 
 	# If keys exist they should be deleted
-	/usr/bin/beacond keys add "$BEACOND_MONIKER" --no-backup --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME" 
+	/usr/bin/beacond keys add "$BEACOND_MONIKER" --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME" --indiscreet --output json > "$BEACOND_HOME/config/mnemonic.json"
 
 
 	# Change parameter token denominations to abgt
@@ -39,17 +39,4 @@ if [ ! -d "$BEACOND_HOME/config" ]; then
 	## 3. Clone this ~/./usr/bin/beacond home directory into some others, let's say `~/.cloned/usr/bin/beacond`
 	## 4. Run `gentx` in each of those folders
 	## 5. Copy the `gentx-*` folders under `~/.cloned/usr/bin/beacond/config/gentx/` folders into the original `~/./usr/bin/beacond/config/gentx`
-
-	# Collect genesis tx
-	/usr/bin/beacond genesis collect-gentxs --home "$BEACOND_HOME" > /dev/null 2>&1
-
-	# Run this to ensure everything worked and that the genesis file is setup correctly
-	/usr/bin/beacond genesis validate-genesis --home "$BEACOND_HOME" > /dev/null 2>&1
 fi
-
-## WORKAROUND FOR EXISTING NODES
-touch $BEACOND_HOME/tosaccepted
-
-/usr/bin/beacond start --beacon-kit.engine.jwt-secret-path=/root/app/jwtsecret \
-	--beacon-kit.accept-tos --beacon-kit.engine.rpc-dial-url $BEACOND_ENGINE_DIAL_URL \
-	--beacon-kit.engine.required-chain-id $BEACOND_ETH_CHAIN_ID \
