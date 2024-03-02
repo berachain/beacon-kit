@@ -25,4 +25,4 @@
 
 name: github.com/berachain/beacon-kit/kurtosis
 description: |
-  A package for running a basic beaconkit devnet with kurtosis
+  A package for running a basic beacon-kit devnet with kurtosis
