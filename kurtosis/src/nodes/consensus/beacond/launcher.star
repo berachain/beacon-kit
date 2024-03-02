@@ -28,7 +28,7 @@ def build_beacond_docker_image():
     # temp workaround to get it working
     # run `make docker-build` before running kurtosis
     # make sure the image name and tag match, otherwise edit below
-    image = "beacond:0.0.5-alpha-23-g3e1ccd50"
+    image = "beacond:0.0.5-alpha-30-g7f544835"
 
     # TODO(build): Figure out a way to build the current repo's beacond image during kurtosis run
     # image = ImageBuildSpec(

@@ -15,11 +15,11 @@ stop-devnet:
 # Stops and removes the specified Kurtosis enclave
 reset-devnet:
 	$(MAKE) stop-devnet
-	kurtosis enclave rm my-local-devnet
+	kurtosis enclave rm my-local-devnet 
 
 # Removes the specified Kurtosis enclave
 rm-devnet:
-	kurtosis enclave rm my-local-devnet
+	kurtosis enclave rm my-local-devnet --force
 
 # Installs buildifier, a tool for linting and formatting starlark files.
 buildifier-install:

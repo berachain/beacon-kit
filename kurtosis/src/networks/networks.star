@@ -1,11 +1,18 @@
 el_cl_genesis_data = import_module(
     "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_data.star",
 )
-static_files = import_module("../static_files/static_files.star")
 
-def get_genesis_data(plan):
+NETWORKS_DIR_PATH = "/kurtosis/src/networks/"
+GENESIS_FILEPATH = STATIC_FILES_DIRPATH + "/eth-genesis/"
+GENESIS_FILE_NAME = "genesis.json"
+
+NETWORKS = struct(
+    kurtosis_devnet = "kurtosis-devnet",
+)
+
+def get_genesis_data(plan, network = "kurtosis-devnet"):
     genesis_file = plan.upload_files(
-        static_files.GENESIS_FILEPATH,
+        get_genesis_path(network),
         "el_cl_genesis_data",
     )
 
@@ -17,3 +24,6 @@ def get_genesis_data(plan):
         0,  # cancun_time
         0,  # prague_time
     )
+
+def get_genesis_path(network = "kurtosis-devnet"):
+    return GENESIS_FILEPATH + network + GENESIS_FILE_NAME
