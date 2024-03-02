@@ -56,6 +56,7 @@ type Processor struct {
 	cfg    *Config
 }
 
+// BuildReveal creates a reveal for the proposer.
 // def get_epoch_signature(state: BeaconState, block: BeaconBlock, privkey: int)
 // -> BLSSignature:
 //
