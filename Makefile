@@ -232,7 +232,7 @@ format:
 	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix buildifier-fix
 
 lint:
-	@$(MAKE) license buf-lint forge-lint golangci buildifier
+	@$(MAKE) license buf-lint forge-lint golangci buildifier-lint
 
 #################
 #     forge     #
