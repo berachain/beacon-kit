@@ -8,8 +8,9 @@ el_cl_genesis_data_generator = import_module(
 eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
 participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
 
-el = import_module("./src/nodes/el/el.star")
-beacond = import_module("./src/nodes/cl/beacond_launcher.star")
+execution = import_module("./src/nodes/execution/execution.star")
+execution_types = import_module("./src/nodes/execution/types.star")
+beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 static_files = import_module("./src/static_files/static_files.star")
 constants = import_module("./src/constants.star")
 genesis = import_module("./src/genesis/genesis.star")
@@ -130,7 +131,7 @@ def run(plan, num_participants = 4, args = {}):
     for n in range(num_participants):
         # 4a. Launch EL
         el_service_name = "el-{}-reth-beaconkit".format(n)
-        el_client_context = el.get_el(plan, constants.EL_CLIENT_TYPE.reth, evm_genesis_data, jwt_file, el_service_name, network_params)
+        el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params)
         plan.print(el_client_context)
 
         # 4b. Launch CL
