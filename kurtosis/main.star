@@ -43,7 +43,9 @@ def run(plan, args = {}):
     for n in range(num_participants):
         cl_service_name = "cl-{}-reth-beaconkit".format(n)
         engine_dial_url = ""  # not needed for this step
-        beacond_config = beacond.get_config(jwt_file, engine_dial_url, cl_service_name, expose_ports = False)
+        beacond_config = beacond.get_config(
+            args_with_right_defaults.participants[n].cl_client_image, jwt_file, engine_dial_url, cl_service_name, expose_ports = False,
+        )
 
         if n > 0:
             beacond_config.files["/root/.beacond/config"] = Directory(
@@ -149,7 +151,15 @@ def run(plan, args = {}):
         my_peers.pop(n)
         persistent_peers = ",".join(my_peers)
 
-        beacond_config = beacond.get_config(jwt_file, engine_dial_url, cl_service_name, entrypoint = ["bash"], cmd = ["-c", "/usr/bin/start.sh"], persistent_peers = persistent_peers)
+        beacond_config = beacond.get_config(
+            args_with_right_defaults.participants[n].cl_client_image,
+            jwt_file, 
+            engine_dial_url, 
+            cl_service_name, 
+            entrypoint = ["bash"], 
+            cmd = ["-c", "/usr/bin/start.sh"], 
+            persistent_peers = persistent_peers,
+        )
 
         # Add back in the node's config data and overwrite genesis.json with final genesis file
         beacond_config.files["/root"] = Directory(
