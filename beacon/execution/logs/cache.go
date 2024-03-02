@@ -97,6 +97,7 @@ func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
 	if log.BlockNumber <= c.latestFinalizedBlock {
 		if log.BlockNumber < c.lastFinalizedBlockInCache {
 			// The log is from a block that is completely processed.
+			// Reorg cannot happen since the block is already finalized.
 			return false
 		}
 		if log.BlockNumber == c.lastFinalizedBlockInCache {
@@ -108,13 +109,16 @@ func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
 		}
 		return true
 	}
-	// Logs from or after the last valid block in the cache
-	// should be processed.
-	// Logs before the last valid block are already
-	// processed and should be ignored.
-	if log.BlockNumber > c.lastValidBlockInCache {
+
+	// Logs before or at the last valid block should
+	// be processed if reorg happens. The if condition
+	// also covers the case log.BlockNumber > c.lastValidBlockInCache,
+	// when the log is from a block that is not in the cache yet.
+	if log.BlockHash != c.pendingStore[log.BlockNumber].blockHash {
 		return true
 	}
+
+	// Logs from the last valid block is still being processed.
 	if log.BlockNumber == c.lastValidBlockInCache {
 		lastIndex, err := c.LastIndexInBlock(log.BlockNumber)
 		if err != nil {
@@ -122,6 +126,7 @@ func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
 		}
 		return log.Index > lastIndex
 	}
+
 	return false
 }
 
@@ -147,14 +152,25 @@ func (c *Cache) Push(container LogValueContainer) error {
 		}
 		return nil
 	}
-	if block, ok := c.pendingStore[blockNumber]; ok {
-		block.logValues = append(block.logValues, container)
-	} else {
+	// Reorg or new block.
+	if container.BlockHash() != c.pendingStore[blockNumber].blockHash {
+		// Reorg happened if blockNumber < lastValidBlockInCache,
+		// the block and its descendants are not valid anymore.
+		for i := blockNumber; i <= c.lastValidBlockInCache; i++ {
+			delete(c.pendingStore, i)
+		}
+		// Create a new block with the container.
 		c.pendingStore[blockNumber] = BlockContainer{
 			blockHash:   container.BlockHash(),
 			blockNumber: blockNumber,
 			logValues:   []LogValueContainer{container},
 		}
+	} else {
+		// The last valid block is still being processed.
+		// Add the container to the block.
+		// ShouldProcess already checked the index.
+		block := c.pendingStore[blockNumber]
+		block.logValues = append(block.logValues, container)
 	}
 	c.lastValidBlockInCache = blockNumber
 	return nil
