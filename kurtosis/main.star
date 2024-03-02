@@ -14,19 +14,17 @@ beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 constants = import_module("./src/constants.star")
 genesis = import_module("./src/networks/networks.star")
 
-def run(plan, num_participants = 4, args = {}):
+def run(plan, args = {}):
     """
     Initiates the execution plan with the specified number of participants and arguments.
 
     Args:
       plan: The execution plan to be run.
-      num_participants: The number of participants in the network. Defaults to 4.
-                        1 Participant means 1 Consensus Client + 1 Execution Client
       args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
     plan.print("Your args: {}".format(args))
     args_with_right_defaults = input_parser.input_parser(plan, args)
-    # num_participants = len(args_with_right_defaults.participants)
+    num_participants = len(args_with_right_defaults.participants)
 
     network_params = args_with_right_defaults.network_params
 

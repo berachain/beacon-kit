@@ -6,7 +6,8 @@
 
 # Starts a Kurtosis enclave containing a local devnet.
 start-devnet:
-	kurtosis run ./kurtosis --enclave my-local-devnet
+	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-all.yaml \
+		--enclave my-local-devnet
 
 # Stops the running Kurtosis enclave
 stop-devnet:
