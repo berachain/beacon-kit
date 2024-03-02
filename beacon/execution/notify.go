@@ -36,7 +36,7 @@ import (
 	"github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.
@@ -50,6 +50,12 @@ func (s *Service) notifyNewPayload(
 	var (
 		lastValidHash []byte
 		err           error
+	)
+
+	s.Logger().Info("notifying new payload",
+		"payload_block_hash", common.BytesToHash(payload.GetBlockHash()),
+		"parent_hash", common.BytesToHash(payload.GetParentHash()),
+		"for_slot", slot,
 	)
 
 	if s.ActiveForkVersionForSlot(slot) >= version.Deneb {
@@ -116,6 +122,15 @@ func (s *Service) notifyForkchoiceUpdate(
 		FinalizedBlockHash: forkChoicer.GetFinalizedEth1BlockHash().Bytes(),
 	}
 
+	s.Logger().Info("notifying forkchoice update",
+		"head_eth1_hash", fcuConfig.HeadEth1Hash,
+		"safe_eth1_hash", forkChoicer.GetSafeEth1BlockHash(),
+		"finalized_eth1_hash", forkChoicer.GetFinalizedEth1BlockHash(),
+		"for_slot", fcuConfig.ProposingSlot,
+		"has_attributes", fcuConfig.Attributes != nil &&
+			!fcuConfig.Attributes.IsEmpty(),
+	)
+
 	// Notify the execution engine of the forkchoice update.
 	payloadID, _, err := s.engine.ForkchoiceUpdated(
 		ctx,
@@ -137,8 +152,6 @@ func (s *Service) notifyForkchoiceUpdate(
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, &FCUConfig{
-			// TODO: we should get the last safe head off of the previous
-			// block.
 			// TODO: in the case of CometBFT BeaconKit, this could in theory
 			// just be the last finalized block, bc we are always inserting
 			// ontop of that, however making that assumption here feels
@@ -157,13 +170,6 @@ func (s *Service) notifyForkchoiceUpdate(
 		s.Logger().Error("undefined execution engine error", "error", err)
 		return nil, err
 	}
-
-	// We can mark this Eth1Block as the latest valid block.
-	// TODO: maybe move to blockchain for IsCanonical and Head checks.
-	// TODO: the whole getting the execution payload off the block /
-	// the whole LastestExecutionPayload Premine thing
-	// "PremineGenesisConfig".
-	forkChoicer.SetLastValidHead(fcuConfig.HeadEth1Hash)
 
 	return payloadID, nil
 }

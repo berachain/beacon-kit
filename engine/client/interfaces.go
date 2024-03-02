@@ -32,8 +32,7 @@ import (
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // Caller defines a client that can interact with an Ethereum
@@ -80,13 +79,4 @@ type Caller interface {
 		ctx context.Context,
 		hash common.Hash,
 	) (*gethcoretypes.Header, error)
-}
-
-// ExecutionPayloadRebuilder specifies a service capable of reassembling a
-// complete beacon block, inclusive of an execution payload, using a signed
-// beacon block and access to an execution client's engine API.
-type PayloadReconstructor interface {
-	ReconstructFullBlock(
-		ctx context.Context, blindedBlock consensus.ReadOnlyBeaconKitBlock,
-	) (consensus.BeaconKitBlock, error)
 }

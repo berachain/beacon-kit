@@ -32,7 +32,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/types/consensus"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -40,7 +40,7 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock,
+	blk beacontypes.ReadOnlyBeaconBuoy,
 	blockHash [32]byte,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
@@ -93,7 +93,7 @@ func (s *Service) ReceiveBeaconBlock(
 // TODO: Expand rules, consider modularity. Current implementation
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
-	ctx context.Context, blk consensus.ReadOnlyBeaconKitBlock,
+	ctx context.Context, blk beacontypes.ReadOnlyBeaconBuoy,
 ) error {
 	executionData, err := blk.ExecutionPayload()
 	if err != nil {
@@ -104,12 +104,12 @@ func (s *Service) validateStateTransition(
 		return errors.New("no payload in beacon block")
 	}
 
-	finalizedHash := s.ForkchoiceStore(ctx).GetFinalizedEth1BlockHash()
-	if !bytes.Equal(finalizedHash[:], executionData.GetParentHash()) {
+	safeHash := s.ForkchoiceStore(ctx).GetSafeEth1BlockHash()
+	if !bytes.Equal(safeHash[:], executionData.GetParentHash()) {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			executionData.GetParentHash(),
-			finalizedHash,
+			safeHash,
 		)
 	}
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
@@ -132,11 +132,15 @@ func (s *Service) validateStateTransition(
 func (s *Service) validateExecutionOnBlock(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconKitBlock,
+	blk beacontypes.ReadOnlyBeaconBuoy,
 ) (bool, error) {
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return false, err
+	}
+
+	if payload == nil || payload.IsEmpty() {
+		return false, errors.New("no payload in beacon block")
 	}
 
 	// TODO: add some more safety checks here.

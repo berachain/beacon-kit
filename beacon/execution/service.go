@@ -33,8 +33,8 @@ import (
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // Service is responsible for delivering beacon chain notifications to

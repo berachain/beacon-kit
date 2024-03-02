@@ -23,16 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package types.consensus.v1;
+pragma solidity 0.8.24;
 
-// import "types/consensus/v1/block.proto";
-// import "types/consensus/v1/block_blinded.proto";
+interface IStakeERC20 {
+    /**
+     * @notice Burns the specified amount of tokens from the specified account.
+     * @param account The address of the account to burn from.
+     * @param amount The amount of tokens to burn.
+     */
+    function burn(address account, uint256 amount) external;
 
-option go_package = "github.com/itsdevbear/bolaris/types/consensus/v1;consensusv1";
-
-// BeaconKitBlockContainer is a container for beacon block.
-message BeaconKitBlockContainer {
-  // // block is the beacon block.
-  // oneof block {}
+    /**
+     * @notice Transfers tokens from the sender to the recipient.
+     * @param sender The address of the sender.
+     * @param recipient The address of the recipient.
+     * @param amount The amount of tokens to transfer.
+     * returns True if the transfer was successful, otherwise false.
+     */
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    )
+        external
+        returns (bool);
 }

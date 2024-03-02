@@ -32,7 +32,6 @@ import (
 	"time"
 
 	cosmosclient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/sourcegraph/conc"
@@ -50,7 +49,6 @@ type Service struct {
 	clientCtx    *cosmosclient.Context
 	cfg          *Config
 
-	started           bool
 	isInitSync        bool
 	isSyncedLock      *sync.RWMutex
 	isSyncedCond      *sync.Cond
@@ -97,9 +95,6 @@ func (s *Service) IsInitSync() bool {
 func (s *Service) Status() error {
 	s.isSyncedLock.RLock()
 	defer s.isSyncedLock.RUnlock()
-	if !s.started {
-		return errors.New("service not started")
-	}
 	return errors.Join(s.status(), s.BaseService.Status())
 }
 
@@ -150,6 +145,7 @@ func (s *Service) status() error {
 // CheckCLSync checks if the consensus layer is syncing.
 func (s *Service) checkSyncStatus() error {
 	var errs []error
+
 	if !s.isELSynced {
 		errs = append(errs, ErrExecutionClientIsSyncing)
 	}
@@ -165,34 +161,13 @@ func (s *Service) syncLoop(ctx context.Context) {
 	defer ticker.Stop()
 
 	for {
-		// We have to wait for the engine client to be fully
-		// spun up.
-		s.engineClient.WaitForHealthy(ctx)
-
-		// TODO: This section is a hacky for devnet testing
-		// we will remove after it's no longer needed.
-		{
-			head, err := s.engineClient.ExecutionBlockByNumber(
-				ctx, rpc.LatestBlockNumber, false,
-			)
-			if err == nil {
-				s.ForkchoiceStore(ctx).SetLastValidHead(
-					head.Hash,
-				)
-				s.started = true
-
-				s.Logger().
-					Info("checking head of execution client", "hash", head.Hash)
-			} else {
-				s.Logger().Error("failed to check head of execution client", "error", err)
-			}
-		}
-
 		s.updateClientSyncInfo(ctx)
 
-		// This is the only place where
-		// we ever exit the initial sync phase.
-		if s.checkSyncStatus() == nil {
+		// As soon as the ConsensusClient is no longer syncing, we can
+		// assume we are no longer in the initial sync phase.
+		// TODO: Break out into another function, right now this gets
+		// called over and over and over.
+		if !errors.Is(s.checkSyncStatus(), ErrConsensusClientIsSyncing) {
 			s.isInitSync = false
 		}
 
@@ -208,6 +183,8 @@ func (s *Service) syncLoop(ctx context.Context) {
 // updateClientSyncInfo gets the sync progress from the consensus and execution
 // clients.
 func (s *Service) updateClientSyncInfo(ctx context.Context) {
+	s.engineClient.WaitForHealthy(ctx)
+
 	wg := conc.NewWaitGroup()
 	wg.Go(func() { s.CheckCLSync(ctx) })
 	wg.Go(func() { s.CheckELSync(ctx) })

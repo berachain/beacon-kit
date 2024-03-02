@@ -25,7 +25,7 @@
 
 package client
 
-import "github.com/itsdevbear/bolaris/types/consensus/primitives"
+import "github.com/itsdevbear/bolaris/primitives"
 
 // beaconConfig is an interface for the beacon chain configuration.
 type beaconConfig interface {

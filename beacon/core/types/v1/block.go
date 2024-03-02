@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusv1
+package typesv1
 
 import (
 	"errors"
@@ -33,18 +33,18 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
-// IsNil checks if the BeaconKitBlock is nil or not.
-func (b *BeaconKitBlockDeneb) IsNil() bool {
+// IsNil checks if the BeaconBuoy is nil or not.
+func (b *BeaconBuoyDeneb) IsNil() bool {
 	return b == nil
 }
 
 // Version returns the version of the block.
-func (b *BeaconKitBlockDeneb) Version() int {
+func (b *BeaconBuoyDeneb) Version() int {
 	return version.Deneb
 }
 
 // AttachExecution attaches the given execution data to the block.
-func (b *BeaconKitBlockDeneb) AttachExecution(
+func (b *BeaconBuoyDeneb) AttachExecution(
 	executionData enginetypes.ExecutionPayload,
 ) error {
 	var ok bool
@@ -67,7 +67,7 @@ func (b *BeaconKitBlockDeneb) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconKitBlockDeneb) ExecutionPayload() (
+func (b *BeaconBuoyDeneb) ExecutionPayload() (
 	enginetypes.ExecutionPayload, error,
 ) {
 	return &enginev1.ExecutionPayloadContainer{

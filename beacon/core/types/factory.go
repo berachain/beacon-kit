@@ -25,15 +25,13 @@
 
 package consensus
 
-import (
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
-)
+import beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 
 // NewDeposit creates a new deposit.
 func NewDeposit(
 	pubkey []byte, amount uint64, withdrawalCredentials []byte,
-) *consensusv1.Deposit {
-	return &consensusv1.Deposit{
+) *beacontypesv1.Deposit {
+	return &beacontypesv1.Deposit{
 		ValidatorPubkey:       pubkey,
 		Amount:                amount,
 		WithdrawalCredentials: withdrawalCredentials,
