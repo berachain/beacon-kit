@@ -12,7 +12,7 @@ execution = import_module("./src/nodes/execution/execution.star")
 execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 constants = import_module("./src/constants.star")
-genesis = import_module("./src/networks/genesis.star")
+genesis = import_module("./src/networks/networks.star")
 
 def run(plan, num_participants = 4, args = {}):
     """

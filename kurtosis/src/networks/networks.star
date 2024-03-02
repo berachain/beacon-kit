@@ -3,16 +3,14 @@ el_cl_genesis_data = import_module(
 )
 
 NETWORKS_DIR_PATH = "/kurtosis/src/networks/"
-GENESIS_FILEPATH = STATIC_FILES_DIRPATH + "/eth-genesis/"
-GENESIS_FILE_NAME = "genesis.json"
 
 NETWORKS = struct(
-    kurtosis_devnet = "kurtosis-devnet",
+    kurtosis_devnet = "kurtosis-devnet/",
 )
 
-def get_genesis_data(plan, network = "kurtosis-devnet"):
+def get_genesis_data(plan):
     genesis_file = plan.upload_files(
-        get_genesis_path(network),
+        NETWORKS_DIR_PATH + NETWORKS.kurtosis_devnet,
         "el_cl_genesis_data",
     )
 
@@ -26,4 +24,4 @@ def get_genesis_data(plan, network = "kurtosis-devnet"):
     )
 
 def get_genesis_path(network = "kurtosis-devnet"):
-    return GENESIS_FILEPATH + network + GENESIS_FILE_NAME
+    return NETWORKS_DIR_PATH + network
