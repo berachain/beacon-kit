@@ -23,12 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package primitives
 
-import "github.com/itsdevbear/bolaris/primitives"
+import "github.com/ethereum/go-ethereum/common"
 
-// LogRequest is a request for logs sent from a service.
-type LogRequest struct {
-	ContractAddress primitives.ExecutionAddress
-	Allocator       *TypeAllocator
-}
+type (
+	ExecutionAddress = common.Address
+	Keccak256Hash    = common.Hash
+)

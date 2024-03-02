@@ -28,11 +28,11 @@ package logs
 import (
 	"reflect"
 
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 const (
@@ -129,7 +129,7 @@ var (
 
 // NewStakingRequest returns a log request for the staking service.
 func NewStakingRequest(
-	depositContractAddress ethcommon.Address,
+	depositContractAddress primitives.ExecutionAddress,
 ) (*logs.LogRequest, error) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	if err != nil {

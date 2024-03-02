@@ -45,7 +45,7 @@ type BeaconStorageBackend interface {
 // LogFactory is an interface that can unmarshal Ethereum logs into objects,
 // in the form of reflect.Value, with appropriate types for each type of logs.
 type LogFactory interface {
-	GetRegisteredAddresses() []common.Address
+	GetRegisteredAddresses() []primitives.ExecutionAddress
 	ProcessLogs(
 		logs []ethtypes.Log,
 		blkNum uint64,

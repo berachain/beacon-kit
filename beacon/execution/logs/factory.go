@@ -30,21 +30,23 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // Factory is a struct that can be used to unmarshal
 // Ethereum logs into objects with the appropriate types.
 type Factory struct {
 	// addressToAbi maps contract addresses to Allocators for their events.
-	addressToAllocator map[common.Address]*TypeAllocator
+	addressToAllocator map[primitives.ExecutionAddress]*TypeAllocator
 }
 
 // NewFactory creates a new Factory with the given options.
 func NewFactory(opts ...Option[Factory]) (*Factory, error) {
 	f := &Factory{
-		addressToAllocator: make(map[common.Address]*TypeAllocator),
+		addressToAllocator: make(
+			map[primitives.ExecutionAddress]*TypeAllocator,
+		),
 	}
 	for _, opt := range opts {
 		if err := opt(f); err != nil {
@@ -97,8 +99,12 @@ func (f *Factory) UnmarshalEthLog(log *ethtypes.Log) (reflect.Value, error) {
 
 // GetRegisteredAddresses returns the addresses of the contracts
 // that have been registered with the factory.
-func (f *Factory) GetRegisteredAddresses() []common.Address {
-	addresses := make([]common.Address, 0, len(f.addressToAllocator))
+func (f *Factory) GetRegisteredAddresses() []primitives.ExecutionAddress {
+	addresses := make(
+		[]primitives.ExecutionAddress,
+		0,
+		len(f.addressToAllocator),
+	)
 	for addr := range f.addressToAllocator {
 		addresses = append(addresses, addr)
 	}
