@@ -44,7 +44,11 @@ def run(plan, args = {}):
         cl_service_name = "cl-{}-reth-beaconkit".format(n)
         engine_dial_url = ""  # not needed for this step
         beacond_config = beacond.get_config(
-            args_with_right_defaults.participants[n].cl_client_image, jwt_file, engine_dial_url, cl_service_name, expose_ports = False,
+            args_with_right_defaults.participants[n].cl_client_image,
+            jwt_file,
+            engine_dial_url,
+            cl_service_name,
+            expose_ports = False,
         )
 
         if n > 0:
@@ -153,11 +157,11 @@ def run(plan, args = {}):
 
         beacond_config = beacond.get_config(
             args_with_right_defaults.participants[n].cl_client_image,
-            jwt_file, 
-            engine_dial_url, 
-            cl_service_name, 
-            entrypoint = ["bash"], 
-            cmd = ["-c", "/usr/bin/start.sh"], 
+            jwt_file,
+            engine_dial_url,
+            cl_service_name,
+            entrypoint = ["bash"],
+            cmd = ["-c", "/usr/bin/start.sh"],
             persistent_peers = persistent_peers,
         )
 

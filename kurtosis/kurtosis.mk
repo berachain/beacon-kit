@@ -40,4 +40,4 @@ star-fix:
 	find ./kurtosis -name "*.star" -exec buildifier --mode=fix {} +
 
 # Marks targets as not being associated with files
-.PHONY: start-kurtosis stop-kurtosis rm-kurtosis buildifier-install star-lint star-fix
+.PHONY: start-devnet stop-devnet reset-devnet rm-devnet buildifier-install star-lint star-fix
