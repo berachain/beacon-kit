@@ -82,7 +82,10 @@ func (s *Service) NotifyForkchoiceUpdate(
 func (s *Service) GetPayload(
 	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
-	return s.engine.GetPayload(ctx, payloadID, slot)
+	return s.engine.GetPayload(
+		ctx, payloadID,
+		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+	)
 }
 
 // NotifyNewPayload notifies the execution client of a new payload.

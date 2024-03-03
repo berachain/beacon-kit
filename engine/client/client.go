@@ -52,7 +52,6 @@ type EngineClient struct {
 	*eth.Eth1Client
 
 	cfg          *Config
-	beaconCfg    beaconConfig
 	capabilities map[string]struct{}
 	logger       log.Logger
 	jwtSecret    *jwt.Secret

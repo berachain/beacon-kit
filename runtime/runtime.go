@@ -104,7 +104,6 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
-		engineclient.WithBeaconConfig(&cfg.Beacon),
 		engineclient.WithEngineConfig(&cfg.Engine.Config),
 		engineclient.WithLogger(logger),
 	)
