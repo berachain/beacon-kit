@@ -34,6 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/itsdevbear/bolaris/io/cli/parser/mocks"
+	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -100,22 +101,25 @@ func TestParser(t *testing.T) {
 		runTest(t, appOpts, parserUnderTest.GetTimeDuration, value)
 	})
 
-	t.Run("should set and retrieve a common.Address", func(t *testing.T) {
-		addressStr := "0x18df82c7e422a42d47345ed86b0e935e9718ebda"
-		runTestWithOutput(
-			t, appOpts, parserUnderTest.GetExecutionAddress, addressStr,
-			common.HexToAddress(addressStr),
-		)
-	})
+	t.Run(
+		"should set and retrieve a primitives.ExecutionAddress",
+		func(t *testing.T) {
+			addressStr := "0x18df82c7e422a42d47345ed86b0e935e9718ebda"
+			runTestWithOutput(
+				t, appOpts, parserUnderTest.GetExecutionAddress, addressStr,
+				common.HexToAddress(addressStr),
+			)
+		},
+	)
 
 	t.Run(
-		"should set and retrieve a list of common.Address options",
+		"should set and retrieve a list of primitives.ExecutionAddress options",
 		func(t *testing.T) {
 			addressStrs := []string{
 				"0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
 				"0x18df82c7e422a42d47345ed86b0e935e9718ebda",
 			}
-			expectedAddresses := []common.Address{
+			expectedAddresses := []primitives.ExecutionAddress{
 				common.HexToAddress(addressStrs[0]),
 				common.HexToAddress(addressStrs[1]),
 			}

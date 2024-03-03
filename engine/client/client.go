@@ -35,13 +35,13 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // Caller is implemented by EngineClient.
@@ -212,7 +212,7 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 func (s *EngineClient) GetLogs(
 	ctx context.Context,
 	fromBlock, toBlock uint64,
-	addresses []common.Address,
+	addresses []primitives.ExecutionAddress,
 ) ([]coretypes.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.

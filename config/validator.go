@@ -26,9 +26,9 @@
 package config
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/io/cli/parser"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // Validator conforms to the BeaconKitConfig interface.
@@ -37,7 +37,7 @@ var _ BeaconKitConfig[Validator] = &Validator{}
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultValidatorConfig() Validator {
 	return Validator{
-		SuggestedFeeRecipient:   common.Address{},
+		SuggestedFeeRecipient:   primitives.ExecutionAddress{},
 		Graffiti:                "",
 		NumRandaoRevealsToTrack: 32, //nolint:gomnd // default.
 	}
@@ -48,7 +48,7 @@ type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
-	SuggestedFeeRecipient common.Address
+	SuggestedFeeRecipient primitives.ExecutionAddress
 
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.

@@ -28,18 +28,18 @@ package mocks
 import (
 	"errors"
 
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // CreateDepositLogs creates mock deposit logs.
 func CreateDepositLogs(
 	numDepositLogs int,
 	factor int,
-	contractAddress ethcommon.Address,
+	contractAddress primitives.ExecutionAddress,
 	blkNum uint64,
 ) ([]ethtypes.Log, error) {
 	if numDepositLogs <= 0 || factor <= 0 {
