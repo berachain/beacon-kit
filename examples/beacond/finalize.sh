@@ -1,3 +1,4 @@
+#!/bin/bash
 # SPDX-License-Identifier: MIT
 #
 # Copyright (c) 2024 Berachain Foundation
@@ -23,20 +24,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-participants:
-  - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-43-ge37d3689
-  - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-43-ge37d3689
-  - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-43-ge37d3689
-  - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-43-ge37d3689
-  - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-43-ge37d3689
-additional_services: []
+set -x
+
+# Collect genesis tx
+/usr/bin/beacond genesis collect-gentxs --home "$BEACOND_HOME" > /dev/null 2>&1
+
+# Run this to ensure everything worked and that the genesis file is setup correctly
+/usr/bin/beacond genesis validate-genesis --home "$BEACOND_HOME" > /dev/null 2>&1
