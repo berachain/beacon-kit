@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk
+include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk kurtosis/kurtosis.mk
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
@@ -229,10 +229,10 @@ test-e2e-no-build:
 ###############################################################################
 
 format:
-	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix
+	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix buildifier-fix
 
 lint:
-	@$(MAKE) license buf-lint forge-lint golangci
+	@$(MAKE) license buf-lint forge-lint golangci buildifier-lint
 
 #################
 #     forge     #
