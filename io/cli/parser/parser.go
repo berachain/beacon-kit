@@ -58,16 +58,17 @@ func NewAppOptionsParser(opts servertypes.AppOptions) *AppOptionsParser {
 	return &AppOptionsParser{opts}
 }
 
-// GetExecutionAddress returns the common.Address for the provided key.
+// GetExecutionAddress returns the primitives.ExecutionAddress for the provided
+// key.
 func (c *AppOptionsParser) GetExecutionAddress(
 	key string,
-) (common.Address, error) {
+) (primitives.ExecutionAddress, error) {
 	addressStr, err := c.GetString(key)
 	if err != nil {
-		return common.Address{}, err
+		return primitives.ExecutionAddress{}, err
 	}
 	if !common.IsHexAddress(addressStr) {
-		return common.Address{}, fmt.Errorf(
+		return primitives.ExecutionAddress{}, fmt.Errorf(
 			"invalid address: %s flag %s",
 			addressStr,
 			key,
@@ -76,12 +77,13 @@ func (c *AppOptionsParser) GetExecutionAddress(
 	return common.HexToAddress(addressStr), nil
 }
 
-// GetCommonAddressList retrieves a list of common.Address from a configuration
+// GetCommonAddressList retrieves a list of primitives.ExecutionAddress from a
+// configuration
 // key.
 func (c *AppOptionsParser) GetCommonAddressList(
 	key string,
-) ([]common.Address, error) {
-	addresses := make([]common.Address, 0)
+) ([]primitives.ExecutionAddress, error) {
+	addresses := make([]primitives.ExecutionAddress, 0)
 	addressStrs := cast.ToStringSlice(c.Get(key))
 	for _, addressStr := range addressStrs {
 		address := common.HexToAddress(addressStr)
