@@ -26,14 +26,14 @@
 participants:
   - el_client_type: reth
     cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-30-g7f544835
+    cl_client_image: beacond:0.0.5-alpha-42-gf2465453
   - el_client_type: reth
     cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-30-g7f544835
+    cl_client_image: beacond:0.0.5-alpha-42-gf2465453
   - el_client_type: reth
     cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-30-g7f544835
+    cl_client_image: beacond:0.0.5-alpha-42-gf2465453
   - el_client_type: reth
     cl_client_type: beaconkit
-    cl_client_image: beacond:0.0.5-alpha-30-g7f544835
+    cl_client_image: beacond:0.0.5-alpha-42-gf2465453
 additional_services: []

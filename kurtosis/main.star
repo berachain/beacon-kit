@@ -139,11 +139,13 @@ def run(plan, args = {}):
             cl_service_name,
         )
 
+    el_client_contexts = []
     # 4. Start network participants
     for n in range(num_participants):
         # 4a. Launch EL
         el_service_name = "el-{}-reth-beaconkit".format(n)
-        el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params)
+        el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_client_contexts)
+        el_client_contexts.append(el_client_context)
         plan.print(el_client_context)
 
         # 4b. Launch CL
