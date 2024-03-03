@@ -40,20 +40,13 @@ type beaconStateProvider interface {
 	BeaconState(context.Context) state.BeaconState
 }
 
-type blsSigner interface {
-	Sign([]byte) [bls12_381.SignatureLength]byte
-	Verify(
-		[bls12_381.PubKeyLength]byte,
-		[]byte,
-		[bls12_381.SignatureLength]byte,
-	) bool
-}
-
 // Processor is the randao processor.
 type Processor struct {
 	beaconStateProvider
-	signer blsSigner
-	cfg    *Config
+
+	signer bls12_381.BlsSigner
+
+	cfg *Config
 }
 
 // BuildReveal creates a reveal for the proposer.
@@ -72,9 +65,11 @@ func (rs *Processor) BuildReveal(
 ) (types.Reveal, error) {
 	domain := rs.getDomain(epoch, nil)
 	signingRoot := rs.computeSigningRoot(epoch, domain)
-	return rs.signer.Sign(signingRoot), nil
+
+	return rs.signer.Sign(signingRoot)
 }
 
+// ProcessRandao
 // def process_randao(state: BeaconState, body: BeaconBlockBody) -> None:
 //
 //	epoch = get_current_epoch(state)
@@ -93,7 +88,9 @@ func (rs *Processor) ProcessRandao(
 ) error {
 	st := rs.BeaconState(ctx)
 	signingRoot := rs.computeSigningRoot(epoch, rs.getDomain(epoch, nil))
-	rs.signer.Verify(proposerPubkey, signingRoot, prevReveal)
+
+	bls12_381.VerifySignature(proposerPubkey, signingRoot, prevReveal)
+
 	mix, err := st.RandaoMix()
 	if err != nil {
 		return err
