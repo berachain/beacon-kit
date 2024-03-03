@@ -1,0 +1,1 @@
+blockscout = import_module("github.com/kurtosis-tech/ethereum-package/src/blockscout/blockscout_launcher.star")

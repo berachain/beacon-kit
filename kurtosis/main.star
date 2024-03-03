@@ -13,6 +13,7 @@ execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 constants = import_module("./src/constants.star")
 genesis = import_module("./src/networks/networks.star")
+blockscout = import_module("github.com/kurtosis-tech/ethereum-package/src/blockscout/blockscout_launcher.star")
 
 def run(plan, args = {}):
     """
@@ -41,7 +42,7 @@ def run(plan, args = {}):
 
     # 3. Perform genesis ceremony
     for n in range(num_participants):
-        cl_service_name = "cl-{}-reth-beaconkit".format(n)
+        cl_service_name = "cl-{}-{}-beaconkit".format(n, args_with_right_defaults.participants[n].el_client_type)
         engine_dial_url = ""  # not needed for this step
         beacond_config = beacond.get_config(
             args_with_right_defaults.participants[n].cl_client_image,
@@ -144,13 +145,13 @@ def run(plan, args = {}):
     # 4. Start network participants
     for n in range(num_participants):
         # 4a. Launch EL
-        el_service_name = "el-{}-reth-beaconkit".format(n)
-        el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_client_contexts)
+        el_service_name = "el-{}-{}-beaconkit".format(n, args_with_right_defaults.participants[n].el_client_type)
+        el_client_context = execution.get_client(plan, args_with_right_defaults.participants[n].el_client_type, evm_genesis_data, jwt_file, el_service_name, network_params, el_client_contexts)
         el_client_contexts.append(el_client_context)
         plan.print(el_client_context)
 
         # 4b. Launch CL
-        cl_service_name = "cl-{}-reth-beaconkit".format(n)
+        cl_service_name = "cl-{}-{}-beaconkit".format(n, args_with_right_defaults.participants[n].el_client_type)
         engine_dial_url = "http://{}:{}".format(el_client_context.service_name, el_client_context.engine_rpc_port_num)
 
         # Get peers for this node
@@ -180,3 +181,11 @@ def run(plan, args = {}):
             name = cl_service_name,
             config = beacond_config,
         )
+
+    # 5. Launch Blockscout
+    blockscout_sc_verif_url = blockscout.launch_blockscout(
+        plan,
+        el_client_contexts[3:],
+        False,
+        {},
+    )
