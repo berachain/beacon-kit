@@ -19,13 +19,13 @@ def get_launcher(evm_genesis_data, jwt_file, network_params):
 
 def get_context(plan, el_launcher, el_service_name, launch_method, existing_el_clients = [], participant_log_level = "info"):
     extra_params = []
-    
+
     if len(existing_el_clients) > 0:
         enode_args = [
             ctx.enode + "#" + ctx.ip_addr
             for ctx in existing_el_clients
         ]
-    
+
         result = plan.run_python(
             run = """import sys
 enodes = []
@@ -37,11 +37,10 @@ for enode in sys.argv[1:]:
 enode_str = ",".join(enodes)
 print(enode_str)
 """,
-            args=enode_args
+            args = enode_args,
         )
 
-
-        peer_nodes = result.output        
+        peer_nodes = result.output
 
         trusted_peers_cmd = "--trusted-peers=" + peer_nodes
         bootnodes_cmd = "--bootnodes=" + peer_nodes

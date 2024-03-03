@@ -140,6 +140,7 @@ def run(plan, args = {}):
         )
 
     el_client_contexts = []
+
     # 4. Start network participants
     for n in range(num_participants):
         # 4a. Launch EL
