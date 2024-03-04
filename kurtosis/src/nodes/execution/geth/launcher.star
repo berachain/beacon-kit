@@ -1,8 +1,11 @@
 shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
 constants = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/constants.star")
+el_client_context = import_module("github.com/kurtosis-tech/ethereum-package/src/el/el_client_context.star")
+
 
 service_config_lib = import_module("../../../lib/service_config.star")
 port_spec_lib = import_module("../../../lib/port_spec.star")
+builtins = import_module("../../../lib/builtins.star")
 
 # service_config = import_module("/lib/service_config.star")
 
@@ -77,11 +80,15 @@ DEFAULT_IMAGE = "ethereum/client-go:latest"
 DEFAULT_ENTRYPOINT_ARGS = ["sh", "-c"]
 DEFAULT_CONFIG_LOCATION = "/root/.geth/geth-config.toml"
 DEFAULT_CMD = ["geth", "config=", DEFAULT_CONFIG_LOCATION, "--nat=extip:", PRIVATE_IP_ADDRESS_PLACEHOLDER]
+DEFAULT_FILES = {
+    "/root/.geth/geth-config.toml": "geth-config",
+    "/jwt": "jwt_file",
+}
 
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
-def get_default_service_config():
-    sc = service_config_lib.get_service_config_template(DEFAULT_IMAGE, ports=USED_PORTS_TEMPLATE, entrypoint=DEFAULT_ENTRYPOINT_ARGS, cmd=DEFAULT_CMD)
+def get_default_service_config(service_name):
+    sc = service_config_lib.get_service_config_template(service_name, DEFAULT_IMAGE, ports=USED_PORTS_TEMPLATE, entrypoint=DEFAULT_ENTRYPOINT_ARGS, cmd=DEFAULT_CMD)
     
     return sc
 
@@ -98,10 +105,27 @@ def upload_global_files(plan):
     return artifact_names
 
 def add_bootnodes(config, bootnodes):
-    if len(bootnodes) > 0:
-        config['cmd'].append("--bootnodes=")
-        
-        bootnodes_str = ','.join(bootnodes)
-        config['cmd'].append(bootnodes_str)
-    
+    if type(bootnodes) == builtins.types.list:
+        if len(bootnodes) > 0:
+            cmdList = config['cmd'][:]
+            cmdList.append("--bootnodes=")
+            config['cmd'] = cmdList
+
+            bootnodes_str = ','.join(bootnodes)
+            config['cmd'].append(bootnodes_str)
+    elif type(bootnodes) == builtins.types.str:
+        if len(bootnodes) > 0:
+            config['cmd'].append("--bootnodes=")
+            config['cmd'].append(bootnodes)
+    else:
+        fail("Bootnodes was not a list or string, but instead a {}", type(bootnodes))
+
     return config
+
+def deploy_node(plan, config):
+    service_config = service_config_lib.create_from_config(config)
+
+    plan.add_service(
+        name=config['name'],
+        config=service_config,
+    )

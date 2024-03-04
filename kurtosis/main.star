@@ -6,13 +6,12 @@ el_cl_genesis_data_generator = import_module(
 )
 geth = import_module("./src/nodes/execution/geth/launcher.star")
 
-eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
+
 participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
 
 execution = import_module("./src/nodes/execution/execution.star")
 execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
-constants = import_module("./src/constants.star")
 genesis = import_module("./src/networks/networks.star")
 
 def run(plan, args = {}):
@@ -23,166 +22,168 @@ def run(plan, args = {}):
       plan: The execution plan to be run.
       args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
-    geth_sc = geth.get_default_service_config()
-    plan.print(geth_sc)
 
+    plan.print("Your args: {}".format(args))
+    args_with_right_defaults = input_parser.input_parser(plan, args)
+    num_participants = len(args_with_right_defaults.participants)
 
+    network_params = args_with_right_defaults.network_params
 
-    # plan.print("Your args: {}".format(args))
-    # args_with_right_defaults = input_parser.input_parser(plan, args)
-    # num_participants = len(args_with_right_defaults.participants)
+    # 1. Initialize EVM genesis data
+    evm_genesis_data = genesis.get_genesis_data(plan)
 
-    # network_params = args_with_right_defaults.network_params
+    # 2. Upload jwt
+    jwt_file = execution.upload_global_files(plan)
 
-    # # 1. Initialize EVM genesis data
-    # evm_genesis_data = genesis.get_genesis_data(plan)
+    node_peering_info = []
 
-    # # 2. Upload jwt
-    # jwt_file = plan.upload_files(
-    #     src = constants.KURTOSIS_ETH_PACKAGE_URL + eth_static_files.JWT_PATH_FILEPATH,
-    #     name = "jwt_file",
-    # )
+    # 3. Perform genesis ceremony
+    for n in range(num_participants):
+        cl_service_name = "cl-{}-reth-beaconkit".format(n)
+        engine_dial_url = ""  # not needed for this step
+        beacond_config = beacond.get_config(
+            args_with_right_defaults.participants[n].cl_client_image,
+            jwt_file,
+            engine_dial_url,
+            cl_service_name,
+            expose_ports = False,
+        )
 
-    # node_peering_info = []
+        if n > 0:
+            beacond_config.files["/root/.beacond/config"] = Directory(
+                artifact_names = ["cosmos-genesis-{}".format(n - 1)],
+            )
 
-    # # 3. Perform genesis ceremony
-    # for n in range(num_participants):
-    #     cl_service_name = "cl-{}-reth-beaconkit".format(n)
-    #     engine_dial_url = ""  # not needed for this step
-    #     beacond_config = beacond.get_config(
-    #         args_with_right_defaults.participants[n].cl_client_image,
-    #         jwt_file,
-    #         engine_dial_url,
-    #         cl_service_name,
-    #         expose_ports = False,
-    #     )
+        if n == num_participants - 1 and n != 0:
+            collected_gentx = []
+            for other_participant_id in range(num_participants - 1):
+                collected_gentx.append("cosmos-gentx-{}".format(other_participant_id))
 
-    #     if n > 0:
-    #         beacond_config.files["/root/.beacond/config"] = Directory(
-    #             artifact_names = ["cosmos-genesis-{}".format(n - 1)],
-    #         )
+            beacond_config.files["/root/.beacond/config/gentx"] = Directory(
+                artifact_names = collected_gentx,
+            )
 
-    #     if n == num_participants - 1 and n != 0:
-    #         collected_gentx = []
-    #         for other_participant_id in range(num_participants - 1):
-    #             collected_gentx.append("cosmos-gentx-{}".format(other_participant_id))
+        cl_service = plan.add_service(
+            name = cl_service_name,
+            config = beacond_config,
+        )
 
-    #         beacond_config.files["/root/.beacond/config/gentx"] = Directory(
-    #             artifact_names = collected_gentx,
-    #         )
+        exec_recipe = None
+        if n == 0:
+            exec_recipe = ExecRecipe(
+                # Initialize the Cosmos genesis file
+                command = ["/usr/bin/init_first.sh"],
+            )
+        else:
+            exec_recipe = ExecRecipe(
+                # Initialize the Cosmos genesis file
+                command = ["/usr/bin/init_others.sh"],
+            )
 
-    #     cl_service = plan.add_service(
-    #         name = cl_service_name,
-    #         config = beacond_config,
-    #     )
+        result = plan.exec(
+            service_name = cl_service_name,
+            recipe = exec_recipe,
+        )
 
-    #     exec_recipe = None
-    #     if n == 0:
-    #         exec_recipe = ExecRecipe(
-    #             # Initialize the Cosmos genesis file
-    #             command = ["/usr/bin/init_first.sh"],
-    #         )
-    #     else:
-    #         exec_recipe = ExecRecipe(
-    #             # Initialize the Cosmos genesis file
-    #             command = ["/usr/bin/init_others.sh"],
-    #         )
+        peer_result = plan.exec(
+            service_name = cl_service_name,
+            recipe = ExecRecipe(
+                command = ["bash", "-c", "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'"],
+            ),
+        )
 
-    #     result = plan.exec(
-    #         service_name = cl_service_name,
-    #         recipe = exec_recipe,
-    #     )
+        node_peering_info.append(peer_result["output"] + "@" + cl_service.ip_address + ":26656")
 
-    #     peer_result = plan.exec(
-    #         service_name = cl_service_name,
-    #         recipe = ExecRecipe(
-    #             command = ["bash", "-c", "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'"],
-    #         ),
-    #     )
+        file_suffix = "{}".format(n)
+        if n == num_participants - 1:
+            finalize_recipe = ExecRecipe(
+                # Initialize the Cosmos genesis file
+                command = ["/usr/bin/finalize.sh"],
+            )
+            result = plan.exec(
+                service_name = cl_service_name,
+                recipe = finalize_recipe,
+            )
+            file_suffix = "final"
 
-    #     node_peering_info.append(peer_result["output"] + "@" + cl_service.ip_address + ":26656")
+        node_beacond_config = plan.store_service_files(
+            service_name = cl_service_name,
+            src = "/root/.beacond",
+            name = "node-beacond-config-{}".format(n),
+        )
 
-    #     file_suffix = "{}".format(n)
-    #     if n == num_participants - 1:
-    #         finalize_recipe = ExecRecipe(
-    #             # Initialize the Cosmos genesis file
-    #             command = ["/usr/bin/finalize.sh"],
-    #         )
-    #         result = plan.exec(
-    #             service_name = cl_service_name,
-    #             recipe = finalize_recipe,
-    #         )
-    #         file_suffix = "final"
+        genesis_artifact = plan.store_service_files(
+            # The service name of a preexisting service from which the file will be copied.
+            service_name = cl_service_name,
 
-    #     node_beacond_config = plan.store_service_files(
-    #         service_name = cl_service_name,
-    #         src = "/root/.beacond",
-    #         name = "node-beacond-config-{}".format(n),
-    #     )
+            # The path on the service's container that will be copied into a files artifact.
+            # MANDATORY
+            src = "/root/.beacond/config/genesis.json",
 
-    #     genesis_artifact = plan.store_service_files(
-    #         # The service name of a preexisting service from which the file will be copied.
-    #         service_name = cl_service_name,
+            # The name to give the files artifact that will be produced.
+            # If not specified, it will be auto-generated.
+            # OPTIONAL
+            name = "cosmos-genesis-{}".format(file_suffix),
+        )
 
-    #         # The path on the service's container that will be copied into a files artifact.
-    #         # MANDATORY
-    #         src = "/root/.beacond/config/genesis.json",
+        gentx_artifact = plan.store_service_files(
+            service_name = cl_service_name,
+            src = "/root/.beacond/config/gentx/*",
+            name = "cosmos-gentx-{}".format(n),
+        )
 
-    #         # The name to give the files artifact that will be produced.
-    #         # If not specified, it will be auto-generated.
-    #         # OPTIONAL
-    #         name = "cosmos-genesis-{}".format(file_suffix),
-    #     )
+        # Node has completed its genesis step. We will add it back later once genesis is complete
+        plan.remove_service(
+            cl_service_name,
+        )
 
-    #     gentx_artifact = plan.store_service_files(
-    #         service_name = cl_service_name,
-    #         src = "/root/.beacond/config/gentx/*",
-    #         name = "cosmos-gentx-{}".format(n),
-    #     )
+    el_enode_addrs = []
 
-    #     # Node has completed its genesis step. We will add it back later once genesis is complete
-    #     plan.remove_service(
-    #         cl_service_name,
-    #     )
+    # 4. Start network participants
+    for n in range(num_participants):
+        el_client_type = args_with_right_defaults.participants[n].el_client_type
+        el_service_name = "el-{}-{}-beaconkit".format(n, el_client_type)
 
-    # el_client_contexts = []
+        # 4a. Launch EL
+        if el_client_type == execution_types.CLIENTS.geth:
+            el_service_config_dict = execution.get_default_service_config(el_service_name, el_client_type)
+            geth.add_bootnodes(el_service_config_dict, el_enode_addrs)
+            geth.deploy_node(plan, el_service_config_dict)
+        else:
+            el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_enode_addrs)
 
-    # # 4. Start network participants
-    # for n in range(num_participants):
-    #     # 4a. Launch EL
-    #     el_service_name = "el-{}-reth-beaconkit".format(n)
-    #     el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_client_contexts)
-    #     el_client_contexts.append(el_client_context)
-    #     plan.print(el_client_context)
+        el_client_service = plan.get_service(el_service_name)
+        enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name)
+        el_enode_addrs.append(enode_addr)
 
-    #     # 4b. Launch CL
-    #     cl_service_name = "cl-{}-reth-beaconkit".format(n)
-    #     engine_dial_url = "http://{}:{}".format(el_client_context.service_name, el_client_context.engine_rpc_port_num)
+        # 4b. Launch CL
+        cl_service_name = "cl-{}-{}-beaconkit".format(n, el_client_type)
+        engine_dial_url = "http://{}:{}".format(el_client_context.service_name, el_client_context.engine_rpc_port_num)
 
-    #     # Get peers for this node
-    #     my_peers = node_peering_info[:]
-    #     my_peers.pop(n)
-    #     persistent_peers = ",".join(my_peers)
+        # Get peers for the cl node
+        my_peers = node_peering_info[:]
+        my_peers.pop(n)
+        persistent_peers = ",".join(my_peers)
 
-    #     beacond_config = beacond.get_config(
-    #         args_with_right_defaults.participants[n].cl_client_image,
-    #         jwt_file,
-    #         engine_dial_url,
-    #         cl_service_name,
-    #         entrypoint = ["bash"],
-    #         cmd = ["-c", "/usr/bin/start.sh"],
-    #         persistent_peers = persistent_peers,
-    #     )
+        beacond_config = beacond.get_config(
+            args_with_right_defaults.participants[n].cl_client_image,
+            jwt_file,
+            engine_dial_url,
+            cl_service_name,
+            entrypoint = ["bash"],
+            cmd = ["-c", "/usr/bin/start.sh"],
+            persistent_peers = persistent_peers,
+        )
 
-    #     # Add back in the node's config data and overwrite genesis.json with final genesis file
-    #     beacond_config.files["/root"] = Directory(
-    #         artifact_names = ["node-beacond-config-{}".format(n)],
-    #     )
-    #     beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])
+        # Add back in the node's config data and overwrite genesis.json with final genesis file
+        beacond_config.files["/root"] = Directory(
+            artifact_names = ["node-beacond-config-{}".format(n)],
+        )
+        beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])
 
-    #     plan.print(beacond_config)
+        plan.print(beacond_config)
 
-    #     plan.add_service(
-    #         name = cl_service_name,
-    #         config = beacond_config,
-    #     )
+        plan.add_service(
+            name = cl_service_name,
+            config = beacond_config,
+        )
