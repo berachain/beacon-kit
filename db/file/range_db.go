@@ -51,32 +51,28 @@ func NewRangeDB[T numeric](db *DB) *RangeDB[T] {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB[T]) Get(index T, key []byte) ([]byte, error) {
-	prefixedKey := append([]byte(fmt.Sprintf("%d/", index)), key...)
-	return db.DB.Get(prefixedKey)
+	return db.DB.Get(db.prefix(index, key))
 }
 
 // Has checks if the given index and key exist in the database.
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB[T]) Has(index T, key []byte) (bool, error) {
-	prefixedKey := append([]byte(fmt.Sprintf("%d/", index)), key...)
-	return db.DB.Has(prefixedKey)
+	return db.DB.Has(db.prefix(index, key))
 }
 
 // Set stores the value with the given index and key in the database.
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
 func (db *RangeDB[T]) Set(index T, key []byte, value []byte) error {
-	prefixedKey := append([]byte(fmt.Sprintf("%d/", index)), key...)
-	return db.DB.Set(prefixedKey, value)
+	return db.DB.Set(db.prefix(index, key), value)
 }
 
 // Delete removes the value associated with the given index and key from the
 // database. It prefixes the key with the index and a slash before deleting it
 // from the underlying database.
 func (db *RangeDB[T]) Delete(index T, key []byte) error {
-	prefixedKey := append([]byte(fmt.Sprintf("%d/", index)), key...)
-	return db.DB.Delete(prefixedKey)
+	return db.DB.Delete(db.prefix(index, key))
 }
 
 // DeleteRange removes all values associated with the given index from the
@@ -84,10 +80,14 @@ func (db *RangeDB[T]) Delete(index T, key []byte) error {
 // the `to“ index.
 func (db *RangeDB[T]) DeleteRange(from, to T) error {
 	for ; from < to; from++ {
-		err := db.fs.RemoveAll(fmt.Sprintf("%d", from))
+		err := db.fs.RemoveAll(string(db.prefix(from, nil)))
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (db *RangeDB[T]) prefix(index T, key []byte) []byte {
+	return append([]byte(fmt.Sprintf("%d/", index)), key...)
 }
