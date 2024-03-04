@@ -29,8 +29,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"cosmossdk.io/errors"
 	"cosmossdk.io/log"
+	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
 
@@ -77,7 +77,7 @@ func (db *DB) Set(key []byte, value []byte) error {
 	if exists, err := afero.Exists(db.fs, db.pathForKey(key)); err != nil {
 		return err
 	} else if exists {
-		db.logger.Warn("overriding existing key")
+		db.logger.Warn("overriding existing key", "key", key)
 	}
 
 	if err := db.fs.MkdirAll(
