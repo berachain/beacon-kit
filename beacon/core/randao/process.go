@@ -59,7 +59,6 @@ type Processor struct {
 //
 //	return bls.Sign(privkey, signing_root)
 func (rs *Processor) BuildReveal(
-	_ context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
 	domain := rs.getDomain(epoch, nil)
@@ -88,7 +87,7 @@ func (rs *Processor) ProcessRandao(
 	st := rs.BeaconState(ctx)
 	signingRoot := rs.computeSigningRoot(epoch, rs.getDomain(epoch, nil))
 
-	bls12_381.VerifySignature(proposerPubkey, signingRoot, prevReveal)
+	rs.signer.Verify(proposerPubkey, signingRoot, prevReveal)
 
 	mix, err := st.RandaoMix()
 	if err != nil {
