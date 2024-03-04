@@ -121,12 +121,12 @@ func (s *Service) ReceiveBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, buoy beacontypes.ReadOnlyBeaconBuoy,
 ) error {
-	executionData, err := buoy.ExecutionPayload()
+	payload, err := buoy.ExecutionPayload()
 	if err != nil {
 		return err
 	}
 
-	if executionData == nil || executionData.IsEmpty() {
+	if payload == nil || payload.IsEmpty() {
 		return errors.New("no payload in beacon block")
 	}
 
@@ -157,12 +157,12 @@ func (s *Service) validateExecutionOnBlock(
 		return false, errors.New("nil beacon buoy")
 	}
 
-	executionData, err := buoy.ExecutionPayload()
+	payload, err := buoy.ExecutionPayload()
 	if err != nil {
 		return false, err
 	}
 
-	if executionData == nil || executionData.IsEmpty() {
+	if payload == nil || payload.IsEmpty() {
 		return false, errors.New("no payload in beacon block")
 	}
 
@@ -170,10 +170,10 @@ func (s *Service) validateExecutionOnBlock(
 	// we purposefully reject any block that is not a child of the last
 	// finalized block.
 	safeHash := s.ForkchoiceStore(ctx).GetSafeEth1BlockHash()
-	if !bytes.Equal(safeHash[:], executionData.GetParentHash()) {
+	if !bytes.Equal(safeHash[:], payload.GetParentHash()) {
 		return false, fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
-			executionData.GetParentHash(),
+			payload.GetParentHash(),
 			safeHash,
 		)
 	}
@@ -182,7 +182,7 @@ func (s *Service) validateExecutionOnBlock(
 	return s.es.NotifyNewPayload(
 		ctx,
 		buoy.GetSlot(),
-		executionData,
+		payload,
 		kzg.ConvertCommitmentsToVersionedHashes(buoy.GetBlobKzgCommitments()),
 		common.Hash(buoy.GetParentBlockRoot()),
 	)
