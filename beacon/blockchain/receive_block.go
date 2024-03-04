@@ -31,7 +31,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -159,21 +158,6 @@ func (s *Service) validateExecutionOnBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBuoy,
 ) (bool, error) {
-	payload, err := blk.ExecutionPayload()
-	if err != nil {
-		return false, err
-	}
-
-	if payload == nil || payload.IsEmpty() {
-		return false, errors.New("no payload in beacon block")
-	}
-
 	// TODO: add some more safety checks here.
-	return s.es.NotifyNewPayload(
-		ctx,
-		blk.GetSlot(),
-		payload,
-		[]common.Hash{},
-		common.Hash(blk.GetParentRoot()),
-	)
+	return s.notifyNewPayload(ctx, blk)
 }

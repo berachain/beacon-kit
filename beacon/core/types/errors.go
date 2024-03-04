@@ -37,4 +37,7 @@ var (
 	// ErrForkVersionNotSupported is an error for when the fork
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
+
+	// ErrNilBuoy is an error for when the buoy is nil.
+	ErrNilBuoy = errors.New("nil buoy")
 )

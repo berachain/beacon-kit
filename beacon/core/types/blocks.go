@@ -92,3 +92,14 @@ func BeaconBuoyFromSSZ(
 	}
 	return block, nil
 }
+
+// BeaconBlockIsNil checks if any composite field of input signed beacon block
+// is nil.
+// Access to these nil fields will result in run time panic,
+// it is recommended to run these checks as first line of defense.
+func BeaconBuoyIsNil(b ReadOnlyBeaconBuoy) error {
+	if b == nil || b.IsNil() {
+		return ErrNilBuoy
+	}
+	return nil
+}
