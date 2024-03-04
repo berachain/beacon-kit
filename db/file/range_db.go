@@ -88,6 +88,7 @@ func (db *RangeDB[T]) DeleteRange(from, to T) error {
 	return nil
 }
 
+// prefix prefixes the given key with the index and a slash.
 func (db *RangeDB[T]) prefix(index T, key []byte) []byte {
 	return append([]byte(fmt.Sprintf("%d/", index)), key...)
 }
