@@ -27,7 +27,7 @@ package beacon
 
 import (
 	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // SetLastValidHead sets the last valid head in the store.
