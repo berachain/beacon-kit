@@ -163,6 +163,8 @@ func NewBeaconKitApp(
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
 
+	app.CommitMultiStore()
+
 	/**** End of BeaconKit Configuration ****/
 
 	// register streaming services

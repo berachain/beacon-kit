@@ -46,7 +46,7 @@ func NewRangeDBPruner[T numeric](
 	}
 }
 
-// NewRangeDBPruner creates a new RangeDBPruner.
+// Start starts a goroutine that listens for new indices to prune.
 func (p *RangeDBPruner[T]) Start(ctx context.Context) {
 	go p.runLoop(ctx)
 }
