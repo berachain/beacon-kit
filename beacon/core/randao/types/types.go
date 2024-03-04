@@ -26,7 +26,6 @@
 package types
 
 import (
-	"github.com/berachain/comet-bls12-381/bls/blst"
 	bls "github.com/itsdevbear/bolaris/crypto/bls12_381"
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 )
@@ -40,25 +39,6 @@ func BuildDomain() Domain {
 // Reveal represents the signature of the RANDAO reveal.
 type Reveal [bls.SignatureLength]byte
 
-// BuildReveal creates a new Reveal from the given signature.
-//
-// https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/phase0/validator.md#randao-reveal
-//
-// nolint:lll
-func BuildReveal(signData []byte, privKey [bls.SecretKeyLength]byte) Reveal {
-	pk, err := blst.SecretKeyFromBytes(privKey[:])
-	if err != nil {
-		panic(err)
-	}
-
-	sig := pk.Sign(signData)
-
-	var reveal Reveal
-	copy(reveal[:], sig.Marshal())
-
-	return reveal
-}
-
 // Mix
 // We can think of a RANDAO as being like a deck of cards that's passed round
 // the table, each person shuffling it in turn: the deck gets repeatedly
@@ -71,11 +51,11 @@ func BuildReveal(signData []byte, privKey [bls.SecretKeyLength]byte) Reveal {
 type Mix [32]byte
 
 // MixinNewReveal
-// the new Hash into the current Mix. We first take the existing reveal and
-// hash itt hen we XOR the result into the current mix.
+// mixes a new reveal to the current mix and returns the result.
 func (m Mix) MixinNewReveal(reveal Reveal) Mix {
 	for idx, b := range sha256.Hash(reveal[:]) {
 		m[idx] ^= b
 	}
+
 	return m
 }

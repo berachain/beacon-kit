@@ -26,12 +26,12 @@
 package types_test
 
 import (
+	"crypto/rand"
+	bls "github.com/itsdevbear/bolaris/crypto/bls12_381"
 	"testing"
 
-	"github.com/berachain/comet-bls12-381/bls/blst"
 	"github.com/stretchr/testify/require"
 
-	"github.com/itsdevbear/bolaris/beacon/core/randao"
 	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	"github.com/itsdevbear/bolaris/crypto/sha256"
 )
@@ -39,37 +39,29 @@ import (
 func TestMix(t *testing.T) {
 	var initMix types.Mix = sha256.Hash([]byte("init"))
 
-	pvKey1, err := blst.RandKey()
+	var randomReveal1 [bls.SignatureLength]byte
+	_, err := rand.Read(randomReveal1[:])
 	require.NoError(t, err)
-
-	pvKey2, err := blst.RandKey()
-	require.NoError(t, err)
-
-	signingData := randao.SigningData{
-		Epoch:   12,
-		ChainID: "berachain-1",
-	}
 
 	// Reveal 1, first signer
-	reveal1, err := blst2.NewRandaoReveal(signingData, pvKey1)
-	require.NoError(t, err)
-
-	mix1 := initMix.MixWithReveal(reveal1)
-	require.NoError(t, err)
-	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1.Marshal())))
+	mix1 := initMix.MixinNewReveal(randomReveal1)
+	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(randomReveal1[:])))
 
 	// Reveal 2, second signer
-	reveal2, err := blst2.NewRandaoReveal(signingData, pvKey2)
+	var randomReveal2 [bls.SignatureLength]byte
+	_, err = rand.Read(randomReveal2[:])
 	require.NoError(t, err)
-	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(reveal1.Marshal())))
 
-	mix2 := mix1.MixWithReveal(reveal2)
-	require.NoError(t, err)
-	require.Equal(t, mix2, xor(mix1, sha256.Hash(reveal2.Marshal())))
+	mix2 := mix1.MixinNewReveal(randomReveal2)
+	require.Equal(t, mix2, xor(mix1, sha256.Hash(randomReveal2[:])))
 
 	// XOR is commutative
-	altMix1 := initMix.MixWithReveal(reveal2)
-	altMix2 := altMix1.MixWithReveal(reveal1)
+	altMix1 := initMix.MixinNewReveal(randomReveal2)
+	require.Equal(t, altMix1, xor(sha256.Hash([]byte("init")), sha256.Hash(randomReveal2[:])))
+
+	altMix2 := altMix1.MixinNewReveal(randomReveal1)
+	require.Equal(t, altMix2, xor(altMix1, sha256.Hash(randomReveal1[:])))
+
 	require.NotEqual(t, mix1, altMix1) // first mix is different
 	require.Equal(t, mix2, altMix2)    // but the second mix is the same
 }
