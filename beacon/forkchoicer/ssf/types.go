@@ -23,26 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package ssf
 
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	ssf "github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
+// SingleSlotFinalityStore is the interface for the required storage
+// backend for the SingleSlotFinality forkchoice store.
+type SingleSlotFinalityStore interface {
+	// WithContext sets the context for the store.
+	WithContext(ctx context.Context) SingleSlotFinalityStore
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
+	// SetSafeEth1BlockHash sets the safe block hash in the store.
+	SetSafeEth1BlockHash(blockHash common.Hash)
+
+	// GetSafeEth1BlockHash retrieves the safe block hash from the store.
+	GetSafeEth1BlockHash() common.Hash
+
+	// SetFinalizedEth1BlockHash sets the finalized block hash in the store.
+	SetFinalizedEth1BlockHash(blockHash common.Hash)
+	// GetFinalizedEth1BlockHash retrieves the finalized block hash from the
+	// store.
+	GetFinalizedEth1BlockHash() common.Hash
+
+	// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the
+	// store.
+	GenesisEth1Hash() common.Hash
+
+	// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the store.
+	SetGenesisEth1Hash(common.Hash)
 }

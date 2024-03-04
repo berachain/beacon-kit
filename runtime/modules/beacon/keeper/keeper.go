@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
 	forkchoicestore "github.com/itsdevbear/bolaris/store/forkchoice"
@@ -61,7 +62,11 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
-func (k *Keeper) ForkchoiceStore(ctx context.Context) state.ForkchoiceStore {
+//
+// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+func (k *Keeper) ForkchoiceStore(
+	ctx context.Context,
+) ssf.SingleSlotFinalityStore {
 	return k.forkchoiceStore.WithContext(ctx)
 }
 

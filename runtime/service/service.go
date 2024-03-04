@@ -31,6 +31,9 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
+	"github.com/itsdevbear/bolaris/beacon/core/state"
+	"github.com/itsdevbear/bolaris/beacon/forkchoicer"
+	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/primitives"
 )
@@ -38,7 +41,7 @@ import (
 // BaseService is a base service that provides common functionality for all
 // services.
 type BaseService struct {
-	BeaconStorageBackend
+	bsb    BeaconStorageBackend
 	name   string
 	cfg    *config.Config
 	gcd    *dispatch.GrandCentralDispatch
@@ -59,10 +62,10 @@ func NewBaseService(
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
-		BeaconStorageBackend: bsp,
-		gcd:                  gcd,
-		logger:               logger,
-		cfg:                  cfg,
+		bsb:    bsp,
+		gcd:    gcd,
+		logger: logger,
+		cfg:    cfg,
 	}
 }
 
@@ -81,6 +84,19 @@ func (s *BaseService) Logger() log.Logger {
 // It is used for managing asynchronous tasks and dispatching events.
 func (s *BaseService) GCD() *dispatch.GrandCentralDispatch {
 	return s.gcd
+}
+
+// BeaconState returns the beacon state from the BaseService.
+func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
+	return s.bsb.BeaconState(ctx)
+}
+
+// ForkchoiceStore returns the forkchoice store from the BaseService.
+func (s *BaseService) ForkchoiceStore(
+	ctx context.Context,
+) forkchoicer.ForkChoicer {
+	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+	return ssf.New(s.bsb.ForkchoiceStore(ctx))
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from
