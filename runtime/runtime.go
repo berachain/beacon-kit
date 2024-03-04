@@ -44,6 +44,8 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/health"
+	// blank import to register uber maxprocs.
+	_ "github.com/itsdevbear/bolaris/lib/maxprocs"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
