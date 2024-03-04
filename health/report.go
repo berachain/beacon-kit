@@ -51,13 +51,16 @@ func (s *Service) reportingLoop(ctx context.Context) {
 // reportStatuses logs the health status of all services.
 func (s *Service) reportStatuses() {
 	svcStatuses := s.retrieveStatuses()
+	var unhealthy []string
 	for _, svc := range svcStatuses {
-		if svc.Healthy {
-			s.Logger().
-				Info("service is reporting healthy 🌤️ ", "service", svc.Name)
-		} else {
-			s.Logger().Error("service is reporting unhealthy 🌧️ ",
-				"service", svc.Name, "status", svc.Err)
+		if !svc.Healthy {
+			unhealthy = append(unhealthy, svc.Name)
 		}
 	}
+
+	if len(unhealthy) == 0 {
+		s.Logger().Info("all beacon services are reporting healthy 🌤️ ")
+		return
+	}
+	s.Logger().Error("unhealthy services detected 🌧️ ", "services", unhealthy)
 }
