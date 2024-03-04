@@ -23,48 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package kzg_test
 
 import (
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
+	"testing"
+
+	"github.com/itsdevbear/bolaris/crypto/kzg"
 )
 
-// BeaconBuoy is the interface for a beacon block.
-type BeaconBuoy interface {
-	ReadOnlyBeaconBuoy
-	WriteOnlyBeaconBuoy
+func TestConvertCommitmentToVersionedHash(t *testing.T) {
+	commitment := []byte("test commitment")
+	// Assuming BlobCommitmentVersion is a byte value
+	expectedPrefix := kzg.BlobCommitmentVersion
+
+	hash := kzg.ConvertCommitmentToVersionedHash(commitment)
+	if hash[0] != expectedPrefix {
+		t.Errorf(
+			"expected first byte of hash to be %v, got %v",
+			expectedPrefix,
+			hash[0],
+		)
+	}
+
+	if len(hash) != 32 {
+		t.Errorf("expected hash length to be 32, got %d", len(hash))
+	}
 }
 
-type BeaconBlockBody interface {
-	ReadOnlyBeaconBuoyBody
-}
+func TestConvertCommitmentsToVersionedHashes(t *testing.T) {
+	commitments := [][]byte{
+		[]byte("commitment 1"),
+		[]byte("commitment 2"),
+	}
+	hashes := kzg.ConvertCommitmentsToVersionedHashes(commitments)
 
-type ReadOnlyBeaconBuoyBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
+	if len(hashes) != len(commitments) {
+		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))
+	}
 
-	GetBlobKzgCommitments() [][]byte
-}
-
-// ReadOnlyBeaconBuoy is the interface for a read-only beacon block.
-type ReadOnlyBeaconBuoy interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	GetParentBlockRoot() []byte
-	GetBlobKzgCommitments() [][]byte
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (enginetypes.ExecutionPayload, error)
-	Version() int
-}
-
-// WriteOnlyBeaconBuoy is the interface for a write-only beacon block.
-type WriteOnlyBeaconBuoy interface {
-	AttachExecution(enginetypes.ExecutionPayload) error
+	for i, hash := range hashes {
+		if hash[0] != kzg.BlobCommitmentVersion {
+			t.Errorf(
+				"expected first byte of hash %d to be %v, got %v",
+				i,
+				kzg.BlobCommitmentVersion,
+				hash[0],
+			)
+		}
+	}
 }

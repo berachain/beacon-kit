@@ -40,7 +40,7 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
+	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
 ) ([]byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -72,7 +72,7 @@ func (s *EngineClient) NewPayload(
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
+	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
 ) (*enginev1.PayloadStatus, error) {
 	switch payloadPb := payload.ToProto().(type) {
 	case *enginev1.ExecutionPayloadDeneb:

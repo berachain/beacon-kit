@@ -34,6 +34,9 @@ import (
 type ForkchoiceStore interface {
 	WriteOnlyForkChoice
 	ReadOnlyForkChoice
+
+	SetLastSeenBeaconBlock([32]byte)
+	GetLastSeenBeaconBlock() [32]byte
 }
 
 // Write Only Fork Choice.

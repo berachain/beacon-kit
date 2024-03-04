@@ -70,6 +70,10 @@ func (s *Service) FinalizeBeaconBlock(
 		}()
 	}()
 
+	if err = beacontypes.BeaconBuoyIsNil(blk); err != nil {
+		return err
+	}
+
 	payload, err = blk.ExecutionPayload()
 	if err != nil {
 		return err

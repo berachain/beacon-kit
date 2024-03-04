@@ -50,7 +50,7 @@ type Caller interface {
 	//
 	// NewPayload creates a new payload for the Ethereum execution node.
 	NewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
-		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
+		versionedHashes []common.Hash, parentBlockRoot *[32]byte) ([]byte, error)
 
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(

@@ -33,6 +33,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
+	"github.com/itsdevbear/bolaris/crypto/kzg"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -40,8 +41,8 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBuoy,
 	blockHash [32]byte,
+	buoy beacontypes.ReadOnlyBeaconBuoy,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -49,12 +50,25 @@ func (s *Service) ReceiveBeaconBlock(
 	var (
 		eg, groupCtx   = errgroup.WithContext(ctx)
 		isValidPayload bool
+		forkChoicer    = s.ForkchoiceStore(ctx)
 	)
 
-	// This go routine validators the consensus level aspects of the block.
-	// i.e: does it have a valid ancesor?
+	// If we have already seen this block, we can skip processing it.
+	// TODO: should we store some historical data here?
+	if forkChoicer.GetLastSeenBeaconBlock() == blockHash {
+		s.Logger().Info(
+			"ignoring already processed beacon block",
+			// todo: don't use common for beacontypes
+			"hash", common.Hash(blockHash).Hex(),
+		)
+		return nil
+	}
+	forkChoicer.SetLastSeenBeaconBlock(blockHash)
+
+	// This go routine validates the consensus level aspects of the block.
+	// i.e: does it have a valid ancestor?
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, blk)
+		err := s.validateStateTransition(groupCtx, buoy)
 		if err != nil {
 			s.Logger().
 				Error("failed to validate state transition", "error", err)
@@ -68,7 +82,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, blk,
+			groupCtx, buoy,
 		); err != nil {
 			s.Logger().
 				Error("failed to notify engine of new payload", "error", err)
@@ -78,14 +92,26 @@ func (s *Service) ReceiveBeaconBlock(
 		return nil
 	})
 
+	// daStartTime := time.Now()
+	// if avs != nil {
+	// 	if err := avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
+	// 		return errors.Wrap(err, "could not validate blob data availability
+	// (AvailabilityStore.IsDataAvailable)")
+	// 	}
+	// } else {
+	// 	if err := s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
+	// 		return errors.Wrap(err, "could not validate blob data availability")
+	// 	}
+	// }
+
 	// Wait for the goroutines to finish.
 	if err := eg.Wait(); err != nil {
 		return err
 	}
 
-	// If the block is valid, we can process it.
+	// Perform post block processing.
 	return s.postBlockProcess(
-		ctx, blk, blockHash, isValidPayload,
+		ctx, buoy, blockHash, isValidPayload,
 	)
 }
 
@@ -93,31 +119,18 @@ func (s *Service) ReceiveBeaconBlock(
 // TODO: Expand rules, consider modularity. Current implementation
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
-	ctx context.Context, blk beacontypes.ReadOnlyBeaconBuoy,
+	ctx context.Context, buoy beacontypes.ReadOnlyBeaconBuoy,
 ) error {
-	executionData, err := blk.ExecutionPayload()
-	if err != nil {
+	if err := beacontypes.BeaconBuoyIsNil(buoy); err != nil {
 		return err
 	}
 
-	if executionData == nil || executionData.IsEmpty() {
-		return errors.New("no payload in beacon block")
-	}
-
-	safeHash := s.ForkchoiceStore(ctx).GetSafeEth1BlockHash()
-	if !bytes.Equal(safeHash[:], executionData.GetParentHash()) {
-		return fmt.Errorf(
-			"parent block with hash %x is not finalized, expected finalized hash %x",
-			executionData.GetParentHash(),
-			safeHash,
-		)
-	}
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
-	if !bytes.Equal(parentBlockRoot[:], blk.GetParentRoot()) {
+	if !bytes.Equal(parentBlockRoot[:], buoy.GetParentBlockRoot()) {
 		return fmt.Errorf(
 			"parent root does not match, expected: %x, got: %x",
 			parentBlockRoot,
-			blk.GetParentRoot(),
+			buoy.GetParentBlockRoot(),
 		)
 	}
 
@@ -128,13 +141,18 @@ func (s *Service) validateStateTransition(
 	return nil
 }
 
-// validateExecutionOnBlock checks the validity of a proposed beacon block.
+// validateExecutionOnBlock checks the validity of a the execution payload
+// on the beacon block.
 func (s *Service) validateExecutionOnBlock(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBuoy,
+	buoy beacontypes.ReadOnlyBeaconBuoy,
 ) (bool, error) {
-	payload, err := blk.ExecutionPayload()
+	if err := beacontypes.BeaconBuoyIsNil(buoy); err != nil {
+		return false, err
+	}
+
+	payload, err := buoy.ExecutionPayload()
 	if err != nil {
 		return false, err
 	}
@@ -143,12 +161,24 @@ func (s *Service) validateExecutionOnBlock(
 		return false, errors.New("no payload in beacon block")
 	}
 
+	// In BeaconKit, since we are currently operating on SingleSlot Finality
+	// we purposefully reject any block that is not a child of the last
+	// finalized block.
+	safeHash := s.ForkchoiceStore(ctx).GetSafeEth1BlockHash()
+	if !bytes.Equal(safeHash[:], payload.GetParentHash()) {
+		return false, fmt.Errorf(
+			"parent block with hash %x is not finalized, expected finalized hash %x",
+			payload.GetParentHash(),
+			safeHash,
+		)
+	}
+
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(
 		ctx,
-		blk.GetSlot(),
+		buoy.GetSlot(),
 		payload,
-		[]common.Hash{},
-		common.Hash(blk.GetParentRoot()),
+		kzg.ConvertCommitmentsToVersionedHashes(buoy.GetBlobKzgCommitments()),
+		common.Hash(buoy.GetParentBlockRoot()),
 	)
 }

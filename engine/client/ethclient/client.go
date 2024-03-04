@@ -53,7 +53,7 @@ func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) NewPayloadV3(
 	ctx context.Context, payload *enginev1.ExecutionPayloadDeneb,
-	versionedHashes []common.Hash, parentBlockRoot *common.Hash,
+	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
 ) (*enginev1.PayloadStatus, error) {
 	result := &enginev1.PayloadStatus{}
 	if err := s.Client.Client().CallContext(

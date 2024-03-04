@@ -38,7 +38,7 @@ message BeaconBuoyDeneb {
   uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/primitives.Slot"];
 
   // 32 byte root of the parent block.
-  bytes parent_root = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+  bytes parent_block_root = 2 [(ethereum.eth.ext.ssz_size) = "32"];
 
   // BeaconBlockBody contains the body of the beacon block.
   BeaconBuoyBodyDeneb body = 3;
@@ -65,6 +65,6 @@ message BeaconBuoyBodyDeneb {
   // At most MAX_BLOBS_PER_BLOCK. New in Deneb network upgrade.
   repeated bytes blob_kzg_commitments = 5 [
     (ethereum.eth.ext.ssz_size) = "?,48",
-    (ethereum.eth.ext.ssz_max) = "16"
+    (ethereum.eth.ext.ssz_max) = "max_blob_commitments.size"
   ];
 }

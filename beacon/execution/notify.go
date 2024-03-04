@@ -32,7 +32,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/config/version"
 	"github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -47,41 +46,15 @@ func (s *Service) notifyNewPayload(
 	versionedHashes []common.Hash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
-	var (
-		lastValidHash []byte
-		err           error
-	)
-
 	s.Logger().Info("notifying new payload",
 		"payload_block_hash", common.BytesToHash(payload.GetBlockHash()),
 		"parent_hash", common.BytesToHash(payload.GetParentHash()),
 		"for_slot", slot,
 	)
 
-	if s.ActiveForkVersionForSlot(slot) >= version.Deneb {
-		// TODO: Deneb
-		// var versionedHashes []common.Hash
-		// versionedHashes, err =
-		// kzgCommitmentsToVersionedHashes(blk.Block().Body())
-		// if err != nil {
-		// 	return false, errors.Wrap(err,
-		//      "could not get versioned hashes to feed the engine")
-		// }
-		// pr := common.Hash(blk.Block().ParentRoot())
-		// lastValidHash, err = s.engine.NewP
-		// ayload(ctx, payload, versionedHashes, &pr)
-		// TODO:DENEB
-		h := common.Hash(parentBlockRoot)
-		lastValidHash, err = s.engine.NewPayload(
-			/*empty version hashes and root before Deneb*/
-			ctx, payload, versionedHashes, &h,
-		)
-	} else {
-		lastValidHash, err = s.engine.NewPayload(
-			/*empty version hashes and root before Deneb*/
-			ctx, payload, []common.Hash{}, &common.Hash{},
-		)
-	}
+	lastValidHash, err := s.engine.NewPayload(
+		ctx, payload, versionedHashes, &parentBlockRoot,
+	)
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",

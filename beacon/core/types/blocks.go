@@ -44,8 +44,8 @@ func NewBeaconBuoy(
 	switch forkVersion {
 	case version.Deneb:
 		block = &beacontypesv1.BeaconBuoyDeneb{
-			Slot:       slot,
-			ParentRoot: parentBlockRoot[:],
+			Slot:            slot,
+			ParentBlockRoot: parentBlockRoot[:],
 			Body: &beacontypesv1.BeaconBuoyBodyDeneb{
 				RandaoReveal: make([]byte, 96), //nolint:gomnd
 				Graffiti:     make([]byte, 32), //nolint:gomnd
@@ -91,4 +91,15 @@ func BeaconBuoyFromSSZ(
 		return nil, err
 	}
 	return block, nil
+}
+
+// BeaconBlockIsNil checks if any composite field of input signed beacon block
+// is nil.
+// Access to these nil fields will result in run time panic,
+// it is recommended to run these checks as first line of defense.
+func BeaconBuoyIsNil(b ReadOnlyBeaconBuoy) error {
+	if b == nil || b.IsNil() {
+		return ErrNilBuoy
+	}
+	return nil
 }

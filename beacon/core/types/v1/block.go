@@ -79,3 +79,11 @@ func (b *BeaconBuoyDeneb) ExecutionPayload() (
 		ShouldOverrideBuilder: false,
 	}, nil
 }
+
+// GetSlot returns the slot of the block.
+func (b *BeaconBuoyDeneb) GetBlobKzgCommitments() [][]byte {
+	if b.GetBody().GetExecutionPayload() == nil {
+		return nil
+	}
+	return b.GetBody().GetBlobKzgCommitments()
+}

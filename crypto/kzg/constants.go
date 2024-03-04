@@ -23,48 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package kzg
 
-import (
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
+const (
+	// BlobCommitmentVersion is the version of the blob commitment.
+	// It is the Version byte for the point evaluation precompile as
+	// defined in EIP-4844.
+	//
+	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
+	BlobCommitmentVersion uint8 = 0x01
 )
-
-// BeaconBuoy is the interface for a beacon block.
-type BeaconBuoy interface {
-	ReadOnlyBeaconBuoy
-	WriteOnlyBeaconBuoy
-}
-
-type BeaconBlockBody interface {
-	ReadOnlyBeaconBuoyBody
-}
-
-type ReadOnlyBeaconBuoyBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-
-	GetBlobKzgCommitments() [][]byte
-}
-
-// ReadOnlyBeaconBuoy is the interface for a read-only beacon block.
-type ReadOnlyBeaconBuoy interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	GetParentBlockRoot() []byte
-	GetBlobKzgCommitments() [][]byte
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (enginetypes.ExecutionPayload, error)
-	Version() int
-}
-
-// WriteOnlyBeaconBuoy is the interface for a write-only beacon block.
-type WriteOnlyBeaconBuoy interface {
-	AttachExecution(enginetypes.ExecutionPayload) error
-}
