@@ -23,26 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package forkchoicer
 
 import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	ssf "github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+// ForkChoicer represents the full fork choice interface composed of all the
+// sub-interfaces.
+type ForkChoicer interface {
+	Reader
+	Writer
 }
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
+type Reader interface {
+	JustifiedCheckpoint() common.Hash
+	FinalizedCheckpoint() common.Hash
+
+	// TODO: eventually deprecate this.
+	HeadBeaconBlock() [32]byte
+}
+
+type Writer interface {
+	BlockProcessor
+
+	// Eventually deprecate this
+	UpdateHeadBeaconBlock([32]byte)
+}
+
+// BlockProcessor processes the block that's used for accounting fork choice.
+type BlockProcessor interface {
+	// InsertNode inserts a new node into the forkchoice.
+	InsertNode(common.Hash) error
 }
