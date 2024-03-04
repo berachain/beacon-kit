@@ -128,6 +128,7 @@ func (s *Service) startLogProcessing(ctx context.Context) error {
 		return err
 	}
 
+	// TODO: Make this configurable?
 	logPeriod := 1 * time.Minute
 	logTicker := time.NewTicker(logPeriod)
 	defer logTicker.Stop()
@@ -140,7 +141,8 @@ func (s *Service) startLogProcessing(ctx context.Context) error {
 			err = logProcessor.ProcessPastLogs(ctx)
 			if err != nil {
 				s.Logger().Error("failed to process past logs", "error", err)
-				// TODO: Should we return error here or retry?
+				// TODO: Should we return error here or
+				// continue to retry in the next tick?
 			}
 			continue
 		}

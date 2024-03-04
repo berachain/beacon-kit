@@ -175,6 +175,7 @@ func (p *Processor) processBlocksInBatch(
 			continue
 		}
 		var containers []LogValueContainer
+		// Process the logs (in parallel) and push them into the caches.
 		containers, err = p.factory.ProcessLogs(logs, blockNum)
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed to process logs")
