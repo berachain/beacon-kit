@@ -91,6 +91,8 @@ type ReadOnlyRandaoMixes interface {
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
 	SetParentBlockRoot([32]byte)
+
+	WriteOnlyRandaoMixes
 }
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
