@@ -57,8 +57,7 @@ func (s *Service) ReceiveBeaconBlock(
 	if forkChoicer.GetLastSeenBeaconBlock() == blockHash {
 		s.Logger().Info(
 			"ignoring already processed beacon block",
-			//TODO: don't use common.Hash for strong typing
-			"hash", common.Hash(blockHash),
+			"slot", blk.GetSlot(),
 		)
 		return nil
 	}
