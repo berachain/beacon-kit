@@ -1,14 +1,18 @@
 builtins = import_module('./builtins.star')
 
+DEFAULT_TRANSPORT_PROTOCOL = "tcp"
+DEFAULT_APPLICATION_PROTOCOL = ""
+DEFAULT_WAIT = "15s"
+
 def get_port_spec_template(
     number,
-    transport=None,
+    transport_protocol=None,
     application_protocol=None,
     wait=None,
 ):
     port_spec = {
         "number": number,
-        "transport": transport,
+        "transport_protocol": transport_protocol,
         "application_protocol": application_protocol,
         "wait": wait,
     }
@@ -24,9 +28,9 @@ def validate_port_spec(port_spec):
     if type(port_spec["number"]) != builtins.types.int:
         fail("Port spec number must be an int, not {0}".format(type(port_spec['number'])))
 
-    if port_spec["transport"] != None:
-        if type(port_spec["transport"]) != builtins.types.string:
-            fail("Port spec transport must be a string, not {0}".format(type(port_spec['transport'])))
+    if port_spec["transport_protocol"] != None:
+        if type(port_spec["transport_protocol"]) != builtins.types.string:
+            fail("Port spec transport_protocol must be a string, not {0}".format(type(port_spec['transport_protocol'])))
 
     if port_spec["application_protocol"] != None:
         if type(port_spec["application_protocol"]) != builtins.types.string:
@@ -35,3 +39,20 @@ def validate_port_spec(port_spec):
     if port_spec["wait"] != None:
         if type(port_spec["wait"]) != builtins.types.bool:
             fail("Port spec wait must be a bool, not {0}".format(type(port_spec['wait'])))
+
+
+def create_port_specs_from_config(config):
+    ports = {}
+    for port_key, port_spec in config['ports'].items():
+        ports[port_key] = create_port_spec(port_spec)
+
+    return ports
+
+
+def create_port_spec(port_spec_dict):
+    return PortSpec(
+        number=port_spec_dict['number'],
+        transport_protocol=port_spec_dict['transport_protocol'] if port_spec_dict['transport_protocol'] else DEFAULT_TRANSPORT_PROTOCOL,
+        application_protocol=port_spec_dict['application_protocol'] if port_spec_dict['application_protocol'] else DEFAULT_APPLICATION_PROTOCOL,
+        wait=port_spec_dict['wait'] if port_spec_dict['wait'] else DEFAULT_WAIT,
+    )
