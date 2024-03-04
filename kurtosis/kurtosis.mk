@@ -6,6 +6,10 @@
 
 # Starts a Kurtosis enclave containing a local devnet.
 start-devnet:
+	$(MAKE) docker-build VERSION=kurtosis-local start-devnet-no-build
+
+# Starts a Kurtosis enclave containing a local devnet without building the image
+start-devnet-no-build:
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-all.yaml \
 		--enclave my-local-devnet
 
