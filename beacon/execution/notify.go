@@ -91,14 +91,14 @@ func (s *Service) notifyForkchoiceUpdate(
 
 	fcs := &enginev1.ForkchoiceState{
 		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
-		SafeBlockHash:      forkChoicer.GetSafeEth1BlockHash().Bytes(),
-		FinalizedBlockHash: forkChoicer.GetFinalizedEth1BlockHash().Bytes(),
+		SafeBlockHash:      forkChoicer.JustifiedCheckpoint().Bytes(),
+		FinalizedBlockHash: forkChoicer.FinalizedCheckpoint().Bytes(),
 	}
 
 	s.Logger().Info("notifying forkchoice update",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
-		"safe_eth1_hash", forkChoicer.GetSafeEth1BlockHash(),
-		"finalized_eth1_hash", forkChoicer.GetFinalizedEth1BlockHash(),
+		"safe_eth1_hash", forkChoicer.JustifiedCheckpoint(),
+		"finalized_eth1_hash", forkChoicer.FinalizedCheckpoint(),
 		"for_slot", fcuConfig.ProposingSlot,
 		"has_attributes", fcuConfig.Attributes != nil &&
 			!fcuConfig.Attributes.IsEmpty(),
@@ -129,7 +129,7 @@ func (s *Service) notifyForkchoiceUpdate(
 			// just be the last finalized block, bc we are always inserting
 			// ontop of that, however making that assumption here feels
 			// a little coupled.
-			HeadEth1Hash:  forkChoicer.GetSafeEth1BlockHash(),
+			HeadEth1Hash:  forkChoicer.JustifiedCheckpoint(),
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,
 		})

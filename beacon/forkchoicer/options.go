@@ -23,35 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
-
-import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-)
-
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
-}
-
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.ForkchoiceKVStore
-}
-
-// ValsetChangeProvider is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
-}
+package forkchoicer

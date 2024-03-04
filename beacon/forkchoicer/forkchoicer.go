@@ -23,35 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package forkchoicer
 
 import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
+// ForkChoicer represents the full fork choice interface composed of all the
+// sub-interfaces.
+type ForkChoicer interface {
+	Reader
+	Writer
 }
 
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.ForkchoiceKVStore
+type Reader interface {
+	JustifiedCheckpoint() common.Hash
+	FinalizedCheckpoint() common.Hash
+
+	// TODO: eventually deprecate this.
+	HeadBeaconBlock() [32]byte
 }
 
-// ValsetChangeProvider is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
+type Writer interface {
+	UpdateJustifiedCheckpoint(common.Hash) error
+	UpdateFinalizedCheckpoint(common.Hash) error
+
+	// Eventually deprecate this
+	UpdateHeadBeaconBlock([32]byte)
 }

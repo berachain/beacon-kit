@@ -26,33 +26,9 @@
 package state
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
-
-type ForkchoiceStore interface {
-	WriteOnlyForkChoice
-	ReadOnlyForkChoice
-
-	SetLastSeenBeaconBlock([32]byte)
-	GetLastSeenBeaconBlock() [32]byte
-}
-
-// Write Only Fork Choice.
-type WriteOnlyForkChoice interface {
-	// Write Only Fork Choice.
-	SetSafeEth1BlockHash(safeBlockHash common.Hash)
-	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
-	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
-}
-
-// ReadOnlyForkChoice.
-type ReadOnlyForkChoice interface {
-	GetSafeEth1BlockHash() common.Hash
-	GetFinalizedEth1BlockHash() common.Hash
-	GenesisEth1Hash() common.Hash
-}
 
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state consensus.

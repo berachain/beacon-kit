@@ -31,8 +31,11 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
 	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
 )
+
+var _ ssf.ForkchoiceKVStore = &Store{}
 
 type Store struct {
 	ctx context.Context
@@ -140,7 +143,7 @@ func (s *Store) GenesisEth1Hash() common.Hash {
 }
 
 // WithContext( returns the Store with the given context.
-func (s *Store) WithContext(ctx context.Context) *Store {
+func (s *Store) WithContext(ctx context.Context) ssf.ForkchoiceKVStore {
 	s.ctx = ctx
 	return s
 }
