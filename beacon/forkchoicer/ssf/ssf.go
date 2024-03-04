@@ -31,70 +31,56 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// SingleSlotFinalityStore is the interface for the required storage
-// backend for the SingleSlotFinality forkchoice store.
-type SingleSlotFinalityStore interface {
-	WithContext(ctx context.Context) SingleSlotFinalityStore
-
-	// TODO: eventually the forkchoicer shouldn't have
-	// anything to do with beacon, since this forkchoicer
-	// is only needed for finalizing the eth1 blocks.
-	SetLastSeenBeaconBlock(blockHash [32]byte)
-	GetLastSeenBeaconBlock() [32]byte
-
-	// SetSafeEth1BlockHash sets the safe block hash in the store.
-	SetSafeEth1BlockHash(blockHash common.Hash)
-	// GetSafeEth1BlockHash retrieves the safe block hash from the store.
-	GetSafeEth1BlockHash() common.Hash
-
-	// SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-	SetFinalizedEth1BlockHash(blockHash common.Hash)
-	// GetFinalizedEth1BlockHash retrieves the finalized block hash from the
-	// store.
-	GetFinalizedEth1BlockHash() common.Hash
-
-	GenesisEth1Hash() common.Hash
-	SetGenesisEth1Hash(common.Hash)
-}
-
 // ForkChoice represents the single-slot finality forkchoice algoritmn.
 type ForkChoice struct {
 	kv SingleSlotFinalityStore
+
+	// latestBeaconBlock is the latest beacon block.
+	latestBeaconBlock [32]byte
 }
 
+// New creates a new forkchoice instance.
 func New(kv SingleSlotFinalityStore) *ForkChoice {
 	return &ForkChoice{
 		kv: kv,
 	}
 }
 
+// WithContext sets the context for the forkchoice.
 func (f *ForkChoice) WithContext(ctx context.Context) *ForkChoice {
 	f.kv = f.kv.WithContext(ctx)
 	return f
 }
 
+// InsertNode inserts a new node into the forkchoice.
 func (f *ForkChoice) InsertNode(
 	hash common.Hash,
 ) error {
+	// Since this is single slot finality, we can just set the safe and
+	// finalized block hash to the same value immediately.
 	f.kv.SetFinalizedEth1BlockHash(hash)
 	f.kv.SetSafeEth1BlockHash(hash)
 	return nil
 }
 
+// TODO: Should this live in Forkchoicer?
 func (f *ForkChoice) HeadBeaconBlock() [32]byte {
-	return f.kv.GetLastSeenBeaconBlock()
+	return f.latestBeaconBlock
 }
 
+// TODO: Should this live in Forkchoicer?
 func (f *ForkChoice) UpdateHeadBeaconBlock(
 	blockHash [32]byte,
 ) {
-	f.kv.SetLastSeenBeaconBlock(blockHash)
+	f.latestBeaconBlock = blockHash
 }
 
+// JustifiedCheckpoint returns the justified checkpoint.
 func (f *ForkChoice) JustifiedCheckpoint() common.Hash {
 	return f.kv.GetSafeEth1BlockHash()
 }
 
+// FinalizedCheckpoint returns the finalized checkpoint.
 func (f *ForkChoice) FinalizedCheckpoint() common.Hash {
 	return f.kv.GetFinalizedEth1BlockHash()
 }

@@ -23,36 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package forkchoicer
+package ssf
 
 import (
+	"context"
+
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// ForkChoicer represents the full fork choice interface composed of all the
-// sub-interfaces.
-type ForkChoicer interface {
-	Reader
-	Writer
-}
+// SingleSlotFinalityStore is the interface for the required storage
+// backend for the SingleSlotFinality forkchoice store.
+type SingleSlotFinalityStore interface {
+	// WithContext sets the context for the store.
+	WithContext(ctx context.Context) SingleSlotFinalityStore
 
-type Reader interface {
-	JustifiedCheckpoint() common.Hash
-	FinalizedCheckpoint() common.Hash
+	// SetSafeEth1BlockHash sets the safe block hash in the store.
+	SetSafeEth1BlockHash(blockHash common.Hash)
 
-	// TODO: eventually deprecate this.
-	HeadBeaconBlock() [32]byte
-}
+	// GetSafeEth1BlockHash retrieves the safe block hash from the store.
+	GetSafeEth1BlockHash() common.Hash
 
-type Writer interface {
-	BlockProcessor
+	// SetFinalizedEth1BlockHash sets the finalized block hash in the store.
+	SetFinalizedEth1BlockHash(blockHash common.Hash)
+	// GetFinalizedEth1BlockHash retrieves the finalized block hash from the
+	// store.
+	GetFinalizedEth1BlockHash() common.Hash
 
-	// Eventually deprecate this
-	UpdateHeadBeaconBlock([32]byte)
-}
+	// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the
+	// store.
+	GenesisEth1Hash() common.Hash
 
-// BlockProcessor processes the block that's used for accounting fork choice.
-type BlockProcessor interface {
-	// InsertNode inserts a new node into the forkchoice.
-	InsertNode(common.Hash) error
+	// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the store.
+	SetGenesisEth1Hash(common.Hash)
 }
