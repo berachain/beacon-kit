@@ -32,13 +32,13 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all
 // services.
 type BaseService struct {
-	BeaconStateProvider
+	BeaconStorageBackend
 	name   string
 	cfg    *config.Config
 	gcd    *dispatch.GrandCentralDispatch
@@ -54,15 +54,15 @@ type BaseService struct {
 // NewBaseService creates a new BaseService and applies the provided options.
 func NewBaseService(
 	cfg *config.Config,
-	bsp BeaconStateProvider,
+	bsp BeaconStorageBackend,
 	gcd *dispatch.GrandCentralDispatch,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
-		BeaconStateProvider: bsp,
-		gcd:                 gcd,
-		logger:              logger,
-		cfg:                 cfg,
+		BeaconStorageBackend: bsp,
+		gcd:                  gcd,
+		logger:               logger,
+		cfg:                  cfg,
 	}
 }
 
@@ -84,12 +84,13 @@ func (s *BaseService) GCD() *dispatch.GrandCentralDispatch {
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from
-// the BaseService. It provides access to various configuration parameters
-// used by the beacon node.
+// the BaseService.
 func (s *BaseService) BeaconCfg() *config.Beacon {
 	return &s.cfg.Beacon
 }
 
+// BuilderCfg returns the configuration settings of the builder from
+// the BaseService.
 func (s *BaseService) BuilderCfg() *config.Builder {
 	return &s.cfg.Builder
 }

@@ -27,6 +27,7 @@ package file_test
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -119,7 +120,7 @@ func TestMkdirAll(t *testing.T) {
 	}
 }
 
-func TestCreateFile(t *testing.T) {
+func TestCreate(t *testing.T) {
 	dir, err := os.MkdirTemp("", "testcreatefile")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
@@ -127,7 +128,7 @@ func TestCreateFile(t *testing.T) {
 	defer os.RemoveAll(dir) // clean up
 
 	filePath := filepath.Join(dir, "testfile.txt")
-	err = file.CreateFile(filePath)
+	err = file.Create(filePath)
 	if err != nil {
 		t.Errorf("Failed to create file: %v", err)
 	}
@@ -159,7 +160,37 @@ func TestExists(t *testing.T) {
 	}
 }
 
-func TestWriteFile(t *testing.T) {
+func TestRead(t *testing.T) {
+	dir, err := os.MkdirTemp("", "testreadfile")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	_, err = file.Read("doesnotexist.txt")
+	if !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Expected err: %v, got %v", os.ErrNotExist, err)
+	}
+
+	filePath := filepath.Join(dir, "testfile.txt")
+	data := []byte("Hello, World!")
+	err = os.WriteFile(filePath, data, 0644)
+	if err != nil {
+		t.Fatalf("Failed to write to file: %v", err)
+	}
+
+	var readData []byte
+	readData, err = file.Read(filePath)
+	if err != nil {
+		t.Fatalf("Failed to read file: %v", err)
+	}
+
+	if !bytes.Equal(readData, data) {
+		t.Errorf("Data written and read does not match")
+	}
+}
+
+func TestWrite(t *testing.T) {
 	dir, err := os.MkdirTemp("", "testwritefile")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
@@ -168,7 +199,7 @@ func TestWriteFile(t *testing.T) {
 
 	filePath := filepath.Join(dir, "testfile.txt")
 	data := []byte("Hello, World!")
-	err = file.WriteFile(filePath, data)
+	err = file.Write(filePath, data)
 	if err != nil {
 		t.Errorf("Failed to write to file: %v", err)
 	}

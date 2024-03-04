@@ -35,13 +35,6 @@ import (
 // an error.
 type Option func(*EngineClient) error
 
-func WithBeaconConfig(beaconCfg beaconConfig) Option {
-	return func(s *EngineClient) error {
-		s.beaconCfg = beaconCfg
-		return nil
-	}
-}
-
 // WithEngineConfig is a function that returns an Option.
 func WithEngineConfig(cfg *Config) Option {
 	return func(s *EngineClient) error {

@@ -58,9 +58,9 @@ func WithLogger(logger log.Logger) Option {
 	}
 }
 
-// WithBeaconStateProvider sets the BeaconStateProvider
+// WithBeaconStorageBackend sets the BeaconStorageBackend
 // of the BeaconKitRuntime.
-func WithBeaconStateProvider(fscp BeaconStateProvider) Option {
+func WithBeaconStorageBackend(fscp BeaconStorageBackend) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
 		return nil

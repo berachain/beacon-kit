@@ -28,3 +28,4 @@ package blockchain
 import "errors"
 
 var ErrInvalidPayload = errors.New("invalid payload")
+var ErrNoPayloadInBeaconBlock = errors.New("no payload in beacon block")

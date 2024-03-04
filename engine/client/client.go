@@ -35,13 +35,13 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // Caller is implemented by EngineClient.
@@ -52,7 +52,6 @@ type EngineClient struct {
 	*eth.Eth1Client
 
 	cfg          *Config
-	beaconCfg    beaconConfig
 	capabilities map[string]struct{}
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
@@ -159,12 +158,31 @@ func (s *EngineClient) WaitForHealthy(ctx context.Context) {
 	defer s.statusErrMu.Unlock()
 
 	for s.status(ctx) != nil {
+		go s.refreshUntilHealthy(ctx)
 		select {
 		case <-ctx.Done():
 			return
 		default:
 			// Then we wait until we are blessed tf up.
 			s.statusErrCond.Wait()
+		}
+	}
+}
+
+// refreshUntilHealthy refreshes the engine client until it is healthy.
+// TODO: remove after hack testing done.
+func (s *EngineClient) refreshUntilHealthy(ctx context.Context) {
+	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.status(ctx); err == nil {
+				return
+			}
 		}
 	}
 }
@@ -193,7 +211,7 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 func (s *EngineClient) GetLogs(
 	ctx context.Context,
 	fromBlock, toBlock uint64,
-	addresses []common.Address,
+	addresses []primitives.ExecutionAddress,
 ) ([]coretypes.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.

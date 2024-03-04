@@ -29,12 +29,12 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/config"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // PayloadBuilder represents a service that is responsible for
@@ -69,7 +69,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
-) (consensus.BeaconKitBlock, error) {
+) (beacontypes.BeaconBuoy, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -87,23 +87,22 @@ func (s *Service) RequestBestBlock(
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 
 	// Create a new empty block from the current state.
-	beaconBlock, err := consensus.EmptyBeaconKitBlock(
+	beaconBlock, err := beacontypes.EmptyBeaconBuoy(
 		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: right now parent is ALWAYS the previously finalized. But
-	// maybe not forever?
-	parentEth1Hash := s.BeaconState(ctx).GetFinalizedEth1BlockHash()
-
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
-		ctx, slot, parentBlockRoot, parentEth1Hash,
+		ctx,
+		slot,
+		parentBlockRoot,
+		s.ForkchoiceStore(ctx).GetSafeEth1BlockHash(),
 	)
 	if err != nil {
-		return nil, err
+		return beaconBlock, err
 	}
 
 	// TODO: Dencun

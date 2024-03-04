@@ -25,7 +25,9 @@
 
 package blockchain
 
-import "github.com/itsdevbear/bolaris/runtime/service"
+import (
+	"github.com/itsdevbear/bolaris/runtime/service"
+)
 
 // WithBaseService returns an Option that sets the BaseService for the Service.
 func WithBaseService(base service.BaseService) service.Option[Service] {

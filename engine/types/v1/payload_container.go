@@ -46,6 +46,14 @@ func (p *ExecutionPayloadContainer) Version() int {
 	}
 }
 
+func (p *ExecutionPayloadContainer) IsEmpty() bool {
+	if p.GetPayload() == nil {
+		return true
+	}
+
+	return p.ToProto() == nil
+}
+
 // IsBlinded indicates whether the payload is blinded. For
 // ExecutionPayloadDeneb,
 // this is always false.

@@ -43,10 +43,9 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
 	"github.com/itsdevbear/bolaris/examples/beacond/app"
 	"github.com/itsdevbear/bolaris/io/cli/tos"
-	"github.com/itsdevbear/bolaris/lib/cmd"
-	cmdconfig "github.com/itsdevbear/bolaris/lib/cmd/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
@@ -128,7 +127,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.InitRootCommand(
+	cmdconfig.InitRootCommand(
 		rootCmd,
 		clientCtx.TxConfig,
 		clientCtx.InterfaceRegistry,

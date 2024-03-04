@@ -34,11 +34,11 @@ const (
 	defaultDialURL                 = "http://localhost:8551"
 	defaultRPCRetries              = 3
 	defaultRPCTimeout              = 2 * time.Second
-	defaultRPCStartupCheckInterval = 5 * time.Second
+	defaultRPCStartupCheckInterval = 3 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
 	defaultJWTSecretPath   = "./jwt.hex"
-	defaultRequiredChainID = 80086
+	defaultRequiredChainID = 80087
 )
 
 // Config is the configuration struct for the execution client.

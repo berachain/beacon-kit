@@ -27,18 +27,18 @@ package preblock
 
 import (
 	"context"
-	"os"
 
 	"cosmossdk.io/log"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
+	"github.com/itsdevbear/bolaris/primitives"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 type BeaconKeeper interface {
@@ -92,11 +92,13 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 	) (*sdk.ResponsePreBlock, error) {
+		cometBlockHash := byteslib.ToBytes32(req.Hash)
+
 		// Extract the beacon block from the ABCI request.
 		//
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
-		beaconBlock, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
+		buoy, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
 			req,
 			h.cfg.BeaconBlockPosition,
 			h.chainService.ActiveForkVersionForSlot(
@@ -104,38 +106,50 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			),
 		)
 		if err != nil {
-			// Call the nested child handler.
-			// TODO SLASH PROPOSER
-			return h.callNextHandler(ctx, req)
-		}
-
-		cometBlockHash := byteslib.ToBytes32(req.Hash)
-
-		// Since during initial syncing process proposal is not called, we have
-		// to import the block into our execution client to validate it.
-		//
-		// TODO: we need to figure out this lifecycle on error propagation.
-		if h.syncService.IsInitSync() {
-			// if you execution client already has this block, ignore....
-			err = h.chainService.ReceiveBeaconBlock(
-				ctx,
-				beaconBlock,
-				cometBlockHash,
+			h.logger.Error(
+				"failed to extract beacon block from request",
+				"error",
+				err,
 			)
-			return h.callNextHandler(ctx, req)
+
+			// If we fail to extract the beacon block from the request, we
+			// create an empty beacon block to continue processing.
+			// TODO: This is a temporary solution to avoid panics, we should
+			// handle this better.
+			if buoy, err = beacontypes.EmptyBeaconBuoy(
+				primitives.Slot(req.Height),
+				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
+				h.chainService.ActiveForkVersionForSlot(
+					primitives.Slot(req.Height),
+				),
+			); err != nil {
+				return nil, err
+			}
 		}
 
-		defer func() {
-			if err == nil {
-				// Process the finalization of the beacon block.
-				if err = h.chainService.FinalizeBeaconBlock(
-					ctx, beaconBlock, cometBlockHash,
-				); err != nil {
-					os.Exit(1)
-					return
-				}
-			}
-		}()
+		// Receive the beacon block to validate whether it is good and submit
+		// any required newPayload and/or forkchoice updates. If we have
+		// already ran this for the current block in ProcessProposal, this
+		// call will exit early.
+		if err = h.chainService.ReceiveBeaconBlock(
+			ctx,
+			cometBlockHash,
+			buoy,
+		); err != nil {
+			h.logger.Warn(
+				"failed to receive beacon block",
+				"error",
+				err,
+			)
+		}
+
+		// Process the finalization of the beacon block.
+		if err = h.chainService.FinalizeBeaconBlock(
+			ctx, buoy, cometBlockHash,
+		); err != nil {
+			h.chainService.Logger().
+				Error("failed to finalize beacon block", "error", err)
+		}
 
 		// Call the nested child handler.
 		return h.callNextHandler(ctx, req)

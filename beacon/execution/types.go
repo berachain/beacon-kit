@@ -33,11 +33,11 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
-// BeaconStateProvider is an interface that wraps the basic BeaconState method.
-type BeaconStateProvider interface {
+// BeaconStorageBackend is an interface that wraps the basic BeaconState method.
+type BeaconStorageBackend interface {
 	// BeaconState provides access to the underlying beacon state.
 	BeaconState(ctx context.Context) state.BeaconState
 }
@@ -45,7 +45,7 @@ type BeaconStateProvider interface {
 // LogFactory is an interface that can unmarshal Ethereum logs into objects,
 // in the form of reflect.Value, with appropriate types for each type of logs.
 type LogFactory interface {
-	GetRegisteredAddresses() []common.Address
+	GetRegisteredAddresses() []primitives.ExecutionAddress
 	ProcessLogs(
 		logs []ethtypes.Log,
 		blkNum uint64,

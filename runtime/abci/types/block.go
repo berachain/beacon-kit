@@ -28,7 +28,7 @@ package types
 import (
 	"time"
 
-	"github.com/itsdevbear/bolaris/types/consensus"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 )
 
 // ABCIRequest is the interface for an ABCI request.
@@ -38,14 +38,14 @@ type ABCIRequest interface {
 	GetTxs() [][]byte
 }
 
-// ReadOnlyBeaconKitBlockFromABCIRequest assembles a
+// ReadOnlyBeaconBuoyFromABCIRequest assembles a
 // new read-only beacon block by extracting a marshalled
 // block out of an ABCI request.
-func ReadOnlyBeaconKitBlockFromABCIRequest(
+func ReadOnlyBeaconBuoyFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion int,
-) (consensus.ReadOnlyBeaconKitBlock, error) {
+) (beacontypes.ReadOnlyBeaconBuoy, error) {
 	txs := req.GetTxs()
 
 	// Ensure there are transactions in the request and
@@ -57,5 +57,5 @@ func ReadOnlyBeaconKitBlockFromABCIRequest(
 	}
 
 	// Extract the beacon block from the ABCI request.
-	return consensus.BeaconKitBlockFromSSZ(txs[bzIndex], forkVersion)
+	return beacontypes.BeaconBuoyFromSSZ(txs[bzIndex], forkVersion)
 }

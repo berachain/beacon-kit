@@ -26,20 +26,34 @@
 package state
 
 import (
-	"context"
-
 	"github.com/ethereum/go-ethereum/common"
 	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
-// BeaconStateProvider provides access to the current beacon state.
-type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state based on the supplied
-	// context.
-	BeaconState(ctx context.Context) BeaconState
+type ForkchoiceStore interface {
+	WriteOnlyForkChoice
+	ReadOnlyForkChoice
+
+	SetLastSeenBeaconBlock([32]byte)
+	GetLastSeenBeaconBlock() [32]byte
+}
+
+// Write Only Fork Choice.
+type WriteOnlyForkChoice interface {
+	// Write Only Fork Choice.
+	SetSafeEth1BlockHash(safeBlockHash common.Hash)
+	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
+	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
+}
+
+// ReadOnlyForkChoice.
+type ReadOnlyForkChoice interface {
+	GetSafeEth1BlockHash() common.Hash
+	GetFinalizedEth1BlockHash() common.Hash
+	GenesisEth1Hash() common.Hash
 }
 
 // BeaconState is the interface for the beacon state. It
@@ -51,10 +65,9 @@ type BeaconState interface {
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	ReadOnlyForkChoice
-	ReadOnlyGenesis
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
+	ReadOnlyWithdrawals
 
 	ReadOnlyRandaoMixes
 
@@ -77,42 +90,16 @@ type ReadOnlyRandaoMixes interface {
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
-	WriteOnlyForkChoice
-	WriteOnlyGenesis
-	ReadOnlyWithdrawals
-	WriteOnlyRandaoMixes
-}
-
-// Write Only Fork Choice.
-type WriteOnlyForkChoice interface {
-	// Write Only Fork Choice.
-	SetSafeEth1BlockHash(safeBlockHash common.Hash)
-	SetFinalizedEth1BlockHash(finalizedBlockHash common.Hash)
-	SetLastValidHead(lastValidHead common.Hash)
-}
-
-// ReadOnlyForkChoice.
-type ReadOnlyForkChoice interface {
-	GetLastValidHead() common.Hash
-	GetSafeEth1BlockHash() common.Hash
-	GetFinalizedEth1BlockHash() common.Hash
+	SetParentBlockRoot([32]byte)
 }
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
 type ReadWriteDepositQueue interface {
-	EnqueueDeposits([]*consensusv1.Deposit) error
-	DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error)
+	EnqueueDeposits([]*beacontypesv1.Deposit) error
+	DequeueDeposits(n uint64) ([]*beacontypesv1.Deposit, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
 	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
-}
-
-type ReadOnlyGenesis interface {
-	GenesisEth1Hash() common.Hash
-}
-
-type WriteOnlyGenesis interface {
-	SetGenesisEth1Hash(genesisEth1Hash common.Hash)
 }

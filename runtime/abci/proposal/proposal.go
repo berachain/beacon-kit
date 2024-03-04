@@ -37,8 +37,8 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/health"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
+	"github.com/itsdevbear/bolaris/primitives"
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle
@@ -98,7 +98,7 @@ func (h *Handler) PrepareProposalHandler(
 
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
-		return nil, err
+		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Marshal the block into bytes.
@@ -130,7 +130,7 @@ func (h *Handler) ProcessProposalHandler(
 	//
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
-	block, err := abcitypes.ReadOnlyBeaconKitBlockFromABCIRequest(
+	block, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
@@ -142,7 +142,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
+		ctx, byteslib.ToBytes32(req.Hash), block); err != nil {
 		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil

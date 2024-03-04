@@ -52,6 +52,7 @@ require (
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/upgrade v0.1.1
+	github.com/bazelbuild/buildtools v0.0.0-20240207142252-03bf520394af
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.2
@@ -78,6 +79,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	github.com/vektra/mockery/v2 v2.42.0
+	go.uber.org/automaxprocs v1.5.2
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
 	golang.org/x/sync v0.6.0
 	google.golang.org/grpc v1.62.0

@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk
+include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk kurtosis/kurtosis.mk
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
@@ -194,8 +194,8 @@ test-unit-fuzz:
 	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Marshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Unmarshal ./types/consensus/primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Marshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzSSZUint64Unmarshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
@@ -229,10 +229,10 @@ test-e2e-no-build:
 ###############################################################################
 
 format:
-	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix
+	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix star-fix
 
 lint:
-	@$(MAKE) license buf-lint forge-lint golangci
+	@$(MAKE) license buf-lint forge-lint golangci star-lint
 
 #################
 #     forge     #
@@ -382,9 +382,9 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./types/consensus/v1 \
-	-objs Deposit,BeaconKitBlockDeneb,\
-    --include ./types/consensus/primitives,\
+	@sszgen -path ./beacon/core/types/v1 \
+	-objs Deposit,BeaconBuoy,BeaconBuoyDeneb,\
+    --include ./primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
 
 ##############################################################################
