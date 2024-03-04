@@ -27,7 +27,9 @@ package logs
 
 import (
 	"context"
+	"time"
 
+	"cosmossdk.io/log"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
@@ -43,6 +45,8 @@ const (
 type Processor struct {
 	fcs ReadOnlyForkChoicer
 	fls FinalizedLogsStore
+
+	logger log.Logger
 
 	// engine gives the access to the Engine API
 	// of the execution client.
@@ -211,5 +215,28 @@ func (p *Processor) rollbackCaches() {
 func (p *Processor) setLastFinalizedBlockAllCaches(blockNumber uint64) {
 	for _, cache := range p.sigToCache {
 		cache.SetLastFinalizedBlock(blockNumber)
+	}
+}
+
+// RunLoop processes the past logs in background.
+func (p *Processor) RunLoop(ctx context.Context) {
+	// TODO: Make this configurable?
+	logPeriod := 1 * time.Minute
+	logTicker := time.NewTicker(logPeriod)
+	defer logTicker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-logTicker.C:
+			err := p.ProcessPastLogs(ctx)
+			if err != nil {
+				p.logger.Error("failed to process past logs", "error", err)
+				// TODO: Should we return error here or
+				// continue to retry in the next tick?
+			}
+			continue
+		}
 	}
 }

@@ -26,6 +26,7 @@
 package logs
 
 import (
+	"cosmossdk.io/log"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/forkchoicer"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
@@ -67,6 +68,14 @@ func WithLogFactory(factory LogFactory) Option[Processor] {
 		for _, sig := range registeredSigs {
 			p.sigToCache[sig] = &Cache{}
 		}
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the Processor.
+func WithLogger(logger log.Logger) Option[Processor] {
+	return func(p *Processor) error {
+		p.logger = logger.With("module", "service-registry")
 		return nil
 	}
 }

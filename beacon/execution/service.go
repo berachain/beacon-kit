@@ -27,7 +27,6 @@ package execution
 
 import (
 	"context"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
@@ -52,12 +51,12 @@ type Service struct {
 // Start spawns any goroutines required by the service.
 func (s *Service) Start(ctx context.Context) {
 	go s.engine.Start(ctx)
-	go func() {
-		err := s.startLogProcessing(ctx)
-		if err != nil {
-			s.Logger().Error("log processing failed", "error", err)
-		}
-	}()
+	lp, err := s.initLogProcessor(ctx)
+	if err != nil {
+		s.Logger().Error("failed to initialize log processor", "err", err)
+		return
+	}
+	go lp.RunLoop(ctx)
 }
 
 // Status returns error if the service is not considered healthy.
@@ -113,37 +112,15 @@ func (s *Service) NotifyNewPayload(
 	)
 }
 
-// startLogProcessing starts the log processing
-// in background.
-func (s *Service) startLogProcessing(ctx context.Context) error {
-	logProcessor, err := logs.NewProcessor(
+func (s *Service) initLogProcessor(
+	ctx context.Context,
+) (*logs.Processor, error) {
+	return logs.NewProcessor(
 		logs.WithForkChoicer(s.ForkchoiceStore(ctx)),
 		// TODO: Waiting for file storage to be implemented
 		logs.WithFinalizedLogsStore(nil),
 		logs.WithLogFactory(s.logFactory),
 		logs.WithEngineCaller(s.engine),
+		logs.WithLogger(s.Logger()),
 	)
-	if err != nil {
-		return err
-	}
-
-	// TODO: Make this configurable?
-	logPeriod := 1 * time.Minute
-	logTicker := time.NewTicker(logPeriod)
-	defer logTicker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-logTicker.C:
-			err = logProcessor.ProcessPastLogs(ctx)
-			if err != nil {
-				s.Logger().Error("failed to process past logs", "error", err)
-				// TODO: Should we return error here or
-				// continue to retry in the next tick?
-			}
-			continue
-		}
-	}
 }
