@@ -108,8 +108,7 @@ func (p *Processor) ProcessBlocksInBatch(
 			continue
 		}
 		// Cache determine if the log should be processed,
-		// based on its last processed block.
-		// TODO: Should we also consider the last processed index?
+		// based on its last finalized block.
 		if cache.ShouldProcess(log) {
 			var container LogValueContainer
 			container, err = p.factory.ProcessLog(log)

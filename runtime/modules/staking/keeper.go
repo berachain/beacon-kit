@@ -35,8 +35,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 var _ ValsetChangeProvider = &Keeper{}
@@ -56,7 +56,7 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 
 // delegate delegates the deposit to the validator.
 func (k *Keeper) delegate(
-	ctx context.Context, deposit *consensusv1.Deposit,
+	ctx context.Context, deposit *beacontypesv1.Deposit,
 ) (uint64, error) {
 	validatorPK := &ed25519.PubKey{}
 	err := validatorPK.Unmarshal(deposit.GetValidatorPubkey())
@@ -110,7 +110,7 @@ func (k *Keeper) createValidator(
 // staking module.
 func (k *Keeper) ApplyChanges(
 	ctx context.Context,
-	deposits []*consensusv1.Deposit,
+	deposits []*beacontypesv1.Deposit,
 	withdrawals []*enginev1.Withdrawal,
 ) error {
 	for _, deposit := range deposits {

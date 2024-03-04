@@ -35,6 +35,7 @@ import (
 	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 )
 
+// BuildABCIComponents returns the ABCI components for the beacon runtime.
 func (r *BeaconKitRuntime) BuildABCIComponents(
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,

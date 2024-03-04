@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 type BeaconStorageBackend interface {
@@ -41,7 +41,7 @@ type BeaconStorageBackend interface {
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
-		[]*consensusv1.Deposit,
+		[]*beacontypesv1.Deposit,
 		[]*enginev1.Withdrawal,
 	) error
 }

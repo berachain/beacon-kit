@@ -86,8 +86,8 @@ func MkdirAll(dirPath string) error {
 	return os.MkdirAll(absDirPath, os.ModePerm)
 }
 
-// CreateFile creates or truncates a file at the specified path.
-func CreateFile(filePath string) error {
+// Create creates or truncates a file at the specified path.
+func Create(filePath string) error {
 	absFilePath, err := AbsPath(filePath)
 	if err != nil {
 		return err
@@ -117,15 +117,32 @@ func Exists(path string) bool {
 	return false
 }
 
-// WriteFile writes data to a file at the specified path.
-func WriteFile(filePath string, data []byte) error {
+// Read reads the file at the specified path and returns its content.
+func Read(filePath string) ([]byte, error) {
+	absFilePath, err := AbsPath(filePath)
+	if err != nil {
+		return nil, err
+	}
+	if ok := Exists(absFilePath); !ok {
+		return nil, os.ErrNotExist
+	}
+
+	data, err := os.ReadFile(absFilePath)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// Write writes data to a file at the specified path.
+func Write(filePath string, data []byte) error {
 	absFilePath, err := AbsPath(filePath)
 	if err != nil {
 		return err
 	}
 
 	if ok := Exists(absFilePath); !ok {
-		err = CreateFile(absFilePath)
+		err = Create(absFilePath)
 		if err != nil {
 			return err
 		}

@@ -27,13 +27,16 @@ package state
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
 type ForkchoiceStore interface {
 	WriteOnlyForkChoice
 	ReadOnlyForkChoice
+
+	SetLastSeenBeaconBlock([32]byte)
+	GetLastSeenBeaconBlock() [32]byte
 }
 
 // Write Only Fork Choice.
@@ -77,8 +80,8 @@ type WriteOnlyBeaconState interface {
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
 type ReadWriteDepositQueue interface {
-	EnqueueDeposits([]*consensusv1.Deposit) error
-	DequeueDeposits(n uint64) ([]*consensusv1.Deposit, error)
+	EnqueueDeposits([]*beacontypesv1.Deposit) error
+	DequeueDeposits(n uint64) ([]*beacontypesv1.Deposit, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

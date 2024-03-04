@@ -28,11 +28,11 @@ package logs
 import (
 	"reflect"
 
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 const (
@@ -85,7 +85,7 @@ var (
 		0x18,
 	}
 
-	DepositType = reflect.TypeOf(consensusv1.Deposit{})
+	DepositType = reflect.TypeOf(beacontypesv1.Deposit{})
 
 	// Signature and type of the Withdrawal event
 	// in the deposit contract.
@@ -129,7 +129,7 @@ var (
 
 // NewStakingRequest returns a log request for the staking service.
 func NewStakingRequest(
-	depositContractAddress ethcommon.Address,
+	depositContractAddress primitives.ExecutionAddress,
 ) (*logs.LogRequest, error) {
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	if err != nil {

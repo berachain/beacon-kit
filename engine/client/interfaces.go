@@ -33,8 +33,7 @@ import (
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/types/consensus"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // Caller defines a client that can interact with an Ethereum
@@ -52,7 +51,7 @@ type Caller interface {
 	//
 	// NewPayload creates a new payload for the Ethereum execution node.
 	NewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
-		versionedHashes []common.Hash, parentBlockRoot *common.Hash) ([]byte, error)
+		versionedHashes []common.Hash, parentBlockRoot *[32]byte) ([]byte, error)
 
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
@@ -62,7 +61,7 @@ type Caller interface {
 
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(
-		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+		ctx context.Context, payloadID primitives.PayloadID, version int,
 	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 
 	// ExecutionBlockByHash retrieves the execution block by its hash.
@@ -71,7 +70,8 @@ type Caller interface {
 
 	// GetLogs retrieves the logs from the Ethereum execution node.
 	GetLogs(
-		ctx context.Context, fromBlock, toBlock uint64, addresses []common.Address,
+		ctx context.Context, fromBlock, toBlock uint64,
+		addresses []primitives.ExecutionAddress,
 	) ([]gethcoretypes.Log, error)
 
 	// Eth Namespace Methods
@@ -87,13 +87,4 @@ type Caller interface {
 		ctx context.Context,
 		number *big.Int,
 	) (*gethcoretypes.Header, error)
-}
-
-// ExecutionPayloadRebuilder specifies a service capable of reassembling a
-// complete beacon block, inclusive of an execution payload, using a signed
-// beacon block and access to an execution client's engine API.
-type PayloadReconstructor interface {
-	ReconstructFullBlock(
-		ctx context.Context, blindedBlock consensus.ReadOnlyBeaconKitBlock,
-	) (consensus.BeaconKitBlock, error)
 }

@@ -51,6 +51,7 @@ require (
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/upgrade v0.1.1
+	github.com/bazelbuild/buildtools v0.0.0-20240207142252-03bf520394af
 	github.com/bufbuild/buf v1.29.0
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.2
@@ -75,8 +76,9 @@ require (
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/vektra/mockery/v2 v2.42.0
+	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
 	golang.org/x/sync v0.6.0
 	google.golang.org/grpc v1.62.0
@@ -411,7 +413,7 @@ require (
 	github.com/status-im/keycard-go v0.2.0 // indirect
 	github.com/stbenjam/no-sprintf-host-port v0.1.1 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect

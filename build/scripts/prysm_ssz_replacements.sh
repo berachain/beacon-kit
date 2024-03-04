@@ -30,7 +30,7 @@ json=$(cat build/scripts/prysm_ssz_constants.json)
 keys=$(echo $json | jq -r 'keys[]')
 
 # Iterate over all .pb.go files and replace the keys with the values
-for file in $(find ./types -name '*.pb.go'); do
+for file in $(find . -name '*.pb.go'); do
     echo $file
     for key in $keys; do
         value=$(echo $json | jq -r ".\"$key\"")

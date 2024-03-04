@@ -135,7 +135,7 @@ func saveTosAccepted(dataDir string, cmd *cobra.Command) {
 		}
 	}
 
-	if err = file.WriteFile(
+	if err = file.Write(
 		filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
 		cmd.PrintErrf(
 			"error writing %s to file: %s\n",

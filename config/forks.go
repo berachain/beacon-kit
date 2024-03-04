@@ -28,7 +28,7 @@ package config
 import (
 	"github.com/itsdevbear/bolaris/config/flags"
 	"github.com/itsdevbear/bolaris/io/cli/parser"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 const defaultElectraForkEpoch = 9999999999999999

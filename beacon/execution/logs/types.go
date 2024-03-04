@@ -31,11 +31,12 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // LogRequest is a request for logs sent from a service.
 type LogRequest struct {
-	ContractAddress ethcommon.Address
+	ContractAddress primitives.ExecutionAddress
 	Allocator       *TypeAllocator
 }
 
