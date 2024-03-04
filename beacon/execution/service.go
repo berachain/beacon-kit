@@ -51,10 +51,9 @@ type Service struct {
 
 // Start spawns any goroutines required by the service.
 func (s *Service) Start(ctx context.Context) {
-	var err error
 	go s.engine.Start(ctx)
 	go func() {
-		err = s.startLogProcessing(ctx)
+		err := s.startLogProcessing(ctx)
 		if err != nil {
 			s.Logger().Error("log processing failed", "error", err)
 		}
