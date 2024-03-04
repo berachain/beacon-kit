@@ -54,7 +54,10 @@ func (s *Service) reportStatuses() {
 	var unhealthy []string
 	for _, svc := range s.retrieveStatuses() {
 		if !svc.Healthy {
-			unhealthy = append(unhealthy, fmt.Sprintf("%s: %s", svc.Name, svc.Err))
+			unhealthy = append(
+				unhealthy,
+				fmt.Sprintf("%s: %s", svc.Name, svc.Err),
+			)
 		}
 	}
 

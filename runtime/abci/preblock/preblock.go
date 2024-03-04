@@ -33,6 +33,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/config"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
@@ -110,6 +111,20 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				"error",
 				err,
 			)
+
+			// If we fail to extract the beacon block from the request, we
+			// create an empty beacon block to continue processing.
+			// TODO: This is a temporary solution to avoid panics, we should
+			// handle this better.
+			if buoy, err = beacontypes.EmptyBeaconBuoy(
+				primitives.Slot(req.Height),
+				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
+				h.chainService.ActiveForkVersionForSlot(
+					primitives.Slot(req.Height),
+				),
+			); err != nil {
+				return nil, err
+			}
 		}
 
 		// Receive the beacon block to validate whether it is good and submit
@@ -121,7 +136,11 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			cometBlockHash,
 			buoy,
 		); err != nil {
-			return &sdk.ResponsePreBlock{}, err
+			h.logger.Warn(
+				"failed to receive beacon block",
+				"error",
+				err,
+			)
 		}
 
 		// Process the finalization of the beacon block.
