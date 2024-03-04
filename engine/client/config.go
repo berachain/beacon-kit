@@ -38,7 +38,7 @@ const (
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
 	defaultJWTSecretPath   = "./jwt.hex"
-	defaultRequiredChainID = 80086
+	defaultRequiredChainID = 80087
 )
 
 // Config is the configuration struct for the execution client.
