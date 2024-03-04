@@ -133,11 +133,10 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			}
 		}()
 
-		// Since during initial syncing process proposal is not called, we have
-		// to import the block into our execution client to validate it.
-		//
-		// TODO: we need to figure out this lifecycle on error propagation.\
-		// if you execution client already has this block, ignore....
+		// Receive the beacon block to validate whether it is good and submit
+		// any required newPayload and/or forkchoice updates. If we have
+		// already ran this for the current block in ProcessProposal, this
+		// call will exit early.
 		if err = h.chainService.ReceiveBeaconBlock(
 			ctx,
 			cometBlockHash,
