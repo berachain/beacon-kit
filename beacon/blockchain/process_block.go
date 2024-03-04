@@ -29,7 +29,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/sync"
@@ -40,24 +39,8 @@ func (s *Service) postBlockProcess(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBuoy,
 	blockHash [32]byte,
-	isValidPayload bool,
+	_ bool,
 ) error {
-	if !isValidPayload {
-		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-		// If the incoming payload for this block is not valid, we submit a
-		// forkchoice
-		// to bring us back to the last valid one.
-		// TODO: Is doing this potentially the cause of the weird Geth SnapSync
-		// issue?
-		// TODO: Should introduce the concept of missed slots?
-		if err := s.sendFCU(
-			ctx, s.ForkchoiceStore(ctx).GetSafeEth1BlockHash(),
-		); err != nil {
-			s.Logger().Error("failed to send forkchoice update", "error", err)
-		}
-		return ErrInvalidPayload
-	}
-
 	payload, err := blk.ExecutionPayload()
 	if err != nil {
 		return err
