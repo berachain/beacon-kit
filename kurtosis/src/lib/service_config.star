@@ -11,6 +11,7 @@ References:
 """
 
 builtins = import_module('./builtins.star')
+port_spec_lib = import_module('./port_spec.star')
 
 def get_service_config_template(
     image,
@@ -49,24 +50,8 @@ def get_service_config_template(
         "node_selectors": node_selectors,
     }
 
-    validate_service_config_types(service_config)
+    # validate_service_config_types(service_config)
     return service_config
-
-def get_port_spec_template(
-    number,
-    transport=None,
-    application_protocol=None,
-    wait=None,
-):
-    port_spec = {
-        "number": number,
-        "transport": transport,
-        "application_protocol": application_protocol,
-        "wait": wait,
-    }
-
-    validate_port_spec(port_spec)
-    return port_spec
 
 def validate_service_config_types(service_config):
     if type(service_config) != builtins.types.dict:
@@ -81,7 +66,7 @@ def validate_service_config_types(service_config):
         for port_key, port_spec in service_config["ports"].items():
             if type(port_key) != builtins.types.string:
                 fail("Service config port key must be an int, not {0}".format(type(port_key)))
-            validate_port_spec(port_spec)
+            port_spec_lib.validate_port_spec(port_spec)
 
     if service_config["files"] != None:
         if type(service_config["files"]) != builtins.types.dict:
@@ -138,21 +123,3 @@ def validate_service_config_types(service_config):
     # TODO(validation): Implement validation for tolerations
     # TODO(validation): Implement validation for node_selectors
 
-def validate_port_spec(port_spec):
-    if type(port_spec) != builtins.types.dict:
-        fail("Port spec must be a dict, not {0}".format(type(port_spec)))
-
-    if type(port_spec["number"]) != builtins.types.int:
-        fail("Port spec number must be an int, not {0}".format(type(port_spec['number'])))
-
-    if port_spec["transport"] != None:
-        if type(port_spec["transport"]) != builtins.types.string:
-            fail("Port spec transport must be a string, not {0}".format(type(port_spec['transport'])))
-
-    if port_spec["application_protocol"] != None:
-        if type(port_spec["application_protocol"]) != builtins.types.string:
-            fail("Port spec application_protocol must be a string, not {0}".format(type(port_spec['application_protocol'])))
-
-    if port_spec["wait"] != None:
-        if type(port_spec["wait"]) != builtins.types.bool:
-            fail("Port spec wait must be a bool, not {0}".format(type(port_spec['wait'])))
