@@ -112,7 +112,7 @@ func (p *Processor) ProcessPastLogs(
 	registeredAddresses := p.factory.GetRegisteredAddresses()
 
 	currBlock := minLastFinalizedBlockInCache
-	for currBlock <= finalizedBlockNumber {
+	for currBlock < finalizedBlockNumber {
 		// Process the logs in batch.
 		currBlock, err = p.processBlocksInBatch(
 			ctx,
