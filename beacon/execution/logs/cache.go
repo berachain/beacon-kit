@@ -36,6 +36,7 @@ type Cache struct {
 	// The final store contains processed
 	// logs from finalized blocks.
 	finalStore []LogValueContainer
+
 	// lastFinalizedBlock records the block number
 	// of the latest finalized block up to which
 	// the logs are processed and stored in cache.
@@ -50,10 +51,17 @@ type Cache struct {
 	processingStore []LogValueContainer
 }
 
+// ShouldProcess returns true if the cache determines
+// that the log should be processed and added to it.
 func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
 	return log.BlockNumber > c.lastFinalizedBlock
 }
 
+// Push pushes the log value container into the cache.
+// In this implementation, the cache keeps the item
+// in its temporary processing store until it finishes
+// processing all the logs in the block and sets the
+// block as the last finalized block.
 func (c *Cache) Push(container LogValueContainer) error {
 	// ShouldProcess should be called before Push
 	// to avoid unnecessary processing.
@@ -61,16 +69,25 @@ func (c *Cache) Push(container LogValueContainer) error {
 	return nil
 }
 
+// LastFinalizedBlock returns the block number of
+// the last finalized block in cache.
 func (c *Cache) LastFinalizedBlock() uint64 {
 	return c.lastFinalizedBlock
 }
 
+// SetLastFinalizedBlock sets the block number of
+// the last finalized block in cache.
+// The cache will move the logs from the processing
+// store to the final store at this time.
 func (c *Cache) SetLastFinalizedBlock(blockNumber uint64) {
 	c.lastFinalizedBlock = blockNumber
 	c.finalStore = append(c.finalStore, c.processingStore...)
 	c.processingStore = nil
 }
 
+// Rollback rolls back the cache to the last finalized block
+// if there is any error during processing the logs
+// in the current block.
 func (c *Cache) Rollback() {
 	c.processingStore = nil
 }
