@@ -76,7 +76,7 @@ func (db *RangeDB[T]) Delete(index T, key []byte) error {
 }
 
 // DeleteRange removes all values associated with the given index from the
-// filesystem. It is INCLOUSIVE of the `from` index and EXCLUSIVE of
+// filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
 func (db *RangeDB[T]) DeleteRange(from, to T) error {
 	for ; from < to; from++ {
