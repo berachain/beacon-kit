@@ -62,7 +62,11 @@ func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
-func (k *Keeper) ForkchoiceStore(ctx context.Context) ssf.ForkchoiceKVStore {
+//
+// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+func (k *Keeper) ForkchoiceStore(
+	ctx context.Context,
+) ssf.SingleSlotFinalityStore {
 	return k.forkchoiceStore.WithContext(ctx)
 }
 

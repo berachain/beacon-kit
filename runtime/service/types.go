@@ -36,7 +36,7 @@ import (
 
 type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.ForkchoiceKVStore
+	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
 }
 
 type ValsetChangeProvider interface {

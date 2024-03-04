@@ -91,9 +91,11 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 	return s.bsb.BeaconState(ctx)
 }
 
+// ForkchoiceStore returns the forkchoice store from the BaseService.
 func (s *BaseService) ForkchoiceStore(
 	ctx context.Context,
 ) forkchoicer.ForkChoicer {
+	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
 	return ssf.New(s.bsb.ForkchoiceStore(ctx))
 }
 

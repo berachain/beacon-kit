@@ -35,7 +35,8 @@ import (
 	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
 )
 
-var _ ssf.ForkchoiceKVStore = &Store{}
+// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+var _ ssf.SingleSlotFinalityStore = &Store{}
 
 type Store struct {
 	ctx context.Context
@@ -143,7 +144,7 @@ func (s *Store) GenesisEth1Hash() common.Hash {
 }
 
 // WithContext( returns the Store with the given context.
-func (s *Store) WithContext(ctx context.Context) ssf.ForkchoiceKVStore {
+func (s *Store) WithContext(ctx context.Context) ssf.SingleSlotFinalityStore {
 	s.ctx = ctx
 	return s
 }

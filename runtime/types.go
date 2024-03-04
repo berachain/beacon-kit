@@ -43,7 +43,8 @@ type CometBFTConfig interface {
 // beacon state to the runtime.
 type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.ForkchoiceKVStore
+	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
 }
 
 // ValsetChangeProvider is an interface that provides the

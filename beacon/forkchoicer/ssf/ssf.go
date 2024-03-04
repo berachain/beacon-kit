@@ -31,9 +31,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// ForkchoiceKVStore is the interface for the forkchoice KV store.
-type ForkchoiceKVStore interface {
-	WithContext(ctx context.Context) ForkchoiceKVStore
+// SingleSlotFinalityStore is the interface for the required storage
+// backend for the SingleSlotFinality forkchoice store.
+type SingleSlotFinalityStore interface {
+	WithContext(ctx context.Context) SingleSlotFinalityStore
 
 	// TODO: eventually the forkchoicer shouldn't have
 	// anything to do with beacon, since this forkchoicer
@@ -58,10 +59,10 @@ type ForkchoiceKVStore interface {
 
 // ForkChoice represents the single-slot finality forkchoice algoritmn.
 type ForkChoice struct {
-	kv ForkchoiceKVStore
+	kv SingleSlotFinalityStore
 }
 
-func New(kv ForkchoiceKVStore) *ForkChoice {
+func New(kv SingleSlotFinalityStore) *ForkChoice {
 	return &ForkChoice{
 		kv: kv,
 	}
