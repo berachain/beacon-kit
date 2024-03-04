@@ -30,9 +30,12 @@ import (
 	"errors"
 	"reflect"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
+
+var _ LogFactory = (*Factory)(nil)
 
 // Factory is a struct that can be used to unmarshal
 // Ethereum logs into objects with the appropriate types.
@@ -109,6 +112,18 @@ func (f *Factory) GetRegisteredAddresses() []primitives.ExecutionAddress {
 		addresses = append(addresses, addr)
 	}
 	return addresses
+}
+
+// GetRegisteredSignatures returns the signatures of the events
+// that have been registered with the factory.
+func (f *Factory) GetRegisteredSignatures() []ethcommon.Hash {
+	signatures := make([]ethcommon.Hash, 0)
+	for _, allocator := range f.addressToAllocator {
+		for sig := range allocator.sigToName {
+			signatures = append(signatures, sig)
+		}
+	}
+	return signatures
 }
 
 // IsRegisteredLog returns true if its corresponding event

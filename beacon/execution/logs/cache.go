@@ -29,14 +29,25 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+// Cache implements the LogCache interface.
+var _ LogCache = (*Cache)(nil)
+
 type Cache struct {
-	// The finalized store contains processed
+	// The final store contains processed
 	// logs from finalized blocks.
-	finalizedStore []LogValueContainer
+	finalStore []LogValueContainer
 	// lastFinalizedBlock records the block number
 	// of the latest finalized block up to which
 	// the logs are processed and stored in cache.
+	// This is in-memory only and will be reset to 0
+	// when the node restarts.
 	lastFinalizedBlock uint64
+
+	// The processing store contains logs from
+	// the current block being processed.
+	// They will be moved to the final store
+	// when the block is set as the last finalized block.
+	processingStore []LogValueContainer
 }
 
 func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
@@ -46,7 +57,7 @@ func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
 func (c *Cache) Push(container LogValueContainer) error {
 	// ShouldProcess should be called before Push
 	// to avoid unnecessary processing.
-	c.finalizedStore = append(c.finalizedStore, container)
+	c.processingStore = append(c.processingStore, container)
 	return nil
 }
 
@@ -56,4 +67,10 @@ func (c *Cache) LastFinalizedBlock() uint64 {
 
 func (c *Cache) SetLastFinalizedBlock(blockNumber uint64) {
 	c.lastFinalizedBlock = blockNumber
+	c.finalStore = append(c.finalStore, c.processingStore...)
+	c.processingStore = nil
+}
+
+func (c *Cache) Rollback() {
+	c.processingStore = nil
 }

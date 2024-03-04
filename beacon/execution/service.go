@@ -27,9 +27,10 @@ package execution
 
 import (
 	"context"
-	"reflect"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -45,12 +46,19 @@ type Service struct {
 	// client.
 	engine engineclient.Caller
 	// logFactory is the factory for creating objects from Ethereum logs.
-	logFactory LogFactory
+	logFactory logs.LogFactory
 }
 
 // Start spawns any goroutines required by the service.
 func (s *Service) Start(ctx context.Context) {
+	var err error
 	go s.engine.Start(ctx)
+	go func() {
+		err = s.startLogProcessing(ctx)
+		if err != nil {
+			s.Logger().Error("log processing failed", "error", err)
+		}
+	}()
 }
 
 // Status returns error if the service is not considered healthy.
@@ -106,24 +114,34 @@ func (s *Service) NotifyNewPayload(
 	)
 }
 
-// ProcessLogsInETH1Block gets logs in the Eth1 block
-// received from the execution client and uses LogFactory to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service) ProcessLogsInETH1Block(
-	ctx context.Context,
-	blkNum uint64,
-) ([]*reflect.Value, error) {
-	// Gather all the logs corresponding to
-	// the addresses of interest from this block.
-	logsInBlock, err := s.engine.GetLogs(
-		ctx,
-		blkNum,
-		blkNum,
-		s.logFactory.GetRegisteredAddresses(),
+// startLogProcessing starts the log processing
+// in background.
+func (s *Service) startLogProcessing(ctx context.Context) error {
+	logProcessor, err := logs.NewProcessor(
+		logs.WithForkChoiceProvider(s.BeaconStorageBackend),
+		logs.WithFinalizedLogsProvider(nil),
+		logs.WithLogFactory(s.logFactory),
+		logs.WithEngineCaller(s.engine),
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return s.logFactory.ProcessLogs(logsInBlock, blkNum)
+
+	logPeriod := 1 * time.Minute
+	logTicker := time.NewTicker(logPeriod)
+	defer logTicker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-logTicker.C:
+			err = logProcessor.ProcessPastLogs(ctx)
+			if err != nil {
+				s.Logger().Error("failed to process past logs", "error", err)
+				// TODO: Should we return error here or retry?
+			}
+			continue
+		}
+	}
 }

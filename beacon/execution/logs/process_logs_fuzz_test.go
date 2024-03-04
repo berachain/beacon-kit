@@ -26,7 +26,6 @@
 package logs_test
 
 import (
-	"reflect"
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -66,13 +65,14 @@ func FuzzProcessLogs(f *testing.F) {
 			)
 			require.NoError(t, err)
 
-			var vals []*reflect.Value
-			vals, err = logFactory.ProcessLogs(logs, blkNum)
+			var containers []loghandler.LogValueContainer
+			containers, err = logFactory.ProcessLogs(logs, blkNum)
 			require.NoError(t, err)
-			require.Len(t, vals, numDepositLogs)
+			require.Len(t, containers, numDepositLogs)
 
 			// Check if the values are returned in the correct order.
-			for i, val := range vals {
+			for i, container := range containers {
+				val := container.Value()
 				processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
 				require.True(t, ok)
 				require.Equal(

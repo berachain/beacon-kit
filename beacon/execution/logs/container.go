@@ -23,34 +23,45 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package logs
 
 import (
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"reflect"
+
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+var _ LogValueContainer = (*Container)(nil)
+
+type Container struct {
+	value       *reflect.Value
+	index       uint64
+	sig         ethcommon.Hash
+	blockNumber uint64
+	blockHash   ethcommon.Hash
 }
 
-// WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec engineclient.Caller) service.Option[Service] {
-	return func(s *Service) error {
-		s.engine = ec
-		return nil
-	}
+// BlockHash returns the block hash of the log.
+func (c *Container) BlockHash() ethcommon.Hash {
+	return c.blockHash
 }
 
-// WithLogFactory is an option to set the LogFactory for the Service.
-func WithLogFactory(f logs.LogFactory) service.Option[Service] {
-	return func(s *Service) error {
-		s.logFactory = f
-		return nil
-	}
+// BlockNumber returns the block number of the log.
+func (c *Container) BlockNumber() uint64 {
+	return c.blockNumber
+}
+
+// LogIndex returns the index of the log.
+func (c *Container) LogIndex() uint64 {
+	return c.index
+}
+
+// Value returns the value of the log.
+func (c *Container) Value() *reflect.Value {
+	return c.value
+}
+
+// Signature returns the signature of the log.
+func (c *Container) Signature() ethcommon.Hash {
+	return c.sig
 }

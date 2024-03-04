@@ -64,13 +64,13 @@ func TestProcessLogs(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	vals, err := logFactory.ProcessLogs(mockLogs, blkNum)
+	containers, err := logFactory.ProcessLogs(mockLogs, blkNum)
 	require.NoError(t, err)
-	require.Len(t, vals, numDepositLogs)
+	require.Len(t, containers, numDepositLogs)
 
 	// Check if the values are returned in the correct order.
-	for i, val := range vals {
-		processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+	for i, container := range containers {
+		processedDeposit, ok := container.Value().Interface().(*beacontypesv1.Deposit)
 		require.True(t, ok)
 		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
 	}
@@ -102,9 +102,9 @@ func TestProcessLogs(t *testing.T) {
 	log.Address = ethcommon.HexToAddress("0x5678")
 	log.BlockNumber = blkNum
 	mockLogs = append(mockLogs, *log)
-	vals, err = logFactory.ProcessLogs(mockLogs, blkNum)
+	containers, err = logFactory.ProcessLogs(mockLogs, blkNum)
 	require.NoError(t, err)
-	require.Len(t, vals, numDepositLogs)
+	require.Len(t, containers, numDepositLogs)
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum

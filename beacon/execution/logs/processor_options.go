@@ -23,34 +23,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package logs
 
 import (
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
+// WithForkChoiceProvider returns an Option for
+// setting the fork choice provider for Processor.
+func WithForkChoiceProvider(fcp ReadOnlyForkChoiceProvider) Option[Processor] {
+	return func(p *Processor) error {
+		p.fcp = fcp
 		return nil
 	}
 }
 
-// WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec engineclient.Caller) service.Option[Service] {
-	return func(s *Service) error {
-		s.engine = ec
+// WithFinalizedLogsProvider returns an Option for
+// setting the finalized logs provider for Processor.
+func WithFinalizedLogsProvider(flp FinalizedLogsProvider) Option[Processor] {
+	return func(p *Processor) error {
+		p.flp = flp
 		return nil
 	}
 }
 
-// WithLogFactory is an option to set the LogFactory for the Service.
-func WithLogFactory(f logs.LogFactory) service.Option[Service] {
-	return func(s *Service) error {
-		s.logFactory = f
+// WithEngineCaller is an option to set the Engine for the Service.
+func WithEngineCaller(ec engineclient.Caller) Option[Processor] {
+	return func(p *Processor) error {
+		p.engine = ec
+		return nil
+	}
+}
+
+// WithLogFactory returns an Option for setting the
+// log factory for Processor.
+func WithLogFactory(factory LogFactory) Option[Processor] {
+	return func(p *Processor) error {
+		p.factory = factory
+		registeredSigs := factory.GetRegisteredSignatures()
+		p.sigToCache = make(map[ethcommon.Hash]LogCache, len(registeredSigs))
+		for _, sig := range registeredSigs {
+			p.sigToCache[sig] = &Cache{}
+		}
 		return nil
 	}
 }

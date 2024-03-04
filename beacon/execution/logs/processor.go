@@ -29,12 +29,20 @@ import (
 	"context"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/pkg/errors"
 )
 
+const (
+	// DefaultBatchSize is the default size of the batch
+	// for processing the logs in the background.
+	DefaultBatchSize = 1000
+)
+
 type Processor struct {
 	fcp ReadOnlyForkChoiceProvider
+	flp FinalizedLogsProvider
 
 	// engine gives the access to the Engine API
 	// of the execution client.
@@ -48,13 +56,23 @@ type Processor struct {
 	sigToCache map[ethcommon.Hash]LogCache
 }
 
-// ProcessBlocksInBatch processes the blocks in batch,
+func NewProcessor(opts ...Option[Processor]) (*Processor, error) {
+	p := &Processor{}
+	for _, opt := range opts {
+		if err := opt(p); err != nil {
+			return nil, err
+		}
+	}
+	return p, nil
+}
+
+// ProcessPastLogs processes the blocks in batch,
 // from the last processed block (exclusive)
 // to the latest block (inclusive) for each cache.
 // This function will be called in a goroutine
 // to prediodically process the logs and backfill
 // the caches in background.
-func (p *Processor) ProcessBlocksInBatch(
+func (p *Processor) ProcessPastLogs(
 	ctx context.Context,
 ) error {
 	// Get the latest finalized block hash and block number.
@@ -71,10 +89,16 @@ func (p *Processor) ProcessBlocksInBatch(
 	// By doing so, we can avoid processing the same block
 	// multiple times for different types of logs.
 	minLastFinalizedBlockInCache := finalizedBlockNumber
-	for _, cache := range p.sigToCache {
+	for sig, cache := range p.sigToCache {
 		lastFinalizedBlockInCache := cache.LastFinalizedBlock()
+		lastProcessedBlock := p.flp.GetLastProcessedBlockNumber(sig)
+		// Update the block number from which we should start processing
+		// logs to insert into the cache.
 		if lastFinalizedBlockInCache < minLastFinalizedBlockInCache {
 			minLastFinalizedBlockInCache = lastFinalizedBlockInCache
+		}
+		if lastProcessedBlock < minLastFinalizedBlockInCache {
+			minLastFinalizedBlockInCache = lastProcessedBlock
 		}
 	}
 
@@ -84,48 +108,108 @@ func (p *Processor) ProcessBlocksInBatch(
 		return nil
 	}
 
-	// Gather all the logs corresponding to
-	// the addresses of interest in the range
-	// from the last processed block to the latest block.
-	// TODO: Can we assume that the logs are returned in order?
-	batchedLogs, err := p.engine.GetLogs(
-		ctx,
-		minLastFinalizedBlockInCache+1,
-		finalizedBlockNumber,
-		p.factory.GetRegisteredAddresses(),
-	)
-	if err != nil {
-		// TODO: Handle TooMuchDataRequestedError.
-		return errors.Wrapf(err, "failed to get logs")
-	}
+	// Get the registered addresses for the logs.
+	registeredAddresses := p.factory.GetRegisteredAddresses()
 
-	// TODO: Use MapErr
-	for i := range batchedLogs {
-		log := &batchedLogs[i]
-		cache, ok := p.sigToCache[log.Topics[0]]
-		// Skip the log if it is not registered.
-		if !ok {
-			continue
+	currBlock := minLastFinalizedBlockInCache
+	for currBlock <= finalizedBlockNumber {
+		// Process the logs in batch.
+		currBlock, err = p.processBlocksInBatch(
+			ctx,
+			currBlock+1,
+			DefaultBatchSize,
+			finalizedBlockNumber,
+			registeredAddresses,
+		)
+		if err != nil {
+			return errors.Wrapf(err, "failed to process logs in batch")
 		}
-		// Cache determine if the log should be processed,
-		// based on its last finalized block.
-		if cache.ShouldProcess(log) {
-			var container LogValueContainer
-			container, err = p.factory.ProcessLog(log)
-			if err != nil {
-				return errors.Wrapf(err, "failed to process log")
-			}
-			err = cache.Push(container)
-			if err != nil {
-				return errors.Wrapf(err, "failed to push container")
-			}
-		}
-	}
-
-	// Update the caches with the new finalized block.
-	for _, cache := range p.sigToCache {
-		cache.SetLastFinalizedBlock(finalizedBlockNumber)
 	}
 
 	return nil
+}
+
+// processBlocksInBatch processes the logs in the range
+// from fromBlock (inclusive)
+// to min(fromBlock + batchSize - 1, latestFinalizedBlock) (inclusive).
+func (p *Processor) processBlocksInBatch(
+	ctx context.Context,
+	fromBlock uint64,
+	batchSize uint64,
+	latestFinalizedBlock uint64,
+	registeredAddresses []ethcommon.Address,
+) (uint64, error) {
+	// Gather all the logs corresponding to
+	// the addresses of interest in the range.
+	// TODO: Can we assume that the logs are returned in order?
+	toBlock := fromBlock + batchSize - 1
+	if toBlock > latestFinalizedBlock {
+		toBlock = latestFinalizedBlock
+	}
+	batchedLogs, err := p.engine.GetLogs(
+		ctx,
+		fromBlock,
+		toBlock,
+		registeredAddresses,
+	)
+	if err != nil {
+		// TODO: Handle TooMuchDataRequestedError.
+		return 0, errors.Wrapf(err, "failed to get logs")
+	}
+
+	blockToLogs := make(map[uint64][]ethtypes.Log)
+	for _, log := range batchedLogs {
+		blockToLogs[log.BlockNumber] = append(blockToLogs[log.BlockNumber], log)
+	}
+
+	defer func() {
+		// If there are any erros, we need to rollback
+		// the caches to the last finalized block.
+		if err != nil {
+			p.rollbackCaches()
+		}
+	}()
+	for blockNum := fromBlock; blockNum <= toBlock; blockNum++ {
+		logs, ok := blockToLogs[blockNum]
+		if !ok {
+			continue
+		}
+		var containers []LogValueContainer
+		containers, err = p.factory.ProcessLogs(logs, blockNum)
+		if err != nil {
+			return 0, errors.Wrapf(err, "failed to process logs")
+		}
+		for _, container := range containers {
+			sig := container.Signature()
+			var cache LogCache
+			cache, ok = p.sigToCache[sig]
+			if !ok {
+				continue
+			}
+			err = cache.Push(container)
+			if err != nil {
+				return 0, errors.Wrapf(err, "failed to push container")
+			}
+		}
+		// We start processing the logs from a new block.
+		// Notify the caches to update the last finalized block.
+		p.setLastFinalizedBlockAllCaches(blockNum)
+	}
+
+	return toBlock, nil
+}
+
+// rollbackCaches rolls back all the caches to the last finalized block.
+func (p *Processor) rollbackCaches() {
+	for _, cache := range p.sigToCache {
+		cache.Rollback()
+	}
+}
+
+// setLastFinalizedBlockAllCaches sets the last finalized block
+// to the given block number for all the caches.
+func (p *Processor) setLastFinalizedBlockAllCaches(blockNumber uint64) {
+	for _, cache := range p.sigToCache {
+		cache.SetLastFinalizedBlock(blockNumber)
+	}
 }

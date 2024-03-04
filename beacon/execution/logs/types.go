@@ -27,6 +27,7 @@ package logs
 
 import (
 	"context"
+	"reflect"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -53,6 +54,8 @@ type LogCache interface {
 	// SetLastFinalizedBlock sets the block number of
 	// the last finalized block in cache.
 	SetLastFinalizedBlock(blockNumber uint64)
+	// Rollback rolls back the cache to the last finalized block.
+	Rollback()
 }
 
 // LogValueContainer is the interface for the container of
@@ -63,15 +66,33 @@ type LogValueContainer interface {
 	// BlockNumber returns the block number of the log.
 	BlockNumber() uint64
 	// LogIndex returns the index of the log in the block.
-	LogIndex() uint
+	LogIndex() uint64
+	// Value returns the reflect value of the log.
+	Value() *reflect.Value
+	// Signature returns the signature of the log.
+	Signature() ethcommon.Hash
 }
 
+// LogFactory is an interface that can unmarshal Ethereum logs into objects,
+// in the form of reflect.Value, with appropriate types for each type of logs.
 type LogFactory interface {
 	GetRegisteredAddresses() []ethcommon.Address
-	ProcessLog(log *ethtypes.Log) (LogValueContainer, error)
+	GetRegisteredSignatures() []ethcommon.Hash
+	ProcessLogs(
+		logs []ethtypes.Log,
+		blkNum uint64,
+	) ([]LogValueContainer, error)
 }
 
 // ReadOnlyForkChoiceProvider provides the read-only fork choice store.
 type ReadOnlyForkChoiceProvider interface {
-	ForkchoiceStore(ctx context.Context) state.ReadOnlyForkChoice
+	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
+}
+
+// FinalizedLogsProvider is the interface that provides
+// non-consensus information about the logs included in
+// the latest finalized block, which is the block number
+// of the last processed log included in the finalized block.
+type FinalizedLogsProvider interface {
+	GetLastProcessedBlockNumber(sig ethcommon.Hash) uint64
 }
