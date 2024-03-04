@@ -23,26 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
-
-import (
-	"context"
-
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	ssf "github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-)
-
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
-}
+package forkchoicer

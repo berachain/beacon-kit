@@ -31,8 +31,12 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
 	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
 )
+
+// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+var _ ssf.SingleSlotFinalityStore = &Store{}
 
 type Store struct {
 	ctx context.Context
@@ -45,9 +49,6 @@ type Store struct {
 
 	// eth1GenesisHash is the Eth1 genesis hash.
 	eth1GenesisHash sdkcollections.Item[[32]byte]
-
-	// latestBeaconBlock is the latest beacon block.
-	latestBeaconBlock [32]byte
 }
 
 func NewStore(
@@ -79,16 +80,6 @@ func NewStore(
 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
 		eth1GenesisHash:          eth1GenesisHash,
 	}
-}
-
-// SetLastSeenBeaconBlock sets the last seen beacon block in the store.
-func (s *Store) SetLastSeenBeaconBlock(blockHash [32]byte) {
-	s.latestBeaconBlock = blockHash
-}
-
-// GetLastSeenBeaconBlock retrieves the last seen beacon block from the store.
-func (s *Store) GetLastSeenBeaconBlock() [32]byte {
-	return s.latestBeaconBlock
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
@@ -140,7 +131,7 @@ func (s *Store) GenesisEth1Hash() common.Hash {
 }
 
 // WithContext( returns the Store with the given context.
-func (s *Store) WithContext(ctx context.Context) *Store {
+func (s *Store) WithContext(ctx context.Context) ssf.SingleSlotFinalityStore {
 	s.ctx = ctx
 	return s
 }

@@ -55,7 +55,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// If we have already seen this block, we can skip processing it.
 	// TODO: should we store some historical data here?
-	if forkChoicer.GetLastSeenBeaconBlock() == blockHash {
+	if forkChoicer.HeadBeaconBlock() == blockHash {
 		s.Logger().Info(
 			"ignoring already processed beacon block",
 			// todo: don't use common for beacontypes
@@ -63,7 +63,7 @@ func (s *Service) ReceiveBeaconBlock(
 		)
 		return nil
 	}
-	forkChoicer.SetLastSeenBeaconBlock(blockHash)
+	forkChoicer.UpdateHeadBeaconBlock(blockHash)
 
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
@@ -164,7 +164,7 @@ func (s *Service) validateExecutionOnBlock(
 	// In BeaconKit, since we are currently operating on SingleSlot Finality
 	// we purposefully reject any block that is not a child of the last
 	// finalized block.
-	safeHash := s.ForkchoiceStore(ctx).GetSafeEth1BlockHash()
+	safeHash := s.ForkchoiceStore(ctx).JustifiedCheckpoint()
 	if !bytes.Equal(safeHash[:], payload.GetParentHash()) {
 		return false, fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",

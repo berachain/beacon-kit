@@ -30,6 +30,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
+	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
@@ -42,7 +43,8 @@ type CometBFTConfig interface {
 // beacon state to the runtime.
 type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
+	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
 }
 
 // ValsetChangeProvider is an interface that provides the
