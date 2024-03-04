@@ -56,8 +56,7 @@ type ForkchoiceKVStore interface {
 	SetGenesisEth1Hash(common.Hash)
 }
 
-// ForkChoice represents an extremely simple single slot finality
-// forkchoice ruler for the execution chain.
+// ForkChoice represents the single-slot finality forkchoice algoritmn.
 type ForkChoice struct {
 	kv ForkchoiceKVStore
 }
@@ -73,6 +72,14 @@ func (f *ForkChoice) WithContext(ctx context.Context) *ForkChoice {
 	return f
 }
 
+func (f *ForkChoice) InsertNode(
+	hash common.Hash,
+) error {
+	f.kv.SetFinalizedEth1BlockHash(hash)
+	f.kv.SetSafeEth1BlockHash(hash)
+	return nil
+}
+
 func (f *ForkChoice) HeadBeaconBlock() [32]byte {
 	return f.kv.GetLastSeenBeaconBlock()
 }
@@ -81,22 +88,6 @@ func (f *ForkChoice) UpdateHeadBeaconBlock(
 	blockHash [32]byte,
 ) {
 	f.kv.SetLastSeenBeaconBlock(blockHash)
-}
-
-func (f *ForkChoice) UpdateFinalizedCheckpoint(
-	hash common.Hash,
-) error {
-	f.kv.SetFinalizedEth1BlockHash(hash)
-	return nil
-}
-
-// UpdateFinalizedCheckpoint updates the finalized
-// checkpoint in the forkchoice.
-func (f *ForkChoice) UpdateJustifiedCheckpoint(
-	hash common.Hash,
-) error {
-	f.kv.SetSafeEth1BlockHash(hash)
-	return nil
 }
 
 func (f *ForkChoice) JustifiedCheckpoint() common.Hash {

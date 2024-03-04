@@ -88,15 +88,7 @@ func (s *Service) FinalizeBeaconBlock(
 		return ErrNoPayloadInBeaconBlock
 	}
 
-	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	if err = forkChoicer.UpdateJustifiedCheckpoint(eth1BlockHash); err != nil {
-		return err
-	}
-
-	if err = forkChoicer.UpdateFinalizedCheckpoint(eth1BlockHash); err != nil {
-		return err
-	}
-	return nil
+	return forkChoicer.InsertNode(common.Hash(payload.GetBlockHash()))
 }
 
 // missed block tasks is called when a block is missed. It sends a forkchoice

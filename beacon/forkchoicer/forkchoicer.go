@@ -45,9 +45,13 @@ type Reader interface {
 }
 
 type Writer interface {
-	UpdateJustifiedCheckpoint(common.Hash) error
-	UpdateFinalizedCheckpoint(common.Hash) error
+	BlockProcessor
 
 	// Eventually deprecate this
 	UpdateHeadBeaconBlock([32]byte)
+}
+
+// BlockProcessor processes the block that's used for accounting fork choice.
+type BlockProcessor interface {
+	InsertNode(common.Hash) error
 }
