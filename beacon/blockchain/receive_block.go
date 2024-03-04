@@ -40,8 +40,8 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBuoy,
 	blockHash [32]byte,
+	blk beacontypes.ReadOnlyBeaconBuoy,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -49,7 +49,20 @@ func (s *Service) ReceiveBeaconBlock(
 	var (
 		eg, groupCtx   = errgroup.WithContext(ctx)
 		isValidPayload bool
+		forkChoicer    = s.ForkchoiceStore(ctx)
 	)
+
+	// If we have already seen this block, we can skip processing it.
+	// TODO: should we store some historical data here?
+	if forkChoicer.GetLastSeenBeaconBlock() == blockHash {
+		s.Logger().Info(
+			"ignoring already processed beacon block",
+			//TODO: don't use common.Hash for strong typing
+			"hash", common.Hash(blockHash),
+		)
+		return nil
+	}
+	defer forkChoicer.SetLastSeenBeaconBlock(blockHash)
 
 	// This go routine validators the consensus level aspects of the block.
 	// i.e: does it have a valid ancesor?
@@ -77,6 +90,18 @@ func (s *Service) ReceiveBeaconBlock(
 
 		return nil
 	})
+
+	// daStartTime := time.Now()
+	// if avs != nil {
+	// 	if err := avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
+	// 		return errors.Wrap(err, "could not validate blob data availability
+	// (AvailabilityStore.IsDataAvailable)")
+	// 	}
+	// } else {
+	// 	if err := s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
+	// 		return errors.Wrap(err, "could not validate blob data availability")
+	// 	}
+	// }
 
 	// Wait for the goroutines to finish.
 	if err := eg.Wait(); err != nil {
@@ -112,6 +137,7 @@ func (s *Service) validateStateTransition(
 			safeHash,
 		)
 	}
+
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if !bytes.Equal(parentBlockRoot[:], blk.GetParentRoot()) {
 		return fmt.Errorf(
