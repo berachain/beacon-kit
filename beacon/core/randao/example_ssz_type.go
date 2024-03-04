@@ -25,30 +25,11 @@
 
 package randao
 
-import (
-	"encoding/binary"
-)
+import "github.com/itsdevbear/bolaris/types/consensus/primitives"
 
-type Reveal interface {
-	Verify(pubKey []byte, signingData SigningData) bool
-	Marshal() []byte
-}
+//go:generate sszgen -path . -objs MySSZType --include ../../../types/consensus/primitives
 
-type Epoch uint64
-
-type SigningData struct {
-	Epoch   Epoch
-	ChainID string
-}
-
-// Marshal converts the signing data into a byte slice to be signed.
-// this includes the chain-id and the epoch.
-func (s SigningData) Marshal() []byte {
-	var buf []byte
-
-	// TODO maybe caching?
-	binary.LittleEndian.AppendUint64(buf, uint64(s.Epoch))
-	buf = append(buf, []byte(s.ChainID)...)
-
-	return buf
+type MySSZType struct {
+	MyFirstField  []byte `ssz-size:"96"`
+	MySecondField primitives.SSZUint64
 }

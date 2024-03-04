@@ -23,14 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package beacon.core.randao;
+package beacon
 
-import "ethereum/eth/ext/options.proto";
+import (
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
+)
 
-option go_package = "github.com/itsdevbear/bolaris/beacon/core/randao";
+// SetLastValidHead sets the last valid head in the store.
+// TODO: Make this in-mem thing more robust.
+func (s *Store) SetRandaoMix(primitives.Epoch, randaotypes.Mix) error {
+	return nil
+}
 
-message SigningData {
-  uint64 epoch = 1;
-  bytes chain_id = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+// GetLastValidHead retrieves the last valid head from the store.
+// TODO: Make this in-mem thing more robust.
+func (s *Store) RandaoMix() (randaotypes.Mix, error) {
+	return randaotypes.Mix{}, nil
 }

@@ -23,6 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package bls12381
 
-const BLSSignatureLength = 96 // BLSSignatureLength defines the byte length of a BLSSignature.
+// SignatureLength defines the byte length of a BLS12-381 Signature
+// It is defined to be 96 bytes as defined in the Ethereum 2.0 Specification.
+//
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+//
+//nolint:lll
+const (
+	SignatureLength = 96
+	PubKeyLength    = 48
+	SecretKeyLength = 32
+)

@@ -29,7 +29,9 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 	consensusv1 "github.com/itsdevbear/bolaris/types/consensus/v1"
 )
 
@@ -54,6 +56,8 @@ type ReadOnlyBeaconState interface {
 	// TODO: fill these in as we develop impl
 	ReadWriteDepositQueue
 
+	ReadOnlyRandaoMixes
+
 	SetParentBlockRoot([32]byte)
 	GetParentBlockRoot() [32]byte
 
@@ -61,11 +65,22 @@ type ReadOnlyBeaconState interface {
 	// GetEpochBySlot(primitives.Slot) primitives.Epoch
 }
 
+type WriteOnlyRandaoMixes interface {
+	SetRandaoMix(primitives.Epoch, randaotypes.Mix) error
+}
+
+// ReadOnlyRandaoMixes defines a struct which only has read access to randao
+// mixes methods.
+type ReadOnlyRandaoMixes interface {
+	RandaoMix() (randaotypes.Mix, error)
+}
+
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
 	WriteOnlyForkChoice
 	WriteOnlyGenesis
 	ReadOnlyWithdrawals
+	WriteOnlyRandaoMixes
 }
 
 // Write Only Fork Choice.

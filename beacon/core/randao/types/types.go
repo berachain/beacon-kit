@@ -23,18 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package types
 
-import "github.com/itsdevbear/bolaris/crypto/sha256"
+import (
+	bls "github.com/itsdevbear/bolaris/crypto/bls12_381"
+	"github.com/itsdevbear/bolaris/crypto/sha256"
+)
 
-// Mix is a hashed value of the signed reveal.
+type Domain [32]byte
+
+func BuildDomain() Domain {
+	return Domain{}
+}
+
+// Reveal represents the signature of the RANDAO reveal.
+type Reveal [bls.SignatureLength]byte
+
+// Mix
+// We can think of a RANDAO as being like a deck of cards that's passed round
+// the table, each person shuffling it in turn: the deck gets repeatedly
+// re-randomised. Even if one contributor's randomness is weak, the cumulative
+// result has a high level of entropy.
+//
+// In order to accomplish this, we need to keep track of the "current mix",
+// which represents the current state of this shuffled deck of cards, as it
+// is passed around the table.
 type Mix [32]byte
 
-// MixWithReveal mixes the current mix with the new reveal and returns the new mix.
-func (m Mix) MixWithReveal(newReveal Reveal) Mix {
-	hash := sha256.Hash(newReveal.Marshal())
-
-	for idx, b := range hash {
+// MixinNewReveal
+// mixes a new reveal to the current mix and returns the result.
+func (m Mix) MixinNewReveal(reveal Reveal) Mix {
+	for idx, b := range sha256.Hash(reveal[:]) {
 		m[idx] ^= b
 	}
 
