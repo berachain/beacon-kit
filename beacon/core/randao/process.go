@@ -28,7 +28,6 @@ package randao
 import (
 	"context"
 
-	"github.com/berachain/comet-bls12-381/bls/blst"
 	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	bls12_381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
@@ -36,7 +35,7 @@ import (
 )
 
 type beaconStateProvider interface {
-	// GetBeaconState returns the current beacon state.
+	// BeaconState returns the current beacon state.
 	BeaconState(context.Context) state.BeaconState
 }
 
@@ -135,20 +134,10 @@ func (rs *Processor) getDomain(
 }
 
 // VerifyReveal verifies the reveal of the proposer.
-func (Processor) VerifyReveal(
+func (rs Processor) VerifyReveal(
 	proposerPubkey [bls12_381.PubKeyLength]byte,
 	signature [bls12_381.SignatureLength]byte,
 	reveal types.Reveal,
 ) bool {
-	sig, err := blst.SignatureFromBytes(signature[:])
-	if err != nil {
-		panic(err)
-	}
-
-	p, err := blst.PublicKeyFromBytes(proposerPubkey[:])
-	if err != nil {
-		panic(err)
-	}
-
-	return sig.Verify(p, reveal[:])
+	return rs.signer.Verify(proposerPubkey, reveal[:], signature)
 }

@@ -4,6 +4,11 @@ import "github.com/prysmaticlabs/prysm/v5/crypto/bls"
 
 type BlsSigner interface {
 	Sign([]byte) ([SignatureLength]byte, error)
+	Verify(
+		pubKey [PubKeyLength]byte,
+		msg []byte,
+		signature [SignatureLength]byte,
+	) bool
 }
 
 type blsSigner struct {
@@ -26,4 +31,22 @@ func (b blsSigner) Sign(msg []byte) ([SignatureLength]byte, error) {
 	copy(signature[:], sign.Marshal())
 
 	return signature, nil
+}
+
+func (b blsSigner) Verify(
+	pubKey [PubKeyLength]byte,
+	msg []byte,
+	signature [SignatureLength]byte,
+) bool {
+	pub, err := bls.PublicKeyFromBytes(pubKey[:])
+	if err != nil {
+		panic(err)
+	}
+
+	sig, err := bls.SignatureFromBytes(signature[:])
+	if err != nil {
+		panic(err)
+	}
+
+	return sig.Verify(pub, msg)
 }
