@@ -125,13 +125,11 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		// ReceiveBeaconblock(). The control flow should be hella improved here.
 		// fix this
 		defer func() {
-			if err == nil {
-				if err = h.chainService.FinalizeBeaconBlock(
-					ctx, buoy, cometBlockHash,
-				); err != nil {
-					h.chainService.Logger().
-						Error("failed to finalize beacon block", "error", err)
-				}
+			if err = h.chainService.FinalizeBeaconBlock(
+				ctx, buoy, cometBlockHash,
+			); err != nil {
+				h.chainService.Logger().
+					Error("failed to finalize beacon block", "error", err)
 			}
 		}()
 
