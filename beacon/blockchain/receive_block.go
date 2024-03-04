@@ -65,8 +65,8 @@ func (s *Service) ReceiveBeaconBlock(
 	}
 	forkChoicer.SetLastSeenBeaconBlock(blockHash)
 
-	// This go routine validators the consensus level aspects of the block.
-	// i.e: does it have a valid ancesor?
+	// This go routine validates the consensus level aspects of the block.
+	// i.e: does it have a valid ancestor?
 	eg.Go(func() error {
 		err := s.validateStateTransition(groupCtx, buoy)
 		if err != nil {
@@ -109,7 +109,7 @@ func (s *Service) ReceiveBeaconBlock(
 		return err
 	}
 
-	// If the block is valid, we can process it.
+	// Perform post block processing.
 	return s.postBlockProcess(
 		ctx, buoy, blockHash, isValidPayload,
 	)
