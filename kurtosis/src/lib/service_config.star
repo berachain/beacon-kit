@@ -13,7 +13,13 @@ References:
 builtins = import_module('./builtins.star')
 port_spec_lib = import_module('./port_spec.star')
 
+
+DEFAULT_PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
+DEFAULT_MAX_MEMORY = 4096 # 4 GB
+DEFAULT_MAX_CPU = 1000    # 1 core
+
 def get_service_config_template(
+    name,
     image,
     ports=None,
     files=None,
@@ -32,6 +38,7 @@ def get_service_config_template(
     node_selectors=None,
 ):
     service_config = {
+        "name": name,
         "image": image,
         "ports": ports,
         "files": files,
@@ -56,6 +63,9 @@ def get_service_config_template(
 def validate_service_config_types(service_config):
     if type(service_config) != builtins.types.dict:
         fail("Service config must be a dict, not {0}".format(type(service_config)))
+
+    if type(service_config["name"]) != builtins.types.string:
+        fail("Service config name must be a string, not {0}".format(type(service_config['name'])))
 
     if type(service_config["image"]) != builtins.types.string:
         fail("Service config image must be a string, not {0}".format(type(service_config['image'])))
@@ -122,4 +132,26 @@ def validate_service_config_types(service_config):
     # TODO(validation): Implement validation for user
     # TODO(validation): Implement validation for tolerations
     # TODO(validation): Implement validation for node_selectors
+
+def create_from_config(config):
+    validate_service_config_types(config)
+
+    return ServiceConfig(
+        image=config['image'],
+        ports=port_spec_lib.create_port_specs_from_config(config),
+        files=config['files'] if config['files'] else {},
+        entrypoint=config['entrypoint'] if config['entrypoint'] else [],
+        cmd=config['cmd'] if config['cmd'] else [],
+        env_vars=config['env_vars'] if config['env_vars'] else {},
+        private_ip_address_placeholder=config['private_ip_address_placeholder'] if config['private_ip_address_placeholder'] else DEFAULT_PRIVATE_IP_ADDRESS_PLACEHOLDER,
+        max_cpu=config['max_cpu'] if config['max_cpu'] else DEFAULT_MAX_CPU, # Needs a default, as 0 does not flag as optional
+        min_cpu=config['min_cpu'] if config['min_cpu'] else 0,
+        max_memory=config['max_memory'] if config['max_memory'] else DEFAULT_MAX_MEMORY, # Needs a default, as 0 does not flag as optional
+        min_memory=config['min_memory'] if config['min_memory'] else 0,
+        #ready_conditions=config['ready_conditions'], Ready conditions not yet supported
+        labels=config['labels'] if config['labels'] else {},
+        #user=config['user'], User config not yet supported
+        tolerations=config['tolerations'] if config['tolerations'] else [],
+        node_selectors=config['node_selectors'] if config['node_selectors'] else {},
+    )
 
