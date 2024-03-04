@@ -121,13 +121,8 @@ func (s *Service) ReceiveBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, buoy beacontypes.ReadOnlyBeaconBuoy,
 ) error {
-	payload, err := buoy.ExecutionPayload()
-	if err != nil {
+	if err := beacontypes.BeaconBuoyIsNil(buoy); err != nil {
 		return err
-	}
-
-	if payload == nil || payload.IsEmpty() {
-		return errors.New("no payload in beacon block")
 	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
@@ -154,7 +149,7 @@ func (s *Service) validateExecutionOnBlock(
 	buoy beacontypes.ReadOnlyBeaconBuoy,
 ) (bool, error) {
 	if err := beacontypes.BeaconBuoyIsNil(buoy); err != nil {
-		return false, errors.New("nil beacon buoy")
+		return false, err
 	}
 
 	payload, err := buoy.ExecutionPayload()
