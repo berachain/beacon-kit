@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+//nolint:revive // blank import to register uber maxprocs.
 package runtime
 
 import (
@@ -44,7 +45,6 @@ import (
 	"github.com/itsdevbear/bolaris/config"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/health"
-	// blank import to register uber maxprocs.
 	_ "github.com/itsdevbear/bolaris/lib/maxprocs"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
