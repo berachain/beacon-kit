@@ -27,23 +27,24 @@ package logs
 
 import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/forkchoicer"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 )
 
 // WithForkChoiceProvider returns an Option for
 // setting the fork choice provider for Processor.
-func WithForkChoiceProvider(fcp ReadOnlyForkChoiceProvider) Option[Processor] {
+func WithForkChoicer(fcs forkchoicer.ForkChoicer) Option[Processor] {
 	return func(p *Processor) error {
-		p.fcp = fcp
+		p.fcs = fcs
 		return nil
 	}
 }
 
-// WithFinalizedLogsProvider returns an Option for
+// WithFinalizedLogsStore returns an Option for
 // setting the finalized logs provider for Processor.
-func WithFinalizedLogsProvider(flp FinalizedLogsProvider) Option[Processor] {
+func WithFinalizedLogsStore(fls FinalizedLogsStore) Option[Processor] {
 	return func(p *Processor) error {
-		p.flp = flp
+		p.fls = fls
 		return nil
 	}
 }

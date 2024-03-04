@@ -41,8 +41,8 @@ const (
 )
 
 type Processor struct {
-	fcp ReadOnlyForkChoiceProvider
-	flp FinalizedLogsProvider
+	fcs ReadOnlyForkChoicer
+	fls FinalizedLogsStore
 
 	// engine gives the access to the Engine API
 	// of the execution client.
@@ -76,8 +76,7 @@ func (p *Processor) ProcessPastLogs(
 	ctx context.Context,
 ) error {
 	// Get the latest finalized block hash and block number.
-	forkChoicer := p.fcp.ForkchoiceStore(ctx)
-	finalizedBlockHash := forkChoicer.GetFinalizedEth1BlockHash()
+	finalizedBlockHash := p.fcs.FinalizedCheckpoint()
 	finalizedHeader, err := p.engine.HeaderByHash(ctx, finalizedBlockHash)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get finalized header")
@@ -91,7 +90,7 @@ func (p *Processor) ProcessPastLogs(
 	minLastFinalizedBlockInCache := finalizedBlockNumber
 	for sig, cache := range p.sigToCache {
 		lastFinalizedBlockInCache := cache.LastFinalizedBlock()
-		lastProcessedBlock := p.flp.GetLastProcessedBlockNumber(sig)
+		lastProcessedBlock := p.fls.GetLastProcessedBlockNumber(sig)
 		// Update the block number from which we should start processing
 		// logs to insert into the cache.
 		if lastFinalizedBlockInCache < minLastFinalizedBlockInCache {

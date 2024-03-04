@@ -117,9 +117,9 @@ func (s *Service) NotifyNewPayload(
 // in background.
 func (s *Service) startLogProcessing(ctx context.Context) error {
 	logProcessor, err := logs.NewProcessor(
-		logs.WithForkChoiceProvider(s.BeaconStorageBackend),
+		logs.WithForkChoicer(s.ForkchoiceStore(ctx)),
 		// TODO: Waiting for file storage to be implemented
-		logs.WithFinalizedLogsProvider(nil),
+		logs.WithFinalizedLogsStore(nil),
 		logs.WithLogFactory(s.logFactory),
 		logs.WithEngineCaller(s.engine),
 	)

@@ -26,12 +26,10 @@
 package logs
 
 import (
-	"context"
 	"reflect"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -84,15 +82,16 @@ type LogFactory interface {
 	) ([]LogValueContainer, error)
 }
 
-// ReadOnlyForkChoiceProvider provides the read-only fork choice store.
-type ReadOnlyForkChoiceProvider interface {
-	ForkchoiceStore(ctx context.Context) state.ForkchoiceStore
+// ReadOnlyForkChoicer is the interface of
+// a read-only fork choice store.
+type ReadOnlyForkChoicer interface {
+	FinalizedCheckpoint() ethcommon.Hash
 }
 
-// FinalizedLogsProvider is the interface that provides
+// FinalizedLogsStore is the interface that provides
 // non-consensus information about the logs included in
 // the latest finalized block, which is the block number
 // of the last processed log included in the finalized block.
-type FinalizedLogsProvider interface {
+type FinalizedLogsStore interface {
 	GetLastProcessedBlockNumber(sig ethcommon.Hash) uint64
 }
