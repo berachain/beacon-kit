@@ -44,7 +44,6 @@ func (s *Service) postBlockProcess(
 ) error {
 	if !isValidPayload {
 		telemetry.IncrCounter(1, MetricReceivedInvalidPayload)
-
 		// If the incoming payload for this block is not valid, we submit a
 		// forkchoice
 		// to bring us back to the last valid one.

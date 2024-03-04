@@ -23,45 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package kzg
 
 import (
-	"context"
-	"time"
+	"crypto/sha256"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/sourcegraph/conc/iter"
 )
 
-// sendFCU sends a forkchoice update to the execution client.
-func (s *Service) sendFCU(
-	ctx context.Context,
-	headEth1Hash common.Hash,
-) error {
-	_, err := s.es.NotifyForkchoiceUpdate(
-		ctx, &execution.FCUConfig{
-			HeadEth1Hash: headEth1Hash,
-		})
-	return err
+// ConvertCommitmentToVersionedHash computes a SHA-256 hash of the given
+// commitment and prefixes it with the BlobCommitmentVersion. This function is
+// used to generate
+// a versioned hash for KZG commitments.
+//
+// The restulting hash is intended for use in contexts where a versioned
+// identifier
+// for the commitment is required.
+func ConvertCommitmentToVersionedHash(commitment []byte) common.Hash {
+	hash := sha256.Sum256(commitment)
+	// Prefix the hash with the BlobCommitmentVersion to create a versioned
+	// hash.
+	hash[0] = BlobCommitmentVersion
+	return hash
 }
 
-// sendFCUWithAttributes sends a forkchoice update to the
-// execution client with payload attributes. It does
-// so via the local builder service.
-func (s *Service) sendFCUWithAttributes(
-	ctx context.Context,
-	headEth1Hash common.Hash,
-	slot primitives.Slot,
-	parentBlockRoot [32]byte,
-) error {
-	_, err := s.lb.BuildLocalPayload(
-		ctx,
-		headEth1Hash,
-		slot+1,
-		//#nosec:G701 // won't realistically overflow.
-		uint64(time.Now().Unix()),
-		parentBlockRoot,
-	)
-	return err
+// ConvertCommitmentsToVersionedHashes converts a slice of commitments to a
+// slice of versioned hashes. This function is used to generate versioned hashes
+// for KZG commitments.
+//
+// The resulting hashes are intended for use in contexts where a versioned
+// identifier
+// for the commitments is required.
+func ConvertCommitmentsToVersionedHashes(commitments [][]byte) []common.Hash {
+	return iter.Map(commitments, func(bz *[]byte) common.Hash {
+		return ConvertCommitmentToVersionedHash(*bz)
+	})
 }

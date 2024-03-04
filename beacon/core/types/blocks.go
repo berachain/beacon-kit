@@ -44,8 +44,8 @@ func NewBeaconBuoy(
 	switch forkVersion {
 	case version.Deneb:
 		block = &beacontypesv1.BeaconBuoyDeneb{
-			Slot:       slot,
-			ParentRoot: parentBlockRoot[:],
+			Slot:            slot,
+			ParentBlockRoot: parentBlockRoot[:],
 			Body: &beacontypesv1.BeaconBuoyBodyDeneb{
 				RandaoReveal: make([]byte, 96), //nolint:gomnd
 				Graffiti:     make([]byte, 32), //nolint:gomnd
