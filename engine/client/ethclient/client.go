@@ -57,7 +57,8 @@ func (s *Eth1Client) NewPayloadV3(
 ) (*enginev1.PayloadStatus, error) {
 	result := &enginev1.PayloadStatus{}
 	if err := s.Client.Client().CallContext(
-		ctx, result, NewPayloadMethodV3, payload, versionedHashes, parentBlockRoot,
+		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
+		(*common.Hash)(parentBlockRoot),
 	); err != nil {
 		return nil, err
 	}
