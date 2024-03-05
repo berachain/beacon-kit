@@ -121,6 +121,11 @@ func (s *KurtosisE2ESuite) Ctx() context.Context {
 	return s.ctx
 }
 
+// Enclave returns the enclave running the beacon-kit network.
+func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
+	return s.enclave
+}
+
 // KurtosisCtx returns the KurtosisContext associated with the KurtosisE2ESuite.
 // The KurtosisContext is a critical component that facilitates interaction with
 // the Kurtosis testnet, including creating and managing enclaves.
@@ -131,9 +136,4 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 // Logger returns the logger for the test suite.
 func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
-}
-
-// Enclave returns the enclave running the beacon-kit network.
-func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
-	return s.enclave
 }
