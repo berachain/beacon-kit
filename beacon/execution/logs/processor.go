@@ -100,6 +100,9 @@ func (p *Processor) ProcessPastLogs(
 			// just in case it was only partially processed and there are
 			// still some pending logs to be included into the proposed blocks.
 			latestCacheCheckpoint = lastProcessedBlock - 1
+			// These settings allow to process the logs after the last
+			// processed block or the logs in the last processed block
+			// but after the last processed log index.
 			cache.SetCurrentProcessingBlock(lastProcessedBlock)
 			cache.SetCurrentProcessingIndex(p.fls.GetLastProcessedLogIndex(sig))
 		}
