@@ -245,7 +245,7 @@ func (s *Service) getPayloadAttribute(
 	var (
 		st = s.BeaconState(ctx)
 		// TODO: RANDAO
-		prevRandao = make([]byte, 32) //nolint:gomnd // TODO: later
+		prevRandao = [32]byte{}
 		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 	)
 
@@ -262,7 +262,7 @@ func (s *Service) getPayloadAttribute(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
-		s.BeaconCfg().Validator.SuggestedFeeRecipient[:],
+		s.BeaconCfg().Validator.SuggestedFeeRecipient,
 		withdrawals,
 		prevHeadRoot,
 	)
