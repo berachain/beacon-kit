@@ -27,6 +27,8 @@ package builder
 
 import (
 	"context"
+	"fmt"
+	"github.com/itsdevbear/bolaris/beacon/core/randao"
 
 	"github.com/ethereum/go-ethereum/common"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
@@ -59,6 +61,8 @@ type Service struct {
 	// The local Builder.
 	localBuilder   PayloadBuilder
 	remoteBuilders []PayloadBuilder
+
+	randaoProcessor randao.Processor
 }
 
 // LocalBuilder returns the local builder.
@@ -68,7 +72,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot,
+	ctx context.Context, epoch primitives.Epoch, slot primitives.Slot,
 ) (beacontypes.BeaconBuoy, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -77,18 +81,19 @@ func (s *Service) RequestBestBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 
-	// // // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
-	// _ = s.beaconKitValKey
-	// // _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
-	// // if err != nil {
-	// // 	return nil, err
-	// // }
+	// TODO: should be epoch
+	s.BeaconState(ctx)
+
+	reveal, err := s.randaoProcessor.BuildReveal(epoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build reveal: %w", err)
+	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := beacontypes.EmptyBeaconBuoy(
-		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot),
+		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot), reveal,
 	)
 	if err != nil {
 		return nil, err

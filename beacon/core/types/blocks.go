@@ -26,19 +26,21 @@
 package consensus
 
 import (
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/config/version"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
-// BeaconBuoy assembles a new beacon block from
+// NewBeaconBuoy assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconBuoy(
 	slot primitives.Slot,
 	executionData enginetypes.ExecutionPayload,
 	parentBlockRoot [32]byte,
 	forkVersion int,
+	reveal randaotypes.Reveal,
 ) (BeaconBuoy, error) {
 	var block BeaconBuoy
 	switch forkVersion {
@@ -47,7 +49,7 @@ func NewBeaconBuoy(
 			Slot:            slot,
 			ParentBlockRoot: parentBlockRoot[:],
 			Body: &beacontypesv1.BeaconBuoyBodyDeneb{
-				RandaoReveal: make([]byte, 96), //nolint:gomnd
+				RandaoReveal: reveal[:],        //nolint:gomnd
 				Graffiti:     make([]byte, 32), //nolint:gomnd
 			},
 		}
@@ -69,8 +71,9 @@ func EmptyBeaconBuoy(
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
 	version int,
+	reveal randaotypes.Reveal,
 ) (BeaconBuoy, error) {
-	return NewBeaconBuoy(slot, nil, parentBlockRoot, version)
+	return NewBeaconBuoy(slot, nil, parentBlockRoot, version, reveal)
 }
 
 // BeaconBuoyFromSSZ assembles a new beacon block
@@ -93,7 +96,7 @@ func BeaconBuoyFromSSZ(
 	return block, nil
 }
 
-// BeaconBlockIsNil checks if any composite field of input signed beacon block
+// BeaconBuoyIsNil checks if any composite field of input signed beacon block
 // is nil.
 // Access to these nil fields will result in run time panic,
 // it is recommended to run these checks as first line of defense.

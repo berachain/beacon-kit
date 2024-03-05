@@ -93,7 +93,7 @@ func (h *Handler) PrepareProposalHandler(
 	// timing.
 	block, err := h.builderService.RequestBestBlock(
 		ctx,
-		primitives.Slot(req.Height),
+		primitives.Epoch(req.Height),
 	)
 
 	if err != nil {
