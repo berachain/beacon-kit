@@ -80,12 +80,10 @@ func (p *Processor) ProcessPastLogs(
 	ctx context.Context,
 ) error {
 	// Get the latest finalized block hash and block number.
-	finalizedBlockHash := p.fcs.FinalizedCheckpoint()
-	finalizedHeader, err := p.engine.HeaderByHash(ctx, finalizedBlockHash)
+	finalizedBlockNumber, err := p.getLatestFinalizedBlock(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get finalized header")
+		return errors.Wrapf(err, "failed to get latest finalized block")
 	}
-	finalizedBlockNumber := finalizedHeader.Number.Uint64()
 
 	// Determine the earliest block to process
 	// by checking the last finalized blocks among caches.
@@ -93,15 +91,16 @@ func (p *Processor) ProcessPastLogs(
 	// multiple times for different types of logs.
 	minLastFinalizedBlockInCache := finalizedBlockNumber
 	for sig, cache := range p.sigToCache {
-		lastFinalizedBlockInCache := cache.LastFinalizedBlock()
+		// latestCacheCheckpoint is the latest block, from which
+		// the logs should be processed and inserted into the cache.
+		latestCacheCheckpoint := cache.LastFinalizedBlock()
 		lastProcessedBlock := p.fls.GetLastProcessedBlockNumber(sig)
-		// Update the block number from which we should start processing
-		// logs to insert into the cache.
-		if lastFinalizedBlockInCache < minLastFinalizedBlockInCache {
-			minLastFinalizedBlockInCache = lastFinalizedBlockInCache
+		if latestCacheCheckpoint < lastProcessedBlock {
+			latestCacheCheckpoint = lastProcessedBlock
 		}
-		if lastProcessedBlock < minLastFinalizedBlockInCache {
-			minLastFinalizedBlockInCache = lastProcessedBlock
+
+		if latestCacheCheckpoint < minLastFinalizedBlockInCache {
+			minLastFinalizedBlockInCache = latestCacheCheckpoint
 		}
 	}
 
@@ -130,6 +129,16 @@ func (p *Processor) ProcessPastLogs(
 	}
 
 	return nil
+}
+
+// getLatestFinalizedBlock returns the block number of the latest finalized block.
+func (p *Processor) getLatestFinalizedBlock(ctx context.Context) (uint64, error) {
+	finalizedBlockHash := p.fcs.FinalizedCheckpoint()
+	finalizedHeader, err := p.engine.HeaderByHash(ctx, finalizedBlockHash)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get finalized header")
+	}
+	return finalizedHeader.Number.Uint64(), nil
 }
 
 // processBlocksInBatch processes the logs in the range
