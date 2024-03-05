@@ -66,7 +66,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClClientType:  "beaconkit",
 			},
 			{
-				ElClientType:  "geth",
+				ElClientType:  "reth",
 				ClClientImage: "beacond:kurtosis-local",
 				ClClientType:  "beaconkit",
 			},

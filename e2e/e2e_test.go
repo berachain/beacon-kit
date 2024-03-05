@@ -26,12 +26,14 @@
 package e2e_test
 
 import (
+	"math/big"
 	"strings"
 	"testing"
 	"time"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/e2e/suite"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/sourcegraph/conc"
@@ -56,7 +58,7 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	svrcs, err := s.Enclave().GetServices()
 	s.Require().NoError(err, "Error getting services")
 
-	var jsonRPCPorts = make([]string, 0)
+	var jsonRPCPorts = make(map[string]string)
 	for k, v := range svrcs {
 		s.Logger().Info("Service started", "service", k, "uuid", v)
 		var serviceCtx *services.ServiceContext
@@ -66,23 +68,21 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 		// Get the public ports representing eth JSON-RPC endpoints.
 		jsonRPC, ok := serviceCtx.GetPublicPorts()["rpc"]
 		if ok {
-			jsonRPCPorts = append(
-				jsonRPCPorts,
-				strings.Split(jsonRPC.String(), "/")[0],
-			)
+			jsonRPCPorts[string(k)] = strings.Split(jsonRPC.String(), "/")[0]
 		}
 	}
 
 	wg := conc.NewWaitGroup()
-	for port := range jsonRPCPorts {
+	for service, port := range jsonRPCPorts {
 		wg.Go(func() {
+			s.Logger().Info("Waiting for connection...", "service", service)
 			var ethClient *ethclient.Client
 			ethClient, err = ethclient.Dial(
-				"http://0.0.0.0:" + jsonRPCPorts[port],
+				"http://0.0.0.0:" + port,
 			)
 			s.Require().NoError(err, "Error creating eth client")
 			for {
-				ticker := time.NewTicker(3 * time.Second)
+				ticker := time.NewTicker(2 * time.Second)
 				defer ticker.Stop()
 
 				for {
@@ -95,16 +95,36 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 							s.Ctx(),
 							nil,
 						)
+						finalBlock, _ := ethClient.BlockByNumber(
+							s.Ctx(),
+							big.NewInt(int64(rpc.FinalizedBlockNumber)),
+						)
+
+						latestBlockNum := latestBlock.Number().Uint64()
+						finalizedBlockNum := uint64(0)
+						if finalBlock != nil {
+							finalizedBlockNum = finalBlock.Number().Uint64()
+						}
 						s.Require().
 							NoError(err, "Error getting current block number during wait")
 						s.Logger().Info(
-							"Finalized block",
-							"block",
-							latestBlock.Number().Uint64(),
-							"port",
-							jsonRPCPorts[port],
+							"block info",
+							"latest",
+							latestBlockNum,
+							"finalized",
+							finalizedBlockNum,
+							"service",
+							service,
 						)
-						if latestBlock.Number().Uint64() >= targetBlock {
+
+						// If the finalized block number is greater than or
+						// equal to the target block, we can stop waiting and
+						// the test is successful for this node.
+						if finalizedBlockNum >= targetBlock {
+							s.Logger().Info(
+								"Target block reached 🎉",
+								"service", service, "block", targetBlock,
+							)
 							return
 						}
 					}
@@ -112,9 +132,10 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 			}
 		})
 	}
-
 	done := make(chan bool, 1)
 	go func() {
+		// We wait for all the goroutines to finish before we can complete the
+		// test.
 		wg.WaitAndRecover()
 		done <- true
 	}()
