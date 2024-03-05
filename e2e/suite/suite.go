@@ -65,6 +65,8 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
 	s.logger.Info("destroying any existing enclave...")
+	//#nosec:G703 // its okay if this errors out. It will error out
+	// if there is no enclave to destroy.
 	_ = s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave")
 
 	s.logger.Info("creating enclave...")
