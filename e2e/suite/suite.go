@@ -23,28 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package e2e_test
+package suite
 
 import (
 	"context"
-	"strings"
-	"time"
 
 	"cosmossdk.io/log"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/itsdevbear/bolaris/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
-	"github.com/sourcegraph/conc"
 	"github.com/stretchr/testify/suite"
 )
 
-// BeaconE2ESuite is a suite of tests simluating a fully function beacon-kit
-// network.
-type BeaconKitE2ESuite struct {
+// Run is an alias for suite.Run to help with importing
+// in other packages.
+//
+//nolint:gochecknoglobals // intentionally.
+var Run = suite.Run
+
+// KurtosisE2ESuite.
+type KurtosisE2ESuite struct {
 	suite.Suite
 	cfg    *kurtosis.E2ETestConfig
 	logger log.Logger
@@ -56,11 +55,12 @@ type BeaconKitE2ESuite struct {
 	enclave *enclaves.EnclaveContext
 }
 
-// this function executes before the test suite begins execution.
-func (s *BeaconKitE2ESuite) SetupSuite() {
+// SetupSuite executes before the test suite begins execution.
+func (s *KurtosisE2ESuite) SetupSuite() {
 	s.cfg = kurtosis.DefaultE2ETestConfig()
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
+
 	var err error
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
@@ -90,87 +90,33 @@ func (s *BeaconKitE2ESuite) SetupSuite() {
 	s.Require().Empty(result.ValidationErrors)
 }
 
+// TearDownSuite cleans up resources after all tests have been executed.
 // this function executes after all tests executed.
-func (s *BeaconKitE2ESuite) TearDownSuite() {
-	s.logger.Info("destroying enclave...")
+func (s *KurtosisE2ESuite) TearDownSuite() {
+	s.Logger().Info("destroying enclave...")
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
 
-// TestBasicStartup tests the basic startup of the beacon-kit network.
-//
-//nolint:gocognit // todo break this function into smaller functions.
-func (s *BeaconKitE2ESuite) TestBasicStartup() {
-	targetBlock := uint64(5)
-	svrcs, err := s.enclave.GetServices()
-	s.Require().NoError(err, "Error getting services")
+// Ctx returns the context associated with the KurtosisE2ESuite.
+// This context is used throughout the suite to control the flow of operations,
+// including timeouts and cancellations.
+func (s *KurtosisE2ESuite) Ctx() context.Context {
+	return s.ctx
+}
 
-	var jsonRPCPorts = make([]string, 0)
-	for k, v := range svrcs {
-		s.logger.Info("Service started", "service", k, "uuid", v)
-		var serviceCtx *services.ServiceContext
-		serviceCtx, err = s.enclave.GetServiceContext(string(v))
-		s.Require().NoError(err, "Error getting service context")
+// KurtosisCtx returns the KurtosisContext associated with the KurtosisE2ESuite.
+// The KurtosisContext is a critical component that facilitates interaction with
+// the Kurtosis testnet, including creating and managing enclaves.
+func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
+	return s.kCtx
+}
 
-		// Get the public ports representing eth JSON-RPC endpoints.
-		jsonRPC, ok := serviceCtx.GetPublicPorts()["rpc"]
-		if !ok {
-			continue
-		}
-		jsonRPCPorts = append(
-			jsonRPCPorts,
-			strings.Split(jsonRPC.String(), "/")[0],
-		)
-	}
+// Logger returns the logger for the test suite.
+func (s *KurtosisE2ESuite) Logger() log.Logger {
+	return s.logger
+}
 
-	wg := conc.NewWaitGroup()
-	for port := range jsonRPCPorts {
-		wg.Go(func() {
-			var ethClient *ethclient.Client
-			ethClient, err = ethclient.Dial(
-				"http://0.0.0.0:" + jsonRPCPorts[port],
-			)
-			s.Require().NoError(err, "Error creating eth client")
-			for {
-				ticker := time.NewTicker(3 * time.Second)
-				defer ticker.Stop()
-
-				for {
-					select {
-					case <-s.ctx.Done():
-						return
-					case <-ticker.C:
-						var finalizedBlock *ethtypes.Block
-						finalizedBlock, err = ethClient.BlockByNumber(
-							s.ctx,
-							nil,
-						)
-						s.Require().
-							NoError(err, "Error getting current block number during wait")
-						s.logger.Info(
-							"Finalized block",
-							"block",
-							finalizedBlock.Number().Uint64(),
-							"port",
-							jsonRPCPorts[port],
-						)
-						if finalizedBlock.Number().Uint64() >= targetBlock {
-							return
-						}
-					}
-				}
-			}
-		})
-	}
-
-	done := make(chan bool, 1)
-	go func() {
-		wg.WaitAndRecover()
-		done <- true
-	}()
-	select {
-	case <-done:
-		// Completed without timeout
-	case <-time.After(90 * time.Second):
-		s.T().Fatal("Timeout waiting for goroutines to finish")
-	}
+// Enclave returns the enclave running the beacon-kit network.
+func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
+	return s.enclave
 }
