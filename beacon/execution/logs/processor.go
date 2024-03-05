@@ -93,14 +93,14 @@ func (p *Processor) ProcessPastLogs(
 	for sig, cache := range p.sigToCache {
 		// latestCacheCheckpoint is the latest block, from which
 		// the logs should be processed and inserted into the cache.
-		latestCacheCheckpoint := cache.LastFinalizedBlock()
+		latestCacheCheckpoint := cache.LastProcessedBlock()
 		lastProcessedBlock := p.fls.GetLastProcessedBlockNumber(sig)
 		if latestCacheCheckpoint < lastProcessedBlock {
 			// We need to re-process the logs from the last processed block,
 			// just in case it was only partially processed and there are
 			// still some pending logs to be included into the proposed blocks.
 			latestCacheCheckpoint = lastProcessedBlock - 1
-			cache.SetLastFinalizedBlock(latestCacheCheckpoint)
+			cache.SetLastProcessedBlock(latestCacheCheckpoint)
 		}
 
 		if latestCacheCheckpoint < minLastFinalizedBlockInCache {
@@ -237,7 +237,7 @@ func (p *Processor) processLogsInBlock(
 	}
 	// We start processing the logs from a new block.
 	// Notify the caches to update the last finalized block.
-	p.setLastFinalizedBlockAllCaches(blockNumber)
+	p.setLastProcessedBlockAllCaches(blockNumber)
 	return nil
 }
 
@@ -248,11 +248,11 @@ func (p *Processor) rollbackCaches() {
 	}
 }
 
-// setLastFinalizedBlockAllCaches sets the last finalized block
+// setLastProcessedBlockAllCaches sets the last completely processed block
 // to the given block number for all the caches.
-func (p *Processor) setLastFinalizedBlockAllCaches(blockNumber uint64) {
+func (p *Processor) setLastProcessedBlockAllCaches(blockNumber uint64) {
 	for _, cache := range p.sigToCache {
-		cache.SetLastFinalizedBlock(blockNumber)
+		cache.SetLastProcessedBlock(blockNumber)
 	}
 }
 

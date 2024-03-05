@@ -34,15 +34,15 @@ var _ LogCache = (*Cache)(nil)
 
 type Cache struct {
 	// The final store contains processed
-	// logs from finalized blocks.
+	// logs from complete blocks.
 	finalStore []LogValueContainer
 
-	// lastFinalizedBlock records the block number
-	// of the latest finalized block up to which
+	// lastProcessedBlock records the block number
+	// of the latest block up to which
 	// the logs are processed and stored in cache.
 	// This is in-memory only and will be reset to 0
 	// when the node restarts.
-	lastFinalizedBlock uint64
+	lastProcessedBlock uint64
 
 	// The processing store contains logs from
 	// the current block being processed.
@@ -54,7 +54,7 @@ type Cache struct {
 // ShouldProcess returns true if the cache determines
 // that the log should be processed and added to it.
 func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
-	return log.BlockNumber > c.lastFinalizedBlock
+	return log.BlockNumber > c.lastProcessedBlock
 }
 
 // Push pushes the log value container into the cache.
@@ -69,23 +69,23 @@ func (c *Cache) Push(container LogValueContainer) error {
 	return nil
 }
 
-// LastFinalizedBlock returns the block number of
-// the last finalized block in cache.
-func (c *Cache) LastFinalizedBlock() uint64 {
-	return c.lastFinalizedBlock
+// LastProcessedBlock returns the block number of
+// the last completely processed block in cache.
+func (c *Cache) LastProcessedBlock() uint64 {
+	return c.lastProcessedBlock
 }
 
-// SetLastFinalizedBlock sets the block number of
-// the last finalized block in cache.
+// SetLastProcessedBlock sets the block number of
+// the last completely processed block in cache.
 // The cache will move the logs from the processing
 // store to the final store at this time.
-func (c *Cache) SetLastFinalizedBlock(blockNumber uint64) {
-	c.lastFinalizedBlock = blockNumber
+func (c *Cache) SetLastProcessedBlock(blockNumber uint64) {
+	c.lastProcessedBlock = blockNumber
 	c.finalStore = append(c.finalStore, c.processingStore...)
 	c.processingStore = nil
 }
 
-// Rollback rolls back the cache to the last finalized block
+// Rollback rolls back the cache to the last completely processed block
 // if there is any error during processing the logs
 // in the current block.
 func (c *Cache) Rollback() {

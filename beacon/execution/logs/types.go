@@ -46,12 +46,12 @@ type LogCache interface {
 	ShouldProcess(log *ethtypes.Log) bool
 	// Push pushes the log value container into the cache.
 	Push(container LogValueContainer) error
-	// LastFinalizedBlock returns the block number of
-	// the last finalized block in cache.
-	LastFinalizedBlock() uint64
-	// SetLastFinalizedBlock sets the block number of
-	// the last finalized block in cache.
-	SetLastFinalizedBlock(blockNumber uint64)
+	// LastProcessedBlock returns the block number of
+	// the last completely processed block in cache.
+	LastProcessedBlock() uint64
+	// SetLastProcessedBlock sets the block number of
+	// the last completely processed block in cache.
+	SetLastProcessedBlock(blockNumber uint64)
 	// Rollback rolls back the cache to the last finalized block.
 	Rollback()
 }
