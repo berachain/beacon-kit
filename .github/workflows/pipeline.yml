@@ -74,11 +74,6 @@ jobs:
           go-version: 'stable'
           check-latest: true
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
-      - name: Run ${{ matrix.args }}
-        run: |
-          make ${{ matrix.args }}
-        env:
-          GOPATH: /home/runner/go
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         if: ${{ matrix.args == 'test-e2e' }}
@@ -91,6 +86,11 @@ jobs:
           sudo apt update
           sudo apt install kurtosis-cli
         if: ${{ matrix.args == 'test-e2e' }}
+      - name: Run ${{ matrix.args }}
+        run: |
+          make ${{ matrix.args }}
+        env:
+          GOPATH: /home/runner/go
       - name: Upload to Codecov
         uses: codecov/codecov-action@v2
         with:
