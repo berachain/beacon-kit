@@ -7,7 +7,7 @@
 # Variables
 ARCH ?= $(shell uname -m)
 ifeq ($(ARCH),)
-	ARCH = amd64
+	ARCH = arm64
 endif
 GO_VERSION ?= 1.22.0
 IMAGE_NAME ?= beacond

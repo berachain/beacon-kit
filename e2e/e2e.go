@@ -23,6 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package beacon contains a series of packages that define the beacon chain
-// logic and its state.
-package beacon
+package e2e

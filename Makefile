@@ -203,7 +203,7 @@ test-unit-fuzz:
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
 test-e2e:
-	@$(MAKE) docker-build VERSION=kurtosis-local GOOS=linux GOARCH=amd64 test-e2e-no-build
+	@$(MAKE) docker-build VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
 	go test -tags e2e ./e2e/... -v 
