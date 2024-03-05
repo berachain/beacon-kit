@@ -213,6 +213,15 @@ test-forge-fuzz:
 	@echo "Running forge fuzz tests..."
 	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test
 
+forge-snapshot:
+	@echo "Running forge snapshot..."
+	@cd $(CONTRACTS_DIR) && forge snapshot --isolate --fuzz-runs 1
+
+forge-snapshot-diff:
+	@echo "Running forge snapshot diff..."
+	@cd $(CONTRACTS_DIR) && forge snapshot --diff --isolate --fuzz-runs 1
+
+
 #################
 #      e2e      #
 #################
@@ -405,6 +414,7 @@ repo-rinse: |
 	buf-install buf-lint-fix buf-lint \
 	sszgen-install sszgen-clean sszgen proto-clean \
 	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
+	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
 	license-install license license-fix \
