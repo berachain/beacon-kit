@@ -27,11 +27,11 @@ package randao
 
 import (
 	"context"
+	"github.com/itsdevbear/bolaris/primitives"
 
 	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	bls12_381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
-	"github.com/itsdevbear/bolaris/types/consensus/primitives"
 )
 
 type beaconStateProvider interface {
