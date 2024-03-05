@@ -23,20 +23,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-participants:
-  - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:kurtosis-local
-  - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:kurtosis-local
-  - el_client_type: geth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:kurtosis-local
-  - el_client_type: geth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:kurtosis-local
-  - el_client_type: geth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:kurtosis-local
-additional_services: []
+name: github.com/berachain/beacon-kit/kurtosis
+description: |
+  A package for running a basic beacon-kit devnet with kurtosis
