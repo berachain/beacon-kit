@@ -31,6 +31,10 @@ def get_default_service_config(service_name, client_type):
         return geth.get_default_service_config(service_name)
 
 def upload_global_files(plan):
+    genesis_file = plan.upload_files(
+        src = "../../networks/kurtosis-devnet/network-configs/genesis.json",
+        name = "genesis_file",
+    )
     jwt_file = plan.upload_files(
         src = constants.KURTOSIS_ETH_PACKAGE_URL + eth_static_files.JWT_PATH_FILEPATH,
         name = "jwt_file",
@@ -59,16 +63,28 @@ print(enode_str)
     return peer_nodes
 
 
-def get_enode_addr(plan, el_service, el_service_name):
-    request_recipe = PostHttpRequestRecipe(
-        endpoint="",
-        body='{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
-        content_type="application/json",
-        port_id=RPC_PORT_ID,
-        extract={
-            "enode": """.result.id | split("?") | .[0] | slice(2) | ("enode://" + .)""",
-        },
-    )
+def get_enode_addr(plan, el_service, el_service_name, el_client_type):
+    request_recipe = None
+    if el_client_type == execution_types.CLIENTS.reth:
+        request_recipe = PostHttpRequestRecipe(
+            endpoint="",
+            body='{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
+            content_type="application/json",
+            port_id=RPC_PORT_ID,
+            extract={
+                "enode": """.result.id | split("?") | .[0][2:] | ("enode://" + .)""",
+            },
+        )
+    elif el_client_type == execution_types.CLIENTS.geth:
+        request_recipe = PostHttpRequestRecipe(
+            endpoint="",
+            body='{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
+            content_type="application/json",
+            port_id=RPC_PORT_ID,
+            extract={
+                "enode": """.result.enode | split("?") | .[0]""",
+            },
+        )
 
     response = plan.request(
         service_name = el_service_name,
@@ -76,4 +92,4 @@ def get_enode_addr(plan, el_service, el_service_name):
     )
 
     enode = response["extract.enode"]
-    return enode + "@" + el_service.ip_address + ":" + str(el_service.ports[ENGINE_RPC_PORT_ID].number)
+    return enode + "@" + el_service.ip_address + ":" + str(DISCOVERY_PORT_NUM) if el_client_type == execution_types.CLIENTS.reth else enode

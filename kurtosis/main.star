@@ -4,7 +4,6 @@ input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/pack
 el_cl_genesis_data_generator = import_module(
     "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
 )
-geth = import_module("./src/nodes/execution/geth/launcher.star")
 
 
 participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
@@ -13,6 +12,8 @@ execution = import_module("./src/nodes/execution/execution.star")
 execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 genesis = import_module("./src/networks/networks.star")
+port_spec_lib = import_module("./src/lib/port_spec.star")
+geth = import_module("./src/nodes/execution/geth/launcher.star")
 
 def run(plan, args = {}):
     """
@@ -148,17 +149,29 @@ def run(plan, args = {}):
         if el_client_type == execution_types.CLIENTS.geth:
             el_service_config_dict = execution.get_default_service_config(el_service_name, el_client_type)
             geth.add_bootnodes(el_service_config_dict, el_enode_addrs)
+            # plan.print(el_service_config_dict)
+            # port_copy = el_service_config_dict['ports']
+            # for port_key, port_spec in el_service_config_dict['ports'].items():
+            #     port_copy[port_key] = port_spec_lib.get_port_spec_template(
+            #         port_copy[port_key]['number'],
+            #         port_copy[port_key]['transport_protocol'],
+            #         port_copy[port_key]['application_protocol'],
+            #         None
+            #     )
+            # el_service_config_dict['ports'] = port_copy
+            # el_service_config_dict['ports'] = {}
+            plan.print(el_service_config_dict)
             geth.deploy_node(plan, el_service_config_dict)
         else:
             el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_enode_addrs)
 
         el_client_service = plan.get_service(el_service_name)
-        enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name)
+        enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name, el_client_type)
         el_enode_addrs.append(enode_addr)
 
         # 4b. Launch CL
         cl_service_name = "cl-{}-{}-beaconkit".format(n, el_client_type)
-        engine_dial_url = "http://{}:{}".format(el_client_context.service_name, el_client_context.engine_rpc_port_num)
+        engine_dial_url = "http://{}:{}".format(el_service_name, geth.ENGINE_RPC_PORT_NUM)
 
         # Get peers for the cl node
         my_peers = node_peering_info[:]

@@ -74,7 +74,7 @@ GraphQLVirtualHosts = ["localhost"]
 BatchRequestLimit = 1000
 BatchResponseMaxSize = 25000000
 InsecureUnlockAllowed = true
-JWTSecret = "/jwt"
+JWTSecret = "/jwt/jwtsecret"
 AllowUnprotectedTxs = true
 
 [Node.P2P]
@@ -96,6 +96,7 @@ WriteTimeout = 30000000000
 IdleTimeout = 120000000000
 
 [Metrics]
+Enabled = true
 HTTP = "0.0.0.0"
 Port = 9001
 InfluxDBEndpoint = "http://localhost:8086"

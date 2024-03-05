@@ -6,9 +6,9 @@ DEFAULT_WAIT = "15s"
 
 def get_port_spec_template(
     number,
-    transport_protocol=None,
-    application_protocol=None,
-    wait=None,
+    transport_protocol=DEFAULT_TRANSPORT_PROTOCOL,
+    application_protocol=DEFAULT_APPLICATION_PROTOCOL,
+    wait=DEFAULT_WAIT,
 ):
     port_spec = {
         "number": number,
@@ -37,7 +37,7 @@ def validate_port_spec(port_spec):
             fail("Port spec application_protocol must be a string, not {0}".format(type(port_spec['application_protocol'])))
 
     if port_spec["wait"] != None:
-        if type(port_spec["wait"]) != builtins.types.bool:
+        if type(port_spec["wait"]) != builtins.types.string:
             fail("Port spec wait must be a bool, not {0}".format(type(port_spec['wait'])))
 
 
@@ -52,7 +52,7 @@ def create_port_specs_from_config(config):
 def create_port_spec(port_spec_dict):
     return PortSpec(
         number=port_spec_dict['number'],
-        transport_protocol=port_spec_dict['transport_protocol'] if port_spec_dict['transport_protocol'] else DEFAULT_TRANSPORT_PROTOCOL,
-        application_protocol=port_spec_dict['application_protocol'] if port_spec_dict['application_protocol'] else DEFAULT_APPLICATION_PROTOCOL,
-        wait=port_spec_dict['wait'] if port_spec_dict['wait'] else DEFAULT_WAIT,
+        transport_protocol=port_spec_dict['transport_protocol'],
+        application_protocol=port_spec_dict['application_protocol'],
+        wait=port_spec_dict['wait'],
     )
