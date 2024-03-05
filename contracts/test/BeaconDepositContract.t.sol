@@ -71,6 +71,7 @@ contract BeaconDepositContractTest is SoladyTest {
         );
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Setup and call the withdrawal function
         depositContract.withdraw(VALIDATOR_PUBKEY, amount);
 =======
@@ -216,5 +217,9 @@ contract BeaconDepositContractTest is SoladyTest {
     function _create48Byte() internal pure returns (bytes memory) {
         return abi.encodePacked(bytes32("32"), bytes16("16"));
 >>>>>>> 9d0aa54e (feat(types): fix types for kzg n stuff)
+=======
+        // Setup and call the withdrawal function
+        depositContract.withdraw(VALIDATOR_PUBKEY, amount);
+>>>>>>> 06711e04 (Revert: 6d8a5a0dddb45a46f13f4f746efabe0f73ae3394)
     }
 }

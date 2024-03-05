@@ -113,6 +113,7 @@ contract BeaconDepositContract {
         // TODO: Properly Handle Token Logic.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         emit Withdrawal(validatorPubkey, abi.encodePacked(msg.sender), amount);
 =======
         if (stakingCredentials.length != CREDENTIALS_LENGTH) {
@@ -252,5 +253,8 @@ contract BeaconDepositContract {
             }
         }
 >>>>>>> 9d0aa54e (feat(types): fix types for kzg n stuff)
+=======
+        emit Withdrawal(validatorPubkey, abi.encodePacked(msg.sender), amount);
+>>>>>>> 06711e04 (Revert: 6d8a5a0dddb45a46f13f4f746efabe0f73ae3394)
     }
 }
