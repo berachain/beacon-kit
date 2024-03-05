@@ -166,7 +166,7 @@ func (p *Processor) processBlocksInBatch(
 	}
 
 	defer func() {
-		// If there are any erros, we need to rollback
+		// If there are any errors, we need to rollback
 		// the caches to the last finalized block.
 		if err != nil {
 			p.rollbackCaches()
