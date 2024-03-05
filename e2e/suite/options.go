@@ -30,8 +30,6 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/kurtosis"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
-	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 )
 
 // Type Option is a function that sets a field on the KurtosisE2ESuite.
@@ -49,22 +47,6 @@ func WithConfig(cfg *kurtosis.E2ETestConfig) Option {
 func WithContext(ctx context.Context) Option {
 	return func(s *KurtosisE2ESuite) error {
 		s.ctx = ctx
-		return nil
-	}
-}
-
-// WithEnclave sets the enclave for the test suite.
-func WithEnclave(enclave *enclaves.EnclaveContext) Option {
-	return func(s *KurtosisE2ESuite) error {
-		s.enclave = enclave
-		return nil
-	}
-}
-
-// WithKurtosisContext sets the KurtosisContext for the test suite.
-func WithKurtosisContext(kCtx *kurtosis_context.KurtosisContext) Option {
-	return func(s *KurtosisE2ESuite) error {
-		s.kCtx = kCtx
 		return nil
 	}
 }
