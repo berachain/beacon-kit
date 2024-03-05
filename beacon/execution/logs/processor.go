@@ -96,7 +96,11 @@ func (p *Processor) ProcessPastLogs(
 		latestCacheCheckpoint := cache.LastFinalizedBlock()
 		lastProcessedBlock := p.fls.GetLastProcessedBlockNumber(sig)
 		if latestCacheCheckpoint < lastProcessedBlock {
-			latestCacheCheckpoint = lastProcessedBlock
+			// We need to re-process the logs from the last processed block,
+			// just in case it was only partially processed and there are
+			// still some pending logs to be included into the proposed blocks.
+			latestCacheCheckpoint = lastProcessedBlock - 1
+			cache.SetLastFinalizedBlock(latestCacheCheckpoint)
 		}
 
 		if latestCacheCheckpoint < minLastFinalizedBlockInCache {
@@ -131,8 +135,11 @@ func (p *Processor) ProcessPastLogs(
 	return nil
 }
 
-// getLatestFinalizedBlock returns the block number of the latest finalized block.
-func (p *Processor) getLatestFinalizedBlock(ctx context.Context) (uint64, error) {
+// getLatestFinalizedBlock returns the block number
+// of the latest finalized block.
+func (p *Processor) getLatestFinalizedBlock(
+	ctx context.Context,
+) (uint64, error) {
 	finalizedBlockHash := p.fcs.FinalizedCheckpoint()
 	finalizedHeader, err := p.engine.HeaderByHash(ctx, finalizedBlockHash)
 	if err != nil {
@@ -186,30 +193,49 @@ func (p *Processor) processBlocksInBatch(
 		if !ok {
 			continue
 		}
-		var containers []LogValueContainer
-		// Process the logs (in parallel) and push them into the caches.
-		containers, err = p.factory.ProcessLogs(logs, blockNum)
+
+		err = p.processLogsInBlock(logs, blockNum)
 		if err != nil {
-			return 0, errors.Wrapf(err, "failed to process logs")
+			return 0, errors.Wrapf(err, "failed to process logs in block %d", blockNum)
 		}
-		for _, container := range containers {
-			sig := container.Signature()
-			var cache LogCache
-			cache, ok = p.sigToCache[sig]
-			if !ok {
-				continue
-			}
-			err = cache.Push(container)
-			if err != nil {
-				return 0, errors.Wrapf(err, "failed to push container")
-			}
-		}
-		// We start processing the logs from a new block.
-		// Notify the caches to update the last finalized block.
-		p.setLastFinalizedBlockAllCaches(blockNum)
 	}
 
 	return toBlock, nil
+}
+
+func (p *Processor) processLogsInBlock(
+	logs []ethtypes.Log,
+	blockNumber uint64,
+) error {
+	filteredLogs := make([]ethtypes.Log, 0, len(logs))
+	for i, log := range logs {
+		if cache, ok := p.sigToCache[log.Topics[0]]; ok {
+			if !cache.ShouldProcess(&logs[i]) {
+				continue
+			}
+			filteredLogs = append(filteredLogs, log)
+		}
+	}
+
+	var containers []LogValueContainer
+	// Process the logs (in parallel) and push them into the caches.
+	containers, err := p.factory.ProcessLogs(filteredLogs, blockNumber)
+	if err != nil {
+		return errors.Wrapf(err, "failed to process logs")
+	}
+	for _, container := range containers {
+		sig := container.Signature()
+		if cache, ok := p.sigToCache[sig]; ok {
+			err = cache.Push(container)
+			if err != nil {
+				return errors.Wrapf(err, "failed to push container")
+			}
+		}
+	}
+	// We start processing the logs from a new block.
+	// Notify the caches to update the last finalized block.
+	p.setLastFinalizedBlockAllCaches(blockNumber)
+	return nil
 }
 
 // rollbackCaches rolls back all the caches to the last finalized block.
