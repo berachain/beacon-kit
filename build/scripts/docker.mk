@@ -5,7 +5,7 @@
 ###############################################################################
 
 # Variables
-ARCH ?= arm64
+ARCH ?= $(uname -m)
 GO_VERSION ?= 1.22.0
 IMAGE_NAME ?= beacond
 
