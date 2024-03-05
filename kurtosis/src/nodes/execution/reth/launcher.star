@@ -30,10 +30,12 @@ def get_context(plan, el_launcher, el_service_name, launch_method, existing_el_c
 
         peer_nodes = ",".join(existing_el_clients)
 
-        trusted_peers_cmd = "--trusted-peers=" + peer_nodes
-        bootnodes_cmd = "--bootnodes=" + peer_nodes
+        trusted_peers_cmd = "--trusted-peers"
+        bootnodes_cmd = "--bootnodes"
         extra_params.append(trusted_peers_cmd)
+        extra_params.append(peer_nodes)
         extra_params.append(bootnodes_cmd)
+        extra_params.append(peer_nodes)
 
     return launch_method(
         plan,
