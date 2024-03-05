@@ -66,6 +66,15 @@ mockery:
 	@echo "Running mockery..."
 	@mockery
 
+generate-check:
+	@$(MAKE) generate
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Generated files are not up to date"; \
+		git status -s; \
+		git --no-pager diff; \
+		exit 1; \
+	fi
+
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
