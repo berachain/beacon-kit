@@ -32,6 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
@@ -69,7 +70,7 @@ func (s *Eth1Client) NewPayloadV3(
 func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *enginev1.ForkchoiceState,
-	attrs *enginev1.PayloadAttributesV3,
+	attrs enginetypes.PayloadAttributer,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }

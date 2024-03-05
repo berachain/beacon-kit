@@ -23,30 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build tools
-// +build tools
-
-// This is the canonical way to enforce dependency inclusion in go.mod for tools
-// that are not directly involved in the build process.
-// See
-// https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
-
-package tools
-
-//nolint
+package enginetypes
 
 import (
-	_ "github.com/bazelbuild/buildtools/buildifier"
-	_ "github.com/bufbuild/buf/cmd/buf"
-	_ "github.com/cosmos/gosec/v2/cmd/gosec"
-	_ "github.com/ethereum/go-ethereum/cmd/abigen"
-	_ "github.com/ethereum/go-ethereum/rlp/rlpgen"
-	_ "github.com/fjl/gencodec"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/google/addlicense"
-	_ "github.com/prysmaticlabs/fastssz/sszgen"
-	_ "github.com/prysmaticlabs/protoc-gen-go-cast"
-	_ "github.com/segmentio/golines"
-	_ "github.com/vektra/mockery/v2"
-	_ "golang.org/x/pkgsite/cmd/pkgsite"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/primitives"
 )
+
+//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
+
+// Withdrawal represents a validator withdrawal from the consensus layer.
+type Withdrawal struct {
+	Index     primitives.SSZUint64        `json:"index"`          // monotonically increasing identifier issued by consensus layer
+	Validator primitives.ValidatorIndex   `json:"validatorIndex"` // index of validator associated with withdrawal
+	Address   primitives.ExecutionAddress `json:"address"`        // target address for withdrawn ether
+	Amount    primitives.SSZUint64        `json:"amount"`         // value of withdrawal in Gwei
+}
+
+// field type overrides for gencodec.
+type withdrawalJSONMarshaling struct {
+	Index     hexutil.Uint64
+	Validator hexutil.Uint64
+	Amount    hexutil.Uint64
+}

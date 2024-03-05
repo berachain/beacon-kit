@@ -66,7 +66,6 @@ type ExecutionPayloadHeader interface {
 type PayloadAttributer interface {
 	Version() int
 	IsEmpty() bool
-	ToProto() proto.Message
 	GetPrevRandao() []byte
 	GetTimestamp() uint64
 	GetSuggestedFeeRecipient() []byte
