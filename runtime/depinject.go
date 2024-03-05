@@ -28,6 +28,7 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+
 	"github.com/itsdevbear/bolaris/config"
 )
 

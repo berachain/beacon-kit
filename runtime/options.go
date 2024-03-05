@@ -28,6 +28,7 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/config"
+
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 

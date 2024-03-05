@@ -31,5 +31,10 @@ const (
 	// defined in EIP-4844.
 	//
 	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
-	BlobCommitmentVersion uint8 = 0x01
+	BlobCommitmentVersion uint8  = 0x01
+	rootLength                   = 32
+	logMaxBlobCommitments        = 12
+	logBodyLength                = 4
+	kzgPosition                  = 11 // TODO: this can be different in our use case
+	KZGOffset             uint64 = 54 * 4096
 )
