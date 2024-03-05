@@ -93,7 +93,7 @@ def run(plan, args = {}):
             ),
         )
 
-        node_peering_info.append(peer_result["output"] + "@" + cl_service.ip_address + ":26656")
+        node_peering_info.append(peer_result["output"])
 
         file_suffix = "{}".format(n)
         if n == num_participants - 1:
@@ -149,17 +149,6 @@ def run(plan, args = {}):
         if el_client_type == execution_types.CLIENTS.geth:
             el_service_config_dict = execution.get_default_service_config(el_service_name, el_client_type)
             geth.add_bootnodes(el_service_config_dict, el_enode_addrs)
-            # plan.print(el_service_config_dict)
-            # port_copy = el_service_config_dict['ports']
-            # for port_key, port_spec in el_service_config_dict['ports'].items():
-            #     port_copy[port_key] = port_spec_lib.get_port_spec_template(
-            #         port_copy[port_key]['number'],
-            #         port_copy[port_key]['transport_protocol'],
-            #         port_copy[port_key]['application_protocol'],
-            #         None
-            #     )
-            # el_service_config_dict['ports'] = port_copy
-            # el_service_config_dict['ports'] = {}
             plan.print(el_service_config_dict)
             geth.deploy_node(plan, el_service_config_dict)
         else:
@@ -174,8 +163,11 @@ def run(plan, args = {}):
         engine_dial_url = "http://{}:{}".format(el_service_name, geth.ENGINE_RPC_PORT_NUM)
 
         # Get peers for the cl node
-        my_peers = node_peering_info[:]
-        my_peers.pop(n)
+        my_peers = node_peering_info[:n]
+        for i in range(len(my_peers)):
+            peer_el_service_name = "cl-{}-{}-beaconkit".format(i, args_with_right_defaults.participants[i].el_client_type)
+            peer_service = plan.get_service(peer_el_service_name)
+            my_peers[i] = my_peers[i] + "@" + peer_service.ip_address + ":26656"
         persistent_peers = ",".join(my_peers)
 
         beacond_config = beacond.get_config(
