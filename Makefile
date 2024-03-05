@@ -67,6 +67,8 @@ mockery:
 	@mockery
 
 generate-check:
+	@$(MAKE) forge-clean
+	@$(MAKE) forge-build
 	@$(MAKE) generate
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "Generated files are not up to date"; \
