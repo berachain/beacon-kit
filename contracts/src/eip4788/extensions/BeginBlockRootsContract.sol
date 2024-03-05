@@ -404,10 +404,12 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      */
     function getBeginBlockers() private view returns (BeginBlocker memory) {
         assembly ("memory-safe") {
+            if iszero(lt(calldataload(4), sload(beginBlockers.slot))) {
+                revert(0, 0)
+            }
             mstore(0, beginBlockers.slot)
-            let lengthSlot := keccak256(0, 0x20)
-            if iszero(lt(calldataload(4), sload(lengthSlot))) { revert(0, 0) }
-            let data := sload(add(calldataload(4), lengthSlot))
+            let arraySlot := keccak256(0, 0x20)
+            let data := sload(add(calldataload(4), arraySlot))
             let addr := shr(96, shl(96, data))
             let selector := shl(224, shr(160, data))
             mstore(0, addr)

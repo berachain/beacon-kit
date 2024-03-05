@@ -72,18 +72,18 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
 
     /// @dev Test that we can set a new BeginBlocker contract and it will be
     /// set.
-    function test_SimpleCRUD() public {
-        bytes memory crudMsg = _createCRUD(
-            0,
-            SET,
-            address(mockExternalContract),
-            mockExternalContract.succeed.selector,
-            address(0)
-        );
-
+    function test_SetBeginBlocker() public {
         // Set the BeginBlocker as the ADMIN address.
         vm.prank(ADMIN);
-        (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
+        (bool success,) = BEACON_ROOT_ADDRESS.call(
+            _createCRUD(
+                0,
+                SET,
+                address(mockExternalContract),
+                mockExternalContract.succeed.selector,
+                address(0)
+            )
+        );
         assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
 
         // Check that the BeginBlocker is set.
@@ -99,11 +99,26 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
             mockExternalContract.succeed.selector,
             "BeginBlockRootsTest: BeginBlocker selector not set"
         );
+    }
+
+    /// @dev Should fail to get a BeginBlocker that is out of bounds.
+    function test_FailGetBeginBlockersOutOfBounds() public {
+        test_SetBeginBlocker();
+        (bool success,) = BEACON_ROOT_ADDRESS.staticcall(
+            abi.encodePacked(GET_BEGIN_BLOCKERS_SELECTOR, uint256(1))
+        );
+        assertFalse(success, "BeginBlockRootsTest: getBeginBlockers succeeded");
+    }
+
+    /// @dev Test that we can remove a BeginBlocker contract.
+    function test_RemoveBeginBlocker() public {
+        test_SuccessCallsMulti();
 
         // Remove the BeginBlocker.
-        crudMsg = _createCRUD(0, REMOVE, address(0), bytes4(0), address(8));
         vm.prank(ADMIN);
-        (success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
+        (bool success,) = BEACON_ROOT_ADDRESS.call(
+            _createCRUD(0, REMOVE, address(0), bytes4(0), address(8))
+        );
         assertTrue(
             success, "BeginBlockRootsTest: failed to remove BeginBlocker"
         );
@@ -112,15 +127,14 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     function test_SuccessCallsMulti() public {
         // Set the BeginBlocker 10 times as the ADMIN address.
         vm.startPrank(ADMIN);
-        for (uint256 i = 0; i < 10; i++) {
-            bytes memory crudMsg = _createCRUD(
-                i,
-                SET,
-                address(mockExternalContract),
-                mockExternalContract.succeed.selector,
-                address(0)
-            );
-
+        bytes memory crudMsg = _createCRUD(
+            0, // test insert at index 0
+            SET,
+            address(mockExternalContract),
+            mockExternalContract.succeed.selector,
+            address(0)
+        );
+        for (uint256 i = 0; i < 10; ++i) {
             (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
             assertTrue(
                 success, "BeginBlockRootsTest: failed to set BeginBlocker"
@@ -184,13 +198,12 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
 
     function _getBeginBlockers(uint256 index)
         internal
-        view
         returns (BeginBlockRootsContract.BeginBlocker memory)
     {
         (bool success, bytes memory returnData) = BEACON_ROOT_ADDRESS.staticcall(
             abi.encodePacked(GET_BEGIN_BLOCKERS_SELECTOR, index)
         );
-        require(success, "BeginBlockRootsTest: failed to get BeginBlocker");
+        assertTrue(success, "BeginBlockRootsTest: failed to get BeginBlocker");
         return abi.decode(returnData, (BeginBlockRootsContract.BeginBlocker));
     }
 }

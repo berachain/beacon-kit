@@ -10,7 +10,7 @@ import { BeaconRootsContract } from "@src/eip4788/BeaconRootsContract.sol";
 /// @title BeaconRootsContractBaseTest
 /// @dev This contract is a baseplate for tests that depend on the
 /// BeaconRootsContract.
-contract BeaconRootsContractBaseTest is SoladyTest {
+abstract contract BeaconRootsContractBaseTest is SoladyTest {
     uint256 internal constant HISTORY_BUFFER_LENGTH = 8191;
     uint256 internal constant BEACON_ROOT_OFFSET = HISTORY_BUFFER_LENGTH;
     uint256 internal constant COINBASE_OFFSET =
@@ -280,6 +280,11 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         // The timestamp encoded in the calldata may be in the past.
         // But the block number and timestamp in the EVM must be the latest.
         validateBeaconRoots(timestamps, beaconRoots);
+    }
+
+    /// @dev Test getting the coinbase from the BeaconRootsContract.
+    function test_GetCoinbase() public {
+        testFuzz_GetCoinbase(1, 1, HISTORY_BUFFER_LENGTH);
     }
 
     /// @dev Fuzzing test the coinbase is retrieved correctly from the circular
