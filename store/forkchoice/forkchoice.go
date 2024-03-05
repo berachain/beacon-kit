@@ -31,7 +31,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
 	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
 )
 
