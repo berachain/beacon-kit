@@ -57,9 +57,24 @@ type KurtosisE2ESuite struct {
 
 // SetupSuite executes before the test suite begins execution.
 func (s *KurtosisE2ESuite) SetupSuite() {
+	s.SetupSuiteWithOptions()
+}
+
+// Option is a function that sets a field on the KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
+	// Setup some sane defaults.
 	s.cfg = kurtosis.DefaultE2ETestConfig()
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
+
+	// Apply all the provided options, this allows
+	// the test suite to be configured in a flexible manner by
+	// the caller (i.e overriding defaults).
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			s.Require().NoError(err, "Error applying option")
+		}
+	}
 
 	var err error
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
