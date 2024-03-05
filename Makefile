@@ -168,7 +168,7 @@ start-besu:
 
 
 #################
-#     unit      #
+#    golang     #
 #################
 
 SHORT_FUZZ_TIME=10s
@@ -177,6 +177,7 @@ LONG_FUZZ_TIME=3m
 
 test:
 	@$(MAKE) test-unit test-forge-fuzz
+	
 test-unit:
 	@$(MAKE)
 	@echo "Running unit tests..."
@@ -201,6 +202,12 @@ test-unit-fuzz:
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
+test-e2e:
+	@$(MAKE) docker-build VERSION=kurtosis-local test-e2e-no-build
+
+test-e2e-no-build:
+	go test -tags e2e ./e2e/... -v 
+
 #################
 #     forge     #
 #################
@@ -212,16 +219,6 @@ test-forge-cover:
 test-forge-fuzz:
 	@echo "Running forge fuzz tests..."
 	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test
-
-#################
-#      e2e      #
-#################
-
-test-e2e:
-	@$(MAKE) test-e2e-no-build
-
-test-e2e-no-build:
-	@echo "Running e2e tests..."
 
 
 ###############################################################################
