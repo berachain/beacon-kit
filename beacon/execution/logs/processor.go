@@ -203,10 +203,13 @@ func (p *Processor) processBlocksInBatch(
 	return toBlock, nil
 }
 
+// processLogsInBlock processes the logs in the block.
 func (p *Processor) processLogsInBlock(
 	logs []ethtypes.Log,
 	blockNumber uint64,
 ) error {
+	// Filter the logs, so that we don't process logs
+	// that the caches do not want to insert into them.
 	filteredLogs := make([]ethtypes.Log, 0, len(logs))
 	for i, log := range logs {
 		if cache, ok := p.sigToCache[log.Topics[0]]; ok {
