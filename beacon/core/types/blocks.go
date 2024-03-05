@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package types
 
 import (
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"

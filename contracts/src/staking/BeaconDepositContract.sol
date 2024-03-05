@@ -112,6 +112,145 @@ contract BeaconDepositContract {
     {
         // TODO: Properly Handle Token Logic.
 
+<<<<<<< HEAD
         emit Withdrawal(validatorPubkey, abi.encodePacked(msg.sender), amount);
+=======
+        if (stakingCredentials.length != CREDENTIALS_LENGTH) {
+            revert InvalidCredentialsLength();
+        }
+
+        if (signature.length != SIGNATURE_LENGTH) {
+            revert InvalidSignatureLength();
+        }
+
+        if (STAKE_ASSET == NATIVE_ASSET) {
+            amount = _depositNative();
+        } else {
+            _depositERC20(amount);
+        }
+
+        // slither-disable-next-line reentrancy-events
+        emit Deposit(validatorPubKey, stakingCredentials, amount, signature);
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function redirect(
+        bytes calldata fromPubKey,
+        bytes calldata toPubKey,
+        uint64 amount
+    )
+        external
+    {
+        if (
+            fromPubKey.length != PUBLIC_KEY_LENGTH
+                || toPubKey.length != PUBLIC_KEY_LENGTH
+        ) {
+            revert InvalidPubKeyLength();
+        }
+
+        if (amount < MIN_REDIRECT_AMOUNT) {
+            revert InsufficientRedirectAmount();
+        }
+
+        emit Redirect(fromPubKey, toPubKey, _toCredentials(msg.sender), amount);
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function withdraw(
+        bytes calldata validatorPubKey,
+        bytes calldata withdrawalCredentials,
+        uint64 amount
+    )
+        external
+    {
+        if (validatorPubKey.length != PUBLIC_KEY_LENGTH) {
+            revert InvalidPubKeyLength();
+        }
+
+        if (withdrawalCredentials.length != CREDENTIALS_LENGTH) {
+            revert InvalidCredentialsLength();
+        }
+
+        if (amount < MINIMUM_WITHDRAWAL_AMOUNT) {
+            revert InsufficientWithdrawAmount();
+        }
+
+        emit Withdrawal(validatorPubKey, withdrawalCredentials, amount);
+    }
+
+    /**
+     * Transform an address into bytes for the credentials appending the 0x01 prefix.
+     * @param addr The address to transform.
+     * @return credentials The credentials.
+     */
+    function _toCredentials(address addr)
+        private
+        pure
+        returns (bytes memory credentials)
+    {
+        // 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+        assembly ("memory-safe") {
+            credentials := mload(0x40)
+            mstore(credentials, 0x20)
+            mstore(add(credentials, 0x20), or(addr, shl(248, 1)))
+            mstore(0x40, add(credentials, 0x40))
+        }
+    }
+
+    /**
+     * @notice Validates the deposit amount and sends the native asset to the zero address.
+     */
+    function _depositNative() private returns (uint64) {
+        if (msg.value > type(uint64).max) {
+            revert DepositValueTooHigh();
+        }
+
+        if (msg.value < MIN_DEPOSIT_AMOUNT) {
+            revert InsufficientDeposit();
+        }
+
+        if (msg.value % 1 gwei != 0) {
+            revert DepositNotMultipleOfGwei();
+        }
+
+        _safeTransferETH(address(0), msg.value);
+
+        // Safe since we have already checked that the value is less than uint64.max.
+        return uint64(msg.value);
+    }
+
+    /*
+     * @notice Validates the deposit amount and burns the staking asset from the sender.
+     * @param amount The amount of stake to deposit.
+     */
+    function _depositERC20(uint64 amount) private {
+        IStakeERC20(STAKE_ASSET).burn(msg.sender, amount);
+
+        if (amount < MIN_DEPOSIT_AMOUNT) {
+            revert InsufficientDeposit();
+        }
+
+        if (amount % 1 gwei != 0) {
+            revert DepositNotMultipleOfGwei();
+        }
+    }
+
+    /**
+     * @notice Safely transfers ETH to the given address.
+     * @dev From the Solady library.
+     * @param to The address to transfer the ETH to.
+     * @param amount The amount of ETH to transfer.
+     */
+    function _safeTransferETH(address to, uint256 amount) private {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(
+                call(gas(), to, amount, codesize(), 0x00, codesize(), 0x00)
+            ) {
+                mstore(0x00, 0xb12d13eb) // `ETHTransferFailed()`.
+                revert(0x1c, 0x04)
+            }
+        }
+>>>>>>> 9d0aa54e (feat(types): fix types for kzg n stuff)
     }
 }

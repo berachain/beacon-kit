@@ -31,8 +31,8 @@ var (
 
 // StakingMetaData contains all meta data concerning the Staking contract.
 var StakingMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"NATIVE_ASSET\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"redirect\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"toPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Redirect\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"toPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Withdraw\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientRedirectAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientWithdrawAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]}]",
-	Bin: "0x60806040525f80546001600160a01b03191673eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee179055348015610034575f80fd5b506109f9806100425f395ff3fe60806040526004361061003e575f3560e01c806304a3267f146100425780635b70fa2914610063578063bf53253b14610076578063bf9b6a55146100c6575b5f80fd5b34801561004d575f80fd5b5061006161005c36600461077e565b6100e5565b005b6100616100713660046107f9565b610229565b348015610081575f80fd5b5061009d73eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee81565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b3480156100d1575f80fd5b506100616100e036600461077e565b6103a1565b6030841461011f576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60208214610159576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610169600a6407735940006108cc565b67ffffffffffffffff168167ffffffffffffffff1610156101b6576040517febec602100000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b82826040516101c69291906108f2565b604051809103902085856040516101de9291906108f2565b60405190819003812067ffffffffffffffff84168252907fd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a69060200160405180910390a35050505050565b60308614610263576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6020841461029d576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b606081146102d7576040517f4be6321b00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f5473ffffffffffffffffffffffffffffffffffffffff167fffffffffffffffffffffffff1111111111111111111111111111111111111112016103245761031d610501565b925061032d565b61032d836105d7565b848460405161033d9291906108f2565b604051809103902087876040516103559291906108f2565b60405180910390207f1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df85858560405161039093929190610901565b60405180910390a350505050505050565b6030841415806103b2575060308214155b156103e9576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6103f9600a6407735940006108cc565b67ffffffffffffffff168167ffffffffffffffff161015610446576040517f0494a69c00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b604080516020808252337f01000000000000000000000000000000000000000000000000000000000000001790820152808201918290526104869161095e565b6040518091039020838360405161049e9291906108f2565b604051809103902086866040516104b69291906108f2565b60405190819003812067ffffffffffffffff85168252907fe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f9060200160405180910390a45050505050565b5f67ffffffffffffffff341115610544576040517f2aa6673400000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b640773594000341015610583576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610591633b9aca003461098a565b156105c8576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6105d25f34610700565b503490565b5f546040517f9dc29fac00000000000000000000000000000000000000000000000000000000815233600482015267ffffffffffffffff8316602482015273ffffffffffffffffffffffffffffffffffffffff90911690639dc29fac906044015f604051808303815f87803b15801561064e575f80fd5b505af1158015610660573d5f803e3d5ffd5b50505064077359400067ffffffffffffffff8316101590506106ae576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6106bc633b9aca008261099d565b67ffffffffffffffff16156106fd576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b50565b5f385f3884865af16107195763b12d13eb5f526004601cfd5b5050565b5f8083601f84011261072d575f80fd5b50813567ffffffffffffffff811115610744575f80fd5b60208301915083602082850101111561075b575f80fd5b9250929050565b803567ffffffffffffffff81168114610779575f80fd5b919050565b5f805f805f60608688031215610792575f80fd5b853567ffffffffffffffff808211156107a9575f80fd5b6107b589838a0161071d565b909750955060208801359150808211156107cd575f80fd5b506107da8882890161071d565b90945092506107ed905060408701610762565b90509295509295909350565b5f805f805f805f6080888a03121561080f575f80fd5b873567ffffffffffffffff80821115610826575f80fd5b6108328b838c0161071d565b909950975060208a013591508082111561084a575f80fd5b6108568b838c0161071d565b909750955085915061086a60408b01610762565b945060608a013591508082111561087f575f80fd5b5061088c8a828b0161071d565b989b979a50959850939692959293505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b5f67ffffffffffffffff808416806108e6576108e661089f565b92169190910492915050565b818382375f9101908152919050565b67ffffffffffffffff8416815260406020820152816040820152818360608301375f818301606090810191909152601f9092017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016010192915050565b5f82515f5b8181101561097d5760208186018101518583015201610963565b505f920191825250919050565b5f826109985761099861089f565b500690565b5f67ffffffffffffffff808416806109b7576109b761089f565b9216919091069291505056fea26469706673582212204fdd8f7199f85c1743e6d116f8056d134bb5c31360147c960586016acb6abf9964736f6c63430008180033",
+	ABI: "[{\"type\":\"function\",\"name\":\"NATIVE_ASSET\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"redirect\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"toPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Redirect\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"toPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Withdrawal\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientRedirectAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientWithdrawAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]}]",
+	Bin: "0x60806040525f80546001600160a01b03191673eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee179055348015610034575f80fd5b506109f9806100425f395ff3fe60806040526004361061003e575f3560e01c806304a3267f146100425780635b70fa2914610063578063bf53253b14610076578063bf9b6a55146100c6575b5f80fd5b34801561004d575f80fd5b5061006161005c36600461077e565b6100e5565b005b6100616100713660046107f9565b610229565b348015610081575f80fd5b5061009d73eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee81565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b3480156100d1575f80fd5b506100616100e036600461077e565b6103a1565b6030841461011f576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60208214610159576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610169600a6407735940006108cc565b67ffffffffffffffff168167ffffffffffffffff1610156101b6576040517febec602100000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b82826040516101c69291906108f2565b604051809103902085856040516101de9291906108f2565b60405190819003812067ffffffffffffffff84168252907f3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b49060200160405180910390a35050505050565b60308614610263576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6020841461029d576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b606081146102d7576040517f4be6321b00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f5473ffffffffffffffffffffffffffffffffffffffff167fffffffffffffffffffffffff1111111111111111111111111111111111111112016103245761031d610501565b925061032d565b61032d836105d7565b848460405161033d9291906108f2565b604051809103902087876040516103559291906108f2565b60405180910390207f1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df85858560405161039093929190610901565b60405180910390a350505050505050565b6030841415806103b2575060308214155b156103e9576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6103f9600a6407735940006108cc565b67ffffffffffffffff168167ffffffffffffffff161015610446576040517f0494a69c00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b604080516020808252337f01000000000000000000000000000000000000000000000000000000000000001790820152808201918290526104869161095e565b6040518091039020838360405161049e9291906108f2565b604051809103902086866040516104b69291906108f2565b60405190819003812067ffffffffffffffff85168252907fe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f9060200160405180910390a45050505050565b5f67ffffffffffffffff341115610544576040517f2aa6673400000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b640773594000341015610583576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610591633b9aca003461098a565b156105c8576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6105d25f34610700565b503490565b5f546040517f9dc29fac00000000000000000000000000000000000000000000000000000000815233600482015267ffffffffffffffff8316602482015273ffffffffffffffffffffffffffffffffffffffff90911690639dc29fac906044015f604051808303815f87803b15801561064e575f80fd5b505af1158015610660573d5f803e3d5ffd5b50505064077359400067ffffffffffffffff8316101590506106ae576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6106bc633b9aca008261099d565b67ffffffffffffffff16156106fd576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b50565b5f385f3884865af16107195763b12d13eb5f526004601cfd5b5050565b5f8083601f84011261072d575f80fd5b50813567ffffffffffffffff811115610744575f80fd5b60208301915083602082850101111561075b575f80fd5b9250929050565b803567ffffffffffffffff81168114610779575f80fd5b919050565b5f805f805f60608688031215610792575f80fd5b853567ffffffffffffffff808211156107a9575f80fd5b6107b589838a0161071d565b909750955060208801359150808211156107cd575f80fd5b506107da8882890161071d565b90945092506107ed905060408701610762565b90509295509295909350565b5f805f805f805f6080888a03121561080f575f80fd5b873567ffffffffffffffff80821115610826575f80fd5b6108328b838c0161071d565b909950975060208a013591508082111561084a575f80fd5b6108568b838c0161071d565b909750955085915061086a60408b01610762565b945060608a013591508082111561087f575f80fd5b5061088c8a828b0161071d565b989b979a50959850939692959293505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b5f67ffffffffffffffff808416806108e6576108e661089f565b92169190910492915050565b818382375f9101908152919050565b67ffffffffffffffff8416815260406020820152816040820152818360608301375f818301606090810191909152601f9092017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016010192915050565b5f82515f5b8181101561097d5760208186018101518583015201610963565b505f920191825250919050565b5f826109985761099861089f565b500690565b5f67ffffffffffffffff808416806109b7576109b761089f565b9216919091069291505056fea26469706673582212202bebf365ba2debbca02a9657f3647339e7cc7b50892de140177534aa8188356464736f6c63430008180033",
 }
 
 // StakingABI is the input ABI used to generate the binding from.
@@ -614,9 +614,9 @@ func (_Staking *StakingFilterer) ParseRedirect(log types.Log) (*StakingRedirect,
 	return event, nil
 }
 
-// StakingWithdrawIterator is returned from FilterWithdraw and is used to iterate over the raw logs and unpacked data for Withdraw events raised by the Staking contract.
-type StakingWithdrawIterator struct {
-	Event *StakingWithdraw // Event containing the contract specifics and raw log
+// StakingWithdrawalIterator is returned from FilterWithdrawal and is used to iterate over the raw logs and unpacked data for Withdrawal events raised by the Staking contract.
+type StakingWithdrawalIterator struct {
+	Event *StakingWithdrawal // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -630,7 +630,7 @@ type StakingWithdrawIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *StakingWithdrawIterator) Next() bool {
+func (it *StakingWithdrawalIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -639,7 +639,7 @@ func (it *StakingWithdrawIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(StakingWithdraw)
+			it.Event = new(StakingWithdrawal)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -654,7 +654,7 @@ func (it *StakingWithdrawIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(StakingWithdraw)
+		it.Event = new(StakingWithdrawal)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -670,29 +670,29 @@ func (it *StakingWithdrawIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *StakingWithdrawIterator) Error() error {
+func (it *StakingWithdrawalIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *StakingWithdrawIterator) Close() error {
+func (it *StakingWithdrawalIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// StakingWithdraw represents a Withdraw event raised by the Staking contract.
-type StakingWithdraw struct {
+// StakingWithdrawal represents a Withdrawal event raised by the Staking contract.
+type StakingWithdrawal struct {
 	FromPubKey            common.Hash
 	WithdrawalCredentials common.Hash
 	Amount                uint64
 	Raw                   types.Log // Blockchain specific contextual infos
 }
 
-// FilterWithdraw is a free log retrieval operation binding the contract event 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6.
+// FilterWithdrawal is a free log retrieval operation binding the contract event 0x3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4.
 //
-// Solidity: event Withdraw(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) FilterWithdraw(opts *bind.FilterOpts, fromPubKey [][]byte, withdrawalCredentials [][]byte) (*StakingWithdrawIterator, error) {
+// Solidity: event Withdrawal(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
+func (_Staking *StakingFilterer) FilterWithdrawal(opts *bind.FilterOpts, fromPubKey [][]byte, withdrawalCredentials [][]byte) (*StakingWithdrawalIterator, error) {
 
 	var fromPubKeyRule []interface{}
 	for _, fromPubKeyItem := range fromPubKey {
@@ -703,17 +703,17 @@ func (_Staking *StakingFilterer) FilterWithdraw(opts *bind.FilterOpts, fromPubKe
 		withdrawalCredentialsRule = append(withdrawalCredentialsRule, withdrawalCredentialsItem)
 	}
 
-	logs, sub, err := _Staking.contract.FilterLogs(opts, "Withdraw", fromPubKeyRule, withdrawalCredentialsRule)
+	logs, sub, err := _Staking.contract.FilterLogs(opts, "Withdrawal", fromPubKeyRule, withdrawalCredentialsRule)
 	if err != nil {
 		return nil, err
 	}
-	return &StakingWithdrawIterator{contract: _Staking.contract, event: "Withdraw", logs: logs, sub: sub}, nil
+	return &StakingWithdrawalIterator{contract: _Staking.contract, event: "Withdrawal", logs: logs, sub: sub}, nil
 }
 
-// WatchWithdraw is a free log subscription operation binding the contract event 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6.
+// WatchWithdrawal is a free log subscription operation binding the contract event 0x3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4.
 //
-// Solidity: event Withdraw(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<- *StakingWithdraw, fromPubKey [][]byte, withdrawalCredentials [][]byte) (event.Subscription, error) {
+// Solidity: event Withdrawal(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
+func (_Staking *StakingFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan<- *StakingWithdrawal, fromPubKey [][]byte, withdrawalCredentials [][]byte) (event.Subscription, error) {
 
 	var fromPubKeyRule []interface{}
 	for _, fromPubKeyItem := range fromPubKey {
@@ -724,7 +724,7 @@ func (_Staking *StakingFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<-
 		withdrawalCredentialsRule = append(withdrawalCredentialsRule, withdrawalCredentialsItem)
 	}
 
-	logs, sub, err := _Staking.contract.WatchLogs(opts, "Withdraw", fromPubKeyRule, withdrawalCredentialsRule)
+	logs, sub, err := _Staking.contract.WatchLogs(opts, "Withdrawal", fromPubKeyRule, withdrawalCredentialsRule)
 	if err != nil {
 		return nil, err
 	}
@@ -734,8 +734,8 @@ func (_Staking *StakingFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<-
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(StakingWithdraw)
-				if err := _Staking.contract.UnpackLog(event, "Withdraw", log); err != nil {
+				event := new(StakingWithdrawal)
+				if err := _Staking.contract.UnpackLog(event, "Withdrawal", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -756,12 +756,12 @@ func (_Staking *StakingFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<-
 	}), nil
 }
 
-// ParseWithdraw is a log parse operation binding the contract event 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6.
+// ParseWithdrawal is a log parse operation binding the contract event 0x3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4.
 //
-// Solidity: event Withdraw(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) ParseWithdraw(log types.Log) (*StakingWithdraw, error) {
-	event := new(StakingWithdraw)
-	if err := _Staking.contract.UnpackLog(event, "Withdraw", log); err != nil {
+// Solidity: event Withdrawal(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
+func (_Staking *StakingFilterer) ParseWithdrawal(log types.Log) (*StakingWithdrawal, error) {
+	event := new(StakingWithdrawal)
+	if err := _Staking.contract.UnpackLog(event, "Withdrawal", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
