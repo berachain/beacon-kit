@@ -52,6 +52,8 @@ type LogCache interface {
 	// SetLastProcessedBlock sets the block number of
 	// the last completely processed block in cache.
 	SetLastProcessedBlock(blockNumber uint64)
+	SetCurrentProcessingBlock(blockNumber uint64)
+	SetCurrentProcessingIndex(index uint64)
 	// Rollback rolls back the cache to the last finalized block.
 	Rollback()
 }
@@ -94,4 +96,5 @@ type ReadOnlyForkChoicer interface {
 // of the last processed log included in the finalized block.
 type FinalizedLogsStore interface {
 	GetLastProcessedBlockNumber(sig ethcommon.Hash) uint64
+	GetLastProcessedLogIndex(sig ethcommon.Hash) uint64
 }

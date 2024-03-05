@@ -49,12 +49,24 @@ type Cache struct {
 	// They will be moved to the final store
 	// when the block is set as the last finalized block.
 	processingStore []LogValueContainer
+
+	// currProcessingBlock records the block number
+	// of the current block being processed.
+	// It is always greater than lastProcessedBlock.
+	currProcessingBlock uint64
+
+	// currProcessingIndex records the index of the
+	// current log being processed in the current block.
+	currProcessingIndex uint64
 }
 
 // ShouldProcess returns true if the cache determines
 // that the log should be processed and added to it.
 func (c *Cache) ShouldProcess(log *ethtypes.Log) bool {
-	return log.BlockNumber > c.lastProcessedBlock
+	return log.BlockNumber > c.currProcessingBlock ||
+		(log.BlockNumber == c.currProcessingBlock &&
+			(c.currProcessingIndex == 0 ||
+				uint64(log.Index) > c.currProcessingIndex))
 }
 
 // Push pushes the log value container into the cache.
@@ -66,6 +78,8 @@ func (c *Cache) Push(container LogValueContainer) error {
 	// ShouldProcess should be called before Push
 	// to avoid unnecessary processing.
 	c.processingStore = append(c.processingStore, container)
+	c.currProcessingBlock = container.BlockNumber()
+	c.currProcessingIndex = container.LogIndex()
 	return nil
 }
 
@@ -83,6 +97,21 @@ func (c *Cache) SetLastProcessedBlock(blockNumber uint64) {
 	c.lastProcessedBlock = blockNumber
 	c.finalStore = append(c.finalStore, c.processingStore...)
 	c.processingStore = nil
+	// We are expecting the block after blockNumber to be processed.
+	c.currProcessingBlock = blockNumber + 1
+	c.currProcessingIndex = 0
+}
+
+// SetCurrentProcessingBlock sets the block number of
+// the current block being processed.
+func (c *Cache) SetCurrentProcessingBlock(blockNumber uint64) {
+	c.currProcessingBlock = blockNumber
+}
+
+// SetCurrentProcessingIndex sets the index of the
+// current log being processed in the current block.
+func (c *Cache) SetCurrentProcessingIndex(index uint64) {
+	c.currProcessingIndex = index
 }
 
 // Rollback rolls back the cache to the last completely processed block
@@ -90,4 +119,6 @@ func (c *Cache) SetLastProcessedBlock(blockNumber uint64) {
 // in the current block.
 func (c *Cache) Rollback() {
 	c.processingStore = nil
+	c.currProcessingBlock = c.lastProcessedBlock + 1
+	c.currProcessingIndex = 0
 }
