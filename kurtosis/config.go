@@ -84,8 +84,20 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	}
 }
 
-func (e *E2ETestConfig) MustMarshalJSON() []byte {
-	jsonBytes, err := json.Marshal(e)
+// AddNodes adds a number of nodes to the E2ETestConfig, using the specified.
+func (c *E2ETestConfig) AddNodes(num int, executionClient string) {
+	for i := 0; i < num; i++ {
+		c.Participants = append(c.Participants, Participant{
+			ElClientType:  executionClient,
+			ClClientImage: "beacond:kurtosis-local",
+			ClClientType:  "beaconkit",
+		})
+	}
+}
+
+// MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
+func (c *E2ETestConfig) MustMarshalJSON() []byte {
+	jsonBytes, err := json.Marshal(c)
 	if err != nil {
 		panic(err)
 	}
