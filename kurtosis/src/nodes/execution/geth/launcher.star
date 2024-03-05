@@ -79,7 +79,7 @@ VERBOSITY_LEVELS = {
 DEFAULT_IMAGE = "ethereum/client-go:latest"
 DEFAULT_ENTRYPOINT_ARGS = ["sh", "-c"]
 DEFAULT_CONFIG_LOCATION = "/root/.geth/geth-config.toml"
-DEFAULT_CMD = ["geth", "init", "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER, "/root/genesis/genesis.json", "&&", "geth", "--config", DEFAULT_CONFIG_LOCATION, "--nat", "extip:" + PRIVATE_IP_ADDRESS_PLACEHOLDER, "--metrics", "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER]
+DEFAULT_CMD = ["geth", "init", "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER, "/root/genesis/genesis.json", "&&", "geth", "--config", DEFAULT_CONFIG_LOCATION, "--nat", "extip:" + PRIVATE_IP_ADDRESS_PLACEHOLDER, "--metrics", "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER, "--networkid", "80087"]
 DEFAULT_FILES = {
     "/root/.geth": "geth-config",
     "/root/genesis": "genesis_file",
