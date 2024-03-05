@@ -26,20 +26,21 @@
 package enginetypes
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 //go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 
 type PayloadAttributes struct {
-	version int
-
-	Timestamp             uint64
-	PrevRandao            []byte
-	SuggestedFeeRecipient []byte
-	Withdrawals           []*enginev1.Withdrawal
-	ParentBeaconBlockRoot []byte
+	version               int
+	Timestamp             uint64                      `json:"timestamp"             gencodec:"required"`
+	PrevRandao            common.Hash                 `json:"prevRandao"            gencodec:"required"`
+	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
+	Withdrawals           []*enginev1.Withdrawal      `json:"withdrawals"`
+	ParentBeaconBlockRoot *common.Hash                `json:"parentBeaconBlockRoot"`
 }
 
 // JSON type overrides for PayloadAttributes.
@@ -50,8 +51,8 @@ type payloadAttributesJSONMarshaling struct {
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes(
 	forkVersion int,
-	timestamp uint64, prevRandao []byte,
-	suggestedFeeReceipient []byte,
+	timestamp uint64, prevRandao [32]byte,
+	suggestedFeeReceipient primitives.ExecutionAddress,
 	withdrawals []*enginev1.Withdrawal,
 	parentBeaconBlockRoot [32]byte,
 ) (*PayloadAttributes, error) {
@@ -61,7 +62,7 @@ func NewPayloadAttributes(
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
-		ParentBeaconBlockRoot: parentBeaconBlockRoot[:],
+		ParentBeaconBlockRoot: (*common.Hash)(&parentBeaconBlockRoot),
 	}, nil
 }
 
@@ -76,14 +77,14 @@ func (p *PayloadAttributes) GetTimestamp() uint64 {
 }
 
 func (p *PayloadAttributes) GetSuggestedFeeRecipient() []byte {
-	return p.SuggestedFeeRecipient
+	return p.SuggestedFeeRecipient[:]
 }
 func (p *PayloadAttributes) GetWithdrawals() []*enginev1.Withdrawal {
 	return p.Withdrawals
 }
 
 func (p *PayloadAttributes) GetParentBeaconBlockRoot() []byte {
-	return p.ParentBeaconBlockRoot
+	return p.ParentBeaconBlockRoot[:]
 }
 
 func (p *PayloadAttributes) Version() int {
@@ -91,7 +92,7 @@ func (p *PayloadAttributes) Version() int {
 }
 
 func (p *PayloadAttributes) GetPrevRandao() []byte {
-	return p.PrevRandao
+	return p.PrevRandao[:]
 }
 
 func (p *PayloadAttributes) IsEmpty() bool {

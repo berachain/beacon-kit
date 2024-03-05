@@ -320,7 +320,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectEmit(true, true, true, true);
 
         vm.prank(depositor);
-        emit IBeaconDepositContract.Withdraw(
+        emit IBeaconDepositContract.Withdrawal(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
         );
         depositContract.withdraw(VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9);
