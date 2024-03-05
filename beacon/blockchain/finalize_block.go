@@ -64,8 +64,8 @@ func (s *Service) FinalizeBeaconBlock(
 
 			s.Logger().Info(
 				"finalizing current forkchoice state",
-				"safe_hash", forkChoicer.GetSafeEth1BlockHash().Hex(),
-				"finalized_hash", forkChoicer.GetFinalizedEth1BlockHash().Hex(),
+				"safe_hash", forkChoicer.JustifiedCheckpoint().Hex(),
+				"finalized_hash", forkChoicer.FinalizedCheckpoint().Hex(),
 			)
 		}()
 	}()
@@ -88,10 +88,7 @@ func (s *Service) FinalizeBeaconBlock(
 		return ErrNoPayloadInBeaconBlock
 	}
 
-	eth1BlockHash := common.Hash(payload.GetBlockHash())
-	forkChoicer.SetFinalizedEth1BlockHash(eth1BlockHash)
-	forkChoicer.SetSafeEth1BlockHash(eth1BlockHash)
-	return nil
+	return forkChoicer.InsertNode(common.Hash(payload.GetBlockHash()))
 }
 
 // missed block tasks is called when a block is missed. It sends a forkchoice
@@ -109,7 +106,7 @@ func (s *Service) missedBlockTasks(
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
 		err := s.sendFCUWithAttributes(
 			ctx,
-			forkChoicer.GetSafeEth1BlockHash(),
+			forkChoicer.JustifiedCheckpoint(),
 			slot,
 			blockRoot,
 		)
@@ -122,7 +119,7 @@ func (s *Service) missedBlockTasks(
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
-	err := s.sendFCU(ctx, forkChoicer.GetSafeEth1BlockHash())
+	err := s.sendFCU(ctx, forkChoicer.JustifiedCheckpoint())
 	if err != nil {
 		s.Logger().Error(
 			"failed to send recovery forkchoice update", "error", err,

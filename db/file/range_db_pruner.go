@@ -23,26 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package file
 
-import (
-	"context"
+import "context"
 
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	ssf "github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-)
-
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+// RangeDBPruner prunes old indexes from the range DB.
+type RangeDBPruner[T numeric] struct {
+	db             *RangeDB[T]
+	notifyNewIndex chan T
+	pruneWindow    T
 }
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
+func NewRangeDBPruner[T numeric](
+	db *RangeDB[T],
+	pruneWindow T,
+	notifyNewIndex chan T,
+) *RangeDBPruner[T] {
+	return &RangeDBPruner[T]{
+		db:             db,
+		notifyNewIndex: notifyNewIndex,
+		pruneWindow:    pruneWindow,
+	}
+}
+
+// Start starts a goroutine that listens for new indices to prune.
+func (p *RangeDBPruner[T]) Start(ctx context.Context) {
+	go p.runLoop(ctx)
+}
+
+// NotifyNewIndex notifies the pruner of a new index.
+func (p *RangeDBPruner[T]) runLoop(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case index := <-p.notifyNewIndex:
+			// Do nothing until the prune window is reached.
+			if p.pruneWindow > index {
+				continue
+			}
+
+			// Prune all indexes below the most recently seen
+			// index minus the prune window.
+			if err := p.db.DeleteRange(0, index-p.pruneWindow); err != nil {
+				return
+			}
+		}
+	}
 }

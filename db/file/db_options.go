@@ -23,26 +23,54 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package file
 
 import (
-	"context"
+	"os"
 
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	ssf "github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"cosmossdk.io/log"
+	"github.com/spf13/afero"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+type Option func(*DB) error
+
+// WithAferoFS sets the filesystem for the database.
+// NOTE: Should only be used for testing.
+func WithAferoFS(fs afero.Fs) Option {
+	return func(db *DB) error {
+		db.fs = fs
+		return nil
+	}
 }
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
-	) error
+// WithDirectoryPermissions sets the permissions for the directory.
+func WithDirectoryPermissions(permissions int) Option {
+	return func(db *DB) error {
+		db.dirPerms = os.FileMode(permissions)
+		return nil
+	}
+}
+
+// WithFileExtension sets the file extension for the database.
+func WithFileExtension(extension string) Option {
+	return func(db *DB) error {
+		db.extension = extension
+		return nil
+	}
+}
+
+// WithLogger sets the logger for the database.
+func WithLogger(logger log.Logger) Option {
+	return func(db *DB) error {
+		db.logger = logger
+		return nil
+	}
+}
+
+// WithRootDirectory sets the root directory for the database.
+func WithRootDirectory(rootDir string) Option {
+	return func(db *DB) error {
+		db.rootDir = rootDir
+		return nil
+	}
 }

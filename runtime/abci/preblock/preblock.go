@@ -27,6 +27,7 @@ package preblock
 
 import (
 	"context"
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 
 	"cosmossdk.io/log"
 	cometabci "github.com/cometbft/cometbft/abci/types"
@@ -122,6 +123,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				h.chainService.ActiveForkVersionForSlot(
 					primitives.Slot(req.Height),
 				),
+				randaotypes.Reveal{},
 			); err != nil {
 				return nil, err
 			}
