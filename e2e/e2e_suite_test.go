@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
@@ -72,14 +73,19 @@ func (s *BeaconKitE2ESuite) TearDownSuite() {
 // TestBasicStartup tests the basic startup of the beacon-kit network.
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	s.logger.Info("Running Starlark package...")
-	_, cancel, err := s.enclave.RunStarlarkPackage(
+	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
 		"../kurtosis",
-		starlark_run_config.NewRunStarlarkConfig(),
+		starlark_run_config.NewRunStarlarkConfig(
+			starlark_run_config.WithSerializedParams(
+				string(kurtosis.DefaultE2ETestConfig().MustMarshalJSON()),
+			),
+		),
 	)
-	defer cancel()
-	s.Require().NoError(err, "Error running Starlark package")
 
+	s.Require().NoError(err, "Error running Starlark package")
+	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
+	s.Require().Len(result.ValidationErrors, 0)
 	s.logger.Info("Waiting for services to start...")
 	services, err := s.enclave.GetServices()
 	s.Require().NoError(err, "Error getting services")
