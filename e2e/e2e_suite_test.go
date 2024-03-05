@@ -27,7 +27,6 @@ package e2e_test
 
 import (
 	"context"
-	"time"
 
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/kurtosis"
@@ -85,14 +84,13 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 
 	s.Require().NoError(err, "Error running Starlark package")
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
-	s.Require().Len(result.ValidationErrors, 0)
+	s.Require().Empty(result.ValidationErrors)
 	s.logger.Info("Waiting for services to start...")
+
 	services, err := s.enclave.GetServices()
 	s.Require().NoError(err, "Error getting services")
 
 	for k, v := range services {
 		s.logger.Info("Service started", "service", k, "uuid", v)
 	}
-
-	time.Sleep(3 * time.Second)
 }

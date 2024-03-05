@@ -1,37 +1,72 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+//nolint:tagliatelle // starlark uses snek case.
 package kurtosis
 
 import (
 	"encoding/json"
 )
 
-// E2ETestConfig defines the configuration for end-to-end tests, including any additional services and participants involved.
+// E2ETestConfig defines the configuration for end-to-end tests, including any
+// additional services and participants involved.
 type E2ETestConfig struct {
-	AdditionalServices []interface{} `json:"additional_services"` // AdditionalServices specifies any extra services that should be included in the test environment.
-	Participants       []Participant `json:"participants"`        // Participants lists the configurations for each participant in the test.
+	// AdditionalServices specifies any extra services that should be included
+	// in the test environment.
+	AdditionalServices []interface{} `json:"additional_services"`
+	// Participants lists the configurations for each participant in the test.
+	Participants []Participant `json:"participants"`
 }
 
-// Participant holds the configuration for a single participant in the test, including client images and types.
+// Participant holds the configuration for a single participant in the test,
+// including client images and types.
 type Participant struct {
-	// ClClientImage specifies the Docker image to use for the consensus layer client.
+	// ClClientImage specifies the Docker image to use for the consensus layer
+	// client.
 	ClClientImage string `json:"cl_client_image"`
-	// ClClientType denotes the type of consensus layer client (e.g., beaconkit).
+	// ClClientType denotes the type of consensus layer client (e.g.,
+	// beaconkit).
 	ClClientType string `json:"cl_client_type"`
 	// ElClientType denotes the type of execution layer client (e.g., reth).
 	ElClientType string `json:"el_client_type"`
 }
 
-// DefaultE2ETestConfig provides a default configuration for end-to-end tests, pre-populating with a standard set of participants and no additional services.
+// DefaultE2ETestConfig provides a default configuration for end-to-end tests,
+// pre-populating with a standard set of participants and no additional
+// services.
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []interface{}{}, // Initialize with no additional services.
-		Participants: []Participant{ // Pre-populate with a default set of participants.
+		AdditionalServices: []interface{}{},
+		Participants: []Participant{
 			{
-				ElClientType:  "reth",
+				ElClientType:  "geth",
 				ClClientImage: "beacond:kurtosis-local",
 				ClClientType:  "beaconkit",
 			},
 			{
-				ElClientType:  "reth",
+				ElClientType:  "geth",
 				ClClientImage: "beacond:kurtosis-local",
 				ClClientType:  "beaconkit",
 			},
