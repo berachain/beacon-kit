@@ -258,7 +258,7 @@ func (s *Service) getPayloadAttribute(
 	}
 
 	// Build the payload attributes.
-	attrs, err := enginetypes.NewPayloadAttributesContainer(
+	attrs, err := enginetypes.NewPayloadAttributes(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,

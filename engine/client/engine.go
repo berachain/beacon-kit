@@ -114,9 +114,9 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-	switch v := attrs.ToProto().(type) {
-	case *enginev1.PayloadAttributesV3:
-		return s.ForkchoiceUpdatedV3(ctx, state, v)
+	switch attrs.Version() {
+	case version.Deneb:
+		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	default:
 		return nil, ErrInvalidPayloadAttributes
 	}

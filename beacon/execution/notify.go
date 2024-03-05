@@ -85,7 +85,7 @@ func (s *Service) notifyForkchoiceUpdate(
 	// if isValidator && PrepareAllPayloads {
 	// Ensure we don't pass a nil attribute to the execution engine.
 	if fcuConfig.Attributes == nil {
-		fcuConfig.Attributes = enginetypes.EmptyPayloadAttributesWithVersion(
+		fcuConfig.Attributes = enginetypes.NewEmptyPayloadAttributesWithVersion(
 			s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot))
 	}
 
