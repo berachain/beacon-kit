@@ -32,8 +32,8 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/primitives"
 )
@@ -94,7 +94,7 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 // ForkchoiceStore returns the forkchoice store from the BaseService.
 func (s *BaseService) ForkchoiceStore(
 	ctx context.Context,
-) forkchoicer.ForkChoicer {
+) forkchoice.ForkChoicer {
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
 	return ssf.New(s.bsb.ForkchoiceStore(ctx))
 }

@@ -75,12 +75,12 @@ func (f *ForkChoice) UpdateHeadBeaconBlock(
 	f.latestBeaconBlock = blockHash
 }
 
-// JustifiedCheckpoint returns the justified checkpoint.
-func (f *ForkChoice) JustifiedCheckpoint() common.Hash {
+// JustifiedPayloadBlockHash returns the justified checkpoint.
+func (f *ForkChoice) JustifiedPayloadBlockHash() common.Hash {
 	return f.kv.GetSafeEth1BlockHash()
 }
 
-// FinalizedCheckpoint returns the finalized checkpoint.
-func (f *ForkChoice) FinalizedCheckpoint() common.Hash {
+// FinalizedPayloadBlockHash returns the finalized checkpoint.
+func (f *ForkChoice) FinalizedPayloadBlockHash() common.Hash {
 	return f.kv.GetFinalizedEth1BlockHash()
 }
