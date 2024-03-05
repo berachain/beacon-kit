@@ -60,9 +60,9 @@ USED_PORTS_TEMPLATE = {
     ENGINE_RPC_PORT_ID: port_spec_lib.get_port_spec_template(
         ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL
     ),
-    METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
-        METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL
-    ),
+    # METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
+    #     METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL
+    # ),
 }
 
 
@@ -79,16 +79,19 @@ VERBOSITY_LEVELS = {
 DEFAULT_IMAGE = "ethereum/client-go:latest"
 DEFAULT_ENTRYPOINT_ARGS = ["sh", "-c"]
 DEFAULT_CONFIG_LOCATION = "/root/.geth/geth-config.toml"
-DEFAULT_CMD = ["geth", "config=", DEFAULT_CONFIG_LOCATION, "--nat=extip:", PRIVATE_IP_ADDRESS_PLACEHOLDER]
+DEFAULT_CMD = ["geth", "init", "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER, "/root/genesis/genesis.json", "&&", "geth", "--config", DEFAULT_CONFIG_LOCATION, "--nat", "extip:" + PRIVATE_IP_ADDRESS_PLACEHOLDER, "--metrics", "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER]
 DEFAULT_FILES = {
-    "/root/.geth/geth-config.toml": "geth-config",
+    "/root/.geth": "geth-config",
+    "/root/genesis": "genesis_file",
     "/jwt": "jwt_file",
 }
+# One-liner to start a geth node with the default config using kurtosis service add (not including starting geth)
+# $ kurtosis service add my-local-devnet my-geth-node ethereum/client-go:latest --files "/root/.geth:geth-config,/root/genesis:genesis_file,/jwt:jwt_file" --entrypoint "" -- 
 
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(service_name):
-    sc = service_config_lib.get_service_config_template(service_name, DEFAULT_IMAGE, ports=USED_PORTS_TEMPLATE, entrypoint=DEFAULT_ENTRYPOINT_ARGS, cmd=DEFAULT_CMD)
+    sc = service_config_lib.get_service_config_template(service_name, DEFAULT_IMAGE, ports=USED_PORTS_TEMPLATE, entrypoint=DEFAULT_ENTRYPOINT_ARGS, cmd=DEFAULT_CMD, files=DEFAULT_FILES)
     
     return sc
 
@@ -108,14 +111,14 @@ def add_bootnodes(config, bootnodes):
     if type(bootnodes) == builtins.types.list:
         if len(bootnodes) > 0:
             cmdList = config['cmd'][:]
-            cmdList.append("--bootnodes=")
+            cmdList.append("--bootnodes")
             config['cmd'] = cmdList
 
             bootnodes_str = ','.join(bootnodes)
             config['cmd'].append(bootnodes_str)
     elif type(bootnodes) == builtins.types.str:
         if len(bootnodes) > 0:
-            config['cmd'].append("--bootnodes=")
+            config['cmd'].append("--bootnodes")
             config['cmd'].append(bootnodes)
     else:
         fail("Bootnodes was not a list or string, but instead a {}", type(bootnodes))

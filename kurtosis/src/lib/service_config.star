@@ -141,7 +141,7 @@ def create_from_config(config):
         ports=port_spec_lib.create_port_specs_from_config(config),
         files=config['files'] if config['files'] else {},
         entrypoint=config['entrypoint'] if config['entrypoint'] else [],
-        cmd=config['cmd'] if config['cmd'] else [],
+        cmd=[' '.join(config['cmd'])] if config['cmd'] else [],
         env_vars=config['env_vars'] if config['env_vars'] else {},
         private_ip_address_placeholder=config['private_ip_address_placeholder'] if config['private_ip_address_placeholder'] else DEFAULT_PRIVATE_IP_ADDRESS_PLACEHOLDER,
         max_cpu=config['max_cpu'] if config['max_cpu'] else DEFAULT_MAX_CPU, # Needs a default, as 0 does not flag as optional
