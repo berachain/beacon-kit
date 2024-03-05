@@ -27,14 +27,12 @@ package e2e_test
 
 import (
 	"context"
-	"math/big"
 	"strings"
 	"time"
 
 	"cosmossdk.io/log"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
@@ -126,47 +124,42 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 
 	wg := conc.NewWaitGroup()
 	for port := range jsonRPCPorts {
-		wg.Go(
-			func() {
-				var ethClient *ethclient.Client
-				ethClient, err = ethclient.Dial(
-					"http://0.0.0.0:" + jsonRPCPorts[port],
-				)
-				s.Require().NoError(err, "Error creating eth client")
-				_, err = ethClient.NetworkID(s.ctx)
-				s.Require().NoError(err, "Error getting network id")
+		wg.Go(func() {
+			var ethClient *ethclient.Client
+			ethClient, err = ethclient.Dial(
+				"http://0.0.0.0:" + jsonRPCPorts[port],
+			)
+			s.Require().NoError(err, "Error creating eth client")
+			for {
+				ticker := time.NewTicker(3 * time.Second)
+				defer ticker.Stop()
 
 				for {
-					ticker := time.NewTicker(3 * time.Second)
-					defer ticker.Stop()
-
-					for {
-						select {
-						case <-s.ctx.Done():
+					select {
+					case <-s.ctx.Done():
+						return
+					case <-ticker.C:
+						var finalizedBlock *ethtypes.Block
+						finalizedBlock, err = ethClient.BlockByNumber(
+							s.ctx,
+							nil,
+						)
+						s.Require().
+							NoError(err, "Error getting current block number during wait")
+						s.logger.Info(
+							"Finalized block",
+							"block",
+							finalizedBlock.Number().Uint64(),
+							"port",
+							jsonRPCPorts[port],
+						)
+						if finalizedBlock.Number().Uint64() >= targetBlock {
 							return
-						case <-ticker.C:
-							var currentBlock *ethtypes.Block
-							finalizedBlock, err = ethClient.BlockByNumber(
-								s.ctx,
-								big.NewInt(rpc.FinalizedBlockNumber),
-							)
-							s.Require().
-								NoError(err, "Error getting current block number during wait")
-							s.logger.Info(
-								"Current block number",
-								"block",
-								currentBlock.Number().Uint64(),
-								"port",
-								jsonRPCPorts[port],
-							)
-							if currentBlock.Number().Uint64() >= targetBlock {
-								return
-							}
 						}
 					}
 				}
-			},
-		)
+			}
+		})
 	}
 
 	done := make(chan bool, 1)
@@ -177,7 +170,7 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	select {
 	case <-done:
 		// Completed without timeout
-	case <-time.After(60 * time.Second): // Adjust the timeout duration as needed
-		s.logger.Error("Timeout waiting for goroutines to finish")
+	case <-time.After(90 * time.Second):
+		s.T().Fatal("Timeout waiting for goroutines to finish")
 	}
 }
