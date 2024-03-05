@@ -45,8 +45,7 @@ contract DepositContractTest is SoladyTest {
         0x00000000219ab540356cBB839Cbe05303d7705Fa;
 
     /// @dev the deposit contract.
-    BeaconDepositContract internal depositContract =
-        BeaconDepositContract(DEPOSIT_CONTRACT_ADDRESS);
+    BeaconDepositContract internal depositContract;
 
     /// @dev the snapshot we will revert to after each test.
     uint256 internal snapshot;
@@ -58,11 +57,8 @@ contract DepositContractTest is SoladyTest {
     ERC20Test internal stakeToken;
 
     function setUp() public virtual {
-        // etch the DepositContract.
-        vm.etch(
-            DEPOSIT_CONTRACT_ADDRESS,
-            vm.getDeployedCode("BeaconDepositContract.sol")
-        );
+        DEPOSIT_CONTRACT_ADDRESS = address(new BeaconDepositContract());
+        depositContract = BeaconDepositContract(DEPOSIT_CONTRACT_ADDRESS);
         // Deploy the STAKE token.
         stakeToken = new ERC20Test();
         // Set the STAKE_ASSET to the STAKE token.
