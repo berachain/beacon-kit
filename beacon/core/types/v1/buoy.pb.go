@@ -48,8 +48,8 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// BeaconBuoyDeneb represents a beacon kit block during deneb network upgrade.
-type BeaconBuoyDeneb struct {
+// BeaconBlockDeneb represents a beacon kit block during deneb network upgrade.
+type BeaconBlockDeneb struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -59,13 +59,13 @@ type BeaconBuoyDeneb struct {
 	// 32 byte root of the parent block.
 	ParentBlockRoot []byte `protobuf:"bytes,2,opt,name=parent_block_root,json=parentBlockRoot,proto3" json:"parent_block_root,omitempty" ssz-size:"32"`
 	// BeaconBlockBody contains the body of the beacon block.
-	Body *BeaconBuoyBodyDeneb `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	Body *BeaconBlockBodyDeneb `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
 	// The payload value of the block.
 	PayloadValue []byte `protobuf:"bytes,101,opt,name=payload_value,json=payloadValue,proto3" json:"payload_value,omitempty" ssz-size:"32"`
 }
 
-func (x *BeaconBuoyDeneb) Reset() {
-	*x = BeaconBuoyDeneb{}
+func (x *BeaconBlockDeneb) Reset() {
+	*x = BeaconBlockDeneb{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_beacon_core_types_v1_buoy_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -73,13 +73,13 @@ func (x *BeaconBuoyDeneb) Reset() {
 	}
 }
 
-func (x *BeaconBuoyDeneb) String() string {
+func (x *BeaconBlockDeneb) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BeaconBuoyDeneb) ProtoMessage() {}
+func (*BeaconBlockDeneb) ProtoMessage() {}
 
-func (x *BeaconBuoyDeneb) ProtoReflect() protoreflect.Message {
+func (x *BeaconBlockDeneb) ProtoReflect() protoreflect.Message {
 	mi := &file_beacon_core_types_v1_buoy_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -91,41 +91,41 @@ func (x *BeaconBuoyDeneb) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BeaconBuoyDeneb.ProtoReflect.Descriptor instead.
-func (*BeaconBuoyDeneb) Descriptor() ([]byte, []int) {
+// Deprecated: Use BeaconBlockDeneb.ProtoReflect.Descriptor instead.
+func (*BeaconBlockDeneb) Descriptor() ([]byte, []int) {
 	return file_beacon_core_types_v1_buoy_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *BeaconBuoyDeneb) GetSlot() github_com_itsdevbear_bolaris_primitives.Slot {
+func (x *BeaconBlockDeneb) GetSlot() github_com_itsdevbear_bolaris_primitives.Slot {
 	if x != nil {
 		return x.Slot
 	}
 	return github_com_itsdevbear_bolaris_primitives.Slot(0)
 }
 
-func (x *BeaconBuoyDeneb) GetParentBlockRoot() []byte {
+func (x *BeaconBlockDeneb) GetParentBlockRoot() []byte {
 	if x != nil {
 		return x.ParentBlockRoot
 	}
 	return nil
 }
 
-func (x *BeaconBuoyDeneb) GetBody() *BeaconBuoyBodyDeneb {
+func (x *BeaconBlockDeneb) GetBody() *BeaconBlockBodyDeneb {
 	if x != nil {
 		return x.Body
 	}
 	return nil
 }
 
-func (x *BeaconBuoyDeneb) GetPayloadValue() []byte {
+func (x *BeaconBlockDeneb) GetPayloadValue() []byte {
 	if x != nil {
 		return x.PayloadValue
 	}
 	return nil
 }
 
-// BeaconBuoyBodyDeneb represents the body of a beacon block in Deneb.
-type BeaconBuoyBodyDeneb struct {
+// BeaconBlockBodyDeneb represents the body of a beacon block in Deneb.
+type BeaconBlockBodyDeneb struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -143,8 +143,8 @@ type BeaconBuoyBodyDeneb struct {
 	BlobKzgCommitments [][]byte `protobuf:"bytes,5,rep,name=blob_kzg_commitments,json=blobKzgCommitments,proto3" json:"blob_kzg_commitments,omitempty" ssz-max:"16" ssz-size:"?,48"`
 }
 
-func (x *BeaconBuoyBodyDeneb) Reset() {
-	*x = BeaconBuoyBodyDeneb{}
+func (x *BeaconBlockBodyDeneb) Reset() {
+	*x = BeaconBlockBodyDeneb{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_beacon_core_types_v1_buoy_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -152,13 +152,13 @@ func (x *BeaconBuoyBodyDeneb) Reset() {
 	}
 }
 
-func (x *BeaconBuoyBodyDeneb) String() string {
+func (x *BeaconBlockBodyDeneb) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BeaconBuoyBodyDeneb) ProtoMessage() {}
+func (*BeaconBlockBodyDeneb) ProtoMessage() {}
 
-func (x *BeaconBuoyBodyDeneb) ProtoReflect() protoreflect.Message {
+func (x *BeaconBlockBodyDeneb) ProtoReflect() protoreflect.Message {
 	mi := &file_beacon_core_types_v1_buoy_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -170,40 +170,40 @@ func (x *BeaconBuoyBodyDeneb) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BeaconBuoyBodyDeneb.ProtoReflect.Descriptor instead.
-func (*BeaconBuoyBodyDeneb) Descriptor() ([]byte, []int) {
+// Deprecated: Use BeaconBlockBodyDeneb.ProtoReflect.Descriptor instead.
+func (*BeaconBlockBodyDeneb) Descriptor() ([]byte, []int) {
 	return file_beacon_core_types_v1_buoy_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *BeaconBuoyBodyDeneb) GetRandaoReveal() []byte {
+func (x *BeaconBlockBodyDeneb) GetRandaoReveal() []byte {
 	if x != nil {
 		return x.RandaoReveal
 	}
 	return nil
 }
 
-func (x *BeaconBuoyBodyDeneb) GetGraffiti() []byte {
+func (x *BeaconBlockBodyDeneb) GetGraffiti() []byte {
 	if x != nil {
 		return x.Graffiti
 	}
 	return nil
 }
 
-func (x *BeaconBuoyBodyDeneb) GetDeposits() []*Deposit {
+func (x *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
 	if x != nil {
 		return x.Deposits
 	}
 	return nil
 }
 
-func (x *BeaconBuoyBodyDeneb) GetExecutionPayload() *v1.ExecutionPayloadDeneb {
+func (x *BeaconBlockBodyDeneb) GetExecutionPayload() *v1.ExecutionPayloadDeneb {
 	if x != nil {
 		return x.ExecutionPayload
 	}
 	return nil
 }
 
-func (x *BeaconBuoyBodyDeneb) GetBlobKzgCommitments() [][]byte {
+func (x *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][]byte {
 	if x != nil {
 		return x.BlobKzgCommitments
 	}
@@ -282,15 +282,15 @@ func file_beacon_core_types_v1_buoy_proto_rawDescGZIP() []byte {
 
 var file_beacon_core_types_v1_buoy_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_beacon_core_types_v1_buoy_proto_goTypes = []interface{}{
-	(*BeaconBuoyDeneb)(nil),          // 0: beacon.core.types.v1.BeaconBuoyDeneb
-	(*BeaconBuoyBodyDeneb)(nil),      // 1: beacon.core.types.v1.BeaconBuoyBodyDeneb
+	(*BeaconBlockDeneb)(nil),          // 0: beacon.core.types.v1.BeaconBlockDeneb
+	(*BeaconBlockBodyDeneb)(nil),      // 1: beacon.core.types.v1.BeaconBlockBodyDeneb
 	(*Deposit)(nil),                  // 2: beacon.core.types.v1.Deposit
 	(*v1.ExecutionPayloadDeneb)(nil), // 3: ethereum.engine.v1.ExecutionPayloadDeneb
 }
 var file_beacon_core_types_v1_buoy_proto_depIdxs = []int32{
-	1, // 0: beacon.core.types.v1.BeaconBuoyDeneb.body:type_name -> beacon.core.types.v1.BeaconBuoyBodyDeneb
-	2, // 1: beacon.core.types.v1.BeaconBuoyBodyDeneb.deposits:type_name -> beacon.core.types.v1.Deposit
-	3, // 2: beacon.core.types.v1.BeaconBuoyBodyDeneb.execution_payload:type_name -> ethereum.engine.v1.ExecutionPayloadDeneb
+	1, // 0: beacon.core.types.v1.BeaconBlockDeneb.body:type_name -> beacon.core.types.v1.BeaconBlockBodyDeneb
+	2, // 1: beacon.core.types.v1.BeaconBlockBodyDeneb.deposits:type_name -> beacon.core.types.v1.Deposit
+	3, // 2: beacon.core.types.v1.BeaconBlockBodyDeneb.execution_payload:type_name -> ethereum.engine.v1.ExecutionPayloadDeneb
 	3, // [3:3] is the sub-list for method output_type
 	3, // [3:3] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
@@ -306,7 +306,7 @@ func file_beacon_core_types_v1_buoy_proto_init() {
 	file_beacon_core_types_v1_deposit_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_beacon_core_types_v1_buoy_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BeaconBuoyDeneb); i {
+			switch v := v.(*BeaconBlockDeneb); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -318,7 +318,7 @@ func file_beacon_core_types_v1_buoy_proto_init() {
 			}
 		}
 		file_beacon_core_types_v1_buoy_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BeaconBuoyBodyDeneb); i {
+			switch v := v.(*BeaconBlockBodyDeneb); i {
 			case 0:
 				return &v.state
 			case 1:
