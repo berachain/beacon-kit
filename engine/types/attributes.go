@@ -34,6 +34,7 @@ import (
 
 //go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 
+//nolint:lll // struct tags.
 type PayloadAttributes struct {
 	version               int
 	Timestamp             uint64                      `json:"timestamp"             gencodec:"required"`

@@ -34,10 +34,10 @@ import (
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 type Withdrawal struct {
-	Index     primitives.SSZUint64        `json:"index"`          // monotonically increasing identifier issued by consensus layer
-	Validator primitives.ValidatorIndex   `json:"validatorIndex"` // index of validator associated with withdrawal
-	Address   primitives.ExecutionAddress `json:"address"`        // target address for withdrawn ether
-	Amount    primitives.SSZUint64        `json:"amount"`         // value of withdrawal in Gwei
+	Index     primitives.SSZUint64        `json:"index"`
+	Validator primitives.ValidatorIndex   `json:"validatorIndex"`
+	Address   primitives.ExecutionAddress `json:"address"`
+	Amount    primitives.SSZUint64        `json:"amount"`
 }
 
 // field type overrides for gencodec.

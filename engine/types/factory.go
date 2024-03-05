@@ -26,54 +26,8 @@
 package enginetypes
 
 import (
-	"errors"
-
-	"github.com/itsdevbear/bolaris/config/version"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
-
-// NewPayloadAttributesContainer creates a new PayloadAttributesContainer.
-func NewPayloadAttributesContainer(
-	v int,
-	timestamp uint64, prevRandao []byte,
-	suggestedFeeReceipient []byte,
-	withdrawals []*enginev1.Withdrawal,
-	parentBeaconBlockRoot [32]byte,
-) (PayloadAttributer, error) {
-	switch v {
-	case version.Deneb:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V3{
-				V3: &enginev1.PayloadAttributesV3{
-					Timestamp:             timestamp,
-					PrevRandao:            prevRandao,
-					SuggestedFeeRecipient: suggestedFeeReceipient,
-					Withdrawals:           withdrawals,
-					ParentBeaconBlockRoot: parentBeaconBlockRoot[:],
-				},
-			},
-		}, nil
-	default:
-		return nil, errors.New("invalid version")
-	}
-}
-
-// EmptyPayloadAttributesWithVersion creates a new PayloadAttributesContainer
-// with no attributes.
-func EmptyPayloadAttributesWithVersion(
-	v int,
-) PayloadAttributer {
-	switch v {
-	case version.Deneb:
-		return &enginev1.PayloadAttributesContainer{
-			Attributes: &enginev1.PayloadAttributesContainer_V3{
-				V3: nil,
-			},
-		}
-	default:
-		return nil
-	}
-}
 
 // NewWithdrawal creates a new Withdrawal.
 func NewWithdrawal(

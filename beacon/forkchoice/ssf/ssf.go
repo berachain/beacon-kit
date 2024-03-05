@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice"
 )
 
 // ForkChoice represents the single-slot finality forkchoice algoritmn.
@@ -47,7 +48,7 @@ func New(kv SingleSlotFinalityStore) *ForkChoice {
 }
 
 // WithContext sets the context for the forkchoice.
-func (f *ForkChoice) WithContext(ctx context.Context) *ForkChoice {
+func (f *ForkChoice) WithContext(ctx context.Context) forkchoice.ForkChoicer {
 	f.kv = f.kv.WithContext(ctx)
 	return f
 }

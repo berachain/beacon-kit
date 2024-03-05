@@ -61,6 +61,7 @@ func CreateDepositLogs(
 			//#nosec:G701 // no overflow
 			uint64(i),
 			[]byte("12345678901234567890"),
+			[]byte("signature"),
 		)
 		var log *ethtypes.Log
 		log, err = NewLogFromDeposit(
