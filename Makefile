@@ -67,7 +67,6 @@ mockery:
 	@mockery
 
 generate-check:
-	@$(MAKE) forge-clean
 	@$(MAKE) forge-build
 	@$(MAKE) generate
 	@if [ -n "$$(git status --porcelain)" ]; then \

@@ -52,11 +52,11 @@ jobs:
           - "lint"
           - "slither"
           - "gosec"
+          - "generate-check"
           - "test-unit-cover"
           - "test-unit-fuzz"
           - "test-forge-cover"
           - "test-forge-fuzz"
-          - "generate-check"
 
         os: [ubuntu-latest-large]
     name: ${{ matrix.args }}
