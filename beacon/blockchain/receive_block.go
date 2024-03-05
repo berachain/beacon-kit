@@ -42,7 +42,7 @@ import (
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	blockHash [32]byte,
-	buoy beacontypes.ReadOnlyBeaconBuoy,
+	buoy beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -119,9 +119,9 @@ func (s *Service) ReceiveBeaconBlock(
 // TODO: Expand rules, consider modularity. Current implementation
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
-	ctx context.Context, buoy beacontypes.ReadOnlyBeaconBuoy,
+	ctx context.Context, buoy beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	if err := beacontypes.BeaconBuoyIsNil(buoy); err != nil {
+	if err := beacontypes.BeaconBlockIsNil(buoy); err != nil {
 		return err
 	}
 
@@ -146,9 +146,9 @@ func (s *Service) validateStateTransition(
 func (s *Service) validateExecutionOnBlock(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
-	buoy beacontypes.ReadOnlyBeaconBuoy,
+	buoy beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	if err := beacontypes.BeaconBuoyIsNil(buoy); err != nil {
+	if err := beacontypes.BeaconBlockIsNil(buoy); err != nil {
 		return false, err
 	}
 
