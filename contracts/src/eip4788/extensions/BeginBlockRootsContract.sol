@@ -137,7 +137,7 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     fallback() external override {
         if (msg.sender != SYSTEM_ADDRESS) {
             if (msg.sender == ADMIN) {
-                crud(msg.data);
+                crud();
             } else {
                 if (
                     msg.data.length == 36
@@ -160,9 +160,9 @@ contract BeginBlockRootsContract is BeaconRootsContract {
 
     /**
      * @dev Performs the CRUD operation based on the action specified in the
-     * input data.
-     * @param data The input data containing the index, action, and
-     * BeginBlocker. The action can be "set", "remove", or "update_admin".
+     * call data.
+     * The call data contains the index, action, and BeginBlocker. The action
+     * can be "set", "remove", or "update_admin".
      *
      * The function behavior is as follows:
      *
@@ -188,14 +188,14 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      *      |
      *      `--- If the new admin address is not zero, update the ADMIN address.
      */
-    function crud(bytes calldata data) private {
+    function crud() private {
         // Decode the data we get from the message.
         (
             uint256 i,
             bytes32 action,
             BeginBlocker memory beginBlocker,
             address admin
-        ) = _parse(data);
+        ) = _parse();
 
         // Prefrom the CRUD operation.
         if (action == SET) {
@@ -226,33 +226,34 @@ contract BeginBlockRootsContract is BeaconRootsContract {
      * the success status.
      */
     function run() private {
-        unchecked {
-            uint256 length = beginBlockers.length;
-            for (uint256 i; i < length;) {
-                (bool success,) = beginBlockers[i].contractAddress.call(
-                    abi.encodeWithSelector(beginBlockers[i].selector)
-                );
-                emit BeginBlockerCalled(
-                    beginBlockers[i].contractAddress,
-                    block.coinbase,
-                    beginBlockers[i].selector,
-                    success
-                );
-                ++i;
+        uint256 length = beginBlockers.length;
+        for (uint256 i; i < length;) {
+            BeginBlocker storage beginBlocker = beginBlockers[i];
+            address contractAddress = beginBlocker.contractAddress;
+            bytes4 selector = beginBlocker.selector;
+            bool success;
+            assembly ("memory-safe") {
+                mstore(0, selector)
+                success := call(gas(), contractAddress, 0, 0, 4, 0, 0)
+                i := add(i, 1)
             }
+            emit BeginBlockerCalled(
+                contractAddress, block.coinbase, selector, success
+            );
         }
     }
 
     /**
      * @dev Parses the BeginBlocker message data.
-     * @notice The input data must be encoded as: abi.encode(i, contractAddress,
-     * selector)
-     * @param data The input data containing the BeginBlocker message.
+     * @dev The call data must be encoded as: abi.encode(i, action,
+     * contractAddress, selector, admin)
      * @return i The index of the BeginBlocker.
+     * @return action The action to perform.
      * @return BeginBlocker The BeginBlocker struct containing the contract
      * address and the selector.
+     * @return admin The new admin address.
      */
-    function _parse(bytes calldata data)
+    function _parse()
         private
         pure
         returns (uint256, bytes32, BeginBlocker memory, address)
@@ -260,13 +261,19 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         // Decode the data to get the BeginBlocker struct, user must send a
         // message that is encoded:
         // abi.encode(i, action, contractAddress, selector, admin)
-        (
-            uint256 i,
-            bytes32 action,
-            address contractAddress,
-            bytes4 selector,
-            address admin
-        ) = abi.decode(data, (uint256, bytes32, address, bytes4, address));
+        uint256 i;
+        bytes32 action;
+        address contractAddress;
+        bytes4 selector;
+        address admin;
+        assembly ("memory-safe") {
+            if iszero(eq(calldatasize(), 0xa0)) { revert(0, 0) }
+            i := calldataload(0)
+            action := calldataload(0x20)
+            contractAddress := calldataload(0x40)
+            selector := calldataload(0x60)
+            admin := calldataload(0x80)
+        }
         return (i, action, BeginBlocker(contractAddress, selector), admin);
     }
 
@@ -372,7 +379,8 @@ contract BeginBlockRootsContract is BeaconRootsContract {
         }
 
         unchecked {
-            for (uint256 j = i; j < length - 1;) {
+            uint256 lastIndex = length - 1;
+            for (uint256 j = i; j < lastIndex;) {
                 beginBlockers[j] = beginBlockers[j + 1];
                 ++j;
             }
