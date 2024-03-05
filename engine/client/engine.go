@@ -132,7 +132,7 @@ func (s *EngineClient) GetPayload(
 
 	var fn func(
 		context.Context, enginev1.PayloadIDBytes,
-	) (*enginev1.ExecutionPayloadContainer, error)
+	) (*enginev1.ExecutionPayloadEnvelope, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3

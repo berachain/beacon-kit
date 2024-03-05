@@ -70,8 +70,8 @@ func (b *BeaconBlockDeneb) AttachExecution(
 func (b *BeaconBlockDeneb) ExecutionPayload() (
 	enginetypes.ExecutionPayload, error,
 ) {
-	return &enginev1.ExecutionPayloadContainer{
-		Payload: &enginev1.ExecutionPayloadContainer_Deneb{
+	return &enginev1.ExecutionPayloadEnvelope{
+		Payload: &enginev1.ExecutionPayloadEnvelope_Deneb{
 			Deneb: b.GetBody().GetExecutionPayload(),
 		},
 		PayloadValue:          b.GetPayloadValue(),

@@ -35,18 +35,18 @@ import (
 )
 
 // Version returns the version identifier for the ExecutionPayloadDeneb.
-func (p *ExecutionPayloadContainer) Version() int {
+func (p *ExecutionPayloadEnvelope) Version() int {
 	switch p.GetPayload().(type) {
-	case *ExecutionPayloadContainer_Deneb:
+	case *ExecutionPayloadEnvelope_Deneb:
 		return version.Deneb
-	case *ExecutionPayloadContainer_DenebHeader:
+	case *ExecutionPayloadEnvelope_DenebHeader:
 		return version.Deneb
 	default:
 		return 0
 	}
 }
 
-func (p *ExecutionPayloadContainer) IsEmpty() bool {
+func (p *ExecutionPayloadEnvelope) IsEmpty() bool {
 	if p.GetPayload() == nil {
 		return true
 	}
@@ -57,23 +57,23 @@ func (p *ExecutionPayloadContainer) IsEmpty() bool {
 // IsBlinded indicates whether the payload is blinded. For
 // ExecutionPayloadDeneb,
 // this is always false.
-func (p *ExecutionPayloadContainer) IsBlinded() bool {
+func (p *ExecutionPayloadEnvelope) IsBlinded() bool {
 	switch p.GetPayload().(type) {
-	case *ExecutionPayloadContainer_Deneb:
+	case *ExecutionPayloadEnvelope_Deneb:
 		return false
-	case *ExecutionPayloadContainer_DenebHeader:
+	case *ExecutionPayloadEnvelope_DenebHeader:
 		return true
 	}
 	return false
 }
 
 // ToProto returns the ExecutionPayloadDeneb as a proto.Message.
-func (p *ExecutionPayloadContainer) ToProto() proto.Message {
+func (p *ExecutionPayloadEnvelope) ToProto() proto.Message {
 	return p.getPayload()
 }
 
 // GetValue returns the value of the payload.
-func (p *ExecutionPayloadContainer) GetValue() math.Wei {
+func (p *ExecutionPayloadEnvelope) GetValue() math.Wei {
 	if p.PayloadValue == nil {
 		return math.Wei{}
 	}
@@ -87,17 +87,17 @@ func (p *ExecutionPayloadContainer) GetValue() math.Wei {
 }
 
 // GetBlockHash retrieves the block hash from the payload.
-func (p *ExecutionPayloadContainer) GetBlockHash() []byte {
+func (p *ExecutionPayloadEnvelope) GetBlockHash() []byte {
 	return p.getPayload().(interface{ GetBlockHash() []byte }).GetBlockHash()
 }
 
 // GetParentHash retrieves the parent hash from the payload.
-func (p *ExecutionPayloadContainer) GetParentHash() []byte {
+func (p *ExecutionPayloadEnvelope) GetParentHash() []byte {
 	return p.getPayload().(interface{ GetParentHash() []byte }).GetParentHash()
 }
 
 // GetTransactions retrieves the transactions from the payload.
-func (p *ExecutionPayloadContainer) GetTransactions() [][]byte {
+func (p *ExecutionPayloadEnvelope) GetTransactions() [][]byte {
 	if p.IsBlinded() {
 		return [][]byte{}
 	}
@@ -106,7 +106,7 @@ func (p *ExecutionPayloadContainer) GetTransactions() [][]byte {
 }
 
 // GetTransactionsRoot retrieves the transactions root from the payload.
-func (p *ExecutionPayloadContainer) GetTransactionsRoot() []byte {
+func (p *ExecutionPayloadEnvelope) GetTransactionsRoot() []byte {
 	payload := p.getPayload()
 	if p.IsBlinded() {
 		return payload.(interface{ GetTransactionsRoot() []byte }).
@@ -118,7 +118,7 @@ func (p *ExecutionPayloadContainer) GetTransactionsRoot() []byte {
 }
 
 // GetWithdrawals retrieves the withdrawals from the payload.
-func (p *ExecutionPayloadContainer) GetWithdrawals() []*Withdrawal {
+func (p *ExecutionPayloadEnvelope) GetWithdrawals() []*Withdrawal {
 	if p.IsBlinded() {
 		return []*Withdrawal{}
 	}
@@ -127,7 +127,7 @@ func (p *ExecutionPayloadContainer) GetWithdrawals() []*Withdrawal {
 }
 
 // GetWithdrawalsRoot retrieves the withdrawals root from the payload.
-func (p *ExecutionPayloadContainer) GetWithdrawalsRoot() []byte {
+func (p *ExecutionPayloadEnvelope) GetWithdrawalsRoot() []byte {
 	payload := p.getPayload()
 	if p.IsBlinded() {
 		return payload.(interface{ GetWithdrawalsRoot() []byte }).
@@ -138,26 +138,26 @@ func (p *ExecutionPayloadContainer) GetWithdrawalsRoot() []byte {
 }
 
 // HashTreeRoot calculates the hash tree root of the payload.
-func (p *ExecutionPayloadContainer) HashTreeRoot() ([32]byte, error) {
+func (p *ExecutionPayloadEnvelope) HashTreeRoot() ([32]byte, error) {
 	return p.getPayload().(interface{ HashTreeRoot() ([32]byte, error) }).
 		HashTreeRoot()
 }
 
 // HashTreeRootWith calculates the hash tree root of the payload using a
 // provided hasher.
-func (p *ExecutionPayloadContainer) HashTreeRootWith(h *fssz.Hasher) error {
+func (p *ExecutionPayloadEnvelope) HashTreeRootWith(h *fssz.Hasher) error {
 	return p.getPayload().(interface {
 		HashTreeRootWith(h *fssz.Hasher) error
 	}).HashTreeRootWith(h)
 }
 
 // MarshalSSZ marshals the payload into SSZ-encoded bytes.
-func (p *ExecutionPayloadContainer) MarshalSSZ() ([]byte, error) {
+func (p *ExecutionPayloadEnvelope) MarshalSSZ() ([]byte, error) {
 	return p.getPayload().(interface{ MarshalSSZ() ([]byte, error) }).MarshalSSZ()
 }
 
 // UnmarshalSSZ unmarshals SSZ-encoded bytes into the payload.
-func (p *ExecutionPayloadContainer) UnmarshalSSZ(bz []byte) error {
+func (p *ExecutionPayloadEnvelope) UnmarshalSSZ(bz []byte) error {
 	return p.getPayload().(interface{ UnmarshalSSZ([]byte) error }).UnmarshalSSZ(
 		bz,
 	)
@@ -166,21 +166,21 @@ func (p *ExecutionPayloadContainer) UnmarshalSSZ(bz []byte) error {
 // MarshalSSZTo marshals the payload into SSZ-encoded bytes and appends it to
 // the
 // provided byte slice.
-func (p *ExecutionPayloadContainer) MarshalSSZTo(bz []byte) ([]byte, error) {
+func (p *ExecutionPayloadEnvelope) MarshalSSZTo(bz []byte) ([]byte, error) {
 	return p.getPayload().(interface{ MarshalSSZTo([]byte) ([]byte, error) }).
 		MarshalSSZTo(bz)
 }
 
 // SizeSSZ returns the size of the SSZ-encoded payload in bytes.
-func (p *ExecutionPayloadContainer) SizeSSZ() int {
+func (p *ExecutionPayloadEnvelope) SizeSSZ() int {
 	return p.getPayload().(interface{ SizeSSZ() int }).SizeSSZ()
 }
 
-// GetPayload returns the payload of the ExecutionPayloadContainer as an
+// GetPayload returns the payload of the ExecutionPayloadEnvelope as an
 // interface{}.
 // The actual type of the returned value depends on which payload is set.
 // The caller will need to type assert the returned value to use it.
-func (p *ExecutionPayloadContainer) getPayload() proto.Message {
+func (p *ExecutionPayloadEnvelope) getPayload() proto.Message {
 	switch {
 	case p.GetDeneb() != nil:
 		return p.GetDeneb()
