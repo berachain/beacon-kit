@@ -83,6 +83,10 @@ contract BeginBlockRootsContract is BeaconRootsContract {
     /// @dev Action that can update the ADMIN address.
     bytes32 private constant UPDATE_ADMIN = keccak256("UPDATE_ADMIN");
 
+    /// @dev The selector for "getBeginBlockers(uint256)".
+    bytes4 private constant GET_BEGIN_BLOCKERS_SELECTOR =
+        bytes4(keccak256("getBeginBlockers(uint256)"));
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        STORAGE                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -100,7 +104,7 @@ contract BeginBlockRootsContract is BeaconRootsContract {
 
     /// @dev The list of BeginBlockers that we need to call at the beginning of
     /// each block, in order.
-    BeginBlocker[] public beginBlockers;
+    BeginBlocker[] private beginBlockers;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        ENTRYPOINT                          */
@@ -144,6 +148,11 @@ contract BeginBlockRootsContract is BeaconRootsContract {
                         && bytes4(msg.data) == GET_COINBASE_SELECTOR
                 ) {
                     getCoinbase();
+                } else if (
+                    msg.data.length == 36
+                        && bytes4(msg.data) == GET_BEGIN_BLOCKERS_SELECTOR
+                ) {
+                    getBeginBlockers();
                 } else {
                     get();
                 }
@@ -385,6 +394,26 @@ contract BeginBlockRootsContract is BeaconRootsContract {
                 ++j;
             }
             beginBlockers.pop();
+        }
+    }
+
+    /**
+     * @notice Reads the BeginBlockers array.
+     * @dev The call data is encoded as: abi.encodePacked(GET_BEGIN_BLOCKERS_SELECTOR, index)
+     * @return A BeginBlocker struct.
+     */
+    function getBeginBlockers() private view returns (BeginBlocker memory) {
+        assembly ("memory-safe") {
+            mstore(0, beginBlockers.slot)
+            let lengthSlot := keccak256(0, 0x20)
+            if iszero(lt(calldataload(4), sload(lengthSlot))) { revert(0, 0) }
+            let data := sload(add(calldataload(4), lengthSlot))
+            let addr := shr(96, shl(96, data))
+            let selector := shl(224, shr(160, data))
+            mstore(0, addr)
+            mstore(0x20, selector)
+            // slither-disable-next-line incorrect-return
+            return(0, 0x40)
         }
     }
 }

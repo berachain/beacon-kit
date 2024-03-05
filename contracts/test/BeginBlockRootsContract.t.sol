@@ -32,6 +32,10 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     /// @dev Action that can remove BeginBlockers from the array.
     bytes32 private constant REMOVE = keccak256("REMOVE");
 
+    /// @dev The selector for "getBeginBlockers(uint256)".
+    bytes4 private constant GET_BEGIN_BLOCKERS_SELECTOR =
+        bytes4(keccak256("getBeginBlockers(uint256)"));
+
     /// @dev The MockExternalContract.
     MockExternalContract internal mockExternalContract;
 
@@ -60,6 +64,16 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         beginBlockRootsContract = BeginBlockRootsContract(BEACON_ROOT_ADDRESS);
     }
 
+    /// @dev Ensure that there is no selector collision affecting `set`.
+    function test_SetBeaconRootShouldNeverFail() public {
+        bytes32 beaconRoot = bytes32(_random());
+        bytes4 selector = GET_BEGIN_BLOCKERS_SELECTOR;
+        assembly {
+            beaconRoot := or(selector, shr(32, beaconRoot))
+        }
+        _setBeaconRoot(beaconRoot);
+    }
+
     /// @dev Test that we can set a new BeginBlocker contract and it will be
     /// set.
     function test_SimpleCRUD() public {
@@ -72,32 +86,31 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         );
 
         // Set the BeginBlocker as the ADMIN address.
-        vm.startPrank(ADMIN);
+        vm.prank(ADMIN);
         (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
         assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
 
         // Check that the BeginBlocker is set.
-        (address contractAddress, bytes4 selector) =
-            beginBlockRootsContract.beginBlockers(0);
+        BeginBlockRootsContract.BeginBlocker memory beginBlocker =
+            _getBeginBlockers(0);
         assertEq(
+            beginBlocker.contractAddress,
             address(mockExternalContract),
-            contractAddress,
             "BeginBlockRootsTest: BeginBlocker contract address not set"
         );
         assertEq(
+            beginBlocker.selector,
             mockExternalContract.succeed.selector,
-            selector,
             "BeginBlockRootsTest: BeginBlocker selector not set"
         );
 
         // Remove the BeginBlocker.
         crudMsg = _createCRUD(0, REMOVE, address(0), bytes4(0), address(8));
+        vm.prank(ADMIN);
         (success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
         assertTrue(
             success, "BeginBlockRootsTest: failed to remove BeginBlocker"
         );
-
-        vm.stopPrank();
     }
 
     function test_SuccessCallsMulti() public {
@@ -121,7 +134,7 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
 
         // Call the BeginBlocker and should run in a loop, 10 times incrementing
         // the timesCalled.
-        _setRandomBeaconRoot();
+        _setBeaconRoot(bytes32(_random()));
 
         assertEq(
             10,
@@ -131,7 +144,6 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     }
 
     function test_FailCall() public {
-        vm.startPrank(ADMIN);
         bytes memory crudMsg = _createCRUD(
             0,
             SET,
@@ -139,14 +151,13 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
             mockExternalContract.fail.selector,
             address(0)
         );
-
+        vm.prank(ADMIN);
         (bool success,) = BEACON_ROOT_ADDRESS.call(crudMsg);
         assertTrue(success, "BeginBlockRootsTest: failed to set BeginBlocker");
-        vm.stopPrank();
 
         // Call the BeginBlocker and this should revert, not updating the
         // timesCalled, but setting the beacon root.
-        _setRandomBeaconRoot();
+        _setBeaconRoot(bytes32(_random()));
         assertEq(
             0,
             mockExternalContract.timesCalled(),
@@ -169,13 +180,21 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
         return abi.encode(i, action, contractAddress, selector, admin);
     }
 
-    function _setRandomBeaconRoot() internal returns (bytes32) {
+    function _setBeaconRoot(bytes32 beaconRoot) internal {
         vm.prank(SYSTEM_ADDRESS);
-        bytes32 random = bytes32(_random());
-        (bool success,) = BEACON_ROOT_ADDRESS.call(abi.encode(random));
-        require(
-            success, "BeginBlockRootsTest: failed to set random beacon root"
+        (bool success,) = BEACON_ROOT_ADDRESS.call(abi.encode(beaconRoot));
+        assertTrue(success, "set failed");
+    }
+
+    function _getBeginBlockers(uint256 index)
+        internal
+        view
+        returns (BeginBlockRootsContract.BeginBlocker memory)
+    {
+        (bool success, bytes memory returnData) = BEACON_ROOT_ADDRESS.staticcall(
+            abi.encodePacked(GET_BEGIN_BLOCKERS_SELECTOR, index)
         );
-        return random;
+        require(success, "BeginBlockRootsTest: failed to get BeginBlocker");
+        return abi.decode(returnData, (BeginBlockRootsContract.BeginBlocker));
     }
 }
