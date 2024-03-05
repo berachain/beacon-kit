@@ -56,6 +56,7 @@ jobs:
           - "test-unit-fuzz"
           - "test-forge-cover"
           - "test-forge-fuzz"
+          - "generate-check"
 
         os: [ubuntu-latest-large]
     name: ${{ matrix.args }}
