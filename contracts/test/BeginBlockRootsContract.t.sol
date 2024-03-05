@@ -45,11 +45,7 @@ contract BeginBlockRootsTest is BeaconRootsContractTest {
     /// @dev override the setUp so that we can use our version of the
     /// BeginBlockRootsContract.
     function setUp() public override {
-        // etch the BeginBlockRootsContract to the BEACON_ROOT_ADDRESS.
-        vm.etch(
-            BEACON_ROOT_ADDRESS,
-            vm.getDeployedCode("BeginBlockRootsContract.sol")
-        );
+        BEACON_ROOT_ADDRESS = address(new BeginBlockRootsContract());
         // Deploy the MockExternalContract.
         mockExternalContract = new MockExternalContract();
         // Set the ADMIN address at the correct slot.
