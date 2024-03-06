@@ -32,12 +32,10 @@ func NewDeposit(
 	pubkey []byte,
 	amount uint64,
 	withdrawalCredentials []byte,
-	signature []byte,
 ) *beacontypesv1.Deposit {
 	return &beacontypesv1.Deposit{
 		ValidatorPubkey:       pubkey,
 		Amount:                amount,
 		WithdrawalCredentials: withdrawalCredentials,
-		Signature:             signature,
 	}
 }

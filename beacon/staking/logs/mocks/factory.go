@@ -44,7 +44,6 @@ func NewLogFromDeposit(
 		deposit.GetValidatorPubkey(),
 		deposit.GetWithdrawalCredentials(),
 		deposit.GetAmount(),
-		deposit.GetSignature(),
 	)
 }
 

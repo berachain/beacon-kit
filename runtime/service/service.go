@@ -67,7 +67,7 @@ func NewBaseService(
 		gcd:    gcd,
 		logger: logger,
 		cfg:    cfg,
-		fcr:    ssf.New(bsp.ForkchoiceStore(context.TODO())),
+		fcr:    ssf.New(bsp.ForkchoiceStore(context.Background())),
 	}
 }
 

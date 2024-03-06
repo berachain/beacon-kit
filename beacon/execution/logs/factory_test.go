@@ -58,7 +58,6 @@ func TestLogFactory(t *testing.T) {
 		[]byte("pubkey"),
 		10000,
 		[]byte("12345678901234567890"),
-		[]byte("signature"),
 	)
 	log, err := mocks.NewLogFromDeposit(
 		stakingAbi.Events[logs.DepositName],
