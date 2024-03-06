@@ -29,82 +29,82 @@ import (
 	"github.com/huandu/skiplist"
 )
 
-type Elem interface {
-	Compare(other Elem) int
+type Comparable[T any] interface {
+	Compare(lhs, rhs T) int
 }
 
 // OrderedCache is a set of elements that
 // are maintained in an ascending order.
-type OrderedCache[E Elem] struct {
+type OrderedCache[T any] struct {
 	cache *skiplist.SkipList
 }
 
 // NewOrderedCache returns a new ordered cache.
-func NewOrderedCache[E Elem]() *OrderedCache[E] {
-	lessThanFunc := skiplist.LessThanFunc(func(lhs, rhs any) int {
-		return lhs.(Elem).Compare(rhs.(Elem))
+func NewOrderedCache[T any](c Comparable[T]) *OrderedCache[T] {
+	ascendingOrder := skiplist.GreaterThanFunc(func(lhs, rhs any) int {
+		return c.Compare(lhs.(T), rhs.(T))
 	})
-	return &OrderedCache[E]{
-		cache: skiplist.New(lessThanFunc),
+	return &OrderedCache[T]{
+		cache: skiplist.New(ascendingOrder),
 	}
 }
 
 // Insert adds an element to the cache.
-func (c *OrderedCache[E]) Insert(elem E) {
+func (c *OrderedCache[T]) Insert(elem T) {
 	c.cache.Set(elem, struct{}{})
 }
 
 // Remove removes an element from the cache.
-func (c *OrderedCache[E]) Remove(elem E) {
+func (c *OrderedCache[T]) Remove(elem T) {
 	c.cache.Remove(elem)
 }
 
 // Contains returns true if the cache contains the element.
-func (c *OrderedCache[E]) Contains(elem E) bool {
+func (c *OrderedCache[T]) Contains(elem T) bool {
 	return c.cache.Get(elem) != nil
 }
 
 // Front returns the first (smallest) element in the cache.
-func (c *OrderedCache[E]) Front() (E, error) {
+func (c *OrderedCache[T]) Front() (T, error) {
 	elem := c.cache.Front()
 	if elem == nil {
-		var zero E
+		var zero T
 		return zero, ErrEmptyCache
 	}
-	return elem.Value.(E), nil
+	return elem.Key().(T), nil
 }
 
 // RemoveFront removes the first element in the cache.
-func (c *OrderedCache[E]) RemoveFront() (E, error) {
+func (c *OrderedCache[T]) RemoveFront() (T, error) {
 	elem := c.cache.RemoveFront()
 	if elem == nil {
-		var zero E
+		var zero T
 		return zero, ErrEmptyCache
 	}
-	return elem.Value.(E), nil
+	return elem.Key().(T), nil
 }
 
 // Back returns the last (largest) element in the cache.
-func (c *OrderedCache[E]) Back() (E, error) {
+func (c *OrderedCache[T]) Back() (T, error) {
 	elem := c.cache.Back()
 	if elem == nil {
-		var zero E
+		var zero T
 		return zero, ErrEmptyCache
 	}
-	return elem.Value.(E), nil
+	return elem.Key().(T), nil
 }
 
 // RemoveBack removes the last element in the cache.
-func (c *OrderedCache[E]) RemoveBack() (E, error) {
+func (c *OrderedCache[T]) RemoveBack() (T, error) {
 	elem := c.cache.RemoveBack()
 	if elem == nil {
-		var zero E
+		var zero T
 		return zero, ErrEmptyCache
 	}
-	return elem.Value.(E), nil
+	return elem.Key().(T), nil
 }
 
 // Len returns the number of elements in the cache.
-func (c *OrderedCache[E]) Len() int {
+func (c *OrderedCache[T]) Len() int {
 	return c.cache.Len()
 }
