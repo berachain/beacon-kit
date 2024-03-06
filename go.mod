@@ -29,6 +29,7 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240226214332-e0daf4dc54d1
 	// Required until: https://github.com/ethereum/go-ethereum/pull/29038 is merged, fixes pebbledb dep conflict.
 	github.com/ethereum/go-ethereum => github.com/itsdevbear/go-ethereum v1.10.17-0.20240220171607-fb31b4e66426
+
 )
 
 require (
@@ -65,7 +66,7 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/holiman/uint256 v1.2.4
 	github.com/huandu/skiplist v1.2.0
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.0
+	github.com/kurtosis-tech/kurtosis/api/golang v0.87.3
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/pkg/errors v0.9.1
