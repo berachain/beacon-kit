@@ -216,7 +216,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err :=
 		s.getPayloadFromExecutionClient(
-			ctx, enginetypes.PayloadID(*payloadID), slot,
+			ctx, *payloadID, slot,
 		)
 	if err != nil {
 		return nil, nil, false, err

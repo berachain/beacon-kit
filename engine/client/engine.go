@@ -100,7 +100,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	if err != nil {
 		return nil, lastestValidHash, err
 	}
-	return (*enginetypes.PayloadID)(result.PayloadID), lastestValidHash, nil
+	return result.PayloadID, lastestValidHash, nil
 }
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
@@ -128,7 +128,7 @@ func (s *EngineClient) GetPayload(
 	defer cancel()
 
 	var fn func(
-		context.Context, enginev1.PayloadIDBytes,
+		context.Context, enginetypes.PayloadID,
 	) (*enginev1.ExecutionPayloadEnvelope, error)
 	switch forkVersion {
 	case version.Deneb:
@@ -137,7 +137,7 @@ func (s *EngineClient) GetPayload(
 		return nil, nil, false, ErrInvalidGetPayloadVersion
 	}
 
-	result, err := fn(dctx, enginev1.PayloadIDBytes(payloadID))
+	result, err := fn(dctx, payloadID)
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}
