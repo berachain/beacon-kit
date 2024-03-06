@@ -57,7 +57,7 @@ type DepInjectOutput struct {
 	Runtime *BeaconKitRuntime
 }
 
-// ProvideModule is a function that provides the module to the application.
+// ProvideRuntime is a function that provides the module to the application.
 func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 	r, err := NewDefaultBeaconKitRuntime(
 		in.Config,

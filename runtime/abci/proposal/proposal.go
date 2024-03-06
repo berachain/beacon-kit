@@ -96,7 +96,6 @@ func (h *Handler) PrepareProposalHandler(
 		primitives.Epoch(req.Height),
 		primitives.Slot(req.Height),
 	)
-
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
 		return &abci.ResponsePrepareProposal{}, err
@@ -140,6 +139,9 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
+
+	//// verify Randao reveal
+	//reveal := block.GetReveal()
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(

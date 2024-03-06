@@ -27,6 +27,7 @@ package typesv1
 
 import (
 	"errors"
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 
 	"github.com/itsdevbear/bolaris/config/version"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
@@ -36,6 +37,10 @@ import (
 // IsNil checks if the BeaconBuoy is nil or not.
 func (b *BeaconBuoyDeneb) IsNil() bool {
 	return b == nil
+}
+
+func (x *BeaconBuoyDeneb) GetReveal() randaotypes.Reveal {
+	return randaotypes.Reveal(x.GetBody().GetRandaoReveal())
 }
 
 // Version returns the version of the block.

@@ -26,6 +26,7 @@
 package consensus
 
 import (
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
@@ -62,6 +63,9 @@ type ReadOnlyBeaconBuoy interface {
 	// Execution returns the execution data of the block.
 	ExecutionPayload() (enginetypes.ExecutionPayload, error)
 	Version() int
+
+	// GetReveal returns the Randao reveal of the block.
+	GetReveal() randaotypes.Reveal
 }
 
 // WriteOnlyBeaconBuoy is the interface for a write-only beacon block.
