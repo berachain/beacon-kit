@@ -209,6 +209,7 @@ test-unit-fuzz:
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzOrderedCache ./lib/cache -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
