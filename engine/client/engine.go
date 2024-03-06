@@ -34,7 +34,6 @@ import (
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
@@ -88,7 +87,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion int,
-) (*enginev1.PayloadIDBytes, []byte, error) {
+) (*enginetypes.PayloadID, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -101,7 +100,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	if err != nil {
 		return nil, lastestValidHash, err
 	}
-	return result.PayloadID, lastestValidHash, nil
+	return (*enginetypes.PayloadID)(result.PayloadID), lastestValidHash, nil
 }
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
@@ -123,7 +122,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
-	ctx context.Context, payloadID primitives.PayloadID, forkVersion int,
+	ctx context.Context, payloadID enginetypes.PayloadID, forkVersion int,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
