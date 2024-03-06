@@ -102,6 +102,7 @@ def deploy_node(plan, config):
     service_config = service_config_lib.create_from_config(config)
 
     return plan.add_service(
+    return plan.add_service(
         name = config["name"],
         config = service_config,
     )
