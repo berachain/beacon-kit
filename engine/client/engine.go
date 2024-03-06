@@ -34,7 +34,6 @@ import (
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
@@ -87,15 +86,12 @@ func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
-) (*enginev1.PayloadIDBytes, []byte, error) {
+	forkVersion int,
+) (*enginetypes.PayloadID, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
-	if attrs == nil {
-		return nil, nil, ErrNilAttributesPassedToClient
-	}
-
-	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs)
+	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
 	if err != nil {
 		return nil, nil, s.handleRPCError(err)
 	}
@@ -113,10 +109,11 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context,
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
+	forkVersion int,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-	switch v := attrs.ToProto().(type) {
-	case *enginev1.PayloadAttributesV3:
-		return s.ForkchoiceUpdatedV3(ctx, state, v)
+	switch forkVersion {
+	case version.Deneb:
+		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	default:
 		return nil, ErrInvalidPayloadAttributes
 	}
@@ -125,14 +122,14 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
-	ctx context.Context, payloadID primitives.PayloadID, forkVersion int,
+	ctx context.Context, payloadID enginetypes.PayloadID, forkVersion int,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	var fn func(
-		context.Context, enginev1.PayloadIDBytes,
-	) (*enginev1.ExecutionPayloadContainer, error)
+		context.Context, enginetypes.PayloadID,
+	) (*enginev1.ExecutionPayloadEnvelope, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
@@ -140,7 +137,7 @@ func (s *EngineClient) GetPayload(
 		return nil, nil, false, ErrInvalidGetPayloadVersion
 	}
 
-	result, err := fn(dctx, enginev1.PayloadIDBytes(payloadID))
+	result, err := fn(dctx, payloadID)
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
 	}

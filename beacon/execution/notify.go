@@ -78,30 +78,21 @@ func (s *Service) notifyNewPayload(
 // notifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) (*enginev1.PayloadIDBytes, error) {
+) (*enginetypes.PayloadID, error) {
 	forkChoicer := s.ForkchoiceStore(ctx)
-
-	// TODO: intercept here and ask builder service for payload attributes.
-	// if isValidator && PrepareAllPayloads {
-	// Ensure we don't pass a nil attribute to the execution engine.
-	if fcuConfig.Attributes == nil {
-		fcuConfig.Attributes = enginetypes.EmptyPayloadAttributesWithVersion(
-			s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot))
-	}
 
 	fcs := &enginev1.ForkchoiceState{
 		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
-		SafeBlockHash:      forkChoicer.JustifiedCheckpoint().Bytes(),
-		FinalizedBlockHash: forkChoicer.FinalizedCheckpoint().Bytes(),
+		SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash().Bytes(),
+		FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash().Bytes(),
 	}
 
 	s.Logger().Info("notifying forkchoice update",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
-		"safe_eth1_hash", forkChoicer.JustifiedCheckpoint(),
-		"finalized_eth1_hash", forkChoicer.FinalizedCheckpoint(),
+		"safe_eth1_hash", forkChoicer.JustifiedPayloadBlockHash(),
+		"finalized_eth1_hash", forkChoicer.FinalizedPayloadBlockHash(),
 		"for_slot", fcuConfig.ProposingSlot,
-		"has_attributes", fcuConfig.Attributes != nil &&
-			!fcuConfig.Attributes.IsEmpty(),
+		"has_attributes", fcuConfig.Attributes != nil,
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -109,6 +100,7 @@ func (s *Service) notifyForkchoiceUpdate(
 		ctx,
 		fcs,
 		fcuConfig.Attributes,
+		s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot),
 	)
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
@@ -129,7 +121,7 @@ func (s *Service) notifyForkchoiceUpdate(
 			// just be the last finalized block, bc we are always inserting
 			// ontop of that, however making that assumption here feels
 			// a little coupled.
-			HeadEth1Hash:  forkChoicer.JustifiedCheckpoint(),
+			HeadEth1Hash:  forkChoicer.JustifiedPayloadBlockHash(),
 			ProposingSlot: fcuConfig.ProposingSlot,
 			Attributes:    fcuConfig.Attributes,
 		})

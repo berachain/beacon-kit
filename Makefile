@@ -66,6 +66,16 @@ mockery:
 	@echo "Running mockery..."
 	@mockery
 
+generate-check:
+	@$(MAKE) forge-build
+	@$(MAKE) generate
+	@if [ -n "$$(git status --porcelain | grep -vE '\.pb_encoding\.go$$')" ]; then \
+		echo "Generated files are not up to date"; \
+		git status -s | grep -vE '\.pb_encoding\.go$$'; \
+		git diff -- . ':(exclude)*.pb_encoding.go'; \
+		exit 1; \
+	fi
+
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
@@ -191,14 +201,15 @@ test-unit-cover:
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
-	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzSSZUint64Marshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzSSZUint64Unmarshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzOrderedCache ./lib/cache -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
@@ -212,6 +223,15 @@ test-forge-cover:
 test-forge-fuzz:
 	@echo "Running forge fuzz tests..."
 	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test
+
+forge-snapshot:
+	@echo "Running forge snapshot..."
+	@cd $(CONTRACTS_DIR) && forge snapshot --isolate --fuzz-runs 1
+
+forge-snapshot-diff:
+	@echo "Running forge snapshot diff..."
+	@cd $(CONTRACTS_DIR) && forge snapshot --diff --isolate --fuzz-runs 1
+
 
 #################
 #      e2e      #
@@ -383,7 +403,7 @@ sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
 	@sszgen -path ./beacon/core/types/v1 \
-	-objs Deposit,BeaconBuoy,BeaconBuoyDeneb,\
+	-objs Deposit,BeaconBlock,BeaconBlockDeneb,\
     --include ./primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
 
@@ -405,6 +425,7 @@ repo-rinse: |
 	buf-install buf-lint-fix buf-lint \
 	sszgen-install sszgen-clean sszgen proto-clean \
 	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
+	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
 	license-install license license-fix \

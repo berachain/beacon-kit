@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package types
 
 import (
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
@@ -32,21 +32,21 @@ import (
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
-// BeaconBuoy assembles a new beacon block from
+// BeaconBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
-func NewBeaconBuoy(
+func NewBeaconBlock(
 	slot primitives.Slot,
 	executionData enginetypes.ExecutionPayload,
 	parentBlockRoot [32]byte,
 	forkVersion int,
-) (BeaconBuoy, error) {
-	var block BeaconBuoy
+) (BeaconBlock, error) {
+	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		block = &beacontypesv1.BeaconBuoyDeneb{
+		block = &beacontypesv1.BeaconBlockDeneb{
 			Slot:            slot,
 			ParentBlockRoot: parentBlockRoot[:],
-			Body: &beacontypesv1.BeaconBuoyBodyDeneb{
+			Body: &beacontypesv1.BeaconBlockBodyDeneb{
 				RandaoReveal: make([]byte, 96), //nolint:gomnd
 				Graffiti:     make([]byte, 32), //nolint:gomnd
 			},
@@ -63,26 +63,26 @@ func NewBeaconBuoy(
 	return block, nil
 }
 
-// EmptyBeaconBuoy assembles a new beacon block
+// EmptyBeaconBlock assembles a new beacon block
 // with no execution data.
-func EmptyBeaconBuoy(
+func EmptyBeaconBlock(
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
 	version int,
-) (BeaconBuoy, error) {
-	return NewBeaconBuoy(slot, nil, parentBlockRoot, version)
+) (BeaconBlock, error) {
+	return NewBeaconBlock(slot, nil, parentBlockRoot, version)
 }
 
-// BeaconBuoyFromSSZ assembles a new beacon block
+// BeaconBlockFromSSZ assembles a new beacon block
 // from the given SSZ bytes and fork version.
-func BeaconBuoyFromSSZ(
+func BeaconBlockFromSSZ(
 	bz []byte,
 	forkVersion int,
-) (BeaconBuoy, error) {
-	var block BeaconBuoy
+) (BeaconBlock, error) {
+	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		block = &beacontypesv1.BeaconBuoyDeneb{}
+		block = &beacontypesv1.BeaconBlockDeneb{}
 	default:
 		return nil, ErrForkVersionNotSupported
 	}
@@ -97,7 +97,7 @@ func BeaconBuoyFromSSZ(
 // is nil.
 // Access to these nil fields will result in run time panic,
 // it is recommended to run these checks as first line of defense.
-func BeaconBuoyIsNil(b ReadOnlyBeaconBuoy) error {
+func BeaconBlockIsNil(b ReadOnlyBeaconBlock) error {
 	if b == nil || b.IsNil() {
 		return ErrNilBuoy
 	}

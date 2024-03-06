@@ -38,14 +38,14 @@ type ABCIRequest interface {
 	GetTxs() [][]byte
 }
 
-// ReadOnlyBeaconBuoyFromABCIRequest assembles a
+// ReadOnlyBeaconBlockFromABCIRequest assembles a
 // new read-only beacon block by extracting a marshalled
 // block out of an ABCI request.
-func ReadOnlyBeaconBuoyFromABCIRequest(
+func ReadOnlyBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion int,
-) (beacontypes.ReadOnlyBeaconBuoy, error) {
+) (beacontypes.ReadOnlyBeaconBlock, error) {
 	txs := req.GetTxs()
 
 	// Ensure there are transactions in the request and
@@ -57,5 +57,5 @@ func ReadOnlyBeaconBuoyFromABCIRequest(
 	}
 
 	// Extract the beacon block from the ABCI request.
-	return beacontypes.BeaconBuoyFromSSZ(txs[bzIndex], forkVersion)
+	return beacontypes.BeaconBlockFromSSZ(txs[bzIndex], forkVersion)
 }

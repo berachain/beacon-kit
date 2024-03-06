@@ -13,7 +13,12 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
     RootFollowerUser internal rootFollower;
 
     function setUp() public override {
-        super.setUp();
+        // etch the BeaconRootsContract to the BEACON_ROOT_ADDRESS
+        vm.etch(
+            BEACON_ROOT_ADDRESS, vm.getDeployedCode("BeaconRootsContract.sol")
+        );
+        // set the initial storage of the BEACON_ROOT_ADDRESS
+        setBeaconRoots(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
         rootFollower = new RootFollowerUser();
     }
 
