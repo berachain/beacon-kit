@@ -33,7 +33,6 @@ import (
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logsMocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	clientMocks "github.com/itsdevbear/bolaris/engine/client/mocks"
@@ -45,7 +44,7 @@ func TestLogProcessor(t *testing.T) {
 
 	blockNum := new(big.Int).SetUint64(100)
 	blockHash := ethcommon.BigToHash(blockNum)
-	header := &gethcoretypes.Header{
+	header := &ethcoretypes.Header{
 		Number: blockNum,
 	}
 	logSignature := ethcommon.HexToHash("0x1234")
