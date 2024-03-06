@@ -35,6 +35,9 @@ on:
       - 'vercel.json'
       - 'docs/**'
 
+env:
+  KURTOSIS_VERSION=0.88.0
+
 concurrency:
   group: ci-${{ github.ref }}-tests
   # We don't want to cancel in progress on main. This is to allow
@@ -85,7 +88,7 @@ jobs:
         run: |
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
-          sudo apt install kurtosis-cli
+          sudo apt install kurtosis-cli=${{ env.KURTOSIS_VERSION }} -y
           kurtosis engine start
         if: ${{ matrix.args == 'test-e2e' }}
       - name: Run ${{ matrix.args }}
