@@ -44,7 +44,7 @@ func TestBeaconKitE2ESuite(t *testing.T) {
 	suite.Run(t, new(BeaconKitE2ESuite))
 }
 
-// BeaconE2ESuite is a suite of tests simluating a fully function beacon-kit
+// BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
 // network.
 type BeaconKitE2ESuite struct {
 	suite.KurtosisE2ESuite
