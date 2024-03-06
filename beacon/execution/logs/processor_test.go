@@ -94,6 +94,7 @@ func TestLogProcessor(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.Len(t, cache.store, 1)
+	require.Equal(t, container, cache.store[0])
 }
 
 type SimpleCache struct {
