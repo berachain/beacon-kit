@@ -83,6 +83,8 @@ func (p *PayloadAttributes) GetTimestamp() uint64 {
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient address of the
 // PayloadAttributes.
+//
+//nolint:lll
 func (p *PayloadAttributes) GetSuggestedFeeRecipient() primitives.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
