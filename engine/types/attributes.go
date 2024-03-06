@@ -26,29 +26,30 @@
 package enginetypes
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
-//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
-
 //nolint:lll // struct tags.
 type PayloadAttributes struct {
-	version               int
-	Timestamp             uint64                      `json:"timestamp"             gencodec:"required"`
-	PrevRandao            [32]byte                    `json:"prevRandao"            gencodec:"required"`
+	// version is the version of the payload attributes.
+	version int
+	// Timestamp is the timestamp at which the block will be built at.
+	Timestamp uint64 `json:"timestamp"             gencodec:"required"`
+	// PrevRandao is the previous Randao value from the beacon chain as
+	// per EIP-4399.
+	PrevRandao [32]byte `json:"prevRandao"            gencodec:"required"`
+	// SuggestedFeeRecipient is the suggested fee recipient for the block. If
+	// the execution client has a different fee recipient, it will typically
+	// ignore this value.
 	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
-	Withdrawals           []*enginev1.Withdrawal      `json:"withdrawals"`
-	ParentBeaconBlockRoot *[32]byte                   `json:"parentBeaconBlockRoot"`
-}
-
-// JSON type overrides for PayloadAttributes.
-type payloadAttributesJSONMarshaling struct {
-	Timestamp             hexutil.Uint64
-	PrevRandao            hexutil.Bytes
-	ParentBeaconBlockRoot *common.Hash
+	// Withdrawals is the list of withdrawals to be included in the block as per
+	// EIP-4895
+	Withdrawals []*enginev1.Withdrawal `json:"withdrawals"`
+	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
+	// prior)
+	// to the block currently being processed. This field was added in EIP-4788.
+	ParentBeaconBlockRoot [32]byte `json:"parentBeaconBlockRoot"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
@@ -69,7 +70,7 @@ func NewPayloadAttributes(
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
-		ParentBeaconBlockRoot: &parentBeaconBlockRoot,
+		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}, nil
 }
 
@@ -95,10 +96,7 @@ func (p *PayloadAttributes) GetWithdrawals() []*enginev1.Withdrawal {
 // PayloadAttributes.
 // If the parent beacon block root is nil, a zero-value [32]byte is returned.
 func (p *PayloadAttributes) GetParentBeaconBlockRoot() [32]byte {
-	if p.ParentBeaconBlockRoot == nil {
-		return [32]byte{}
-	}
-	return *p.ParentBeaconBlockRoot
+	return p.ParentBeaconBlockRoot
 }
 
 // Version returns the version of the PayloadAttributes.
