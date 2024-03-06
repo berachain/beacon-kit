@@ -46,6 +46,7 @@ type BaseService struct {
 	cfg    *config.Config
 	gcd    *dispatch.GrandCentralDispatch
 	logger log.Logger
+	fcr    forkchoice.ForkChoicer
 
 	// statusErrMu protects statusErr.
 	statusErrMu *sync.RWMutex
@@ -66,6 +67,7 @@ func NewBaseService(
 		gcd:    gcd,
 		logger: logger,
 		cfg:    cfg,
+		fcr:    ssf.New(bsp.ForkchoiceStore(context.Background())),
 	}
 }
 
@@ -96,7 +98,7 @@ func (s *BaseService) ForkchoiceStore(
 	ctx context.Context,
 ) forkchoice.ForkChoicer {
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	return ssf.New(s.bsb.ForkchoiceStore(ctx))
+	return s.fcr.WithContext(ctx)
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from

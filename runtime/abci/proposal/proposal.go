@@ -121,7 +121,7 @@ func (h *Handler) ProcessProposalHandler(
 	//
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
-	block, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
+	block, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)

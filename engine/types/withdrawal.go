@@ -23,18 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package engine.types.v1;
+package enginetypes
 
-import "ethereum/engine/v1/execution_engine.proto";
+import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/primitives"
+)
 
-option go_package = "github.com/itsdevbear/bolaris/engine/types/v1;enginev1";
+//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
 
-// PayloadAttributesContainer is a container for payload attributes.
-message PayloadAttributesContainer {
-  // attributes represents the attributes of the payload.
-  oneof attributes {
-    // v3 are the payload attributes for deneb.
-    ethereum.engine.v1.PayloadAttributesV3 v3 = 2;
-  }
+// Withdrawal represents a validator withdrawal from the consensus layer.
+type Withdrawal struct {
+	Index     primitives.SSZUint64        `json:"index"`
+	Validator primitives.ValidatorIndex   `json:"validatorIndex"`
+	Address   primitives.ExecutionAddress `json:"address"`
+	Amount    primitives.SSZUint64        `json:"amount"`
+}
+
+// field type overrides for gencodec.
+type withdrawalJSONMarshaling struct {
+	Index     hexutil.Uint64
+	Validator hexutil.Uint64
+	Amount    hexutil.Uint64
 }

@@ -37,7 +37,7 @@ import (
 // postBlockProcess(.
 func (s *Service) postBlockProcess(
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBuoy,
+	blk beacontypes.ReadOnlyBeaconBlock,
 	blockHash [32]byte,
 	_ bool,
 ) error {
