@@ -27,6 +27,7 @@ package enginetypes
 
 import (
 	"encoding/json"
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -38,4 +39,15 @@ type PayloadID [8]byte
 // MarshalJSON converts PayloadIDBytes to a JSON-encoded hexadecimal string.
 func (b PayloadID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(hexutil.Bytes(b[:]))
+}
+
+// UnmarshalJSON improves the conversion of a JSON-encoded hexadecimal string
+// to a PayloadID by directly utilizing UnmarshalFixedJSON.
+func (b *PayloadID) UnmarshalJSON(enc []byte) error {
+	if err := hexutil.UnmarshalFixedJSON(
+		reflect.TypeOf(PayloadID{}), enc, b[:],
+	); err != nil {
+		return err
+	}
+	return nil
 }
