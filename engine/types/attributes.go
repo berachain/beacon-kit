@@ -41,14 +41,14 @@ type PayloadAttributes struct {
 	PrevRandao            [32]byte                    `json:"prevRandao"            gencodec:"required"`
 	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
 	Withdrawals           []*enginev1.Withdrawal      `json:"withdrawals"`
-	ParentBeaconBlockRoot *[32]byte                   `json:"parentBeaconBlockRoot"`
+	ParentBeaconBlockRoot [32]byte                    `json:"parentBeaconBlockRoot"`
 }
 
 // JSON type overrides for PayloadAttributes.
 type payloadAttributesJSONMarshaling struct {
 	Timestamp             hexutil.Uint64
 	PrevRandao            hexutil.Bytes
-	ParentBeaconBlockRoot *common.Hash
+	ParentBeaconBlockRoot common.Hash
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
@@ -69,7 +69,7 @@ func NewPayloadAttributes(
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
-		ParentBeaconBlockRoot: &parentBeaconBlockRoot,
+		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}, nil
 }
 
@@ -95,10 +95,7 @@ func (p *PayloadAttributes) GetWithdrawals() []*enginev1.Withdrawal {
 // PayloadAttributes.
 // If the parent beacon block root is nil, a zero-value [32]byte is returned.
 func (p *PayloadAttributes) GetParentBeaconBlockRoot() [32]byte {
-	if p.ParentBeaconBlockRoot == nil {
-		return [32]byte{}
-	}
-	return *p.ParentBeaconBlockRoot
+	return p.ParentBeaconBlockRoot
 }
 
 // Version returns the version of the PayloadAttributes.
