@@ -81,7 +81,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @inheritdoc IBeaconDepositContract
     function deposit(
-        bytes calldata validatorPubKey,
+        bytes calldata pubKey,
         bytes calldata stakingCredentials,
         uint64 amount,
         bytes calldata signature
@@ -89,7 +89,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
         external
         payable
     {
-        if (validatorPubKey.length != PUBLIC_KEY_LENGTH) {
+        if (pubKey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
@@ -108,7 +108,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         // slither-disable-next-line reentrancy-events
-        emit Deposit(validatorPubKey, stakingCredentials, amount, signature);
+        emit Deposit(pubKey, stakingCredentials, amount, signature);
     }
 
     /// @inheritdoc IBeaconDepositContract
@@ -135,13 +135,13 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @inheritdoc IBeaconDepositContract
     function withdraw(
-        bytes calldata validatorPubKey,
+        bytes calldata pubKey,
         bytes calldata withdrawalCredentials,
         uint64 amount
     )
         external
     {
-        if (validatorPubKey.length != PUBLIC_KEY_LENGTH) {
+        if (pubKey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
@@ -153,7 +153,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientWithdrawAmount();
         }
 
-        emit Withdraw(validatorPubKey, withdrawalCredentials, amount);
+        emit Withdraw(pubKey, withdrawalCredentials, amount);
     }
 
     /**
