@@ -39,15 +39,17 @@ import (
 type PayloadAttributes struct {
 	version               int
 	Timestamp             uint64                      `json:"timestamp"             gencodec:"required"`
-	PrevRandao            common.Hash                 `json:"prevRandao"            gencodec:"required"`
+	PrevRandao            [32]byte                    `json:"prevRandao"            gencodec:"required"`
 	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
 	Withdrawals           []*enginev1.Withdrawal      `json:"withdrawals"`
-	ParentBeaconBlockRoot *common.Hash                `json:"parentBeaconBlockRoot"`
+	ParentBeaconBlockRoot *[32]byte                   `json:"parentBeaconBlockRoot"`
 }
 
 // JSON type overrides for PayloadAttributes.
 type payloadAttributesJSONMarshaling struct {
-	Timestamp hexutil.Uint64
+	Timestamp             hexutil.Uint64
+	PrevRandao            common.Hash
+	ParentBeaconBlockRoot *common.Hash
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
@@ -64,7 +66,7 @@ func NewPayloadAttributes(
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
-		ParentBeaconBlockRoot: (*common.Hash)(&parentBeaconBlockRoot),
+		ParentBeaconBlockRoot: &parentBeaconBlockRoot,
 	}, nil
 }
 

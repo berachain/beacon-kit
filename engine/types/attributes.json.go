@@ -27,7 +27,7 @@ func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 	enc.PrevRandao = p.PrevRandao
 	enc.SuggestedFeeRecipient = p.SuggestedFeeRecipient
 	enc.Withdrawals = p.Withdrawals
-	enc.ParentBeaconBlockRoot = p.ParentBeaconBlockRoot
+	enc.ParentBeaconBlockRoot = (*common.Hash)(p.ParentBeaconBlockRoot)
 	return json.Marshal(&enc)
 }
 
@@ -60,7 +60,7 @@ func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 		p.Withdrawals = dec.Withdrawals
 	}
 	if dec.ParentBeaconBlockRoot != nil {
-		p.ParentBeaconBlockRoot = dec.ParentBeaconBlockRoot
+		p.ParentBeaconBlockRoot = (*[32]byte)(dec.ParentBeaconBlockRoot)
 	}
 	return nil
 }
