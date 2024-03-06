@@ -35,7 +35,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func FuzzLogCache(f *testing.F) {
+func FuzzLogCacheSeq(f *testing.F) {
 	// Create a new log cache.
 	cache := logs.NewLogCache()
 

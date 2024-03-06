@@ -210,7 +210,7 @@ test-unit-fuzz:
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzOrderedCache ./lib/cache -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzLogCache ./beacon/execution/logs/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzLogCacheSeq ./beacon/execution/logs/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzLogCacheConcurrency ./beacon/execution/logs/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
