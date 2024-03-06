@@ -35,16 +35,13 @@ interface IBeaconDepositContract {
 
     /**
      * @dev Emitted when a deposit is made, which could mean a new validator or a top up of an existing one.
-     * @param validatorPubKey the public key of the validator who is being deposited for if not a new validator.
+     * @param pubKey the public key of the validator who is being deposited for if not a new validator.
      * @param stakingCredentials the public key of the operator if new validator or the depositor if top up.
      * @param amount the amount of stake being deposited, in Gwei.
      * @param signature the signature of the deposit message, only checked when creating a new validator.
      */
     event Deposit(
-        bytes validatorPubKey,
-        bytes stakingCredentials,
-        uint64 amount,
-        bytes signature
+        bytes pubKey, bytes stakingCredentials, uint64 amount, bytes signature
     );
 
     /**
@@ -106,14 +103,14 @@ interface IBeaconDepositContract {
     /**
      * @notice Submit a deposit message to the Beaconchain.
      * @notice This will be used to create a new validator or to top up an existing one, increasing stake.
-     * @param validatorPubKey is the consensus public key of the validator. If subsequent deposit, its ignored.
+     * @param pubKey is the consensus public key of the validator. If subsequent deposit, its ignored.
      * @param stakingCredentials is the staking credentials of the validator. If this is the first deposit it is
      * validator operator public key, if subsequent deposit it is the depositors public key.
      * @param amount is the amount of stake native/ERC20 token to be deposited, in Gwei.
      * @param signature is the signature used only on the first deposit.
      */
     function deposit(
-        bytes calldata validatorPubKey,
+        bytes calldata pubKey,
         bytes calldata stakingCredentials,
         uint64 amount,
         bytes calldata signature
@@ -139,13 +136,13 @@ interface IBeaconDepositContract {
     /**
      * @notice Submit a withdrawal message to the Beaconchain.
      * @notice This function is callable by the account with the stake.
-     * @param validatorPubKey is the public key of the validator we are withdrawing from.
+     * @param pubKey is the public key of the validator we are withdrawing from.
      * @param withdrawalCredentials is the public key of the account that will receive the withdrawal.
      * @param amount is the amount of stake to be withdrawn, in Gwei. The amount needs to be calculated offchain since
      * validator tokens are not fungible, and their shares -> stake amount can differ if there is a slashing event.
      */
     function withdraw(
-        bytes calldata validatorPubKey,
+        bytes calldata pubKey,
         bytes calldata withdrawalCredentials,
         uint64 amount
     )
