@@ -121,7 +121,7 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
 				randao.ProvideRandaoProcessor,
-				//			cmdconfig.ProvideClientContext,
+				bls12381.ProvideBlsSigner,
 			),
 			depinject.Supply(
 				// supply the application options

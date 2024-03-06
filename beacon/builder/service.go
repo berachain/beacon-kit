@@ -86,9 +86,6 @@ func (s *Service) RequestBestBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 
-	// TODO: should be epoch
-	s.BeaconState(ctx)
-
 	reveal, err := s.randaoProcessor.BuildReveal(ctx, epoch)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build reveal: %w", err)

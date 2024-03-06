@@ -27,19 +27,10 @@ package randao
 
 import (
 	"context"
-	"fmt"
-	"os"
-
-	"cosmossdk.io/depinject"
-	"github.com/cometbft/cometbft/p2p"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/itsdevbear/bolaris/primitives"
-	"github.com/spf13/cast"
-
 	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 type BeaconStateProvider interface {
@@ -52,45 +43,6 @@ type Processor struct {
 	stateProvider BeaconStateProvider
 	signer        bls12381.BlsSigner
 	cfg           *Config
-}
-
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
-	depinject.In
-
-	BeaconState BeaconStateProvider
-	AppOpts     servertypes.AppOptions
-}
-
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
-	depinject.Out
-
-	RandaoProcessor *Processor
-}
-
-func ProvideRandaoProcessor(in DepInjectInput) DepInjectOutput {
-	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
-	fmt.Println("HomeDir: ", homeDir)
-	key, err := p2p.LoadNodeKey(fmt.Sprintf("%s/config/priv_validator_key.json", homeDir))
-	if err != nil {
-		fmt.Println("Error: ", err)
-		os.Exit(1)
-	}
-	fmt.Println("Key: ", key.PrivKey)
-
-	var pk [32]byte
-	copy(pk[:], key.PrivKey.Bytes())
-
-	signer := bls12381.NewBlsSigner(pk)
-	processor := NewProcessor(in.BeaconState, signer, &Config{
-		EpochsPerHistoricalVector: 0,
-		ConfiguredPubKeyLength:    0,
-	})
-
-	return DepInjectOutput{
-		RandaoProcessor: processor,
-	}
 }
 
 func NewProcessor(beaconStateProvider BeaconStateProvider, signer bls12381.BlsSigner, cfg *Config) *Processor {
