@@ -35,6 +35,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
 	builder "github.com/itsdevbear/bolaris/beacon/builder"
 	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
+	"github.com/itsdevbear/bolaris/beacon/core/randao"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking"
@@ -42,6 +43,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/sync"
 	"github.com/itsdevbear/bolaris/cache"
 	"github.com/itsdevbear/bolaris/config"
+	bls "github.com/itsdevbear/bolaris/crypto/bls12_381"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/health"
 	_ "github.com/itsdevbear/bolaris/lib/maxprocs"
@@ -81,7 +83,7 @@ func NewDefaultBeaconKitRuntime(
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
 	logger log.Logger,
-	processor builder.RandaoProcessor,
+	blsSigner bls.BlsSigner,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -151,6 +153,11 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithExecutionService(executionService),
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
+
+	processor := randao.NewProcessor(bsb, blsSigner, &randao.Config{
+		EpochsPerHistoricalVector: 0,
+		ConfiguredPubKeyLength:    0,
+	})
 
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("builder")),

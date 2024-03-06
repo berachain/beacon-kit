@@ -27,9 +27,11 @@ package randao
 
 import (
 	"context"
+
+	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
+
 	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -45,7 +47,11 @@ type Processor struct {
 	cfg           *Config
 }
 
-func NewProcessor(beaconStateProvider BeaconStateProvider, signer bls12381.BlsSigner, cfg *Config) *Processor {
+func NewProcessor(
+	beaconStateProvider BeaconStateProvider,
+	signer bls12381.BlsSigner,
+	cfg *Config,
+) *Processor {
 	return &Processor{stateProvider: beaconStateProvider, signer: signer, cfg: cfg}
 }
 
@@ -64,6 +70,7 @@ func (rs *Processor) BuildReveal(
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
 	st := rs.stateProvider.BeaconState(ctx)
+
 	root := st.GetParentBlockRoot()
 	domain := rs.getDomain(epoch, root[:])
 	signingRoot := rs.computeSigningRoot(epoch, domain)
@@ -144,7 +151,7 @@ func (rs *Processor) getDomain(
 }
 
 // VerifyReveal verifies the reveal of the proposer.
-func (rs Processor) VerifyReveal(
+func (rs *Processor) VerifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	signature [bls12381.SignatureLength]byte,
 	reveal types.Reveal,

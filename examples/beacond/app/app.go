@@ -120,7 +120,6 @@ func NewBeaconKitApp(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
-				randao.ProvideRandaoProcessor,
 				bls12381.ProvideBlsSigner,
 			),
 			depinject.Supply(

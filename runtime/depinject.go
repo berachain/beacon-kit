@@ -28,8 +28,8 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/beacon/builder"
 	"github.com/itsdevbear/bolaris/config"
+	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.
@@ -45,11 +45,11 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	Config          *config.Config
-	Bsp             BeaconStorageBackend
-	Vcp             ValsetChangeProvider
-	Logger          log.Logger
-	RandaoProcessor builder.RandaoProcessor
+	Config *config.Config
+	Bsp    BeaconStorageBackend
+	Vcp    ValsetChangeProvider
+	Logger log.Logger
+	Signer bls12381.BlsSigner
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -66,7 +66,7 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		in.Bsp,
 		in.Vcp,
 		in.Logger,
-		in.RandaoProcessor,
+		in.Signer,
 	)
 	if err != nil {
 		panic(err)
