@@ -153,7 +153,12 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientWithdrawAmount();
         }
 
-        emit Withdraw(validatorPubkey, withdrawalCredentials, amount);
+        emit Withdraw(
+            validatorPubkey,
+            _toCredentials(msg.sender),
+            withdrawalCredentials,
+            amount
+        );
     }
 
     /**

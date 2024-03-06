@@ -64,11 +64,15 @@ interface IBeaconDepositContract {
     /**
      * @dev Emitted when a withdraw is made from a validator.
      * @param fromPubkey The public key of the validator that is being withdrawn from.
+     * @param stakingCredentials The public key of the account that is withdrawing the stake.
      * @param withdrawalCredentials The public key of the account that will receive the withdrawal.
      * @param amount The amount to be withdrawn from the validator, in Gwei.
      */
     event Withdraw(
-        bytes fromPubkey, bytes withdrawalCredentials, uint64 amount
+        bytes fromPubkey,
+        bytes stakingCredentials,
+        bytes withdrawalCredentials,
+        uint64 amount
     );
 
     // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
