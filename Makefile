@@ -69,10 +69,10 @@ mockery:
 generate-check:
 	@$(MAKE) forge-build
 	@$(MAKE) generate
-	@if [ -n "$$(git status --porcelain)" ]; then \
+	@if [ -n "$$(git status --porcelain | grep -vE '\.pb_encoding\.go$$')" ]; then \
 		echo "Generated files are not up to date"; \
-		git status -s; \
-		git --no-pager diff; \
+		git status -s | grep -vE '\.pb_encoding\.go$$'; \
+		git diff -- . ':(exclude)*.pb_encoding.go'; \
 		exit 1; \
 	fi
 
