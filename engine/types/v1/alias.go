@@ -28,12 +28,6 @@ package enginev1
 import enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 
 type (
-	// ExecutionPayloadCapella alias for Prysm's version.
-	ExecutionPayloadCapella = enginev1.ExecutionPayloadCapella
-	// ExecutionPayloadCapellaWithValue alias for Prysm's version.
-	ExecutionPayloadCapellaWithValue = enginev1.ExecutionPayloadCapellaWithValue
-	// ExecutionPayloadHeaderCapella alias for Prysm's version.
-	ExecutionPayloadHeaderCapella = enginev1.ExecutionPayloadHeaderCapella
 	// ExecutionPayloadDeneb alias for Prysm's version.
 	ExecutionPayloadDeneb = enginev1.ExecutionPayloadDeneb
 	// ExecutionPayloadDenebWithValueAndBlobsBundle alias for Prysm's version.
