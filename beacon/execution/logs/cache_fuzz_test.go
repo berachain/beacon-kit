@@ -79,11 +79,10 @@ func FuzzLogCache(f *testing.F) {
 		for range totalLogs {
 			log, err := cache.RemoveFront()
 			require.NoError(t, err)
-			require.True(t, c.Compare(prevLog, log) < 0)
+			require.Less(t, c.Compare(prevLog, log), 0)
 		}
 
 		require.Equal(t, 0, cache.Len())
-
 	})
 }
 
@@ -131,10 +130,9 @@ func FuzzLogCacheConcurrency(f *testing.F) {
 		for range totalLogs {
 			log, err := cache.RemoveFront()
 			require.NoError(t, err)
-			require.True(t, c.Compare(prevLog, log) < 0)
+			require.Less(t, c.Compare(prevLog, log), 0)
 		}
 
 		require.Equal(t, 0, cache.Len())
-
 	})
 }
