@@ -25,29 +25,10 @@
 
 package enginetypes
 
-import (
-	"encoding/json"
-	"reflect"
+import "github.com/ethereum/go-ethereum/beacon/engine"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+// There are some types we can borrow from geth.
+type (
+	PayloadID       = engine.PayloadID
+	ForkchoiceState = engine.ForkchoiceStateV1
 )
-
-// PayloadID is a custom type representing Payload IDs in a fixed-size byte
-// array.
-type PayloadID [8]byte
-
-// MarshalJSON converts a PayloadID to a JSON-encoded hexadecimal string.
-func (b PayloadID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(hexutil.Bytes(b[:]))
-}
-
-// UnmarshalJSON improves the conversion of a JSON-encoded hexadecimal string
-// to a PayloadID by directly utilizing UnmarshalFixedJSON.
-func (b *PayloadID) UnmarshalJSON(enc []byte) error {
-	if err := hexutil.UnmarshalFixedJSON(
-		reflect.TypeOf(PayloadID{}), enc, b[:],
-	); err != nil {
-		return err
-	}
-	return nil
-}

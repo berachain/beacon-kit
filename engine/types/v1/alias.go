@@ -45,8 +45,6 @@ type (
 	BlobsBundle = enginev1.BlobsBundle
 	// Withdrawal alias for Prysm's version.
 	Withdrawal = enginev1.Withdrawal
-	// ForkchoiceState alias for Prysm's version.
-	ForkchoiceState = enginev1.ForkchoiceState
 	// PayloadStatus alias for Prysm's version.
 	PayloadStatus = enginev1.PayloadStatus
 	// ExecutionBlock alias for Prysm's version.

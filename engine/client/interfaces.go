@@ -54,7 +54,7 @@ type Caller interface {
 
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
-		ctx context.Context, state *enginev1.ForkchoiceState,
+		ctx context.Context, state *enginetypes.ForkchoiceState,
 		attrs enginetypes.PayloadAttributer, version int,
 	) (*enginetypes.PayloadID, []byte, error)
 
