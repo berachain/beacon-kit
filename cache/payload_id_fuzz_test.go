@@ -30,7 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
+	"github.com/itsdevbear/bolaris/cache"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +43,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 	f.Fuzz(func(t *testing.T, slot uint64, _r, _p []byte) {
 		var r [32]byte
 		copy(r[:], _r)
-		pid := primitives.PayloadID(_p[:8])
+		pid := enginetypes.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(primitives.Slot(slot), r, pid)
 
@@ -51,7 +52,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		require.Equal(t, pid, p)
 
 		// Test overwriting the same slot and root with a different PayloadID
-		newPid := primitives.PayloadID{}
+		newPid := enginetypes.PayloadID{}
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
@@ -84,7 +85,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		copy(r[:], _r)
 		var paddedPayload [8]byte
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
-		pid := primitives.PayloadID(paddedPayload[:])
+		pid := enginetypes.PayloadID(paddedPayload[:])
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(primitives.Slot(slot), r, pid)
 
@@ -109,7 +110,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			copy(r[:], _r)
 			var paddedPayload [8]byte
 			copy(paddedPayload[:], _p[:min(len(_p), 8)])
-			pid := primitives.PayloadID(paddedPayload[:])
+			pid := enginetypes.PayloadID(paddedPayload[:])
 			cacheUnderTest.Set(primitives.Slot(slot), r, pid)
 		}()
 

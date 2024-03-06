@@ -62,10 +62,10 @@ func (s *Service) Status() error {
 // TODO: handle the bools better i.e attrs, retry, async.
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) (*enginev1.PayloadIDBytes, error) {
+) (*enginetypes.PayloadID, error) {
 	var (
 		err       error
-		payloadID *enginev1.PayloadIDBytes
+		payloadID *enginetypes.PayloadID
 	)
 	// Push the forkchoice request to the forkchoice dispatcher, we want to
 	// block until
@@ -80,7 +80,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetPayload(
-	ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+	ctx context.Context, payloadID enginetypes.PayloadID, slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	return s.engine.GetPayload(
 		ctx, payloadID,

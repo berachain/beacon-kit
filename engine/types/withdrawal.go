@@ -23,7 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package enginetypes
 
-// PayloadID represents a unique identifier for a payload.
-type PayloadID [8]byte
+import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/primitives"
+)
+
+//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
+
+// Withdrawal represents a validator withdrawal from the consensus layer.
+type Withdrawal struct {
+	Index     primitives.SSZUint64        `json:"index"`
+	Validator primitives.ValidatorIndex   `json:"validatorIndex"`
+	Address   primitives.ExecutionAddress `json:"address"`
+	Amount    primitives.SSZUint64        `json:"amount"`
+}
+
+// field type overrides for gencodec.
+type withdrawalJSONMarshaling struct {
+	Index     hexutil.Uint64
+	Validator hexutil.Uint64
+	Amount    hexutil.Uint64
+}

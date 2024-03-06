@@ -39,10 +39,10 @@ type ExecutionService interface {
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) (*enginev1.PayloadIDBytes, error)
+	) (*enginetypes.PayloadID, error)
 
 	// GetPayload gets a payload for a given payload ID and slot.
 	GetPayload(
-		ctx context.Context, payloadID primitives.PayloadID, slot primitives.Slot,
+		ctx context.Context, payloadID enginetypes.PayloadID, slot primitives.Slot,
 	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }

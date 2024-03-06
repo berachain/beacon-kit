@@ -28,7 +28,8 @@ package cache_test
 import (
 	"testing"
 
-	"github.com/itsdevbear/bolaris/beacon/builder/local/cache"
+	"github.com/itsdevbear/bolaris/cache"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/require"
 )
@@ -40,13 +41,13 @@ func TestPayloadIDCache(t *testing.T) {
 		var r [32]byte
 		p, ok := cacheUnderTest.Get(0, r)
 		require.False(t, ok)
-		require.Equal(t, primitives.PayloadID{}, p)
+		require.Equal(t, enginetypes.PayloadID{}, p)
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
 		slot := primitives.Slot(1234)
 		r := [32]byte{1, 2, 3}
-		pid := primitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
+		pid := enginetypes.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -57,7 +58,7 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Overwrite existing", func(t *testing.T) {
 		slot := primitives.Slot(1234)
 		r := [32]byte{1, 2, 3}
-		newPid := primitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
+		newPid := enginetypes.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -68,14 +69,14 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Prune and verify deletion", func(t *testing.T) {
 		slot := primitives.Slot(9456456)
 		r := [32]byte{4, 5, 6}
-		pid := primitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
+		pid := enginetypes.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
 		cacheUnderTest.Set(slot, r, pid)
 
 		// Prune and attempt to retrieve pruned entry
 		cacheUnderTest.UnsafePrunePrior(slot + 1)
 		p, ok := cacheUnderTest.Get(slot, r)
 		require.False(t, ok)
-		require.Equal(t, primitives.PayloadID{}, p)
+		require.Equal(t, enginetypes.PayloadID{}, p)
 	})
 
 	t.Run("Multiple entries and prune", func(t *testing.T) {
@@ -83,7 +84,7 @@ func TestPayloadIDCache(t *testing.T) {
 		for i := uint8(0); i < 5; i++ {
 			slot := primitives.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			pid := primitives.PayloadID{
+			pid := enginetypes.PayloadID{
 				i, i, i, i, i, i, i, i,
 			}
 			cacheUnderTest.Set(slot, r, pid)

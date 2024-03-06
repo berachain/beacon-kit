@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -43,7 +42,7 @@ type LocalBuilder interface {
 		slot primitives.Slot,
 		timestamp uint64,
 		parentBlockRoot [32]byte,
-	) (*enginev1.PayloadIDBytes, error)
+	) (*enginetypes.PayloadID, error)
 }
 
 type ExecutionService interface {
@@ -52,7 +51,7 @@ type ExecutionService interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		fcuConfig *execution.FCUConfig,
-	) (*enginev1.PayloadIDBytes, error)
+	) (*enginetypes.PayloadID, error)
 
 	// NotifyNewPayload notifies the execution client of a new payload.
 	NotifyNewPayload(
