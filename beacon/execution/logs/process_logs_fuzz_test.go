@@ -66,7 +66,7 @@ func FuzzProcessStakingLogs(f *testing.F) {
 			require.NoError(t, err)
 
 			var containers []executionlogs.LogContainer
-			containers, err = logFactory.ProcessLogs(logs, blkNum)
+			containers, err = logFactory.ProcessLogs(logs)
 			require.NoError(t, err)
 			require.Len(t, containers, numDepositLogs)
 

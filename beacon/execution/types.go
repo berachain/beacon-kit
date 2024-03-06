@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
@@ -44,6 +45,10 @@ type BeaconStorageBackend interface {
 // Ethereum logs into objects, with appropriate
 // types for each type of logs.
 type LogProcessor interface {
+	ProcessEth1Block(
+		ctx context.Context,
+		blockHash ethcommon.Hash,
+	) error
 }
 
 // FCUConfig is a struct that holds the configuration for a fork choice update.

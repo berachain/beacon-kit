@@ -27,4 +27,5 @@ package execution
 
 const (
 	forkchoiceDispatchQueue = "dispatch.forkchoice"
+	logsDispatchQueue       = "dispatch.logs"
 )

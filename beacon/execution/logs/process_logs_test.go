@@ -64,7 +64,7 @@ func TestProcessStakingLogs(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	containers, err := logFactory.ProcessLogs(mockLogs, blkNum)
+	containers, err := logFactory.ProcessLogs(mockLogs)
 	require.NoError(t, err)
 	require.Len(t, containers, numDepositLogs)
 
@@ -92,7 +92,6 @@ func TestProcessStakingLogs(t *testing.T) {
 	log.BlockNumber = blkNum + 1
 	_, err = logFactory.ProcessLogs(
 		append(mockLogs, *log),
-		blkNum,
 	)
 	// This is an expected error as
 	// the log is from a different block.
@@ -103,14 +102,14 @@ func TestProcessStakingLogs(t *testing.T) {
 	log.Address = ethcommon.HexToAddress("0x5678")
 	log.BlockNumber = blkNum
 	mockLogs = append(mockLogs, *log)
-	containers, err = logFactory.ProcessLogs(mockLogs, blkNum)
+	containers, err = logFactory.ProcessLogs(mockLogs)
 	require.NoError(t, err)
 	require.Len(t, containers, numDepositLogs)
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum
 	mockLogs = append(mockLogs, *log)
-	_, err = logFactory.ProcessLogs(mockLogs, blkNum)
+	_, err = logFactory.ProcessLogs(mockLogs)
 	// This is an expected error as currently we cannot
 	// unmarsal a withdrawal log into a Withdrawal object.
 	require.Error(t, err)

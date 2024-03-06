@@ -26,8 +26,6 @@
 package logs
 
 import (
-	"fmt"
-
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -36,17 +34,7 @@ import (
 // received from the execution client.
 func (f *Factory) ProcessLog(
 	log *ethtypes.Log,
-	blkNum uint64,
 ) (LogContainer, error) {
-	// Skip logs that are not from the block we are processing
-	// This should never happen, but defensively check anyway.
-	if log.BlockNumber != blkNum {
-		return nil, fmt.Errorf(
-			"log from different block, expected %d, got %d",
-			blkNum, log.BlockNumber,
-		)
-	}
-
 	// Skip logs that are not registered with the factory.
 	// They may be from unregistered contracts (defensive check)
 	// or emitted from unregistered events in the registered contracts.
@@ -75,13 +63,12 @@ func (f *Factory) ProcessLog(
 // block number and their indices.
 func (f *Factory) ProcessLogs(
 	logs []ethtypes.Log,
-	blkNum uint64,
 ) ([]LogContainer, error) {
 	// Process logs in parallel
 	containers, err := iter.MapErr(
 		logs,
 		func(log *ethtypes.Log) (LogContainer, error) {
-			return f.ProcessLog(log, blkNum)
+			return f.ProcessLog(log)
 		})
 
 	if err != nil {

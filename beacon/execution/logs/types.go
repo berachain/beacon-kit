@@ -29,6 +29,7 @@ import (
 	"reflect"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -42,11 +43,16 @@ type LogContainer interface {
 	BlockNumber() uint64
 	LogIndex() uint64
 	Value() *reflect.Value
+	Signature() ethcommon.Hash
 }
 
 type LogCache interface {
+	Insert(log LogContainer) error
+	RemoveMulti(index uint64, n uint64) ([]LogContainer, error)
 }
 
 type LogFactory interface {
 	GetRegisteredSignatures() []ethcommon.Hash
+	GetRegisteredAddresses() []ethcommon.Address
+	ProcessLogs(logs []ethcoretypes.Log) ([]LogContainer, error)
 }

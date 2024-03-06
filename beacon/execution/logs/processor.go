@@ -26,8 +26,16 @@
 package logs
 
 import (
+	"context"
+
+	"cosmossdk.io/errors"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
+)
+
+const (
+	// DefaultBatchSize is the default batch size for processing logs.
+	DefaultBatchSize = 1000
 )
 
 type Processor struct {
@@ -50,4 +58,89 @@ func NewProcessor(opts ...Option[Processor]) (*Processor, error) {
 		}
 	}
 	return p, nil
+}
+
+// ProcessEth1Block processes the logs in the given Ethereum block.
+func (p *Processor) ProcessEth1Block(
+	ctx context.Context,
+	blockHash ethcommon.Hash,
+) error {
+	header, err := p.engine.HeaderByHash(ctx, blockHash)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get block header")
+	}
+	blockNum := header.Number.Uint64()
+	return p.ProcessBlocks(ctx, blockNum, blockNum)
+}
+
+// ProcessBlocks processes the logs in the range
+// from fromBlock (inclusive) to toBlock (inclusive).
+func (p *Processor) ProcessBlocks(
+	ctx context.Context,
+	fromBlock uint64,
+	toBlock uint64,
+) error {
+	// Get the registered addresses for the logs.
+	registeredAddresses := p.factory.GetRegisteredAddresses()
+
+	curr := fromBlock
+	for curr <= toBlock {
+		// Process the logs in batches.
+		end, err := p.processBlocksInBatch(
+			ctx,
+			curr,
+			toBlock,
+			DefaultBatchSize,
+			registeredAddresses,
+		)
+		if err != nil {
+			return errors.Wrapf(err, "failed to process logs in batch")
+		}
+		curr = end + 1
+	}
+	return nil
+}
+
+// processBlocksInBatch processes the logs in the range
+// from fromBlock (inclusive)
+// to min(fromBlock + batchSize - 1, toBlock) (inclusive).
+func (p *Processor) processBlocksInBatch(
+	ctx context.Context,
+	fromBlock uint64,
+	toBlock uint64,
+	batchSize uint64,
+	registeredAddresses []ethcommon.Address,
+) (uint64, error) {
+	// Gather all the logs corresponding to
+	// the registered addresses in the given range.
+	start := fromBlock
+	end := start + batchSize - 1
+	if end > toBlock {
+		end = toBlock
+	}
+
+	logs, err := p.engine.GetLogs(
+		ctx,
+		start,
+		end,
+		registeredAddresses,
+	)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get logs")
+	}
+
+	containers, err := p.factory.ProcessLogs(logs)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to process logs")
+	}
+	for _, container := range containers {
+		if cache, ok := p.sigToCache[container.Signature()]; ok {
+			err = cache.Insert(container)
+			if err != nil {
+				return 0, errors.Wrapf(err, "failed to insert log into cache")
+			}
+		}
+	}
+
+	return end, nil
 }

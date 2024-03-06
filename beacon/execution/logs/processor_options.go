@@ -37,9 +37,9 @@ func WithLogFactory(factory LogFactory) Option[Processor] {
 		p.factory = factory
 		registeredSigs := factory.GetRegisteredSignatures()
 		p.sigToCache = make(map[ethcommon.Hash]LogCache, len(registeredSigs))
-		for _, sig := range registeredSigs {
-			p.sigToCache[sig] = NewLogCache()
-		}
+		// for _, sig := range registeredSigs {
+		// 	p.sigToCache[sig] = NewLogCache()
+		// }
 		return nil
 	}
 }
