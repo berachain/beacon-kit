@@ -32,8 +32,8 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/primitives"
 )
@@ -46,6 +46,7 @@ type BaseService struct {
 	cfg    *config.Config
 	gcd    *dispatch.GrandCentralDispatch
 	logger log.Logger
+	fcr    forkchoice.ForkChoicer
 
 	// statusErrMu protects statusErr.
 	statusErrMu *sync.RWMutex
@@ -66,6 +67,7 @@ func NewBaseService(
 		gcd:    gcd,
 		logger: logger,
 		cfg:    cfg,
+		fcr:    ssf.New(bsp.ForkchoiceStore(context.Background())),
 	}
 }
 
@@ -94,9 +96,9 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 // ForkchoiceStore returns the forkchoice store from the BaseService.
 func (s *BaseService) ForkchoiceStore(
 	ctx context.Context,
-) forkchoicer.ForkChoicer {
+) forkchoice.ForkChoicer {
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	return ssf.New(s.bsb.ForkchoiceStore(ctx))
+	return s.fcr.WithContext(ctx)
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from

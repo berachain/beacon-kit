@@ -38,11 +38,16 @@ packages:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
+  github.com/itsdevbear/bolaris/beacon/forkchoice/ssf:
+    config:
+      recursive: True
+      with-expecter: true
+      include-regex: SingleSlotFinalityStore
   github.com/itsdevbear/bolaris/runtime/service:
     config:
       recursive: True
       with-expecter: true
-      include-regex: Basic
+      all: True
   github.com/itsdevbear/bolaris/io/cli/prompt:
     config:
       recursive: True

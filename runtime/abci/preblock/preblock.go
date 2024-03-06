@@ -98,7 +98,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		//
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
-		buoy, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
+		buoy, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 			req,
 			h.cfg.BeaconBlockPosition,
 			h.chainService.ActiveForkVersionForSlot(
@@ -116,7 +116,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			// create an empty beacon block to continue processing.
 			// TODO: This is a temporary solution to avoid panics, we should
 			// handle this better.
-			if buoy, err = beacontypes.EmptyBeaconBuoy(
+			if buoy, err = beacontypes.EmptyBeaconBlock(
 				primitives.Slot(req.Height),
 				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
 				h.chainService.ActiveForkVersionForSlot(
