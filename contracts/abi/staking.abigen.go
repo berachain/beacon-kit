@@ -31,8 +31,8 @@ var (
 
 // StakingMetaData contains all meta data concerning the Staking contract.
 var StakingMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Withdrawal\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]}]",
-	Bin: "0x608060405234801561000f575f80fd5b506103008061001d5f395ff3fe608060405260043610610028575f3560e01c80632414da0c1461002c5780639813954e14610041575b5f80fd5b61003f61003a366004610199565b610054565b005b61003f61004f366004610199565b61013d565b633b9aca008167ffffffffffffffff16101561009c576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6040517fffffffffffffffffffffffffffffffffffffffff0000000000000000000000003360601b1660208201527f163244a852f099315d72dcfbb5b1031ca0365543f2ac1849bdb69b01d8648b1890849084906034015b604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe081840301815290829052610130939291869061021b565b60405180910390a1505050565b6040517fffffffffffffffffffffffffffffffffffffffff0000000000000000000000003360601b1660208201527f3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b490849084906034016100f4565b5f805f604084860312156101ab575f80fd5b833567ffffffffffffffff808211156101c2575f80fd5b818601915086601f8301126101d5575f80fd5b8135818111156101e3575f80fd5b8760208285010111156101f4575f80fd5b6020928301955093509085013590808216821461020f575f80fd5b50809150509250925092565b60608152836060820152838560808301375f608085830101525f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe080601f87011683016020608085830301602086015286518060808401525f5b818110156102915788810183015184820160a001528201610275565b505f60a0828501015260a084601f8301168401019450505050506102c1604083018467ffffffffffffffff169052565b9594505050505056fea2646970667358221220ab7dc4afa4c527df88d1480455b4cbc6f7c4ba96ee9c50ca1764db08517cb9fa64736f6c63430008180033",
+	ABI: "[{\"type\":\"function\",\"name\":\"NATIVE_ASSET\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"redirect\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"toPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"validatorPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Redirect\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"toPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Withdraw\",\"inputs\":[{\"name\":\"fromPubKey\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientRedirectAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientWithdrawAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]}]",
+	Bin: "0x60806040525f80546001600160a01b03191673eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee179055348015610034575f80fd5b50610a32806100425f395ff3fe60806040526004361061003e575f3560e01c806304a3267f146100425780635b70fa2914610063578063bf53253b14610076578063bf9b6a55146100c6575b5f80fd5b34801561004d575f80fd5b5061006161005c3660046107b7565b6100e5565b005b610061610071366004610832565b610229565b348015610081575f80fd5b5061009d73eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee81565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b3480156100d1575f80fd5b506100616100e03660046107b7565b6103a1565b6030841461011f576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60208214610159576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610169600a640773594000610905565b67ffffffffffffffff168167ffffffffffffffff1610156101b6576040517febec602100000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b82826040516101c692919061092b565b604051809103902085856040516101de92919061092b565b60405190819003812067ffffffffffffffff84168252907fd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a69060200160405180910390a35050505050565b60308614610263576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6020841461029d576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b606081146102d7576040517f4be6321b00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f5473ffffffffffffffffffffffffffffffffffffffff167fffffffffffffffffffffffff1111111111111111111111111111111111111112016103245761031d61053a565b925061032d565b61032d83610610565b848460405161033d92919061092b565b6040518091039020878760405161035592919061092b565b60405180910390207f1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df8585856040516103909392919061093a565b60405180910390a350505050505050565b6030841415806103b2575060308214155b156103e9576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6103f9600a640773594000610905565b67ffffffffffffffff168167ffffffffffffffff161015610446576040517f0494a69c00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b604080517f01000000000000000000000000000000000000000000000000000000000000006020808301919091525f60218301523360601b7fffffffffffffffffffffffffffffffffffffffff00000000000000000000000016602c83015282518083039091018152908201918290526104bf91610997565b604051809103902083836040516104d792919061092b565b604051809103902086866040516104ef92919061092b565b60405190819003812067ffffffffffffffff85168252907fe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f9060200160405180910390a45050505050565b5f67ffffffffffffffff34111561057d576040517f2aa6673400000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6407735940003410156105bc576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6105ca633b9aca00346109c3565b15610601576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b61060b5f34610739565b503490565b5f546040517f9dc29fac00000000000000000000000000000000000000000000000000000000815233600482015267ffffffffffffffff8316602482015273ffffffffffffffffffffffffffffffffffffffff90911690639dc29fac906044015f604051808303815f87803b158015610687575f80fd5b505af1158015610699573d5f803e3d5ffd5b50505064077359400067ffffffffffffffff8316101590506106e7576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6106f5633b9aca00826109d6565b67ffffffffffffffff1615610736576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b50565b5f385f3884865af16107525763b12d13eb5f526004601cfd5b5050565b5f8083601f840112610766575f80fd5b50813567ffffffffffffffff81111561077d575f80fd5b602083019150836020828501011115610794575f80fd5b9250929050565b803567ffffffffffffffff811681146107b2575f80fd5b919050565b5f805f805f606086880312156107cb575f80fd5b853567ffffffffffffffff808211156107e2575f80fd5b6107ee89838a01610756565b90975095506020880135915080821115610806575f80fd5b5061081388828901610756565b909450925061082690506040870161079b565b90509295509295909350565b5f805f805f805f6080888a031215610848575f80fd5b873567ffffffffffffffff8082111561085f575f80fd5b61086b8b838c01610756565b909950975060208a0135915080821115610883575f80fd5b61088f8b838c01610756565b90975095508591506108a360408b0161079b565b945060608a01359150808211156108b8575f80fd5b506108c58a828b01610756565b989b979a50959850939692959293505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b5f67ffffffffffffffff8084168061091f5761091f6108d8565b92169190910492915050565b818382375f9101908152919050565b67ffffffffffffffff8416815260406020820152816040820152818360608301375f818301606090810191909152601f9092017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016010192915050565b5f82515f5b818110156109b6576020818601810151858301520161099c565b505f920191825250919050565b5f826109d1576109d16108d8565b500690565b5f67ffffffffffffffff808416806109f0576109f06108d8565b9216919091069291505056fea264697066735822122036a43a1f65fbab5739579d174d1309dfccabbb01228513dd3a67526530beae0764736f6c63430008180033",
 }
 
 // StakingABI is the input ABI used to generate the binding from.
@@ -202,46 +202,98 @@ func (_Staking *StakingTransactorRaw) Transact(opts *bind.TransactOpts, method s
 	return _Staking.Contract.contract.Transact(opts, method, params...)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x2414da0c.
+// NATIVEASSET is a free data retrieval call binding the contract method 0xbf53253b.
 //
-// Solidity: function deposit(bytes validatorPubkey, uint64 amount) payable returns()
-func (_Staking *StakingTransactor) Deposit(opts *bind.TransactOpts, validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.contract.Transact(opts, "deposit", validatorPubkey, amount)
+// Solidity: function NATIVE_ASSET() view returns(address)
+func (_Staking *StakingCaller) NATIVEASSET(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _Staking.contract.Call(opts, &out, "NATIVE_ASSET")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x2414da0c.
+// NATIVEASSET is a free data retrieval call binding the contract method 0xbf53253b.
 //
-// Solidity: function deposit(bytes validatorPubkey, uint64 amount) payable returns()
-func (_Staking *StakingSession) Deposit(validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.Contract.Deposit(&_Staking.TransactOpts, validatorPubkey, amount)
+// Solidity: function NATIVE_ASSET() view returns(address)
+func (_Staking *StakingSession) NATIVEASSET() (common.Address, error) {
+	return _Staking.Contract.NATIVEASSET(&_Staking.CallOpts)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x2414da0c.
+// NATIVEASSET is a free data retrieval call binding the contract method 0xbf53253b.
 //
-// Solidity: function deposit(bytes validatorPubkey, uint64 amount) payable returns()
-func (_Staking *StakingTransactorSession) Deposit(validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.Contract.Deposit(&_Staking.TransactOpts, validatorPubkey, amount)
+// Solidity: function NATIVE_ASSET() view returns(address)
+func (_Staking *StakingCallerSession) NATIVEASSET() (common.Address, error) {
+	return _Staking.Contract.NATIVEASSET(&_Staking.CallOpts)
 }
 
-// Withdraw is a paid mutator transaction binding the contract method 0x9813954e.
+// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function withdraw(bytes validatorPubkey, uint64 amount) payable returns()
-func (_Staking *StakingTransactor) Withdraw(opts *bind.TransactOpts, validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.contract.Transact(opts, "withdraw", validatorPubkey, amount)
+// Solidity: function deposit(bytes validatorPubKey, bytes stakingCredentials, uint64 amount, bytes signature) payable returns()
+func (_Staking *StakingTransactor) Deposit(opts *bind.TransactOpts, validatorPubKey []byte, stakingCredentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "deposit", validatorPubKey, stakingCredentials, amount, signature)
 }
 
-// Withdraw is a paid mutator transaction binding the contract method 0x9813954e.
+// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function withdraw(bytes validatorPubkey, uint64 amount) payable returns()
-func (_Staking *StakingSession) Withdraw(validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.Contract.Withdraw(&_Staking.TransactOpts, validatorPubkey, amount)
+// Solidity: function deposit(bytes validatorPubKey, bytes stakingCredentials, uint64 amount, bytes signature) payable returns()
+func (_Staking *StakingSession) Deposit(validatorPubKey []byte, stakingCredentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
+	return _Staking.Contract.Deposit(&_Staking.TransactOpts, validatorPubKey, stakingCredentials, amount, signature)
 }
 
-// Withdraw is a paid mutator transaction binding the contract method 0x9813954e.
+// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function withdraw(bytes validatorPubkey, uint64 amount) payable returns()
-func (_Staking *StakingTransactorSession) Withdraw(validatorPubkey []byte, amount uint64) (*types.Transaction, error) {
-	return _Staking.Contract.Withdraw(&_Staking.TransactOpts, validatorPubkey, amount)
+// Solidity: function deposit(bytes validatorPubKey, bytes stakingCredentials, uint64 amount, bytes signature) payable returns()
+func (_Staking *StakingTransactorSession) Deposit(validatorPubKey []byte, stakingCredentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
+	return _Staking.Contract.Deposit(&_Staking.TransactOpts, validatorPubKey, stakingCredentials, amount, signature)
+}
+
+// Redirect is a paid mutator transaction binding the contract method 0xbf9b6a55.
+//
+// Solidity: function redirect(bytes fromPubKey, bytes toPubKey, uint64 amount) returns()
+func (_Staking *StakingTransactor) Redirect(opts *bind.TransactOpts, fromPubKey []byte, toPubKey []byte, amount uint64) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "redirect", fromPubKey, toPubKey, amount)
+}
+
+// Redirect is a paid mutator transaction binding the contract method 0xbf9b6a55.
+//
+// Solidity: function redirect(bytes fromPubKey, bytes toPubKey, uint64 amount) returns()
+func (_Staking *StakingSession) Redirect(fromPubKey []byte, toPubKey []byte, amount uint64) (*types.Transaction, error) {
+	return _Staking.Contract.Redirect(&_Staking.TransactOpts, fromPubKey, toPubKey, amount)
+}
+
+// Redirect is a paid mutator transaction binding the contract method 0xbf9b6a55.
+//
+// Solidity: function redirect(bytes fromPubKey, bytes toPubKey, uint64 amount) returns()
+func (_Staking *StakingTransactorSession) Redirect(fromPubKey []byte, toPubKey []byte, amount uint64) (*types.Transaction, error) {
+	return _Staking.Contract.Redirect(&_Staking.TransactOpts, fromPubKey, toPubKey, amount)
+}
+
+// Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
+//
+// Solidity: function withdraw(bytes validatorPubKey, bytes withdrawalCredentials, uint64 amount) returns()
+func (_Staking *StakingTransactor) Withdraw(opts *bind.TransactOpts, validatorPubKey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "withdraw", validatorPubKey, withdrawalCredentials, amount)
+}
+
+// Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
+//
+// Solidity: function withdraw(bytes validatorPubKey, bytes withdrawalCredentials, uint64 amount) returns()
+func (_Staking *StakingSession) Withdraw(validatorPubKey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
+	return _Staking.Contract.Withdraw(&_Staking.TransactOpts, validatorPubKey, withdrawalCredentials, amount)
+}
+
+// Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
+//
+// Solidity: function withdraw(bytes validatorPubKey, bytes withdrawalCredentials, uint64 amount) returns()
+func (_Staking *StakingTransactorSession) Withdraw(validatorPubKey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
+	return _Staking.Contract.Withdraw(&_Staking.TransactOpts, validatorPubKey, withdrawalCredentials, amount)
 }
 
 // StakingDepositIterator is returned from FilterDeposit and is used to iterate over the raw logs and unpacked data for Deposit events raised by the Staking contract.
@@ -313,30 +365,49 @@ func (it *StakingDepositIterator) Close() error {
 
 // StakingDeposit represents a Deposit event raised by the Staking contract.
 type StakingDeposit struct {
-	ValidatorPubkey       []byte
-	WithdrawalCredentials []byte
-	Amount                uint64
-	Raw                   types.Log // Blockchain specific contextual infos
+	ValidatorPubKey    common.Hash
+	StakingCredentials common.Hash
+	Amount             uint64
+	Signature          []byte
+	Raw                types.Log // Blockchain specific contextual infos
 }
 
-// FilterDeposit is a free log retrieval operation binding the contract event 0x163244a852f099315d72dcfbb5b1031ca0365543f2ac1849bdb69b01d8648b18.
+// FilterDeposit is a free log retrieval operation binding the contract event 0x1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df.
 //
-// Solidity: event Deposit(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) FilterDeposit(opts *bind.FilterOpts) (*StakingDepositIterator, error) {
+// Solidity: event Deposit(bytes indexed validatorPubKey, bytes indexed stakingCredentials, uint64 amount, bytes signature)
+func (_Staking *StakingFilterer) FilterDeposit(opts *bind.FilterOpts, validatorPubKey [][]byte, stakingCredentials [][]byte) (*StakingDepositIterator, error) {
 
-	logs, sub, err := _Staking.contract.FilterLogs(opts, "Deposit")
+	var validatorPubKeyRule []interface{}
+	for _, validatorPubKeyItem := range validatorPubKey {
+		validatorPubKeyRule = append(validatorPubKeyRule, validatorPubKeyItem)
+	}
+	var stakingCredentialsRule []interface{}
+	for _, stakingCredentialsItem := range stakingCredentials {
+		stakingCredentialsRule = append(stakingCredentialsRule, stakingCredentialsItem)
+	}
+
+	logs, sub, err := _Staking.contract.FilterLogs(opts, "Deposit", validatorPubKeyRule, stakingCredentialsRule)
 	if err != nil {
 		return nil, err
 	}
 	return &StakingDepositIterator{contract: _Staking.contract, event: "Deposit", logs: logs, sub: sub}, nil
 }
 
-// WatchDeposit is a free log subscription operation binding the contract event 0x163244a852f099315d72dcfbb5b1031ca0365543f2ac1849bdb69b01d8648b18.
+// WatchDeposit is a free log subscription operation binding the contract event 0x1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df.
 //
-// Solidity: event Deposit(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *StakingDeposit) (event.Subscription, error) {
+// Solidity: event Deposit(bytes indexed validatorPubKey, bytes indexed stakingCredentials, uint64 amount, bytes signature)
+func (_Staking *StakingFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *StakingDeposit, validatorPubKey [][]byte, stakingCredentials [][]byte) (event.Subscription, error) {
 
-	logs, sub, err := _Staking.contract.WatchLogs(opts, "Deposit")
+	var validatorPubKeyRule []interface{}
+	for _, validatorPubKeyItem := range validatorPubKey {
+		validatorPubKeyRule = append(validatorPubKeyRule, validatorPubKeyItem)
+	}
+	var stakingCredentialsRule []interface{}
+	for _, stakingCredentialsItem := range stakingCredentials {
+		stakingCredentialsRule = append(stakingCredentialsRule, stakingCredentialsItem)
+	}
+
+	logs, sub, err := _Staking.contract.WatchLogs(opts, "Deposit", validatorPubKeyRule, stakingCredentialsRule)
 	if err != nil {
 		return nil, err
 	}
@@ -368,9 +439,9 @@ func (_Staking *StakingFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- 
 	}), nil
 }
 
-// ParseDeposit is a log parse operation binding the contract event 0x163244a852f099315d72dcfbb5b1031ca0365543f2ac1849bdb69b01d8648b18.
+// ParseDeposit is a log parse operation binding the contract event 0x1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df.
 //
-// Solidity: event Deposit(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount)
+// Solidity: event Deposit(bytes indexed validatorPubKey, bytes indexed stakingCredentials, uint64 amount, bytes signature)
 func (_Staking *StakingFilterer) ParseDeposit(log types.Log) (*StakingDeposit, error) {
 	event := new(StakingDeposit)
 	if err := _Staking.contract.UnpackLog(event, "Deposit", log); err != nil {
@@ -380,9 +451,9 @@ func (_Staking *StakingFilterer) ParseDeposit(log types.Log) (*StakingDeposit, e
 	return event, nil
 }
 
-// StakingWithdrawalIterator is returned from FilterWithdrawal and is used to iterate over the raw logs and unpacked data for Withdrawal events raised by the Staking contract.
-type StakingWithdrawalIterator struct {
-	Event *StakingWithdrawal // Event containing the contract specifics and raw log
+// StakingRedirectIterator is returned from FilterRedirect and is used to iterate over the raw logs and unpacked data for Redirect events raised by the Staking contract.
+type StakingRedirectIterator struct {
+	Event *StakingRedirect // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -396,7 +467,7 @@ type StakingWithdrawalIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *StakingWithdrawalIterator) Next() bool {
+func (it *StakingRedirectIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -405,7 +476,7 @@ func (it *StakingWithdrawalIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(StakingWithdrawal)
+			it.Event = new(StakingRedirect)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -420,7 +491,7 @@ func (it *StakingWithdrawalIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(StakingWithdrawal)
+		it.Event = new(StakingRedirect)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -436,43 +507,70 @@ func (it *StakingWithdrawalIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *StakingWithdrawalIterator) Error() error {
+func (it *StakingRedirectIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *StakingWithdrawalIterator) Close() error {
+func (it *StakingRedirectIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// StakingWithdrawal represents a Withdrawal event raised by the Staking contract.
-type StakingWithdrawal struct {
-	ValidatorPubkey       []byte
-	WithdrawalCredentials []byte
-	Amount                uint64
-	Raw                   types.Log // Blockchain specific contextual infos
+// StakingRedirect represents a Redirect event raised by the Staking contract.
+type StakingRedirect struct {
+	FromPubKey         common.Hash
+	ToPubKey           common.Hash
+	StakingCredentials common.Hash
+	Amount             uint64
+	Raw                types.Log // Blockchain specific contextual infos
 }
 
-// FilterWithdrawal is a free log retrieval operation binding the contract event 0x3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4.
+// FilterRedirect is a free log retrieval operation binding the contract event 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f.
 //
-// Solidity: event Withdrawal(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) FilterWithdrawal(opts *bind.FilterOpts) (*StakingWithdrawalIterator, error) {
+// Solidity: event Redirect(bytes indexed fromPubKey, bytes indexed toPubKey, bytes indexed stakingCredentials, uint64 amount)
+func (_Staking *StakingFilterer) FilterRedirect(opts *bind.FilterOpts, fromPubKey [][]byte, toPubKey [][]byte, stakingCredentials [][]byte) (*StakingRedirectIterator, error) {
 
-	logs, sub, err := _Staking.contract.FilterLogs(opts, "Withdrawal")
+	var fromPubKeyRule []interface{}
+	for _, fromPubKeyItem := range fromPubKey {
+		fromPubKeyRule = append(fromPubKeyRule, fromPubKeyItem)
+	}
+	var toPubKeyRule []interface{}
+	for _, toPubKeyItem := range toPubKey {
+		toPubKeyRule = append(toPubKeyRule, toPubKeyItem)
+	}
+	var stakingCredentialsRule []interface{}
+	for _, stakingCredentialsItem := range stakingCredentials {
+		stakingCredentialsRule = append(stakingCredentialsRule, stakingCredentialsItem)
+	}
+
+	logs, sub, err := _Staking.contract.FilterLogs(opts, "Redirect", fromPubKeyRule, toPubKeyRule, stakingCredentialsRule)
 	if err != nil {
 		return nil, err
 	}
-	return &StakingWithdrawalIterator{contract: _Staking.contract, event: "Withdrawal", logs: logs, sub: sub}, nil
+	return &StakingRedirectIterator{contract: _Staking.contract, event: "Redirect", logs: logs, sub: sub}, nil
 }
 
-// WatchWithdrawal is a free log subscription operation binding the contract event 0x3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4.
+// WatchRedirect is a free log subscription operation binding the contract event 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f.
 //
-// Solidity: event Withdrawal(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan<- *StakingWithdrawal) (event.Subscription, error) {
+// Solidity: event Redirect(bytes indexed fromPubKey, bytes indexed toPubKey, bytes indexed stakingCredentials, uint64 amount)
+func (_Staking *StakingFilterer) WatchRedirect(opts *bind.WatchOpts, sink chan<- *StakingRedirect, fromPubKey [][]byte, toPubKey [][]byte, stakingCredentials [][]byte) (event.Subscription, error) {
 
-	logs, sub, err := _Staking.contract.WatchLogs(opts, "Withdrawal")
+	var fromPubKeyRule []interface{}
+	for _, fromPubKeyItem := range fromPubKey {
+		fromPubKeyRule = append(fromPubKeyRule, fromPubKeyItem)
+	}
+	var toPubKeyRule []interface{}
+	for _, toPubKeyItem := range toPubKey {
+		toPubKeyRule = append(toPubKeyRule, toPubKeyItem)
+	}
+	var stakingCredentialsRule []interface{}
+	for _, stakingCredentialsItem := range stakingCredentials {
+		stakingCredentialsRule = append(stakingCredentialsRule, stakingCredentialsItem)
+	}
+
+	logs, sub, err := _Staking.contract.WatchLogs(opts, "Redirect", fromPubKeyRule, toPubKeyRule, stakingCredentialsRule)
 	if err != nil {
 		return nil, err
 	}
@@ -482,8 +580,8 @@ func (_Staking *StakingFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(StakingWithdrawal)
-				if err := _Staking.contract.UnpackLog(event, "Withdrawal", log); err != nil {
+				event := new(StakingRedirect)
+				if err := _Staking.contract.UnpackLog(event, "Redirect", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -504,12 +602,166 @@ func (_Staking *StakingFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan
 	}), nil
 }
 
-// ParseWithdrawal is a log parse operation binding the contract event 0x3cd2410b5f33d39669545e9f38ba4d4c6318f2b8f1a33f001bf6c03b2ab180b4.
+// ParseRedirect is a log parse operation binding the contract event 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f.
 //
-// Solidity: event Withdrawal(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount)
-func (_Staking *StakingFilterer) ParseWithdrawal(log types.Log) (*StakingWithdrawal, error) {
-	event := new(StakingWithdrawal)
-	if err := _Staking.contract.UnpackLog(event, "Withdrawal", log); err != nil {
+// Solidity: event Redirect(bytes indexed fromPubKey, bytes indexed toPubKey, bytes indexed stakingCredentials, uint64 amount)
+func (_Staking *StakingFilterer) ParseRedirect(log types.Log) (*StakingRedirect, error) {
+	event := new(StakingRedirect)
+	if err := _Staking.contract.UnpackLog(event, "Redirect", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// StakingWithdrawIterator is returned from FilterWithdraw and is used to iterate over the raw logs and unpacked data for Withdraw events raised by the Staking contract.
+type StakingWithdrawIterator struct {
+	Event *StakingWithdraw // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *StakingWithdrawIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(StakingWithdraw)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(StakingWithdraw)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *StakingWithdrawIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *StakingWithdrawIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// StakingWithdraw represents a Withdraw event raised by the Staking contract.
+type StakingWithdraw struct {
+	FromPubKey            common.Hash
+	WithdrawalCredentials common.Hash
+	Amount                uint64
+	Raw                   types.Log // Blockchain specific contextual infos
+}
+
+// FilterWithdraw is a free log retrieval operation binding the contract event 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6.
+//
+// Solidity: event Withdraw(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
+func (_Staking *StakingFilterer) FilterWithdraw(opts *bind.FilterOpts, fromPubKey [][]byte, withdrawalCredentials [][]byte) (*StakingWithdrawIterator, error) {
+
+	var fromPubKeyRule []interface{}
+	for _, fromPubKeyItem := range fromPubKey {
+		fromPubKeyRule = append(fromPubKeyRule, fromPubKeyItem)
+	}
+	var withdrawalCredentialsRule []interface{}
+	for _, withdrawalCredentialsItem := range withdrawalCredentials {
+		withdrawalCredentialsRule = append(withdrawalCredentialsRule, withdrawalCredentialsItem)
+	}
+
+	logs, sub, err := _Staking.contract.FilterLogs(opts, "Withdraw", fromPubKeyRule, withdrawalCredentialsRule)
+	if err != nil {
+		return nil, err
+	}
+	return &StakingWithdrawIterator{contract: _Staking.contract, event: "Withdraw", logs: logs, sub: sub}, nil
+}
+
+// WatchWithdraw is a free log subscription operation binding the contract event 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6.
+//
+// Solidity: event Withdraw(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
+func (_Staking *StakingFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<- *StakingWithdraw, fromPubKey [][]byte, withdrawalCredentials [][]byte) (event.Subscription, error) {
+
+	var fromPubKeyRule []interface{}
+	for _, fromPubKeyItem := range fromPubKey {
+		fromPubKeyRule = append(fromPubKeyRule, fromPubKeyItem)
+	}
+	var withdrawalCredentialsRule []interface{}
+	for _, withdrawalCredentialsItem := range withdrawalCredentials {
+		withdrawalCredentialsRule = append(withdrawalCredentialsRule, withdrawalCredentialsItem)
+	}
+
+	logs, sub, err := _Staking.contract.WatchLogs(opts, "Withdraw", fromPubKeyRule, withdrawalCredentialsRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(StakingWithdraw)
+				if err := _Staking.contract.UnpackLog(event, "Withdraw", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseWithdraw is a log parse operation binding the contract event 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6.
+//
+// Solidity: event Withdraw(bytes indexed fromPubKey, bytes indexed withdrawalCredentials, uint64 amount)
+func (_Staking *StakingFilterer) ParseWithdraw(log types.Log) (*StakingWithdraw, error) {
+	event := new(StakingWithdraw)
+	if err := _Staking.contract.UnpackLog(event, "Withdraw", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
