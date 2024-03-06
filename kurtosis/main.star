@@ -1,4 +1,3 @@
-reth = import_module("github.com/kurtosis-tech/ethereum-package/src/el/reth/reth_launcher.star")
 input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
 el_cl_genesis_data_generator = import_module(
     "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
@@ -33,11 +32,10 @@ def run(plan, args = {}):
 
     node_modules = {}
     for node in args_with_right_defaults.participants:
-        if node.el_client_type != execution_types.CLIENTS.reth:
-            if node.el_client_type not in node_modules.keys():
-                node_path = "./src/nodes/execution/{}/constants.star".format(node.el_client_type)
-                node_module = import_module(node_path)
-                node_modules[node.el_client_type] = node_module
+        if node.el_client_type not in node_modules.keys():
+            node_path = "./src/nodes/execution/{}/constants.star".format(node.el_client_type)
+            node_module = import_module(node_path)
+            node_modules[node.el_client_type] = node_module
     # 2. Upload jwt
     jwt_file = execution.upload_global_files(plan, node_modules)
 
@@ -148,18 +146,15 @@ def run(plan, args = {}):
     # 4. Start network participants
     for n in range(num_participants):
         el_client_type = args_with_right_defaults.participants[n].el_client_type
+        node_module = node_modules[el_client_type]
         el_service_name = "el-{}-{}-beaconkit".format(n, el_client_type)
 
-        # 4a. Launch EL
-        if el_client_type == execution_types.CLIENTS.geth:
-            el_service_config_dict = execution.get_default_service_config(el_service_name, geth)
-            el_service_config_dict = execution.add_bootnodes(node_modules[el_client_type], el_service_config_dict, el_enode_addrs)
-            plan.print(el_service_config_dict)
-            execution.deploy_node(plan, el_service_config_dict)
-        else:
-            el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_enode_addrs)
+         # 4a. Launch EL
+        el_service_config_dict = execution.get_default_service_config(el_service_name, node_module)
+        el_service_config_dict = execution.add_bootnodes(node_module, el_service_config_dict, el_enode_addrs)
+        el_client_service = execution.deploy_node(plan, el_service_config_dict)
 
-        el_client_service = plan.get_service(el_service_name)
+
         enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name, el_client_type)
         el_enode_addrs.append(enode_addr)
 
