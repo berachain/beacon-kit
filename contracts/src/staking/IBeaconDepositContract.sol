@@ -41,8 +41,8 @@ interface IBeaconDepositContract {
      * @param signature the signature of the deposit message, only checked when creating a new validator.
      */
     event Deposit(
-        bytes indexed validatorPubKey,
-        bytes indexed stakingCredentials,
+        bytes validatorPubKey,
+        bytes stakingCredentials,
         uint64 amount,
         bytes signature
     );
@@ -55,9 +55,9 @@ interface IBeaconDepositContract {
      * @param amount The amount of stake be redirected, in Gwei.
      */
     event Redirect(
-        bytes indexed fromPubKey,
-        bytes indexed toPubKey,
-        bytes indexed stakingCredentials,
+        bytes fromPubKey,
+        bytes toPubKey,
+        bytes stakingCredentials,
         uint64 amount
     );
 
@@ -68,9 +68,7 @@ interface IBeaconDepositContract {
      * @param amount The amount to be withdrawn from the validator, in Gwei.
      */
     event Withdraw(
-        bytes indexed fromPubKey,
-        bytes indexed withdrawalCredentials,
-        uint64 amount
+        bytes fromPubKey, bytes withdrawalCredentials, uint64 amount
     );
 
     // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
