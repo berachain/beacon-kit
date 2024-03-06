@@ -136,12 +136,19 @@ func NewDefaultBeaconKitRuntime(
 	if err != nil {
 		return nil, err
 	}
+	logProcessor, err := loghandler.NewProcessor(
+		loghandler.WithEngineCaller(engineClient),
+		loghandler.WithLogFactory(logFactory),
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
-		execution.WithLogFactory(logFactory),
+		execution.WithLogProcessor(logProcessor),
 	)
 
 	// Build the local builder service.

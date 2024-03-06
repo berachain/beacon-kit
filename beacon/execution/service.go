@@ -43,8 +43,8 @@ type Service struct {
 	// engine gives the notifier access to the engine api of the execution
 	// client.
 	engine engineclient.Caller
-	// logFactory is the factory for creating objects from Ethereum logs.
-	logFactory LogFactory
+	// logProcessor processes Ethereum logs.
+	logProcessor LogProcessor
 }
 
 // Start spawns any goroutines required by the service.
