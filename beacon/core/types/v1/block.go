@@ -33,6 +33,8 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Deposit,BeaconBlock,BeaconBlockDeneb --include ../../../../primitives,$HOME/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
+
 // IsNil checks if the BeaconBlock is nil or not.
 func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil

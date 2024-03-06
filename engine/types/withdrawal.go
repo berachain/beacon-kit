@@ -33,12 +33,11 @@ import (
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
 //go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
-//go:generate go run github.com/itsdevbear/fastssz/sszgen -path . -objs Withdrawal -include ../../primitives,$HOME/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common -output withdrawal.ssz.go
 type Withdrawal struct {
 	Index     uint64                      `json:"index"          ssz-size:"8"`
-	Validator primitives.ValidatorIndex   `json:"validatorIndex"`
+	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
 	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    primitives.SSZUint64        `json:"amount"`
+	Amount    uint64                      `json:"amount"         ssz-size:"8"`
 }
 
 // field type overrides for gencodec.

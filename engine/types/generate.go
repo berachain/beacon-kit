@@ -29,11 +29,26 @@ import "github.com/ethereum/go-ethereum/common/hexutil"
 
 // For cleanliness we put all go:generate directives and marshalling overrides
 // in a single file.
-//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
+
+//go:generate go run github.com/itsdevbear/fastssz/sszgen -path . -objs ExecutableDataDeneb,Withdrawal -include ../../primitives,$HOME/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common,$HOME/go/pkg/mod/github.com/holiman/uint256@v1.2.4 -output generated.ssz.go
 
 // JSON type overrides for PayloadAttributes.
 type payloadAttributesJSONMarshaling struct {
 	Timestamp             hexutil.Uint64
 	PrevRandao            hexutil.Bytes
 	ParentBeaconBlockRoot hexutil.Bytes
+}
+
+// JSON type overrides for ExecutableDataDeneb.
+type executableDataDenebMarshaling struct {
+	Number        hexutil.Uint64
+	GasLimit      hexutil.Uint64
+	GasUsed       hexutil.Uint64
+	Timestamp     hexutil.Uint64
+	BaseFeePerGas hexutil.Bytes
+	ExtraData     hexutil.Bytes
+	LogsBloom     hexutil.Bytes
+	Transactions  []hexutil.Bytes
+	BlobGasUsed   hexutil.Uint64
+	ExcessBlobGas hexutil.Uint64
 }

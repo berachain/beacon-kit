@@ -25,8 +25,6 @@
 
 package enginetypes
 
-import "github.com/itsdevbear/bolaris/primitives"
-
 // NewWithdrawal creates a new Withdrawal.
 func NewWithdrawal(
 	_ []byte, // validatorPubkey
@@ -34,6 +32,6 @@ func NewWithdrawal(
 ) *Withdrawal {
 	// TODO: implement
 	return &Withdrawal{
-		Amount: primitives.SSZUint64(amount),
+		Amount: amount,
 	}
 }

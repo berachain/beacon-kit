@@ -31,6 +31,7 @@ import (
 )
 
 //nolint:lll // struct tags.
+//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 type PayloadAttributes struct {
 	// version is the version of the payload attributes.
 	version int

@@ -46,12 +46,11 @@ forge-clean: |
 ###############################################################################
 
 generate:
-	@$(MAKE) abigen-install mockery 
+	@$(MAKE) sszgen-clean abigen-install mockery 
 	@for module in $(MODULES); do \
 		echo "Running go generate in $$module"; \
 		(cd $$module && go generate ./...) || exit 1; \
 	done
-	@$(MAKE) sszgen
 
 abigen-install:
 	@echo "--> Installing abigen"
@@ -399,14 +398,6 @@ sszgen-install:
 sszgen-clean:
 	@find . -name '*.pb_encoding.go' -delete
 	@find . -name '*.ssz.go' -delete
-
-sszgen:
-	@$(MAKE) sszgen-install sszgen-clean
-	@echo "--> Running sszgen on all structs with ssz tags"
-	@go run github.com/prysmaticlabs/fastssz/sszgen -path ./beacon/core/types/v1 \
-	-objs Deposit,BeaconBlock,BeaconBlockDeneb,\
-    --include ./primitives,\
-	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
 
 ##############################################################################
 ###                             Dependencies                                ###
