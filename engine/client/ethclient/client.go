@@ -71,7 +71,7 @@ func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
-) (*enginetypes.ForkChoiceResponse, error) {
+) (*enginetypes.ForkchoiceResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
@@ -82,8 +82,8 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 	method string,
 	state *enginetypes.ForkchoiceState,
 	attrs any,
-) (*enginetypes.ForkChoiceResponse, error) {
-	result := &enginetypes.ForkChoiceResponse{}
+) (*enginetypes.ForkchoiceResponse, error) {
+	result := &enginetypes.ForkchoiceResponse{}
 
 	if err := s.Client.Client().CallContext(
 		ctx, result, method, state, attrs,

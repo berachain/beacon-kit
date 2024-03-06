@@ -33,7 +33,7 @@ type (
 	PayloadID          = engine.PayloadID
 	ForkchoiceState    = engine.ForkchoiceStateV1
 	PayloadStatus      = engine.PayloadStatusV1
-	ForkChoiceResponse = engine.ForkChoiceResponse
+	ForkchoiceResponse = engine.ForkChoiceResponse
 )
 
 type PayloadStatusStr = string
