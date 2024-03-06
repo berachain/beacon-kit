@@ -62,33 +62,32 @@ print(enode_str)
     peer_nodes = result.output
     return peer_nodes
 
-
 def get_enode_addr(plan, el_service, el_service_name, el_client_type):
     request_recipe = None
     if el_client_type == execution_types.CLIENTS.reth:
         request_recipe = PostHttpRequestRecipe(
-            endpoint="",
-            body='{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
-            content_type="application/json",
-            port_id=RPC_PORT_ID,
-            extract={
+            endpoint = "",
+            body = '{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
+            content_type = "application/json",
+            port_id = RPC_PORT_ID,
+            extract = {
                 "enode": """.result.id | split("?") | .[0][2:] | ("enode://" + .)""",
             },
         )
     elif el_client_type == execution_types.CLIENTS.geth:
         request_recipe = PostHttpRequestRecipe(
-            endpoint="",
-            body='{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
-            content_type="application/json",
-            port_id=RPC_PORT_ID,
-            extract={
+            endpoint = "",
+            body = '{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
+            content_type = "application/json",
+            port_id = RPC_PORT_ID,
+            extract = {
                 "enode": """.result.enode | split("?") | .[0]""",
             },
         )
 
     response = plan.request(
         service_name = el_service_name,
-        recipe=request_recipe,
+        recipe = request_recipe,
     )
 
     enode = response["extract.enode"]
