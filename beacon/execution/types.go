@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
@@ -47,7 +46,7 @@ type BeaconStorageBackend interface {
 type LogProcessor interface {
 	ProcessEth1Block(
 		ctx context.Context,
-		blockHash ethcommon.Hash,
+		blockHash common.Hash,
 	) error
 }
 

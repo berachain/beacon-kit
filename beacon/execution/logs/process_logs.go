@@ -76,12 +76,12 @@ func (f *Factory) ProcessLogs(
 	}
 
 	// Filter out nil values
-	noNilContainers := make([]LogContainer, 0, len(containers))
+	nonNilContainers := make([]LogContainer, 0, len(containers))
 	for _, container := range containers {
 		if container != nil {
-			noNilContainers = append(noNilContainers, container)
+			nonNilContainers = append(nonNilContainers, container)
 		}
 	}
 
-	return noNilContainers, nil
+	return nonNilContainers, nil
 }
