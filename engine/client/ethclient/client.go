@@ -55,8 +55,8 @@ func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
 func (s *Eth1Client) NewPayloadV3(
 	ctx context.Context, payload *enginev1.ExecutionPayloadDeneb,
 	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
-) (*enginev1.PayloadStatus, error) {
-	result := &enginev1.PayloadStatus{}
+) (*enginetypes.PayloadStatus, error) {
+	result := &enginetypes.PayloadStatus{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
 		(*common.Hash)(parentBlockRoot),
@@ -71,7 +71,7 @@ func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
-) (*ForkchoiceUpdatedResponse, error) {
+) (*enginetypes.ForkchoiceResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
@@ -82,8 +82,8 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 	method string,
 	state *enginetypes.ForkchoiceState,
 	attrs any,
-) (*ForkchoiceUpdatedResponse, error) {
-	result := &ForkchoiceUpdatedResponse{}
+) (*enginetypes.ForkchoiceResponse, error) {
+	result := &enginetypes.ForkchoiceResponse{}
 
 	if err := s.Client.Client().CallContext(
 		ctx, result, method, state, attrs,
@@ -91,7 +91,7 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 		return nil, err
 	}
 
-	if result.Status == nil {
+	if (result.PayloadStatus == enginetypes.PayloadStatus{}) {
 		return nil, ErrNilResponse
 	}
 
