@@ -23,26 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+//nolint:gochecknoglobals // alias.
+package enginetypes
 
-import (
-	"github.com/ethereum/go-ethereum/common"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+import "github.com/ethereum/go-ethereum/beacon/engine"
+
+// There are some types we can borrow from geth.
+type (
+	PayloadID          = engine.PayloadID
+	ForkchoiceState    = engine.ForkchoiceStateV1
+	PayloadStatus      = engine.PayloadStatusV1
+	ForkchoiceResponse = engine.ForkChoiceResponse
 )
 
-// processPayloadStatusResult processes the payload status result and
-// returns the latest valid hash or an error.
-func processPayloadStatusResult(
-	result *enginetypes.PayloadStatus,
-) (*common.Hash, error) {
-	switch result.Status {
-	case enginetypes.PayloadStatusAccepted, enginetypes.PayloadStatusSyncing:
-		return nil, ErrAcceptedSyncingPayloadStatus
-	case enginetypes.PayloadStatusInvalid:
-		return result.LatestValidHash, ErrInvalidPayloadStatus
-	case enginetypes.PayloadStatusValid:
-		return result.LatestValidHash, nil
-	default:
-		return nil, ErrUnknownPayloadStatus
-	}
-}
+type PayloadStatusStr = string
+
+var (
+	PayloadStatusValid    PayloadStatusStr = engine.VALID
+	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
+	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
+	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
+)

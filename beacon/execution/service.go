@@ -112,18 +112,17 @@ func (s *Service) NotifyNewPayload(
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	blkNum uint64,
+	blockHash common.Hash,
 ) ([]*reflect.Value, error) {
 	// Gather all the logs corresponding to
 	// the addresses of interest from this block.
 	logsInBlock, err := s.engine.GetLogs(
 		ctx,
-		blkNum,
-		blkNum,
+		blockHash,
 		s.logFactory.GetRegisteredAddresses(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	return s.logFactory.ProcessLogs(logsInBlock, blkNum)
+	return s.logFactory.ProcessLogs(logsInBlock, blockHash)
 }

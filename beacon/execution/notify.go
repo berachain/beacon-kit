@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -81,10 +80,10 @@ func (s *Service) notifyForkchoiceUpdate(
 ) (*enginetypes.PayloadID, error) {
 	forkChoicer := s.ForkchoiceStore(ctx)
 
-	fcs := &enginev1.ForkchoiceState{
-		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
-		SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash().Bytes(),
-		FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash().Bytes(),
+	fcs := &enginetypes.ForkchoiceState{
+		HeadBlockHash:      fcuConfig.HeadEth1Hash,
+		SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash(),
+		FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash(),
 	}
 
 	s.Logger().Info("notifying forkchoice update",
