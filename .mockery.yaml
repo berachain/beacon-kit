@@ -33,6 +33,11 @@ packages:
       recursive: True
       with-expecter: true
       all: True
+  github.com/itsdevbear/bolaris/engine/client:
+    config:
+      recursive: True
+      with-expecter: true
+      include-regex: Caller
   github.com/itsdevbear/bolaris/engine/client/ethclient:
     config:
       recursive: True
@@ -62,4 +67,4 @@ packages:
     config:
       recursive: True
       with-expecter: true
-      include-regex: LogContainer
+      include-regex: Log*

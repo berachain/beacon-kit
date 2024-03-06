@@ -51,3 +51,12 @@ func WithEngineCaller(ec engineclient.Caller) Option[Processor] {
 		return nil
 	}
 }
+
+// WithLogCache returns an Option for setting the log cache for Processor.
+// (For testing purpose only)
+func WithLogCache(sig ethcommon.Hash, cache LogCache) Option[Processor] {
+	return func(p *Processor) error {
+		p.sigToCache[sig] = cache
+		return nil
+	}
+}
