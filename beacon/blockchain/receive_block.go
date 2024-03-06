@@ -164,7 +164,7 @@ func (s *Service) validateExecutionOnBlock(
 	// In BeaconKit, since we are currently operating on SingleSlot Finality
 	// we purposefully reject any block that is not a child of the last
 	// finalized block.
-	safeHash := s.ForkchoiceStore(ctx).JustifiedCheckpoint()
+	safeHash := s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash()
 	if !bytes.Equal(safeHash[:], payload.GetParentHash()) {
 		return false, fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",

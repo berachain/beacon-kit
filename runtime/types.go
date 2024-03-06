@@ -30,7 +30,7 @@ import (
 
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 

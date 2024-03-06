@@ -99,7 +99,7 @@ func (s *Service) RequestBestBlock(
 		ctx,
 		slot,
 		parentBlockRoot,
-		s.ForkchoiceStore(ctx).JustifiedCheckpoint(),
+		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
 	)
 	if err != nil {
 		return beaconBlock, err

@@ -23,4 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package forkchoicer
+package forkchoice
+
+import (
+	"github.com/ethereum/go-ethereum/common"
+)
+
+// ForkChoicer represents the full fork choice interface composed of all the
+// sub-interfaces.
+type ForkChoicer interface {
+	Reader
+	Writer
+}
+
+type Reader interface {
+	JustifiedPayloadBlockHash() common.Hash
+	FinalizedPayloadBlockHash() common.Hash
+
+	// TODO: eventually deprecate this.
+	HeadBeaconBlock() [32]byte
+}
+
+type Writer interface {
+	BlockProcessor
+
+	// Eventually deprecate this
+	UpdateHeadBeaconBlock([32]byte)
+}
+
+// BlockProcessor processes the block that's used for accounting fork choice.
+type BlockProcessor interface {
+	// InsertNode inserts a new node into the forkchoice.
+	InsertNode(common.Hash) error
+}

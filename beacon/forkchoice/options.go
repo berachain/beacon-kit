@@ -23,28 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-pragma solidity 0.8.24;
-
-interface IStakeERC20 {
-    /**
-     * @notice Burns the specified amount of tokens from the specified account.
-     * @param account The address of the account to burn from.
-     * @param amount The amount of tokens to burn.
-     */
-    function burn(address account, uint256 amount) external;
-
-    /**
-     * @notice Transfers tokens from the sender to the recipient.
-     * @param sender The address of the sender.
-     * @param recipient The address of the recipient.
-     * @param amount The amount of tokens to transfer.
-     * returns True if the transfer was successful, otherwise false.
-     */
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    )
-        external
-        returns (bool);
-}
+package forkchoice
