@@ -25,7 +25,7 @@
 
 package enginetypes
 
-import primitives "github.com/itsdevbear/bolaris/primitives"
+import "github.com/itsdevbear/bolaris/primitives"
 
 // NewWithdrawal creates a new Withdrawal.
 func NewWithdrawal(
