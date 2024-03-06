@@ -157,9 +157,11 @@ func (s *Service) validateExecutionOnBlock(
 		return false, err
 	}
 
-	if payload == nil || payload.IsEmpty() {
+	if payload == nil {
 		return false, errors.New("no payload in beacon block")
 	}
+
+	fmt.Println("payload", payload)
 
 	// In BeaconKit, since we are currently operating on SingleSlot Finality
 	// we purposefully reject any block that is not a child of the last

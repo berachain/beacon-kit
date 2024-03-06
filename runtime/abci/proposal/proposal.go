@@ -26,6 +26,7 @@
 package proposal
 
 import (
+	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -92,11 +93,15 @@ func (h *Handler) PrepareProposalHandler(
 		return &abci.ResponsePrepareProposal{}, err
 	}
 
+	fmt.Println(block)
+
 	// Marshal the block into bytes.
 	beaconBz, err := block.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
+
+	fmt.Println("beaconBz", beaconBz)
 
 	// Run the remainder of the prepare proposal handler.
 	resp, err := h.nextPrepare(ctx, req)

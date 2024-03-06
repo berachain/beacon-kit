@@ -25,7 +25,10 @@
 
 package enginetypes
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 // For cleanliness we put all go:generate directives and marshalling overrides
 // in a single file.
@@ -45,7 +48,7 @@ type executableDataDenebMarshaling struct {
 	GasLimit      hexutil.Uint64
 	GasUsed       hexutil.Uint64
 	Timestamp     hexutil.Uint64
-	BaseFeePerGas hexutil.Bytes
+	Random        common.Hash
 	ExtraData     hexutil.Bytes
 	LogsBloom     hexutil.Bytes
 	Transactions  []hexutil.Bytes

@@ -26,31 +26,77 @@
 package enginetypes
 
 import (
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/config/version"
 	"github.com/itsdevbear/bolaris/math"
+	"github.com/itsdevbear/bolaris/primitives"
 )
+
+type ExecutionPayloadEnvelope interface {
+	GetExecutionPayload() ExecutionPayload
+	GetValue() math.Wei
+	GetBlobsBundle() *BlobsBundleV1
+	ShouldOverrideBuilder() bool
+}
+
+//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -field-override executionPayloadEnvelopeMarshaling -out payload_env.json.go
+//nolint:lll
+type ExecutionPayloadEnvelopeDeneb struct {
+	ExecutionPayload *ExecutableDataDeneb `json:"executionPayload"      gencodec:"required"`
+	BlockValue       *big.Int             `json:"blockValue"            gencodec:"required"`
+	BlobsBundle      *BlobsBundleV1       `json:"blobsBundle"`
+	Override         bool                 `json:"shouldOverrideBuilder"`
+}
+
+func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
+	return e.ExecutionPayload
+}
+
+func (e *ExecutionPayloadEnvelopeDeneb) GetValue() math.Wei {
+	val, ok := uint256.FromBig(e.BlockValue)
+	if !ok {
+		return math.Wei{}
+	}
+	return math.Wei{Int: val}
+}
+
+func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *BlobsBundleV1 {
+	return e.BlobsBundle
+}
+
+func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
+	return e.Override
+}
+
+// JSON type overrides for ExecutionPayloadEnvelope.
+type executionPayloadEnvelopeMarshaling struct {
+	BlockValue *hexutil.Big
+}
 
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
-	ParentHash    common.Hash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  common.Address `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     common.Hash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  common.Hash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        [32]byte       `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        uint64         `json:"blockNumber"   ssz-size:"8"   gencodec:"required"`
-	GasLimit      uint64         `json:"gasLimit"      ssz-size:"8"   gencodec:"required"`
-	GasUsed       uint64         `json:"gasUsed"       ssz-size:"8"   gencodec:"required"`
-	Timestamp     uint64         `json:"timestamp"     ssz-size:"8"   gencodec:"required"`
-	ExtraData     []byte         `json:"extraData"     ssz-size:"32"  gencodec:"required"`
-	BaseFeePerGas []byte         `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     common.Hash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte       `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   uint64         `json:"blobGasUsed"   ssz-size:"32"`
-	ExcessBlobGas uint64         `json:"excessBlobGas" ssz-size:"32"`
+	ParentHash    common.Hash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+	FeeRecipient  common.Address        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+	StateRoot     common.Hash           `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  common.Hash           `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	LogsBloom     []byte                `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+	Random        common.Hash           `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Number        uint64                `json:"blockNumber"      gencodec:"required"`
+	GasLimit      uint64                `json:"gasLimit"        gencodec:"required"`
+	GasUsed       uint64                `json:"gasUsed"          gencodec:"required"`
+	Timestamp     uint64                `json:"timestamp"       gencodec:"required"`
+	ExtraData     []byte                `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+	BaseFeePerGas primitives.SSZUInt256 `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+	BlockHash     common.Hash           `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+	Transactions  [][]byte              `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Withdrawals   []*Withdrawal         `json:"withdrawals"                                      ssz-max:"16"`
+	BlobGasUsed   uint64                `json:"blobGasUsed"`
+	ExcessBlobGas uint64                `json:"excessBlobGas"`
 }
 
 // Version returns the version of the ExecutableDataDeneb.
@@ -64,29 +110,18 @@ func (d *ExecutableDataDeneb) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() common.Hash {
-	return d.ParentHash
+func (d *ExecutableDataDeneb) GetParentHash() []byte {
+	return d.ParentHash[:]
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetFeeRecipient() common.Address {
-	return d.FeeRecipient
+func (d *ExecutableDataDeneb) GetFeeRecipient() []byte {
+	return d.FeeRecipient[:]
 }
 
 // GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() common.Hash {
-	return d.StateRoot
-}
-
-// GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetReceiptsRoot() common.Hash {
-	return d.ReceiptsRoot
-}
-
-// GetValue returns the value of the ExecutableDataDeneb in Wei.
-// TODO: Needs to be on the envelope.
-func (d *ExecutableDataDeneb) GetValue() math.Wei {
-	return math.Wei{}
+func (d *ExecutableDataDeneb) GetBlockHash() []byte {
+	return d.StateRoot[:]
 }
 
 // GetTransactions returns the transactions of the ExecutableDataDeneb.

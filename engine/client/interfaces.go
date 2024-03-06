@@ -62,7 +62,7 @@ type Caller interface {
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(
 		ctx context.Context, payloadID enginetypes.PayloadID, version int,
-	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 
 	// ExecutionBlockByHash retrieves the execution block by its hash.
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,

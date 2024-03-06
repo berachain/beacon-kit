@@ -30,6 +30,7 @@ import "github.com/ethereum/go-ethereum/beacon/engine"
 
 // There are some types we can borrow from geth.
 type (
+	BlobsBundleV1      = engine.BlobsBundleV1
 	PayloadID          = engine.PayloadID
 	ForkchoiceState    = engine.ForkchoiceStateV1
 	PayloadStatus      = engine.PayloadStatusV1

@@ -83,7 +83,7 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 
-	if payload == nil || payload.IsEmpty() {
+	if payload == nil {
 		// TODO: Slash the proposer for not including a payload.
 		return ErrNoPayloadInBeaconBlock
 	}

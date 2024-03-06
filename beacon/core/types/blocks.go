@@ -26,7 +26,6 @@
 package types
 
 import (
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/config/version"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
@@ -43,12 +42,12 @@ func NewBeaconBlock(
 	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		block = &beacontypesv1.BeaconBlockDeneb{
+		block = &BeaconBlockDeneb{
 			Slot:            slot,
-			ParentBlockRoot: parentBlockRoot[:],
-			Body: &beacontypesv1.BeaconBlockBodyDeneb{
-				RandaoReveal: make([]byte, 96), //nolint:gomnd
-				Graffiti:     make([]byte, 32), //nolint:gomnd
+			ParentBlockRoot: parentBlockRoot,
+			Body: &BeaconBlockBodyDeneb{
+				RandaoReveal: [96]byte{}, 
+				Graffiti:     [32]byte{}, 
 			},
 		}
 	default:
@@ -82,7 +81,7 @@ func BeaconBlockFromSSZ(
 	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		block = &beacontypesv1.BeaconBlockDeneb{}
+		block = &BeaconBlockDeneb{}
 	default:
 		return nil, ErrForkVersionNotSupported
 	}

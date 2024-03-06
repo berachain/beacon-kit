@@ -32,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -81,7 +80,7 @@ func (s *Service) NotifyForkchoiceUpdate(
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetPayload(
 	ctx context.Context, payloadID enginetypes.PayloadID, slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	return s.engine.GetPayload(
 		ctx, payloadID,
 		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),

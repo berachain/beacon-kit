@@ -32,7 +32,6 @@ import (
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/config"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -45,7 +44,7 @@ type PayloadBuilder interface {
 		slot primitives.Slot,
 		parentBlockRoot [32]byte,
 		parentEth1Hash common.Hash,
-	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
 // Service is responsible for building beacon blocks.
