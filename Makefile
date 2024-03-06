@@ -68,10 +68,10 @@ mockery:
 generate-check:
 	@$(MAKE) forge-build
 	@$(MAKE) generate
-	@if [ -n "$$(git status --porcelain | grep -vE '\.pb_encoding\.go$$')" ]; then \
+	@if [ -n "$$(git status --porcelain | grep -vE '\.ssz\.go$$')" ]; then \
 		echo "Generated files are not up to date"; \
-		git status -s | grep -vE '\.pb_encoding\.go$$'; \
-		git diff -- . ':(exclude)*.pb_encoding.go'; \
+		git status -s | grep -vE '\.ssz\.go$$'; \
+		git diff -- . ':(exclude)*.ssz.go'; \
 		exit 1; \
 	fi
 

@@ -56,13 +56,6 @@ type ExecutionPayload interface {
 	GetWithdrawals() []*enginev1.Withdrawal
 }
 
-// ExecutionPayloadHeader represents an execution payload header.
-type ExecutionPayloadHeader interface {
-	ExecutionPayloadBody
-	GetTransactionsRoot() []byte
-	GetWithdrawalsRoot() []byte
-}
-
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
 	GetPrevRandao() [32]byte
