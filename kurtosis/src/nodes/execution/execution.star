@@ -1,8 +1,6 @@
 eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
 input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
 
-reth = import_module("./reth/launcher.star")
-# geth = import_module("./geth/launcher.star")
 execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
