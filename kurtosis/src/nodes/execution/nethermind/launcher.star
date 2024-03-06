@@ -76,7 +76,7 @@ VERBOSITY_LEVELS = {
     constants.GLOBAL_CLIENT_LOG_LEVEL.trace: "TRACE",
 }
 
-DEFAULT_IMAGE = "nethermindeth/nethermind:master"
+DEFAULT_IMAGE = "nethermindeth/nethermind:release-1.25.4"
 DEFAULT_ENTRYPOINT_ARGS = ["sh", "-c"]
 DEFAULT_CONFIG_LOCATION = "/root/.nethermind/nethermind-config.cfg"
 DEFAULT_CMD = ["./Nethermind.Runner", "--config", DEFAULT_CONFIG_LOCATION, "--Network.ExternalIp", PRIVATE_IP_ADDRESS_PLACEHOLDER]
