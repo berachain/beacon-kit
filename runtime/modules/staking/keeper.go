@@ -122,11 +122,11 @@ func (k *Keeper) createValidator(
 	if err != nil {
 		return sdkstaking.Validator{}, err
 	}
-	if !bytes.Equal(sigPK, deposit.GetValidatorPubkey()) {
+	if !bytes.Equal(sigPK, validatorPK) {
 		return sdkstaking.Validator{}, errors.New("invalid signature")
 	}
 
-	// Create a new validator.
+	// Create a new validator with x/staking.
 	stake := sdkmath.NewIntFromUint64(amount)
 	operator := sdk.ValAddress(stakingCredentials).String()
 	newValidator, err := sdkstaking.NewValidator(
