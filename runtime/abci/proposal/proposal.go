@@ -26,7 +26,6 @@
 package proposal
 
 import (
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -78,14 +77,6 @@ func (h *Handler) PrepareProposalHandler(
 ) (*abci.ResponsePrepareProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
-
-	// We block until the sync service is healthy.
-	if err := h.healthService.WaitForHealthyOf(
-		ctx, "prepare-proposal", "sync",
-	); err != nil {
-		return &abci.ResponsePrepareProposal{},
-			fmt.Errorf("aborting due to: %w", err)
-	}
 
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
