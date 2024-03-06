@@ -56,8 +56,7 @@ func FuzzOrderedCache(f *testing.F) {
 			t.Skip()
 		}
 
-		ls := rand.Perm(n)
-		for _, elem := range ls {
+		for _, elem := range rand.Perm(n) {
 			cache.Insert(elem)
 		}
 
