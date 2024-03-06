@@ -28,6 +28,7 @@ package enginetypes
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/config/version"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
@@ -97,5 +98,9 @@ func (p *PayloadAttributes) GetPrevRandao() []byte {
 }
 
 func (p *PayloadAttributes) IsEmpty() bool {
-	return p == nil
+	return len(p.PrevRandao) == 0 &&
+		p.Timestamp == 0 &&
+		len(p.SuggestedFeeRecipient) == 0 &&
+		(p.Version() < version.Capella || len(p.Withdrawals) == 0) &&
+		(p.Version() < version.Deneb || len(p.ParentBeaconBlockRoot) == 0)
 }
