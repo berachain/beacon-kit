@@ -26,6 +26,7 @@
 package enginetypes
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
@@ -47,7 +48,7 @@ type PayloadAttributes struct {
 type payloadAttributesJSONMarshaling struct {
 	Timestamp             hexutil.Uint64
 	PrevRandao            hexutil.Bytes
-	ParentBeaconBlockRoot *hexutil.Bytes
+	ParentBeaconBlockRoot *common.Hash
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.

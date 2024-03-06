@@ -78,7 +78,7 @@ func (s *Service) notifyNewPayload(
 // notifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (s *Service) notifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
-) (*enginev1.PayloadIDBytes, error) {
+) (*enginetypes.PayloadID, error) {
 	forkChoicer := s.ForkchoiceStore(ctx)
 
 	fcs := &enginev1.ForkchoiceState{

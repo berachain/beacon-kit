@@ -47,7 +47,7 @@ func (s *Service) BuildLocalPayload(
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,
-) (*enginev1.PayloadIDBytes, error) {
+) (*enginetypes.PayloadID, error) {
 	// Assemble the payload attributes.
 	attrs, err := s.getPayloadAttribute(
 		ctx, slot, timestamp, parentBlockRoot,
@@ -63,7 +63,7 @@ func (s *Service) BuildLocalPayload(
 	}
 
 	// Notify the execution client of the forkchoice update.
-	var payloadID *enginev1.PayloadIDBytes
+	var payloadID *enginetypes.PayloadID
 	s.Logger().Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
@@ -94,7 +94,7 @@ func (s *Service) BuildLocalPayload(
 	s.payloadCache.Set(
 		fcuConfig.ProposingSlot,
 		parentBlockRoot,
-		primitives.PayloadID(payloadID[:]),
+		enginetypes.PayloadID(payloadID[:]),
 	)
 
 	s.SetStatus(nil)
@@ -160,12 +160,12 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.payloadCache.Get(slot, parentBlockRoot)
-	if found && (payloadID != primitives.PayloadID{}) {
+	if found && (payloadID != enginetypes.PayloadID{}) {
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
-				ctx, primitives.PayloadID(payloadID[:]), slot,
+				ctx, enginetypes.PayloadID(payloadID[:]), slot,
 			)
 		if err == nil {
 			// bundleCache.add(slot, bundle)
@@ -216,7 +216,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err :=
 		s.getPayloadFromExecutionClient(
-			ctx, primitives.PayloadID(*payloadID), slot,
+			ctx, *payloadID, slot,
 		)
 	if err != nil {
 		return nil, nil, false, err
@@ -277,7 +277,7 @@ func (s *Service) getPayloadAttribute(
 // given slot.
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
-	payloadID primitives.PayloadID,
+	payloadID enginetypes.PayloadID,
 	slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(

@@ -23,7 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package enginetypes
 
-// PayloadID represents a unique identifier for a payload.
+import (
+	"encoding/json"
+	"reflect"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
+
+// PayloadID is a custom type representing Payload IDs in a fixed-size byte
+// array.
 type PayloadID [8]byte
+
+// MarshalJSON converts a PayloadID to a JSON-encoded hexadecimal string.
+func (b PayloadID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(hexutil.Bytes(b[:]))
+}
+
+// UnmarshalJSON improves the conversion of a JSON-encoded hexadecimal string
+// to a PayloadID by directly utilizing UnmarshalFixedJSON.
+func (b *PayloadID) UnmarshalJSON(enc []byte) error {
+	if err := hexutil.UnmarshalFixedJSON(
+		reflect.TypeOf(PayloadID{}), enc, b[:],
+	); err != nil {
+		return err
+	}
+	return nil
+}
