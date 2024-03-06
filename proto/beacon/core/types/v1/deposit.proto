@@ -44,7 +44,4 @@ message Deposit {
 
   // Deposit amount in gwei.
   uint64 amount = 3;
-
-  // Signature of the deposit data.
-  bytes signature = 4 [(ethereum.eth.ext.ssz_max) = "96"];
 }

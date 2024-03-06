@@ -37,7 +37,7 @@ import (
 func TestLogSignatures(t *testing.T) {
 	require.Equal(t,
 		ethcrypto.Keccak256Hash(
-			[]byte("Deposit(bytes,bytes,uint64,bytes)"),
+			[]byte("Deposit(bytes,bytes,uint64)"),
 		),
 		common.Hash(logs.DepositSig),
 	)
