@@ -27,20 +27,20 @@ package client
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/config/version"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/pkg/errors"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
-) ([]byte, error) {
+) (*common.Hash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -57,11 +57,11 @@ func (s *EngineClient) NewPayload(
 
 	// This case is only true when the payload is invalid, so
 	// `processPayloadStatusResult` below will return an error.
-	if validationErr := result.GetValidationError(); validationErr != "" {
+	if validationErr := result.ValidationError; validationErr != nil {
 		s.logger.Error(
 			"Got a validation error in newPayload",
 			"err",
-			errors.New(validationErr),
+			errors.New(*validationErr),
 		)
 	}
 
@@ -72,7 +72,7 @@ func (s *EngineClient) NewPayload(
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
-) (*enginev1.PayloadStatus, error) {
+) (*enginetypes.PayloadStatus, error) {
 	switch payloadPb := payload.ToProto().(type) {
 	case *enginev1.ExecutionPayloadDeneb:
 		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
@@ -87,7 +87,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion int,
-) (*enginetypes.PayloadID, []byte, error) {
+) (*enginetypes.PayloadID, *common.Hash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -96,11 +96,11 @@ func (s *EngineClient) ForkchoiceUpdated(
 		return nil, nil, s.handleRPCError(err)
 	}
 
-	lastestValidHash, err := processPayloadStatusResult(result.Status)
+	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))
 	if err != nil {
-		return nil, lastestValidHash, err
+		return nil, latestValidHash, err
 	}
-	return result.PayloadID, lastestValidHash, nil
+	return result.PayloadID, latestValidHash, nil
 }
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
@@ -110,7 +110,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion int,
-) (*eth.ForkchoiceUpdatedResponse, error) {
+) (*enginetypes.ForkchoiceResponse, error) {
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
