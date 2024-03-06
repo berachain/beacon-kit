@@ -47,12 +47,6 @@ type (
 	Withdrawal = enginev1.Withdrawal
 	// ForkchoiceState alias for Prysm's version.
 	ForkchoiceState = enginev1.ForkchoiceState
-	// PayloadAttributesV2 alias for Prysm's PayloadAttributesV2.
-	PayloadAttributesV2 = enginev1.PayloadAttributesV2
-	// PayloadAttributesV3 alias for Prysm's PayloadAttributesV3.
-	PayloadAttributesV3 = enginev1.PayloadAttributesV3
-	// PayloadIDBytes alias for Prysm's PayloadAttributesContainer.
-	PayloadIDBytes = enginev1.PayloadIDBytes
 	// PayloadStatus alias for Prysm's version.
 	PayloadStatus = enginev1.PayloadStatus
 	// ExecutionBlock alias for Prysm's version.

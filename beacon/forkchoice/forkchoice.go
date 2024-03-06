@@ -26,6 +26,8 @@
 package forkchoice
 
 import (
+	"context"
+
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -34,6 +36,8 @@ import (
 type ForkChoicer interface {
 	Reader
 	Writer
+
+	WithContext(ctx context.Context) ForkChoicer
 }
 
 type Reader interface {

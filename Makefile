@@ -66,6 +66,16 @@ mockery:
 	@echo "Running mockery..."
 	@mockery
 
+generate-check:
+	@$(MAKE) forge-build
+	@$(MAKE) generate
+	@if [ -n "$$(git status --porcelain | grep -vE '\.pb_encoding\.go$$')" ]; then \
+		echo "Generated files are not up to date"; \
+		git status -s | grep -vE '\.pb_encoding\.go$$'; \
+		git diff -- . ':(exclude)*.pb_encoding.go'; \
+		exit 1; \
+	fi
+
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
@@ -191,9 +201,9 @@ test-unit-cover:
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
-	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./beacon/builder/local/cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzSSZUint64Marshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzSSZUint64Unmarshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
@@ -392,7 +402,7 @@ sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
 	@sszgen -path ./beacon/core/types/v1 \
-	-objs Deposit,BeaconBuoy,BeaconBuoyDeneb,\
+	-objs Deposit,BeaconBlock,BeaconBlockDeneb,\
     --include ./primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
 
