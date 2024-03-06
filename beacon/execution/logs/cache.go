@@ -25,23 +25,24 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/lib/cache"
+import (
+	"github.com/itsdevbear/bolaris/lib/cache"
+)
 
-type LogContainer interface {
-	BlockNumber() uint64
-	LogIndex() uint64
+type Cache struct {
+	// This is an in-memory cache of logs.
+	cache.Cache[LogContainer]
 }
 
-type LogComparable struct{}
-
-func compareUint64(a, b uint64) int {
-	if a < b {
-		return -1
-	} else if a > b {
-		return 1
+// NewCache returns a new cache for LogContainer.
+func NewCache() *Cache {
+	return &Cache{
+		cache.NewOrderedCache[LogContainer](LogComparable{}),
 	}
-	return 0
 }
+
+// LogComparable is a comparable for LogContainer.
+type LogComparable struct{}
 
 // Compare is a lexicographic comparison of logs.
 func (LogComparable) Compare(lhs, rhs LogContainer) int {
@@ -52,6 +53,12 @@ func (LogComparable) Compare(lhs, rhs LogContainer) int {
 	return compareUint64(lhs.LogIndex(), rhs.LogIndex())
 }
 
-func NewLogCache() *cache.OrderedCache[LogContainer] {
-	return cache.NewOrderedCache[LogContainer](LogComparable{})
+// compareUint64 compares two uint64 values.
+func compareUint64(a, b uint64) int {
+	if a < b {
+		return -1
+	} else if a > b {
+		return 1
+	}
+	return 0
 }

@@ -37,7 +37,7 @@ import (
 
 func FuzzLogCacheSeq(f *testing.F) {
 	// Create a new log cache.
-	cache := logs.NewLogCache()
+	cache := logs.NewCache()
 
 	f.Add(10, 5)
 	f.Fuzz(func(t *testing.T, numBlocks int, numLogsPerBlock int) {
@@ -88,7 +88,7 @@ func FuzzLogCacheSeq(f *testing.F) {
 
 func FuzzLogCacheConcurrency(f *testing.F) {
 	// Create a new log cache.
-	cache := logs.NewLogCache()
+	cache := logs.NewCache()
 
 	f.Add(10, 5)
 	f.Fuzz(func(t *testing.T, numBlocks int, numLogsPerBlock int) {

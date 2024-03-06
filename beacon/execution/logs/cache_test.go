@@ -36,7 +36,7 @@ import (
 
 func TestLogCacheSimple(t *testing.T) {
 	// Create a new log cache.
-	cache := logs.NewLogCache()
+	cache := logs.NewCache()
 
 	log := &logsmocks.LogContainer{}
 	blockNumber := rand.Uint64() + 1
@@ -55,7 +55,7 @@ func TestLogCacheSimple(t *testing.T) {
 
 func TestLogCacheMulti(t *testing.T) {
 	// Create a new log cache.
-	cache := logs.NewLogCache()
+	cache := logs.NewCache()
 
 	numBlocks := 10
 	numLogsPerBlock := 5
