@@ -15,9 +15,9 @@ var _ = (*withdrawalJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (w Withdrawal) MarshalJSON() ([]byte, error) {
 	type Withdrawal struct {
-		Index     hexutil.Uint64 `json:"index"`
+		Index     hexutil.Uint64 `json:"index" ssz-size:"8"`
 		Validator hexutil.Uint64 `json:"validatorIndex"`
-		Address   common.Address `json:"address"`
+		Address   common.Address `json:"address" ssz-size:"20"`
 		Amount    hexutil.Uint64 `json:"amount"`
 	}
 	var enc Withdrawal
@@ -31,9 +31,9 @@ func (w Withdrawal) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 	type Withdrawal struct {
-		Index     *hexutil.Uint64 `json:"index"`
+		Index     *hexutil.Uint64 `json:"index" ssz-size:"8"`
 		Validator *hexutil.Uint64 `json:"validatorIndex"`
-		Address   *common.Address `json:"address"`
+		Address   *common.Address `json:"address" ssz-size:"20"`
 		Amount    *hexutil.Uint64 `json:"amount"`
 	}
 	var dec Withdrawal
@@ -41,7 +41,7 @@ func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 		return err
 	}
 	if dec.Index != nil {
-		w.Index = primitives.SSZUint64(*dec.Index)
+		w.Index = uint64(*dec.Index)
 	}
 	if dec.Validator != nil {
 		w.Validator = primitives.SSZUint64(*dec.Validator)

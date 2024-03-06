@@ -30,13 +30,14 @@ import (
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
-//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
-
 // Withdrawal represents a validator withdrawal from the consensus layer.
+//
+//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
+//go:generate go run github.com/itsdevbear/fastssz/sszgen -path . -objs Withdrawal -include ../../primitives,$HOME/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common -output withdrawal.ssz.go
 type Withdrawal struct {
-	Index     primitives.SSZUint64        `json:"index"`
+	Index     uint64                      `json:"index"          ssz-size:"8"`
 	Validator primitives.ValidatorIndex   `json:"validatorIndex"`
-	Address   primitives.ExecutionAddress `json:"address"`
+	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
 	Amount    primitives.SSZUint64        `json:"amount"`
 }
 

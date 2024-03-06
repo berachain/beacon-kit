@@ -34,24 +34,26 @@ import (
 //
 // go:generate go run github.com/fjl/gencodec -type ExecutableData -field-override executableDataMarshaling -out payload.json.go
 //
-//go:generate go run github.com/itsdevbear/fastssz/sszgen -path . -objs ExecutableData -include ../../primitives,$HOME/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common
 //nolint:lll // struct tags
+//go:generate go run github.com/itsdevbear/fastssz/sszgen -path . -objs ExecutableData -include ../../primitives,$HOME/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common -output payload.ssz.go
 type ExecutableData struct {
-	ParentHash   common.Hash          `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient common.Address       `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot    common.Hash          `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot common.Hash          `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom    []byte               `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random       [32]byte             `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number       primitives.SSZUint64 `json:"blockNumber"   ssz-size:"8"               gencodec:"required"`
-	GasLimit     primitives.SSZUint64 `json:"gasLimit"      ssz-size:"8"               gencodec:"required"`
-	GasUsed      primitives.SSZUint64 `json:"gasUsed"       ssz-size:"8"               gencodec:"required"`
-	Timestamp    primitives.SSZUint64 `json:"timestamp"     ssz-size:"8"               gencodec:"required"`
-	ExtraData    []byte               `json:"extraData"     ssz-size:"32"  gencodec:"required"`
-	// // BaseFeePerGas *big.Int              `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash    common.Hash   `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions [][]byte      `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals  []*Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+	ParentHash   common.Hash          `json:"parentHash"   ssz-size:"32"  gencodec:"required"`
+	FeeRecipient common.Address       `json:"feeRecipient" ssz-size:"20"  gencodec:"required"`
+	StateRoot    common.Hash          `json:"stateRoot"    ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot common.Hash          `json:"receiptsRoot" ssz-size:"32"  gencodec:"required"`
+	LogsBloom    []byte               `json:"logsBloom"    ssz-size:"256" gencodec:"required"`
+	Random       [32]byte             `json:"prevRandao"   ssz-size:"32"  gencodec:"required"`
+	Number       primitives.SSZUint64 `json:"blockNumber"  ssz-size:"8"   gencodec:"required"`
+	GasLimit     primitives.SSZUint64 `json:"gasLimit"     ssz-size:"8"   gencodec:"required"`
+	GasUsed      primitives.SSZUint64 `json:"gasUsed"      ssz-size:"8"   gencodec:"required"`
+	Timestamp    primitives.SSZUint64 `json:"timestamp"    ssz-size:"8"   gencodec:"required"`
+	ExtraData    []byte               `json:"extraData"    ssz-size:"32"  gencodec:"required"`
+	// // BaseFeePerGas *big.Int              `json:"baseFeePerGas"
+	// ssz-size:"32"  gencodec:"required"`
+	BlockHash    common.Hash `json:"blockHash"    ssz-size:"32"  gencodec:"required"`
+	Transactions [][]byte    `json:"transactions" ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	// Withdrawals  []*Withdrawal `json:"withdrawals"
+	//          ssz-max:"16"`
 	// BlobGasUsed   *primitives.SSZUint64 `json:"blobGasUsed" ssz-size:"32"`
 	// ExcessBlobGas *primitives.SSZUint64 `json:"excessBlobGas" ssz-size:"32"`
 }
