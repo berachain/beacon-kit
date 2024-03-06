@@ -53,7 +53,7 @@ func TestBeaconStore(t *testing.T) {
 	t.Run("should work with deposit", func(t *testing.T) {
 		deposit := &beacontypesv1.Deposit{
 			ValidatorPubkey:    []byte("pubkey"),
-			StakingCredentials: []byte("12345678901234567890"),
+			StakingCredentials: []byte("12345678901234567890123456789012"),
 			Amount:             100,
 			Signature:          []byte("signature"),
 		}

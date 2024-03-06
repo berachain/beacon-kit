@@ -25,8 +25,8 @@
 
 pragma solidity 0.8.24;
 
-import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
-import { IStakeERC20 } from "./IStakeERC20.sol";
+import {IBeaconDepositContract} from "./IBeaconDepositContract.sol";
+import {IStakeERC20} from "./IStakeERC20.sol";
 
 /**
  * @title BeaconDepositContract
@@ -64,7 +64,8 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
-    uint256 private constant MINIMUM_WITHDRAWAL_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
+    uint256 private constant MINIMUM_WITHDRAWAL_AMOUNT =
+        MIN_DEPOSIT_AMOUNT / 10;
 
     /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
     uint8 private constant PUBLIC_KEY_LENGTH = 48;
@@ -81,15 +82,12 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @inheritdoc IBeaconDepositContract
     function deposit(
-        bytes calldata pubKey,
+        bytes calldata validatorPubkey,
         bytes calldata stakingCredentials,
         uint64 amount,
         bytes calldata signature
-    )
-        external
-        payable
-    {
-        if (pubKey.length != PUBLIC_KEY_LENGTH) {
+    ) external payable {
+        if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
@@ -108,20 +106,18 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         // slither-disable-next-line reentrancy-events
-        emit Deposit(pubKey, stakingCredentials, amount, signature);
+        emit Deposit(validatorPubkey, stakingCredentials, amount, signature);
     }
 
     /// @inheritdoc IBeaconDepositContract
     function redirect(
-        bytes calldata fromPubKey,
-        bytes calldata toPubKey,
+        bytes calldata fromPubkey,
+        bytes calldata toPubkey,
         uint64 amount
-    )
-        external
-    {
+    ) external {
         if (
-            fromPubKey.length != PUBLIC_KEY_LENGTH
-                || toPubKey.length != PUBLIC_KEY_LENGTH
+            fromPubkey.length != PUBLIC_KEY_LENGTH ||
+            toPubkey.length != PUBLIC_KEY_LENGTH
         ) {
             revert InvalidPubKeyLength();
         }
@@ -130,18 +126,16 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientRedirectAmount();
         }
 
-        emit Redirect(fromPubKey, toPubKey, _toCredentials(msg.sender), amount);
+        emit Redirect(fromPubkey, toPubkey, _toCredentials(msg.sender), amount);
     }
 
     /// @inheritdoc IBeaconDepositContract
     function withdraw(
-        bytes calldata pubKey,
+        bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
-    )
-        external
-    {
-        if (pubKey.length != PUBLIC_KEY_LENGTH) {
+    ) external {
+        if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
@@ -153,7 +147,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientWithdrawAmount();
         }
 
-        emit Withdraw(pubKey, withdrawalCredentials, amount);
+        emit Withdraw(validatorPubkey, withdrawalCredentials, amount);
     }
 
     /**
