@@ -68,35 +68,52 @@ func NewPayloadAttributes(
 	}, nil
 }
 
+// NewEmptyPayloadAttributesWithVersion creates a new PayloadAttributes instance
+// with the specified version.
 func NewEmptyPayloadAttributesWithVersion(version int) *PayloadAttributes {
 	return &PayloadAttributes{
 		version: version,
 	}
 }
 
+// GetTimestamp returns the timestamp of the PayloadAttributes.
 func (p *PayloadAttributes) GetTimestamp() uint64 {
 	return p.Timestamp
 }
 
-func (p *PayloadAttributes) GetSuggestedFeeRecipient() []byte {
-	return p.SuggestedFeeRecipient[:]
+// GetSuggestedFeeRecipient returns the suggested fee recipient address of the
+// PayloadAttributes.
+func (p *PayloadAttributes) GetSuggestedFeeRecipient() primitives.ExecutionAddress {
+	return p.SuggestedFeeRecipient
 }
+
+// GetWithdrawals returns the list of withdrawals in the PayloadAttributes.
 func (p *PayloadAttributes) GetWithdrawals() []*enginev1.Withdrawal {
 	return p.Withdrawals
 }
 
-func (p *PayloadAttributes) GetParentBeaconBlockRoot() []byte {
-	return p.ParentBeaconBlockRoot[:]
+// GetParentBeaconBlockRoot returns the parent beacon block root of the
+// PayloadAttributes.
+// If the parent beacon block root is nil, a zero-value [32]byte is returned.
+func (p *PayloadAttributes) GetParentBeaconBlockRoot() [32]byte {
+	if p.ParentBeaconBlockRoot == nil {
+		return [32]byte{}
+	}
+	return *p.ParentBeaconBlockRoot
 }
 
+// Version returns the version of the PayloadAttributes.
 func (p *PayloadAttributes) Version() int {
 	return p.version
 }
 
-func (p *PayloadAttributes) GetPrevRandao() []byte {
-	return p.PrevRandao[:]
+// GetPrevRandao returns the previous Randao value of the PayloadAttributes.
+func (p *PayloadAttributes) GetPrevRandao() [32]byte {
+	return p.PrevRandao
 }
 
+// IsEmpty checks if the PayloadAttributes is considered empty based on its
+// fields.
 func (p *PayloadAttributes) IsEmpty() bool {
 	return len(p.PrevRandao) == 0 &&
 		p.Timestamp == 0 &&

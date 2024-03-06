@@ -245,7 +245,7 @@ func (s *Service) getPayloadAttribute(
 	var (
 		st = s.BeaconState(ctx)
 		// TODO: RANDAO
-		prevRandao = [32]byte{} 
+		prevRandao = [32]byte{}
 		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 	)
 
