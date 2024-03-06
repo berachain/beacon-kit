@@ -17,14 +17,14 @@ var _ = (*payloadAttributesJSONMarshaling)(nil)
 func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 	type PayloadAttributes struct {
 		Timestamp             hexutil.Uint64         `json:"timestamp"             gencodec:"required"`
-		PrevRandao            common.Hash            `json:"prevRandao"            gencodec:"required"`
+		PrevRandao            hexutil.Bytes          `json:"prevRandao"            gencodec:"required"`
 		SuggestedFeeRecipient common.Address         `json:"suggestedFeeRecipient" gencodec:"required"`
 		Withdrawals           []*enginev1.Withdrawal `json:"withdrawals"`
 		ParentBeaconBlockRoot *common.Hash           `json:"parentBeaconBlockRoot"`
 	}
 	var enc PayloadAttributes
 	enc.Timestamp = hexutil.Uint64(p.Timestamp)
-	enc.PrevRandao = p.PrevRandao
+	enc.PrevRandao = p.PrevRandao[:]
 	enc.SuggestedFeeRecipient = p.SuggestedFeeRecipient
 	enc.Withdrawals = p.Withdrawals
 	enc.ParentBeaconBlockRoot = (*common.Hash)(p.ParentBeaconBlockRoot)
@@ -35,7 +35,7 @@ func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 	type PayloadAttributes struct {
 		Timestamp             *hexutil.Uint64        `json:"timestamp"             gencodec:"required"`
-		PrevRandao            *common.Hash           `json:"prevRandao"            gencodec:"required"`
+		PrevRandao            *hexutil.Bytes         `json:"prevRandao"            gencodec:"required"`
 		SuggestedFeeRecipient *common.Address        `json:"suggestedFeeRecipient" gencodec:"required"`
 		Withdrawals           []*enginev1.Withdrawal `json:"withdrawals"`
 		ParentBeaconBlockRoot *common.Hash           `json:"parentBeaconBlockRoot"`
@@ -51,7 +51,10 @@ func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 	if dec.PrevRandao == nil {
 		return errors.New("missing required field 'prevRandao' for PayloadAttributes")
 	}
-	p.PrevRandao = *dec.PrevRandao
+	if len(*dec.PrevRandao) != len(p.PrevRandao) {
+		return errors.New("field 'prevRandao' has wrong length, need 32 items")
+	}
+	copy(p.PrevRandao[:], *dec.PrevRandao)
 	if dec.SuggestedFeeRecipient == nil {
 		return errors.New("missing required field 'suggestedFeeRecipient' for PayloadAttributes")
 	}
