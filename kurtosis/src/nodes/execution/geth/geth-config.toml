@@ -22,13 +22,6 @@ RPCGasCap = 50000000
 RPCEVMTimeout = 5000000000
 RPCTxFeeCap = 1e+00
 
-[Eth.Miner]
-GasFloor = 0
-GasCeil = 30000000
-GasPrice = 1000000000
-Recommit = 2000000000
-NewPayloadTimeout = 2000000000
-
 [Eth.TxPool]
 Locals = []
 NoLocals = false

@@ -69,7 +69,7 @@ func (s *Eth1Client) NewPayloadV3(
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
-	state *enginev1.ForkchoiceState,
+	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 ) (*ForkchoiceUpdatedResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
@@ -80,7 +80,7 @@ func (s *Eth1Client) ForkchoiceUpdatedV3(
 func (s *Eth1Client) forkchoiceUpdateCall(
 	ctx context.Context,
 	method string,
-	state *enginev1.ForkchoiceState,
+	state *enginetypes.ForkchoiceState,
 	attrs any,
 ) (*ForkchoiceUpdatedResponse, error) {
 	result := &ForkchoiceUpdatedResponse{}
