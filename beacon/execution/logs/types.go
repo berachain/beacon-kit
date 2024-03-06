@@ -25,10 +25,28 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/primitives"
+import (
+	"reflect"
+
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/primitives"
+)
 
 // LogRequest is a request for logs sent from a service.
 type LogRequest struct {
 	ContractAddress primitives.ExecutionAddress
 	Allocator       *TypeAllocator
+}
+
+type LogContainer interface {
+	BlockNumber() uint64
+	LogIndex() uint64
+	Value() *reflect.Value
+}
+
+type LogCache interface {
+}
+
+type LogFactory interface {
+	GetRegisteredSignatures() []ethcommon.Hash
 }

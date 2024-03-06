@@ -26,27 +26,26 @@
 package logs_test
 
 import (
-	"reflect"
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
+	executionlogs "github.com/itsdevbear/bolaris/beacon/execution/logs"
+	stakinglogs "github.com/itsdevbear/bolaris/beacon/staking/logs"
 	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/stretchr/testify/require"
 )
 
-func FuzzProcessLogs(f *testing.F) {
+func FuzzProcessStakingLogs(f *testing.F) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
 
-	stakingLogRequest, err := logs.NewStakingRequest(
+	stakingLogRequest, err := stakinglogs.NewStakingRequest(
 		contractAddress,
 	)
 	require.NoError(f, err)
-	logFactory, err := loghandler.NewFactory(
-		loghandler.WithRequest(stakingLogRequest),
+	logFactory, err := executionlogs.NewFactory(
+		executionlogs.WithRequest(stakingLogRequest),
 	)
 	require.NoError(f, err)
 
@@ -66,13 +65,14 @@ func FuzzProcessLogs(f *testing.F) {
 			)
 			require.NoError(t, err)
 
-			var vals []*reflect.Value
-			vals, err = logFactory.ProcessLogs(logs, blkNum)
+			var containers []executionlogs.LogContainer
+			containers, err = logFactory.ProcessLogs(logs, blkNum)
 			require.NoError(t, err)
-			require.Len(t, vals, numDepositLogs)
+			require.Len(t, containers, numDepositLogs)
 
-			// Check if the values are returned in the correct order.
-			for i, val := range vals {
+			// Check if the returned values are correct.
+			for i, container := range containers {
+				val := container.Value()
 				processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
 				require.True(t, ok)
 				require.Equal(

@@ -25,28 +25,43 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/lib/cache"
+import (
+	"reflect"
 
-type LogComparable struct{}
+	ethcommon "github.com/ethereum/go-ethereum/common"
+)
 
-func compareUint64(a, b uint64) int {
-	if a < b {
-		return -1
-	} else if a > b {
-		return 1
-	}
-	return 0
+var _ LogContainer = (*Container)(nil)
+
+type Container struct {
+	value       *reflect.Value
+	index       uint64
+	sig         ethcommon.Hash
+	blockNumber uint64
+	blockHash   ethcommon.Hash
 }
 
-// Compare is a lexicographic comparison of logs.
-func (LogComparable) Compare(lhs, rhs LogContainer) int {
-	blockCmp := compareUint64(lhs.BlockNumber(), rhs.BlockNumber())
-	if blockCmp != 0 {
-		return blockCmp
-	}
-	return compareUint64(lhs.LogIndex(), rhs.LogIndex())
+// BlockHash returns the block hash of the log.
+func (c *Container) BlockHash() ethcommon.Hash {
+	return c.blockHash
 }
 
-func NewLogCache() *cache.OrderedCache[LogContainer] {
-	return cache.NewOrderedCache[LogContainer](LogComparable{})
+// BlockNumber returns the block number of the log.
+func (c *Container) BlockNumber() uint64 {
+	return c.blockNumber
+}
+
+// LogIndex returns the index of the log.
+func (c *Container) LogIndex() uint64 {
+	return c.index
+}
+
+// Value returns the value of the log.
+func (c *Container) Value() *reflect.Value {
+	return c.value
+}
+
+// Signature returns the signature of the log.
+func (c *Container) Signature() ethcommon.Hash {
+	return c.sig
 }

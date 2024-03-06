@@ -27,11 +27,11 @@ package execution
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
+	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
@@ -49,7 +49,7 @@ type LogFactory interface {
 	ProcessLogs(
 		logs []ethtypes.Log,
 		blkNum uint64,
-	) ([]*reflect.Value, error)
+	) ([]logs.LogContainer, error)
 }
 
 // FCUConfig is a struct that holds the configuration for a fork choice update.

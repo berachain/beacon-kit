@@ -30,6 +30,7 @@ import (
 	"errors"
 	"reflect"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
@@ -126,4 +127,16 @@ func (f *Factory) IsRegisteredLog(log *ethtypes.Log) bool {
 		return false
 	}
 	return bytes.Equal(sig.Bytes(), contractAbi.Events[eventName].ID.Bytes())
+}
+
+// GetRegisteredSignatures returns the signatures of the events
+// that have been registered with the factory.
+func (f *Factory) GetRegisteredSignatures() []ethcommon.Hash {
+	signatures := make([]ethcommon.Hash, 0)
+	for _, allocator := range f.addressToAllocator {
+		for sig := range allocator.sigToName {
+			signatures = append(signatures, sig)
+		}
+	}
+	return signatures
 }

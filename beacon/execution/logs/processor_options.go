@@ -25,28 +25,29 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/lib/cache"
+import (
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
+)
 
-type LogComparable struct{}
-
-func compareUint64(a, b uint64) int {
-	if a < b {
-		return -1
-	} else if a > b {
-		return 1
+// WithLogFactory returns an Option for setting the
+// log factory for Processor.
+func WithLogFactory(factory LogFactory) Option[Processor] {
+	return func(p *Processor) error {
+		p.factory = factory
+		registeredSigs := factory.GetRegisteredSignatures()
+		p.sigToCache = make(map[ethcommon.Hash]LogCache, len(registeredSigs))
+		for _, sig := range registeredSigs {
+			p.sigToCache[sig] = NewLogCache()
+		}
+		return nil
 	}
-	return 0
 }
 
-// Compare is a lexicographic comparison of logs.
-func (LogComparable) Compare(lhs, rhs LogContainer) int {
-	blockCmp := compareUint64(lhs.BlockNumber(), rhs.BlockNumber())
-	if blockCmp != 0 {
-		return blockCmp
+// WithEngineCaller is an option to set the Engine for the Service.
+func WithEngineCaller(ec engineclient.Caller) Option[Processor] {
+	return func(p *Processor) error {
+		p.engine = ec
+		return nil
 	}
-	return compareUint64(lhs.LogIndex(), rhs.LogIndex())
-}
-
-func NewLogCache() *cache.OrderedCache[LogContainer] {
-	return cache.NewOrderedCache[LogContainer](LogComparable{})
 }

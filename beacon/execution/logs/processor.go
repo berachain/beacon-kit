@@ -25,28 +25,29 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/lib/cache"
+import (
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	engineclient "github.com/itsdevbear/bolaris/engine/client"
+)
 
-type LogComparable struct{}
+type Processor struct {
+	// engine gives the access to the Engine API
+	// of the execution client.
+	engine engineclient.Caller
 
-func compareUint64(a, b uint64) int {
-	if a < b {
-		return -1
-	} else if a > b {
-		return 1
-	}
-	return 0
+	// factory is for creating objects from Ethereum logs.
+	factory LogFactory
+
+	sigToCache map[ethcommon.Hash]LogCache
 }
 
-// Compare is a lexicographic comparison of logs.
-func (LogComparable) Compare(lhs, rhs LogContainer) int {
-	blockCmp := compareUint64(lhs.BlockNumber(), rhs.BlockNumber())
-	if blockCmp != 0 {
-		return blockCmp
+// NewProcessor creates a new Processor.
+func NewProcessor(opts ...Option[Processor]) (*Processor, error) {
+	p := &Processor{}
+	for _, opt := range opts {
+		if err := opt(p); err != nil {
+			return nil, err
+		}
 	}
-	return compareUint64(lhs.LogIndex(), rhs.LogIndex())
-}
-
-func NewLogCache() *cache.OrderedCache[LogContainer] {
-	return cache.NewOrderedCache[LogContainer](LogComparable{})
+	return p, nil
 }

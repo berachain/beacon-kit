@@ -27,7 +27,6 @@ package execution
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
@@ -104,26 +103,4 @@ func (s *Service) NotifyNewPayload(
 		versionedHashes,
 		parentBlockRoot,
 	)
-}
-
-// ProcessLogsInETH1Block gets logs in the Eth1 block
-// received from the execution client and uses LogFactory to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service) ProcessLogsInETH1Block(
-	ctx context.Context,
-	blkNum uint64,
-) ([]*reflect.Value, error) {
-	// Gather all the logs corresponding to
-	// the addresses of interest from this block.
-	logsInBlock, err := s.engine.GetLogs(
-		ctx,
-		blkNum,
-		blkNum,
-		s.logFactory.GetRegisteredAddresses(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return s.logFactory.ProcessLogs(logsInBlock, blkNum)
 }
