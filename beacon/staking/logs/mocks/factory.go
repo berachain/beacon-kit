@@ -42,8 +42,9 @@ func NewLogFromDeposit(
 ) (*coretypes.Log, error) {
 	return newLog(event,
 		deposit.GetValidatorPubkey(),
-		deposit.GetWithdrawalCredentials(),
+		deposit.GetStakingCredentials(),
 		deposit.GetAmount(),
+		deposit.GetSignature(),
 	)
 }
 

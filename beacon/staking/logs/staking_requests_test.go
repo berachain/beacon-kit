@@ -37,15 +37,22 @@ import (
 func TestLogSignatures(t *testing.T) {
 	require.Equal(t,
 		ethcrypto.Keccak256Hash(
-			[]byte("Deposit(bytes,bytes,uint64)"),
+			[]byte("Deposit(bytes,bytes,uint64,bytes)"),
 		),
 		common.Hash(logs.DepositSig),
 	)
 
 	require.Equal(t,
 		ethcrypto.Keccak256Hash(
-			[]byte("Withdrawal(bytes,bytes,uint64)"),
+			[]byte("Redirect(bytes,bytes,bytes,uint64)"),
 		),
-		common.Hash(logs.WithdrawalSig),
+		common.Hash(logs.RedirectSig),
+	)
+
+	require.Equal(t,
+		ethcrypto.Keccak256Hash(
+			[]byte("Withdraw(bytes,bytes,uint64)"),
+		),
+		common.Hash(logs.WithdrawSig),
 	)
 }

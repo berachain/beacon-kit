@@ -35,13 +35,17 @@ message Deposit {
   // Public key of the validator, which is compatible to the implementations
   // of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is preferred.
   bytes validator_pubkey = 1 [
-    (ethereum.eth.ext.ssz_max) = "96",
+    (ethereum.eth.ext.ssz_max) = "48",
     (ethereum.eth.ext.spec_name) = "pubkey"
   ];
 
-  // A withdrawal credentials as a 20-byte Eth1 address.
-  bytes withdrawal_credentials = 2 [(ethereum.eth.ext.ssz_size) = "20"];
+  // A staking credentials with
+  // 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+  bytes staking_credentials = 2 [(ethereum.eth.ext.ssz_size) = "32"];
 
   // Deposit amount in gwei.
   uint64 amount = 3;
+
+  // Signature of the deposit data.
+  bytes signature = 4 [(ethereum.eth.ext.ssz_max) = "96"];
 }

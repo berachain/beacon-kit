@@ -30,12 +30,14 @@ import beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 // NewDeposit creates a new deposit.
 func NewDeposit(
 	pubkey []byte,
+	stakingCredentials []byte,
 	amount uint64,
-	withdrawalCredentials []byte,
+	signature []byte,
 ) *beacontypesv1.Deposit {
 	return &beacontypesv1.Deposit{
-		ValidatorPubkey:       pubkey,
-		Amount:                amount,
-		WithdrawalCredentials: withdrawalCredentials,
+		ValidatorPubkey:    pubkey,
+		StakingCredentials: stakingCredentials,
+		Amount:             amount,
+		Signature:          signature,
 	}
 }

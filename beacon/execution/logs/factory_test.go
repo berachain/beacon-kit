@@ -42,7 +42,7 @@ import (
 
 func TestLogFactory(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	require.NoError(t, err)
 
 	stakingLogRequest, err := logs.NewStakingRequest(
@@ -56,11 +56,12 @@ func TestLogFactory(t *testing.T) {
 
 	deposit := beacontypes.NewDeposit(
 		[]byte("pubkey"),
-		10000,
 		[]byte("12345678901234567890"),
+		10000,
+		[]byte("signature"),
 	)
 	log, err := mocks.NewLogFromDeposit(
-		stakingAbi.Events[logs.DepositName],
+		depositContractAbi.Events[logs.DepositName],
 		deposit,
 	)
 	require.NoError(t, err)
@@ -81,7 +82,7 @@ func TestLogFactory(t *testing.T) {
 
 	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
 	log, err = mocks.NewLogFromWithdrawal(
-		stakingAbi.Events[logs.WithdrawalName],
+		depositContractAbi.Events[logs.WithdrawName],
 		withdrawal,
 	)
 	require.NoError(t, err)
