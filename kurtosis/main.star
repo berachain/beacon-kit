@@ -5,14 +5,14 @@ el_cl_genesis_data_generator = import_module(
     "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
 )
 
-eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
 participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
 
 execution = import_module("./src/nodes/execution/execution.star")
 execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
-constants = import_module("./src/constants.star")
 genesis = import_module("./src/networks/networks.star")
+port_spec_lib = import_module("./src/lib/port_spec.star")
+geth = import_module("./src/nodes/execution/geth/launcher.star")
 
 def run(plan, args = {}):
     """
@@ -22,6 +22,7 @@ def run(plan, args = {}):
       plan: The execution plan to be run.
       args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
+
     plan.print("Your args: {}".format(args))
     args_with_right_defaults = input_parser.input_parser(plan, args)
     num_participants = len(args_with_right_defaults.participants)
@@ -32,10 +33,7 @@ def run(plan, args = {}):
     evm_genesis_data = genesis.get_genesis_data(plan)
 
     # 2. Upload jwt
-    jwt_file = plan.upload_files(
-        src = constants.KURTOSIS_ETH_PACKAGE_URL + eth_static_files.JWT_PATH_FILEPATH,
-        name = "jwt_file",
-    )
+    jwt_file = execution.upload_global_files(plan)
 
     node_peering_info = []
 
@@ -94,7 +92,7 @@ def run(plan, args = {}):
             ),
         )
 
-        node_peering_info.append(peer_result["output"] + "@" + cl_service.ip_address + ":26656")
+        node_peering_info.append(peer_result["output"])
 
         file_suffix = "{}".format(n)
         if n == num_participants - 1:
@@ -139,23 +137,36 @@ def run(plan, args = {}):
             cl_service_name,
         )
 
-    el_client_contexts = []
+    el_enode_addrs = []
 
     # 4. Start network participants
     for n in range(num_participants):
+        el_client_type = args_with_right_defaults.participants[n].el_client_type
+        el_service_name = "el-{}-{}-beaconkit".format(n, el_client_type)
+
         # 4a. Launch EL
-        el_service_name = "el-{}-reth-beaconkit".format(n)
-        el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_client_contexts)
-        el_client_contexts.append(el_client_context)
-        plan.print(el_client_context)
+        if el_client_type == execution_types.CLIENTS.geth:
+            el_service_config_dict = execution.get_default_service_config(el_service_name, el_client_type)
+            geth.add_bootnodes(el_service_config_dict, el_enode_addrs)
+            plan.print(el_service_config_dict)
+            geth.deploy_node(plan, el_service_config_dict)
+        else:
+            el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_enode_addrs)
+
+        el_client_service = plan.get_service(el_service_name)
+        enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name, el_client_type)
+        el_enode_addrs.append(enode_addr)
 
         # 4b. Launch CL
-        cl_service_name = "cl-{}-reth-beaconkit".format(n)
-        engine_dial_url = "http://{}:{}".format(el_client_context.service_name, el_client_context.engine_rpc_port_num)
+        cl_service_name = "cl-{}-{}-beaconkit".format(n, el_client_type)
+        engine_dial_url = "http://{}:{}".format(el_service_name, geth.ENGINE_RPC_PORT_NUM)
 
-        # Get peers for this node
-        my_peers = node_peering_info[:]
-        my_peers.pop(n)
+        # Get peers for the cl node
+        my_peers = node_peering_info[:n]
+        for i in range(len(my_peers)):
+            peer_el_service_name = "cl-{}-{}-beaconkit".format(i, args_with_right_defaults.participants[i].el_client_type)
+            peer_service = plan.get_service(peer_el_service_name)
+            my_peers[i] = my_peers[i] + "@" + peer_service.ip_address + ":26656"
         persistent_peers = ",".join(my_peers)
 
         beacond_config = beacond.get_config(

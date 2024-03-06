@@ -26,7 +26,6 @@
 package proposal
 
 import (
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -79,14 +78,6 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
-	// We block until the sync service is healthy.
-	if err := h.healthService.WaitForHealthyOf(
-		ctx, "prepare-proposal", "sync",
-	); err != nil {
-		return &abci.ResponsePrepareProposal{},
-			fmt.Errorf("aborting due to: %w", err)
-	}
-
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
@@ -130,7 +121,7 @@ func (h *Handler) ProcessProposalHandler(
 	//
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
-	block, err := abcitypes.ReadOnlyBeaconBuoyFromABCIRequest(
+	block, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 		req, h.cfg.BeaconBlockPosition,
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)

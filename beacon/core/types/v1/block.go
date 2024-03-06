@@ -34,22 +34,22 @@ import (
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
-// IsNil checks if the BeaconBuoy is nil or not.
-func (b *BeaconBuoyDeneb) IsNil() bool {
+// IsNil checks if the BeaconBlock is nil or not.
+func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil
 }
 
-func (x *BeaconBuoyDeneb) GetReveal() randaotypes.Reveal {
+func (x *BeaconBlockDeneb) GetReveal() randaotypes.Reveal {
 	return randaotypes.Reveal(x.GetBody().GetRandaoReveal())
 }
 
 // Version returns the version of the block.
-func (b *BeaconBuoyDeneb) Version() int {
+func (b *BeaconBlockDeneb) Version() int {
 	return version.Deneb
 }
 
 // AttachExecution attaches the given execution data to the block.
-func (b *BeaconBuoyDeneb) AttachExecution(
+func (b *BeaconBlockDeneb) AttachExecution(
 	executionData enginetypes.ExecutionPayload,
 ) error {
 	var ok bool
@@ -72,11 +72,11 @@ func (b *BeaconBuoyDeneb) AttachExecution(
 }
 
 // Execution returns the execution data of the block.
-func (b *BeaconBuoyDeneb) ExecutionPayload() (
+func (b *BeaconBlockDeneb) ExecutionPayload() (
 	enginetypes.ExecutionPayload, error,
 ) {
-	return &enginev1.ExecutionPayloadContainer{
-		Payload: &enginev1.ExecutionPayloadContainer_Deneb{
+	return &enginev1.ExecutionPayloadEnvelope{
+		Payload: &enginev1.ExecutionPayloadEnvelope_Deneb{
 			Deneb: b.GetBody().GetExecutionPayload(),
 		},
 		PayloadValue:          b.GetPayloadValue(),
@@ -86,7 +86,7 @@ func (b *BeaconBuoyDeneb) ExecutionPayload() (
 }
 
 // GetSlot returns the slot of the block.
-func (b *BeaconBuoyDeneb) GetBlobKzgCommitments() [][]byte {
+func (b *BeaconBlockDeneb) GetBlobKzgCommitments() [][]byte {
 	if b.GetBody().GetExecutionPayload() == nil {
 		return nil
 	}

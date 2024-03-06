@@ -32,7 +32,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 // NewLogFromDeposit creates a new log from the given deposit.
@@ -50,12 +50,12 @@ func NewLogFromDeposit(
 // NewLogFromWithdrawal creates a new log from the given withdrawal.
 func NewLogFromWithdrawal(
 	event ethabi.Event,
-	withdrawal *enginev1.Withdrawal,
+	withdrawal *enginetypes.Withdrawal,
 ) (*coretypes.Log, error) {
 	return newLog(event,
 		[]byte{},
 		[]byte{},
-		withdrawal.GetAmount(),
+		withdrawal.Amount,
 	)
 }
 

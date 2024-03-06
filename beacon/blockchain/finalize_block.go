@@ -40,7 +40,7 @@ import (
 // on the beacon state.
 func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBuoy,
+	blk beacontypes.ReadOnlyBeaconBlock,
 	blockRoot [32]byte,
 ) error {
 	var (
@@ -64,13 +64,13 @@ func (s *Service) FinalizeBeaconBlock(
 
 			s.Logger().Info(
 				"finalizing current forkchoice state",
-				"safe_hash", forkChoicer.JustifiedCheckpoint().Hex(),
-				"finalized_hash", forkChoicer.FinalizedCheckpoint().Hex(),
+				"safe_hash", forkChoicer.JustifiedPayloadBlockHash().Hex(),
+				"finalized_hash", forkChoicer.FinalizedPayloadBlockHash().Hex(),
 			)
 		}()
 	}()
 
-	if err = beacontypes.BeaconBuoyIsNil(blk); err != nil {
+	if err = beacontypes.BeaconBlockIsNil(blk); err != nil {
 		return err
 	}
 
@@ -106,7 +106,7 @@ func (s *Service) missedBlockTasks(
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
 		err := s.sendFCUWithAttributes(
 			ctx,
-			forkChoicer.JustifiedCheckpoint(),
+			forkChoicer.JustifiedPayloadBlockHash(),
 			slot,
 			blockRoot,
 		)
@@ -119,7 +119,7 @@ func (s *Service) missedBlockTasks(
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
-	err := s.sendFCU(ctx, forkChoicer.JustifiedCheckpoint())
+	err := s.sendFCU(ctx, forkChoicer.JustifiedPayloadBlockHash())
 	if err != nil {
 		s.Logger().Error(
 			"failed to send recovery forkchoice update", "error", err,
