@@ -37,7 +37,6 @@ require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20231114100755-569e3ff6a0d7
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
-	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.0.2
@@ -100,6 +99,7 @@ require (
 	cloud.google.com/go/storage v1.36.0 // indirect
 	connectrpc.com/connect v1.14.0 // indirect
 	connectrpc.com/otelconnect v0.7.0 // indirect
+	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/x/accounts v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/tx v0.13.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -177,7 +177,6 @@ require (
 	github.com/creachadair/atomicfile v0.3.3 // indirect
 	github.com/creachadair/tomledit v0.0.25 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
-	github.com/d4l3k/messagediff v1.2.1 // indirect
 	github.com/daixiang0/gci v0.12.1 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/dave/dst v0.27.3 // indirect
@@ -278,7 +277,6 @@ require (
 	github.com/graph-gophers/graphql-go v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/go-bexpr v0.1.10 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
