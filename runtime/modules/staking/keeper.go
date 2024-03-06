@@ -26,7 +26,9 @@
 package staking
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 
 	sdkmath "cosmossdk.io/math"
@@ -35,6 +37,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
@@ -58,6 +61,7 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 func (k *Keeper) delegate(
 	ctx context.Context, deposit *beacontypesv1.Deposit,
 ) (uint64, error) {
+	// Get validator's sdk public key.
 	validatorPK := &ed25519.PubKey{}
 	err := validatorPK.Unmarshal(deposit.GetValidatorPubkey())
 	if err != nil {
@@ -70,15 +74,23 @@ func (k *Keeper) delegate(
 	)
 	if err != nil {
 		if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
-			validator, err = k.createValidator(validatorPK, amount)
+			// Create a new validator on the first deposit.
+			validator, err = k.createValidator(
+				validatorPK, deposit,
+			)
 			return validator.DelegatorShares.BigInt().Uint64(), err
 		}
 		return 0, err
 	}
+	delegatorAddr := sdk.AccAddress(deposit.GetStakingCredentials())
 	newShares, err := k.stakingKeeper.Delegate(
-		ctx, sdk.AccAddress(valConsAddr),
+		ctx,
+		delegatorAddr,
 		sdkmath.NewIntFromUint64(amount),
-		sdkstaking.Unbonded, validator, true)
+		sdkstaking.Unbonded,
+		validator,
+		true,
+	)
 	return newShares.BigInt().Uint64(), err
 }
 
@@ -93,17 +105,38 @@ func (k *Keeper) undelegate(
 // createValidator creates a new validator with the given public
 // key and amount of tokens.
 func (k *Keeper) createValidator(
-	validatorPK sdkcrypto.PubKey,
-	amount uint64) (sdkstaking.Validator, error) {
+	pubkey sdkcrypto.PubKey,
+	deposit *beacontypesv1.Deposit,
+) (sdkstaking.Validator, error) {
+	validatorPK := deposit.GetValidatorPubkey()
+	stakingCredentials := deposit.GetStakingCredentials()
+	amount := deposit.GetAmount()
+
+	// Verify the deposit data against the signature
+	msg := make([]byte, 0)
+	msg = append(msg, validatorPK...)
+	msg = append(msg, stakingCredentials...)
+	// Execution layer uses big endian encoding
+	msg = binary.BigEndian.AppendUint64(msg, amount)
+	sigPK, err := ethcrypto.Ecrecover(msg, deposit.GetSignature())
+	if err != nil {
+		return sdkstaking.Validator{}, err
+	}
+	if !bytes.Equal(sigPK, deposit.GetValidatorPubkey()) {
+		return sdkstaking.Validator{}, errors.New("invalid signature")
+	}
+
+	// Create a new validator.
 	stake := sdkmath.NewIntFromUint64(amount)
-	valConsAddr := sdk.GetConsAddress(validatorPK)
-	operator := sdk.ValAddress(valConsAddr).String()
-	val, err := sdkstaking.NewValidator(
-		operator, validatorPK,
-		sdkstaking.Description{Moniker: validatorPK.String()})
-	val.Tokens = stake
-	val.DelegatorShares = sdkmath.LegacyNewDecFromInt(val.Tokens)
-	return val, err
+	operator := sdk.ValAddress(stakingCredentials).String()
+	newValidator, err := sdkstaking.NewValidator(
+		operator,
+		pubkey,
+		sdkstaking.Description{Moniker: pubkey.String()},
+	)
+	newValidator.Tokens = stake
+	newValidator.DelegatorShares = sdkmath.LegacyNewDecFromInt(newValidator.Tokens)
+	return newValidator, err
 }
 
 // ApplyChanges applies the deposits and withdrawals to the underlying
