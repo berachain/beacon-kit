@@ -28,7 +28,7 @@ package builder
 import (
 	"context"
 	"fmt"
-	"github.com/itsdevbear/bolaris/beacon/core/randao"
+	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
@@ -50,6 +50,10 @@ type PayloadBuilder interface {
 	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 }
 
+type RandaoProcessor interface {
+	BuildReveal(epoch primitives.Epoch) (types.Reveal, error)
+}
+
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
@@ -62,7 +66,7 @@ type Service struct {
 	localBuilder   PayloadBuilder
 	remoteBuilders []PayloadBuilder
 
-	randaoProcessor randao.Processor
+	randaoProcessor RandaoProcessor
 }
 
 // LocalBuilder returns the local builder.
@@ -98,6 +102,8 @@ func (s *Service) RequestBestBlock(
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("AAAAAAAAAAAAAAA %#v\n", beaconBlock.GetReveal())
 
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(

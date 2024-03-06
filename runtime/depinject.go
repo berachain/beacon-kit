@@ -28,6 +28,7 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/beacon/builder"
 	"github.com/itsdevbear/bolaris/config"
 )
 
@@ -44,10 +45,11 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	Config *config.Config
-	Bsp    BeaconStorageBackend
-	Vcp    ValsetChangeProvider
-	Logger log.Logger
+	Config          *config.Config
+	Bsp             BeaconStorageBackend
+	Vcp             ValsetChangeProvider
+	Logger          log.Logger
+	RandaoProcessor builder.RandaoProcessor
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -64,6 +66,7 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		in.Bsp,
 		in.Vcp,
 		in.Logger,
+		in.RandaoProcessor,
 	)
 	if err != nil {
 		panic(err)

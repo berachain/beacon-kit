@@ -27,9 +27,6 @@ package app
 
 import (
 	"context"
-	_ "embed"
-	"io"
-
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -41,19 +38,27 @@ import (
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+	_ "embed"
+	"fmt"
+	"github.com/cometbft/cometbft/p2p"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	"github.com/itsdevbear/bolaris/beacon/core/randao"
 	beaconkitconfig "github.com/itsdevbear/bolaris/config"
-	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
+	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
 	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
+	"github.com/spf13/cast"
+	"io"
+	"os"
 )
 
 var (
@@ -107,13 +112,16 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
-	clientCtx := client.Context{}
+
+	processor := getProcessor(appOpts)
+
+	//clientCtx := client.Context{}
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
-				cmdconfig.ProvideClientContext,
+				//			cmdconfig.ProvideClientContext,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -124,10 +132,12 @@ func NewBeaconKitApp(
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 				// supply our custom staking wrapper.
 				stakingwrapper.NewKeeper(app.StakingKeeper),
+				// supply the randao processor
+				processor,
 			),
 		),
 		&appBuilder,
-		&clientCtx,
+		//	&clientCtx,
 		&app.appCodec,
 		&app.legacyAmino,
 		&app.txConfig,
@@ -145,7 +155,6 @@ func NewBeaconKitApp(
 	); err != nil {
 		panic(err)
 	}
-
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
@@ -181,6 +190,27 @@ func NewBeaconKitApp(
 	}
 
 	return app
+}
+
+func getProcessor(appOpts servertypes.AppOptions) *randao.Processor {
+	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
+	fmt.Println("HomeDir: ", homeDir)
+	key, err := p2p.LoadNodeKey(fmt.Sprintf("%s/config/priv_validator_key.json", homeDir))
+	if err != nil {
+		fmt.Println("Error: ", err)
+		os.Exit(1)
+	}
+	fmt.Println("Key: ", key.PrivKey)
+
+	var pk [32]byte
+	copy(pk[:], key.PrivKey.Bytes())
+
+	signer := bls12381.NewBlsSigner(pk)
+	processor := randao.NewProcessor(nil, signer, &randao.Config{
+		EpochsPerHistoricalVector: 0,
+		ConfiguredPubKeyLength:    0,
+	})
+	return processor
 }
 
 // PostStartup is called after the app has started up and CometBFT is connected.

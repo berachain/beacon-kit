@@ -28,7 +28,6 @@ package runtime
 
 import (
 	"context"
-
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/async/dispatch"
@@ -82,6 +81,7 @@ func NewDefaultBeaconKitRuntime(
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
 	logger log.Logger,
+	processor builder.RandaoProcessor,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -156,6 +156,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
+		builder.WithRandaoProcessor(processor),
 	)
 
 	// Build the sync service.

@@ -46,6 +46,10 @@ type Processor struct {
 	cfg    *Config
 }
 
+func NewProcessor(beaconStateProvider beaconStateProvider, signer bls12381.BlsSigner, cfg *Config) *Processor {
+	return &Processor{beaconStateProvider: beaconStateProvider, signer: signer, cfg: cfg}
+}
+
 // BuildReveal creates a reveal for the proposer.
 // def get_epoch_signature(state: BeaconState, block: BeaconBlock, privkey: int)
 // -> BLSSignature:
