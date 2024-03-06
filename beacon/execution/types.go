@@ -48,7 +48,7 @@ type LogFactory interface {
 	GetRegisteredAddresses() []primitives.ExecutionAddress
 	ProcessLogs(
 		logs []ethtypes.Log,
-		blkNum uint64,
+		blockHash common.Hash,
 	) ([]*reflect.Value, error)
 }
 

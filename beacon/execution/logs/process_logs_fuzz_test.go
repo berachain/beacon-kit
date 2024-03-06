@@ -67,7 +67,8 @@ func FuzzProcessLogs(f *testing.F) {
 			require.NoError(t, err)
 
 			var vals []*reflect.Value
-			vals, err = logFactory.ProcessLogs(logs, blkNum)
+			blockHash := [32]byte{byte(blkNum)}
+			vals, err = logFactory.ProcessLogs(logs, blockHash)
 			require.NoError(t, err)
 			require.Len(t, vals, numDepositLogs)
 
