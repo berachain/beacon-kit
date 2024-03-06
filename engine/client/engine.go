@@ -87,15 +87,12 @@ func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
+	forkVersion int,
 ) (*enginev1.PayloadIDBytes, []byte, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
-	if attrs == nil {
-		return nil, nil, ErrNilAttributesPassedToClient
-	}
-
-	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs)
+	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
 	if err != nil {
 		return nil, nil, s.handleRPCError(err)
 	}
@@ -113,8 +110,9 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context,
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
+	forkVersion int,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-	switch v := attrs.Version(); v {
+	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	default:

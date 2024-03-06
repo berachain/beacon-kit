@@ -81,14 +81,6 @@ func (s *Service) notifyForkchoiceUpdate(
 ) (*enginev1.PayloadIDBytes, error) {
 	forkChoicer := s.ForkchoiceStore(ctx)
 
-	// TODO: intercept here and ask builder service for payload attributes.
-	// if isValidator && PrepareAllPayloads {
-	// Ensure we don't pass a nil attribute to the execution engine.
-	if fcuConfig.Attributes == nil {
-		fcuConfig.Attributes = enginetypes.NewEmptyPayloadAttributesWithVersion(
-			s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot))
-	}
-
 	fcs := &enginev1.ForkchoiceState{
 		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
 		SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash().Bytes(),
@@ -100,8 +92,7 @@ func (s *Service) notifyForkchoiceUpdate(
 		"safe_eth1_hash", forkChoicer.JustifiedPayloadBlockHash(),
 		"finalized_eth1_hash", forkChoicer.FinalizedPayloadBlockHash(),
 		"for_slot", fcuConfig.ProposingSlot,
-		"has_attributes", fcuConfig.Attributes != nil &&
-			!fcuConfig.Attributes.IsEmpty(),
+		"has_attributes", fcuConfig.Attributes != nil,
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -109,6 +100,7 @@ func (s *Service) notifyForkchoiceUpdate(
 		ctx,
 		fcs,
 		fcuConfig.Attributes,
+		s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot),
 	)
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):

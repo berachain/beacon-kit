@@ -65,8 +65,6 @@ type ExecutionPayloadHeader interface {
 
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
-	Version() int
-	IsEmpty() bool
 	GetPrevRandao() [32]byte
 	GetTimestamp() uint64
 	GetSuggestedFeeRecipient() primitives.ExecutionAddress

@@ -26,9 +26,7 @@
 package enginetypes
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/config/version"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
@@ -48,8 +46,8 @@ type PayloadAttributes struct {
 // JSON type overrides for PayloadAttributes.
 type payloadAttributesJSONMarshaling struct {
 	Timestamp             hexutil.Uint64
-	PrevRandao            common.Hash
-	ParentBeaconBlockRoot *common.Hash
+	PrevRandao            hexutil.Bytes
+	ParentBeaconBlockRoot *hexutil.Bytes
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
@@ -60,6 +58,10 @@ func NewPayloadAttributes(
 	withdrawals []*enginev1.Withdrawal,
 	parentBeaconBlockRoot [32]byte,
 ) (*PayloadAttributes, error) {
+	if withdrawals == nil {
+		withdrawals = make([]*enginev1.Withdrawal, 0)
+	}
+
 	return &PayloadAttributes{
 		version:               forkVersion,
 		Timestamp:             timestamp,
@@ -68,14 +70,6 @@ func NewPayloadAttributes(
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: &parentBeaconBlockRoot,
 	}, nil
-}
-
-// NewEmptyPayloadAttributesWithVersion creates a new PayloadAttributes instance
-// with the specified version.
-func NewEmptyPayloadAttributesWithVersion(version int) *PayloadAttributes {
-	return &PayloadAttributes{
-		version: version,
-	}
 }
 
 // GetTimestamp returns the timestamp of the PayloadAttributes.
@@ -114,14 +108,4 @@ func (p *PayloadAttributes) Version() int {
 // GetPrevRandao returns the previous Randao value of the PayloadAttributes.
 func (p *PayloadAttributes) GetPrevRandao() [32]byte {
 	return p.PrevRandao
-}
-
-// IsEmpty checks if the PayloadAttributes is considered empty based on its
-// fields.
-func (p *PayloadAttributes) IsEmpty() bool {
-	return len(p.PrevRandao) == 0 &&
-		p.Timestamp == 0 &&
-		len(p.SuggestedFeeRecipient) == 0 &&
-		(p.Version() < version.Capella || len(p.Withdrawals) == 0) &&
-		(p.Version() < version.Deneb || len(p.ParentBeaconBlockRoot) == 0)
 }
