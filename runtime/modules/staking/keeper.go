@@ -112,11 +112,11 @@ func (k *Keeper) createValidator(
 	stakingCredentials := deposit.GetStakingCredentials()
 	amount := deposit.GetAmount()
 
-	// Verify the deposit data against the signature
+	// Verify the deposit data against the signature.
 	msg := make([]byte, 0)
 	msg = append(msg, validatorPubkey...)
 	msg = append(msg, stakingCredentials...)
-	// Execution layer uses big endian encoding
+	// Execution layer uses big endian encoding.
 	msg = binary.BigEndian.AppendUint64(msg, amount)
 	sigPubkey, err := ethcrypto.Ecrecover(msg, deposit.GetSignature())
 	if err != nil {
