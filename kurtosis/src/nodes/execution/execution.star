@@ -24,16 +24,6 @@ ENGINE_WS_PORT_ID = "engineWs"
 METRICS_PORT_ID = "metrics"
 
 
-
-# Returns the el client context
-def get_client(plan, client_type, evm_genesis_data, jwt_file, el_service_name, network_params, existing_el_clients = []):
-    if client_type == execution_types.CLIENTS.reth:
-        return reth.get(plan, evm_genesis_data, jwt_file, el_service_name, network_params, existing_el_clients)
-
-# def get_default_service_config(service_name, client_type):
-#     if client_type == execution_types.CLIENTS.geth:
-#         return geth.get_default_service_config(service_name)
-
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(service_name, node_module):
     sc = service_config_lib.get_service_config_template(
@@ -64,25 +54,6 @@ def upload_global_files(plan, node_modules):
             )
 
     return jwt_file
-
-# Expects a list of enode strings in the format "enode://<enode_id>@<old_ip>:<old_port>#<new_ip>:<new_port>"
-def parse_proper_enode_ids(plan, enodes):
-    result = plan.run_python(
-        run = """import sys
-enodes = []
-for enode in sys.argv[1:]:
-    parsed = enode.split('#')
-    en = parsed[0]
-    ip = parsed[1]
-    enodes.append(en.split('@')[0] + "@" + ip + ":30303")
-enode_str = ",".join(enodes)
-print(enode_str)
-""",
-        args = enodes,
-    )
-
-    peer_nodes = result.output
-    return peer_nodes
 
 def get_enode_addr(plan, el_service, el_service_name, el_client_type):
     extract_statement = {"enode": """.result.enode | split("?") | .[0]"""}
@@ -126,7 +97,7 @@ def add_bootnodes(node_module, config, bootnodes):
 def deploy_node(plan, config):
     service_config = service_config_lib.create_from_config(config)
 
-    plan.add_service(
+    return plan.add_service(
         name = config["name"],
         config = service_config,
     )

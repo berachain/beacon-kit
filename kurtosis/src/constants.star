@@ -8,3 +8,5 @@ GLOBAL_CLIENT_LOG_LEVEL = struct(
     debug="debug",
     trace="trace",
 )
+
+JWT_MOUNT_PATH_ON_CONTAINER = "/jwt/jwtsecret"
