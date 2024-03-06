@@ -39,23 +39,6 @@ type (
 	BlobsBundle = enginev1.BlobsBundle
 	// Withdrawal alias for Prysm's version.
 	Withdrawal = enginev1.Withdrawal
-	// PayloadStatus alias for Prysm's version.
-	PayloadStatus = enginev1.PayloadStatus
 	// ExecutionBlock alias for Prysm's version.
 	ExecutionBlock = enginev1.ExecutionBlock
-)
-
-const (
-	//nolint:stylecheck,revive // alias.
-	PayloadStatus_INVALID_BLOCK_HASH = enginev1.PayloadStatus_INVALID_BLOCK_HASH
-	//nolint:stylecheck,revive // alias.
-	PayloadStatus_ACCEPTED = enginev1.PayloadStatus_ACCEPTED
-	//nolint:stylecheck,revive // alias.
-	PayloadStatus_SYNCING = enginev1.PayloadStatus_SYNCING
-	//nolint:stylecheck,revive // alias.
-	PayloadStatus_INVALID = enginev1.PayloadStatus_INVALID
-	//nolint:stylecheck,revive // alias.
-	PayloadStatus_VALID = enginev1.PayloadStatus_VALID
-	//nolint:stylecheck,revive // alias.
-	PayloadStatus_UNKNOWN = enginev1.PayloadStatus_UNKNOWN
 )
