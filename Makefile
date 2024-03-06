@@ -394,7 +394,7 @@ buf-lint:
 
 sszgen-install:
 	@echo "--> Installing sszgen"
-	@go install github.com/prysmaticlabs/fastssz/sszgen
+	@go install github.com/itsdevbear/fastssz/sszgen
 
 sszgen-clean:
 	@find . -name '*.pb_encoding.go' -delete
@@ -402,10 +402,13 @@ sszgen-clean:
 sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./beacon/core/types/v1 \
+	@go run github.com/prysmaticlabs/fastssz/sszgen -path ./beacon/core/types/v1 \
 	-objs Deposit,BeaconBlock,BeaconBlockDeneb,\
     --include ./primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
+	@go run github.com/itsdevbear/fastssz/sszgen -path . -objs ExecutableData -include ./primitives,$(HOME)/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common
+	@go run github.com/itsdevbear/fastssz/sszgen -path . -objs Withdrawal -include ./primitives,$(HOME)/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common
+
 
 ##############################################################################
 ###                             Dependencies                                ###
