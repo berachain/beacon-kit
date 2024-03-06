@@ -81,7 +81,7 @@ func FuzzOrderedCache(f *testing.F) {
 }
 
 func FuzzOrderedCacheConcurrencySafety(f *testing.F) {
-	f.Fuzz(func(t *testing.T) {
+	f.Fuzz(func(t *testing.T, n int) {
 		cache := cache.NewOrderedCache(IntComparable{})
 		numGoroutines := 10
 		numOperations := 100
@@ -95,7 +95,9 @@ func FuzzOrderedCacheConcurrencySafety(f *testing.F) {
 				for j := 0; j < numOperations; j++ {
 					switch rand.Intn(3) {
 					case 0: // Insert
-						cache.Insert(rand.Int())
+						cache.Insert(
+							rand.Intn(n),
+						) // Use n to generate random inputs
 					case 1: // RemoveFront
 						_, _ = cache.RemoveFront() // Ignore errors for simplicity
 					case 2: // RemoveBack
