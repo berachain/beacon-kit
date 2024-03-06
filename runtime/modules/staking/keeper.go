@@ -118,11 +118,11 @@ func (k *Keeper) createValidator(
 	msg = append(msg, stakingCredentials...)
 	// Execution layer uses big endian encoding
 	msg = binary.BigEndian.AppendUint64(msg, amount)
-	sigPK, err := ethcrypto.Ecrecover(msg, deposit.GetSignature())
+	sigPubkey, err := ethcrypto.Ecrecover(msg, deposit.GetSignature())
 	if err != nil {
 		return sdkstaking.Validator{}, err
 	}
-	if !bytes.Equal(sigPK, validatorPubkey) {
+	if !bytes.Equal(sigPubkey, validatorPubkey) {
 		return sdkstaking.Validator{}, errors.New("invalid signature")
 	}
 
