@@ -27,7 +27,6 @@ GasFloor = 0
 GasCeil = 30000000
 GasPrice = 1000000000
 Recommit = 2000000000
-NewPayloadTimeout = 2000000000
 
 [Eth.TxPool]
 Locals = []
