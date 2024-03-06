@@ -114,11 +114,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 	state *enginev1.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
-<<<<<<< HEAD
-	switch attrs.Version() {
-=======
 	switch v := attrs.Version(); v {
->>>>>>> 7923d54a (big fix)
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	default:
