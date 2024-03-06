@@ -28,7 +28,7 @@ package primitives
 import (
 	"fmt"
 
-	fssz "github.com/itsdevbear/fastssz"
+	fssz "github.com/prysmaticlabs/fastssz"
 )
 
 // eight is the fixed size of a SSZUint64 in bytes.
