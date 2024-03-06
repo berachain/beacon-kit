@@ -14,6 +14,7 @@ beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 genesis = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
 geth = import_module("./src/nodes/execution/geth/launcher.star")
+nethermind = import_module("./src/nodes/execution/nethermind/launcher.star")
 
 def run(plan, args = {}):
     """
@@ -40,7 +41,7 @@ def run(plan, args = {}):
 
     # 3. Perform genesis ceremony
     for n in range(num_participants):
-        cl_service_name = "cl-{}-reth-beaconkit".format(n)
+        cl_service_name = "cl-{}-{}-beaconkit".format(n, args_with_right_defaults.participants[n].el_client_type)
         engine_dial_url = ""  # not needed for this step
         beacond_config = beacond.get_config(
             args_with_right_defaults.participants[n].cl_client_image,
@@ -151,6 +152,11 @@ def run(plan, args = {}):
             geth.add_bootnodes(el_service_config_dict, el_enode_addrs)
             plan.print(el_service_config_dict)
             geth.deploy_node(plan, el_service_config_dict)
+        elif el_client_type == execution_types.CLIENTS.nethermind:
+            el_service_config_dict = execution.get_default_service_config(el_service_name, el_client_type)
+            nethermind.add_bootnodes(el_service_config_dict, el_enode_addrs)
+            plan.print(el_service_config_dict)
+            nethermind.deploy_node(plan, el_service_config_dict)
         else:
             el_client_context = execution.get_client(plan, execution_types.CLIENTS.reth, evm_genesis_data, jwt_file, el_service_name, network_params, el_enode_addrs)
 

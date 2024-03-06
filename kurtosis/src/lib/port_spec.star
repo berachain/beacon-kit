@@ -43,8 +43,9 @@ def validate_port_spec(port_spec):
 
 def create_port_specs_from_config(config):
     ports = {}
-    for port_key, port_spec in config['ports'].items():
-        ports[port_key] = create_port_spec(port_spec)
+    if config['ports']:
+        for port_key, port_spec in config['ports'].items():
+            ports[port_key] = create_port_spec(port_spec)
 
     return ports
 

@@ -3,6 +3,7 @@ input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/pack
 
 reth = import_module("./reth/launcher.star")
 geth = import_module("./geth/launcher.star")
+nethermind = import_module("./nethermind/launcher.star")
 execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 
@@ -29,6 +30,8 @@ def get_client(plan, client_type, evm_genesis_data, jwt_file, el_service_name, n
 def get_default_service_config(service_name, client_type):
     if client_type == execution_types.CLIENTS.geth:
         return geth.get_default_service_config(service_name)
+    if client_type == execution_types.CLIENTS.nethermind:
+        return nethermind.get_default_service_config(service_name)
 
 def upload_global_files(plan):
     genesis_file = plan.upload_files(
@@ -40,6 +43,7 @@ def upload_global_files(plan):
         name = "jwt_file",
     )
     geth.upload_global_files(plan)
+    nethermind.upload_global_files(plan)
 
     return jwt_file
 
@@ -79,6 +83,16 @@ def get_enode_addr(plan, el_service, el_service_name, el_client_type):
         request_recipe = PostHttpRequestRecipe(
             endpoint="",
             body='{"method":"admin_nodeInfo","params":[],"id":1,"jsonrpc":"2.0"}',
+            content_type="application/json",
+            port_id=RPC_PORT_ID,
+            extract={
+                "enode": """.result.enode | split("?") | .[0]""",
+            },
+        )
+    elif el_client_type == execution_types.CLIENTS.nethermind:
+        request_recipe = PostHttpRequestRecipe(
+            endpoint="",
+            body='{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":1}',
             content_type="application/json",
             port_id=RPC_PORT_ID,
             extract={
