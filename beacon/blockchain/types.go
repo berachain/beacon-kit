@@ -27,6 +27,7 @@ package blockchain
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
@@ -61,6 +62,11 @@ type ExecutionService interface {
 		versionedHashes []common.Hash,
 		parentBlockRoot [32]byte,
 	) (bool, error)
+
+	ProcessLogsInETH1Block(
+		ctx context.Context,
+		blockHash common.Hash,
+	) ([]*reflect.Value, error)
 }
 
 type StakingService interface{}

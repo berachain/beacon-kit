@@ -70,7 +70,7 @@ type Caller interface {
 
 	// GetLogs retrieves the logs from the Ethereum execution node.
 	GetLogs(
-		ctx context.Context, fromBlock, toBlock uint64,
+		ctx context.Context, blockHash common.Hash,
 		addresses []primitives.ExecutionAddress,
 	) ([]gethcoretypes.Log, error)
 
