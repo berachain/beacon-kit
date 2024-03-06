@@ -28,6 +28,7 @@ package cache
 import (
 	"sync"
 
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -45,7 +46,7 @@ type PayloadIDCache struct {
 
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
 	//nolint:lll
-	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]primitives.PayloadID
+	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]enginetypes.PayloadID
 }
 
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
@@ -54,7 +55,7 @@ func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
 		slotToStateRootToPayloadID: make(
-			map[primitives.Slot]map[[32]byte]primitives.PayloadID,
+			map[primitives.Slot]map[[32]byte]enginetypes.PayloadID,
 		),
 	}
 }
@@ -63,16 +64,16 @@ func NewPayloadIDCache() *PayloadIDCache {
 // It returns the found payload ID and a boolean indicating whether the lookup
 // was successful.
 func (p *PayloadIDCache) Get(slot primitives.Slot, stateRoot [32]byte,
-) (primitives.PayloadID, bool) {
+) (enginetypes.PayloadID, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	innerMap, ok := p.slotToStateRootToPayloadID[slot]
 	if !ok {
-		return primitives.PayloadID{}, false
+		return enginetypes.PayloadID{}, false
 	}
 	pid, ok := innerMap[stateRoot]
 	if !ok {
-		return primitives.PayloadID{}, false
+		return enginetypes.PayloadID{}, false
 	}
 	return pid, true
 }
@@ -81,7 +82,7 @@ func (p *PayloadIDCache) Get(slot primitives.Slot, stateRoot [32]byte,
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
-	slot primitives.Slot, stateRoot [32]byte, pid primitives.PayloadID,
+	slot primitives.Slot, stateRoot [32]byte, pid enginetypes.PayloadID,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -94,7 +95,7 @@ func (p *PayloadIDCache) Set(
 	// Update the cache with the new payload ID.
 	innerMap, exists := p.slotToStateRootToPayloadID[slot]
 	if !exists {
-		innerMap = make(map[[32]byte]primitives.PayloadID)
+		innerMap = make(map[[32]byte]enginetypes.PayloadID)
 		p.slotToStateRootToPayloadID[slot] = innerMap
 	}
 	innerMap[stateRoot] = pid

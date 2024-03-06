@@ -56,11 +56,11 @@ type Caller interface {
 	ForkchoiceUpdated(
 		ctx context.Context, state *enginev1.ForkchoiceState,
 		attrs enginetypes.PayloadAttributer, version int,
-	) (*enginev1.PayloadIDBytes, []byte, error)
+	) (*enginetypes.PayloadID, []byte, error)
 
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(
-		ctx context.Context, payloadID primitives.PayloadID, version int,
+		ctx context.Context, payloadID enginetypes.PayloadID, version int,
 	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
 
 	// ExecutionBlockByHash retrieves the execution block by its hash.
