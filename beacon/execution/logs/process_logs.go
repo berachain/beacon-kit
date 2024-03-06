@@ -26,8 +26,6 @@
 package logs
 
 import (
-	"errors"
-	"fmt"
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -47,13 +45,11 @@ func (f *Factory) ProcessLogs(
 			// Skip logs not from the block we're processing. This should
 			// not occur, but we check defensively.
 			if log.BlockHash != blockHash {
-				errMsg := fmt.Sprintf(
-					"log from different block, expected %s, got %s, for block %d",
+				return nil, NewErrLogFromIncorrectBlock(
 					blockHash.String(),
 					log.BlockHash.String(),
 					log.BlockNumber,
 				)
-				return nil, errors.New(errMsg)
 			}
 
 			// Skip logs that are not registered with the factory.
