@@ -62,13 +62,13 @@ func (k *Keeper) delegate(
 	ctx context.Context, deposit *beacontypesv1.Deposit,
 ) (uint64, error) {
 	// Get validator's sdk public key.
-	validatorPK := &ed25519.PubKey{}
-	err := validatorPK.Unmarshal(deposit.GetValidatorPubkey())
+	validatorPubkey := &ed25519.PubKey{}
+	err := validatorPubkey.Unmarshal(deposit.GetValidatorPubkey())
 	if err != nil {
 		return 0, err
 	}
 	amount := deposit.GetAmount()
-	valConsAddr := sdk.GetConsAddress(validatorPK)
+	valConsAddr := sdk.GetConsAddress(validatorPubkey)
 	validator, err := k.stakingKeeper.GetValidator(
 		ctx, sdk.ValAddress(valConsAddr),
 	)
@@ -76,7 +76,7 @@ func (k *Keeper) delegate(
 		if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
 			// Create a new validator on the first deposit.
 			validator, err = k.createValidator(
-				validatorPK, deposit,
+				validatorPubkey, deposit,
 			)
 			return validator.DelegatorShares.BigInt().Uint64(), err
 		}
@@ -108,13 +108,13 @@ func (k *Keeper) createValidator(
 	pubkey sdkcrypto.PubKey,
 	deposit *beacontypesv1.Deposit,
 ) (sdkstaking.Validator, error) {
-	validatorPK := deposit.GetValidatorPubkey()
+	validatorPubkey := deposit.GetValidatorPubkey()
 	stakingCredentials := deposit.GetStakingCredentials()
 	amount := deposit.GetAmount()
 
 	// Verify the deposit data against the signature
 	msg := make([]byte, 0)
-	msg = append(msg, validatorPK...)
+	msg = append(msg, validatorPubkey...)
 	msg = append(msg, stakingCredentials...)
 	// Execution layer uses big endian encoding
 	msg = binary.BigEndian.AppendUint64(msg, amount)
@@ -122,7 +122,7 @@ func (k *Keeper) createValidator(
 	if err != nil {
 		return sdkstaking.Validator{}, err
 	}
-	if !bytes.Equal(sigPK, validatorPK) {
+	if !bytes.Equal(sigPK, validatorPubkey) {
 		return sdkstaking.Validator{}, errors.New("invalid signature")
 	}
 
