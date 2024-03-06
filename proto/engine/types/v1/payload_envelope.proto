@@ -30,8 +30,8 @@ import "ethereum/engine/v1/execution_engine.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/engine/types/v1;enginev1";
 
-// ExecutionPayloadContainer is a container for an execution payload.
-message ExecutionPayloadContainer {
+// ExecutionPayloadEnvelope is a container for an execution payload.
+message ExecutionPayloadEnvelope {
   // payload represents the payload of the execution.
   oneof payload {
     // deneb represents an execution payload for deneb

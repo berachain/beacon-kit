@@ -23,13 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package types
 
 import beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 
 // NewDeposit creates a new deposit.
 func NewDeposit(
-	pubkey []byte, amount uint64, withdrawalCredentials []byte,
+	pubkey []byte,
+	amount uint64,
+	withdrawalCredentials []byte,
 ) *beacontypesv1.Deposit {
 	return &beacontypesv1.Deposit{
 		ValidatorPubkey:       pubkey,

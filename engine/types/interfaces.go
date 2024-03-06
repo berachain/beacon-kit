@@ -27,6 +27,7 @@ package enginetypes
 
 import (
 	"github.com/itsdevbear/bolaris/math"
+	"github.com/itsdevbear/bolaris/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"google.golang.org/protobuf/proto"
@@ -66,10 +67,9 @@ type ExecutionPayloadHeader interface {
 type PayloadAttributer interface {
 	Version() int
 	IsEmpty() bool
-	ToProto() proto.Message
-	GetPrevRandao() []byte
+	GetPrevRandao() [32]byte
 	GetTimestamp() uint64
-	GetSuggestedFeeRecipient() []byte
+	GetSuggestedFeeRecipient() primitives.ExecutionAddress
 	GetWithdrawals() []*enginev1.Withdrawal
-	GetParentBeaconBlockRoot() []byte
+	GetParentBeaconBlockRoot() [32]byte
 }

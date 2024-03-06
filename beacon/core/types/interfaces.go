@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensus
+package types
 
 import (
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
@@ -31,17 +31,17 @@ import (
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 
-// BeaconBuoy is the interface for a beacon block.
-type BeaconBuoy interface {
-	ReadOnlyBeaconBuoy
-	WriteOnlyBeaconBuoy
+// BeaconBlock is the interface for a beacon block.
+type BeaconBlock interface {
+	ReadOnlyBeaconBlock
+	WriteOnlyBeaconBlock
 }
 
 type BeaconBlockBody interface {
-	ReadOnlyBeaconBuoyBody
+	ReadOnlyBeaconBlockBody
 }
 
-type ReadOnlyBeaconBuoyBody interface {
+type ReadOnlyBeaconBlockBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
@@ -49,8 +49,8 @@ type ReadOnlyBeaconBuoyBody interface {
 	GetBlobKzgCommitments() [][]byte
 }
 
-// ReadOnlyBeaconBuoy is the interface for a read-only beacon block.
-type ReadOnlyBeaconBuoy interface {
+// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
+type ReadOnlyBeaconBlock interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
@@ -64,7 +64,7 @@ type ReadOnlyBeaconBuoy interface {
 	Version() int
 }
 
-// WriteOnlyBeaconBuoy is the interface for a write-only beacon block.
-type WriteOnlyBeaconBuoy interface {
+// WriteOnlyBeaconBlock is the interface for a write-only beacon block.
+type WriteOnlyBeaconBlock interface {
 	AttachExecution(enginetypes.ExecutionPayload) error
 }

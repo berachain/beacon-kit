@@ -34,7 +34,10 @@ import (
 	"cosmossdk.io/log"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
+	ssfmocks "github.com/itsdevbear/bolaris/beacon/forkchoice/ssf/mocks"
 	"github.com/itsdevbear/bolaris/runtime/service"
+	servicemocks "github.com/itsdevbear/bolaris/runtime/service/mocks"
+	"github.com/stretchr/testify/mock"
 )
 
 type TestEvent struct {
@@ -63,8 +66,14 @@ func TestDispatch(t *testing.T) {
 		dispatch.WithDispatchQueue(queueID, dispatch.QueueTypeSerial),
 	)
 
+	bsb := &servicemocks.BeaconStorageBackend{}
+	bsb.EXPECT().
+		ForkchoiceStore(mock.Anything).
+		Return(&ssfmocks.SingleSlotFinalityStore{}).
+		Once()
+
 	baseService := service.NewBaseService(
-		nil, nil, gcd, log.NewNopLogger(),
+		nil, bsb, gcd, log.NewNopLogger(),
 	)
 
 	service := service.New(
