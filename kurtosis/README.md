@@ -16,7 +16,7 @@ make start-devnet
 
 This will automatically build your beacond docker image from the local source code, and spin up a Kurtosis network based on the config file in `kurtosis/beaconkit-all.yaml`. Once complete, this will output all the network information for your nodes like so:
 
-![Example Network](./example-network.png)
+![Example Network](./img/example-network.png)
 
 When you want to tear down your network, you can do so with the following commands:
 
