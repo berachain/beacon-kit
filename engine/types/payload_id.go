@@ -36,7 +36,7 @@ import (
 // array.
 type PayloadID [8]byte
 
-// MarshalJSON converts PayloadIDBytes to a JSON-encoded hexadecimal string.
+// MarshalJSON converts a PayloadID to a JSON-encoded hexadecimal string.
 func (b PayloadID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(hexutil.Bytes(b[:]))
 }
