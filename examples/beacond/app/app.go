@@ -27,6 +27,11 @@ package app
 
 import (
 	"context"
+	_ "embed"
+	"fmt"
+	"io"
+	"os"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -38,8 +43,6 @@ import (
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	_ "embed"
-	"fmt"
 	"github.com/cometbft/cometbft/p2p"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -57,8 +60,6 @@ import (
 	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
 	"github.com/spf13/cast"
-	"io"
-	"os"
 )
 
 var (
@@ -113,14 +114,13 @@ func NewBeaconKitApp(
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
 
-	processor := getProcessor(appOpts)
-
 	//clientCtx := client.Context{}
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
+				randao.ProvideRandaoProcessor,
 				//			cmdconfig.ProvideClientContext,
 			),
 			depinject.Supply(
@@ -132,8 +132,6 @@ func NewBeaconKitApp(
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 				// supply our custom staking wrapper.
 				stakingwrapper.NewKeeper(app.StakingKeeper),
-				// supply the randao processor
-				processor,
 			),
 		),
 		&appBuilder,

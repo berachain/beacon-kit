@@ -28,6 +28,7 @@ package builder
 import (
 	"context"
 	"fmt"
+
 	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -51,7 +52,7 @@ type PayloadBuilder interface {
 }
 
 type RandaoProcessor interface {
-	BuildReveal(epoch primitives.Epoch) (types.Reveal, error)
+	BuildReveal(ctx context.Context, epoch primitives.Epoch) (types.Reveal, error)
 }
 
 // Service is responsible for building beacon blocks.
@@ -88,7 +89,7 @@ func (s *Service) RequestBestBlock(
 	// TODO: should be epoch
 	s.BeaconState(ctx)
 
-	reveal, err := s.randaoProcessor.BuildReveal(epoch)
+	reveal, err := s.randaoProcessor.BuildReveal(ctx, epoch)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build reveal: %w", err)
 	}

@@ -27,27 +27,74 @@ package randao
 
 import (
 	"context"
+	"fmt"
+	"os"
+
+	"cosmossdk.io/depinject"
+	"github.com/cometbft/cometbft/p2p"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/spf13/cast"
 
 	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/crypto/bls12_381"
+	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
 )
 
-type beaconStateProvider interface {
+type BeaconStateProvider interface {
 	// BeaconState returns the current beacon state.
 	BeaconState(context.Context) state.BeaconState
 }
 
 // Processor is the randao processor.
 type Processor struct {
-	beaconStateProvider
-	signer bls12381.BlsSigner
-	cfg    *Config
+	stateProvider BeaconStateProvider
+	signer        bls12381.BlsSigner
+	cfg           *Config
 }
 
-func NewProcessor(beaconStateProvider beaconStateProvider, signer bls12381.BlsSigner, cfg *Config) *Processor {
-	return &Processor{beaconStateProvider: beaconStateProvider, signer: signer, cfg: cfg}
+// DepInjectInput is the input for the dep inject framework.
+type DepInjectInput struct {
+	depinject.In
+
+	BeaconState BeaconStateProvider
+	AppOpts     servertypes.AppOptions
+}
+
+// DepInjectOutput is the output for the dep inject framework.
+type DepInjectOutput struct {
+	depinject.Out
+
+	RandaoProcessor *Processor
+}
+
+func ProvideRandaoProcessor(in DepInjectInput) DepInjectOutput {
+	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
+	fmt.Println("HomeDir: ", homeDir)
+	key, err := p2p.LoadNodeKey(fmt.Sprintf("%s/config/priv_validator_key.json", homeDir))
+	if err != nil {
+		fmt.Println("Error: ", err)
+		os.Exit(1)
+	}
+	fmt.Println("Key: ", key.PrivKey)
+
+	var pk [32]byte
+	copy(pk[:], key.PrivKey.Bytes())
+
+	signer := bls12381.NewBlsSigner(pk)
+	processor := NewProcessor(in.BeaconState, signer, &Config{
+		EpochsPerHistoricalVector: 0,
+		ConfiguredPubKeyLength:    0,
+	})
+
+	return DepInjectOutput{
+		RandaoProcessor: processor,
+	}
+}
+
+func NewProcessor(beaconStateProvider BeaconStateProvider, signer bls12381.BlsSigner, cfg *Config) *Processor {
+	return &Processor{stateProvider: beaconStateProvider, signer: signer, cfg: cfg}
 }
 
 // BuildReveal creates a reveal for the proposer.
@@ -61,9 +108,12 @@ func NewProcessor(beaconStateProvider beaconStateProvider, signer bls12381.BlsSi
 //
 //	return bls.Sign(privkey, signing_root)
 func (rs *Processor) BuildReveal(
+	ctx context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	domain := rs.getDomain(epoch, nil)
+	st := rs.stateProvider.BeaconState(ctx)
+	root := st.GetParentBlockRoot()
+	domain := rs.getDomain(epoch, root[:])
 	signingRoot := rs.computeSigningRoot(epoch, domain)
 
 	return rs.signer.Sign(signingRoot)
@@ -86,7 +136,7 @@ func (rs *Processor) ProcessRandao(
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	prevReveal types.Reveal,
 ) error {
-	st := rs.BeaconState(ctx)
+	st := rs.stateProvider.BeaconState(ctx)
 	signingRoot := rs.computeSigningRoot(epoch, rs.getDomain(epoch, nil))
 
 	rs.signer.Verify(proposerPubkey, signingRoot, prevReveal)
@@ -103,10 +153,17 @@ func (rs *Processor) ProcessRandao(
 }
 
 func (rs *Processor) computeSigningRoot(
-	_ primitives.Epoch,
-	_ types.Domain,
+	epoch primitives.Epoch,
+	d types.Domain,
 ) []byte {
-	return []byte{}
+	epochSSZUInt64 := primitives.SSZUint64(epoch)
+	sszBz, err := epochSSZUInt64.MarshalSSZ()
+	if err != nil {
+		// don't actually panic
+		panic(err)
+	}
+
+	return sszBz
 }
 
 func (rs *Processor) getDomain(
