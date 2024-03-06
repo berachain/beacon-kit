@@ -26,12 +26,9 @@
 package enginetypes
 
 import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
-
-//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 
 //nolint:lll // struct tags.
 type PayloadAttributes struct {
@@ -53,13 +50,6 @@ type PayloadAttributes struct {
 	// prior)
 	// to the block currently being processed. This field was added in EIP-4788.
 	ParentBeaconBlockRoot [32]byte `json:"parentBeaconBlockRoot"`
-}
-
-// JSON type overrides for PayloadAttributes.
-type payloadAttributesJSONMarshaling struct {
-	Timestamp             hexutil.Uint64
-	PrevRandao            hexutil.Bytes
-	ParentBeaconBlockRoot hexutil.Bytes
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
