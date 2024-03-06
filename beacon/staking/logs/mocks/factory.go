@@ -56,6 +56,7 @@ func NewLogFromWithdrawal(
 	return newLog(event,
 		[]byte{},
 		[]byte{},
+		[]byte{},
 		withdrawal.Amount,
 	)
 }
