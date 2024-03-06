@@ -54,7 +54,7 @@ var (
 	// Signature and type of the Deposit event
 	// in the deposit contract.
 	// keccak256("Deposit(bytes,bytes,uint64)").
-	// 0x1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df
+	// 0x1f39b85dd1a529b31e0cd61e5609e1feca0e08e2103fe319fbd3dd5a0c7b68df.
 	DepositSig = [32]byte{
 		0x1f, 0x39, 0xb8, 0x5d, 0xd1, 0xa5, 0x29, 0xb3,
 		0x1e, 0x0c, 0xd6, 0x1e, 0x56, 0x09, 0xe1, 0xfe,
@@ -67,7 +67,7 @@ var (
 	// Signature and type of the Redirect event
 	// in the deposit contract.
 	// keccak256("Redirect(bytes,bytes,bytes,uint64)").
-	// 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f
+	// 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f.
 	RedirectSig = [32]byte{
 		0xe1, 0x61, 0xf5, 0x84, 0x27, 0x57, 0xf2, 0x57,
 		0x34, 0x6b, 0x36, 0x05, 0x94, 0xd0, 0x94, 0xb7,
@@ -78,7 +78,7 @@ var (
 	// Signature and type of the Withdraw event
 	// in the deposit contract.
 	// keccak256("Withdraw(bytes,bytes,uint64)").
-	// 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6
+	// 0xd819a76a9128ab820538179b416ffb491e0fa0b23b2a08b605fba4c2649db9a6.
 	WithdrawSig = [32]byte{
 		0xd8, 0x19, 0xa7, 0x6a, 0x91, 0x28, 0xab, 0x82,
 		0x05, 0x38, 0x17, 0x9b, 0x41, 0x6f, 0xfb, 0x49,

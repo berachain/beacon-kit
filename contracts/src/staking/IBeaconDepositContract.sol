@@ -68,9 +68,7 @@ interface IBeaconDepositContract {
      * @param amount The amount to be withdrawn from the validator, in Gwei.
      */
     event Withdraw(
-        bytes fromPubkey,
-        bytes withdrawalCredentials,
-        uint64 amount
+        bytes fromPubkey, bytes withdrawalCredentials, uint64 amount
     );
 
     // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -119,7 +117,9 @@ interface IBeaconDepositContract {
         bytes calldata stakingCredentials,
         uint64 amount,
         bytes calldata signature
-    ) external payable;
+    )
+        external
+        payable;
 
     /**
      * @notice Submit a redirect stake message, this allows depositors to move their stake from one validator to another.
@@ -133,7 +133,8 @@ interface IBeaconDepositContract {
         bytes calldata fromPubkey,
         bytes calldata toPubkey,
         uint64 amount
-    ) external;
+    )
+        external;
 
     /**
      * @notice Submit a withdrawal message to the Beaconchain.
@@ -147,5 +148,6 @@ interface IBeaconDepositContract {
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
-    ) external;
+    )
+        external;
 }
