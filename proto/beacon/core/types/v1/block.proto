@@ -32,8 +32,8 @@ import "ethereum/eth/ext/options.proto";
 
 option go_package = "github.com/itsdevbear/bolaris/beacon/core/types/v1;typesv1";
 
-// BeaconBuoyDeneb represents a beacon kit block during deneb network upgrade.
-message BeaconBuoyDeneb {
+// BeaconBlockDeneb represents a beacon kit block during deneb network upgrade.
+message BeaconBlockDeneb {
   // Beacon chain slot that this block represents.
   uint64 slot = 1 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/primitives.Slot"];
 
@@ -41,14 +41,14 @@ message BeaconBuoyDeneb {
   bytes parent_block_root = 2 [(ethereum.eth.ext.ssz_size) = "32"];
 
   // BeaconBlockBody contains the body of the beacon block.
-  BeaconBuoyBodyDeneb body = 3;
+  BeaconBlockBodyDeneb body = 3;
 
   // The payload value of the block.
   bytes payload_value = 101 [(ethereum.eth.ext.ssz_size) = "32"];
 }
 
-// BeaconBuoyBodyDeneb represents the body of a beacon block in Deneb.
-message BeaconBuoyBodyDeneb {
+// BeaconBlockBodyDeneb represents the body of a beacon block in Deneb.
+message BeaconBlockBodyDeneb {
   // The validators RANDAO reveal 96 byte value.
   bytes randao_reveal = 1 [(ethereum.eth.ext.ssz_size) = "96"];
 

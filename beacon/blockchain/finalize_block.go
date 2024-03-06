@@ -40,7 +40,7 @@ import (
 // on the beacon state.
 func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBuoy,
+	blk beacontypes.ReadOnlyBeaconBlock,
 	blockRoot [32]byte,
 ) error {
 	var (
@@ -70,7 +70,7 @@ func (s *Service) FinalizeBeaconBlock(
 		}()
 	}()
 
-	if err = beacontypes.BeaconBuoyIsNil(blk); err != nil {
+	if err = beacontypes.BeaconBlockIsNil(blk); err != nil {
 		return err
 	}
 

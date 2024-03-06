@@ -62,7 +62,7 @@ type EngineClient struct {
 }
 
 // New creates a new engine client EngineClient.
-// It takes an Eth1Client as an argument and returns a pointer to an
+// It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
 func New(opts ...Option) *EngineClient {
 	ec := &EngineClient{

@@ -392,7 +392,7 @@ sszgen:
 	@$(MAKE) sszgen-install sszgen-clean
 	@echo "--> Running sszgen on all structs with ssz tags"
 	@sszgen -path ./beacon/core/types/v1 \
-	-objs Deposit,BeaconBuoy,BeaconBuoyDeneb,\
+	-objs Deposit,BeaconBlock,BeaconBlockDeneb,\
     --include ./primitives,\
 	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
 
