@@ -39,7 +39,7 @@ type Comparable[T any] interface {
 // are maintained in an ascending order.
 type OrderedCache[T any] struct {
 	store *skiplist.SkipList
-	// mu is a mutex that protects the queue.
+	// mu is a mutex that protects the cache.
 	mu sync.RWMutex
 }
 
