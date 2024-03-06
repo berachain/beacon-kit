@@ -26,13 +26,14 @@
 package ethclient
 
 import (
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
 // ForkchoiceUpdatedResponse is the response kind received by the
 // engine_forkchoiceUpdatedV1 endpoint.
 type ForkchoiceUpdatedResponse struct {
-	Status          *enginev1.PayloadStatus  `json:"payloadStatus"`
-	PayloadID       *enginev1.PayloadIDBytes `json:"payloadId"`
-	ValidationError string                   `json:"validationError"`
+	Status          *enginev1.PayloadStatus `json:"payloadStatus"`
+	PayloadID       *enginetypes.PayloadID  `json:"payloadId"`
+	ValidationError string                  `json:"validationError"`
 }

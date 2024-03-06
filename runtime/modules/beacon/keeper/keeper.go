@@ -31,7 +31,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/beacon/forkchoicer/ssf"
+	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
 	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
 	forkchoicestore "github.com/itsdevbear/bolaris/store/forkchoice"

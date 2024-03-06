@@ -10,7 +10,7 @@ import { BeaconRootsContract } from "@src/eip4788/BeaconRootsContract.sol";
 /// @title BeaconRootsContractBaseTest
 /// @dev This contract is a baseplate for tests that depend on the
 /// BeaconRootsContract.
-contract BeaconRootsContractBaseTest is SoladyTest {
+abstract contract BeaconRootsContractBaseTest is SoladyTest {
     uint256 internal constant HISTORY_BUFFER_LENGTH = 8191;
     uint256 internal constant BEACON_ROOT_OFFSET = HISTORY_BUFFER_LENGTH;
     uint256 internal constant COINBASE_OFFSET =
@@ -19,13 +19,13 @@ contract BeaconRootsContractBaseTest is SoladyTest {
         COINBASE_OFFSET + HISTORY_BUFFER_LENGTH;
     address internal constant SYSTEM_ADDRESS =
         0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
-    address internal constant BEACON_ROOT_ADDRESS =
-        0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
     bytes4 internal constant GET_COINBASE_SELECTOR =
         bytes4(keccak256("getCoinbase(uint256)"));
     uint256 internal constant BLOCK_INTERVAL = 5;
     uint256 internal constant TIMESTAMP = 1_707_425_462;
 
+    address internal BEACON_ROOT_ADDRESS =
+        0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
     uint256[HISTORY_BUFFER_LENGTH] internal _timestamps;
 
     bytes32 internal lastBeaconRoot;
@@ -33,10 +33,7 @@ contract BeaconRootsContractBaseTest is SoladyTest {
 
     /// @dev Set up the test environment by deploying a new BeaconRootsContract.
     function setUp() public virtual {
-        // etch the BeaconRootsContract to the BEACON_ROOT_ADDRESS
-        vm.etch(
-            BEACON_ROOT_ADDRESS, vm.getDeployedCode("BeaconRootsContract.sol")
-        );
+        BEACON_ROOT_ADDRESS = address(new BeaconRootsContract());
         // take a snapshot of the clean state
         snapshot = vm.snapshot();
         // set the initial storage of the BEACON_ROOT_ADDRESS
@@ -103,13 +100,14 @@ contract BeaconRootsContractBaseTest is SoladyTest {
         returns (bool success, bytes32 beaconRoot)
     {
         // BEACON_ROOT_ADDRESS.staticcall(abi.encode(timestamp))
+        address _BEACON_ROOT_ADDRESS = BEACON_ROOT_ADDRESS;
         assembly ("memory-safe") {
             mstore(0, _timestamp)
             // `staticcall` is evaluated before `returndatasize`
             success :=
                 and(
                     eq(returndatasize(), 0x20),
-                    staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x20, 0, 0x20)
+                    staticcall(gas(), _BEACON_ROOT_ADDRESS, 0, 0x20, 0, 0x20)
                 )
             beaconRoot := mload(0)
         }
@@ -282,6 +280,11 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         // The timestamp encoded in the calldata may be in the past.
         // But the block number and timestamp in the EVM must be the latest.
         validateBeaconRoots(timestamps, beaconRoots);
+    }
+
+    /// @dev Test getting the coinbase from the BeaconRootsContract.
+    function test_GetCoinbase() public {
+        testFuzz_GetCoinbase(1, 1, HISTORY_BUFFER_LENGTH);
     }
 
     /// @dev Fuzzing test the coinbase is retrieved correctly from the circular
