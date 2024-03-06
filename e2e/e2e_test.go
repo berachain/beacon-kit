@@ -23,6 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package beacon contains a series of packages that define the beacon chain
-// logic and its state.
-package beacon
+//go:build e2e
+// +build e2e
+
+package e2e_test
+
+import (
+	"testing"
+
+	"github.com/itsdevbear/bolaris/e2e/suite"
+)
+
+// TestBeaconKitE2ESuite runs the test suite.
+func TestBeaconKitE2ESuite(t *testing.T) {
+	suite.Run(t, new(BeaconKitE2ESuite))
+}

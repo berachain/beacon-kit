@@ -178,7 +178,7 @@ start-besu:
 
 
 #################
-#     unit      #
+#      unit     #
 #################
 
 SHORT_FUZZ_TIME=10s
@@ -187,6 +187,7 @@ LONG_FUZZ_TIME=3m
 
 test:
 	@$(MAKE) test-unit test-forge-fuzz
+	
 test-unit:
 	@$(MAKE)
 	@echo "Running unit tests..."
@@ -213,6 +214,16 @@ test-unit-fuzz:
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
+#      e2e      #
+#################
+
+test-e2e:
+	@$(MAKE) docker-build VERSION=kurtosis-local test-e2e-no-build
+
+test-e2e-no-build:
+	go test -tags e2e ./e2e/. -v
+
+#################
 #     forge     #
 #################
 
@@ -231,17 +242,6 @@ forge-snapshot:
 forge-snapshot-diff:
 	@echo "Running forge snapshot diff..."
 	@cd $(CONTRACTS_DIR) && forge snapshot --diff --isolate --fuzz-runs 1
-
-
-#################
-#      e2e      #
-#################
-
-test-e2e:
-	@$(MAKE) test-e2e-no-build
-
-test-e2e-no-build:
-	@echo "Running e2e tests..."
 
 
 ###############################################################################
