@@ -17,6 +17,6 @@ contract RandaoTester {
     /// @return The last retrieved RANDAO mix.
     function storePrevRandao() external returns (uint256) {
         lastValue = block.prevrandao;
-        return lastValue;
+        return block.prevrandao;
     }
 }
