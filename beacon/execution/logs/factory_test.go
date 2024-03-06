@@ -56,7 +56,7 @@ func TestLogFactory(t *testing.T) {
 
 	deposit := beacontypes.NewDeposit(
 		[]byte("pubkey"),
-		[]byte("12345678901234567890"),
+		[]byte("12345678901234567890123456789012"),
 		10000,
 		[]byte("signature"),
 	)

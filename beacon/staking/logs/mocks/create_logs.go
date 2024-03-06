@@ -58,7 +58,7 @@ func CreateDepositLogs(
 	for i := 0; i < numLogs; i++ {
 		deposit := beacontypes.NewDeposit(
 			[]byte("pubkey"),
-			[]byte("12345678901234567890"),
+			[]byte("12345678901234567890123456789012"),
 			//#nosec:G701 // no overflow
 			uint64(i),
 			[]byte("signature"),
