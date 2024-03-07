@@ -72,6 +72,7 @@ func CreateDepositLogs(
 		}
 
 		log.BlockNumber = blkNum
+		log.BlockHash = [32]byte{byte(blkNum)}
 		if i%factor == 0 {
 			log.Address = contractAddress
 		}
