@@ -6,7 +6,6 @@ el_cl_genesis_data_generator = import_module(
 participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
 
 execution = import_module("./src/nodes/execution/execution.star")
-execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 genesis = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")

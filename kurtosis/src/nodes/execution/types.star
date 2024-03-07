@@ -2,5 +2,6 @@
 CLIENTS = struct(
     reth = "reth",
     geth = "geth",
-    erigon = "erigon"
+    erigon = "erigon",
+    nimbus = "nimbus",
 )
