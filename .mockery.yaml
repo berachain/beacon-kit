@@ -58,3 +58,8 @@ packages:
       recursive: True
       with-expecter: true
       all: True
+  github.com/itsdevbear/bolaris/beacon/execution/logs:
+    config:
+      recursive: True
+      with-expecter: true
+      include-regex: LogContainer
