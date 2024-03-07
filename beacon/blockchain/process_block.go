@@ -40,7 +40,12 @@ func (s *Service) postBlockProcess(
 	blockHash [32]byte,
 	_ bool,
 ) error {
-	payloadBlockHash := blk.GetBody().GetExecutionPayload().GetBlockHash()
+	// If the block does not have a payload, we return an error.
+	payload := blk.GetBody().GetExecutionPayload()
+	if payload == nil {
+		return ErrInvalidPayload
+	}
+	payloadBlockHash := payload.GetBlockHash()
 
 	// If the consensus client is still syncing we are going to skip forkchoice
 	// updates. This means that if the consensus client is still syncing, we
