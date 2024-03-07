@@ -33,7 +33,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and
@@ -115,8 +114,8 @@ func (s *Eth1Client) GetPayloadV3(
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByHash(
 	ctx context.Context, hash common.Hash, withTxs bool,
-) (*enginev1.ExecutionBlock, error) {
-	result := &enginev1.ExecutionBlock{}
+) (*enginetypes.ExecutionBlock, error) {
+	result := &enginetypes.ExecutionBlock{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByHashMethod, hash, withTxs)
 	return result, err
@@ -126,8 +125,8 @@ func (s *Eth1Client) ExecutionBlockByHash(
 // by calling eth_getBlockByNumber via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByNumber(
 	ctx context.Context, num rpc.BlockNumber, withTxs bool,
-) (*enginev1.ExecutionBlock, error) {
-	result := &enginev1.ExecutionBlock{}
+) (*enginetypes.ExecutionBlock, error) {
+	result := &enginetypes.ExecutionBlock{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err
