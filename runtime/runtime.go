@@ -90,7 +90,11 @@ func NewDefaultBeaconKitRuntime(
 	gcd, err := dispatch.NewGrandCentralDispatch(
 		dispatch.WithLogger(logger),
 		dispatch.WithDispatchQueue(
-			"dispatch.forkchoice",
+			execution.ForkchoiceDispatchQueue,
+			dispatch.QueueTypeSerial,
+		),
+		dispatch.WithDispatchQueue(
+			execution.LogsDispatchQueue,
 			dispatch.QueueTypeSerial,
 		),
 	)

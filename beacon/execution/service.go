@@ -68,14 +68,14 @@ func (s *Service) NotifyForkchoiceUpdate(
 	)
 	// Push the forkchoice request to the forkchoice dispatcher, we want to
 	// block until
-	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
+	if e := s.GCD().GetQueue(ForkchoiceDispatchQueue).Sync(func() {
 		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
 	}); e != nil {
 		return nil, e
 	}
 
 	// Async processing logs in the new head.
-	if e := s.GCD().GetQueue(logsDispatchQueue).Async(func() {
+	if e := s.GCD().GetQueue(LogsDispatchQueue).Async(func() {
 		err = s.logProcessor.ProcessEth1Block(
 			ctx, fcuConfig.HeadEth1Hash,
 		)
