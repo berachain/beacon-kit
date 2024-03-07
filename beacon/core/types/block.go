@@ -34,7 +34,7 @@ import (
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb -include ../../../primitives,../../../engine/types,./v1,$HOME/go/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common -output generated.ssz.go
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb -include ../../../primitives,../../../engine/types,./v1,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@v1.13.14/common -output generated.ssz.go
 type BeaconBlockDeneb struct {
 	Slot            primitives.Slot
 	ParentBlockRoot [32]byte `ssz-size:"32"`

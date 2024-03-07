@@ -25,4 +25,4 @@
 
 package typesv1
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Deposit --include ../../../../primitives,$HOME/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1 -output generated.ssz.go
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Deposit --include ../../../../primitives,$GOPATH/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1 -output generated.ssz.go
