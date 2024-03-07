@@ -31,7 +31,7 @@ import (
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -124,7 +124,7 @@ var (
 		0x80,
 		0xb4,
 	}
-	WithdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
+	WithdrawalType = reflect.TypeOf(enginetypes.Withdrawal{})
 )
 
 // NewStakingRequest returns a log request for the staking service.

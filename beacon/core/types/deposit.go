@@ -25,4 +25,4 @@
 
 package types
 
-// TODO: move deposit off of enginev1 once the staking prs are merged.
+// TODO: move deposit off of protobuf once the staking prs are merged.
