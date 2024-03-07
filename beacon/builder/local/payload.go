@@ -291,8 +291,8 @@ func (s *Service) getPayloadFromExecutionClient(
 
 	s.Logger().Info("payload retrieved from local builder 🏗️ ",
 		"for_slot", slot,
-		"block_hash", common.BytesToHash(payload.GetBlockHash()),
-		"parent_hash", common.BytesToHash(payload.GetParentHash()),
+		"payload_block_hash", payload.GetBlockHash(),
+		"parent_hash", payload.GetParentHash(),
 		// "value", payload.GetValue().ToEther(),
 		"override_builder", overrideBuilder,
 		// "num_blobs", len(blobsBundle.GetBlobs()),

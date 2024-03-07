@@ -26,6 +26,7 @@
 package enginetypes
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -71,6 +72,18 @@ func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
 	return e.Override
 }
 
+func (e *ExecutionPayloadEnvelopeDeneb) String() string {
+
+	return fmt.Sprintf(`
+ExecutionPayloadEnvelopeDeneb{
+	ExecutionPayload: %s,
+	BlockValue: %s,
+	BlobsBundle: %s,
+	Override: %v,
+}`, e.ExecutionPayload.String(), e.BlockValue.String(), e.GetBlobsBundle().Blobs, e.Override)
+
+}
+
 // JSON type overrides for ExecutionPayloadEnvelope.
 type executionPayloadEnvelopeMarshaling struct {
 	BlockValue *hexutil.Big
@@ -109,18 +122,13 @@ func (d *ExecutableDataDeneb) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() []byte {
-	return d.ParentHash[:]
-}
-
-// GetFeeRecipient returns the fee recipient address of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetFeeRecipient() []byte {
-	return d.FeeRecipient[:]
+func (d *ExecutableDataDeneb) GetParentHash() common.Hash {
+	return d.ParentHash
 }
 
 // GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() []byte {
-	return d.StateRoot[:]
+func (d *ExecutableDataDeneb) GetBlockHash() common.Hash {
+	return d.BlockHash
 }
 
 // GetTransactions returns the transactions of the ExecutableDataDeneb.
@@ -131,4 +139,30 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 	return d.Withdrawals
+}
+
+func (d *ExecutableDataDeneb) String() string {
+	return fmt.Sprintf(`
+ExecutableDataDeneb{
+	ParentHash: %s,
+	FeeRecipient: %s,
+	StateRoot: %s,
+	ReceiptsRoot: %s,
+	LogsBloom: %s,
+	Random: %s,
+	Number: %d,
+	GasLimit: %d,
+	GasUsed: %d,
+	Timestamp: %d,
+	ExtraData: %s,
+	BaseFeePerGas: %s,
+	BlockHash: %s,
+	Transactions: %s,
+	Withdrawals: %s,
+	BlobGasUsed: %d,
+	ExcessBlobGas: %d,
+}`, d.ParentHash.String(), d.FeeRecipient.String(), d.StateRoot.String(),
+		d.ReceiptsRoot.String(), d.LogsBloom, d.Random.String(), d.Number, d.GasLimit,
+		d.GasUsed, d.Timestamp, d.ExtraData, big.NewInt(0).SetBytes(d.BaseFeePerGas), d.BlockHash.String(),
+		d.Transactions, d.Withdrawals, d.BlobGasUsed, d.ExcessBlobGas)
 }

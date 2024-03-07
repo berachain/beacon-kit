@@ -165,13 +165,15 @@ func (s *Service) validateExecutionOnBlock(
 	// we purposefully reject any block that is not a child of the last
 	// finalized block.
 	safeHash := s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash()
-	if !bytes.Equal(safeHash[:], payload.GetParentHash()) {
+	if safeHash != payload.GetParentHash() {
 		return false, fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			payload.GetParentHash(),
 			safeHash,
 		)
 	}
+
+	fmt.Println(payload)
 
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(

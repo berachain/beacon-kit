@@ -26,6 +26,8 @@
 package types
 
 import (
+	"fmt"
+
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/config/version"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
@@ -47,6 +49,9 @@ func (b *BeaconBlockDeneb) ExecutionPayload() (enginetypes.ExecutionPayload, err
 func (b *BeaconBlockDeneb) AttachExecution(
 	executionData enginetypes.ExecutionPayload,
 ) error {
+	fmt.Println("AttachExecution")
+	fmt.Println(executionData.GetBlockHash())
+	fmt.Println(executionData)
 	b.Body.ExecutionPayload = executionData.(*enginetypes.ExecutableDataDeneb)
 	return nil
 }
