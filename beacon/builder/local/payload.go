@@ -35,7 +35,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/itsdevbear/bolaris/beacon/execution"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -88,13 +87,13 @@ func (s *Service) BuildLocalPayload(
 	s.Logger().Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
 		"for_slot", fcuConfig.ProposingSlot,
-		"payload_id", fmt.Sprintf("%#x", *payloadID),
+		"payload_id", payloadID,
 	)
 
 	s.payloadCache.Set(
 		fcuConfig.ProposingSlot,
 		parentBlockRoot,
-		enginetypes.PayloadID(payloadID[:]),
+		*payloadID,
 	)
 
 	s.SetStatus(nil)
@@ -110,7 +109,7 @@ func (s *Service) GetBestPayload(
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
 	parentEth1Hash common.Hash,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -156,7 +155,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.payloadCache.Get(slot, parentBlockRoot)
@@ -165,7 +164,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
-				ctx, enginetypes.PayloadID(payloadID[:]), slot,
+				ctx, payloadID, slot,
 			)
 		if err == nil {
 			// bundleCache.add(slot, bundle)
@@ -189,7 +188,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
@@ -227,9 +226,10 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 
-	s.Logger().Debug(
-		"received execution payload from local engine", "value", payload.GetValue(),
-	)
+	// s.Logger().Debug(
+	// 	"received execution payload from local engine", "value",
+	// payload.GetValue(),
+	// )
 	return payload, blobsBundle, overrideBuilder, nil
 }
 
@@ -279,7 +279,7 @@ func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID enginetypes.PayloadID,
 	slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
 		ctx,
 		payloadID,
@@ -289,13 +289,23 @@ func (s *Service) getPayloadFromExecutionClient(
 		return nil, nil, false, err
 	}
 
-	s.Logger().Info("payload retrieved from local builder 🏗️ ",
+	args := []any{
 		"for_slot", slot,
-		"block_hash", common.BytesToHash(payload.GetBlockHash()),
-		"parent_hash", common.BytesToHash(payload.GetParentHash()),
-		"value", payload.GetValue().ToEther(),
+		"payload_block_hash", nil,
+		"parent_hash", nil,
 		"override_builder", overrideBuilder,
-		"num_blobs", len(blobsBundle.GetBlobs()),
-	)
+		"num_blobs", nil,
+	}
+
+	if payload != nil {
+		args[1] = payload.GetBlockHash()
+		args[2] = payload.GetParentHash()
+	}
+
+	if blobsBundle != nil {
+		args[3] = len(blobsBundle.Blobs)
+	}
+
+	s.Logger().Info("payload retrieved from local builder 🏗️ ", args...)
 	return payload, blobsBundle, overrideBuilder, err
 }

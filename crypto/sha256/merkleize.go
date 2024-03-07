@@ -26,6 +26,8 @@
 package sha256
 
 import (
+	"errors"
+
 	"github.com/protolambda/ztyp/tree"
 )
 
@@ -219,5 +221,8 @@ func SafeMerkleizeVector(
 	}
 
 	// Roots should now contain a single element, which is the HTR of the list.
+	if len(roots) != 1 {
+		return [32]byte{}, errors.New("failed to build Merkle tree")
+	}
 	return roots[0], nil
 }

@@ -23,17 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package enginetypes
+package typesv1
 
-import primitives "github.com/itsdevbear/bolaris/primitives"
-
-// NewWithdrawal creates a new Withdrawal.
-func NewWithdrawal(
-	_ []byte, // validatorPubkey
-	amount uint64,
-) *Withdrawal {
-	// TODO: implement
-	return &Withdrawal{
-		Amount: primitives.SSZUint64(amount),
-	}
-}
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Deposit --include ../../../../primitives,$GOPATH/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1 -output generated.ssz.go

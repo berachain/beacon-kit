@@ -130,7 +130,7 @@ func (s *Store) GenesisEth1Hash() common.Hash {
 	return genesisHash
 }
 
-// WithContext( returns the Store with the given context.
+// WithContext returns the Store with the given context.
 func (s *Store) WithContext(ctx context.Context) ssf.SingleSlotFinalityStore {
 	s.ctx = ctx
 	return s

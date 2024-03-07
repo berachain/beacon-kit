@@ -32,7 +32,6 @@ import (
 
 	"github.com/itsdevbear/bolaris/cache"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,9 +44,9 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		copy(r[:], _r)
 		pid := enginetypes.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(primitives.Slot(slot), r, pid)
+		cacheUnderTest.Set(slot, r, pid)
 
-		p, ok := cacheUnderTest.Get(primitives.Slot(slot), r)
+		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(t, pid, p)
 
@@ -56,16 +55,16 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
-		cacheUnderTest.Set(primitives.Slot(slot), r, newPid)
+		cacheUnderTest.Set((slot), r, newPid)
 
-		p, ok = cacheUnderTest.Get(primitives.Slot(slot), r)
+		p, ok = cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(
 			t, newPid, p, "PayloadID should be overwritten with the new value")
 
 		// Prune and verify deletion
-		cacheUnderTest.UnsafePrunePrior(primitives.Slot(slot) + 1)
-		_, ok = cacheUnderTest.Get(primitives.Slot(slot), r)
+		cacheUnderTest.UnsafePrunePrior((slot) + 1)
+		_, ok = cacheUnderTest.Get(slot, r)
 		require.False(t, ok, "Entry should be pruned and not found")
 	})
 }
@@ -87,9 +86,9 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
 		pid := enginetypes.PayloadID(paddedPayload[:])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(primitives.Slot(slot), r, pid)
+		cacheUnderTest.Set(slot, r, pid)
 
-		_, ok := cacheUnderTest.Get(primitives.Slot(slot), r)
+		_, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 	})
 }
@@ -111,7 +110,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			var paddedPayload [8]byte
 			copy(paddedPayload[:], _p[:min(len(_p), 8)])
 			pid := enginetypes.PayloadID(paddedPayload[:])
-			cacheUnderTest.Set(primitives.Slot(slot), r, pid)
+			cacheUnderTest.Set((slot), r, pid)
 		}()
 
 		// Get operation in another goroutine
@@ -123,7 +122,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			) // Small delay to let the Set operation proceed
 			var r [32]byte
 			copy(r[:], _r)
-			_, ok = cacheUnderTest.Get(primitives.Slot(slot), r)
+			_, ok = cacheUnderTest.Get(slot, r)
 		}()
 
 		wg.Wait()

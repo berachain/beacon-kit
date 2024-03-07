@@ -8,7 +8,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 )
 
 var _ = (*payloadAttributesJSONMarshaling)(nil)
@@ -16,11 +15,11 @@ var _ = (*payloadAttributesJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 	type PayloadAttributes struct {
-		Timestamp             hexutil.Uint64         `json:"timestamp"             gencodec:"required"`
-		PrevRandao            hexutil.Bytes          `json:"prevRandao"            gencodec:"required"`
-		SuggestedFeeRecipient common.Address         `json:"suggestedFeeRecipient" gencodec:"required"`
-		Withdrawals           []*enginev1.Withdrawal `json:"withdrawals"`
-		ParentBeaconBlockRoot hexutil.Bytes          `json:"parentBeaconBlockRoot"`
+		Timestamp             hexutil.Uint64 `json:"timestamp"             gencodec:"required"`
+		PrevRandao            hexutil.Bytes  `json:"prevRandao"            gencodec:"required"`
+		SuggestedFeeRecipient common.Address `json:"suggestedFeeRecipient" gencodec:"required"`
+		Withdrawals           []*Withdrawal  `json:"withdrawals"`
+		ParentBeaconBlockRoot hexutil.Bytes  `json:"parentBeaconBlockRoot"`
 	}
 	var enc PayloadAttributes
 	enc.Timestamp = hexutil.Uint64(p.Timestamp)
@@ -34,11 +33,11 @@ func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 	type PayloadAttributes struct {
-		Timestamp             *hexutil.Uint64        `json:"timestamp"             gencodec:"required"`
-		PrevRandao            *hexutil.Bytes         `json:"prevRandao"            gencodec:"required"`
-		SuggestedFeeRecipient *common.Address        `json:"suggestedFeeRecipient" gencodec:"required"`
-		Withdrawals           []*enginev1.Withdrawal `json:"withdrawals"`
-		ParentBeaconBlockRoot *hexutil.Bytes         `json:"parentBeaconBlockRoot"`
+		Timestamp             *hexutil.Uint64 `json:"timestamp"             gencodec:"required"`
+		PrevRandao            *hexutil.Bytes  `json:"prevRandao"            gencodec:"required"`
+		SuggestedFeeRecipient *common.Address `json:"suggestedFeeRecipient" gencodec:"required"`
+		Withdrawals           []*Withdrawal   `json:"withdrawals"`
+		ParentBeaconBlockRoot *hexutil.Bytes  `json:"parentBeaconBlockRoot"`
 	}
 	var dec PayloadAttributes
 	if err := json.Unmarshal(input, &dec); err != nil {

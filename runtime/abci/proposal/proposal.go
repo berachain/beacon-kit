@@ -104,6 +104,12 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
+	// If the response is nil, the implementations of
+	// `nextPrepare` is bad.
+	if resp == nil {
+		return nil, ErrNextPrepareNilResp
+	}
+
 	// Inject the beacon kit block into the proposal.
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 	return resp, nil
@@ -133,7 +139,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, byteslib.ToBytes32(req.Hash), block); err != nil {
+		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
 		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil
