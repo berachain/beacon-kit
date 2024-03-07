@@ -44,9 +44,9 @@ const (
 	// in the deposit contract.
 	RedirectName = "Redirect"
 
-	// Name the Withdraw event
+	// Name the Withdrawal event
 	// in the deposit contract.
-	WithdrawalName = "Withdraw"
+	WithdrawalName = "Withdrawal"
 )
 
 //nolint:gochecknoglobals // Avoid re-allocating these variables.
