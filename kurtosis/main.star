@@ -107,13 +107,13 @@ def run(plan, args = {}):
             )
             file_suffix = "final"
 
-        node_beacond_config = plan.store_service_files(
+        plan.store_service_files(
             service_name = cl_service_name,
             src = "/root/.beacond",
             name = "node-beacond-config-{}".format(n),
         )
 
-        genesis_artifact = plan.store_service_files(
+        plan.store_service_files(
             # The service name of a preexisting service from which the file will be copied.
             service_name = cl_service_name,
 
@@ -127,7 +127,7 @@ def run(plan, args = {}):
             name = "cosmos-genesis-{}".format(file_suffix),
         )
 
-        gentx_artifact = plan.store_service_files(
+        plan.store_service_files(
             service_name = cl_service_name,
             src = "/root/.beacond/config/gentx/*",
             name = "cosmos-gentx-{}".format(n),

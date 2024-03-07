@@ -97,7 +97,7 @@ def upload_global_files(plan):
     artifact_names = []
 
     nethermind_genesis_file = plan.upload_files(
-        src = "./genesis.json",
+        src = "../../../networks/kurtosis-devnet/network-configs/nethermind-genesis.json",
         name = "nether_genesis_file",
     )
     nethermind_config_artifact = plan.upload_files(
