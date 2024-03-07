@@ -41,8 +41,10 @@ import (
 
 func TestProcessLogs(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
+
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	require.NoError(t, err)
+	require.NotNil(t, stakingAbi)
 
 	stakingLogRequest, err := logs.NewStakingRequest(
 		contractAddress,
