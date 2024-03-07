@@ -186,11 +186,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
      * @notice Validates the deposit amount and sends the native asset to the zero address.
      */
     function _depositNative() private returns (uint64) {
-        if (msg.value > type(uint64).max) {
-            revert DepositValueTooHigh();
-        }
-
-        if (msg.value < MIN_DEPOSIT_AMOUNT) {
+        if (msg.value <= MIN_DEPOSIT_AMOUNT) {
             revert InsufficientDeposit();
         }
 
@@ -198,10 +194,14 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert DepositNotMultipleOfGwei();
         }
 
+        uint256 amount = msg.value / 1 gwei;
+        if (amount > type(uint64).max) {
+            revert DepositValueTooHigh();
+        }
+
         _safeTransferETH(address(0), msg.value);
 
-        // Safe since we have already checked that the value is less than uint64.max.
-        return uint64(msg.value);
+        return uint64(amount);
     }
 
     /*

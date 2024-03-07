@@ -348,12 +348,12 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositNative() public {
         vm.revertTo(nativeSnapshot);
-        vm.deal(depositor, 1 ether);
+        vm.deal(depositor, 32 ether);
         vm.expectEmit(true, true, true, true);
         emit IBeaconDepositContract.Deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte()
         );
-        depositContract.deposit{ value: 32 gwei }(
+        depositContract.deposit{ value: 32 ether }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
     }
