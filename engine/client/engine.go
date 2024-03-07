@@ -136,11 +136,17 @@ func (s *EngineClient) GetPayload(
 		return nil, nil, false, ErrInvalidGetPayloadVersion
 	}
 
+	// Call and check for errors.
 	result, err := fn(dctx, payloadID)
-	if err != nil {
+	switch {
+	case err != nil:
 		return nil, nil, false, s.handleRPCError(err)
-	} else if result == nil {
+	case result == nil:
 		return nil, nil, false, ErrNilExecutionPayloadEnvelope
+	case result.GetExecutionPayload() == nil:
+		return nil, nil, false, ErrNilExecutionPayload
+	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
+		return nil, nil, false, ErrNilBlobsBundle
 	}
 
 	return result.GetExecutionPayload(),
