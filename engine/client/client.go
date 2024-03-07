@@ -36,7 +36,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/cache"
@@ -218,7 +218,7 @@ func (s *EngineClient) GetLogs(
 	ctx context.Context,
 	blockHash common.Hash,
 	addresses []primitives.ExecutionAddress,
-) ([]gethcoretypes.Log, error) {
+) ([]coretypes.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.
 	query := ethereum.FilterQuery{
@@ -310,7 +310,7 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 func (s *EngineClient) HeaderByNumber(
 	ctx context.Context,
 	number *big.Int,
-) (*gethcoretypes.Header, error) {
+) (*coretypes.Header, error) {
 	// Check the cache for the header.
 	header, ok := s.headerCache.GetByNumber(number.Uint64())
 	if ok {
@@ -328,7 +328,7 @@ func (s *EngineClient) HeaderByNumber(
 func (s *EngineClient) HeaderByHash(
 	ctx context.Context,
 	hash common.Hash,
-) (*gethcoretypes.Header, error) {
+) (*coretypes.Header, error) {
 	// Check the cache for the header.
 	header, ok := s.headerCache.GetByHash(hash)
 	if ok {
