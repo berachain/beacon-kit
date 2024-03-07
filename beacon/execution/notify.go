@@ -46,8 +46,8 @@ func (s *Service) notifyNewPayload(
 	parentBlockRoot [32]byte,
 ) (bool, error) {
 	s.Logger().Info("notifying new payload",
-		"payload_block_hash", common.BytesToHash(payload.GetBlockHash()),
-		"parent_hash", common.BytesToHash(payload.GetParentHash()),
+		"payload_block_hash", (payload.GetBlockHash()),
+		"parent_hash", (payload.GetParentHash()),
 		"for_slot", slot,
 	)
 
@@ -57,8 +57,8 @@ func (s *Service) notifyNewPayload(
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
-			"block_hash", common.BytesToHash(payload.GetBlockHash()),
-			"parent_hash", common.BytesToHash(payload.GetParentHash()),
+			"payload_block_hash", (payload.GetBlockHash()),
+			"parent_hash", (payload.GetParentHash()),
 			"for_slot", slot,
 		)
 		return false, nil

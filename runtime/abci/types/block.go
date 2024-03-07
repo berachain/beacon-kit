@@ -46,16 +46,24 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 	bzIndex uint,
 	forkVersion int,
 ) (beacontypes.ReadOnlyBeaconBlock, error) {
+	if req == nil {
+		return nil, ErrNilABCIRequest
+	}
+
 	txs := req.GetTxs()
 
 	// Ensure there are transactions in the request and
 	// that the request is valid.
-	if lenTxs := uint(len(txs)); lenTxs == 0 {
+	if txs == nil {
 		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= lenTxs {
+	} else if bzIndex >= uint(len(txs)) {
 		return nil, ErrBzIndexOutOfBounds
 	}
 
 	// Extract the beacon block from the ABCI request.
-	return beacontypes.BeaconBlockFromSSZ(txs[bzIndex], forkVersion)
+	blkBz := txs[bzIndex]
+	if blkBz == nil {
+		return nil, ErrNilBeaconBlockInRequest
+	}
+	return beacontypes.BeaconBlockFromSSZ(blkBz, forkVersion)
 }

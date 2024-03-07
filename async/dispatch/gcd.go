@@ -137,7 +137,7 @@ func (gcd *GrandCentralDispatch) GetQueue(id string) Queue {
 	defer gcd.mu.RUnlock()
 	queue, ok := gcd.queues[id]
 	if !ok {
-		return nil
+		panic("queue not found: " + id)
 	}
 	return queue
 }

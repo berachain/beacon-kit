@@ -29,7 +29,7 @@ import (
 	"context"
 
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 // ValsetChangeProvider is the interface for applying validator set changes.
@@ -37,6 +37,6 @@ type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
 		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
+		[]*enginetypes.Withdrawal,
 	) error
 }

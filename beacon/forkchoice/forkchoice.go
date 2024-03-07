@@ -37,7 +37,7 @@ type ForkChoicer interface {
 	Reader
 	Writer
 
-	WithContext(ctx context.Context) ForkChoicer
+	SetContext(ctx context.Context)
 }
 
 type Reader interface {

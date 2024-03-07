@@ -62,10 +62,10 @@ func TestLogCacheMulti(t *testing.T) {
 	totalLogs := numBlocks * numLogsPerBlock
 
 	logList := make([]*logsmocks.LogContainer, 0, totalLogs)
-	for i := range numBlocks {
+	for i := 0; i < numBlocks; i++ {
 		blockNumber := uint64(i)
-		for j := range numLogsPerBlock {
-			logIndex := uint64(j) + 1
+		for j := 0; j < numLogsPerBlock; j++ {
+			logIndex := uint64(j + 1)
 			log := &logsmocks.LogContainer{}
 			log.EXPECT().BlockNumber().Return(blockNumber)
 			log.EXPECT().LogIndex().Return(logIndex)
@@ -76,7 +76,7 @@ func TestLogCacheMulti(t *testing.T) {
 	}
 
 	rand.Shuffle(
-		totalLogs,
+		len(logList), //#nosec:G703 // not a security-sensitive context.
 		func(i, j int) {
 			logList[i], logList[j] = logList[j], logList[i]
 		})

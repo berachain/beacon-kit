@@ -48,5 +48,6 @@ import (
 	_ "github.com/prysmaticlabs/protoc-gen-go-cast"
 	_ "github.com/segmentio/golines"
 	_ "github.com/vektra/mockery/v2"
+	_ "go.uber.org/nilaway/cmd/nilaway"
 	_ "golang.org/x/pkgsite/cmd/pkgsite"
 )

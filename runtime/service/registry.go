@@ -76,7 +76,12 @@ func (s *Registry) StartAll(ctx context.Context) {
 	s.logger.Info("starting services", "num", len(s.serviceTypes))
 	for _, typeName := range s.serviceTypes {
 		s.logger.Info("starting service", "type", typeName)
-		s.services[typeName].Start(ctx)
+		svc := s.services[typeName]
+		if svc == nil {
+			s.logger.Error("service not found", "type", typeName)
+			continue
+		}
+		svc.Start(ctx)
 	}
 }
 
@@ -87,9 +92,18 @@ func (s *Registry) Statuses(services ...string) map[string]error {
 		services = s.serviceTypes
 	}
 
-	m := make(map[string]error, len(services))
+	m := make(map[string]error)
 	for _, typeName := range services {
-		m[typeName] = s.services[typeName].Status() //#nosec:G703 // todo:test.
+		if typeName == "" {
+			s.logger.Error("empty service type")
+		}
+		svc := s.services[typeName]
+		if svc == nil {
+			s.logger.Error("service not found", "type", typeName)
+			continue
+		}
+		//#nosec:G703 // false positive?
+		m[typeName] = svc.Status()
 	}
 	return m
 }

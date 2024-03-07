@@ -37,16 +37,8 @@ type BeaconBlock interface {
 	WriteOnlyBeaconBlock
 }
 
-type BeaconBlockBody interface {
-	ReadOnlyBeaconBlockBody
-}
-
-type ReadOnlyBeaconBlockBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-
-	GetBlobKzgCommitments() [][]byte
+// WriteOnlyBeaconBlock is the interface for a write-only beacon block.
+type WriteOnlyBeaconBlock interface {
 }
 
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
@@ -55,16 +47,27 @@ type ReadOnlyBeaconBlock interface {
 	ssz.Unmarshaler
 	ssz.HashRoot
 	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
-	IsNil() bool
-	GetParentBlockRoot() []byte
-	GetBlobKzgCommitments() [][]byte
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (enginetypes.ExecutionPayload, error)
+	// TODO ProposerAddress() []byte
+	GetBody() BeaconBlockBody
+	GetParentBlockRoot() [32]byte
 	Version() int
 }
 
-// WriteOnlyBeaconBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconBlock interface {
+type BeaconBlockBody interface {
+	WriteOnlyBeaconBlockBody
+	ReadOnlyBeaconBlockBody
+}
+
+type WriteOnlyBeaconBlockBody interface {
 	AttachExecution(enginetypes.ExecutionPayload) error
+}
+
+type ReadOnlyBeaconBlockBody interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+
+	// Execution returns the execution data of the block.
+	GetExecutionPayload() enginetypes.ExecutionPayload
+	GetBlobKzgCommitments() [][48]byte
 }

@@ -45,34 +45,26 @@ forge-clean: |
 ###                                 CodeGen                                 ###
 ###############################################################################
 
+GETH_GO_GENERATE_VERSION := $(shell grep github.com/ethereum/go-ethereum go.mod | awk '{print $$2}')
 generate:
-	@$(MAKE) abigen-install mockery 
+	@$(MAKE) sszgen-clean mockery 
 	@for module in $(MODULES); do \
 		echo "Running go generate in $$module"; \
-		(cd $$module && go generate ./...) || exit 1; \
+		(cd $$module && \
+			GETH_GO_GENERATE_VERSION=$(GETH_GO_GENERATE_VERSION) go generate ./...) || exit 1; \
 	done
-	@$(MAKE) sszgen
-
-abigen-install:
-	@echo "--> Installing abigen"
-	@go install github.com/ethereum/go-ethereum/cmd/abigen@latest
-
-mockery-install:
-	@echo "--> Installing mockery"
-	@go install github.com/vektra/mockery/v2@latest
 
 mockery:
-	@$(MAKE) mockery-install
 	@echo "Running mockery..."
-	@mockery
+	@go run github.com/vektra/mockery/v2@latest
 
 generate-check:
 	@$(MAKE) forge-build
 	@$(MAKE) generate
-	@if [ -n "$$(git status --porcelain | grep -vE '\.pb_encoding\.go$$')" ]; then \
+	@if [ -n "$$(git status --porcelain | grep -vE '\.ssz\.go$$')" ]; then \
 		echo "Generated files are not up to date"; \
-		git status -s | grep -vE '\.pb_encoding\.go$$'; \
-		git diff -- . ':(exclude)*.pb_encoding.go'; \
+		git status -s | grep -vE '\.ssz\.go$$'; \
+		git diff -- . ':(exclude)*.ssz.go'; \
 		exit 1; \
 	fi
 
@@ -273,19 +265,15 @@ forge-lint:
 # golangci-lint #
 #################
 
-golangci-install:
-	@echo "--> Installing golangci-lint"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
-
 golangci:
-	@$(MAKE) golangci-install
 	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | xargs golangci-lint run  --timeout=10m --concurrency 8 -v 
+	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | \
+		xargs go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --concurrency 8 -v 
 
 golangci-fix:
-	@$(MAKE) golangci-install
 	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | xargs golangci-lint run  --timeout=10m --fix --concurrency 8 -v 
+	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | \
+		xargs go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix --concurrency 8 -v 
 
 #################
 #    golines    #
@@ -299,50 +287,45 @@ golines:
 #    license    #
 #################
 
-license-install:
-	@echo "--> Installing google/addlicense"
-	@go install github.com/google/addlicense
-
 license:
-	@$(MAKE) license-install
 	@echo "--> Running addlicense with -check"
 	@for module in $(MODULES); do \
-		(cd $$module && addlicense -check -v -f ./LICENSE.header ./.) || exit 1; \
+		(cd $$module && go run github.com/google/addlicense -check -v -f ./LICENSE.header ./.) || exit 1; \
 	done
 
 license-fix:
-	@$(MAKE) license-install
 	@echo "--> Running addlicense"
 	@for module in $(MODULES); do \
-		(cd $$module && addlicense -v -f ./LICENSE.header ./.) || exit 1; \
+		(cd $$module && go run github.com/google/addlicense -v -f ./LICENSE.header ./.) || exit 1; \
 	done
 
+
+#################
+#    nilaway    #
+#################
+
+nilaway:
+	@echo "--> Running nilaway"
+	@go run go.uber.org/nilaway/cmd/nilaway \
+		-exclude-errors-in-files runtime/modules/beacon/api,contracts/abi \
+		-v ./...
 
 #################
 #     gosec     #
 #################
 
-gosec-install:
-	@echo "--> Installing gosec"
-	@go install github.com/cosmos/gosec/v2/cmd/gosec 
-
 gosec:
-	@$(MAKE) gosec-install
 	@echo "--> Running gosec"
-	@gosec -exclude G702 ./...
+	@go run github.com/cosmos/gosec/v2/cmd/gosec -exclude G702 ./...
 
 
 #################
 #     pkgsite     #
 #################
 
-pkgsite-install:
-	@echo "--> Installing pkgsite"
-	@go install golang.org/x/pkgsite/cmd/pkgsite
 pkgsite:
-	@$(MAKE) pkgsite-install
 	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
-	@pkgsite -http=:6060
+	@go run golang.org/x/pkgsite/cmd/pkgsite -http=:6060
 
 #################
 #    slither    #
@@ -371,7 +354,6 @@ proto:
 
 proto-build:
 	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
-	@./build/scripts/prysm_ssz_replacements.sh
 
 proto-clean:
 	@find . -name '*.pb.go' -delete
@@ -397,18 +379,11 @@ buf-lint:
 
 sszgen-install:
 	@echo "--> Installing sszgen"
-	@go install github.com/prysmaticlabs/fastssz/sszgen
+	@go install github.com/itsdevbear/fastssz/sszgen
 
 sszgen-clean:
 	@find . -name '*.pb_encoding.go' -delete
-
-sszgen:
-	@$(MAKE) sszgen-install sszgen-clean
-	@echo "--> Running sszgen on all structs with ssz tags"
-	@sszgen -path ./beacon/core/types/v1 \
-	-objs Deposit,BeaconBlock,BeaconBlockDeneb,\
-    --include ./primitives,\
-	$(HOME)/go/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1
+	@find . -name '*.ssz.go' -delete
 
 ##############################################################################
 ###                             Dependencies                                ###
@@ -431,5 +406,5 @@ repo-rinse: |
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
-	license-install license license-fix \
-	gosec-install gosec golines tidy repo-rinse proto build
+	license license-fix \
+	gosec golines tidy repo-rinse proto build
