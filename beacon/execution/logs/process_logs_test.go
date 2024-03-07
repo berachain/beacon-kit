@@ -82,6 +82,8 @@ func TestProcessLogs(t *testing.T) {
 	)
 
 	var log *ethtypes.Log
+	require.NotNil(t, stakingAbi)
+	require.NotNil(t, stakingAbi.Events)
 	log, err = logmocks.NewLogFromWithdrawal(
 		stakingAbi.Events[logs.WithdrawalName],
 		withdrawal,

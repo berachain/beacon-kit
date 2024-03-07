@@ -42,7 +42,7 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution
 	// client.
-	engine engineclient.Caller
+	engine *engineclient.EngineClient
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
 }

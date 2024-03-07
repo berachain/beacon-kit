@@ -34,7 +34,7 @@ import (
 // SingleSlotFinalityStore is the interface for the required storage
 // backend for the SingleSlotFinality forkchoice store.
 type SingleSlotFinalityStore interface {
-	// WithContext sets the context for the store.
+	// SetContext sets the context for the store.
 	WithContext(ctx context.Context) SingleSlotFinalityStore
 
 	// SetSafeEth1BlockHash sets the safe block hash in the store.

@@ -269,19 +269,15 @@ forge-lint:
 # golangci-lint #
 #################
 
-golangci-install:
-	@echo "--> Installing golangci-lint"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
-
 golangci:
-	@$(MAKE) golangci-install
 	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | xargs golangci-lint run  --timeout=10m --concurrency 8 -v 
+	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | \
+		xargs go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --concurrency 8 -v 
 
 golangci-fix:
-	@$(MAKE) golangci-install
 	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | xargs golangci-lint run  --timeout=10m --fix --concurrency 8 -v 
+	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | \
+		xargs go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix --concurrency 8 -v 
 
 #################
 #    golines    #
@@ -295,22 +291,16 @@ golines:
 #    license    #
 #################
 
-license-install:
-	@echo "--> Installing google/addlicense"
-	@go install github.com/google/addlicense
-
 license:
-	@$(MAKE) license-install
 	@echo "--> Running addlicense with -check"
 	@for module in $(MODULES); do \
-		(cd $$module && addlicense -check -v -f ./LICENSE.header ./.) || exit 1; \
+		(cd $$module && go run github.com/google/addlicense -check -v -f ./LICENSE.header ./.) || exit 1; \
 	done
 
 license-fix:
-	@$(MAKE) license-install
 	@echo "--> Running addlicense"
 	@for module in $(MODULES); do \
-		(cd $$module && addlicense -v -f ./LICENSE.header ./.) || exit 1; \
+		(cd $$module && go run github.com/google/addlicense -v -f ./LICENSE.header ./.) || exit 1; \
 	done
 
 
@@ -318,40 +308,28 @@ license-fix:
 #    nilaway    #
 #################
 
-nilaway-install:
-	@echo "--> Installing nilaway"
-	@go install go.uber.org/nilaway/cmd/nilaway
-
 nilaway:
-	@$(MAKE) gosec-install
 	@echo "--> Running nilaway"
-	@nilaway -v ./...
+	@go run go.uber.org/nilaway/cmd/nilaway \
+		-exclude-errors-in-files runtime/modules/beacon/api,contracts/abi \
+		-v ./...
 
 #################
 #     gosec     #
 #################
 
-gosec-install:
-	@echo "--> Installing gosec"
-	@go install github.com/cosmos/gosec/v2/cmd/gosec 
-
 gosec:
-	@$(MAKE) gosec-install
 	@echo "--> Running gosec"
-	@gosec -exclude G702 ./...
+	@go run github.com/cosmos/gosec/v2/cmd/gosec -exclude G702 ./...
 
 
 #################
 #     pkgsite     #
 #################
 
-pkgsite-install:
-	@echo "--> Installing pkgsite"
-	@go install golang.org/x/pkgsite/cmd/pkgsite
 pkgsite:
-	@$(MAKE) pkgsite-install
 	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
-	@pkgsite -http=:6060
+	@go run golang.org/x/pkgsite/cmd/pkgsite -http=:6060
 
 #################
 #    slither    #
@@ -432,5 +410,5 @@ repo-rinse: |
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
-	license-install license license-fix \
-	gosec-install gosec golines tidy repo-rinse proto build
+	license license-fix \
+	gosec golines tidy repo-rinse proto build

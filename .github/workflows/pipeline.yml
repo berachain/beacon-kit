@@ -52,7 +52,7 @@ jobs:
           - "lint"
           - "slither"
           - "gosec"
-          # - "nilaway"
+          - "nilaway"
           - "generate-check"
           - "test-unit-cover"
           - "test-unit-fuzz"

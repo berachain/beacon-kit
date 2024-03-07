@@ -98,7 +98,9 @@ func (s *BaseService) ForkchoiceStore(
 	ctx context.Context,
 ) forkchoice.ForkChoicer {
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	return s.fcr.WithContext(ctx)
+	// TODO: SetContext isn't consistent with the rest of the methods.
+	s.fcr.SetContext(ctx)
+	return s.fcr
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from
