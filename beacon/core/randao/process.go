@@ -69,10 +69,7 @@ func (rs *Processor) BuildReveal(
 	ctx context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	st := rs.stateProvider.BeaconState(ctx)
-
-	root := st.GetParentBlockRoot()
-	domain := rs.getDomain(epoch, root[:])
+	domain := rs.getDomain(epoch)
 	signingRoot := rs.computeSigningRoot(epoch, domain)
 
 	return rs.signer.Sign(signingRoot)
@@ -115,8 +112,10 @@ func (rs *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
 	d types.Domain,
 ) []byte {
+	// TODO: use domain or decide what to do
 	epochSSZUInt64 := primitives.SSZUint64(epoch)
 	sszBz, err := epochSSZUInt64.MarshalSSZ()
+
 	if err != nil {
 		// don't actually panic
 		panic(err)
@@ -126,27 +125,8 @@ func (rs *Processor) computeSigningRoot(
 }
 
 func (rs *Processor) getDomain(
-	epoch primitives.Epoch,
-	_ []byte,
+	_ primitives.Epoch,
 ) types.Domain {
-	epochSSZUInt64 := primitives.SSZUint64(epoch)
-	sszBz, err := epochSSZUInt64.MarshalSSZ()
-	if err != nil {
-		// don't actually panic
-		panic(err)
-	}
-
-	_ = sszBz
-
-	// We can also get the has tree root (trivial because this is one item but
-	// yeah)
-
-	htr, err := epochSSZUInt64.HashTreeRoot()
-	if err != nil {
-		panic(err)
-	}
-
-	_ = htr
 	return types.BuildDomain()
 }
 

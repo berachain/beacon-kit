@@ -77,7 +77,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, epoch primitives.Epoch, slot primitives.Slot,
+	ctx context.Context, slot primitives.Slot,
 ) (beacontypes.BeaconBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -85,6 +85,8 @@ func (s *Service) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
+
+	epoch := primitives.ToEpoch(slot)
 
 	reveal, err := s.randaoProcessor.BuildReveal(ctx, epoch)
 	if err != nil {
