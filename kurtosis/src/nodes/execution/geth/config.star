@@ -1,5 +1,5 @@
 global_constants = import_module("../../../constants.star")
-defaults = import_module('./../constants.star')
+defaults = import_module("./../config.star")
 
 GLOBAL_CLIENT_LOG_LEVEL = global_constants.GLOBAL_CLIENT_LOG_LEVEL
 KURTOSIS_IP_ADDRESS_PLACEHOLDER = global_constants.KURTOSIS_IP_ADDRESS_PLACEHOLDER
@@ -7,14 +7,43 @@ KURTOSIS_IP_ADDRESS_PLACEHOLDER = global_constants.KURTOSIS_IP_ADDRESS_PLACEHOLD
 # The dirpath of the execution data directory on the client container
 EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER = defaults.EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER
 
-NODE_CONFIG_ARTIFACT_NAME = "reth-config"
-CONFIG_FILENAME = "reth-config.toml"
+NODE_CONFIG_ARTIFACT_NAME = "geth-config"
+CONFIG_FILENAME = "geth-config.toml"
 GENESIS_FILENAME = "genesis.json"
+
 # The files that only need to be uploaded once to be read by every node
 # NOTE: THIS MUST REFERENCE THE FILEPATH RELATIVE TO execution.star
 GLOBAL_FILES = [
-    ("./reth/reth-config.toml", NODE_CONFIG_ARTIFACT_NAME)
+    ("./geth/geth-config.toml", NODE_CONFIG_ARTIFACT_NAME),
 ]
+
+IMAGE = "ethereum/client-go:latest"
+ENTRYPOINT = ["sh", "-c"]
+CONFIG_LOCATION = "/root/.geth/{}".format(CONFIG_FILENAME)
+FILES = {
+    "/root/.geth": NODE_CONFIG_ARTIFACT_NAME,
+    "/root/genesis": "genesis_file",
+    "/jwt": "jwt_file",
+}
+CMD = [
+    "geth",
+    "init",
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "/root/genesis/{}".format(GENESIS_FILENAME),
+    "&&",
+    "geth",
+    "--config",
+    CONFIG_LOCATION,
+    "--nat",
+    "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
+    "--metrics",
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--networkid",
+    "80087",
+]
+BOOTNODE_CMD = "--bootnodes"
 
 RPC_PORT_NUM = defaults.RPC_PORT_NUM
 WS_PORT_NUM = defaults.WS_PORT_NUM
@@ -32,40 +61,6 @@ ENGINE_WS_PORT_ID = defaults.ENGINE_WS_PORT_ID
 METRICS_PORT_ID = defaults.METRICS_PORT_ID
 
 METRICS_PATH = defaults.METRICS_PATH
-
-IMAGE = "ghcr.io/paradigmxyz/reth:latest"
-ENTRYPOINT = ["sh", "-c"]
-CONFIG_LOCATION = "/root/.reth/{}".format(CONFIG_FILENAME)
-FILES = {
-    "/root/.reth": NODE_CONFIG_ARTIFACT_NAME,
-    "/root/genesis": "genesis_file",
-    "/jwt": "jwt_file",
-}
-CMD = [
-    "reth", "init",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-    "--chain", "/root/genesis/{}".format(GENESIS_FILENAME),
-    "&&",
-    "reth", "node",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-    "--chain", "/root/genesis/{}".format(GENESIS_FILENAME),
-    "--http",
-    "--http.addr", "0.0.0.0",
-    "--http.corsdomain", "'*'",
-    "--http.api", "admin,eth,net,web3,txpool,debug,trace",
-    "--ws",
-    "--ws.addr", "0.0.0.0",
-    "--ws.port", str(WS_PORT_NUM),
-    "--ws.api", "net,eth",
-    "--ws.origins", "'*'",
-    "--authrpc.port", str(ENGINE_RPC_PORT_NUM),
-    "--authrpc.jwtsecret", global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
-    "--authrpc.addr", "0.0.0.0",
-    "--metrics", "0.0.0.0:{0}".format(METRICS_PORT_NUM),
-    # "--config", CONFIG_LOCATION,
-    "--nat", "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER
-]
-BOOTNODE_CMD = "--bootnodes"
 
 # Modify command flag --verbosity to change the verbosity level
 VERBOSITY_LEVELS = {

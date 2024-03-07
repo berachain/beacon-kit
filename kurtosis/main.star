@@ -10,7 +10,6 @@ execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 genesis = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
-geth = import_module("./src/nodes/execution/geth/constants.star")
 
 def run(plan, args = {}):
     """
@@ -33,9 +32,10 @@ def run(plan, args = {}):
     node_modules = {}
     for node in args_with_right_defaults.participants:
         if node.el_client_type not in node_modules.keys():
-            node_path = "./src/nodes/execution/{}/constants.star".format(node.el_client_type)
+            node_path = "./src/nodes/execution/{}/config.star".format(node.el_client_type)
             node_module = import_module(node_path)
             node_modules[node.el_client_type] = node_module
+
     # 2. Upload jwt
     jwt_file = execution.upload_global_files(plan, node_modules)
 
@@ -149,11 +149,10 @@ def run(plan, args = {}):
         node_module = node_modules[el_client_type]
         el_service_name = "el-{}-{}-beaconkit".format(n, el_client_type)
 
-         # 4a. Launch EL
+        # 4a. Launch EL
         el_service_config_dict = execution.get_default_service_config(el_service_name, node_module)
         el_service_config_dict = execution.add_bootnodes(node_module, el_service_config_dict, el_enode_addrs)
         el_client_service = execution.deploy_node(plan, el_service_config_dict)
-
 
         enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name, el_client_type)
         el_enode_addrs.append(enode_addr)

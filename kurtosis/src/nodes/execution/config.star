@@ -64,8 +64,3 @@ USED_PORTS_TEMPLATE = {
     #     METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL
     # ),
 }
-
-
-
-
-

@@ -1,7 +1,6 @@
 eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
 input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
 
-
 execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
@@ -22,7 +21,6 @@ ENGINE_RPC_PORT_ID = "engine-rpc"
 ENGINE_WS_PORT_ID = "engineWs"
 METRICS_PORT_ID = "metrics"
 
-
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(service_name, node_module):
     sc = service_config_lib.get_service_config_template(
@@ -31,7 +29,7 @@ def get_default_service_config(service_name, node_module):
         ports = node_module.USED_PORTS_TEMPLATE,
         entrypoint = node_module.ENTRYPOINT,
         cmd = node_module.CMD,
-        files = node_module.FILES
+        files = node_module.FILES,
     )
 
     return sc
