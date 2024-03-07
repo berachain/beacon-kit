@@ -97,7 +97,7 @@ func BeaconBlockFromSSZ(
 // Access to these nil fields will result in run time panic,
 // it is recommended to run these checks as first line of defense.
 func BeaconBlockIsNil(b ReadOnlyBeaconBlock) error {
-	if b == nil || b.IsNil() {
+	if b == nil {
 		return ErrNilBlock
 	}
 	return nil

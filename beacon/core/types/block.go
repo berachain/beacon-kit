@@ -56,24 +56,12 @@ func (b *BeaconBlockDeneb) Version() int {
 	return version.Deneb
 }
 
-func (b *BeaconBlockDeneb) IsNil() bool {
-	return b == nil
-}
-
 func (b *BeaconBlockDeneb) GetSlot() primitives.Slot {
 	return b.Slot
 }
 
 func (b *BeaconBlockDeneb) GetParentBlockRoot() [32]byte {
 	return b.ParentBlockRoot
-}
-
-func (b *BeaconBlockDeneb) GetBlobKzgCommitments() [][]byte {
-	temp := make([][]byte, len(b.Body.BlobKzgCommitments))
-	for i, v := range b.Body.BlobKzgCommitments {
-		temp[i] = v[:]
-	}
-	return temp
 }
 
 type BeaconBlockBodyDeneb struct {
@@ -86,14 +74,6 @@ type BeaconBlockBodyDeneb struct {
 
 func (b *BeaconBlockBodyDeneb) GetRandaoReveal() []byte {
 	return b.RandaoReveal[:]
-}
-
-func (b *BeaconBlockBodyDeneb) GetGraffiti() []byte {
-	return b.Graffiti[:]
-}
-
-func (b *BeaconBlockBodyDeneb) GetDeposits() []*beacontypesv1.Deposit {
-	return b.Deposits
 }
 
 //

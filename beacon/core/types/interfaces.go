@@ -47,9 +47,8 @@ type ReadOnlyBeaconBlock interface {
 	ssz.Unmarshaler
 	ssz.HashRoot
 	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
+	// TODO ProposerAddress() []byte
 	GetBody() BeaconBlockBody
-	IsNil() bool
 	GetParentBlockRoot() [32]byte
 	Version() int
 }

@@ -92,8 +92,6 @@ type executionPayloadEnvelopeMarshaling struct {
 	BlockValue *hexutil.Big
 }
 
-// TODO: Create new type to re-enable.
-//
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {

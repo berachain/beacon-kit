@@ -30,6 +30,17 @@ import (
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
+// NewWithdrawal creates a new Withdrawal.
+func NewWithdrawal(
+	_ []byte, // validatorPubkey
+	amount uint64,
+) *Withdrawal {
+	// TODO: implement
+	return &Withdrawal{
+		Amount: amount,
+	}
+}
+
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
 //go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
