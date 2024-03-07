@@ -71,13 +71,21 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// TODO: PROCESS LOGS HERE
-	// TODO: PROCESS DEPOSITS HERE
-	// TODO: PROCESS VOLUNTARY EXITS HERE
+
 	payload := blk.GetBody().GetExecutionPayload()
 	if payload == nil {
 		// TODO: Slash the proposer for not including a payload.
 		return ErrNoPayloadInBeaconBlock
+	}
+
+	// TODO: PROCESS DEPOSITS HERE
+	// TODO: PROCESS VOLUNTARY EXITS HERE
+	_, err = s.es.ProcessLogsInETH1Block(
+		ctx,
+		payload.GetBlockHash(),
+	)
+	if err != nil {
+		s.Logger().Error("failed to process logs", "error", err)
 	}
 
 	return forkChoicer.InsertNode(payload.GetBlockHash())
