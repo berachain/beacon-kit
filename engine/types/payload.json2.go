@@ -132,12 +132,9 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'extraData' for ExecutableDataDeneb")
 	}
 	e.ExtraData = *dec.ExtraData
-	// if dec.BaseFeePerGas == nil {
-	// 	return errors.New("missing required field 'baseFeePerGas' for ExecutableDataDeneb")
-	// }
-	// e.BaseFeePerGas = *dec.BaseFeePerGas
-	
-	// baseFee := new(big.Int).SetBytes(byteslib.CopyAndReverseEndianess(e.BaseFeePerGas))
+	if dec.BaseFeePerGas == "" {
+		return errors.New("missing required field 'baseFeePerGas' for ExecutableDataDeneb")
+	}
 	baseFee, err := hexutil.DecodeBig(dec.BaseFeePerGas)
 	if err != nil {
 		return err
