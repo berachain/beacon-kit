@@ -103,8 +103,9 @@ func TestProcessStakingLogs(t *testing.T) {
 	// the log is from a different block.
 	require.Error(t, err)
 
-	// This log has an incorrect block hash.
 	log.Address = ethcommon.HexToAddress("0x5678")
+	// This log has an incorrect block hash.
+	// The hash is (blkNum + 1) in blockNumToHash.
 	log.BlockHash = ethcommon.BytesToHash([]byte{byte(blkNum)})
 	mockLogs = append(mockLogs, *log)
 	_, err = logFactory.ProcessLogs(mockLogs, blockNumToHash)
@@ -112,7 +113,7 @@ func TestProcessStakingLogs(t *testing.T) {
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum
-	log.BlockHash = ethcommon.BytesToHash([]byte{byte(blkNum)})
+	log.BlockHash = ethcommon.BytesToHash([]byte{byte(blkNum + 1)})
 	mockLogs = append(mockLogs, *log)
 	_, err = logFactory.ProcessLogs(mockLogs, blockNumToHash)
 	// This is an expected error as currently we cannot
