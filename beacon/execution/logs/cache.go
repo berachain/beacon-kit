@@ -41,6 +41,12 @@ func NewCache() *Cache {
 	}
 }
 
+// Insert inserts a log into the cache.
+func (c *Cache) Insert(log LogContainer) error {
+	c.Cache.Insert(log)
+	return nil
+}
+
 // LogComparable is a comparable for LogContainer.
 type LogComparable struct{}
 

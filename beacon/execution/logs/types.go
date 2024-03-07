@@ -49,8 +49,6 @@ type LogContainer interface {
 type LogCache interface {
 	// Insert inserts a log into the cache.
 	Insert(log LogContainer) error
-	// RemoveMulti removes at most n logs from the given index.
-	RemoveMulti(index uint64, n uint64) ([]LogContainer, error)
 }
 
 type LogFactory interface {

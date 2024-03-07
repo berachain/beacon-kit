@@ -68,7 +68,7 @@ func FuzzLogCacheSeq(f *testing.F) {
 			})
 
 		for _, log := range logList {
-			cache.Insert(log)
+			require.NoError(t, cache.Insert(log))
 		}
 
 		require.Equal(t, totalLogs, cache.Len())
@@ -119,7 +119,7 @@ func FuzzLogCacheConcurrency(f *testing.F) {
 			})
 
 		iter.ForEach(logList, func(log **logsmocks.LogContainer) {
-			cache.Insert(*log)
+			require.NoError(t, cache.Insert(*log))
 		})
 
 		require.Equal(t, totalLogs, cache.Len())

@@ -45,7 +45,7 @@ func TestLogCacheSimple(t *testing.T) {
 	log.EXPECT().LogIndex().Return(logIndex)
 	require.Equal(t, blockNumber, log.BlockNumber())
 	require.Equal(t, logIndex, log.LogIndex())
-	cache.Insert(log)
+	require.NoError(t, cache.Insert(log))
 
 	cachedLog, err := cache.RemoveFront()
 	require.NoError(t, err)
@@ -82,7 +82,7 @@ func TestLogCacheMulti(t *testing.T) {
 		})
 
 	for _, log := range logList {
-		cache.Insert(log)
+		require.NoError(t, cache.Insert(log))
 	}
 
 	require.Equal(t, totalLogs, cache.Len())
