@@ -54,7 +54,7 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 
 	// Ensure there are transactions in the request and
 	// that the request is valid.
-	if txs == nil {
+	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
 		return nil, ErrNoBeaconBlockInRequest
 	} else if bzIndex >= uint(len(txs)) {
 		return nil, ErrBzIndexOutOfBounds
