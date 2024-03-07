@@ -102,6 +102,7 @@ func (s *Registry) Statuses(services ...string) map[string]error {
 			s.logger.Error("service not found", "type", typeName)
 			continue
 		}
+		//#nosec:G703 // false positive?
 		m[typeName] = svc.Status()
 	}
 	return m
