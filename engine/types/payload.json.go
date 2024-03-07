@@ -46,7 +46,7 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 	enc.GasUsed = hexutil.Uint64(e.GasUsed)
 	enc.Timestamp = hexutil.Uint64(e.Timestamp)
 	enc.ExtraData = e.ExtraData
-	enc.BaseFeePerGas = primitives.SSZUInt256(e.BaseFeePerGas)
+	enc.BaseFeePerGas = e.BaseFeePerGas
 	enc.BlockHash = e.BlockHash
 	if e.Transactions != nil {
 		enc.Transactions = make([]hexutil.Bytes, len(e.Transactions))
@@ -132,7 +132,7 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 	if dec.BaseFeePerGas == nil {
 		return errors.New("missing required field 'baseFeePerGas' for ExecutableDataDeneb")
 	}
-	e.BaseFeePerGas = []byte(*dec.BaseFeePerGas)
+	e.BaseFeePerGas = *dec.BaseFeePerGas
 	if dec.BlockHash == nil {
 		return errors.New("missing required field 'blockHash' for ExecutableDataDeneb")
 	}

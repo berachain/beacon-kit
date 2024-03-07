@@ -7,7 +7,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 var _ = (*withdrawalJSONMarshaling)(nil)
@@ -44,7 +43,7 @@ func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 		w.Index = uint64(*dec.Index)
 	}
 	if dec.Validator != nil {
-		w.Validator = primitives.SSZUint64(*dec.Validator)
+		w.Validator = uint64(*dec.Validator)
 	}
 	if dec.Address != nil {
 		w.Address = *dec.Address
