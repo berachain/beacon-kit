@@ -92,7 +92,7 @@ func (s *Registry) Statuses(services ...string) map[string]error {
 		services = s.serviceTypes
 	}
 
-	m := make(map[string]error, len(services))
+	m := make(map[string]error)
 	for _, typeName := range services {
 		if typeName == "" {
 			s.logger.Error("empty service type")
@@ -100,8 +100,9 @@ func (s *Registry) Statuses(services ...string) map[string]error {
 		svc := s.services[typeName]
 		if svc == nil {
 			s.logger.Error("service not found", "type", typeName)
+			continue
 		}
-		m[typeName] = svc.Status() //#nosec:G703 // todo:test.
+		m[typeName] = svc.Status()
 	}
 	return m
 }
