@@ -23,12 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+//nolint:gochecknoglobals // alias.
 package enginetypes
 
 import "github.com/ethereum/go-ethereum/beacon/engine"
 
 // There are some types we can borrow from geth.
 type (
-	PayloadID       = engine.PayloadID
-	ForkchoiceState = engine.ForkchoiceStateV1
+	PayloadID          = engine.PayloadID
+	ForkchoiceState    = engine.ForkchoiceStateV1
+	PayloadStatus      = engine.PayloadStatusV1
+	ForkchoiceResponse = engine.ForkChoiceResponse
+)
+
+type PayloadStatusStr = string
+
+var (
+	PayloadStatusValid    PayloadStatusStr = engine.VALID
+	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
+	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
+	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
 )

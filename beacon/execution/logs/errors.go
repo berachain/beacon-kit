@@ -23,17 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ethclient
+package logs
 
 import (
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"fmt"
 )
 
-// ForkchoiceUpdatedResponse is the response kind received by the
-// engine_forkchoiceUpdatedV1 endpoint.
-type ForkchoiceUpdatedResponse struct {
-	Status          *enginev1.PayloadStatus `json:"payloadStatus"`
-	PayloadID       *enginetypes.PayloadID  `json:"payloadId"`
-	ValidationError string                  `json:"validationError"`
+const (
+	// Log from incorrect block.
+	ErrLogFromIncorrectBlock = "log from different block, " +
+		"expected %s, got %s, for block %d"
+)
+
+func NewErrLogFromIncorrectBlock(
+	blockHash string,
+	logBlockHash string,
+	logBlockNumber uint64,
+) error {
+	return fmt.Errorf(
+		ErrLogFromIncorrectBlock,
+		blockHash,
+		logBlockHash,
+		logBlockNumber,
+	)
 }
