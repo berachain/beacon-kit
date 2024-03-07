@@ -26,61 +26,47 @@
 package cache
 
 import (
-	"time"
-
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )
 
-const (
-	// cacheSize is the size of the cache.
-	cacheSize = 20
-	// cacheEvictionTime is the time after which the LRU is evicted.
-	cacheEvictionTime = 5 * time.Minute
-)
-
-type Eth1HeaderCache struct {
+// HeaderCache is a specific cache for headers,
+// by indexing both header number and hash.
+type HeaderCache struct {
 	// headerByNumberCache is the LRU cache for headers by number.
-	headerByNumberCache *lru.LRU[uint64, *ethcoretypes.Header]
+	headerByNumberCache *LRUCache[uint64, *ethcoretypes.Header]
 	// headerByHashCache is the LRU cache for headers by hash.
-	headerByHashCache *lru.LRU[ethcommon.Hash, *ethcoretypes.Header]
+	headerByHashCache *LRUCache[ethcommon.Hash, *ethcoretypes.Header]
 }
 
-// NewEth1HeaderCache creates a new Eth1HeaderCache.
-func NewEth1HeaderCache() *Eth1HeaderCache {
-	headerByNumberCache := lru.NewLRU[uint64, *ethcoretypes.Header](
-		cacheSize,
-		nil,
-		cacheEvictionTime,
-	)
-	headerByHashCache := lru.NewLRU[ethcommon.Hash, *ethcoretypes.Header](
-		cacheSize,
-		nil,
-		cacheEvictionTime,
-	)
-	return &Eth1HeaderCache{
-		headerByNumberCache: headerByNumberCache,
-		headerByHashCache:   headerByHashCache,
+// NewHeaderCache creates a new HeaderCache.
+func NewHeaderCache() *HeaderCache {
+	return &HeaderCache{
+		headerByNumberCache: NewLRUCache[uint64, *ethcoretypes.Header](),
+		headerByHashCache:   NewLRUCache[ethcommon.Hash, *ethcoretypes.Header](),
 	}
 }
 
 // GetByNumber returns the header by number.
-func (c *Eth1HeaderCache) GetByNumber(
+func (c *HeaderCache) GetByNumber(
 	number uint64,
 ) (*ethcoretypes.Header, bool) {
 	return c.headerByNumberCache.Get(number)
 }
 
 // GetByHash returns the header by hash.
-func (c *Eth1HeaderCache) GetByHash(
+func (c *HeaderCache) GetByHash(
 	hash ethcommon.Hash,
 ) (*ethcoretypes.Header, bool) {
 	return c.headerByHashCache.Get(hash)
 }
 
 // Add adds the header to the cache.
-func (c *Eth1HeaderCache) Add(header *ethcoretypes.Header) {
+func (c *HeaderCache) Add(header *ethcoretypes.Header) {
+	number := header.Number.Uint64()
+	if oldHeader, ok := c.headerByNumberCache.Get(number); ok {
+		c.headerByHashCache.Remove(oldHeader.Hash())
+	}
 	c.headerByNumberCache.Add(header.Number.Uint64(), header)
 	c.headerByHashCache.Add(header.Hash(), header)
 }

@@ -39,7 +39,7 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/cache"
+	"github.com/itsdevbear/bolaris/engine/client/cache"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
@@ -59,7 +59,7 @@ type EngineClient struct {
 	jwtSecret    *jwt.Secret
 
 	// headerCache is the LRU cache for Ethereum 1 block headers.
-	headerCache *cache.Eth1HeaderCache
+	headerCache *cache.HeaderCache
 
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
@@ -73,7 +73,7 @@ func New(opts ...Option) *EngineClient {
 	ec := &EngineClient{
 		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
-		headerCache:  cache.NewEth1HeaderCache(),
+		headerCache:  cache.NewHeaderCache(),
 	}
 
 	ec.statusErrMu = new(sync.RWMutex)
