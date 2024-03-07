@@ -291,19 +291,18 @@ func (s *Service) getPayloadFromExecutionClient(
 
 	args := []any{
 		"for_slot", slot,
-		"payload_block_hash", nil,
-		"parent_hash", nil,
 		"override_builder", overrideBuilder,
-		"num_blobs", nil,
 	}
 
 	if payload != nil {
-		args[1] = payload.GetBlockHash()
-		args[2] = payload.GetParentHash()
+		args = append(args,
+			"payload_block_hash", payload.GetBlockHash(),
+			"parent_hash", payload.GetParentHash(),
+		)
 	}
 
 	if blobsBundle != nil {
-		args[3] = len(blobsBundle.Blobs)
+		args = append(args, "num_blobs", len(blobsBundle.Blobs))
 	}
 
 	s.Logger().Info("payload retrieved from local builder 🏗️ ", args...)
