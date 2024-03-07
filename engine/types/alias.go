@@ -23,6 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package beacon contains a series of packages that define the beacon chain
-// logic and its state.
-package beacon
+package enginetypes
+
+import "github.com/ethereum/go-ethereum/beacon/engine"
+
+// There are some types we can borrow from geth.
+type (
+	PayloadID       = engine.PayloadID
+	ForkchoiceState = engine.ForkchoiceStateV1
+)

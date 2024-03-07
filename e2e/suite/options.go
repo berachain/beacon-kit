@@ -23,6 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package beacon contains a series of packages that define the beacon chain
-// logic and its state.
-package beacon
+package suite
+
+import (
+	"context"
+
+	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/kurtosis"
+)
+
+// Type Option is a function that sets a field on the KurtosisE2ESuite.
+type Option func(*KurtosisE2ESuite) error
+
+// WithConfig sets the E2ETestConfig for the test suite.
+func WithConfig(cfg *kurtosis.E2ETestConfig) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithContext sets the context for the test suite.
+func WithContext(ctx context.Context) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.ctx = ctx
+		return nil
+	}
+}
+
+// WithLogger sets the logger for the test suite.
+func WithLogger(logger log.Logger) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.logger = logger
+		return nil
+	}
+}

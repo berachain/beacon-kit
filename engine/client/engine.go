@@ -84,7 +84,7 @@ func (s *EngineClient) callNewPayloadRPC(
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
-	state *enginev1.ForkchoiceState,
+	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion int,
 ) (*enginetypes.PayloadID, []byte, error) {
@@ -107,7 +107,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 // JSON-RPC.
 func (s *EngineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context,
-	state *enginev1.ForkchoiceState,
+	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion int,
 ) (*eth.ForkchoiceUpdatedResponse, error) {
