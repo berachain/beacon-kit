@@ -71,7 +71,6 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-
 	payload := blk.GetBody().GetExecutionPayload()
 	if payload == nil {
 		// TODO: Slash the proposer for not including a payload.
