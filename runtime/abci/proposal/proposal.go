@@ -104,6 +104,12 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
+	// If the response is nil, the implementations of
+	// `nextPrepare` is bad.
+	if resp == nil {
+		return nil, ErrNextPrepareNilResp
+	}
+
 	// Inject the beacon kit block into the proposal.
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 	return resp, nil

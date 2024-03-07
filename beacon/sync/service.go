@@ -61,6 +61,9 @@ type Service struct {
 
 // SetClientContext sets the client context for the service.
 func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
+	if s == nil {
+		panic("service is nil")
+	}
 	s.clientCtx = &clientCtx
 }
 

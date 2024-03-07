@@ -57,5 +57,9 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 	}
 
 	// Extract the beacon block from the ABCI request.
-	return beacontypes.BeaconBlockFromSSZ(txs[bzIndex], forkVersion)
+	blkBz := txs[bzIndex]
+	if blkBz == nil {
+		return nil, ErrNilBeaconBlockInRequest
+	}
+	return beacontypes.BeaconBlockFromSSZ(blkBz, forkVersion)
 }

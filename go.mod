@@ -81,6 +81,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/vektra/mockery/v2 v2.42.0
 	go.uber.org/automaxprocs v1.5.3
+	go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
 	golang.org/x/sync v0.6.0
 	google.golang.org/grpc v1.62.1

@@ -139,6 +139,8 @@ func (s *EngineClient) GetPayload(
 	result, err := fn(dctx, payloadID)
 	if err != nil {
 		return nil, nil, false, s.handleRPCError(err)
+	} else if result == nil {
+		return nil, nil, false, ErrNilExecutionPayloadEnvelope
 	}
 
 	return result.GetExecutionPayload(),

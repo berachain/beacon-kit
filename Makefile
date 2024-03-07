@@ -315,6 +315,19 @@ license-fix:
 
 
 #################
+#    nilaway    #
+#################
+
+nilaway-install:
+	@echo "--> Installing nilaway"
+	@go install go.uber.org/nilaway/cmd/nilaway
+
+nilaway:
+	@$(MAKE) gosec-install
+	@echo "--> Running nilaway"
+	@nilaway -v ./...
+
+#################
 #     gosec     #
 #################
 
