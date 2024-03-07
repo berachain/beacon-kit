@@ -83,7 +83,7 @@ func (s *Service) GetPayload(
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	return s.engine.GetPayload(
 		ctx, payloadID,
-		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+		s.BeaconCfg().ActiveForkVersion(slot),
 	)
 }
 

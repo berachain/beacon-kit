@@ -140,7 +140,7 @@ func (s *BaseService) SetStatus(err error) {
 
 // ActiveForkVersionForSlot returns the active fork version for the given slot.
 func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) int {
-	return s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
+	return s.BeaconCfg().ActiveForkVersion(slot)
 }
 
 // // DispatchEvent sends a value to the feed associated with the provided key.
