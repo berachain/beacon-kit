@@ -103,14 +103,12 @@ func TestProcessStakingLogs(t *testing.T) {
 	// the log is from a different block.
 	require.Error(t, err)
 
-	// This log is skipped because it is not
-	// from the contract address of interest.
+	// This log has an incorrect block hash.
 	log.Address = ethcommon.HexToAddress("0x5678")
 	log.BlockHash = ethcommon.BytesToHash([]byte{byte(blkNum)})
 	mockLogs = append(mockLogs, *log)
-	containers, err = logFactory.ProcessLogs(mockLogs, blockNumToHash)
-	require.NoError(t, err)
-	require.Len(t, containers, numDepositLogs)
+	_, err = logFactory.ProcessLogs(mockLogs, blockNumToHash)
+	require.Error(t, err)
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum
