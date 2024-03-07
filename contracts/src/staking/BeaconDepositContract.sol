@@ -215,10 +215,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
         if (amount < MIN_DEPOSIT_AMOUNT) {
             revert InsufficientDeposit();
         }
-
-        if (amount % 1 gwei != 0) {
-            revert DepositNotMultipleOfGwei();
-        }
     }
 
     /**

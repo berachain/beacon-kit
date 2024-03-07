@@ -149,37 +149,6 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_DepositWrongMultiple(uint256 amount) public {
-        vm.revertTo(snapshot);
-        amount = _bound(amount, 32e9 + 1, type(uint64).max);
-        vm.assume(amount % 1e9 != 0);
-
-        stakeToken.mint(depositor, amount * 1e9);
-
-        vm.prank(depositor);
-        vm.expectRevert(
-            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
-        );
-        depositContract.deposit(
-            VALIDATOR_PUBKEY,
-            STAKING_CREDENTIALS,
-            uint64(amount),
-            _create96Byte()
-        );
-    }
-
-    function test_DepositWrongMultiple() public {
-        vm.revertTo(snapshot);
-        stakeToken.mint(depositor, (32e9 + 1) * 1e9);
-        vm.expectRevert(
-            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
-        );
-        vm.prank(depositor);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 + 1, _create96Byte()
-        );
-    }
-
     function test_Deposit() public {
         vm.revertTo(snapshot);
         stakeToken.mint(depositor, 32e9 * 1e9);
