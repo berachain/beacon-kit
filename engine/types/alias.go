@@ -26,15 +26,19 @@
 //nolint:gochecknoglobals // alias.
 package enginetypes
 
-import "github.com/ethereum/go-ethereum/beacon/engine"
+import (
+	"github.com/ethereum/go-ethereum/beacon/engine"
+	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
+)
 
 // There are some types we can borrow from geth.
 type (
 	BlobsBundleV1      = engine.BlobsBundleV1
-	PayloadID          = engine.PayloadID
-	ForkchoiceState    = engine.ForkchoiceStateV1
-	PayloadStatus      = engine.PayloadStatusV1
+	ExecutionBlock     = ethcoretypes.Block
 	ForkchoiceResponse = engine.ForkChoiceResponse
+	ForkchoiceState    = engine.ForkchoiceStateV1
+	PayloadID          = engine.PayloadID
+	PayloadStatus      = engine.PayloadStatusV1
 )
 
 type PayloadStatusStr = string
