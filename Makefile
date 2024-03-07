@@ -367,7 +367,6 @@ proto:
 
 proto-build:
 	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
-	@./build/scripts/prysm_ssz_replacements.sh
 
 proto-clean:
 	@find . -name '*.pb.go' -delete
