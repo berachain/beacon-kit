@@ -28,6 +28,7 @@ package enginetypes
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // For cleanliness we put all go:generate directives and marshalling overrides
@@ -48,7 +49,7 @@ type executableDataDenebMarshaling struct {
 	GasLimit      hexutil.Uint64
 	GasUsed       hexutil.Uint64
 	Timestamp     hexutil.Uint64
-	BaseFeePerGas string
+	BaseFeePerGas primitives.SSZUInt256
 	Random        common.Hash
 	ExtraData     hexutil.Bytes
 	LogsBloom     hexutil.Bytes

@@ -26,17 +26,12 @@
 package primitives
 
 import (
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
-	fssz "github.com/prysmaticlabs/fastssz"
-)
+	"bytes"
+	"math/big"
 
-var (
-	// Ensure SSZUInt256 implements the fssz.HashRoot interface.
-	_ fssz.HashRoot = SSZUInt256{}
-	// Ensure SSZUInt256 implements the fssz.Marshaler interface.
-	_ fssz.Marshaler = (*SSZUInt256)(nil)
-	// Ensure SSZUInt256 implements the fssz.Unmarshaler interface.
-	_ fssz.Unmarshaler = (*SSZUInt256)(nil)
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/holiman/uint256"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 )
 
 const thirtyTwo = 32
@@ -44,57 +39,35 @@ const thirtyTwo = 32
 // SSZUInt256 represents a ssz-able uint64.
 type SSZUInt256 []byte
 
-// SizeSSZ returns the fixed SSZ size of a SSZUInt256, which is 32 bytes.
-func (s *SSZUInt256) SizeSSZ() int {
-	return thirtyTwo
+// UInt256 converts an SSZUInt256 to a uint256.Int.
+func (s *SSZUInt256) UInt256() *uint256.Int {
+	return new(uint256.Int).SetBytes([]byte(*s))
 }
 
-// MarshalSSZTo appends the SSZ-encoded byte slice of SSZUInt256 to the provided
-// destination slice. It returns the resulting slice and an error if any occurs
-// during marshaling.
-func (s *SSZUInt256) MarshalSSZTo(dst []byte) ([]byte, error) {
-	marshalled, err := s.MarshalSSZ()
+// Big converts an SSZUInt256 to a big.Int.
+func (s *SSZUInt256) Big() *big.Int {
+	return new(big.Int).SetBytes([]byte(*s))
+}
+
+// UnmarshalJSON unmarshals a SSZUInt256 from JSON by decoding the hex string
+// and flipping the endianness.
+func (s *SSZUInt256) UnmarshalJSON(input []byte) error {
+	input = bytes.Trim(input, "\"")
+	baseFee, err := hexutil.DecodeBig(string(input))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	padded := byteslib.ToBytes32(marshalled)
-	return append(dst, padded[:]...), nil
-}
-
-// MarshalSSZ marshals a SSZUInt256 into a byte slice.
-// It returns the byte slice and an error if any.
-func (s *SSZUInt256) MarshalSSZ() ([]byte, error) {
-	x := byteslib.ToBytes32(*s)
-	return x[:], nil
-}
-
-// UnmarshalSSZ unmarshals a SSZUInt256 from SSZ-encoded data. It returns an
-// error
-// if the buffer size is incorrect.
-func (s *SSZUInt256) UnmarshalSSZ(buf []byte) error {
-	x := byteslib.ToBytes32(buf)
-	if s == nil {
-		s = new(SSZUInt256)
-	}
-	*s = x[:]
+	*s = SSZUInt256(byteslib.ExtendToSize(
+		byteslib.CopyAndReverseEndianess(baseFee.Bytes()),
+		thirtyTwo,
+	))
 	return nil
 }
 
-// HashTreeRoot computes the hash tree root of the SSZUInt256.
-// It returns a fixed-size byte array and an error if any.
-func (s SSZUInt256) HashTreeRoot() ([32]byte, error) {
-	return fssz.HashWithDefaultHasher(s)
-}
-
-// HashTreeRootWith computes the hash tree root of the SSZUInt256 using the
-// provided hasher.
-// It modifies the hasher's state and returns an error if any.
-func (s SSZUInt256) HashTreeRootWith(hh *fssz.Hasher) error {
-	hh.AppendBytes32(s[:])
-	return nil
-}
-
-// String returns the string representation of the SSZUInt256.
-func (s SSZUInt256) String() string {
-	return string(s[:])
+// MarshalJSON marshals a SSZUInt256 to JSON, it flips the endianness
+// before encoding it to hex.
+func (s SSZUInt256) MarshalJSON() ([]byte, error) {
+	baseFee := new(big.Int).
+		SetBytes(byteslib.CopyAndReverseEndianess(s))
+	return []byte("\"" + hexutil.EncodeBig(baseFee) + "\""), nil
 }
