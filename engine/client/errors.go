@@ -135,6 +135,20 @@ var (
 	ErrNilAttributesPassedToClient = errors.New(
 		"nil attributes passed to client")
 
+	// ErrNilExecutionPayloadEnvelope is returned when nil execution payload
+	// envelope is received.
+	ErrNilExecutionPayloadEnvelope = errors.New(
+		"nil execution payload envelope received from execution client")
+
+	// ErrNilExecutionPayload is returned when nil execution payload
+	// envelope is received.
+	ErrNilExecutionPayload = errors.New(
+		"nil execution payload received from execution client")
+
+	/// ErrNilBlobsBundle is returned when nil blobs bundle is received.
+	ErrNilBlobsBundle = errors.New(
+		"nil blobs bundle received from execution client")
+
 	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
 	// attributes was provided.
 	ErrInvalidPayloadAttributeVersion = errors.New(

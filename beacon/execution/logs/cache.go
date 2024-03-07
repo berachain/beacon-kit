@@ -23,25 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:gochecknoglobals // alias.
-package enginetypes
+package logs
 
-import "github.com/ethereum/go-ethereum/beacon/engine"
-
-// There are some types we can borrow from geth.
-type (
-	BlobsBundleV1      = engine.BlobsBundleV1
-	PayloadID          = engine.PayloadID
-	ForkchoiceState    = engine.ForkchoiceStateV1
-	PayloadStatus      = engine.PayloadStatusV1
-	ForkchoiceResponse = engine.ForkChoiceResponse
+import (
+	"github.com/itsdevbear/bolaris/lib/cache"
 )
 
-type PayloadStatusStr = string
+type Cache struct {
+	// This is an in-memory cache of logs.
+	cache.Cache[LogContainer]
+}
 
-var (
-	PayloadStatusValid    PayloadStatusStr = engine.VALID
-	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
-	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
-	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
-)
+// NewCache returns a new cache for LogContainer.
+func NewCache() *Cache {
+	return &Cache{
+		cache.NewOrderedCache[LogContainer](LogComparable{}),
+	}
+}
+
+// LogComparable is a comparable for LogContainer.
+type LogComparable struct{}
+
+// Compare is a lexicographic comparison of logs.
+func (LogComparable) Compare(lhs, rhs LogContainer) int {
+	blockCmp := compareUint64(lhs.BlockNumber(), rhs.BlockNumber())
+	if blockCmp != 0 {
+		return blockCmp
+	}
+	return compareUint64(lhs.LogIndex(), rhs.LogIndex())
+}
+
+// compareUint64 compares two uint64 values.
+func compareUint64(a, b uint64) int {
+	if a < b {
+		return -1
+	} else if a > b {
+		return 1
+	}
+	return 0
+}

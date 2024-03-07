@@ -32,7 +32,6 @@ import (
 	"github.com/itsdevbear/bolaris/config/version"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/pkg/errors"
 )
 
@@ -73,8 +72,8 @@ func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
 ) (*enginetypes.PayloadStatus, error) {
-	switch payloadPb := payload.ToProto().(type) {
-	case *enginev1.ExecutionPayloadDeneb:
+	switch payloadPb := payload.(type) {
+	case *enginetypes.ExecutableDataDeneb:
 		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
 	default:
 		return nil, ErrInvalidPayloadType
@@ -123,13 +122,13 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
 	ctx context.Context, payloadID enginetypes.PayloadID, forkVersion int,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	var fn func(
 		context.Context, enginetypes.PayloadID,
-	) (*enginev1.ExecutionPayloadEnvelope, error)
+	) (enginetypes.ExecutionPayloadEnvelope, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
@@ -137,12 +136,21 @@ func (s *EngineClient) GetPayload(
 		return nil, nil, false, ErrInvalidGetPayloadVersion
 	}
 
+	// Call and check for errors.
 	result, err := fn(dctx, payloadID)
-	if err != nil {
+	switch {
+	case err != nil:
 		return nil, nil, false, s.handleRPCError(err)
+	case result == nil:
+		return nil, nil, false, ErrNilExecutionPayloadEnvelope
+	case result.GetExecutionPayload() == nil:
+		return nil, nil, false, ErrNilExecutionPayload
+	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
+		return nil, nil, false, ErrNilBlobsBundle
 	}
 
-	return result, result.GetBlobsBundle(), result.GetShouldOverrideBuilder(), nil
+	return result.GetExecutionPayload(),
+		result.GetBlobsBundle(), result.ShouldOverrideBuilder(), nil
 }
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via

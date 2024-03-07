@@ -53,7 +53,7 @@ func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
 
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) NewPayloadV3(
-	ctx context.Context, payload *enginev1.ExecutionPayloadDeneb,
+	ctx context.Context, payload *enginetypes.ExecutableDataDeneb,
 	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
 ) (*enginetypes.PayloadStatus, error) {
 	result := &enginetypes.PayloadStatus{}
@@ -101,21 +101,14 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV3(
 	ctx context.Context, payloadID enginetypes.PayloadID,
-) (*enginev1.ExecutionPayloadEnvelope, error) {
-	result := &enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle{}
+) (enginetypes.ExecutionPayloadEnvelope, error) {
+	result := &enginetypes.ExecutionPayloadEnvelopeDeneb{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {
 		return nil, err
 	}
-	return &enginev1.ExecutionPayloadEnvelope{
-		Payload: &enginev1.ExecutionPayloadEnvelope_Deneb{
-			Deneb: result.GetPayload(),
-		},
-		PayloadValue:          result.GetValue(),
-		BlobsBundle:           result.GetBlobsBundle(),
-		ShouldOverrideBuilder: result.GetShouldOverrideBuilder(),
-	}, nil
+	return result, nil
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling

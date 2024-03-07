@@ -26,6 +26,8 @@
 package cache
 
 import (
+	"sync"
+
 	"github.com/huandu/skiplist"
 )
 
@@ -36,7 +38,9 @@ type Comparable[T any] interface {
 // OrderedCache is a set of elements that
 // are maintained in an ascending order.
 type OrderedCache[T any] struct {
-	cache *skiplist.SkipList
+	store *skiplist.SkipList
+	// mu is a mutex that protects the cache.
+	mu sync.RWMutex
 }
 
 // NewOrderedCache returns a new ordered cache.
@@ -45,28 +49,37 @@ func NewOrderedCache[T any](c Comparable[T]) *OrderedCache[T] {
 		return c.Compare(lhs.(T), rhs.(T))
 	})
 	return &OrderedCache[T]{
-		cache: skiplist.New(ascendingOrder),
+		store: skiplist.New(ascendingOrder),
 	}
 }
 
 // Insert adds an element to the cache.
 func (c *OrderedCache[T]) Insert(elem T) {
-	c.cache.Set(elem, struct{}{})
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.store.Set(elem, struct{}{})
 }
 
 // Remove removes an element from the cache.
 func (c *OrderedCache[T]) Remove(elem T) {
-	c.cache.Remove(elem)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.store.Remove(elem)
 }
 
 // Contains returns true if the cache contains the element.
 func (c *OrderedCache[T]) Contains(elem T) bool {
-	return c.cache.Get(elem) != nil
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.store.Get(elem) != nil
 }
 
 // Front returns the first (smallest) element in the cache.
 func (c *OrderedCache[T]) Front() (T, error) {
-	elem := c.cache.Front()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	elem := c.store.Front()
 	if elem == nil {
 		var zero T
 		return zero, ErrEmptyCache
@@ -76,7 +89,10 @@ func (c *OrderedCache[T]) Front() (T, error) {
 
 // RemoveFront removes the first element in the cache.
 func (c *OrderedCache[T]) RemoveFront() (T, error) {
-	elem := c.cache.RemoveFront()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	elem := c.store.RemoveFront()
 	if elem == nil {
 		var zero T
 		return zero, ErrEmptyCache
@@ -86,7 +102,10 @@ func (c *OrderedCache[T]) RemoveFront() (T, error) {
 
 // Back returns the last (largest) element in the cache.
 func (c *OrderedCache[T]) Back() (T, error) {
-	elem := c.cache.Back()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	elem := c.store.Back()
 	if elem == nil {
 		var zero T
 		return zero, ErrEmptyCache
@@ -96,7 +115,10 @@ func (c *OrderedCache[T]) Back() (T, error) {
 
 // RemoveBack removes the last element in the cache.
 func (c *OrderedCache[T]) RemoveBack() (T, error) {
-	elem := c.cache.RemoveBack()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	elem := c.store.RemoveBack()
 	if elem == nil {
 		var zero T
 		return zero, ErrEmptyCache
@@ -106,5 +128,8 @@ func (c *OrderedCache[T]) RemoveBack() (T, error) {
 
 // Len returns the number of elements in the cache.
 func (c *OrderedCache[T]) Len() int {
-	return c.cache.Len()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return c.store.Len()
 }

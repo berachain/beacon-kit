@@ -26,7 +26,6 @@
 package blockchain
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -41,8 +40,8 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
 	blockHash [32]byte,
-	buoy beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -52,6 +51,11 @@ func (s *Service) ReceiveBeaconBlock(
 		isValidPayload bool
 		forkChoicer    = s.ForkchoiceStore(ctx)
 	)
+
+	// If the block is nil, We have to abort.
+	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
+		return err
+	}
 
 	// If we have already seen this block, we can skip processing it.
 	// TODO: should we store some historical data here?
@@ -68,7 +72,7 @@ func (s *Service) ReceiveBeaconBlock(
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, buoy)
+		err := s.validateStateTransition(groupCtx, blk)
 		if err != nil {
 			s.Logger().
 				Error("failed to validate state transition", "error", err)
@@ -82,7 +86,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, buoy,
+			groupCtx, blk,
 		); err != nil {
 			s.Logger().
 				Error("failed to notify engine of new payload", "error", err)
@@ -111,7 +115,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// Perform post block processing.
 	return s.postBlockProcess(
-		ctx, buoy, blockHash, isValidPayload,
+		ctx, blk, blockHash, isValidPayload,
 	)
 }
 
@@ -119,18 +123,18 @@ func (s *Service) ReceiveBeaconBlock(
 // TODO: Expand rules, consider modularity. Current implementation
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
-	ctx context.Context, buoy beacontypes.ReadOnlyBeaconBlock,
+	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	if err := beacontypes.BeaconBlockIsNil(buoy); err != nil {
+	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
 		return err
 	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
-	if !bytes.Equal(parentBlockRoot[:], buoy.GetParentBlockRoot()) {
+	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
 			"parent root does not match, expected: %x, got: %x",
 			parentBlockRoot,
-			buoy.GetParentBlockRoot(),
+			blk.GetParentBlockRoot(),
 		)
 	}
 
@@ -146,18 +150,15 @@ func (s *Service) validateStateTransition(
 func (s *Service) validateExecutionOnBlock(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
-	buoy beacontypes.ReadOnlyBeaconBlock,
+	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	if err := beacontypes.BeaconBlockIsNil(buoy); err != nil {
+	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
 		return false, err
 	}
 
-	payload, err := buoy.ExecutionPayload()
-	if err != nil {
-		return false, err
-	}
-
-	if payload == nil || payload.IsEmpty() {
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
+	if payload == nil {
 		return false, errors.New("no payload in beacon block")
 	}
 
@@ -165,7 +166,7 @@ func (s *Service) validateExecutionOnBlock(
 	// we purposefully reject any block that is not a child of the last
 	// finalized block.
 	safeHash := s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash()
-	if !bytes.Equal(safeHash[:], payload.GetParentHash()) {
+	if safeHash != payload.GetParentHash() {
 		return false, fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			payload.GetParentHash(),
@@ -176,9 +177,11 @@ func (s *Service) validateExecutionOnBlock(
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(
 		ctx,
-		buoy.GetSlot(),
+		blk.GetSlot(),
 		payload,
-		kzg.ConvertCommitmentsToVersionedHashes(buoy.GetBlobKzgCommitments()),
-		common.Hash(buoy.GetParentBlockRoot()),
+		kzg.ConvertCommitmentsToVersionedHashes(
+			body.GetBlobKzgCommitments(),
+		),
+		blk.GetParentBlockRoot(),
 	)
 }

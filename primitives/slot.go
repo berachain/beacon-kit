@@ -25,5 +25,5 @@
 
 package primitives
 
-// Slot is just a nice alias for SSZUint64.
-type Slot = SSZUint64
+// Slot is just a nice alias for a uint64.
+type Slot = uint64

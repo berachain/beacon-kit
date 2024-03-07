@@ -23,25 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:gochecknoglobals // alias.
-package enginetypes
+package typesv1
 
-import "github.com/ethereum/go-ethereum/beacon/engine"
-
-// There are some types we can borrow from geth.
-type (
-	BlobsBundleV1      = engine.BlobsBundleV1
-	PayloadID          = engine.PayloadID
-	ForkchoiceState    = engine.ForkchoiceStateV1
-	PayloadStatus      = engine.PayloadStatusV1
-	ForkchoiceResponse = engine.ForkChoiceResponse
-)
-
-type PayloadStatusStr = string
-
-var (
-	PayloadStatusValid    PayloadStatusStr = engine.VALID
-	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
-	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
-	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
-)
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Deposit --include ../../../../primitives,$GOPATH/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1 -output generated.ssz.go

@@ -23,37 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package enginetypes
+package primitives
 
 import (
+	"bytes"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/holiman/uint256"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 )
 
-// NewWithdrawal creates a new Withdrawal.
-func NewWithdrawal(
-	_ []byte, // validatorPubkey
-	amount uint64,
-) *Withdrawal {
-	// TODO: implement
-	return &Withdrawal{
-		Amount: amount,
+const thirtyTwo = 32
+
+// SSZUInt256 represents a ssz-able uint64.
+type SSZUInt256 []byte
+
+// UInt256 converts an SSZUInt256 to a uint256.Int.
+func (s *SSZUInt256) UInt256() *uint256.Int {
+	return new(uint256.Int).SetBytes([]byte(*s))
+}
+
+// Big converts an SSZUInt256 to a big.Int.
+func (s *SSZUInt256) Big() *big.Int {
+	return new(big.Int).SetBytes([]byte(*s))
+}
+
+// UnmarshalJSON unmarshals a SSZUInt256 from JSON by decoding the hex string
+// and flipping the endianness.
+func (s *SSZUInt256) UnmarshalJSON(input []byte) error {
+	input = bytes.Trim(input, "\"")
+	baseFee, err := hexutil.DecodeBig(string(input))
+	if err != nil {
+		return err
 	}
+	*s = SSZUInt256(byteslib.ExtendToSize(
+		byteslib.CopyAndReverseEndianess(baseFee.Bytes()),
+		thirtyTwo,
+	))
+	return nil
 }
 
-// Withdrawal represents a validator withdrawal from the consensus layer.
-//
-//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
-type Withdrawal struct {
-	Index     uint64                      `json:"index"          ssz-size:"8"`
-	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
-	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    uint64                      `json:"amount"         ssz-size:"8"`
-}
-
-// field type overrides for gencodec.
-type withdrawalJSONMarshaling struct {
-	Index     hexutil.Uint64
-	Validator hexutil.Uint64
-	Amount    hexutil.Uint64
+// MarshalJSON marshals a SSZUInt256 to JSON, it flips the endianness
+// before encoding it to hex.
+func (s SSZUInt256) MarshalJSON() ([]byte, error) {
+	baseFee := new(big.Int).
+		SetBytes(byteslib.CopyAndReverseEndianess(s))
+	return []byte("\"" + hexutil.EncodeBig(baseFee) + "\""), nil
 }
