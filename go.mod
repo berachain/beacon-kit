@@ -57,7 +57,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.13.5-0.20240306165022-aadcb8867530
+	github.com/ethereum/go-ethereum v1.13.14
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.56.2
 	github.com/google/addlicense v1.1.1
@@ -323,7 +323,6 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/julz/importas v0.1.0 // indirect
-	github.com/kilic/bls12-381 v0.1.0 // indirect
 	github.com/kisielk/errcheck v1.7.0 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.4 // indirect
@@ -398,8 +397,6 @@ require (
 	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.47.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	github.com/protolambda/bls12-381-util v0.0.0-20220416220906-d8552aa452c7 // indirect
-	github.com/protolambda/zrnt v0.30.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.0 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
