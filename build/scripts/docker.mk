@@ -5,7 +5,10 @@
 ###############################################################################
 
 # Variables
-ARCH ?= arm64
+ARCH ?= $(shell uname -m)
+ifeq ($(ARCH),)
+	ARCH = arm64
+endif
 GO_VERSION ?= 1.22.0
 IMAGE_NAME ?= beacond
 

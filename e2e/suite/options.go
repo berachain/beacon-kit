@@ -23,55 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package suite
 
 import (
 	"context"
-	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/kurtosis"
 )
 
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
-	BuildLocalPayload(
-		ctx context.Context,
-		parentEth1Hash common.Hash,
-		slot primitives.Slot,
-		timestamp uint64,
-		parentBlockRoot [32]byte,
-	) (*enginetypes.PayloadID, error)
+// Type Option is a function that sets a field on the KurtosisE2ESuite.
+type Option func(*KurtosisE2ESuite) error
+
+// WithConfig sets the E2ETestConfig for the test suite.
+func WithConfig(cfg *kurtosis.E2ETestConfig) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.cfg = cfg
+		return nil
+	}
 }
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		fcuConfig *execution.FCUConfig,
-	) (*enginetypes.PayloadID, error)
-
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(
-		ctx context.Context,
-		slot primitives.Slot,
-		payload enginetypes.ExecutionPayload,
-		versionedHashes []common.Hash,
-		parentBlockRoot [32]byte,
-	) (bool, error)
-
-	ProcessLogsInETH1Block(
-		ctx context.Context,
-		blockHash common.Hash,
-	) ([]*reflect.Value, error)
+// WithContext sets the context for the test suite.
+func WithContext(ctx context.Context) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.ctx = ctx
+		return nil
+	}
 }
 
-type StakingService interface{}
-
-type SyncService interface {
-	IsInitSync() bool
-	Status() error
+// WithLogger sets the logger for the test suite.
+func WithLogger(logger log.Logger) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.logger = logger
+		return nil
+	}
 }

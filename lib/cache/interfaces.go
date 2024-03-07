@@ -23,26 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package cache
 
-import (
-	"github.com/ethereum/go-ethereum/common"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-)
-
-// processPayloadStatusResult processes the payload status result and
-// returns the latest valid hash or an error.
-func processPayloadStatusResult(
-	result *enginetypes.PayloadStatus,
-) (*common.Hash, error) {
-	switch result.Status {
-	case enginetypes.PayloadStatusAccepted, enginetypes.PayloadStatusSyncing:
-		return nil, ErrAcceptedSyncingPayloadStatus
-	case enginetypes.PayloadStatusInvalid:
-		return result.LatestValidHash, ErrInvalidPayloadStatus
-	case enginetypes.PayloadStatusValid:
-		return result.LatestValidHash, nil
-	default:
-		return nil, ErrUnknownPayloadStatus
-	}
+type Cache[T any] interface {
+	Insert(elem T)
+	Front() (T, error)
+	Back() (T, error)
+	Remove(elem T)
+	RemoveBack() (T, error)
+	RemoveFront() (T, error)
+	Contains(elem T) bool
+	Len() int
 }
