@@ -82,6 +82,10 @@ func FuzzOrderedCacheSimple(f *testing.F) {
 
 func FuzzOrderedCacheConcurrencySafety(f *testing.F) {
 	f.Fuzz(func(t *testing.T, n int) {
+		if n <= 0 {
+			t.Skip()
+		}
+
 		cache := cache.NewOrderedCache(IntComparable{})
 		numGoroutines := 10
 		numOperations := 100
