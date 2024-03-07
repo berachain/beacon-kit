@@ -28,6 +28,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -35,9 +36,10 @@ import (
 	"cosmossdk.io/log"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
+	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/cache"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
@@ -56,6 +58,9 @@ type EngineClient struct {
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
 
+	// headerCache is the LRU cache for Ethereum 1 block headers.
+	headerCache *cache.Eth1HeaderCache
+
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
 	statusErr     error
@@ -68,6 +73,7 @@ func New(opts ...Option) *EngineClient {
 	ec := &EngineClient{
 		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
+		headerCache:  cache.NewEth1HeaderCache(),
 	}
 
 	ec.statusErrMu = new(sync.RWMutex)
@@ -212,7 +218,7 @@ func (s *EngineClient) GetLogs(
 	ctx context.Context,
 	blockHash common.Hash,
 	addresses []primitives.ExecutionAddress,
-) ([]coretypes.Log, error) {
+) ([]gethcoretypes.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.
 	query := ethereum.FilterQuery{
@@ -298,4 +304,40 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 
 	s.Client = ethclient.NewClient(client)
 	return nil
+}
+
+// HeaderByNumber retrieves the block header by its number.
+func (s *EngineClient) HeaderByNumber(
+	ctx context.Context,
+	number *big.Int,
+) (*gethcoretypes.Header, error) {
+	// Check the cache for the header.
+	header, ok := s.headerCache.GetByNumber(number.Uint64())
+	if ok {
+		return header, nil
+	}
+	header, err := s.Client.HeaderByNumber(ctx, number)
+	if err != nil {
+		return nil, err
+	}
+	s.headerCache.Add(header)
+	return header, nil
+}
+
+// HeaderByHash retrieves the block header by its hash.
+func (s *EngineClient) HeaderByHash(
+	ctx context.Context,
+	hash common.Hash,
+) (*gethcoretypes.Header, error) {
+	// Check the cache for the header.
+	header, ok := s.headerCache.GetByHash(hash)
+	if ok {
+		return header, nil
+	}
+	header, err := s.Client.HeaderByHash(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+	s.headerCache.Add(header)
+	return header, nil
 }
