@@ -96,6 +96,7 @@ func (h *Handler) PrepareProposalHandler(
 	beaconBz, err := block.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
+		return nil, err
 	}
 
 	// Run the remainder of the prepare proposal handler.
