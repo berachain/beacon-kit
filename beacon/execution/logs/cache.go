@@ -25,23 +25,40 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/primitives"
+import (
+	"github.com/itsdevbear/bolaris/lib/cache"
+)
 
-// LogRequest is a request for logs sent from a service.
-type LogRequest struct {
-	ContractAddress primitives.ExecutionAddress
-	Allocator       *TypeAllocator
+type Cache struct {
+	// This is an in-memory cache of logs.
+	cache.Cache[LogContainer]
 }
 
-// LogContainer is a container for processed logs.
-type LogContainer interface {
-	BlockNumber() uint64
-	LogIndex() uint64
+// NewCache returns a new cache for LogContainer.
+func NewCache() *Cache {
+	return &Cache{
+		cache.NewOrderedCache[LogContainer](LogComparable{}),
+	}
 }
 
-type LogCache interface {
-	// Insert inserts a log into the cache.
-	Insert(log LogContainer) error
-	// Remove removes at most n logs from the given index.
-	Remove(index uint64, n uint64) ([]LogContainer, error)
+// LogComparable is a comparable for LogContainer.
+type LogComparable struct{}
+
+// Compare is a lexicographic comparison of logs.
+func (LogComparable) Compare(lhs, rhs LogContainer) int {
+	blockCmp := compareUint64(lhs.BlockNumber(), rhs.BlockNumber())
+	if blockCmp != 0 {
+		return blockCmp
+	}
+	return compareUint64(lhs.LogIndex(), rhs.LogIndex())
+}
+
+// compareUint64 compares two uint64 values.
+func compareUint64(a, b uint64) int {
+	if a < b {
+		return -1
+	} else if a > b {
+		return 1
+	}
+	return 0
 }
