@@ -30,7 +30,7 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 )
@@ -48,7 +48,7 @@ type Processor struct {
 	// factory is for creating objects from Ethereum logs.
 	factory LogFactory
 
-	sigToCache map[ethcommon.Hash]LogCache
+	sigToCache map[gethcommon.Hash]LogCache
 }
 
 // NewProcessor creates a new Processor.
@@ -65,7 +65,7 @@ func NewProcessor(opts ...Option[Processor]) (*Processor, error) {
 // ProcessEth1Block processes the logs in the given Ethereum block.
 func (p *Processor) ProcessEth1Block(
 	ctx context.Context,
-	blockHash ethcommon.Hash,
+	blockHash gethcommon.Hash,
 ) error {
 	header, err := p.engine.HeaderByHash(ctx, blockHash)
 	if err != nil {
@@ -111,7 +111,7 @@ func (p *Processor) processBlocksInBatch(
 	fromBlock uint64,
 	toBlock uint64,
 	batchSize uint64,
-	registeredAddresses []ethcommon.Address,
+	registeredAddresses []gethcommon.Address,
 ) (uint64, error) {
 	// Gather all the logs corresponding to
 	// the registered addresses in the given range.
@@ -128,17 +128,15 @@ func (p *Processor) processBlocksInBatch(
 		return 0, errors.Wrapf(err, "failed to get logs")
 	}
 
-	blockNumToHash := make(map[uint64]ethcommon.Hash)
-	for _, log := range logs {
+	blockNumToHash := make(map[uint64]gethcommon.Hash)
+	// TODO: To use header cache with batch processing.
+	for i := start; i <= end; i++ {
 		var header *gethcoretypes.Header
-		header, err = p.engine.HeaderByNumber(
-			ctx,
-			new(big.Int).SetUint64(log.BlockNumber),
-		)
+		header, err = p.engine.HeaderByNumber(ctx, big.NewInt(int64(i)))
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed to get block header")
 		}
-		blockNumToHash[log.BlockNumber] = header.Hash()
+		blockNumToHash[i] = header.Hash()
 	}
 
 	containers, err := p.factory.ProcessLogs(logs, blockNumToHash)
