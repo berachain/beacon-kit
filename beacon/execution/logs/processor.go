@@ -116,10 +116,7 @@ func (p *Processor) processBlocksInBatch(
 	// Gather all the logs corresponding to
 	// the registered addresses in the given range.
 	start := fromBlock
-	end := start + batchSize - 1
-	if end > toBlock {
-		end = toBlock
-	}
+	end := min(start+batchSize-1, toBlock)
 
 	logs, err := p.engine.GetLogsInRange(
 		ctx,
