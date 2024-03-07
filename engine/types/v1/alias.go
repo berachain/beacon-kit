@@ -28,8 +28,6 @@ package enginev1
 import enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 
 type (
-	// Withdrawal alias for Prysm's version.
-	Withdrawal = enginev1.Withdrawal
 	// ExecutionBlock alias for Prysm's version.
 	ExecutionBlock = enginev1.ExecutionBlock
 )
