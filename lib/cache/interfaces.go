@@ -23,41 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package cache
 
-import (
-	"reflect"
-
-	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/primitives"
-)
-
-// LogRequest is a request for logs sent from a service.
-type LogRequest struct {
-	ContractAddress primitives.ExecutionAddress
-	Allocator       *TypeAllocator
-}
-
-type LogContainer interface {
-	BlockNumber() uint64
-	LogIndex() uint64
-	Value() *reflect.Value
-	Signature() ethcommon.Hash
-}
-
-type LogCache interface {
-	// Insert inserts a log into the cache.
-	Insert(log LogContainer) error
-	// RemoveMulti removes at most n logs from the given index.
-	RemoveMulti(index uint64, n uint64) ([]LogContainer, error)
-}
-
-type LogFactory interface {
-	GetRegisteredSignatures() []ethcommon.Hash
-	GetRegisteredAddresses() []ethcommon.Address
-	ProcessLogs(
-		logs []ethcoretypes.Log,
-		blockNumToHash map[uint64]ethcommon.Hash,
-	) ([]LogContainer, error)
+type Cache[T any] interface {
+	Insert(elem T)
+	Front() (T, error)
+	Back() (T, error)
+	Remove(elem T)
+	RemoveBack() (T, error)
+	RemoveFront() (T, error)
+	Contains(elem T) bool
+	Len() int
 }
