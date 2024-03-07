@@ -28,15 +28,6 @@ package enginev1
 import enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 
 type (
-	// ExecutionPayloadDeneb alias for Prysm's version.
-	ExecutionPayloadDeneb = enginev1.ExecutionPayloadDeneb
-	// ExecutionPayloadDenebWithValueAndBlobsBundle alias for Prysm's version.
-	//nolint:lll // alias.
-	ExecutionPayloadDenebWithValueAndBlobsBundle = enginev1.ExecutionPayloadDenebWithValueAndBlobsBundle
-	// ExecutionPayloadHeaderDeneb alias for Prysm's version.
-	ExecutionPayloadHeaderDeneb = enginev1.ExecutionPayloadHeaderDeneb
-	// BlobsBundle alias for Prysm's version.
-	BlobsBundle = enginev1.BlobsBundle
 	// Withdrawal alias for Prysm's version.
 	Withdrawal = enginev1.Withdrawal
 	// ExecutionBlock alias for Prysm's version.
