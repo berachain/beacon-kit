@@ -47,7 +47,7 @@ func (IntComparable) Compare(lhs, rhs int) int {
 	return 0
 }
 
-func FuzzOrderedCache(f *testing.F) {
+func FuzzOrderedCacheSimple(f *testing.F) {
 	// Create a new ordered cache.
 	cache := cache.NewOrderedCache[int](IntComparable{})
 
