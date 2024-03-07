@@ -39,4 +39,8 @@ var (
 	// ErrBzIndexOutOfBounds is an error for when the index
 	// is out of bounds.
 	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
+
+	// ErrNilABCIRequest is an error for when the abci request
+	// is nil.
+	ErrNilABCIRequest = errors.New("nil abci request")
 )
