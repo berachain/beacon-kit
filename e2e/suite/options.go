@@ -23,26 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package suite
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	"context"
+
+	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/kurtosis"
 )
 
-// processPayloadStatusResult processes the payload status result and
-// returns the latest valid hash or an error.
-func processPayloadStatusResult(
-	result *enginetypes.PayloadStatus,
-) (*common.Hash, error) {
-	switch result.Status {
-	case enginetypes.PayloadStatusAccepted, enginetypes.PayloadStatusSyncing:
-		return nil, ErrAcceptedSyncingPayloadStatus
-	case enginetypes.PayloadStatusInvalid:
-		return result.LatestValidHash, ErrInvalidPayloadStatus
-	case enginetypes.PayloadStatusValid:
-		return result.LatestValidHash, nil
-	default:
-		return nil, ErrUnknownPayloadStatus
+// Type Option is a function that sets a field on the KurtosisE2ESuite.
+type Option func(*KurtosisE2ESuite) error
+
+// WithConfig sets the E2ETestConfig for the test suite.
+func WithConfig(cfg *kurtosis.E2ETestConfig) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithContext sets the context for the test suite.
+func WithContext(ctx context.Context) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.ctx = ctx
+		return nil
+	}
+}
+
+// WithLogger sets the logger for the test suite.
+func WithLogger(logger log.Logger) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.logger = logger
+		return nil
 	}
 }

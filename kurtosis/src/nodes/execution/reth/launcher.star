@@ -1,5 +1,6 @@
 reth = import_module("github.com/kurtosis-tech/ethereum-package/src/el/reth/reth_launcher.star")
 input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
+#execution = import_module("../execution.star")
 
 def get(plan, evm_genesis_data, jwt_file, el_service_name, network_params, existing_el_clients = []):
     reth_launcher = get_launcher(evm_genesis_data, jwt_file, network_params)
@@ -21,31 +22,20 @@ def get_context(plan, el_launcher, el_service_name, launch_method, existing_el_c
     extra_params = []
 
     if len(existing_el_clients) > 0:
-        enode_args = [
-            ctx.enode + "#" + ctx.ip_addr
-            for ctx in existing_el_clients
-        ]
+        # enode_args = [
+        #     ctx.enode + "#" + ctx.ip_addr
+        #     for ctx in existing_el_clients
+        # ]
+        # peer_nodes = execution.parse_proper_enode_ids(plan,existing_el_clients):
 
-        result = plan.run_python(
-            run = """import sys
-enodes = []
-for enode in sys.argv[1:]:
-    parsed = enode.split('#')
-    en = parsed[0]
-    ip = parsed[1]
-    enodes.append(en.split('@')[0] + "@" + ip + ":30303")
-enode_str = ",".join(enodes)
-print(enode_str)
-""",
-            args = enode_args,
-        )
+        peer_nodes = ",".join(existing_el_clients)
 
-        peer_nodes = result.output
-
-        trusted_peers_cmd = "--trusted-peers=" + peer_nodes
-        bootnodes_cmd = "--bootnodes=" + peer_nodes
+        trusted_peers_cmd = "--trusted-peers"
+        bootnodes_cmd = "--bootnodes"
         extra_params.append(trusted_peers_cmd)
+        extra_params.append(peer_nodes)
         extra_params.append(bootnodes_cmd)
+        extra_params.append(peer_nodes)
 
     return launch_method(
         plan,

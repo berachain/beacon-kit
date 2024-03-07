@@ -28,6 +28,7 @@ package mocks
 import (
 	"errors"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
@@ -72,6 +73,7 @@ func CreateDepositLogs(
 		}
 
 		log.BlockNumber = blkNum
+		log.BlockHash = ethcommon.BytesToHash([]byte{byte(blkNum)})
 		if i%factor == 0 {
 			log.Address = contractAddress
 		}

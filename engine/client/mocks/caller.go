@@ -3,9 +3,13 @@
 package mocks
 
 import (
-	context "context"
+	big "math/big"
 
 	common "github.com/ethereum/go-ethereum/common"
+
+	context "context"
+
+	engine "github.com/ethereum/go-ethereum/beacon/engine"
 
 	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 
@@ -90,36 +94,36 @@ func (_c *Caller_ExecutionBlockByHash_Call) RunAndReturn(run func(context.Contex
 }
 
 // ForkchoiceUpdated provides a mock function with given fields: ctx, state, attrs, version
-func (_m *Caller) ForkchoiceUpdated(ctx context.Context, state *enginev1.ForkchoiceState, attrs enginetypes.PayloadAttributer, version int) (*enginetypes.PayloadID, []byte, error) {
+func (_m *Caller) ForkchoiceUpdated(ctx context.Context, state *engine.ForkchoiceStateV1, attrs enginetypes.PayloadAttributer, version int) (*engine.PayloadID, *common.Hash, error) {
 	ret := _m.Called(ctx, state, attrs, version)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ForkchoiceUpdated")
 	}
 
-	var r0 *enginetypes.PayloadID
-	var r1 []byte
+	var r0 *engine.PayloadID
+	var r1 *common.Hash
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, *enginev1.ForkchoiceState, enginetypes.PayloadAttributer, int) (*enginetypes.PayloadID, []byte, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *engine.ForkchoiceStateV1, enginetypes.PayloadAttributer, int) (*engine.PayloadID, *common.Hash, error)); ok {
 		return rf(ctx, state, attrs, version)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *enginev1.ForkchoiceState, enginetypes.PayloadAttributer, int) *enginetypes.PayloadID); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *engine.ForkchoiceStateV1, enginetypes.PayloadAttributer, int) *engine.PayloadID); ok {
 		r0 = rf(ctx, state, attrs, version)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*enginetypes.PayloadID)
+			r0 = ret.Get(0).(*engine.PayloadID)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *enginev1.ForkchoiceState, enginetypes.PayloadAttributer, int) []byte); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *engine.ForkchoiceStateV1, enginetypes.PayloadAttributer, int) *common.Hash); ok {
 		r1 = rf(ctx, state, attrs, version)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]byte)
+			r1 = ret.Get(1).(*common.Hash)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *enginev1.ForkchoiceState, enginetypes.PayloadAttributer, int) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, *engine.ForkchoiceStateV1, enginetypes.PayloadAttributer, int) error); ok {
 		r2 = rf(ctx, state, attrs, version)
 	} else {
 		r2 = ret.Error(2)
@@ -135,36 +139,96 @@ type Caller_ForkchoiceUpdated_Call struct {
 
 // ForkchoiceUpdated is a helper method to define mock.On call
 //   - ctx context.Context
-//   - state *enginev1.ForkchoiceState
+//   - state *engine.ForkchoiceStateV1
 //   - attrs enginetypes.PayloadAttributer
 //   - version int
 func (_e *Caller_Expecter) ForkchoiceUpdated(ctx interface{}, state interface{}, attrs interface{}, version interface{}) *Caller_ForkchoiceUpdated_Call {
 	return &Caller_ForkchoiceUpdated_Call{Call: _e.mock.On("ForkchoiceUpdated", ctx, state, attrs, version)}
 }
 
-func (_c *Caller_ForkchoiceUpdated_Call) Run(run func(ctx context.Context, state *enginev1.ForkchoiceState, attrs enginetypes.PayloadAttributer, version int)) *Caller_ForkchoiceUpdated_Call {
+func (_c *Caller_ForkchoiceUpdated_Call) Run(run func(ctx context.Context, state *engine.ForkchoiceStateV1, attrs enginetypes.PayloadAttributer, version int)) *Caller_ForkchoiceUpdated_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*enginev1.ForkchoiceState), args[2].(enginetypes.PayloadAttributer), args[3].(int))
+		run(args[0].(context.Context), args[1].(*engine.ForkchoiceStateV1), args[2].(enginetypes.PayloadAttributer), args[3].(int))
 	})
 	return _c
 }
 
-func (_c *Caller_ForkchoiceUpdated_Call) Return(_a0 *enginetypes.PayloadID, _a1 []byte, _a2 error) *Caller_ForkchoiceUpdated_Call {
+func (_c *Caller_ForkchoiceUpdated_Call) Return(_a0 *engine.PayloadID, _a1 *common.Hash, _a2 error) *Caller_ForkchoiceUpdated_Call {
 	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *Caller_ForkchoiceUpdated_Call) RunAndReturn(run func(context.Context, *enginev1.ForkchoiceState, enginetypes.PayloadAttributer, int) (*enginetypes.PayloadID, []byte, error)) *Caller_ForkchoiceUpdated_Call {
+func (_c *Caller_ForkchoiceUpdated_Call) RunAndReturn(run func(context.Context, *engine.ForkchoiceStateV1, enginetypes.PayloadAttributer, int) (*engine.PayloadID, *common.Hash, error)) *Caller_ForkchoiceUpdated_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetLogs provides a mock function with given fields: ctx, fromBlock, toBlock, addresses
-func (_m *Caller) GetLogs(ctx context.Context, fromBlock uint64, toBlock uint64, addresses []common.Address) ([]types.Log, error) {
-	ret := _m.Called(ctx, fromBlock, toBlock, addresses)
+// GetLogs provides a mock function with given fields: ctx, blockHash, addresses
+func (_m *Caller) GetLogs(ctx context.Context, blockHash common.Hash, addresses []common.Address) ([]types.Log, error) {
+	ret := _m.Called(ctx, blockHash, addresses)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLogs")
+	}
+
+	var r0 []types.Log
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash, []common.Address) ([]types.Log, error)); ok {
+		return rf(ctx, blockHash, addresses)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash, []common.Address) []types.Log); ok {
+		r0 = rf(ctx, blockHash, addresses)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]types.Log)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, common.Hash, []common.Address) error); ok {
+		r1 = rf(ctx, blockHash, addresses)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Caller_GetLogs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLogs'
+type Caller_GetLogs_Call struct {
+	*mock.Call
+}
+
+// GetLogs is a helper method to define mock.On call
+//   - ctx context.Context
+//   - blockHash common.Hash
+//   - addresses []common.Address
+func (_e *Caller_Expecter) GetLogs(ctx interface{}, blockHash interface{}, addresses interface{}) *Caller_GetLogs_Call {
+	return &Caller_GetLogs_Call{Call: _e.mock.On("GetLogs", ctx, blockHash, addresses)}
+}
+
+func (_c *Caller_GetLogs_Call) Run(run func(ctx context.Context, blockHash common.Hash, addresses []common.Address)) *Caller_GetLogs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Hash), args[2].([]common.Address))
+	})
+	return _c
+}
+
+func (_c *Caller_GetLogs_Call) Return(_a0 []types.Log, _a1 error) *Caller_GetLogs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Caller_GetLogs_Call) RunAndReturn(run func(context.Context, common.Hash, []common.Address) ([]types.Log, error)) *Caller_GetLogs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetLogsInRange provides a mock function with given fields: ctx, fromBlock, toBlock, addresses
+func (_m *Caller) GetLogsInRange(ctx context.Context, fromBlock uint64, toBlock uint64, addresses []common.Address) ([]types.Log, error) {
+	ret := _m.Called(ctx, fromBlock, toBlock, addresses)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLogsInRange")
 	}
 
 	var r0 []types.Log
@@ -189,39 +253,39 @@ func (_m *Caller) GetLogs(ctx context.Context, fromBlock uint64, toBlock uint64,
 	return r0, r1
 }
 
-// Caller_GetLogs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLogs'
-type Caller_GetLogs_Call struct {
+// Caller_GetLogsInRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLogsInRange'
+type Caller_GetLogsInRange_Call struct {
 	*mock.Call
 }
 
-// GetLogs is a helper method to define mock.On call
+// GetLogsInRange is a helper method to define mock.On call
 //   - ctx context.Context
 //   - fromBlock uint64
 //   - toBlock uint64
 //   - addresses []common.Address
-func (_e *Caller_Expecter) GetLogs(ctx interface{}, fromBlock interface{}, toBlock interface{}, addresses interface{}) *Caller_GetLogs_Call {
-	return &Caller_GetLogs_Call{Call: _e.mock.On("GetLogs", ctx, fromBlock, toBlock, addresses)}
+func (_e *Caller_Expecter) GetLogsInRange(ctx interface{}, fromBlock interface{}, toBlock interface{}, addresses interface{}) *Caller_GetLogsInRange_Call {
+	return &Caller_GetLogsInRange_Call{Call: _e.mock.On("GetLogsInRange", ctx, fromBlock, toBlock, addresses)}
 }
 
-func (_c *Caller_GetLogs_Call) Run(run func(ctx context.Context, fromBlock uint64, toBlock uint64, addresses []common.Address)) *Caller_GetLogs_Call {
+func (_c *Caller_GetLogsInRange_Call) Run(run func(ctx context.Context, fromBlock uint64, toBlock uint64, addresses []common.Address)) *Caller_GetLogsInRange_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uint64), args[2].(uint64), args[3].([]common.Address))
 	})
 	return _c
 }
 
-func (_c *Caller_GetLogs_Call) Return(_a0 []types.Log, _a1 error) *Caller_GetLogs_Call {
+func (_c *Caller_GetLogsInRange_Call) Return(_a0 []types.Log, _a1 error) *Caller_GetLogsInRange_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Caller_GetLogs_Call) RunAndReturn(run func(context.Context, uint64, uint64, []common.Address) ([]types.Log, error)) *Caller_GetLogs_Call {
+func (_c *Caller_GetLogsInRange_Call) RunAndReturn(run func(context.Context, uint64, uint64, []common.Address) ([]types.Log, error)) *Caller_GetLogsInRange_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetPayload provides a mock function with given fields: ctx, payloadID, version
-func (_m *Caller) GetPayload(ctx context.Context, payloadID enginetypes.PayloadID, version int) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+func (_m *Caller) GetPayload(ctx context.Context, payloadID engine.PayloadID, version int) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
 	ret := _m.Called(ctx, payloadID, version)
 
 	if len(ret) == 0 {
@@ -232,10 +296,10 @@ func (_m *Caller) GetPayload(ctx context.Context, payloadID enginetypes.PayloadI
 	var r1 *enginev1.BlobsBundle
 	var r2 bool
 	var r3 error
-	if rf, ok := ret.Get(0).(func(context.Context, enginetypes.PayloadID, int) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, engine.PayloadID, int) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)); ok {
 		return rf(ctx, payloadID, version)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, enginetypes.PayloadID, int) enginetypes.ExecutionPayload); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, engine.PayloadID, int) enginetypes.ExecutionPayload); ok {
 		r0 = rf(ctx, payloadID, version)
 	} else {
 		if ret.Get(0) != nil {
@@ -243,7 +307,7 @@ func (_m *Caller) GetPayload(ctx context.Context, payloadID enginetypes.PayloadI
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, enginetypes.PayloadID, int) *enginev1.BlobsBundle); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, engine.PayloadID, int) *enginev1.BlobsBundle); ok {
 		r1 = rf(ctx, payloadID, version)
 	} else {
 		if ret.Get(1) != nil {
@@ -251,13 +315,13 @@ func (_m *Caller) GetPayload(ctx context.Context, payloadID enginetypes.PayloadI
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, enginetypes.PayloadID, int) bool); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, engine.PayloadID, int) bool); ok {
 		r2 = rf(ctx, payloadID, version)
 	} else {
 		r2 = ret.Get(2).(bool)
 	}
 
-	if rf, ok := ret.Get(3).(func(context.Context, enginetypes.PayloadID, int) error); ok {
+	if rf, ok := ret.Get(3).(func(context.Context, engine.PayloadID, int) error); ok {
 		r3 = rf(ctx, payloadID, version)
 	} else {
 		r3 = ret.Error(3)
@@ -273,15 +337,15 @@ type Caller_GetPayload_Call struct {
 
 // GetPayload is a helper method to define mock.On call
 //   - ctx context.Context
-//   - payloadID enginetypes.PayloadID
+//   - payloadID engine.PayloadID
 //   - version int
 func (_e *Caller_Expecter) GetPayload(ctx interface{}, payloadID interface{}, version interface{}) *Caller_GetPayload_Call {
 	return &Caller_GetPayload_Call{Call: _e.mock.On("GetPayload", ctx, payloadID, version)}
 }
 
-func (_c *Caller_GetPayload_Call) Run(run func(ctx context.Context, payloadID enginetypes.PayloadID, version int)) *Caller_GetPayload_Call {
+func (_c *Caller_GetPayload_Call) Run(run func(ctx context.Context, payloadID engine.PayloadID, version int)) *Caller_GetPayload_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(enginetypes.PayloadID), args[2].(int))
+		run(args[0].(context.Context), args[1].(engine.PayloadID), args[2].(int))
 	})
 	return _c
 }
@@ -291,7 +355,7 @@ func (_c *Caller_GetPayload_Call) Return(_a0 enginetypes.ExecutionPayload, _a1 *
 	return _c
 }
 
-func (_c *Caller_GetPayload_Call) RunAndReturn(run func(context.Context, enginetypes.PayloadID, int) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)) *Caller_GetPayload_Call {
+func (_c *Caller_GetPayload_Call) RunAndReturn(run func(context.Context, engine.PayloadID, int) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)) *Caller_GetPayload_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -355,24 +419,83 @@ func (_c *Caller_HeaderByHash_Call) RunAndReturn(run func(context.Context, commo
 	return _c
 }
 
+// HeaderByNumber provides a mock function with given fields: ctx, number
+func (_m *Caller) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
+	ret := _m.Called(ctx, number)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HeaderByNumber")
+	}
+
+	var r0 *types.Header
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *big.Int) (*types.Header, error)); ok {
+		return rf(ctx, number)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *big.Int) *types.Header); ok {
+		r0 = rf(ctx, number)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Header)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *big.Int) error); ok {
+		r1 = rf(ctx, number)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Caller_HeaderByNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HeaderByNumber'
+type Caller_HeaderByNumber_Call struct {
+	*mock.Call
+}
+
+// HeaderByNumber is a helper method to define mock.On call
+//   - ctx context.Context
+//   - number *big.Int
+func (_e *Caller_Expecter) HeaderByNumber(ctx interface{}, number interface{}) *Caller_HeaderByNumber_Call {
+	return &Caller_HeaderByNumber_Call{Call: _e.mock.On("HeaderByNumber", ctx, number)}
+}
+
+func (_c *Caller_HeaderByNumber_Call) Run(run func(ctx context.Context, number *big.Int)) *Caller_HeaderByNumber_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*big.Int))
+	})
+	return _c
+}
+
+func (_c *Caller_HeaderByNumber_Call) Return(_a0 *types.Header, _a1 error) *Caller_HeaderByNumber_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Caller_HeaderByNumber_Call) RunAndReturn(run func(context.Context, *big.Int) (*types.Header, error)) *Caller_HeaderByNumber_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewPayload provides a mock function with given fields: ctx, payload, versionedHashes, parentBlockRoot
-func (_m *Caller) NewPayload(ctx context.Context, payload enginetypes.ExecutionPayload, versionedHashes []common.Hash, parentBlockRoot *[32]byte) ([]byte, error) {
+func (_m *Caller) NewPayload(ctx context.Context, payload enginetypes.ExecutionPayload, versionedHashes []common.Hash, parentBlockRoot *[32]byte) (*common.Hash, error) {
 	ret := _m.Called(ctx, payload, versionedHashes, parentBlockRoot)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewPayload")
 	}
 
-	var r0 []byte
+	var r0 *common.Hash
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, enginetypes.ExecutionPayload, []common.Hash, *[32]byte) ([]byte, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, enginetypes.ExecutionPayload, []common.Hash, *[32]byte) (*common.Hash, error)); ok {
 		return rf(ctx, payload, versionedHashes, parentBlockRoot)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, enginetypes.ExecutionPayload, []common.Hash, *[32]byte) []byte); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, enginetypes.ExecutionPayload, []common.Hash, *[32]byte) *common.Hash); ok {
 		r0 = rf(ctx, payload, versionedHashes, parentBlockRoot)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
+			r0 = ret.Get(0).(*common.Hash)
 		}
 	}
 
@@ -406,12 +529,12 @@ func (_c *Caller_NewPayload_Call) Run(run func(ctx context.Context, payload engi
 	return _c
 }
 
-func (_c *Caller_NewPayload_Call) Return(_a0 []byte, _a1 error) *Caller_NewPayload_Call {
+func (_c *Caller_NewPayload_Call) Return(_a0 *common.Hash, _a1 error) *Caller_NewPayload_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Caller_NewPayload_Call) RunAndReturn(run func(context.Context, enginetypes.ExecutionPayload, []common.Hash, *[32]byte) ([]byte, error)) *Caller_NewPayload_Call {
+func (_c *Caller_NewPayload_Call) RunAndReturn(run func(context.Context, enginetypes.ExecutionPayload, []common.Hash, *[32]byte) (*common.Hash, error)) *Caller_NewPayload_Call {
 	_c.Call.Return(run)
 	return _c
 }

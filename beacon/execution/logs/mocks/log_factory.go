@@ -118,9 +118,9 @@ func (_c *LogFactory_GetRegisteredSignatures_Call) RunAndReturn(run func() []com
 	return _c
 }
 
-// ProcessLogs provides a mock function with given fields: _a0
-func (_m *LogFactory) ProcessLogs(_a0 []types.Log) ([]logs.LogContainer, error) {
-	ret := _m.Called(_a0)
+// ProcessLogs provides a mock function with given fields: _a0, blockNumToHash
+func (_m *LogFactory) ProcessLogs(_a0 []types.Log, blockNumToHash map[uint64]common.Hash) ([]logs.LogContainer, error) {
+	ret := _m.Called(_a0, blockNumToHash)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ProcessLogs")
@@ -128,19 +128,19 @@ func (_m *LogFactory) ProcessLogs(_a0 []types.Log) ([]logs.LogContainer, error) 
 
 	var r0 []logs.LogContainer
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]types.Log) ([]logs.LogContainer, error)); ok {
-		return rf(_a0)
+	if rf, ok := ret.Get(0).(func([]types.Log, map[uint64]common.Hash) ([]logs.LogContainer, error)); ok {
+		return rf(_a0, blockNumToHash)
 	}
-	if rf, ok := ret.Get(0).(func([]types.Log) []logs.LogContainer); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func([]types.Log, map[uint64]common.Hash) []logs.LogContainer); ok {
+		r0 = rf(_a0, blockNumToHash)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]logs.LogContainer)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]types.Log) error); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func([]types.Log, map[uint64]common.Hash) error); ok {
+		r1 = rf(_a0, blockNumToHash)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -155,13 +155,14 @@ type LogFactory_ProcessLogs_Call struct {
 
 // ProcessLogs is a helper method to define mock.On call
 //   - _a0 []types.Log
-func (_e *LogFactory_Expecter) ProcessLogs(_a0 interface{}) *LogFactory_ProcessLogs_Call {
-	return &LogFactory_ProcessLogs_Call{Call: _e.mock.On("ProcessLogs", _a0)}
+//   - blockNumToHash map[uint64]common.Hash
+func (_e *LogFactory_Expecter) ProcessLogs(_a0 interface{}, blockNumToHash interface{}) *LogFactory_ProcessLogs_Call {
+	return &LogFactory_ProcessLogs_Call{Call: _e.mock.On("ProcessLogs", _a0, blockNumToHash)}
 }
 
-func (_c *LogFactory_ProcessLogs_Call) Run(run func(_a0 []types.Log)) *LogFactory_ProcessLogs_Call {
+func (_c *LogFactory_ProcessLogs_Call) Run(run func(_a0 []types.Log, blockNumToHash map[uint64]common.Hash)) *LogFactory_ProcessLogs_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]types.Log))
+		run(args[0].([]types.Log), args[1].(map[uint64]common.Hash))
 	})
 	return _c
 }
@@ -171,7 +172,7 @@ func (_c *LogFactory_ProcessLogs_Call) Return(_a0 []logs.LogContainer, _a1 error
 	return _c
 }
 
-func (_c *LogFactory_ProcessLogs_Call) RunAndReturn(run func([]types.Log) ([]logs.LogContainer, error)) *LogFactory_ProcessLogs_Call {
+func (_c *LogFactory_ProcessLogs_Call) RunAndReturn(run func([]types.Log, map[uint64]common.Hash) ([]logs.LogContainer, error)) *LogFactory_ProcessLogs_Call {
 	_c.Call.Return(run)
 	return _c
 }

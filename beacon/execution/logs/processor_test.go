@@ -43,16 +43,21 @@ func TestLogProcessor(t *testing.T) {
 	ctx := context.Background()
 
 	blockNum := new(big.Int).SetUint64(100)
-	blockHash := ethcommon.BigToHash(blockNum)
 	header := &ethcoretypes.Header{
 		Number: blockNum,
 	}
+	blockHash := header.Hash()
 	logSignature := ethcommon.HexToHash("0x1234")
 	contractAddress := ethcommon.HexToAddress("0x5678")
 
 	log := ethcoretypes.Log{
-		Address: contractAddress,
-		Topics:  []ethcommon.Hash{logSignature},
+		Address:     contractAddress,
+		BlockNumber: blockNum.Uint64(),
+		Topics:      []ethcommon.Hash{logSignature},
+	}
+
+	blockNumToHash := map[uint64]ethcommon.Hash{
+		blockNum.Uint64(): blockHash,
 	}
 
 	container := &logsMocks.LogContainer{}
@@ -62,7 +67,9 @@ func TestLogProcessor(t *testing.T) {
 	client := &clientMocks.Caller{}
 	client.EXPECT().HeaderByHash(ctx, blockHash).
 		Return(header, nil)
-	client.EXPECT().GetLogs(
+	client.EXPECT().HeaderByNumber(ctx, blockNum).
+		Return(header, nil)
+	client.EXPECT().GetLogsInRange(
 		ctx,
 		blockNum.Uint64(),
 		blockNum.Uint64(),
@@ -74,8 +81,9 @@ func TestLogProcessor(t *testing.T) {
 		Return([]ethcommon.Hash{logSignature})
 	factory.EXPECT().GetRegisteredAddresses().
 		Return([]ethcommon.Address{contractAddress})
-	factory.EXPECT().ProcessLogs([]ethcoretypes.Log{log}).
-		Return([]logs.LogContainer{container}, nil)
+	factory.EXPECT().ProcessLogs(
+		[]ethcoretypes.Log{log}, blockNumToHash,
+	).Return([]logs.LogContainer{container}, nil)
 
 	cache := &SimpleCache{}
 

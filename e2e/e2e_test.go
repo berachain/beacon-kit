@@ -23,26 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+//go:build e2e
+// +build e2e
+
+package e2e_test
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	"testing"
+
+	"github.com/itsdevbear/bolaris/e2e/suite"
 )
 
-// processPayloadStatusResult processes the payload status result and
-// returns the latest valid hash or an error.
-func processPayloadStatusResult(
-	result *enginetypes.PayloadStatus,
-) (*common.Hash, error) {
-	switch result.Status {
-	case enginetypes.PayloadStatusAccepted, enginetypes.PayloadStatusSyncing:
-		return nil, ErrAcceptedSyncingPayloadStatus
-	case enginetypes.PayloadStatusInvalid:
-		return result.LatestValidHash, ErrInvalidPayloadStatus
-	case enginetypes.PayloadStatusValid:
-		return result.LatestValidHash, nil
-	default:
-		return nil, ErrUnknownPayloadStatus
-	}
+// TestBeaconKitE2ESuite runs the test suite.
+func TestBeaconKitE2ESuite(t *testing.T) {
+	suite.Run(t, new(BeaconKitE2ESuite))
 }

@@ -64,7 +64,9 @@ func TestProcessStakingLogs(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	containers, err := logFactory.ProcessLogs(mockLogs)
+	blockNumToHash := make(map[uint64]ethcommon.Hash)
+	blockNumToHash[blkNum] = ethcommon.BytesToHash([]byte{byte(blkNum)})
+	containers, err := logFactory.ProcessLogs(mockLogs, blockNumToHash)
 	require.NoError(t, err)
 	require.Len(t, containers, numDepositLogs)
 
@@ -90,8 +92,12 @@ func TestProcessStakingLogs(t *testing.T) {
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum + 1
+	blockHash := ethcommon.BytesToHash([]byte{byte(blkNum + 1)})
+	log.BlockHash = blockHash
+	blockNumToHash[log.BlockNumber] = blockHash
 	_, err = logFactory.ProcessLogs(
 		append(mockLogs, *log),
+		blockNumToHash,
 	)
 	// This is an expected error as
 	// the log is from a different block.
@@ -100,16 +106,17 @@ func TestProcessStakingLogs(t *testing.T) {
 	// This log is skipped because it is not
 	// from the contract address of interest.
 	log.Address = ethcommon.HexToAddress("0x5678")
-	log.BlockNumber = blkNum
+	log.BlockHash = ethcommon.BytesToHash([]byte{byte(blkNum)})
 	mockLogs = append(mockLogs, *log)
-	containers, err = logFactory.ProcessLogs(mockLogs)
+	containers, err = logFactory.ProcessLogs(mockLogs, blockNumToHash)
 	require.NoError(t, err)
 	require.Len(t, containers, numDepositLogs)
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum
+	log.BlockHash = ethcommon.BytesToHash([]byte{byte(blkNum)})
 	mockLogs = append(mockLogs, *log)
-	_, err = logFactory.ProcessLogs(mockLogs)
+	_, err = logFactory.ProcessLogs(mockLogs, blockNumToHash)
 	// This is an expected error as currently we cannot
 	// unmarsal a withdrawal log into a Withdrawal object.
 	require.Error(t, err)

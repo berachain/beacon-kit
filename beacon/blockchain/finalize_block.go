@@ -79,14 +79,15 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// TODO: PROCESS LOGS HERE
-	// TODO: PROCESS DEPOSITS HERE
-	// TODO: PROCESS VOLUNTARY EXITS HERE
-
 	if payload == nil || payload.IsEmpty() {
 		// TODO: Slash the proposer for not including a payload.
 		return ErrNoPayloadInBeaconBlock
 	}
+
+	// TODO: PROCESS DEPOSITS HERE
+	// TODO: PROCESS VOLUNTARY EXITS HERE
+	// Logs are already processed in the beacon block processing,
+	// after fork choice updated.
 
 	return forkChoicer.InsertNode(common.Hash(payload.GetBlockHash()))
 }

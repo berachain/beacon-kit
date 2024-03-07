@@ -25,29 +25,15 @@
 
 package enginetypes
 
-import (
-	"encoding/json"
-	"reflect"
+import "github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
+// For cleanliness we put all go:generate directives and marshalling overrides
+// in a single file.
+//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 
-// PayloadID is a custom type representing Payload IDs in a fixed-size byte
-// array.
-type PayloadID [8]byte
-
-// MarshalJSON converts a PayloadID to a JSON-encoded hexadecimal string.
-func (b PayloadID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(hexutil.Bytes(b[:]))
-}
-
-// UnmarshalJSON improves the conversion of a JSON-encoded hexadecimal string
-// to a PayloadID by directly utilizing UnmarshalFixedJSON.
-func (b *PayloadID) UnmarshalJSON(enc []byte) error {
-	if err := hexutil.UnmarshalFixedJSON(
-		reflect.TypeOf(PayloadID{}), enc, b[:],
-	); err != nil {
-		return err
-	}
-	return nil
+// JSON type overrides for PayloadAttributes.
+type payloadAttributesJSONMarshaling struct {
+	Timestamp             hexutil.Uint64
+	PrevRandao            hexutil.Bytes
+	ParentBeaconBlockRoot hexutil.Bytes
 }

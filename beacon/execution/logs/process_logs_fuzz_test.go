@@ -65,8 +65,13 @@ func FuzzProcessStakingLogs(f *testing.F) {
 			)
 			require.NoError(t, err)
 
+			blockNumToHash := make(map[uint64]ethcommon.Hash)
+			for _, log := range logs {
+				blockNumToHash[log.BlockNumber] = log.BlockHash
+			}
+
 			var containers []executionlogs.LogContainer
-			containers, err = logFactory.ProcessLogs(logs)
+			containers, err = logFactory.ProcessLogs(logs, blockNumToHash)
 			require.NoError(t, err)
 			require.Len(t, containers, numDepositLogs)
 

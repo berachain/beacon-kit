@@ -27,6 +27,7 @@ package client
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
@@ -50,13 +51,14 @@ type Caller interface {
 	//
 	// NewPayload creates a new payload for the Ethereum execution node.
 	NewPayload(ctx context.Context, payload enginetypes.ExecutionPayload,
-		versionedHashes []common.Hash, parentBlockRoot *[32]byte) ([]byte, error)
+		versionedHashes []common.Hash, parentBlockRoot *[32]byte,
+	) (*common.Hash, error)
 
 	// ForkchoiceUpdated updates the fork choice of the Ethereum execution node.
 	ForkchoiceUpdated(
-		ctx context.Context, state *enginev1.ForkchoiceState,
+		ctx context.Context, state *enginetypes.ForkchoiceState,
 		attrs enginetypes.PayloadAttributer, version int,
-	) (*enginetypes.PayloadID, []byte, error)
+	) (*enginetypes.PayloadID, *common.Hash, error)
 
 	// GetPayload retrieves the payload from the Ethereum execution node.
 	GetPayload(
@@ -67,12 +69,6 @@ type Caller interface {
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash,
 		withTxs bool) (*enginev1.ExecutionBlock, error)
 
-	// GetLogs retrieves the logs from the Ethereum execution node.
-	GetLogs(
-		ctx context.Context, fromBlock, toBlock uint64,
-		addresses []primitives.ExecutionAddress,
-	) ([]gethcoretypes.Log, error)
-
 	// Eth Namespace Methods
 	//
 	// BlockByHash retrieves the block by its hash.
@@ -80,4 +76,22 @@ type Caller interface {
 		ctx context.Context,
 		hash common.Hash,
 	) (*gethcoretypes.Header, error)
+
+	HeaderByNumber(
+		ctx context.Context,
+		number *big.Int,
+	) (*gethcoretypes.Header, error)
+
+	// GetLogs retrieves the logs from the Ethereum execution node.
+	GetLogs(
+		ctx context.Context, blockHash common.Hash,
+		addresses []primitives.ExecutionAddress,
+	) ([]gethcoretypes.Log, error)
+
+	// GetLogsInRange retrieves the logs from the Ethereum execution node
+	// in the given range.
+	GetLogsInRange(
+		ctx context.Context, fromBlock, toBlock uint64,
+		addresses []primitives.ExecutionAddress,
+	) ([]gethcoretypes.Log, error)
 }

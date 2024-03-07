@@ -27,6 +27,7 @@ package logs
 
 import (
 	"context"
+	"math/big"
 
 	"cosmossdk.io/errors"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -119,7 +120,7 @@ func (p *Processor) processBlocksInBatch(
 		end = toBlock
 	}
 
-	logs, err := p.engine.GetLogs(
+	logs, err := p.engine.GetLogsInRange(
 		ctx,
 		start,
 		end,
@@ -129,7 +130,16 @@ func (p *Processor) processBlocksInBatch(
 		return 0, errors.Wrapf(err, "failed to get logs")
 	}
 
-	containers, err := p.factory.ProcessLogs(logs)
+	blockNumToHash := make(map[uint64]ethcommon.Hash)
+	for _, log := range logs {
+		header, err := p.engine.HeaderByNumber(ctx, new(big.Int).SetUint64(log.BlockNumber))
+		if err != nil {
+			return 0, errors.Wrapf(err, "failed to get block header")
+		}
+		blockNumToHash[log.BlockNumber] = header.Hash()
+	}
+
+	containers, err := p.factory.ProcessLogs(logs, blockNumToHash)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to process logs")
 	}
