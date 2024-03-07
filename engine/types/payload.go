@@ -92,7 +92,11 @@ type executionPayloadEnvelopeMarshaling struct {
 	BlockValue *hexutil.Big
 }
 
-//go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
+// TODO: Create new type to re-enable.
+// -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out
+// payload.json.go
+//
+//go:generate go run github.com/fjl/gencodec
 //nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    common.Hash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
