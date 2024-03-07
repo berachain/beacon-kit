@@ -31,6 +31,7 @@ import (
 
 	"cosmossdk.io/errors"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 )
 
@@ -132,7 +133,11 @@ func (p *Processor) processBlocksInBatch(
 
 	blockNumToHash := make(map[uint64]ethcommon.Hash)
 	for _, log := range logs {
-		header, err := p.engine.HeaderByNumber(ctx, new(big.Int).SetUint64(log.BlockNumber))
+		var header *gethcoretypes.Header
+		header, err = p.engine.HeaderByNumber(
+			ctx,
+			new(big.Int).SetUint64(log.BlockNumber),
+		)
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed to get block header")
 		}
