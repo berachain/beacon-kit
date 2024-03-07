@@ -96,7 +96,7 @@ type executionPayloadEnvelopeMarshaling struct {
 // -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out
 // payload.json.go
 //
-//go:generate go run github.com/fjl/gencodec
+//notgo:generate go run github.com/fj l/gencodec
 //nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    common.Hash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
