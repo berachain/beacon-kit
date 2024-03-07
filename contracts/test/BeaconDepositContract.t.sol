@@ -127,7 +127,7 @@ contract DepositContractTest is SoladyTest {
     function testFuzz_DepositWrongAmount(uint256 amount) public {
         vm.revertTo(snapshot);
         amount = _bound(amount, 1, 32e9 - 1);
-        stakeToken.mint(depositor, amount);
+        stakeToken.mint(depositor, amount * 1e9);
 
         vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
@@ -141,7 +141,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositWrongAmount() public {
         vm.revertTo(snapshot);
-        stakeToken.mint(depositor, 32e9 - 1);
+        stakeToken.mint(depositor, (32e9 - 1) * 1e9);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
         vm.prank(depositor);
         depositContract.deposit(
@@ -154,7 +154,7 @@ contract DepositContractTest is SoladyTest {
         amount = _bound(amount, 32e9 + 1, type(uint64).max);
         vm.assume(amount % 1e9 != 0);
 
-        stakeToken.mint(depositor, amount);
+        stakeToken.mint(depositor, amount * 1e9);
 
         vm.prank(depositor);
         vm.expectRevert(
@@ -170,7 +170,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositWrongMultiple() public {
         vm.revertTo(snapshot);
-        stakeToken.mint(depositor, 32e9 + 1);
+        stakeToken.mint(depositor, (32e9 + 1) * 1e9);
         vm.expectRevert(
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
         );
@@ -182,7 +182,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_Deposit() public {
         vm.revertTo(snapshot);
-        stakeToken.mint(depositor, 32e9);
+        stakeToken.mint(depositor, 32e9 * 1e9);
 
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);

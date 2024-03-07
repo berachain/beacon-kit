@@ -33,6 +33,7 @@ import { IStakeERC20 } from "./IStakeERC20.sol";
  * @author Berachain Team
  * @notice A contract that handles deposits, withdrawals, and redirections of stake.
  * @dev Its events are used by the beacon chain to manage the staking process.
+ * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
 contract BeaconDepositContract is IBeaconDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -45,6 +46,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @dev The address of the staking asset.
     /// @notice defaults to the native asset but can be changed at genesis at slot!!!.
+    /// @dev The staking asset needs to be of 18 decimal places to match the native asset.
     /// @notice to allow for the staking asset to be changed, we must store it in the contract storage.
     /// @notice storage layout:
     // | Name        | Type    | Slot | Offset | Bytes | Contract                                |
@@ -207,7 +209,8 @@ contract BeaconDepositContract is IBeaconDepositContract {
      * @param amount The amount of stake to deposit.
      */
     function _depositERC20(uint64 amount) private {
-        IStakeERC20(STAKE_ASSET).burn(msg.sender, amount);
+        // burn the staking asset from the sender, converting the gwei to wei.
+        IStakeERC20(STAKE_ASSET).burn(msg.sender, uint256(amount) * 1e9);
 
         if (amount < MIN_DEPOSIT_AMOUNT) {
             revert InsufficientDeposit();
