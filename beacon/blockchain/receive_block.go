@@ -40,8 +40,8 @@ import (
 // and then processes the block.
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
 	blockHash [32]byte,
-	buoy beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -51,6 +51,11 @@ func (s *Service) ReceiveBeaconBlock(
 		isValidPayload bool
 		forkChoicer    = s.ForkchoiceStore(ctx)
 	)
+
+	// If the block is nil, We have to abort.
+	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
+		return err
+	}
 
 	// If we have already seen this block, we can skip processing it.
 	// TODO: should we store some historical data here?
@@ -67,7 +72,7 @@ func (s *Service) ReceiveBeaconBlock(
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, buoy)
+		err := s.validateStateTransition(groupCtx, blk)
 		if err != nil {
 			s.Logger().
 				Error("failed to validate state transition", "error", err)
@@ -81,7 +86,7 @@ func (s *Service) ReceiveBeaconBlock(
 	eg.Go(func() error {
 		var err error
 		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, buoy,
+			groupCtx, blk,
 		); err != nil {
 			s.Logger().
 				Error("failed to notify engine of new payload", "error", err)
@@ -110,7 +115,7 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// Perform post block processing.
 	return s.postBlockProcess(
-		ctx, buoy, blockHash, isValidPayload,
+		ctx, blk, blockHash, isValidPayload,
 	)
 }
 
@@ -151,7 +156,8 @@ func (s *Service) validateExecutionOnBlock(
 		return false, err
 	}
 
-	payload := blk.GetBody().GetExecutionPayload()
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
 	if payload == nil {
 		return false, errors.New("no payload in beacon block")
 	}
@@ -174,7 +180,7 @@ func (s *Service) validateExecutionOnBlock(
 		blk.GetSlot(),
 		payload,
 		kzg.ConvertCommitmentsToVersionedHashes(
-			blk.GetBody().GetBlobKzgCommitments(),
+			body.GetBlobKzgCommitments(),
 		),
 		blk.GetParentBlockRoot(),
 	)

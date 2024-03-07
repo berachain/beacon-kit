@@ -133,7 +133,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, byteslib.ToBytes32(req.Hash), block); err != nil {
+		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
 		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil

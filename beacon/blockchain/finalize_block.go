@@ -77,17 +77,22 @@ func (s *Service) FinalizeBeaconBlock(
 		return ErrNoPayloadInBeaconBlock
 	}
 
+	payloadBlockHash := payload.GetBlockHash()
+	if err = forkChoicer.InsertNode(payloadBlockHash); err != nil {
+		return err
+	}
+
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
 	_, err = s.es.ProcessLogsInETH1Block(
 		ctx,
-		payload.GetBlockHash(),
+		payloadBlockHash,
 	)
 	if err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
 	}
 
-	return forkChoicer.InsertNode(payload.GetBlockHash())
+	return err
 }
 
 // missed block tasks is called when a block is missed. It sends a forkchoice

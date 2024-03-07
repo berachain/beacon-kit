@@ -98,7 +98,7 @@ func BeaconBlockFromSSZ(
 // it is recommended to run these checks as first line of defense.
 func BeaconBlockIsNil(b ReadOnlyBeaconBlock) error {
 	if b == nil || b.IsNil() {
-		return ErrNilBuoy
+		return ErrNilBlock
 	}
 	return nil
 }
