@@ -26,7 +26,6 @@
 package proposal
 
 import (
-	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -88,9 +87,6 @@ func (h *Handler) PrepareProposalHandler(
 		primitives.Slot(req.Height),
 	)
 
-	fmt.Println("IN PREPARE PROPOSAL")
-	fmt.Println(block.ExecutionPayload())
-
 	if err != nil {
 		logger.Error("failed to build block", "error", err)
 		return &abci.ResponsePrepareProposal{}, err
@@ -134,9 +130,6 @@ func (h *Handler) ProcessProposalHandler(
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
-
-	fmt.Println("IN PROCESS PROPOSAL")
-	fmt.Println(block.ExecutionPayload())
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(

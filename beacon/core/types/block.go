@@ -26,7 +26,7 @@
 package types
 
 import (
-	"fmt"
+	"errors"
 
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/config/version"
@@ -42,20 +42,16 @@ type BeaconBlockDeneb struct {
 	PayloadValue    [32]byte `ssz-size:"32"`
 }
 
-func (b *BeaconBlockDeneb) ExecutionPayload() (enginetypes.ExecutionPayload, error) {
-	return b.Body.ExecutionPayload, nil
+// IsEmpty returns true if the block is nil or the body is nil.
+func (b *BeaconBlockDeneb) IsEmpty() bool {
+	return b == nil || b.Body == nil
 }
 
-func (b *BeaconBlockDeneb) AttachExecution(
-	executionData enginetypes.ExecutionPayload,
-) error {
-	fmt.Println("AttachExecution")
-	fmt.Println(executionData.GetBlockHash())
-	fmt.Println(executionData)
-	b.Body.ExecutionPayload = executionData.(*enginetypes.ExecutableDataDeneb)
-	return nil
+func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
+	return b.Body
 }
 
+// Version returns the version of the block.
 func (b *BeaconBlockDeneb) Version() int {
 	return version.Deneb
 }
@@ -64,32 +60,20 @@ func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil
 }
 
-func (b *BeaconBlockDeneb) GetSlot() primitives.SSZUint64 {
-	return primitives.SSZUint64(b.Slot)
+func (b *BeaconBlockDeneb) GetSlot() primitives.Slot {
+	return b.Slot
 }
 
-func (b *BeaconBlockDeneb) GetRandaoReveal() []byte {
-	return b.Body.RandaoReveal[:]
-}
-
-func (b *BeaconBlockDeneb) GetGraffiti() []byte {
-	return b.Body.Graffiti[:]
-}
-
-func (b *BeaconBlockDeneb) GetDeposits() []*beacontypesv1.Deposit {
-	return b.Body.Deposits
-}
-
-func (b *BeaconBlockDeneb) GetParentBlockRoot() []byte {
-	return b.ParentBlockRoot[:]
+func (b *BeaconBlockDeneb) GetParentBlockRoot() [32]byte {
+	return b.ParentBlockRoot
 }
 
 func (b *BeaconBlockDeneb) GetBlobKzgCommitments() [][]byte {
-	make := make([][]byte, len(b.Body.BlobKzgCommitments))
+	temp := make([][]byte, len(b.Body.BlobKzgCommitments))
 	for i, v := range b.Body.BlobKzgCommitments {
-		make[i] = v[:]
+		temp[i] = v[:]
 	}
-	return make
+	return temp
 }
 
 type BeaconBlockBodyDeneb struct {
@@ -98,4 +82,37 @@ type BeaconBlockBodyDeneb struct {
 	Deposits           []*beacontypesv1.Deposit `                ssz-max:"16"`
 	ExecutionPayload   *enginetypes.ExecutableDataDeneb
 	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
+}
+
+func (b *BeaconBlockBodyDeneb) GetRandaoReveal() []byte {
+	return b.RandaoReveal[:]
+}
+
+func (b *BeaconBlockBodyDeneb) GetGraffiti() []byte {
+	return b.Graffiti[:]
+}
+
+func (b *BeaconBlockBodyDeneb) GetDeposits() []*beacontypesv1.Deposit {
+	return b.Deposits
+}
+
+//
+//nolint:lll
+func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayload {
+	return b.ExecutionPayload
+}
+
+func (b *BeaconBlockBodyDeneb) AttachExecution(
+	executionData enginetypes.ExecutionPayload,
+) error {
+	var ok bool
+	b.ExecutionPayload, ok = executionData.(*enginetypes.ExecutableDataDeneb)
+	if !ok {
+		return errors.New("invalid execution data type")
+	}
+	return nil
+}
+
+func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][48]byte {
+	return b.BlobKzgCommitments
 }

@@ -295,7 +295,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		"parent_hash", payload.GetParentHash(),
 		// "value", payload.GetValue().ToEther(),
 		"override_builder", overrideBuilder,
-		// "num_blobs", len(blobsBundle.GetBlobs()),
+		"num_blobs", len(blobsBundle.Blobs),
 	)
 	return payload, blobsBundle, overrideBuilder, err
 }

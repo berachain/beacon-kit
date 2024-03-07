@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/config/version"
+	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	"github.com/itsdevbear/bolaris/math"
 )
 
@@ -73,15 +74,17 @@ func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
 }
 
 func (e *ExecutionPayloadEnvelopeDeneb) String() string {
-
 	return fmt.Sprintf(`
 ExecutionPayloadEnvelopeDeneb{
 	ExecutionPayload: %s,
 	BlockValue: %s,
 	BlobsBundle: %s,
 	Override: %v,
-}`, e.ExecutionPayload.String(), e.BlockValue.String(), e.GetBlobsBundle().Blobs, e.Override)
-
+}`, e.ExecutionPayload.String(),
+		e.BlockValue.String(),
+		e.GetBlobsBundle().Blobs,
+		e.Override,
+	)
 }
 
 // JSON type overrides for ExecutionPayloadEnvelope.
@@ -103,7 +106,7 @@ type ExecutableDataDeneb struct {
 	GasUsed       uint64         `json:"gasUsed"                      gencodec:"required"`
 	Timestamp     uint64         `json:"timestamp"                    gencodec:"required"`
 	ExtraData     []byte         `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas []byte         `json:"baseFeePerGas" ssz-size:"32"             gencodec:"required"`
+	BaseFeePerGas []byte         `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     common.Hash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte       `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 	Withdrawals   []*Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
@@ -142,27 +145,44 @@ func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 }
 
 func (d *ExecutableDataDeneb) String() string {
-	return fmt.Sprintf(`
-ExecutableDataDeneb{
-	ParentHash: %s,
-	FeeRecipient: %s,
-	StateRoot: %s,
-	ReceiptsRoot: %s,
-	LogsBloom: %s,
-	Random: %s,
-	Number: %d,
-	GasLimit: %d,
-	GasUsed: %d,
-	Timestamp: %d,
-	ExtraData: %s,
-	BaseFeePerGas: %s,
-	BlockHash: %s,
-	Transactions: %s,
-	Withdrawals: %s,
-	BlobGasUsed: %d,
-	ExcessBlobGas: %d,
-}`, d.ParentHash.String(), d.FeeRecipient.String(), d.StateRoot.String(),
-		d.ReceiptsRoot.String(), d.LogsBloom, d.Random.String(), d.Number, d.GasLimit,
-		d.GasUsed, d.Timestamp, d.ExtraData, big.NewInt(0).SetBytes(d.BaseFeePerGas), d.BlockHash.String(),
-		d.Transactions, d.Withdrawals, d.BlobGasUsed, d.ExcessBlobGas)
+	return fmt.Sprintf(
+		"ExecutableDataDeneb{\n"+
+			"\tParentHash: %s,\n"+
+			"\tFeeRecipient: %s,\n"+
+			"\tStateRoot: %s,\n"+
+			"\tReceiptsRoot: %s,\n"+
+			"\tLogsBloom: %x,\n"+
+			"\tRandom: %s,\n"+
+			"\tNumber: %d,\n"+
+			"\tGasLimit: %d,\n"+
+			"\tGasUsed: %d,\n"+
+			"\tTimestamp: %d,\n"+
+			"\tExtraData: %s,\n"+
+			"\tBaseFeePerGas: %s,\n"+
+			"\tBlockHash: %s,\n"+
+			"\tTransactions: %x,\n"+
+			"\tWithdrawals: %v,\n"+
+			"\tBlobGasUsed: %d,\n"+
+			"\tExcessBlobGas: %d,\n"+
+			"}",
+		d.ParentHash.String(),
+		d.FeeRecipient.String(),
+		d.StateRoot.String(),
+		d.ReceiptsRoot.String(),
+		d.LogsBloom,
+		d.Random.String(),
+		d.Number,
+		d.GasLimit,
+		d.GasUsed,
+		d.Timestamp,
+		d.ExtraData,
+		big.NewInt(0).
+			SetBytes(byteslib.CopyAndReverseEndianess(d.BaseFeePerGas)).
+			String(),
+		d.BlockHash.String(),
+		d.Transactions,
+		d.Withdrawals,
+		d.BlobGasUsed,
+		d.ExcessBlobGas,
+	)
 }

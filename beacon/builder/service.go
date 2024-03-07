@@ -111,7 +111,7 @@ func (s *Service) RequestBestBlock(
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
-	if err = beaconBlock.AttachExecution(payload); err != nil {
+	if err = beaconBlock.GetBody().AttachExecution(payload); err != nil {
 		return nil, err
 	}
 

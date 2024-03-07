@@ -40,8 +40,8 @@ import (
 // The restulting hash is intended for use in contexts where a versioned
 // identifier
 // for the commitment is required.
-func ConvertCommitmentToVersionedHash(commitment []byte) common.Hash {
-	hash := sha256.Sum256(commitment)
+func ConvertCommitmentToVersionedHash(commitment [48]byte) common.Hash {
+	hash := sha256.Sum256(commitment[:])
 	// Prefix the hash with the BlobCommitmentVersion to create a versioned
 	// hash.
 	hash[0] = BlobCommitmentVersion
@@ -55,8 +55,8 @@ func ConvertCommitmentToVersionedHash(commitment []byte) common.Hash {
 // The resulting hashes are intended for use in contexts where a versioned
 // identifier
 // for the commitments is required.
-func ConvertCommitmentsToVersionedHashes(commitments [][]byte) []common.Hash {
-	return iter.Map(commitments, func(bz *[]byte) common.Hash {
+func ConvertCommitmentsToVersionedHashes(commitments [][48]byte) []common.Hash {
+	return iter.Map(commitments, func(bz *[48]byte) common.Hash {
 		return ConvertCommitmentToVersionedHash(*bz)
 	})
 }

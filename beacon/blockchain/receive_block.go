@@ -26,7 +26,6 @@
 package blockchain
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -119,18 +118,18 @@ func (s *Service) ReceiveBeaconBlock(
 // TODO: Expand rules, consider modularity. Current implementation
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
-	ctx context.Context, buoy beacontypes.ReadOnlyBeaconBlock,
+	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	if err := beacontypes.BeaconBlockIsNil(buoy); err != nil {
+	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
 		return err
 	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
-	if !bytes.Equal(parentBlockRoot[:], buoy.GetParentBlockRoot()) {
+	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
 			"parent root does not match, expected: %x, got: %x",
 			parentBlockRoot,
-			buoy.GetParentBlockRoot(),
+			blk.GetParentBlockRoot(),
 		)
 	}
 
@@ -146,17 +145,13 @@ func (s *Service) validateStateTransition(
 func (s *Service) validateExecutionOnBlock(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
-	buoy beacontypes.ReadOnlyBeaconBlock,
+	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	if err := beacontypes.BeaconBlockIsNil(buoy); err != nil {
+	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
 		return false, err
 	}
 
-	payload, err := buoy.ExecutionPayload()
-	if err != nil {
-		return false, err
-	}
-
+	payload := blk.GetBody().GetExecutionPayload()
 	if payload == nil {
 		return false, errors.New("no payload in beacon block")
 	}
@@ -173,14 +168,14 @@ func (s *Service) validateExecutionOnBlock(
 		)
 	}
 
-	fmt.Println(payload)
-
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(
 		ctx,
-		buoy.GetSlot(),
+		blk.GetSlot(),
 		payload,
-		kzg.ConvertCommitmentsToVersionedHashes(buoy.GetBlobKzgCommitments()),
-		common.Hash(buoy.GetParentBlockRoot()),
+		kzg.ConvertCommitmentsToVersionedHashes(
+			blk.GetBody().GetBlobKzgCommitments(),
+		),
+		blk.GetParentBlockRoot(),
 	)
 }

@@ -32,19 +32,21 @@ import (
 
 var (
 	// Ensure SSZUInt256 implements the fssz.HashRoot interface.
-	_ fssz.HashRoot = (SSZUInt256)(SSZUInt256{})
+	_ fssz.HashRoot = SSZUInt256{}
 	// Ensure SSZUInt256 implements the fssz.Marshaler interface.
 	_ fssz.Marshaler = (*SSZUInt256)(nil)
 	// Ensure SSZUInt256 implements the fssz.Unmarshaler interface.
 	_ fssz.Unmarshaler = (*SSZUInt256)(nil)
 )
 
+const thirtyTwo = 32
+
 // SSZUInt256 represents a ssz-able uint64.
 type SSZUInt256 []byte
 
 // SizeSSZ returns the fixed SSZ size of a SSZUInt256, which is 32 bytes.
 func (s *SSZUInt256) SizeSSZ() int {
-	return 32
+	return thirtyTwo
 }
 
 // MarshalSSZTo appends the SSZ-encoded byte slice of SSZUInt256 to the provided
