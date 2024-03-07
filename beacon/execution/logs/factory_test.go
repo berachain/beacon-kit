@@ -82,7 +82,7 @@ func TestLogFactory(t *testing.T) {
 
 	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
 	log, err = mocks.NewLogFromWithdrawal(
-		depositContractAbi.Events[logs.WithdrawName],
+		depositContractAbi.Events[logs.WithdrawalName],
 		withdrawal,
 	)
 	require.NoError(t, err)

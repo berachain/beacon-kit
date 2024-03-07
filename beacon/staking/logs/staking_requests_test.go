@@ -51,8 +51,8 @@ func TestLogSignatures(t *testing.T) {
 
 	require.Equal(t,
 		ethcrypto.Keccak256Hash(
-			[]byte("Withdraw(bytes,bytes,bytes,uint64)"),
+			[]byte("Withdrawal(bytes,bytes,bytes,uint64)"),
 		),
-		common.Hash(logs.WithdrawSig),
+		common.Hash(logs.WithdrawalSig),
 	)
 }

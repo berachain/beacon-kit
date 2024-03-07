@@ -62,13 +62,13 @@ interface IBeaconDepositContract {
     );
 
     /**
-     * @dev Emitted when a withdraw is made from a validator.
+     * @dev Emitted when a withdrawal is made from a validator.
      * @param fromPubkey The public key of the validator that is being withdrawn from.
      * @param stakingCredentials The public key of the account that is withdrawing the stake.
      * @param withdrawalCredentials The public key of the account that will receive the withdrawal.
      * @param amount The amount to be withdrawn from the validator, in Gwei.
      */
-    event Withdraw(
+    event Withdrawal(
         bytes fromPubkey,
         bytes stakingCredentials,
         bytes withdrawalCredentials,
@@ -100,8 +100,8 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the redirect amount is too small, to prevent dust redirects.
     error InsufficientRedirectAmount();
 
-    /// @dev Error thrown when the withdraw amount is too small, to prevent dust withdraws.
-    error InsufficientWithdrawAmount();
+    /// @dev Error thrown when the withdrawal amount is too small, to prevent dust withdrawals.
+    error InsufficientWithdrawalAmount();
 
     // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     // /*                        WRITES                              */
@@ -121,9 +121,7 @@ interface IBeaconDepositContract {
         bytes calldata stakingCredentials,
         uint64 amount,
         bytes calldata signature
-    )
-        external
-        payable;
+    ) external payable;
 
     /**
      * @notice Submit a redirect stake message, this allows depositors to move their stake from one validator to another.
@@ -137,8 +135,7 @@ interface IBeaconDepositContract {
         bytes calldata fromPubkey,
         bytes calldata toPubkey,
         uint64 amount
-    )
-        external;
+    ) external;
 
     /**
      * @notice Submit a withdrawal message to the Beaconchain.
@@ -152,6 +149,5 @@ interface IBeaconDepositContract {
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
-    )
-        external;
+    ) external;
 }

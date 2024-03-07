@@ -25,8 +25,8 @@
 
 pragma solidity 0.8.24;
 
-import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
-import { IStakeERC20 } from "./IStakeERC20.sol";
+import {IBeaconDepositContract} from "./IBeaconDepositContract.sol";
+import {IStakeERC20} from "./IStakeERC20.sol";
 
 /**
  * @title BeaconDepositContract
@@ -64,7 +64,8 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
-    uint256 private constant MINIMUM_WITHDRAWAL_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
+    uint256 private constant MINIMUM_WITHDRAWAL_AMOUNT =
+        MIN_DEPOSIT_AMOUNT / 10;
 
     /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
     uint8 private constant PUBLIC_KEY_LENGTH = 48;
@@ -85,10 +86,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
         bytes calldata stakingCredentials,
         uint64 amount,
         bytes calldata signature
-    )
-        external
-        payable
-    {
+    ) external payable {
         if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -116,12 +114,10 @@ contract BeaconDepositContract is IBeaconDepositContract {
         bytes calldata fromPubkey,
         bytes calldata toPubkey,
         uint64 amount
-    )
-        external
-    {
+    ) external {
         if (
-            fromPubkey.length != PUBLIC_KEY_LENGTH
-                || toPubkey.length != PUBLIC_KEY_LENGTH
+            fromPubkey.length != PUBLIC_KEY_LENGTH ||
+            toPubkey.length != PUBLIC_KEY_LENGTH
         ) {
             revert InvalidPubKeyLength();
         }
@@ -138,9 +134,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
-    )
-        external
-    {
+    ) external {
         if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -150,10 +144,10 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         if (amount < MINIMUM_WITHDRAWAL_AMOUNT) {
-            revert InsufficientWithdrawAmount();
+            revert InsufficientWithdrawalAmount();
         }
 
-        emit Withdraw(
+        emit Withdrawal(
             validatorPubkey,
             _toCredentials(msg.sender),
             withdrawalCredentials,
@@ -166,11 +160,9 @@ contract BeaconDepositContract is IBeaconDepositContract {
      * @param addr The address to transform.
      * @return credentials The credentials.
      */
-    function _toCredentials(address addr)
-        private
-        pure
-        returns (bytes memory credentials)
-    {
+    function _toCredentials(
+        address addr
+    ) private pure returns (bytes memory credentials) {
         // 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
         assembly ("memory-safe") {
             credentials := mload(0x40)

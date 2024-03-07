@@ -46,7 +46,7 @@ const (
 
 	// Name the Withdraw event
 	// in the deposit contract.
-	WithdrawName = "Withdraw"
+	WithdrawalName = "Withdraw"
 )
 
 //nolint:gochecknoglobals // Avoid re-allocating these variables.
@@ -77,13 +77,13 @@ var (
 
 	// Signature and type of the Withdraw event
 	// in the deposit contract.
-	// keccak256("Withdraw(bytes,bytes,bytes,uint64)").
-	// 0x37a073adb76560c7811e473af0b0cea0f470aacec4394d3f1d02c6d9b8a29982.
-	WithdrawSig = [32]byte{
-		0x37, 0xa0, 0x73, 0xad, 0xb7, 0x65, 0x60, 0xc7,
-		0x81, 0x1e, 0x47, 0x3a, 0xf0, 0xb0, 0xce, 0xa0,
-		0xf4, 0x70, 0xaa, 0xce, 0xc4, 0x39, 0x4d, 0x3f,
-		0x1d, 0x02, 0xc6, 0xd9, 0xb8, 0xa2, 0x99, 0x82,
+	// keccak256("Withdrawal(bytes,bytes,bytes,uint64)").
+	// 0x33689ed7aade9d90db44595c06c3bb95713b8332a7dec83be61556783c2154b1.
+	WithdrawalSig = [32]byte{
+		0x33, 0x68, 0x9e, 0xd7, 0xaa, 0xde, 0x9d, 0x90,
+		0xdb, 0x44, 0x59, 0x5c, 0x06, 0xc3, 0xbb, 0x95,
+		0x71, 0x3b, 0x83, 0x32, 0xa7, 0xde, 0xc8, 0x3b,
+		0xe6, 0x15, 0x56, 0x78, 0x3c, 0x21, 0x54, 0xb1,
 	}
 	WithdrawalType = reflect.TypeOf(enginev1.Withdrawal{})
 )
@@ -99,7 +99,7 @@ func NewStakingRequest(
 	allocator := logs.New[logs.TypeAllocator](
 		logs.WithABI(depositContractAbi),
 		logs.WithNameAndType(DepositSig, DepositName, DepositType),
-		logs.WithNameAndType(WithdrawSig, WithdrawName, WithdrawalType),
+		logs.WithNameAndType(WithdrawalSig, WithdrawalName, WithdrawalType),
 	)
 
 	return &logs.LogRequest{

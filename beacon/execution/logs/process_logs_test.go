@@ -83,7 +83,7 @@ func TestProcessLogs(t *testing.T) {
 
 	var log *ethtypes.Log
 	log, err = logmocks.NewLogFromWithdrawal(
-		depositContractAbi.Events[logs.WithdrawName],
+		depositContractAbi.Events[logs.WithdrawalName],
 		withdrawal,
 	)
 	require.NoError(t, err)
