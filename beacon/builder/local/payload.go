@@ -87,13 +87,13 @@ func (s *Service) BuildLocalPayload(
 	s.Logger().Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
 		"for_slot", fcuConfig.ProposingSlot,
-		"payload_id", fmt.Sprintf("%#x", *payloadID),
+		"payload_id", payloadID,
 	)
 
 	s.payloadCache.Set(
 		fcuConfig.ProposingSlot,
 		parentBlockRoot,
-		enginetypes.PayloadID(payloadID[:]),
+		*payloadID,
 	)
 
 	s.SetStatus(nil)
@@ -164,7 +164,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
-				ctx, enginetypes.PayloadID(payloadID[:]), slot,
+				ctx, payloadID, slot,
 			)
 		if err == nil {
 			// bundleCache.add(slot, bundle)

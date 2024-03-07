@@ -26,15 +26,9 @@
 package primitives
 
 import (
-	"fmt"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 	fssz "github.com/prysmaticlabs/fastssz"
 )
-
-// eight is the fixed size of a SSZUInt256 in bytes.
-const thirtyTwo = 32
 
 var (
 	// Ensure SSZUInt256 implements the fssz.HashRoot interface.
@@ -46,13 +40,11 @@ var (
 )
 
 // SSZUInt256 represents a ssz-able uint64.
-type SSZUInt256 struct {
-	hexutil.Big
-}
+type SSZUInt256 []byte
 
-// SizeSSZ returns the fixed SSZ size of a SSZUInt256, which is 8 bytes.
+// SizeSSZ returns the fixed SSZ size of a SSZUInt256, which is 32 bytes.
 func (s *SSZUInt256) SizeSSZ() int {
-	return thirtyTwo
+	return 32
 }
 
 // MarshalSSZTo appends the SSZ-encoded byte slice of SSZUInt256 to the provided
@@ -63,27 +55,26 @@ func (s *SSZUInt256) MarshalSSZTo(dst []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return append(dst, marshalled...), nil
+	padded := byteslib.ToBytes32(marshalled)
+	return append(dst, padded[:]...), nil
 }
 
 // MarshalSSZ marshals a SSZUInt256 into a byte slice.
 // It returns the byte slice and an error if any.
 func (s *SSZUInt256) MarshalSSZ() ([]byte, error) {
-	bz := byteslib.ToBytes32(byteslib.CopyAndReverseEndianess(s.ToInt().Bytes()))
-	return bz[:], nil
+	x := byteslib.ToBytes32(*s)
+	return x[:], nil
 }
 
 // UnmarshalSSZ unmarshals a SSZUInt256 from SSZ-encoded data. It returns an
 // error
 // if the buffer size is incorrect.
 func (s *SSZUInt256) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != s.SizeSSZ() {
-		return fmt.Errorf(
-			"%w: expected buffer of length %d, received %d",
-			ErrInvalidBufferSize, s.SizeSSZ(), len(buf),
-		)
+	x := byteslib.ToBytes32(buf)
+	if s == nil {
+		s = new(SSZUInt256)
 	}
-	s.Big.ToInt().SetBytes(byteslib.CopyAndReverseEndianess(buf))
+	*s = x[:]
 	return nil
 }
 
@@ -97,11 +88,11 @@ func (s SSZUInt256) HashTreeRoot() ([32]byte, error) {
 // provided hasher.
 // It modifies the hasher's state and returns an error if any.
 func (s SSZUInt256) HashTreeRootWith(hh *fssz.Hasher) error {
-	hh.AppendBytes32(byteslib.CopyAndReverseEndianess(s.ToInt().Bytes()))
+	hh.AppendBytes32(s[:])
 	return nil
 }
 
 // String returns the string representation of the SSZUInt256.
 func (s SSZUInt256) String() string {
-	return s.Big.String()
+	return string(s[:])
 }

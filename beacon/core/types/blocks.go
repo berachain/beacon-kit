@@ -46,8 +46,8 @@ func NewBeaconBlock(
 			Slot:            slot,
 			ParentBlockRoot: parentBlockRoot,
 			Body: &BeaconBlockBodyDeneb{
-				RandaoReveal: [96]byte{}, 
-				Graffiti:     [32]byte{}, 
+				RandaoReveal: [96]byte{},
+				Graffiti:     [32]byte{},
 			},
 		}
 	default:

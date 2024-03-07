@@ -48,6 +48,7 @@ type executableDataDenebMarshaling struct {
 	GasLimit      hexutil.Uint64
 	GasUsed       hexutil.Uint64
 	Timestamp     hexutil.Uint64
+	BaseFeePerGas string
 	Random        common.Hash
 	ExtraData     hexutil.Bytes
 	LogsBloom     hexutil.Bytes

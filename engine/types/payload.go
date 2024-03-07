@@ -33,7 +33,6 @@ import (
 	"github.com/holiman/uint256"
 	"github.com/itsdevbear/bolaris/config/version"
 	"github.com/itsdevbear/bolaris/math"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 type ExecutionPayloadEnvelope interface {
@@ -80,23 +79,23 @@ type executionPayloadEnvelopeMarshaling struct {
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
-	ParentHash    common.Hash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  common.Address        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     common.Hash           `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  common.Hash           `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte                `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        common.Hash           `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        uint64                `json:"blockNumber"      gencodec:"required"`
-	GasLimit      uint64                `json:"gasLimit"        gencodec:"required"`
-	GasUsed       uint64                `json:"gasUsed"          gencodec:"required"`
-	Timestamp     uint64                `json:"timestamp"       gencodec:"required"`
-	ExtraData     []byte                `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas primitives.SSZUInt256 `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     common.Hash           `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte              `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal         `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   uint64                `json:"blobGasUsed"`
-	ExcessBlobGas uint64                `json:"excessBlobGas"`
+	ParentHash    common.Hash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+	FeeRecipient  common.Address `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+	StateRoot     common.Hash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  common.Hash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	LogsBloom     []byte         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+	Random        common.Hash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Number        uint64         `json:"blockNumber"                  gencodec:"required"`
+	GasLimit      uint64         `json:"gasLimit"                     gencodec:"required"`
+	GasUsed       uint64         `json:"gasUsed"                      gencodec:"required"`
+	Timestamp     uint64         `json:"timestamp"                    gencodec:"required"`
+	ExtraData     []byte         `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+	BaseFeePerGas []byte         `json:"baseFeePerGas" ssz-size:"32"             gencodec:"required"`
+	BlockHash     common.Hash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+	Transactions  [][]byte       `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Withdrawals   []*Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
+	BlobGasUsed   uint64         `json:"blobGasUsed"`
+	ExcessBlobGas uint64         `json:"excessBlobGas"`
 }
 
 // Version returns the version of the ExecutableDataDeneb.
