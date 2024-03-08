@@ -300,7 +300,7 @@ contract DepositContractTest is SoladyTest {
 
     function testFuzz_DepositNativeWrongMinAmount(uint256 amount) public {
         vm.revertTo(nativeSnapshot);
-        amount = _bound(amount, 1, 32 gwei - 1);
+        amount = _bound(amount, 1, 31 gwei);
         vm.deal(depositor, amount);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
         depositContract.deposit{ value: amount }(
@@ -320,7 +320,7 @@ contract DepositContractTest is SoladyTest {
 
     function testFuzz_DepositNativeNotDivisibleByGwei(uint256 amount) public {
         vm.revertTo(nativeSnapshot);
-        amount = _bound(amount, 32e9 + 1, uint256(type(uint64).max));
+        amount = _bound(amount, 31e9 + 1, uint256(type(uint64).max));
         vm.assume(amount % 1e9 != 0);
         vm.deal(depositor, amount);
 
