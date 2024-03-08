@@ -17,7 +17,7 @@ var _ = (*executableDataDenebMarshaling)(nil)
 func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutableDataDeneb struct {
 		ParentHash    common.Hash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  common.Address        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+		FeeRecipient  common.Hash           `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 		StateRoot     common.Hash           `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot  common.Hash           `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 		LogsBloom     hexutil.Bytes         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
@@ -64,7 +64,7 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 	type ExecutableDataDeneb struct {
 		ParentHash    *common.Hash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  *common.Address        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+		FeeRecipient  *common.Hash           `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 		StateRoot     *common.Hash           `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot  *common.Hash           `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 		LogsBloom     *hexutil.Bytes         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`

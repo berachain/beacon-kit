@@ -32,7 +32,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -63,7 +63,7 @@ func (s *Service) ReceiveBeaconBlock(
 		s.Logger().Info(
 			"ignoring already processed beacon block",
 			// todo: don't use common for beacontypes
-			"hash", common.Hash(blockHash).Hex(),
+			"hash", primitives.ExecutionHash(blockHash).Hex(),
 		)
 		return nil
 	}

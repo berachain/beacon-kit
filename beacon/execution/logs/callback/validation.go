@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // validateArg uses reflection to verify the implementation arg matches the ABI
@@ -42,7 +42,7 @@ func validateArg(
 	abiMethodVarType := abiMethodVar.Type()
 
 	switch implMethodVarType.Kind() { //nolint:exhaustive // todo verify its okay.
-	case reflect.TypeOf(common.Hash{}).Kind():
+	case reflect.TypeOf(primitives.ExecutionHash{}).Kind():
 	case reflect.String:
 		return validateString(implMethodVarType, abiMethodVarType)
 	case reflect.Array, reflect.Slice:

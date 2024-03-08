@@ -29,5 +29,5 @@ import "github.com/ethereum/go-ethereum/common"
 
 type (
 	ExecutionAddress = common.Address
-	Keccak256Hash    = common.Hash
+	ExecutionHash    = common.Hash
 )
