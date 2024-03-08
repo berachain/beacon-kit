@@ -45,12 +45,12 @@ type E2ETestConfig struct {
 type Participant struct {
 	// ClClientImage specifies the Docker image to use for the consensus layer
 	// client.
-	ClClientImage string `json:"cl_client_image"`
+	ClClientImage string `json:"cl_image"`
 	// ClClientType denotes the type of consensus layer client (e.g.,
 	// beaconkit).
-	ClClientType string `json:"cl_client_type"`
+	ClClientType string `json:"cl_type"`
 	// ElClientType denotes the type of execution layer client (e.g., reth).
-	ElClientType string `json:"el_client_type"`
+	ElClientType string `json:"el_type"`
 }
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
