@@ -32,7 +32,8 @@ import (
 )
 
 func TestConvertCommitmentToVersionedHash(t *testing.T) {
-	commitment := []byte("test commitment")
+	commitment := [48]byte{}
+	copy(commitment[:], []byte("test commitment"))
 	// Assuming BlobCommitmentVersion is a byte value
 	expectedPrefix := kzg.BlobCommitmentVersion
 
@@ -51,10 +52,9 @@ func TestConvertCommitmentToVersionedHash(t *testing.T) {
 }
 
 func TestConvertCommitmentsToVersionedHashes(t *testing.T) {
-	commitments := [][]byte{
-		[]byte("commitment 1"),
-		[]byte("commitment 2"),
-	}
+	commitments := make([][48]byte, 2)
+	copy(commitments[0][:], "commitment 1")
+	copy(commitments[1][:], "commitment 2")
 	hashes := kzg.ConvertCommitmentsToVersionedHashes(commitments)
 
 	if len(hashes) != len(commitments) {

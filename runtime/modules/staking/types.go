@@ -29,13 +29,13 @@ import (
 	"context"
 
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
 		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
+		[]*enginetypes.Withdrawal,
 	) error
 }

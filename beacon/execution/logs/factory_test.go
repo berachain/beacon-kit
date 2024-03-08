@@ -60,6 +60,8 @@ func TestLogFactory(t *testing.T) {
 		10000,
 		[]byte("signature"),
 	)
+	require.NotNil(t, depositContractAbi)
+	require.NotNil(t, depositContractAbi.Events)
 	log, err := mocks.NewLogFromDeposit(
 		depositContractAbi.Events[logs.DepositName],
 		deposit,
@@ -81,6 +83,8 @@ func TestLogFactory(t *testing.T) {
 	require.Equal(t, deposit, newDeposit)
 
 	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
+	require.NotNil(t, depositContractAbi)
+	require.NotNil(t, depositContractAbi.Events)
 	log, err = mocks.NewLogFromWithdrawal(
 		depositContractAbi.Events[logs.WithdrawalName],
 		withdrawal,

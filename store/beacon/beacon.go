@@ -71,7 +71,7 @@ func NewStore(
 	}
 }
 
-// WithContext( returns the Store with the given context.
+// WithContext returns the Store with the given context.
 func (s *Store) WithContext(ctx context.Context) *Store {
 	s.ctx = ctx
 	return s

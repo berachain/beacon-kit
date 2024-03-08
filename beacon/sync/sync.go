@@ -71,7 +71,7 @@ func (s *Service) CheckELSync(ctx context.Context) {
 	s.isELSynced = progress == nil
 
 	// Add a log if syncing.
-	if !s.isELSynced {
+	if !s.isELSynced && progress != nil {
 		s.Logger().Warn(
 			"your execution client is out of sync please investigate.... ",
 			"current_eth1", progress.CurrentBlock,

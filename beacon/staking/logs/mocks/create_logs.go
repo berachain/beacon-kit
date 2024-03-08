@@ -49,6 +49,8 @@ func CreateDepositLogs(
 	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
+	} else if depositContractAbi == nil {
+		return nil, errors.New("abi not found")
 	}
 
 	// Create deposit logs.
@@ -64,8 +66,12 @@ func CreateDepositLogs(
 			[]byte("signature"),
 		)
 		var log *ethtypes.Log
+		events := depositContractAbi.Events
+		if events == nil {
+			return nil, errors.New("events not found")
+		}
 		log, err = NewLogFromDeposit(
-			depositContractAbi.Events[logs.DepositName],
+			events[logs.DepositName],
 			deposit,
 		)
 		if err != nil {

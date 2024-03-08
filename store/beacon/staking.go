@@ -27,7 +27,7 @@ package beacon
 
 import (
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 // EnqueueDeposits pushes the deposits to the queue.
@@ -48,6 +48,6 @@ func (s *Store) DequeueDeposits(
 // to facilitate withdrawals from x/beacon_staking.
 // TODO: Explore constructing BeaconState from multiple sources beyond
 // just x/beacon.
-func (s *Store) ExpectedWithdrawals() ([]*enginev1.Withdrawal, error) {
-	return []*enginev1.Withdrawal{}, nil
+func (s *Store) ExpectedWithdrawals() ([]*enginetypes.Withdrawal, error) {
+	return []*enginetypes.Withdrawal{}, nil
 }

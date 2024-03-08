@@ -44,9 +44,6 @@ import (
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
-// Caller is implemented by EngineClient.
-var _ Caller = (*EngineClient)(nil)
-
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient struct {
 	*eth.Eth1Client
