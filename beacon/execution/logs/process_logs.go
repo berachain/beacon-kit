@@ -40,8 +40,7 @@ func (f *Factory) ProcessLog(
 	// They may be from unregistered contracts (defensive check)
 	// or emitted from unregistered events in the registered contracts.
 	if !f.IsRegisteredLog(log) {
-		//nolint:nilnil // nil is expected here
-		return nil, nil
+		return nil, ErrUnRegisteredLog
 	}
 
 	val, err := f.UnmarshalEthLog(log)
@@ -67,7 +66,7 @@ func (f *Factory) ProcessLogs(
 	blockNumToHash map[uint64]common.Hash,
 ) ([]LogContainer, error) {
 	// Process logs in parallel
-	containers, err := iter.MapErr(
+	containers, multiErrs := iter.MapErr(
 		logs,
 		func(log *ethtypes.Log) (LogContainer, error) {
 			blockHash, ok := blockNumToHash[log.BlockNumber]
@@ -81,8 +80,19 @@ func (f *Factory) ProcessLogs(
 			return f.ProcessLog(log)
 		})
 
-	if err != nil {
-		return nil, err
+	if multiErrs != nil {
+		unwappableErr, ok := multiErrs.(interface {
+			Unwrap() []error
+		})
+		if !ok {
+			return nil, multiErrs
+		}
+		for _, err := range unwappableErr.Unwrap() {
+			// We skip ErrUnRegisteredLog errors.
+			if err != ErrUnRegisteredLog {
+				return nil, multiErrs
+			}
+		}
 	}
 
 	// Filter out nil values

@@ -26,6 +26,7 @@
 package logs
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -35,6 +36,12 @@ const (
 		"expected %s, got %s, for block %d"
 )
 
+var (
+	// ErrUnRegisteredLog is an error for unregistered log.
+	ErrUnRegisteredLog = errors.New("unregistered log")
+)
+
+// NewErrUnRegisteredLog returns an error for unregistered log.
 func NewErrLogFromIncorrectBlock(
 	blockHash string,
 	logBlockHash string,
