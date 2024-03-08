@@ -25,8 +25,8 @@
 
 pragma solidity 0.8.24;
 
-import {IBeaconDepositContract} from "./IBeaconDepositContract.sol";
-import {IStakeERC20} from "./IStakeERC20.sol";
+import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
+import { IStakeERC20 } from "./IStakeERC20.sol";
 
 /**
  * @title BeaconDepositContract
@@ -58,16 +58,17 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @dev The minimum amount of stake that can be deposited to prevent dust.
     /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
-    uint64 private constant MIN_DEPOSIT_AMOUNT = 32e9;
+    uint64 private constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 32e9;
 
     /// @dev The minimum amount of stake that can be redirected to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
-    uint256 private constant MIN_REDIRECT_AMOUNT = MIN_DEPOSIT_AMOUNT / 10;
+    uint256 private constant MIN_REDIRECT_AMOUNT =
+        MIN_DEPOSIT_AMOUNT_IN_GWEI / 10;
 
     /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
     uint256 private constant MINIMUM_WITHDRAWAL_AMOUNT =
-        MIN_DEPOSIT_AMOUNT / 10;
+        MIN_DEPOSIT_AMOUNT_IN_GWEI / 10;
 
     /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
     uint8 private constant PUBLIC_KEY_LENGTH = 48;
@@ -88,7 +89,10 @@ contract BeaconDepositContract is IBeaconDepositContract {
         bytes calldata stakingCredentials,
         uint64 amount,
         bytes calldata signature
-    ) external payable {
+    )
+        external
+        payable
+    {
         if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -116,10 +120,12 @@ contract BeaconDepositContract is IBeaconDepositContract {
         bytes calldata fromPubkey,
         bytes calldata toPubkey,
         uint64 amount
-    ) external {
+    )
+        external
+    {
         if (
-            fromPubkey.length != PUBLIC_KEY_LENGTH ||
-            toPubkey.length != PUBLIC_KEY_LENGTH
+            fromPubkey.length != PUBLIC_KEY_LENGTH
+                || toPubkey.length != PUBLIC_KEY_LENGTH
         ) {
             revert InvalidPubKeyLength();
         }
@@ -136,7 +142,9 @@ contract BeaconDepositContract is IBeaconDepositContract {
         bytes calldata validatorPubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
-    ) external {
+    )
+        external
+    {
         if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -162,9 +170,11 @@ contract BeaconDepositContract is IBeaconDepositContract {
      * @param addr The address to transform.
      * @return credentials The credentials.
      */
-    function _toCredentials(
-        address addr
-    ) private pure returns (bytes memory credentials) {
+    function _toCredentials(address addr)
+        private
+        pure
+        returns (bytes memory credentials)
+    {
         // 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
         assembly ("memory-safe") {
             credentials := mload(0x40)
@@ -187,7 +197,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert DepositValueTooHigh();
         }
 
-        if (amountInGwei <= MIN_DEPOSIT_AMOUNT) {
+        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
             revert InsufficientDeposit();
         }
 
@@ -200,11 +210,11 @@ contract BeaconDepositContract is IBeaconDepositContract {
      * @notice Validates the deposit amount and burns the staking asset from the sender.
      * @param amount The amount of stake to deposit.
      */
-    function _depositERC20(uint64 amount) private {
+    function _depositERC20(uint64 amountInGwei) private {
         // burn the staking asset from the sender, converting the gwei to wei.
-        IStakeERC20(STAKE_ASSET).burn(msg.sender, uint256(amount) * 1e9);
+        IStakeERC20(STAKE_ASSET).burn(msg.sender, uint256(amountInGwei) * 1e9);
 
-        if (amount < MIN_DEPOSIT_AMOUNT) {
+        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
             revert InsufficientDeposit();
         }
     }
