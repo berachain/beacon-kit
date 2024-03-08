@@ -29,11 +29,11 @@ package cmd
 import (
 	"time"
 
+	beaconconfig "github.com/berachain/beacon-kit/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
-	beaconconfig "github.com/itsdevbear/bolaris/config"
 )
 
 // InitCometBFTConfig customizes CometBFT Config values, falling back to

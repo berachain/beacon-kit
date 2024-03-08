@@ -34,16 +34,16 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/engine/client/cache"
+	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
+	"github.com/berachain/beacon-kit/io/http"
+	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/engine/client/cache"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
-	"github.com/itsdevbear/bolaris/io/http"
-	"github.com/itsdevbear/bolaris/io/jwt"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.

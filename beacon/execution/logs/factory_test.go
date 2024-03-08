@@ -29,13 +29,13 @@ import (
 	"reflect"
 	"testing"
 
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/require"
 )
 

@@ -28,16 +28,16 @@ package proposal
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	builder "github.com/berachain/beacon-kit/beacon/builder"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/health"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/primitives"
+	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/health"
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
-	"github.com/itsdevbear/bolaris/primitives"
-	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle

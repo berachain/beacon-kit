@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/kurtosis"
+	"github.com/berachain/beacon-kit/kurtosis"
 )
 
 // Type Option is a function that sets a field on the KurtosisE2ESuite.

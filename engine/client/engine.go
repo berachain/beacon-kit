@@ -28,10 +28,10 @@ package client
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/config/version"
+	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/config/version"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/pkg/errors"
 )
 

@@ -27,8 +27,8 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // Option is a function that modifies the BeaconKitRuntime.

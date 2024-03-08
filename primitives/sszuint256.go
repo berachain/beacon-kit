@@ -29,9 +29,9 @@ import (
 	"bytes"
 	"math/big"
 
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
 )
 
 const thirtyTwo = 32

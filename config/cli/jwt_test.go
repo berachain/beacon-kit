@@ -30,8 +30,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/berachain/beacon-kit/config/cli"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/config/cli"
 	"github.com/stretchr/testify/require"
 )
 

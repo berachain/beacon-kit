@@ -29,16 +29,16 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/sync"
+	"github.com/berachain/beacon-kit/config"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/primitives"
+	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/config"
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
-	"github.com/itsdevbear/bolaris/primitives"
-	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 )
 
 type BeaconKeeper interface {

@@ -41,6 +41,11 @@ import (
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+	beaconkitconfig "github.com/berachain/beacon-kit/config"
+	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
+	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
+	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
+	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -49,11 +54,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	beaconkitconfig "github.com/itsdevbear/bolaris/config"
-	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
-	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
-	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
 )
 
 var (

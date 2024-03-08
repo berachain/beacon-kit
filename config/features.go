@@ -26,7 +26,7 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/io/cli/parser"
+	"github.com/berachain/beacon-kit/io/cli/parser"
 )
 
 // FeatureFlags conforms to the BeaconKitConfig interface.

@@ -26,10 +26,10 @@
 package config
 
 import (
+	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/io/cli/parser"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
 	"github.com/spf13/cobra"
 )
 

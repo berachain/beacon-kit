@@ -28,7 +28,7 @@ package dispatch
 import (
 	"time"
 
-	"github.com/itsdevbear/bolaris/async/dispatch/queue"
+	"github.com/berachain/beacon-kit/async/dispatch/queue"
 )
 
 // Queue represents a queue of work items to be executed. It's interface is

@@ -32,11 +32,11 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/itsdevbear/bolaris/async/notify"
-	ssfmocks "github.com/itsdevbear/bolaris/beacon/forkchoice/ssf/mocks"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	servicemocks "github.com/itsdevbear/bolaris/runtime/service/mocks"
+	"github.com/berachain/beacon-kit/async/dispatch"
+	"github.com/berachain/beacon-kit/async/notify"
+	ssfmocks "github.com/berachain/beacon-kit/beacon/forkchoice/ssf/mocks"
+	"github.com/berachain/beacon-kit/runtime/service"
+	servicemocks "github.com/berachain/beacon-kit/runtime/service/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
