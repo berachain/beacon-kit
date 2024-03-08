@@ -28,8 +28,8 @@ package mocks
 import (
 	"errors"
 
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
 	"github.com/itsdevbear/bolaris/primitives"
@@ -41,7 +41,7 @@ func CreateDepositLogs(
 	factor int,
 	contractAddress primitives.ExecutionAddress,
 	blkNum uint64,
-) ([]ethtypes.Log, error) {
+) ([]coretypes.Log, error) {
 	if numDepositLogs <= 0 || factor <= 0 {
 		return nil, errors.New("invalid input")
 	}
@@ -52,34 +52,31 @@ func CreateDepositLogs(
 	} else if depositContractAbi == nil {
 		return nil, errors.New("abi not found")
 	}
+	event := depositContractAbi.Events[logs.DepositName]
 
 	// Create deposit logs.
 	numLogs := factor*(numDepositLogs-1) + 1
 
-	mockLogs := make([]ethtypes.Log, 0, numLogs)
+	mockLogs := make([]coretypes.Log, 0, numLogs)
 	for i := 0; i < numLogs; i++ {
-		deposit := beacontypes.NewDeposit(
+		var data []byte
+		// Create a log from the deposit.
+		data, err = event.Inputs.Pack(
 			[]byte("pubkey"),
 			[]byte("12345678901234567890123456789012"),
 			//#nosec:G701 // no overflow
 			uint64(i),
 			[]byte("signature"),
 		)
-		var log *ethtypes.Log
-		events := depositContractAbi.Events
-		if events == nil {
-			return nil, errors.New("events not found")
-		}
-		log, err = NewLogFromDeposit(
-			events[logs.DepositName],
-			deposit,
-		)
 		if err != nil {
 			return nil, err
 		}
-
-		log.BlockNumber = blkNum
-		log.BlockHash = [32]byte{byte(blkNum)}
+		log := &coretypes.Log{
+			Topics:      []ethcommon.Hash{event.ID},
+			Data:        data,
+			BlockNumber: blkNum,
+			BlockHash:   [32]byte{byte(blkNum)},
+		}
 		if i%factor == 0 {
 			log.Address = contractAddress
 		}

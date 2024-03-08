@@ -33,8 +33,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
+	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/stretchr/testify/require"
 )
 
