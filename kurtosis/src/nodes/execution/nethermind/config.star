@@ -21,7 +21,7 @@ GLOBAL_FILES = [
     ("./{}/{}".format(NODE_TYPE, GENESIS_FILENAME), "nether_genesis_file"),
 ]
 
-IMAGE = "nethermindeth/nethermind:master"
+IMAGE = "nethermind/nethermind:1.25.4"
 ENTRYPOINT = ["sh", "-c"]
 CONFIG_LOCATION = "{}/{}".format(CONFIG_FOLDER, CONFIG_FILENAME)
 FILES = {
@@ -30,9 +30,15 @@ FILES = {
     "/jwt": "jwt_file",
 }
 CMD = [
-    "./Nethermind.Runner",
-    "--config", CONFIG_LOCATION,
-    "--Network.ExternalIp", KURTOSIS_IP_ADDRESS_PLACEHOLDER
+    "./nethermind",
+    "--config",
+    CONFIG_LOCATION,
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--Network.ExternalIp",
+    KURTOSIS_IP_ADDRESS_PLACEHOLDER,
+    "--Merge.Enabled",
+    "true",
 ]
 
 BOOTNODE_CMD = "--Network.Bootnodes"
