@@ -103,33 +103,37 @@ func (s *EngineClient) GetLogAt(
 	contract common.Address,
 	blockHashOrNumb rpc.BlockNumberOrHash,
 	logIndex uint,
-) ([]coretypes.Log, error) {
+) (*coretypes.Log, error) {
+	var logs []coretypes.Log
+	var err error
+
 	if blockHashOrNumb.BlockNumber != nil {
 		// TODO: Abstract into logs at hash
 		// TODO: Check Cache.
 
 		// If the block number is not nil, we can use the `GetLogs` method.
 		blockNumber := big.NewInt(int64(*blockHashOrNumb.BlockNumber))
-		logs, err := s.FilterLogs(ctx, ethereum.FilterQuery{
+		logs, err = s.FilterLogs(ctx, ethereum.FilterQuery{
 			Addresses: []common.Address{contract},
 			FromBlock: blockNumber,
 			ToBlock:   blockNumber,
 		})
-		if err != nil {
-			return []coretypes.Log{}, err
-		}
-
-		return []coretypes.Log{logs[logIndex]}, nil
+	} else {
+		// Fallback to using GetLogs if the block number is nil.
+		logs, err = s.GetLogs(
+			ctx,
+			*blockHashOrNumb.BlockHash,
+			[]common.Address{contract},
+		)
 	}
-
-	// Fallback to using GetLogs if the block number is nil.
-	logs, err := s.GetLogs(
-		ctx,
-		*blockHashOrNumb.BlockHash,
-		[]common.Address{contract},
-	)
 	if err != nil {
-		return []coretypes.Log{}, err
+		return nil, err
 	}
-	return []coretypes.Log{logs[logIndex]}, nil
+
+	// Check that logIndex is within the bounds of the logs.
+	if logIndex < uint(len(logs)) && logs != nil {
+		return &logs[logIndex], nil
+	}
+
+	return nil, ErrLogOutOfIndex
 }
