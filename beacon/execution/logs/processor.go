@@ -128,7 +128,6 @@ func (p *Processor) processBlocksInBatch(
 	}
 
 	blockNumToHash := make(map[uint64]gethcommon.Hash)
-	// TODO: To use header cache with batch processing.
 	for i := start; i <= end; i++ {
 		var header *gethcoretypes.Header
 		header, err = p.engine.HeaderByNumber(ctx, big.NewInt(int64(i)))
