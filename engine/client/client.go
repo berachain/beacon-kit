@@ -40,7 +40,6 @@ import (
 	"github.com/berachain/beacon-kit/io/jwt"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -218,7 +217,7 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 // It calls the eth_getLogs method via JSON-RPC.
 func (s *EngineClient) GetLogs(
 	ctx context.Context,
-	blockHash common.Hash,
+	blockHash primitives.ExecutionHash,
 	addresses []primitives.ExecutionAddress,
 ) ([]coretypes.Log, error) {
 	// Create a filter query for the block, to acquire all logs
@@ -331,7 +330,7 @@ func (s *EngineClient) HeaderByNumber(
 // HeaderByHash retrieves the block header by its hash.
 func (s *EngineClient) HeaderByHash(
 	ctx context.Context,
-	hash common.Hash,
+	hash primitives.ExecutionHash,
 ) (*coretypes.Header, error) {
 	// Check the cache for the header.
 	header, ok := s.engineCache.HeaderByHash(hash)

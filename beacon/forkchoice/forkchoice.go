@@ -28,7 +28,7 @@ package forkchoice
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // ForkChoicer represents the full fork choice interface composed of all the
@@ -41,8 +41,8 @@ type ForkChoicer interface {
 }
 
 type Reader interface {
-	JustifiedPayloadBlockHash() common.Hash
-	FinalizedPayloadBlockHash() common.Hash
+	JustifiedPayloadBlockHash() primitives.ExecutionHash
+	FinalizedPayloadBlockHash() primitives.ExecutionHash
 
 	// TODO: eventually deprecate this.
 	HeadBeaconBlock() [32]byte
@@ -58,5 +58,5 @@ type Writer interface {
 // BlockProcessor processes the block that's used for accounting fork choice.
 type BlockProcessor interface {
 	// InsertNode inserts a new node into the forkchoice.
-	InsertNode(common.Hash) error
+	InsertNode(primitives.ExecutionHash) error
 }

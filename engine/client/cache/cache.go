@@ -26,7 +26,7 @@
 package cache
 
 import (
-	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )
@@ -34,7 +34,7 @@ import (
 // EngineCache is a cache for data retrieved by the EngineClient.
 type EngineCache struct {
 	headerByNumberCache *lru.LRU[uint64, *ethcoretypes.Header]
-	headerByHashCache   *lru.LRU[gethcommon.Hash, *ethcoretypes.Header]
+	headerByHashCache   *lru.LRU[primitives.ExecutionHash, *ethcoretypes.Header]
 }
 
 // NewEngineCacheWithConfig creates a new EngineCache with the given config.
@@ -47,7 +47,7 @@ func NewEngineCache(
 			nil,
 			config.HeaderTTL,
 		),
-		headerByHashCache: lru.NewLRU[gethcommon.Hash, *ethcoretypes.Header](
+		headerByHashCache: lru.NewLRU[primitives.ExecutionHash, *ethcoretypes.Header](
 			config.HeaderSize,
 			nil,
 			config.HeaderTTL,
@@ -69,7 +69,7 @@ func (c *EngineCache) HeaderByNumber(
 
 // HeaderByHash returns the header with the given hash.
 func (c *EngineCache) HeaderByHash(
-	hash gethcommon.Hash,
+	hash primitives.ExecutionHash,
 ) (*ethcoretypes.Header, bool) {
 	return c.headerByHashCache.Get(hash)
 }

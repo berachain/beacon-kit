@@ -33,7 +33,6 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // PayloadBuilder represents a service that is responsible for
@@ -43,7 +42,7 @@ type PayloadBuilder interface {
 		ctx context.Context,
 		slot primitives.Slot,
 		parentBlockRoot [32]byte,
-		parentEth1Hash common.Hash,
+		parentEth1Hash primitives.ExecutionHash,
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
