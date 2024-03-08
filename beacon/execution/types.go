@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -48,7 +47,7 @@ type LogFactory interface {
 	GetRegisteredAddresses() []primitives.ExecutionAddress
 	ProcessLogs(
 		logs []ethtypes.Log,
-		blockHash common.Hash,
+		blockHash primitives.ExecutionHash,
 	) ([]*reflect.Value, error)
 }
 
@@ -56,7 +55,7 @@ type LogFactory interface {
 type FCUConfig struct {
 	// HeadEth1Hash is the hash of the head eth1 block we are updating the
 	// execution client's head to be.
-	HeadEth1Hash common.Hash
+	HeadEth1Hash primitives.ExecutionHash
 
 	// ProposingSlot is the slot that the execution client should propose a
 	// block

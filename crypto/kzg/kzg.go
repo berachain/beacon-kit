@@ -28,7 +28,7 @@ package kzg
 import (
 	"crypto/sha256"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -40,7 +40,9 @@ import (
 // The restulting hash is intended for use in contexts where a versioned
 // identifier
 // for the commitment is required.
-func ConvertCommitmentToVersionedHash(commitment [48]byte) common.Hash {
+func ConvertCommitmentToVersionedHash(
+	commitment [48]byte,
+) primitives.ExecutionHash {
 	hash := sha256.Sum256(commitment[:])
 	// Prefix the hash with the BlobCommitmentVersion to create a versioned
 	// hash.
@@ -55,8 +57,10 @@ func ConvertCommitmentToVersionedHash(commitment [48]byte) common.Hash {
 // The resulting hashes are intended for use in contexts where a versioned
 // identifier
 // for the commitments is required.
-func ConvertCommitmentsToVersionedHashes(commitments [][48]byte) []common.Hash {
-	return iter.Map(commitments, func(bz *[48]byte) common.Hash {
+func ConvertCommitmentsToVersionedHashes(
+	commitments [][48]byte,
+) []primitives.ExecutionHash {
+	return iter.Map(commitments, func(bz *[48]byte) primitives.ExecutionHash {
 		return ConvertCommitmentToVersionedHash(*bz)
 	})
 }

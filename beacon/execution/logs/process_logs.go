@@ -28,7 +28,7 @@ package logs
 import (
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -37,7 +37,7 @@ import (
 // in parallel but returns the values in the same order of the received logs.
 func (f *Factory) ProcessLogs(
 	logs []ethtypes.Log,
-	blockHash common.Hash,
+	blockHash primitives.ExecutionHash,
 ) ([]*reflect.Value, error) {
 	logValues, err := iter.MapErr(
 		logs,

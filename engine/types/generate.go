@@ -27,7 +27,6 @@ package enginetypes
 
 import (
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -50,7 +49,7 @@ type executableDataDenebMarshaling struct {
 	GasUsed       hexutil.Uint64
 	Timestamp     hexutil.Uint64
 	BaseFeePerGas primitives.SSZUInt256
-	Random        common.Hash
+	Random        primitives.ExecutionHash
 	ExtraData     hexutil.Bytes
 	LogsBloom     hexutil.Bytes
 	Transactions  []hexutil.Bytes

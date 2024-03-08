@@ -31,15 +31,15 @@ import (
 	"github.com/berachain/beacon-kit/config/version"
 	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/pkg/errors"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
-) (*common.Hash, error) {
+	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
+) (*primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -70,7 +70,7 @@ func (s *EngineClient) NewPayload(
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
+	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
 ) (*enginetypes.PayloadStatus, error) {
 	switch payloadPb := payload.(type) {
 	case *enginetypes.ExecutableDataDeneb:
@@ -86,7 +86,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion int,
-) (*enginetypes.PayloadID, *common.Hash, error) {
+) (*enginetypes.PayloadID, *primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 

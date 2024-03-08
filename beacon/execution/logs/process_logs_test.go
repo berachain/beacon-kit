@@ -33,6 +33,7 @@ import (
 	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
 	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
@@ -91,7 +92,7 @@ func TestProcessLogs(t *testing.T) {
 	)
 	require.NoError(t, err)
 	log := &coretypes.Log{
-		Topics:  []ethcommon.Hash{event.ID},
+		Topics:  []primitives.ExecutionHash{event.ID},
 		Data:    data,
 		Address: contractAddress,
 	}
