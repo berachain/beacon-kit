@@ -43,4 +43,7 @@ did you forget to reset your execution client?`,
 		`your node tried to process a block with an 
 out of sync execution client, did you forget to 
 reset your execution client?`)
+
+	// ErrNextPrepareNilResp is an error for when the `nextPrepare` function.
+	ErrNextPrepareNilResp = errors.New("nil response from `nextPrepare`")
 )

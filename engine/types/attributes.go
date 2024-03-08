@@ -26,11 +26,11 @@
 package enginetypes
 
 import (
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
 //nolint:lll // struct tags.
+//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 type PayloadAttributes struct {
 	// version is the version of the payload attributes.
 	version int
@@ -45,7 +45,7 @@ type PayloadAttributes struct {
 	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
-	Withdrawals []*enginev1.Withdrawal `json:"withdrawals"`
+	Withdrawals []*Withdrawal `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
 	// to the block currently being processed. This field was added in EIP-4788.
@@ -57,11 +57,11 @@ func NewPayloadAttributes(
 	forkVersion int,
 	timestamp uint64, prevRandao [32]byte,
 	suggestedFeeReceipient primitives.ExecutionAddress,
-	withdrawals []*enginev1.Withdrawal,
+	withdrawals []*Withdrawal,
 	parentBeaconBlockRoot [32]byte,
 ) (*PayloadAttributes, error) {
 	if withdrawals == nil {
-		withdrawals = make([]*enginev1.Withdrawal, 0)
+		withdrawals = make([]*Withdrawal, 0)
 	}
 
 	return &PayloadAttributes{
@@ -88,7 +88,7 @@ func (p *PayloadAttributes) GetSuggestedFeeRecipient() primitives.ExecutionAddre
 }
 
 // GetWithdrawals returns the list of withdrawals in the PayloadAttributes.
-func (p *PayloadAttributes) GetWithdrawals() []*enginev1.Withdrawal {
+func (p *PayloadAttributes) GetWithdrawals() []*Withdrawal {
 	return p.Withdrawals
 }
 

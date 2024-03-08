@@ -23,17 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package enginetypes
+package types
 
-import primitives "github.com/itsdevbear/bolaris/primitives"
-
-// NewWithdrawal creates a new Withdrawal.
-func NewWithdrawal(
-	_ []byte, // validatorPubkey
-	amount uint64,
-) *Withdrawal {
-	// TODO: implement
-	return &Withdrawal{
-		Amount: primitives.SSZUint64(amount),
-	}
-}
+// TODO: move deposit off of protobuf once the staking prs are merged.

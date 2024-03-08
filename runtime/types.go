@@ -31,7 +31,7 @@ import (
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 type CometBFTConfig interface {
@@ -53,6 +53,6 @@ type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
 		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
+		[]*enginetypes.Withdrawal,
 	) error
 }

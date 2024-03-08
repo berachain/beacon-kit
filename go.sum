@@ -1122,14 +1122,14 @@ github.com/kunwardeep/paralleltest v1.0.9 h1:3Sr2IfFNcsMmlqPk1cjTUbJ4zofKPGyHxen
 github.com/kunwardeep/paralleltest v1.0.9/go.mod h1:2C7s65hONVqY7Q5Efj5aLzRCNLjw2h4eMc9EcypGjcY=
 github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230818182330-1a86869414d2 h1:izciXrFyFR+ihJ7nLTOkoIX5GzBPIp8gVKlw94gIc98=
 github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230818182330-1a86869414d2/go.mod h1:bWSMQK3WHVTGHX9CjxPAb/LtzcmfOxID2wdzakSWQxo=
-github.com/kurtosis-tech/kurtosis/api/golang v0.87.3 h1:Ohjswf3UaZfxhYmI2tLPRp0CjcrwfXe1talN0qw+suo=
-github.com/kurtosis-tech/kurtosis/api/golang v0.87.3/go.mod h1:I++HgF3jKsYsUHNkuEfXFnGT+W72GKY+JiX6LCqDPZs=
+github.com/kurtosis-tech/kurtosis/api/golang v0.88.3 h1:tV+3znMS53nHE6A+u9QwxVFYiDLLcVfbhG0O5b51f/w=
+github.com/kurtosis-tech/kurtosis/api/golang v0.88.3/go.mod h1:9T22P7Vv3j5g6sbm78DxHQ4s9C4Cj3s9JjFQ7DFyYpM=
 github.com/kurtosis-tech/kurtosis/contexts-config-store v0.0.0-20230818184218-f4e3e773463b h1:hMoIM99QKcYQqsnK4AF7Lovi9ZD9ac6lZLZ5D/jx2x8=
 github.com/kurtosis-tech/kurtosis/contexts-config-store v0.0.0-20230818184218-f4e3e773463b/go.mod h1:4pFdrRwDz5R+Fov2ZuTaPhAVgjA2jhGh1Izf832sX7A=
 github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20230803130419-099ee7a4e3dc h1:7IlEpSehmWcNXOFpNP24Cu5HQI3af7GCBQw//m+LnvQ=
 github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20230803130419-099ee7a4e3dc/go.mod h1:TOWMQgvAJH/NiWWERGXg/plT9lS7aFcXFxCa0M5sfHo=
-github.com/kurtosis-tech/kurtosis/utils v0.0.0-20240104153602-385833de9d76 h1:qFVoPwvTL9XqReOluklDo+031bAFtk6jLRbn7mGm66U=
-github.com/kurtosis-tech/kurtosis/utils v0.0.0-20240104153602-385833de9d76/go.mod h1:Wswa+3L2+lvd62qFKgjlb4Q+kgTNL5Tk9rUK+naBku4=
+github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240307154559-64d2929cd265 h1:uSDftcGStwuAjHv8fV2TleNCKSWPvUKe7EaplFG3yBI=
+github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240307154559-64d2929cd265/go.mod h1:aDMrPeS7Gii8W6SDKSKyrBNgEQAUYidriyeKGf+Ml3I=
 github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 h1:YQTATifMUwZEtZYb0LVA7DK2pj8s71iY8rzweuUQ5+g=
 github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409/go.mod h1:y5weVs5d9wXXHcDA1awRxkIhhHC1xxYJN8a7aXnE6S8=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
@@ -1251,8 +1251,6 @@ github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lN
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M=
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
-github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 h1:RWengNIwukTxcDr9M+97sNutRR1RKhG96O6jWumTTnw=
-github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826/go.mod h1:TaXosZuwdSHYgviHp1DAtfrULt5eUgsSMsZf+YrPgl8=
 github.com/moricho/tparallel v0.3.1 h1:fQKD4U1wRMAYNngDonW5XupoB/ZGJHdpzrWqgyg9krA=
 github.com/moricho/tparallel v0.3.1/go.mod h1:leENX2cUv7Sv2qDgdi0D0fCftN8fRC67Bcn8pqzeYNI=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
@@ -1733,6 +1731,8 @@ go.uber.org/multierr v1.3.0/go.mod h1:VgVr7evmIr6uPjLBxg28wmKNXyqE9akIJ5XnfpiKl+
 go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9iU=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
+go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f h1:ba27AjLvoQ3XuYHK6ggkuQFvt1EO+zbyy1HBFhX0sZ4=
+go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f/go.mod h1:zvgBIC1EGmJK+y8FM0ICVdaJzgp6JxvZxXnQD1Jp/LU=
 go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee/go.mod h1:vJERXedbb3MVM5f9Ejo0C68/HhF8uaILCdgjnY+goOA=
 go.uber.org/zap v1.10.0/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
 go.uber.org/zap v1.13.0/go.mod h1:zwrFLgMcdUuIBviXEYEH1YKNaOBnKXsx2IPda5bBwHM=

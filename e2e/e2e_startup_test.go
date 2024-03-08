@@ -63,7 +63,9 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 		// Get the public ports representing eth JSON-RPC endpoints.
 		jsonRPC, ok := serviceCtx.GetPublicPorts()["rpc"]
 		if ok {
-			jsonRPCPorts[string(k)] = strings.Split(jsonRPC.String(), "/")[0]
+			str := strings.Split(jsonRPC.String(), "/")
+			s.Require().NotNil(str, "Error getting public ports")
+			jsonRPCPorts[string(k)] = str[0]
 		}
 	}
 

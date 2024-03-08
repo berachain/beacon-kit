@@ -23,26 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package engine.types.v1;
+package cache
 
-import "ethereum/engine/v1/execution_engine.proto";
-
-option go_package = "github.com/itsdevbear/bolaris/engine/types/v1;enginev1";
-
-// ExecutionPayloadEnvelope is a container for an execution payload.
-message ExecutionPayloadEnvelope {
-  // payload represents the payload of the execution.
-  oneof payload {
-    // deneb represents an execution payload for deneb
-    ethereum.engine.v1.ExecutionPayloadDeneb deneb = 1;
-    // deneb_header is the blinded block.
-    ethereum.engine.v1.ExecutionPayloadHeaderDeneb deneb_header = 2;
-  }
-  // value is a byte array representing the value associated with the container.
-  bytes payload_value = 1001;
-  // blobs_bundle encapsulates a collection of blobs associated with the container.
-  ethereum.engine.v1.BlobsBundle blobs_bundle = 1002;
-  // should_override_builder indicates whether the default builder should be overridden.
-  bool should_override_builder = 1003;
+type Cache[T any] interface {
+	Insert(elem T)
+	Front() (T, error)
+	Back() (T, error)
+	Remove(elem T)
+	RemoveBack() (T, error)
+	RemoveFront() (T, error)
+	Contains(elem T) bool
+	Len() int
 }

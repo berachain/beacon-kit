@@ -49,6 +49,8 @@ func CreateDepositLogs(
 	stakingAbi, err := abi.StakingMetaData.GetAbi()
 	if err != nil {
 		return nil, err
+	} else if stakingAbi == nil {
+		return nil, errors.New("abi not found")
 	}
 
 	// Create deposit logs.
@@ -63,8 +65,12 @@ func CreateDepositLogs(
 			[]byte("12345678901234567890"),
 		)
 		var log *ethtypes.Log
+		events := stakingAbi.Events
+		if events == nil {
+			return nil, errors.New("events not found")
+		}
 		log, err = NewLogFromDeposit(
-			stakingAbi.Events[logs.DepositName],
+			events[logs.DepositName],
 			deposit,
 		)
 		if err != nil {

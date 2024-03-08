@@ -98,7 +98,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		//
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
-		buoy, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
+		blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 			req,
 			h.cfg.BeaconBlockPosition,
 			h.chainService.ActiveForkVersionForSlot(
@@ -116,7 +116,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			// create an empty beacon block to continue processing.
 			// TODO: This is a temporary solution to avoid panics, we should
 			// handle this better.
-			if buoy, err = beacontypes.EmptyBeaconBlock(
+			if blk, err = beacontypes.EmptyBeaconBlock(
 				primitives.Slot(req.Height),
 				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
 				h.chainService.ActiveForkVersionForSlot(
@@ -133,8 +133,8 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		// call will exit early.
 		if err = h.chainService.ReceiveBeaconBlock(
 			ctx,
+			blk,
 			cometBlockHash,
-			buoy,
 		); err != nil {
 			h.logger.Warn(
 				"failed to receive beacon block",
@@ -145,7 +145,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Process the finalization of the beacon block.
 		if err = h.chainService.FinalizeBeaconBlock(
-			ctx, buoy, cometBlockHash,
+			ctx, blk, cometBlockHash,
 		); err != nil {
 			h.chainService.Logger().
 				Error("failed to finalize beacon block", "error", err)

@@ -26,4 +26,4 @@
 package abi
 
 // This file is used to generate the go bindings for the contracts.
-//go:generate abigen --pkg abi --abi ../out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./staking.abigen.go --type Staking
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --pkg abi --abi ../out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./staking.abigen.go --type Staking

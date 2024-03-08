@@ -38,6 +38,6 @@ var (
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
 
-	// ErrNilBuoy is an error for when the buoy is nil.
-	ErrNilBuoy = errors.New("nil buoy")
+	// ErrNilBlock is an error for when the beacon block is nil.
+	ErrNilBlock = errors.New("nil beacon block")
 )

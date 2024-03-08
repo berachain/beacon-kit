@@ -27,6 +27,7 @@ package cache_test
 
 import (
 	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/itsdevbear/bolaris/lib/cache"
@@ -46,7 +47,7 @@ func (IntComparable) Compare(lhs, rhs int) int {
 	return 0
 }
 
-func FuzzOrderedCache(f *testing.F) {
+func FuzzOrderedCacheSimple(f *testing.F) {
 	// Create a new ordered cache.
 	cache := cache.NewOrderedCache[int](IntComparable{})
 
@@ -75,6 +76,62 @@ func FuzzOrderedCache(f *testing.F) {
 				require.Equal(t, n-(i+1)/2, e)
 			}
 			require.Equal(t, n-i-1, cache.Len())
+		}
+	})
+}
+
+func FuzzOrderedCacheConcurrencySafety(f *testing.F) {
+	f.Fuzz(func(t *testing.T, n int) {
+		if n <= 0 {
+			t.Skip()
+		}
+
+		cache := cache.NewOrderedCache(IntComparable{})
+		numGoroutines := 10
+		numOperations := 100
+
+		var wg sync.WaitGroup
+		wg.Add(numGoroutines)
+
+		for i := 0; i < numGoroutines; i++ {
+			go func() {
+				defer wg.Done()
+				for j := 0; j < numOperations; j++ {
+					switch rand.Intn(3) {
+					case 0: // Insert
+						cache.Insert(
+							rand.Intn(n),
+						) // Use n to generate random inputs
+					case 1: // RemoveFront
+						_, _ = cache.RemoveFront() // Ignore errors for simplicity
+					case 2: // RemoveBack
+						_, _ = cache.RemoveBack() // Ignore errors for simplicity
+					}
+				}
+			}()
+		}
+
+		wg.Wait()
+
+		// After all operations, the cache should be in a consistent state.
+		// We can't assert the exact contents of the cache, but we can check
+		// if the cache is sorted correctly.
+		var prev int
+		first := true
+		_, err := cache.Front()
+		for err == nil {
+			// Remove the element to get the next in the next iteration
+			value, _ := cache.RemoveFront()
+			if !first && prev > value {
+				t.Errorf(
+					"cache is not in ascending order: found %d after %d",
+					value,
+					prev,
+				)
+			}
+			prev = value
+			first = false
+			_, err = cache.Front()
 		}
 	})
 }

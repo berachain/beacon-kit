@@ -36,7 +36,7 @@ import (
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 var _ ValsetChangeProvider = &Keeper{}
@@ -84,7 +84,7 @@ func (k *Keeper) delegate(
 
 // undelegate undelegates the validator.
 func (k *Keeper) undelegate(
-	_ context.Context, _ *enginev1.Withdrawal,
+	_ context.Context, _ *enginetypes.Withdrawal,
 ) (uint64, error) {
 	// TODO: implement undelegate
 	return 0, nil
@@ -111,7 +111,7 @@ func (k *Keeper) createValidator(
 func (k *Keeper) ApplyChanges(
 	ctx context.Context,
 	deposits []*beacontypesv1.Deposit,
-	withdrawals []*enginev1.Withdrawal,
+	withdrawals []*enginetypes.Withdrawal,
 ) error {
 	for _, deposit := range deposits {
 		_, err := k.delegate(ctx, deposit)
