@@ -28,22 +28,17 @@ package client
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strings"
 	"sync"
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/itsdevbear/bolaris/engine/client/cache"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
@@ -214,24 +209,6 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 	return nil
 }
 
-// GetLogs retrieves the logs from the Ethereum execution client.
-// It calls the eth_getLogs method via JSON-RPC.
-func (s *EngineClient) GetLogs(
-	ctx context.Context,
-	blockHash common.Hash,
-	addresses []primitives.ExecutionAddress,
-) ([]coretypes.Log, error) {
-	// Create a filter query for the block, to acquire all logs
-	// from contracts that we care about.
-	query := ethereum.FilterQuery{
-		Addresses: addresses,
-		BlockHash: &blockHash,
-	}
-
-	// Gather all the logs according to the query.
-	return s.FilterLogs(ctx, query)
-}
-
 // jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
@@ -306,42 +283,4 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 
 	s.Client = ethclient.NewClient(client)
 	return nil
-}
-
-// HeaderByNumber retrieves the block header by its number.
-func (s *EngineClient) HeaderByNumber(
-	ctx context.Context,
-	number *big.Int,
-) (*coretypes.Header, error) {
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
-	if ok {
-		return header, nil
-	}
-	header, err := s.Client.HeaderByNumber(ctx, number)
-	if err != nil {
-		return nil, err
-	}
-
-	defer s.engineCache.AddHeader(header)
-
-	return header, nil
-}
-
-// HeaderByHash retrieves the block header by its hash.
-func (s *EngineClient) HeaderByHash(
-	ctx context.Context,
-	hash common.Hash,
-) (*coretypes.Header, error) {
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByHash(hash)
-	if ok {
-		return header, nil
-	}
-	header, err := s.Client.HeaderByHash(ctx, hash)
-	if err != nil {
-		return nil, err
-	}
-	s.engineCache.AddHeader(header)
-	return header, nil
 }
