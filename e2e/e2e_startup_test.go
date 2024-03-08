@@ -40,8 +40,6 @@ type BeaconKitE2ESuite struct {
 }
 
 // TestBasicStartup tests the basic startup of the beacon-kit network.
-//
-
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	targetBlock := uint64(5)
 	eg, groupCtx := errgroup.WithContext(context.Background())
