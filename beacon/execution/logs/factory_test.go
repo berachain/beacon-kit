@@ -35,12 +35,13 @@ import (
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/itsdevbear/bolaris/contracts/abi"
+	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/require"
 )
 
 func createValidFactory(
 	t *testing.T,
-	contractAddress ethcommon.Address,
+	contractAddress primitives.ExecutionAddress,
 ) *loghandler.Factory {
 	stakingLogRequest, err := logs.NewStakingRequest(
 		contractAddress,
