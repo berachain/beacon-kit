@@ -24,14 +24,14 @@ import (
 	"context"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // logSig is a fixed length byte array that represents the signature
 // to a specific type of log.
-type logSig common.Hash
+type logSig primitives.ExecutionHash
 
 // method attaches a specific abi.Event to a golang struct to process it.
 type method struct {
@@ -66,7 +66,7 @@ func (m *method) Call(ctx context.Context, log *coretypes.Log) error {
 		return err
 	}
 
-	// Convert topics to common.Hash
+	// Convert topics to primitives.ExecutionHash
 	reflectedUnpackedArgs := make(
 		[]reflect.Value,
 		0,

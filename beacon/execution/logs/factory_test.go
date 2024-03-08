@@ -79,7 +79,7 @@ func TestLogFactory(t *testing.T) {
 	)
 	require.NoError(t, err)
 	log := &coretypes.Log{
-		Topics:  []ethcommon.Hash{event.ID},
+		Topics:  []primitives.ExecutionHash{event.ID},
 		Data:    data,
 		Address: contractAddress,
 	}
@@ -129,7 +129,7 @@ func TestLogFactoryIncorrectType(t *testing.T) {
 	)
 	require.NoError(t, err)
 	log := &coretypes.Log{
-		Topics:  []ethcommon.Hash{event.ID},
+		Topics:  []primitives.ExecutionHash{event.ID},
 		Data:    data,
 		Address: contractAddress,
 	}

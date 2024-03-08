@@ -34,7 +34,6 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.
@@ -42,7 +41,7 @@ func (s *Service) notifyNewPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
 	s.Logger().Info("notifying new payload",

@@ -27,14 +27,14 @@ package client
 
 import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // processPayloadStatusResult processes the payload status result and
 // returns the latest valid hash or an error.
 func processPayloadStatusResult(
 	result *enginetypes.PayloadStatus,
-) (*common.Hash, error) {
+) (*primitives.ExecutionHash, error) {
 	switch result.Status {
 	case enginetypes.PayloadStatusAccepted, enginetypes.PayloadStatusSyncing:
 		return nil, ErrAcceptedSyncingPayloadStatus

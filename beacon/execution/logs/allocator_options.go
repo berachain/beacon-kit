@@ -29,8 +29,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/primitives"
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 // WithABI returns an Option for registering
@@ -38,8 +38,8 @@ import (
 func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
 	return func(a *TypeAllocator) error {
 		a.abi = contractAbi
-		a.sigToName = make(map[ethcommon.Hash]string)
-		a.sigToType = make(map[ethcommon.Hash]reflect.Type)
+		a.sigToName = make(map[primitives.ExecutionHash]string)
+		a.sigToType = make(map[primitives.ExecutionHash]reflect.Type)
 		return nil
 	}
 }
@@ -49,7 +49,7 @@ func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
 // with the TypeAllocator.
 // NOTE: WithABI must be called before this function.
 func WithNameAndType(
-	sig ethcommon.Hash,
+	sig primitives.ExecutionHash,
 	name string,
 	t reflect.Type,
 ) Option[TypeAllocator] {
