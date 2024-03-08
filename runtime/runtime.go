@@ -141,7 +141,7 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 	logProcessor, err := loghandler.NewProcessor(
-		loghandler.WithEngineCaller(engineClient),
+		loghandler.WithEngineClient(engineClient),
 		loghandler.WithLogFactory(logFactory),
 	)
 	if err != nil {

@@ -32,7 +32,6 @@ import (
 	"cosmossdk.io/errors"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
 )
 
 const (
@@ -43,7 +42,7 @@ const (
 type Processor struct {
 	// engine gives the access to the Engine API
 	// of the execution client.
-	engine engineclient.Caller
+	engine LogEngineClient
 
 	// factory is for creating objects from Ethereum logs.
 	factory LogFactory

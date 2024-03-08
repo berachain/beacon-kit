@@ -35,7 +35,6 @@ import (
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logsMocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
-	clientMocks "github.com/itsdevbear/bolaris/engine/client/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,7 +63,7 @@ func TestLogProcessor(t *testing.T) {
 	container.EXPECT().Signature().
 		Return(logSignature)
 
-	client := &clientMocks.Caller{}
+	client := &logsMocks.LogEngineClient{}
 	client.EXPECT().HeaderByHash(ctx, blockHash).
 		Return(header, nil)
 	client.EXPECT().HeaderByNumber(ctx, blockNum).
@@ -89,7 +88,7 @@ func TestLogProcessor(t *testing.T) {
 
 	// Create a new log processor.
 	processor, err := logs.NewProcessor(
-		logs.WithEngineCaller(client),
+		logs.WithEngineClient(client),
 		logs.WithLogFactory(factory),
 		logs.WithLogCache(logSignature, cache),
 	)

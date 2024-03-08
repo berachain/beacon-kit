@@ -27,7 +27,6 @@ package logs
 
 import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
 )
 
 // WithLogFactory returns an Option for setting the
@@ -44,8 +43,8 @@ func WithLogFactory(factory LogFactory) Option[Processor] {
 	}
 }
 
-// WithEngineCaller is an option to set the Engine for the Service.
-func WithEngineCaller(ec engineclient.Caller) Option[Processor] {
+// WithEngineClient is an option to set the Engine for the Service.
+func WithEngineClient(ec LogEngineClient) Option[Processor] {
 	return func(p *Processor) error {
 		p.engine = ec
 		return nil

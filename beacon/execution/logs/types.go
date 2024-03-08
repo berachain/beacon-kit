@@ -26,6 +26,8 @@
 package logs
 
 import (
+	"context"
+	"math/big"
 	"reflect"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -58,4 +60,18 @@ type LogFactory interface {
 		logs []ethcoretypes.Log,
 		blockNumToHash map[uint64]ethcommon.Hash,
 	) ([]LogContainer, error)
+}
+
+type LogEngineClient interface {
+	HeaderByHash(
+		ctx context.Context, hash ethcommon.Hash,
+	) (*ethcoretypes.Header, error)
+	HeaderByNumber(
+		ctx context.Context, number *big.Int,
+	) (*ethcoretypes.Header, error)
+	GetLogsInRange(
+		ctx context.Context,
+		fromBlock, toBlock uint64,
+		addresses []primitives.ExecutionAddress,
+	) ([]ethcoretypes.Log, error)
 }
