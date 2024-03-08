@@ -23,19 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:cyclop // todo:fix.
 package e2e_test
 
 import (
 	"math/big"
-	"strings"
 	"time"
 
 	"github.com/berachain/beacon-kit/e2e/suite"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/sourcegraph/conc"
 )
 
@@ -50,34 +45,11 @@ type BeaconKitE2ESuite struct {
 //nolint:gocognit // todo break this function into smaller functions.
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	targetBlock := uint64(5)
-	svrcs, err := s.Enclave().GetServices()
-	s.Require().NoError(err, "Error getting services")
-
-	var jsonRPCPorts = make(map[string]string)
-	for k, v := range svrcs {
-		s.Logger().Info("Service started", "service", k, "uuid", v)
-		var serviceCtx *services.ServiceContext
-		serviceCtx, err = s.Enclave().GetServiceContext(string(v))
-		s.Require().NoError(err, "Error getting service context")
-
-		// Get the public ports representing eth JSON-RPC endpoints.
-		jsonRPC, ok := serviceCtx.GetPublicPorts()["rpc"]
-		if ok {
-			str := strings.Split(jsonRPC.String(), "/")
-			s.Require().NotNil(str, "Error getting public ports")
-			jsonRPCPorts[string(k)] = str[0]
-		}
-	}
-
 	wg := conc.NewWaitGroup()
-	for service, port := range jsonRPCPorts {
+	for name, executionClient := range s.ExecutionClients() {
 		wg.Go(func() {
-			s.Logger().Info("Waiting for connection...", "service", service)
-			var ethClient *ethclient.Client
-			ethClient, err = ethclient.Dial(
-				"http://0.0.0.0:" + port,
-			)
-			s.Require().NoError(err, "Error creating eth client")
+			s.Logger().
+				Info("Waiting for connection...", "name", name)
 			for {
 				ticker := time.NewTicker(2 * time.Second)
 				defer ticker.Stop()
@@ -87,12 +59,11 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 					case <-s.Ctx().Done():
 						return
 					case <-ticker.C:
-						var latestBlock *ethtypes.Block
-						latestBlock, err = ethClient.BlockByNumber(
+						latestBlock, err := executionClient.BlockByNumber(
 							s.Ctx(),
 							nil,
 						)
-						finalBlock, _ := ethClient.BlockByNumber(
+						finalBlock, _ := executionClient.BlockByNumber(
 							s.Ctx(),
 							big.NewInt(int64(rpc.FinalizedBlockNumber)),
 						)
@@ -105,13 +76,13 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 						s.Require().
 							NoError(err, "Error getting current block number during wait")
 						s.Logger().Info(
-							"block info",
-							"latest",
+							"chain info",
+							"latest_block_num",
 							latestBlockNum,
-							"finalized",
+							"finalized_block_num",
 							finalizedBlockNum,
-							"service",
-							service,
+							"name",
+							name,
 						)
 
 						// If the finalized block number is greater than or
@@ -120,7 +91,8 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 						if finalizedBlockNum >= targetBlock {
 							s.Logger().Info(
 								"Target block reached 🎉",
-								"service", service, "block", targetBlock,
+								"block", targetBlock,
+								"name", name,
 							)
 							return
 						}
