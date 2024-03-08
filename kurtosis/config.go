@@ -43,14 +43,14 @@ type E2ETestConfig struct {
 // Participant holds the configuration for a single participant in the test,
 // including client images and types.
 type Participant struct {
-	// ClClientImage specifies the Docker image to use for the consensus layer
+	// ClImage specifies the Docker image to use for the consensus layer
 	// client.
-	ClClientImage string `json:"cl_client_image"`
-	// ClClientType denotes the type of consensus layer client (e.g.,
+	ClImage string `json:"cl_image"`
+	// ClType denotes the type of consensus layer client (e.g.,
 	// beaconkit).
-	ClClientType string `json:"cl_client_type"`
-	// ElClientType denotes the type of execution layer client (e.g., reth).
-	ElClientType string `json:"el_client_type"`
+	ClType string `json:"cl_type"`
+	// ElType denotes the type of execution layer client (e.g., reth).
+	ElType string `json:"el_type"`
 }
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
@@ -61,24 +61,24 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		AdditionalServices: []interface{}{},
 		Participants: []Participant{
 			{
-				ElClientType:  "geth",
-				ClClientImage: "beacond:kurtosis-local",
-				ClClientType:  "beaconkit",
+				ElType:  "geth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
 			},
 			{
-				ElClientType:  "reth",
-				ClClientImage: "beacond:kurtosis-local",
-				ClClientType:  "beaconkit",
+				ElType:  "reth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
 			},
 			{
-				ElClientType:  "reth",
-				ClClientImage: "beacond:kurtosis-local",
-				ClClientType:  "beaconkit",
+				ElType:  "reth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
 			},
 			{
-				ElClientType:  "nethermind",
-				ClClientImage: "beacond:kurtosis-local",
-				ClClientType:  "beaconkit",
+				ElType:  "nethermind",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
 			},
 		},
 	}
@@ -88,9 +88,9 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 func (c *E2ETestConfig) AddNodes(num int, executionClient string) {
 	for i := 0; i < num; i++ {
 		c.Participants = append(c.Participants, Participant{
-			ElClientType:  executionClient,
-			ClClientImage: "beacond:kurtosis-local",
-			ClClientType:  "beaconkit",
+			ElType:  executionClient,
+			ClImage: "beacond:kurtosis-local",
+			ClType:  "beaconkit",
 		})
 	}
 }

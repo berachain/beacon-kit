@@ -29,9 +29,9 @@ import (
 	"net/http"
 	"testing"
 
+	iohttp "github.com/berachain/beacon-kit/io/http"
+	"github.com/berachain/beacon-kit/io/jwt"
 	"github.com/ethereum/go-ethereum/node"
-	iohttp "github.com/itsdevbear/bolaris/io/http"
-	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/stretchr/testify/require"
 )
 

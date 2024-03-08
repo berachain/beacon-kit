@@ -25,7 +25,7 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/primitives"
+import "github.com/berachain/beacon-kit/primitives"
 
 // LogRequest is a request for logs sent from a service.
 type LogRequest struct {

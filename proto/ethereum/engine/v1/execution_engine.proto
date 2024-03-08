@@ -209,7 +209,7 @@ message Withdrawal {
   uint64 index = 1;
 
   // Validator index for the withdrawal
-  uint64 validator_index = 2 [(ethereum.eth.ext.cast_type) = "github.com/itsdevbear/bolaris/primitives.ValidatorIndex"];
+  uint64 validator_index = 2 [(ethereum.eth.ext.cast_type) = "github.com/berachain/beacon-kit/primitives.ValidatorIndex"];
 
   // The execution address receiving the funds
   bytes address = 3 [(ethereum.eth.ext.ssz_size) = "20"];

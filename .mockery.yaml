@@ -28,37 +28,37 @@ mockname: "{{.InterfaceNameCamel}}"
 filename: "{{.InterfaceNameSnake}}.go"
 outpkg: "mocks"
 packages:
-  github.com/itsdevbear/bolaris/config:
+  github.com/berachain/beacon-kit/config:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/itsdevbear/bolaris/engine/client/ethclient:
+  github.com/berachain/beacon-kit/engine/client/ethclient:
     config:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
-  github.com/itsdevbear/bolaris/beacon/forkchoice/ssf:
+  github.com/berachain/beacon-kit/beacon/forkchoice/ssf:
     config:
       recursive: True
       with-expecter: true
       include-regex: SingleSlotFinalityStore
-  github.com/itsdevbear/bolaris/runtime/service:
+  github.com/berachain/beacon-kit/runtime/service:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/itsdevbear/bolaris/io/cli/prompt:
+  github.com/berachain/beacon-kit/io/cli/prompt:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/itsdevbear/bolaris/io/cli/parser:
+  github.com/berachain/beacon-kit/io/cli/parser:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/itsdevbear/bolaris/beacon/execution/logs:
+  github.com/berachain/beacon-kit/beacon/execution/logs:
     config:
       recursive: True
       with-expecter: true

@@ -29,8 +29,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	logsmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
+	"github.com/berachain/beacon-kit/beacon/execution/logs"
+	logsmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
 	"github.com/stretchr/testify/require"
 )
 

@@ -29,8 +29,8 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	modulev1alpha1 "github.com/itsdevbear/bolaris/runtime/modules/beacon/api/module/v1alpha1"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
+	modulev1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
+	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.

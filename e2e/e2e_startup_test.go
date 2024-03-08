@@ -31,10 +31,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/berachain/beacon-kit/e2e/suite"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/e2e/suite"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/sourcegraph/conc"
 )

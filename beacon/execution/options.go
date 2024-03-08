@@ -26,8 +26,8 @@
 package execution
 
 import (
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService returns an Option that sets the BaseService for the Service.

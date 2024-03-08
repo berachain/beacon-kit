@@ -28,8 +28,8 @@ package config
 import (
 	"time"
 
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
+	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/io/cli/parser"
 )
 
 // Beacon conforms to the BeaconKitConfig interface.

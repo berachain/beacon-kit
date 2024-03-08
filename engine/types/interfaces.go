@@ -26,8 +26,8 @@
 package enginetypes
 
 import (
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 

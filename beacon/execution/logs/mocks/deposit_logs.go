@@ -28,48 +28,60 @@ package mocks
 import (
 	"errors"
 
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
-// NewLogFromDeposit creates a new log from the given deposit.
-func NewLogFromDeposit(
-	event ethabi.Event,
-	deposit *beacontypesv1.Deposit,
-) (*coretypes.Log, error) {
-	return newLog(event,
-		deposit.GetValidatorPubkey(),
-		deposit.GetWithdrawalCredentials(),
-		deposit.GetAmount(),
-	)
-}
-
-// NewLogFromWithdrawal creates a new log from the given withdrawal.
-func NewLogFromWithdrawal(
-	event ethabi.Event,
-	withdrawal *enginetypes.Withdrawal,
-) (*coretypes.Log, error) {
-	return newLog(event,
-		[]byte{},
-		[]byte{},
-		withdrawal.Amount,
-	)
-}
-
-// newLog creates a new log of an event from the given arguments.
-func newLog(event ethabi.Event, args ...interface{}) (*coretypes.Log, error) {
-	if len(event.Inputs) != len(args) {
-		return nil, errors.New("mismatched number of arguments")
+// CreateDepositLogs creates mock deposit logs.
+func CreateDepositLogs(
+	numDepositLogs int,
+	factor int,
+	contractAddress primitives.ExecutionAddress,
+	blkNum uint64,
+) ([]coretypes.Log, error) {
+	if numDepositLogs <= 0 || factor <= 0 {
+		return nil, errors.New("invalid input")
 	}
-	data, err := event.Inputs.Pack(args...)
+
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
+	} else if depositContractAbi == nil {
+		return nil, errors.New("abi not found")
 	}
-	return &coretypes.Log{
-		Topics: []ethcommon.Hash{event.ID},
-		Data:   data,
-	}, nil
+	event := depositContractAbi.Events[logs.DepositName]
+
+	// Create deposit logs.
+	numLogs := factor*(numDepositLogs-1) + 1
+
+	mockLogs := make([]coretypes.Log, 0, numLogs)
+	for i := 0; i < numLogs; i++ {
+		var data []byte
+		// Create a log from the deposit.
+		data, err = event.Inputs.Pack(
+			[]byte("pubkey"),
+			[]byte("12345678901234567890123456789012"),
+			//#nosec:G701 // no overflow
+			uint64(i),
+			[]byte("signature"),
+		)
+		if err != nil {
+			return nil, err
+		}
+		log := &coretypes.Log{
+			Topics:      []ethcommon.Hash{event.ID},
+			Data:        data,
+			BlockNumber: blkNum,
+			BlockHash:   [32]byte{byte(blkNum)},
+		}
+		if i%factor == 0 {
+			log.Address = contractAddress
+		}
+
+		mockLogs = append(mockLogs, *log)
+	}
+	return mockLogs, nil
 }

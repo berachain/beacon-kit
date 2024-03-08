@@ -28,12 +28,12 @@ package builder
 import (
 	"context"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/config"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/config"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // PayloadBuilder represents a service that is responsible for

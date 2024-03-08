@@ -29,12 +29,12 @@ import (
 	"context"
 
 	"cosmossdk.io/core/appmodule"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	beaconstore "github.com/berachain/beacon-kit/store/beacon"
+	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
-	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
-	forkchoicestore "github.com/itsdevbear/bolaris/store/forkchoice"
 )
 
 // Keeper maintains the link to data storage and exposes access to the

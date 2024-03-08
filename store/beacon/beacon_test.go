@@ -30,11 +30,11 @@ import (
 
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,9 +52,10 @@ func TestBeaconStore(t *testing.T) {
 
 	t.Run("should work with deposit", func(t *testing.T) {
 		deposit := &beacontypesv1.Deposit{
-			ValidatorPubkey:       []byte("pubkey"),
-			WithdrawalCredentials: []byte("12345678901234567890"),
-			Amount:                100,
+			ValidatorPubkey:    []byte("pubkey"),
+			StakingCredentials: []byte("12345678901234567890123456789012"),
+			Amount:             100,
+			Signature:          []byte("signature"),
 		}
 		err := beaconStore.EnqueueDeposits([]*beacontypesv1.Deposit{deposit})
 		require.NoError(t, err)

@@ -29,11 +29,11 @@ import (
 	"context"
 	"reflect"
 
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/ethereum/go-ethereum/common"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Service is responsible for delivering beacon chain notifications to

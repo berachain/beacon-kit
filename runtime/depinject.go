@@ -28,7 +28,7 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/config"
+	"github.com/berachain/beacon-kit/config"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.

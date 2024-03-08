@@ -28,8 +28,8 @@ package blockchain
 import (
 	"context"
 
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,

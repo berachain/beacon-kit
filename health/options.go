@@ -26,7 +26,7 @@
 package health
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService sets the base service on the health service.

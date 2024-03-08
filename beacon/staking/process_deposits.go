@@ -28,7 +28,7 @@ package staking
 import (
 	"context"
 
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
 )
 
 // AcceptDepositIntoQueue records a deposit in the beacon state's queue.
