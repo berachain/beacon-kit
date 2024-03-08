@@ -26,9 +26,9 @@
 package types
 
 import (
-	"github.com/itsdevbear/bolaris/config/version"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/config/version"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // BeaconBlock assembles a new beacon block from
@@ -55,7 +55,7 @@ func NewBeaconBlock(
 	}
 
 	if executionData != nil {
-		if err := block.GetBody().AttachExecution(executionData); err != nil {
+		if err := block.GetBody().SetExecutionData(executionData); err != nil {
 			return nil, err
 		}
 	}

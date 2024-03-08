@@ -27,11 +27,11 @@ package logs
 
 import (
 	"bytes"
-	"errors"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // Factory is a struct that can be used to unmarshal

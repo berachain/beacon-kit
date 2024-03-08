@@ -27,19 +27,18 @@ package blockchain
 
 import (
 	"context"
-	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/beacon/execution"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {
 	BuildLocalPayload(
 		ctx context.Context,
-		parentEth1Hash common.Hash,
+		parentEth1Hash primitives.ExecutionHash,
 		slot primitives.Slot,
 		timestamp uint64,
 		parentBlockRoot [32]byte,
@@ -59,18 +58,23 @@ type ExecutionService interface {
 		ctx context.Context,
 		slot primitives.Slot,
 		payload enginetypes.ExecutionPayload,
-		versionedHashes []common.Hash,
+		versionedHashes []primitives.ExecutionHash,
 		parentBlockRoot [32]byte,
 	) (bool, error)
 
+	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
-		blockHash common.Hash,
-	) ([]*reflect.Value, error)
+		blockHash primitives.ExecutionHash,
+	) error
 }
 
-type StakingService interface{}
-
+type StakingService interface {
+	ProcessBlockEvents(
+		ctx context.Context,
+		logs []ethtypes.Log,
+	) error
+}
 type SyncService interface {
 	IsInitSync() bool
 	Status() error

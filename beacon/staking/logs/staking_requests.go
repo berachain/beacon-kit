@@ -28,17 +28,22 @@ package logs
 import (
 	"reflect"
 
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/execution/logs"
+	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 const (
 	// Name of the Deposit event
 	// in the deposit contract.
 	DepositName = "Deposit"
+
+	// Name of the Redirect event
+	// in the deposit contract.
+	RedirectName = "Redirect"
 
 	// Name the Withdrawal event
 	// in the deposit contract.
@@ -49,81 +54,23 @@ const (
 var (
 	// Signature and type of the Deposit event
 	// in the deposit contract.
-	// keccak256("Deposit(bytes,bytes,uint64)").
-	DepositSig = [32]byte{
-		0x16,
-		0x32,
-		0x44,
-		0xa8,
-		0x52,
-		0xf0,
-		0x99,
-		0x31,
-		0x5d,
-		0x72,
-		0xdc,
-		0xfb,
-		0xb5,
-		0xb1,
-		0x03,
-		0x1c,
-		0xa0,
-		0x36,
-		0x55,
-		0x43,
-		0xf2,
-		0xac,
-		0x18,
-		0x49,
-		0xbd,
-		0xb6,
-		0x9b,
-		0x01,
-		0xd8,
-		0x64,
-		0x8b,
-		0x18,
-	}
+	DepositSig = crypto.Keccak256Hash(
+		[]byte(DepositName + "(bytes,bytes,uint64,bytes,uint64)"),
+	)
+	DepositType = reflect.TypeOf(beacontypes.Deposit{})
 
-	DepositType = reflect.TypeOf(beacontypesv1.Deposit{})
-
-	// Signature and type of the Withdrawal event
+	// Signature and type of the Redirect event
 	// in the deposit contract.
-	// keccak256("Withdrawal(bytes,bytes,uint64)").
-	WithdrawalSig = [32]byte{
-		0x3c,
-		0xd2,
-		0x41,
-		0x0b,
-		0x5f,
-		0x33,
-		0xd3,
-		0x96,
-		0x69,
-		0x54,
-		0x5e,
-		0x9f,
-		0x38,
-		0xba,
-		0x4d,
-		0x4c,
-		0x63,
-		0x18,
-		0xf2,
-		0xb8,
-		0xf1,
-		0xa3,
-		0x3f,
-		0x00,
-		0x1b,
-		0xf6,
-		0xc0,
-		0x3b,
-		0x2a,
-		0xb1,
-		0x80,
-		0xb4,
-	}
+	RedirectSig = crypto.Keccak256Hash(
+		[]byte(RedirectName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
+	// RedirectType = reflect.TypeOf(enginetypes.Redirect{}).
+
+	// Signature and type of the Withdraw event
+	// in the deposit contract.
+	WithdrawalSig = crypto.Keccak256Hash(
+		[]byte(WithdrawalName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
 	WithdrawalType = reflect.TypeOf(enginetypes.Withdrawal{})
 )
 
@@ -131,12 +78,12 @@ var (
 func NewStakingRequest(
 	depositContractAddress primitives.ExecutionAddress,
 ) (*logs.LogRequest, error) {
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	depositContractAbi, err := stakingabi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
 	allocator := logs.New[logs.TypeAllocator](
-		logs.WithABI(stakingAbi),
+		logs.WithABI(depositContractAbi),
 		logs.WithNameAndType(DepositSig, DepositName, DepositType),
 		logs.WithNameAndType(WithdrawalSig, WithdrawalName, WithdrawalType),
 	)

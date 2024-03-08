@@ -27,13 +27,14 @@ package builder
 
 import (
 	"context"
+	"fmt"
+	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/config"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/config"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // PayloadBuilder represents a service that is responsible for
@@ -43,7 +44,7 @@ type PayloadBuilder interface {
 		ctx context.Context,
 		slot primitives.Slot,
 		parentBlockRoot [32]byte,
-		parentEth1Hash common.Hash,
+		parentEth1Hash primitives.ExecutionHash,
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
@@ -69,6 +70,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
 ) (beacontypes.BeaconBlock, error) {
+	start := time.Now()
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -91,6 +93,8 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return nil, err
+	} else if beaconBlock == nil {
+		return nil, beacontypes.ErrNilBlk
 	}
 
 	// Get the payload for the block.
@@ -111,10 +115,35 @@ func (s *Service) RequestBestBlock(
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
-	if err = beaconBlock.GetBody().AttachExecution(payload); err != nil {
+	body := beaconBlock.GetBody()
+	if body.IsNil() {
+		return nil, beacontypes.ErrNilBlkBody
+	}
+
+	// Dequeue deposits from the state.
+	deposits, err := s.BeaconState(ctx).PeekDeposits(
+		s.BeaconCfg().Limits.MaxDepositsPerBlock,
+	)
+	if err != nil {
 		return nil, err
 	}
 
+	// Set the deposits on the block body.
+	body.SetDeposits(deposits)
+
+	// if err = b
+	if err = body.SetExecutionData(payload); err != nil {
+		return nil, err
+	}
+
+	s.Logger().Info("finished assembling beacon block 🛟",
+		"slot", slot,
+		"deposits", len(deposits),
+		"duration", fmt.Sprintf(
+			"%.2fms",
+			float64(time.Since(start).Nanoseconds())/float64(time.Millisecond),
+		),
+	)
 	// Return the block.
 	return beaconBlock, nil
 }

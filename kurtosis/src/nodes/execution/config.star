@@ -1,4 +1,3 @@
-eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
 port_spec_lib = import_module("../../lib/port_spec.star")
 shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
 
@@ -11,8 +10,8 @@ ENGINE_RPC_PORT_NUM = 8551
 METRICS_PORT_NUM = 9001
 
 # Port IDs
-RPC_PORT_ID = "rpc"
-WS_PORT_ID = "ws"
+RPC_PORT_ID = "eth-json-rpc"
+WS_PORT_ID = "eth-json-rpc-ws"
 TCP_DISCOVERY_PORT_ID = "tcp-discovery"
 UDP_DISCOVERY_PORT_ID = "udp-discovery"
 ENGINE_RPC_PORT_ID = "engine-rpc"

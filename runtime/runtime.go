@@ -30,23 +30,23 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/async/dispatch"
+	"github.com/berachain/beacon-kit/async/notify"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	builder "github.com/berachain/beacon-kit/beacon/builder"
+	localbuilder "github.com/berachain/beacon-kit/beacon/builder/local"
+	"github.com/berachain/beacon-kit/beacon/execution"
+	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
+	"github.com/berachain/beacon-kit/beacon/staking"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/beacon/sync"
+	"github.com/berachain/beacon-kit/cache"
+	"github.com/berachain/beacon-kit/config"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/health"
+	_ "github.com/berachain/beacon-kit/lib/maxprocs"
+	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/itsdevbear/bolaris/async/notify"
-	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder"
-	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/config"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/health"
-	_ "github.com/itsdevbear/bolaris/lib/maxprocs"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -116,12 +116,6 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithGCD(gcd),
 	)
 
-	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.ShallowCopy("staking")),
-		staking.WithValsetChangeProvider(vcp),
-	)
-
 	// logFactory is used by the execution service to unmarshal
 	// logs retrieved from the engine client.
 	stakingLogRequest, err := logs.NewStakingRequest(
@@ -137,11 +131,18 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
+	// Build the staking service.
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
+		staking.WithValsetChangeProvider(vcp),
+	)
+
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
 		execution.WithLogFactory(logFactory),
+		execution.WithStakingService(stakingService),
 	)
 
 	// Build the local builder service.
@@ -169,7 +170,6 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithStakingService(stakingService),
 		blockchain.WithSyncService(syncService),
 	)
 

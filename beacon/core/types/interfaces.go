@@ -26,8 +26,8 @@
 package types
 
 import (
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 
@@ -60,15 +60,18 @@ type BeaconBlockBody interface {
 }
 
 type WriteOnlyBeaconBlockBody interface {
-	AttachExecution(enginetypes.ExecutionPayload) error
+	SetDeposits([]*Deposit)
+	SetExecutionData(enginetypes.ExecutionPayload) error
 }
 
 type ReadOnlyBeaconBlockBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+	IsNil() bool
 
 	// Execution returns the execution data of the block.
+	GetDeposits() []*Deposit
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte
 }

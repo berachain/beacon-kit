@@ -27,14 +27,13 @@ package execution
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/engine/client"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/engine/client"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.
@@ -42,7 +41,7 @@ func (s *Service) notifyNewPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
 	s.Logger().Info("notifying new payload",

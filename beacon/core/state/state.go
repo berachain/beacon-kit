@@ -26,8 +26,8 @@
 package state
 
 import (
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -56,8 +56,9 @@ type WriteOnlyBeaconState interface {
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
 type ReadWriteDepositQueue interface {
-	EnqueueDeposits([]*beacontypesv1.Deposit) error
-	DequeueDeposits(n uint64) ([]*beacontypesv1.Deposit, error)
+	EnqueueDeposits([]*beacontypes.Deposit) error
+	PeekDeposits(n uint64) ([]*beacontypes.Deposit, error)
+	DequeueDeposits(n uint64) ([]*beacontypes.Deposit, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

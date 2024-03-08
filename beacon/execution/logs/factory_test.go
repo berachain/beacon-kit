@@ -29,22 +29,20 @@ import (
 	"reflect"
 	"testing"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 )
 
-func TestLogFactory(t *testing.T) {
-	contractAddress := ethcommon.HexToAddress("0x1234")
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
-	require.NoError(t, err)
-
+func createValidFactory(
+	t *testing.T,
+	contractAddress primitives.ExecutionAddress,
+) *loghandler.Factory {
 	stakingLogRequest, err := logs.NewStakingRequest(
 		contractAddress,
 	)
@@ -53,47 +51,97 @@ func TestLogFactory(t *testing.T) {
 		loghandler.WithRequest(stakingLogRequest),
 	)
 	require.NoError(t, err)
+	return factory
+}
 
-	deposit := beacontypes.NewDeposit(
-		[]byte("pubkey"),
-		10000,
-		[]byte("12345678901234567890"),
-	)
-	require.NotNil(t, stakingAbi)
-	require.NotNil(t, stakingAbi.Events)
-	log, err := mocks.NewLogFromDeposit(
-		stakingAbi.Events[logs.DepositName],
-		deposit,
+func TestLogFactory(t *testing.T) {
+	// Test Setup
+	contractAddress := ethcommon.HexToAddress("0x1234")
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
+	require.NoError(t, err)
+	require.NotNil(t, depositContractAbi)
+	factory := createValidFactory(t, contractAddress)
+
+	// Deposit dummy data.
+	event, ok := depositContractAbi.Events[logs.DepositName]
+	require.True(t, ok)
+	pubKey := []byte("pubkey")
+	credentials := []byte("12345678901234567890123456789012")
+	amount := uint64(10000)
+	signature := []byte("signature")
+
+	// Create a log from the deposit.
+	data, err := event.Inputs.Pack(
+		pubKey,
+		credentials,
+		amount,
+		signature,
+		uint64(0),
 	)
 	require.NoError(t, err)
-	log.Address = contractAddress
+	log := &coretypes.Log{
+		Topics:  []primitives.ExecutionHash{event.ID},
+		Data:    data,
+		Address: contractAddress,
+		Index:   0,
+	}
 
+	// Unmarshal the log.
 	val, err := factory.UnmarshalEthLog(log)
 	require.NoError(t, err)
 
+	// Check the type of the unmarshaled value.
 	valType := reflect.TypeOf(val.Interface())
 	require.NotNil(t, valType)
 	require.Equal(t, reflect.Ptr, valType.Kind())
 	require.Equal(t, logs.DepositType, valType.Elem())
 
-	newDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+	// Check the values of the unmarshaled deposit.
+	newDeposit, ok := val.Interface().(*beacontypes.Deposit)
 	require.True(t, ok)
 	require.NoError(t, err)
-	require.Equal(t, deposit, newDeposit)
+	require.Equal(t, pubKey, newDeposit.Pubkey)
+	require.Equal(t, credentials, newDeposit.Credentials)
+	require.Equal(t, amount, newDeposit.Amount)
+	require.Equal(t, signature, newDeposit.Signature)
+}
 
-	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
-	require.NotNil(t, stakingAbi)
-	require.NotNil(t, stakingAbi.Events)
-	log, err = mocks.NewLogFromWithdrawal(
-		stakingAbi.Events[logs.WithdrawalName],
-		withdrawal,
+func TestLogFactoryIncorrectType(t *testing.T) {
+	// Test Setup
+	contractAddress := ethcommon.HexToAddress("0x1234")
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
+	require.NoError(t, err)
+	require.NotNil(t, depositContractAbi)
+	factory := createValidFactory(t, contractAddress)
+
+	// Incorrect dummy data.
+	event, ok := depositContractAbi.Events[logs.WithdrawalName]
+	require.True(t, ok)
+	pubKey := []byte{}
+	credentials := []byte{}
+	signature := []byte{}
+	amount := uint64(1000)
+	index := uint64(0)
+
+	// Create a log from the deposit.
+	data, err := event.Inputs.Pack(
+		pubKey,
+		credentials,
+		signature,
+		amount,
+		index,
 	)
 	require.NoError(t, err)
-	log.Address = contractAddress
+	log := &coretypes.Log{
+		Topics:  []primitives.ExecutionHash{event.ID},
+		Data:    data,
+		Address: contractAddress,
+		Index:   0,
+	}
 
 	_, err = factory.UnmarshalEthLog(log)
 	// An error is expected because the event type in ABI and
 	// withdrawalType are mismatched,
-	// (no validatorPubkey in withdrawalType currently).
+	// (no pubkey in withdrawalType currently).
 	require.Error(t, err)
 }

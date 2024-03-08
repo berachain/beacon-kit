@@ -26,9 +26,9 @@
 package localbuilder
 
 import (
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/cache"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // TODO: Decouple from ABCI and have this validator run on a separate thread

@@ -28,8 +28,8 @@ package blockchain
 import (
 	"context"
 
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -68,7 +68,7 @@ func (s *Service) FinalizeBeaconBlock(
 	}()
 
 	if blk.IsNil() {
-		return beacontypes.ErrNilBlock
+		return beacontypes.ErrNilBlk
 	}
 
 	payload := blk.GetBody().GetExecutionPayload()
@@ -84,14 +84,18 @@ func (s *Service) FinalizeBeaconBlock(
 
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
-	_, err = s.es.ProcessLogsInETH1Block(
+	err = s.es.ProcessLogsInETH1Block(
 		ctx,
 		payloadBlockHash,
 	)
 	if err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
+		return err
 	}
 
+	// TODO: put into an actual function / flow
+	_, err = s.BeaconState(ctx).DequeueDeposits(
+		uint64(len(blk.GetBody().GetDeposits())))
 	return err
 }
 

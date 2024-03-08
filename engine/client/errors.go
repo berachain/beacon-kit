@@ -29,10 +29,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/pkg/errors"
 )
 
 // ErrUnauthenticatedConnection indicates that the connection is not
@@ -118,6 +118,16 @@ var (
 	ErrInvalidBlockHashPayloadStatus = errors.New(
 		"payload status is INVALID_BLOCK_HASH")
 
+	// ErrNilForkchoiceResponse indicates a nil forkchoice response.
+	ErrNilForkchoiceResponse = errors.New(
+		"nil forkchoice response",
+	)
+
+	// ErrNilPayloadStatus indicates a nil payload status.
+	ErrNilPayloadStatus = errors.New(
+		"nil payload status",
+	)
+
 	// ErrRequestTooLarge indicates that the request size exceeded the limit.
 	ErrRequestTooLarge = errors.New(
 		"request too large")
@@ -160,6 +170,9 @@ var (
 	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
 	// provided for getting a payload.
 	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
+
+	// ErrLogOutOfIndex indicates that the log index is out of range.
+	ErrLogOutOfIndex = errors.New("log index out of range")
 )
 
 // Handles errors received from the RPC server according to the specification.

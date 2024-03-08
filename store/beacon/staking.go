@@ -26,21 +26,28 @@
 package beacon
 
 import (
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // EnqueueDeposits pushes the deposits to the queue.
 func (s *Store) EnqueueDeposits(
-	deposits []*beacontypesv1.Deposit,
+	deposits []*beacontypes.Deposit,
 ) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
+}
+
+// PeekDeposits returns the first numPeek deposits in the queue.
+func (s *Store) PeekDeposits(
+	numPeek uint64,
+) ([]*beacontypes.Deposit, error) {
+	return s.depositQueue.PeekMulti(s.ctx, numPeek)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (s *Store) DequeueDeposits(
 	numDequeue uint64,
-) ([]*beacontypesv1.Deposit, error) {
+) ([]*beacontypes.Deposit, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 

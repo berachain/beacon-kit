@@ -27,12 +27,11 @@ package blockchain
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/crypto/kzg"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/crypto/kzg"
+	"github.com/berachain/beacon-kit/primitives"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -53,8 +52,8 @@ func (s *Service) ReceiveBeaconBlock(
 	)
 
 	// If the block is nil, We have to abort.
-	if blk.IsNil() {
-		return beacontypes.ErrNilBlock
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
 	}
 
 	// If we have already seen this block, we can skip processing it.
@@ -63,7 +62,7 @@ func (s *Service) ReceiveBeaconBlock(
 		s.Logger().Info(
 			"ignoring already processed beacon block",
 			// todo: don't use common for beacontypes
-			"hash", common.Hash(blockHash).Hex(),
+			"hash", primitives.ExecutionHash(blockHash).Hex(),
 		)
 		return nil
 	}
@@ -126,7 +125,7 @@ func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	if blk.IsNil() {
-		return beacontypes.ErrNilBlock
+		return beacontypes.ErrNilBlk
 	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
@@ -138,9 +137,46 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
-	// TODO: Probably add RANDAO and Staking stuff here?
+	// Ensure Body is non nil.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
+	}
 
-	// TODO: how do we handle hard fork boundaries?
+	// ---------------------///
+	// VALIDATE RANDAO HERE ///
+	// ---------------------///
+
+	// ---------------------///
+	//   VALIDATE KZG HERE  ///
+	// ---------------------///
+
+	// Ensure the block deposits are within the limits.
+	deposits := body.GetDeposits()
+	if uint64(len(deposits)) > s.BeaconCfg().Limits.MaxDepositsPerBlock {
+		return fmt.Errorf(
+			"too many deposits, expected: %d, got: %d",
+			s.BeaconCfg().Limits.MaxDepositsPerBlock, len(deposits),
+		)
+	}
+
+	// Ensure the deposits match the local state.
+	localDeposits, err := s.BeaconState(ctx).PeekDeposits(uint64(len(deposits)))
+	if err != nil {
+		return err
+	}
+
+	// Ensure the deposits match the local state.
+	for i, dep := range deposits {
+		if dep == nil {
+			return beacontypes.ErrNilDeposit
+		}
+		if dep.Index != localDeposits[i].Index {
+			return fmt.Errorf(
+				"deposit index does not match, expected: %d, got: %d",
+				localDeposits[i].Index, dep.Index)
+		}
+	}
 
 	return nil
 }
@@ -153,13 +189,13 @@ func (s *Service) validateExecutionOnBlock(
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
 	if blk.IsNil() {
-		return false, beacontypes.ErrNilBlock
+		return false, beacontypes.ErrNilBlk
 	}
 
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	if payload.IsNil() {
-		return false, errors.New("no payload in beacon block")
+		return false, beacontypes.ErrNilPayloadInBlk
 	}
 
 	// In BeaconKit, since we are currently operating on SingleSlot Finality

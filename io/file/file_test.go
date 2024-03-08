@@ -27,12 +27,12 @@ package file_test
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/io/file"
+	"github.com/berachain/beacon-kit/io/file"
+	"github.com/cockroachdb/errors"
 )
 
 func TestHasDir(t *testing.T) {

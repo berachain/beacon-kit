@@ -25,7 +25,7 @@
 
 package sha256
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrOddLengthTreeRoots is returned when the input list length must be

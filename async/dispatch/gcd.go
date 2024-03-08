@@ -29,7 +29,7 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	dqueue "github.com/itsdevbear/bolaris/async/dispatch/queue"
+	dqueue "github.com/berachain/beacon-kit/async/dispatch/queue"
 )
 
 const (

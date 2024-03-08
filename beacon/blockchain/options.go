@@ -26,7 +26,7 @@
 package blockchain
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService returns an Option that sets the BaseService for the Service.
@@ -51,15 +51,6 @@ func WithExecutionService(es ExecutionService) service.Option[Service] {
 func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
 	return func(s *Service) error {
 		s.lb = lb
-		return nil
-	}
-}
-
-// WithStakingService is a function that returns an Option.
-// It sets the StakingService of the Service to the provided Service.
-func WithStakingService(sks StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.sks = sks
 		return nil
 	}
 }

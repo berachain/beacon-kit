@@ -26,8 +26,7 @@
 package enginetypes
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 
@@ -42,8 +41,8 @@ type ExecutionPayloadBody interface {
 	String() string
 	Version() int
 	IsBlinded() bool
-	GetBlockHash() common.Hash
-	GetParentHash() common.Hash
+	GetBlockHash() primitives.ExecutionHash
+	GetParentHash() primitives.ExecutionHash
 }
 
 // ExecutionPayload represents the execution data of a block.
@@ -55,9 +54,6 @@ type ExecutionPayload interface {
 
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
-	GetPrevRandao() [32]byte
-	GetTimestamp() uint64
-	GetSuggestedFeeRecipient() primitives.ExecutionAddress
-	GetWithdrawals() []*Withdrawal
-	GetParentBeaconBlockRoot() [32]byte
+	Version() int
+	Validate() error
 }

@@ -28,18 +28,18 @@ package client
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/config/version"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/pkg/errors"
+	"github.com/berachain/beacon-kit/config/version"
+	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
-) (*common.Hash, error) {
+	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
+) (*primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -52,6 +52,8 @@ func (s *EngineClient) NewPayload(
 	)
 	if err != nil {
 		return nil, err
+	} else if result == nil {
+		return nil, ErrNilPayloadStatus
 	}
 
 	// This case is only true when the payload is invalid, so
@@ -70,7 +72,7 @@ func (s *EngineClient) NewPayload(
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash, parentBlockRoot *[32]byte,
+	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
 ) (*enginetypes.PayloadStatus, error) {
 	switch payloadPb := payload.(type) {
 	case *enginetypes.ExecutableDataDeneb:
@@ -86,13 +88,15 @@ func (s *EngineClient) ForkchoiceUpdated(
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion int,
-) (*enginetypes.PayloadID, *common.Hash, error) {
+) (*enginetypes.PayloadID, *primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
 	if err != nil {
 		return nil, nil, s.handleRPCError(err)
+	} else if result == nil {
+		return nil, nil, ErrNilForkchoiceResponse
 	}
 
 	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))

@@ -27,16 +27,16 @@ package staking
 
 import (
 	"context"
-	"errors"
 
 	sdkmath "cosmossdk.io/math"
 	sdkkeeper "cosmossdk.io/x/staking/keeper"
 	sdkstaking "cosmossdk.io/x/staking/types"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 var _ ValsetChangeProvider = &Keeper{}
@@ -56,14 +56,14 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 
 // delegate delegates the deposit to the validator.
 func (k *Keeper) delegate(
-	ctx context.Context, deposit *beacontypesv1.Deposit,
+	ctx context.Context, deposit *beacontypes.Deposit,
 ) (uint64, error) {
 	validatorPK := &ed25519.PubKey{}
-	err := validatorPK.Unmarshal(deposit.GetValidatorPubkey())
+	err := validatorPK.Unmarshal(deposit.Pubkey)
 	if err != nil {
 		return 0, err
 	}
-	amount := deposit.GetAmount()
+	amount := deposit.Amount
 	valConsAddr := sdk.GetConsAddress(validatorPK)
 	validator, err := k.stakingKeeper.GetValidator(
 		ctx, sdk.ValAddress(valConsAddr),
@@ -110,7 +110,7 @@ func (k *Keeper) createValidator(
 // staking module.
 func (k *Keeper) ApplyChanges(
 	ctx context.Context,
-	deposits []*beacontypesv1.Deposit,
+	deposits []*beacontypes.Deposit,
 	withdrawals []*enginetypes.Withdrawal,
 ) error {
 	for _, deposit := range deposits {

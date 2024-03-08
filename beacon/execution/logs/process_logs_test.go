@@ -28,23 +28,22 @@ package logs_test
 import (
 	"testing"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
+	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestProcessLogs(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
-
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	require.NoError(t, err)
-	require.NotNil(t, stakingAbi)
+	require.NotNil(t, depositContractAbi)
 
 	stakingLogRequest, err := logs.NewStakingRequest(
 		contractAddress,
@@ -73,24 +72,32 @@ func TestProcessLogs(t *testing.T) {
 
 	// Check if the values are returned in the correct order.
 	for i, val := range vals {
-		processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+		processedDeposit, ok := val.Interface().(*beacontypes.Deposit)
 		require.True(t, ok)
-		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
+		require.Equal(t, uint64(i*depositFactor), processedDeposit.Amount)
 	}
 
-	withdrawal := enginetypes.NewWithdrawal(
-		[]byte("pubkey"),
-		uint64(1000),
-	)
+	event := depositContractAbi.Events[logs.WithdrawalName]
+	pubKey := []byte("pubkey")
+	credentials := []byte{}
+	signature := []byte{}
+	amount := uint64(1000)
+	index := uint64(0)
 
-	var log *ethtypes.Log
-	require.NotNil(t, stakingAbi)
-	require.NotNil(t, stakingAbi.Events)
-	log, err = logmocks.NewLogFromWithdrawal(
-		stakingAbi.Events[logs.WithdrawalName],
-		withdrawal,
+	// Create a log from the deposit.
+	data, err := event.Inputs.Pack(
+		pubKey,
+		credentials,
+		signature,
+		amount,
+		index,
 	)
 	require.NoError(t, err)
+	log := &coretypes.Log{
+		Topics:  []primitives.ExecutionHash{event.ID},
+		Data:    data,
+		Address: contractAddress,
+	}
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum + 1

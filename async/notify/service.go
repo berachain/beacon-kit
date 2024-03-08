@@ -28,9 +28,9 @@ package notify
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // Service represents the BeaconKit notification service. It is used to register

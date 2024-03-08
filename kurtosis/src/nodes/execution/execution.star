@@ -1,6 +1,3 @@
-eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
-input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
-
 execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
@@ -13,8 +10,8 @@ ENGINE_RPC_PORT_NUM = 8551
 METRICS_PORT_NUM = 9001
 
 # Port IDs
-RPC_PORT_ID = "rpc"
-WS_PORT_ID = "ws"
+RPC_PORT_ID = "eth-json-rpc"
+WS_PORT_ID = "eth-json-rpc-ws"
 TCP_DISCOVERY_PORT_ID = "tcp-discovery"
 UDP_DISCOVERY_PORT_ID = "udp-discovery"
 ENGINE_RPC_PORT_ID = "engine-rpc"
@@ -40,7 +37,7 @@ def upload_global_files(plan, node_modules):
         name = "genesis_file",
     )
     jwt_file = plan.upload_files(
-        src = constants.KURTOSIS_ETH_PACKAGE_URL + eth_static_files.JWT_PATH_FILEPATH,
+        src = constants.JWT_FILEPATH,
         name = "jwt_file",
     )
     for node_module in node_modules.values():
@@ -52,9 +49,9 @@ def upload_global_files(plan, node_modules):
 
     return jwt_file
 
-def get_enode_addr(plan, el_service, el_service_name, el_client_type):
+def get_enode_addr(plan, el_service, el_service_name, el_type):
     extract_statement = {"enode": """.result.enode | split("?") | .[0]"""}
-    if el_client_type == execution_types.CLIENTS.reth:
+    if el_type == execution_types.CLIENTS.reth:
         extract_statement = {"enode": """.result.id | split("?") | .[0][2:] | ("enode://" + .)"""}
 
     request_recipe = PostHttpRequestRecipe(
@@ -71,7 +68,7 @@ def get_enode_addr(plan, el_service, el_service_name, el_client_type):
     )
 
     enode = response["extract.enode"]
-    return enode + "@" + el_service.ip_address + ":" + str(DISCOVERY_PORT_NUM) if el_client_type == execution_types.CLIENTS.reth else enode
+    return enode + "@" + el_service.ip_address + ":" + str(DISCOVERY_PORT_NUM) if el_type == execution_types.CLIENTS.reth else enode
 
 def add_bootnodes(node_module, config, bootnodes):
     if type(bootnodes) == builtins.types.list:
@@ -98,3 +95,20 @@ def deploy_node(plan, config):
         name = config["name"],
         config = service_config,
     )
+
+def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
+    el_type = node.el_type
+    node_module = node_modules[el_type]
+    el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
+
+    # 4a. Launch EL
+    el_service_config_dict = get_default_service_config(el_service_name, node_module)
+    el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
+    el_client_service = deploy_node(plan, el_service_config_dict)
+
+    enode_addr = get_enode_addr(plan, el_client_service, el_service_name, el_type)
+    return {
+        "name": el_service_name,
+        "service": el_client_service,
+        "enode_addr": enode_addr,
+    }

@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/cache"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	"github.com/berachain/beacon-kit/cache"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/stretchr/testify/require"
 )
 

@@ -28,8 +28,8 @@ package cache
 import (
 	"sync"
 
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // historicalPayloadIDCacheSize defines the maximum number of slots to retain

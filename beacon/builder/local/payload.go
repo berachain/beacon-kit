@@ -27,22 +27,21 @@ package localbuilder
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/execution"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BuildLocalPayload builds a payload for the given slot and
 // returns the payload ID.
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,
@@ -67,6 +66,7 @@ func (s *Service) BuildLocalPayload(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
 		"parent_eth1_hash", parentEth1Hash,
+		// TODO: don't use execution hash for beacon root.
 		"parent_block_root", common.Hash(parentBlockRoot),
 	)
 	payloadID, err = s.es.NotifyForkchoiceUpdate(
@@ -108,7 +108,7 @@ func (s *Service) GetBestPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
@@ -164,7 +164,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
-				ctx, payloadID, slot,
+				ctx, &payloadID, slot,
 			)
 		if err == nil {
 			// bundleCache.add(slot, bundle)
@@ -184,7 +184,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 // payload from the execution client.
 func (s *Service) buildAndWaitForLocalPayload(
 	ctx context.Context,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,
@@ -215,7 +215,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err :=
 		s.getPayloadFromExecutionClient(
-			ctx, *payloadID, slot,
+			ctx, payloadID, slot,
 		)
 	if err != nil {
 		return nil, nil, false, err
@@ -257,8 +257,7 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	// Build the payload attributes.
-	attrs, err := enginetypes.NewPayloadAttributes(
+	return enginetypes.NewPayloadAttributes(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
@@ -266,23 +265,22 @@ func (s *Service) getPayloadAttribute(
 		withdrawals,
 		prevHeadRoot,
 	)
-	if err != nil {
-		return nil, errors.New("could not create payload attributes")
-	}
-
-	return attrs, nil
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the
 // given slot.
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
-	payloadID enginetypes.PayloadID,
+	payloadID *enginetypes.PayloadID,
 	slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
+	if payloadID == nil {
+		return nil, nil, false, ErrNilPayloadID
+	}
+
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
 		ctx,
-		payloadID,
+		*payloadID,
 		slot,
 	)
 	if err != nil {

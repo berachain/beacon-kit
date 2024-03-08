@@ -31,7 +31,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/async/dispatch/queue"
+	"github.com/berachain/beacon-kit/async/dispatch/queue"
 	"github.com/stretchr/testify/assert"
 )
 

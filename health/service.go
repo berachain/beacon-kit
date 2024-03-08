@@ -28,7 +28,7 @@ package health
 import (
 	"context"
 
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // Service is a health service.

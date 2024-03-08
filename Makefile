@@ -202,8 +202,6 @@ test-unit-fuzz:
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzOrderedCacheSimple ./lib/cache -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzOrderedCacheConcurrencySafety ./lib/cache -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzLogCacheSeq ./beacon/execution/logs/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzLogCacheConcurrency ./beacon/execution/logs/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
@@ -324,7 +322,7 @@ gosec:
 #################
 
 pkgsite:
-	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
+	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/berachain/beacon-kit/..."
 	@go run golang.org/x/pkgsite/cmd/pkgsite -http=:6060
 
 #################
@@ -336,7 +334,7 @@ slither:
 	-t \
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
-	trailofbits/eth-security-toolbox \
+	trailofbits/eth-security-toolbox:edge \
 	/bin/bash -c "cd /contracts && slither ./src/eip4788 && slither ./src/staking"
 
 

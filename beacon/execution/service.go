@@ -27,13 +27,11 @@ package execution
 
 import (
 	"context"
-	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // Service is responsible for delivering beacon chain notifications to
@@ -45,6 +43,7 @@ type Service struct {
 	engine *engineclient.EngineClient
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
+	sks        StakingService
 }
 
 // Start spawns any goroutines required by the service.
@@ -74,6 +73,8 @@ func (s *Service) NotifyForkchoiceUpdate(
 		return nil, e
 	}
 
+	// s.logProcessor.ReadLogsFromBlock(ctx, fucu.HeadEth1Hash)
+
 	return payloadID, err
 }
 
@@ -93,7 +94,7 @@ func (s *Service) NotifyNewPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
 	return s.notifyNewPayload(
@@ -111,17 +112,20 @@ func (s *Service) NotifyNewPayload(
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	blockHash common.Hash,
-) ([]*reflect.Value, error) {
+	blockHash primitives.ExecutionHash,
+) error {
 	// Gather all the logs corresponding to
 	// the addresses of interest from this block.
 	logsInBlock, err := s.engine.GetLogs(
 		ctx,
 		blockHash,
-		s.logFactory.GetRegisteredAddresses(),
+		[]primitives.ExecutionAddress{
+			s.BeaconCfg().Execution.DepositContractAddress,
+		},
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return s.logFactory.ProcessLogs(logsInBlock, blockHash)
+
+	return s.sks.ProcessBlockEvents(ctx, logsInBlock)
 }

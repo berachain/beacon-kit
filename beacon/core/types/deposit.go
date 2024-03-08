@@ -25,4 +25,55 @@
 
 package types
 
-// TODO: move deposit off of protobuf once the staking prs are merged.
+import (
+	"strconv"
+
+	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
+	abilib "github.com/berachain/beacon-kit/lib/abi"
+	"github.com/ethereum/go-ethereum/core/types"
+)
+
+// Deposit into the consensus layer from the deposit contract in the execution
+// layer.
+type Deposit struct {
+	// Public key of the validator specified in the deposit.
+	Pubkey []byte `json:"pubkey"      ssz-max:"48"`
+	// A staking credentials with
+	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+	Credentials []byte `json:"credentials"              ssz-size:"32"`
+	// Deposit amount in gwei.
+	Amount uint64 `json:"amount"`
+	// Signature of the deposit data.
+	Signature []byte `json:"signature"   ssz-max:"96"`
+	// Index of the deposit in the deposit contract.
+	Index uint64 `json:"index"`
+}
+
+// UnmarshalEthLog unmarshals the log into a Deposit.
+func (d *Deposit) UnmarshalEthLog(log types.Log) error {
+	abigenType := &stakingabi.BeaconDepositContractDeposit{}
+	if err := (abilib.WrappedABI{ABI: stakingabi.DepositContractABI}).
+		UnpackLogs(abigenType, "Deposit", log); err != nil {
+		return err
+	}
+	if d == nil {
+		d = &Deposit{}
+	}
+
+	d.Pubkey = abigenType.Pubkey
+	d.Credentials = abigenType.Credentials
+	d.Amount = abigenType.Amount
+	d.Signature = abigenType.Signature
+	d.Index = abigenType.Index
+	return nil
+}
+
+// String returns a string representation of the Deposit.
+func (d *Deposit) String() string {
+	return "Deposit{" +
+		"Pubkey: " + string(d.Pubkey) +
+		", Credentials: " + string(d.Credentials) +
+		", Amount: " + strconv.FormatUint(d.Amount, 10) +
+		", Signature: " + string(d.Signature) +
+		"}"
+}
