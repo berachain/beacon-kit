@@ -41,8 +41,9 @@ import (
 
 func TestProcessStakingLogs(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	require.NoError(t, err)
+	require.NotNil(t, depositContractAbi)
 
 	stakingLogRequest, err := logs.NewStakingRequest(
 		contractAddress,
@@ -84,8 +85,10 @@ func TestProcessStakingLogs(t *testing.T) {
 	)
 
 	var log *ethtypes.Log
+	require.NotNil(t, depositContractAbi)
+	require.NotNil(t, depositContractAbi.Events)
 	log, err = logmocks.NewLogFromWithdrawal(
-		stakingAbi.Events[logs.WithdrawalName],
+		depositContractAbi.Events[logs.WithdrawalName],
 		withdrawal,
 	)
 	require.NoError(t, err)

@@ -28,9 +28,7 @@ package blockchain
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/itsdevbear/bolaris/primitives"
 )
 
@@ -44,7 +42,6 @@ func (s *Service) FinalizeBeaconBlock(
 	blockRoot [32]byte,
 ) error {
 	var (
-		payload     enginetypes.ExecutionPayload
 		err         error
 		state       = s.BeaconState(ctx)
 		forkChoicer = s.ForkchoiceStore(ctx)
@@ -70,18 +67,19 @@ func (s *Service) FinalizeBeaconBlock(
 		}()
 	}()
 
-	if err = beacontypes.BeaconBlockIsNil(blk); err != nil {
-		return err
+	if blk.IsNil() {
+		return beacontypes.ErrNilBlock
 	}
 
-	payload, err = blk.ExecutionPayload()
-	if err != nil {
-		return err
-	}
-
-	if payload == nil || payload.IsEmpty() {
+	payload := blk.GetBody().GetExecutionPayload()
+	if payload.IsNil() {
 		// TODO: Slash the proposer for not including a payload.
 		return ErrNoPayloadInBeaconBlock
+	}
+
+	payloadBlockHash := payload.GetBlockHash()
+	if err = forkChoicer.InsertNode(payloadBlockHash); err != nil {
+		return err
 	}
 
 	// TODO: PROCESS DEPOSITS HERE
@@ -89,7 +87,7 @@ func (s *Service) FinalizeBeaconBlock(
 	// Logs are already processed in the beacon block processing,
 	// after fork choice updated.
 
-	return forkChoicer.InsertNode(common.Hash(payload.GetBlockHash()))
+	return err
 }
 
 // missed block tasks is called when a block is missed. It sends a forkchoice

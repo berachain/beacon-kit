@@ -23,17 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package enginetypes
+package cache
 
-import primitives "github.com/itsdevbear/bolaris/primitives"
+import "time"
 
-// NewWithdrawal creates a new Withdrawal.
-func NewWithdrawal(
-	_ []byte, // validatorPubkey
-	amount uint64,
-) *Withdrawal {
-	// TODO: implement
-	return &Withdrawal{
-		Amount: primitives.SSZUint64(amount),
+const (
+	defaultHeaderSize = 20
+	defaultHeaderTTL  = 10 * time.Minute
+)
+
+// Config is the configuration for an EngineCache.
+type Config struct {
+	// HeaderSize is the size of the header cache.
+	HeaderSize int `mapstructure:"header-size"`
+	// HeaderTTL is the time-to-live for headers in the cache.
+	HeaderTTL time.Duration `mapstructure:"header-ttl"`
+}
+
+// DefaultConfig returns the default configuration for an EngineCache.
+func DefaultConfig() Config {
+	return Config{
+		HeaderSize: defaultHeaderSize,
+		HeaderTTL:  defaultHeaderTTL,
 	}
 }

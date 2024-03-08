@@ -39,7 +39,7 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 }
 
 // WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec engineclient.Caller) service.Option[Service] {
+func WithEngineCaller(ec *engineclient.EngineClient) service.Option[Service] {
 	return func(s *Service) error {
 		s.engine = ec
 		return nil

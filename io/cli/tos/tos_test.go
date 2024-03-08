@@ -107,8 +107,7 @@ func TestDeclineWithCLI(t *testing.T) {
 	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
 	if err == nil {
 		t.Errorf("Expected error, got nil")
-	}
-	if err.Error() != tos.DeclinedErrorString {
+	} else if err.Error() != tos.DeclinedErrorString {
 		t.Errorf("Expected %v, got %v", tos.DeclinedErrorString, err)
 	}
 }
@@ -133,9 +132,7 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
 	if err == nil {
 		t.Errorf("Expected error, got nil")
-	}
-
-	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
+	} else if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
 		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText(""), err)
 	}
 }

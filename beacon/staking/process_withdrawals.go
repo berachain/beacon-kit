@@ -28,12 +28,12 @@ package staking
 import (
 	"context"
 
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 func (s *Service) ProcessWithdrawal(
 	_ context.Context,
-	_ *enginev1.Withdrawal,
+	_ *enginetypes.Withdrawal,
 ) error {
 	// TODO: implement
 	return nil
