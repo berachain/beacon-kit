@@ -58,10 +58,12 @@ func TestLogFactory(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
 	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	require.NoError(t, err)
+	require.NotNil(t, depositContractAbi)
 	factory := createValidFactory(t, contractAddress)
 
 	// Deposit dummy data.
-	event := depositContractAbi.Events[logs.DepositName]
+	event, ok := depositContractAbi.Events[logs.DepositName]
+	require.True(t, ok)
 	pubKey := []byte("pubkey")
 	stakingCredentials := []byte("12345678901234567890123456789012")
 	amount := uint64(10000)
@@ -106,10 +108,12 @@ func TestLogFactoryIncorrectType(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
 	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	require.NoError(t, err)
+	require.NotNil(t, depositContractAbi)
 	factory := createValidFactory(t, contractAddress)
 
 	// Incorrect dummy data.
-	event := depositContractAbi.Events[logs.WithdrawalName]
+	event, ok := depositContractAbi.Events[logs.WithdrawalName]
+	require.True(t, ok)
 	pubKey := []byte{}
 	stakingCredentials := []byte{}
 	signature := []byte{}
