@@ -27,6 +27,7 @@ package client
 
 import (
 	"cosmossdk.io/log"
+	"github.com/itsdevbear/bolaris/engine/client/cache"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/jwt"
 )
@@ -64,6 +65,15 @@ func WithEth1Client(eth1Client *eth.Eth1Client) Option {
 func WithLogger(logger log.Logger) Option {
 	return func(s *EngineClient) error {
 		s.logger = logger.With("module", "beacon-kit.engine.client")
+		return nil
+	}
+}
+
+// WithCacheConfig is an option to create a new cache
+// with the given config for the EngineClient.
+func WithCacheConfig(config cache.Config) Option {
+	return func(s *EngineClient) error {
+		s.engineCache = cache.NewEngineCache(config)
 		return nil
 	}
 }

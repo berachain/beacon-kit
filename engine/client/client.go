@@ -28,6 +28,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -38,6 +39,7 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/itsdevbear/bolaris/engine/client/cache"
 	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
 	"github.com/itsdevbear/bolaris/io/http"
 	"github.com/itsdevbear/bolaris/io/jwt"
@@ -53,6 +55,10 @@ type EngineClient struct {
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
 
+	// engineCache is an all-in-one cache for data
+	// that are retrieved by the EngineClient.
+	engineCache *cache.EngineCache
+
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
 	statusErr     error
@@ -65,15 +71,20 @@ func New(opts ...Option) *EngineClient {
 	ec := &EngineClient{
 		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
+		statusErrMu:  new(sync.RWMutex),
 	}
-
-	ec.statusErrMu = new(sync.RWMutex)
 	ec.statusErrCond = sync.NewCond(ec.statusErrMu)
 
+	// Apply the options to the engine client.
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
 			panic(err)
 		}
+	}
+
+	// If the engine cache is not set, we create a new one.
+	if ec.engineCache == nil {
+		ec.engineCache = cache.NewEngineCacheWithDefaultConfig()
 	}
 
 	return ec
@@ -295,4 +306,42 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 
 	s.Client = ethclient.NewClient(client)
 	return nil
+}
+
+// HeaderByNumber retrieves the block header by its number.
+func (s *EngineClient) HeaderByNumber(
+	ctx context.Context,
+	number *big.Int,
+) (*coretypes.Header, error) {
+	// Check the cache for the header.
+	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
+	if ok {
+		return header, nil
+	}
+	header, err := s.Client.HeaderByNumber(ctx, number)
+	if err != nil {
+		return nil, err
+	}
+
+	defer s.engineCache.AddHeader(header)
+
+	return header, nil
+}
+
+// HeaderByHash retrieves the block header by its hash.
+func (s *EngineClient) HeaderByHash(
+	ctx context.Context,
+	hash common.Hash,
+) (*coretypes.Header, error) {
+	// Check the cache for the header.
+	header, ok := s.engineCache.HeaderByHash(hash)
+	if ok {
+		return header, nil
+	}
+	header, err := s.Client.HeaderByHash(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+	s.engineCache.AddHeader(header)
+	return header, nil
 }
