@@ -43,8 +43,8 @@ type BeaconBlockDeneb struct {
 }
 
 // IsEmpty returns true if the block is nil or the body is nil.
-func (b *BeaconBlockDeneb) IsEmpty() bool {
-	return b == nil || b.Body == nil
+func (b *BeaconBlockDeneb) IsNil() bool {
+	return b == nil
 }
 
 func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {

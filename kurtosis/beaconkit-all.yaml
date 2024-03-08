@@ -24,13 +24,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 participants:
-  - el_client_type: reth
+  - el_client_type: nethermind
     cl_client_type: beaconkit
     cl_client_image: beacond:kurtosis-local
   - el_client_type: reth
-    cl_client_type: beaconkit
-    cl_client_image: beacond:kurtosis-local
-  - el_client_type: geth
     cl_client_type: beaconkit
     cl_client_image: beacond:kurtosis-local
   - el_client_type: geth
