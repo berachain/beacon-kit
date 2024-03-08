@@ -310,7 +310,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositNativeWrongMinAmount() public {
         vm.revertTo(nativeSnapshot);
-        uint256 amount = 32 gwei - 1;
+        uint256 amount = 31 gwei;
         vm.deal(depositor, amount);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
         depositContract.deposit{ value: amount }(
@@ -336,6 +336,16 @@ contract DepositContractTest is SoladyTest {
     function test_DepositNativeNotDivisibleByGwei() public {
         vm.revertTo(nativeSnapshot);
         uint256 amount = 32e9 + 1;
+        vm.deal(depositor, amount);
+        vm.expectRevert(
+            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
+        );
+        vm.prank(depositor);
+        depositContract.deposit{ value: amount }(
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+        );
+
+        amount = 32e9 - 1;
         vm.deal(depositor, amount);
         vm.expectRevert(
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
