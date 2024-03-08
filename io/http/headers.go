@@ -29,8 +29,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/berachain/beacon-kit/io/jwt"
 	"github.com/ethereum/go-ethereum/node"
-	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
 // NewHeaderWithJWT creates a new HTTP header with a JWT token.

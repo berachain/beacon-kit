@@ -28,8 +28,8 @@ package math_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/math"
 	"github.com/holiman/uint256"
-	"github.com/itsdevbear/bolaris/math"
 	"github.com/stretchr/testify/require"
 )
 

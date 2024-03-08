@@ -28,11 +28,11 @@ package ethclient
 import (
 	"context"
 
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and

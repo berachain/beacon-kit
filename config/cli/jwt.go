@@ -28,9 +28,9 @@ package cli
 import (
 	"path/filepath"
 
+	"github.com/berachain/beacon-kit/io/file"
+	"github.com/berachain/beacon-kit/io/jwt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/itsdevbear/bolaris/io/file"
-	"github.com/itsdevbear/bolaris/io/jwt"
 	"github.com/spf13/cobra"
 )
 

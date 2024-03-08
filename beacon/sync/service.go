@@ -31,9 +31,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/runtime/service"
 	cosmosclient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/runtime/service"
 	"github.com/sourcegraph/conc"
 )
 

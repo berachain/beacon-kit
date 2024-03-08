@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 var _ = (*executableDataDenebMarshaling)(nil)

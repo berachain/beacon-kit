@@ -26,7 +26,7 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/cli"
+	"github.com/berachain/beacon-kit/config/cli"
 	"github.com/spf13/cobra"
 )
 

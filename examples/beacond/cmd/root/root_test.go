@@ -34,9 +34,9 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
-	beaconflags "github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
+	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
+	beaconflags "github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/examples/beacond/cmd/root"
 )
 
 func TestInitCommand(t *testing.T) {

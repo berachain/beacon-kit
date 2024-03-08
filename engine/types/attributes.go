@@ -26,7 +26,7 @@
 package enginetypes
 
 import (
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 //nolint:lll // struct tags.

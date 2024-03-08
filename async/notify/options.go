@@ -26,8 +26,8 @@
 package notify
 
 import (
+	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // WithBaseService is an option to set the BaseService for the Service.

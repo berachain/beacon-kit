@@ -28,11 +28,11 @@ package logs
 import (
 	"reflect"
 
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	"github.com/berachain/beacon-kit/beacon/execution/logs"
+	"github.com/berachain/beacon-kit/contracts/abi"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 const (

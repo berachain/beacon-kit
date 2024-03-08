@@ -31,8 +31,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/io/cli/prompt"
-	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
+	"github.com/berachain/beacon-kit/io/cli/prompt"
+	"github.com/berachain/beacon-kit/io/cli/prompt/mocks"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 )
