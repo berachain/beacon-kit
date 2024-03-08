@@ -91,14 +91,3 @@ func BeaconBlockFromSSZ(
 	}
 	return block, nil
 }
-
-// BeaconBlockIsNil checks if any composite field of input signed beacon block
-// is nil.
-// Access to these nil fields will result in run time panic,
-// it is recommended to run these checks as first line of defense.
-func BeaconBlockIsNil(b ReadOnlyBeaconBlock) error {
-	if b == nil {
-		return ErrNilBlock
-	}
-	return nil
-}

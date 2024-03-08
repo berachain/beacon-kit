@@ -53,8 +53,8 @@ func (s *Service) ReceiveBeaconBlock(
 	)
 
 	// If the block is nil, We have to abort.
-	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
-		return err
+	if blk.IsNil() {
+		return beacontypes.ErrNilBlock
 	}
 
 	// If we have already seen this block, we can skip processing it.
@@ -125,8 +125,8 @@ func (s *Service) ReceiveBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
-		return err
+	if blk.IsNil() {
+		return beacontypes.ErrNilBlock
 	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
@@ -152,8 +152,8 @@ func (s *Service) validateExecutionOnBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	if err := beacontypes.BeaconBlockIsNil(blk); err != nil {
-		return false, err
+	if blk.IsNil() {
+		return false, beacontypes.ErrNilBlock
 	}
 
 	body := blk.GetBody()
