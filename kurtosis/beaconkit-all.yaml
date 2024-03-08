@@ -33,7 +33,7 @@ participants:
   - el_client_type: geth
     cl_client_type: beaconkit
     cl_client_image: beacond:kurtosis-local
-  # - el_client_type: geth
-  #   cl_client_type: beaconkit
-  #   cl_client_image: beacond:kurtosis-local
+  - el_client_type: geth
+    cl_client_type: beaconkit
+    cl_client_image: beacond:kurtosis-local
 additional_services: []
