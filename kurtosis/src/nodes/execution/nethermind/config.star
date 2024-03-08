@@ -1,5 +1,7 @@
+shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
 global_constants = import_module("../../../constants.star")
 defaults = import_module("./../config.star")
+port_spec_lib = import_module("../../../lib/port_spec.star")
 
 GLOBAL_CLIENT_LOG_LEVEL = global_constants.GLOBAL_CLIENT_LOG_LEVEL
 KURTOSIS_IP_ADDRESS_PLACEHOLDER = global_constants.KURTOSIS_IP_ADDRESS_PLACEHOLDER
@@ -71,22 +73,22 @@ VERBOSITY_LEVELS = {
 
 USED_PORTS = defaults.USED_PORTS
 USED_PORTS_TEMPLATE = {
-    RPC_PORT_ID: port_spec_lib.get_port_spec_template(RPC_PORT_NUM, shared_utils.TCP_PROTOCOL, wait="30s"),
-    WS_PORT_ID: port_spec_lib.get_port_spec_template(WS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait="30s"),
+    RPC_PORT_ID: port_spec_lib.get_port_spec_template(RPC_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = "30s"),
+    WS_PORT_ID: port_spec_lib.get_port_spec_template(WS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = "30s"),
     TCP_DISCOVERY_PORT_ID: port_spec_lib.get_port_spec_template(
         DISCOVERY_PORT_NUM,
         shared_utils.TCP_PROTOCOL,
-        wait="30s"
+        wait = "30s",
     ),
     UDP_DISCOVERY_PORT_ID: port_spec_lib.get_port_spec_template(
         DISCOVERY_PORT_NUM,
         shared_utils.UDP_PROTOCOL,
-        wait="30s"
+        wait = "30s",
     ),
     ENGINE_RPC_PORT_ID: port_spec_lib.get_port_spec_template(
         ENGINE_RPC_PORT_NUM,
         shared_utils.TCP_PROTOCOL,
-        wait="30s"
+        wait = "30s",
     ),
     # METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
     #     METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL
