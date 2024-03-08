@@ -40,6 +40,8 @@ func DefaultExecutionConfig() Execution {
 }
 
 // execution layer on the beacon chain.
+//
+//nolint:lll
 type Execution struct {
 	DepositContractAddress primitives.ExecutionAddress `mapstructure:"deposit-contract-address"`
 }

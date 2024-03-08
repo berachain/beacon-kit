@@ -48,6 +48,7 @@ type Validator struct {
 	// Suggested FeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
+	//nolint:lll
 	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
 
 	Graffiti string
