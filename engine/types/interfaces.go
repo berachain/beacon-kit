@@ -38,6 +38,7 @@ type ExecutionPayloadBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+	IsNil() bool
 	String() string
 	Version() int
 	IsBlinded() bool

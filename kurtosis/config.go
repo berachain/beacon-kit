@@ -76,7 +76,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClClientType:  "beaconkit",
 			},
 			{
-				ElClientType:  "reth",
+				ElClientType:  "nethermind",
 				ClClientImage: "beacond:kurtosis-local",
 				ClClientType:  "beaconkit",
 			},

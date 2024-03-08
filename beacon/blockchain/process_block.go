@@ -42,7 +42,7 @@ func (s *Service) postBlockProcess(
 ) error {
 	// If the block does not have a payload, we return an error.
 	payload := blk.GetBody().GetExecutionPayload()
-	if payload == nil {
+	if payload.IsNil() {
 		return ErrInvalidPayload
 	}
 	payloadBlockHash := payload.GetBlockHash()
