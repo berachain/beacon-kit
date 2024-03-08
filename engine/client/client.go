@@ -58,8 +58,9 @@ type EngineClient struct {
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
 
-	// headerCache is the LRU cache for Ethereum 1 block headers.
-	headerCache *cache.HeaderCache
+	// engineCache is an all-in-one cache for data
+	// that are retrieved by the EngineClient.
+	engineCache *cache.EngineCache
 
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
@@ -73,7 +74,6 @@ func New(opts ...Option) *EngineClient {
 	ec := &EngineClient{
 		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
-		headerCache:  cache.NewHeaderCache(),
 	}
 
 	ec.statusErrMu = new(sync.RWMutex)
@@ -312,7 +312,7 @@ func (s *EngineClient) HeaderByNumber(
 	number *big.Int,
 ) (*coretypes.Header, error) {
 	// Check the cache for the header.
-	header, ok := s.headerCache.GetByNumber(number.Uint64())
+	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
 	if ok {
 		return header, nil
 	}
@@ -320,7 +320,9 @@ func (s *EngineClient) HeaderByNumber(
 	if err != nil {
 		return nil, err
 	}
-	s.headerCache.Add(header)
+
+	defer s.engineCache.AddHeader(header)
+
 	return header, nil
 }
 
@@ -330,7 +332,7 @@ func (s *EngineClient) HeaderByHash(
 	hash common.Hash,
 ) (*coretypes.Header, error) {
 	// Check the cache for the header.
-	header, ok := s.headerCache.GetByHash(hash)
+	header, ok := s.engineCache.HeaderByHash(hash)
 	if ok {
 		return header, nil
 	}
@@ -338,6 +340,6 @@ func (s *EngineClient) HeaderByHash(
 	if err != nil {
 		return nil, err
 	}
-	s.headerCache.Add(header)
+	s.engineCache.AddHeader(header)
 	return header, nil
 }

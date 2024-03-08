@@ -31,25 +31,39 @@ import (
 	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )
 
-const (
-	// cacheSize is the size of the cache.
-	cacheSize = 20
-	// cacheEvictionTime is the time after which the LRU is evicted.
-	cacheEvictionTime = 5 * time.Minute
-)
+// LRUConfig is the configuration for an LRU cache.
+type LRUConfig struct {
+	// Capacity is the maximum number of items that the LRU can hold.
+	Capacity int `mapstructure:"capacity"`
+	// Expiry is the time in seconds after which the LRU is evicted.
+	Expiry int `mapstructure:"expiry"`
+}
 
-// LRUCache is a generic LRU cache to store client's objects.
-type LRUCache[K comparable, V any] struct {
+// LRU is an LRU cache.
+type LRU[K comparable, V any] struct {
 	*lru.LRU[K, V]
 }
 
-// NewLRUCache creates a new LRU cache.
-func NewLRUCache[K comparable, V any]() *LRUCache[K, V] {
-	return &LRUCache[K, V]{
+// NewLRUWithConfig creates a new LRU with the given config.
+func NewLRUWithConfig[K comparable, V any](
+	config LRUConfig,
+) *LRU[K, V] {
+	if config == (LRUConfig{}) {
+		return nil
+	}
+	return &LRU[K, V]{
 		lru.NewLRU[K, V](
-			cacheSize,
+			config.Capacity,
 			nil,
-			cacheEvictionTime,
+			time.Duration(config.Expiry)*time.Second,
 		),
 	}
+}
+
+// Template returns the TOML template for the LRU config.
+func (c LRUConfig) Template() string {
+	return `
+capacity = {{.EngineCache.Capacity}}
+expiry = {{.EngineCache.Expiry}}
+`
 }
