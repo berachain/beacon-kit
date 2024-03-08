@@ -26,6 +26,8 @@
 package logs
 
 import (
+	"errors"
+
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/sourcegraph/conc/iter"
@@ -89,7 +91,7 @@ func (f *Factory) ProcessLogs(
 		}
 		for _, err := range unwappableErr.Unwrap() {
 			// We skip ErrUnRegisteredLog errors.
-			if err != ErrUnRegisteredLog {
+			if !errors.Is(err, ErrUnRegisteredLog) {
 				return nil, multiErrs
 			}
 		}
