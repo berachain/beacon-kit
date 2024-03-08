@@ -29,11 +29,11 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // HeaderByNumber retrieves the block header by its number.
@@ -105,7 +105,6 @@ func (s *EngineClient) GetLogAt(
 	logIndex uint,
 ) ([]coretypes.Log, error) {
 	if blockHashOrNumb.BlockNumber != nil {
-
 		// TODO: Abstract into logs at hash
 		// TODO: Check Cache.
 
