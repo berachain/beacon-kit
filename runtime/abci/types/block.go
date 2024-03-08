@@ -28,7 +28,7 @@ package types
 import (
 	"time"
 
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 )
 
 // ABCIRequest is the interface for an ABCI request.

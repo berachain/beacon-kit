@@ -33,14 +33,14 @@ import (
 	"strings"
 	"testing"
 
+	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
+	beaconflags "github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/examples/beacond/cmd/root"
+	"github.com/berachain/beacon-kit/io/cli/prompt/mocks"
+	"github.com/berachain/beacon-kit/io/cli/tos"
+	"github.com/berachain/beacon-kit/io/file"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
-	beaconflags "github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
-	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
-	"github.com/itsdevbear/bolaris/io/cli/tos"
-	"github.com/itsdevbear/bolaris/io/file"
 	"github.com/stretchr/testify/mock"
 )
 

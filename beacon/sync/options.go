@@ -26,8 +26,8 @@
 package sync
 
 import (
-	"github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService returns an Option that sets the BaseService for the Service.

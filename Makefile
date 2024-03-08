@@ -324,7 +324,7 @@ gosec:
 #################
 
 pkgsite:
-	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/itsdevbear/bolaris/..."
+	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/berachain/beacon-kit/..."
 	@go run golang.org/x/pkgsite/cmd/pkgsite -http=:6060
 
 #################

@@ -29,9 +29,9 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm

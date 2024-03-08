@@ -26,8 +26,8 @@
 package client
 
 import (
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/ethereum/go-ethereum/common"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 // processPayloadStatusResult processes the payload status result and

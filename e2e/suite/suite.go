@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/kurtosis"
+	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"

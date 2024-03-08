@@ -30,12 +30,12 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/beacon/forkchoice"
-	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/async/dispatch"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/beacon/forkchoice"
+	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all

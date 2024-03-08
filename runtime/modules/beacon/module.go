@@ -27,9 +27,9 @@ package evm
 
 import (
 	"cosmossdk.io/core/appmodule"
+	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
+	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-	"github.com/itsdevbear/bolaris/runtime/modules/beacon/types"
 	"google.golang.org/grpc"
 )
 

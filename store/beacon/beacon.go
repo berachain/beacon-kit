@@ -30,9 +30,9 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/lib/store/collections"
-	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	"github.com/berachain/beacon-kit/lib/store/collections"
+	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
 )
 
 // Store is a wrapper around an sdk.Context

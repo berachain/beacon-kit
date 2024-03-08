@@ -32,7 +32,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/io/file"
+	"github.com/berachain/beacon-kit/io/file"
 )
 
 func TestHasDir(t *testing.T) {

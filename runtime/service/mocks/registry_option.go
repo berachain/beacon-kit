@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	service "github.com/itsdevbear/bolaris/runtime/service"
+	service "github.com/berachain/beacon-kit/runtime/service"
 	mock "github.com/stretchr/testify/mock"
 )
 

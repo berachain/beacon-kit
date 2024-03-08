@@ -30,9 +30,9 @@ import (
 	"errors"
 	"fmt"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/crypto/kzg"
 	"golang.org/x/sync/errgroup"
 )
 

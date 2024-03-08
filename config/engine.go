@@ -26,9 +26,9 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
+	"github.com/berachain/beacon-kit/config/flags"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/io/cli/parser"
 )
 
 // Engine conforms to the BeaconKitConfig interface.

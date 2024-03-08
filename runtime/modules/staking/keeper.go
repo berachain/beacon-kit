@@ -32,11 +32,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdkkeeper "cosmossdk.io/x/staking/keeper"
 	sdkstaking "cosmossdk.io/x/staking/types"
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 var _ ValsetChangeProvider = &Keeper{}

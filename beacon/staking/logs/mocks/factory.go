@@ -28,11 +28,11 @@ package mocks
 import (
 	"errors"
 
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 )
 
 // NewLogFromDeposit creates a new log from the given deposit.

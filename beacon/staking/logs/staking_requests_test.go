@@ -28,9 +28,9 @@ package logs_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	"github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
 	"github.com/stretchr/testify/require"
 )
 

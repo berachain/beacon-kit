@@ -29,8 +29,8 @@ import (
 	"context"
 	"errors"
 
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/beacon/sync"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/sync"
 )
 
 // postBlockProcess(.

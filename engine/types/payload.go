@@ -29,12 +29,12 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/config/version"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/math"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
-	"github.com/itsdevbear/bolaris/config/version"
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
-	"github.com/itsdevbear/bolaris/math"
 )
 
 type ExecutionPayloadEnvelope interface {

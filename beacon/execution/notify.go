@@ -30,11 +30,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/engine/client"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/engine/client"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.

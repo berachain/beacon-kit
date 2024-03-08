@@ -33,8 +33,8 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/runtime/service"
-	"github.com/itsdevbear/bolaris/runtime/service/mocks"
+	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/berachain/beacon-kit/runtime/service/mocks"
 	"github.com/stretchr/testify/mock"
 )
 

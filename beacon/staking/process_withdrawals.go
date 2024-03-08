@@ -28,7 +28,7 @@ package staking
 import (
 	"context"
 
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 func (s *Service) ProcessWithdrawal(

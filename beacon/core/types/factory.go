@@ -25,7 +25,7 @@
 
 package types
 
-import beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
+import beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
 
 // NewDeposit creates a new deposit.
 func NewDeposit(
