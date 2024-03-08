@@ -31,13 +31,12 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/execution"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
 func (s *Service) sendFCU(
 	ctx context.Context,
-	headEth1Hash common.Hash,
+	headEth1Hash primitives.ExecutionHash,
 ) error {
 	_, err := s.es.NotifyForkchoiceUpdate(
 		ctx, &execution.FCUConfig{
@@ -51,7 +50,7 @@ func (s *Service) sendFCU(
 // so via the local builder service.
 func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
-	headEth1Hash common.Hash,
+	headEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
 ) error {

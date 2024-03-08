@@ -29,8 +29,8 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/primitives"
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // TypeAllocator is a struct that stores registered types
@@ -40,8 +40,8 @@ import (
 // can be unmarshaled.
 type TypeAllocator struct {
 	abi       *ethabi.ABI
-	sigToName map[common.Hash]string
-	sigToType map[common.Hash]reflect.Type
+	sigToName map[primitives.ExecutionHash]string
+	sigToType map[primitives.ExecutionHash]reflect.Type
 	// We can add a callback here to handle the logs
 	// based on their names like the current callback logic.
 }
@@ -53,7 +53,7 @@ func (r *TypeAllocator) GetABI() *ethabi.ABI {
 
 // GetName returns the name of the event
 // corresponding to the signature.
-func (r *TypeAllocator) GetName(sig common.Hash) (string, error) {
+func (r *TypeAllocator) GetName(sig primitives.ExecutionHash) (string, error) {
 	name, ok := r.sigToName[sig]
 	if !ok {
 		return "", errors.New("event not found in registry")
@@ -63,7 +63,9 @@ func (r *TypeAllocator) GetName(sig common.Hash) (string, error) {
 
 // Allocate returns an empty object of the type,
 // which is registered with the signature.
-func (r *TypeAllocator) Allocate(sig common.Hash) (reflect.Value, error) {
+func (r *TypeAllocator) Allocate(
+	sig primitives.ExecutionHash,
+) (reflect.Value, error) {
 	eventType, ok := r.sigToType[sig]
 	if !ok {
 		return reflect.Value{}, errors.New("event type not found in registry")

@@ -31,14 +31,13 @@ import (
 	"github.com/berachain/beacon-kit/beacon/execution"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {
 	BuildLocalPayload(
 		ctx context.Context,
-		parentEth1Hash common.Hash,
+		parentEth1Hash primitives.ExecutionHash,
 		slot primitives.Slot,
 		timestamp uint64,
 		parentBlockRoot [32]byte,
@@ -58,7 +57,7 @@ type ExecutionService interface {
 		ctx context.Context,
 		slot primitives.Slot,
 		payload enginetypes.ExecutionPayload,
-		versionedHashes []common.Hash,
+		versionedHashes []primitives.ExecutionHash,
 		parentBlockRoot [32]byte,
 	) (bool, error)
 }

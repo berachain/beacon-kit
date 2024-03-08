@@ -26,7 +26,7 @@
 package logs
 
 import (
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // WithLogFactory returns an Option for setting the
@@ -35,7 +35,10 @@ func WithLogFactory(factory LogFactory) Option[Processor] {
 	return func(p *Processor) error {
 		p.factory = factory
 		registeredSigs := factory.GetRegisteredSignatures()
-		p.sigToCache = make(map[ethcommon.Hash]LogCache, len(registeredSigs))
+		p.sigToCache = make(
+			map[primitives.ExecutionHash]LogCache,
+			len(registeredSigs),
+		)
 		for _, sig := range registeredSigs {
 			p.sigToCache[sig] = NewCache()
 		}
@@ -53,7 +56,10 @@ func WithEngineClient(ec LogEngineClient) Option[Processor] {
 
 // WithLogCache returns an Option for setting the log cache for Processor.
 // (For testing purpose only).
-func WithLogCache(sig ethcommon.Hash, cache LogCache) Option[Processor] {
+func WithLogCache(
+	sig primitives.ExecutionHash,
+	cache LogCache,
+) Option[Processor] {
 	return func(p *Processor) error {
 		p.sigToCache[sig] = cache
 		return nil

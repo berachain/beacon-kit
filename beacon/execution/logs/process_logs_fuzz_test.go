@@ -32,6 +32,7 @@ import (
 	executionlogs "github.com/berachain/beacon-kit/beacon/execution/logs"
 	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
 	stakinglogs "github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
@@ -65,7 +66,7 @@ func FuzzProcessStakingLogs(f *testing.F) {
 			)
 			require.NoError(t, err)
 
-			blockNumToHash := make(map[uint64]ethcommon.Hash)
+			blockNumToHash := make(map[uint64]primitives.ExecutionHash)
 			for _, log := range logs {
 				blockNumToHash[log.BlockNumber] = log.BlockHash
 			}

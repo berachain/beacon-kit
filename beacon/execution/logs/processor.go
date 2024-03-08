@@ -31,7 +31,6 @@ import (
 
 	"cosmossdk.io/errors"
 	"github.com/berachain/beacon-kit/primitives"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -48,7 +47,7 @@ type Processor struct {
 	// factory is for creating objects from Ethereum logs.
 	factory LogFactory
 
-	sigToCache map[ethcommon.Hash]LogCache
+	sigToCache map[primitives.ExecutionHash]LogCache
 }
 
 // NewProcessor creates a new Processor.
@@ -65,7 +64,7 @@ func NewProcessor(opts ...Option[Processor]) (*Processor, error) {
 // ProcessEth1Block processes the logs in the given Ethereum block.
 func (p *Processor) ProcessEth1Block(
 	ctx context.Context,
-	blockHash ethcommon.Hash,
+	blockHash primitives.ExecutionHash,
 ) error {
 	header, err := p.engine.HeaderByHash(ctx, blockHash)
 	if err != nil {
@@ -128,7 +127,7 @@ func (p *Processor) processBlocksInBatch(
 		return 0, errors.Wrapf(err, "failed to get logs")
 	}
 
-	blockNumToHash := make(map[uint64]ethcommon.Hash)
+	blockNumToHash := make(map[uint64]primitives.ExecutionHash)
 	for i := start; i <= end; i++ {
 		var header *ethcoretypes.Header
 		header, err = p.engine.HeaderByNumber(ctx, new(big.Int).SetUint64(i))

@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // BeaconStorageBackend is an interface that wraps the basic BeaconState method.
@@ -46,7 +45,7 @@ type BeaconStorageBackend interface {
 type LogProcessor interface {
 	ProcessEth1Block(
 		ctx context.Context,
-		blockHash common.Hash,
+		blockHash primitives.ExecutionHash,
 	) error
 }
 
@@ -54,7 +53,7 @@ type LogProcessor interface {
 type FCUConfig struct {
 	// HeadEth1Hash is the hash of the head eth1 block we are updating the
 	// execution client's head to be.
-	HeadEth1Hash common.Hash
+	HeadEth1Hash primitives.ExecutionHash
 
 	// ProposingSlot is the slot that the execution client should propose a
 	// block

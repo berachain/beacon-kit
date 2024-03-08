@@ -53,10 +53,10 @@ func TestLogProcessor(t *testing.T) {
 	log := ethcoretypes.Log{
 		Address:     contractAddress,
 		BlockNumber: blockNum.Uint64(),
-		Topics:      []ethcommon.Hash{logSignature},
+		Topics:      []primitives.ExecutionHash{logSignature},
 	}
 
-	blockNumToHash := map[uint64]ethcommon.Hash{
+	blockNumToHash := map[uint64]primitives.ExecutionHash{
 		blockNum.Uint64(): blockHash,
 	}
 
@@ -78,7 +78,7 @@ func TestLogProcessor(t *testing.T) {
 
 	factory := &logsMocks.LogFactory{}
 	factory.EXPECT().GetRegisteredSignatures().
-		Return([]ethcommon.Hash{logSignature})
+		Return([]primitives.ExecutionHash{logSignature})
 	factory.EXPECT().GetRegisteredAddresses().
 		Return([]primitives.ExecutionAddress{contractAddress})
 	factory.EXPECT().ProcessLogs(

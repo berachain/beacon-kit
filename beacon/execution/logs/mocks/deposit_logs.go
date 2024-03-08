@@ -72,7 +72,7 @@ func CreateDepositLogs(
 			return nil, err
 		}
 		log := &coretypes.Log{
-			Topics:      []ethcommon.Hash{event.ID},
+			Topics:      []primitives.ExecutionHash{event.ID},
 			Data:        data,
 			BlockNumber: blkNum,
 			BlockHash:   ethcommon.BytesToHash([]byte{byte(blkNum)}),

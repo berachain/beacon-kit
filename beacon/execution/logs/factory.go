@@ -31,7 +31,6 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/primitives"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -131,8 +130,8 @@ func (f *Factory) IsRegisteredLog(log *ethtypes.Log) bool {
 
 // GetRegisteredSignatures returns the signatures of the events
 // that have been registered with the factory.
-func (f *Factory) GetRegisteredSignatures() []ethcommon.Hash {
-	signatures := make([]ethcommon.Hash, 0)
+func (f *Factory) GetRegisteredSignatures() []primitives.ExecutionHash {
+	signatures := make([]primitives.ExecutionHash, 0)
 	for _, allocator := range f.addressToAllocator {
 		for sig := range allocator.sigToName {
 			signatures = append(signatures, sig)

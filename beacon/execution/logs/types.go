@@ -31,7 +31,6 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/primitives"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -45,7 +44,7 @@ type LogContainer interface {
 	BlockNumber() uint64
 	LogIndex() uint64
 	Value() reflect.Value
-	Signature() ethcommon.Hash
+	Signature() primitives.ExecutionHash
 }
 
 type LogCache interface {
@@ -54,17 +53,17 @@ type LogCache interface {
 }
 
 type LogFactory interface {
-	GetRegisteredSignatures() []ethcommon.Hash
+	GetRegisteredSignatures() []primitives.ExecutionHash
 	GetRegisteredAddresses() []primitives.ExecutionAddress
 	ProcessLogs(
 		logs []ethcoretypes.Log,
-		blockNumToHash map[uint64]ethcommon.Hash,
+		blockNumToHash map[uint64]primitives.ExecutionHash,
 	) ([]LogContainer, error)
 }
 
 type LogEngineClient interface {
 	HeaderByHash(
-		ctx context.Context, hash ethcommon.Hash,
+		ctx context.Context, hash primitives.ExecutionHash,
 	) (*ethcoretypes.Header, error)
 	HeaderByNumber(
 		ctx context.Context, number *big.Int,

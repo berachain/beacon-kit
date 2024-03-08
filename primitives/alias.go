@@ -28,6 +28,12 @@ package primitives
 import "github.com/ethereum/go-ethereum/common"
 
 type (
+	// ExecutionAddress represents an address on the execution layer
+	// which is derived via secp256k1 w/recovery bit.
+	//
+	// Related: https://eips.ethereum.org/EIPS/eip-55
 	ExecutionAddress = common.Address
-	Keccak256Hash    = common.Hash
+	// ExecutionHash represents a hash on the execution layer which is
+	// currently a Keccak256 hash.
+	ExecutionHash = common.Hash
 )

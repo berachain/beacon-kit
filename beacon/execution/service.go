@@ -32,7 +32,6 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Service is responsible for delivering beacon chain notifications to
@@ -101,7 +100,7 @@ func (s *Service) NotifyNewPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
 	return s.notifyNewPayload(

@@ -28,7 +28,7 @@ package logs
 import (
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -65,7 +65,7 @@ func (f *Factory) ProcessLog(
 // block number and their indices.
 func (f *Factory) ProcessLogs(
 	logs []ethtypes.Log,
-	blockNumToHash map[uint64]common.Hash,
+	blockNumToHash map[uint64]primitives.ExecutionHash,
 ) ([]LogContainer, error) {
 	// Process logs in parallel
 	containers, multiErrs := iter.MapErr(

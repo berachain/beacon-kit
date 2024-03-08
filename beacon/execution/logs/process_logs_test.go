@@ -33,6 +33,7 @@ import (
 	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
 	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
@@ -65,7 +66,7 @@ func TestProcessStakingLogs(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	blockNumToHash := make(map[uint64]ethcommon.Hash)
+	blockNumToHash := make(map[uint64]primitives.ExecutionHash)
 	blockNumToHash[blkNum] = ethcommon.BytesToHash([]byte{byte(blkNum)})
 	containers, err := logFactory.ProcessLogs(mockLogs, blockNumToHash)
 	require.NoError(t, err)
@@ -94,7 +95,7 @@ func TestProcessStakingLogs(t *testing.T) {
 	)
 	require.NoError(t, err)
 	log := &coretypes.Log{
-		Topics:  []ethcommon.Hash{event.ID},
+		Topics:  []primitives.ExecutionHash{event.ID},
 		Data:    data,
 		Address: contractAddress,
 	}

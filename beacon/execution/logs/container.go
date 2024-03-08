@@ -28,7 +28,7 @@ package logs
 import (
 	"reflect"
 
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 var _ LogContainer = (*Container)(nil)
@@ -36,13 +36,13 @@ var _ LogContainer = (*Container)(nil)
 type Container struct {
 	value       reflect.Value
 	index       uint64
-	sig         ethcommon.Hash
+	sig         primitives.ExecutionHash
 	blockNumber uint64
-	blockHash   ethcommon.Hash
+	blockHash   primitives.ExecutionHash
 }
 
 // BlockHash returns the block hash of the log.
-func (c *Container) BlockHash() ethcommon.Hash {
+func (c *Container) BlockHash() primitives.ExecutionHash {
 	return c.blockHash
 }
 
@@ -62,6 +62,6 @@ func (c *Container) Value() reflect.Value {
 }
 
 // Signature returns the signature of the log.
-func (c *Container) Signature() ethcommon.Hash {
+func (c *Container) Signature() primitives.ExecutionHash {
 	return c.sig
 }
