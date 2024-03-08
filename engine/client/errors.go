@@ -227,12 +227,24 @@ func (s *EngineClient) handleRPCError(err error) error {
 	}
 }
 
+// httpTimeoutError defines an interface for timeout errors.
+// It includes methods for error message retrieval and timeout status checking.
 type httpTimeoutError interface {
+	// Error returns the error message.
 	Error() string
+	// Timeout indicates whether the error is a timeout error.
 	Timeout() bool
 }
 
+// isTimeout checks if the given error is a timeout error.
+// It asserts the error to the httpTimeoutError interface and checks its Timeout
+// status.
+// Returns true if the error is a timeout error, false otherwise.
 func isTimeout(e error) bool {
-	t, ok := e.(httpTimeoutError) //nolint:errorlint // from prysm.
+	if e == nil {
+		return false
+	}
+	//nolint:errorlint // by design.
+	t, ok := e.(httpTimeoutError)
 	return ok && t.Timeout()
 }
