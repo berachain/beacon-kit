@@ -23,21 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+pragma solidity 0.8.24;
 
-import beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-
-// NewDeposit creates a new deposit.
-func NewDeposit(
-	pubkey []byte,
-	stakingCredentials []byte,
-	amount uint64,
-	signature []byte,
-) *beacontypesv1.Deposit {
-	return &beacontypesv1.Deposit{
-		ValidatorPubkey:    pubkey,
-		StakingCredentials: stakingCredentials,
-		Amount:             amount,
-		Signature:          signature,
-	}
+interface IStakeERC20 {
+    /**
+     * @notice Burns the specified amount of tokens from the specified account.
+     * @param account The address of the account to burn from.
+     * @param amount The amount of tokens to burn.
+     */
+    function burn(address account, uint256 amount) external;
 }

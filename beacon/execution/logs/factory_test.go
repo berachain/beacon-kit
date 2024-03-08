@@ -42,7 +42,7 @@ import (
 
 func TestLogFactory(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	require.NoError(t, err)
 
 	stakingLogRequest, err := logs.NewStakingRequest(
@@ -56,13 +56,14 @@ func TestLogFactory(t *testing.T) {
 
 	deposit := beacontypes.NewDeposit(
 		[]byte("pubkey"),
+		[]byte("12345678901234567890123456789012"),
 		10000,
-		[]byte("12345678901234567890"),
+		[]byte("signature"),
 	)
-	require.NotNil(t, stakingAbi)
-	require.NotNil(t, stakingAbi.Events)
+	require.NotNil(t, depositContractAbi)
+	require.NotNil(t, depositContractAbi.Events)
 	log, err := mocks.NewLogFromDeposit(
-		stakingAbi.Events[logs.DepositName],
+		depositContractAbi.Events[logs.DepositName],
 		deposit,
 	)
 	require.NoError(t, err)
@@ -82,10 +83,10 @@ func TestLogFactory(t *testing.T) {
 	require.Equal(t, deposit, newDeposit)
 
 	withdrawal := enginetypes.NewWithdrawal([]byte("pubkey"), 10000)
-	require.NotNil(t, stakingAbi)
-	require.NotNil(t, stakingAbi.Events)
+	require.NotNil(t, depositContractAbi)
+	require.NotNil(t, depositContractAbi.Events)
 	log, err = mocks.NewLogFromWithdrawal(
-		stakingAbi.Events[logs.WithdrawalName],
+		depositContractAbi.Events[logs.WithdrawalName],
 		withdrawal,
 	)
 	require.NoError(t, err)

@@ -46,10 +46,10 @@ func CreateDepositLogs(
 		return nil, errors.New("invalid input")
 	}
 
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
-	} else if stakingAbi == nil {
+	} else if depositContractAbi == nil {
 		return nil, errors.New("abi not found")
 	}
 
@@ -60,12 +60,13 @@ func CreateDepositLogs(
 	for i := 0; i < numLogs; i++ {
 		deposit := beacontypes.NewDeposit(
 			[]byte("pubkey"),
+			[]byte("12345678901234567890123456789012"),
 			//#nosec:G701 // no overflow
 			uint64(i),
-			[]byte("12345678901234567890"),
+			[]byte("signature"),
 		)
 		var log *ethtypes.Log
-		events := stakingAbi.Events
+		events := depositContractAbi.Events
 		if events == nil {
 			return nil, errors.New("events not found")
 		}
