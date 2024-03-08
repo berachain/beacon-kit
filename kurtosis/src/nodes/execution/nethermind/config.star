@@ -70,4 +70,25 @@ VERBOSITY_LEVELS = {
 }
 
 USED_PORTS = defaults.USED_PORTS
-USED_PORTS_TEMPLATE = defaults.USED_PORTS_TEMPLATE
+USED_PORTS_TEMPLATE = {
+    RPC_PORT_ID: port_spec_lib.get_port_spec_template(RPC_PORT_NUM, shared_utils.TCP_PROTOCOL, wait="30s"),
+    WS_PORT_ID: port_spec_lib.get_port_spec_template(WS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait="30s"),
+    TCP_DISCOVERY_PORT_ID: port_spec_lib.get_port_spec_template(
+        DISCOVERY_PORT_NUM,
+        shared_utils.TCP_PROTOCOL,
+        wait="30s"
+    ),
+    UDP_DISCOVERY_PORT_ID: port_spec_lib.get_port_spec_template(
+        DISCOVERY_PORT_NUM,
+        shared_utils.UDP_PROTOCOL,
+        wait="30s"
+    ),
+    ENGINE_RPC_PORT_ID: port_spec_lib.get_port_spec_template(
+        ENGINE_RPC_PORT_NUM,
+        shared_utils.TCP_PROTOCOL,
+        wait="30s"
+    ),
+    # METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
+    #     METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL
+    # ),
+}
