@@ -34,7 +34,7 @@ import (
 var _ LogContainer = (*Container)(nil)
 
 type Container struct {
-	value       *reflect.Value
+	value       reflect.Value
 	index       uint64
 	sig         ethcommon.Hash
 	blockNumber uint64
@@ -57,7 +57,7 @@ func (c *Container) LogIndex() uint64 {
 }
 
 // Value returns the value of the log.
-func (c *Container) Value() *reflect.Value {
+func (c *Container) Value() reflect.Value {
 	return c.value
 }
 

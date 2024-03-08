@@ -130,7 +130,7 @@ func (p *Processor) processBlocksInBatch(
 	blockNumToHash := make(map[uint64]gethcommon.Hash)
 	for i := start; i <= end; i++ {
 		var header *gethcoretypes.Header
-		header, err = p.engine.HeaderByNumber(ctx, big.NewInt(int64(i)))
+		header, err = p.engine.HeaderByNumber(ctx, new(big.Int).SetUint64(i))
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed to get block header")
 		}

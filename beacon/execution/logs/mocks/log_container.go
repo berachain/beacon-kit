@@ -161,20 +161,18 @@ func (_c *LogContainer_Signature_Call) RunAndReturn(run func() common.Hash) *Log
 }
 
 // Value provides a mock function with given fields:
-func (_m *LogContainer) Value() *reflect.Value {
+func (_m *LogContainer) Value() reflect.Value {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for Value")
 	}
 
-	var r0 *reflect.Value
-	if rf, ok := ret.Get(0).(func() *reflect.Value); ok {
+	var r0 reflect.Value
+	if rf, ok := ret.Get(0).(func() reflect.Value); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*reflect.Value)
-		}
+		r0 = ret.Get(0).(reflect.Value)
 	}
 
 	return r0
@@ -197,12 +195,12 @@ func (_c *LogContainer_Value_Call) Run(run func()) *LogContainer_Value_Call {
 	return _c
 }
 
-func (_c *LogContainer_Value_Call) Return(_a0 *reflect.Value) *LogContainer_Value_Call {
+func (_c *LogContainer_Value_Call) Return(_a0 reflect.Value) *LogContainer_Value_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *LogContainer_Value_Call) RunAndReturn(run func() *reflect.Value) *LogContainer_Value_Call {
+func (_c *LogContainer_Value_Call) RunAndReturn(run func() reflect.Value) *LogContainer_Value_Call {
 	_c.Call.Return(run)
 	return _c
 }

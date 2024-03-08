@@ -50,7 +50,7 @@ func (f *Factory) ProcessLog(
 		return nil, err
 	}
 	return &Container{
-		value:       &val,
+		value:       val,
 		sig:         log.Topics[0],
 		index:       uint64(log.Index),
 		blockNumber: log.BlockNumber,

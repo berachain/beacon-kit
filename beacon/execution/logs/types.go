@@ -44,7 +44,7 @@ type LogRequest struct {
 type LogContainer interface {
 	BlockNumber() uint64
 	LogIndex() uint64
-	Value() *reflect.Value
+	Value() reflect.Value
 	Signature() ethcommon.Hash
 }
 
