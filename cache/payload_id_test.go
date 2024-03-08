@@ -28,9 +28,9 @@ package cache_test
 import (
 	"testing"
 
-	"github.com/itsdevbear/bolaris/cache"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/cache"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/stretchr/testify/require"
 )
 

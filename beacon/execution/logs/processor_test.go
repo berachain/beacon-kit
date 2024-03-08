@@ -31,11 +31,11 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/berachain/beacon-kit/beacon/execution/logs"
+	logsMocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/execution/logs"
-	logsMocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
-	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/require"
 )
 

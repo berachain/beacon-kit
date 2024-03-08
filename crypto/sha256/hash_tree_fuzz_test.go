@@ -29,7 +29,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 )
 
 func FuzzHashTreeRoot(f *testing.F) {

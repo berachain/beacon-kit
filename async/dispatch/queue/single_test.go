@@ -29,7 +29,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/async/dispatch/queue"
+	"github.com/berachain/beacon-kit/async/dispatch/queue"
 )
 
 func TestSingleDispatchQueueReplace(t *testing.T) {

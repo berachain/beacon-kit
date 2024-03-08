@@ -30,9 +30,9 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 const (

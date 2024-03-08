@@ -30,9 +30,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/io/jwt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/io/jwt"
 )
 
 func TestNewFromHex(t *testing.T) {

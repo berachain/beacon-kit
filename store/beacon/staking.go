@@ -26,8 +26,8 @@
 package beacon
 
 import (
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // EnqueueDeposits pushes the deposits to the queue.

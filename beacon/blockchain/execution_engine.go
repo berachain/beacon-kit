@@ -29,9 +29,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/execution"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // sendFCU sends a forkchoice update to the execution client.

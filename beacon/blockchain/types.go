@@ -28,10 +28,10 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/beacon/execution"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // LocalBuilder is the interface for the builder service.

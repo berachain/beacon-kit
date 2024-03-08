@@ -53,7 +53,7 @@ done
 
 # move proto files to the right places
 echo "--> Copying generated proto files to the right places"
-cp -r github.com/itsdevbear/bolaris/* ../
+cp -r github.com/berachain/beacon-kit/* ../
 rm -rf github.com
 cd ../
 

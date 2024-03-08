@@ -28,7 +28,7 @@ package beacon.core.types.v1;
 
 import "ethereum/eth/ext/options.proto";
 
-option go_package = "github.com/itsdevbear/bolaris/beacon/core/types/v1;typesv1";
+option go_package = "github.com/berachain/beacon-kit/beacon/core/types/v1;typesv1";
 
 // Deposit into the consensus layer from the deposit contract in the execution layer.
 message Deposit {

@@ -26,7 +26,7 @@
 package blockchain
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // Service is the blockchain service.

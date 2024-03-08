@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 	"github.com/stretchr/testify/require"
 )
 

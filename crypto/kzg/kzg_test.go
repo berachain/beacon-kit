@@ -28,7 +28,7 @@ package kzg_test
 import (
 	"testing"
 
-	"github.com/itsdevbear/bolaris/crypto/kzg"
+	"github.com/berachain/beacon-kit/crypto/kzg"
 )
 
 func TestConvertCommitmentToVersionedHash(t *testing.T) {

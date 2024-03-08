@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	logs "github.com/itsdevbear/bolaris/beacon/execution/logs"
+	logs "github.com/berachain/beacon-kit/beacon/execution/logs"
 	mock "github.com/stretchr/testify/mock"
 )
 

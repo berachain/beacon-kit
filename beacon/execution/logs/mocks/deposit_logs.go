@@ -28,11 +28,11 @@ package mocks
 import (
 	"errors"
 
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // CreateDepositLogs creates mock deposit logs.

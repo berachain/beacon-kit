@@ -26,7 +26,7 @@
 package staking
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService sets the BaseService for the Service.

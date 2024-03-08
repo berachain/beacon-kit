@@ -26,7 +26,7 @@
 package logs
 
 import (
-	"github.com/itsdevbear/bolaris/lib/cache"
+	"github.com/berachain/beacon-kit/lib/cache"
 )
 
 type Cache struct {

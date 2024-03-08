@@ -30,7 +30,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/itsdevbear/bolaris/lib/cache"
+	"github.com/berachain/beacon-kit/lib/cache"
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
 )
 

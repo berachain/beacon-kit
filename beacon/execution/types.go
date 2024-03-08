@@ -28,10 +28,10 @@ package execution
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BeaconStorageBackend is an interface that wraps the basic BeaconState method.

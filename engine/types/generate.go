@@ -26,9 +26,9 @@
 package enginetypes
 
 import (
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // For cleanliness we put all go:generate directives and marshalling overrides

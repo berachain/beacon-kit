@@ -30,11 +30,11 @@ import (
 
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	beaconstore "github.com/itsdevbear/bolaris/store/beacon"
 	"github.com/stretchr/testify/require"
 )
 

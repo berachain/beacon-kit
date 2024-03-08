@@ -3,9 +3,8 @@
 package mocks
 
 import (
+	logs "github.com/berachain/beacon-kit/beacon/execution/logs"
 	common "github.com/ethereum/go-ethereum/common"
-	logs "github.com/itsdevbear/bolaris/beacon/execution/logs"
-
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/ethereum/go-ethereum/core/types"
