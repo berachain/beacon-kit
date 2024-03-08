@@ -244,9 +244,7 @@ func isTimeout(e error) bool {
 	if e == nil {
 		return false
 	}
-	var t httpTimeoutError
-	if errors.As(e, &t) {
-		return t.Timeout()
-	}
-	return false
+	//nolint:errorlint // by design.
+	t, ok := e.(httpTimeoutError)
+	return ok && t.Timeout()
 }
