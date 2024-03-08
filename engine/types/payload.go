@@ -119,6 +119,11 @@ func (d *ExecutableDataDeneb) Version() int {
 	return version.Deneb
 }
 
+// IsNil checks if the ExecutableDataDeneb is nil.
+func (d *ExecutableDataDeneb) IsNil() bool {
+	return d == nil
+}
+
 // IsBlinded checks if the ExecutableDataDeneb is blinded.
 func (d *ExecutableDataDeneb) IsBlinded() bool {
 	return false

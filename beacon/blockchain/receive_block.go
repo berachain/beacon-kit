@@ -158,7 +158,7 @@ func (s *Service) validateExecutionOnBlock(
 
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
-	if payload == nil {
+	if payload.IsNil() {
 		return false, errors.New("no payload in beacon block")
 	}
 
