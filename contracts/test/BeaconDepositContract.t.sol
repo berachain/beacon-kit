@@ -298,12 +298,15 @@ contract DepositContractTest is SoladyTest {
         depositContract.withdraw(VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9);
     }
 
-    function testFuzz_DepositNativeWrongMinAmount(uint256 amount) public {
+    function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther)
+        public
+    {
         vm.revertTo(nativeSnapshot);
-        amount = _bound(amount, 1, 31 gwei);
-        vm.deal(depositor, amount);
+        amountInEther = _bound(amountInEther, 1, 31);
+        uint256 amountInGwei = amountInEther * 1 gwei;
+        vm.deal(depositor, amountInGwei);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit{ value: amount }(
+        depositContract.deposit{ value: amountInGwei }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
     }
