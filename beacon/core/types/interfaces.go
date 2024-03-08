@@ -46,6 +46,7 @@ type ReadOnlyBeaconBlock interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+	IsNil() bool
 	GetSlot() primitives.Slot
 	// TODO ProposerAddress() []byte
 	GetBody() BeaconBlockBody

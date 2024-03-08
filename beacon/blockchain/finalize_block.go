@@ -67,12 +67,12 @@ func (s *Service) FinalizeBeaconBlock(
 		}()
 	}()
 
-	if err = beacontypes.BeaconBlockIsNil(blk); err != nil {
-		return err
+	if blk.IsNil() {
+		return beacontypes.ErrNilBlock
 	}
 
 	payload := blk.GetBody().GetExecutionPayload()
-	if payload == nil {
+	if payload.IsNil() {
 		// TODO: Slash the proposer for not including a payload.
 		return ErrNoPayloadInBeaconBlock
 	}
