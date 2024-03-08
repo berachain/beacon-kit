@@ -31,7 +31,6 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/stretchr/testify/suite"
 )
@@ -45,73 +44,19 @@ var Run = suite.Run
 // KurtosisE2ESuite.
 type KurtosisE2ESuite struct {
 	suite.Suite
-	cfg    *kurtosis.E2ETestConfig
-	logger log.Logger
-	ctx    context.Context
-	kCtx   *kurtosis_context.KurtosisContext
-
-	// enclave is the enclave running the beacon-kit network
-	// that is currently under test.
-	enclave *enclaves.EnclaveContext
+	cfg              *kurtosis.E2ETestConfig
+	logger           log.Logger
+	ctx              context.Context
+	kCtx             *kurtosis_context.KurtosisContext
+	enclave          *enclaves.EnclaveContext
+	consensusClients map[string]*ConsensusClient
+	executionClients map[string]*ExecutionClient
 }
 
-// SetupSuite executes before the test suite begins execution.
-func (s *KurtosisE2ESuite) SetupSuite() {
-	s.SetupSuiteWithOptions()
-}
-
-// Option is a function that sets a field on the KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
-	// Setup some sane defaults.
-	s.cfg = kurtosis.DefaultE2ETestConfig()
-	s.ctx = context.Background()
-	s.logger = log.NewTestLogger(s.T())
-
-	// Apply all the provided options, this allows
-	// the test suite to be configured in a flexible manner by
-	// the caller (i.e overriding defaults).
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			s.Require().NoError(err, "Error applying option")
-		}
-	}
-
-	var err error
-	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
-	s.Require().NoError(err)
-	s.logger.Info("destroying any existing enclave...")
-	//#nosec:G703 // its okay if this errors out. It will error out
-	// if there is no enclave to destroy.
-	_ = s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave")
-
-	s.logger.Info("creating enclave...")
-	s.enclave, err = s.kCtx.CreateEnclave(s.ctx, "e2e-test-enclave")
-	s.Require().NoError(err)
-
-	s.logger.Info(
-		"spinning up enclave...",
-		"num_participants",
-		len(s.cfg.Participants),
-	)
-	result, err := s.enclave.RunStarlarkPackageBlocking(
-		s.ctx,
-		"../kurtosis",
-		starlark_run_config.NewRunStarlarkConfig(
-			starlark_run_config.WithSerializedParams(
-				string(s.cfg.MustMarshalJSON()),
-			),
-		),
-	)
-	s.Require().NoError(err, "Error running Starlark package")
-	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
-	s.Require().Empty(result.ValidationErrors)
-}
-
-// TearDownSuite cleans up resources after all tests have been executed.
-// this function executes after all tests executed.
-func (s *KurtosisE2ESuite) TearDownSuite() {
-	s.Logger().Info("destroying enclave...")
-	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
+// ConsensusClients returns the consensus clients associated with the
+// KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) ConsensusClients() map[string]*ConsensusClient {
+	return s.consensusClients
 }
 
 // Ctx returns the context associated with the KurtosisE2ESuite.
@@ -131,6 +76,12 @@ func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
 // the Kurtosis testnet, including creating and managing enclaves.
 func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 	return s.kCtx
+}
+
+// ExecutionClients returns the execution clients associated with the
+// KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) ExecutionClients() map[string]*ExecutionClient {
+	return s.executionClients
 }
 
 // Logger returns the logger for the test suite.
