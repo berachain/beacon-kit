@@ -32,7 +32,7 @@ import (
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
@@ -83,46 +83,47 @@ func NewStore(
 }
 
 // SetSafeEth1BlockHash sets the safe block hash in the store.
-func (s *Store) SetSafeEth1BlockHash(blockHash common.Hash) {
+func (s *Store) SetSafeEth1BlockHash(blockHash primitives.ExecutionHash) {
 	if err := s.fcSafeEth1BlockHash.Set(s.ctx, blockHash); err != nil {
 		panic(err)
 	}
 }
 
-// GetSafeEth1BlockHash retrieves the safe block hash from the store.
-func (s *Store) GetSafeEth1BlockHash() common.Hash {
+// GetSafeEth1BlockHash retrieves the sprimitives.ExecutionHashash from the
+// store.
+func (s *Store) GetSafeEth1BlockHash() primitives.ExecutionHash {
 	safeHash, err := s.fcSafeEth1BlockHash.Get(s.ctx)
 	if err != nil {
-		safeHash = common.Hash{}
+		safeHash = primitives.ExecutionHash{}
 	}
 	return safeHash
 }
 
 // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (s *Store) SetFinalizedEth1BlockHash(blockHash common.Hash) {
+func (s *Store) SetFinalizedEth1BlockHash(blockHash primitives.ExecutionHash) {
 	if err := s.fcFinalizedEth1BlockHash.Set(s.ctx, blockHash); err != nil {
 		panic(err)
 	}
 }
 
 // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
-func (s *Store) GetFinalizedEth1BlockHash() common.Hash {
+func (s *Store) GetFinalizedEth1BlockHash() primitives.ExecutionHash {
 	finalHash, err := s.fcFinalizedEth1BlockHash.Get(s.ctx)
 	if err != nil {
-		finalHash = common.Hash{}
+		finalHash = primitives.ExecutionHash{}
 	}
 	return finalHash
 }
 
 // SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
-func (s *Store) SetGenesisEth1Hash(eth1GenesisHash common.Hash) {
+func (s *Store) SetGenesisEth1Hash(eth1GenesisHash primitives.ExecutionHash) {
 	if err := s.eth1GenesisHash.Set(s.ctx, eth1GenesisHash); err != nil {
 		panic(err)
 	}
 }
 
 // GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
-func (s *Store) GenesisEth1Hash() common.Hash {
+func (s *Store) GenesisEth1Hash() primitives.ExecutionHash {
 	genesisHash, err := s.eth1GenesisHash.Get(s.ctx)
 	if err != nil {
 		panic("failed to get genesis eth1hash")

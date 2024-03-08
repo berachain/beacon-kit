@@ -38,7 +38,7 @@ export default defineConfig({
   topNav: [
     {
       text: 'Quick Start',
-      link: '/'
+      link: '/what-is-beaconkit'
     },
     {
       text: 'Concepts',
@@ -57,7 +57,7 @@ export default defineConfig({
     '/': [
       {
         text: 'What Is BeaconKit?',
-        link: '/'
+        link: '/what-is-beaconkit'
       },
       {
         text: 'Quick Start: Run A Node',

@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/config/version"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/math"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 )
@@ -95,23 +95,23 @@ type executionPayloadEnvelopeMarshaling struct {
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
-	ParentHash    common.Hash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  common.Address `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     common.Hash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  common.Hash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        common.Hash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        uint64         `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      uint64         `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       uint64         `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     uint64         `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte         `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas []byte         `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     common.Hash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte       `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   uint64         `json:"blobGasUsed"`
-	ExcessBlobGas uint64         `json:"excessBlobGas"`
+	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+	FeeRecipient  primitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+	StateRoot     primitives.ExecutionHash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  primitives.ExecutionHash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	LogsBloom     []byte                      `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+	Random        primitives.ExecutionHash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Number        uint64                      `json:"blockNumber"                  gencodec:"required"`
+	GasLimit      uint64                      `json:"gasLimit"                     gencodec:"required"`
+	GasUsed       uint64                      `json:"gasUsed"                      gencodec:"required"`
+	Timestamp     uint64                      `json:"timestamp"                    gencodec:"required"`
+	ExtraData     []byte                      `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+	BaseFeePerGas []byte                      `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
+	BlobGasUsed   uint64                      `json:"blobGasUsed"`
+	ExcessBlobGas uint64                      `json:"excessBlobGas"`
 }
 
 // Version returns the version of the ExecutableDataDeneb.
@@ -130,12 +130,12 @@ func (d *ExecutableDataDeneb) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() common.Hash {
+func (d *ExecutableDataDeneb) GetParentHash() primitives.ExecutionHash {
 	return d.ParentHash
 }
 
 // GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() common.Hash {
+func (d *ExecutableDataDeneb) GetBlockHash() primitives.ExecutionHash {
 	return d.BlockHash
 }
 

@@ -97,7 +97,8 @@ func tryMatchInputs(implMethod reflect.Method, abiMethod abi.Event) bool {
 
 	// Validate that the input args types match ABI input arg types, excluding
 	// the first two args (receiver contract and Context). // We also need to
-	// handle topics separately, since they should all be common.Hash
+	// handle topics separately, since they should all be
+	// primitives.ExecutionHash
 	var i = 2
 	for ; i < implMethodNumIn; i++ {
 		if !abiMethod.Inputs[i-2].Indexed {

@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	"github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/primitives"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -72,7 +71,7 @@ func CreateDepositLogs(
 			return nil, err
 		}
 		log := &coretypes.Log{
-			Topics:      []ethcommon.Hash{event.ID},
+			Topics:      []primitives.ExecutionHash{event.ID},
 			Data:        data,
 			BlockNumber: blkNum,
 			BlockHash:   [32]byte{byte(blkNum)},

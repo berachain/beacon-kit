@@ -42,7 +42,7 @@ import (
 // returns the payload ID.
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,
@@ -67,6 +67,7 @@ func (s *Service) BuildLocalPayload(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
 		"parent_eth1_hash", parentEth1Hash,
+		// TODO: don't use execution hash for beacon root.
 		"parent_block_root", common.Hash(parentBlockRoot),
 	)
 	payloadID, err = s.es.NotifyForkchoiceUpdate(
@@ -108,7 +109,7 @@ func (s *Service) GetBestPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
@@ -184,7 +185,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 // payload from the execution client.
 func (s *Service) buildAndWaitForLocalPayload(
 	ctx context.Context,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,

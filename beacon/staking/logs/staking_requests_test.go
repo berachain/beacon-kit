@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/staking/logs"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 )
@@ -39,20 +39,20 @@ func TestLogSignatures(t *testing.T) {
 		ethcrypto.Keccak256Hash(
 			[]byte(logs.DepositName+"(bytes,bytes,uint64,bytes)"),
 		),
-		common.Hash(logs.DepositSig),
+		primitives.ExecutionHash(logs.DepositSig),
 	)
 
 	require.Equal(t,
 		ethcrypto.Keccak256Hash(
 			[]byte(logs.RedirectName+"(bytes,bytes,bytes,uint64)"),
 		),
-		common.Hash(logs.RedirectSig),
+		primitives.ExecutionHash(logs.RedirectSig),
 	)
 
 	require.Equal(t,
 		ethcrypto.Keccak256Hash(
 			[]byte(logs.WithdrawalName+"(bytes,bytes,bytes,uint64)"),
 		),
-		common.Hash(logs.WithdrawalSig),
+		primitives.ExecutionHash(logs.WithdrawalSig),
 	)
 }
