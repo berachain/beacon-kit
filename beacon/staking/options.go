@@ -26,6 +26,7 @@
 package staking
 
 import (
+	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -42,7 +43,7 @@ func WithBaseService(
 // WithValsetChangeProvider returns an Option that sets
 // the ValsetChangeProvider for the Service.
 func WithValsetChangeProvider(
-	vcp ValsetChangeProvider,
+	vcp staking.ValsetChangeProvider,
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.vcp = vcp

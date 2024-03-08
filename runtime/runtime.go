@@ -29,6 +29,8 @@ package runtime
 import (
 	"context"
 	"cosmossdk.io/log"
+	"cosmossdk.io/x/staking/keeper"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
@@ -53,10 +55,11 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg      *config.Config
-	logger   log.Logger
-	fscp     BeaconStorageBackend
-	services *service.Registry
+	cfg           *config.Config
+	logger        log.Logger
+	fscp          BeaconStorageBackend
+	services      *service.Registry
+	stakingKeeper keeper.Keeper
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -84,6 +87,7 @@ func NewDefaultBeaconKitRuntime(
 	vcp ValsetChangeProvider,
 	logger log.Logger,
 	blsSigner bls.BlsSigner,
+	stakingKeeper keeper.Keeper,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -200,12 +204,16 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
+	// REMOVE
+	fmt.Printf("AAAAAAA -remove: %#v\n", vcp)
+
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
 		WithBeaconStorageBackend(bsb),
 		WithConfig(cfg),
 		WithLogger(logger),
 		WithServiceRegistry(svcRegistry),
+		WithStakingKeeper(stakingKeeper),
 	)
 }
 

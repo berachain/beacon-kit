@@ -27,6 +27,7 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
+	"cosmossdk.io/x/staking/keeper"
 	"github.com/itsdevbear/bolaris/config"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
@@ -63,6 +64,15 @@ func WithLogger(logger log.Logger) Option {
 func WithBeaconStorageBackend(fscp BeaconStorageBackend) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
+		return nil
+	}
+}
+
+// WithStakingKeeper sets the ValsetChangeProvider
+// of the BeaconKitRuntime.
+func WithStakingKeeper(stakingKeeper keeper.Keeper) Option {
+	return func(r *BeaconKitRuntime) error {
+		r.stakingKeeper = stakingKeeper
 		return nil
 	}
 }

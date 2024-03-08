@@ -26,6 +26,7 @@
 package staking
 
 import (
+	"github.com/itsdevbear/bolaris/runtime/modules/staking"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
@@ -34,5 +35,5 @@ type Service struct {
 	service.BaseService
 
 	// vcp is responsible for applying validator set changes.
-	vcp ValsetChangeProvider
+	vcp staking.ValsetChangeProvider
 }

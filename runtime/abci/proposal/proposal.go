@@ -26,6 +26,8 @@
 package proposal
 
 import (
+	"cosmossdk.io/x/staking/keeper"
+	"fmt"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -49,6 +51,7 @@ type Handler struct {
 	healthService  *health.Service
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
+	stakingKeeper  keeper.Keeper
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -59,6 +62,7 @@ func NewHandler(
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
+	stakingKeeper keeper.Keeper,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -67,6 +71,7 @@ func NewHandler(
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
+		stakingKeeper:  stakingKeeper,
 	}
 }
 
@@ -130,8 +135,13 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 
-	//// verify Randao reveal
-	//reveal := block.GetReveal()
+	// Validate Reveal
+	v, err := h.stakingKeeper.ValidatorByConsensusAddress.Get(ctx, req.ProposerAddress)
+	if err != nil {
+		logger.Warn("failed to get validator", "error", err)
+		panic("failed to get validator by consensus address")
+	}
+	fmt.Printf("proposer Address: %v\n", v)
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(

@@ -27,7 +27,6 @@ package runtime
 
 import (
 	"context"
-
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"

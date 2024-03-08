@@ -73,6 +73,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		chainService,
 		nextPrepare,
 		nextProcess,
+		r.stakingKeeper,
 	)
 
 	preBlocker := preblock.NewBeaconPreBlockHandler(

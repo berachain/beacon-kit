@@ -28,28 +28,24 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"cosmossdk.io/x/staking/keeper"
+	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/config"
 	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
 )
 
-//nolint:gochecknoinits // GRRRR fix later.
-func init() {
-	if err := depinject.Inject(
-		depinject.Provide(ProvideRuntime),
-	); err != nil {
-		panic(err)
-	}
-}
-
 // DepInjectInput is the input for the dep inject framework.
+//
+//nolint:gochecknoinits // GRRRR fix later.
 type DepInjectInput struct {
 	depinject.In
 
-	Config *config.Config
-	Bsp    BeaconStorageBackend
-	Vcp    ValsetChangeProvider
-	Logger log.Logger
-	Signer bls12381.BlsSigner
+	Config        *config.Config
+	Bsp           BeaconStorageBackend
+	Vcp           staking.ValsetChangeProvider
+	StakingKeeper keeper.Keeper
+	Logger        log.Logger
+	Signer        bls12381.BlsSigner
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -67,6 +63,7 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		in.Vcp,
 		in.Logger,
 		in.Signer,
+		in.StakingKeeper,
 	)
 	if err != nil {
 		panic(err)

@@ -66,7 +66,7 @@ func NewProcessor(
 //
 //	return bls.Sign(privkey, signing_root)
 func (rs *Processor) BuildReveal(
-	ctx context.Context,
+	_ context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
 	domain := rs.getDomain(epoch)
@@ -93,7 +93,7 @@ func (rs *Processor) ProcessRandao(
 	prevReveal types.Reveal,
 ) error {
 	st := rs.stateProvider.BeaconState(ctx)
-	signingRoot := rs.computeSigningRoot(epoch, rs.getDomain(epoch, nil))
+	signingRoot := rs.computeSigningRoot(epoch, rs.getDomain(epoch))
 
 	rs.signer.Verify(proposerPubkey, signingRoot, prevReveal)
 
@@ -133,8 +133,8 @@ func (rs *Processor) getDomain(
 // VerifyReveal verifies the reveal of the proposer.
 func (rs *Processor) VerifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
-	signature [bls12381.SignatureLength]byte,
+	msg []byte,
 	reveal types.Reveal,
 ) bool {
-	return rs.signer.Verify(proposerPubkey, reveal[:], signature)
+	return rs.signer.Verify(proposerPubkey, msg, reveal)
 }

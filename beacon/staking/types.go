@@ -27,6 +27,8 @@ package staking
 
 import (
 	"context"
+	sdkcollections "cosmossdk.io/collections"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
@@ -39,4 +41,5 @@ type ValsetChangeProvider interface {
 		[]*beacontypesv1.Deposit,
 		[]*enginev1.Withdrawal,
 	) error
+	ValidatorByConsensusAddress() sdkcollections.Map[sdk.ConsAddress, sdk.ValAddress]
 }
