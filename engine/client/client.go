@@ -71,15 +71,20 @@ func New(opts ...Option) *EngineClient {
 	ec := &EngineClient{
 		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
+		statusErrMu:  new(sync.RWMutex),
 	}
-
-	ec.statusErrMu = new(sync.RWMutex)
 	ec.statusErrCond = sync.NewCond(ec.statusErrMu)
 
+	// Apply the options to the engine client.
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
 			panic(err)
 		}
+	}
+
+	// If the engine cache is not set, we create a new one.
+	if ec.engineCache == nil {
+		ec.engineCache = cache.NewEngineCacheWithDefaultConfig()
 	}
 
 	return ec

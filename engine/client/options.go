@@ -71,9 +71,9 @@ func WithLogger(logger log.Logger) Option {
 
 // WithCacheConfig is an option to create a new cache
 // with the given config for the EngineClient.
-func WithCacheConfig(config cache.EngineCacheConfig) Option {
+func WithCacheConfig(config cache.Config) Option {
 	return func(s *EngineClient) error {
-		s.engineCache = cache.NewEngineCacheWithConfig(config)
+		s.engineCache = cache.NewEngineCache(config)
 		return nil
 	}
 }

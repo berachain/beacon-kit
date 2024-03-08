@@ -28,6 +28,7 @@ package cache_test
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
@@ -36,16 +37,12 @@ import (
 )
 
 func TestEth1HeaderCache(t *testing.T) {
-	cacheConfig := cache.EngineCacheConfig{
-		Cfgs: map[string]cache.LRUConfig{
-			cache.HeaderKey: {
-				Capacity: 20,
-				Expiry:   5,
-			},
-		},
+	cacheConfig := cache.Config{
+		HeaderSize: 10,
+		HeaderTTL:  5 * time.Second,
 	}
 
-	cacheUnderTest := cache.NewEngineCacheWithConfig(cacheConfig)
+	cacheUnderTest := cache.NewEngineCache(cacheConfig)
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		h, ok := cacheUnderTest.HeaderByNumber(0)

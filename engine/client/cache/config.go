@@ -25,45 +25,25 @@
 
 package cache
 
-import (
-	"time"
+import "time"
 
-	lru "github.com/hashicorp/golang-lru/v2/expirable"
+const (
+	defaultHeaderSize = 20
+	defaultHeaderTTL  = 10 * time.Minute
 )
 
-// LRUConfig is the configuration for an LRU cache.
-type LRUConfig struct {
-	// Capacity is the maximum number of items that the LRU can hold.
-	Capacity int `mapstructure:"capacity"`
-	// Expiry is the time in seconds after which the LRU is evicted.
-	Expiry int `mapstructure:"expiry"`
+// Config is the configuration for an EngineCache.
+type Config struct {
+	// HeaderSize is the size of the header cache.
+	HeaderSize int `mapstructure:"header-size"`
+	// HeaderTTL is the time-to-live for headers in the cache.
+	HeaderTTL time.Duration `mapstructure:"header-ttl"`
 }
 
-// LRU is an LRU cache.
-type LRU[K comparable, V any] struct {
-	*lru.LRU[K, V]
-}
-
-// NewLRUWithConfig creates a new LRU with the given config.
-func NewLRUWithConfig[K comparable, V any](
-	config LRUConfig,
-) *LRU[K, V] {
-	if config == (LRUConfig{}) {
-		return nil
+// DefaultConfig returns the default configuration for an EngineCache.
+func DefaultConfig() Config {
+	return Config{
+		HeaderSize: defaultHeaderSize,
+		HeaderTTL:  defaultHeaderTTL,
 	}
-	return &LRU[K, V]{
-		lru.NewLRU[K, V](
-			config.Capacity,
-			nil,
-			time.Duration(config.Expiry)*time.Second,
-		),
-	}
-}
-
-// Template returns the TOML template for the LRU config.
-func (c LRUConfig) Template() string {
-	return `
-capacity = {{.EngineCache.Capacity}}
-expiry = {{.EngineCache.Expiry}}
-`
 }

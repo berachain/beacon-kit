@@ -26,57 +26,57 @@
 package cache
 
 import (
-	"fmt"
-
 	gethcommon "github.com/ethereum/go-ethereum/common"
-	gethcoretypes "github.com/ethereum/go-ethereum/core/types"
-)
-
-const (
-	// HeaderKey is the key for the header cache.
-	HeaderKey = "header"
+	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
+	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )
 
 // EngineCache is a cache for data retrieved by the EngineClient.
 type EngineCache struct {
-	headerByNumberCache *LRU[uint64, *gethcoretypes.Header]
-	headerByHashCache   *LRU[gethcommon.Hash, *gethcoretypes.Header]
+	headerByNumberCache *lru.LRU[uint64, *ethcoretypes.Header]
+	headerByHashCache   *lru.LRU[gethcommon.Hash, *ethcoretypes.Header]
 }
 
 // NewEngineCacheWithConfig creates a new EngineCache with the given config.
-func NewEngineCacheWithConfig(
-	config EngineCacheConfig,
+func NewEngineCache(
+	config Config,
 ) *EngineCache {
-	// headerByNumberCache and headerByHashCache share the same config.
-	headerByNumberCache := NewLRUWithConfig[uint64, *gethcoretypes.Header](
-		config.Cfgs[HeaderKey],
-	)
-	headerByHashCache := NewLRUWithConfig[gethcommon.Hash, *gethcoretypes.Header](
-		config.Cfgs[HeaderKey],
-	)
 	return &EngineCache{
-		headerByNumberCache,
-		headerByHashCache,
+		headerByNumberCache: lru.NewLRU[uint64, *ethcoretypes.Header](
+			config.HeaderSize,
+			nil,
+			config.HeaderTTL,
+		),
+		headerByHashCache: lru.NewLRU[gethcommon.Hash, *ethcoretypes.Header](
+			config.HeaderSize,
+			nil,
+			config.HeaderTTL,
+		),
 	}
+}
+
+// NewEngineCache creates a new EngineCache.
+func NewEngineCacheWithDefaultConfig() *EngineCache {
+	return NewEngineCache(DefaultConfig())
 }
 
 // HeaderByNumber returns the header with the given number.
 func (c *EngineCache) HeaderByNumber(
 	number uint64,
-) (*gethcoretypes.Header, bool) {
+) (*ethcoretypes.Header, bool) {
 	return c.headerByNumberCache.Get(number)
 }
 
 // HeaderByHash returns the header with the given hash.
 func (c *EngineCache) HeaderByHash(
 	hash gethcommon.Hash,
-) (*gethcoretypes.Header, bool) {
+) (*ethcoretypes.Header, bool) {
 	return c.headerByHashCache.Get(hash)
 }
 
 // AddHeader adds the given header to the cache.
 func (c *EngineCache) AddHeader(
-	header *gethcoretypes.Header,
+	header *ethcoretypes.Header,
 ) {
 	number := header.Number.Uint64()
 	if oldHeader, ok := c.headerByNumberCache.Get(number); ok {
@@ -84,21 +84,4 @@ func (c *EngineCache) AddHeader(
 	}
 	c.headerByNumberCache.Add(number, header)
 	c.headerByHashCache.Add(header.Hash(), header)
-}
-
-// EngineCacheConfig is the configuration for an EngineCache.
-type EngineCacheConfig struct {
-	Cfgs map[string]LRUConfig
-}
-
-// Template returns the TOML template for the EngineCacheConfig.
-func (t *EngineCacheConfig) Template() string {
-	template := ""
-	for k, v := range t.Cfgs {
-		template += fmt.Sprintf(`
-[engine-cache.%s]
-%s
-`, k, v.Template())
-	}
-	return template
 }
