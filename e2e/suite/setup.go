@@ -101,6 +101,7 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() {
 		if strings.HasPrefix(string(name), "el-") {
 			if s.executionClients[string(name)], err = NewExecutionClientFromServiceCtx(
 				serviceCtx,
+				s.logger,
 			); err != nil {
 				// TODO: Figoure out how to handle clients that purposefully
 				// don't expose JSON-RPC.
