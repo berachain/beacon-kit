@@ -30,6 +30,7 @@ import (
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -37,7 +38,7 @@ import (
 // string to []string by splitting on the given sep.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
-		func(s string) (common.Address, error) {
+		func(s string) (primitives.ExecutionAddress, error) {
 			return common.HexToAddress(s), nil
 		},
 	)
