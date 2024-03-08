@@ -31,10 +31,10 @@ def run(plan, args = {}):
 
     node_modules = {}
     for node in args_with_right_defaults.participants:
-        if node.el_client_type not in node_modules.keys():
-            node_path = "./src/nodes/execution/{}/config.star".format(node.el_client_type)
+        if node.el_type not in node_modules.keys():
+            node_path = "./src/nodes/execution/{}/config.star".format(node.el_type)
             node_module = import_module(node_path)
-            node_modules[node.el_client_type] = node_module
+            node_modules[node.el_type] = node_module
 
     # 2. Upload jwt
     jwt_file = execution.upload_global_files(plan, node_modules)
@@ -43,10 +43,10 @@ def run(plan, args = {}):
 
     # 3. Perform genesis ceremony
     for n in range(num_participants):
-        cl_service_name = "cl-{}-{}-beaconkit".format(n, args_with_right_defaults.participants[n].el_client_type)
+        cl_service_name = "cl-{}-{}-beaconkit".format(n, args_with_right_defaults.participants[n].el_type)
         engine_dial_url = ""  # not needed for this step
         beacond_config = beacond.get_config(
-            args_with_right_defaults.participants[n].cl_client_image,
+            args_with_right_defaults.participants[n].cl_image,
             jwt_file,
             engine_dial_url,
             cl_service_name,
@@ -145,32 +145,32 @@ def run(plan, args = {}):
 
     # 4. Start network participants
     for n in range(num_participants):
-        el_client_type = args_with_right_defaults.participants[n].el_client_type
-        node_module = node_modules[el_client_type]
-        el_service_name = "el-{}-{}-beaconkit".format(n, el_client_type)
+        el_type = args_with_right_defaults.participants[n].el_type
+        node_module = node_modules[el_type]
+        el_service_name = "el-{}-{}-beaconkit".format(n, el_type)
 
         # 4a. Launch EL
         el_service_config_dict = execution.get_default_service_config(el_service_name, node_module)
         el_service_config_dict = execution.add_bootnodes(node_module, el_service_config_dict, el_enode_addrs)
         el_client_service = execution.deploy_node(plan, el_service_config_dict)
 
-        enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name, el_client_type)
+        enode_addr = execution.get_enode_addr(plan, el_client_service, el_service_name, el_type)
         el_enode_addrs.append(enode_addr)
 
         # 4b. Launch CL
-        cl_service_name = "cl-{}-{}-beaconkit".format(n, el_client_type)
+        cl_service_name = "cl-{}-{}-beaconkit".format(n, el_type)
         engine_dial_url = "http://{}:{}".format(el_service_name, execution.ENGINE_RPC_PORT_NUM)
 
         # Get peers for the cl node
         my_peers = node_peering_info[:n]
         for i in range(len(my_peers)):
-            peer_el_service_name = "cl-{}-{}-beaconkit".format(i, args_with_right_defaults.participants[i].el_client_type)
+            peer_el_service_name = "cl-{}-{}-beaconkit".format(i, args_with_right_defaults.participants[i].el_type)
             peer_service = plan.get_service(peer_el_service_name)
             my_peers[i] = my_peers[i] + "@" + peer_service.ip_address + ":26656"
         persistent_peers = ",".join(my_peers)
 
         beacond_config = beacond.get_config(
-            args_with_right_defaults.participants[n].cl_client_image,
+            args_with_right_defaults.participants[n].cl_image,
             jwt_file,
             engine_dial_url,
             cl_service_name,
