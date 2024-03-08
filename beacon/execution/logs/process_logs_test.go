@@ -29,13 +29,12 @@ import (
 	"testing"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
+	logmocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
 	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,19 +76,25 @@ func TestProcessLogs(t *testing.T) {
 		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
 	}
 
-	withdrawal := enginetypes.NewWithdrawal(
-		[]byte("pubkey"),
-		uint64(1000),
-	)
+	event := depositContractAbi.Events[logs.WithdrawalName]
+	pubKey := []byte("pubkey")
+	stakingCredentials := []byte{}
+	signature := []byte{}
+	amount := uint64(1000)
 
-	var log *ethtypes.Log
-	require.NotNil(t, depositContractAbi)
-	require.NotNil(t, depositContractAbi.Events)
-	log, err = logmocks.NewLogFromWithdrawal(
-		depositContractAbi.Events[logs.WithdrawalName],
-		withdrawal,
+	// Create a log from the deposit.
+	data, err := event.Inputs.Pack(
+		pubKey,
+		stakingCredentials,
+		signature,
+		amount,
 	)
 	require.NoError(t, err)
+	log := &coretypes.Log{
+		Topics:  []ethcommon.Hash{event.ID},
+		Data:    data,
+		Address: contractAddress,
+	}
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum + 1
