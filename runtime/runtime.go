@@ -59,7 +59,7 @@ type BeaconKitRuntime struct {
 	logger        log.Logger
 	fscp          BeaconStorageBackend
 	services      *service.Registry
-	stakingKeeper keeper.Keeper
+	stakingKeeper *keeper.Keeper
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -87,7 +87,6 @@ func NewDefaultBeaconKitRuntime(
 	vcp ValsetChangeProvider,
 	logger log.Logger,
 	blsSigner bls.BlsSigner,
-	stakingKeeper keeper.Keeper,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -213,7 +212,6 @@ func NewDefaultBeaconKitRuntime(
 		WithConfig(cfg),
 		WithLogger(logger),
 		WithServiceRegistry(svcRegistry),
-		WithStakingKeeper(stakingKeeper),
 	)
 }
 
@@ -228,4 +226,9 @@ func (r *BeaconKitRuntime) StartServices(
 	}
 	syncService.SetClientContext(clientCtx)
 	r.services.StartAll(ctx)
+}
+
+// SetStakingKeeper TODO remove, temporary dirty fix
+func (r *BeaconKitRuntime) SetStakingKeeper(stakingKeeper *keeper.Keeper) {
+	r.stakingKeeper = stakingKeeper
 }

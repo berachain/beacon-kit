@@ -62,7 +62,6 @@ func NewHandler(
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
-	stakingKeeper keeper.Keeper,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -71,7 +70,6 @@ func NewHandler(
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
-		stakingKeeper:  stakingKeeper,
 	}
 }
 

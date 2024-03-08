@@ -63,7 +63,6 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		in.Vcp,
 		in.Logger,
 		in.Signer,
-		in.StakingKeeper,
 	)
 	if err != nil {
 		panic(err)
