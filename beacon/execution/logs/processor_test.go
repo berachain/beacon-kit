@@ -35,6 +35,7 @@ import (
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/itsdevbear/bolaris/beacon/execution/logs"
 	logsMocks "github.com/itsdevbear/bolaris/beacon/execution/logs/mocks"
+	"github.com/itsdevbear/bolaris/primitives"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,14 +73,14 @@ func TestLogProcessor(t *testing.T) {
 		ctx,
 		blockNum.Uint64(),
 		blockNum.Uint64(),
-		[]ethcommon.Address{contractAddress},
+		[]primitives.ExecutionAddress{contractAddress},
 	).Return([]ethcoretypes.Log{log}, nil)
 
 	factory := &logsMocks.LogFactory{}
 	factory.EXPECT().GetRegisteredSignatures().
 		Return([]ethcommon.Hash{logSignature})
 	factory.EXPECT().GetRegisteredAddresses().
-		Return([]ethcommon.Address{contractAddress})
+		Return([]primitives.ExecutionAddress{contractAddress})
 	factory.EXPECT().ProcessLogs(
 		[]ethcoretypes.Log{log}, blockNumToHash,
 	).Return([]logs.LogContainer{container}, nil)

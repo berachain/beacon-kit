@@ -55,7 +55,7 @@ type LogCache interface {
 
 type LogFactory interface {
 	GetRegisteredSignatures() []ethcommon.Hash
-	GetRegisteredAddresses() []ethcommon.Address
+	GetRegisteredAddresses() []primitives.ExecutionAddress
 	ProcessLogs(
 		logs []ethcoretypes.Log,
 		blockNumToHash map[uint64]ethcommon.Hash,
