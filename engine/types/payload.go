@@ -95,23 +95,23 @@ type executionPayloadEnvelopeMarshaling struct {
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
-	ParentHash    primitives.ExecutionHash `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  primitives.ExecutionHash `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     primitives.ExecutionHash `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  primitives.ExecutionHash `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte                   `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        primitives.ExecutionHash `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        uint64                   `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      uint64                   `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       uint64                   `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     uint64                   `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte                   `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas []byte                   `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     primitives.ExecutionHash `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                 `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal            `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   uint64                   `json:"blobGasUsed"`
-	ExcessBlobGas uint64                   `json:"excessBlobGas"`
+	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+	FeeRecipient  primitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+	StateRoot     primitives.ExecutionHash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  primitives.ExecutionHash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	LogsBloom     []byte                      `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+	Random        primitives.ExecutionHash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Number        uint64                      `json:"blockNumber"                  gencodec:"required"`
+	GasLimit      uint64                      `json:"gasLimit"                     gencodec:"required"`
+	GasUsed       uint64                      `json:"gasUsed"                      gencodec:"required"`
+	Timestamp     uint64                      `json:"timestamp"                    gencodec:"required"`
+	ExtraData     []byte                      `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+	BaseFeePerGas []byte                      `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
+	BlobGasUsed   uint64                      `json:"blobGasUsed"`
+	ExcessBlobGas uint64                      `json:"excessBlobGas"`
 }
 
 // Version returns the version of the ExecutableDataDeneb.
