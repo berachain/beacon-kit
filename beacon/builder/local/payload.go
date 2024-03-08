@@ -294,7 +294,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		"override_builder", overrideBuilder,
 	}
 
-	if !payload.IsNil() {
+	if payload != nil && !payload.IsNil() {
 		args = append(args,
 			"payload_block_hash", payload.GetBlockHash(),
 			"parent_hash", payload.GetParentHash(),
