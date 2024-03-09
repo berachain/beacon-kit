@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
@@ -52,7 +52,7 @@ type BeaconStorageBackend interface {
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
-		[]*beacontypesv1.Deposit,
+		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
 	) error
 }

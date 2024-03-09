@@ -28,7 +28,7 @@ package logs
 import (
 	"reflect"
 
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/execution/logs"
 	"github.com/berachain/beacon-kit/contracts/abi"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -62,7 +62,7 @@ var (
 		0xfb, 0xd3, 0xdd, 0x5a, 0x0c, 0x7b, 0x68, 0xdf,
 	}
 
-	DepositType = reflect.TypeOf(beacontypesv1.Deposit{})
+	DepositType = reflect.TypeOf(beacontypes.Deposit{})
 
 	// Signature and type of the Redirect event
 	// in the deposit contract.

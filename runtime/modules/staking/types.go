@@ -28,14 +28,14 @@ package staking
 import (
 	"context"
 
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
-		[]*beacontypesv1.Deposit,
+		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
 	) error
 }

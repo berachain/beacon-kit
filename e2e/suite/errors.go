@@ -23,6 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package typesv1
+package suite
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Deposit --include ../../../../primitives,$GOPATH/pkg/mod/github.com/prysmaticlabs/prysm/v5@v5.0.0/proto/engine/v1 -output generated.ssz.go
+import "errors"
+
+// ErrPublicPortNotFound is returned when the public port is not found.
+var ErrPublicPortNotFound = errors.New("failed to get public ports")
