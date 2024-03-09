@@ -55,7 +55,7 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
 
     return config
 
-def perform_genesis_ceremony(plan, validators):
+def perform_genesis_ceremony(plan, validators, jwt_file):
     num_validators = len(validators)
 
     node_peering_info = []
@@ -67,6 +67,7 @@ def perform_genesis_ceremony(plan, validators):
             engine_dial_url,
             cl_service_name,
             expose_ports = False,
+            jwt_file=jwt_file
         )
 
         if n > 0:

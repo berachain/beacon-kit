@@ -37,7 +37,7 @@ def run(plan, validators, full_nodes = [], additional_services = []):
 
     
     # 3. Perform genesis ceremony
-    node_peering_info = beacond.perform_genesis_ceremony(plan, validators)
+    node_peering_info = beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
     el_enode_addrs = []
 
