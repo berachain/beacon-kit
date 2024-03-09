@@ -34,6 +34,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	sdkbls "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pkg/errors"
 )
@@ -55,13 +56,11 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 
 // delegate delegates the deposit to the validator.
 func (k *Keeper) delegate(
-	ctx context.Context, deposit *beacontypes.Deposit,
+	ctx context.Context,
+	deposit *beacontypes.Deposit,
 ) (uint64, error) {
 	validatorPubkey := &sdkbls.PubKey{Key: deposit.ValidatorPubkey}
-	// StakingCredentials is the validator's operator address.
-	validator, err := k.stakingKeeper.GetValidator(
-		ctx, sdk.ValAddress(deposit.StakingCredentials),
-	)
+	validator, err := k.GetValidatorByPubKey(ctx, validatorPubkey)
 	if err != nil {
 		if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
 			validator, err = k.createValidator(validatorPubkey, deposit)
@@ -122,6 +121,17 @@ func (k *Keeper) createValidator(
 	newValidator.Tokens = stake
 	newValidator.DelegatorShares = sdkmath.LegacyNewDecFromInt(newValidator.Tokens)
 	return newValidator, err
+}
+
+// GetValidatorByPubKey returns the validator with the given public key.
+func (k *Keeper) GetValidatorByPubKey(
+	ctx context.Context,
+	pubkey types.PubKey,
+) (sdkstaking.Validator, error) {
+	return k.stakingKeeper.GetValidatorByConsAddr(
+		ctx,
+		sdk.GetConsAddress(pubkey),
+	)
 }
 
 // ApplyChanges applies the deposits and withdrawals to the underlying
