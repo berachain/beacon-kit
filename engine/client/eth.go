@@ -107,13 +107,12 @@ func (s *EngineClient) GetLogAt(
 
 	if blockHashOrNumb.BlockNumber != nil {
 		// Check if the log is in the cache.
-		blockNum := uint64(blockHashOrNumb.BlockNumber.Int64())
-		if logs, ok = s.logsCache.GetByBlockNumber(blockNum); ok {
+		blockNumber := big.NewInt(blockHashOrNumb.BlockNumber.Int64())
+		if logs, ok = s.logsCache.GetByBlockNumber(blockNumber.Uint64()); ok {
 			return getLogAtIndex(logs, logIndex)
 		}
 
 		// If the block number is not nil, we can use the `GetLogs` method.
-		blockNumber := big.NewInt(int64(*blockHashOrNumb.BlockNumber))
 		logs, err = s.FilterLogs(ctx, ethereum.FilterQuery{
 			Addresses: []common.Address{contract},
 			FromBlock: blockNumber,
