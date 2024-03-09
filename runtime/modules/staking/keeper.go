@@ -57,7 +57,7 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 func (k *Keeper) delegate(
 	ctx context.Context, deposit *beacontypes.Deposit,
 ) (uint64, error) {
-	validatorPubkey := &sdkbls.PubKey{Key: deposit.ValidatorPubkey[:]}
+	validatorPubkey := &sdkbls.PubKey{Key: deposit.ValidatorPubkey}
 	// StakingCredentials is the validator's operator address.
 	validator, err := k.stakingKeeper.GetValidator(
 		ctx, sdk.ValAddress(deposit.StakingCredentials),
@@ -104,6 +104,7 @@ func (k *Keeper) createValidator(
 			errors.Wrapf(err, "could not get signing root")
 	}
 	// TODO: Embed the domain into the signing data.
+	//nolint:lll // Will be removed later.
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
 
 	if !validatorPubkey.VerifySignature(root[:], deposit.Signature) {
