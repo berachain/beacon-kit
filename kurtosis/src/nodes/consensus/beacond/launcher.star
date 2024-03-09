@@ -67,7 +67,7 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
             engine_dial_url,
             cl_service_name,
             expose_ports = False,
-            jwt_file=jwt_file
+            jwt_file = jwt_file,
         )
 
         if n > 0:
@@ -181,7 +181,7 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, i
         entrypoint = ["bash"],
         cmd = ["-c", "/usr/bin/start.sh"],
         persistent_peers = persistent_peers,
-        jwt_file=jwt_file,
+        jwt_file = jwt_file,
     )
 
     # Add back in the node's config data and overwrite genesis.json with final genesis file
@@ -210,7 +210,7 @@ def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_fi
         entrypoint = ["bash", "-c"],
         cmd = ["/usr/bin/init_full.sh && /usr/bin/start.sh"],
         persistent_peers = persistent_peers,
-        jwt_file=jwt_file,
+        jwt_file = jwt_file,
     )
 
     beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])

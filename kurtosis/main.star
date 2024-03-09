@@ -35,7 +35,6 @@ def run(plan, validators, full_nodes = [], additional_services = []):
     # 2. Upload jwt
     jwt_file = execution.upload_global_files(plan, node_modules)
 
-    
     # 3. Perform genesis ceremony
     node_peering_info = beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
@@ -44,23 +43,23 @@ def run(plan, validators, full_nodes = [], additional_services = []):
     # 4. Start network validators
     for n, validator in enumerate(validators):
         el_client = execution.create_node(plan, node_modules, validator, "validator", n, el_enode_addrs)
-        el_enode_addrs.append(el_client['enode_addr'])
+        el_enode_addrs.append(el_client["enode_addr"])
 
         # 4b. Launch CL
-        beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client['name'], jwt_file, n)
+        beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, n)
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}
     for n, full in enumerate(full_nodes):
         el_client = execution.create_node(plan, node_modules, full, "full", n, el_enode_addrs)
-        el_enode_addrs.append(el_client['enode_addr'])
+        el_enode_addrs.append(el_client["enode_addr"])
 
         # 4b. Launch CL
         cl_service_name = "cl-full-beaconkit-{}".format(n)
-        full_node_config = beacond.create_full_node_config(plan, full.cl_image, node_peering_info, el_client['name'], jwt_file, n)
+        full_node_config = beacond.create_full_node_config(plan, full.cl_image, node_peering_info, el_client["name"], jwt_file, n)
         full_node_configs[cl_service_name] = full_node_config
 
     if full_node_configs != {}:
         plan.add_services(
-            configs = full_node_configs
+            configs = full_node_configs,
         )
