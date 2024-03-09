@@ -27,16 +27,15 @@ package staking
 
 import (
 	"context"
-	"errors"
 
 	sdkmath "cosmossdk.io/math"
 	sdkkeeper "cosmossdk.io/x/staking/keeper"
 	sdkstaking "cosmossdk.io/x/staking/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdkbls "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/pkg/errors"
 )
 
 var _ ValsetChangeProvider = &Keeper{}
@@ -58,26 +57,22 @@ func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
 func (k *Keeper) delegate(
 	ctx context.Context, deposit *beacontypes.Deposit,
 ) (uint64, error) {
-	validatorPK := &ed25519.PubKey{}
-	err := validatorPK.Unmarshal(deposit.ValidatorPubkey)
-	if err != nil {
-		return 0, err
-	}
-	amount := deposit.Amount
-	valConsAddr := sdk.GetConsAddress(validatorPK)
+	validatorPubkey := &sdkbls.PubKey{Key: deposit.ValidatorPubkey[:]}
+	// StakingCredentials is the validator's operator address.
 	validator, err := k.stakingKeeper.GetValidator(
-		ctx, sdk.ValAddress(valConsAddr),
+		ctx, sdk.ValAddress(deposit.StakingCredentials),
 	)
 	if err != nil {
 		if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
-			validator, err = k.createValidator(validatorPK, amount)
+			validator, err = k.createValidator(validatorPubkey, deposit)
 			return validator.DelegatorShares.BigInt().Uint64(), err
 		}
 		return 0, err
 	}
+	valConsAddr := sdk.GetConsAddress(validatorPubkey)
 	newShares, err := k.stakingKeeper.Delegate(
 		ctx, sdk.AccAddress(valConsAddr),
-		sdkmath.NewIntFromUint64(amount),
+		sdkmath.NewIntFromUint64(deposit.Amount),
 		sdkstaking.Unbonded, validator, true)
 	return newShares.BigInt().Uint64(), err
 }
@@ -93,17 +88,39 @@ func (k *Keeper) undelegate(
 // createValidator creates a new validator with the given public
 // key and amount of tokens.
 func (k *Keeper) createValidator(
-	validatorPK sdkcrypto.PubKey,
-	amount uint64) (sdkstaking.Validator, error) {
-	stake := sdkmath.NewIntFromUint64(amount)
-	valConsAddr := sdk.GetConsAddress(validatorPK)
-	operator := sdk.ValAddress(valConsAddr).String()
-	val, err := sdkstaking.NewValidator(
-		operator, validatorPK,
-		sdkstaking.Description{Moniker: validatorPK.String()})
-	val.Tokens = stake
-	val.DelegatorShares = sdkmath.LegacyNewDecFromInt(val.Tokens)
-	return val, err
+	validatorPubkey *sdkbls.PubKey,
+	deposit *beacontypes.Deposit,
+) (sdkstaking.Validator, error) {
+	// Verify the deposit data against the signature.
+	// Deposit message is the deposit without the signature.
+	depositMsg := &beacontypes.Deposit{
+		ValidatorPubkey:    deposit.ValidatorPubkey,
+		StakingCredentials: deposit.StakingCredentials,
+		Amount:             deposit.Amount,
+	}
+	root, err := depositMsg.HashTreeRoot()
+	if err != nil {
+		return sdkstaking.Validator{},
+			errors.Wrapf(err, "could not get signing root")
+	}
+	// TODO: Embed the domain into the signing data.
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+
+	if !validatorPubkey.VerifySignature(root[:], deposit.Signature) {
+		return sdkstaking.Validator{}, errors.New("could not verify signature")
+	}
+
+	// Create a new validator with x/staking.
+	stake := sdkmath.NewIntFromUint64(deposit.Amount)
+	operator := sdk.ValAddress(deposit.StakingCredentials).String()
+	newValidator, err := sdkstaking.NewValidator(
+		operator,
+		validatorPubkey,
+		sdkstaking.Description{Moniker: validatorPubkey.Address().String()},
+	)
+	newValidator.Tokens = stake
+	newValidator.DelegatorShares = sdkmath.LegacyNewDecFromInt(newValidator.Tokens)
+	return newValidator, err
 }
 
 // ApplyChanges applies the deposits and withdrawals to the underlying
