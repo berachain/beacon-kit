@@ -146,14 +146,21 @@ func (s *EngineClient) GetLogAt(
 
 // getLogAtIndex returns the log at the given index.
 func getLogAtIndex(logs []coretypes.Log, index uint) (*coretypes.Log, error) {
+	// Check that logs were found
+	if logs == nil {
+		return nil, ErrLogOutOfIndex
+	}
+
+	// Perform a binary search to find the log at the given index.
 	left, right := 0, len(logs)-1
 	for left <= right {
-		mid := left + (right-left)/2
-		if logs[mid].Index == index {
+		mid := left + (right-left)/2 //nolint:gomnd // its a binary search
+		switch {
+		case logs[mid].Index == index:
 			return &logs[mid], nil
-		} else if logs[mid].Index < index {
+		case logs[mid].Index < index:
 			left = mid + 1
-		} else {
+		default:
 			right = mid - 1
 		}
 	}
