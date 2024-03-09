@@ -26,6 +26,7 @@
 package enginetypes
 
 import (
+	"github.com/berachain/beacon-kit/config/version"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
@@ -60,51 +61,47 @@ func NewPayloadAttributes(
 	withdrawals []*Withdrawal,
 	parentBeaconBlockRoot [32]byte,
 ) (*PayloadAttributes, error) {
-	if withdrawals == nil {
-		withdrawals = make([]*Withdrawal, 0)
-	}
-
-	return &PayloadAttributes{
+	p := &PayloadAttributes{
 		version:               forkVersion,
 		Timestamp:             timestamp,
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-	}, nil
+	}
+
+	if err := p.Validate(); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
-// GetTimestamp returns the timestamp of the PayloadAttributes.
-func (p *PayloadAttributes) GetTimestamp() uint64 {
-	return p.Timestamp
-}
+// Validate validates the PayloadAttributes.
+func (p *PayloadAttributes) Validate() error {
+	if p.Timestamp == 0 {
+		return ErrInvalidTimestamp
+	}
 
-// GetSuggestedFeeRecipient returns the suggested fee recipient address of the
-// PayloadAttributes.
-//
-//nolint:lll
-func (p *PayloadAttributes) GetSuggestedFeeRecipient() primitives.ExecutionAddress {
-	return p.SuggestedFeeRecipient
-}
+	// TODO: Uncomment once randao is implemented.
+	// if p.PrevRandao == [32]byte{} {
+	// 	return ErrEmptyPrevRandao
+	// }
 
-// GetWithdrawals returns the list of withdrawals in the PayloadAttributes.
-func (p *PayloadAttributes) GetWithdrawals() []*Withdrawal {
-	return p.Withdrawals
-}
+	if p.Withdrawals == nil && p.version >= version.Capella {
+		return ErrNilWithdrawals
+	}
 
-// GetParentBeaconBlockRoot returns the parent beacon block root of the
-// PayloadAttributes.
-// If the parent beacon block root is nil, a zero-value [32]byte is returned.
-func (p *PayloadAttributes) GetParentBeaconBlockRoot() [32]byte {
-	return p.ParentBeaconBlockRoot
+	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
+	// to fix this, before uncommenting the line below.
+	// if p.ParentBeaconBlockRoot == [32]byte{} {
+	// 	return ErrInvalidParentBeaconBlockRoot
+	// }
+
+	return nil
 }
 
 // Version returns the version of the PayloadAttributes.
 func (p *PayloadAttributes) Version() int {
 	return p.version
-}
-
-// GetPrevRandao returns the previous Randao value of the PayloadAttributes.
-func (p *PayloadAttributes) GetPrevRandao() [32]byte {
-	return p.PrevRandao
 }

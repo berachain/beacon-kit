@@ -28,7 +28,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -305,42 +304,4 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 
 	s.Client = ethclient.NewClient(client)
 	return nil
-}
-
-// HeaderByNumber retrieves the block header by its number.
-func (s *EngineClient) HeaderByNumber(
-	ctx context.Context,
-	number *big.Int,
-) (*coretypes.Header, error) {
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
-	if ok {
-		return header, nil
-	}
-	header, err := s.Client.HeaderByNumber(ctx, number)
-	if err != nil {
-		return nil, err
-	}
-
-	defer s.engineCache.AddHeader(header)
-
-	return header, nil
-}
-
-// HeaderByHash retrieves the block header by its hash.
-func (s *EngineClient) HeaderByHash(
-	ctx context.Context,
-	hash primitives.ExecutionHash,
-) (*coretypes.Header, error) {
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByHash(hash)
-	if ok {
-		return header, nil
-	}
-	header, err := s.Client.HeaderByHash(ctx, hash)
-	if err != nil {
-		return nil, err
-	}
-	s.engineCache.AddHeader(header)
-	return header, nil
 }

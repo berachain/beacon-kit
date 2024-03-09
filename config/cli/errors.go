@@ -25,7 +25,7 @@
 
 package cli
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrNoClientCtx indicates that the client context was not found.

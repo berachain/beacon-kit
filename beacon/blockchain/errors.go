@@ -25,7 +25,7 @@
 
 package blockchain
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var ErrInvalidPayload = errors.New("invalid payload")
 var ErrNoPayloadInBeaconBlock = errors.New("no payload in beacon block")

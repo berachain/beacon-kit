@@ -27,10 +27,10 @@ package types
 
 import (
 	"context"
-	"errors"
 	"math/big"
 
 	"cosmossdk.io/log"
+	"github.com/cockroachdb/errors"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"

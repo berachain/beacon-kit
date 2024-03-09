@@ -26,11 +26,10 @@
 package types
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/config/version"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 )
 
 //go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
@@ -69,6 +68,10 @@ type BeaconBlockBodyDeneb struct {
 	Deposits           []*Deposit `                ssz-max:"16"`
 	ExecutionPayload   *enginetypes.ExecutableDataDeneb
 	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
+}
+
+func (b *BeaconBlockBodyDeneb) IsNil() bool {
+	return b == nil
 }
 
 func (b *BeaconBlockBodyDeneb) GetRandaoReveal() []byte {

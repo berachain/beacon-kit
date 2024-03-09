@@ -27,7 +27,6 @@ package blockchain
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
@@ -53,8 +52,8 @@ func (s *Service) ReceiveBeaconBlock(
 	)
 
 	// If the block is nil, We have to abort.
-	if blk.IsNil() {
-		return beacontypes.ErrNilBlock
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
 	}
 
 	// If we have already seen this block, we can skip processing it.
@@ -126,7 +125,7 @@ func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	if blk.IsNil() {
-		return beacontypes.ErrNilBlock
+		return beacontypes.ErrNilBlk
 	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
@@ -153,13 +152,13 @@ func (s *Service) validateExecutionOnBlock(
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
 	if blk.IsNil() {
-		return false, beacontypes.ErrNilBlock
+		return false, beacontypes.ErrNilBlk
 	}
 
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	if payload.IsNil() {
-		return false, errors.New("no payload in beacon block")
+		return false, beacontypes.ErrNilPayloadInBlk
 	}
 
 	// In BeaconKit, since we are currently operating on SingleSlot Finality

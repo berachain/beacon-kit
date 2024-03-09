@@ -54,9 +54,6 @@ type ExecutionPayload interface {
 
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
-	GetPrevRandao() [32]byte
-	GetTimestamp() uint64
-	GetSuggestedFeeRecipient() primitives.ExecutionAddress
-	GetWithdrawals() []*Withdrawal
-	GetParentBeaconBlockRoot() [32]byte
+	Version() int
+	Validate() error
 }

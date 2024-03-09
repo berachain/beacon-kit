@@ -25,7 +25,7 @@
 
 package types
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrPublicPortNotFound is returned when the public port is not found.

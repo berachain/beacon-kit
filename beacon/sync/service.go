@@ -27,12 +27,12 @@ package sync
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/cockroachdb/errors"
 	cosmosclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/sourcegraph/conc"
 )

@@ -67,6 +67,7 @@ type ReadOnlyBeaconBlockBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+	IsNil() bool
 
 	// Execution returns the execution data of the block.
 	GetExecutionPayload() enginetypes.ExecutionPayload

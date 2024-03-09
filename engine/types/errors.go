@@ -23,42 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package enginetypes
 
-import (
-	"github.com/berachain/beacon-kit/lib/cache"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
+	ErrInvalidTimestamp = errors.New("invalid timestamp")
+	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
+	ErrInvalidRandao = errors.New("invalid randao")
+	// ErrNilWithdrawals indicates that the withdrawals are in a
+	// Capella versioned payload.
+	ErrNilWithdrawals = errors.New("nil withdrawals post capella")
+	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
+	ErrEmptyPrevRandao = errors.New("empty randao")
 )
-
-type Cache struct {
-	// This is an in-memory cache of logs.
-	cache.Cache[LogContainer]
-}
-
-// NewCache returns a new cache for LogContainer.
-func NewCache() *Cache {
-	return &Cache{
-		cache.NewOrderedCache[LogContainer](LogComparable{}),
-	}
-}
-
-// LogComparable is a comparable for LogContainer.
-type LogComparable struct{}
-
-// Compare is a lexicographic comparison of logs.
-func (LogComparable) Compare(lhs, rhs LogContainer) int {
-	blockCmp := compareUint64(lhs.BlockNumber(), rhs.BlockNumber())
-	if blockCmp != 0 {
-		return blockCmp
-	}
-	return compareUint64(lhs.LogIndex(), rhs.LogIndex())
-}
-
-// compareUint64 compares two uint64 values.
-func compareUint64(a, b uint64) int {
-	if a < b {
-		return -1
-	} else if a > b {
-		return 1
-	}
-	return 0
-}

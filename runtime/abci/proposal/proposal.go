@@ -82,18 +82,18 @@ func (h *Handler) PrepareProposalHandler(
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
-	block, err := h.builderService.RequestBestBlock(
+	blk, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
 	)
 
-	if err != nil {
-		logger.Error("failed to build block", "error", err)
+	if err != nil || blk == nil || blk.IsNil() {
+		logger.Error("failed to build block", "error", err, "block", blk)
 		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Marshal the block into bytes.
-	beaconBz, err := block.MarshalSSZ()
+	beaconBz, err := blk.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}

@@ -27,10 +27,10 @@ package logs
 
 import (
 	"bytes"
-	"errors"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
