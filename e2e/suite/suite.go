@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	suitetypes "github.com/berachain/beacon-kit/e2e/suite/types"
 	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
@@ -51,6 +52,9 @@ type KurtosisE2ESuite struct {
 	enclave          *enclaves.EnclaveContext
 	consensusClients map[string]*ConsensusClient
 	executionClients map[string]*ExecutionClient
+
+	genesisAccount *suitetypes.EthAccount
+	testAccounts   []*suitetypes.EthAccount
 }
 
 // ConsensusClients returns the consensus clients associated with the
