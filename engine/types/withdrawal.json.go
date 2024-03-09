@@ -15,13 +15,13 @@ var _ = (*withdrawalJSONMarshaling)(nil)
 func (w Withdrawal) MarshalJSON() ([]byte, error) {
 	type Withdrawal struct {
 		Index     hexutil.Uint64 `json:"index"          ssz-size:"8"`
-		Validator hexutil.Uint64 `json:"validatorIndex" ssz-size:"8"`
+		ValidatorIndex hexutil.Uint64 `json:"validatorIndex" ssz-size:"8"`
 		Address   common.Address `json:"address"        ssz-size:"20"`
 		Amount    hexutil.Uint64 `json:"amount"         ssz-size:"8"`
 	}
 	var enc Withdrawal
 	enc.Index = hexutil.Uint64(w.Index)
-	enc.Validator = hexutil.Uint64(w.Validator)
+	enc.ValidatorIndex = hexutil.Uint64(w.ValidatorIndex)
 	enc.Address = w.Address
 	enc.Amount = hexutil.Uint64(w.Amount)
 	return json.Marshal(&enc)
@@ -31,7 +31,7 @@ func (w Withdrawal) MarshalJSON() ([]byte, error) {
 func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 	type Withdrawal struct {
 		Index     *hexutil.Uint64 `json:"index"          ssz-size:"8"`
-		Validator *hexutil.Uint64 `json:"validatorIndex" ssz-size:"8"`
+		ValidatorIndex *hexutil.Uint64 `json:"validatorIndex" ssz-size:"8"`
 		Address   *common.Address `json:"address"        ssz-size:"20"`
 		Amount    *hexutil.Uint64 `json:"amount"         ssz-size:"8"`
 	}
@@ -42,8 +42,8 @@ func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 	if dec.Index != nil {
 		w.Index = uint64(*dec.Index)
 	}
-	if dec.Validator != nil {
-		w.Validator = uint64(*dec.Validator)
+	if dec.ValidatorIndex != nil {
+		w.ValidatorIndex = uint64(*dec.ValidatorIndex)
 	}
 	if dec.Address != nil {
 		w.Address = *dec.Address

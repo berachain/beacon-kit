@@ -45,10 +45,10 @@ func NewWithdrawal(
 //
 //go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
 type Withdrawal struct {
-	Index     uint64                      `json:"index"          ssz-size:"8"`
-	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
-	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    uint64                      `json:"amount"         ssz-size:"8"`
+	Index          uint64                      `json:"index"          ssz-size:"8"`
+	ValidatorIndex primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
+	Address        primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
+	Amount         uint64                      `json:"amount"         ssz-size:"8"`
 }
 
 // field type overrides for gencodec.

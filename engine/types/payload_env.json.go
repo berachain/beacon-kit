@@ -16,7 +16,7 @@ var _ = (*executionPayloadEnvelopeMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayloadEnvelopeDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutionPayloadEnvelopeDeneb struct {
-		ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
+		ExecutionPayload *ExecutableData  `json:"executionPayload"      gencodec:"required"`
 		BlockValue       *hexutil.Big          `json:"blockValue"            gencodec:"required"`
 		BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
 		Override         bool                  `json:"shouldOverrideBuilder"`
@@ -32,7 +32,7 @@ func (e ExecutionPayloadEnvelopeDeneb) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (e *ExecutionPayloadEnvelopeDeneb) UnmarshalJSON(input []byte) error {
 	type ExecutionPayloadEnvelopeDeneb struct {
-		ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
+		ExecutionPayload *ExecutableData  `json:"executionPayload"      gencodec:"required"`
 		BlockValue       *hexutil.Big          `json:"blockValue"            gencodec:"required"`
 		BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
 		Override         *bool                 `json:"shouldOverrideBuilder"`

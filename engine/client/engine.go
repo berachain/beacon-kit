@@ -72,9 +72,9 @@ func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
 ) (*enginetypes.PayloadStatus, error) {
-	switch payloadPb := payload.(type) {
-	case *enginetypes.ExecutableDataDeneb:
-		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
+	switch payload.Version() {
+	case version.Deneb:
+		return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
 	default:
 		return nil, ErrInvalidPayloadType
 	}

@@ -31,6 +31,8 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ssz "github.com/prysmaticlabs/fastssz"
+	prysmprimitives "github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
+	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 )
 
 var (
@@ -75,6 +77,11 @@ type executableDataMarshaling struct {
 	Transactions  []hexutil.Bytes
 	BlobGasUsed   hexutil.Uint64
 	ExcessBlobGas hexutil.Uint64
+}
+
+// EmptyWithVersion creates a new ExecutableData with the provided version.
+func EmptyWithVersion(v int) *ExecutableData {
+	return &ExecutableData{version: v}
 }
 
 // ExecutableDataDeneb is the ExecutableDataDeneb.
@@ -125,7 +132,7 @@ func (d *ExecutableData) UnmarshalSSZ(buf []byte) error {
 	//nolint:gocritic // future versions needed.
 	switch d.version {
 	case version.Deneb:
-		data := new(ExecutableDataDeneb)
+		data := new(enginev1.ExecutionPayloadDeneb)
 		if err := data.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
@@ -162,45 +169,89 @@ func (d *ExecutableData) HashTreeRootWith(hh *ssz.Hasher) error {
 }
 
 // ExecutableDataDeneb is the ExecutableDataDeneb.
-func (d *ExecutableData) toDenebExecutionData() *ExecutableDataDeneb {
-	return &ExecutableDataDeneb{
-		ParentHash:    d.ParentHash,
-		FeeRecipient:  d.FeeRecipient,
-		StateRoot:     d.StateRoot,
-		ReceiptsRoot:  d.ReceiptsRoot,
+func (d *ExecutableData) toDenebExecutionData() *enginev1.ExecutionPayloadDeneb {
+	withdrawals := make([]*enginev1.Withdrawal, len(d.Withdrawals))
+	for i, w := range d.Withdrawals {
+		withdrawals[i] = &enginev1.Withdrawal{
+			Index: uint64(w.Index),
+			// TODO: Check with Jon if this is going to cause GPL3 issues.
+			// their ApacheLib is forcing us to use the GPL3 type? Like wtf.
+			// Kinda bullshit imo, probably just gonna leave it and if they
+			// swing then whatever we tried and we will just copy paste the
+			// Apache 2.0 bits.
+			ValidatorIndex: prysmprimitives.ValidatorIndex(w.ValidatorIndex),
+			Address:        w.Address.Bytes(),
+			Amount:         w.Amount,
+		}
+	}
+	return &enginev1.ExecutionPayloadDeneb{
+		ParentHash:    d.ParentHash.Bytes(),
+		FeeRecipient:  d.FeeRecipient.Bytes(),
+		StateRoot:     d.StateRoot.Bytes(),
+		ReceiptsRoot:  d.ReceiptsRoot.Bytes(),
 		LogsBloom:     d.LogsBloom,
-		Random:        d.Random,
-		Number:        d.Number,
+		PrevRandao:    d.Random.Bytes(),
+		BlockNumber:   d.Number,
 		GasLimit:      d.GasLimit,
 		GasUsed:       d.GasUsed,
 		Timestamp:     d.Timestamp,
 		ExtraData:     d.ExtraData,
 		BaseFeePerGas: d.BaseFeePerGas,
-		BlockHash:     d.BlockHash,
+		BlockHash:     d.BlockHash.Bytes(),
 		Transactions:  d.Transactions,
-		Withdrawals:   d.Withdrawals,
+
 		BlobGasUsed:   d.BlobGasUsed,
 		ExcessBlobGas: d.ExcessBlobGas,
 	}
 }
 
-// ExecutableDataDeneb is the ExecutableDataDeneb.
-func (d *ExecutableData) fromDenebExecutionData(data *ExecutableDataDeneb) {
-	d.ParentHash = data.ParentHash
-	d.FeeRecipient = data.FeeRecipient
-	d.StateRoot = data.StateRoot
-	d.ReceiptsRoot = data.ReceiptsRoot
+func (d *ExecutableData) fromDenebExecutionData(data *enginev1.ExecutionPayloadDeneb) {
+	d.ParentHash = primitives.ExecutionHash(data.ParentHash)
+	d.FeeRecipient = primitives.ExecutionAddress(data.FeeRecipient)
+	d.StateRoot = primitives.ExecutionHash(data.StateRoot)
+	d.ReceiptsRoot = primitives.ExecutionHash(data.ReceiptsRoot)
 	d.LogsBloom = data.LogsBloom
-	d.Random = data.Random
-	d.Number = data.Number
+	d.Random = primitives.ExecutionHash(data.PrevRandao)
+	d.Number = data.BlockNumber
 	d.GasLimit = data.GasLimit
 	d.GasUsed = data.GasUsed
 	d.Timestamp = data.Timestamp
 	d.ExtraData = data.ExtraData
 	d.BaseFeePerGas = data.BaseFeePerGas
-	d.BlockHash = data.BlockHash
+	d.BlockHash = primitives.ExecutionHash(data.BlockHash)
 	d.Transactions = data.Transactions
-	d.Withdrawals = data.Withdrawals
+	d.Withdrawals = make([]*Withdrawal, len(data.Withdrawals))
+	for i, w := range data.Withdrawals {
+		d.Withdrawals[i] = &Withdrawal{
+			Index:          uint64(w.Index),
+			ValidatorIndex: uint64(w.ValidatorIndex),
+			Address:        primitives.ExecutionAddress(w.Address),
+			Amount:         w.Amount,
+		}
+	}
 	d.BlobGasUsed = data.BlobGasUsed
 	d.ExcessBlobGas = data.ExcessBlobGas
+}
+
+func (d *ExecutableData) IsNil() bool
+func (d *ExecutableData) String() string {
+	return "TODOD"
+}
+func (d *ExecutableData) IsBlinded() bool {
+	return false
+}
+
+func (d *ExecutableData) GetBlockHash() primitives.ExecutionHash {
+	return d.BlockHash
+}
+func (d *ExecutableData) GetParentHash() primitives.ExecutionHash {
+	return d.ParentHash
+}
+
+func (d *ExecutableData) GetTransactions() [][]byte {
+	return d.Transactions
+}
+
+func (d *ExecutableData) GetWithdrawals() []*Withdrawal {
+	return d.Withdrawals
 }

@@ -29,10 +29,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/config/version"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/math"
-	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 )
@@ -47,10 +44,10 @@ type ExecutionPayloadEnvelope interface {
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -field-override executionPayloadEnvelopeMarshaling -out payload_env.json.go
 //nolint:lll
 type ExecutionPayloadEnvelopeDeneb struct {
-	ExecutionPayload *ExecutableDataDeneb `json:"executionPayload"      gencodec:"required"`
-	BlockValue       *big.Int             `json:"blockValue"            gencodec:"required"`
-	BlobsBundle      *BlobsBundleV1       `json:"blobsBundle"`
-	Override         bool                 `json:"shouldOverrideBuilder"`
+	ExecutionPayload *ExecutableData `json:"executionPayload"      gencodec:"required"`
+	BlockValue       *big.Int        `json:"blockValue"            gencodec:"required"`
+	BlobsBundle      *BlobsBundleV1  `json:"blobsBundle"`
+	Override         bool            `json:"shouldOverrideBuilder"`
 }
 
 func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
@@ -90,102 +87,4 @@ ExecutionPayloadEnvelopeDeneb{
 // JSON type overrides for ExecutionPayloadEnvelope.
 type executionPayloadEnvelopeMarshaling struct {
 	BlockValue *hexutil.Big
-}
-
-type ExecutableDataDeneb struct {
-	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  primitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     primitives.ExecutionHash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  primitives.ExecutionHash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte                      `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        primitives.ExecutionHash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        uint64                      `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      uint64                      `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       uint64                      `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     uint64                      `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte                      `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas []byte                      `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   uint64                      `json:"blobGasUsed"`
-	ExcessBlobGas uint64                      `json:"excessBlobGas"`
-}
-
-// Version returns the version of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) Version() int {
-	return version.Deneb
-}
-
-// IsNil checks if the ExecutableDataDeneb is nil.
-func (d *ExecutableDataDeneb) IsNil() bool {
-	return d == nil
-}
-
-// IsBlinded checks if the ExecutableDataDeneb is blinded.
-func (d *ExecutableDataDeneb) IsBlinded() bool {
-	return false
-}
-
-// GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() primitives.ExecutionHash {
-	return d.ParentHash
-}
-
-// GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() primitives.ExecutionHash {
-	return d.BlockHash
-}
-
-// GetTransactions returns the transactions of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
-	return d.Transactions
-}
-
-// GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
-	return d.Withdrawals
-}
-
-func (d *ExecutableDataDeneb) String() string {
-	return fmt.Sprintf(
-		"ExecutableDataDeneb{\n"+
-			"\tParentHash: %s,\n"+
-			"\tFeeRecipient: %s,\n"+
-			"\tStateRoot: %s,\n"+
-			"\tReceiptsRoot: %s,\n"+
-			"\tLogsBloom: %x,\n"+
-			"\tRandom: %s,\n"+
-			"\tNumber: %d,\n"+
-			"\tGasLimit: %d,\n"+
-			"\tGasUsed: %d,\n"+
-			"\tTimestamp: %d,\n"+
-			"\tExtraData: %s,\n"+
-			"\tBaseFeePerGas: %s,\n"+
-			"\tBlockHash: %s,\n"+
-			"\tTransactions: %x,\n"+
-			"\tWithdrawals: %v,\n"+
-			"\tBlobGasUsed: %d,\n"+
-			"\tExcessBlobGas: %d,\n"+
-			"}",
-		d.ParentHash.String(),
-		d.FeeRecipient.String(),
-		d.StateRoot.String(),
-		d.ReceiptsRoot.String(),
-		d.LogsBloom,
-		d.Random.String(),
-		d.Number,
-		d.GasLimit,
-		d.GasUsed,
-		d.Timestamp,
-		d.ExtraData,
-		big.NewInt(0).
-			SetBytes(byteslib.CopyAndReverseEndianess(d.BaseFeePerGas)).
-			String(),
-		d.BlockHash.String(),
-		d.Transactions,
-		d.Withdrawals,
-		d.BlobGasUsed,
-		d.ExcessBlobGas,
-	)
 }
