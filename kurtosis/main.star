@@ -11,6 +11,7 @@ nodes = import_module("./src/nodes/nodes.star")
 nginx = import_module("./src/services/nginx/nginx.star")
 prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
+loki = import_module("./src/observability/loki/loki.star")
 
 def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = []):
     """
@@ -100,5 +101,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
         if "grafana" in args_with_right_defaults.additional_services:
             grafana.start(plan, prometheus_url)
-            
 
+    if "loki" in args_with_right_defaults.additional_services:
+        loki.upload_global_files(plan)
+        loki.start(plan)
