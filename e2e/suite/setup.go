@@ -242,6 +242,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			if err != nil {
 				return nil, err
 			}
+
 			s.logger.Info(
 				"funding transaction confirmed",
 				"tx_hash", signedTx.Hash().Hex(),

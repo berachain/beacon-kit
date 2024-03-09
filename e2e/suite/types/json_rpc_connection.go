@@ -25,13 +25,58 @@
 
 package types
 
-import "github.com/ethereum/go-ethereum/ethclient"
+import (
+	"strings"
+
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+)
 
 // JSONRPCConnection wraps an Ethereum client connection.
 // It provides JSON-RPC communication with an Ethereum node.
 type JSONRPCConnection struct {
 	*ethclient.Client
 	isWebSocket bool
+}
+
+// NewJSONRPCConnection creates a new JSON-RPC connection.
+func NewJSONRPCConnection(
+	serviceCtx *services.ServiceContext,
+) (*JSONRPCConnection, error) {
+	conn := &JSONRPCConnection{
+		isWebSocket: true,
+	}
+
+	// Start by trying to get the public port for the JSON-RPC WebSocket
+	jsonRPC, ok := serviceCtx.GetPublicPorts()["eth-json-rpc-ws"]
+	if !ok {
+		// If the WebSocket port isn't available, try the HTTP port
+		jsonRPC, ok = serviceCtx.GetPublicPorts()["eth-json-rpc"]
+		if !ok {
+			return nil, ErrPublicPortNotFound
+		}
+		conn.isWebSocket = false
+	}
+	// Split the string to get the port
+	str := strings.Split(jsonRPC.String(), "/")
+	if len(str) == 0 {
+		return nil, ErrPublicPortNotFound
+	}
+	port := str[0]
+
+	prefix := "http://"
+	if conn.isWebSocket {
+		prefix = "ws://"
+	}
+
+	ethClient, err := ethclient.Dial(
+		prefix + "0.0.0.0:" + port,
+	)
+	if err != nil {
+		return nil, err
+	}
+	conn.Client = ethClient
+	return conn, nil
 }
 
 func (c *JSONRPCConnection) IsWebSocket() bool {
