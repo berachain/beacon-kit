@@ -52,7 +52,7 @@ func (s *Service) ReceiveBeaconBlock(
 	)
 
 	// If the block is nil, We have to abort.
-	if blk.IsNil() {
+	if blk == nil || blk.IsNil() {
 		return beacontypes.ErrNilBlk
 	}
 
