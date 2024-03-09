@@ -28,16 +28,16 @@ package staking
 import (
 	"context"
 
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 )
 
 // AcceptDepositIntoQueue records a deposit in the beacon state's queue.
 func (s *Service) AcceptDepositIntoQueue(
 	ctx context.Context,
-	deposit *beacontypesv1.Deposit,
+	deposit *beacontypes.Deposit,
 ) error {
 	// Push the deposit to the beacon state's queue.
-	err := s.BeaconState(ctx).EnqueueDeposits([]*beacontypesv1.Deposit{deposit})
+	err := s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{deposit})
 	if err != nil {
 		return err
 	}

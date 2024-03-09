@@ -28,13 +28,12 @@ package types
 import (
 	"errors"
 
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
 	"github.com/berachain/beacon-kit/config/version"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb -include ../../../primitives,../../../engine/types,./v1,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
 type BeaconBlockDeneb struct {
 	Slot            primitives.Slot
 	ParentBlockRoot [32]byte `ssz-size:"32"`
@@ -65,9 +64,9 @@ func (b *BeaconBlockDeneb) GetParentBlockRoot() [32]byte {
 }
 
 type BeaconBlockBodyDeneb struct {
-	RandaoReveal       [96]byte                 `ssz-size:"96"`
-	Graffiti           [32]byte                 `ssz-size:"32"`
-	Deposits           []*beacontypesv1.Deposit `                ssz-max:"16"`
+	RandaoReveal       [96]byte   `ssz-size:"96"`
+	Graffiti           [32]byte   `ssz-size:"32"`
+	Deposits           []*Deposit `                ssz-max:"16"`
 	ExecutionPayload   *enginetypes.ExecutableDataDeneb
 	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
 }
