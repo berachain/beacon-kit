@@ -67,7 +67,7 @@ def run(plan, args = {}):
                 artifact_names = collected_gentx,
             )
 
-        cl_service = plan.add_service(
+        plan.add_service(
             name = cl_service_name,
             config = beacond_config,
         )
@@ -84,7 +84,7 @@ def run(plan, args = {}):
                 command = ["/usr/bin/init_others.sh"],
             )
 
-        result = plan.exec(
+        plan.exec(
             service_name = cl_service_name,
             recipe = exec_recipe,
         )
