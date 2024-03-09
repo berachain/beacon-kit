@@ -29,7 +29,7 @@ import (
 	"reflect"
 	"testing"
 
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
 	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	"github.com/berachain/beacon-kit/contracts/abi"
@@ -95,13 +95,13 @@ func TestLogFactory(t *testing.T) {
 	require.Equal(t, logs.DepositType, valType.Elem())
 
 	// Check the values of the unmarshaled deposit.
-	newDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+	newDeposit, ok := val.Interface().(*beacontypes.Deposit)
 	require.True(t, ok)
 	require.NoError(t, err)
-	require.Equal(t, pubKey, newDeposit.GetValidatorPubkey())
-	require.Equal(t, stakingCredentials, newDeposit.GetStakingCredentials())
-	require.Equal(t, amount, newDeposit.GetAmount())
-	require.Equal(t, signature, newDeposit.GetSignature())
+	require.Equal(t, pubKey, newDeposit.ValidatorPubkey)
+	require.Equal(t, stakingCredentials, newDeposit.StakingCredentials)
+	require.Equal(t, amount, newDeposit.Amount)
+	require.Equal(t, signature, newDeposit.Signature)
 }
 
 func TestLogFactoryIncorrectType(t *testing.T) {
