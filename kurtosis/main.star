@@ -1,36 +1,31 @@
-input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
 el_cl_genesis_data_generator = import_module(
     "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
 )
 
-participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
-
 execution = import_module("./src/nodes/execution/execution.star")
 execution_types = import_module("./src/nodes/execution/types.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
-genesis = import_module("./src/networks/networks.star")
+networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
+nodes = import_module("./src/nodes/nodes.star")
 
-def run(plan, args = {}):
+def run(plan, validators, additional_services):
     """
-    Initiates the execution plan with the specified number of participants and arguments.
+    Initiates the execution plan with the specified number of validators and arguments.
 
     Args:
       plan: The execution plan to be run.
       args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
 
-    plan.print("Your args: {}".format(args))
-    args_with_right_defaults = input_parser.input_parser(plan, args)
-    num_participants = len(args_with_right_defaults.participants)
-
-    network_params = args_with_right_defaults.network_params
+    validators = nodes.parse_validators_from_dict(validators)
+    num_validators = len(validators)
 
     # 1. Initialize EVM genesis data
-    evm_genesis_data = genesis.get_genesis_data(plan)
+    evm_genesis_data = networks.get_genesis_data(plan)
 
     node_modules = {}
-    for node in args_with_right_defaults.participants:
+    for node in validators:
         if node.el_type not in node_modules.keys():
             node_path = "./src/nodes/execution/{}/config.star".format(node.el_type)
             node_module = import_module(node_path)
@@ -42,11 +37,11 @@ def run(plan, args = {}):
     node_peering_info = []
 
     # 3. Perform genesis ceremony
-    for n in range(num_participants):
+    for n in range(num_validators):
         cl_service_name = "cl-beaconkit-validator-{}".format(n)
         engine_dial_url = ""  # not needed for this step
         beacond_config = beacond.get_config(
-            args_with_right_defaults.participants[n].cl_image,
+            validators[n].cl_image,
             jwt_file,
             engine_dial_url,
             cl_service_name,
@@ -58,10 +53,10 @@ def run(plan, args = {}):
                 artifact_names = ["cosmos-genesis-{}".format(n - 1)],
             )
 
-        if n == num_participants - 1 and n != 0:
+        if n == num_validators - 1 and n != 0:
             collected_gentx = []
-            for other_participant_id in range(num_participants - 1):
-                collected_gentx.append("cosmos-gentx-{}".format(other_participant_id))
+            for other_validator_id in range(num_validators - 1):
+                collected_gentx.append("cosmos-gentx-{}".format(other_validator_id))
 
             beacond_config.files["/root/.beacond/config/gentx"] = Directory(
                 artifact_names = collected_gentx,
@@ -99,7 +94,7 @@ def run(plan, args = {}):
         node_peering_info.append(peer_result["output"])
 
         file_suffix = "{}".format(n)
-        if n == num_participants - 1:
+        if n == num_validators - 1:
             finalize_recipe = ExecRecipe(
                 # Initialize the Cosmos genesis file
                 command = ["/usr/bin/finalize.sh"],
@@ -143,9 +138,9 @@ def run(plan, args = {}):
 
     el_enode_addrs = []
 
-    # 4. Start network participants
-    for n in range(num_participants):
-        el_type = args_with_right_defaults.participants[n].el_type
+    # 4. Start network validators
+    for n in range(num_validators):
+        el_type = validators[n].el_type
         node_module = node_modules[el_type]
         el_service_name = "el-{}-validator-{}".format(el_type, n)
 
@@ -170,7 +165,7 @@ def run(plan, args = {}):
         persistent_peers = ",".join(my_peers)
 
         beacond_config = beacond.get_config(
-            args_with_right_defaults.participants[n].cl_image,
+            validators[n].cl_image,
             jwt_file,
             engine_dial_url,
             cl_service_name,

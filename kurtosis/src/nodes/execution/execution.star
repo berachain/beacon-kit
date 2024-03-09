@@ -1,6 +1,3 @@
-eth_static_files = import_module("github.com/kurtosis-tech/ethereum-package/src/static_files/static_files.star")
-input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
-
 execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
@@ -40,7 +37,7 @@ def upload_global_files(plan, node_modules):
         name = "genesis_file",
     )
     jwt_file = plan.upload_files(
-        src = constants.KURTOSIS_ETH_PACKAGE_URL + eth_static_files.JWT_PATH_FILEPATH,
+        src = constants.JWT_FILEPATH,
         name = "jwt_file",
     )
     for node_module in node_modules.values():
