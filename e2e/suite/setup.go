@@ -43,6 +43,7 @@ import (
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/sourcegraph/conc/iter"
+	"golang.org/x/sync/errgroup"
 )
 
 // SetupSuite executes before the test suite begins execution.
@@ -125,8 +126,12 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
 	s.Require().Empty(result.ValidationErrors)
 
-	// Setup the consensus clients and connect.
+	// Setup the clients and connect.
 	s.SetupExecutionClients()
+
+	// Wait for the finalized block number to reach 1.
+	err = s.WaitForFinalizedBlockNumber(1)
+	s.Require().NoError(err, "Error waiting for finalized block number")
 
 	// Fund any requested accounts.
 	s.FundAccounts()
@@ -255,6 +260,29 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 		"num-accounts",
 		len(s.testAccounts),
 	)
+}
+
+// WaitForFinalizedBlockNumber waits for the finalized block number
+// to reach the target block number across all execution clients.
+func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
+	target uint64,
+) error {
+	eg, groupCtx := errgroup.WithContext(context.Background())
+	groupCctx, cancel := context.WithTimeout(
+		groupCtx, DefaultE2ETestTimeout)
+	defer cancel()
+	for _, executionClient := range s.ExecutionClients() {
+		eg.Go(
+			func() error {
+				return executionClient.WaitForLatestBlockNumber(
+					groupCctx,
+					target,
+				)
+			},
+		)
+	}
+
+	return eg.Wait()
 }
 
 // TearDownSuite cleans up resources after all tests have been executed.

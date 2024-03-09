@@ -51,7 +51,7 @@ type Builder struct {
 func DefaultBuilderConfig() Builder {
 	return Builder{
 		LocalBuilderEnabled:      true,
-		LocalBuildPayloadTimeout: 2 * time.Second, //nolint:gomnd // default config.
+		LocalBuildPayloadTimeout: 3 * time.Second, //nolint:gomnd // default config.
 	}
 }
 
