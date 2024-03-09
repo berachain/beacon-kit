@@ -29,7 +29,7 @@ import (
 	"reflect"
 	"testing"
 
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
 	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
 	"github.com/berachain/beacon-kit/beacon/staking/logs"
@@ -74,12 +74,12 @@ func FuzzProcessLogs(f *testing.F) {
 
 			// Check if the values are returned in the correct order.
 			for i, val := range vals {
-				processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+				processedDeposit, ok := val.Interface().(*beacontypes.Deposit)
 				require.True(t, ok)
 				require.Equal(
 					t,
 					uint64(i*depositFactor),
-					processedDeposit.GetAmount(),
+					processedDeposit.Amount,
 				)
 			}
 		},
