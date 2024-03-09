@@ -26,7 +26,7 @@
 package http
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 	"net/http"
 
 	"github.com/berachain/beacon-kit/io/jwt"

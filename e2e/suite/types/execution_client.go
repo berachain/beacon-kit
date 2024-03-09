@@ -27,7 +27,7 @@ package types
 
 import (
 	"context"
-	"errors"
+	"github.com/cockroachdb/errors"
 	"math/big"
 
 	"cosmossdk.io/log"

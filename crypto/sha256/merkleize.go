@@ -26,7 +26,7 @@
 package sha256
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 
 	"github.com/protolambda/ztyp/tree"
 )

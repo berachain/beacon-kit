@@ -27,7 +27,7 @@ package prompt_test
 
 import (
 	"bytes"
-	"errors"
+	"github.com/cockroachdb/errors"
 	"os"
 	"testing"
 

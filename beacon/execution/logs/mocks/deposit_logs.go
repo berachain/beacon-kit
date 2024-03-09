@@ -26,7 +26,7 @@
 package mocks
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 
 	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	"github.com/berachain/beacon-kit/contracts/abi"

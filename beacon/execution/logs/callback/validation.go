@@ -26,8 +26,8 @@
 package callback
 
 import (
-	"errors"
 	"fmt"
+	"github.com/cockroachdb/errors"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
 	"github.com/berachain/beacon-kit/primitives"

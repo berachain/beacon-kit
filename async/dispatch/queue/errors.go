@@ -25,6 +25,6 @@
 
 package queue
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var ErrAddToStoppedQueue = errors.New("cannot add to stopped queue")

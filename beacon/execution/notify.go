@@ -27,8 +27,8 @@ package execution
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/cockroachdb/errors"
 
 	"github.com/berachain/beacon-kit/engine/client"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"

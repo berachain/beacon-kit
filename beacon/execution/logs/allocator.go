@@ -26,7 +26,7 @@
 package logs
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/primitives"

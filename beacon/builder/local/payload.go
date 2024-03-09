@@ -27,8 +27,8 @@ package localbuilder
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/cockroachdb/errors"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/execution"

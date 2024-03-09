@@ -25,7 +25,7 @@
 
 package callback
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 // ErrHandlerFnNotFound is an error that indicates the handler function
 // for a given log signature was not found.

@@ -26,7 +26,7 @@
 package types
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 )
 
 var (

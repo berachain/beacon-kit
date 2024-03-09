@@ -28,7 +28,7 @@ package root
 
 import (
 	"context"
-	"errors"
+	"github.com/cockroachdb/errors"
 	"io"
 	"os"
 

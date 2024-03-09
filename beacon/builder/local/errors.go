@@ -25,7 +25,7 @@
 
 package localbuilder
 
-import "github.com/pkg/errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is

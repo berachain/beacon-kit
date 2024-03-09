@@ -4,7 +4,7 @@ package enginetypes
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/cockroachdb/errors"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

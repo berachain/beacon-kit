@@ -21,7 +21,7 @@
 package callback
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
 	"github.com/ethereum/go-ethereum/accounts/abi"

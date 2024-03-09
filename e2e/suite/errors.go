@@ -25,7 +25,7 @@
 
 package suite
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 // ErrUnexpectedBalance is returned when the balance is unexpected.
 var ErrUnexpectedBalance = errors.New("unexpected balance")

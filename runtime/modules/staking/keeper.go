@@ -27,7 +27,7 @@ package staking
 
 import (
 	"context"
-	"errors"
+	"github.com/cockroachdb/errors"
 
 	sdkmath "cosmossdk.io/math"
 	sdkkeeper "cosmossdk.io/x/staking/keeper"

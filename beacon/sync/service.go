@@ -27,7 +27,7 @@ package sync
 
 import (
 	"context"
-	"errors"
+	"github.com/cockroachdb/errors"
 	"sync"
 	"time"
 

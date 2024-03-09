@@ -26,7 +26,7 @@
 package types
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 
 	"github.com/berachain/beacon-kit/config/version"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"

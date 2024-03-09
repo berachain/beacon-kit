@@ -25,7 +25,7 @@
 
 package jwt
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrLengthMismatch is returned when a JWT secret length is not as

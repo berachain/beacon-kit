@@ -26,7 +26,7 @@
 package cache
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 )
 
 var (

@@ -27,7 +27,7 @@ package tos_test
 
 import (
 	"bytes"
-	"errors"
+	"github.com/cockroachdb/errors"
 	"os"
 	"path/filepath"
 	"strings"

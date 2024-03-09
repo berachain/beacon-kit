@@ -26,7 +26,7 @@
 package tos
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 	"path/filepath"
 	"strings"
 

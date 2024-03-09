@@ -32,7 +32,7 @@ import (
 	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
