@@ -9,6 +9,8 @@ networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
 nginx = import_module("./src/services/nginx/nginx.star")
+prometheus = import_module("./src/observability/prometheus/prometheus.star")
+grafana = import_module("./src/observability/grafana/grafana.star")
 
 def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = []):
     """
@@ -40,14 +42,31 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     node_peering_info = beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
     el_enode_addrs = []
+    node_services = []
+
 
     # 4. Start network validators
     for n, validator in enumerate(validators):
         el_client = execution.create_node(plan, node_modules, validator, "validator", n, el_enode_addrs)
         el_enode_addrs.append(el_client["enode_addr"])
 
+        node_services.append({
+            "service": el_client_service,
+            "metrics_path": node_module.METRICS_PATH,
+            "type": node.el_type,
+            "index": n,
+        })
+
+
         # 4b. Launch CL
         beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, n)
+
+        node_services.append({
+            "service": node_service,
+            "metrics_path": beacond.METRICS_PATH,
+            "type": "beacond",
+            "index": n,
+        })
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}
@@ -70,7 +89,16 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     for n, rpc in enumerate(rpc_endpoints):
         nginx.get_config(plan, rpc["services"])
 
-    # if rpc_configs != {}:
-    #     plan.add_services(
-    #         configs = rpc_configs,
-    #     )
+
+
+
+
+
+
+    if "prometheus" in args_with_right_defaults.additional_services:
+        prometheus_url = prometheus.start(plan, node_services)
+
+        if "grafana" in args_with_right_defaults.additional_services:
+            grafana.start(plan, prometheus_url)
+            
+

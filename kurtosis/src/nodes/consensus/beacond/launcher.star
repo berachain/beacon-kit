@@ -5,7 +5,7 @@ COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
 COMETBFT_GRPC_PORT_NUM = 9090
 COMETBFT_REST_PORT_NUM = 1317
-PROMETHEUS_PORT_NUM = 26660
+METRICS_PORT_NUM = 26660
 ENGINE_RPC_PORT_NUM = 8551
 
 # Port IDs
@@ -14,7 +14,9 @@ COMETBFT_P2P_PORT_ID = "cometbft-p2p"
 COMETBFT_GRPC_PORT_ID = "cometbft-grpc"
 COMETBFT_REST_PORT_ID = "cometbft-rest"
 ENGINE_RPC_PORT_ID = "engine-rpc"
-PROMETHEUS_PORT_ID = "prometheus"
+METRICS_PORT_ID = "metrics"
+
+METRICS_PATH = "/metrics"
 
 USED_PORTS = {
     COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
@@ -22,7 +24,7 @@ USED_PORTS = {
     COMETBFT_GRPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_GRPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     COMETBFT_REST_PORT_ID: shared_utils.new_port_spec(COMETBFT_REST_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    PROMETHEUS_PORT_ID: shared_utils.new_port_spec(PROMETHEUS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
+    METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL),
 }
 
 def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None):

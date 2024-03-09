@@ -32,7 +32,7 @@ ENGINE_RPC_PORT_ID = defaults.ENGINE_RPC_PORT_ID
 ENGINE_WS_PORT_ID = defaults.ENGINE_WS_PORT_ID
 METRICS_PORT_ID = defaults.METRICS_PORT_ID
 
-METRICS_PATH = defaults.METRICS_PATH
+METRICS_PATH = "/"
 
 IMAGE = "ghcr.io/paradigmxyz/reth:latest"
 ENTRYPOINT = ["sh", "-c"]
