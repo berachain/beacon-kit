@@ -79,21 +79,17 @@ func (s *EngineClient) GetLogs(
 	blockHash common.Hash,
 	addresses []primitives.ExecutionAddress,
 ) ([]coretypes.Log, error) {
-	// Create a filter query for the block, to acquire all logs
-	// from contracts that we care about.
-	query := ethereum.FilterQuery{
+	// Gather all the logs according to the query.
+	logs, err := s.FilterLogs(ctx, ethereum.FilterQuery{
 		Addresses: addresses,
 		BlockHash: &blockHash,
-	}
-
-	// Gather all the logs according to the query.
-	logs, err := s.FilterLogs(ctx, query)
+	})
 	if err != nil {
 		return []coretypes.Log{}, err
 	}
 
-	// TODO: Add logs to cache.
-
+	// Add logs to cache.
+	s.logsCache.Add(logs)
 	return logs, nil
 }
 
@@ -106,10 +102,14 @@ func (s *EngineClient) GetLogAt(
 ) (*coretypes.Log, error) {
 	var logs []coretypes.Log
 	var err error
+	var ok bool
 
 	if blockHashOrNumb.BlockNumber != nil {
-		// TODO: Abstract into logs at hash
-		// TODO: Check Cache.
+		// Check if the log is in the cache.
+		blockNum := uint64(blockHashOrNumb.BlockNumber.Int64())
+		if logs, ok = s.logsCache.GetByBlockNumber(blockNum); ok {
+			return getLogAtIndex(logs, logIndex)
+		}
 
 		// If the block number is not nil, we can use the `GetLogs` method.
 		blockNumber := big.NewInt(int64(*blockHashOrNumb.BlockNumber))
@@ -118,22 +118,39 @@ func (s *EngineClient) GetLogAt(
 			FromBlock: blockNumber,
 			ToBlock:   blockNumber,
 		})
-	} else {
+	} else if blockHashOrNumb.BlockHash != nil {
+		// Check if the log is in the cache.
+		if logs, ok = s.logsCache.GetByBlockHash(*blockHashOrNumb.BlockHash); ok {
+			return getLogAtIndex(logs, logIndex)
+		}
+
 		// Fallback to using GetLogs if the block number is nil.
-		logs, err = s.GetLogs(
-			ctx,
-			*blockHashOrNumb.BlockHash,
-			[]common.Address{contract},
-		)
+		logs, err = s.FilterLogs(ctx, ethereum.FilterQuery{
+			Addresses: []common.Address{contract},
+			BlockHash: blockHashOrNumb.BlockHash,
+		})
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	// Check that logIndex is within the bounds of the logs.
-	if logIndex < uint(len(logs)) && logs != nil {
-		return &logs[logIndex], nil
+	// Check that logs were found
+	if logs == nil {
+		return nil, ErrLogOutOfIndex
 	}
+	// Add logs to cache, this is the first time we've seen this log.
+	s.logsCache.Add(logs)
+	// Return the log at the given index.
+	return getLogAtIndex(logs, logIndex)
+}
 
+// getLogAtIndex returns the log at the given index.
+func getLogAtIndex(logs []coretypes.Log, index uint) (*coretypes.Log, error) {
+	for _, log := range logs {
+		if log.Index == index {
+			return &log, nil
+		}
+	}
+	// If the log is not found, return an error.
 	return nil, ErrLogOutOfIndex
 }

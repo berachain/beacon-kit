@@ -23,15 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cache
+package skiplist
 
-type Cache[T any] interface {
-	Insert(elem T)
-	Front() (T, error)
-	Back() (T, error)
-	Remove(elem T)
-	RemoveBack() (T, error)
-	RemoveFront() (T, error)
-	Contains(elem T) bool
-	Len() int
-}
+import (
+	"errors"
+)
+
+var (
+	ErrEmptySkiplist = errors.New("skiplist is empty")
+)

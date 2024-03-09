@@ -53,6 +53,7 @@ type EngineClient struct {
 	// engineCache is an all-in-one cache for data
 	// that are retrieved by the EngineClient.
 	engineCache *cache.EngineCache
+	logsCache   *cache.LogCache
 
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
@@ -80,6 +81,11 @@ func New(opts ...Option) *EngineClient {
 	// If the engine cache is not set, we create a new one.
 	if ec.engineCache == nil {
 		ec.engineCache = cache.NewEngineCacheWithDefaultConfig()
+	}
+
+	// If the logs cache is not set, we create a new one.
+	if ec.logsCache == nil {
+		ec.logsCache = cache.NewLogCache()
 	}
 
 	return ec

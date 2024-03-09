@@ -37,7 +37,7 @@ type Cache struct {
 // NewCache returns a new cache for LogContainer.
 func NewCache() *Cache {
 	return &Cache{
-		cache.NewOrderedCache[LogContainer](LogComparable{}),
+		cache.NewSkiplist[LogContainer](LogComparable{}),
 	}
 }
 
