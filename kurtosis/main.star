@@ -43,7 +43,7 @@ def run(plan, args = {}):
 
     # 3. Perform genesis ceremony
     for n in range(num_participants):
-        cl_service_name = "cl-{}-{}-beaconkit".format(n, args_with_right_defaults.participants[n].el_type)
+        cl_service_name = "cl-beaconkit-validator-{}".format(n)
         engine_dial_url = ""  # not needed for this step
         beacond_config = beacond.get_config(
             args_with_right_defaults.participants[n].cl_image,
@@ -147,7 +147,7 @@ def run(plan, args = {}):
     for n in range(num_participants):
         el_type = args_with_right_defaults.participants[n].el_type
         node_module = node_modules[el_type]
-        el_service_name = "el-{}-{}-beaconkit".format(n, el_type)
+        el_service_name = "el-{}-validator-{}".format(el_type, n)
 
         # 4a. Launch EL
         el_service_config_dict = execution.get_default_service_config(el_service_name, node_module)
@@ -158,13 +158,13 @@ def run(plan, args = {}):
         el_enode_addrs.append(enode_addr)
 
         # 4b. Launch CL
-        cl_service_name = "cl-{}-{}-beaconkit".format(n, el_type)
+        cl_service_name = "cl-beaconkit-validator-{}".format(n)
         engine_dial_url = "http://{}:{}".format(el_service_name, execution.ENGINE_RPC_PORT_NUM)
 
         # Get peers for the cl node
         my_peers = node_peering_info[:n]
         for i in range(len(my_peers)):
-            peer_el_service_name = "cl-{}-{}-beaconkit".format(i, args_with_right_defaults.participants[i].el_type)
+            peer_el_service_name = "cl-beaconkit-validator-{}".format(i)
             peer_service = plan.get_service(peer_el_service_name)
             my_peers[i] = my_peers[i] + "@" + peer_service.ip_address + ":26656"
         persistent_peers = ",".join(my_peers)
