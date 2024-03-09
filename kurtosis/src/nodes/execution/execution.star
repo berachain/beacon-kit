@@ -95,3 +95,20 @@ def deploy_node(plan, config):
         name = config["name"],
         config = service_config,
     )
+
+def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
+    el_type = node.el_type
+    node_module = node_modules[el_type]
+    el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
+
+    # 4a. Launch EL
+    el_service_config_dict = get_default_service_config(el_service_name, node_module)
+    el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
+    el_client_service = deploy_node(plan, el_service_config_dict)
+
+    enode_addr = get_enode_addr(plan, el_client_service, el_service_name, el_type)
+    return {
+        "name": el_service_name,
+        "service": el_client_service,
+        "enode_addr": enode_addr,
+    }
