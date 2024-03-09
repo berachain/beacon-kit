@@ -27,12 +27,12 @@ package prompt_test
 
 import (
 	"bytes"
-	"github.com/cockroachdb/errors"
 	"os"
 	"testing"
 
 	"github.com/berachain/beacon-kit/io/cli/prompt"
 	"github.com/berachain/beacon-kit/io/cli/prompt/mocks"
+	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 )

@@ -26,10 +26,10 @@
 package http
 
 import (
-	"github.com/cockroachdb/errors"
 	"net/http"
 
 	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/node"
 )
 

@@ -28,9 +28,10 @@ package root
 
 import (
 	"context"
-	"github.com/cockroachdb/errors"
 	"io"
 	"os"
+
+	"github.com/cockroachdb/errors"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"

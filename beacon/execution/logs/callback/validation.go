@@ -27,10 +27,10 @@ package callback
 
 import (
 	"fmt"
-	"github.com/cockroachdb/errors"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 )
 
 // validateArg uses reflection to verify the implementation arg matches the ABI

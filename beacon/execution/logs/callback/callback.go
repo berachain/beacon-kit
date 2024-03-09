@@ -22,9 +22,9 @@ package callback
 
 import (
 	"context"
-	"github.com/cockroachdb/errors"
 	"reflect" //#nosec:G702 // reflect is required for ABI parsing.
 
+	"github.com/cockroachdb/errors"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 

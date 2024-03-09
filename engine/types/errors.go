@@ -25,35 +25,16 @@
 
 package enginetypes
 
-import (
-	"github.com/berachain/beacon-kit/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
+	ErrInvalidTimestamp = errors.New("invalid timestamp")
+	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
+	ErrInvalidRandao = errors.New("invalid randao")
+	// ErrNilWithdrawals indicates that the withdrawals are in a
+	// Capella versioned payload.
+	ErrNilWithdrawals = errors.New("nil withdrawals post capella")
+	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
+	ErrEmptyPrevRandao = errors.New("empty randao")
 )
-
-// ExecutionPayloadBody is the interface for the execution data of a block.
-// It contains all the fields that are part of both an execution payload header
-// and a full execution payload.
-type ExecutionPayloadBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	IsNil() bool
-	String() string
-	Version() int
-	IsBlinded() bool
-	GetBlockHash() primitives.ExecutionHash
-	GetParentHash() primitives.ExecutionHash
-}
-
-// ExecutionPayload represents the execution data of a block.
-type ExecutionPayload interface {
-	ExecutionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
-}
-
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	Version() int
-	Validate() error
-}

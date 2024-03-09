@@ -26,10 +26,10 @@
 package logs
 
 import (
-	"github.com/cockroachdb/errors"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 )
 

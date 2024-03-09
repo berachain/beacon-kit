@@ -27,10 +27,10 @@ package blockchain
 
 import (
 	"context"
-	"github.com/cockroachdb/errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/sync"
+	"github.com/cockroachdb/errors"
 )
 
 // postBlockProcess(.

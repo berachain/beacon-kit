@@ -28,7 +28,6 @@ package localbuilder
 import (
 	"context"
 	"fmt"
-	"github.com/cockroachdb/errors"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/execution"
@@ -258,8 +257,7 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	// Build the payload attributes.
-	attrs, err := enginetypes.NewPayloadAttributes(
+	return enginetypes.NewPayloadAttributes(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
@@ -267,11 +265,6 @@ func (s *Service) getPayloadAttribute(
 		withdrawals,
 		prevHeadRoot,
 	)
-	if err != nil {
-		return nil, errors.New("could not create payload attributes")
-	}
-
-	return attrs, nil
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the

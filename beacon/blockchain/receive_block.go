@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 	"fmt"
-	"github.com/cockroachdb/errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
@@ -159,7 +158,7 @@ func (s *Service) validateExecutionOnBlock(
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	if payload.IsNil() {
-		return false, errors.New("no payload in beacon block")
+		return false, beacontypes.ErrNilPayloadInBlk
 	}
 
 	// In BeaconKit, since we are currently operating on SingleSlot Finality
