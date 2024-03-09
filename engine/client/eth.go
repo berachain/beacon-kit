@@ -28,6 +28,7 @@ package client
 import (
 	"context"
 	"math/big"
+	"sort"
 
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum"
@@ -152,18 +153,14 @@ func getLogAtIndex(logs []coretypes.Log, index uint) (*coretypes.Log, error) {
 	}
 
 	// Perform a binary search to find the log at the given index.
-	left, right := 0, len(logs)-1
-	for left <= right {
-		mid := left + (right-left)/2 //nolint:gomnd // its a binary search
-		switch {
-		case logs[mid].Index == index:
-			return &logs[mid], nil
-		case logs[mid].Index < index:
-			left = mid + 1
-		default:
-			right = mid - 1
-		}
+	i := sort.Search(
+		len(logs),
+		func(i int) bool { return logs[i].Index == index },
+	)
+	if i < len(logs) && logs[i].Index == index {
+		return &logs[i], nil
 	}
+
 	// If the log is not found, return an error.
 	return nil, ErrLogOutOfIndex
 }
