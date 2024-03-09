@@ -171,10 +171,11 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 	// Send ether from the genesis account to the test account
 	ctx := context.Background()
-	randomIndex, _ := rand.Int(
+	randomIndex, err := rand.Int(
 		rand.Reader,
 		big.NewInt(int64(len(ecKeys))),
 	)
+	s.Require().NoError(err, "Error generating random index")
 	el := s.executionClients[ecKeys[randomIndex.Int64()]]
 	pendingNonce, err := el.PendingNonceAt(
 		ctx,
@@ -183,7 +184,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	nonce.Store(pendingNonce)
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
 
-	chainID, err := el.NetworkID(ctx)
+	var chainID *big.Int
+	chainID, err = el.NetworkID(ctx)
 	s.Require().NoError(err, "Failed to get network ID")
 
 	_, err = iter.MapErr(
@@ -192,7 +194,11 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			account := *acc
 			// Select a random execution client to send the transaction to.
 			// TODO: Filter by RPC support.
-			i, _ := rand.Int(rand.Reader, big.NewInt(int64(len(ecKeys))))
+			var i *big.Int
+			i, err = rand.Int(rand.Reader, big.NewInt(int64(len(ecKeys))))
+			if err != nil {
+				return nil, err
+			}
 			executionClient := s.executionClients[ecKeys[i.Int64()]]
 
 			var gasTipCap *big.Int
@@ -259,11 +265,6 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	if err != nil {
 		s.Require().NoError(err, "Error funding accounts")
 	}
-
-	s.logger.Info(
-		"all accounts funded successfully",
-		"num-accounts", len(s.testAccounts),
-	)
 }
 
 // WaitForFinalizedBlockNumber waits for the finalized block number
