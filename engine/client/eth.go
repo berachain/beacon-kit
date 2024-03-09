@@ -146,9 +146,15 @@ func (s *EngineClient) GetLogAt(
 
 // getLogAtIndex returns the log at the given index.
 func getLogAtIndex(logs []coretypes.Log, index uint) (*coretypes.Log, error) {
-	for _, log := range logs {
-		if log.Index == index {
-			return &log, nil
+	left, right := 0, len(logs)-1
+	for left <= right {
+		mid := left + (right-left)/2
+		if logs[mid].Index == index {
+			return &logs[mid], nil
+		} else if logs[mid].Index < index {
+			left = mid + 1
+		} else {
+			right = mid - 1
 		}
 	}
 	// If the log is not found, return an error.
