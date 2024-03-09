@@ -4,7 +4,7 @@
 package abi
 
 import (
-	"github.com/cockroachdb/errors"
+	"errors"
 	"math/big"
 	"strings"
 

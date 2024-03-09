@@ -4,7 +4,7 @@ package enginetypes
 
 import (
 	"encoding/json"
-	"github.com/cockroachdb/errors"
+	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/beacon/engine"
