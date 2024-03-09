@@ -26,11 +26,7 @@
 package e2e_test
 
 import (
-	"context"
-	"time"
-
 	"github.com/berachain/beacon-kit/e2e/suite"
-	"golang.org/x/sync/errgroup"
 )
 
 // BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
@@ -41,23 +37,6 @@ type BeaconKitE2ESuite struct {
 
 // TestBasicStartup tests the basic startup of the beacon-kit network.
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
-	targetBlock := uint64(5)
-	eg, groupCtx := errgroup.WithContext(context.Background())
-	groupCctx, cancel := context.WithTimeout(groupCtx, 90*time.Second)
-	defer cancel()
-
-	for _, executionClient := range s.ExecutionClients() {
-		eg.Go(
-			func() error {
-				return executionClient.WaitForLatestBlockNumber(
-					groupCctx,
-					targetBlock,
-				)
-			},
-		)
-	}
-
-	if err := eg.Wait(); err != nil {
-		s.T().Fatal(err)
-	}
+	err := s.WaitForFinalizedBlockNumber(6)
+	s.Require().NoError(err)
 }

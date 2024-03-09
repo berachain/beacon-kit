@@ -23,9 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package suite
+package types
 
-import "errors"
-
-// ErrUnexpectedBalance is returned when the balance is unexpected.
-var ErrUnexpectedBalance = errors.New("unexpected balance")
+// LoadBalancer represents a group of eth JSON-RPC endpoints
+// behind an NGINX load balancer.
+type LoadBalancer struct {
+	JSONRPCConnection
+}

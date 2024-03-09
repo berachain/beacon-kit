@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/e2e/suite/types"
 	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
@@ -49,13 +50,18 @@ type KurtosisE2ESuite struct {
 	ctx              context.Context
 	kCtx             *kurtosis_context.KurtosisContext
 	enclave          *enclaves.EnclaveContext
-	consensusClients map[string]*ConsensusClient
-	executionClients map[string]*ExecutionClient
+	consensusClients map[string]*types.ConsensusClient
+	executionClients map[string]*types.ExecutionClient
+
+	genesisAccount *types.EthAccount
+	testAccounts   []*types.EthAccount
 }
 
 // ConsensusClients returns the consensus clients associated with the
 // KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) ConsensusClients() map[string]*ConsensusClient {
+//
+//nolint:lll
+func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
 	return s.consensusClients
 }
 
@@ -80,7 +86,9 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 
 // ExecutionClients returns the execution clients associated with the
 // KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) ExecutionClients() map[string]*ExecutionClient {
+//
+//nolint:lll
+func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
 	return s.executionClients
 }
 
