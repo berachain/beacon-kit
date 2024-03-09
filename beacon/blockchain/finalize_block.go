@@ -68,7 +68,7 @@ func (s *Service) FinalizeBeaconBlock(
 	}()
 
 	if blk.IsNil() {
-		return beacontypes.ErrNilBlock
+		return beacontypes.ErrNilBlk
 	}
 
 	payload := blk.GetBody().GetExecutionPayload()

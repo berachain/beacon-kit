@@ -23,28 +23,50 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package callback
+package client
 
 import (
 	"context"
+	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// LogHandler represents a struct that has the ability to ingest
-// an ethereum log and handle it.
-type LogHandler interface {
-	HandleLog(ctx context.Context, log *coretypes.Log) error
+// HeaderByNumber retrieves the block header by its number.
+func (s *EngineClient) HeaderByNumber(
+	ctx context.Context,
+	number *big.Int,
+) (*coretypes.Header, error) {
+	// Check the cache for the header.
+	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
+	if ok {
+		return header, nil
+	}
+	header, err := s.Client.HeaderByNumber(ctx, number)
+	if err != nil {
+		return nil, err
+	}
+
+	defer s.engineCache.AddHeader(header)
+
+	return header, nil
 }
 
-// ContractHandler is the interface for all contracts in the execution layer,
-// which must expose their ABI methods and events so that callback
-// can select corresponding methods to process them.
-type ContractHandler interface {
-	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum
-	// abi `Event`. NOTE: this can be directly loaded from the `Events` field of
-	// a Go-Ethereum ABI struct,
-	// which can be built for a solidity library, interface, or contract.
-	ABIEvents() map[string]abi.Event
+// HeaderByHash retrieves the block header by its hash.
+func (s *EngineClient) HeaderByHash(
+	ctx context.Context,
+	hash primitives.ExecutionHash,
+) (*coretypes.Header, error) {
+	// Check the cache for the header.
+	header, ok := s.engineCache.HeaderByHash(hash)
+	if ok {
+		return header, nil
+	}
+	header, err := s.Client.HeaderByHash(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+	s.engineCache.AddHeader(header)
+	return header, nil
 }

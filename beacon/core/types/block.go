@@ -70,6 +70,10 @@ type BeaconBlockBodyDeneb struct {
 	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
 }
 
+func (b *BeaconBlockBodyDeneb) IsNil() bool {
+	return b == nil
+}
+
 func (b *BeaconBlockBodyDeneb) GetRandaoReveal() []byte {
 	return b.RandaoReveal[:]
 }

@@ -164,7 +164,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
-				ctx, payloadID, slot,
+				ctx, &payloadID, slot,
 			)
 		if err == nil {
 			// bundleCache.add(slot, bundle)
@@ -215,7 +215,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err :=
 		s.getPayloadFromExecutionClient(
-			ctx, *payloadID, slot,
+			ctx, payloadID, slot,
 		)
 	if err != nil {
 		return nil, nil, false, err
@@ -271,12 +271,16 @@ func (s *Service) getPayloadAttribute(
 // given slot.
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
-	payloadID enginetypes.PayloadID,
+	payloadID *enginetypes.PayloadID,
 	slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
+	if payloadID == nil {
+		return nil, nil, false, ErrNilPayloadID
+	}
+
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
 		ctx,
-		payloadID,
+		*payloadID,
 		slot,
 	)
 	if err != nil {

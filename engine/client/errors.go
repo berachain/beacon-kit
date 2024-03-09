@@ -118,6 +118,16 @@ var (
 	ErrInvalidBlockHashPayloadStatus = errors.New(
 		"payload status is INVALID_BLOCK_HASH")
 
+	// ErrNilForkchoiceResponse indicates a nil forkchoice response.
+	ErrNilForkchoiceResponse = errors.New(
+		"nil forkchoice response",
+	)
+
+	// ErrNilPayloadStatus indicates a nil payload status.
+	ErrNilPayloadStatus = errors.New(
+		"nil payload status",
+	)
+
 	// ErrRequestTooLarge indicates that the request size exceeded the limit.
 	ErrRequestTooLarge = errors.New(
 		"request too large")
