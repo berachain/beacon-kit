@@ -79,6 +79,7 @@ func NewJSONRPCConnection(
 	return conn, nil
 }
 
+// IsWebSocket returns true if the connection is a WebSocket.
 func (c *JSONRPCConnection) IsWebSocket() bool {
 	return c.isWebSocket
 }
