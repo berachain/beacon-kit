@@ -28,7 +28,7 @@ package logs_test
 import (
 	"testing"
 
-	beacontypesv1 "github.com/berachain/beacon-kit/beacon/core/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	executionlogs "github.com/berachain/beacon-kit/beacon/execution/logs"
 	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
 	stakinglogs "github.com/berachain/beacon-kit/beacon/staking/logs"
@@ -79,12 +79,12 @@ func FuzzProcessStakingLogs(f *testing.F) {
 			// Check if the returned values are correct.
 			for i, container := range containers {
 				val := container.Value()
-				processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+				processedDeposit, ok := val.Interface().(*beacontypes.Deposit)
 				require.True(t, ok)
 				require.Equal(
 					t,
 					uint64(i*depositFactor),
-					processedDeposit.GetAmount(),
+					processedDeposit.Amount,
 				)
 			}
 		},
