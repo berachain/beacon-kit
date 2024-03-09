@@ -26,7 +26,6 @@
 package enginetypes
 
 import (
-	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -40,19 +39,4 @@ type payloadAttributesJSONMarshaling struct {
 	Timestamp             hexutil.Uint64
 	PrevRandao            hexutil.Bytes
 	ParentBeaconBlockRoot hexutil.Bytes
-}
-
-// JSON type overrides for ExecutableDataDeneb.
-type executableDataDenebMarshaling struct {
-	Number        hexutil.Uint64
-	GasLimit      hexutil.Uint64
-	GasUsed       hexutil.Uint64
-	Timestamp     hexutil.Uint64
-	BaseFeePerGas primitives.SSZUInt256
-	Random        primitives.ExecutionHash
-	ExtraData     hexutil.Bytes
-	LogsBloom     hexutil.Bytes
-	Transactions  []hexutil.Bytes
-	BlobGasUsed   hexutil.Uint64
-	ExcessBlobGas hexutil.Uint64
 }

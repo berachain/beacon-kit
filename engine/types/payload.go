@@ -26,75 +26,23 @@
 package enginetypes
 
 import (
-	"fmt"
-	"math/big"
-
 	"github.com/berachain/beacon-kit/config/version"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
-	"github.com/berachain/beacon-kit/math"
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/holiman/uint256"
+	ssz "github.com/prysmaticlabs/fastssz"
 )
 
-type ExecutionPayloadEnvelope interface {
-	GetExecutionPayload() ExecutionPayload
-	GetValue() math.Wei
-	GetBlobsBundle() *BlobsBundleV1
-	ShouldOverrideBuilder() bool
-}
+var (
+	_ ssz.Marshaler   = (*ExecutableData)(nil)
+	_ ssz.Unmarshaler = (*ExecutableData)(nil)
+	_ ssz.HashRoot    = (*ExecutableData)(nil)
+)
 
-//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -field-override executionPayloadEnvelopeMarshaling -out payload_env.json.go
+//go:generate go run github.com/fjl/gencodec -type ExecutableData -field-override executableDataMarshaling -out payload.json.go
 //nolint:lll
-type ExecutionPayloadEnvelopeDeneb struct {
-	ExecutionPayload *ExecutableDataDeneb `json:"executionPayload"      gencodec:"required"`
-	BlockValue       *big.Int             `json:"blockValue"            gencodec:"required"`
-	BlobsBundle      *BlobsBundleV1       `json:"blobsBundle"`
-	Override         bool                 `json:"shouldOverrideBuilder"`
-}
-
-func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
-	return e.ExecutionPayload
-}
-
-func (e *ExecutionPayloadEnvelopeDeneb) GetValue() math.Wei {
-	val, ok := uint256.FromBig(e.BlockValue)
-	if !ok {
-		return math.Wei{}
-	}
-	return math.Wei{Int: val}
-}
-
-func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *BlobsBundleV1 {
-	return e.BlobsBundle
-}
-
-func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
-	return e.Override
-}
-
-func (e *ExecutionPayloadEnvelopeDeneb) String() string {
-	return fmt.Sprintf(`
-ExecutionPayloadEnvelopeDeneb{
-	ExecutionPayload: %s,
-	BlockValue: %s,
-	BlobsBundle: %s,
-	Override: %v,
-}`, e.ExecutionPayload.String(),
-		e.BlockValue.String(),
-		e.GetBlobsBundle().Blobs,
-		e.Override,
-	)
-}
-
-// JSON type overrides for ExecutionPayloadEnvelope.
-type executionPayloadEnvelopeMarshaling struct {
-	BlockValue *hexutil.Big
-}
-
-//go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
-//nolint:lll
-type ExecutableDataDeneb struct {
+type ExecutableData struct {
+	version       int
 	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 	FeeRecipient  primitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 	StateRoot     primitives.ExecutionHash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
@@ -114,80 +62,145 @@ type ExecutableDataDeneb struct {
 	ExcessBlobGas uint64                      `json:"excessBlobGas"`
 }
 
+// JSON type overrides for ExecutableDataDeneb.
+type executableDataMarshaling struct {
+	Number        hexutil.Uint64
+	GasLimit      hexutil.Uint64
+	GasUsed       hexutil.Uint64
+	Timestamp     hexutil.Uint64
+	BaseFeePerGas primitives.SSZUInt256
+	Random        primitives.ExecutionHash
+	ExtraData     hexutil.Bytes
+	LogsBloom     hexutil.Bytes
+	Transactions  []hexutil.Bytes
+	BlobGasUsed   hexutil.Uint64
+	ExcessBlobGas hexutil.Uint64
+}
+
+// ExecutableDataDeneb is the ExecutableDataDeneb.
+func (d *ExecutableData) SetVersion(v int) {
+	if v == 0 {
+		d.version = v
+	}
+}
+
 // Version returns the version of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) Version() int {
+func (d *ExecutableData) Version() int {
 	return version.Deneb
 }
 
-// IsNil checks if the ExecutableDataDeneb is nil.
-func (d *ExecutableDataDeneb) IsNil() bool {
-	return d == nil
+// SizeSSZ returns the SSZ size of the ExecutableData. It varies based on the
+// version of the data.
+func (d *ExecutableData) SizeSSZ() int {
+	//nolint:gocritic // future versions needed.
+	switch d.version {
+	case version.Deneb:
+		return d.toDenebExecutionData().SizeSSZ()
+	}
+	return 0
 }
 
-// IsBlinded checks if the ExecutableDataDeneb is blinded.
-func (d *ExecutableDataDeneb) IsBlinded() bool {
-	return false
+// MarshalSSZ marshals the ExecutableData into a byte slice using SSZ encoding.
+func (d *ExecutableData) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(d)
 }
 
-// GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() primitives.ExecutionHash {
-	return d.ParentHash
+// MarshalSSZTo marshals the ExecutableData into the provided buffer and returns
+// the result.
+// It returns an error for unsupported versions.
+func (d *ExecutableData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	//nolint:gocritic // future versions needed.
+	switch d.version {
+	case version.Deneb:
+		return d.toDenebExecutionData().MarshalSSZTo(buf)
+	default:
+		return nil, errors.New("unsupported version")
+	}
 }
 
-// GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() primitives.ExecutionHash {
-	return d.BlockHash
+// UnmarshalSSZ unmarshals the provided byte slice into the ExecutableData using
+// SSZ encoding.
+// It returns an error for unsupported versions.
+func (d *ExecutableData) UnmarshalSSZ(buf []byte) error {
+	//nolint:gocritic // future versions needed.
+	switch d.version {
+	case version.Deneb:
+		data := new(ExecutableDataDeneb)
+		if err := data.UnmarshalSSZ(buf); err != nil {
+			return err
+		}
+		d.fromDenebExecutionData(data)
+	default:
+		return errors.New("unsupported version")
+	}
+	return nil
 }
 
-// GetTransactions returns the transactions of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
-	return d.Transactions
+// HashTreeRoot computes the hash tree root of the ExecutableData. It returns an
+// error for unsupported versions.
+func (d *ExecutableData) HashTreeRoot() ([32]byte, error) {
+	//nolint:gocritic // future versions needed.
+	switch d.version {
+	case version.Deneb:
+		return d.toDenebExecutionData().HashTreeRoot()
+	default:
+		return [32]byte{}, errors.New("unsupported version")
+	}
 }
 
-// GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
-	return d.Withdrawals
+// HashTreeRootWith computes the hash tree root of the ExecutableData using the
+// provided hasher.
+// It returns an error for unsupported versions.
+func (d *ExecutableData) HashTreeRootWith(hh *ssz.Hasher) error {
+	//nolint:gocritic // future versions needed.
+	switch d.version {
+	case version.Deneb:
+		return d.toDenebExecutionData().HashTreeRootWith(hh)
+	default:
+		return errors.New("unsupported version")
+	}
 }
 
-func (d *ExecutableDataDeneb) String() string {
-	return fmt.Sprintf(
-		"ExecutableDataDeneb{\n"+
-			"\tParentHash: %s,\n"+
-			"\tFeeRecipient: %s,\n"+
-			"\tStateRoot: %s,\n"+
-			"\tReceiptsRoot: %s,\n"+
-			"\tLogsBloom: %x,\n"+
-			"\tRandom: %s,\n"+
-			"\tNumber: %d,\n"+
-			"\tGasLimit: %d,\n"+
-			"\tGasUsed: %d,\n"+
-			"\tTimestamp: %d,\n"+
-			"\tExtraData: %s,\n"+
-			"\tBaseFeePerGas: %s,\n"+
-			"\tBlockHash: %s,\n"+
-			"\tTransactions: %x,\n"+
-			"\tWithdrawals: %v,\n"+
-			"\tBlobGasUsed: %d,\n"+
-			"\tExcessBlobGas: %d,\n"+
-			"}",
-		d.ParentHash.String(),
-		d.FeeRecipient.String(),
-		d.StateRoot.String(),
-		d.ReceiptsRoot.String(),
-		d.LogsBloom,
-		d.Random.String(),
-		d.Number,
-		d.GasLimit,
-		d.GasUsed,
-		d.Timestamp,
-		d.ExtraData,
-		big.NewInt(0).
-			SetBytes(byteslib.CopyAndReverseEndianess(d.BaseFeePerGas)).
-			String(),
-		d.BlockHash.String(),
-		d.Transactions,
-		d.Withdrawals,
-		d.BlobGasUsed,
-		d.ExcessBlobGas,
-	)
+// ExecutableDataDeneb is the ExecutableDataDeneb.
+func (d *ExecutableData) toDenebExecutionData() *ExecutableDataDeneb {
+	return &ExecutableDataDeneb{
+		ParentHash:    d.ParentHash,
+		FeeRecipient:  d.FeeRecipient,
+		StateRoot:     d.StateRoot,
+		ReceiptsRoot:  d.ReceiptsRoot,
+		LogsBloom:     d.LogsBloom,
+		Random:        d.Random,
+		Number:        d.Number,
+		GasLimit:      d.GasLimit,
+		GasUsed:       d.GasUsed,
+		Timestamp:     d.Timestamp,
+		ExtraData:     d.ExtraData,
+		BaseFeePerGas: d.BaseFeePerGas,
+		BlockHash:     d.BlockHash,
+		Transactions:  d.Transactions,
+		Withdrawals:   d.Withdrawals,
+		BlobGasUsed:   d.BlobGasUsed,
+		ExcessBlobGas: d.ExcessBlobGas,
+	}
+}
+
+// ExecutableDataDeneb is the ExecutableDataDeneb.
+func (d *ExecutableData) fromDenebExecutionData(data *ExecutableDataDeneb) {
+	d.ParentHash = data.ParentHash
+	d.FeeRecipient = data.FeeRecipient
+	d.StateRoot = data.StateRoot
+	d.ReceiptsRoot = data.ReceiptsRoot
+	d.LogsBloom = data.LogsBloom
+	d.Random = data.Random
+	d.Number = data.Number
+	d.GasLimit = data.GasLimit
+	d.GasUsed = data.GasUsed
+	d.Timestamp = data.Timestamp
+	d.ExtraData = data.ExtraData
+	d.BaseFeePerGas = data.BaseFeePerGas
+	d.BlockHash = data.BlockHash
+	d.Transactions = data.Transactions
+	d.Withdrawals = data.Withdrawals
+	d.BlobGasUsed = data.BlobGasUsed
+	d.ExcessBlobGas = data.ExcessBlobGas
 }

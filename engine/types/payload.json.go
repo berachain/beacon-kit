@@ -4,18 +4,18 @@ package enginetypes
 
 import (
 	"encoding/json"
-	"github.com/cockroachdb/errors"
+	"errors"
 
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-var _ = (*executableDataDenebMarshaling)(nil)
+var _ = (*executableDataMarshaling)(nil)
 
 // MarshalJSON marshals as JSON.
-func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
-	type ExecutableDataDeneb struct {
+func (e ExecutableData) MarshalJSON() ([]byte, error) {
+	type ExecutableData struct {
 		ParentHash    common.Hash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 		FeeRecipient  common.Address        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 		StateRoot     common.Hash           `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
@@ -34,7 +34,7 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 		BlobGasUsed   hexutil.Uint64        `json:"blobGasUsed"`
 		ExcessBlobGas hexutil.Uint64        `json:"excessBlobGas"`
 	}
-	var enc ExecutableDataDeneb
+	var enc ExecutableData
 	enc.ParentHash = e.ParentHash
 	enc.FeeRecipient = e.FeeRecipient
 	enc.StateRoot = e.StateRoot
@@ -61,8 +61,8 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals from JSON.
-func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
-	type ExecutableDataDeneb struct {
+func (e *ExecutableData) UnmarshalJSON(input []byte) error {
+	type ExecutableData struct {
 		ParentHash    *common.Hash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 		FeeRecipient  *common.Address        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 		StateRoot     *common.Hash           `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
@@ -81,64 +81,64 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 		BlobGasUsed   *hexutil.Uint64        `json:"blobGasUsed"`
 		ExcessBlobGas *hexutil.Uint64        `json:"excessBlobGas"`
 	}
-	var dec ExecutableDataDeneb
+	var dec ExecutableData
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	if dec.ParentHash == nil {
-		return errors.New("missing required field 'parentHash' for ExecutableDataDeneb")
+		return errors.New("missing required field 'parentHash' for ExecutableData")
 	}
 	e.ParentHash = *dec.ParentHash
 	if dec.FeeRecipient == nil {
-		return errors.New("missing required field 'feeRecipient' for ExecutableDataDeneb")
+		return errors.New("missing required field 'feeRecipient' for ExecutableData")
 	}
 	e.FeeRecipient = *dec.FeeRecipient
 	if dec.StateRoot == nil {
-		return errors.New("missing required field 'stateRoot' for ExecutableDataDeneb")
+		return errors.New("missing required field 'stateRoot' for ExecutableData")
 	}
 	e.StateRoot = *dec.StateRoot
 	if dec.ReceiptsRoot == nil {
-		return errors.New("missing required field 'receiptsRoot' for ExecutableDataDeneb")
+		return errors.New("missing required field 'receiptsRoot' for ExecutableData")
 	}
 	e.ReceiptsRoot = *dec.ReceiptsRoot
 	if dec.LogsBloom == nil {
-		return errors.New("missing required field 'logsBloom' for ExecutableDataDeneb")
+		return errors.New("missing required field 'logsBloom' for ExecutableData")
 	}
 	e.LogsBloom = *dec.LogsBloom
 	if dec.Random == nil {
-		return errors.New("missing required field 'prevRandao' for ExecutableDataDeneb")
+		return errors.New("missing required field 'prevRandao' for ExecutableData")
 	}
 	e.Random = *dec.Random
 	if dec.Number == nil {
-		return errors.New("missing required field 'blockNumber' for ExecutableDataDeneb")
+		return errors.New("missing required field 'blockNumber' for ExecutableData")
 	}
 	e.Number = uint64(*dec.Number)
 	if dec.GasLimit == nil {
-		return errors.New("missing required field 'gasLimit' for ExecutableDataDeneb")
+		return errors.New("missing required field 'gasLimit' for ExecutableData")
 	}
 	e.GasLimit = uint64(*dec.GasLimit)
 	if dec.GasUsed == nil {
-		return errors.New("missing required field 'gasUsed' for ExecutableDataDeneb")
+		return errors.New("missing required field 'gasUsed' for ExecutableData")
 	}
 	e.GasUsed = uint64(*dec.GasUsed)
 	if dec.Timestamp == nil {
-		return errors.New("missing required field 'timestamp' for ExecutableDataDeneb")
+		return errors.New("missing required field 'timestamp' for ExecutableData")
 	}
 	e.Timestamp = uint64(*dec.Timestamp)
 	if dec.ExtraData == nil {
-		return errors.New("missing required field 'extraData' for ExecutableDataDeneb")
+		return errors.New("missing required field 'extraData' for ExecutableData")
 	}
 	e.ExtraData = *dec.ExtraData
 	if dec.BaseFeePerGas == nil {
-		return errors.New("missing required field 'baseFeePerGas' for ExecutableDataDeneb")
+		return errors.New("missing required field 'baseFeePerGas' for ExecutableData")
 	}
 	e.BaseFeePerGas = *dec.BaseFeePerGas
 	if dec.BlockHash == nil {
-		return errors.New("missing required field 'blockHash' for ExecutableDataDeneb")
+		return errors.New("missing required field 'blockHash' for ExecutableData")
 	}
 	e.BlockHash = *dec.BlockHash
 	if dec.Transactions == nil {
-		return errors.New("missing required field 'transactions' for ExecutableDataDeneb")
+		return errors.New("missing required field 'transactions' for ExecutableData")
 	}
 	e.Transactions = make([][]byte, len(dec.Transactions))
 	for k, v := range dec.Transactions {
