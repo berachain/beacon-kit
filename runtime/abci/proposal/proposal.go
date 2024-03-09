@@ -87,7 +87,7 @@ func (h *Handler) PrepareProposalHandler(
 		primitives.Slot(req.Height),
 	)
 
-	if err != nil || blk.IsNil() || blk == nil {
+	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
 		return &abci.ResponsePrepareProposal{}, err
 	}

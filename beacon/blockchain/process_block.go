@@ -40,7 +40,7 @@ func (s *Service) postBlockProcess(
 	blockHash [32]byte,
 	_ bool,
 ) error {
-	if blk.IsNil() || blk == nil {
+	if blk == nil || blk.IsNil() {
 		return beacontypes.ErrNilBlk
 	}
 
