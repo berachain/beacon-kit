@@ -83,9 +83,10 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrInvalidTimestamp
 	}
 
-	if p.PrevRandao == [32]byte{} {
-		return ErrEmptyPrevRandao
-	}
+	// TODO: Uncomment once randao is implemented.
+	// if p.PrevRandao == [32]byte{} {
+	// 	return ErrEmptyPrevRandao
+	// }
 
 	if p.Withdrawals == nil && p.version >= version.Capella {
 		return ErrNilWithdrawals
