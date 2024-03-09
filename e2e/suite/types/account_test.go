@@ -45,13 +45,13 @@ func TestNewEthAccount(t *testing.T) {
 
 func TestEthAccount_PublicKey(t *testing.T) {
 	hexPk := "f561d45d1df30a6556d30e39f97011faa3632e43cd378224ad6cc83bb8aea3e6"
-	expectedPublicKey, _ := crypto.HexToECDSA(hexPk)
-	require.NotNil(t, expectedPublicKey)
+	expectedPrivateKey, _ := crypto.HexToECDSA(hexPk)
+	require.NotNil(t, expectedPrivateKey)
 
 	account := types.NewEthAccountFromHex("testAccount", hexPk)
 	publicKey := account.PublicKey()
 
-	require.Equal(t, expectedPublicKey.PublicKey, *publicKey)
+	require.Equal(t, expectedPrivateKey.PublicKey, *publicKey)
 }
 
 func TestEthAccount_Address(t *testing.T) {

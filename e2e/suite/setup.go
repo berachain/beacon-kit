@@ -29,6 +29,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"strings"
 	"sync/atomic"
@@ -42,6 +43,7 @@ import (
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
+	"github.com/pkg/errors"
 	"github.com/sourcegraph/conc/iter"
 	"golang.org/x/sync/errgroup"
 )
@@ -162,24 +164,20 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() {
 
 // FundAccounts funds the accounts for the test suite.
 func (s *KurtosisE2ESuite) FundAccounts() {
+	ctx := context.Background()
+	nonce := atomic.Uint64{}
 	ecKeys := make([]string, 0, len(s.executionClients))
 	for key := range s.executionClients {
 		ecKeys = append(ecKeys, key)
 	}
 
-	nonce := atomic.Uint64{}
-
 	// Send ether from the genesis account to the test account
-	ctx := context.Background()
 	randomIndex, err := rand.Int(
-		rand.Reader,
-		big.NewInt(int64(len(ecKeys))),
-	)
+		rand.Reader, big.NewInt(int64(len(ecKeys))))
 	s.Require().NoError(err, "Error generating random index")
 	el := s.executionClients[ecKeys[randomIndex.Int64()]]
 	pendingNonce, err := el.PendingNonceAt(
-		ctx,
-		s.genesisAccount.Address(),
+		ctx, s.genesisAccount.Address(),
 	)
 	nonce.Store(pendingNonce)
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
@@ -208,22 +206,20 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			gasFeeCap := new(big.Int).Add(gasTipCap, big.NewInt(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
-			value := big.NewInt(OneEther)
+			value := big.NewInt(Ether)
 			dest := account.Address()
-			tx := ethtypes.DynamicFeeTx{
-				ChainID:   chainID,
-				Nonce:     nonceToSubmit,
-				GasTipCap: gasTipCap,
-				GasFeeCap: gasFeeCap,
-				Gas:       EtherTransferGasLimit,
-				To:        &dest,
-				Value:     value,
-				Data:      nil,
-			}
-
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
-				chainID, ethtypes.NewTx(&tx),
+				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
+					ChainID:   chainID,
+					Nonce:     nonceToSubmit,
+					GasTipCap: gasTipCap,
+					GasFeeCap: gasFeeCap,
+					Gas:       EtherTransferGasLimit,
+					To:        &dest,
+					Value:     value,
+					Data:      nil,
+				}),
 			); err != nil {
 				return nil, err
 			}
@@ -237,10 +233,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			s.logger.Info(
 				"funding transaction submitted, waiting for confirmation...",
-				"tx_hash", signedTx.Hash().Hex(),
-				"nonce", nonceToSubmit,
-				"account", account.Name(),
-				"value", value,
+				"tx_hash", signedTx.Hash().Hex(), "nonce", nonceToSubmit,
+				"account", account.Name(), "value", value,
 			)
 
 			var receipt *ethtypes.Receipt
@@ -255,16 +249,26 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 				"account", account.Name(),
 			)
 
+			// Verify the receipt status.
 			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
 				return nil, err
+			}
+
+			// Verify the balance of the account
+			var balance *big.Int
+			if balance, err = executionClient.BalanceAt(
+				ctx, account.Address(), nil); err != nil {
+				return nil, err
+			} else if balance.Cmp(value) != 0 {
+				return nil, errors.Wrap(
+					ErrUnexpectedBalance,
+					fmt.Sprintf("expected: %v, got: %v", value, balance),
+				)
 			}
 			return receipt, nil
 		},
 	)
-
-	if err != nil {
-		s.Require().NoError(err, "Error funding accounts")
-	}
+	s.Require().NoError(err, "Error funding accounts")
 }
 
 // WaitForFinalizedBlockNumber waits for the finalized block number
@@ -279,7 +283,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	for _, executionClient := range s.ExecutionClients() {
 		eg.Go(
 			func() error {
-				return executionClient.WaitForLatestBlockNumber(
+				return executionClient.WaitForFinalizedBlockNumber(
 					groupCctx,
 					target,
 				)

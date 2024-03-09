@@ -23,11 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package suite
 
 import "errors"
 
-var (
-	// ErrPublicPortNotFound is returned when the public port is not found.
-	ErrPublicPortNotFound = errors.New("failed to get public ports")
-)
+// ErrUnexpectedBalance is returned when the balance is unexpected.
+var ErrUnexpectedBalance = errors.New("unexpected balance")

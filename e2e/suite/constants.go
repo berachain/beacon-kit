@@ -25,14 +25,18 @@
 
 package suite
 
-import "time"
+import (
+	"time"
 
-// OneEther represents the number of wei in one ether, used for Ethereum
+	"github.com/ethereum/go-ethereum/params"
+)
+
+// Ether represents the number of wei in one ether, used for Ethereum
 // transactions.
 const (
-	OneEther = 1000000000000000000 // 1 ether = 1e18 wei
-	OneGwei  = 1000000000          // 1 Gwei = 1e9 wei
-	TenGwei  = 10000000000         // 10 Gwei = 1e10 wei
+	Ether   = params.Ether
+	OneGwei = params.GWei  // 1 Gwei = 1e9 wei
+	TenGwei = 10 * OneGwei // 10 Gwei = 1e10 wei
 )
 
 // EtherTransferGasLimit specifies the gas limit for a standard Ethereum
