@@ -34,10 +34,10 @@ import (
 	"sync/atomic"
 
 	"cosmossdk.io/log"
-	suitetypes "github.com/berachain/beacon-kit/e2e/suite/types"
+	"github.com/berachain/beacon-kit/e2e/suite/types"
 	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
@@ -62,9 +62,9 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.cfg = kurtosis.DefaultE2ETestConfig()
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
-	s.testAccounts = make([]*suitetypes.EthAccount, 0)
+	s.testAccounts = make([]*types.EthAccount, 0)
 
-	s.genesisAccount = suitetypes.NewEthAccountFromHex(
+	s.genesisAccount = types.NewEthAccountFromHex(
 		"genesisAccount",
 		"fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
 	)
@@ -75,15 +75,15 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	key3, err = crypto.GenerateKey()
 	s.Require().NoError(err, "Error generating key")
 
-	s.testAccounts = append(s.testAccounts, suitetypes.NewEthAccount(
+	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
 		"testAccount1",
 		key1,
 	))
-	s.testAccounts = append(s.testAccounts, suitetypes.NewEthAccount(
+	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
 		"testAccount2",
 		key2,
 	))
-	s.testAccounts = append(s.testAccounts, suitetypes.NewEthAccount(
+	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
 		"testAccount1",
 		key3,
 	))
@@ -139,7 +139,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 // SetupExecutionClients sets up the execution clients for the test suite.
 func (s *KurtosisE2ESuite) SetupExecutionClients() {
-	s.executionClients = make(map[string]*ExecutionClient)
+	s.executionClients = make(map[string]*types.ExecutionClient)
 	svrcs, err := s.Enclave().GetServices()
 	s.Require().NoError(err, "Error getting services")
 	for name, v := range svrcs {
@@ -147,7 +147,8 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() {
 		serviceCtx, err = s.Enclave().GetServiceContext(string(v))
 		s.Require().NoError(err, "Error getting service context")
 		if strings.HasPrefix(string(name), "el-") {
-			if s.executionClients[string(name)], err = NewExecutionClientFromServiceCtx(
+			if s.executionClients[string(name)],
+				err = types.NewExecutionClientFromServiceCtx(
 				serviceCtx,
 				s.logger,
 			); err != nil {
@@ -185,27 +186,25 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	chainID, err := el.NetworkID(ctx)
 	s.Require().NoError(err, "Failed to get network ID")
 
-	receipts, err := iter.MapErr(
+	_, err = iter.MapErr(
 		s.testAccounts,
-		func(acc **suitetypes.EthAccount) (*types.Receipt, error) {
+		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
 			account := *acc
 			// Select a random execution client to send the transaction to.
 			// TODO: Filter by RPC support.
-			i, _ := rand.Int(
-				rand.Reader,
-				big.NewInt(int64(len(ecKeys))),
-			)
+			i, _ := rand.Int(rand.Reader, big.NewInt(int64(len(ecKeys))))
 			executionClient := s.executionClients[ecKeys[i.Int64()]]
 
 			var gasTipCap *big.Int
-			gasTipCap, err = executionClient.SuggestGasTipCap(ctx)
-			s.Require().NoError(err, "Failed to suggest gas price")
+			if gasTipCap, err = executionClient.SuggestGasTipCap(ctx); err != nil {
+				return nil, err
+			}
 
 			gasFeeCap := new(big.Int).Add(gasTipCap, big.NewInt(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
 			value := big.NewInt(OneEther)
 			dest := account.Address()
-			tx := types.DynamicFeeTx{
+			tx := ethtypes.DynamicFeeTx{
 				ChainID:   chainID,
 				Nonce:     nonceToSubmit,
 				GasTipCap: gasTipCap,
@@ -216,29 +215,43 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 				Data:      nil,
 			}
 
-			var signedTx *types.Transaction
-			signedTx, err = s.genesisAccount.SignTx(chainID, types.NewTx(&tx))
-			s.Require().NoError(err, "Failed to sign transaction")
+			var signedTx *ethtypes.Transaction
+			if signedTx, err = s.genesisAccount.SignTx(
+				chainID, ethtypes.NewTx(&tx),
+			); err != nil {
+				return nil, err
+			}
 
 			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
 			defer cancel()
 
-			err = executionClient.SendTransaction(cctx, signedTx)
-			s.Require().NoError(err, "Failed to send transaction")
+			if err = executionClient.SendTransaction(cctx, signedTx); err != nil {
+				return nil, err
+			}
 
 			s.logger.Info(
 				"funding transaction submitted, waiting for confirmation...",
-				"tx_hash",
-				signedTx.Hash().Hex(),
-				"nonce",
-				nonceToSubmit,
-				"account",
-				account.Name(),
-				"value",
-				value,
+				"tx_hash", signedTx.Hash().Hex(),
+				"nonce", nonceToSubmit,
+				"account", account.Name(),
+				"value", value,
 			)
 
-			return bind.WaitMined(cctx, executionClient, signedTx)
+			var receipt *ethtypes.Receipt
+			receipt, err = bind.WaitMined(cctx, executionClient, signedTx)
+			if err != nil {
+				return nil, err
+			}
+			s.logger.Info(
+				"funding transaction confirmed",
+				"tx_hash", signedTx.Hash().Hex(),
+				"account", account.Name(),
+			)
+
+			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+				return nil, err
+			}
+			return receipt, nil
 		},
 	)
 
@@ -246,19 +259,9 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 		s.Require().NoError(err, "Error funding accounts")
 	}
 
-	// Check that all the receipts are successful.
-	for _, receipt := range receipts {
-		s.Require().
-			True(
-				receipt.Status == types.ReceiptStatusSuccessful,
-				"Receipt status is not successful",
-			)
-	}
-
 	s.logger.Info(
 		"all accounts funded successfully",
-		"num-accounts",
-		len(s.testAccounts),
+		"num-accounts", len(s.testAccounts),
 	)
 }
 

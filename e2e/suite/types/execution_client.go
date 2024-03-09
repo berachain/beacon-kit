@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package suite
+package types
 
 import (
 	"context"
@@ -136,20 +136,6 @@ retry:
 	return nil
 }
 
-// ConsensusClient represents a consensus client.
-type ConsensusClient struct{}
-
-// JSONRPCConnection wraps an Ethereum client connection.
-// It provides JSON-RPC communication with an Ethereum node.
-type JSONRPCConnection struct {
-	*ethclient.Client
-	isWebSocket bool
-}
-
-func (c *JSONRPCConnection) IsWebSocket() bool {
-	return c.isWebSocket
-}
-
 // NewJSONRPCConnection creates a new JSON-RPC connection.
 func NewJSONRPCConnection(
 	serviceCtx *services.ServiceContext,
@@ -188,10 +174,4 @@ func NewJSONRPCConnection(
 	}
 	conn.Client = ethClient
 	return conn, nil
-}
-
-// LoadBalancer represents a group of eth JSON-RPC endpoints
-// behind an NGINX load balancer.
-type LoadBalancer struct {
-	JSONRPCConnection
 }
