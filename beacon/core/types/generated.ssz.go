@@ -384,12 +384,12 @@ func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(d.ValidatorPubkey)
 
-	// Field (1) 'StakingCredentials'
-	if size := len(d.StakingCredentials); size != 32 {
-		err = ssz.ErrBytesLengthFn("--.StakingCredentials", size, 32)
+	// Field (1) 'Credentials'
+	if size := len(d.Credentials); size != 32 {
+		err = ssz.ErrBytesLengthFn("--.Credentials", size, 32)
 		return
 	}
-	dst = append(dst, d.StakingCredentials...)
+	dst = append(dst, d.Credentials...)
 
 	// Field (2) 'Amount'
 	dst = ssz.MarshalUint64(dst, d.Amount)
@@ -435,11 +435,11 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Field (1) 'StakingCredentials'
-	if cap(d.StakingCredentials) == 0 {
-		d.StakingCredentials = make([]byte, 0, len(buf[4:36]))
+	// Field (1) 'Credentials'
+	if cap(d.Credentials) == 0 {
+		d.Credentials = make([]byte, 0, len(buf[4:36]))
 	}
-	d.StakingCredentials = append(d.StakingCredentials, buf[4:36]...)
+	d.Credentials = append(d.Credentials, buf[4:36]...)
 
 	// Field (2) 'Amount'
 	d.Amount = ssz.UnmarshallUint64(buf[36:44])
@@ -513,12 +513,12 @@ func (d *Deposit) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		}
 	}
 
-	// Field (1) 'StakingCredentials'
-	if size := len(d.StakingCredentials); size != 32 {
-		err = ssz.ErrBytesLengthFn("--.StakingCredentials", size, 32)
+	// Field (1) 'Credentials'
+	if size := len(d.Credentials); size != 32 {
+		err = ssz.ErrBytesLengthFn("--.Credentials", size, 32)
 		return
 	}
-	hh.PutBytes(d.StakingCredentials)
+	hh.PutBytes(d.Credentials)
 
 	// Field (2) 'Amount'
 	hh.PutUint64(d.Amount)

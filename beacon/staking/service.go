@@ -26,16 +26,21 @@
 package staking
 
 import (
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	stakingtypes "github.com/berachain/beacon-kit/beacon/staking/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/lib/skiplist"
 	"github.com/berachain/beacon-kit/runtime/service"
-	"github.com/huandu/skiplist"
 )
 
 // Service represents the staking service.
 type Service struct {
 	service.BaseService
 
-	depositQueue  *skiplist.SkipList
-	withdrawQueue *skiplist.SkipList
+	// TODO: make these persist to disk for restarts.
+	depositQueue  *skiplist.Skiplist[enginetypes.Withdrawal]
+	redirectQueue *skiplist.Skiplist[stakingtypes.Redirect]
+	withdrawQueue *skiplist.Skiplist[beacontypes.Deposit]
 	// vcp is responsible for applying validator set changes.
 	vcp ValsetChangeProvider
 }

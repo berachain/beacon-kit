@@ -32,7 +32,7 @@ import (
 )
 
 type Comparable[T any] interface {
-	Compare(lhs, rhs T) int
+	Compare(other T) int
 }
 
 // Skiplist is a set of elements that
@@ -44,9 +44,9 @@ type Skiplist[T any] struct {
 }
 
 // NewSkiplist returns a new ordered skiplist.
-func NewSkiplist[T any](c Comparable[T]) *Skiplist[T] {
+func NewSkiplist[T Comparable[T]]() *Skiplist[T] {
 	ascendingOrder := skiplist.GreaterThanFunc(func(lhs, rhs any) int {
-		return c.Compare(lhs.(T), rhs.(T))
+		return lhs.(T).Compare(rhs.(T))
 	})
 	return &Skiplist[T]{
 		store: skiplist.New(ascendingOrder),

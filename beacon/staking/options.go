@@ -26,6 +26,7 @@
 package staking
 
 import (
+	"github.com/berachain/beacon-kit/lib/skiplist"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -35,6 +36,11 @@ func WithBaseService(
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.BaseService = base
+
+		s.depositQueue = skiplist.New()
+		s.redirectQueue = skiplist.New()
+		s.withdrawQueue = skiplist.New()
+
 		return nil
 	}
 }

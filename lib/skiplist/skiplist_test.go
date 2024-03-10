@@ -32,14 +32,14 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
 )
 
-var _ skiplist.Comparable[uint64] = Uint64Comparable{}
+// var _ skiplist.Comparable[Uint64Comparable] = Uint64Comparable{}
 
-type Uint64Comparable struct{}
+type Uint64Comparable uint64
 
-func (Uint64Comparable) Compare(lhs, rhs uint64) int {
-	if lhs < rhs {
+func (i Uint64Comparable) Compare(rhs Uint64Comparable) int {
+	if uint64(i) < uint64(rhs) {
 		return -1
-	} else if lhs > rhs {
+	} else if uint64(i) > uint64(rhs) {
 		return 1
 	}
 	return 0
@@ -47,7 +47,7 @@ func (Uint64Comparable) Compare(lhs, rhs uint64) int {
 
 func TestSkiplist(t *testing.T) {
 	// Create a new ordered skiplist.
-	skiplist := skiplist.NewSkiplist[uint64](Uint64Comparable{})
+	skiplist := skiplist.NewSkiplist[Uint64Comparable]()
 
 	// Insert elements.
 	skiplist.Insert(2)
@@ -60,13 +60,13 @@ func TestSkiplist(t *testing.T) {
 	// 1 2 3 4 5
 	i, err := skiplist.RemoveFront()
 	require.NoError(t, err)
-	require.Equal(t, uint64(1), i)
+	require.Equal(t, uint64(1), uint64(i))
 	require.Equal(t, 4, skiplist.Len())
 
 	// 2 3 4 5
 	i, err = skiplist.RemoveBack()
 	require.NoError(t, err)
-	require.Equal(t, uint64(5), i)
+	require.Equal(t, uint64(5), uint64(i))
 	require.Equal(t, 3, skiplist.Len())
 
 	// 2 3 4
@@ -80,19 +80,19 @@ func TestSkiplist(t *testing.T) {
 	// 2 3 4 5
 	i, err = skiplist.RemoveFront()
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), i)
+	require.Equal(t, uint64(2), uint64(i))
 	require.Equal(t, 3, skiplist.Len())
 
 	// 3 4 5
 	i, err = skiplist.RemoveBack()
 	require.NoError(t, err)
-	require.Equal(t, uint64(5), i)
+	require.Equal(t, uint64(5), uint64(i))
 	require.Equal(t, 2, skiplist.Len())
 
 	// 3 4
 	i, err = skiplist.RemoveFront()
 	require.NoError(t, err)
-	require.Equal(t, uint64(3), i)
+	require.Equal(t, uint64(3), uint64(i))
 	require.Equal(t, 1, skiplist.Len())
 }
 
@@ -105,23 +105,18 @@ func NewLog(blockNumber, logIndex uint64) Log {
 	return Log{blockNumber, logIndex}
 }
 
-var _ skiplist.Comparable[Log] = LogComparable{}
-
-type LogComparable struct{}
-
-// Compare returns the lexicographic comparison of the two logs.
-func (LogComparable) Compare(lhs, rhs Log) int {
-	c := Uint64Comparable{}
-	compareBlockNumber := c.Compare(lhs.blockNumber, rhs.blockNumber)
-	if compareBlockNumber != 0 {
-		return compareBlockNumber
+func (l Log) Compare(rhs Log) int {
+	if c := Uint64Comparable(l.blockNumber).
+		Compare(Uint64Comparable(rhs.blockNumber)); c != 0 {
+		return c
 	}
-	return c.Compare(lhs.logIndex, rhs.logIndex)
+	return Uint64Comparable(l.logIndex).
+		Compare(Uint64Comparable(rhs.logIndex))
 }
 
 func TestLogskiplist(t *testing.T) {
 	// Create a new ordered skiplist.
-	skiplist := skiplist.NewSkiplist[Log](LogComparable{})
+	skiplist := skiplist.NewSkiplist[Log]()
 
 	// Insert elements.
 	skiplist.Insert(NewLog(2, 2))

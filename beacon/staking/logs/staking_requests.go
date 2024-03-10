@@ -54,18 +54,24 @@ const (
 var (
 	// Signature and type of the Deposit event
 	// in the deposit contract.
-	DepositSig  = crypto.Keccak256Hash([]byte(DepositName + "(bytes,bytes,uint64,uint64)"))
+	DepositSig = crypto.Keccak256Hash(
+		[]byte(DepositName + "(bytes,bytes,uint64,uint64)"),
+	)
 	DepositType = reflect.TypeOf(beacontypes.Deposit{})
 
 	// Signature and type of the Redirect event
 	// in the deposit contract.
-	RedirectSig = crypto.Keccak256Hash([]byte(RedirectName + "(bytes,bytes,bytes,uint64,uint64)"))
-	// RedirectType = reflect.TypeOf(enginetypes.Redirect{})
+	RedirectSig = crypto.Keccak256Hash(
+		[]byte(RedirectName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
+	// RedirectType = reflect.TypeOf(enginetypes.Redirect{}).
 
 	// Signature and type of the Withdraw event
 	// in the deposit contract.
 	// keccak256("Withdrawal(bytes,bytes,bytes,uint64)").
-	WithdrawalSig  = crypto.Keccak256Hash([]byte(WithdrawalName + "(bytes,bytes,bytes,uint64,uint64)"))
+	WithdrawalSig = crypto.Keccak256Hash(
+		[]byte(WithdrawalName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
 	WithdrawalType = reflect.TypeOf(enginetypes.Withdrawal{})
 )
 

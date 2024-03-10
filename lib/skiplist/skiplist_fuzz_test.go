@@ -34,22 +34,9 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
 )
 
-var _ skiplist.Comparable[int] = IntComparable{}
-
-type IntComparable struct{}
-
-func (IntComparable) Compare(lhs, rhs int) int {
-	if lhs < rhs {
-		return -1
-	} else if lhs > rhs {
-		return 1
-	}
-	return 0
-}
-
 func FuzzSkiplistSimple(f *testing.F) {
 	// Create a new ordered skiplist.
-	skiplist := skiplist.NewSkiplist[int](IntComparable{})
+	skiplist := skiplist.NewSkiplist[Uint64Comparable]()
 
 	f.Add(10)
 	f.Fuzz(func(t *testing.T, n int) {
@@ -58,7 +45,7 @@ func FuzzSkiplistSimple(f *testing.F) {
 		}
 
 		for _, elem := range rand.Perm(n) {
-			skiplist.Insert(elem)
+			skiplist.Insert(Uint64Comparable(elem))
 		}
 
 		for i := range n {
@@ -67,13 +54,13 @@ func FuzzSkiplistSimple(f *testing.F) {
 				// e: 0 1 2 3 4
 				e, err := skiplist.RemoveFront()
 				require.NoError(t, err)
-				require.Equal(t, i/2, e)
+				require.Equal(t, i/2, int(e))
 			} else {
 				// i: 1 3 5 7 9
 				// e: 9 8 7 6 5
 				e, err := skiplist.RemoveBack()
 				require.NoError(t, err)
-				require.Equal(t, n-(i+1)/2, e)
+				require.Equal(t, n-(i+1)/2, int(e))
 			}
 			require.Equal(t, n-i-1, skiplist.Len())
 		}
@@ -86,7 +73,7 @@ func FuzzSkiplistConcurrencySafety(f *testing.F) {
 			t.Skip()
 		}
 
-		skiplist := skiplist.NewSkiplist(IntComparable{})
+		skiplist := skiplist.NewSkiplist[Uint64Comparable]()
 		numGoroutines := 10
 		numOperations := 100
 
@@ -100,7 +87,7 @@ func FuzzSkiplistConcurrencySafety(f *testing.F) {
 					switch rand.Intn(3) {
 					case 0: // Insert
 						skiplist.Insert(
-							rand.Intn(n),
+							Uint64Comparable(rand.Intn(n)),
 						) // Use n to generate random inputs
 					case 1: // RemoveFront
 						_, _ = skiplist.RemoveFront() // Ignore errors for simplicity
@@ -116,20 +103,20 @@ func FuzzSkiplistConcurrencySafety(f *testing.F) {
 		// After all operations, the skiplist should be in a consistent state.
 		// We can't assert the exact contents of the skiplist, but we can check
 		// if the skiplist is sorted correctly.
-		var prev int
+		var prev uint64
 		first := true
 		_, err := skiplist.Front()
 		for err == nil {
 			// Remove the element to get the next in the next iteration
 			value, _ := skiplist.RemoveFront()
-			if !first && prev > value {
+			if !first && uint64(prev) > uint64(value) {
 				t.Errorf(
 					"skiplist is not in ascending order: found %d after %d",
 					value,
 					prev,
 				)
 			}
-			prev = value
+			prev = uint64(value)
 			first = false
 			_, err = skiplist.Front()
 		}

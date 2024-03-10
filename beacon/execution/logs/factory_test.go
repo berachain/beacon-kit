@@ -66,14 +66,14 @@ func TestLogFactory(t *testing.T) {
 	event, ok := depositContractAbi.Events[logs.DepositName]
 	require.True(t, ok)
 	pubKey := []byte("pubkey")
-	stakingCredentials := []byte("12345678901234567890123456789012")
+	Credentials := []byte("12345678901234567890123456789012")
 	amount := uint64(10000)
 	signature := []byte("signature")
 
 	// Create a log from the deposit.
 	data, err := event.Inputs.Pack(
 		pubKey,
-		stakingCredentials,
+		Credentials,
 		amount,
 		signature,
 	)
@@ -99,7 +99,7 @@ func TestLogFactory(t *testing.T) {
 	require.True(t, ok)
 	require.NoError(t, err)
 	require.Equal(t, pubKey, newDeposit.ValidatorPubkey)
-	require.Equal(t, stakingCredentials, newDeposit.StakingCredentials)
+	require.Equal(t, Credentials, newDeposit.Credentials)
 	require.Equal(t, amount, newDeposit.Amount)
 	require.Equal(t, signature, newDeposit.Signature)
 }
@@ -116,14 +116,14 @@ func TestLogFactoryIncorrectType(t *testing.T) {
 	event, ok := depositContractAbi.Events[logs.WithdrawalName]
 	require.True(t, ok)
 	pubKey := []byte{}
-	stakingCredentials := []byte{}
+	Credentials := []byte{}
 	signature := []byte{}
 	amount := uint64(1000)
 
 	// Create a log from the deposit.
 	data, err := event.Inputs.Pack(
 		pubKey,
-		stakingCredentials,
+		Credentials,
 		signature,
 		amount,
 	)
