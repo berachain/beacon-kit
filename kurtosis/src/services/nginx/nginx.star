@@ -34,7 +34,7 @@ def get_config(plan, services, args = {}):
         files[root_dirpath] = root_file_artifact
 
     # Because nginx's docker image uses envsubst for templating, we
-    # format the services list as a tabbed-in, newline separated 
+    # format the services list as a tabbed-in, newline separated
     # string and pass it as an environment variable
     formatted_services = []
     for service in services:
