@@ -84,13 +84,13 @@ contract BeaconDepositContract is ReentrancyGuard, IBeaconDepositContract {
     /*                           STORAGE                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev deposit_count represents the number of deposits that
+    /// @dev depositCount represents the number of deposits that
     // have been made to the contract.
     uint64 depositCount;
-    /// @dev deposit_count represents the number of withdrawals that
+    /// @dev withdrawalCount represents the number of withdrawals that
     // have been requested.
     uint64 withdrawalCount;
-    /// @dev deposit_count represents the number of redirects that
+    /// @dev redirectCount represents the number of redirects that
     // have been requested.
     uint64 redirectCount;
 
