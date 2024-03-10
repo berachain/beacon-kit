@@ -55,9 +55,13 @@ func NewLoadBalancer(
 	if len(str) == 0 {
 		return nil, ErrPublicPortNotFound
 	}
-
+	str = strings.Split(str[1], "/")
+	if len(str) == 0 {
+		return nil, ErrPublicPortNotFound
+	}
+	port := str[0]
 	ethClient, err := ethclient.Dial(
-		"http://0.0.0.0" + ":" + str[1],
+		"http://0.0.0.0" + ":" + port,
 	)
 	if err != nil {
 		return nil, err

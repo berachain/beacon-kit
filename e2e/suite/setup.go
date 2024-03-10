@@ -113,6 +113,8 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 		"spinning up enclave...",
 		"num_validators",
 		len(s.cfg.Validators),
+		"num_full_nodes",
+		len(s.cfg.FullNodes),
 	)
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
@@ -230,7 +232,11 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			defer cancel()
 
 			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
-				s.logger.Error("error submitting funding transaction", "error", err)
+				s.logger.Error(
+					"error submitting funding transaction",
+					"error",
+					err,
+				)
 				return nil, err
 			}
 
