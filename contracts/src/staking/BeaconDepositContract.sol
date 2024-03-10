@@ -120,7 +120,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
                 revert InvalidSignatureLength();
             }
 
-            uint64 index = depositCount++;
             if (STAKE_ASSET == NATIVE_ASSET) {
                 amount = _depositNative();
             } else {
@@ -128,7 +127,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             }
 
             // slither-disable-next-line reentrancy-events
-            emit Deposit(pubkey, credentials, amount, signature, index);
+            emit Deposit(pubkey, credentials, amount, signature, depositCount++);
         }
     }
 
