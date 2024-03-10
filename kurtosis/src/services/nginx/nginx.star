@@ -13,7 +13,6 @@ DEFAULT_PORT_ID = "http"
 DEFAULT_PORT_NUMBER = 80
 HTTP_PORT_APP_PROTOCOL = "http"
 
-
 def get_config(plan, services, args = {}):
     name = args.get(NAME_ARG, DEFAULT_SERVICE_NAME)
     image = args.get(IMAGE_ARG, DEFAULT_IMAGE)
@@ -24,22 +23,26 @@ def get_config(plan, services, args = {}):
 
     config_file_artifact = plan.upload_files(
         DEFAULT_CONFIG_LOCAL_FILEPATH,
-        CONFIG_FILES_ARTIFACT
+        CONFIG_FILES_ARTIFACT,
     )
 
     files = {
-        DEFAULT_CONFIG_FILEPATH: config_file_artifact
+        DEFAULT_CONFIG_FILEPATH: config_file_artifact,
     }
-        
+
     if root_dirpath != "" and root_file_artifact != "":
         files[root_dirpath] = root_file_artifact
 
+    # Because nginx's docker image uses envsubst for templating, we
+    # format the services list as a tabbed-in, newline separated 
+    # string and pass it as an environment variable
     formatted_services = []
     for service in services:
+        # DO NOT ADJUST INDENDATION UNLESS default.conf.template CHANGES
         service = "    server {};".format(service)
         formatted_services.append(service)
-    load_balanced_services = '''
-'''.join(formatted_services)
+    load_balanced_services = """
+""".join(formatted_services)
 
     plan.print(load_balanced_services)
 
@@ -48,13 +51,13 @@ def get_config(plan, services, args = {}):
         config = ServiceConfig(
             image = image,
             ports = {
-                port_id: PortSpec(number = port_number, application_protocol = HTTP_PORT_APP_PROTOCOL)
+                port_id: PortSpec(number = port_number, application_protocol = HTTP_PORT_APP_PROTOCOL),
             },
             env_vars = {
                 "LOAD_BALANCED_SERVICES": load_balanced_services,
             },
             files = files,
-        )
+        ),
     )
 
     return nginx_service

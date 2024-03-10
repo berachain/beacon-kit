@@ -68,8 +68,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     # 6. Start RPCs
     rpc_configs = {}
     for n, rpc in enumerate(rpc_endpoints):
-        nginx.get_config(plan, rpc['services'])
-    
+        nginx.get_config(plan, rpc["services"])
+
     # if rpc_configs != {}:
     #     plan.add_services(
     #         configs = rpc_configs,
