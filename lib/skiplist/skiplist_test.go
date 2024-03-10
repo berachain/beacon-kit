@@ -23,77 +23,77 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cache_test
+package skiplist_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/lib/cache"
+	"github.com/berachain/beacon-kit/lib/skiplist"
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
 )
 
-var _ cache.Comparable[uint64] = Uint64Comparable{}
+// var _ skiplist.Comparable[Uint64Comparable] = Uint64Comparable{}
 
-type Uint64Comparable struct{}
+type Uint64Comparable uint64
 
-func (Uint64Comparable) Compare(lhs, rhs uint64) int {
-	if lhs < rhs {
+func (i Uint64Comparable) Compare(rhs Uint64Comparable) int {
+	if uint64(i) < uint64(rhs) {
 		return -1
-	} else if lhs > rhs {
+	} else if uint64(i) > uint64(rhs) {
 		return 1
 	}
 	return 0
 }
 
-func TestOrderedCache(t *testing.T) {
-	// Create a new ordered cache.
-	cache := cache.NewOrderedCache[uint64](Uint64Comparable{})
+func TestSkiplist(t *testing.T) {
+	// Create a new ordered skiplist.
+	skiplist := skiplist.New[Uint64Comparable]()
 
 	// Insert elements.
-	cache.Insert(2)
-	cache.Insert(5)
-	cache.Insert(4)
-	cache.Insert(1)
-	cache.Insert(3)
+	skiplist.Insert(2)
+	skiplist.Insert(5)
+	skiplist.Insert(4)
+	skiplist.Insert(1)
+	skiplist.Insert(3)
 
 	// Remove elements.
 	// 1 2 3 4 5
-	i, err := cache.RemoveFront()
+	i, err := skiplist.RemoveFront()
 	require.NoError(t, err)
-	require.Equal(t, uint64(1), i)
-	require.Equal(t, 4, cache.Len())
+	require.Equal(t, uint64(1), uint64(i))
+	require.Equal(t, 4, skiplist.Len())
 
 	// 2 3 4 5
-	i, err = cache.RemoveBack()
+	i, err = skiplist.RemoveBack()
 	require.NoError(t, err)
-	require.Equal(t, uint64(5), i)
-	require.Equal(t, 3, cache.Len())
+	require.Equal(t, uint64(5), uint64(i))
+	require.Equal(t, 3, skiplist.Len())
 
 	// 2 3 4
-	cache.Insert(2)
-	require.Equal(t, 3, cache.Len())
+	skiplist.Insert(2)
+	require.Equal(t, 3, skiplist.Len())
 
 	// 2 3 4 5
-	cache.Insert(5)
-	require.Equal(t, 4, cache.Len())
+	skiplist.Insert(5)
+	require.Equal(t, 4, skiplist.Len())
 
 	// 2 3 4 5
-	i, err = cache.RemoveFront()
+	i, err = skiplist.RemoveFront()
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), i)
-	require.Equal(t, 3, cache.Len())
+	require.Equal(t, uint64(2), uint64(i))
+	require.Equal(t, 3, skiplist.Len())
 
 	// 3 4 5
-	i, err = cache.RemoveBack()
+	i, err = skiplist.RemoveBack()
 	require.NoError(t, err)
-	require.Equal(t, uint64(5), i)
-	require.Equal(t, 2, cache.Len())
+	require.Equal(t, uint64(5), uint64(i))
+	require.Equal(t, 2, skiplist.Len())
 
 	// 3 4
-	i, err = cache.RemoveFront()
+	i, err = skiplist.RemoveFront()
 	require.NoError(t, err)
-	require.Equal(t, uint64(3), i)
-	require.Equal(t, 1, cache.Len())
+	require.Equal(t, uint64(3), uint64(i))
+	require.Equal(t, 1, skiplist.Len())
 }
 
 type Log struct {
@@ -105,66 +105,61 @@ func NewLog(blockNumber, logIndex uint64) Log {
 	return Log{blockNumber, logIndex}
 }
 
-var _ cache.Comparable[Log] = LogComparable{}
-
-type LogComparable struct{}
-
-// Compare returns the lexicographic comparison of the two logs.
-func (LogComparable) Compare(lhs, rhs Log) int {
-	c := Uint64Comparable{}
-	compareBlockNumber := c.Compare(lhs.blockNumber, rhs.blockNumber)
-	if compareBlockNumber != 0 {
-		return compareBlockNumber
+func (l Log) Compare(rhs Log) int {
+	if c := Uint64Comparable(l.blockNumber).
+		Compare(Uint64Comparable(rhs.blockNumber)); c != 0 {
+		return c
 	}
-	return c.Compare(lhs.logIndex, rhs.logIndex)
+	return Uint64Comparable(l.logIndex).
+		Compare(Uint64Comparable(rhs.logIndex))
 }
 
-func TestLogCache(t *testing.T) {
-	// Create a new ordered cache.
-	cache := cache.NewOrderedCache[Log](LogComparable{})
+func TestLogskiplist(t *testing.T) {
+	// Create a new ordered skiplist.
+	skiplist := skiplist.New[Log]()
 
 	// Insert elements.
-	cache.Insert(NewLog(2, 2))
-	cache.Insert(NewLog(1, 1))
-	cache.Insert(NewLog(2, 1))
-	cache.Insert(NewLog(1, 2))
+	skiplist.Insert(NewLog(2, 2))
+	skiplist.Insert(NewLog(1, 1))
+	skiplist.Insert(NewLog(2, 1))
+	skiplist.Insert(NewLog(1, 2))
 
 	// Remove elements.
 	// (1, 1) (1, 2) (2, 1) (2, 2)
-	i, err := cache.RemoveFront()
+	i, err := skiplist.RemoveFront()
 	require.NoError(t, err)
 	require.Equal(t, NewLog(1, 1), i)
-	require.Equal(t, 3, cache.Len())
+	require.Equal(t, 3, skiplist.Len())
 
 	// (1, 2) (2, 1) (2, 2)
-	i, err = cache.RemoveBack()
+	i, err = skiplist.RemoveBack()
 	require.NoError(t, err)
 	require.Equal(t, NewLog(2, 2), i)
-	require.Equal(t, 2, cache.Len())
+	require.Equal(t, 2, skiplist.Len())
 
 	// (1, 2) (2, 1)
-	cache.Insert(NewLog(1, 2))
-	require.Equal(t, 2, cache.Len())
+	skiplist.Insert(NewLog(1, 2))
+	require.Equal(t, 2, skiplist.Len())
 
 	// (1, 2) (2, 1) (2, 2)
-	cache.Insert(NewLog(2, 2))
-	require.Equal(t, 3, cache.Len())
+	skiplist.Insert(NewLog(2, 2))
+	require.Equal(t, 3, skiplist.Len())
 
 	// (1, 2) (2, 1) (2, 2)
-	i, err = cache.RemoveFront()
+	i, err = skiplist.RemoveFront()
 	require.NoError(t, err)
 	require.Equal(t, NewLog(1, 2), i)
-	require.Equal(t, 2, cache.Len())
+	require.Equal(t, 2, skiplist.Len())
 
 	// (2, 1) (2, 2)
-	i, err = cache.RemoveBack()
+	i, err = skiplist.RemoveBack()
 	require.NoError(t, err)
 	require.Equal(t, NewLog(2, 2), i)
-	require.Equal(t, 1, cache.Len())
+	require.Equal(t, 1, skiplist.Len())
 
 	// (2, 1)
-	i, err = cache.RemoveFront()
+	i, err = skiplist.RemoveFront()
 	require.NoError(t, err)
 	require.Equal(t, NewLog(2, 1), i)
-	require.Equal(t, 0, cache.Len())
+	require.Equal(t, 0, skiplist.Len())
 }

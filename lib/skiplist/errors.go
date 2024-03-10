@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cache
+package skiplist
 
 import (
 	"github.com/cockroachdb/errors"
 )
 
 var (
-	ErrEmptyCache = errors.New("cache is empty")
+	ErrEmptySkiplist = errors.New("skiplist is empty")
 )

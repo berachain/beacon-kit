@@ -23,33 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cache_test
+package skiplist_test
 
 import (
 	"math/rand"
 	"sync"
 	"testing"
 
-	"github.com/berachain/beacon-kit/lib/cache"
+	"github.com/berachain/beacon-kit/lib/skiplist"
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
 )
 
-var _ cache.Comparable[int] = IntComparable{}
-
-type IntComparable struct{}
-
-func (IntComparable) Compare(lhs, rhs int) int {
-	if lhs < rhs {
-		return -1
-	} else if lhs > rhs {
-		return 1
-	}
-	return 0
-}
-
-func FuzzOrderedCacheSimple(f *testing.F) {
-	// Create a new ordered cache.
-	cache := cache.NewOrderedCache[int](IntComparable{})
+func FuzzSkiplistSimple(f *testing.F) {
+	// Create a new ordered skiplist.
+	skiplist := skiplist.New[Uint64Comparable]()
 
 	f.Add(10)
 	f.Fuzz(func(t *testing.T, n int) {
@@ -58,35 +45,35 @@ func FuzzOrderedCacheSimple(f *testing.F) {
 		}
 
 		for _, elem := range rand.Perm(n) {
-			cache.Insert(elem)
+			skiplist.Insert(Uint64Comparable(elem))
 		}
 
 		for i := range n {
 			if i%2 == 0 {
 				// i: 0 2 4 6 8
 				// e: 0 1 2 3 4
-				e, err := cache.RemoveFront()
+				e, err := skiplist.RemoveFront()
 				require.NoError(t, err)
-				require.Equal(t, i/2, e)
+				require.Equal(t, i/2, int(e))
 			} else {
 				// i: 1 3 5 7 9
 				// e: 9 8 7 6 5
-				e, err := cache.RemoveBack()
+				e, err := skiplist.RemoveBack()
 				require.NoError(t, err)
-				require.Equal(t, n-(i+1)/2, e)
+				require.Equal(t, n-(i+1)/2, int(e))
 			}
-			require.Equal(t, n-i-1, cache.Len())
+			require.Equal(t, n-i-1, skiplist.Len())
 		}
 	})
 }
 
-func FuzzOrderedCacheConcurrencySafety(f *testing.F) {
+func FuzzSkiplistConcurrencySafety(f *testing.F) {
 	f.Fuzz(func(t *testing.T, n int) {
 		if n <= 0 {
 			t.Skip()
 		}
 
-		cache := cache.NewOrderedCache(IntComparable{})
+		skiplist := skiplist.New[Uint64Comparable]()
 		numGoroutines := 10
 		numOperations := 100
 
@@ -99,13 +86,13 @@ func FuzzOrderedCacheConcurrencySafety(f *testing.F) {
 				for j := 0; j < numOperations; j++ {
 					switch rand.Intn(3) {
 					case 0: // Insert
-						cache.Insert(
-							rand.Intn(n),
+						skiplist.Insert(
+							Uint64Comparable(rand.Intn(n)),
 						) // Use n to generate random inputs
 					case 1: // RemoveFront
-						_, _ = cache.RemoveFront() // Ignore errors for simplicity
+						_, _ = skiplist.RemoveFront() // Ignore errors for simplicity
 					case 2: // RemoveBack
-						_, _ = cache.RemoveBack() // Ignore errors for simplicity
+						_, _ = skiplist.RemoveBack() // Ignore errors for simplicity
 					}
 				}
 			}()
@@ -113,25 +100,25 @@ func FuzzOrderedCacheConcurrencySafety(f *testing.F) {
 
 		wg.Wait()
 
-		// After all operations, the cache should be in a consistent state.
-		// We can't assert the exact contents of the cache, but we can check
-		// if the cache is sorted correctly.
-		var prev int
+		// After all operations, the skiplist should be in a consistent state.
+		// We can't assert the exact contents of the skiplist, but we can check
+		// if the skiplist is sorted correctly.
+		var prev uint64
 		first := true
-		_, err := cache.Front()
+		_, err := skiplist.Front()
 		for err == nil {
 			// Remove the element to get the next in the next iteration
-			value, _ := cache.RemoveFront()
-			if !first && prev > value {
+			value, _ := skiplist.RemoveFront()
+			if !first && prev > uint64(value) {
 				t.Errorf(
-					"cache is not in ascending order: found %d after %d",
+					"skiplist is not in ascending order: found %d after %d",
 					value,
 					prev,
 				)
 			}
-			prev = value
+			prev = uint64(value)
 			first = false
-			_, err = cache.Front()
+			_, err = skiplist.Front()
 		}
 	})
 }

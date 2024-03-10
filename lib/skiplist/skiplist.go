@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cache
+package skiplist
 
 import (
 	"sync"
@@ -32,104 +32,103 @@ import (
 )
 
 type Comparable[T any] interface {
-	Compare(lhs, rhs T) int
+	Compare(other T) int
 }
 
-// OrderedCache is a set of elements that
+// Skiplist is a set of elements that
 // are maintained in an ascending order.
-type OrderedCache[T any] struct {
+type Skiplist[T any] struct {
 	store *skiplist.SkipList
-	// mu is a mutex that protects the cache.
+	// mu is a mutex that protects the skiplist.
 	mu sync.RWMutex
 }
 
-// NewOrderedCache returns a new ordered cache.
-func NewOrderedCache[T any](c Comparable[T]) *OrderedCache[T] {
+// New returns a new ordered skiplist.
+func New[T Comparable[T]]() *Skiplist[T] {
 	ascendingOrder := skiplist.GreaterThanFunc(func(lhs, rhs any) int {
-		return c.Compare(lhs.(T), rhs.(T))
+		return lhs.(T).Compare(rhs.(T))
 	})
-	return &OrderedCache[T]{
+	return &Skiplist[T]{
 		store: skiplist.New(ascendingOrder),
 	}
 }
 
-// Insert adds an element to the cache.
-func (c *OrderedCache[T]) Insert(elem T) {
+// Insert adds an element to the skiplist.
+func (c *Skiplist[T]) Insert(elem T) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.store.Set(elem, struct{}{})
 }
 
-// Remove removes an element from the cache.
-func (c *OrderedCache[T]) Remove(elem T) {
+// Remove removes an element from the skiplist.
+func (c *Skiplist[T]) Remove(elem T) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.store.Remove(elem)
 }
 
-// Contains returns true if the cache contains the element.
-func (c *OrderedCache[T]) Contains(elem T) bool {
+// Contains returns true if the skiplist contains the element.
+func (c *Skiplist[T]) Contains(elem T) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.store.Get(elem) != nil
 }
 
-// Front returns the first (smallest) element in the cache.
-func (c *OrderedCache[T]) Front() (T, error) {
+// Front returns the first (smallest) element in the skiplist.
+func (c *Skiplist[T]) Front() (T, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	elem := c.store.Front()
 	if elem == nil {
 		var zero T
-		return zero, ErrEmptyCache
+		return zero, ErrEmptySkiplist
 	}
 	return elem.Key().(T), nil
 }
 
-// RemoveFront removes the first element in the cache.
-func (c *OrderedCache[T]) RemoveFront() (T, error) {
+// RemoveFront removes the first element in the skiplist.
+func (c *Skiplist[T]) RemoveFront() (T, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	elem := c.store.RemoveFront()
 	if elem == nil {
 		var zero T
-		return zero, ErrEmptyCache
+		return zero, ErrEmptySkiplist
 	}
 	return elem.Key().(T), nil
 }
 
-// Back returns the last (largest) element in the cache.
-func (c *OrderedCache[T]) Back() (T, error) {
+// Back returns the last (largest) element in the skiplist.
+func (c *Skiplist[T]) Back() (T, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	elem := c.store.Back()
 	if elem == nil {
 		var zero T
-		return zero, ErrEmptyCache
+		return zero, ErrEmptySkiplist
 	}
 	return elem.Key().(T), nil
 }
 
-// RemoveBack removes the last element in the cache.
-func (c *OrderedCache[T]) RemoveBack() (T, error) {
+// RemoveBack removes the last element in the skiplist.
+func (c *Skiplist[T]) RemoveBack() (T, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	elem := c.store.RemoveBack()
 	if elem == nil {
 		var zero T
-		return zero, ErrEmptyCache
+		return zero, ErrEmptySkiplist
 	}
 	return elem.Key().(T), nil
 }
 
-// Len returns the number of elements in the cache.
-func (c *OrderedCache[T]) Len() int {
+// Len returns the number of elements in the skiplist.
+func (c *Skiplist[T]) Len() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-
 	return c.store.Len()
 }
