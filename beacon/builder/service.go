@@ -90,6 +90,8 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return nil, err
+	} else if beaconBlock == nil {
+		return nil, beacontypes.ErrNilBlk
 	}
 
 	// Get the payload for the block.
@@ -110,6 +112,10 @@ func (s *Service) RequestBestBlock(
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
+	body := beaconBlock.GetBody()
+	if body.IsNil() {
+		return nil, beacontypes.ErrNilBlkBody
+	}
 	if err = beaconBlock.GetBody().AttachExecution(payload); err != nil {
 		return nil, err
 	}

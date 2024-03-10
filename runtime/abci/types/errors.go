@@ -25,7 +25,7 @@
 
 package types
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrNilBeaconBlockInRequest is an error for when

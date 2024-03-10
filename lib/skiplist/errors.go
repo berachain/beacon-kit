@@ -26,7 +26,7 @@
 package skiplist
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 )
 
 var (

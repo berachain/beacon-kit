@@ -27,10 +27,10 @@ package blockchain
 
 import (
 	"context"
-	"errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/sync"
+	"github.com/cockroachdb/errors"
 )
 
 // postBlockProcess(.
@@ -40,6 +40,10 @@ func (s *Service) postBlockProcess(
 	blockHash [32]byte,
 	_ bool,
 ) error {
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
+	}
+
 	// If the block does not have a payload, we return an error.
 	payload := blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {

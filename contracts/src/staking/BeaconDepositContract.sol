@@ -80,24 +80,38 @@ contract BeaconDepositContract is IBeaconDepositContract {
     uint8 private constant CREDENTIALS_LENGTH = 32;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                           STORAGE                          */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @dev depositCount represents the number of deposits that
+    // have been made to the contract.
+    uint64 depositCount;
+    /// @dev withdrawalCount represents the number of withdrawals that
+    // have been requested.
+    uint64 withdrawalCount;
+    /// @dev redirectCount represents the number of redirects that
+    // have been requested.
+    uint64 redirectCount;
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconDepositContract
     function deposit(
-        bytes calldata validatorPubkey,
-        bytes calldata stakingCredentials,
+        bytes calldata pubkey,
+        bytes calldata credentials,
         uint64 amount,
         bytes calldata signature
     )
         external
         payable
     {
-        if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
+        if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
-        if (stakingCredentials.length != CREDENTIALS_LENGTH) {
+        if (credentials.length != CREDENTIALS_LENGTH) {
             revert InvalidCredentialsLength();
         }
 
@@ -106,13 +120,17 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         if (STAKE_ASSET == NATIVE_ASSET) {
+            // amount is set by _depositNative in order to
+            // convert `msg.value` to Gwei.
             amount = _depositNative();
         } else {
             _depositERC20(amount);
         }
 
-        // slither-disable-next-line reentrancy-events
-        emit Deposit(validatorPubkey, stakingCredentials, amount, signature);
+        unchecked {
+            // slither-disable-next-line reentrancy-benign,reentrancy-events
+            emit Deposit(pubkey, credentials, amount, signature, depositCount++);
+        }
     }
 
     /// @inheritdoc IBeaconDepositContract
@@ -134,18 +152,26 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientRedirectAmount();
         }
 
-        emit Redirect(fromPubkey, toPubkey, _toCredentials(msg.sender), amount);
+        unchecked {
+            emit Redirect(
+                fromPubkey,
+                toPubkey,
+                _toCredentials(msg.sender),
+                amount,
+                redirectCount++
+            );
+        }
     }
 
     /// @inheritdoc IBeaconDepositContract
     function withdraw(
-        bytes calldata validatorPubkey,
+        bytes calldata pubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
     )
         external
     {
-        if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
+        if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
@@ -156,13 +182,15 @@ contract BeaconDepositContract is IBeaconDepositContract {
         if (amount < MIN_WITHDRAWAL_AMOUNT_IN_GWEI) {
             revert InsufficientWithdrawalAmount();
         }
-
-        emit Withdrawal(
-            validatorPubkey,
-            _toCredentials(msg.sender),
-            withdrawalCredentials,
-            amount
-        );
+        unchecked {
+            emit Withdrawal(
+                pubkey,
+                _toCredentials(msg.sender),
+                withdrawalCredentials,
+                amount,
+                withdrawalCount++
+            );
+        }
     }
 
     /**

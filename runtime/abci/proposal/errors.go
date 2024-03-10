@@ -25,7 +25,7 @@
 
 package proposal
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrValidatorClientNotSynced is an error for when a

@@ -55,24 +55,6 @@ func (s *EngineClient) HeaderByNumber(
 	return header, nil
 }
 
-// HeaderByHash retrieves the block header by its hash.
-func (s *EngineClient) HeaderByHash(
-	ctx context.Context,
-	hash common.Hash,
-) (*coretypes.Header, error) {
-	if header, ok := s.engineCache.HeaderByHash(hash); ok {
-		return header, nil
-	}
-
-	header, err := s.Client.HeaderByHash(ctx, hash)
-	if err != nil {
-		return nil, err
-	}
-
-	s.engineCache.AddHeader(header)
-	return header, nil
-}
-
 // GetLogs retrieves the logs from the Ethereum execution client.
 // It calls the eth_getLogs method via JSON-RPC.
 func (s *EngineClient) GetLogs(

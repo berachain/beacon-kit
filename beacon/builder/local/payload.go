@@ -27,7 +27,6 @@ package localbuilder
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -165,7 +164,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
-				ctx, payloadID, slot,
+				ctx, &payloadID, slot,
 			)
 		if err == nil {
 			// bundleCache.add(slot, bundle)
@@ -216,7 +215,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err :=
 		s.getPayloadFromExecutionClient(
-			ctx, *payloadID, slot,
+			ctx, payloadID, slot,
 		)
 	if err != nil {
 		return nil, nil, false, err
@@ -258,8 +257,7 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	// Build the payload attributes.
-	attrs, err := enginetypes.NewPayloadAttributes(
+	return enginetypes.NewPayloadAttributes(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
@@ -267,23 +265,22 @@ func (s *Service) getPayloadAttribute(
 		withdrawals,
 		prevHeadRoot,
 	)
-	if err != nil {
-		return nil, errors.New("could not create payload attributes")
-	}
-
-	return attrs, nil
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the
 // given slot.
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
-	payloadID enginetypes.PayloadID,
+	payloadID *enginetypes.PayloadID,
 	slot primitives.Slot,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
+	if payloadID == nil {
+		return nil, nil, false, ErrNilPayloadID
+	}
+
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
 		ctx,
-		payloadID,
+		*payloadID,
 		slot,
 	)
 	if err != nil {

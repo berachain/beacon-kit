@@ -29,55 +29,61 @@ pragma solidity 0.8.24;
 /// @author Berachain Team.
 /// @dev This contract is used to create validator, deposit, redirect and withdraw stake from the Beaconchain.
 interface IBeaconDepositContract {
-    // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    // /*                        EVENTS                              */
-    // /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        EVENTS                              */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
      * @dev Emitted when a deposit is made, which could mean a new validator or a top up of an existing one.
-     * @param validatorPubkey the public key of the validator who is being deposited for if not a new validator.
-     * @param stakingCredentials the public key of the operator if new validator or the depositor if top up.
+     * @param pubkey the public key of the validator who is being deposited for if not a new validator.
+     * @param credentials the public key of the operator if new validator or the depositor if top up.
      * @param amount the amount of stake being deposited, in Gwei.
      * @param signature the signature of the deposit message, only checked when creating a new validator.
+     * @param index the index of the deposit.
      */
     event Deposit(
-        bytes validatorPubkey,
-        bytes stakingCredentials,
+        bytes pubkey,
+        bytes credentials,
         uint64 amount,
-        bytes signature
+        bytes signature,
+        uint64 index
     );
 
     /**
      * @dev Emitted when a redirect of stake is made.
-     * @param stakingCredentials The public key of the account redirecting their stake.
+     * @param credentials The public key of the account redirecting their stake.
      * @param fromPubkey The public key of the validator that is being redirected from.
      * @param toPubkey The public key of the validator that is being redirected to.
      * @param amount The amount of stake be redirected, in Gwei.
+     * @param index The index of the redirect.
      */
     event Redirect(
         bytes fromPubkey,
         bytes toPubkey,
-        bytes stakingCredentials,
-        uint64 amount
+        bytes credentials,
+        uint64 amount,
+        uint64 index
     );
 
     /**
      * @dev Emitted when a withdrawal is made from a validator.
      * @param fromPubkey The public key of the validator that is being withdrawn from.
-     * @param stakingCredentials The public key of the account that is withdrawing the stake.
+     * @param credentials The public key of the account that is withdrawing the stake.
      * @param withdrawalCredentials The public key of the account that will receive the withdrawal.
      * @param amount The amount to be withdrawn from the validator, in Gwei.
+     * @param index The index of the withdrawal.
      */
     event Withdrawal(
         bytes fromPubkey,
-        bytes stakingCredentials,
+        bytes credentials,
         bytes withdrawalCredentials,
-        uint64 amount
+        uint64 amount,
+        uint64 index
     );
 
-    // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    // /*                        ERRORS                              */
-    // /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        ERRORS                              */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev Error thrown when the deposit amount is too small, to prevent dust deposits.
     error InsufficientDeposit();
@@ -103,22 +109,22 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the withdrawal amount is too small, to prevent dust withdrawals.
     error InsufficientWithdrawalAmount();
 
-    // /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    // /*                        WRITES                              */
-    // /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        WRITES                              */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
      * @notice Submit a deposit message to the Beaconchain.
      * @notice This will be used to create a new validator or to top up an existing one, increasing stake.
-     * @param validatorPubkey is the consensus public key of the validator. If subsequent deposit, its ignored.
-     * @param stakingCredentials is the staking credentials of the validator. If this is the first deposit it is
+     * @param pubkey is the consensus public key of the validator. If subsequent deposit, its ignored.
+     * @param credentials is the staking credentials of the validator. If this is the first deposit it is
      * validator operator public key, if subsequent deposit it is the depositors public key.
      * @param amount is the amount of stake native/ERC20 token to be deposited, in Gwei.
      * @param signature is the signature used only on the first deposit.
      */
     function deposit(
-        bytes calldata validatorPubkey,
-        bytes calldata stakingCredentials,
+        bytes calldata pubkey,
+        bytes calldata credentials,
         uint64 amount,
         bytes calldata signature
     )
@@ -143,13 +149,13 @@ interface IBeaconDepositContract {
     /**
      * @notice Submit a withdrawal message to the Beaconchain.
      * @notice This function is callable by the account with the stake.
-     * @param validatorPubkey is the public key of the validator we are withdrawing from.
+     * @param pubkey is the public key of the validator we are withdrawing from.
      * @param withdrawalCredentials is the public key of the account that will receive the withdrawal.
      * @param amount is the amount of stake to be withdrawn, in Gwei. The amount needs to be calculated offchain since
      * validator tokens are not fungible, and their shares -> stake amount can differ if there is a slashing event.
      */
     function withdraw(
-        bytes calldata validatorPubkey,
+        bytes calldata pubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
     )

@@ -73,6 +73,8 @@ func (s *Service) NotifyForkchoiceUpdate(
 		return nil, e
 	}
 
+	// s.logProcessor.ReadLogsFromBlock(ctx, fucu.HeadEth1Hash)
+
 	return payloadID, err
 }
 

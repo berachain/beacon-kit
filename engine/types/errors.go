@@ -23,28 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package callback
+package enginetypes
 
-import (
-	"context"
+import "github.com/cockroachdb/errors"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
+var (
+	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
+	ErrInvalidTimestamp = errors.New("invalid timestamp")
+	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
+	ErrInvalidRandao = errors.New("invalid randao")
+	// ErrNilWithdrawals indicates that the withdrawals are in a
+	// Capella versioned payload.
+	ErrNilWithdrawals = errors.New("nil withdrawals post capella")
+	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
+	ErrEmptyPrevRandao = errors.New("empty randao")
 )
-
-// LogHandler represents a struct that has the ability to ingest
-// an ethereum log and handle it.
-type LogHandler interface {
-	HandleLog(ctx context.Context, log *coretypes.Log) error
-}
-
-// ContractHandler is the interface for all contracts in the execution layer,
-// which must expose their ABI methods and events so that callback
-// can select corresponding methods to process them.
-type ContractHandler interface {
-	// ABIEvents() should return a map of Ethereum event names to Go-Ethereum
-	// abi `Event`. NOTE: this can be directly loaded from the `Events` field of
-	// a Go-Ethereum ABI struct,
-	// which can be built for a solidity library, interface, or contract.
-	ABIEvents() map[string]abi.Event
-}
