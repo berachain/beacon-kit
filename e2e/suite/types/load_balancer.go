@@ -25,8 +25,43 @@
 
 package types
 
+import (
+	"strings"
+
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+)
+
 // LoadBalancer represents a group of eth JSON-RPC endpoints
 // behind an NGINX load balancer.
 type LoadBalancer struct {
-	JSONRPCConnection
+	*JSONRPCConnection
+}
+
+func NewLoadBalancer(
+	serviceCtx *services.ServiceContext,
+) (*LoadBalancer, error) {
+	conn := &JSONRPCConnection{
+		isWebSocket: false,
+	}
+
+	// Start by trying to get the public port for the JSON-RPC WebSocket
+	jsonRPC, ok := serviceCtx.GetPublicPorts()["http"]
+	if !ok {
+		return nil, ErrPublicPortNotFound
+	}
+	// Split the string to get the port
+	str := strings.Split(jsonRPC.String(), ":")
+	if len(str) == 0 {
+		return nil, ErrPublicPortNotFound
+	}
+
+	ethClient, err := ethclient.Dial(
+		"http://0.0.0.0" + ":" + str[1],
+	)
+	if err != nil {
+		return nil, err
+	}
+	conn.Client = ethClient
+	return &LoadBalancer{JSONRPCConnection: conn}, nil
 }
