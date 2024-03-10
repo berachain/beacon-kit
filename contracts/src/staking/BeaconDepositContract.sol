@@ -40,22 +40,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev The address of the native asset as of EIP-7528.
-    address public constant NATIVE_ASSET =
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-
-    /// @dev The address of the staking asset.
-    /// @notice defaults to the native asset but can be changed at genesis at slot!!!.
-    /// @dev The staking asset needs to be of 18 decimal places to match the native asset.
-    /// @notice to allow for the staking asset to be changed, we must store it in the contract storage.
-    /// @notice storage layout:
-    // | Name        | Type    | Slot | Offset | Bytes | Contract                                |
-    // |-------------|---------|------|--------|-------|-----------------------------------------|
-    // | STAKE_ASSET | address | 0    | 0      | 20    | src/staking/Deposit.sol:DepositContract |
-    //
-    // slither-disable-next-line constable-states
-    address private STAKE_ASSET = NATIVE_ASSET;
-
     /// @dev The minimum amount of stake that can be deposited to prevent dust.
     /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
     uint64 private constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 32e9;
@@ -84,14 +68,23 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev depositCount represents the number of deposits that
-    // have been made to the contract.
+    /// have been made to the contract.
     uint64 depositCount;
     /// @dev withdrawalCount represents the number of withdrawals that
-    // have been requested.
+    /// have been requested.
     uint64 withdrawalCount;
     /// @dev redirectCount represents the number of redirects that
-    // have been requested.
+    /// have been requested.
     uint64 redirectCount;
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                            CONFIG                          */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @dev The address of the native asset as of EIP-7528.
+    function _assetDepositFunc(uint64) internal virtual returns (uint64) {
+        return _depositNative();
+    }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
@@ -119,17 +112,19 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InvalidSignatureLength();
         }
 
-        if (STAKE_ASSET == NATIVE_ASSET) {
-            // amount is set by _depositNative in order to
-            // convert `msg.value` to Gwei.
-            amount = _depositNative();
-        } else {
-            _depositERC20(amount);
+        if (amount < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
+            revert InsufficientDeposit();
         }
 
         unchecked {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
-            emit Deposit(pubkey, credentials, amount, signature, depositCount++);
+            emit Deposit(
+                pubkey,
+                credentials,
+                _assetDepositFunc(amount),
+                signature,
+                depositCount++
+            );
         }
     }
 
@@ -225,26 +220,9 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert DepositValueTooHigh();
         }
 
-        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
-            revert InsufficientDeposit();
-        }
-
         _safeTransferETH(address(0), msg.value);
 
         return uint64(amountInGwei);
-    }
-
-    /*
-     * @notice Validates the deposit amount and burns the staking asset from the sender.
-     * @param amount The amount of stake to deposit.
-     */
-    function _depositERC20(uint64 amountInGwei) private {
-        // burn the staking asset from the sender, converting the gwei to wei.
-        IStakeERC20(STAKE_ASSET).burn(msg.sender, uint256(amountInGwei) * 1e9);
-
-        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
-            revert InsufficientDeposit();
-        }
     }
 
     /**
