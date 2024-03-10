@@ -32,26 +32,26 @@ import "strconv"
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//nolint:lll
+
 type Deposit struct {
 	// Public key of the validator, which is compatible to the implementations
 	// of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is
 	// preferred.
-	ValidatorPubkey []byte `json:"validatorPubkey"    ssz-max:"48"`
+	ValidatorPubkey []byte `json:"validatorPubkey" ssz-max:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	StakingCredentials []byte `json:"stakingCredentials"              ssz-size:"32"`
+	Credentials []byte `json:"credentials"                  ssz-size:"32"`
 	// Deposit amount in gwei.
 	Amount uint64 `json:"amount"`
 	// Signature of the deposit data.
-	Signature []byte `json:"signature"          ssz-max:"96"`
+	Signature []byte `json:"signature"       ssz-max:"96"`
 }
 
 // String returns a string representation of the Deposit.
 func (d *Deposit) String() string {
 	return "Deposit{" +
 		"ValidatorPubkey: " + string(d.ValidatorPubkey) +
-		", StakingCredentials: " + string(d.StakingCredentials) +
+		", Credentials: " + string(d.Credentials) +
 		", Amount: " + strconv.FormatUint(d.Amount, 10) +
 		", Signature: " + string(d.Signature) +
 		"}"

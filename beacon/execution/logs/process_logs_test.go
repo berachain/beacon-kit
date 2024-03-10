@@ -79,14 +79,14 @@ func TestProcessLogs(t *testing.T) {
 
 	event := depositContractAbi.Events[logs.WithdrawalName]
 	pubKey := []byte("pubkey")
-	stakingCredentials := []byte{}
+	credentials := []byte{}
 	signature := []byte{}
 	amount := uint64(1000)
 
 	// Create a log from the deposit.
 	data, err := event.Inputs.Pack(
 		pubKey,
-		stakingCredentials,
+		credentials,
 		signature,
 		amount,
 	)
