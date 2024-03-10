@@ -23,20 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-<<<<<<<< HEAD:e2e/suite/errors.go
 package suite
 
 import "github.com/cockroachdb/errors"
 
 // ErrUnexpectedBalance is returned when the balance is unexpected.
 var ErrUnexpectedBalance = errors.New("unexpected balance")
-========
-package types
-
-import "github.com/cockroachdb/errors"
-
-var (
-	// ErrPublicPortNotFound is returned when the public port is not found.
-	ErrPublicPortNotFound = errors.New("failed to get public ports")
-)
->>>>>>>> main:e2e/suite/types/errors.go

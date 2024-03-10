@@ -23,12 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-<<<<<<<< HEAD:e2e/suite/types/consensus_client.go
-package types
-
-// ConsensusClient represents a consensus client.
-type ConsensusClient struct{}
-========
 package skiplist
 
 import (
@@ -38,4 +32,3 @@ import (
 var (
 	ErrEmptySkiplist = errors.New("skiplist is empty")
 )
->>>>>>>> main:lib/skiplist/errors.go
