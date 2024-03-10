@@ -13,8 +13,6 @@ const (
 	chunkSize  = txHashSize + ttlSize
 )
 
-var _ snapshot.ExtensionSnapshotter = &Snapshotter{}
-
 const (
 	// SnapshotFormat defines the snapshot format of exported blobs.
 	// No protobuf envelope, no metadata.
@@ -24,33 +22,37 @@ const (
 	SnapshotName = "blob"
 )
 
-type Snapshotter struct {
-	m *DB
+type Snapshotter[T numeric] struct {
+	m              *DB
+	snapShotWindow T
 }
 
-func NewSnapshotter(m *DB) *Snapshotter {
-	return &Snapshotter{m: m}
+func NewSnapshotter[T numeric](m *DB, sw T) *Snapshotter[T] {
+	return &Snapshotter[T]{m: m, snapShotWindow: sw}
 }
 
-func (s *Snapshotter) SnapshotName() string {
+func (s *Snapshotter[T]) SnapshotName() string {
 	return SnapshotName
 }
 
-func (s *Snapshotter) SnapshotFormat() uint32 {
+func (s *Snapshotter[T]) SnapshotFormat() uint32 {
 	return SnapshotFormat
 }
 
-func (s *Snapshotter) SupportedFormats() []uint32 {
+func (s *Snapshotter[T]) SupportedFormats() []uint32 {
 	return []uint32{SnapshotFormat}
 }
 
-// SnapshotExtension exports the state at a given height using the provided snapshotWriter.
-func (s *Snapshotter) SnapshotExtension(height uint64, payloadWriter snapshot.ExtensionPayloadWriter) error {
+// SnapshotExtension exports the state
+// of the snapshot window given snapshotWriter.
+func (s *Snapshotter[T]) SnapshotExtension(height uint64,
+	payloadWriter snapshot.ExtensionPayloadWriter) error {
 	// export all blobs as a single blob
 	return s.m.exportSnapshot(height, payloadWriter)
 }
 
-func (s *Snapshotter) RestoreExtension(height uint64, format uint32, payloadReader snapshot.ExtensionPayloadReader) error {
+func (s *Snapshotter[T]) RestoreExtension(height uint64, format uint32,
+	payloadReader snapshot.ExtensionPayloadReader) error {
 	if format == SnapshotFormat {
 		return s.restore(height, payloadReader)
 	}
@@ -58,8 +60,10 @@ func (s *Snapshotter) RestoreExtension(height uint64, format uint32, payloadRead
 	return snapshot.ErrUnknownFormat
 }
 
-// restore restores the state at a given height using the provided payloadReader.
-func (s *Snapshotter) restore(height uint64, payloadReader snapshot.ExtensionPayloadReader) error {
+// restore restores the state at a given height
+// using the provided payloadReader.
+func (s *Snapshotter[T]) restore(height uint64,
+	payloadReader snapshot.ExtensionPayloadReader) error {
 	_, err := payloadReader()
 	if err != nil {
 		if errors.Is(err, io.EOF) {

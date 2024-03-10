@@ -26,10 +26,6 @@
 package proposal
 
 import (
-	"bytes"
-	"encoding/binary"
-	"encoding/gob"
-	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -44,13 +40,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// Create a pool of bytes.Buffers
-var bufPool = &sync.Pool{
-	New: func() interface{} {
-		return new(bytes.Buffer)
-	},
-}
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
@@ -107,19 +96,6 @@ func (h *Handler) PrepareProposalHandler(
 		return &abci.ResponsePrepareProposal{}, err
 	}
 
-	// Store the blobs in the blobstore.
-	blobs := blk.GetBody().GetBlobKzgCommitments()
-	blobTx := make([][]byte, 0, len(blobs))
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, uint64(req.Height))
-	for i, blob := range blobs {
-		if err = h.blobstore.Set(heightBytes, blob[:]); err != nil {
-			return &abci.ResponsePrepareProposal{}, err
-		}
-
-		blobTx[i] = blob[:]
-	}
-
 	// Marshal the block into bytes.
 	beaconBz, err := blk.MarshalSSZ()
 	if err != nil {
@@ -142,21 +118,12 @@ func (h *Handler) PrepareProposalHandler(
 	// TODO: if comet includes txs this could break and or exceed max block size
 	// TODO: make more robust
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
-	// Include the blobs in block
-	// Encode blobs to bytes
-	buf := bufPool.Get().(*bytes.Buffer)
-	defer func() {
-		buf.Reset()
-		bufPool.Put(buf)
-	}()
 
-	enc := gob.NewEncoder(buf)
-	err = enc.Encode(blobTx)
+	blobBz, err := blockchain.PrepareBlobsHandler(h.blobstore, req.Height, blk.GetBody().GetBlobKzgCommitments())
 	if err != nil {
 		return nil, err
 	}
-	encodedData := buf.Bytes()
-	resp.Txs = append([][]byte{encodedData}, resp.Txs...)
+	resp.Txs = append([][]byte{blobBz}, resp.Txs...)
 	return resp, nil
 }
 
@@ -206,28 +173,8 @@ func (h *Handler) ProcessProposalHandler(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
 
-	// Store the blobs in the blobstore.
-	blobTx := req.Txs[h.cfg.BlobBlockPosition]
-	// Decode the blobs from bytes to []byte
-	var blobs [][]byte
-	buf := bufPool.Get().(*bytes.Buffer)
-	defer func() {
-		buf.Reset()
-		bufPool.Put(buf)
-	}()
-	buf.Write(blobTx)
-	dec := gob.NewDecoder(buf)
-	err = dec.Decode(&blobs)
-	if err != nil {
+	if err = blockchain.ProcessBlobsHandler(h.blobstore, req.Height, req.Txs[h.cfg.BlobBlockPosition]); err != nil {
 		return nil, err
-	}
-
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, uint64(req.Height))
-	for _, blob := range blobs {
-		if err = h.blobstore.Set(heightBytes, blob); err != nil {
-			return &abci.ResponseProcessProposal{}, err
-		}
 	}
 
 	return h.nextProcess(ctx, req)
