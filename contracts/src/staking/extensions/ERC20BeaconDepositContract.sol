@@ -26,7 +26,7 @@
 pragma solidity 0.8.24;
 
 import { BeaconDepositContract } from "../BeaconDepositContract.sol";
-import { IStakeERC20 } from "../IStakeERC20.sol";
+import { IStakeERC20 } from "./IStakeERC20.sol";
 
 /**
  * @title BeaconDepositContract
