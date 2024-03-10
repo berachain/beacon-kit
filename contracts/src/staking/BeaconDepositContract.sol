@@ -119,14 +119,17 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InvalidSignatureLength();
         }
 
-        unchecked {
-            emit Deposit(pubkey, credentials, amount, signature, depositCount++);
-        }
-
         if (STAKE_ASSET == NATIVE_ASSET) {
+            // amount is set by _depositNative in order to
+            // convert `msg.value` to Gwei.
             amount = _depositNative();
         } else {
             _depositERC20(amount);
+        }
+
+        unchecked {
+            // slither-disable-next-line reentrancy-benign,reentrancy-events
+            emit Deposit(pubkey, credentials, amount, signature, depositCount++);
         }
     }
 
