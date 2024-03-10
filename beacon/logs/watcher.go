@@ -85,7 +85,9 @@ func (w *Watcher) mainLoop(ctx context.Context) {
 }
 
 // syncLogsToHead syncs logs to the head of the chain, it also has backfilling
-// capabilities.
+// capabilities. This ensures that when this node is ready to propose a block,
+// it has the most up to date deposit information possible. If head.Index is behind
+// the processed deposits, the node will backfill until it is caught up.
 func (w *Watcher) syncLogsToHead(
 	ctx context.Context,
 ) error {
