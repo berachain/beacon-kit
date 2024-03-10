@@ -141,6 +141,6 @@ func TestLogFactoryIncorrectType(t *testing.T) {
 	_, err = factory.UnmarshalEthLog(log)
 	// An error is expected because the event type in ABI and
 	// withdrawalType are mismatched,
-	// (no validatorPubkey in withdrawalType currently).
+	// (no pubkey in withdrawalType currently).
 	require.Error(t, err)
 }
