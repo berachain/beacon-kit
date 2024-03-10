@@ -31,8 +31,8 @@ var (
 
 // BeaconDepositContractMetaData contains all meta data concerning the BeaconDepositContract contract.
 var BeaconDepositContractMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"NATIVE_ASSET\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"redirect\",\"inputs\":[{\"name\":\"fromPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"toPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Redirect\",\"inputs\":[{\"name\":\"fromPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"toPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Withdrawal\",\"inputs\":[{\"name\":\"fromPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"stakingCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientRedirectAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientWithdrawalAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]}]",
-	Bin: "0x60806040525f80546001600160a01b03191673eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee179055348015610034575f80fd5b50610b1b806100425f395ff3fe60806040526004361061003e575f3560e01c806304a3267f146100425780635b70fa2914610063578063bf53253b14610076578063bf9b6a55146100c6575b5f80fd5b34801561004d575f80fd5b5061006161005c36600461073c565b6100e5565b005b6100616100713660046107b7565b610232565b348015610081575f80fd5b5061009d73eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee81565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b3480156100d1575f80fd5b506100616100e036600461073c565b6103c9565b6030841461011f576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60208214610159576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610169600a6407735940006108b7565b67ffffffffffffffff168167ffffffffffffffff1610156101b6576040517f1203093700000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b604080516020808252337f01000000000000000000000000000000000000000000000000000000000000001790820152808201918290527f33689ed7aade9d90db44595c06c3bb95713b8332a7dec83be61556783c2154b191610223918891889190889088908890610985565b60405180910390a15050505050565b6030861461026c576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b602084146102a6576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b606081146102e0576040517f4be6321b00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f5473ffffffffffffffffffffffffffffffffffffffff167fffffffffffffffffffffffff11111111111111111111111111111111111111120161032d576103266104db565b9250610336565b610336836105c2565b7f68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46878787878787875f601481819054906101000a900467ffffffffffffffff1661037f906109dd565b91906101000a81548167ffffffffffffffff021916908367ffffffffffffffff16021790556040516103b8989796959493929190610a03565b60405180910390a150505050505050565b6030841415806103da575060308214155b15610411576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610421600a6407735940006108b7565b67ffffffffffffffff168167ffffffffffffffff16101561046e576040517f0494a69c00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b604080516020808252337f01000000000000000000000000000000000000000000000000000000000000001790820152808201918290527fe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f91610223918891889188918891908890610a68565b5f6104ea633b9aca0034610aa2565b15610521576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f610530633b9aca0034610ab5565b905067ffffffffffffffff811115610574576040517f2aa6673400000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6407735940008110156105b3576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6105bd5f346106c3565b919050565b5f5473ffffffffffffffffffffffffffffffffffffffff16639dc29fac336105f867ffffffffffffffff8516633b9aca00610ac8565b6040517fffffffff0000000000000000000000000000000000000000000000000000000060e085901b16815273ffffffffffffffffffffffffffffffffffffffff909216600483015260248201526044015f604051808303815f87803b158015610660575f80fd5b505af1158015610672573d5f803e3d5ffd5b50505064077359400067ffffffffffffffff8316101590506106c0576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b50565b5f385f3884865af16106dc5763b12d13eb5f526004601cfd5b5050565b5f8083601f8401126106f0575f80fd5b50813567ffffffffffffffff811115610707575f80fd5b60208301915083602082850101111561071e575f80fd5b9250929050565b803567ffffffffffffffff811681146105bd575f80fd5b5f805f805f60608688031215610750575f80fd5b853567ffffffffffffffff80821115610767575f80fd5b61077389838a016106e0565b9097509550602088013591508082111561078b575f80fd5b50610798888289016106e0565b90945092506107ab905060408701610725565b90509295509295909350565b5f805f805f805f6080888a0312156107cd575f80fd5b873567ffffffffffffffff808211156107e4575f80fd5b6107f08b838c016106e0565b909950975060208a0135915080821115610808575f80fd5b6108148b838c016106e0565b909750955085915061082860408b01610725565b945060608a013591508082111561083d575f80fd5b5061084a8a828b016106e0565b989b979a50959850939692959293505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f67ffffffffffffffff808416806108d1576108d161085d565b92169190910492915050565b81835281816020850137505f602082840101525f60207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f840116840101905092915050565b5f81518084525f5b818110156109485760208185018101518683018201520161092c565b505f6020828601015260207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f83011685010191505092915050565b608081525f61099860808301888a6108dd565b82810360208401526109aa8188610924565b905082810360408401526109bf8186886108dd565b91505067ffffffffffffffff83166060830152979650505050505050565b5f67ffffffffffffffff8083168181036109f9576109f961088a565b6001019392505050565b60a081525f610a1660a083018a8c6108dd565b8281036020840152610a2981898b6108dd565b905067ffffffffffffffff80881660408501528382036060850152610a4f8287896108dd565b9250808516608085015250509998505050505050505050565b608081525f610a7b60808301888a6108dd565b8281036020840152610a8e8187896108dd565b905082810360408401526109bf8186610924565b5f82610ab057610ab061085d565b500690565b5f82610ac357610ac361085d565b500490565b8082028115828204841417610adf57610adf61088a565b9291505056fea264697066735822122047ab36c8f3fb0f738419ba486816fd7f65575228b0bc4206dd78c6d0a0f7e5c564736f6c63430008180033",
+	ABI: "[{\"type\":\"function\",\"name\":\"NATIVE_ASSET\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"redirect\",\"inputs\":[{\"name\":\"fromPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"toPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Redirect\",\"inputs\":[{\"name\":\"fromPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"toPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Withdrawal\",\"inputs\":[{\"name\":\"fromPubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"withdrawalCredentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientRedirectAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientWithdrawalAmount\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"Reentrancy\",\"inputs\":[]}]",
+	Bin: "0x60806040525f80546001600160a01b03191673eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee179055348015610034575f80fd5b50610c50806100425f395ff3fe60806040526004361061003e575f3560e01c806304a3267f146100425780635b70fa2914610063578063bf53253b14610076578063bf9b6a55146100c6575b5f80fd5b34801561004d575f80fd5b5061006161005c366004610866565b6100e5565b005b6100616100713660046108e1565b6102b0565b348015610081575f80fd5b5061009d73eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee81565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b3480156100d1575f80fd5b506100616100e0366004610866565b61047c565b68929eee149b4bd212685c156101025763ab143c065f526004601cfd5b3068929eee149b4bd212685d60308414610148576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60208214610182576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b610192600a6407735940006109e1565b67ffffffffffffffff168167ffffffffffffffff1610156101df576040517f1203093700000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6040805160208082527f01000000000000000000000000000000000000000000000000000000000000003317908201528082019091527fe8d1abf8fc2a88152f5f2e1e5e3634f882fc7db420a88ca0b64eb78400f5851a90869086906001805488918891889167ffffffffffffffff909116905f61025c83610a07565b91906101000a81548167ffffffffffffffff021916908367ffffffffffffffff1602179055506040516102959796959493929190610ad5565b60405180910390a15f68929eee149b4bd212685d5050505050565b68929eee149b4bd212685c156102cd5763ab143c065f526004601cfd5b3068929eee149b4bd212685d60308614610313576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6020841461034d576040517fb39bca1600000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60608114610387576040517f4be6321b00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f5473ffffffffffffffffffffffffffffffffffffffff167fffffffffffffffffffffffff1111111111111111111111111111111111111112016103d4576103cd610605565b92506103dd565b6103dd836106ec565b7f68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46878787878787875f601481819054906101000a900467ffffffffffffffff1661042690610a07565b91906101000a81548167ffffffffffffffff021916908367ffffffffffffffff160217905560405161045f989796959493929190610b38565b60405180910390a15f68929eee149b4bd212685d50505050505050565b68929eee149b4bd212685c156104995763ab143c065f526004601cfd5b3068929eee149b4bd212685d6030841415806104b6575060308214155b156104ed576040517f9f10647200000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6104fd600a6407735940006109e1565b67ffffffffffffffff168167ffffffffffffffff16101561054a576040517f0494a69c00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6040805160208082527f01000000000000000000000000000000000000000000000000000000000000003317908201528082019091527f488862f49032f13a357c663883290b0e784d0f814979e39f33f5d40ce70493f9908690869086908690866001600881819054906101000a900467ffffffffffffffff166105cd90610a07565b91906101000a81548167ffffffffffffffff021916908367ffffffffffffffff16021790556040516102959796959493929190610b9d565b5f610614633b9aca0034610bd7565b1561064b576040517f40567b3800000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f61065a633b9aca0034610bea565b905067ffffffffffffffff81111561069e576040517f2aa6673400000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6407735940008110156106dd576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6106e75f346107ed565b919050565b5f5473ffffffffffffffffffffffffffffffffffffffff16639dc29fac3361072267ffffffffffffffff8516633b9aca00610bfd565b6040517fffffffff0000000000000000000000000000000000000000000000000000000060e085901b16815273ffffffffffffffffffffffffffffffffffffffff909216600483015260248201526044015f604051808303815f87803b15801561078a575f80fd5b505af115801561079c573d5f803e3d5ffd5b50505064077359400067ffffffffffffffff8316101590506107ea576040517f0e1eddda00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b50565b5f385f3884865af16108065763b12d13eb5f526004601cfd5b5050565b5f8083601f84011261081a575f80fd5b50813567ffffffffffffffff811115610831575f80fd5b602083019150836020828501011115610848575f80fd5b9250929050565b803567ffffffffffffffff811681146106e7575f80fd5b5f805f805f6060868803121561087a575f80fd5b853567ffffffffffffffff80821115610891575f80fd5b61089d89838a0161080a565b909750955060208801359150808211156108b5575f80fd5b506108c28882890161080a565b90945092506108d590506040870161084f565b90509295509295909350565b5f805f805f805f6080888a0312156108f7575f80fd5b873567ffffffffffffffff8082111561090e575f80fd5b61091a8b838c0161080a565b909950975060208a0135915080821115610932575f80fd5b61093e8b838c0161080a565b909750955085915061095260408b0161084f565b945060608a0135915080821115610967575f80fd5b506109748a828b0161080a565b989b979a50959850939692959293505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f67ffffffffffffffff808416806109fb576109fb610987565b92169190910492915050565b5f67ffffffffffffffff808316818103610a2357610a236109b4565b6001019392505050565b81835281816020850137505f602082840101525f60207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f840116840101905092915050565b5f81518084525f5b81811015610a9857602081850181015186830182015201610a7c565b505f6020828601015260207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f83011685010191505092915050565b60a081525f610ae860a08301898b610a2d565b8281036020840152610afa8189610a74565b90508281036040840152610b0f818789610a2d565b91505067ffffffffffffffff808516606084015280841660808401525098975050505050505050565b60a081525f610b4b60a083018a8c610a2d565b8281036020840152610b5e81898b610a2d565b905067ffffffffffffffff80881660408501528382036060850152610b84828789610a2d565b9250808516608085015250509998505050505050505050565b60a081525f610bb060a08301898b610a2d565b8281036020840152610bc381888a610a2d565b90508281036040840152610b0f8187610a74565b5f82610be557610be5610987565b500690565b5f82610bf857610bf8610987565b500490565b8082028115828204841417610c1457610c146109b4565b9291505056fea26469706673582212201ec37cbc5af93eedfe109978e9b98288adfefc690e7d3ea560c11faec993503764736f6c63430008180033",
 }
 
 // BeaconDepositContractABI is the input ABI used to generate the binding from.
@@ -235,23 +235,23 @@ func (_BeaconDepositContract *BeaconDepositContractCallerSession) NATIVEASSET() 
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes validatorPubkey, bytes stakingCredentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, validatorPubkey []byte, stakingCredentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.contract.Transact(opts, "deposit", validatorPubkey, stakingCredentials, amount, signature)
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.contract.Transact(opts, "deposit", pubkey, credentials, amount, signature)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes validatorPubkey, bytes stakingCredentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(validatorPubkey []byte, stakingCredentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, validatorPubkey, stakingCredentials, amount, signature)
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes validatorPubkey, bytes stakingCredentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(validatorPubkey []byte, stakingCredentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, validatorPubkey, stakingCredentials, amount, signature)
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
 }
 
 // Redirect is a paid mutator transaction binding the contract method 0xbf9b6a55.
@@ -277,23 +277,23 @@ func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Redirect(f
 
 // Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
 //
-// Solidity: function withdraw(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount) returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactor) Withdraw(opts *bind.TransactOpts, validatorPubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
-	return _BeaconDepositContract.contract.Transact(opts, "withdraw", validatorPubkey, withdrawalCredentials, amount)
+// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactor) Withdraw(opts *bind.TransactOpts, pubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
+	return _BeaconDepositContract.contract.Transact(opts, "withdraw", pubkey, withdrawalCredentials, amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
 //
-// Solidity: function withdraw(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount) returns()
-func (_BeaconDepositContract *BeaconDepositContractSession) Withdraw(validatorPubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Withdraw(&_BeaconDepositContract.TransactOpts, validatorPubkey, withdrawalCredentials, amount)
+// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns()
+func (_BeaconDepositContract *BeaconDepositContractSession) Withdraw(pubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Withdraw(&_BeaconDepositContract.TransactOpts, pubkey, withdrawalCredentials, amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
 //
-// Solidity: function withdraw(bytes validatorPubkey, bytes withdrawalCredentials, uint64 amount) returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Withdraw(validatorPubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Withdraw(&_BeaconDepositContract.TransactOpts, validatorPubkey, withdrawalCredentials, amount)
+// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Withdraw(pubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Withdraw(&_BeaconDepositContract.TransactOpts, pubkey, withdrawalCredentials, amount)
 }
 
 // BeaconDepositContractDepositIterator is returned from FilterDeposit and is used to iterate over the raw logs and unpacked data for Deposit events raised by the BeaconDepositContract contract.
@@ -365,17 +365,17 @@ func (it *BeaconDepositContractDepositIterator) Close() error {
 
 // BeaconDepositContractDeposit represents a Deposit event raised by the BeaconDepositContract contract.
 type BeaconDepositContractDeposit struct {
-	ValidatorPubkey    []byte
-	StakingCredentials []byte
-	Amount             uint64
-	Signature          []byte
-	Index              uint64
-	Raw                types.Log // Blockchain specific contextual infos
+	Pubkey      []byte
+	Credentials []byte
+	Amount      uint64
+	Signature   []byte
+	Index       uint64
+	Raw         types.Log // Blockchain specific contextual infos
 }
 
 // FilterDeposit is a free log retrieval operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes validatorPubkey, bytes stakingCredentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterDeposit(opts *bind.FilterOpts) (*BeaconDepositContractDepositIterator, error) {
 
 	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "Deposit")
@@ -387,7 +387,7 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterDeposit(opts 
 
 // WatchDeposit is a free log subscription operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes validatorPubkey, bytes stakingCredentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractDeposit) (event.Subscription, error) {
 
 	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "Deposit")
@@ -424,7 +424,7 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchDeposit(opts *
 
 // ParseDeposit is a log parse operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes validatorPubkey, bytes stakingCredentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseDeposit(log types.Log) (*BeaconDepositContractDeposit, error) {
 	event := new(BeaconDepositContractDeposit)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Deposit", log); err != nil {
@@ -503,16 +503,17 @@ func (it *BeaconDepositContractRedirectIterator) Close() error {
 
 // BeaconDepositContractRedirect represents a Redirect event raised by the BeaconDepositContract contract.
 type BeaconDepositContractRedirect struct {
-	FromPubkey         []byte
-	ToPubkey           []byte
-	StakingCredentials []byte
-	Amount             uint64
-	Raw                types.Log // Blockchain specific contextual infos
+	FromPubkey  []byte
+	ToPubkey    []byte
+	Credentials []byte
+	Amount      uint64
+	Index       uint64
+	Raw         types.Log // Blockchain specific contextual infos
 }
 
-// FilterRedirect is a free log retrieval operation binding the contract event 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f.
+// FilterRedirect is a free log retrieval operation binding the contract event 0x488862f49032f13a357c663883290b0e784d0f814979e39f33f5d40ce70493f9.
 //
-// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes stakingCredentials, uint64 amount)
+// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterRedirect(opts *bind.FilterOpts) (*BeaconDepositContractRedirectIterator, error) {
 
 	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "Redirect")
@@ -522,9 +523,9 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterRedirect(opts
 	return &BeaconDepositContractRedirectIterator{contract: _BeaconDepositContract.contract, event: "Redirect", logs: logs, sub: sub}, nil
 }
 
-// WatchRedirect is a free log subscription operation binding the contract event 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f.
+// WatchRedirect is a free log subscription operation binding the contract event 0x488862f49032f13a357c663883290b0e784d0f814979e39f33f5d40ce70493f9.
 //
-// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes stakingCredentials, uint64 amount)
+// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchRedirect(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractRedirect) (event.Subscription, error) {
 
 	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "Redirect")
@@ -559,9 +560,9 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchRedirect(opts 
 	}), nil
 }
 
-// ParseRedirect is a log parse operation binding the contract event 0xe161f5842757f257346b360594d094b7fa530f9404e93a80bf18bd8b14f9258f.
+// ParseRedirect is a log parse operation binding the contract event 0x488862f49032f13a357c663883290b0e784d0f814979e39f33f5d40ce70493f9.
 //
-// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes stakingCredentials, uint64 amount)
+// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseRedirect(log types.Log) (*BeaconDepositContractRedirect, error) {
 	event := new(BeaconDepositContractRedirect)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Redirect", log); err != nil {
@@ -641,15 +642,16 @@ func (it *BeaconDepositContractWithdrawalIterator) Close() error {
 // BeaconDepositContractWithdrawal represents a Withdrawal event raised by the BeaconDepositContract contract.
 type BeaconDepositContractWithdrawal struct {
 	FromPubkey            []byte
-	StakingCredentials    []byte
+	Credentials           []byte
 	WithdrawalCredentials []byte
 	Amount                uint64
+	Index                 uint64
 	Raw                   types.Log // Blockchain specific contextual infos
 }
 
-// FilterWithdrawal is a free log retrieval operation binding the contract event 0x33689ed7aade9d90db44595c06c3bb95713b8332a7dec83be61556783c2154b1.
+// FilterWithdrawal is a free log retrieval operation binding the contract event 0xe8d1abf8fc2a88152f5f2e1e5e3634f882fc7db420a88ca0b64eb78400f5851a.
 //
-// Solidity: event Withdrawal(bytes fromPubkey, bytes stakingCredentials, bytes withdrawalCredentials, uint64 amount)
+// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterWithdrawal(opts *bind.FilterOpts) (*BeaconDepositContractWithdrawalIterator, error) {
 
 	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "Withdrawal")
@@ -659,9 +661,9 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterWithdrawal(op
 	return &BeaconDepositContractWithdrawalIterator{contract: _BeaconDepositContract.contract, event: "Withdrawal", logs: logs, sub: sub}, nil
 }
 
-// WatchWithdrawal is a free log subscription operation binding the contract event 0x33689ed7aade9d90db44595c06c3bb95713b8332a7dec83be61556783c2154b1.
+// WatchWithdrawal is a free log subscription operation binding the contract event 0xe8d1abf8fc2a88152f5f2e1e5e3634f882fc7db420a88ca0b64eb78400f5851a.
 //
-// Solidity: event Withdrawal(bytes fromPubkey, bytes stakingCredentials, bytes withdrawalCredentials, uint64 amount)
+// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractWithdrawal) (event.Subscription, error) {
 
 	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "Withdrawal")
@@ -696,9 +698,9 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchWithdrawal(opt
 	}), nil
 }
 
-// ParseWithdrawal is a log parse operation binding the contract event 0x33689ed7aade9d90db44595c06c3bb95713b8332a7dec83be61556783c2154b1.
+// ParseWithdrawal is a log parse operation binding the contract event 0xe8d1abf8fc2a88152f5f2e1e5e3634f882fc7db420a88ca0b64eb78400f5851a.
 //
-// Solidity: event Withdrawal(bytes fromPubkey, bytes stakingCredentials, bytes withdrawalCredentials, uint64 amount)
+// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index)
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseWithdrawal(log types.Log) (*BeaconDepositContractWithdrawal, error) {
 	event := new(BeaconDepositContractWithdrawal)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Withdrawal", log); err != nil {
