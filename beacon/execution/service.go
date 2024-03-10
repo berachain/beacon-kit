@@ -127,5 +127,5 @@ func (s *Service) ProcessLogsInETH1Block(
 		return err
 	}
 
-	return s.sks.ProcessBlockEvents(logsInBlock)
+	return s.sks.ProcessBlockEvents(ctx, logsInBlock)
 }

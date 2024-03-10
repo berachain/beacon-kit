@@ -84,7 +84,15 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayloa
 	return b.ExecutionPayload
 }
 
-func (b *BeaconBlockBodyDeneb) AttachExecution(
+func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
+	return b.Deposits
+}
+
+func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
+	b.Deposits = deposits
+}
+
+func (b *BeaconBlockBodyDeneb) SetExecutionData(
 	executionData enginetypes.ExecutionPayload,
 ) error {
 	var ok bool

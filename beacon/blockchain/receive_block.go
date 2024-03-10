@@ -137,6 +137,8 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
+	// Validate Deposits are bless.
+
 	// TODO: Probably add RANDAO and Staking stuff here?
 
 	// TODO: how do we handle hard fork boundaries?

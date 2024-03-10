@@ -43,6 +43,7 @@ type BeaconStorageBackend interface {
 
 type StakingService interface {
 	ProcessBlockEvents(
+		ctx context.Context,
 		logs []ethtypes.Log,
 	) error
 }

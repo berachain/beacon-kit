@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/execution"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // LocalBuilder is the interface for the builder service.
@@ -70,10 +70,10 @@ type ExecutionService interface {
 
 type StakingService interface {
 	ProcessBlockEvents(
-		logs []coretypes.Log,
+		ctx context.Context,
+		logs []ethtypes.Log,
 	) error
 }
-
 type SyncService interface {
 	IsInitSync() bool
 	Status() error

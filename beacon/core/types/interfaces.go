@@ -60,7 +60,8 @@ type BeaconBlockBody interface {
 }
 
 type WriteOnlyBeaconBlockBody interface {
-	AttachExecution(enginetypes.ExecutionPayload) error
+	SetDeposits([]*Deposit)
+	SetExecutionData(enginetypes.ExecutionPayload) error
 }
 
 type ReadOnlyBeaconBlockBody interface {

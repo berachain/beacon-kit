@@ -26,16 +26,20 @@
 package staking
 
 import (
+	"context"
+
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	stakinglogs "github.com/berachain/beacon-kit/beacon/staking/logs"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
+	ctx context.Context,
 	logs []coretypes.Log,
 ) error {
 	for _, log := range logs {
-		// We only care about logs from the deposit
+		// We only care about logs from the deposit contract.
 		if log.Address != s.BeaconCfg().Execution.DepositContractAddress {
 			continue
 		}
@@ -44,11 +48,11 @@ func (s *Service) ProcessBlockEvents(
 		var err error
 		switch logSig := log.Topics[0]; {
 		case logSig == stakinglogs.DepositSig:
-			err = s.addDepositToQueue()
+			err = s.processDepositLog(ctx, log)
 		case logSig == stakinglogs.RedirectSig:
-			err = s.addRedirectToQueue()
+			err = s.processRedirectLog(ctx, log)
 		case logSig == stakinglogs.WithdrawalSig:
-			err = s.addWithdrawalToQueue()
+			err = s.processWithdrawalLog(ctx, log)
 		default:
 			continue
 		}
@@ -59,17 +63,27 @@ func (s *Service) ProcessBlockEvents(
 	return nil
 }
 
-// addDepositToQueue adds a deposit to the queue.
-func (s *Service) addDepositToQueue() error {
+// processprocessDepositLogDepositLog adds a deposit to the queue.
+func (s *Service) processDepositLog(
+	ctx context.Context,
+	log coretypes.Log,
+) error {
+	deposit := new(beacontypes.Deposit)
+	if err := deposit.UnmarshalEthLog(log); err != nil {
+		return err
+	}
+	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{deposit})
+}
+
+// processRedirectLog adds a redirect to the queue.
+func (s *Service) processRedirectLog(_ context.Context, _ coretypes.Log) error {
 	return nil
 }
 
-// addRedirectToQueue adds a redirect to the queue.
-func (s *Service) addRedirectToQueue() error {
-	return nil
-}
-
-// addWithdrawalToQueue adds a withdrawal to the queue.
-func (s *Service) addWithdrawalToQueue() error {
+// processWithdrawalLog adds a withdrawal to the queue.
+func (s *Service) processWithdrawalLog(
+	_ context.Context,
+	_ coretypes.Log,
+) error {
 	return nil
 }
