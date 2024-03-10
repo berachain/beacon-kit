@@ -27,7 +27,6 @@ pragma solidity 0.8.24;
 
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
 import { IStakeERC20 } from "./IStakeERC20.sol";
-import { ReentrancyGuard } from "@soledge/src/utils/ReentrancyGuard.sol";
 
 /**
  * @title BeaconDepositContract
@@ -36,7 +35,7 @@ import { ReentrancyGuard } from "@soledge/src/utils/ReentrancyGuard.sol";
  * @dev Its events are used by the beacon chain to manage the staking process.
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
-contract BeaconDepositContract is ReentrancyGuard, IBeaconDepositContract {
+contract BeaconDepositContract is IBeaconDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -107,7 +106,6 @@ contract BeaconDepositContract is ReentrancyGuard, IBeaconDepositContract {
     )
         external
         payable
-        nonReentrant
     {
         unchecked {
             if (pubkey.length != PUBLIC_KEY_LENGTH) {
@@ -140,7 +138,6 @@ contract BeaconDepositContract is ReentrancyGuard, IBeaconDepositContract {
         uint64 amount
     )
         external
-        nonReentrant
     {
         if (
             fromPubkey.length != PUBLIC_KEY_LENGTH
@@ -171,7 +168,6 @@ contract BeaconDepositContract is ReentrancyGuard, IBeaconDepositContract {
         uint64 amount
     )
         external
-        nonReentrant
     {
         if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
