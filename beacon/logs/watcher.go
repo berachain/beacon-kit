@@ -96,7 +96,8 @@ func (w *Watcher) syncLogsToHead(
 	finalBlockNumber := finalBlock.NumberU64()
 
 	for {
-		head, err := w.depositQueue.Front()
+		var head *beacontypes.Deposit
+		head, err = w.depositQueue.Front()
 		if err != nil {
 			return err
 		}
@@ -122,6 +123,6 @@ func (w *Watcher) syncLogsToHead(
 		if finalBlockNumber == 0 {
 			return nil
 		}
-		finalBlockNumber = finalBlockNumber - 1
+		finalBlockNumber--
 	}
 }
