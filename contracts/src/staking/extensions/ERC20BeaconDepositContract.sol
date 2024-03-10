@@ -36,10 +36,6 @@ import { IStakeERC20 } from "./IStakeERC20.sol";
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
 contract ERC20BeaconDepositContract is BeaconDepositContract {
-    /// @dev The minimum amount of stake that can be deposited to prevent dust.
-    /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
-    uint64 private constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 32e9;
-
     // Replace with example
     address ERC20_DEPOSIT_ASSET = address(0x123);
 
