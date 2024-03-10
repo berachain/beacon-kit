@@ -45,6 +45,8 @@ type Deposit struct {
 	Amount uint64 `json:"amount"`
 	// Signature of the deposit data.
 	Signature []byte `json:"signature"   ssz-max:"96"`
+	// Index of the deposit.
+	Index uint64 `json:"index"                    ssz-size:"8"`
 }
 
 // String returns a string representation of the Deposit.

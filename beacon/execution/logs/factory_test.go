@@ -76,12 +76,14 @@ func TestLogFactory(t *testing.T) {
 		credentials,
 		amount,
 		signature,
+		uint64(0),
 	)
 	require.NoError(t, err)
 	log := &coretypes.Log{
 		Topics:  []primitives.ExecutionHash{event.ID},
 		Data:    data,
 		Address: contractAddress,
+		Index:   0,
 	}
 
 	// Unmarshal the log.
@@ -119,6 +121,7 @@ func TestLogFactoryIncorrectType(t *testing.T) {
 	credentials := []byte{}
 	signature := []byte{}
 	amount := uint64(1000)
+	index := uint64(0)
 
 	// Create a log from the deposit.
 	data, err := event.Inputs.Pack(
@@ -126,12 +129,14 @@ func TestLogFactoryIncorrectType(t *testing.T) {
 		credentials,
 		signature,
 		amount,
+		index,
 	)
 	require.NoError(t, err)
 	log := &coretypes.Log{
 		Topics:  []primitives.ExecutionHash{event.ID},
 		Data:    data,
 		Address: contractAddress,
+		Index:   0,
 	}
 
 	_, err = factory.UnmarshalEthLog(log)
