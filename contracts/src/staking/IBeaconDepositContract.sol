@@ -44,7 +44,8 @@ interface IBeaconDepositContract {
         bytes validatorPubkey,
         bytes stakingCredentials,
         uint64 amount,
-        bytes signature
+        bytes signature,
+        uint64 index
     );
 
     /**

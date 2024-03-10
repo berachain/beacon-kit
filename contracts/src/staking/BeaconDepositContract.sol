@@ -80,6 +80,14 @@ contract BeaconDepositContract is IBeaconDepositContract {
     uint8 private constant CREDENTIALS_LENGTH = 32;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                           STORAGE                          */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @dev deposit_count represents the number of deposits that
+    // have been made to the contract.
+    uint64 depositCount;
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
@@ -112,7 +120,13 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         // slither-disable-next-line reentrancy-events
-        emit Deposit(validatorPubkey, stakingCredentials, amount, signature);
+        emit Deposit(
+            validatorPubkey,
+            stakingCredentials,
+            amount,
+            signature,
+            ++depositCount
+        );
     }
 
     /// @inheritdoc IBeaconDepositContract
