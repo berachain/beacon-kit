@@ -37,12 +37,21 @@ type E2ETestConfig struct {
 	// in the test environment.
 	AdditionalServices []interface{} `json:"additional_services"`
 	// Validators lists the configurations for each validator in the test.
-	Validators []Validator `json:"validators"`
+	Validators []Node `json:"validators"`
+	// FullNodes specifies the number of full nodes to include in the test.
+	FullNodes []Node `json:"full_nodes"`
+	// RPCEndpoints specifies the RPC endpoints to include in the test.
+	RPCEndpoints []RPCEndpoint `json:"rpc_endpoints"`
+}
+
+type RPCEndpoint struct {
+	Type     string   `json:"type"`
+	Services []string `json:"services"`
 }
 
 // Validator holds the configuration for a single validator in the test,
 // including client images and types.
-type Validator struct {
+type Node struct {
 	// ClImage specifies the Docker image to use for the consensus layer
 	// client.
 	ClImage string `json:"cl_image"`
@@ -59,14 +68,9 @@ type Validator struct {
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		AdditionalServices: []interface{}{},
-		Validators: []Validator{
+		Validators: []Node{
 			{
 				ElType:  "geth",
-				ClImage: "beacond:kurtosis-local",
-				ClType:  "beaconkit",
-			},
-			{
-				ElType:  "reth",
 				ClImage: "beacond:kurtosis-local",
 				ClType:  "beaconkit",
 			},
@@ -81,17 +85,33 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:  "beaconkit",
 			},
 		},
-	}
-}
-
-// AddNodes adds a number of nodes to the E2ETestConfig, using the specified.
-func (c *E2ETestConfig) AddNodes(num int, executionClient string) {
-	for i := 0; i < num; i++ {
-		c.Validators = append(c.Validators, Validator{
-			ElType:  executionClient,
-			ClImage: "beacond:kurtosis-local",
-			ClType:  "beaconkit",
-		})
+		FullNodes: []Node{
+			{
+				ElType:  "nethermind",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
+			},
+			{
+				ElType:  "reth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
+			},
+			{
+				ElType:  "geth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
+			},
+		},
+		RPCEndpoints: []RPCEndpoint{
+			{
+				Type: "nginx",
+				Services: []string{
+					"el-full-nethermind-0:8545",
+					"el-full-reth-1:8545",
+					"el-full-geth-2:8545",
+				},
+			},
+		},
 	}
 }
 
