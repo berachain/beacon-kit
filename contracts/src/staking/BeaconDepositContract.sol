@@ -127,6 +127,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
                 _depositERC20(amount);
             }
 
+            // slither-disable-next-line reentrancy-events
             emit Deposit(pubkey, credentials, amount, signature, index);
         }
     }
@@ -180,14 +181,15 @@ contract BeaconDepositContract is IBeaconDepositContract {
         if (amount < MIN_WITHDRAWAL_AMOUNT_IN_GWEI) {
             revert InsufficientWithdrawalAmount();
         }
-
-        emit Withdrawal(
-            pubkey,
-            _toCredentials(msg.sender),
-            withdrawalCredentials,
-            amount,
-            withdrawalCount++
-        );
+        unchecked {
+            emit Withdrawal(
+                pubkey,
+                _toCredentials(msg.sender),
+                withdrawalCredentials,
+                amount,
+                withdrawalCount++
+            );
+        }
     }
 
     /**
