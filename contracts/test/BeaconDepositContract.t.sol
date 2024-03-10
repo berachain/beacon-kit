@@ -98,23 +98,21 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_DepositWrongStakingCredentials(
-        bytes calldata stakingCredentials
-    )
+    function testFuzz_DepositWrongcredentials(bytes calldata credentials)
         public
     {
         vm.revertTo(snapshot);
-        vm.assume(stakingCredentials.length != 32);
+        vm.assume(credentials.length != 32);
 
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
         depositContract.deposit(
-            _create48Byte(), stakingCredentials, 32e9, _create96Byte()
+            _create48Byte(), credentials, 32e9, _create96Byte()
         );
     }
 
-    function test_DepositWrongStakingCredentials() public {
+    function test_DepositWrongcredentials() public {
         vm.revertTo(snapshot);
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
@@ -156,7 +154,7 @@ contract DepositContractTest is SoladyTest {
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
         emit IBeaconDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 0
         );
         depositContract.deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
@@ -219,7 +217,7 @@ contract DepositContractTest is SoladyTest {
 
         vm.prank(depositor);
         emit IBeaconDepositContract.Redirect(
-            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, _credential(depositor), 32e9
+            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, _credential(depositor), 32e9, 0
         );
         depositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9);
     }
@@ -293,7 +291,8 @@ contract DepositContractTest is SoladyTest {
             VALIDATOR_PUBKEY,
             _credential(depositor),
             WITHDRAWAL_CREDENTIALS,
-            32e9
+            32e9,
+            0
         );
         depositContract.withdraw(VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9);
     }
@@ -364,7 +363,7 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, 32 ether);
         vm.expectEmit(true, true, true, true);
         emit IBeaconDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
         );
         depositContract.deposit{ value: 32 ether }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
