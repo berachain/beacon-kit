@@ -116,9 +116,10 @@ func (w *Watcher) syncLogsToHead(
 			return nil
 		}
 
+		bigIntFinal := new(big.Int).SetUint64(finalBlockNumber)
 		logs, err = w.ec.Client.FilterLogs(ctx, ethereum.FilterQuery{
-			FromBlock: big.NewInt(int64(finalBlockNumber)),
-			ToBlock:   big.NewInt(int64(finalBlockNumber)),
+			FromBlock: bigIntFinal,
+			ToBlock:   bigIntFinal,
 			Addresses: []common.Address{w.depositContractAddress},
 		})
 		if err != nil {
