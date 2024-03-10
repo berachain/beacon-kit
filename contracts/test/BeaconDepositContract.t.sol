@@ -154,7 +154,7 @@ contract DepositContractTest is SoladyTest {
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
         emit IBeaconDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 1
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 0
         );
         depositContract.deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
@@ -217,7 +217,7 @@ contract DepositContractTest is SoladyTest {
 
         vm.prank(depositor);
         emit IBeaconDepositContract.Redirect(
-            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, _credential(depositor), 32e9, 1
+            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, _credential(depositor), 32e9, 0
         );
         depositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9);
     }
@@ -363,7 +363,7 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, 32 ether);
         vm.expectEmit(true, true, true, true);
         emit IBeaconDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 1
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
         );
         depositContract.deposit{ value: 32 ether }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
