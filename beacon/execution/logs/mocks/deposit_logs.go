@@ -65,6 +65,7 @@ func CreateDepositLogs(
 			//#nosec:G701 // no overflow
 			uint64(i),
 			[]byte("signature"),
+			//#nosec:G701 // no overflow
 			uint64(i),
 		)
 		if err != nil {
