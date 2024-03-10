@@ -8,8 +8,9 @@ beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
+nginx = import_module("./src/services/nginx/nginx.star")
 
-def run(plan, validators, full_nodes = [], additional_services = []):
+def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -63,3 +64,13 @@ def run(plan, validators, full_nodes = [], additional_services = []):
         plan.add_services(
             configs = full_node_configs,
         )
+
+    # 6. Start RPCs
+    rpc_configs = {}
+    for n, rpc in enumerate(rpc_endpoints):
+        nginx.get_config(plan, rpc['services'])
+    
+    # if rpc_configs != {}:
+    #     plan.add_services(
+    #         configs = rpc_configs,
+    #     )
