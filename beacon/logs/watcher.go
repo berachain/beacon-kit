@@ -30,12 +30,12 @@ import (
 	"math/big"
 
 	"cosmossdk.io/log"
-
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/lib/skiplist"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -84,21 +84,30 @@ func (w *Watcher) mainLoop(ctx context.Context) {
 	}
 }
 
-// syncLogsToHead syncs logs to the head of the chain, it also has backfilling capabilites.
+// syncLogsToHead syncs logs to the head of the chain, it also has backfilling
+// capabilities.
 func (w *Watcher) syncLogsToHead(
 	ctx context.Context,
 ) error {
+	var (
+		logs       []coretypes.Log
+		head       *beacontypes.Deposit
+		finalBlock *coretypes.Block
+		err        error
+	)
+
 	// Get the latest finalized block.
-	finalBlock, err := w.ec.Client.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+	finalBlock, err = w.ec.Client.BlockByNumber(
+		ctx,
+		big.NewInt(int64(rpc.FinalizedBlockNumber)),
+	)
 	if err != nil {
 		return err
 	}
 	finalBlockNumber := finalBlock.NumberU64()
 
 	for {
-		var head *beacontypes.Deposit
-		head, err = w.depositQueue.Front()
-		if err != nil {
+		if head, err = w.depositQueue.Front(); err != nil {
 			return err
 		}
 
@@ -107,7 +116,7 @@ func (w *Watcher) syncLogsToHead(
 			return nil
 		}
 
-		logs, err := w.ec.Client.FilterLogs(ctx, ethereum.FilterQuery{
+		logs, err = w.ec.Client.FilterLogs(ctx, ethereum.FilterQuery{
 			FromBlock: big.NewInt(int64(finalBlockNumber)),
 			ToBlock:   big.NewInt(int64(finalBlockNumber)),
 			Addresses: []common.Address{w.depositContractAddress},
