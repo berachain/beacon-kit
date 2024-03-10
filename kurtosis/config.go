@@ -31,18 +31,18 @@ import (
 )
 
 // E2ETestConfig defines the configuration for end-to-end tests, including any
-// additional services and participants involved.
+// additional services and validators involved.
 type E2ETestConfig struct {
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
 	AdditionalServices []interface{} `json:"additional_services"`
-	// Participants lists the configurations for each participant in the test.
-	Participants []Participant `json:"participants"`
+	// Validators lists the configurations for each validator in the test.
+	Validators []Validator `json:"validators"`
 }
 
-// Participant holds the configuration for a single participant in the test,
+// Validator holds the configuration for a single validator in the test,
 // including client images and types.
-type Participant struct {
+type Validator struct {
 	// ClImage specifies the Docker image to use for the consensus layer
 	// client.
 	ClImage string `json:"cl_image"`
@@ -54,12 +54,12 @@ type Participant struct {
 }
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
-// pre-populating with a standard set of participants and no additional
+// pre-populating with a standard set of validators and no additional
 // services.
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		AdditionalServices: []interface{}{},
-		Participants: []Participant{
+		Validators: []Validator{
 			{
 				ElType:  "geth",
 				ClImage: "beacond:kurtosis-local",
@@ -87,7 +87,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 // AddNodes adds a number of nodes to the E2ETestConfig, using the specified.
 func (c *E2ETestConfig) AddNodes(num int, executionClient string) {
 	for i := 0; i < num; i++ {
-		c.Participants = append(c.Participants, Participant{
+		c.Validators = append(c.Validators, Validator{
 			ElType:  executionClient,
 			ClImage: "beacond:kurtosis-local",
 			ClType:  "beaconkit",

@@ -112,8 +112,8 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	s.logger.Info(
 		"spinning up enclave...",
-		"num_participants",
-		len(s.cfg.Participants),
+		"num_validators",
+		len(s.cfg.Validators),
 	)
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
