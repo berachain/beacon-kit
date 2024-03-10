@@ -28,9 +28,13 @@ package client
 import (
 	"context"
 	"math/big"
+	"sort"
 
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // HeaderByNumber retrieves the block header by its number.
@@ -38,35 +42,106 @@ func (s *EngineClient) HeaderByNumber(
 	ctx context.Context,
 	number *big.Int,
 ) (*coretypes.Header, error) {
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
-	if ok {
+	if header, ok := s.engineCache.HeaderByNumber(number.Uint64()); ok {
 		return header, nil
 	}
+
 	header, err := s.Client.HeaderByNumber(ctx, number)
 	if err != nil {
 		return nil, err
 	}
 
-	defer s.engineCache.AddHeader(header)
-
+	s.engineCache.AddHeader(header)
 	return header, nil
 }
 
-// HeaderByHash retrieves the block header by its hash.
-func (s *EngineClient) HeaderByHash(
+// GetLogs retrieves the logs from the Ethereum execution client.
+// It calls the eth_getLogs method via JSON-RPC.
+func (s *EngineClient) GetLogs(
 	ctx context.Context,
-	hash primitives.ExecutionHash,
-) (*coretypes.Header, error) {
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByHash(hash)
-	if ok {
-		return header, nil
+	blockHash common.Hash,
+	addresses []primitives.ExecutionAddress,
+) ([]coretypes.Log, error) {
+	// Gather all the logs according to the query.
+	logs, err := s.FilterLogs(ctx, ethereum.FilterQuery{
+		Addresses: addresses,
+		BlockHash: &blockHash,
+	})
+	if err != nil {
+		return []coretypes.Log{}, err
 	}
-	header, err := s.Client.HeaderByHash(ctx, hash)
+
+	// Add logs to cache.
+	s.logsCache.Add(logs)
+	return logs, nil
+}
+
+// BlockByHash retrieves the block by its hash.
+func (s *EngineClient) GetLogAt(
+	ctx context.Context,
+	contract common.Address,
+	blockHashOrNumb rpc.BlockNumberOrHash,
+	logIndex uint,
+) (*coretypes.Log, error) {
+	var logs []coretypes.Log
+	var err error
+	var ok bool
+
+	if blockHashOrNumb.BlockNumber != nil {
+		// Check if the log is in the cache.
+		blockNumber := big.NewInt(blockHashOrNumb.BlockNumber.Int64())
+		if logs, ok = s.logsCache.GetByBlockNumber(blockNumber.Uint64()); ok {
+			return getLogAtIndex(logs, logIndex)
+		}
+
+		// If the block number is not nil, we can use the `GetLogs` method.
+		logs, err = s.FilterLogs(ctx, ethereum.FilterQuery{
+			Addresses: []common.Address{contract},
+			FromBlock: blockNumber,
+			ToBlock:   blockNumber,
+		})
+	} else if blockHashOrNumb.BlockHash != nil {
+		// Check if the log is in the cache.
+		if logs, ok = s.logsCache.GetByBlockHash(*blockHashOrNumb.BlockHash); ok {
+			return getLogAtIndex(logs, logIndex)
+		}
+
+		// Fallback to using GetLogs if the block number is nil.
+		logs, err = s.FilterLogs(ctx, ethereum.FilterQuery{
+			Addresses: []common.Address{contract},
+			BlockHash: blockHashOrNumb.BlockHash,
+		})
+	}
 	if err != nil {
 		return nil, err
 	}
-	s.engineCache.AddHeader(header)
-	return header, nil
+
+	// Check that logs were found
+	if logs == nil {
+		return nil, ErrLogOutOfIndex
+	}
+	// Add logs to cache, this is the first time we've seen this log.
+	s.logsCache.Add(logs)
+	// Return the log at the given index.
+	return getLogAtIndex(logs, logIndex)
+}
+
+// getLogAtIndex returns the log at the given index.
+func getLogAtIndex(logs []coretypes.Log, index uint) (*coretypes.Log, error) {
+	// Check that logs were found
+	if logs == nil {
+		return nil, ErrLogOutOfIndex
+	}
+
+	// Perform a binary search to find the log at the given index.
+	i := sort.Search(
+		len(logs),
+		func(i int) bool { return logs[i].Index == index },
+	)
+	if i < len(logs) && logs[i].Index == index {
+		return &logs[i], nil
+	}
+
+	// If the log is not found, return an error.
+	return nil, ErrLogOutOfIndex
 }
