@@ -118,7 +118,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
         if (signature.length != SIGNATURE_LENGTH) {
             revert InvalidSignatureLength();
         }
-        
+
         unchecked {
             emit Deposit(pubkey, credentials, amount, signature, depositCount++);
         }
