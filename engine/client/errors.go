@@ -170,9 +170,6 @@ var (
 	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
 	// provided for getting a payload.
 	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
-
-	// ErrLogOutOfIndex indicates that the log index is out of range.
-	ErrLogOutOfIndex = errors.New("log index out of range")
 )
 
 // Handles errors received from the RPC server according to the specification.

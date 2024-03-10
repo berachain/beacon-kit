@@ -30,8 +30,6 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -40,35 +38,35 @@ func (s *EngineClient) HeaderByNumber(
 	ctx context.Context,
 	number *big.Int,
 ) (*coretypes.Header, error) {
-	if header, ok := s.engineCache.HeaderByNumber(number.Uint64()); ok {
+	// Check the cache for the header.
+	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
+	if ok {
 		return header, nil
 	}
-
 	header, err := s.Client.HeaderByNumber(ctx, number)
 	if err != nil {
 		return nil, err
 	}
 
-	s.engineCache.AddHeader(header)
+	defer s.engineCache.AddHeader(header)
+
 	return header, nil
 }
 
-// GetLogs retrieves the logs from the Ethereum execution client.
-// It calls the eth_getLogs method via JSON-RPC.
-func (s *EngineClient) GetLogs(
+// HeaderByHash retrieves the block header by its hash.
+func (s *EngineClient) HeaderByHash(
 	ctx context.Context,
-	blockHash common.Hash,
-	addresses []primitives.ExecutionAddress,
-) ([]coretypes.Log, error) {
-	// Gather all the logs according to the query.
-	logs, err := s.FilterLogs(ctx, ethereum.FilterQuery{
-		Addresses: addresses,
-		BlockHash: &blockHash,
-	})
-	if err != nil {
-		return []coretypes.Log{}, err
+	hash primitives.ExecutionHash,
+) (*coretypes.Header, error) {
+	// Check the cache for the header.
+	header, ok := s.engineCache.HeaderByHash(hash)
+	if ok {
+		return header, nil
 	}
-
-	// Add logs to cache.
-	return logs, nil
+	header, err := s.Client.HeaderByHash(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+	s.engineCache.AddHeader(header)
+	return header, nil
 }

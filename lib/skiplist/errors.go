@@ -23,49 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+<<<<<<<< HEAD:e2e/suite/types/consensus_client.go
 package types
 
-import (
-	"context"
-	"math/big"
+// ConsensusClient represents a consensus client.
+type ConsensusClient struct{}
+========
+package skiplist
 
-	"cosmossdk.io/log"
+import (
 	"github.com/cockroachdb/errors"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 )
 
-// ExecutionClient represents an execution client.
-type ExecutionClient struct {
-	*services.ServiceContext
-	*JSONRPCConnection
-	logger log.Logger
-}
-
-// NewExecutionClientFromServiceCtx creates a new execution client from a
-// service context.
-func NewExecutionClientFromServiceCtx(
-	serviceCtx *services.ServiceContext,
-	logger log.Logger,
-) (*ExecutionClient, error) {
-	jsonRPCConn, err := NewJSONRPCConnection(serviceCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ExecutionClient{
-		ServiceContext:    serviceCtx,
-		JSONRPCConnection: jsonRPCConn,
-		logger: logger.With(
-			"client-name",
-			serviceCtx.GetServiceName(),
-		),
-	}, nil
-}
-
-// IsValidator returns true if the execution client is a validator.
-// TODO: All nodes are validators rn.
-func (c *ExecutionClient) IsValidator() bool {
-	return true
-}
+var (
+	ErrEmptySkiplist = errors.New("skiplist is empty")
+)
+>>>>>>>> main:lib/skiplist/errors.go

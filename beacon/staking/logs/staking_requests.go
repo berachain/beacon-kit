@@ -52,6 +52,8 @@ const (
 
 //nolint:gochecknoglobals // Avoid re-allocating these variables.
 var (
+	DepositContractABI, _ = stakingabi.BeaconDepositContractMetaData.GetAbi()
+
 	// Signature and type of the Deposit event
 	// in the deposit contract.
 	DepositSig = crypto.Keccak256Hash(
