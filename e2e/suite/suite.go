@@ -65,7 +65,7 @@ type KurtosisE2ESuite struct {
 //
 //nolint:lll
 func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
-	return s.consensusClients
+	return nil
 }
 
 // Ctx returns the context associated with the KurtosisE2ESuite.
@@ -92,7 +92,7 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 //
 //nolint:lll
 func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
-	return s.executionClients
+	return nil
 }
 
 // JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
