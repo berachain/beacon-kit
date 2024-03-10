@@ -55,7 +55,7 @@ var (
 	// Signature and type of the Deposit event
 	// in the deposit contract.
 	DepositSig = crypto.Keccak256Hash(
-		[]byte(DepositName + "(bytes,bytes,uint64,uint64)"),
+		[]byte(DepositName + "(bytes,bytes,uint64,bytes,uint64)"),
 	)
 	DepositType = reflect.TypeOf(beacontypes.Deposit{})
 

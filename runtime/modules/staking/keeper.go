@@ -59,7 +59,7 @@ func (k *Keeper) delegate(
 	ctx context.Context, deposit *beacontypes.Deposit,
 ) (uint64, error) {
 	validatorPK := &ed25519.PubKey{}
-	err := validatorPK.Unmarshal(deposit.ValidatorPubkey)
+	err := validatorPK.Unmarshal(deposit.Pubkey)
 	if err != nil {
 		return 0, err
 	}

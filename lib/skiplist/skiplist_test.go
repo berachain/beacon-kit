@@ -47,7 +47,7 @@ func (i Uint64Comparable) Compare(rhs Uint64Comparable) int {
 
 func TestSkiplist(t *testing.T) {
 	// Create a new ordered skiplist.
-	skiplist := skiplist.NewSkiplist[Uint64Comparable]()
+	skiplist := skiplist.New[Uint64Comparable]()
 
 	// Insert elements.
 	skiplist.Insert(2)
@@ -116,7 +116,7 @@ func (l Log) Compare(rhs Log) int {
 
 func TestLogskiplist(t *testing.T) {
 	// Create a new ordered skiplist.
-	skiplist := skiplist.NewSkiplist[Log]()
+	skiplist := skiplist.New[Log]()
 
 	// Insert elements.
 	skiplist.Insert(NewLog(2, 2))

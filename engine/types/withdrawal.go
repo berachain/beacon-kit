@@ -32,7 +32,7 @@ import (
 
 // NewWithdrawal creates a new Withdrawal.
 func NewWithdrawal(
-	_ []byte, // validatorPubkey
+	_ []byte, // pubkey
 	amount uint64,
 ) *Withdrawal {
 	// TODO: implement
@@ -56,4 +56,16 @@ type withdrawalJSONMarshaling struct {
 	Index     hexutil.Uint64
 	Validator hexutil.Uint64
 	Amount    hexutil.Uint64
+}
+
+// Compare compares two Withdrawals.
+func (w *Withdrawal) Compare(other *Withdrawal) int {
+	switch {
+	case w.Index < other.Index:
+		return -1
+	case w.Index > other.Index:
+		return 1
+	default:
+		return 0
+	}
 }

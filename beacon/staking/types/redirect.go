@@ -26,4 +26,17 @@
 package types
 
 type Redirect struct {
+	Index uint64
+}
+
+// Compare compares two Withdrawals.
+func (r *Redirect) Compare(other *Redirect) int {
+	switch {
+	case r.Index < other.Index:
+		return -1
+	case r.Index > other.Index:
+		return 1
+	default:
+		return 0
+	}
 }

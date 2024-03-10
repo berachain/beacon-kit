@@ -43,8 +43,8 @@ type Skiplist[T any] struct {
 	mu sync.RWMutex
 }
 
-// NewSkiplist returns a new ordered skiplist.
-func NewSkiplist[T Comparable[T]]() *Skiplist[T] {
+// New returns a new ordered skiplist.
+func New[T Comparable[T]]() *Skiplist[T] {
 	ascendingOrder := skiplist.GreaterThanFunc(func(lhs, rhs any) int {
 		return lhs.(T).Compare(rhs.(T))
 	})

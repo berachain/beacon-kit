@@ -38,9 +38,10 @@ type Service struct {
 	service.BaseService
 
 	// TODO: make these persist to disk for restarts.
-	depositQueue  *skiplist.Skiplist[enginetypes.Withdrawal]
-	redirectQueue *skiplist.Skiplist[stakingtypes.Redirect]
-	withdrawQueue *skiplist.Skiplist[beacontypes.Deposit]
+	depositQueue  *skiplist.Skiplist[*beacontypes.Deposit]
+	redirectQueue *skiplist.Skiplist[*stakingtypes.Redirect]
+	withdrawQueue *skiplist.Skiplist[*enginetypes.Withdrawal]
+
 	// vcp is responsible for applying validator set changes.
 	vcp ValsetChangeProvider
 }

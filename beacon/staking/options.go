@@ -26,6 +26,9 @@
 package staking
 
 import (
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	stakingtypes "github.com/berachain/beacon-kit/beacon/staking/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/skiplist"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
@@ -36,11 +39,9 @@ func WithBaseService(
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.BaseService = base
-
-		s.depositQueue = skiplist.New()
-		s.redirectQueue = skiplist.New()
-		s.withdrawQueue = skiplist.New()
-
+		s.depositQueue = skiplist.New[*beacontypes.Deposit]()
+		s.redirectQueue = skiplist.New[*stakingtypes.Redirect]()
+		s.withdrawQueue = skiplist.New[*enginetypes.Withdrawal]()
 		return nil
 	}
 }

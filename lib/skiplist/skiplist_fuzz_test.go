@@ -36,7 +36,7 @@ import (
 
 func FuzzSkiplistSimple(f *testing.F) {
 	// Create a new ordered skiplist.
-	skiplist := skiplist.NewSkiplist[Uint64Comparable]()
+	skiplist := skiplist.New[Uint64Comparable]()
 
 	f.Add(10)
 	f.Fuzz(func(t *testing.T, n int) {
@@ -73,7 +73,7 @@ func FuzzSkiplistConcurrencySafety(f *testing.F) {
 			t.Skip()
 		}
 
-		skiplist := skiplist.NewSkiplist[Uint64Comparable]()
+		skiplist := skiplist.New[Uint64Comparable]()
 		numGoroutines := 10
 		numOperations := 100
 
@@ -109,7 +109,7 @@ func FuzzSkiplistConcurrencySafety(f *testing.F) {
 		for err == nil {
 			// Remove the element to get the next in the next iteration
 			value, _ := skiplist.RemoveFront()
-			if !first && uint64(prev) > uint64(value) {
+			if !first && prev > uint64(value) {
 				t.Errorf(
 					"skiplist is not in ascending order: found %d after %d",
 					value,
