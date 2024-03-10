@@ -86,6 +86,12 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @dev deposit_count represents the number of deposits that
     // have been made to the contract.
     uint64 depositCount;
+    /// @dev deposit_count represents the number of withdrawals that
+    // have been requested.
+    uint64 withdrawalCount;
+    /// @dev deposit_count represents the number of redirects that
+    // have been requested.
+    uint64 redirectCount;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
@@ -93,19 +99,19 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @inheritdoc IBeaconDepositContract
     function deposit(
-        bytes calldata validatorPubkey,
-        bytes calldata stakingCredentials,
+        bytes calldata pubkey,
+        bytes calldata credentials,
         uint64 amount,
         bytes calldata signature
     )
         external
         payable
     {
-        if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
+        if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
-        if (stakingCredentials.length != CREDENTIALS_LENGTH) {
+        if (credentials.length != CREDENTIALS_LENGTH) {
             revert InvalidCredentialsLength();
         }
 
@@ -120,13 +126,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         // slither-disable-next-line reentrancy-events
-        emit Deposit(
-            validatorPubkey,
-            stakingCredentials,
-            amount,
-            signature,
-            ++depositCount
-        );
+        emit Deposit(pubkey, credentials, amount, signature, ++depositCount);
     }
 
     /// @inheritdoc IBeaconDepositContract
@@ -148,18 +148,24 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientRedirectAmount();
         }
 
-        emit Redirect(fromPubkey, toPubkey, _toCredentials(msg.sender), amount);
+        emit Redirect(
+            fromPubkey,
+            toPubkey,
+            _toCredentials(msg.sender),
+            amount,
+            ++redirectCount
+        );
     }
 
     /// @inheritdoc IBeaconDepositContract
     function withdraw(
-        bytes calldata validatorPubkey,
+        bytes calldata pubkey,
         bytes calldata withdrawalCredentials,
         uint64 amount
     )
         external
     {
-        if (validatorPubkey.length != PUBLIC_KEY_LENGTH) {
+        if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
 
@@ -172,10 +178,11 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         emit Withdrawal(
-            validatorPubkey,
+            pubkey,
             _toCredentials(msg.sender),
             withdrawalCredentials,
-            amount
+            amount,
+            withdrawalCount++
         );
     }
 
