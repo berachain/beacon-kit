@@ -27,12 +27,15 @@ package staking
 
 import (
 	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/huandu/skiplist"
 )
 
 // Service represents the staking service.
 type Service struct {
 	service.BaseService
 
+	depositQueue  *skiplist.SkipList
+	withdrawQueue *skiplist.SkipList
 	// vcp is responsible for applying validator set changes.
 	vcp ValsetChangeProvider
 }
