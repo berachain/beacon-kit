@@ -32,7 +32,7 @@ import (
 
 // NewWithdrawal creates a new Withdrawal.
 func NewWithdrawal(
-	_ []byte, // validatorPubkey
+	_ []byte, // pubkey
 	amount uint64,
 ) *Withdrawal {
 	// TODO: implement

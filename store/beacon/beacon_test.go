@@ -52,10 +52,10 @@ func TestBeaconStore(t *testing.T) {
 
 	t.Run("should work with deposit", func(t *testing.T) {
 		deposit := &beacontypes.Deposit{
-			ValidatorPubkey: []byte("pubkey"),
-			Credentials:     []byte("12345678901234567890123456789012"),
-			Amount:          100,
-			Signature:       []byte("signature"),
+			Pubkey:      []byte("pubkey"),
+			Credentials: []byte("12345678901234567890123456789012"),
+			Amount:      100,
+			Signature:   []byte("signature"),
 		}
 		err := beaconStore.EnqueueDeposits([]*beacontypes.Deposit{deposit})
 		require.NoError(t, err)

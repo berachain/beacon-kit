@@ -98,7 +98,7 @@ func TestLogFactory(t *testing.T) {
 	newDeposit, ok := val.Interface().(*beacontypes.Deposit)
 	require.True(t, ok)
 	require.NoError(t, err)
-	require.Equal(t, pubKey, newDeposit.ValidatorPubkey)
+	require.Equal(t, pubKey, newDeposit.Pubkey)
 	require.Equal(t, credentials, newDeposit.Credentials)
 	require.Equal(t, amount, newDeposit.Amount)
 	require.Equal(t, signature, newDeposit.Signature)
@@ -137,6 +137,6 @@ func TestLogFactoryIncorrectType(t *testing.T) {
 	_, err = factory.UnmarshalEthLog(log)
 	// An error is expected because the event type in ABI and
 	// withdrawalType are mismatched,
-	// (no validatorPubkey in withdrawalType currently).
+	// (no pubkey in withdrawalType currently).
 	require.Error(t, err)
 }
