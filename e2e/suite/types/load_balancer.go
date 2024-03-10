@@ -26,7 +26,7 @@
 package types
 
 import (
-	"strings"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
@@ -41,31 +41,23 @@ type LoadBalancer struct {
 func NewLoadBalancer(
 	serviceCtx *services.ServiceContext,
 ) (*LoadBalancer, error) {
-	conn := &JSONRPCConnection{
-		isWebSocket: false,
-	}
+	var (
+		err  error
+		conn = &JSONRPCConnection{}
+	)
 
 	// Start by trying to get the public port for the JSON-RPC WebSocket
-	jsonRPC, ok := serviceCtx.GetPublicPorts()["http"]
+	port, ok := serviceCtx.GetPublicPorts()["http"]
 	if !ok {
 		return nil, ErrPublicPortNotFound
 	}
-	// Split the string to get the port
-	str := strings.Split(jsonRPC.String(), ":")
-	if len(str) == 0 {
-		return nil, ErrPublicPortNotFound
-	}
-	str = strings.Split(str[1], "/")
-	if len(str) == 0 {
-		return nil, ErrPublicPortNotFound
-	}
-	port := str[0]
-	ethClient, err := ethclient.Dial(
-		"http://0.0.0.0" + ":" + port,
-	)
-	if err != nil {
+
+	// Then try to connect to the JSON-RPC Endpoint.
+	if conn.Client, err = ethclient.Dial(
+		fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber()),
+	); err != nil {
 		return nil, err
 	}
-	conn.Client = ethClient
+
 	return &LoadBalancer{JSONRPCConnection: conn}, nil
 }
