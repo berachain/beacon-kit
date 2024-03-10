@@ -84,7 +84,7 @@ func (s *Service) FinalizeBeaconBlock(
 
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
-	_, err = s.es.ProcessLogsInETH1Block(
+	err = s.es.ProcessLogsInETH1Block(
 		ctx,
 		payloadBlockHash,
 	)

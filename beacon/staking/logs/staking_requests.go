@@ -28,9 +28,8 @@ package logs
 import (
 	"reflect"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/execution/logs"
-	"github.com/berachain/beacon-kit/contracts/abi"
+	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -52,12 +51,14 @@ const (
 
 //nolint:gochecknoglobals // Avoid re-allocating these variables.
 var (
+	DepositContractABI, _ = stakingabi.BeaconDepositContractMetaData.GetAbi()
+
 	// Signature and type of the Deposit event
 	// in the deposit contract.
 	DepositSig = crypto.Keccak256Hash(
 		[]byte(DepositName + "(bytes,bytes,uint64,bytes,uint64)"),
 	)
-	DepositType = reflect.TypeOf(beacontypes.Deposit{})
+	DepositType = reflect.TypeOf(nil)
 
 	// Signature and type of the Redirect event
 	// in the deposit contract.
@@ -79,7 +80,7 @@ var (
 func NewStakingRequest(
 	depositContractAddress primitives.ExecutionAddress,
 ) (*logs.LogRequest, error) {
-	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
+	depositContractAbi, err := stakingabi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}

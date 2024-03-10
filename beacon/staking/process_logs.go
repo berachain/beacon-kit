@@ -30,16 +30,18 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+// ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
-	logs []*coretypes.Log,
+	logs []coretypes.Log,
 ) error {
-	var err error
 	for _, log := range logs {
 		// We only care about logs from the deposit
 		if log.Address != s.BeaconCfg().Execution.DepositContractAddress {
 			continue
 		}
 
+		// Switch statement to handle different log types.
+		var err error
 		switch logSig := log.Topics[0]; {
 		case logSig == stakinglogs.DepositSig:
 			err = s.addDepositToQueue()
@@ -50,8 +52,11 @@ func (s *Service) ProcessBlockEvents(
 		default:
 			continue
 		}
+		if err != nil {
+			return err
+		}
 	}
-	return err
+	return nil
 }
 
 // addDepositToQueue adds a deposit to the queue.

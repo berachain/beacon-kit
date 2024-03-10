@@ -25,7 +25,14 @@
 
 package types
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
+	abilib "github.com/berachain/beacon-kit/lib/abi"
+	"github.com/ethereum/go-ethereum/core/types"
+)
 
 // TODO: move deposit off of protobuf once the staking prs are merged.
 
@@ -59,6 +66,25 @@ func (d *Deposit) Compare(other *Deposit) int {
 	default:
 		return 0
 	}
+}
+
+// UnmarshalEthLog unmarshals the log into a Deposit.
+func (d *Deposit) UnmarshalEthLog(log types.Log) error {
+	abigenType := &stakingabi.BeaconDepositContractDeposit{}
+	if err := (abilib.WrappedABI{ABI: logs.DepositContractABI}).
+		UnpackLogs(abigenType, logs.DepositName, log); err != nil {
+		return err
+	}
+	if d == nil {
+		d = &Deposit{}
+	}
+
+	d.Pubkey = abigenType.Pubkey
+	d.Credentials = abigenType.Credentials
+	d.Amount = abigenType.Amount
+	d.Signature = abigenType.Signature
+	d.Index = abigenType.Index
+	return nil
 }
 
 // String returns a string representation of the Deposit.

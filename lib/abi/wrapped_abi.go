@@ -23,40 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package abi
 
 import (
-	engineclient "github.com/berachain/beacon-kit/engine/client"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"errors"
+
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+type WrappedABI struct {
+	*abi.ABI
 }
 
-// WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec *engineclient.EngineClient) service.Option[Service] {
-	return func(s *Service) error {
-		s.engine = ec
-		return nil
+func (wabi WrappedABI) UnpackLogs(
+	out interface{},
+	event string,
+	log types.Log,
+) error {
+	// Anonymous events are not supported.
+	if len(log.Topics) == 0 {
+		return errors.New("abi: cannot unpack anonymous event")
 	}
-}
-
-// WithLogFactory is an option to set the LogFactory for the Service.
-func WithLogFactory(f LogFactory) service.Option[Service] {
-	return func(s *Service) error {
-		s.logFactory = f
-		return nil
+	if log.Topics[0] != wabi.Events[event].ID {
+		return errors.New("abi: event signature mismatch")
 	}
-}
-
-func WithStakingService(ss StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.sks = ss
-		return nil
+	if len(log.Data) > 0 {
+		if err := wabi.UnpackIntoInterface(out, event, log.Data); err != nil {
+			return err
+		}
 	}
+	var indexed abi.Arguments
+	for _, arg := range wabi.Events[event].Inputs {
+		if arg.Indexed {
+			indexed = append(indexed, arg)
+		}
+	}
+	return abi.ParseTopics(out, indexed, log.Topics[1:])
 }
