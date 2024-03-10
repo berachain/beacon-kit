@@ -45,14 +45,16 @@ var Run = suite.Run
 // KurtosisE2ESuite.
 type KurtosisE2ESuite struct {
 	suite.Suite
-	cfg              *kurtosis.E2ETestConfig
-	logger           log.Logger
-	ctx              context.Context
-	kCtx             *kurtosis_context.KurtosisContext
-	enclave          *enclaves.EnclaveContext
-	consensusClients map[string]*types.ConsensusClient
-	executionClients map[string]*types.ExecutionClient
-	nginxBalancer    *types.LoadBalancer
+	cfg     *kurtosis.E2ETestConfig
+	logger  log.Logger
+	ctx     context.Context
+	kCtx    *kurtosis_context.KurtosisContext
+	enclave *enclaves.EnclaveContext
+
+	// TODO: Figure out what these may be useful for.
+	// consensusClients map[string]*types.ConsensusClient
+	// executionClients map[string]*types.ExecutionClient
+	nginxBalancer *types.LoadBalancer
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount

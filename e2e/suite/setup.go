@@ -30,7 +30,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -41,7 +40,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/sourcegraph/conc/iter"
@@ -131,8 +129,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	s.logger.Info("enclave spun up successfully")
 	s.logger.Info("setting up execution clients")
-	// Setup the clients and connect.
-	// s.SetupExecutionClients()
 
 	// Setup the JSON-RPC balancer.
 	s.logger.Info("setting up JSON-RPC balancer")
@@ -144,29 +140,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	// Fund any requested accounts.
 	s.FundAccounts()
-}
-
-// SetupExecutionClients sets up the execution clients for the test suite.
-func (s *KurtosisE2ESuite) SetupExecutionClients() {
-	s.executionClients = make(map[string]*types.ExecutionClient)
-	svrcs, err := s.Enclave().GetServices()
-	s.Require().NoError(err, "Error getting services")
-	for name, v := range svrcs {
-		var serviceCtx *services.ServiceContext
-		serviceCtx, err = s.Enclave().GetServiceContext(string(v))
-		s.Require().NoError(err, "Error getting service context")
-		if strings.HasPrefix(string(name), "el-") {
-			if s.executionClients[string(name)],
-				err = types.NewExecutionClientFromServiceCtx(
-				serviceCtx,
-				s.logger,
-			); err != nil {
-				// TODO: Figoure out how to handle clients that purposefully
-				// don't expose JSON-RPC.
-				s.Require().NoError(err, "Error creating execution client")
-			}
-		}
-	}
 }
 
 // SetupNGINXBalancer sets up the NGINX balancer for the test suite.
