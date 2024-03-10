@@ -1,0 +1,12 @@
+upstream backend {
+${LOAD_BALANCED_SERVICES}
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://backend;
+    }
+}
+

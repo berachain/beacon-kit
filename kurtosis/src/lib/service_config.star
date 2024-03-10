@@ -14,8 +14,8 @@ builtins = import_module("./builtins.star")
 port_spec_lib = import_module("./port_spec.star")
 
 DEFAULT_PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
-DEFAULT_MAX_MEMORY = 4096  # 4 GB
-DEFAULT_MAX_CPU = 1000  # 1 core
+DEFAULT_MAX_MEMORY = 3072  # 3 GB
+DEFAULT_MAX_CPU = 1500  # 1.5 cores
 
 def get_service_config_template(
         name,

@@ -1,3 +1,4 @@
+#!/bin/bash
 # SPDX-License-Identifier: MIT
 #
 # Copyright (c) 2024 Berachain Foundation
@@ -23,30 +24,18 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-validators:
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-  - el_type: reth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-  - el_type: geth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-full_nodes:
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-  - el_type: reth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-  - el_type: geth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-rpc_endpoints:
-  - type: nginx
-    services:
-      - el-full-nethermind-0:8545
-      - el-full-reth-1:8545
-      - el-full-geth-2:8545
-additional_services: []
+set -x
+
+
+# # Init the chain
+/usr/bin/beacond init --chain-id "$BEACOND_CHAIN_ID" "$BEACOND_MONIKER" --home "$BEACOND_HOME" --beacon-kit.accept-tos
+
+
+# Set client config
+/usr/bin/beacond config set client keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME"
+/usr/bin/beacond config set client chain-id "$BEACOND_CHAIN_ID" --home "$BEACOND_HOME"
+
+
+# If keys exist they should be deleted
+/usr/bin/beacond keys add "$BEACOND_MONIKER" --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME" --indiscreet --output json > "$BEACOND_HOME/config/mnemonic.json"
+
