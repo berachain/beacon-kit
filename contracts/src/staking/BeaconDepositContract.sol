@@ -27,8 +27,7 @@ pragma solidity 0.8.24;
 
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
 import { IStakeERC20 } from "./IStakeERC20.sol";
-import { ReentrancyGuard } from
-    "../../lib/soledge/src/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "@soledge/src/utils/ReentrancyGuard.sol";
 
 /**
  * @title BeaconDepositContract
