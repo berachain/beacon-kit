@@ -29,6 +29,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
+	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -43,6 +44,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// Create a pool of bytes.Buffers
+var bufPool = &sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
+}
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
@@ -136,8 +144,13 @@ func (h *Handler) PrepareProposalHandler(
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 	// Include the blobs in block
 	// Encode blobs to bytes
-	var buf bytes.Buffer // TODO: can use buffer pool for performance
-	enc := gob.NewEncoder(&buf)
+	buf := bufPool.Get().(*bytes.Buffer)
+	defer func() {
+		buf.Reset()
+		bufPool.Put(buf)
+	}()
+
+	enc := gob.NewEncoder(buf)
 	err = enc.Encode(blobTx)
 	if err != nil {
 		return nil, err
@@ -197,7 +210,13 @@ func (h *Handler) ProcessProposalHandler(
 	blobTx := req.Txs[h.cfg.BlobBlockPosition]
 	// Decode the blobs from bytes to []byte
 	var blobs [][]byte
-	dec := gob.NewDecoder(bytes.NewBuffer(blobTx)) // TODO: can use buffer pool for performance
+	buf := bufPool.Get().(*bytes.Buffer)
+	defer func() {
+		buf.Reset()
+		bufPool.Put(buf)
+	}()
+	buf.Write(blobTx)
+	dec := gob.NewDecoder(buf)
 	err = dec.Decode(&blobs)
 	if err != nil {
 		return nil, err
