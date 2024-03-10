@@ -169,8 +169,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	nonce.Store(pendingNonce)
 
 	var chainID *big.Int
-	chainID, err = s.JSONRPCBalancer().NetworkID(ctx)
-	s.Require().NoError(err, "Failed to get chain ID")
+	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
+	s.Require().NoError(err, "failed to get chain ID")
 
 	_, err = iter.MapErr(
 		s.testAccounts,
