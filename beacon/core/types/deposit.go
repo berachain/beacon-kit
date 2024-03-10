@@ -28,7 +28,6 @@ package types
 import (
 	"strconv"
 
-	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	abilib "github.com/berachain/beacon-kit/lib/abi"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -71,8 +70,8 @@ func (d *Deposit) Compare(other *Deposit) int {
 // UnmarshalEthLog unmarshals the log into a Deposit.
 func (d *Deposit) UnmarshalEthLog(log types.Log) error {
 	abigenType := &stakingabi.BeaconDepositContractDeposit{}
-	if err := (abilib.WrappedABI{ABI: logs.DepositContractABI}).
-		UnpackLogs(abigenType, logs.DepositName, log); err != nil {
+	if err := (abilib.WrappedABI{ABI: stakingabi.DepositContractABI}).
+		UnpackLogs(abigenType, "Deposit", log); err != nil {
 		return err
 	}
 	if d == nil {

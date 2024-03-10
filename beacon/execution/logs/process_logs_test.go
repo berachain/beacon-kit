@@ -82,6 +82,7 @@ func TestProcessLogs(t *testing.T) {
 	credentials := []byte{}
 	signature := []byte{}
 	amount := uint64(1000)
+	index := uint64(0)
 
 	// Create a log from the deposit.
 	data, err := event.Inputs.Pack(
@@ -89,6 +90,7 @@ func TestProcessLogs(t *testing.T) {
 		credentials,
 		signature,
 		amount,
+		index,
 	)
 	require.NoError(t, err)
 	log := &coretypes.Log{

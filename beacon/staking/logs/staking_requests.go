@@ -28,6 +28,7 @@ package logs
 import (
 	"reflect"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/execution/logs"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -51,14 +52,12 @@ const (
 
 //nolint:gochecknoglobals // Avoid re-allocating these variables.
 var (
-	DepositContractABI, _ = stakingabi.BeaconDepositContractMetaData.GetAbi()
-
 	// Signature and type of the Deposit event
 	// in the deposit contract.
 	DepositSig = crypto.Keccak256Hash(
 		[]byte(DepositName + "(bytes,bytes,uint64,bytes,uint64)"),
 	)
-	DepositType = reflect.TypeOf(nil)
+	DepositType = reflect.TypeOf(beacontypes.Deposit{})
 
 	// Signature and type of the Redirect event
 	// in the deposit contract.
@@ -69,7 +68,6 @@ var (
 
 	// Signature and type of the Withdraw event
 	// in the deposit contract.
-	// keccak256("Withdrawal(bytes,bytes,bytes,uint64)").
 	WithdrawalSig = crypto.Keccak256Hash(
 		[]byte(WithdrawalName + "(bytes,bytes,bytes,uint64,uint64)"),
 	)
