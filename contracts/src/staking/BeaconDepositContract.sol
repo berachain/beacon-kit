@@ -107,27 +107,26 @@ contract BeaconDepositContract is IBeaconDepositContract {
         external
         payable
     {
+        if (pubkey.length != PUBLIC_KEY_LENGTH) {
+            revert InvalidPubKeyLength();
+        }
+
+        if (credentials.length != CREDENTIALS_LENGTH) {
+            revert InvalidCredentialsLength();
+        }
+
+        if (signature.length != SIGNATURE_LENGTH) {
+            revert InvalidSignatureLength();
+        }
+        
         unchecked {
-            if (pubkey.length != PUBLIC_KEY_LENGTH) {
-                revert InvalidPubKeyLength();
-            }
-
-            if (credentials.length != CREDENTIALS_LENGTH) {
-                revert InvalidCredentialsLength();
-            }
-
-            if (signature.length != SIGNATURE_LENGTH) {
-                revert InvalidSignatureLength();
-            }
-
-            if (STAKE_ASSET == NATIVE_ASSET) {
-                amount = _depositNative();
-            } else {
-                _depositERC20(amount);
-            }
-
-            // slither-disable-next-line reentrancy-events
             emit Deposit(pubkey, credentials, amount, signature, depositCount++);
+        }
+
+        if (STAKE_ASSET == NATIVE_ASSET) {
+            amount = _depositNative();
+        } else {
+            _depositERC20(amount);
         }
     }
 
