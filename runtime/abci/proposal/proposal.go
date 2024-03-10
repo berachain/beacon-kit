@@ -26,11 +26,15 @@
 package proposal
 
 import (
+	"bytes"
+	"encoding/binary"
+	"encoding/gob"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	builder "github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/health"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
@@ -49,6 +53,7 @@ type Handler struct {
 	healthService  *health.Service
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
+	blobstore      db.BeaconKitDB
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -59,6 +64,7 @@ func NewHandler(
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
+	blobstore db.BeaconKitDB,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -67,6 +73,7 @@ func NewHandler(
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
+		blobstore:      blobstore,
 	}
 }
 
@@ -92,6 +99,19 @@ func (h *Handler) PrepareProposalHandler(
 		return &abci.ResponsePrepareProposal{}, err
 	}
 
+	// Store the blobs in the blobstore.
+	blobs := blk.GetBody().GetBlobKzgCommitments()
+	blobTx := make([][]byte, 0, len(blobs))
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, uint64(req.Height))
+	for i, blob := range blobs {
+		if err = h.blobstore.Set(heightBytes, blob[:]); err != nil {
+			return &abci.ResponsePrepareProposal{}, err
+		}
+
+		blobTx[i] = blob[:]
+	}
+
 	// Marshal the block into bytes.
 	beaconBz, err := blk.MarshalSSZ()
 	if err != nil {
@@ -111,7 +131,19 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Inject the beacon kit block into the proposal.
+	// TODO: if comet includes txs this could break and or exceed max block size
+	// TODO: make more robust
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
+	// Include the blobs in block
+	// Encode blobs to bytes
+	var buf bytes.Buffer // TODO: can use buffer pool for performance
+	enc := gob.NewEncoder(&buf)
+	err = enc.Encode(blobTx)
+	if err != nil {
+		return nil, err
+	}
+	encodedData := buf.Bytes()
+	resp.Txs = append([][]byte{encodedData}, resp.Txs...)
 	return resp, nil
 }
 
@@ -160,6 +192,24 @@ func (h *Handler) ProcessProposalHandler(
 	req.Txs = append(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
+
+	// Store the blobs in the blobstore.
+	blobTx := req.Txs[h.cfg.BlobBlockPosition]
+	// Decode the blobs from bytes to []byte
+	var blobs [][]byte
+	dec := gob.NewDecoder(bytes.NewBuffer(blobTx)) // TODO: can use buffer pool for performance
+	err = dec.Decode(&blobs)
+	if err != nil {
+		return nil, err
+	}
+
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, uint64(req.Height))
+	for _, blob := range blobs {
+		if err = h.blobstore.Set(heightBytes, blob); err != nil {
+			return &abci.ResponseProcessProposal{}, err
+		}
+	}
 
 	return h.nextProcess(ctx, req)
 }

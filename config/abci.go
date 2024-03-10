@@ -37,6 +37,7 @@ var _ BeaconKitConfig[ABCI] = ABCI{}
 func DefaultABCIConfig() ABCI {
 	return ABCI{
 		BeaconBlockPosition: 0,
+		BlobBlockPosition:   1,
 	}
 }
 
@@ -45,6 +46,7 @@ type ABCI struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
 	BeaconBlockPosition uint
+	BlobBlockPosition   uint
 }
 
 // Parse parses the configuration.
