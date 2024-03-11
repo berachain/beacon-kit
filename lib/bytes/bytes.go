@@ -25,6 +25,11 @@
 
 package bytes
 
+const (
+	// Bytes4Size is the size of a 4 byte array.
+	Bytes4Size = 4
+)
+
 // SafeCopy will copy and return a non-nil byte slice, otherwise it returns nil.
 func SafeCopy(cp []byte) []byte {
 	if cp != nil {
@@ -63,4 +68,22 @@ func ExtendToSize(slice []byte, length int) []byte {
 		return slice
 	}
 	return append(slice, make([]byte, length-len(slice))...)
+}
+
+// ToBytes4 is a convenience method for converting
+// a byte slice to a fix sized 4 byte array.
+// This method will truncate the input if it is larger
+// than 4 bytes.
+func ToBytes4(x []byte) [Bytes4Size]byte {
+	return [Bytes4Size]byte(PadTo(x, Bytes4Size))
+}
+
+// PadTo pads a byte slice to the given size.
+// If the byte slice is larger than the given size,
+// the original slice is returned.
+func PadTo(b []byte, size int) []byte {
+	if len(b) >= size {
+		return b
+	}
+	return append(b, make([]byte, size-len(b))...)
 }

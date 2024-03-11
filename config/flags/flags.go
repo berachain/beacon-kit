@@ -72,6 +72,17 @@ const (
 	MaxDeposits    = limitsRoot + "max-deposits-per-block"
 	MaxWithdrawals = limitsRoot + "max-withdrawals-per-payload"
 
+	// BLSDomains Config.
+	blsDomainsRoot          = beaconConfigRoot + "bls-domains."
+	DomainBeaconProposer    = blsDomainsRoot + "domain-beacon-proposer"
+	DomainBeaconAttester    = blsDomainsRoot + "domain-beacon-attester"
+	DomainRandao            = blsDomainsRoot + "domain-randao"
+	DomainDeposit           = blsDomainsRoot + "domain-deposit"
+	DomainVoluntaryExit     = blsDomainsRoot + "domain-voluntary-exit"
+	DomainSelectionProof    = blsDomainsRoot + "domain-selection-proof"
+	DomainAggregateAndProof = blsDomainsRoot + "domain-aggregate-and-proof"
+	DomainApplicationMask   = blsDomainsRoot + "domain-application-mask"
+
 	// ABCI Config.
 	abciRoot            = beaconKitRoot + "abci."
 	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
