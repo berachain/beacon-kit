@@ -38,7 +38,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBeaconStore(t *testing.T) {
+func TestDeposits(t *testing.T) {
 	testName := "test"
 	logger := sdklog.NewNopLogger()
 	keys := storetypes.NewKVStoreKeys(testName)

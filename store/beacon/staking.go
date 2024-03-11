@@ -45,8 +45,7 @@ func (s *Store) RegisterNewValidator(
 		return err
 	}
 
-	s.validatorIndexToValidatorOperator.Set(ctx, idx, valAddr)
-	return nil
+	return s.validatorIndexToValidatorOperator.Set(ctx, idx, valAddr)
 }
 
 // ValidatorByIndex returns the validator address by index.

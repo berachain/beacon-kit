@@ -39,10 +39,10 @@ import (
 type UnimplementedStakingHooks struct{}
 
 // UnimplementedStakingHooks implements stakingtypes.StakingHooks.
-var _ stakingtypes.StakingHooks = UnimplementedStakingHooks{}
+var _ stakingtypes.StakingHooks = &UnimplementedStakingHooks{}
 
 // AfterValidatorCreated does nothing and returns nil.
-func (UnimplementedStakingHooks) AfterValidatorCreated(
+func (*UnimplementedStakingHooks) AfterValidatorCreated(
 	context.Context,
 	sdk.ValAddress,
 ) error {
@@ -50,7 +50,7 @@ func (UnimplementedStakingHooks) AfterValidatorCreated(
 }
 
 // BeforeValidatorModified does nothing and returns nil.
-func (UnimplementedStakingHooks) BeforeValidatorModified(
+func (*UnimplementedStakingHooks) BeforeValidatorModified(
 	context.Context,
 	sdk.ValAddress,
 ) error {
@@ -58,7 +58,7 @@ func (UnimplementedStakingHooks) BeforeValidatorModified(
 }
 
 // AfterValidatorRemoved does nothing and returns nil.
-func (UnimplementedStakingHooks) AfterValidatorRemoved(
+func (*UnimplementedStakingHooks) AfterValidatorRemoved(
 	context.Context,
 	sdk.ConsAddress,
 	sdk.ValAddress,
@@ -67,7 +67,7 @@ func (UnimplementedStakingHooks) AfterValidatorRemoved(
 }
 
 // BeforeDelegationCreated does nothing and returns nil.
-func (UnimplementedStakingHooks) BeforeDelegationCreated(
+func (*UnimplementedStakingHooks) BeforeDelegationCreated(
 	context.Context,
 	sdk.AccAddress,
 	sdk.ValAddress,
@@ -76,7 +76,7 @@ func (UnimplementedStakingHooks) BeforeDelegationCreated(
 }
 
 // BeforeDelegationSharesModified does nothing and returns nil.
-func (UnimplementedStakingHooks) BeforeDelegationSharesModified(
+func (*UnimplementedStakingHooks) BeforeDelegationSharesModified(
 	context.Context,
 	sdk.AccAddress,
 	sdk.ValAddress,
@@ -85,7 +85,7 @@ func (UnimplementedStakingHooks) BeforeDelegationSharesModified(
 }
 
 // AfterDelegationModified does nothing and returns nil.
-func (UnimplementedStakingHooks) AfterDelegationModified(
+func (*UnimplementedStakingHooks) AfterDelegationModified(
 	context.Context,
 	sdk.AccAddress,
 	sdk.ValAddress,
@@ -94,7 +94,7 @@ func (UnimplementedStakingHooks) AfterDelegationModified(
 }
 
 // BeforeValidatorSlashed does nothing and returns nil.
-func (UnimplementedStakingHooks) BeforeValidatorSlashed(
+func (*UnimplementedStakingHooks) BeforeValidatorSlashed(
 	context.Context,
 	sdk.ValAddress,
 	sdkmath.LegacyDec,
@@ -103,7 +103,7 @@ func (UnimplementedStakingHooks) BeforeValidatorSlashed(
 }
 
 // AfterValidatorBonded does nothing and returns nil.
-func (UnimplementedStakingHooks) AfterValidatorBonded(
+func (*UnimplementedStakingHooks) AfterValidatorBonded(
 	context.Context,
 	sdk.ConsAddress,
 	sdk.ValAddress,
@@ -112,7 +112,7 @@ func (UnimplementedStakingHooks) AfterValidatorBonded(
 }
 
 // AfterValidatorBeginUnbonding does nothing and returns nil.
-func (UnimplementedStakingHooks) AfterValidatorBeginUnbonding(
+func (*UnimplementedStakingHooks) AfterValidatorBeginUnbonding(
 	context.Context,
 	sdk.ConsAddress,
 	sdk.ValAddress,
@@ -121,7 +121,7 @@ func (UnimplementedStakingHooks) AfterValidatorBeginUnbonding(
 }
 
 // BeforeDelegationRemoved does nothing and returns nil.
-func (UnimplementedStakingHooks) BeforeDelegationRemoved(
+func (*UnimplementedStakingHooks) BeforeDelegationRemoved(
 	context.Context,
 	sdk.AccAddress,
 	sdk.ValAddress,
@@ -130,7 +130,7 @@ func (UnimplementedStakingHooks) BeforeDelegationRemoved(
 }
 
 // AfterUnbondingInitiated does nothing and returns nil.
-func (UnimplementedStakingHooks) AfterUnbondingInitiated(
+func (*UnimplementedStakingHooks) AfterUnbondingInitiated(
 	context.Context,
 	uint64,
 ) error {
@@ -138,7 +138,7 @@ func (UnimplementedStakingHooks) AfterUnbondingInitiated(
 }
 
 // AfterConsensusPubKeyUpdate does nothing and returns nil.
-func (UnimplementedStakingHooks) AfterConsensusPubKeyUpdate(
+func (*UnimplementedStakingHooks) AfterConsensusPubKeyUpdate(
 	context.Context,
 	cryptotypes.PubKey,
 	cryptotypes.PubKey,

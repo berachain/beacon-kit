@@ -27,8 +27,8 @@ package beacon
 
 // Collection prefixes.
 const (
-	parentBlockRootPrefix                   = "parent_block_root"
-	depositQueuePrefix                      = "deposit_queue"
-	validatorIndexPrefix                    = "validator_index"
-	validatorIndexToValidatorOperatorPrefix = "validator_index_to_validator_operator"
+	parentBlockRootPrefix         = "parent_block_root"
+	depositQueuePrefix            = "deposit_queue"
+	validatorIndexPrefix          = "val_idx"
+	validatorIndexToAddressPrefix = "val_idx_to_addr"
 )

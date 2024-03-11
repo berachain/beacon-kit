@@ -36,7 +36,7 @@ import (
 // StakingHooks struct.
 type StakingHooks struct {
 	*cosmoslib.UnimplementedStakingHooks
-	k Keeper
+	k *Keeper
 }
 
 // Verify that the Hooks struct implements the stakingtypes.StakingHooks
@@ -44,8 +44,8 @@ type StakingHooks struct {
 var _ stakingtypes.StakingHooks = StakingHooks{}
 
 // Create new stakinghooks hooks.
-func (k Keeper) Hooks() StakingHooks {
-	return StakingHooks{&cosmoslib.UnimplementedStakingHooks{}, k}
+func (k *Keeper) Hooks() StakingHooks {
+	return StakingHooks{k: k}
 }
 
 // initialize validator distribution record.

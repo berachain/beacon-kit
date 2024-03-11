@@ -64,8 +64,8 @@ func NewStore(
 	)
 	validatorIndexToValidatorOperator := sdkcollections.NewMap[uint64, []byte](
 		schemaBuilder,
-		sdkcollections.NewPrefix(validatorIndexToValidatorOperatorPrefix),
-		validatorIndexToValidatorOperatorPrefix,
+		sdkcollections.NewPrefix(validatorIndexToAddressPrefix),
+		validatorIndexToAddressPrefix,
 		sdkcollections.Uint64Key,
 		sdkcollections.BytesValue,
 	)

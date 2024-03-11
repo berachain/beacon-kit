@@ -63,11 +63,12 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Environment,
 	)
-	m := NewAppModule(k)
 
 	return DepInjectOutput{
 		Keeper: k,
-		Module: m,
-		Hooks:  stakingtypes.StakingHooksWrapper{k.Hooks()},
+		Module: NewAppModule(k),
+		Hooks: stakingtypes.StakingHooksWrapper{
+			StakingHooks: k.Hooks(),
+		},
 	}
 }
