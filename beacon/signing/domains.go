@@ -27,6 +27,10 @@ package signing
 
 import "github.com/berachain/beacon-kit/primitives"
 
+// SSZDomain is a 4-byte array used to represent a
+// domain type in BLS signing and verification.
+type SSZDomain = [4]byte
+
 // Domain constants for BLS domain types.
 // Spec: https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
 //
