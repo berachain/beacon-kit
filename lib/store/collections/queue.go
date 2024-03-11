@@ -114,8 +114,7 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 	return v, err
 }
 
-// PopMulti returns the top n elements of the queue and removes them from the
-// queue.
+// PeekMulti returns the top n elements of the queue.
 func (q *Queue[V]) PeekMulti(ctx context.Context, n uint64) ([]V, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
