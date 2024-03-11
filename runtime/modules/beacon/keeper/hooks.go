@@ -72,5 +72,9 @@ func (h StakingHooks) AfterConsensusPubKeyUpdate(
 	toPubkey cryptotypes.PubKey,
 	_ sdk.Coin,
 ) error {
-	return h.k.beaconStore.UpdateValidator(ctx, fromPubkey.Bytes(), toPubkey.Bytes())
+	return h.k.beaconStore.UpdateValidator(
+		ctx,
+		fromPubkey.Bytes(),
+		toPubkey.Bytes(),
+	)
 }

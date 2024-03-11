@@ -49,12 +49,15 @@ type Keeper struct {
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
-	vcp runtime.ValsetChangeProvider,
 ) *Keeper {
 	return &Keeper{
 		beaconStore:     beaconstore.NewStore(env.KVStoreService),
 		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
 	}
+}
+
+func (k *Keeper) SetValsetChangeProvider(vcp runtime.ValsetChangeProvider) {
+	k.vcp = vcp
 }
 
 // BeaconState returns the beacon state struct initialized with a given

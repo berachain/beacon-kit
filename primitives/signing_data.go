@@ -29,7 +29,8 @@ package primitives
 
 // SigningData is a struct used to compute
 // hash(root_hash(object), domain_hash).
-// Spec: https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
+// Spec:
+// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
 //
 //nolint:lll // Urls are long.
 type SigningData struct {
