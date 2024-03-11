@@ -28,7 +28,7 @@ package config
 import (
 	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/cli/parser"
-	"github.com/berachain/beacon-kit/lib/bytes"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
@@ -49,14 +49,14 @@ const (
 // DefaultBLSDomainsConfig returns the default BLS domain configuration.
 func DefaultBLSDomainsConfig() BLSDomains {
 	return BLSDomains{
-		DomainBeaconProposer:    bytes.Uint32ToBytes4(defaultDomainBeaconProposer),
-		DomainBeaconAttester:    bytes.Uint32ToBytes4(defaultDomainBeaconAttester),
-		DomainRandao:            bytes.Uint32ToBytes4(defaultDomainRandao),
-		DomainDeposit:           bytes.Uint32ToBytes4(defaultDomainDeposit),
-		DomainVoluntaryExit:     bytes.Uint32ToBytes4(defaultDomainVoluntaryExit),
-		DomainSelectionProof:    bytes.Uint32ToBytes4(defaultDomainSelectionProof),
-		DomainAggregateAndProof: bytes.Uint32ToBytes4(defaultDomainAggregateAndProof),
-		DomainApplicationMask:   bytes.Uint32ToBytes4(defaultDomainApplicationMask),
+		DomainBeaconProposer:    byteslib.Uint32ToBytes4(defaultDomainBeaconProposer),
+		DomainBeaconAttester:    byteslib.Uint32ToBytes4(defaultDomainBeaconAttester),
+		DomainRandao:            byteslib.Uint32ToBytes4(defaultDomainRandao),
+		DomainDeposit:           byteslib.Uint32ToBytes4(defaultDomainDeposit),
+		DomainVoluntaryExit:     byteslib.Uint32ToBytes4(defaultDomainVoluntaryExit),
+		DomainSelectionProof:    byteslib.Uint32ToBytes4(defaultDomainSelectionProof),
+		DomainAggregateAndProof: byteslib.Uint32ToBytes4(defaultDomainAggregateAndProof),
+		DomainApplicationMask:   byteslib.Uint32ToBytes4(defaultDomainApplicationMask),
 	}
 }
 
