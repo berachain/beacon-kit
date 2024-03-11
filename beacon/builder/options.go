@@ -26,8 +26,8 @@
 package builder
 
 import (
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService sets the base service.

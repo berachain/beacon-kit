@@ -28,9 +28,9 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/beacon/staking"
-	"github.com/itsdevbear/bolaris/config"
-	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
+	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	"github.com/berachain/beacon-kit/runtime/modules/staking"
 )
 
 // DepInjectInput is the input for the dep inject framework.

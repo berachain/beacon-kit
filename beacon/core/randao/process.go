@@ -27,11 +27,11 @@ package randao
 
 import (
 	"context"
-	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
-
-	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	"github.com/berachain/beacon-kit/primitives"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 type BeaconStateProvider interface {
@@ -83,16 +83,7 @@ func (rs *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
 	_ types.Domain,
 ) []byte {
-	// TODO: use domain or decide what to do
-	epochSSZUInt64 := primitives.SSZUint64(epoch)
-	sszBz, err := epochSSZUInt64.MarshalSSZ()
-
-	if err != nil {
-		// don't actually panic
-		panic(err)
-	}
-
-	return sszBz
+	return sdktypes.Uint64ToBigEndian(epoch)
 }
 
 func (rs *Processor) getDomain(

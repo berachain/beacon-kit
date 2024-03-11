@@ -28,21 +28,22 @@ package logs_test
 import (
 	"testing"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
+	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
-	"github.com/itsdevbear/bolaris/contracts/abi"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestProcessLogs(t *testing.T) {
 	contractAddress := ethcommon.HexToAddress("0x1234")
-	stakingAbi, err := abi.StakingMetaData.GetAbi()
+	depositContractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
 	require.NoError(t, err)
+	require.NotNil(t, depositContractAbi)
 
 	stakingLogRequest, err := logs.NewStakingRequest(
 		contractAddress,
@@ -64,34 +65,47 @@ func TestProcessLogs(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	vals, err := logFactory.ProcessLogs(mockLogs, blkNum)
+	blockHash := [32]byte{byte(blkNum)}
+	vals, err := logFactory.ProcessLogs(mockLogs, blockHash)
 	require.NoError(t, err)
 	require.Len(t, vals, numDepositLogs)
 
 	// Check if the values are returned in the correct order.
 	for i, val := range vals {
-		processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+		processedDeposit, ok := val.Interface().(*beacontypes.Deposit)
 		require.True(t, ok)
-		require.Equal(t, uint64(i*depositFactor), processedDeposit.GetAmount())
+		require.Equal(t, uint64(i*depositFactor), processedDeposit.Amount)
 	}
 
-	withdrawal := enginetypes.NewWithdrawal(
-		[]byte("pubkey"),
-		uint64(1000),
-	)
+	event := depositContractAbi.Events[logs.WithdrawalName]
+	pubKey := []byte("pubkey")
+	credentials := []byte{}
+	signature := []byte{}
+	amount := uint64(1000)
+	index := uint64(0)
 
-	var log *ethtypes.Log
-	log, err = logmocks.NewLogFromWithdrawal(
-		stakingAbi.Events[logs.WithdrawalName],
-		withdrawal,
+	// Create a log from the deposit.
+	data, err := event.Inputs.Pack(
+		pubKey,
+		credentials,
+		signature,
+		amount,
+		index,
 	)
 	require.NoError(t, err)
+	log := &coretypes.Log{
+		Topics:  []primitives.ExecutionHash{event.ID},
+		Data:    data,
+		Address: contractAddress,
+	}
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum + 1
+	blockHash = [32]byte{byte(blkNum + 1)}
+	log.BlockHash = blockHash
 	_, err = logFactory.ProcessLogs(
 		append(mockLogs, *log),
-		blkNum,
+		blockHash,
 	)
 	// This is an expected error as
 	// the log is from a different block.
@@ -101,15 +115,19 @@ func TestProcessLogs(t *testing.T) {
 	// from the contract address of interest.
 	log.Address = ethcommon.HexToAddress("0x5678")
 	log.BlockNumber = blkNum
+	blockHash = [32]byte{byte(blkNum)}
+	log.BlockHash = blockHash
 	mockLogs = append(mockLogs, *log)
-	vals, err = logFactory.ProcessLogs(mockLogs, blkNum)
+	vals, err = logFactory.ProcessLogs(mockLogs, blockHash)
 	require.NoError(t, err)
 	require.Len(t, vals, numDepositLogs)
 
 	log.Address = contractAddress
 	log.BlockNumber = blkNum
+	blockHash = [32]byte{byte(blkNum)}
+	log.BlockHash = blockHash
 	mockLogs = append(mockLogs, *log)
-	_, err = logFactory.ProcessLogs(mockLogs, blkNum)
+	_, err = logFactory.ProcessLogs(mockLogs, blockHash)
 	// This is an expected error as currently we cannot
 	// unmarsal a withdrawal log into a Withdrawal object.
 	require.Error(t, err)

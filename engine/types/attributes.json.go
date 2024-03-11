@@ -8,7 +8,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 )
 
 var _ = (*payloadAttributesJSONMarshaling)(nil)
@@ -16,29 +15,29 @@ var _ = (*payloadAttributesJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 	type PayloadAttributes struct {
-		Timestamp             hexutil.Uint64         `json:"timestamp"             gencodec:"required"`
-		PrevRandao            hexutil.Bytes          `json:"prevRandao"            gencodec:"required"`
-		SuggestedFeeRecipient common.Address         `json:"suggestedFeeRecipient" gencodec:"required"`
-		Withdrawals           []*enginev1.Withdrawal `json:"withdrawals"`
-		ParentBeaconBlockRoot *common.Hash           `json:"parentBeaconBlockRoot"`
+		Timestamp             hexutil.Uint64 `json:"timestamp"             gencodec:"required"`
+		PrevRandao            hexutil.Bytes  `json:"prevRandao"            gencodec:"required"`
+		SuggestedFeeRecipient common.Address `json:"suggestedFeeRecipient" gencodec:"required"`
+		Withdrawals           []*Withdrawal  `json:"withdrawals"`
+		ParentBeaconBlockRoot hexutil.Bytes  `json:"parentBeaconBlockRoot"`
 	}
 	var enc PayloadAttributes
 	enc.Timestamp = hexutil.Uint64(p.Timestamp)
 	enc.PrevRandao = p.PrevRandao[:]
 	enc.SuggestedFeeRecipient = p.SuggestedFeeRecipient
 	enc.Withdrawals = p.Withdrawals
-	enc.ParentBeaconBlockRoot = (*common.Hash)(p.ParentBeaconBlockRoot)
+	enc.ParentBeaconBlockRoot = p.ParentBeaconBlockRoot[:]
 	return json.Marshal(&enc)
 }
 
 // UnmarshalJSON unmarshals from JSON.
 func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 	type PayloadAttributes struct {
-		Timestamp             *hexutil.Uint64        `json:"timestamp"             gencodec:"required"`
-		PrevRandao            *hexutil.Bytes         `json:"prevRandao"            gencodec:"required"`
-		SuggestedFeeRecipient *common.Address        `json:"suggestedFeeRecipient" gencodec:"required"`
-		Withdrawals           []*enginev1.Withdrawal `json:"withdrawals"`
-		ParentBeaconBlockRoot *common.Hash           `json:"parentBeaconBlockRoot"`
+		Timestamp             *hexutil.Uint64 `json:"timestamp"             gencodec:"required"`
+		PrevRandao            *hexutil.Bytes  `json:"prevRandao"            gencodec:"required"`
+		SuggestedFeeRecipient *common.Address `json:"suggestedFeeRecipient" gencodec:"required"`
+		Withdrawals           []*Withdrawal   `json:"withdrawals"`
+		ParentBeaconBlockRoot *hexutil.Bytes  `json:"parentBeaconBlockRoot"`
 	}
 	var dec PayloadAttributes
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -63,7 +62,10 @@ func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 		p.Withdrawals = dec.Withdrawals
 	}
 	if dec.ParentBeaconBlockRoot != nil {
-		p.ParentBeaconBlockRoot = (*[32]byte)(dec.ParentBeaconBlockRoot)
+		if len(*dec.ParentBeaconBlockRoot) != len(p.ParentBeaconBlockRoot) {
+			return errors.New("field 'parentBeaconBlockRoot' has wrong length, need 32 items")
+		}
+		copy(p.ParentBeaconBlockRoot[:], *dec.ParentBeaconBlockRoot)
 	}
 	return nil
 }

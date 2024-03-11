@@ -26,8 +26,8 @@
 package staking
 
 import (
-	"github.com/itsdevbear/bolaris/runtime/modules/staking"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	"github.com/berachain/beacon-kit/runtime/modules/staking"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // Service represents the staking service.

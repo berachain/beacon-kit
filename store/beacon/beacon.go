@@ -27,13 +27,12 @@ package beacon
 
 import (
 	"context"
-	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
-
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/lib/store/collections"
-	"github.com/itsdevbear/bolaris/lib/store/collections/encoding"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/lib/store/collections"
+	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
 )
 
 // Store is a wrapper around an sdk.Context
@@ -42,14 +41,14 @@ type Store struct {
 	ctx context.Context
 
 	// depositQueue is a list of depositQueue that are queued to be processed.
-	depositQueue *collections.Queue[*beacontypesv1.Deposit]
+	depositQueue *collections.Queue[*beacontypes.Deposit]
 
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
 	// by eip-4788.
 	parentBlockRoot sdkcollections.Item[[]byte]
 
-	randaoMix sdkcollections.Item[[randaotypes.MixLength]byte]
+	randaoMix sdkcollections.Item[[types.MixLength]byte]
 }
 
 // Store creates a new instance of Store.
@@ -57,10 +56,10 @@ func NewStore(
 	kvs store.KVStoreService,
 ) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
-	depositQueue := collections.NewQueue[*beacontypesv1.Deposit](
+	depositQueue := collections.NewQueue[*beacontypes.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
-		encoding.SSZValueCodec[*beacontypesv1.Deposit]{},
+		encoding.SSZValueCodec[*beacontypes.Deposit]{},
 	)
 	parentBlockRoot := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
@@ -69,7 +68,7 @@ func NewStore(
 		sdkcollections.BytesValue,
 	)
 
-	randaoMix := sdkcollections.NewItem[[randaotypes.MixLength]byte](
+	randaoMix := sdkcollections.NewItem[[types.MixLength]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(randaoMixPrefix),
 		randaoMixPrefix,
@@ -83,7 +82,7 @@ func NewStore(
 	}
 }
 
-// WithContext( returns the Store with the given context.
+// WithContext returns the Store with the given context.
 func (s *Store) WithContext(ctx context.Context) *Store {
 	s.ctx = ctx
 	return s

@@ -30,12 +30,12 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	"github.com/itsdevbear/bolaris/beacon/forkchoice"
-	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/async/dispatch"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/beacon/forkchoice"
+	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all
@@ -98,7 +98,9 @@ func (s *BaseService) ForkchoiceStore(
 	ctx context.Context,
 ) forkchoice.ForkChoicer {
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	return s.fcr.WithContext(ctx)
+	// TODO: SetContext isn't consistent with the rest of the methods.
+	s.fcr.SetContext(ctx)
+	return s.fcr
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from
@@ -140,7 +142,7 @@ func (s *BaseService) SetStatus(err error) {
 
 // ActiveForkVersionForSlot returns the active fork version for the given slot.
 func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) int {
-	return s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot))
+	return s.BeaconCfg().ActiveForkVersion(slot)
 }
 
 // // DispatchEvent sends a value to the feed associated with the provided key.

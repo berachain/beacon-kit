@@ -27,15 +27,13 @@ package execution
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/engine/client"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/engine/client"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // notifyNewPayload notifies the execution client of a new payload.
@@ -43,12 +41,12 @@ func (s *Service) notifyNewPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
 	s.Logger().Info("notifying new payload",
-		"payload_block_hash", common.BytesToHash(payload.GetBlockHash()),
-		"parent_hash", common.BytesToHash(payload.GetParentHash()),
+		"payload_block_hash", (payload.GetBlockHash()),
+		"parent_hash", (payload.GetParentHash()),
 		"for_slot", slot,
 	)
 
@@ -58,8 +56,8 @@ func (s *Service) notifyNewPayload(
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
-			"block_hash", common.BytesToHash(payload.GetBlockHash()),
-			"parent_hash", common.BytesToHash(payload.GetParentHash()),
+			"payload_block_hash", (payload.GetBlockHash()),
+			"parent_hash", (payload.GetParentHash()),
 			"for_slot", slot,
 		)
 		return false, nil
@@ -81,10 +79,10 @@ func (s *Service) notifyForkchoiceUpdate(
 ) (*enginetypes.PayloadID, error) {
 	forkChoicer := s.ForkchoiceStore(ctx)
 
-	fcs := &enginev1.ForkchoiceState{
-		HeadBlockHash:      fcuConfig.HeadEth1Hash[:],
-		SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash().Bytes(),
-		FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash().Bytes(),
+	fcs := &enginetypes.ForkchoiceState{
+		HeadBlockHash:      fcuConfig.HeadEth1Hash,
+		SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash(),
+		FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash(),
 	}
 
 	s.Logger().Info("notifying forkchoice update",

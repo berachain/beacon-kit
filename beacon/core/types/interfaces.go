@@ -26,9 +26,9 @@
 package types
 
 import (
-	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
 )
 
@@ -38,16 +38,8 @@ type BeaconBlock interface {
 	WriteOnlyBeaconBlock
 }
 
-type BeaconBlockBody interface {
-	ReadOnlyBeaconBlockBody
-}
-
-type ReadOnlyBeaconBlockBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-
-	GetBlobKzgCommitments() [][]byte
+// WriteOnlyBeaconBlock is the interface for a write-only beacon block.
+type WriteOnlyBeaconBlock interface {
 }
 
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
@@ -55,20 +47,36 @@ type ReadOnlyBeaconBlock interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
-	GetSlot() primitives.Slot
-	// ProposerAddress() []byte
 	IsNil() bool
-	GetParentBlockRoot() []byte
-	GetBlobKzgCommitments() [][]byte
-	// Execution returns the execution data of the block.
-	ExecutionPayload() (enginetypes.ExecutionPayload, error)
+	GetSlot() primitives.Slot
+	// TODO ProposerAddress() []byte
+	GetBody() BeaconBlockBody
+	GetParentBlockRoot() [32]byte
 	Version() int
 
-	// GetReveal returns the Randao reveal of the block.
-	GetReveal() randaotypes.Reveal
+	// RandaoReveal returns the randao reveal of the block.
+	GetRandaoReveal() types.Reveal
 }
 
-// WriteOnlyBeaconBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconBlock interface {
+type BeaconBlockBody interface {
+	WriteOnlyBeaconBlockBody
+	ReadOnlyBeaconBlockBody
+}
+
+type WriteOnlyBeaconBlockBody interface {
 	AttachExecution(enginetypes.ExecutionPayload) error
+}
+
+type ReadOnlyBeaconBlockBody interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
+
+	// Execution returns the execution data of the block.
+	GetExecutionPayload() enginetypes.ExecutionPayload
+	GetBlobKzgCommitments() [][48]byte
+
+	// RandaoReveal returns the randao reveal of the block.
+	GetRandaoReveal() types.Reveal
 }

@@ -32,8 +32,8 @@ import (
 	sdk "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	dba "cosmossdk.io/store/dbadapter"
+	"github.com/berachain/beacon-kit/lib/store/collections"
 	db "github.com/cosmos/cosmos-db"
-	"github.com/itsdevbear/bolaris/lib/store/collections"
 	"github.com/stretchr/testify/require"
 )
 

@@ -22,19 +22,12 @@ RPCGasCap = 50000000
 RPCEVMTimeout = 5000000000
 RPCTxFeeCap = 1e+00
 
-[Eth.Miner]
-GasFloor = 0
-GasCeil = 30000000
-GasPrice = 1000000000
-Recommit = 2000000000
-NewPayloadTimeout = 2000000000
-
 [Eth.TxPool]
 Locals = []
 NoLocals = false
 Journal = "transactions.rlp"
 Rejournal = 3600000000000
-PriceLimit = 1
+PriceLimit = 0
 PriceBump = 10
 AccountSlots = 16
 GlobalSlots = 5120
@@ -62,7 +55,7 @@ HTTPHost = "0.0.0.0"
 HTTPPort = 8545
 HTTPCors = ["*"]
 HTTPVirtualHosts = ["*"]
-HTTPModules = ["admin", "engine", "net", "web3", "eth", "debug"]
+HTTPModules = ["admin", "engine", "net", "web3", "eth", "debug", "txpool"]
 AuthAddr = "0.0.0.0"
 AuthPort = 8551
 AuthVirtualHosts = ["*"]

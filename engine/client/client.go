@@ -28,24 +28,21 @@ package client
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strings"
 	"sync"
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/engine/client/cache"
+	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
+	"github.com/berachain/beacon-kit/io/http"
+	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	eth "github.com/itsdevbear/bolaris/engine/client/ethclient"
-	"github.com/itsdevbear/bolaris/io/http"
-	"github.com/itsdevbear/bolaris/io/jwt"
-	"github.com/itsdevbear/bolaris/primitives"
 )
-
-// Caller is implemented by EngineClient.
-var _ Caller = (*EngineClient)(nil)
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient struct {
@@ -55,6 +52,10 @@ type EngineClient struct {
 	capabilities map[string]struct{}
 	logger       log.Logger
 	jwtSecret    *jwt.Secret
+
+	// engineCache is an all-in-one cache for data
+	// that are retrieved by the EngineClient.
+	engineCache *cache.EngineCache
 
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
@@ -68,15 +69,20 @@ func New(opts ...Option) *EngineClient {
 	ec := &EngineClient{
 		Eth1Client:   new(eth.Eth1Client),
 		capabilities: make(map[string]struct{}),
+		statusErrMu:  new(sync.RWMutex),
 	}
-
-	ec.statusErrMu = new(sync.RWMutex)
 	ec.statusErrCond = sync.NewCond(ec.statusErrMu)
 
+	// Apply the options to the engine client.
 	for _, opt := range opts {
 		if err := opt(ec); err != nil {
 			panic(err)
 		}
+	}
+
+	// If the engine cache is not set, we create a new one.
+	if ec.engineCache == nil {
+		ec.engineCache = cache.NewEngineCacheWithDefaultConfig()
 	}
 
 	return ec
@@ -210,15 +216,14 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 // It calls the eth_getLogs method via JSON-RPC.
 func (s *EngineClient) GetLogs(
 	ctx context.Context,
-	fromBlock, toBlock uint64,
+	blockHash primitives.ExecutionHash,
 	addresses []primitives.ExecutionAddress,
 ) ([]coretypes.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.
 	query := ethereum.FilterQuery{
 		Addresses: addresses,
-		FromBlock: new(big.Int).SetUint64(fromBlock),
-		ToBlock:   new(big.Int).SetUint64(toBlock),
+		BlockHash: &blockHash,
 	}
 
 	// Gather all the logs according to the query.

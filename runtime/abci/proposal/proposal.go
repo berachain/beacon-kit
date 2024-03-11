@@ -27,31 +27,32 @@ package proposal
 
 import (
 	"context"
+	"cosmossdk.io/x/staking/keeper"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
 	"time"
 
-	"cosmossdk.io/x/staking/keeper"
-	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
-
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/builder"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/health"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/primitives"
+	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder"
-	"github.com/itsdevbear/bolaris/config"
-	"github.com/itsdevbear/bolaris/health"
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
-	"github.com/itsdevbear/bolaris/primitives"
-	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 )
 
 type RandaoProcessor interface {
 	BuildReveal(ctx context.Context, epoch primitives.Epoch) (types.Reveal, error)
+
 	VerifyReveal(
 		proposerPubkey [bls12381.PubKeyLength]byte,
 		msg []byte,
 		reveal types.Reveal,
 	) bool
+
 	GetSigningRoot(
 		epoch primitives.Epoch,
 	) []byte
@@ -105,17 +106,17 @@ func (h *Handler) PrepareProposalHandler(
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
-	block, err := h.builderService.RequestBestBlock(
+	blk, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
 	)
-	if err != nil {
-		logger.Error("failed to build block", "error", err)
+	if err != nil || blk == nil || blk.IsNil() {
+		logger.Error("failed to build block", "error", err, "block", blk)
 		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Marshal the block into bytes.
-	beaconBz, err := block.MarshalSSZ()
+	beaconBz, err := blk.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
@@ -124,6 +125,12 @@ func (h *Handler) PrepareProposalHandler(
 	resp, err := h.nextPrepare(ctx, req)
 	if err != nil {
 		return nil, err
+	}
+
+	// If the response is nil, the implementations of
+	// `nextPrepare` is bad.
+	if resp == nil {
+		return nil, ErrNextPrepareNilResp
 	}
 
 	// Inject the beacon kit block into the proposal.
@@ -156,7 +163,7 @@ func (h *Handler) ProcessProposalHandler(
 	epoch := primitives.ToEpoch(primitives.Slot(req.Height))
 
 	proposerPubKey := h.extractProposalPublicKey(ctx, req)
-	if !h.randaoProcessor.VerifyReveal(proposerPubKey, h.randaoProcessor.GetSigningRoot(epoch), block.GetReveal()) {
+	if !h.randaoProcessor.VerifyReveal(proposerPubKey, h.randaoProcessor.GetSigningRoot(epoch), block.GetRandaoReveal()) {
 		logger.Warn("failed to verify reveal")
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_REJECT}, nil
@@ -166,7 +173,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, byteslib.ToBytes32(req.Hash), block); err != nil {
+		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
 		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil

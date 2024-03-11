@@ -25,7 +25,7 @@
 
 package notify
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrFeedNotFound is returned when a feed is not found.

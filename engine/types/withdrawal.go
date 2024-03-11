@@ -26,18 +26,29 @@
 package enginetypes
 
 import (
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
-//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
+// NewWithdrawal creates a new Withdrawal.
+func NewWithdrawal(
+	_ []byte, // pubkey
+	amount uint64,
+) *Withdrawal {
+	// TODO: implement
+	return &Withdrawal{
+		Amount: amount,
+	}
+}
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
+//
+//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
 type Withdrawal struct {
-	Index     primitives.SSZUint64        `json:"index"`
-	Validator primitives.ValidatorIndex   `json:"validatorIndex"`
-	Address   primitives.ExecutionAddress `json:"address"`
-	Amount    primitives.SSZUint64        `json:"amount"`
+	Index     uint64                      `json:"index"          ssz-size:"8"`
+	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
+	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
+	Amount    uint64                      `json:"amount"         ssz-size:"8"`
 }
 
 // field type overrides for gencodec.

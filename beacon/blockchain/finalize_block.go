@@ -29,10 +29,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -45,7 +43,6 @@ func (s *Service) FinalizeBeaconBlock(
 	blockRoot [32]byte,
 ) error {
 	var (
-		payload     enginetypes.ExecutionPayload
 		err         error
 		state       = s.BeaconState(ctx)
 		forkChoicer = s.ForkchoiceStore(ctx)
@@ -71,12 +68,18 @@ func (s *Service) FinalizeBeaconBlock(
 		}()
 	}()
 
-	if err = beacontypes.BeaconBlockIsNil(blk); err != nil {
-		return err
+	if blk.IsNil() {
+		return beacontypes.ErrNilBlk
 	}
 
-	payload, err = blk.ExecutionPayload()
-	if err != nil {
+	payload := blk.GetBody().GetExecutionPayload()
+	if payload.IsNil() {
+		// TODO: Slash the proposer for not including a payload.
+		return ErrNoPayloadInBeaconBlock
+	}
+
+	payloadBlockHash := payload.GetBlockHash()
+	if err = forkChoicer.InsertNode(payloadBlockHash); err != nil {
 		return err
 	}
 
@@ -84,7 +87,7 @@ func (s *Service) FinalizeBeaconBlock(
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
-	reveal := blk.GetReveal()
+	reveal := blk.GetRandaoReveal()
 
 	newMix := randaoMix.MixinNewReveal(reveal)
 	err = state.SetRandaoMix(newMix)
@@ -96,13 +99,15 @@ func (s *Service) FinalizeBeaconBlock(
 	// TODO: PROCESS LOGS HERE
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
-
-	if payload == nil || payload.IsEmpty() {
-		// TODO: Slash the proposer for not including a payload.
-		return ErrNoPayloadInBeaconBlock
+	_, err = s.es.ProcessLogsInETH1Block(
+		ctx,
+		payloadBlockHash,
+	)
+	if err != nil {
+		s.Logger().Error("failed to process logs", "error", err)
 	}
 
-	return forkChoicer.InsertNode(common.Hash(payload.GetBlockHash()))
+	return err
 }
 
 // missed block tasks is called when a block is missed. It sends a forkchoice

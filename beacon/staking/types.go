@@ -30,16 +30,16 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // ValsetChangeProvider is the interface for applying validator set changes.
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
+		[]*beacontypes.Deposit,
+		[]*enginetypes.Withdrawal,
 	) error
 	ValidatorByConsensusAddress() sdkcollections.Map[sdk.ConsAddress, sdk.ValAddress]
 }

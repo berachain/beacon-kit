@@ -29,12 +29,10 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // Service is responsible for delivering beacon chain notifications to
@@ -43,7 +41,7 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution
 	// client.
-	engine engineclient.Caller
+	engine *engineclient.EngineClient
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
 }
@@ -75,16 +73,18 @@ func (s *Service) NotifyForkchoiceUpdate(
 		return nil, e
 	}
 
+	// s.logProcessor.ReadLogsFromBlock(ctx, fucu.HeadEth1Hash)
+
 	return payloadID, err
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (s *Service) GetPayload(
 	ctx context.Context, payloadID enginetypes.PayloadID, slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	return s.engine.GetPayload(
 		ctx, payloadID,
-		s.BeaconCfg().ActiveForkVersion(primitives.Epoch(slot)),
+		s.BeaconCfg().ActiveForkVersion(slot),
 	)
 }
 
@@ -94,7 +94,7 @@ func (s *Service) NotifyNewPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
-	versionedHashes []common.Hash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
 	return s.notifyNewPayload(
@@ -112,18 +112,17 @@ func (s *Service) NotifyNewPayload(
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	blkNum uint64,
+	blockHash primitives.ExecutionHash,
 ) ([]*reflect.Value, error) {
 	// Gather all the logs corresponding to
 	// the addresses of interest from this block.
 	logsInBlock, err := s.engine.GetLogs(
 		ctx,
-		blkNum,
-		blkNum,
+		blockHash,
 		s.logFactory.GetRegisteredAddresses(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	return s.logFactory.ProcessLogs(logsInBlock, blkNum)
+	return s.logFactory.ProcessLogs(logsInBlock, blockHash)
 }

@@ -25,7 +25,7 @@
 
 package execution
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrExecutionClientDisconnected represents an error when

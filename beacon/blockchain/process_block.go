@@ -27,11 +27,10 @@ package blockchain
 
 import (
 	"context"
-	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/beacon/sync"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/sync"
+	"github.com/cockroachdb/errors"
 )
 
 // postBlockProcess(.
@@ -41,11 +40,16 @@ func (s *Service) postBlockProcess(
 	blockHash [32]byte,
 	_ bool,
 ) error {
-	payload, err := blk.ExecutionPayload()
-	if err != nil {
-		return err
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
 	}
-	payloadBlockHash := common.Hash(payload.GetBlockHash())
+
+	// If the block does not have a payload, we return an error.
+	payload := blk.GetBody().GetExecutionPayload()
+	if payload.IsNil() {
+		return ErrInvalidPayload
+	}
+	payloadBlockHash := payload.GetBlockHash()
 
 	// If the consensus client is still syncing we are going to skip forkchoice
 	// updates. This means that if the consensus client is still syncing, we
@@ -59,9 +63,10 @@ func (s *Service) postBlockProcess(
 	// If the builder is enabled attempt to build a block locally.
 	// If we are in the sync state, we skip building blocks optimistically.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		if err = s.sendFCUWithAttributes(
+		err := s.sendFCUWithAttributes(
 			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
-		); err == nil {
+		)
+		if err == nil {
 			return nil
 		}
 		s.Logger().

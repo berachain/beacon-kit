@@ -28,17 +28,17 @@ package preblock
 import (
 	"context"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/sync"
+	"github.com/berachain/beacon-kit/config"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/primitives"
+	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/config"
-	byteslib "github.com/itsdevbear/bolaris/lib/bytes"
-	"github.com/itsdevbear/bolaris/primitives"
-	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 )
 
 type BeaconKeeper interface {
@@ -98,7 +98,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		//
 		// TODO: Block factory struct?
 		// TODO: Use protobuf and .(type)?
-		buoy, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
+		blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 			req,
 			h.cfg.BeaconBlockPosition,
 			h.chainService.ActiveForkVersionForSlot(
@@ -116,13 +116,13 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			// create an empty beacon block to continue processing.
 			// TODO: This is a temporary solution to avoid panics, we should
 			// handle this better.
-			if buoy, err = beacontypes.EmptyBeaconBlock(
+			if blk, err = beacontypes.EmptyBeaconBlock(
 				primitives.Slot(req.Height),
 				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
 				h.chainService.ActiveForkVersionForSlot(
 					primitives.Slot(req.Height),
 				),
-				randaotypes.Reveal{},
+				types.Reveal{},
 			); err != nil {
 				return nil, err
 			}
@@ -134,8 +134,8 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		// call will exit early.
 		if err = h.chainService.ReceiveBeaconBlock(
 			ctx,
+			blk,
 			cometBlockHash,
-			buoy,
 		); err != nil {
 			h.logger.Warn(
 				"failed to receive beacon block",
@@ -146,7 +146,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Process the finalization of the beacon block.
 		if err = h.chainService.FinalizeBeaconBlock(
-			ctx, buoy, cometBlockHash,
+			ctx, blk, cometBlockHash,
 		); err != nil {
 			h.chainService.Logger().
 				Error("failed to finalize beacon block", "error", err)

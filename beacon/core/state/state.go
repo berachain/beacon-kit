@@ -26,9 +26,9 @@
 package state
 
 import (
-	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -51,13 +51,13 @@ type ReadOnlyBeaconState interface {
 }
 
 type WriteOnlyRandaoMixes interface {
-	SetRandaoMix(randaotypes.Mix) error
+	SetRandaoMix(types.Mix) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	RandaoMix() (randaotypes.Mix, error)
+	RandaoMix() (types.Mix, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -69,11 +69,11 @@ type WriteOnlyBeaconState interface {
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
 type ReadWriteDepositQueue interface {
-	EnqueueDeposits([]*beacontypesv1.Deposit) error
-	DequeueDeposits(n uint64) ([]*beacontypesv1.Deposit, error)
+	EnqueueDeposits([]*beacontypes.Deposit) error
+	DequeueDeposits(n uint64) ([]*beacontypes.Deposit, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*enginev1.Withdrawal, error)
+	ExpectedWithdrawals() ([]*enginetypes.Withdrawal, error)
 }

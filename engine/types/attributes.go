@@ -26,29 +26,31 @@
 package enginetypes
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/config/version"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
-
 //nolint:lll // struct tags.
+//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 type PayloadAttributes struct {
-	version               int
-	Timestamp             uint64                      `json:"timestamp"             gencodec:"required"`
-	PrevRandao            [32]byte                    `json:"prevRandao"            gencodec:"required"`
+	// version is the version of the payload attributes.
+	version int
+	// Timestamp is the timestamp at which the block will be built at.
+	Timestamp uint64 `json:"timestamp"             gencodec:"required"`
+	// PrevRandao is the previous Randao value from the beacon chain as
+	// per EIP-4399.
+	PrevRandao [32]byte `json:"prevRandao"            gencodec:"required"`
+	// SuggestedFeeRecipient is the suggested fee recipient for the block. If
+	// the execution client has a different fee recipient, it will typically
+	// ignore this value.
 	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
-	Withdrawals           []*enginev1.Withdrawal      `json:"withdrawals"`
-	ParentBeaconBlockRoot *[32]byte                   `json:"parentBeaconBlockRoot"`
-}
-
-// JSON type overrides for PayloadAttributes.
-type payloadAttributesJSONMarshaling struct {
-	Timestamp             hexutil.Uint64
-	PrevRandao            hexutil.Bytes
-	ParentBeaconBlockRoot *common.Hash
+	// Withdrawals is the list of withdrawals to be included in the block as per
+	// EIP-4895
+	Withdrawals []*Withdrawal `json:"withdrawals"`
+	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
+	// prior)
+	// to the block currently being processed. This field was added in EIP-4788.
+	ParentBeaconBlockRoot [32]byte `json:"parentBeaconBlockRoot"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
@@ -56,57 +58,50 @@ func NewPayloadAttributes(
 	forkVersion int,
 	timestamp uint64, prevRandao [32]byte,
 	suggestedFeeReceipient primitives.ExecutionAddress,
-	withdrawals []*enginev1.Withdrawal,
+	withdrawals []*Withdrawal,
 	parentBeaconBlockRoot [32]byte,
 ) (*PayloadAttributes, error) {
-	if withdrawals == nil {
-		withdrawals = make([]*enginev1.Withdrawal, 0)
-	}
-
-	return &PayloadAttributes{
+	p := &PayloadAttributes{
 		version:               forkVersion,
 		Timestamp:             timestamp,
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
-		ParentBeaconBlockRoot: &parentBeaconBlockRoot,
-	}, nil
-}
-
-// GetTimestamp returns the timestamp of the PayloadAttributes.
-func (p *PayloadAttributes) GetTimestamp() uint64 {
-	return p.Timestamp
-}
-
-// GetSuggestedFeeRecipient returns the suggested fee recipient address of the
-// PayloadAttributes.
-//
-//nolint:lll
-func (p *PayloadAttributes) GetSuggestedFeeRecipient() primitives.ExecutionAddress {
-	return p.SuggestedFeeRecipient
-}
-
-// GetWithdrawals returns the list of withdrawals in the PayloadAttributes.
-func (p *PayloadAttributes) GetWithdrawals() []*enginev1.Withdrawal {
-	return p.Withdrawals
-}
-
-// GetParentBeaconBlockRoot returns the parent beacon block root of the
-// PayloadAttributes.
-// If the parent beacon block root is nil, a zero-value [32]byte is returned.
-func (p *PayloadAttributes) GetParentBeaconBlockRoot() [32]byte {
-	if p.ParentBeaconBlockRoot == nil {
-		return [32]byte{}
+		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}
-	return *p.ParentBeaconBlockRoot
+
+	if err := p.Validate(); err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
+
+// Validate validates the PayloadAttributes.
+func (p *PayloadAttributes) Validate() error {
+	if p.Timestamp == 0 {
+		return ErrInvalidTimestamp
+	}
+
+	// TODO: Uncomment once randao is implemented.
+	// if p.PrevRandao == [32]byte{} {
+	// 	return ErrEmptyPrevRandao
+	// }
+
+	if p.Withdrawals == nil && p.version >= version.Capella {
+		return ErrNilWithdrawals
+	}
+
+	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
+	// to fix this, before uncommenting the line below.
+	// if p.ParentBeaconBlockRoot == [32]byte{} {
+	// 	return ErrInvalidParentBeaconBlockRoot
+	// }
+
+	return nil
 }
 
 // Version returns the version of the PayloadAttributes.
 func (p *PayloadAttributes) Version() int {
 	return p.version
-}
-
-// GetPrevRandao returns the previous Randao value of the PayloadAttributes.
-func (p *PayloadAttributes) GetPrevRandao() [32]byte {
-	return p.PrevRandao
 }

@@ -27,20 +27,20 @@ package tos_test
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
+	beaconflags "github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/examples/beacond/cmd/root"
+	"github.com/berachain/beacon-kit/io/cli/prompt/mocks"
+	"github.com/berachain/beacon-kit/io/cli/tos"
+	"github.com/berachain/beacon-kit/io/file"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
-	beaconflags "github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
-	"github.com/itsdevbear/bolaris/io/cli/prompt/mocks"
-	"github.com/itsdevbear/bolaris/io/cli/tos"
-	"github.com/itsdevbear/bolaris/io/file"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -107,8 +107,7 @@ func TestDeclineWithCLI(t *testing.T) {
 	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
 	if err == nil {
 		t.Errorf("Expected error, got nil")
-	}
-	if err.Error() != tos.DeclinedErrorString {
+	} else if err.Error() != tos.DeclinedErrorString {
 		t.Errorf("Expected %v, got %v", tos.DeclinedErrorString, err)
 	}
 }
@@ -133,9 +132,7 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
 	if err == nil {
 		t.Errorf("Expected error, got nil")
-	}
-
-	if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
+	} else if !strings.Contains(err.Error(), tos.BuildErrorPromptText("")) {
 		t.Errorf("Expected %v, got %v", tos.BuildErrorPromptText(""), err)
 	}
 }

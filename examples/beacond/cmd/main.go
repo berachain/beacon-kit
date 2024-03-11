@@ -32,9 +32,9 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/itsdevbear/bolaris/config"
-	cmdconfig "github.com/itsdevbear/bolaris/config/cmd"
-	"github.com/itsdevbear/bolaris/examples/beacond/cmd/root"
+	"github.com/berachain/beacon-kit/config"
+	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
+	"github.com/berachain/beacon-kit/examples/beacond/cmd/root"
 )
 
 func main() {

@@ -97,11 +97,13 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 
 COPY ./examples/beacond/init_first.sh /usr/bin/init_first.sh
 COPY ./examples/beacond/init_others.sh /usr/bin/init_others.sh
+COPY ./examples/beacond/init_full.sh /usr/bin/init_full.sh
 COPY ./examples/beacond/finalize.sh /usr/bin/finalize.sh
 COPY ./examples/beacond/start.sh /usr/bin/start.sh
 
 RUN chmod +x /usr/bin/init_first.sh
 RUN chmod +x /usr/bin/init_others.sh
+RUN chmod +x /usr/bin/init_full.sh
 RUN chmod +x /usr/bin/finalize.sh
 RUN chmod +x /usr/bin/start.sh
 

@@ -28,8 +28,7 @@ package ssf
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/forkchoice"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // ForkChoice represents the single-slot finality forkchoice algoritmn.
@@ -47,18 +46,25 @@ func New(kv SingleSlotFinalityStore) *ForkChoice {
 	}
 }
 
-// WithContext sets the context for the forkchoice.
-func (f *ForkChoice) WithContext(ctx context.Context) forkchoice.ForkChoicer {
-	f.kv = f.kv.WithContext(ctx)
-	return f
+// SetContext sets the context for the forkchoice.
+func (f *ForkChoice) SetContext(ctx context.Context) {
+	if f == nil || f.kv == nil {
+		panic("ssf: uninitialized forkchoice instance")
+	} else if ctx == nil {
+		panic("ssf: nil context")
+	}
+	f.kv.WithContext(ctx)
 }
 
 // InsertNode inserts a new node into the forkchoice.
-func (f *ForkChoice) InsertNode(
-	hash common.Hash,
+func (f ForkChoice) InsertNode(
+	hash primitives.ExecutionHash,
 ) error {
 	// Since this is single slot finality, we can just set the safe and
 	// finalized block hash to the same value immediately.
+	if f.kv == nil {
+		panic("ssf: uninitialized forkchoice instance")
+	}
 	f.kv.SetFinalizedEth1BlockHash(hash)
 	f.kv.SetSafeEth1BlockHash(hash)
 	return nil
@@ -77,11 +83,11 @@ func (f *ForkChoice) UpdateHeadBeaconBlock(
 }
 
 // JustifiedPayloadBlockHash returns the justified checkpoint.
-func (f *ForkChoice) JustifiedPayloadBlockHash() common.Hash {
+func (f *ForkChoice) JustifiedPayloadBlockHash() primitives.ExecutionHash {
 	return f.kv.GetSafeEth1BlockHash()
 }
 
 // FinalizedPayloadBlockHash returns the finalized checkpoint.
-func (f *ForkChoice) FinalizedPayloadBlockHash() common.Hash {
+func (f *ForkChoice) FinalizedPayloadBlockHash() primitives.ExecutionHash {
 	return f.kv.GetFinalizedEth1BlockHash()
 }

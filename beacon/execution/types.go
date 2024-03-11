@@ -29,11 +29,10 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BeaconStorageBackend is an interface that wraps the basic BeaconState method.
@@ -48,7 +47,7 @@ type LogFactory interface {
 	GetRegisteredAddresses() []primitives.ExecutionAddress
 	ProcessLogs(
 		logs []ethtypes.Log,
-		blkNum uint64,
+		blockHash primitives.ExecutionHash,
 	) ([]*reflect.Value, error)
 }
 
@@ -56,7 +55,7 @@ type LogFactory interface {
 type FCUConfig struct {
 	// HeadEth1Hash is the hash of the head eth1 block we are updating the
 	// execution client's head to be.
-	HeadEth1Hash common.Hash
+	HeadEth1Hash primitives.ExecutionHash
 
 	// ProposingSlot is the slot that the execution client should propose a
 	// block

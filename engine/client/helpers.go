@@ -26,25 +26,22 @@
 package client
 
 import (
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // processPayloadStatusResult processes the payload status result and
 // returns the latest valid hash or an error.
 func processPayloadStatusResult(
-	result *enginev1.PayloadStatus,
-) ([]byte, error) {
-	switch result.GetStatus() {
-	case enginev1.PayloadStatus_INVALID_BLOCK_HASH:
-		return nil, ErrInvalidBlockHashPayloadStatus
-	case enginev1.PayloadStatus_ACCEPTED, enginev1.PayloadStatus_SYNCING:
+	result *enginetypes.PayloadStatus,
+) (*primitives.ExecutionHash, error) {
+	switch result.Status {
+	case enginetypes.PayloadStatusAccepted, enginetypes.PayloadStatusSyncing:
 		return nil, ErrAcceptedSyncingPayloadStatus
-	case enginev1.PayloadStatus_INVALID:
-		return result.GetLatestValidHash(), ErrInvalidPayloadStatus
-	case enginev1.PayloadStatus_VALID:
-		return result.GetLatestValidHash(), nil
-	case enginev1.PayloadStatus_UNKNOWN:
-		fallthrough
+	case enginetypes.PayloadStatusInvalid:
+		return result.LatestValidHash, ErrInvalidPayloadStatus
+	case enginetypes.PayloadStatusValid:
+		return result.LatestValidHash, nil
 	default:
 		return nil, ErrUnknownPayloadStatus
 	}

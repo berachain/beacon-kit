@@ -29,6 +29,8 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/berachain/beacon-kit/beacon/core/randao"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
 	"io"
 	"os"
 
@@ -43,6 +45,10 @@ import (
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+	beaconkitconfig "github.com/berachain/beacon-kit/config"
+	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
+	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
+	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
 	"github.com/cometbft/cometbft/p2p"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -53,12 +59,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	"github.com/itsdevbear/bolaris/beacon/core/randao"
-	beaconkitconfig "github.com/itsdevbear/bolaris/config"
-	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
-	beaconkitruntime "github.com/itsdevbear/bolaris/runtime"
-	beaconkeeper "github.com/itsdevbear/bolaris/runtime/modules/beacon/keeper"
-	stakingwrapper "github.com/itsdevbear/bolaris/runtime/modules/staking"
 	"github.com/spf13/cast"
 )
 

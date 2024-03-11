@@ -26,13 +26,13 @@
 package beacon
 
 import (
-	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 )
 
-func (s *Store) SetRandaoMix(mix randaotypes.Mix) error {
+func (s *Store) SetRandaoMix(mix types.Mix) error {
 	return s.randaoMix.Set(s.ctx, mix)
 }
 
-func (s *Store) RandaoMix() (randaotypes.Mix, error) {
+func (s *Store) RandaoMix() (types.Mix, error) {
 	return s.randaoMix.Get(s.ctx)
 }

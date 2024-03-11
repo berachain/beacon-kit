@@ -27,19 +27,18 @@ package types_test
 
 import (
 	"crypto/rand"
-	bls "github.com/itsdevbear/bolaris/crypto/bls12_381"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	"github.com/itsdevbear/bolaris/crypto/sha256"
 )
 
 func TestMix(t *testing.T) {
 	var initMix types.Mix = sha256.Hash([]byte("init"))
 
-	var randomReveal1 [bls.SignatureLength]byte
+	var randomReveal1 [bls12381.SignatureLength]byte
 	_, err := rand.Read(randomReveal1[:])
 	require.NoError(t, err)
 
@@ -48,7 +47,7 @@ func TestMix(t *testing.T) {
 	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(randomReveal1[:])))
 
 	// Reveal 2, second signer
-	var randomReveal2 [bls.SignatureLength]byte
+	var randomReveal2 [bls12381.SignatureLength]byte
 	_, err = rand.Read(randomReveal2[:])
 	require.NoError(t, err)
 

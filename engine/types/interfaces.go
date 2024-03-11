@@ -26,11 +26,8 @@
 package enginetypes
 
 import (
-	"github.com/itsdevbear/bolaris/math"
-	"github.com/itsdevbear/bolaris/primitives"
+	"github.com/berachain/beacon-kit/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
-	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
-	"google.golang.org/protobuf/proto"
 )
 
 // ExecutionPayloadBody is the interface for the execution data of a block.
@@ -40,34 +37,23 @@ type ExecutionPayloadBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+	IsNil() bool
+	String() string
 	Version() int
 	IsBlinded() bool
-	IsEmpty() bool
-	ToProto() proto.Message
-	GetBlockHash() []byte
-	GetParentHash() []byte
-	GetValue() math.Wei
+	GetBlockHash() primitives.ExecutionHash
+	GetParentHash() primitives.ExecutionHash
 }
 
 // ExecutionPayload represents the execution data of a block.
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*enginev1.Withdrawal
-}
-
-// ExecutionPayloadHeader represents an execution payload header.
-type ExecutionPayloadHeader interface {
-	ExecutionPayloadBody
-	GetTransactionsRoot() []byte
-	GetWithdrawalsRoot() []byte
+	GetWithdrawals() []*Withdrawal
 }
 
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
-	GetPrevRandao() [32]byte
-	GetTimestamp() uint64
-	GetSuggestedFeeRecipient() primitives.ExecutionAddress
-	GetWithdrawals() []*enginev1.Withdrawal
-	GetParentBeaconBlockRoot() [32]byte
+	Version() int
+	Validate() error
 }

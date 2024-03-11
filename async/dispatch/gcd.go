@@ -29,7 +29,7 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	dqueue "github.com/itsdevbear/bolaris/async/dispatch/queue"
+	dqueue "github.com/berachain/beacon-kit/async/dispatch/queue"
 )
 
 const (
@@ -137,7 +137,7 @@ func (gcd *GrandCentralDispatch) GetQueue(id string) Queue {
 	defer gcd.mu.RUnlock()
 	queue, ok := gcd.queues[id]
 	if !ok {
-		return nil
+		panic("queue not found: " + id)
 	}
 	return queue
 }

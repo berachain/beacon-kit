@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	"github.com/itsdevbear/bolaris/db/file"
+	"github.com/berachain/beacon-kit/db/file"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )

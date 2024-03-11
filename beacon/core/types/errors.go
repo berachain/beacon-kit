@@ -26,7 +26,7 @@
 package types
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 )
 
 var (
@@ -38,6 +38,13 @@ var (
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
 
-	// ErrNilBuoy is an error for when the buoy is nil.
-	ErrNilBuoy = errors.New("nil buoy")
+	// ErrNilBlk is an error for when the beacon block is nil.
+	ErrNilBlk = errors.New("nil beacon block")
+
+	// ErrNoPayloadInBlk is an error for when there is no payload
+	// in a beacon block.
+	ErrNilPayloadInBlk = errors.New("nil payload in beacon block")
+
+	// ErrNilBlkBody is an error for when the block body is nil.
+	ErrNilBlkBody = errors.New("nil block body")
 )

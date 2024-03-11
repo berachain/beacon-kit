@@ -28,16 +28,13 @@ package builder
 import (
 	"context"
 	"fmt"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 
-	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
-
-	"github.com/ethereum/go-ethereum/common"
-	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
-	"github.com/itsdevbear/bolaris/config"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/config"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // PayloadBuilder represents a service that is responsible for
@@ -47,8 +44,8 @@ type PayloadBuilder interface {
 		ctx context.Context,
 		slot primitives.Slot,
 		parentBlockRoot [32]byte,
-		parentEth1Hash common.Hash,
-	) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error)
+		parentEth1Hash primitives.ExecutionHash,
+	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
 type RandaoProcessor interface {
@@ -99,6 +96,8 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return nil, err
+	} else if beaconBlock == nil {
+		return nil, beacontypes.ErrNilBlk
 	}
 
 	// Get the payload for the block.
@@ -119,7 +118,11 @@ func (s *Service) RequestBestBlock(
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
-	if err = beaconBlock.AttachExecution(payload); err != nil {
+	body := beaconBlock.GetBody()
+	if body.IsNil() {
+		return nil, beacontypes.ErrNilBlkBody
+	}
+	if err = beaconBlock.GetBody().AttachExecution(payload); err != nil {
 		return nil, err
 	}
 

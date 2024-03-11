@@ -30,26 +30,26 @@ import (
 	"context"
 	"cosmossdk.io/log"
 	"cosmossdk.io/x/staking/keeper"
+	"github.com/berachain/beacon-kit/async/dispatch"
+	"github.com/berachain/beacon-kit/async/notify"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/builder"
+	localbuilder "github.com/berachain/beacon-kit/beacon/builder/local"
+	"github.com/berachain/beacon-kit/beacon/core/randao"
+	"github.com/berachain/beacon-kit/beacon/execution"
+	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
+	"github.com/berachain/beacon-kit/beacon/staking"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
+	"github.com/berachain/beacon-kit/beacon/sync"
+	"github.com/berachain/beacon-kit/cache"
+	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/health"
+	_ "github.com/berachain/beacon-kit/lib/maxprocs"
+	"github.com/berachain/beacon-kit/runtime/abci/proposal"
+	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/itsdevbear/bolaris/async/dispatch"
-	"github.com/itsdevbear/bolaris/async/notify"
-	"github.com/itsdevbear/bolaris/beacon/blockchain"
-	builder "github.com/itsdevbear/bolaris/beacon/builder"
-	localbuilder "github.com/itsdevbear/bolaris/beacon/builder/local"
-	"github.com/itsdevbear/bolaris/beacon/core/randao"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	"github.com/itsdevbear/bolaris/beacon/sync"
-	"github.com/itsdevbear/bolaris/cache"
-	"github.com/itsdevbear/bolaris/config"
-	bls "github.com/itsdevbear/bolaris/crypto/bls12_381"
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/health"
-	_ "github.com/itsdevbear/bolaris/lib/maxprocs"
-	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
-	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -87,7 +87,7 @@ func NewDefaultBeaconKitRuntime(
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
 	logger log.Logger,
-	blsSigner bls.BlsSigner,
+	blsSigner bls12381.BlsSigner,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")

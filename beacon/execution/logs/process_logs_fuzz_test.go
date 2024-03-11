@@ -29,12 +29,12 @@ import (
 	"reflect"
 	"testing"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
+	logmocks "github.com/berachain/beacon-kit/beacon/execution/logs/mocks"
+	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	loghandler "github.com/itsdevbear/bolaris/beacon/execution/logs"
-	"github.com/itsdevbear/bolaris/beacon/staking/logs"
-	logmocks "github.com/itsdevbear/bolaris/beacon/staking/logs/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,18 +67,19 @@ func FuzzProcessLogs(f *testing.F) {
 			require.NoError(t, err)
 
 			var vals []*reflect.Value
-			vals, err = logFactory.ProcessLogs(logs, blkNum)
+			blockHash := [32]byte{byte(blkNum)}
+			vals, err = logFactory.ProcessLogs(logs, blockHash)
 			require.NoError(t, err)
 			require.Len(t, vals, numDepositLogs)
 
 			// Check if the values are returned in the correct order.
 			for i, val := range vals {
-				processedDeposit, ok := val.Interface().(*beacontypesv1.Deposit)
+				processedDeposit, ok := val.Interface().(*beacontypes.Deposit)
 				require.True(t, ok)
 				require.Equal(
 					t,
 					uint64(i*depositFactor),
-					processedDeposit.GetAmount(),
+					processedDeposit.Amount,
 				)
 			}
 		},

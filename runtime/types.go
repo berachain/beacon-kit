@@ -27,10 +27,10 @@ package runtime
 
 import (
 	"context"
-	"github.com/itsdevbear/bolaris/beacon/core/state"
-	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
-	"github.com/itsdevbear/bolaris/beacon/forkchoice/ssf"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 type CometBFTConfig interface {
@@ -51,7 +51,7 @@ type BeaconStorageBackend interface {
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
-		[]*beacontypesv1.Deposit,
-		[]*enginev1.Withdrawal,
+		[]*beacontypes.Deposit,
+		[]*enginetypes.Withdrawal,
 	) error
 }

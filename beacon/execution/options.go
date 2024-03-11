@@ -26,8 +26,8 @@
 package execution
 
 import (
-	engineclient "github.com/itsdevbear/bolaris/engine/client"
-	"github.com/itsdevbear/bolaris/runtime/service"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService returns an Option that sets the BaseService for the Service.
@@ -39,7 +39,7 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 }
 
 // WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec engineclient.Caller) service.Option[Service] {
+func WithEngineCaller(ec *engineclient.EngineClient) service.Option[Service] {
 	return func(s *Service) error {
 		s.engine = ec
 		return nil

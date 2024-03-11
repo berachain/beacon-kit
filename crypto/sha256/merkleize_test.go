@@ -28,7 +28,7 @@ package sha256_test
 import (
 	"testing"
 
-	"github.com/itsdevbear/bolaris/crypto/sha256"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
 	"github.com/stretchr/testify/require"
 )

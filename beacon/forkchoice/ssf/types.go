@@ -28,7 +28,7 @@ package ssf
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // SingleSlotFinalityStore is the interface for the required storage
@@ -38,21 +38,21 @@ type SingleSlotFinalityStore interface {
 	WithContext(ctx context.Context) SingleSlotFinalityStore
 
 	// SetSafeEth1BlockHash sets the safe block hash in the store.
-	SetSafeEth1BlockHash(blockHash common.Hash)
+	SetSafeEth1BlockHash(blockHash primitives.ExecutionHash)
 
 	// GetSafeEth1BlockHash retrieves the safe block hash from the store.
-	GetSafeEth1BlockHash() common.Hash
+	GetSafeEth1BlockHash() primitives.ExecutionHash
 
 	// SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-	SetFinalizedEth1BlockHash(blockHash common.Hash)
+	SetFinalizedEth1BlockHash(blockHash primitives.ExecutionHash)
 	// GetFinalizedEth1BlockHash retrieves the finalized block hash from the
 	// store.
-	GetFinalizedEth1BlockHash() common.Hash
+	GetFinalizedEth1BlockHash() primitives.ExecutionHash
 
 	// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the
 	// store.
-	GenesisEth1Hash() common.Hash
+	GenesisEth1Hash() primitives.ExecutionHash
 
 	// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the store.
-	SetGenesisEth1Hash(common.Hash)
+	SetGenesisEth1Hash(primitives.ExecutionHash)
 }

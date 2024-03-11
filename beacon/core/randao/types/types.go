@@ -26,8 +26,8 @@
 package types
 
 import (
-	bls "github.com/itsdevbear/bolaris/crypto/bls12_381"
-	"github.com/itsdevbear/bolaris/crypto/sha256"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	sha2562 "github.com/berachain/beacon-kit/crypto/sha256"
 )
 
 type Domain [32]byte
@@ -37,7 +37,7 @@ func BuildDomain() Domain {
 }
 
 // Reveal represents the signature of the RANDAO reveal.
-type Reveal [bls.SignatureLength]byte
+type Reveal [bls12381.SignatureLength]byte
 
 // Mix
 // We can think of a RANDAO as being like a deck of cards that's passed round
@@ -56,7 +56,7 @@ type Mix [MixLength]byte
 // MixinNewReveal
 // mixes a new reveal to the current mix and returns the result.
 func (m Mix) MixinNewReveal(reveal Reveal) Mix {
-	for idx, b := range sha256.Hash(reveal[:]) {
+	for idx, b := range sha2562.Hash(reveal[:]) {
 		m[idx] ^= b
 	}
 

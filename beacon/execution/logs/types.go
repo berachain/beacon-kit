@@ -25,10 +25,23 @@
 
 package logs
 
-import "github.com/itsdevbear/bolaris/primitives"
+import "github.com/berachain/beacon-kit/primitives"
 
 // LogRequest is a request for logs sent from a service.
 type LogRequest struct {
 	ContractAddress primitives.ExecutionAddress
 	Allocator       *TypeAllocator
+}
+
+// LogContainer is a container for processed logs.
+type LogContainer interface {
+	BlockNumber() uint64
+	LogIndex() uint64
+}
+
+type LogCache interface {
+	// Insert inserts a log into the cache.
+	Insert(log LogContainer) error
+	// Remove removes at most n logs from the given index.
+	Remove(index uint64, n uint64) ([]LogContainer, error)
 }

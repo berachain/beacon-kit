@@ -27,23 +27,21 @@ package localbuilder
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/execution"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/itsdevbear/bolaris/beacon/execution"
-	enginetypes "github.com/itsdevbear/bolaris/engine/types"
-	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BuildLocalPayload builds a payload for the given slot and
 // returns the payload ID.
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,
@@ -68,6 +66,7 @@ func (s *Service) BuildLocalPayload(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
 		"parent_eth1_hash", parentEth1Hash,
+		// TODO: don't use execution hash for beacon root.
 		"parent_block_root", common.Hash(parentBlockRoot),
 	)
 	payloadID, err = s.es.NotifyForkchoiceUpdate(
@@ -88,13 +87,13 @@ func (s *Service) BuildLocalPayload(
 	s.Logger().Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", fcuConfig.HeadEth1Hash,
 		"for_slot", fcuConfig.ProposingSlot,
-		"payload_id", fmt.Sprintf("%#x", *payloadID),
+		"payload_id", payloadID,
 	)
 
 	s.payloadCache.Set(
 		fcuConfig.ProposingSlot,
 		parentBlockRoot,
-		enginetypes.PayloadID(payloadID[:]),
+		*payloadID,
 	)
 
 	s.SetStatus(nil)
@@ -109,8 +108,8 @@ func (s *Service) GetBestPayload(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
-	parentEth1Hash common.Hash,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+	parentEth1Hash primitives.ExecutionHash,
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -156,7 +155,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.payloadCache.Get(slot, parentBlockRoot)
@@ -165,7 +164,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
 			s.getPayloadFromExecutionClient(
-				ctx, enginetypes.PayloadID(payloadID[:]), slot,
+				ctx, &payloadID, slot,
 			)
 		if err == nil {
 			// bundleCache.add(slot, bundle)
@@ -185,11 +184,11 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 // payload from the execution client.
 func (s *Service) buildAndWaitForLocalPayload(
 	ctx context.Context,
-	parentEth1Hash common.Hash,
+	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot [32]byte,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
@@ -216,7 +215,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Get the payload from the execution client.
 	payload, blobsBundle, overrideBuilder, err :=
 		s.getPayloadFromExecutionClient(
-			ctx, *payloadID, slot,
+			ctx, payloadID, slot,
 		)
 	if err != nil {
 		return nil, nil, false, err
@@ -227,9 +226,10 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// bundleCache.add(slot, bundle)
 	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
 
-	s.Logger().Debug(
-		"received execution payload from local engine", "value", payload.GetValue(),
-	)
+	// s.Logger().Debug(
+	// 	"received execution payload from local engine", "value",
+	// payload.GetValue(),
+	// )
 	return payload, blobsBundle, overrideBuilder, nil
 }
 
@@ -257,8 +257,7 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	// Build the payload attributes.
-	attrs, err := enginetypes.NewPayloadAttributes(
+	return enginetypes.NewPayloadAttributes(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
@@ -266,36 +265,44 @@ func (s *Service) getPayloadAttribute(
 		withdrawals,
 		prevHeadRoot,
 	)
-	if err != nil {
-		return nil, errors.New("could not create payload attributes")
-	}
-
-	return attrs, nil
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the
 // given slot.
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
-	payloadID enginetypes.PayloadID,
+	payloadID *enginetypes.PayloadID,
 	slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *enginev1.BlobsBundle, bool, error) {
+) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
+	if payloadID == nil {
+		return nil, nil, false, ErrNilPayloadID
+	}
+
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
 		ctx,
-		payloadID,
+		*payloadID,
 		slot,
 	)
 	if err != nil {
 		return nil, nil, false, err
 	}
 
-	s.Logger().Info("payload retrieved from local builder 🏗️ ",
+	args := []any{
 		"for_slot", slot,
-		"block_hash", common.BytesToHash(payload.GetBlockHash()),
-		"parent_hash", common.BytesToHash(payload.GetParentHash()),
-		"value", payload.GetValue().ToEther(),
 		"override_builder", overrideBuilder,
-		"num_blobs", len(blobsBundle.GetBlobs()),
-	)
+	}
+
+	if payload != nil && !payload.IsNil() {
+		args = append(args,
+			"payload_block_hash", payload.GetBlockHash(),
+			"parent_hash", payload.GetParentHash(),
+		)
+	}
+
+	if blobsBundle != nil {
+		args = append(args, "num_blobs", len(blobsBundle.Blobs))
+	}
+
+	s.Logger().Info("payload retrieved from local builder 🏗️ ", args...)
 	return payload, blobsBundle, overrideBuilder, err
 }

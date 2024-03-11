@@ -31,7 +31,7 @@ package e2e_test
 import (
 	"testing"
 
-	"github.com/itsdevbear/bolaris/e2e/suite"
+	"github.com/berachain/beacon-kit/e2e/suite"
 )
 
 // TestBeaconKitE2ESuite runs the test suite.

@@ -26,8 +26,8 @@
 package config
 
 import (
-	"github.com/itsdevbear/bolaris/config/flags"
-	"github.com/itsdevbear/bolaris/io/cli/parser"
+	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/io/cli/parser"
 )
 
 // Limits conforms to the BeaconKitConfig interface.
