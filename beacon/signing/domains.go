@@ -23,14 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bytes
+package signing
 
-import "encoding/binary"
+import "github.com/berachain/beacon-kit/primitives"
 
-// Uint32ToBytes4 is a convenience method for converting uint32 to a fix
-// sized 4 byte array in big endian order. Returns 4 byte array.
-func Uint32ToBytes4(i uint32) Bytes4 {
-	buf := make([]byte, Bytes4Size)
-	binary.BigEndian.PutUint32(buf, i)
-	return ToBytes4(buf)
-}
+// Domain constants for BLS domain types.
+var (
+	DomainBeaconProposer    = primitives.SSZDomain{0x00, 0x00, 0x00, 0x00}
+	DomainBeaconAttester    = primitives.SSZDomain{0x01, 0x00, 0x00, 0x00}
+	DomainRandao            = primitives.SSZDomain{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit           = primitives.SSZDomain{0x03, 0x00, 0x00, 0x00}
+	DomainVoluntaryExit     = primitives.SSZDomain{0x04, 0x00, 0x00, 0x00}
+	DomainSelectionProof    = primitives.SSZDomain{0x05, 0x00, 0x00, 0x00}
+	DomainAggregateAndProof = primitives.SSZDomain{0x06, 0x00, 0x00, 0x00}
+	DomainApplicationMask   = primitives.SSZDomain{0x00, 0x00, 0x00, 0x01}
+)

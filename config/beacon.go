@@ -45,18 +45,15 @@ type Beacon struct {
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
-	// BLSDomains is the configuration for BLS domain values.
-	BLSDomains BLSDomains
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
-		Execution:  DefaultExecutionConfig(),
-		Forks:      DefaultForksConfig(),
-		Limits:     DefaultLimitsConfig(),
-		Validator:  DefaultValidatorConfig(),
-		BLSDomains: DefaultBLSDomainsConfig(),
+		Execution: DefaultExecutionConfig(),
+		Forks:     DefaultForksConfig(),
+		Limits:    DefaultLimitsConfig(),
+		Validator: DefaultValidatorConfig(),
 	}
 }
 
@@ -73,12 +70,11 @@ func (c Beacon) ActiveForkVersion(epoch primitives.Epoch) int {
 // Parse parses the configuration.
 func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 	var (
-		err        error
-		forks      *Forks
-		limits     *Limits
-		validator  *Validator
-		execution  *Execution
-		blsDomains *BLSDomains
+		err       error
+		forks     *Forks
+		limits    *Limits
+		validator *Validator
+		execution *Execution
 	)
 
 	// Parse the forks configuration.
@@ -104,12 +100,6 @@ func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 		return nil, err
 	}
 	c.Execution = *execution
-
-	// Parse the BLS domain configuration.
-	if blsDomains, err = c.BLSDomains.Parse(parser); err != nil {
-		return nil, err
-	}
-	c.BLSDomains = *blsDomains
 
 	return &c, nil
 }
