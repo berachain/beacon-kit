@@ -29,6 +29,6 @@ package abi
 //go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --pkg abi --abi ../out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./beacon_deposit_contract.abigen.go --type BeaconDepositContract
 
 var (
-	//nolint:gochecknoglobals // Avoid re-allocating these variables.
+	//nolint:gochecknoglobals // optimization at runtime.
 	DepositContractABI, _ = BeaconDepositContractMetaData.GetAbi()
 )

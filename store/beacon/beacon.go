@@ -40,6 +40,9 @@ import (
 type Store struct {
 	ctx context.Context
 
+	validatorIndex                    sdkcollections.Sequence
+	validatorIndexToValidatorOperator sdkcollections.Map[uint64, []byte]
+
 	// depositQueue is a list of depositQueue that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
 
@@ -54,20 +57,37 @@ func NewStore(
 	kvs store.KVStoreService,
 ) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+	validatorIndex := sdkcollections.NewSequence(
+		schemaBuilder,
+		sdkcollections.NewPrefix(validatorIndexPrefix),
+		validatorIndexPrefix,
+	)
+	validatorIndexToValidatorOperator := sdkcollections.NewMap[uint64, []byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(validatorIndexToAddressPrefix),
+		validatorIndexToAddressPrefix,
+		sdkcollections.Uint64Key,
+		sdkcollections.BytesValue,
+	)
+
 	depositQueue := collections.NewQueue[*beacontypes.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
 		encoding.SSZValueCodec[*beacontypes.Deposit]{},
 	)
+
 	parentBlockRoot := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(parentBlockRootPrefix),
 		parentBlockRootPrefix,
 		sdkcollections.BytesValue,
 	)
+
 	return &Store{
-		depositQueue:    depositQueue,
-		parentBlockRoot: parentBlockRoot,
+		validatorIndex:                    validatorIndex,
+		validatorIndexToValidatorOperator: validatorIndexToValidatorOperator,
+		depositQueue:                      depositQueue,
+		parentBlockRoot:                   parentBlockRoot,
 	}
 }
 
