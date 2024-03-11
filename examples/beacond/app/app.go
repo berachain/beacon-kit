@@ -163,7 +163,9 @@ func NewBeaconKitApp(
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
 
-	app.BeaconKeeper.SetValsetChangeProvider(stakingwrapper.NewKeeper(app.StakingKeeper))
+	// TODO: Fix Depinject.
+	app.BeaconKeeper.SetValsetChangeProvider(
+		stakingwrapper.NewKeeper(app.StakingKeeper))
 
 	/**** End of BeaconKit Configuration ****/
 
