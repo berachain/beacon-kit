@@ -30,6 +30,7 @@ import (
 
 	stakingtypes "cosmossdk.io/x/staking/types"
 	cosmoslib "github.com/berachain/beacon-kit/lib/cosmos"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -53,5 +54,23 @@ func (h StakingHooks) AfterValidatorCreated(
 	ctx context.Context,
 	valAddr sdk.ValAddress,
 ) error {
-	return h.k.beaconStore.AddValidator(ctx, valAddr)
+	val, err := h.k.vcp.ValidatorsByValAddress().Get(ctx, valAddr)
+	if err != nil {
+		return err
+	}
+	pk, err := val.ConsPubKey()
+	if err != nil {
+		return err
+	}
+	return h.k.beaconStore.AddValidator(ctx, pk.Bytes())
+}
+
+// AfterConsensusPubKeyUpdate does nothing and returns nil.
+func (h StakingHooks) AfterConsensusPubKeyUpdate(
+	ctx context.Context,
+	fromPubkey cryptotypes.PubKey,
+	toPubkey cryptotypes.PubKey,
+	_ sdk.Coin,
+) error {
+	return h.k.beaconStore.UpdateValidator(ctx, fromPubkey.Bytes(), toPubkey.Bytes())
 }
