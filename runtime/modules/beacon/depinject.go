@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	modulev1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 )
@@ -54,6 +55,7 @@ type DepInjectOutput struct {
 
 	Keeper *keeper.Keeper
 	Module appmodule.AppModule
+	Hooks  stakingtypes.StakingHooksWrapper
 }
 
 // ProvideModule is a function that provides the module to the application.
@@ -66,5 +68,6 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 	return DepInjectOutput{
 		Keeper: k,
 		Module: m,
+		Hooks:  stakingtypes.StakingHooksWrapper{k.Hooks()},
 	}
 }

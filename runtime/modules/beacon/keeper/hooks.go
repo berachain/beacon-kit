@@ -23,12 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package keeper
 
-// Collection prefixes.
-const (
-	parentBlockRootPrefix                   = "parent_block_root"
-	depositQueuePrefix                      = "deposit_queue"
-	validatorIndexPrefix                    = "validator_index"
-	validatorIndexToValidatorOperatorPrefix = "validator_index_to_validator_operator"
+import (
+	"context"
+
+	stakingtypes "cosmossdk.io/x/staking/types"
+	cosmoslib "github.com/berachain/beacon-kit/lib/cosmos"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// StakingHooks struct.
+type StakingHooks struct {
+	*cosmoslib.UnimplementedStakingHooks
+	k Keeper
+}
+
+// Verify that the Hooks struct implements the stakingtypes.StakingHooks
+// interface.
+var _ stakingtypes.StakingHooks = StakingHooks{}
+
+// Create new stakinghooks hooks.
+func (k Keeper) Hooks() StakingHooks {
+	return StakingHooks{&cosmoslib.UnimplementedStakingHooks{}, k}
+}
+
+// initialize validator distribution record.
+func (h StakingHooks) AfterValidatorCreated(
+	ctx context.Context,
+	valAddr sdk.ValAddress,
+) error {
+	return h.k.beaconStore.RegisterNewValidator(ctx, valAddr)
+}
