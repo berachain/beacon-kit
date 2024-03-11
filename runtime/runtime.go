@@ -116,12 +116,6 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithGCD(gcd),
 	)
 
-	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.ShallowCopy("staking")),
-		staking.WithValsetChangeProvider(vcp),
-	)
-
 	// logFactory is used by the execution service to unmarshal
 	// logs retrieved from the engine client.
 	stakingLogRequest, err := logs.NewStakingRequest(
@@ -137,11 +131,18 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
+	// Build the staking service.
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
+		staking.WithValsetChangeProvider(vcp),
+	)
+
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
 		execution.WithLogFactory(logFactory),
+		execution.WithStakingService(stakingService),
 	)
 
 	// Build the local builder service.
@@ -169,7 +170,6 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithStakingService(stakingService),
 		blockchain.WithSyncService(syncService),
 	)
 

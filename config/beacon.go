@@ -36,6 +36,8 @@ var _ BeaconKitConfig[Beacon] = Beacon{}
 
 // Beacon is the configuration for the beacon chain.
 type Beacon struct {
+	// Execution is the configuration for the execution service.
+	Execution Execution
 	// Forks is the configuration for the beacon chain forks.
 	Forks Forks
 	// Limits is the configuration for limits (max/min) on the beacon chain.
@@ -43,17 +45,15 @@ type Beacon struct {
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
-	// Execution is the configuration for the execution service.
-	Execution Execution
 }
 
 // DefaultBeaconConfig returns the default fork configuration.
 func DefaultBeaconConfig() Beacon {
 	return Beacon{
+		Execution: DefaultExecutionConfig(),
 		Forks:     DefaultForksConfig(),
 		Limits:    DefaultLimitsConfig(),
 		Validator: DefaultValidatorConfig(),
-		Execution: DefaultExecutionConfig(),
 	}
 }
 

@@ -137,9 +137,47 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
-	// TODO: Probably add RANDAO and Staking stuff here?
+	// Ensure Body is non nil.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
+	}
 
-	// TODO: how do we handle hard fork boundaries?
+	// ---------------------///
+	// VALIDATE RANDAO HERE ///
+	// ---------------------///
+
+	// ---------------------///
+	//   VALIDATE KZG HERE  ///
+	// ---------------------///
+
+	// Ensure the block deposits are within the limits.
+	deposits := body.GetDeposits()
+	if uint64(len(deposits)) > s.BeaconCfg().Limits.MaxDepositsPerBlock {
+		return fmt.Errorf(
+			"too many deposits, expected: %d, got: %d",
+			s.BeaconCfg().Limits.MaxDepositsPerBlock, len(deposits),
+		)
+	}
+
+	// Ensure the deposits match the local state.
+	localDeposits, err := s.BeaconState(ctx).
+		ExpectedDeposits(uint64(len(deposits)))
+	if err != nil {
+		return err
+	}
+
+	// Ensure the deposits match the local state.
+	for i, dep := range deposits {
+		if dep == nil {
+			return beacontypes.ErrNilDeposit
+		}
+		if dep.Index != localDeposits[i].Index {
+			return fmt.Errorf(
+				"deposit index does not match, expected: %d, got: %d",
+				localDeposits[i].Index, dep.Index)
+		}
+	}
 
 	return nil
 }
