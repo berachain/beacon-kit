@@ -78,7 +78,7 @@ func ExtendToSize(slice []byte, length int) []byte {
 // This method will truncate the input if it is larger
 // than 4 bytes.
 func ToBytes4(x []byte) Bytes4 {
-	return [Bytes4Size]byte(PadTo(x, Bytes4Size))
+	return Bytes4(PadTo(x, Bytes4Size))
 }
 
 // PadTo pads a byte slice to the given size.
