@@ -163,6 +163,7 @@ func (h *Handler) ProcessProposalHandler(
 	epoch := primitives.ToEpoch(primitives.Slot(req.Height))
 
 	proposerPubKey := h.extractProposalPublicKey(ctx, req)
+
 	if !h.randaoProcessor.VerifyReveal(proposerPubKey, h.randaoProcessor.GetSigningRoot(epoch), block.GetRandaoReveal()) {
 		logger.Warn("failed to verify reveal")
 		return &abci.ResponseProcessProposal{
