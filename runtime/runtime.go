@@ -30,7 +30,6 @@ import (
 	"context"
 	"cosmossdk.io/log"
 	"cosmossdk.io/x/staking/keeper"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/bolaris/async/dispatch"
 	"github.com/itsdevbear/bolaris/async/notify"
@@ -49,17 +48,19 @@ import (
 	engineclient "github.com/itsdevbear/bolaris/engine/client"
 	"github.com/itsdevbear/bolaris/health"
 	_ "github.com/itsdevbear/bolaris/lib/maxprocs"
+	"github.com/itsdevbear/bolaris/runtime/abci/proposal"
 	"github.com/itsdevbear/bolaris/runtime/service"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg           *config.Config
-	logger        log.Logger
-	fscp          BeaconStorageBackend
-	services      *service.Registry
-	stakingKeeper *keeper.Keeper
+	cfg             *config.Config
+	logger          log.Logger
+	fscp            BeaconStorageBackend
+	services        *service.Registry
+	stakingKeeper   *keeper.Keeper
+	randaoProcessor proposal.RandaoProcessor
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -203,15 +204,13 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
-	// REMOVE
-	fmt.Printf("AAAAAAA -remove: %#v\n", vcp)
-
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
 		WithBeaconStorageBackend(bsb),
 		WithConfig(cfg),
 		WithLogger(logger),
 		WithServiceRegistry(svcRegistry),
+		WithRandaoProcessor(processor),
 	)
 }
 

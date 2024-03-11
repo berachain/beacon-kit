@@ -28,7 +28,6 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"cosmossdk.io/x/staking/keeper"
 	"github.com/itsdevbear/bolaris/beacon/staking"
 	"github.com/itsdevbear/bolaris/config"
 	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
@@ -40,12 +39,11 @@ import (
 type DepInjectInput struct {
 	depinject.In
 
-	Config        *config.Config
-	Bsp           BeaconStorageBackend
-	Vcp           staking.ValsetChangeProvider
-	StakingKeeper keeper.Keeper
-	Logger        log.Logger
-	Signer        bls12381.BlsSigner
+	Config *config.Config
+	Bsp    BeaconStorageBackend
+	Vcp    staking.ValsetChangeProvider
+	Logger log.Logger
+	Signer bls12381.BlsSigner
 }
 
 // DepInjectOutput is the output for the dep inject framework.

@@ -25,9 +25,16 @@
 
 package types
 
+import randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
+
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		//nolint:lll
 		Eth1GenesisHash: "0x882d025809a51267c3509e0c98f998781a41ecfcd1238f3f83a5ccf83d0f420a",
+		RandaoMix:       make([]byte, randaotypes.MixLength),
 	}
+}
+
+func (gs *GenesisState) Mix() randaotypes.Mix {
+	return randaotypes.Mix(gs.RandaoMix)
 }

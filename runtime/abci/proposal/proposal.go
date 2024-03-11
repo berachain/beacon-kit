@@ -26,9 +26,12 @@
 package proposal
 
 import (
-	"cosmossdk.io/x/staking/keeper"
-	"fmt"
+	"context"
 	"time"
+
+	"cosmossdk.io/x/staking/keeper"
+	"github.com/itsdevbear/bolaris/beacon/core/randao/types"
+	bls12381 "github.com/itsdevbear/bolaris/crypto/bls12_381"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -42,16 +45,29 @@ import (
 	abcitypes "github.com/itsdevbear/bolaris/runtime/abci/types"
 )
 
+type RandaoProcessor interface {
+	BuildReveal(ctx context.Context, epoch primitives.Epoch) (types.Reveal, error)
+	VerifyReveal(
+		proposerPubkey [bls12381.PubKeyLength]byte,
+		msg []byte,
+		reveal types.Reveal,
+	) bool
+	GetSigningRoot(
+		epoch primitives.Epoch,
+	) []byte
+}
+
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg            *config.ABCI
-	builderService *builder.Service
-	chainService   *blockchain.Service
-	healthService  *health.Service
-	nextPrepare    sdk.PrepareProposalHandler
-	nextProcess    sdk.ProcessProposalHandler
-	stakingKeeper  keeper.Keeper
+	cfg             *config.ABCI
+	builderService  *builder.Service
+	chainService    *blockchain.Service
+	healthService   *health.Service
+	nextPrepare     sdk.PrepareProposalHandler
+	nextProcess     sdk.ProcessProposalHandler
+	stakingKeeper   *keeper.Keeper
+	randaoProcessor RandaoProcessor
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -62,14 +78,18 @@ func NewHandler(
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
+	stakingKeeper *keeper.Keeper,
+	processor RandaoProcessor,
 ) *Handler {
 	return &Handler{
-		cfg:            cfg,
-		builderService: builderService,
-		healthService:  healthService,
-		chainService:   chainService,
-		nextPrepare:    nextPrepare,
-		nextProcess:    nextProcess,
+		cfg:             cfg,
+		builderService:  builderService,
+		healthService:   healthService,
+		chainService:    chainService,
+		nextPrepare:     nextPrepare,
+		nextProcess:     nextProcess,
+		stakingKeeper:   stakingKeeper,
+		randaoProcessor: processor,
 	}
 }
 
@@ -133,13 +153,16 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 
-	// Validate Reveal
-	v, err := h.stakingKeeper.ValidatorByConsensusAddress.Get(ctx, req.ProposerAddress)
-	if err != nil {
-		logger.Warn("failed to get validator", "error", err)
-		panic("failed to get validator by consensus address")
+	epoch := primitives.ToEpoch(primitives.Slot(req.Height))
+
+	proposerPubKey := h.extractProposalPublicKey(ctx, req)
+	if !h.randaoProcessor.VerifyReveal(proposerPubKey, h.randaoProcessor.GetSigningRoot(epoch), block.GetReveal()) {
+		logger.Warn("failed to verify reveal")
+		return &abci.ResponseProcessProposal{
+			Status: abci.ResponseProcessProposal_REJECT}, nil
 	}
-	fmt.Printf("proposer Address: %v\n", v)
+
+	logger.Info("verified reveal", "proposer", proposerPubKey)
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
@@ -166,4 +189,36 @@ func (h *Handler) ProcessProposalHandler(
 	)
 
 	return h.nextProcess(ctx, req)
+}
+
+// extractProposalPublicKey returns the public key of the proposer of the block.
+func (h *Handler) extractProposalPublicKey(
+	ctx sdk.Context,
+	req *abci.RequestProcessProposal,
+) [bls12381.PubKeyLength]byte {
+	logger := ctx.Logger().With("module", "process-proposal")
+
+	// Validate Reveal
+	v, err := h.stakingKeeper.ValidatorByConsensusAddress.Get(ctx, req.ProposerAddress)
+	if err != nil {
+		logger.Warn("failed to get validator", "error", err)
+		panic("failed to get validator by consensus address")
+	}
+
+	validator, err := h.stakingKeeper.GetValidator(ctx, v)
+	if err != nil {
+		logger.Warn("failed to get validator", "error", err)
+		panic("failed to get validator by consensus address")
+	}
+
+	key, err := validator.CmtConsPublicKey()
+	if err != nil {
+		logger.Warn("failed to get validator", "error", err)
+		panic("failed to get validator by consensus address")
+	}
+
+	var pubKey [bls12381.PubKeyLength]byte
+	copy(pubKey[:], key.GetBls12381())
+
+	return pubKey
 }

@@ -27,6 +27,7 @@ package beacon
 
 import (
 	"context"
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
@@ -47,6 +48,8 @@ type Store struct {
 	// head block root for block construction as needed
 	// by eip-4788.
 	parentBlockRoot sdkcollections.Item[[]byte]
+
+	randaoMix sdkcollections.Item[[randaotypes.MixLength]byte]
 }
 
 // Store creates a new instance of Store.
@@ -65,9 +68,18 @@ func NewStore(
 		parentBlockRootPrefix,
 		sdkcollections.BytesValue,
 	)
+
+	randaoMix := sdkcollections.NewItem[[randaotypes.MixLength]byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(randaoMixPrefix),
+		randaoMixPrefix,
+		encoding.Bytes32ValueCodec{},
+	)
+
 	return &Store{
 		depositQueue:    depositQueue,
 		parentBlockRoot: parentBlockRoot,
+		randaoMix:       randaoMix,
 	}
 }
 

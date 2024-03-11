@@ -86,9 +86,7 @@ func (s *Service) RequestBestBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 
-	epoch := primitives.ToEpoch(slot)
-
-	reveal, err := s.randaoProcessor.BuildReveal(ctx, epoch)
+	reveal, err := s.randaoProcessor.BuildReveal(ctx, primitives.ToEpoch(slot))
 	if err != nil {
 		return nil, fmt.Errorf("failed to build reveal: %w", err)
 	}
@@ -102,8 +100,6 @@ func (s *Service) RequestBestBlock(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("AAAAAAAAAAAAAAA %#v\n", beaconBlock.GetReveal())
 
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(

@@ -27,6 +27,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
@@ -78,6 +79,19 @@ func (s *Service) FinalizeBeaconBlock(
 	if err != nil {
 		return err
 	}
+
+	randaoMix, err := state.RandaoMix()
+	if err != nil {
+		return fmt.Errorf("failed to get randao mix: %w", err)
+	}
+	reveal := blk.GetReveal()
+
+	newMix := randaoMix.MixinNewReveal(reveal)
+	err = state.SetRandaoMix(newMix)
+	if err != nil {
+		return fmt.Errorf("failed to set new randao mix: %w", err)
+	}
+	s.Logger().Info("updated randao mix", "new_mix", newMix)
 
 	// TODO: PROCESS LOGS HERE
 	// TODO: PROCESS DEPOSITS HERE

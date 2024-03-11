@@ -27,17 +27,12 @@ package beacon
 
 import (
 	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
-// SetLastValidHead sets the last valid head in the store.
-// TODO: Make this in-mem thing more robust.
-func (s *Store) SetRandaoMix(primitives.Epoch, randaotypes.Mix) error {
-	return nil
+func (s *Store) SetRandaoMix(mix randaotypes.Mix) error {
+	return s.randaoMix.Set(s.ctx, mix)
 }
 
-// GetLastValidHead retrieves the last valid head from the store.
-// TODO: Make this in-mem thing more robust.
 func (s *Store) RandaoMix() (randaotypes.Mix, error) {
-	return randaotypes.Mix{}, nil
+	return s.randaoMix.Get(s.ctx)
 }

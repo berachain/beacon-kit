@@ -48,7 +48,10 @@ type Reveal [bls.SignatureLength]byte
 // In order to accomplish this, we need to keep track of the "current mix",
 // which represents the current state of this shuffled deck of cards, as it
 // is passed around the table.
-type Mix [32]byte
+
+const MixLength = 32
+
+type Mix [MixLength]byte
 
 // MixinNewReveal
 // mixes a new reveal to the current mix and returns the result.

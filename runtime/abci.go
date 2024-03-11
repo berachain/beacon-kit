@@ -73,6 +73,8 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		chainService,
 		nextPrepare,
 		nextProcess,
+		r.stakingKeeper,
+		r.randaoProcessor,
 	)
 
 	preBlocker := preblock.NewBeaconPreBlockHandler(

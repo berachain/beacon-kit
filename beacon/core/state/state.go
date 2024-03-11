@@ -29,7 +29,6 @@ import (
 	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	beacontypesv1 "github.com/itsdevbear/bolaris/beacon/core/types/v1"
 	enginev1 "github.com/itsdevbear/bolaris/engine/types/v1"
-	"github.com/itsdevbear/bolaris/primitives"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -49,13 +48,10 @@ type ReadOnlyBeaconState interface {
 
 	SetParentBlockRoot([32]byte)
 	GetParentBlockRoot() [32]byte
-
-	// TODO: Actually decouple epocha nd slot
-	// GetEpochBySlot(primitives.Slot) primitives.Epoch
 }
 
 type WriteOnlyRandaoMixes interface {
-	SetRandaoMix(primitives.Epoch, randaotypes.Mix) error
+	SetRandaoMix(randaotypes.Mix) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao

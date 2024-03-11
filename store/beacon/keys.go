@@ -29,4 +29,5 @@ package beacon
 const (
 	parentBlockRootPrefix = "parent_block_root"
 	depositQueuePrefix    = "deposit_queue"
+	randaoMixPrefix       = "randao_mix"
 )

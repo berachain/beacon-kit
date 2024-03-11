@@ -27,12 +27,11 @@ package preblock
 
 import (
 	"context"
-	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
-
 	"cosmossdk.io/log"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/itsdevbear/bolaris/beacon/blockchain"
+	randaotypes "github.com/itsdevbear/bolaris/beacon/core/randao/types"
 	"github.com/itsdevbear/bolaris/beacon/core/state"
 	beacontypes "github.com/itsdevbear/bolaris/beacon/core/types"
 	"github.com/itsdevbear/bolaris/beacon/sync"
