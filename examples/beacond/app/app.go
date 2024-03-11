@@ -109,7 +109,6 @@ func NewBeaconKitApp(
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
 	clientCtx := client.Context{}
-	vcp := stakingwrapper.NewKeeper(app.StakingKeeper)
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
@@ -125,7 +124,7 @@ func NewBeaconKitApp(
 				// supply beaconkit options
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 				// supply our custom staking wrapper.
-				vcp,
+				stakingwrapper.NewKeeper(app.StakingKeeper),
 			),
 		),
 		&appBuilder,
@@ -165,7 +164,7 @@ func NewBeaconKitApp(
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
 
-	app.BeaconKeeper.SetValsetChangeProvider(vcp)
+	app.BeaconKeeper.SetValsetChangeProvider(stakingwrapper.NewKeeper(app.StakingKeeper))
 
 	/**** End of BeaconKit Configuration ****/
 
