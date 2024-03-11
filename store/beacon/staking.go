@@ -35,8 +35,8 @@ import (
 
 // Validator Management
 
-// RegisterNewValidator registers a new validator in the beacon state.
-func (s *Store) RegisterNewValidator(
+// AddValidator registers a new validator in the beacon state.
+func (s *Store) AddValidator(
 	ctx context.Context,
 	valAddr []byte,
 ) error {

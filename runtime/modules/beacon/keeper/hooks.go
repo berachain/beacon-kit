@@ -53,5 +53,5 @@ func (h StakingHooks) AfterValidatorCreated(
 	ctx context.Context,
 	valAddr sdk.ValAddress,
 ) error {
-	return h.k.beaconStore.RegisterNewValidator(ctx, valAddr)
+	return h.k.beaconStore.AddValidator(ctx, valAddr)
 }
