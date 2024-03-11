@@ -47,4 +47,10 @@ var (
 
 	// ErrNilBlkBody is an error for when the block body is nil.
 	ErrNilBlkBody = errors.New("nil block body")
+
+	// ErrNilDeposit is an error for when the deposit is nil.
+	ErrNilDeposit = errors.New("nil deposits")
+
+	// ErrNilDeposits is an error for when the deposits are nil.
+	ErrNilDeposits = errors.New("nil deposits")
 )

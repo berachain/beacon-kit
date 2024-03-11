@@ -23,42 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package abi
 
 import (
-	"context"
+	"errors"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// AcceptDepositIntoQueue records a deposit in the beacon state's queue.
-func (s *Service) AcceptDepositIntoQueue(
-	ctx context.Context,
-	deposit *beacontypes.Deposit,
-) error {
-	// Push the deposit to the beacon state's queue.
-	err := s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{deposit})
-	if err != nil {
-		return err
-	}
-	return nil
+type WrappedABI struct {
+	*abi.ABI
 }
 
-// ApplyDeposits processes the deposits in the beacon state's queue,
-// up to MaxDepositsPerBlock, by applying them to the underlying staking module.
-func (s *Service) ApplyDeposits(ctx context.Context) error {
-	beaconState := s.BeaconState(ctx)
-
-	// Get deposits, up to MaxDepositsPerBlock, from the queue
-	// to apply to the underlying low-level staking module (e.g Cosmos SDK's
-	// x/staking).
-	deposits, err := beaconState.DequeueDeposits(
-		s.BeaconCfg().Limits.MaxDepositsPerBlock,
-	)
-	if err != nil {
-		return err
+func (wabi WrappedABI) UnpackLogs(
+	out interface{},
+	event string,
+	log types.Log,
+) error {
+	// Anonymous events are not supported.
+	if len(log.Topics) == 0 {
+		return errors.New("abi: cannot unpack anonymous event")
 	}
-
-	// Apply deposists to the underlying staking module.
-	return s.vcp.ApplyChanges(ctx, deposits, nil)
+	if log.Topics[0] != wabi.Events[event].ID {
+		return errors.New("abi: event signature mismatch")
+	}
+	if len(log.Data) > 0 {
+		if err := wabi.UnpackIntoInterface(out, event, log.Data); err != nil {
+			return err
+		}
+	}
+	var indexed abi.Arguments
+	for _, arg := range wabi.Events[event].Inputs {
+		if arg.Indexed {
+			indexed = append(indexed, arg)
+		}
+	}
+	return abi.ParseTopics(out, indexed, log.Topics[1:])
 }

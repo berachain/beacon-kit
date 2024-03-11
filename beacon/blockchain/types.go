@@ -27,11 +27,11 @@ package blockchain
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/berachain/beacon-kit/beacon/execution"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // LocalBuilder is the interface for the builder service.
@@ -62,14 +62,19 @@ type ExecutionService interface {
 		parentBlockRoot [32]byte,
 	) (bool, error)
 
+	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
 		blockHash primitives.ExecutionHash,
-	) ([]*reflect.Value, error)
+	) error
 }
 
-type StakingService interface{}
-
+type StakingService interface {
+	ProcessBlockEvents(
+		ctx context.Context,
+		logs []ethtypes.Log,
+	) error
+}
 type SyncService interface {
 	IsInitSync() bool
 	Status() error
