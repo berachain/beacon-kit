@@ -37,8 +37,8 @@ func (s *Store) EnqueueDeposits(
 	return s.depositQueue.PushMulti(s.ctx, deposits)
 }
 
-// PeekDeposits returns the first numPeek deposits in the queue.
-func (s *Store) PeekDeposits(
+// ExpectedDeposits returns the first numPeek deposits in the queue.
+func (s *Store) ExpectedDeposits(
 	numPeek uint64,
 ) ([]*beacontypes.Deposit, error) {
 	return s.depositQueue.PeekMulti(s.ctx, numPeek)

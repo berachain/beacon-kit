@@ -118,7 +118,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.BeaconState(ctx).PeekDeposits(
+	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
 		s.BeaconCfg().Limits.MaxDepositsPerBlock,
 	)
 	if err != nil {

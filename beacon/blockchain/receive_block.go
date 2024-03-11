@@ -161,7 +161,8 @@ func (s *Service) validateStateTransition(
 	}
 
 	// Ensure the deposits match the local state.
-	localDeposits, err := s.BeaconState(ctx).PeekDeposits(uint64(len(deposits)))
+	localDeposits, err := s.BeaconState(ctx).
+		ExpectedDeposits(uint64(len(deposits)))
 	if err != nil {
 		return err
 	}
