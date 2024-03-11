@@ -71,7 +71,7 @@ require (
 	github.com/protolambda/ztyp v0.2.2
 	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
-	github.com/prysmaticlabs/prysm/v5 v5.0.0
+	github.com/prysmaticlabs/prysm/v5 v5.0.1
 	github.com/segmentio/golines v0.12.2
 	github.com/sourcegraph/conc v0.3.0
 	github.com/spf13/afero v1.11.0
