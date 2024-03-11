@@ -25,6 +25,8 @@
 
 package primitives
 
+import "github.com/berachain/beacon-kit/lib/bytes"
+
 // SSZDomain is a 4-byte array used to represent a
 // domain type in BLS signing and verification.
-type SSZDomain = [4]byte
+type SSZDomain = bytes.Bytes4

@@ -30,6 +30,9 @@ const (
 	Bytes4Size = 4
 )
 
+// Bytes4 is a convenience type for a 4 byte array.
+type Bytes4 [Bytes4Size]byte
+
 // SafeCopy will copy and return a non-nil byte slice, otherwise it returns nil.
 func SafeCopy(cp []byte) []byte {
 	if cp != nil {
@@ -74,7 +77,7 @@ func ExtendToSize(slice []byte, length int) []byte {
 // a byte slice to a fix sized 4 byte array.
 // This method will truncate the input if it is larger
 // than 4 bytes.
-func ToBytes4(x []byte) [Bytes4Size]byte {
+func ToBytes4(x []byte) Bytes4 {
 	return [Bytes4Size]byte(PadTo(x, Bytes4Size))
 }
 

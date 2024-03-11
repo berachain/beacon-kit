@@ -29,7 +29,7 @@ import "encoding/binary"
 
 // Uint32ToBytes4 is a convenience method for converting uint32 to a fix
 // sized 4 byte array in big endian order. Returns 4 byte array.
-func Uint32ToBytes4(i uint32) [Bytes4Size]byte {
+func Uint32ToBytes4(i uint32) Bytes4 {
 	buf := make([]byte, Bytes4Size)
 	binary.BigEndian.PutUint32(buf, i)
 	return ToBytes4(buf)
