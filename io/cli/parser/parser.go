@@ -31,7 +31,6 @@ import (
 	"net/url"
 	"time"
 
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -107,29 +106,6 @@ func (c *AppOptionsParser) GetHexutilBytes(key string) (hexutil.Bytes, error) {
 		return hexutil.Bytes{}, err
 	}
 	return hexutil.Decode(bytesStr)
-}
-
-// GetBytes4 returns a 4 byte array from a configuration key.
-func (c *AppOptionsParser) GetBytes4(
-	key string,
-) (byteslib.Bytes4, error) {
-	bytesStr, err := c.GetString(key)
-	if err != nil {
-		return byteslib.Bytes4{}, err
-	}
-	bytesArr, err := hexutil.Decode(bytesStr)
-	if err != nil {
-		return byteslib.Bytes4{}, err
-	}
-	if len(bytesArr) != byteslib.Bytes4Size {
-		return byteslib.Bytes4{}, fmt.Errorf(
-			"invalid byte length: %d, expected 4",
-			len(bytesArr),
-		)
-	}
-	var b byteslib.Bytes4
-	copy(b[:], bytesArr)
-	return b, nil
 }
 
 // GetString retrieves a string value from a configuration key.

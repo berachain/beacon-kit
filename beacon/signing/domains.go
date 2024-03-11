@@ -28,6 +28,9 @@ package signing
 import "github.com/berachain/beacon-kit/primitives"
 
 // Domain constants for BLS domain types.
+// Spec: https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+//
+//nolint:lll,gochecknoglobals // Spec url is long.
 var (
 	DomainBeaconProposer    = primitives.SSZDomain{0x00, 0x00, 0x00, 0x00}
 	DomainBeaconAttester    = primitives.SSZDomain{0x01, 0x00, 0x00, 0x00}
