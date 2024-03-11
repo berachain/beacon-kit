@@ -27,7 +27,6 @@ package builder
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
@@ -139,11 +138,8 @@ func (s *Service) RequestBestBlock(
 	s.Logger().Info("finished assembling beacon block 🛟",
 		"slot", slot,
 		"deposits", len(deposits),
-		"duration", fmt.Sprintf(
-			"%.2fms",
-			float64(time.Since(start).Nanoseconds())/float64(time.Millisecond),
-		),
 	)
+
 	// Return the block.
 	return beaconBlock, nil
 }
