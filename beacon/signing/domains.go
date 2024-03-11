@@ -32,12 +32,6 @@ import "github.com/berachain/beacon-kit/primitives"
 //
 //nolint:lll,gochecknoglobals // Spec url is long.
 var (
-	DomainBeaconProposer    = primitives.SSZDomain{0x00, 0x00, 0x00, 0x00}
-	DomainBeaconAttester    = primitives.SSZDomain{0x01, 0x00, 0x00, 0x00}
-	DomainRandao            = primitives.SSZDomain{0x02, 0x00, 0x00, 0x00}
-	DomainDeposit           = primitives.SSZDomain{0x03, 0x00, 0x00, 0x00}
-	DomainVoluntaryExit     = primitives.SSZDomain{0x04, 0x00, 0x00, 0x00}
-	DomainSelectionProof    = primitives.SSZDomain{0x05, 0x00, 0x00, 0x00}
-	DomainAggregateAndProof = primitives.SSZDomain{0x06, 0x00, 0x00, 0x00}
-	DomainApplicationMask   = primitives.SSZDomain{0x00, 0x00, 0x00, 0x01}
+	DomainRandao  = primitives.SSZDomain{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = primitives.SSZDomain{0x03, 0x00, 0x00, 0x00}
 )
