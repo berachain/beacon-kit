@@ -93,7 +93,6 @@ type BeaconApp struct {
 	// beacon-kit required keepers
 	BeaconKeeper     *beaconkeeper.Keeper
 	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
-	StakingWrapper   *stakingwrapper.Keeper
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
