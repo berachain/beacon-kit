@@ -31,6 +31,8 @@ import (
 )
 
 // Validators key: valAddr | value: Validator.
-func (k *Keeper) ValidatorsByValAddress() sdkcollections.Map[[]byte, stakingtypes.Validator] {
+func (k *Keeper) ValidatorsByValAddress() sdkcollections.Map[
+	[]byte, stakingtypes.Validator,
+] {
 	return k.stakingKeeper.Validators
 }
