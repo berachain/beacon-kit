@@ -32,6 +32,7 @@ import (
 
 // Service represents the staking service.
 type Service struct {
+	// BaseService is the base service.
 	service.BaseService
 
 	// vcp is responsible for applying validator set changes.

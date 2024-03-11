@@ -23,18 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package types
 
-import (
-	"context"
-
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-)
-
-func (s *Service) ProcessWithdrawal(
-	_ context.Context,
-	_ *enginetypes.Withdrawal,
-) error {
-	// TODO: implement
-	return nil
+type Redirect struct {
+	Index uint64
 }

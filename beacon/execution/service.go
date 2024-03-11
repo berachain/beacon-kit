@@ -27,7 +27,6 @@ package execution
 
 import (
 	"context"
-	"reflect"
 
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -44,6 +43,7 @@ type Service struct {
 	engine *engineclient.EngineClient
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
+	sks        StakingService
 }
 
 // Start spawns any goroutines required by the service.
@@ -113,16 +113,19 @@ func (s *Service) NotifyNewPayload(
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
 	blockHash primitives.ExecutionHash,
-) ([]*reflect.Value, error) {
+) error {
 	// Gather all the logs corresponding to
 	// the addresses of interest from this block.
 	logsInBlock, err := s.engine.GetLogs(
 		ctx,
 		blockHash,
-		s.logFactory.GetRegisteredAddresses(),
+		[]primitives.ExecutionAddress{
+			s.BeaconCfg().Execution.DepositContractAddress,
+		},
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return s.logFactory.ProcessLogs(logsInBlock, blockHash)
+
+	return s.sks.ProcessBlockEvents(ctx, logsInBlock)
 }

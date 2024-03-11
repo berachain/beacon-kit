@@ -62,6 +62,7 @@ type BeaconPreBlockHandler struct {
 	// syncService is the service that is responsible for syncing the beacon
 	// chain.
 	syncService *sync.Service
+
 	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
 	nextHandler sdk.PreBlocker

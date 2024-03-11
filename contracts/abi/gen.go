@@ -27,3 +27,8 @@ package abi
 
 // This file is used to generate the go bindings for the contracts.
 //go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --pkg abi --abi ../out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./beacon_deposit_contract.abigen.go --type BeaconDepositContract
+
+var (
+	//nolint:gochecknoglobals // Avoid re-allocating these variables.
+	DepositContractABI, _ = BeaconDepositContractMetaData.GetAbi()
+)

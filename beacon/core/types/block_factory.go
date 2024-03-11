@@ -57,7 +57,7 @@ func NewBeaconBlock(
 	}
 
 	if executionData != nil {
-		if err := block.GetBody().AttachExecution(executionData); err != nil {
+		if err := block.GetBody().SetExecutionData(executionData); err != nil {
 			return nil, err
 		}
 	}
