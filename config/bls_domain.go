@@ -67,28 +67,28 @@ func DefaultBLSDomainsConfig() BLSDomains {
 type BLSDomains struct {
 	// DomainBeaconProposer defines the BLS signature domain
 	// for beacon proposal verification.
-	DomainBeaconProposer primitives.DomainType
+	DomainBeaconProposer primitives.SSZDomain
 	// DomainBeaconAttester defines the BLS signature domain
 	// for attestation verification.
-	DomainBeaconAttester primitives.DomainType
+	DomainBeaconAttester primitives.SSZDomain
 	// DomainRandao defines the BLS signature domain
 	// for randao verification.
-	DomainRandao primitives.DomainType
+	DomainRandao primitives.SSZDomain
 	// DomainDeposit defines the BLS signature domain
 	// for deposit verification.
-	DomainDeposit primitives.DomainType
+	DomainDeposit primitives.SSZDomain
 	// DomainVoluntaryExit defines the BLS signature domain
 	// for exit verification.
-	DomainVoluntaryExit primitives.DomainType
+	DomainVoluntaryExit primitives.SSZDomain
 	// DomainSelectionProof defines the BLS signature domain
 	// for selection proof.
-	DomainSelectionProof primitives.DomainType
+	DomainSelectionProof primitives.SSZDomain
 	// DomainAggregateAndProof defines the BLS signature domain
 	// for aggregate and proof.
-	DomainAggregateAndProof primitives.DomainType
+	DomainAggregateAndProof primitives.SSZDomain
 	// DomainApplicationMask defines the BLS signature domain
 	// for application mask.
-	DomainApplicationMask primitives.DomainType
+	DomainApplicationMask primitives.SSZDomain
 }
 
 // Parse parses the configuration.
