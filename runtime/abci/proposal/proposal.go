@@ -123,7 +123,7 @@ func (h *Handler) PrepareProposalHandler(
 	if err != nil {
 		return nil, err
 	}
-	resp.Txs = append([][]byte{blobBz}, resp.Txs...)
+	resp.Txs = append([][]byte{blobBz}, resp.Txs...) // TODO: shouldnt need to add this to the block since its already on the beaconblock
 	return resp, nil
 }
 
@@ -159,8 +159,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
 	// after the underlying process proposal handler has run. This is to avoid
-	// making a
-	// copy of the entire request.
+	// making a copy of the entire request.
 	//
 	// TODO: there has to be a more friendly way to handle this, but hey it
 	// works.
@@ -173,7 +172,7 @@ func (h *Handler) ProcessProposalHandler(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
 
-	if err = blockchain.ProcessBlobsHandler(h.blobstore, req.Height, req.Txs[h.cfg.BlobBlockPosition]); err != nil {
+	if err = blockchain.ProcessBlobsHandler(h.blobstore, req.Height, block.GetBody().GetBlobKzgCommitments()); err != nil {
 		return nil, err
 	}
 

@@ -51,6 +51,12 @@ func (s *Snapshotter[T]) SnapshotExtension(height uint64,
 	return s.m.exportSnapshot(height, payloadWriter)
 }
 
+/*
+loop through all the blob files create a chunk pre file send it out
+
+prune = 100 blocks (100 chunks)
+*/
+
 func (s *Snapshotter[T]) RestoreExtension(height uint64, format uint32,
 	payloadReader snapshot.ExtensionPayloadReader) error {
 	if format == SnapshotFormat {

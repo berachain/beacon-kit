@@ -50,10 +50,9 @@ func PrepareBlobsHandler(storage db.BeaconKitDB,
 
 // Store the blobs in the blobstore.
 func ProcessBlobsHandler(storage db.BeaconKitDB,
-	height int64, blobTx []byte) error {
+	height int64, blobTx [][48]byte) error {
 
-	// Decode the blobs from bytes to []byte
-	var blobs [][]byte
+	// Encode blobs to bytes
 	buf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
 		buf = new(bytes.Buffer)
@@ -62,19 +61,20 @@ func ProcessBlobsHandler(storage db.BeaconKitDB,
 		buf.Reset()
 		bufPool.Put(buf)
 	}()
-	buf.Write(blobTx)
-	dec := gob.NewDecoder(buf)
-	err := dec.Decode(&blobs)
+
+	enc := gob.NewEncoder(buf)
+	err := enc.Encode(blobTx)
 	if err != nil {
 		return err
 	}
+	encodedData := buf.Bytes()
 
 	// TODO: before storage handle validation
 
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, uint64(height))
 	// Store the blobs under a single height.
-	if err := storage.Set(heightBytes, blobTx); err != nil {
+	if err := storage.Set(heightBytes, encodedData); err != nil {
 		return err
 	}
 
