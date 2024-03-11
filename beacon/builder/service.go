@@ -27,7 +27,6 @@ package builder
 
 import (
 	"context"
-	"time"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
@@ -69,7 +68,6 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
 ) (beacontypes.BeaconBlock, error) {
-	start := time.Now()
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
