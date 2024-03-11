@@ -9,7 +9,7 @@ import (
 	"github.com/berachain/beacon-kit/db"
 )
 
-// Create a pool of bytes.Buffers
+// Create a pool of bytes.Buffers.
 var bufPool = &sync.Pool{
 	New: func() interface{} {
 		return new(bytes.Buffer)
@@ -21,16 +21,6 @@ func PrepareBlobsHandler(storage db.BeaconKitDB,
 	height int64, blobs [][48]byte) ([]byte, error) {
 
 	// TODO: before storage handle validation
-	blobTx := make([][]byte, 0, len(blobs))
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, uint64(height))
-	for i, blob := range blobs {
-		if err := storage.Set(heightBytes, blob[:]); err != nil {
-			return nil, err
-		}
-
-		blobTx[i] = blob[:]
-	}
 	// Encode blobs to bytes
 	buf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
@@ -48,14 +38,19 @@ func PrepareBlobsHandler(storage db.BeaconKitDB,
 	}
 	encodedData := buf.Bytes()
 
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, uint64(height))
+	// store the blobs under a single height.
+	if err := storage.Set(heightBytes, encodedData); err != nil {
+		return nil, err
+	}
+
 	return encodedData, nil
 }
 
 // Store the blobs in the blobstore.
 func ProcessBlobsHandler(storage db.BeaconKitDB,
 	height int64, blobTx []byte) error {
-
-	// TODO: before storage handle validation
 
 	// Decode the blobs from bytes to []byte
 	var blobs [][]byte
@@ -74,12 +69,13 @@ func ProcessBlobsHandler(storage db.BeaconKitDB,
 		return err
 	}
 
+	// TODO: before storage handle validation
+
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, uint64(height))
-	for _, blob := range blobs {
-		if err = storage.Set(heightBytes, blob); err != nil {
-			return err
-		}
+	// Store the blobs under a single height.
+	if err := storage.Set(heightBytes, blobTx); err != nil {
+		return err
 	}
 
 	return nil
