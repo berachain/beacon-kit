@@ -1,0 +1,315 @@
+Initializing logger
+Registering providers
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80)
+  Registering resolver for simple type codec.Codec
+  Registering resolver for simple type *codec.LegacyAmino
+  Registering resolver for simple type *runtime.AppBuilder
+  Registering resolver for simple type *baseapp.MsgServiceRouter
+  Registering resolver for one-per-module type appmodule.AppModule
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+  Registering resolver for simple type protodesc.Resolver
+  Registering resolver for simple type protoregistry.MessageTypeResolver
+ Registering resolver for many-per-container type signing.CustomGetSigner
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143)
+  Registering resolver for simple type types.InterfaceRegistry
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideKVStoreKey (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:180)
+  Registering resolver for module-scoped type *types.KVStoreKey
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideTransientStoreKey (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:195)
+  Registering resolver for module-scoped type *types.TransientStoreKey
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideMemoryStoreKey (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:201)
+  Registering resolver for module-scoped type *types.MemoryStoreKey
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideGenesisTxHandler (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:212)
+  Registering resolver for simple type genesis.TxHandler
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+  Registering resolver for module-scoped type store.KVStoreService
+  Registering resolver for module-scoped type appmodule.Environment
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideMemoryStoreService (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:221)
+  Registering resolver for module-scoped type store.MemoryStoreService
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideTransientStoreService (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:226)
+  Registering resolver for module-scoped type store.TransientStoreService
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideModuleManager (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:207)
+  Registering resolver for simple type *module.Manager
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideAppVersionModifier (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:232)
+  Registering resolver for simple type baseapp.AppVersionModifier
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256)
+  Registering resolver for simple type address.Codec
+  Registering resolver for simple type runtime.ValidatorAddressCodec
+  Registering resolver for simple type runtime.ConsensusAddressCodec
+ Registering cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47)
+  Registering resolver for simple type keeper.AccountKeeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Registering cosmossdk.io/x/auth/vesting.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/vesting/depinject.go:36)
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Implicitly registering resolver keeper.AccountKeeper for interface type types.AccountKeeper
+ Registering cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45)
+  Registering resolver for simple type keeper.BaseKeeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Implicitly registering resolver keeper.AccountKeeper for interface type types.AccountKeeper
+ Implicitly registering resolver keeper.BaseKeeper for interface type types.BankKeeper
+ Registering cosmossdk.io/x/staking.ProvideModule (cosmossdk.io/x/staking@v0.0.0-00010101000000-000000000000/depinject.go:57)
+  Registering resolver for simple type *keeper.Keeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Implicitly registering resolver keeper.AccountKeeper for interface type types.AccountKeeper
+ Implicitly registering resolver keeper.BaseKeeper for interface type types.BankKeeper
+ Implicitly registering resolver *keeper.Keeper for interface type types.StakingKeeper
+ Registering cosmossdk.io/x/slashing.ProvideModule (cosmossdk.io/x/slashing@v0.0.0-00010101000000-000000000000/depinject.go:53)
+  Registering resolver for simple type keeper.Keeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+  Registering resolver for one-per-module type types.StakingHooksWrapper
+  Found resolver for types.StakingHooksWrapper: *depinject.onePerModuleResolver
+ Implicitly registering resolver keeper.BaseKeeper for interface type types.BankKeeper
+ Implicitly registering resolver keeper.BaseKeeper for interface type tx.BankKeeper
+ Implicitly registering resolver keeper.AccountKeeper for interface type ante.AccountKeeper
+ Registering cosmossdk.io/x/auth/tx/config.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:69)
+  Registering resolver for simple type client.TxConfig
+  Registering resolver for simple type tx.ConfigOptions
+  Registering resolver for many-per-container type runtime.BaseAppOption
+  Found resolver for runtime.BaseAppOption: *depinject.groupResolver
+ Registering cosmossdk.io/x/auth/tx/config.ProvideProtoRegistry (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:65)
+  Registering resolver for simple type signing.ProtoFileResolver
+ Implicitly registering resolver keeper.AccountKeeper for interface type types.AccountKeeper
+ Implicitly registering resolver *keeper.Keeper for interface type types.StakingKeeper
+ Registering github.com/cosmos/cosmos-sdk/x/genutil.ProvideModule (github.com/cosmos/cosmos-sdk@v0.51.0/x/genutil/depinject.go:36)
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Registering cosmossdk.io/x/upgrade.ProvideModule (cosmossdk.io/x/upgrade@v0.1.1/depinject.go:54)
+  Registering resolver for simple type *keeper.Keeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Implicitly registering resolver *keeper.Keeper for interface type types.StakingKeeper
+ Implicitly registering resolver keeper.Keeper for interface type types.SlashingKeeper
+ Registering cosmossdk.io/x/evidence.ProvideModule (cosmossdk.io/x/evidence@v0.1.0/depinject.go:46)
+  Registering resolver for simple type keeper.Keeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Implicitly registering resolver keeper.AccountKeeper for interface type types.AccountKeeper
+ Implicitly registering resolver keeper.BaseKeeper for interface type types.BankKeeper
+ Implicitly registering resolver *keeper.Keeper for interface type types.StakingKeeper
+ Registering cosmossdk.io/x/mint.ProvideModule (cosmossdk.io/x/mint@v0.0.0-00010101000000-000000000000/depinject.go:47)
+  Registering resolver for simple type keeper.Keeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Registering github.com/cosmos/cosmos-sdk/x/consensus.ProvideModule (github.com/cosmos/cosmos-sdk@v0.51.0/x/consensus/depinject.go:44)
+  Registering resolver for simple type keeper.Keeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+  Found resolver for runtime.BaseAppOption: *depinject.groupResolver
+ Registering github.com/berachain/beacon-kit/runtime/modules/beacon.ProvideModule (github.com/berachain/beacon-kit/runtime/modules/beacon/depinject.go:62)
+  Registering resolver for simple type *keeper.Keeper
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+  Found resolver for types.StakingHooksWrapper: *depinject.onePerModuleResolver
+ Implicitly registering resolver *keeper.Keeper for interface type runtime.BeaconStorageBackend
+ Registering github.com/berachain/beacon-kit/runtime.ProvideRuntime (github.com/berachain/beacon-kit/runtime/depinject.go:61)
+  Registering resolver for simple type *runtime.BeaconKitRuntime
+ Registering github.com/berachain/beacon-kit/config/cmd.ProvideClientContext (github.com/berachain/beacon-kit/config/cmd/depinject.go:62)
+  Registering resolver for simple type client.Context
+Registering outputs
+ Implicitly registering resolver keeper.BaseKeeper for interface type keeper.Keeper
+ Registering github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+Building container
+Resolving dependencies for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+ Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80)
+  Providing types.InterfaceRegistry from github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143) to github.com/cosmos/cosmos-sdk/runtime.ProvideApp
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143)
+   Providing address.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry
+   Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256)
+    Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec
+    Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec
+    Providing zero value for optional dependency func() address.Codec
+    Providing zero value for optional dependency func() runtime.ValidatorAddressCodec
+    Providing zero value for optional dependency func() runtime.ConsensusAddressCodec
+   Calling github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256)
+   Providing runtime.ValidatorAddressCodec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry
+   Providing many-per-container type slice []signing.CustomGetSigner to github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry from:
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143)
+ Calling github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80)
+ Providing client.Context from github.com/berachain/beacon-kit/config/cmd.ProvideClientContext (github.com/berachain/beacon-kit/config/cmd/depinject.go:62) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for github.com/berachain/beacon-kit/config/cmd.ProvideClientContext (github.com/berachain/beacon-kit/config/cmd/depinject.go:62)
+  Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/berachain/beacon-kit/config/cmd.ProvideClientContext
+  Providing types.InterfaceRegistry from github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143) to github.com/berachain/beacon-kit/config/cmd.ProvideClientContext
+  Providing tx.ConfigOptions from cosmossdk.io/x/auth/tx/config.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:69) to github.com/berachain/beacon-kit/config/cmd.ProvideClientContext
+  Resolving dependencies for cosmossdk.io/x/auth/tx/config.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:69)
+   Supplying *configv1.Config from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Providing address.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Providing runtime.ValidatorAddressCodec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Providing signing.ProtoFileResolver from cosmossdk.io/x/auth/tx/config.ProvideProtoRegistry (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:65) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Resolving dependencies for cosmossdk.io/x/auth/tx/config.ProvideProtoRegistry (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:65)
+   Calling cosmossdk.io/x/auth/tx/config.ProvideProtoRegistry (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:65)
+   Providing keeper.BaseKeeper from cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Resolving dependencies for cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45)
+    Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to cosmossdk.io/x/bank.ProvideModule
+    Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/bank.ProvideModule
+    Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to cosmossdk.io/x/bank.ProvideModule
+    Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+     Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+     Providing ModuleKey bank
+     Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+     Implicitly registering resolver log.zeroLogWrapper for interface type log.Logger
+     Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+    Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+    Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to cosmossdk.io/x/bank.ProvideModule
+    Providing keeper.AccountKeeper from cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47) to cosmossdk.io/x/bank.ProvideModule
+    Resolving dependencies for cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47)
+     Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to cosmossdk.io/x/auth.ProvideModule
+     Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to cosmossdk.io/x/auth.ProvideModule
+     Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+      Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+      Providing ModuleKey auth
+      Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+      Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+     Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+     Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/auth.ProvideModule
+     Providing address.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to cosmossdk.io/x/auth.ProvideModule
+     Providing zero value for optional dependency types.RandomGenesisAccountsFn
+     Providing zero value for optional dependency func() types.AccountI
+    Calling cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47)
+   Calling cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45)
+   Providing keeper.BaseKeeper from cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Providing keeper.AccountKeeper from cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47) to cosmossdk.io/x/auth/tx/config.ProvideModule
+   Providing zero value for optional dependency ante.FeegrantKeeper
+   Providing zero value for optional dependency func() []signing.SignModeHandler
+   Providing many-per-container type slice []signing.CustomGetSigner to cosmossdk.io/x/auth/tx/config.ProvideModule from:
+  Calling cosmossdk.io/x/auth/tx/config.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:69)
+  Providing *codec.LegacyAmino from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/berachain/beacon-kit/config/cmd.ProvideClientContext
+  Providing address.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to github.com/berachain/beacon-kit/config/cmd.ProvideClientContext
+  Providing runtime.ValidatorAddressCodec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to github.com/berachain/beacon-kit/config/cmd.ProvideClientContext
+  Providing runtime.ConsensusAddressCodec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to github.com/berachain/beacon-kit/config/cmd.ProvideClientContext
+ Calling github.com/berachain/beacon-kit/config/cmd.ProvideClientContext (github.com/berachain/beacon-kit/config/cmd/depinject.go:62)
+ Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Providing *codec.LegacyAmino from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Providing client.TxConfig from cosmossdk.io/x/auth/tx/config.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:69) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Providing types.InterfaceRegistry from github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Providing keeper.AccountKeeper from cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Providing keeper.BaseKeeper from cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Providing *keeper.Keeper from cosmossdk.io/x/staking.ProvideModule (cosmossdk.io/x/staking@v0.0.0-00010101000000-000000000000/depinject.go:57) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for cosmossdk.io/x/staking.ProvideModule (cosmossdk.io/x/staking@v0.0.0-00010101000000-000000000000/depinject.go:57)
+  Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to cosmossdk.io/x/staking.ProvideModule
+  Providing runtime.ValidatorAddressCodec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to cosmossdk.io/x/staking.ProvideModule
+  Providing runtime.ConsensusAddressCodec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to cosmossdk.io/x/staking.ProvideModule
+  Providing keeper.AccountKeeper from cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47) to cosmossdk.io/x/staking.ProvideModule
+  Providing keeper.BaseKeeper from cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45) to cosmossdk.io/x/staking.ProvideModule
+  Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/staking.ProvideModule
+  Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to cosmossdk.io/x/staking.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+   Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Providing ModuleKey staking
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+ Calling cosmossdk.io/x/staking.ProvideModule (cosmossdk.io/x/staking@v0.0.0-00010101000000-000000000000/depinject.go:57)
+ Providing keeper.Keeper from cosmossdk.io/x/slashing.ProvideModule (cosmossdk.io/x/slashing@v0.0.0-00010101000000-000000000000/depinject.go:53) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for cosmossdk.io/x/slashing.ProvideModule (cosmossdk.io/x/slashing@v0.0.0-00010101000000-000000000000/depinject.go:53)
+  Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to cosmossdk.io/x/slashing.ProvideModule
+  Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to cosmossdk.io/x/slashing.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+   Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Providing ModuleKey slashing
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+  Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/slashing.ProvideModule
+  Providing *codec.LegacyAmino from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/slashing.ProvideModule
+  Providing types.InterfaceRegistry from github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143) to cosmossdk.io/x/slashing.ProvideModule
+  Providing keeper.AccountKeeper from cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47) to cosmossdk.io/x/slashing.ProvideModule
+  Providing keeper.BaseKeeper from cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45) to cosmossdk.io/x/slashing.ProvideModule
+  Providing *keeper.Keeper from cosmossdk.io/x/staking.ProvideModule (cosmossdk.io/x/staking@v0.0.0-00010101000000-000000000000/depinject.go:57) to cosmossdk.io/x/slashing.ProvideModule
+ Calling cosmossdk.io/x/slashing.ProvideModule (cosmossdk.io/x/slashing@v0.0.0-00010101000000-000000000000/depinject.go:53)
+ Providing keeper.Keeper from cosmossdk.io/x/mint.ProvideModule (cosmossdk.io/x/mint@v0.0.0-00010101000000-000000000000/depinject.go:47) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for cosmossdk.io/x/mint.ProvideModule (cosmossdk.io/x/mint@v0.0.0-00010101000000-000000000000/depinject.go:47)
+  Providing OwnModuleKey mint
+  Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to cosmossdk.io/x/mint.ProvideModule
+  Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to cosmossdk.io/x/mint.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+   Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Providing ModuleKey mint
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+  Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/mint.ProvideModule
+  Providing zero value for optional dependency types.InflationCalculationFn
+  Providing keeper.AccountKeeper from cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47) to cosmossdk.io/x/mint.ProvideModule
+  Providing keeper.BaseKeeper from cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45) to cosmossdk.io/x/mint.ProvideModule
+  Providing *keeper.Keeper from cosmossdk.io/x/staking.ProvideModule (cosmossdk.io/x/staking@v0.0.0-00010101000000-000000000000/depinject.go:57) to cosmossdk.io/x/mint.ProvideModule
+ Calling cosmossdk.io/x/mint.ProvideModule (cosmossdk.io/x/mint@v0.0.0-00010101000000-000000000000/depinject.go:47)
+ Providing *keeper.Keeper from cosmossdk.io/x/upgrade.ProvideModule (cosmossdk.io/x/upgrade@v0.1.1/depinject.go:54) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for cosmossdk.io/x/upgrade.ProvideModule (cosmossdk.io/x/upgrade@v0.1.1/depinject.go:54)
+  Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to cosmossdk.io/x/upgrade.ProvideModule
+  Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to cosmossdk.io/x/upgrade.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+   Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Providing ModuleKey upgrade
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+  Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/upgrade.ProvideModule
+  Providing address.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to cosmossdk.io/x/upgrade.ProvideModule
+  Providing baseapp.AppVersionModifier from github.com/cosmos/cosmos-sdk/runtime.ProvideAppVersionModifier (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:232) to cosmossdk.io/x/upgrade.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideAppVersionModifier (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:232)
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideAppVersionModifier
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideAppVersionModifier (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:232)
+  Implicitly registering resolver *viper.Viper for interface type types.AppOptions
+  Supplying *viper.Viper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to cosmossdk.io/x/upgrade.ProvideModule
+ Calling cosmossdk.io/x/upgrade.ProvideModule (cosmossdk.io/x/upgrade@v0.1.1/depinject.go:54)
+ Providing keeper.Keeper from cosmossdk.io/x/evidence.ProvideModule (cosmossdk.io/x/evidence@v0.1.0/depinject.go:46) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for cosmossdk.io/x/evidence.ProvideModule (cosmossdk.io/x/evidence@v0.1.0/depinject.go:46)
+  Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to cosmossdk.io/x/evidence.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+   Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Providing ModuleKey evidence
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+  Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to cosmossdk.io/x/evidence.ProvideModule
+  Providing zero value for optional dependency []client.EvidenceHandler
+  Providing *keeper.Keeper from cosmossdk.io/x/staking.ProvideModule (cosmossdk.io/x/staking@v0.0.0-00010101000000-000000000000/depinject.go:57) to cosmossdk.io/x/evidence.ProvideModule
+  Providing keeper.Keeper from cosmossdk.io/x/slashing.ProvideModule (cosmossdk.io/x/slashing@v0.0.0-00010101000000-000000000000/depinject.go:53) to cosmossdk.io/x/evidence.ProvideModule
+  Providing address.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:256) to cosmossdk.io/x/evidence.ProvideModule
+ Calling cosmossdk.io/x/evidence.ProvideModule (cosmossdk.io/x/evidence@v0.1.0/depinject.go:46)
+ Providing keeper.Keeper from github.com/cosmos/cosmos-sdk/x/consensus.ProvideModule (github.com/cosmos/cosmos-sdk@v0.51.0/x/consensus/depinject.go:44) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for github.com/cosmos/cosmos-sdk/x/consensus.ProvideModule (github.com/cosmos/cosmos-sdk@v0.51.0/x/consensus/depinject.go:44)
+  Supplying *modulev1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/x/consensus.ProvideModule
+  Providing codec.Codec from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/x/consensus.ProvideModule
+  Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to github.com/cosmos/cosmos-sdk/x/consensus.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+   Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Providing ModuleKey consensus
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+ Calling github.com/cosmos/cosmos-sdk/x/consensus.ProvideModule (github.com/cosmos/cosmos-sdk@v0.51.0/x/consensus/depinject.go:44)
+ Providing *keeper.Keeper from github.com/berachain/beacon-kit/runtime/modules/beacon.ProvideModule (github.com/berachain/beacon-kit/runtime/modules/beacon/depinject.go:62) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for github.com/berachain/beacon-kit/runtime/modules/beacon.ProvideModule (github.com/berachain/beacon-kit/runtime/modules/beacon/depinject.go:62)
+  Supplying *modulev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/berachain/beacon-kit/runtime/modules/beacon.ProvideModule
+  Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215) to github.com/berachain/beacon-kit/runtime/modules/beacon.ProvideModule
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+   Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240221095859-541df89f2bb4/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Providing ModuleKey beacon
+   Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+  Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:215)
+ Calling github.com/berachain/beacon-kit/runtime/modules/beacon.ProvideModule (github.com/berachain/beacon-kit/runtime/modules/beacon/depinject.go:62)
+ Providing *runtime.BeaconKitRuntime from github.com/berachain/beacon-kit/runtime.ProvideRuntime (github.com/berachain/beacon-kit/runtime/depinject.go:61) to github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp
+ Resolving dependencies for github.com/berachain/beacon-kit/runtime.ProvideRuntime (github.com/berachain/beacon-kit/runtime/depinject.go:61)
+  Supplying *config.Config from github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:118) to github.com/berachain/beacon-kit/runtime.ProvideRuntime
+  Providing *keeper.Keeper from github.com/berachain/beacon-kit/runtime/modules/beacon.ProvideModule (github.com/berachain/beacon-kit/runtime/modules/beacon/depinject.go:62) to github.com/berachain/beacon-kit/runtime.ProvideRuntime
+  Error: can't resolve type github.com/berachain/beacon-kit/runtime/runtime.ValsetChangeProvider for github.com/berachain/beacon-kit/runtime.ProvideRuntime (github.com/berachain/beacon-kit/runtime/depinject.go:61):
+	while resolving:
+		runtime.ValsetChangeProvider for github.com/berachain/beacon-kit/runtime.ProvideRuntime (github.com/berachain/beacon-kit/runtime/depinject.go:61)
+		*runtime.BeaconKitRuntime for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		*keeper.Keeper for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		keeper.Keeper for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		appmodule.Environment for cosmossdk.io/x/evidence.ProvideModule (cosmossdk.io/x/evidence@v0.1.0/depinject.go:46)
+		keeper.Keeper for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		*keeper.Keeper for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		appmodule.Environment for cosmossdk.io/x/mint.ProvideModule (cosmossdk.io/x/mint@v0.0.0-00010101000000-000000000000/depinject.go:47)
+		depinject.OwnModuleKey for cosmossdk.io/x/mint.ProvideModule (cosmossdk.io/x/mint@v0.0.0-00010101000000-000000000000/depinject.go:47)
+		keeper.Keeper for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		keeper.Keeper for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		*keeper.Keeper for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		appmodule.Environment for cosmossdk.io/x/auth.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/depinject.go:47)
+		types.AccountKeeper for cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45)
+		appmodule.Environment for cosmossdk.io/x/bank.ProvideModule (cosmossdk.io/x/bank@v0.0.0-00010101000000-000000000000/depinject.go:45)
+		types.BankKeeper for cosmossdk.io/x/auth/tx/config.ProvideModule (cosmossdk.io/x/auth@v0.0.0-00010101000000-000000000000/tx/config/depinject.go:69)
+		tx.ConfigOptions for github.com/berachain/beacon-kit/config/cmd.ProvideClientContext (github.com/berachain/beacon-kit/config/cmd/depinject.go:62)
+		client.Context for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+		address.Codec for github.com/cosmos/cosmos-sdk/runtime.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:143)
+		types.InterfaceRegistry for github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:80)
+		*runtime.AppBuilder for github.com/berachain/beacon-kit/examples/beacond/app.NewBeaconKitApp (github.com/berachain/beacon-kit/examples/beacond/app/app.go:111)
+  Saved graph of container to /Users/dev/code/v2/beacon-kit/debug_container.dot

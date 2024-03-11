@@ -93,6 +93,7 @@ type BeaconApp struct {
 	// beacon-kit required keepers
 	BeaconKeeper     *beaconkeeper.Keeper
 	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
+	StakingWrapper   *stakingwrapper.Keeper
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -108,6 +109,7 @@ func NewBeaconKitApp(
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
 	clientCtx := client.Context{}
+	vcp := stakingwrapper.NewKeeper(app.StakingKeeper)
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
@@ -122,6 +124,8 @@ func NewBeaconKitApp(
 				logger,
 				// supply beaconkit options
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
+				// supply our custom staking wrapper.
+				vcp,
 			),
 		),
 		&appBuilder,
@@ -161,11 +165,7 @@ func NewBeaconKitApp(
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
 
-	// TODO: Wrap stakingkeeper.Staking keeper at the module and use a custom
-	// module.
-	app.BeaconKeeper.SetValsetChangeProvider(
-		stakingwrapper.NewKeeper(app.StakingKeeper),
-	)
+	app.BeaconKeeper.SetValsetChangeProvider(vcp)
 
 	/**** End of BeaconKit Configuration ****/
 
