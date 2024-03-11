@@ -117,8 +117,8 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 // PopMulti returns the top n elements of the queue and removes them from the
 // queue.
 func (q *Queue[V]) PeekMulti(ctx context.Context, n uint64) ([]V, error) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 
 	var err error
 
@@ -143,11 +143,6 @@ func (q *Queue[V]) PeekMulti(ctx context.Context, n uint64) ([]V, error) {
 		return nil, err
 	}
 
-	// Clear the range (in batch) after the iteration is done.
-	err = q.container.Clear(ctx, ranger)
-	if err != nil {
-		return nil, err
-	}
 	return values, nil
 }
 
