@@ -35,8 +35,6 @@ import (
 )
 
 // DepInjectInput is the input for the dep inject framework.
-//
-
 type DepInjectInput struct {
 	depinject.In
 
