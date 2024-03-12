@@ -64,7 +64,6 @@ func (app *BeaconApp) ExportAppStateAndValidators(
 
 	genState, err := app.ModuleManager.ExportGenesisForModules(
 		ctx,
-		app.appCodec,
 		modulesToExport,
 	)
 	if err != nil {

@@ -30,22 +30,23 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm
 // module.
-func (AppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesis())
+func (AppModule) DefaultGenesis() json.RawMessage {
+	bz, err := json.Marshal(types.DefaultGenesis())
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 // ValidateGenesis performs genesis state validation for the evm module.
 func (AppModule) ValidateGenesis(
-	_ codec.JSONCodec,
-	_ client.TxEncodingConfig,
 	_ json.RawMessage,
 ) error {
+	// TODO: implement.
 	return nil
 }
 
@@ -53,18 +54,19 @@ func (AppModule) ValidateGenesis(
 // no validator updates.
 func (am AppModule) InitGenesis(
 	ctx context.Context,
-	cdc codec.JSONCodec,
 	bz json.RawMessage,
-) {
+) error {
 	var gs types.GenesisState
-	cdc.MustUnmarshalJSON(bz, &gs)
-	am.keeper.InitGenesis(ctx, gs)
+	if err := json.Unmarshal(bz, &gs); err != nil {
+		return err
+	}
+	return am.keeper.InitGenesis(ctx, gs)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
 func (am AppModule) ExportGenesis(
-	ctx context.Context, cdc codec.JSONCodec,
-) json.RawMessage {
-	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
+	ctx context.Context,
+) (json.RawMessage, error) {
+	return json.Marshal(am.keeper.ExportGenesis(ctx))
 }
