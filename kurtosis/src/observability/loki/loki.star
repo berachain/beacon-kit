@@ -1,3 +1,5 @@
+shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
+
 service_config_lib = import_module("../../lib/service_config.star")
 port_spec_lib = import_module("../../lib/port_spec.star")
 
@@ -26,12 +28,11 @@ LOKI_FILES = {
 PROMTAIL_PORT_ID = "http"
 PROMTAIL_PORT_NUM = 9080
 PROMTAIL_PORT_SPEC_TEMPLATE = port_spec_lib.get_port_spec_template(PROMTAIL_PORT_NUM, "TCP", shared_utils.HTTP_APPLICATION_PROTOCOL)
+PROMTAIL_CMD = ["-config.file=/mnt/config/promtail-config.yaml"]
 
-# PROMTAIL_ENTRYPOINT = ["sh", "-c"]
-# PROMTAIL_CMD =
 
 PROMTAIL_FILES = {
-    "/mnt/config": PROMTAIL_CONFIG_ARTIFACT,
+    "/mnt/config": PROMTAIL_CONFIG_ARTIFACT
 }
 
 def upload_global_files(plan):
@@ -67,7 +68,7 @@ def start(plan):
         ports = {PROMTAIL_PORT_ID: PROMTAIL_PORT_SPEC_TEMPLATE},
         files = PROMTAIL_FILES,
         # entrypoint = node_module.ENTRYPOINT,
-        # cmd = node_module.CMD
+        cmd = PROMTAIL_CMD
     )
 
     promtail_service_config = service_config_lib.create_from_config(promtail_config)

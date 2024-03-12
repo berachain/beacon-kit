@@ -16,6 +16,9 @@ port_spec_lib = import_module("./port_spec.star")
 DEFAULT_PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
 DEFAULT_MAX_MEMORY = 2048  # 2 GB
 DEFAULT_MAX_CPU = 2000  # 2 cores
+DEFAULT_LABELS = {
+    "beaconkit_metalabel": "kurtosis",
+}
 
 def get_service_config_template(
         name,
@@ -147,7 +150,7 @@ def create_from_config(config):
         max_memory = config["max_memory"] if config["max_memory"] else DEFAULT_MAX_MEMORY,  # Needs a default, as 0 does not flag as optional
         min_memory = config["min_memory"] if config["min_memory"] else 0,
         #ready_conditions=config['ready_conditions'], Ready conditions not yet supported
-        labels = config["labels"] if config["labels"] else {},
+        labels = config["labels"] if config["labels"] else DEFAULT_LABELS,
         #user=config['user'], User config not yet supported
         tolerations = config["tolerations"] if config["tolerations"] else [],
         node_selectors = config["node_selectors"] if config["node_selectors"] else {},

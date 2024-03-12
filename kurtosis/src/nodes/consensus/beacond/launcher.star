@@ -26,6 +26,9 @@ USED_PORTS = {
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL),
 }
+DEFAULT_LABELS = {
+    "beaconkit_metalabel": "kurtosis",
+}
 
 def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None):
     exposed_ports = {}
@@ -52,6 +55,7 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
         },
+        labels = DEFAULT_LABELS,
         ports = exposed_ports,
     )
 

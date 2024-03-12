@@ -31,13 +31,18 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: http://loki:3100/loki/api/v1/push
+  - url: http://127.0.0.1:52901/loki/api/v1/push
 
 scrape_configs:
-- job_name: system
-  static_configs:
-  - targets:
-      - localhost
-    labels:
-      job: varlogs
-      __path__: /var/log/*log
+- job_name: docker
+  docker_sd_configs:
+    - host: unix:///var/run/docker.sock
+      refresh_interval: 15s
+      filters:
+        - name: label
+          values: ["com.kurtosistech.custom.beaconkit_metalabel=kurtosis"]
+  pipeline_stages:
+  - docker: {}
+  relabel_configs:
+  - source_labels: [__meta_docker_container_label_service_name]
+    target_label: service
