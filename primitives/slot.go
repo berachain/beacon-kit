@@ -27,18 +27,3 @@ package primitives
 
 // Slot is just a nice alias for a uint64.
 type Slot = uint64
-
-const SlotsPerEpoch = 1
-
-// ToEpoch returns the epoch number of the input slot.
-//
-// Spec pseudocode definition:
-//
-//	def compute_epoch_at_slot(slot: Slot) -> Epoch:
-//	  """
-//	  Return the epoch number at ``slot``.
-//	  """
-//	  return Epoch(slot // SLOTS_PER_EPOCH)
-func ToEpoch(slot Slot) Epoch {
-	return slot / (SlotsPerEpoch)
-}
