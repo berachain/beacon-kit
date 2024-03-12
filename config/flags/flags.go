@@ -51,6 +51,7 @@ const (
 
 	// Fork Config.
 	forkRoot         = beaconConfigRoot + "forks."
+	SlotsPerEpoch    = forkRoot + "slots-per-epoch"
 	ElectraForkEpoch = forkRoot + "electra-fork-epoch"
 
 	// Validator Config.
