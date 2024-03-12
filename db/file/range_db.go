@@ -26,25 +26,22 @@
 package file
 
 import (
+	"bytes"
 	"fmt"
+	"strconv"
 
 	"github.com/berachain/beacon-kit/db"
 )
 
-// numeric is a type that represents a numeric type.
-type numeric interface {
-	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64
-}
-
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
-type RangeDB[T numeric] struct {
+type RangeDB struct {
 	db.DB
 }
 
 // NewRangeDB creates a new RangeDB.
-func NewRangeDB[T numeric](db db.DB) *RangeDB[T] {
-	return &RangeDB[T]{
+func NewRangeDB(db db.DB) *RangeDB {
+	return &RangeDB{
 		DB: db,
 	}
 }
@@ -52,35 +49,35 @@ func NewRangeDB[T numeric](db db.DB) *RangeDB[T] {
 // Get retrieves the value associated with the given index and key.
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
-func (db *RangeDB[T]) Get(index T, key []byte) ([]byte, error) {
+func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
 	return db.DB.Get(db.prefix(index, key))
 }
 
 // Has checks if the given index and key exist in the database.
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
-func (db *RangeDB[T]) Has(index T, key []byte) (bool, error) {
+func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
 	return db.DB.Has(db.prefix(index, key))
 }
 
 // Set stores the value with the given index and key in the database.
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
-func (db *RangeDB[T]) Set(index T, key []byte, value []byte) error {
+func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
 	return db.DB.Set(db.prefix(index, key), value)
 }
 
 // Delete removes the value associated with the given index and key from the
 // database. It prefixes the key with the index and a slash before deleting it
 // from the underlying database.
-func (db *RangeDB[T]) Delete(index T, key []byte) error {
+func (db *RangeDB) Delete(index uint64, key []byte) error {
 	return db.DB.Delete(db.prefix(index, key))
 }
 
 // DeleteRange removes all values associated with the given index from the
 // filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
-func (db *RangeDB[T]) DeleteRange(from, to T) error {
+func (db *RangeDB) DeleteRange(from, to uint64) error {
 	for ; from < to; from++ {
 		f, ok := db.DB.(*DB)
 		if !ok {
@@ -95,6 +92,21 @@ func (db *RangeDB[T]) DeleteRange(from, to T) error {
 }
 
 // prefix prefixes the given key with the index and a slash.
-func (db *RangeDB[T]) prefix(index T, key []byte) []byte {
+func (db *RangeDB) prefix(index uint64, key []byte) []byte {
 	return append([]byte(fmt.Sprintf("%d/", index)), key...)
+}
+
+func ExtractIndex(prefixedKey []byte) (uint64, error) {
+	parts := bytes.SplitN(prefixedKey, []byte("/"), 2)
+	if len(parts) < 2 {
+		return 0, fmt.Errorf("invalid key format")
+	}
+
+	indexStr := string(parts[0])
+	index, err := strconv.ParseInt(indexStr, 10, 64) // adjust this as per your numeric type
+	if err != nil {
+		return 0, fmt.Errorf("invalid index: %w", err)
+	}
+
+	return uint64(index), nil
 }

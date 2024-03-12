@@ -1,10 +1,16 @@
 package file
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 
 	snapshot "cosmossdk.io/store/snapshots/types"
+	"github.com/spf13/afero"
 )
 
 const (
@@ -22,35 +28,74 @@ const (
 	SnapshotName = "blob"
 )
 
-type Snapshotter[T numeric] struct {
+type Snapshotter struct {
 	db             *DB
-	snapShotWindow T
+	snapShotWindow uint64
 }
 
-func NewSnapshotter[T numeric](m *DB, sw T) *Snapshotter[T] {
-	return &Snapshotter[T]{db: m, snapShotWindow: sw}
+func NewSnapshotter(m *DB, sw uint64) *Snapshotter {
+	return &Snapshotter{db: m, snapShotWindow: sw}
 }
 
-func (s *Snapshotter[T]) SnapshotName() string {
+func (s *Snapshotter) SnapshotName() string {
 	return SnapshotName
 }
 
-func (s *Snapshotter[T]) SnapshotFormat() uint32 {
+func (s *Snapshotter) SnapshotFormat() uint32 {
 	return SnapshotFormat
 }
 
-func (s *Snapshotter[T]) SupportedFormats() []uint32 {
+func (s *Snapshotter) SupportedFormats() []uint32 {
 	return []uint32{SnapshotFormat}
 }
 
 // SnapshotExtension exports the state
 // of the snapshot window given snapshotWriter.
-func (s *Snapshotter[T]) SnapshotExtension(height uint64,
+func (s *Snapshotter) SnapshotExtension(height uint64,
 	payloadWriter snapshot.ExtensionPayloadWriter) error {
 	// export all blobs as a single blob
 	exportBlocks := height - uint64(s.snapShotWindow)
 
-	ranger := NewRangeDB[uint64](s.db)
+	ranger := NewRangeDB(s.db)
+
+	afero.Walk(s.db.fs, s.db.rootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, ".blob") {
+			return nil
+		}
+
+		// Extract the filename from the path
+		_, filename := filepath.Split(path)
+
+		// Use a regular expression to find numbers in the filename
+		re, err := ExtractIndex([]byte(filename))
+		if err != nil {
+			return err
+		}
+
+		// If the number is between hieght-snapshotwindow and height,
+		// readfile and export the data
+		if re >= height-s.snapShotWindow && re <= height {
+			// Do something with the file here
+			// For example, read the file:
+			value, err := afero.ReadFile(s.db.fs, path)
+			if err != nil {
+				return err
+			}
+
+			prefixedData := append([]byte(filename+"\n"), value...)
+
+			payloadWriter(prefixedData)
+		}
+
+		return nil
+	})
+
 	// TODO: add iteration for the file system storage
 	for i := exportBlocks; i < height; i++ {
 		// load code and abort on error
@@ -69,13 +114,7 @@ func (s *Snapshotter[T]) SnapshotExtension(height uint64,
 	return nil
 }
 
-/*
-loop through all the blob files create a chunk pre file send it out
-
-prune = 100 blocks (100 chunks)
-*/
-
-func (s *Snapshotter[T]) RestoreExtension(height uint64, format uint32,
+func (s *Snapshotter) RestoreExtension(height uint64, format uint32,
 	payloadReader snapshot.ExtensionPayloadReader) error {
 	if format == SnapshotFormat {
 		return s.restore(height, payloadReader)
@@ -86,18 +125,32 @@ func (s *Snapshotter[T]) RestoreExtension(height uint64, format uint32,
 
 // restore restores the state at a given height
 // using the provided payloadReader.
-func (s *Snapshotter[T]) restore(height uint64,
+func (s *Snapshotter) restore(_ uint64,
 	payloadReader snapshot.ExtensionPayloadReader) error {
-	_, err := payloadReader()
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			return io.ErrUnexpectedEOF
+
+	for {
+		bz, err := payloadReader()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return io.ErrUnexpectedEOF
+			}
+
+			return err
 		}
 
-		return err
+		split := bytes.SplitN(bz, []byte("\n"), 2)
+		receivedFilename := string(split[0])
+		receivedData := split[1]
+
+		file, err := s.db.fs.Create(receivedFilename)
+		if err != nil {
+			return fmt.Errorf("failed to create file: %w", err)
+		}
+		defer file.Close()
+
+		_, err = file.Write(receivedData)
+		if err != nil {
+			return fmt.Errorf("failed to write to file: %w", err)
+		}
 	}
-
-	// TODO: restore the blob
-
-	return nil
 }

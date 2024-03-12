@@ -110,7 +110,7 @@ func MerkleProofKZGCommitment(commitments [][]byte, index int) ([][]byte, error)
 	if err != nil {
 		return nil, err
 	}
-	membersRoots, err := topLevelRoots(body) // TODO: fix this
+	membersRoots, err := topLevelRoots(body)
 
 	if err != nil {
 		return nil, err

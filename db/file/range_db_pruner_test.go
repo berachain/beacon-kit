@@ -37,23 +37,23 @@ import (
 )
 
 func TestRangeDBPruner(t *testing.T) {
-	notifyCh := make(chan int)
+	notifyCh := make(chan uint64)
 	tests := []struct {
 		name        string
-		pruneWindow int
+		pruneWindow uint64
 		setupFunc   func(
-			rdb *file.RangeDB[int]) error
+			rdb *file.RangeDB) error
 		testFunc func(
-			t *testing.T, rdb *file.RangeDB[int])
+			t *testing.T, rdb *file.RangeDB)
 		expectedError bool
 	}{
 		{
 			name:        "PruneOldIndexes",
 			pruneWindow: 5,
 			setupFunc: func(
-				rdb *file.RangeDB[int],
+				rdb *file.RangeDB,
 			) error {
-				for i := 1; i <= 10; i++ {
+				for i := uint64(1); i <= 10; i++ {
 					if err := rdb.Set(i, []byte("key"), []byte("value")); err != nil {
 						return err
 					}
@@ -62,12 +62,12 @@ func TestRangeDBPruner(t *testing.T) {
 				return nil
 			},
 			testFunc: func(
-				t *testing.T, rdb *file.RangeDB[int],
+				t *testing.T, rdb *file.RangeDB,
 			) {
 				time.Sleep(
 					100 * time.Millisecond,
 				) // Wait for pruner to catch up
-				for i := 1; i < 5; i++ {
+				for i := uint64(1); i < 5; i++ {
 					exists, err := rdb.Has(i, []byte("key"))
 					require.NoError(t, err)
 					require.False(
@@ -77,7 +77,7 @@ func TestRangeDBPruner(t *testing.T) {
 						i,
 					)
 				}
-				for i := 5; i <= 10; i++ {
+				for i := uint64(5); i <= 10; i++ {
 					exists, err := rdb.Has(i, []byte("key"))
 					require.NoError(t, err)
 					require.True(
@@ -101,8 +101,8 @@ func TestRangeDBPruner(t *testing.T) {
 				file.WithLogger(log.NewNopLogger()),
 				file.WithAferoFS(fs),
 			)
-			rdb := file.NewRangeDB[int](db)
-			pruner := file.NewRangeDBPruner[int](rdb, tt.pruneWindow, notifyCh)
+			rdb := file.NewRangeDB(db)
+			pruner := file.NewRangeDBPruner(rdb, tt.pruneWindow, notifyCh)
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
