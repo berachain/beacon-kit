@@ -79,8 +79,7 @@ func (k *Keeper) InitGenesis(
 	hash := common.HexToHash(data.Eth1GenesisHash)
 
 	store := k.BeaconState(ctx)
-	err := store.SetRandaoMix(data.Mix())
-	if err != nil {
+	if err := store.SetRandaoMix(data.Mix()); err != nil {
 		panic(err)
 	}
 
