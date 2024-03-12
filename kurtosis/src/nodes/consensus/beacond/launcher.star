@@ -198,7 +198,7 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, i
 
     plan.print(beacond_config)
 
-    plan.add_service(
+    return plan.add_service(
         name = cl_service_name,
         config = beacond_config,
     )

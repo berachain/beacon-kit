@@ -52,7 +52,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         el_enode_addrs.append(el_client["enode_addr"])
 
         node_services.append({
-            "service": el_client_service,
+            "service": el_client['service'],
             "metrics_path": node_module.METRICS_PATH,
             "type": node.el_type,
             "index": n,
@@ -60,10 +60,10 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
 
         # 4b. Launch CL
-        beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, n)
+        beacond_service = beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, n)
 
         node_services.append({
-            "service": node_service,
+            "service": beacond_service,
             "metrics_path": beacond.METRICS_PATH,
             "type": "beacond",
             "index": n,
@@ -96,12 +96,12 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
 
 
-    if "prometheus" in args_with_right_defaults.additional_services:
+    if "prometheus" in additional_services:
         prometheus_url = prometheus.start(plan, node_services)
 
-        if "grafana" in args_with_right_defaults.additional_services:
+        if "grafana" in additional_services:
             grafana.start(plan, prometheus_url)
 
-    if "loki" in args_with_right_defaults.additional_services:
+    if "loki" in additional_services:
         loki.upload_global_files(plan)
         loki.start(plan)
