@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/runtime/modules/staking"
 )
@@ -43,7 +44,7 @@ type DepInjectInput struct {
 	Bsp    BeaconStorageBackend
 	Vcp    staking.ValsetChangeProvider
 	Logger log.Logger
-	Signer bls12381.Signer
+	Signer crypto.Signer[[bls12381.SignatureLength]byte]
 }
 
 // DepInjectOutput is the output for the dep inject framework.

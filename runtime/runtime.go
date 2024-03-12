@@ -44,6 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/cache"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
@@ -88,7 +89,7 @@ func NewDefaultBeaconKitRuntime(
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
 	logger log.Logger,
-	blsSigner bls12381.Signer,
+	signer crypto.Signer[[bls12381.SignatureLength]byte],
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -160,7 +161,11 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
-	processor := randao.NewProcessor(bsb, blsSigner)
+	processor := randao.NewProcessor(
+		randao.WithBeaconStateProvider(bsb),
+		randao.WithSigner(signer),
+		randao.WithLogger(logger.With("service", "randao")),
+	)
 
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("builder")),

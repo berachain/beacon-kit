@@ -46,7 +46,7 @@ type DepInjectInput struct {
 type DepInjectOutput struct {
 	depinject.Out
 
-	BlsSigner Signer
+	BlsSigner *Signer
 }
 
 func ProvideBlsSigner(in DepInjectInput) DepInjectOutput {
@@ -60,6 +60,6 @@ func ProvideBlsSigner(in DepInjectInput) DepInjectOutput {
 	}
 
 	return DepInjectOutput{
-		BlsSigner: *key,
+		BlsSigner: key,
 	}
 }

@@ -27,34 +27,34 @@ package randao
 
 import (
 	"context"
+	"fmt"
 
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/signing"
+	crypto "github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
 
-type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state.
-	BeaconState(context.Context) state.BeaconState
-}
-
 // Processor is the randao processor.
 type Processor struct {
-	stateProvider BeaconStateProvider
-	signer        bls12381.Signer
+	BeaconStateProvider
+	signer crypto.Signer[[bls12381.SignatureLength]byte]
+	logger log.Logger
 }
 
+// NewProcessor creates a new randao processor.
 func NewProcessor(
-	beaconStateProvider BeaconStateProvider,
-	signer bls12381.Signer,
+	opts ...Option,
 ) *Processor {
-	return &Processor{
-		stateProvider: beaconStateProvider,
-		signer:        signer,
+	p := &Processor{}
+	for _, opt := range opts {
+		opt(p)
 	}
+	return p
 }
 
 // BuildReveal creates a reveal for the proposer.
@@ -67,21 +67,54 @@ func NewProcessor(
 // domain)
 //
 //	return bls.Sign(privkey, signing_root)
-func (rs *Processor) BuildReveal(
+func (p *Processor) BuildReveal(
 	_ context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	signingRoot := rs.GetSigningRoot(epoch)
+	signingRoot := p.GetSigningRoot(epoch)
 
-	return rs.signer.Sign(signingRoot), nil
+	return p.signer.Sign(signingRoot), nil
 }
 
-func (rs *Processor) GetSigningRoot(
+// VerifyReveal verifies the reveal of the proposer.
+func (p *Processor) VerifyReveal(
+	proposerPubkey [bls12381.PubKeyLength]byte,
+	msg []byte,
+	reveal types.Reveal,
+) bool {
+	return bls12381.VerifySignature(proposerPubkey, msg, reveal)
+}
+
+// MixinNewReveal mixes in a new reveal.
+func (p *Processor) MixinNewReveal(
+	ctx context.Context,
+	blk beacontypes.BeaconBlock,
+) error {
+	st := p.BeaconState(ctx)
+	randaoMix, err := st.RandaoMix()
+	if err != nil {
+		return fmt.Errorf("failed to get randao mix: %w", err)
+	}
+	reveal := blk.GetRandaoReveal()
+
+	newMix := randaoMix.MixinNewReveal(reveal)
+	if err = st.SetRandaoMix(newMix); err != nil {
+		return fmt.Errorf("failed to set new randao mix: %w", err)
+	}
+	p.logger.Info("updated randao mix", "new_mix", newMix)
+	return nil
+}
+
+// GetSigningRoot returns the signing root.
+// // TODO: COMPLETE
+func (p *Processor) GetSigningRoot(
 	epoch primitives.Epoch,
 ) []byte {
-	return rs.computeSigningRoot(epoch, rs.getDomain(epoch))
+	return p.computeSigningRoot(epoch, p.getDomain(epoch))
 }
 
+// computeSigningRoot computes the signing root.
+// // TODO: COMPLETE
 func (rs *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
 	_ signing.Domain,
@@ -89,17 +122,10 @@ func (rs *Processor) computeSigningRoot(
 	return sdktypes.Uint64ToBigEndian(epoch)
 }
 
+// getDomain returns the domain.
+// TODO: COMPLETE
 func (rs *Processor) getDomain(
 	_ primitives.Epoch,
 ) signing.Domain {
 	return signing.Domain{}
-}
-
-// VerifyReveal verifies the reveal of the proposer.
-func (rs *Processor) VerifyReveal(
-	proposerPubkey [bls12381.PubKeyLength]byte,
-	msg []byte,
-	reveal types.Reveal,
-) bool {
-	return bls12381.VerifySignature(proposerPubkey, msg, reveal)
 }
