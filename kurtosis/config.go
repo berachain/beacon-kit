@@ -70,6 +70,16 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		AdditionalServices: []interface{}{},
 		Validators: []Node{
 			{
+				ElType:  "geth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
+			},
+			{
+				ElType:  "reth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
+			},
+			{
 				ElType:  "reth",
 				ClImage: "beacond:kurtosis-local",
 				ClType:  "beaconkit",
@@ -87,6 +97,16 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:  "beaconkit",
 			},
 			{
+				ElType:  "reth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
+			},
+			{
+				ElType:  "reth",
+				ClImage: "beacond:kurtosis-local",
+				ClType:  "beaconkit",
+			},
+			{
 				ElType:  "geth",
 				ClImage: "beacond:kurtosis-local",
 				ClType:  "beaconkit",
@@ -97,7 +117,8 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Type: "nginx",
 				Services: []string{
 					"el-full-nethermind-0:8545",
-					"el-full-geth-1:8545",
+					"el-full-reth-1:8545",
+					"el-full-reth-2:8545",
 				},
 			},
 		},
