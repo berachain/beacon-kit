@@ -50,7 +50,10 @@ func (s *Store) UpdateValidator(
 	newPubkey []byte,
 ) error {
 	// Get the index of the old pubkey.
-	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(ctx, oldPubkey)
+	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
+		ctx,
+		oldPubkey,
+	)
 	if err != nil {
 		return err
 	}
