@@ -68,7 +68,6 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*                     INTERNAL FUNCTIONS                     */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-
     /// @dev Increments `_LAST_PROCESSED_BLOCK` if it's the next actionable
     /// block.
     /// Reverts with `ATTEMPTED_TO_INCREMENT_OUT_OF_BUFFER` if the next block

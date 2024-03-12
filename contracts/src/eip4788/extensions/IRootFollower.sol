@@ -14,7 +14,6 @@ interface IRootFollower {
     /// @param end The end block number of the block just actioned upon.
     event BlockCountReset(uint256 start, uint256 end);
 
-
     /// @notice Gets the next block to be rewarded.
     /// @dev This returns the greater of current previously invoked block + 1,
     /// or current block number - 8191 as that is the limitation on number of
