@@ -36,7 +36,8 @@ import (
 
 //go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs CometBFTHeader,BlockID,PartSetHeader -output generated.ssz.go
 
-// CometBFTHeader is the header of a block in the Comet BFT consensus algorithm.
+// CometBFTHeader is an ssz'able struct,
+// equivalent to the Header struct in CometBFT.
 // Doc: https://docs.cometbft.com/main/spec/core/data_structures#header
 type CometBFTHeader struct {
 	Version *Consensus
@@ -61,21 +62,28 @@ type CometBFTHeader struct {
 	ProposerAddress [20]byte `ssz-size:"20"`
 }
 
+// BlockID is an ssz'able struct,
+// equivalent to the BlockID struct in CometBFT.
 type BlockID struct {
 	Hash          [32]byte `ssz-size:"32"`
 	PartSetHeader *PartSetHeader
 }
 
+// PartSetHeader is an ssz'able struct,
+// equivalent to the PartSetHeader struct in CometBFT.
 type PartSetHeader struct {
 	Hash  [32]byte `ssz-size:"32"`
 	Total uint32
 }
 
+// Consensus is an ssz'able struct,
+// equivalent to the Consensus struct in CometBFT.
 type Consensus struct {
 	Block uint64
 	App   uint64
 }
 
+// ToCometBFT converts Consensus to its CometBFT equivalent.
 func (c *Consensus) ToCometBFT() cmtversion.Consensus {
 	return cmtversion.Consensus{
 		Block: c.Block,
@@ -83,11 +91,13 @@ func (c *Consensus) ToCometBFT() cmtversion.Consensus {
 	}
 }
 
+// FromCometBFT converts a CometBFT Consensus to its equivalent.
 func (c *Consensus) FromCometBFT(consensus cmtversion.Consensus) {
 	c.Block = consensus.Block
 	c.App = consensus.App
 }
 
+// ToCometBFT converts BlockID to its CometBFT equivalent.
 func (b *BlockID) ToCometBFT() cometbft.BlockID {
 	if b.PartSetHeader == nil {
 		b.PartSetHeader = &PartSetHeader{}
@@ -98,6 +108,7 @@ func (b *BlockID) ToCometBFT() cometbft.BlockID {
 	}
 }
 
+// FromCometBFT converts a CometBFT BlockID to its equivalent.
 func (b *BlockID) FromCometBFT(blockID cometbft.BlockID) {
 	if b.PartSetHeader == nil {
 		b.PartSetHeader = &PartSetHeader{}
@@ -106,6 +117,7 @@ func (b *BlockID) FromCometBFT(blockID cometbft.BlockID) {
 	b.PartSetHeader.FromCometBFT(blockID.PartSetHeader)
 }
 
+// ToCometBFT converts PartSetHeader to its CometBFT equivalent.
 func (p *PartSetHeader) ToCometBFT() cometbft.PartSetHeader {
 	return cometbft.PartSetHeader{
 		Hash:  cmtbytes.HexBytes(p.Hash[:]),
@@ -113,11 +125,13 @@ func (p *PartSetHeader) ToCometBFT() cometbft.PartSetHeader {
 	}
 }
 
+// FromCometBFT converts a CometBFT PartSetHeader to its equivalent.
 func (p *PartSetHeader) FromCometBFT(partSetHeader cometbft.PartSetHeader) {
 	p.Hash = byteslib.ToBytes32(partSetHeader.Hash)
 	p.Total = partSetHeader.Total
 }
 
+// ToCometBFT converts CometBFTHeader to its CometBFT equivalent.
 func (h *CometBFTHeader) ToCometBFT() cometbft.Header {
 	if h.Version == nil {
 		h.Version = &Consensus{}
@@ -143,6 +157,7 @@ func (h *CometBFTHeader) ToCometBFT() cometbft.Header {
 	}
 }
 
+// FromCometBFT converts a CometBFT Header to its equivalent.
 func (h *CometBFTHeader) FromCometBFT(header cometbft.Header) {
 	if h.Version == nil {
 		h.Version = &Consensus{}
