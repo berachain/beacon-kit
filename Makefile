@@ -36,13 +36,12 @@ clean:
 ###############################################################################
 
 GETH_GO_GENERATE_VERSION := $(shell grep github.com/ethereum/go-ethereum go.mod | awk '{print $$2}')
-COMETBFT_GO_GENERATE_VERSION := $(shell grep github.com/berachain/cometbft go.mod | awk '{print $$4}')
 generate:
 	@$(MAKE) sszgen-clean mockery 
 	@for module in $(MODULES); do \
 		echo "Running go generate in $$module"; \
 		(cd $$module && \
-			GETH_GO_GENERATE_VERSION=$(GETH_GO_GENERATE_VERSION) COMETBFT_GO_GENERATE_VERSION=$(COMETBFT_GO_GENERATE_VERSION) go generate ./...) || exit 1; \
+			GETH_GO_GENERATE_VERSION=$(GETH_GO_GENERATE_VERSION) go generate ./...) || exit 1; \
 	done
 
 mockery:
