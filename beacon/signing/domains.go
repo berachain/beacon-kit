@@ -23,26 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package signing
 
-import (
-	"context"
+// SSZDomain is a 4-byte array used to represent a
+// domain type in BLS signing and verification.
+type SSZDomain = [4]byte
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+// Domain constants for BLS domain types.
+// Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+//
+//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
+var (
+	DomainRandao  = SSZDomain{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = SSZDomain{0x03, 0x00, 0x00, 0x00}
 )
-
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
-}

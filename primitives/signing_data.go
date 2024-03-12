@@ -23,26 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package primitives
 
-import (
-	"context"
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs SigningData -output generated.ssz.go
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-)
-
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
+// SigningData is a struct used to compute
+// hash(root_hash(object), domain_hash).
+// Spec:
+// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
+//
+//nolint:lll // Urls are long.
+type SigningData struct {
+	ObjectRoot []byte `ssz-size:"32"`
+	Domain     []byte `ssz-size:"32"`
 }

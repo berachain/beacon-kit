@@ -27,11 +27,11 @@ package staking
 
 import (
 	"context"
-	sdkcollections "cosmossdk.io/collections"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	sdkcollections "cosmossdk.io/collections"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ValsetChangeProvider is the interface for applying validator set changes.
@@ -41,5 +41,7 @@ type ValsetChangeProvider interface {
 		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
 	) error
-	ValidatorByConsensusAddress() sdkcollections.Map[sdk.ConsAddress, sdk.ValAddress]
+	ValidatorByConsensusAddress() sdkcollections.Map[
+		sdk.ConsAddress, sdk.ValAddress,
+	]
 }

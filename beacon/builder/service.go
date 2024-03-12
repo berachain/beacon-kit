@@ -28,8 +28,8 @@ package builder
 import (
 	"context"
 	"fmt"
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -49,7 +49,10 @@ type PayloadBuilder interface {
 }
 
 type RandaoProcessor interface {
-	BuildReveal(ctx context.Context, epoch primitives.Epoch) (types.Reveal, error)
+	BuildReveal(
+		ctx context.Context,
+		epoch primitives.Epoch,
+	) (types.Reveal, error)
 }
 
 // Service is responsible for building beacon blocks.

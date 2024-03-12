@@ -23,44 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon_test
+package keeper
 
 import (
-	"testing"
+	"context"
 
-	sdklog "cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	beaconstore "github.com/berachain/beacon-kit/store/beacon"
-	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/testutil/integration"
+	stakingtypes "cosmossdk.io/x/staking/types"
+	cosmoslib "github.com/berachain/beacon-kit/lib/cosmos"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 )
 
-func TestBeaconStore(t *testing.T) {
-	testName := "test"
-	logger := sdklog.NewNopLogger()
-	keys := storetypes.NewKVStoreKeys(testName)
-	cms := integration.CreateMultiStore(keys, logger)
-	ctx := sdk.NewContext(cms, true, logger)
-	storeKey := keys[testName]
-	kvs := sdkruntime.NewKVStoreService(storeKey)
+// StakingHooks struct.
+type StakingHooks struct {
+	*cosmoslib.UnimplementedStakingHooks
+	k *Keeper
+}
 
-	beaconStore := beaconstore.NewStore(kvs)
-	beaconStore = beaconStore.WithContext(ctx)
+// Verify that the Hooks struct implements the stakingtypes.StakingHooks
+// interface.
+var _ stakingtypes.StakingHooks = StakingHooks{}
 
-	t.Run("should work with deposit", func(t *testing.T) {
-		deposit := &beacontypes.Deposit{
-			Pubkey:      []byte("pubkey"),
-			Credentials: []byte("12345678901234567890123456789012"),
-			Amount:      100,
-			Signature:   []byte("signature"),
-		}
-		err := beaconStore.EnqueueDeposits([]*beacontypes.Deposit{deposit})
-		require.NoError(t, err)
-		deposits, err := beaconStore.DequeueDeposits(1)
-		require.NoError(t, err)
-		require.Equal(t, deposit, deposits[0])
-	})
+// Create new stakinghooks hooks.
+func (k *Keeper) Hooks() StakingHooks {
+	return StakingHooks{k: k}
+}
+
+// initialize validator distribution record.
+func (h StakingHooks) AfterValidatorCreated(
+	ctx context.Context,
+	valAddr sdk.ValAddress,
+) error {
+	return h.k.beaconStore.AddValidator(ctx, valAddr)
 }

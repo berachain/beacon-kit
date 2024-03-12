@@ -26,7 +26,7 @@
 package types
 
 import (
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	sha2562 "github.com/berachain/beacon-kit/crypto/sha256"
 )
 

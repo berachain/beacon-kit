@@ -27,6 +27,7 @@ package beacon
 
 import (
 	"context"
+
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
@@ -39,6 +40,9 @@ import (
 // that provides access to all beacon related data.
 type Store struct {
 	ctx context.Context
+
+	validatorIndex                    sdkcollections.Sequence
+	validatorIndexToValidatorOperator sdkcollections.Map[uint64, []byte]
 
 	// depositQueue is a list of depositQueue that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
@@ -56,11 +60,25 @@ func NewStore(
 	kvs store.KVStoreService,
 ) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+	validatorIndex := sdkcollections.NewSequence(
+		schemaBuilder,
+		sdkcollections.NewPrefix(validatorIndexPrefix),
+		validatorIndexPrefix,
+	)
+	validatorIndexToValidatorOperator := sdkcollections.NewMap[uint64, []byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(validatorIndexToAddressPrefix),
+		validatorIndexToAddressPrefix,
+		sdkcollections.Uint64Key,
+		sdkcollections.BytesValue,
+	)
+
 	depositQueue := collections.NewQueue[*beacontypes.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
 		encoding.SSZValueCodec[*beacontypes.Deposit]{},
 	)
+
 	parentBlockRoot := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(parentBlockRootPrefix),
@@ -76,9 +94,11 @@ func NewStore(
 	)
 
 	return &Store{
-		depositQueue:    depositQueue,
-		parentBlockRoot: parentBlockRoot,
-		randaoMix:       randaoMix,
+		randaoMix:                         randaoMix,
+		validatorIndex:                    validatorIndex,
+		validatorIndexToValidatorOperator: validatorIndexToValidatorOperator,
+		depositQueue:                      depositQueue,
+		parentBlockRoot:                   parentBlockRoot,
 	}
 }
 

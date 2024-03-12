@@ -23,26 +23,44 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package beacon_test
 
 import (
-	"context"
+	"testing"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	sdklog "cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	beaconstore "github.com/berachain/beacon-kit/store/beacon"
+	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/testutil/integration"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
+func TestDeposits(t *testing.T) {
+	testName := "test"
+	logger := sdklog.NewNopLogger()
+	keys := storetypes.NewKVStoreKeys(testName)
+	cms := integration.CreateMultiStore(keys, logger)
+	ctx := sdk.NewContext(cms, true, logger)
+	storeKey := keys[testName]
+	kvs := sdkruntime.NewKVStoreService(storeKey)
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
+	beaconStore := beaconstore.NewStore(kvs)
+	beaconStore = beaconStore.WithContext(ctx)
+
+	t.Run("should work with deposit", func(t *testing.T) {
+		deposit := &beacontypes.Deposit{
+			Pubkey:      []byte("pubkey"),
+			Credentials: []byte("12345678901234567890123456789012"),
+			Amount:      100,
+			Signature:   []byte("signature"),
+		}
+		err := beaconStore.EnqueueDeposits([]*beacontypes.Deposit{deposit})
+		require.NoError(t, err)
+		deposits, err := beaconStore.DequeueDeposits(1)
+		require.NoError(t, err)
+		require.Equal(t, deposit, deposits[0])
+	})
 }

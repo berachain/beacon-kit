@@ -27,9 +27,9 @@ package staking
 
 import (
 	"context"
-	sdkcollections "cosmossdk.io/collections"
 	"errors"
 
+	sdkcollections "cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
 	sdkkeeper "cosmossdk.io/x/staking/keeper"
 	sdkstaking "cosmossdk.io/x/staking/types"
@@ -129,6 +129,8 @@ func (k *Keeper) ApplyChanges(
 	return nil
 }
 
-func (k *Keeper) ValidatorByConsensusAddress() sdkcollections.Map[sdk.ConsAddress, sdk.ValAddress] {
+func (k *Keeper) ValidatorByConsensusAddress() sdkcollections.Map[
+	sdk.ConsAddress, sdk.ValAddress,
+] {
 	return k.stakingKeeper.ValidatorByConsensusAddress
 }

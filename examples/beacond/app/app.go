@@ -29,10 +29,11 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/berachain/beacon-kit/beacon/core/randao"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
 	"io"
 	"os"
+
+	"github.com/berachain/beacon-kit/beacon/core/randao"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -195,7 +196,9 @@ func NewBeaconKitApp(
 func getProcessor(appOpts servertypes.AppOptions) *randao.Processor {
 	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
 	fmt.Println("HomeDir: ", homeDir)
-	key, err := p2p.LoadNodeKey(fmt.Sprintf("%s/config/priv_validator_key.json", homeDir))
+	key, err := p2p.LoadNodeKey(
+		fmt.Sprintf("%s/config/priv_validator_key.json", homeDir),
+	)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		os.Exit(1)
@@ -205,8 +208,11 @@ func getProcessor(appOpts servertypes.AppOptions) *randao.Processor {
 	var pk [32]byte
 	copy(pk[:], key.PrivKey.Bytes())
 
-	signer := bls12381.NewBlsSigner(pk)
-	processor := randao.NewProcessor(nil, signer, &randao.Config{
+	signer, err := bls12381.NewSigner(pk)
+	if err != nil {
+		panic(err)
+	}
+	processor := randao.NewProcessor(nil, *signer, &randao.Config{
 		EpochsPerHistoricalVector: 0,
 		ConfiguredPubKeyLength:    0,
 	})

@@ -27,9 +27,10 @@ package randao
 
 import (
 	"context"
+
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
@@ -42,16 +43,20 @@ type BeaconStateProvider interface {
 // Processor is the randao processor.
 type Processor struct {
 	stateProvider BeaconStateProvider
-	signer        bls12381.BlsSigner
+	signer        bls12381.Signer
 	cfg           *Config
 }
 
 func NewProcessor(
 	beaconStateProvider BeaconStateProvider,
-	signer bls12381.BlsSigner,
+	signer bls12381.Signer,
 	cfg *Config,
 ) *Processor {
-	return &Processor{stateProvider: beaconStateProvider, signer: signer, cfg: cfg}
+	return &Processor{
+		stateProvider: beaconStateProvider,
+		signer:        signer,
+		cfg:           cfg,
+	}
 }
 
 // BuildReveal creates a reveal for the proposer.
@@ -70,7 +75,7 @@ func (rs *Processor) BuildReveal(
 ) (types.Reveal, error) {
 	signingRoot := rs.GetSigningRoot(epoch)
 
-	return rs.signer.Sign(signingRoot)
+	return rs.signer.Sign(signingRoot), nil
 }
 
 func (rs *Processor) GetSigningRoot(
@@ -98,5 +103,5 @@ func (rs *Processor) VerifyReveal(
 	msg []byte,
 	reveal types.Reveal,
 ) bool {
-	return rs.signer.Verify(proposerPubkey, msg, reveal)
+	return bls12381.VerifySignature(proposerPubkey, msg, reveal)
 }

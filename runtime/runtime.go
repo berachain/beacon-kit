@@ -28,6 +28,7 @@ package runtime
 
 import (
 	"context"
+
 	"cosmossdk.io/log"
 	"cosmossdk.io/x/staking/keeper"
 	"github.com/berachain/beacon-kit/async/dispatch"
@@ -43,7 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/cache"
 	"github.com/berachain/beacon-kit/config"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	_ "github.com/berachain/beacon-kit/lib/maxprocs"
@@ -87,7 +88,7 @@ func NewDefaultBeaconKitRuntime(
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
 	logger log.Logger,
-	blsSigner bls12381.BlsSigner,
+	blsSigner bls12381.Signer,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")

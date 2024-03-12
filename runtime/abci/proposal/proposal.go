@@ -27,14 +27,14 @@ package proposal
 
 import (
 	"context"
-	"cosmossdk.io/x/staking/keeper"
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
 	"time"
 
+	"cosmossdk.io/x/staking/keeper"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/builder"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/health"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
@@ -45,7 +45,10 @@ import (
 )
 
 type RandaoProcessor interface {
-	BuildReveal(ctx context.Context, epoch primitives.Epoch) (types.Reveal, error)
+	BuildReveal(
+		ctx context.Context,
+		epoch primitives.Epoch,
+	) (types.Reveal, error)
 
 	VerifyReveal(
 		proposerPubkey [bls12381.PubKeyLength]byte,
@@ -154,7 +157,7 @@ func (h *Handler) ProcessProposalHandler(
 		req, h.cfg.BeaconBlockPosition,
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
-	if err != nil {
+	if err != nil || block == nil || block.IsNil() {
 		//nolint:nilerr // its okay for now todo.
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil
@@ -164,7 +167,11 @@ func (h *Handler) ProcessProposalHandler(
 
 	proposerPubKey := h.extractProposalPublicKey(ctx, req)
 
-	if !h.randaoProcessor.VerifyReveal(proposerPubKey, h.randaoProcessor.GetSigningRoot(epoch), block.GetRandaoReveal()) {
+	if !h.randaoProcessor.VerifyReveal(
+		proposerPubKey,
+		h.randaoProcessor.GetSigningRoot(epoch),
+		block.GetRandaoReveal(),
+	) {
 		logger.Warn("failed to verify reveal")
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_REJECT}, nil
@@ -207,7 +214,10 @@ func (h *Handler) extractProposalPublicKey(
 	logger := ctx.Logger().With("module", "process-proposal")
 
 	// Validate Reveal
-	v, err := h.stakingKeeper.ValidatorByConsensusAddress.Get(ctx, req.ProposerAddress)
+	v, err := h.stakingKeeper.ValidatorByConsensusAddress.Get(
+		ctx,
+		req.ProposerAddress,
+	)
 	if err != nil {
 		logger.Warn("failed to get validator", "error", err)
 		panic("failed to get validator by consensus address")

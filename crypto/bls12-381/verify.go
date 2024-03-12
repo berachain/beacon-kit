@@ -23,26 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package bls12381
 
-import (
-	"context"
+import "github.com/itsdevbear/comet-bls12-381/bls/blst"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-)
+// VerifySignature checks if a given signature is valid for a message and public
+// key.
+// It returns true if the signature is valid, otherwise it panics if an error
+// occurs during the verification process.
+func VerifySignature(
+	pubKey [PubKeyLength]byte,
+	msg []byte,
+	signature [SignatureLength]byte,
+) bool {
+	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
+	if err != nil {
+		return false
+	}
+	sig, err := blst.SignatureFromBytes(signature[:])
+	if err != nil {
+		return false
+	}
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
+	return sig.Verify(pubkey, msg)
 }

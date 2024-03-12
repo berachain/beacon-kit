@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,12 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abi
+package bls12381
 
-// This file is used to generate the go bindings for the contracts.
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --pkg abi --abi ../out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./beacon_deposit_contract.abigen.go --type BeaconDepositContract
+const (
+	// SignatureLength defines the byte length of a BLS12-381 Signature
+	// It is defined to be 96 bytes as defined in the Ethereum 2.0
+	// Specification.
+	//
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	//
+	//nolint:lll
+	SignatureLength = 96
 
-var (
-	//nolint:gochecknoglobals // Avoid re-allocating these variables.
-	DepositContractABI, _ = BeaconDepositContractMetaData.GetAbi()
+	// PubKeyLength defines the byte length of a BLS12-381 public key.
+	// As per the standard, it is set to 48 bytes.
+	PubKeyLength = 48
+
+	// SecretKeyLength defines the byte length of a BLS12-381 secret key.
+	// It is defined to be 32 bytes in length.
+	SecretKeyLength = 32
 )

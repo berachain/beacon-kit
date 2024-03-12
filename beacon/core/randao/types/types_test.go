@@ -27,11 +27,11 @@ package types_test
 
 import (
 	"crypto/rand"
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12_381"
-	"github.com/berachain/beacon-kit/crypto/sha256"
 	"testing"
 
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +44,11 @@ func TestMix(t *testing.T) {
 
 	// Reveal 1, first signer
 	mix1 := initMix.MixinNewReveal(randomReveal1)
-	require.Equal(t, mix1, xor(sha256.Hash([]byte("init")), sha256.Hash(randomReveal1[:])))
+	require.Equal(
+		t,
+		mix1,
+		xor(sha256.Hash([]byte("init")), sha256.Hash(randomReveal1[:])),
+	)
 
 	// Reveal 2, second signer
 	var randomReveal2 [bls12381.SignatureLength]byte
@@ -56,7 +60,11 @@ func TestMix(t *testing.T) {
 
 	// XOR is commutative
 	altMix1 := initMix.MixinNewReveal(randomReveal2)
-	require.Equal(t, altMix1, xor(sha256.Hash([]byte("init")), sha256.Hash(randomReveal2[:])))
+	require.Equal(
+		t,
+		altMix1,
+		xor(sha256.Hash([]byte("init")), sha256.Hash(randomReveal2[:])),
+	)
 
 	altMix2 := altMix1.MixinNewReveal(randomReveal1)
 	require.Equal(t, altMix2, xor(altMix1, sha256.Hash(randomReveal1[:])))

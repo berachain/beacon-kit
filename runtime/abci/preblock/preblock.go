@@ -27,6 +27,7 @@ package preblock
 
 import (
 	"context"
+
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
