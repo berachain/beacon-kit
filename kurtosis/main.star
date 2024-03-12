@@ -52,6 +52,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         el_enode_addrs.append(el_client["enode_addr"])
 
         node_services.append({
+            "name": el_client["name"],
             "service": el_client['service'],
             "metrics_path": node_module.METRICS_PATH,
             "type": node.el_type,
@@ -63,6 +64,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         beacond_service = beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, n)
 
         node_services.append({
+            "name": beacond_service.name,
             "service": beacond_service,
             "metrics_path": beacond.METRICS_PATH,
             "type": "beacond",
@@ -75,23 +77,39 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         el_client = execution.create_node(plan, node_modules, full, "full", n, el_enode_addrs)
         el_enode_addrs.append(el_client["enode_addr"])
 
+        node_services.append({
+            "name": el_client["name"],
+            "service": el_client['service'],
+            "metrics_path": node_module.METRICS_PATH,
+            "type": full.el_type,
+            "index": n,
+        })
+
         # 4b. Launch CL
         cl_service_name = "cl-full-beaconkit-{}".format(n)
         full_node_config = beacond.create_full_node_config(plan, full.cl_image, node_peering_info, el_client["name"], jwt_file, n)
         full_node_configs[cl_service_name] = full_node_config
 
+        
+
     if full_node_configs != {}:
-        plan.add_services(
+        services = plan.add_services(
             configs = full_node_configs,
         )
 
-    # 6. Start RPCs
+        for name, service in services.items():
+            node_services.append({
+                "name": name,
+                "service": service,
+                "metrics_path": beacond.METRICS_PATH,
+                "type": "beacond",
+                "index": n,
+            })
+
+    # 6. Start load balancer
     rpc_configs = {}
     for n, rpc in enumerate(rpc_endpoints):
         nginx.get_config(plan, rpc["services"])
-
-
-
 
 
 
