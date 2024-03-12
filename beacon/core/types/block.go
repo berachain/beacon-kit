@@ -95,6 +95,6 @@ func (b *BeaconBlockBodyDeneb) AttachExecution(
 	return nil
 }
 
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][48]byte {
+func (b *BeaconBlockBodyDeneb) GetKzgCommitments() [][48]byte {
 	return b.BlobKzgCommitments
 }

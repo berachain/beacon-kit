@@ -27,6 +27,8 @@ package file
 
 import (
 	"fmt"
+
+	"github.com/berachain/beacon-kit/db"
 )
 
 // numeric is a type that represents a numeric type.
@@ -37,11 +39,11 @@ type numeric interface {
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
 type RangeDB[T numeric] struct {
-	*DB
+	db.DB
 }
 
 // NewRangeDB creates a new RangeDB.
-func NewRangeDB[T numeric](db *DB) *RangeDB[T] {
+func NewRangeDB[T numeric](db db.DB) *RangeDB[T] {
 	return &RangeDB[T]{
 		DB: db,
 	}
@@ -80,7 +82,11 @@ func (db *RangeDB[T]) Delete(index T, key []byte) error {
 // the `to“ index.
 func (db *RangeDB[T]) DeleteRange(from, to T) error {
 	for ; from < to; from++ {
-		err := db.fs.RemoveAll(string(db.prefix(from, nil)))
+		f, ok := db.DB.(*DB)
+		if !ok {
+			continue
+		}
+		err := f.fs.RemoveAll(string(db.prefix(from, nil)))
 		if err != nil {
 			return err
 		}

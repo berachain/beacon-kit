@@ -2,11 +2,11 @@ package blockchain
 
 import (
 	"bytes"
-	"encoding/binary"
-	"encoding/gob"
 	"sync"
 
 	"github.com/berachain/beacon-kit/db"
+	"github.com/berachain/beacon-kit/db/file"
+	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
 // Create a pool of bytes.Buffers.
@@ -16,66 +16,51 @@ var bufPool = &sync.Pool{
 	},
 }
 
+// func sidecarFileKey(sidecar *eth.BlobSidecar) string {
+// 	return path.Join(bs.baseDir, fmt.Sprintf(
+// 		"%d_%x_%d_%x.blob",
+// 		sidecar.Slot,
+// 		sidecar.BlockRoot,
+// 		sidecar.Index,
+// 		sidecar.KzgCommitment,
+// 	))
+// }
+
 // Store the blobs in the blobstore.
-func PrepareBlobsHandler(storage db.BeaconKitDB,
-	height int64, blobs [][48]byte) ([]byte, error) {
+func PrepareBlobsHandler(storage db.DB,
+	height int64, commitments [][48]byte,
+	blobs *engine.BlobsBundleV1) ([][]byte, error) {
 
 	// TODO: before storage handle validation
-	// Encode blobs to bytes
-	buf, ok := bufPool.Get().(*bytes.Buffer)
-	if !ok {
-		buf = new(bytes.Buffer)
-	}
-	defer func() {
-		buf.Reset()
-		bufPool.Put(buf)
-	}()
 
-	enc := gob.NewEncoder(buf)
-	err := enc.Encode(blobs)
-	if err != nil {
-		return nil, err
-	}
-	encodedData := buf.Bytes()
-
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, uint64(height))
 	// store the blobs under a single height.
-	if err := storage.Set(heightBytes, encodedData); err != nil {
-		return nil, err
+	ranger := file.NewRangeDB[int64](storage)
+	for i, sidecar := range blobs.Blobs {
+		if err := ranger.Set(height, blobs.Commitments[i], sidecar); err != nil {
+			return nil, err
+		}
 	}
 
-	return encodedData, nil
+	var blobTx = make([][]byte, 0, len(blobs.Blobs))
+	for i, sidecar := range blobs.Blobs {
+		blobTx[i] = sidecar
+	}
+
+	return blobTx, nil
 }
 
 // Store the blobs in the blobstore.
-func ProcessBlobsHandler(storage db.BeaconKitDB,
-	height int64, blobTx [][48]byte) error {
-
-	// Encode blobs to bytes
-	buf, ok := bufPool.Get().(*bytes.Buffer)
-	if !ok {
-		buf = new(bytes.Buffer)
-	}
-	defer func() {
-		buf.Reset()
-		bufPool.Put(buf)
-	}()
-
-	enc := gob.NewEncoder(buf)
-	err := enc.Encode(blobTx)
-	if err != nil {
-		return err
-	}
-	encodedData := buf.Bytes()
+func ProcessBlobsHandler(storage db.DB,
+	height int64, commitments [][48]byte, blobs [][]byte) error {
 
 	// TODO: before storage handle validation
 
-	heightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(heightBytes, uint64(height))
+	ranger := file.NewRangeDB[int64](storage)
 	// Store the blobs under a single height.
-	if err := storage.Set(heightBytes, encodedData); err != nil {
-		return err
+	for i, sidecar := range blobs {
+		if err := ranger.Set(height, commitments[i][:], sidecar); err != nil {
+			return err
+		}
 	}
 
 	return nil

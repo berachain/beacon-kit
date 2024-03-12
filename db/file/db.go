@@ -107,12 +107,7 @@ func (db *DB) Delete(key []byte) error {
 }
 
 // pathForKey returns the path for a key.
+// TODO: for efficient storage we should expand this path
 func (db *DB) pathForKey(key []byte) string {
 	return string(key) + "." + db.extension
-}
-
-// exportSnapshot exports the state at a given height using the provided snapshotWriter.
-func (db *DB) exportSnapshot(height uint64, snapshotWriter func([]byte) error) error {
-
-	return nil // TODO: implement
 }

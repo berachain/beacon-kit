@@ -179,7 +179,7 @@ func (s *Service) validateExecutionOnBlock(
 		blk.GetSlot(),
 		payload,
 		kzg.ConvertCommitmentsToVersionedHashes(
-			body.GetBlobKzgCommitments(),
+			body.GetKzgCommitments(),
 		),
 		blk.GetParentBlockRoot(),
 	)

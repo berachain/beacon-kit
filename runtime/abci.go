@@ -42,7 +42,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
 	nextPreblocker sdk.PreBlocker,
-	blobStorage db.BeaconKitDB,
+	blobStorage db.DB,
 ) (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,

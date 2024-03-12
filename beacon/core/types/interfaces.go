@@ -71,5 +71,5 @@ type ReadOnlyBeaconBlockBody interface {
 
 	// Execution returns the execution data of the block.
 	GetExecutionPayload() enginetypes.ExecutionPayload
-	GetBlobKzgCommitments() [][48]byte
+	GetKzgCommitments() [][48]byte
 }

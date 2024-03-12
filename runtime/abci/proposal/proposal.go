@@ -50,7 +50,7 @@ type Handler struct {
 	healthService  *health.Service
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
-	blobstore      db.BeaconKitDB
+	blobstore      db.DB
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -61,7 +61,7 @@ func NewHandler(
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
-	blobstore db.BeaconKitDB,
+	blobstore db.DB,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -86,7 +86,7 @@ func (h *Handler) PrepareProposalHandler(
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
-	blk, err := h.builderService.RequestBestBlock(
+	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
 	)
@@ -119,11 +119,14 @@ func (h *Handler) PrepareProposalHandler(
 	// TODO: make more robust
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 
-	blobBz, err := blockchain.PrepareBlobsHandler(h.blobstore, req.Height, blk.GetBody().GetBlobKzgCommitments())
+	// TODO: does this exceed max block size?
+	blobBz, err := blockchain.PrepareBlobsHandler(h.blobstore, req.Height,
+		blk.GetBody().GetKzgCommitments(), blobs)
 	if err != nil {
 		return nil, err
 	}
-	resp.Txs = append([][]byte{blobBz}, resp.Txs...) // TODO: shouldnt need to add this to the block since its already on the beaconblock
+	// Blob position is always the second in an array up until the end
+	resp.Txs = append(blobBz, resp.Txs...)
 	return resp, nil
 }
 
@@ -172,7 +175,9 @@ func (h *Handler) ProcessProposalHandler(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
 
-	if err = blockchain.ProcessBlobsHandler(h.blobstore, req.Height, block.GetBody().GetBlobKzgCommitments()); err != nil {
+	blobs := req.Txs[1:]
+
+	if err = blockchain.ProcessBlobsHandler(h.blobstore, req.Height, block.GetBody().GetKzgCommitments(), blobs); err != nil {
 		return nil, err
 	}
 

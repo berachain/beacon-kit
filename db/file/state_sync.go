@@ -23,12 +23,12 @@ const (
 )
 
 type Snapshotter[T numeric] struct {
-	m              *DB
+	db             *DB
 	snapShotWindow T
 }
 
 func NewSnapshotter[T numeric](m *DB, sw T) *Snapshotter[T] {
-	return &Snapshotter[T]{m: m, snapShotWindow: sw}
+	return &Snapshotter[T]{db: m, snapShotWindow: sw}
 }
 
 func (s *Snapshotter[T]) SnapshotName() string {
@@ -48,7 +48,25 @@ func (s *Snapshotter[T]) SupportedFormats() []uint32 {
 func (s *Snapshotter[T]) SnapshotExtension(height uint64,
 	payloadWriter snapshot.ExtensionPayloadWriter) error {
 	// export all blobs as a single blob
-	return s.m.exportSnapshot(height, payloadWriter)
+	exportBlocks := height - uint64(s.snapShotWindow)
+
+	ranger := NewRangeDB[uint64](s.db)
+	// TODO: add iteration for the file system storage
+	for i := exportBlocks; i < height; i++ {
+		// load code and abort on error
+		bytes, err := ranger.Get(height, []byte{"commitment"})
+		if err != nil {
+			return err
+		}
+
+		err = payloadWriter(bytes)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 /*

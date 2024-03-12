@@ -67,7 +67,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
-) (beacontypes.BeaconBlock, error) {
+) (beacontypes.BeaconBlock, *enginetypes.BlobsBundleV1, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -89,9 +89,9 @@ func (s *Service) RequestBestBlock(
 		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	} else if beaconBlock == nil {
-		return nil, beacontypes.ErrNilBlk
+		return nil, nil, beacontypes.ErrNilBlk
 	}
 
 	// Get the payload for the block.
@@ -102,11 +102,8 @@ func (s *Service) RequestBestBlock(
 		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
 	)
 	if err != nil {
-		return beaconBlock, err
+		return beaconBlock, nil, err
 	}
-
-	// TODO: Dencun
-	_ = blobsBundle
 
 	// TODO: allow external block builders to override the payload.
 	_ = overrideBuilder
@@ -114,12 +111,12 @@ func (s *Service) RequestBestBlock(
 	// Assemble a new block with the payload.
 	body := beaconBlock.GetBody()
 	if body.IsNil() {
-		return nil, beacontypes.ErrNilBlkBody
+		return nil, nil, beacontypes.ErrNilBlkBody
 	}
 	if err = beaconBlock.GetBody().AttachExecution(payload); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Return the block.
-	return beaconBlock, nil
+	return beaconBlock, blobsBundle, nil
 }
