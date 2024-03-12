@@ -18,7 +18,7 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         );
         vm.etch(BEACON_ROOT_ADDRESS, beaconRootsContractBytecode);
         // set the initial storage of the BEACON_ROOT_ADDRESS
-        setBeaconRoots(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
+        // setBeaconRoots(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
         rootFollower = new RootFollowerUser();
     }
 
