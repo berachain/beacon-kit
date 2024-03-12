@@ -1,7 +1,6 @@
 package beacon
 
 import (
-	"cosmossdk.io/collections"
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
 )
@@ -10,11 +9,11 @@ type validatorsIndex struct {
 	Pubkey *indexes.Unique[[]byte, uint64, []byte]
 }
 
-func (a validatorsIndex) IndexesList() []collections.Index[uint64, []byte] {
-	return []collections.Index[uint64, []byte]{a.Pubkey}
+func (a validatorsIndex) IndexesList() []sdkcollections.Index[uint64, []byte] {
+	return []sdkcollections.Index[uint64, []byte]{a.Pubkey}
 }
 
-func NewValidatorsIndex(sb *collections.SchemaBuilder) validatorsIndex {
+func NewValidatorsIndex(sb *sdkcollections.SchemaBuilder) validatorsIndex {
 	return validatorsIndex{
 		Pubkey: indexes.NewUnique(
 			sb, sdkcollections.NewPrefix(validatrPubkeyToIndexPrefix), validatrPubkeyToIndexPrefix,
