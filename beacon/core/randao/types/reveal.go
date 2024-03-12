@@ -35,6 +35,9 @@ type Reveal [bls12381.SignatureLength]byte
 
 // Verify checks if the reveal is valid for the given public key and domain.
 // TODO: signingRoot should be strongly typed.
-func (r Reveal) Verify(pubKey [bls12381.PubKeyLength]byte, domain signing.Domain) bool {
+func (r Reveal) Verify(
+	pubKey [bls12381.PubKeyLength]byte,
+	domain signing.Domain,
+) bool {
 	return bls12381.VerifySignature(pubKey, domain.Bytes(), r)
 }

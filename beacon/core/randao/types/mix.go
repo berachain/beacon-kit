@@ -25,7 +25,7 @@
 
 package types
 
-import sha2562 "github.com/berachain/beacon-kit/crypto/sha256"
+import "github.com/berachain/beacon-kit/crypto/sha256"
 
 // Mix represents the current state of the RANDAO's entropy mixing process.
 // RANDAO can be conceptualized as a deck of cards being passed and shuffled
@@ -43,7 +43,7 @@ type Mix [MixLength]byte
 // current mix
 // using a XOR operation, then returns the updated mix.
 func (m Mix) MixinNewReveal(reveal Reveal) Mix {
-	for idx, b := range sha2562.Hash(reveal[:]) {
+	for idx, b := range sha256.Hash(reveal[:]) {
 		m[idx] ^= b
 	}
 	return m

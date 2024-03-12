@@ -38,14 +38,3 @@ var (
 	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
 	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
 )
-
-// ComputeSigningRootForRoot works the same as ComputeSigningRoot,
-// except that gets the root from an argument instead of a callback.
-func ComputeSigningRootForRoot(root [32]byte, domain []byte) ([32]byte, error) {
-	// container := &Data{
-	// 	ObjectRoot: root[:],
-	// 	Domain:     domain,
-	// }
-	// return container.HashTreeRoot()
-	return [32]byte{}, nil
-}
