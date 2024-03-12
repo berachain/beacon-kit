@@ -109,7 +109,14 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     # 6. Start load balancer
     rpc_configs = {}
     for n, rpc in enumerate(rpc_endpoints):
-        nginx.get_config(plan, rpc["services"])
+        service = nginx.get_config(plan, rpc["services"])
+        node_services.append({
+            "name": service.name,
+            "service": service,
+            "metrics_path": nginx.METRICS_PATH,
+            "type": "nginx",
+            "index": n,
+        })
 
 
 
