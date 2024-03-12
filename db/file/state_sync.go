@@ -54,7 +54,7 @@ func (s *Snapshotter[T]) SnapshotExtension(height uint64,
 	// TODO: add iteration for the file system storage
 	for i := exportBlocks; i < height; i++ {
 		// load code and abort on error
-		bytes, err := ranger.Get(height, []byte{"commitment"})
+		bytes, err := ranger.Get(height, []byte("commitment"))
 		if err != nil {
 			return err
 		}
