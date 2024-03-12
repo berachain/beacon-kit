@@ -140,9 +140,11 @@ func (h *CometBFTHeader) ToCometBFT() cometbft.Header {
 		h.LastBlockID = &BlockID{}
 	}
 	return cometbft.Header{
-		Version:            h.Version.ToCometBFT(),
-		ChainID:            string(h.ChainID),
-		Height:             int64(h.Height),
+		Version: h.Version.ToCometBFT(),
+		ChainID: string(h.ChainID),
+		//#nosec:G701 // int64 is sufficient as block time is greater than a second.
+		Height: int64(h.Height),
+		//#nosec:G701 // int64 is sufficient for billions of years.
 		Time:               time.Unix(int64(h.Time), 0).UTC(),
 		LastBlockID:        h.LastBlockID.ToCometBFT(),
 		LastCommitHash:     cmtbytes.HexBytes(h.LastCommitHash[:]),
@@ -167,7 +169,9 @@ func (h *CometBFTHeader) FromCometBFT(header cometbft.Header) {
 	}
 	h.Version.FromCometBFT(header.Version)
 	h.ChainID = []byte(header.ChainID)
+	//#nosec:G701 // A positive int64 can never overflow a uint64.
 	h.Height = uint64(header.Height)
+	//#nosec:G701 // A positive int64 can never overflow a uint64.
 	h.Time = uint64(header.Time.Unix())
 	h.LastBlockID.FromCometBFT(header.LastBlockID)
 	h.LastCommitHash = byteslib.ToBytes32(header.LastCommitHash)
