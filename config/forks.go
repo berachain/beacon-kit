@@ -57,11 +57,13 @@ type Forks struct {
 // Parse parses the configuration.
 func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 	var err error
-	if c.SlotsPerEpoch, err = parser.GetUint64(
+	var slotsPerEpoch uint64
+	if slotsPerEpoch, err = parser.GetUint64(
 		flags.SlotsPerEpoch,
 	); err != nil {
 		return nil, err
 	}
+	c.SlotsPerEpoch = primitives.Slot(slotsPerEpoch)
 
 	if c.ElectraForkEpoch, err = parser.GetEpoch(
 		flags.ElectraForkEpoch,

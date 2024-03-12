@@ -59,7 +59,7 @@ func DefaultBeaconConfig() Beacon {
 
 // ActiveForkVersion returns the active fork version for a given slot.
 func (c Beacon) ActiveForkVersion(slot primitives.Slot) int {
-	epoch := slot / c.Forks.SlotsPerEpoch
+	epoch := primitives.Epoch(slot / c.Forks.SlotsPerEpoch)
 	if epoch >= c.Forks.ElectraForkEpoch {
 		return version.Electra
 	}

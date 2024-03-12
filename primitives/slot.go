@@ -26,4 +26,4 @@
 package primitives
 
 // Slot is just a nice alias for a uint64.
-type Slot = uint64
+type Slot uint64
