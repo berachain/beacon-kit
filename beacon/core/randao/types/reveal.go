@@ -26,7 +26,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/beacon/signing"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
 
@@ -37,7 +36,7 @@ type Reveal [bls12381.SignatureLength]byte
 // TODO: signingRoot should be strongly typed.
 func (r Reveal) Verify(
 	pubKey [bls12381.PubKeyLength]byte,
-	domain signing.Domain,
+	signingRoot []byte, // todo: make strong type.
 ) bool {
-	return bls12381.VerifySignature(pubKey, domain.Bytes(), r)
+	return bls12381.VerifySignature(pubKey, signingRoot, r)
 }
