@@ -66,7 +66,7 @@ require (
 	github.com/holiman/uint256 v1.2.4
 	github.com/huandu/skiplist v1.2.0
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240226135442-10e4707bd0ca
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.3
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.4
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/protolambda/ztyp v0.2.2
