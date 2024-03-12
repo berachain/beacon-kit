@@ -78,19 +78,28 @@ func (s *Snapshotter) SnapshotExtension(height uint64,
 			return err
 		}
 
-		// If the number is between hieght-snapshotwindow and height,
-		// readfile and export the data
-		if re >= height-s.snapShotWindow && re <= height {
-			// Do something with the file here
-			// For example, read the file:
-			value, err := afero.ReadFile(s.db.fs, path)
-			if err != nil {
-				return err
+		if s.snapShotWindow > height {
+			value, err1 := afero.ReadFile(s.db.fs, path)
+			if err1 != nil {
+				return err1
 			}
 
 			prefixedData := append([]byte(filename+"\n"), value...)
 
-			payloadWriter(prefixedData)
+			if err1 = payloadWriter(prefixedData); err1 != nil {
+				return err1
+			}
+		} else if re >= height-s.snapShotWindow && re <= height {
+			value, err1 := afero.ReadFile(s.db.fs, path)
+			if err1 != nil {
+				return err1
+			}
+
+			prefixedData := append([]byte(filename+"\n"), value...)
+
+			if err1 = payloadWriter(prefixedData); err1 != nil {
+				return err1
+			}
 		}
 
 		return nil
