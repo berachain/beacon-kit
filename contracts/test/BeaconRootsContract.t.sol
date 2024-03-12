@@ -32,9 +32,12 @@ abstract contract BeaconRootsContractBaseTest is SoladyTest {
 
     /// @dev Set up the test environment by deploying a new BeaconRootsContract.
     function setUp() public virtual {
-        bytes memory beaconRootsContractBytecode = abi.encodePacked(hex"3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500");
+        bytes memory beaconRootsContractBytecode = abi.encodePacked(
+            hex"3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500"
+        );
         vm.etch(BEACON_ROOT_ADDRESS, beaconRootsContractBytecode);
-        BEACON_ROOT_ADDRESS = address(0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02);
+        BEACON_ROOT_ADDRESS =
+            address(0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02);
         // take a snapshot of the clean state
         snapshot = vm.snapshot();
         // set the initial storage of the BEACON_ROOT_ADDRESS
@@ -170,11 +173,8 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         vm.revertTo(snapshot);
         // may wrap around the circular buffer
         length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 2);
-        (
-            ,
-            uint256[] memory timestamps,
-            bytes32[] memory beaconRoots,
-        ) = setBeaconRoots(startBlock, startTimestamp, length);
+        (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
+            setBeaconRoots(startBlock, startTimestamp, length);
         unchecked {
             // loop over the last `HISTORY_BUFFER_LENGTH` indices
             uint256 i = length - 1;
@@ -274,7 +274,6 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         // But the block number and timestamp in the EVM must be the latest.
         validateBeaconRoots(timestamps, beaconRoots);
     }
-
 
     /// @dev Fuzzing test the beacon root is retrieved correctly from a
     /// partially initialized buffer.
