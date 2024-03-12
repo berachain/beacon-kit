@@ -161,7 +161,7 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
-	processor := randao.NewProcessor(
+	randaoProcessor := randao.NewProcessor(
 		randao.WithBeaconStateProvider(bsb),
 		randao.WithSigner(signer),
 		randao.WithLogger(logger.With("service", "randao")),
@@ -171,7 +171,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
-		builder.WithRandaoProcessor(processor),
+		builder.WithRandaoProcessor(randaoProcessor),
 	)
 
 	// Build the sync service.
@@ -185,6 +185,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
+		blockchain.WithRandaoProcessor(randaoProcessor),
 		blockchain.WithSyncService(syncService),
 	)
 

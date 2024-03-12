@@ -103,7 +103,7 @@ func (p *Processor) MixinNewReveal(
 	if err = st.SetRandaoMix(newMix); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
-	p.logger.Info("updated randao mix", "new_mix", newMix)
+	p.logger.Info("updated randao mix ", "new_mix", newMix)
 	return nil
 }
 
