@@ -68,6 +68,11 @@ func (c Beacon) ActiveForkVersion(slot primitives.Slot) int {
 	return version.Deneb
 }
 
+// SlotToEpoch converts a slot to an epoch.
+func (c Beacon) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
+	return slot / c.Forks.SlotsPerEpoch
+}
+
 // Parse parses the configuration.
 func (c Beacon) Parse(parser parser.AppOptionsParser) (*Beacon, error) {
 	var (
