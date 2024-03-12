@@ -92,7 +92,7 @@ func NewBeaconPreBlockHandler(
 func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
-	) (*sdk.ResponsePreBlock, error) {
+	) error {
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
 
 		// Extract the beacon block from the ABCI request.
@@ -124,7 +124,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 					primitives.Slot(req.Height),
 				),
 			); err != nil {
-				return nil, err
+				return err
 			}
 		}
 
@@ -160,12 +160,12 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 // callNextHandler calls the next pre-block handler in the chain.
 func (h *BeaconPreBlockHandler) callNextHandler(
 	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
-) (*sdk.ResponsePreBlock, error) {
+) error {
 	// If there is no child handler, we are done, this preblocker
 	// does not modify any consensus params so we return an empty
 	// response.
 	if h.nextHandler == nil {
-		return &sdk.ResponsePreBlock{}, nil
+		return nil
 	}
 
 	return h.nextHandler(ctx, req)

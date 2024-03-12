@@ -71,7 +71,10 @@ func (k *Keeper) ForkchoiceStore(
 }
 
 // InitGenesis initializes the genesis state of the module.
-func (k *Keeper) InitGenesis(ctx context.Context, data types.GenesisState) {
+func (k *Keeper) InitGenesis(
+	ctx context.Context,
+	data types.GenesisState,
+) error {
 	fcs := k.ForkchoiceStore(ctx)
 	hash := common.HexToHash(data.Eth1GenesisHash)
 
@@ -79,6 +82,7 @@ func (k *Keeper) InitGenesis(ctx context.Context, data types.GenesisState) {
 	fcs.SetGenesisEth1Hash(hash)
 	fcs.SetSafeEth1BlockHash(hash)
 	fcs.SetFinalizedEth1BlockHash(hash)
+	return nil
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
