@@ -23,40 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abi
+package staking
 
 import (
-	"github.com/cockroachdb/errors"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/core/types"
+	sdkcollections "cosmossdk.io/collections"
+	stakingtypes "cosmossdk.io/x/staking/types"
 )
 
-type WrappedABI struct {
-	*abi.ABI
-}
-
-func (wabi WrappedABI) UnpackLogs(
-	out interface{},
-	event string,
-	log types.Log,
-) error {
-	// Anonymous events are not supported.
-	if len(log.Topics) == 0 {
-		return errors.New("abi: cannot unpack anonymous event")
-	}
-	if log.Topics[0] != wabi.Events[event].ID {
-		return errors.New("abi: event signature mismatch")
-	}
-	if len(log.Data) > 0 {
-		if err := wabi.UnpackIntoInterface(out, event, log.Data); err != nil {
-			return err
-		}
-	}
-	var indexed abi.Arguments
-	for _, arg := range wabi.Events[event].Inputs {
-		if arg.Indexed {
-			indexed = append(indexed, arg)
-		}
-	}
-	return abi.ParseTopics(out, indexed, log.Topics[1:])
+// Validators key: valAddr | value: Validator.
+func (k *Keeper) ValidatorsByValAddress() sdkcollections.Map[
+	[]byte, stakingtypes.Validator,
+] {
+	return k.stakingKeeper.Validators
 }

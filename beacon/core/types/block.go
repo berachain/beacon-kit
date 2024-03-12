@@ -40,8 +40,6 @@ type BeaconBlockDeneb struct {
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
 	Body *BeaconBlockBodyDeneb
-	// PayloadValue is a value used in the block's payload.
-	PayloadValue [32]byte `ssz-size:"32"`
 }
 
 // Version identifies the version of the BeaconBlockDeneb.

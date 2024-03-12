@@ -23,40 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abi
+package beacon
 
 import (
-	"github.com/cockroachdb/errors"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/core/types"
+	sdkcollections "cosmossdk.io/collections"
+	"cosmossdk.io/collections/indexes"
 )
 
-type WrappedABI struct {
-	*abi.ABI
+// validatorsIndex is a structure that holds a unique index for validators based
+// on their public key.
+type validatorsIndex struct {
+	// Pubkey is a unique index mapping a validator's public key to their
+	// numeric ID and vice versa.
+	Pubkey *indexes.Unique[[]byte, uint64, []byte]
 }
 
-func (wabi WrappedABI) UnpackLogs(
-	out interface{},
-	event string,
-	log types.Log,
-) error {
-	// Anonymous events are not supported.
-	if len(log.Topics) == 0 {
-		return errors.New("abi: cannot unpack anonymous event")
+// IndexesList returns a list of all indexes associated with the
+// validatorsIndex.
+func (a validatorsIndex) IndexesList() []sdkcollections.Index[uint64, []byte] {
+	return []sdkcollections.Index[uint64, []byte]{a.Pubkey}
+}
+
+// NewValidatorsIndex creates a new validatorsIndex with a unique index for
+// validator public keys.
+func newValidatorsIndex(sb *sdkcollections.SchemaBuilder) validatorsIndex {
+	return validatorsIndex{
+		Pubkey: indexes.NewUnique(
+			sb,
+			sdkcollections.NewPrefix(validatorPubkeyToIndexPrefix),
+			validatorPubkeyToIndexPrefix,
+			sdkcollections.BytesKey,
+			sdkcollections.Uint64Key,
+			// The mapping function simply returns the public key as the index
+			// key.
+			func(_ uint64, pubkey []byte) ([]byte, error) {
+				return pubkey, nil
+			},
+		),
 	}
-	if log.Topics[0] != wabi.Events[event].ID {
-		return errors.New("abi: event signature mismatch")
-	}
-	if len(log.Data) > 0 {
-		if err := wabi.UnpackIntoInterface(out, event, log.Data); err != nil {
-			return err
-		}
-	}
-	var indexed abi.Arguments
-	for _, arg := range wabi.Events[event].Inputs {
-		if arg.Indexed {
-			indexed = append(indexed, arg)
-		}
-	}
-	return abi.ParseTopics(out, indexed, log.Topics[1:])
 }

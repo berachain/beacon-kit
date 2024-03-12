@@ -165,6 +165,10 @@ func NewBeaconKitApp(
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
 
+	// TODO: Fix Depinject.
+	app.BeaconKeeper.SetValsetChangeProvider(
+		stakingwrapper.NewKeeper(app.StakingKeeper))
+
 	/**** End of BeaconKit Configuration ****/
 
 	// register streaming services

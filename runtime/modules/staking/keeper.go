@@ -27,7 +27,6 @@ package staking
 
 import (
 	"context"
-	"errors"
 
 	sdkcollections "cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
@@ -35,6 +34,7 @@ import (
 	sdkstaking "cosmossdk.io/x/staking/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

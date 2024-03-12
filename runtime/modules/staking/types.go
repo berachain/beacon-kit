@@ -28,14 +28,19 @@ package staking
 import (
 	"context"
 
+	sdkcollections "cosmossdk.io/collections"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
+// ValsetChangeProvider is an interface that provides the
+// ability to apply changes to the validator set.
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,
 		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
 	) error
+	ValidatorsByValAddress() sdkcollections.Map[[]byte, stakingtypes.Validator]
 }
