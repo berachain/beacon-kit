@@ -25,21 +25,25 @@
 
 package bls12381
 
-const (
-	// SignatureLength defines the byte length of a BLS12-381 Signature
-	// It is defined to be 96 bytes as defined in the Ethereum 2.0
-	// Specification.
-	//
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	//
-	//nolint:lll
-	SignatureLength = 96
+import "github.com/itsdevbear/comet-bls12-381/bls/blst"
 
-	// PubKeyLength defines the byte length of a BLS12-381 public key.
-	// As per the standard, it is set to 48 bytes.
-	PubKeyLength = 48
+// VerifySignature checks if a given signature is valid for a message and public
+// key.
+// It returns true if the signature is valid, otherwise it panics if an error
+// occurs during the verification process.
+func VerifySignature(
+	pubKey [PubKeyLength]byte,
+	msg []byte,
+	signature [SignatureLength]byte,
+) bool {
+	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
+	if err != nil {
+		panic(err)
+	}
+	sig, err := blst.SignatureFromBytes(signature[:])
+	if err != nil {
+		panic(err)
+	}
 
-	// SecretKeyLength defines the byte length of a BLS12-381 secret key.
-	// It is defined to be 32 bytes in length.
-	SecretKeyLength = 32
-)
+	return sig.Verify(pubkey, msg)
+}

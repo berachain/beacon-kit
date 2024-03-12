@@ -23,23 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bls12381
+package crypto
 
-const (
-	// SignatureLength defines the byte length of a BLS12-381 Signature
-	// It is defined to be 96 bytes as defined in the Ethereum 2.0
-	// Specification.
-	//
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	//
-	//nolint:lll
-	SignatureLength = 96
-
-	// PubKeyLength defines the byte length of a BLS12-381 public key.
-	// As per the standard, it is set to 48 bytes.
-	PubKeyLength = 48
-
-	// SecretKeyLength defines the byte length of a BLS12-381 secret key.
-	// It is defined to be 32 bytes in length.
-	SecretKeyLength = 32
+import (
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
+
+// Signer defines an interface for cryptographic signing operations.
+// It uses generic type parameters Signature and Pubkey, both of which are
+// slices of bytes.
+type Signer[Signature, Pubkey any] interface {
+	// Sign takes a message as a slice of bytes and returns a signature as a
+	// slice of bytes and an error.
+	Sign(msg []byte) Signature
+}
+
+// NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
+func NewBLS12381Signer(
+	secretKey [bls12381.SecretKeyLength]byte,
+) (Signer[[bls12381.SignatureLength]byte, [bls12381.PubKeyLength]byte], error) {
+	return bls12381.NewSigner(secretKey)
+}
