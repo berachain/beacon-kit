@@ -214,7 +214,7 @@ func NewDefaultBeaconKitRuntime(
 		WithConfig(cfg),
 		WithLogger(logger),
 		WithServiceRegistry(svcRegistry),
-		WithRandaoProcessor(processor),
+		WithRandaoProcessor(randaoProcessor),
 	)
 }
 
