@@ -40,8 +40,15 @@ import (
 type Store struct {
 	ctx context.Context
 
-	validatorIndex                    sdkcollections.Sequence
-	validatorIndexToValidatorOperator sdkcollections.Map[uint64, []byte]
+	// validatorIndex is a sequence that provides the next
+	// available index for a new validator.
+	validatorIndex sdkcollections.Sequence
+
+	// validatorIndexToPubkey is a map that provides the
+	// public key for a given validator index.
+	validatorIndexToPubkey *sdkcollections.IndexedMap[
+		uint64, []byte, validatorsIndex,
+	]
 
 	// depositQueue is a list of depositQueue that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
@@ -62,20 +69,19 @@ func NewStore(
 		sdkcollections.NewPrefix(validatorIndexPrefix),
 		validatorIndexPrefix,
 	)
-	validatorIndexToValidatorOperator := sdkcollections.NewMap[uint64, []byte](
+	validatorIndexToPubkey := sdkcollections.NewIndexedMap[uint64, []byte](
 		schemaBuilder,
-		sdkcollections.NewPrefix(validatorIndexToAddressPrefix),
-		validatorIndexToAddressPrefix,
+		sdkcollections.NewPrefix(validatorIndexToPubkeyPrefix),
+		validatorIndexToPubkeyPrefix,
 		sdkcollections.Uint64Key,
 		sdkcollections.BytesValue,
+		newValidatorsIndex(schemaBuilder),
 	)
-
 	depositQueue := collections.NewQueue[*beacontypes.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
 		encoding.SSZValueCodec[*beacontypes.Deposit]{},
 	)
-
 	parentBlockRoot := sdkcollections.NewItem[[]byte](
 		schemaBuilder,
 		sdkcollections.NewPrefix(parentBlockRootPrefix),
@@ -84,10 +90,10 @@ func NewStore(
 	)
 
 	return &Store{
-		validatorIndex:                    validatorIndex,
-		validatorIndexToValidatorOperator: validatorIndexToValidatorOperator,
-		depositQueue:                      depositQueue,
-		parentBlockRoot:                   parentBlockRoot,
+		validatorIndex:         validatorIndex,
+		validatorIndexToPubkey: validatorIndexToPubkey,
+		depositQueue:           depositQueue,
+		parentBlockRoot:        parentBlockRoot,
 	}
 }
 

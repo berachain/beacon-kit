@@ -28,23 +28,14 @@ package blockchain
 import (
 	"context"
 
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/execution"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
-	BuildLocalPayload(
-		ctx context.Context,
-		parentEth1Hash primitives.ExecutionHash,
-		slot primitives.Slot,
-		timestamp uint64,
-		parentBlockRoot [32]byte,
-	) (*enginetypes.PayloadID, error)
-}
-
+// ExecutionService is the interface for the execution service.
 type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
@@ -69,6 +60,26 @@ type ExecutionService interface {
 	) error
 }
 
+// LocalBuilder is the interface for the builder service.
+type LocalBuilder interface {
+	BuildLocalPayload(
+		ctx context.Context,
+		parentEth1Hash primitives.ExecutionHash,
+		slot primitives.Slot,
+		timestamp uint64,
+		parentBlockRoot [32]byte,
+	) (*enginetypes.PayloadID, error)
+}
+
+// RandaoProcessor is the interface for the randao processor.
+type RandaoProcessor interface {
+	BuildReveal(
+		ctx context.Context,
+		epoch primitives.Epoch,
+	) (randaotypes.Reveal, error)
+}
+
+// StakingService is the interface for the staking service.
 type StakingService interface {
 	ProcessBlockEvents(
 		ctx context.Context,

@@ -28,6 +28,8 @@ package service
 import (
 	"context"
 
+	sdkcollections "cosmossdk.io/collections"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
@@ -45,4 +47,6 @@ type ValsetChangeProvider interface {
 		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
 	) error
+
+	ValidatorsByValAddress() sdkcollections.Map[[]byte, stakingtypes.Validator]
 }

@@ -23,39 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package beacon
 
 import (
-	"context"
-
 	sdkcollections "cosmossdk.io/collections"
-	stakingtypes "cosmossdk.io/x/staking/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"cosmossdk.io/collections/indexes"
 )
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
+// validatorsIndex is a structure that holds a unique index for validators based
+// on their public key.
+type validatorsIndex struct {
+	// Pubkey is a unique index mapping a validator's public key to their
+	// numeric ID and vice versa.
+	Pubkey *indexes.Unique[[]byte, uint64, []byte]
 }
 
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+// IndexesList returns a list of all indexes associated with the
+// validatorsIndex.
+func (a validatorsIndex) IndexesList() []sdkcollections.Index[uint64, []byte] {
+	return []sdkcollections.Index[uint64, []byte]{a.Pubkey}
 }
 
-// ValsetChangeProvider is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
-	ValidatorsByValAddress() sdkcollections.Map[[]byte, stakingtypes.Validator]
+// NewValidatorsIndex creates a new validatorsIndex with a unique index for
+// validator public keys.
+func newValidatorsIndex(sb *sdkcollections.SchemaBuilder) validatorsIndex {
+	return validatorsIndex{
+		Pubkey: indexes.NewUnique(
+			sb,
+			sdkcollections.NewPrefix(validatrPubkeyToIndexPrefix),
+			validatrPubkeyToIndexPrefix,
+			sdkcollections.BytesKey,
+			sdkcollections.Uint64Key,
+			// The mapping function simply returns the public key as the index
+			// key.
+			func(_ uint64, pubkey []byte) ([]byte, error) {
+				return pubkey, nil
+			},
+		),
+	}
 }

@@ -23,58 +23,65 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper
+package beacon
 
 import (
 	"context"
 
-	stakingtypes "cosmossdk.io/x/staking/types"
-	cosmoslib "github.com/berachain/beacon-kit/lib/cosmos"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// StakingHooks struct.
-type StakingHooks struct {
-	*cosmoslib.UnimplementedStakingHooks
-	k *Keeper
-}
-
-// Verify that the Hooks struct implements the stakingtypes.StakingHooks
-// interface.
-var _ stakingtypes.StakingHooks = StakingHooks{}
-
-// Create new stakinghooks hooks.
-func (k *Keeper) Hooks() StakingHooks {
-	return StakingHooks{k: k}
-}
-
-// initialize validator distribution record.
-func (h StakingHooks) AfterValidatorCreated(
+// AddValidator registers a new validator in the beacon state.
+func (s *Store) AddValidator(
 	ctx context.Context,
-	valAddr sdk.ValAddress,
+	pubkey []byte,
 ) error {
-	val, err := h.k.vcp.ValidatorsByValAddress().Get(ctx, valAddr)
+	idx, err := s.validatorIndex.Next(ctx)
 	if err != nil {
 		return err
 	}
-	pk, err := val.ConsPubKey()
-	if err != nil {
-		return err
-	}
-	return h.k.beaconStore.AddValidator(ctx, pk.Bytes())
+	return s.validatorIndexToPubkey.Set(ctx, idx, pubkey)
 }
 
-// AfterConsensusPubKeyUpdate does nothing and returns nil.
-func (h StakingHooks) AfterConsensusPubKeyUpdate(
+// UpdateValidator updates the pubkey of a validator.
+func (s *Store) UpdateValidator(
 	ctx context.Context,
-	fromPubkey cryptotypes.PubKey,
-	toPubkey cryptotypes.PubKey,
-	_ sdk.Coin,
+	oldPubkey []byte,
+	newPubkey []byte,
 ) error {
-	return h.k.beaconStore.UpdateValidator(
+	// Get the index of the old pubkey.
+	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
 		ctx,
-		fromPubkey.Bytes(),
-		toPubkey.Bytes(),
+		oldPubkey,
 	)
+	if err != nil {
+		return err
+	}
+
+	// Set the new one
+	return s.validatorIndexToPubkey.Set(ctx, idx, newPubkey)
+}
+
+// ValidatorPubKeyByIndex returns the validator address by index.
+func (s *Store) ValidatorIndexByPubkey(
+	ctx context.Context,
+	pubkey []byte,
+) primitives.ValidatorIndex {
+	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(ctx, pubkey)
+	if err != nil {
+		panic(err)
+	}
+	return idx
+}
+
+// ValidatorPubKeyByIndex returns the validator address by index.
+func (s *Store) ValidatorPubKeyByIndex(
+	ctx context.Context,
+	index primitives.ValidatorIndex,
+) []byte {
+	pubkey, err := s.validatorIndexToPubkey.Get(ctx, index)
+	if err != nil {
+		return nil
+	}
+	return pubkey
 }

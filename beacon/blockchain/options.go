@@ -55,6 +55,14 @@ func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
 	}
 }
 
+// WithRandaoProcessor sets the randao processor.
+func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
+	return func(s *Service) error {
+		s.rp = rp
+		return nil
+	}
+}
+
 // WithSyncService is a function that returns an Option.
 // It sets the SyncService of the Service to the provided Service.
 func WithSyncService(ss SyncService) service.Option[Service] {
