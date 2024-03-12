@@ -38,11 +38,11 @@ func VerifySignature(
 ) bool {
 	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
 	if err != nil {
-		panic(err)
+		return false
 	}
 	sig, err := blst.SignatureFromBytes(signature[:])
 	if err != nil {
-		panic(err)
+		return false
 	}
 
 	return sig.Verify(pubkey, msg)

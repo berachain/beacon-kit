@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
@@ -52,6 +53,9 @@ type ReadOnlyBeaconBlock interface {
 	GetBody() BeaconBlockBody
 	GetParentBlockRoot() [32]byte
 	Version() int
+
+	// RandaoReveal returns the randao reveal of the block.
+	GetRandaoReveal() types.Reveal
 }
 
 type BeaconBlockBody interface {
