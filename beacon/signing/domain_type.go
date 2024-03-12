@@ -23,17 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package signing
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs SigningData -output generated.ssz.go
+// DomainType is a 4-byte array used to represent a
+// domain type in BLS signing and verification.
+type DomainType [4]byte
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
+// Domain constants for BLS domain types.
 // Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
 //
-//nolint:lll // Urls are long.
-type SigningData struct {
-	ObjectRoot []byte `ssz-size:"32"`
-	Domain     []byte `ssz-size:"32"`
-}
+//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
+var (
+	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
+)
