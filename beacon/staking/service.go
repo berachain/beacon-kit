@@ -26,7 +26,6 @@
 package staking
 
 import (
-	"github.com/berachain/beacon-kit/runtime/modules/staking"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -36,5 +35,5 @@ type Service struct {
 	service.BaseService
 
 	// vcp is responsible for applying validator set changes.
-	vcp staking.ValsetChangeProvider
+	vcp ValsetChangeProvider
 }

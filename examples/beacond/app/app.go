@@ -115,7 +115,6 @@ func NewBeaconKitApp(
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
 
-	//clientCtx := client.Context{}
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
@@ -135,7 +134,6 @@ func NewBeaconKitApp(
 			),
 		),
 		&appBuilder,
-		//	&clientCtx,
 		&app.appCodec,
 		&app.legacyAmino,
 		&app.txConfig,

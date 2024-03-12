@@ -26,7 +26,6 @@
 package staking
 
 import (
-	"github.com/berachain/beacon-kit/runtime/modules/staking"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -43,7 +42,7 @@ func WithBaseService(
 // WithValsetChangeProvider returns an Option that sets
 // the ValsetChangeProvider for the Service.
 func WithValsetChangeProvider(
-	vcp staking.ValsetChangeProvider,
+	vcp ValsetChangeProvider,
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.vcp = vcp
