@@ -49,7 +49,6 @@ import (
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	_ "github.com/berachain/beacon-kit/lib/maxprocs"
-	"github.com/berachain/beacon-kit/runtime/abci/proposal"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
 )
@@ -57,12 +56,11 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg             *config.Config
-	logger          log.Logger
-	fscp            BeaconStorageBackend
-	services        *service.Registry
-	stakingKeeper   *keeper.Keeper
-	randaoProcessor proposal.RandaoProcessor
+	cfg           *config.Config
+	logger        log.Logger
+	fscp          BeaconStorageBackend
+	services      *service.Registry
+	stakingKeeper *keeper.Keeper
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -214,7 +212,6 @@ func NewDefaultBeaconKitRuntime(
 		WithConfig(cfg),
 		WithLogger(logger),
 		WithServiceRegistry(svcRegistry),
-		WithRandaoProcessor(randaoProcessor),
 	)
 }
 

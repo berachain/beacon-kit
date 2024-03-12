@@ -26,23 +26,43 @@
 package types
 
 import (
+	"cosmossdk.io/x/staking/keeper"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Reveal represents the signature of the RANDAO reveal.
-type Reveal [bls12381.SignatureLength]byte
+// ExtractProposalPublicKey returns the public key of the proposer of the block.
+func ExtractProposalPublicKey(
+	ctx sdk.Context,
+	stakingKeeper *keeper.Keeper,
+	proposerAddressBz []byte,
+) [bls12381.PubKeyLength]byte {
+	logger := ctx.Logger()
 
-// Verify checks if the reveal is valid for the given public key and domain.
-// TODO: signingRoot should be strongly typed.
-func (r Reveal) Verify(
-	pubKey [bls12381.PubKeyLength]byte,
-	signingRoot []byte, // todo: make strong type.
-) bool {
-	return bls12381.VerifySignature(pubKey, signingRoot, r)
-}
+	// Validate Reveal
+	v, err := stakingKeeper.ValidatorByConsensusAddress.Get(
+		ctx,
+		proposerAddressBz,
+	)
+	if err != nil {
+		logger.Warn("failed to get validator", "error", err)
+		panic("failed to get validator by consensus address")
+	}
 
-// MarshalText returns the hex representation of r.
-func (r Reveal) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(r[:]).MarshalText()
+	validator, err := stakingKeeper.GetValidator(ctx, v)
+	if err != nil {
+		logger.Warn("failed to get validator", "error", err)
+		panic("failed to get validator by consensus address")
+	}
+
+	key, err := validator.CmtConsPublicKey()
+	if err != nil {
+		logger.Warn("failed to get validator", "error", err)
+		panic("failed to get validator by consensus address")
+	}
+
+	var pubKey [bls12381.PubKeyLength]byte
+	copy(pubKey[:], key.GetBls12381())
+
+	return pubKey
 }

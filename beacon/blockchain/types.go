@@ -31,6 +31,7 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/execution"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -82,6 +83,11 @@ type RandaoProcessor interface {
 		ctx context.Context,
 		blk beacontypes.BeaconBlock,
 	) error
+	VerifyReveal(
+		proposerPubkey [bls12381.PubKeyLength]byte,
+		epoch primitives.Epoch,
+		reveal randaotypes.Reveal,
+	) bool
 }
 
 // StakingService is the interface for the staking service.

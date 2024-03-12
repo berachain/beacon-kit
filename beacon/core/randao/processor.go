@@ -73,18 +73,28 @@ func (p *Processor) BuildReveal(
 	_ context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	signingRoot := p.GetSigningRoot(epoch)
-
-	return p.signer.Sign(signingRoot), nil
+	return p.signer.Sign(p.computeSigningRoot(epoch, p.getDomain(epoch))), nil
 }
 
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) VerifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
-	msg []byte,
+	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) bool {
-	return bls12381.VerifySignature(proposerPubkey, msg, reveal)
+	ok := bls12381.VerifySignature(
+		proposerPubkey,
+		p.computeSigningRoot(epoch, p.getDomain(epoch)),
+		reveal,
+	)
+	if ok {
+		p.logger.Info("randao reveal verified successfully",
+			"reveal", reveal,
+		)
+	} else {
+		p.logger.Info("reveal verification failed")
+	}
+	return ok
 }
 
 // MixinNewReveal mixes in a new reveal.
@@ -103,20 +113,12 @@ func (p *Processor) MixinNewReveal(
 	if err = st.SetRandaoMix(newMix); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
-	p.logger.Info("updated randao mix ", "new_mix", newMix)
+	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
 	return nil
 }
 
-// GetSigningRoot returns the signing root.
-// // TODO: COMPLETE
-func (p *Processor) GetSigningRoot(
-	epoch primitives.Epoch,
-) []byte {
-	return p.computeSigningRoot(epoch, p.getDomain(epoch))
-}
-
 // computeSigningRoot computes the signing root.
-// // TODO: COMPLETE
+// // TODO: COMPLETE THIS IS CURRENTLY WRONG.
 func (p *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
 	_ signing.Domain,

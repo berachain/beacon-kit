@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/x/staking/keeper"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
@@ -67,6 +68,9 @@ type BeaconPreBlockHandler struct {
 	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
 	nextHandler sdk.PreBlocker
+
+	// todo: remove.
+	stakingKeeper *keeper.Keeper
 }
 
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
@@ -77,13 +81,15 @@ func NewBeaconPreBlockHandler(
 	chainService *blockchain.Service,
 	syncService *sync.Service,
 	nextHandler sdk.PreBlocker,
+	stakingKeeper *keeper.Keeper,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
-		cfg:          cfg,
-		logger:       logger,
-		chainService: chainService,
-		syncService:  syncService,
-		nextHandler:  nextHandler,
+		cfg:           cfg,
+		logger:        logger,
+		chainService:  chainService,
+		syncService:   syncService,
+		nextHandler:   nextHandler,
+		stakingKeeper: stakingKeeper,
 	}
 }
 
@@ -137,6 +143,9 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		if err = h.chainService.ReceiveBeaconBlock(
 			ctx,
 			blk,
+			abcitypes.ExtractProposalPublicKey(
+				ctx, h.stakingKeeper, req.ProposerAddress,
+			),
 			cometBlockHash,
 		); err != nil {
 			h.logger.Warn(

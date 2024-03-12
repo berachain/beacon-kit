@@ -28,7 +28,6 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/runtime/abci/proposal"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -64,14 +63,6 @@ func WithLogger(logger log.Logger) Option {
 func WithBeaconStorageBackend(fscp BeaconStorageBackend) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
-		return nil
-	}
-}
-
-// WithRandaoProcessor sets the RandaoProcessor of the BeaconKitRuntime.
-func WithRandaoProcessor(processor proposal.RandaoProcessor) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.randaoProcessor = processor
 		return nil
 	}
 }
