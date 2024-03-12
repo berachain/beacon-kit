@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/config/version"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -66,4 +67,9 @@ func (b *BeaconBlockDeneb) GetSlot() primitives.Slot {
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
 func (b *BeaconBlockDeneb) GetParentBlockRoot() [32]byte {
 	return b.ParentBlockRoot
+}
+
+// GetRandaoReveal retrieves the randao reveal of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) GetRandaoReveal() types.Reveal {
+	return b.Body.RandaoReveal
 }
