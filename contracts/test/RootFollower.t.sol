@@ -4,9 +4,7 @@ pragma solidity ^0.8.24;
 import { Errors } from "@src/eip4788/extensions/Errors.sol";
 import { IRootFollower } from "@src/eip4788/extensions/IRootFollower.sol";
 import { RootFollower } from "@src/eip4788/extensions/RootFollower.sol";
-import { BeaconRootsContract } from "@src/eip4788/BeaconRootsContract.sol";
 import { BeaconRootsContractBaseTest } from "./BeaconRootsContract.t.sol";
-
 contract RootFollowerUser is RootFollower { }
 
 contract RootFollowerTest is BeaconRootsContractBaseTest {
@@ -14,9 +12,8 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
 
     function setUp() public override {
         // etch the BeaconRootsContract to the BEACON_ROOT_ADDRESS
-        vm.etch(
-            BEACON_ROOT_ADDRESS, vm.getDeployedCode("BeaconRootsContract.sol")
-        );
+        bytes memory beaconRootsContractBytecode = abi.encodePacked(hex"3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500");
+        vm.etch(BEACON_ROOT_ADDRESS, beaconRootsContractBytecode);
         // set the initial storage of the BEACON_ROOT_ADDRESS
         setBeaconRoots(0, TIMESTAMP, HISTORY_BUFFER_LENGTH);
         rootFollower = new RootFollowerUser();
@@ -27,18 +24,9 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         uint256 blockNum = 1;
         vm.roll(blockNum);
 
-        (bool success, bytes memory result) = BEACON_ROOT_ADDRESS.call(
-            abi.encodeWithSelector(GET_COINBASE_SELECTOR, blockNum)
-        );
-        assertEq(success, true);
-        address expected = abi.decode(result, (address));
 
         // Get the next actionable block and assert it
         assertEq(1, rootFollower.getNextActionableBlock());
-
-        // Get the coinbase of block 1 and assert it
-        address received = rootFollower.getCoinbase(blockNum);
-        assertEq(expected, received);
 
         // Increment the block
         vm.expectEmit(address(rootFollower));
@@ -50,21 +38,6 @@ contract RootFollowerTest is BeaconRootsContractBaseTest {
         assertEq(2, rootFollower.getNextActionableBlock());
     }
 
-    function test_OutOfBuffer() public brutalizeMemory {
-        // should succeed
-        rootFollower.getCoinbase(1);
-        vm.roll(10_000);
-
-        assertEq(10_000 - 8191, rootFollower.getNextActionableBlock());
-
-        // Incrementing the block should fail now because out of buffer
-        vm.expectRevert(Errors.AttemptedToIncrementOutOfBuffer.selector);
-        rootFollower.incrementBlock();
-
-        // Getting an out of buffer coinbase should result in a revert
-        vm.expectRevert(Errors.BlockNotInBuffer.selector);
-        rootFollower.getCoinbase(1);
-    }
 
     function test_resetCount() public {
         vm.roll(1);

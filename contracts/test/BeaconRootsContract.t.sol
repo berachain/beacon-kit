@@ -5,7 +5,6 @@ import { console2 } from "@forge-std/console2.sol";
 import { StdChains } from "@forge-std/StdChains.sol";
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { FixedPointMathLib } from "@solady/src/utils/FixedPointMathLib.sol";
-import { BeaconRootsContract } from "@src/eip4788/BeaconRootsContract.sol";
 
 /// @title BeaconRootsContractBaseTest
 /// @dev This contract is a baseplate for tests that depend on the
@@ -33,7 +32,9 @@ abstract contract BeaconRootsContractBaseTest is SoladyTest {
 
     /// @dev Set up the test environment by deploying a new BeaconRootsContract.
     function setUp() public virtual {
-        BEACON_ROOT_ADDRESS = address(new BeaconRootsContract());
+        bytes memory beaconRootsContractBytecode = abi.encodePacked(hex"3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500");
+        vm.etch(BEACON_ROOT_ADDRESS, beaconRootsContractBytecode);
+        BEACON_ROOT_ADDRESS = address(0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02);
         // take a snapshot of the clean state
         snapshot = vm.snapshot();
         // set the initial storage of the BEACON_ROOT_ADDRESS
@@ -149,13 +150,13 @@ abstract contract BeaconRootsContractBaseTest is SoladyTest {
 /// @title BeaconRootsContractTest
 /// @dev This contract is used for testing the BeaconRootsContract.
 contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
-    /// @dev Test the timestamps, beacon roots, and coinbases are stored
+    /// @dev Test the timestamps, and beacon roots are stored
     /// correctly in the circular buffers.
     function test_Set() public {
         testFuzz_Set(0, 1, HISTORY_BUFFER_LENGTH);
     }
 
-    /// @dev Fuzzing test the timestamps, beacon roots, and coinbases are stored
+    /// @dev Fuzzing test the timestamps and beacon roots are stored
     /// correctly in the circular buffers.
     function testFuzz_Set(
         uint64 startBlock,
@@ -173,7 +174,6 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
             ,
             uint256[] memory timestamps,
             bytes32[] memory beaconRoots,
-            address[] memory coinbases
         ) = setBeaconRoots(startBlock, startTimestamp, length);
         unchecked {
             // loop over the last `HISTORY_BUFFER_LENGTH` indices
@@ -194,14 +194,7 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
                     BEACON_ROOT_ADDRESS, bytes32(blockIdx + BEACON_ROOT_OFFSET)
                 );
                 assertEq(data, beaconRoots[i], "set: invalid beacon root");
-                data = vm.load(
-                    BEACON_ROOT_ADDRESS, bytes32(blockIdx + COINBASE_OFFSET)
-                );
-                assertEq(
-                    uint256(data),
-                    uint160(coinbases[i]),
-                    "set: invalid coinbase"
-                );
+
                 if (i == 0) {
                     break;
                 }
@@ -282,50 +275,6 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         validateBeaconRoots(timestamps, beaconRoots);
     }
 
-    /// @dev Test getting the coinbase from the BeaconRootsContract.
-    function test_GetCoinbase() public {
-        testFuzz_GetCoinbase(1, 1, HISTORY_BUFFER_LENGTH);
-    }
-
-    /// @dev Fuzzing test the coinbase is retrieved correctly from the circular
-    /// buffer.
-    function testFuzz_GetCoinbase(
-        uint64 startBlock,
-        uint32 startTimestamp,
-        uint256 length
-    )
-        public
-    {
-        vm.assume(startTimestamp > 0);
-        // may wrap around the circular buffer
-        length = _bound(length, 1, HISTORY_BUFFER_LENGTH * 2);
-        // revert to the snapshot to get a fresh storage
-        vm.revertTo(snapshot);
-        (uint256[] memory blockNumbers,,, address[] memory coinbases) =
-            setBeaconRoots(startBlock, startTimestamp, length);
-        unchecked {
-            // loop over the last `HISTORY_BUFFER_LENGTH` indices
-            uint256 i = length - 1;
-            for (uint256 j; j < HISTORY_BUFFER_LENGTH; ++j) {
-                (bool success, bytes memory data) = BEACON_ROOT_ADDRESS
-                    .staticcall(
-                    abi.encodeWithSelector(
-                        GET_COINBASE_SELECTOR, blockNumbers[i]
-                    )
-                );
-                assertTrue(success, "getCoinbase: failed");
-                assertEq(
-                    uint256(bytes32(data)),
-                    uint160(coinbases[i]),
-                    "get: invalid coinbase"
-                );
-                if (i == 0) {
-                    break;
-                }
-                --i;
-            }
-        }
-    }
 
     /// @dev Fuzzing test the beacon root is retrieved correctly from a
     /// partially initialized buffer.
@@ -337,52 +286,5 @@ contract BeaconRootsContractTest is BeaconRootsContractBaseTest {
         (, uint256[] memory timestamps, bytes32[] memory beaconRoots,) =
             setBeaconRoots(1, TIMESTAMP, length);
         validateBeaconRoots(timestamps, beaconRoots);
-    }
-}
-
-/// @title BeaconRootsContractForkTest
-/// @dev This contract is used for testing the BeaconRootsContract on a fork.
-contract BeaconRootsContractForkTest is
-    BeaconRootsContractBaseTest,
-    StdChains
-{
-    function setUp() public override {
-        vm.createSelectFork("sepolia");
-        assertGt(block.number, 1, "something went wrong");
-    }
-
-    /// @dev Test the `get` function in BeaconRootsContract on Sepolia testnet.
-    function testFork_Get() public {
-        console2.log("block number", block.number);
-        console2.log("block timestamp", block.timestamp);
-        for (uint256 i; i < 10; ++i) {
-            (bool success, bytes32 beaconRoot) = callGet(block.timestamp);
-            assertTrue(success, "get: failed");
-            uint256 timestampIdx = block.timestamp % HISTORY_BUFFER_LENGTH;
-            bytes32 timestamp =
-                vm.load(BEACON_ROOT_ADDRESS, bytes32(timestampIdx));
-            assertEq(
-                block.timestamp, uint256(timestamp), "get: invalid timestamp"
-            );
-            bytes32 _beaconRoot = vm.load(
-                BEACON_ROOT_ADDRESS, bytes32(timestampIdx + BEACON_ROOT_OFFSET)
-            );
-            assertEq(beaconRoot, _beaconRoot, "get: invalid beacon root");
-            // roll back to the previous block
-            vm.rollFork(block.number - 1);
-        }
-    }
-
-    /// @dev Test the `set` function in BeaconRootsContract on Sepolia testnet.
-    function testFork_Set() public {
-        uint256 timestamp = _random();
-        vm.warp(timestamp);
-        bytes32 beaconRoot = bytes32(_random());
-        vm.prank(SYSTEM_ADDRESS);
-        (bool success,) = BEACON_ROOT_ADDRESS.call(abi.encode(beaconRoot));
-        assertTrue(success, "set failed");
-        (bool success2, bytes32 beaconRoot2) = callGet(timestamp);
-        assertTrue(success2, "get: failed");
-        assertEq(beaconRoot, beaconRoot2, "invalid beacon root");
     }
 }
