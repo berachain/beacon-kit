@@ -29,6 +29,7 @@ import (
 	"context"
 
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/execution"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
@@ -77,6 +78,10 @@ type RandaoProcessor interface {
 		ctx context.Context,
 		epoch primitives.Epoch,
 	) (randaotypes.Reveal, error)
+	MixinNewReveal(
+		ctx context.Context,
+		blk beacontypes.BeaconBlock,
+	) error
 }
 
 // StakingService is the interface for the staking service.

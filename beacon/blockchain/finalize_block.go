@@ -27,7 +27,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
@@ -83,18 +82,9 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	randaoMix, err := state.RandaoMix()
-	if err != nil {
-		return fmt.Errorf("failed to get randao mix: %w", err)
+	if err = s.rp.MixinNewReveal(ctx, blk); err != nil {
+		return err
 	}
-	reveal := blk.GetRandaoReveal()
-
-	newMix := randaoMix.MixinNewReveal(reveal)
-	err = state.SetRandaoMix(newMix)
-	if err != nil {
-		return fmt.Errorf("failed to set new randao mix: %w", err)
-	}
-	s.Logger().Info("updated randao mix", "new_mix", newMix)
 
 	// TODO: PROCESS LOGS HERE
 	// TODO: PROCESS DEPOSITS HERE
