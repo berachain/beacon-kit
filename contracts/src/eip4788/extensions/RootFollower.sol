@@ -14,8 +14,6 @@ abstract contract RootFollower is IRootFollower, Ownable {
 
     /// @dev The length of the history buffer.
     uint256 private constant HISTORY_BUFFER_LENGTH = 8191;
-    /// @dev The selector for "getCoinbase(uint256)"
-    bytes4 private constant GET_COINBASE_SELECTOR = 0xe8e284b9;
     /// @dev The beacon roots contract address.
     address private constant BEACON_ROOT_ADDRESS =
         0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
@@ -34,15 +32,6 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                   PUBLIC READ FUNCTIONS                    */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @inheritdoc IRootFollower
-    function getCoinbase(uint256 _block)
-        public
-        view
-        returns (address coinbase)
-    {
-        return _getCoinbase(_block);
-    }
 
     /// @inheritdoc IRootFollower
     function getNextActionableBlock() public view returns (uint256 blockNum) {
@@ -78,36 +67,6 @@ abstract contract RootFollower is IRootFollower, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                     INTERNAL FUNCTIONS                     */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @dev Fetches the coinbase address for a block using inline assembly &
-    /// `staticcall`.
-    /// @dev Assumes BEACON_ROOT_ADDRESS contract returns the coinbase. Reverts
-    /// on failure.
-    /// @param _block The block number to query.
-    /// @return _coinbase The miner's address for the block.
-    function _getCoinbase(uint256 _block)
-        internal
-        view
-        returns (address _coinbase)
-    {
-        // Check if _block is in the buffer range
-        if (
-            (
-                _block
-                    < FixedPointMathLib.zeroFloorSub(
-                        block.number, HISTORY_BUFFER_LENGTH
-                    )
-            ) || (_block > block.number)
-        ) {
-            revert Errors.BlockNotInBuffer();
-        }
-        assembly ("memory-safe") {
-            mstore(0, GET_COINBASE_SELECTOR)
-            mstore(0x04, _block)
-            pop(staticcall(gas(), BEACON_ROOT_ADDRESS, 0, 0x24, 0, 0x20))
-            _coinbase := mload(0)
-        }
-    }
 
     /// @dev Increments `_LAST_PROCESSED_BLOCK` if it's the next actionable
     /// block.
