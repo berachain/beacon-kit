@@ -25,9 +25,18 @@
 
 package types
 
-func DefaultGenesis() *GenesisState {
-	return &GenesisState{
-		//nolint:lll
-		Eth1GenesisHash: "0x7b67dff2705bd1dd6133f5a6791c25bb457960d709cd4c318aed39690c4ef2c2",
-	}
+import (
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+)
+
+// Reveal represents the signature of the RANDAO reveal.
+type Reveal [bls12381.SignatureLength]byte
+
+// Verify checks if the reveal is valid for the given public key and domain.
+// TODO: signingRoot should be strongly typed.
+func (r Reveal) Verify(
+	pubKey [bls12381.PubKeyLength]byte,
+	signingRoot []byte, // todo: make strong type.
+) bool {
+	return bls12381.VerifySignature(pubKey, signingRoot, r)
 }

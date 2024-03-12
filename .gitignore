@@ -197,7 +197,7 @@ pkg/**/.*.yaml
 */**/solidity-files-cache.json
 contracts/out/
 */**/broadcast
-*/**/*.bin
+contracts/out/**/*.bin
 
 # e2e
 e2e/**/*.txt

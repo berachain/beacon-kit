@@ -23,18 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package types
 
-// SSZDomain is a 4-byte array used to represent a
-// domain type in BLS signing and verification.
-type SSZDomain = [4]byte
+import "github.com/berachain/beacon-kit/crypto/sha256"
 
-// Domain constants for BLS domain types.
-// Spec:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
-//
-//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
-var (
-	DomainRandao  = SSZDomain{0x02, 0x00, 0x00, 0x00}
-	DomainDeposit = SSZDomain{0x03, 0x00, 0x00, 0x00}
-)
+// Mix represents the current state of the RANDAO's entropy mixing process.
+// RANDAO can be conceptualized as a deck of cards being passed and shuffled
+// by each participant, thereby continuously re-randomizing the deck.
+// This process ensures that even if an individual's contribution to the
+// randomness is weak, the overall entropy of the system remains high. Mix keeps
+// track of this "current mix" or the state of the shuffled deck as it
+// circulates among participants.
+const MixLength = 32
+
+// Mix is a fixed-size array that stores the current state of the entropy mix.
+type Mix [MixLength]byte
+
+// MixinNewReveal takes a new reveal (signature) and combines it with the
+// current mix
+// using a XOR operation, then returns the updated mix.
+func (m Mix) MixinNewReveal(reveal Reveal) Mix {
+	for idx, b := range sha256.Hash(reveal[:]) {
+		m[idx] ^= b
+	}
+	return m
+}

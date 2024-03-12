@@ -23,11 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package signing
 
-func DefaultGenesis() *GenesisState {
-	return &GenesisState{
-		//nolint:lll
-		Eth1GenesisHash: "0x7b67dff2705bd1dd6133f5a6791c25bb457960d709cd4c318aed39690c4ef2c2",
-	}
+// TODO: Do this properly, using [4]byte, for now its stupid simple.
+// TODO add forkbytes thing.
+type Domain [32]byte
+
+// BuildDomain creates and returns a new Domain instance.
+// This function initializes a Domain with its default value, which is a 32-byte
+// array filled with zeros.
+func BuildDomain() Domain {
+	return Domain{}
+}
+
+// Bytes returns the byte representation of the Domain.
+func (d *Domain) Bytes() []byte {
+	return d[:]
 }

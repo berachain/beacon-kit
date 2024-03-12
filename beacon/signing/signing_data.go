@@ -23,11 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package signing
 
-func DefaultGenesis() *GenesisState {
-	return &GenesisState{
-		//nolint:lll
-		Eth1GenesisHash: "0x7b67dff2705bd1dd6133f5a6791c25bb457960d709cd4c318aed39690c4ef2c2",
-	}
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Data -output generated.ssz.go
+
+// SigningData is a struct used to compute
+// hash(root_hash(object), domain_hash).
+// Spec:
+// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
+//
+//nolint:lll // Urls are long.
+type Data struct {
+	ObjectRoot []byte `ssz-size:"32"`
+	Domain     Domain `ssz-size:"32"`
 }
