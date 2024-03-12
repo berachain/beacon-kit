@@ -40,9 +40,6 @@ func (s *Store) AddValidator(
 	if err != nil {
 		return err
 	}
-	if err = s.validatorPubkeyToIndex.Set(ctx, pubkey, idx); err != nil {
-		return err
-	}
 	return s.validatorIndexToPubkey.Set(ctx, idx, pubkey)
 }
 
@@ -53,22 +50,12 @@ func (s *Store) UpdateValidator(
 	newPubkey []byte,
 ) error {
 	// Get the index of the old pubkey.
-	idx, err := s.validatorPubkeyToIndex.Get(ctx, oldPubkey)
+	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(ctx, oldPubkey)
 	if err != nil {
 		return err
 	}
 
-	// Remove the old mapping.
-	if err = s.validatorPubkeyToIndex.Remove(ctx, oldPubkey); err != nil {
-		return err
-	}
-
-	// Add the new mapping.
-	if err = s.validatorPubkeyToIndex.Set(ctx, newPubkey, idx); err != nil {
-		return err
-	}
-
-	// Update the pubkey.
+	// Set the new one
 	return s.validatorIndexToPubkey.Set(ctx, idx, newPubkey)
 }
 
@@ -77,7 +64,7 @@ func (s *Store) ValidatorIndexByPubkey(
 	ctx context.Context,
 	pubkey []byte,
 ) primitives.ValidatorIndex {
-	idx, err := s.validatorPubkeyToIndex.Get(ctx, pubkey)
+	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(ctx, pubkey)
 	if err != nil {
 		panic(err)
 	}
