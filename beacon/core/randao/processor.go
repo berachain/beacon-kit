@@ -52,7 +52,9 @@ func NewProcessor(
 ) *Processor {
 	p := &Processor{}
 	for _, opt := range opts {
-		opt(p)
+		if err := opt(p); err != nil {
+			panic(err)
+		}
 	}
 	return p
 }
@@ -115,7 +117,7 @@ func (p *Processor) GetSigningRoot(
 
 // computeSigningRoot computes the signing root.
 // // TODO: COMPLETE
-func (rs *Processor) computeSigningRoot(
+func (p *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
 	_ signing.Domain,
 ) []byte {
@@ -124,7 +126,7 @@ func (rs *Processor) computeSigningRoot(
 
 // getDomain returns the domain.
 // TODO: COMPLETE
-func (rs *Processor) getDomain(
+func (p *Processor) getDomain(
 	_ primitives.Epoch,
 ) signing.Domain {
 	return signing.Domain{}
