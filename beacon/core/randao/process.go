@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/beacon/signing"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -83,15 +84,15 @@ func (rs *Processor) GetSigningRoot(
 
 func (rs *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
-	_ types.Domain,
+	_ signing.Domain,
 ) []byte {
 	return sdktypes.Uint64ToBigEndian(epoch)
 }
 
 func (rs *Processor) getDomain(
 	_ primitives.Epoch,
-) types.Domain {
-	return types.BuildDomain()
+) signing.Domain {
+	return signing.Domain{}
 }
 
 // VerifyReveal verifies the reveal of the proposer.
