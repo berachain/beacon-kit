@@ -26,6 +26,7 @@
 package signing
 
 // TODO: Do this properly, using [4]byte, for now its stupid simple.
+// TODO add forkbytes thing.
 type Domain [32]byte
 
 // BuildDomain creates and returns a new Domain instance.
