@@ -74,4 +74,11 @@ func TestHeader(t *testing.T) {
 	otherCmtHeader.Time = otherCmtHeader.Time.In(timeLocation)
 	require.Equal(t, cmtHeader, otherCmtHeader)
 	require.Equal(t, cmtHeader.Hash(), otherCmtHeader.Hash())
+
+	// If the time in cmtHeader is in UTC,
+	// we don't need to convert time in otherCmtHeader to UTC.
+	cmtHeader.Time = cmtHeader.Time.UTC()
+	otherCmtHeaderUTC := header.ToCometBFT()
+	require.Equal(t, cmtHeader, otherCmtHeaderUTC)
+	require.Equal(t, cmtHeader.Hash(), otherCmtHeaderUTC.Hash())
 }
