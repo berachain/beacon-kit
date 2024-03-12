@@ -23,9 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package signing
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs SigningData -output generated.ssz.go
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Data -output generated.ssz.go
 
 // SigningData is a struct used to compute
 // hash(root_hash(object), domain_hash).
@@ -33,7 +33,7 @@ package primitives
 // https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
 //
 //nolint:lll // Urls are long.
-type SigningData struct {
+type Data struct {
 	ObjectRoot []byte `ssz-size:"32"`
-	Domain     []byte `ssz-size:"32"`
+	Domain     Domain `ssz-size:"32"`
 }
