@@ -163,7 +163,7 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_ACCEPT}, nil
 	}
 
-	epoch := primitives.ToEpoch(primitives.Slot(req.Height))
+	epoch := (primitives.Slot(req.Height))
 
 	proposerPubKey := h.extractProposalPublicKey(ctx, req)
 
