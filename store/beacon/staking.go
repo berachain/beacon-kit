@@ -26,39 +26,9 @@
 package beacon
 
 import (
-	"context"
-
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
 )
-
-// Validator Management
-
-// AddValidator registers a new validator in the beacon state.
-func (s *Store) AddValidator(
-	ctx context.Context,
-	valAddr []byte,
-) error {
-	idx, err := s.validatorIndex.Next(ctx)
-	if err != nil {
-		return err
-	}
-
-	return s.validatorIndexToValidatorOperator.Set(ctx, idx, valAddr)
-}
-
-// ValidatorByIndex returns the validator address by index.
-func (s *Store) ValidatorByIndex(
-	ctx context.Context,
-	index primitives.ValidatorIndex,
-) []byte {
-	valAddr, err := s.validatorIndexToValidatorOperator.Get(ctx, index)
-	if err != nil {
-		return nil
-	}
-	return valAddr
-}
 
 // Deposit Management
 

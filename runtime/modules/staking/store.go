@@ -23,39 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package staking
 
 import (
-	"context"
-
 	sdkcollections "cosmossdk.io/collections"
 	stakingtypes "cosmossdk.io/x/staking/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
-}
-
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-// ValsetChangeProvider is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
-	ValidatorsByValAddress() sdkcollections.Map[[]byte, stakingtypes.Validator]
+// Validators key: valAddr | value: Validator.
+func (k *Keeper) ValidatorsByValAddress() sdkcollections.Map[
+	[]byte, stakingtypes.Validator,
+] {
+	return k.stakingKeeper.Validators
 }
