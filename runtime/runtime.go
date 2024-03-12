@@ -160,10 +160,7 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
-	processor := randao.NewProcessor(bsb, blsSigner, &randao.Config{
-		EpochsPerHistoricalVector: 0,
-		ConfiguredPubKeyLength:    0,
-	})
+	processor := randao.NewProcessor(bsb, blsSigner)
 
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("builder")),

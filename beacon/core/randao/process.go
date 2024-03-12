@@ -44,18 +44,15 @@ type BeaconStateProvider interface {
 type Processor struct {
 	stateProvider BeaconStateProvider
 	signer        bls12381.Signer
-	cfg           *Config
 }
 
 func NewProcessor(
 	beaconStateProvider BeaconStateProvider,
 	signer bls12381.Signer,
-	cfg *Config,
 ) *Processor {
 	return &Processor{
 		stateProvider: beaconStateProvider,
 		signer:        signer,
-		cfg:           cfg,
 	}
 }
 

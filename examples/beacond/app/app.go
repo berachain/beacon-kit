@@ -28,12 +28,8 @@ package app
 import (
 	"context"
 	_ "embed"
-	"fmt"
-	"io"
-	"os"
-
-	"github.com/berachain/beacon-kit/beacon/core/randao"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"io"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -50,17 +46,14 @@ import (
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
-	"github.com/cometbft/cometbft/p2p"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	"github.com/spf13/cast"
 )
 
 var (
@@ -189,32 +182,6 @@ func NewBeaconKitApp(
 	}
 
 	return app
-}
-
-func getProcessor(appOpts servertypes.AppOptions) *randao.Processor {
-	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
-	fmt.Println("HomeDir: ", homeDir)
-	key, err := p2p.LoadNodeKey(
-		fmt.Sprintf("%s/config/priv_validator_key.json", homeDir),
-	)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		os.Exit(1)
-	}
-	fmt.Println("Key: ", key.PrivKey)
-
-	var pk [32]byte
-	copy(pk[:], key.PrivKey.Bytes())
-
-	signer, err := bls12381.NewSigner(pk)
-	if err != nil {
-		panic(err)
-	}
-	processor := randao.NewProcessor(nil, *signer, &randao.Config{
-		EpochsPerHistoricalVector: 0,
-		ConfiguredPubKeyLength:    0,
-	})
-	return processor
 }
 
 // PostStartup is called after the app has started up and CometBFT is connected.
