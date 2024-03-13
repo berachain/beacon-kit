@@ -47,8 +47,18 @@ type Keeper struct {
 	stakingKeeper *sdkkeeper.Keeper
 }
 
+func ProvideStakingKeeper(
+	stakingKeeper *sdkkeeper.Keeper,
+) *Keeper {
+	return NewKeeper(stakingKeeper)
+}
+
 // NewKeeper creates a new instance of the staking Keeper.
 func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
+	if stakingKeeper == nil {
+		panic("staking keeper is required")
+	}
+
 	return &Keeper{
 		stakingKeeper: stakingKeeper,
 	}

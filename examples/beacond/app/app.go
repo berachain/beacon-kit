@@ -115,6 +115,7 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
 				bls12381.ProvideBlsSigner,
+				stakingwrapper.ProvideStakingKeeper,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -124,7 +125,7 @@ func NewBeaconKitApp(
 				// supply beaconkit options
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 				// supply our custom staking wrapper.
-				stakingwrapper.NewKeeper(app.StakingKeeper), // StakingKeeper is nil here.
+				// stakingwrapper.NewKeeper(app.StakingKeeper), // StakingKeeper is nil here.
 			),
 		),
 		&appBuilder,
