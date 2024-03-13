@@ -61,3 +61,11 @@ func WithRemoteBuilders(builders ...PayloadBuilder) service.Option[Service] {
 		return nil
 	}
 }
+
+// WithRandaoProcessor sets the randao processor.
+func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
+	return func(s *Service) error {
+		s.randaoProcessor = rp
+		return nil
+	}
+}

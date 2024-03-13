@@ -32,7 +32,7 @@ import (
 // Signer defines an interface for cryptographic signing operations.
 // It uses generic type parameters Signature and Pubkey, both of which are
 // slices of bytes.
-type Signer[Signature, Pubkey any] interface {
+type Signer[Signature any] interface {
 	// Sign takes a message as a slice of bytes and returns a signature as a
 	// slice of bytes and an error.
 	Sign(msg []byte) Signature
@@ -41,6 +41,6 @@ type Signer[Signature, Pubkey any] interface {
 // NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
 func NewBLS12381Signer(
 	secretKey [bls12381.SecretKeyLength]byte,
-) (Signer[[bls12381.SignatureLength]byte, [bls12381.PubKeyLength]byte], error) {
+) (Signer[[bls12381.SignatureLength]byte], error) {
 	return bls12381.NewSigner(secretKey)
 }

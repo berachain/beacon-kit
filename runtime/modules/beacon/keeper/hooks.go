@@ -54,15 +54,12 @@ func (h StakingHooks) AfterValidatorCreated(
 	ctx context.Context,
 	valAddr sdk.ValAddress,
 ) error {
-	val, err := h.k.vcp.ValidatorsByValAddress().Get(ctx, valAddr)
+	pubkey, err := h.k.vcp.GetValidatorPubkeyFromValAddress(ctx, valAddr)
 	if err != nil {
 		return err
 	}
-	pk, err := val.ConsPubKey()
-	if err != nil {
-		return err
-	}
-	return h.k.beaconStore.AddValidator(ctx, pk.Bytes())
+
+	return h.k.beaconStore.AddValidator(ctx, pubkey[:])
 }
 
 // AfterConsensusPubKeyUpdate does nothing and returns nil.

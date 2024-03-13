@@ -26,8 +26,7 @@
 package abi
 
 import (
-	"errors"
-
+	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
 )

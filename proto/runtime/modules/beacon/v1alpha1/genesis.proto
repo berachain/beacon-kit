@@ -33,4 +33,7 @@ option go_package = "github.com/berachain/beacon-kit/runtime/modules/beacon/type
 message GenesisState {
   // NextID is the next ID to be used for a CurrencyPair
   string eth1_genesis_hash = 1;
+
+  // randao mix
+  bytes randao_mix = 2;
 }

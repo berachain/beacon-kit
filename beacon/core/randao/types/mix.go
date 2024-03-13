@@ -25,7 +25,10 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/crypto/sha256"
+import (
+	"github.com/berachain/beacon-kit/crypto/sha256"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 // Mix represents the current state of the RANDAO's entropy mixing process.
 // RANDAO can be conceptualized as a deck of cards being passed and shuffled
@@ -47,4 +50,9 @@ func (m Mix) MixinNewReveal(reveal Reveal) Mix {
 		m[idx] ^= b
 	}
 	return m
+}
+
+// MarshalText returns the hex representation of m.
+func (m Mix) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(m[:]).MarshalText()
 }

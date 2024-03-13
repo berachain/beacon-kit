@@ -30,6 +30,7 @@ import (
 	"fmt"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/berachain/beacon-kit/primitives"
 	"golang.org/x/sync/errgroup"
@@ -40,6 +41,7 @@ import (
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
+	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
@@ -71,7 +73,7 @@ func (s *Service) ReceiveBeaconBlock(
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, blk)
+		err := s.validateStateTransition(groupCtx, blk, proposerPubkey)
 		if err != nil {
 			s.Logger().
 				Error("failed to validate state transition", "error", err)
@@ -123,6 +125,7 @@ func (s *Service) ReceiveBeaconBlock(
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
+	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
 	if blk.IsNil() {
 		return beacontypes.ErrNilBlk
@@ -144,9 +147,14 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
-	// ---------------------///
-	// VALIDATE RANDAO HERE ///
-	// ---------------------///
+	// Verify the RANDAO Reveal.
+	if err := s.rp.VerifyReveal(
+		proposerPubKey,
+		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
+		blk.GetRandaoReveal(),
+	); err != nil {
+		return err
+	}
 
 	// ---------------------///
 	//   VALIDATE KZG HERE  ///

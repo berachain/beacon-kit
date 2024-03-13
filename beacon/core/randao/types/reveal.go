@@ -27,16 +27,13 @@ package types
 
 import (
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // Reveal represents the signature of the RANDAO reveal.
 type Reveal [bls12381.SignatureLength]byte
 
-// Verify checks if the reveal is valid for the given public key and domain.
-// TODO: signingRoot should be strongly typed.
-func (r Reveal) Verify(
-	pubKey [bls12381.PubKeyLength]byte,
-	signingRoot []byte, // todo: make strong type.
-) bool {
-	return bls12381.VerifySignature(pubKey, signingRoot, r)
+// MarshalText returns the hex representation of r.
+func (r Reveal) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(r[:]).MarshalText()
 }

@@ -84,6 +84,11 @@ func (k *Keeper) InitGenesis(
 	fcs := k.ForkchoiceStore(ctx)
 	hash := common.HexToHash(data.Eth1GenesisHash)
 
+	store := k.BeaconState(ctx)
+	if err := store.SetRandaoMix(data.Mix()); err != nil {
+		panic(err)
+	}
+
 	// At genesis, we assume that the genesis block is also safe and final.
 	fcs.SetGenesisEth1Hash(hash)
 	fcs.SetSafeEth1BlockHash(hash)

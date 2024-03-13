@@ -27,7 +27,9 @@ package builder
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -46,6 +48,13 @@ type PayloadBuilder interface {
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
+type RandaoProcessor interface {
+	BuildReveal(
+		ctx context.Context,
+		epoch primitives.Epoch,
+	) (types.Reveal, error)
+}
+
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
@@ -57,6 +66,8 @@ type Service struct {
 	// The local Builder.
 	localBuilder   PayloadBuilder
 	remoteBuilders []PayloadBuilder
+
+	randaoProcessor RandaoProcessor
 }
 
 // LocalBuilder returns the local builder.
@@ -75,18 +86,18 @@ func (s *Service) RequestBestBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 
-	// // // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
-	// _ = s.beaconKitValKey
-	// // _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
-	// // if err != nil {
-	// // 	return nil, err
-	// // }
+	reveal, err := s.randaoProcessor.BuildReveal(
+		ctx, s.BeaconCfg().SlotToEpoch(slot),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build reveal: %w", err)
+	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 
 	// Create a new empty block from the current state.
 	beaconBlock, err := beacontypes.EmptyBeaconBlock(
-		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot),
+		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot), reveal,
 	)
 	if err != nil {
 		return nil, err
