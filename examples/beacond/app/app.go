@@ -46,7 +46,7 @@ import (
 	beaconkitconfig "github.com/berachain/beacon-kit/config"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
+	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -124,8 +124,6 @@ func NewBeaconKitApp(
 				logger,
 				// supply beaconkit options
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
-				// supply our custom staking wrapper.
-				// stakingwrapper.NewKeeper(app.StakingKeeper), // StakingKeeper is nil here.
 			),
 		),
 		&appBuilder,
@@ -148,12 +146,15 @@ func NewBeaconKitApp(
 	}
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+
 	// Build all the ABCI Componenets.
+	defaultProposalHandler := baseapp.NewDefaultProposalHandler(
+		app.Mempool(),
+		app,
+	)
 	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
-		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
-			PrepareProposalHandler(),
-		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
-			ProcessProposalHandler(),
+		defaultProposalHandler.PrepareProposalHandler(),
+		defaultProposalHandler.ProcessProposalHandler(),
 		nil,
 		stakingwrapper.NewKeeper(app.StakingKeeper),
 	)
@@ -162,11 +163,6 @@ func NewBeaconKitApp(
 	app.SetPrepareProposal(prepare)
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
-
-	// TODO: Fix Depinject.
-	app.BeaconKeeper.SetValsetChangeProvider(
-		// TODO add in dep inject
-		stakingwrapper.NewKeeper(app.StakingKeeper))
 
 	/**** End of BeaconKit Configuration ****/
 
