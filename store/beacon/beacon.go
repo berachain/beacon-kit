@@ -59,6 +59,9 @@ type Store struct {
 	// by eip-4788.
 	parentBlockRoot sdkcollections.Item[[]byte]
 
+	// genesisValidatorsRoot provides access to the genesis validators root
+	genesisValidatorsRoot sdkcollections.Item[[32]byte]
+
 	randaoMix sdkcollections.Item[[types.MixLength]byte]
 }
 
@@ -91,6 +94,12 @@ func NewStore(
 		parentBlockRootPrefix,
 		sdkcollections.BytesValue,
 	)
+	genesisValidatorsRoot := sdkcollections.NewItem[[32]byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(genesisValidatorsRootPrefix),
+		genesisValidatorsRootPrefix,
+		encoding.Bytes32ValueCodec{},
+	)
 
 	randaoMix := sdkcollections.NewItem[[types.MixLength]byte](
 		schemaBuilder,
@@ -105,6 +114,7 @@ func NewStore(
 		validatorIndexToPubkey: validatorIndexToPubkey,
 		depositQueue:           depositQueue,
 		parentBlockRoot:        parentBlockRoot,
+		genesisValidatorsRoot:  genesisValidatorsRoot,
 	}
 }
 

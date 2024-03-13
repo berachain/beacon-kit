@@ -31,6 +31,7 @@ const (
 	randaoMixPrefix              = "randao_mix"
 	validatorIndexPrefix         = "val_idx"
 	parentBlockRootPrefix        = "parent_block_root"
+	genesisValidatorsRootPrefix  = "genesis_validators_root"
 	validatorIndexToPubkeyPrefix = "val_idx_to_pk"
 	validatorPubkeyToIndexPrefix = "val_pk_to_idx"
 )

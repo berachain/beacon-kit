@@ -27,16 +27,17 @@ package randao
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/signing"
 	crypto "github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/protolambda/zrnt/eth2/beacon/common"
+	"github.com/protolambda/ztyp/tree"
 )
 
 // Processor is the randao processor.
@@ -70,21 +71,22 @@ func NewProcessor(
 //
 //	return bls.Sign(privkey, signing_root)
 func (p *Processor) BuildReveal(
-	_ context.Context,
+	ctx context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	return p.signer.Sign(p.computeSigningRoot(epoch, p.getDomain(epoch))), nil
+	return p.signer.Sign(p.computeSigningRoot(epoch, p.getDomain(ctx, epoch))), nil
 }
 
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) VerifyReveal(
+	ctx context.Context,
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) bool {
 	ok := bls12381.VerifySignature(
 		proposerPubkey,
-		p.computeSigningRoot(epoch, p.getDomain(epoch)),
+		p.computeSigningRoot(epoch, p.getDomain(ctx, epoch)),
 		reveal,
 	)
 	if ok {
@@ -117,18 +119,34 @@ func (p *Processor) MixinNewReveal(
 }
 
 // computeSigningRoot computes the signing root.
-// // TODO: COMPLETE THIS IS CURRENTLY WRONG.
 func (p *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
-	_ signing.Domain,
+	domain common.BLSDomain,
 ) []byte {
-	return sdktypes.Uint64ToBigEndian(epoch)
+	// Convert epoch to little endian bytes.
+	epochBytes := make([]byte, 32)
+	binary.LittleEndian.PutUint64(epochBytes, uint64(epoch))
+	var epoch32 [32]byte
+	copy(epoch32[:], epochBytes)
+
+	// Compute the signing root.
+	signingRoot := common.ComputeSigningRoot(epoch32, domain)
+
+	// Convert the signing root to bytes.
+	signingRootBytes := make([]byte, 32)
+	copy(signingRootBytes[:], signingRoot[:])
+	return signingRootBytes
 }
 
 // getDomain returns the domain.
-// TODO: COMPLETE
 func (p *Processor) getDomain(
+	ctx context.Context,
 	_ primitives.Epoch,
-) signing.Domain {
-	return signing.Domain{}
+) common.BLSDomain {
+	st := p.BeaconStateProvider.BeaconState(ctx)
+	return common.ComputeDomain(
+		common.DOMAIN_RANDAO,
+		common.Version{0, 0, 0}, // TODO: this out with fork version
+		tree.Root(st.GenesisValidatorsRoot()),
+	)
 }

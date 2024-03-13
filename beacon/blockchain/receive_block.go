@@ -153,6 +153,7 @@ func (s *Service) validateStateTransition(
 	// ---------------------///
 
 	if !s.rp.VerifyReveal(
+		ctx,
 		proposerPubKey,
 		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
 		blk.GetRandaoReveal(),

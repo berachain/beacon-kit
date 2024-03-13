@@ -47,3 +47,22 @@ func (s *Store) GetParentBlockRoot() [32]byte {
 	}
 	return common.BytesToHash(parentRoot)
 }
+
+// SetGenesisValidatorsRoot sets the genesis validators root in the BeaconStore.
+// It panics if there is an error setting the genesis validators root.
+func (s *Store) SetGenesisValidatorsRoot(genesisValidatorsRoot [32]byte) {
+	if err := s.genesisValidatorsRoot.Set(s.ctx, genesisValidatorsRoot); err != nil {
+		panic(err)
+	}
+}
+
+// GenesisValidatorsRoot retrieves the genesis validators root from the BeaconStore.
+// It returns an empty hash if there is an error retrieving the genesis validators
+// root.
+func (s *Store) GenesisValidatorsRoot() [32]byte {
+	genesisValidatorsRoot, err := s.genesisValidatorsRoot.Get(s.ctx)
+	if err != nil {
+		genesisValidatorsRoot = [32]byte{}
+	}
+	return genesisValidatorsRoot
+}

@@ -48,6 +48,7 @@ type ReadOnlyBeaconState interface {
 
 	SetParentBlockRoot([32]byte)
 	GetParentBlockRoot() [32]byte
+	GenesisValidatorsRoot() [32]byte
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
