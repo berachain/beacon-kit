@@ -50,12 +50,10 @@ const (
 	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
 
 	// Fork Config.
-	forkRoot           = beaconConfigRoot + "forks."
-	SlotsPerEpoch      = forkRoot + "slots-per-epoch"
-	ElectraForkEpoch   = forkRoot + "electra-fork-epoch"
-	DenebForkEpoch     = forkRoot + "deneb-fork-epoch"
-	GenesisForkVersion = forkRoot + "genesis-fork-version"
-	DenebForkVersion   = forkRoot + "deneb-fork-version"
+	forkRoot         = beaconConfigRoot + "forks."
+	SlotsPerEpoch    = forkRoot + "slots-per-epoch"
+	ElectraForkEpoch = forkRoot + "electra-fork-epoch"
+	DenebForkEpoch   = forkRoot + "deneb-fork-epoch"
 
 	// Validator Config.
 	validator               = beaconConfigRoot + "validator."

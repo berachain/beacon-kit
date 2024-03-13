@@ -32,10 +32,7 @@ import (
 )
 
 const (
-	defaultElectraForkEpoch   = 9999999999999999
-	defaultDenebForkEpoch     = 0 // Deneb is supported from the genesis.
-	defaultGenesisForkVersion = 0
-	defaultDenebForkVersion   = 4
+	defaultElectraForkEpoch = 9999999999999999
 )
 
 // Forks conforms to the BeaconKitConfig interface.
@@ -48,9 +45,6 @@ func DefaultForksConfig() Forks {
 		ElectraForkEpoch: primitives.Epoch(
 			defaultElectraForkEpoch,
 		),
-		GenesisForkVersion: defaultGenesisForkVersion,
-		DenebForkVersion:   defaultDenebForkVersion,
-		DenebForkEpoch:     primitives.Epoch(defaultDenebForkEpoch),
 	}
 }
 
@@ -60,14 +54,6 @@ type Forks struct {
 	// ElectraForkEpoch is used to represent the assigned fork epoch for
 	// electra.
 	ElectraForkEpoch primitives.Epoch
-	// GenesisForkVersion represents the genesis fork version.
-	GenesisForkVersion uint32
-	// DenebForkVersion represents the Deneb fork version.
-	// We skip Altair, Bellatrix, and Capella.
-	DenebForkVersion uint32
-	// DenebForkEpoch is used to represent
-	// the assigned fork epoch for Deneb.
-	DenebForkEpoch primitives.Epoch
 }
 
 // Parse parses the configuration.
@@ -85,24 +71,6 @@ func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 		return nil, err
 	}
 
-	if c.DenebForkEpoch, err = parser.GetEpoch(
-		flags.DenebForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.GenesisForkVersion, err = parser.GetUint32(
-		flags.GenesisForkVersion,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.DenebForkVersion, err = parser.GetUint32(
-		flags.DenebForkVersion,
-	); err != nil {
-		return nil, err
-	}
-
 	return &c, nil
 }
 
@@ -114,20 +82,5 @@ func (c Forks) Template() string {
 slots-per-epoch = {{.BeaconKit.Beacon.Forks.SlotsPerEpoch}}
 # Electra fork epoch
 electra-fork-epoch = {{.BeaconKit.Beacon.Forks.ElectraForkEpoch}}
-# Deneb fork epoch
-deneb-fork-epoch = {{.BeaconKit.Beacon.Forks.DenebForkEpoch}}
-# Genesis fork version
-genesis-fork-version = {{.BeaconKit.Beacon.Forks.GenesisForkVersion}}
-# Deneb fork version
-deneb-fork-version = {{.BeaconKit.Beacon.Forks.DenebForkVersion}}
 `
-}
-
-// ForkAtEpoch returns the fork version at the given epoch.
-func (c Forks) ForkAtEpoch(epoch primitives.Epoch) uint32 {
-	if epoch < c.DenebForkEpoch {
-		return c.GenesisForkVersion
-	}
-	// Deneb is the latest supported fork.
-	return c.DenebForkVersion
 }

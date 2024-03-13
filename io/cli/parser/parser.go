@@ -128,11 +128,6 @@ func (c *AppOptionsParser) GetUint64(key string) (uint64, error) {
 	return handleError(c, cast.ToUint64E, key)
 }
 
-// GetUint32 retrieves a uint32 value from a configuration key.
-func (c *AppOptionsParser) GetUint32(key string) (uint32, error) {
-	return handleError(c, cast.ToUint32E, key)
-}
-
 // GetUint retrieves a uint value from a configuration key.
 func (c *AppOptionsParser) GetUint(key string) (uint, error) {
 	return handleError(c, cast.ToUintE, key)
