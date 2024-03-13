@@ -43,7 +43,7 @@ type BeaconBlockDeneb struct {
 }
 
 // Version identifies the version of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) Version() int {
+func (b *BeaconBlockDeneb) Version() uint32 {
 	return version.Deneb
 }
 

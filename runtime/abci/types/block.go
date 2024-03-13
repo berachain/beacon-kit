@@ -44,7 +44,7 @@ type ABCIRequest interface {
 func ReadOnlyBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
-	forkVersion int,
+	forkVersion uint32,
 ) (beacontypes.ReadOnlyBeaconBlock, error) {
 	if req == nil {
 		return nil, ErrNilABCIRequest

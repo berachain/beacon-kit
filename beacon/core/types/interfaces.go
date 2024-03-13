@@ -52,7 +52,7 @@ type ReadOnlyBeaconBlock interface {
 	// TODO ProposerAddress() []byte
 	GetBody() BeaconBlockBody
 	GetParentBlockRoot() [32]byte
-	Version() int
+	Version() uint32
 
 	// RandaoReveal returns the randao reveal of the block.
 	GetRandaoReveal() types.Reveal

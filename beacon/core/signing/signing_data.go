@@ -50,7 +50,10 @@ type SSZObject interface {
 //	    object_root=hash_tree_root(ssz_object),
 //	    domain=domain,
 //	))
-func ComputeSigningRoot(sszObject SSZObject, domain Domain) (primitives.HashRoot, error) {
+func ComputeSigningRoot(
+	sszObject SSZObject,
+	domain Domain,
+) (primitives.HashRoot, error) {
 	objectRoot, err := sszObject.HashTreeRoot()
 	if err != nil {
 		return primitives.HashRoot{}, err

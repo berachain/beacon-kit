@@ -25,7 +25,11 @@
 
 package signing
 
-import "github.com/berachain/beacon-kit/primitives"
+import (
+	"encoding/binary"
+
+	"github.com/berachain/beacon-kit/primitives"
+)
 
 type Version [VersionLength]byte
 
@@ -35,18 +39,7 @@ type ForkData struct {
 	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
 }
 
-// ComputeForkDataRoot computes the root of the fork data.
-// Spec:
-// def compute_fork_data_root(current_version: Version, genesis_validators_root: Root) -> Root:
-//
-//	"""
-//	Return the 32-byte fork data root for the current_version and genesis_validators_root.
-//	This is used primarily in signature domains to avoid collisions across forks/chains.
-//	"""
-//	return hash_tree_root(ForkData(
-//		current_version=current_version,
-//		genesis_validators_root=genesis_validators_root,
-//	))
+// computeForkDataRoot computes the root of the fork data.
 func computeForkDataRoot(
 	currentVersion Version,
 	genesisValidatorsRoot primitives.HashRoot,
@@ -56,4 +49,11 @@ func computeForkDataRoot(
 		GenesisValidatorsRoot: genesisValidatorsRoot,
 	}
 	return forkData.HashTreeRoot()
+}
+
+// VersionFromUint returns a Version from a uint32.
+func VersionFromUint32(version uint32) Version {
+	versionBz := Version{}
+	binary.LittleEndian.PutUint32(versionBz[:], version)
+	return versionBz
 }
