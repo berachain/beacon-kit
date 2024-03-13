@@ -92,8 +92,9 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit required keepers
-	BeaconKeeper     *beaconkeeper.Keeper
-	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
+	BeaconKeeper        *beaconkeeper.Keeper
+	BeaconKitRuntime    *beaconkitruntime.BeaconKitRuntime
+	CustomStakingKeeper *stakingwrapper.Keeper
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -142,6 +143,7 @@ func NewBeaconKitApp(
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,
+		// app.CustomStakingKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -163,9 +165,9 @@ func NewBeaconKitApp(
 	app.SetPreBlocker(preBlocker)
 
 	// TODO: Fix Depinject.
-	app.BeaconKeeper.SetValsetChangeProvider(
-		// TODO add in dep inject
-		stakingwrapper.NewKeeper(app.StakingKeeper))
+	// app.BeaconKeeper.SetValsetChangeProvider(
+	// TODO add in dep inject
+	// stakingwrapper.NewKeeper(app.StakingKeeper))
 
 	/**** End of BeaconKit Configuration ****/
 

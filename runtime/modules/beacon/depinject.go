@@ -32,6 +32,7 @@ import (
 	stakingtypes "cosmossdk.io/x/staking/types"
 	modulev1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
+	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.
@@ -47,6 +48,8 @@ type DepInjectInput struct {
 
 	Config      *modulev1alpha1.Module
 	Environment appmodule.Environment
+
+	VCP *stakingwrapper.Keeper
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -62,6 +65,7 @@ type DepInjectOutput struct {
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Environment,
+		in.VCP,
 	)
 
 	return DepInjectOutput{

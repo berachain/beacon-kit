@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/runtime"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
 	"github.com/ethereum/go-ethereum/common"
@@ -49,10 +50,12 @@ type Keeper struct {
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
+	vcp *stakingwrapper.Keeper,
 ) *Keeper {
 	return &Keeper{
 		beaconStore:     beaconstore.NewStore(env.KVStoreService),
 		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
+		vcp:             vcp,
 	}
 }
 
