@@ -23,15 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package primitives
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
-// Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
-//
-//nolint:lll // Urls are long.
-type Data struct {
-	ObjectRoot []byte `ssz-size:"32"`
-	Domain     Domain `ssz-size:"32"`
-}
+const (
+	HashRootLength = 32
+)
+
+// HashRoot is a 32-byte root of a hash tree structure.
+type HashRoot [HashRootLength]byte

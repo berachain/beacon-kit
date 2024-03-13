@@ -25,13 +25,6 @@
 
 package signing
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
-// Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
-//
-//nolint:lll // Urls are long.
-type Data struct {
-	ObjectRoot []byte `ssz-size:"32"`
-	Domain     Domain `ssz-size:"32"`
-}
+const (
+	VersionLength = 4
+)
