@@ -50,8 +50,8 @@ func newValidatorsIndex(sb *sdkcollections.SchemaBuilder) validatorsIndex {
 	return validatorsIndex{
 		Pubkey: indexes.NewUnique(
 			sb,
-			sdkcollections.NewPrefix(validatrPubkeyToIndexPrefix),
-			validatrPubkeyToIndexPrefix,
+			sdkcollections.NewPrefix(validatorPubkeyToIndexPrefix),
+			validatorPubkeyToIndexPrefix,
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Key,
 			// The mapping function simply returns the public key as the index

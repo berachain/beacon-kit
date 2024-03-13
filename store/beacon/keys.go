@@ -31,5 +31,5 @@ const (
 	depositQueuePrefix           = "deposit_queue"
 	validatorIndexPrefix         = "val_idx"
 	validatorIndexToPubkeyPrefix = "val_idx_to_pk"
-	validatrPubkeyToIndexPrefix  = "val_pk_to_idx"
+	validatorPubkeyToIndexPrefix = "val_pk_to_idx"
 )
