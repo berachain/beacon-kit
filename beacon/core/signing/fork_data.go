@@ -25,10 +25,23 @@
 
 package signing
 
-import "github.com/berachain/beacon-kit/primitives"
+import (
+	"encoding/binary"
+
+	"github.com/berachain/beacon-kit/primitives"
+)
+
+type Version [VersionLength]byte
 
 // ForkData is the fork data used for signing.
 type ForkData struct {
-	CurrentVersion        [VersionLength]byte `ssz-size:"4"`
+	CurrentVersion        Version             `ssz-size:"4"`
 	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
+}
+
+// VersionFromUint returns a Version from a uint.
+func VersionFromUint32(version uint32) Version {
+	versionBz := Version{}
+	binary.LittleEndian.PutUint32(versionBz[:], version)
+	return versionBz
 }

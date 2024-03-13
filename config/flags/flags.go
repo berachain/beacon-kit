@@ -53,7 +53,9 @@ const (
 	forkRoot           = beaconConfigRoot + "forks."
 	SlotsPerEpoch      = forkRoot + "slots-per-epoch"
 	ElectraForkEpoch   = forkRoot + "electra-fork-epoch"
+	DenebForkEpoch     = forkRoot + "deneb-fork-epoch"
 	GenesisForkVersion = forkRoot + "genesis-fork-version"
+	DenebForkVersion   = forkRoot + "deneb-fork-version"
 
 	// Validator Config.
 	validator               = beaconConfigRoot + "validator."
