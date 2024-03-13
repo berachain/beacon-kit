@@ -32,7 +32,7 @@ import (
 )
 
 // ExtractProposalPublicKey returns the public key of the proposer of the block.
-func ExtractProposalPublicKey(
+func ExtractProposerPublicKey(
 	ctx sdk.Context,
 	stakingKeeper *keeper.Keeper,
 	proposerAddressBz []byte,
