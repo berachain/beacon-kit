@@ -142,7 +142,7 @@ func (h *Handler) ProcessProposalHandler(
 
 	// Import the block into the execution client to validate it.
 	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block, abcitypes.ExtractProposalPublicKey(
+		ctx, block, abcitypes.ExtractProposerPublicKey(
 			ctx, h.stakingKeeper, req.ProposerAddress,
 		), byteslib.ToBytes32(req.Hash)); err != nil {
 		logger.Warn("failed to receive beacon block", "error", err)

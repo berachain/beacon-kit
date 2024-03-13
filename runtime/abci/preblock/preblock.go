@@ -143,7 +143,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		if err = h.chainService.ReceiveBeaconBlock(
 			ctx,
 			blk,
-			abcitypes.ExtractProposalPublicKey(
+			abcitypes.ExtractProposerPublicKey(
 				ctx, h.stakingKeeper, req.ProposerAddress,
 			),
 			cometBlockHash,
