@@ -23,17 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package primitives
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Data,ForkData -include ../../../primitives -output generated.ssz.go
+const (
+	VersionLength = 4
+)
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
-// Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
-//
-//nolint:lll // Urls are long.
-type Data struct {
-	ObjectRoot []byte `ssz-size:"32"`
-	Domain     Domain `ssz-size:"32"`
+// Fork represents a fork in the chain.
+type Fork struct {
+	PreviousVersion [VersionLength]byte
+	CurrentVersion  [VersionLength]byte
+	Epoch           Epoch
 }
