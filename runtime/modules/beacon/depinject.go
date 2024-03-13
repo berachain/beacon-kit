@@ -48,7 +48,7 @@ type DepInjectInput struct {
 
 	Config      *modulev1alpha1.Module
 	Environment appmodule.Environment
-	VCP         stakingwrapper.Keeper
+	VCP         *stakingwrapper.Keeper
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -64,7 +64,7 @@ type DepInjectOutput struct {
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Environment,
-		&in.VCP,
+		in.VCP,
 	)
 
 	return DepInjectOutput{
