@@ -30,7 +30,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/x/staking/keeper"
 	"github.com/berachain/beacon-kit/async/dispatch"
 	"github.com/berachain/beacon-kit/async/notify"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -56,11 +55,10 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime struct {
-	cfg           *config.Config
-	logger        log.Logger
-	fscp          BeaconStorageBackend
-	services      *service.Registry
-	stakingKeeper *keeper.Keeper
+	cfg      *config.Config
+	logger   log.Logger
+	fscp     BeaconStorageBackend
+	services *service.Registry
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -226,9 +224,4 @@ func (r *BeaconKitRuntime) StartServices(
 	}
 	syncService.SetClientContext(clientCtx)
 	r.services.StartAll(ctx)
-}
-
-// SetStakingKeeper TODO remove, temporary dirty fix
-func (r *BeaconKitRuntime) SetStakingKeeper(stakingKeeper *keeper.Keeper) {
-	r.stakingKeeper = stakingKeeper
 }

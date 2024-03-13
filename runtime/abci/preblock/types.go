@@ -23,47 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package preblock
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
-}
-
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-// ValsetChangeProvider is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
-
+// StakingKeeper provides the interface for the staking module.
+type StakingKeeper interface {
 	GetValidatorPubkeyFromConsAddress(
 		ctx context.Context,
 		consAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
-
-	GetValidatorPubkeyFromValAddress(
-		ctx context.Context,
-		valAddr []byte,
 	) ([bls12381.PubKeyLength]byte, error)
 }

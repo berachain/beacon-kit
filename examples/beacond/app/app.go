@@ -147,10 +147,6 @@ func NewBeaconKitApp(
 	}
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
-
-	// TODO add in dep inject
-	app.BeaconKitRuntime.SetStakingKeeper(app.StakingKeeper)
-
 	// Build all the ABCI Componenets.
 	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
@@ -158,6 +154,7 @@ func NewBeaconKitApp(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			ProcessProposalHandler(),
 		nil,
+		stakingwrapper.NewKeeper(app.StakingKeeper),
 	)
 
 	// Set all the newly built ABCI Componenets on the App.
@@ -167,6 +164,7 @@ func NewBeaconKitApp(
 
 	// TODO: Fix Depinject.
 	app.BeaconKeeper.SetValsetChangeProvider(
+		// TODO add in dep inject
 		stakingwrapper.NewKeeper(app.StakingKeeper))
 
 	/**** End of BeaconKit Configuration ****/

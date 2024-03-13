@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/x/staking/keeper"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
@@ -57,6 +56,11 @@ type BeaconPreBlockHandler struct {
 	// logger is the logger used by the handler.
 	logger log.Logger
 
+	// stakingKeeper provides access to the staking module. In the handler
+	// it is used to convert consAddress to pubkey, before passing it into
+	// the core beacon chain logic.
+	stakingKeeper StakingKeeper
+
 	// chainService is the service that is responsible for interacting with
 	// the beacon chain.
 	chainService *blockchain.Service
@@ -68,9 +72,6 @@ type BeaconPreBlockHandler struct {
 	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
 	nextHandler sdk.PreBlocker
-
-	// todo: remove.
-	stakingKeeper *keeper.Keeper
 }
 
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
@@ -78,18 +79,18 @@ type BeaconPreBlockHandler struct {
 func NewBeaconPreBlockHandler(
 	cfg *config.ABCI,
 	logger log.Logger,
+	stakingKeeper StakingKeeper,
 	chainService *blockchain.Service,
 	syncService *sync.Service,
 	nextHandler sdk.PreBlocker,
-	stakingKeeper *keeper.Keeper,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
 		cfg:           cfg,
 		logger:        logger,
+		stakingKeeper: stakingKeeper,
 		chainService:  chainService,
 		syncService:   syncService,
 		nextHandler:   nextHandler,
-		stakingKeeper: stakingKeeper,
 	}
 }
 
@@ -101,6 +102,13 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 	) error {
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
+		proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
+			ctx,
+			req.ProposerAddress,
+		)
+		if err != nil {
+			return err
+		}
 
 		// Extract the beacon block from the ABCI request.
 		//
@@ -143,9 +151,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		if err = h.chainService.ReceiveBeaconBlock(
 			ctx,
 			blk,
-			abcitypes.ExtractProposerPublicKey(
-				ctx, h.stakingKeeper, req.ProposerAddress,
-			),
+			proposerPubkey,
 			cometBlockHash,
 		); err != nil {
 			h.logger.Warn(

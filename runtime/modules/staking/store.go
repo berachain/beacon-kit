@@ -26,13 +26,48 @@
 package staking
 
 import (
-	sdkcollections "cosmossdk.io/collections"
-	stakingtypes "cosmossdk.io/x/staking/types"
+	"context"
+
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
-// Validators key: valAddr | value: Validator.
-func (k *Keeper) ValidatorsByValAddress() sdkcollections.Map[
-	[]byte, stakingtypes.Validator,
-] {
-	return k.stakingKeeper.Validators
+// GetValidatorPubkeyFromConsAddress returns the public
+// key of the proposer of the block.
+func (k *Keeper) GetValidatorPubkeyFromConsAddress(
+	ctx context.Context,
+	consAddr []byte,
+) ([bls12381.PubKeyLength]byte, error) {
+	valAddr, err := k.stakingKeeper.ValidatorByConsensusAddress.Get(
+		ctx,
+		consAddr,
+	)
+	if err != nil {
+		return [bls12381.PubKeyLength]byte{}, err
+	}
+
+	return k.GetValidatorPubkeyFromValAddress(ctx, valAddr)
+}
+
+// GetValidatorPubkeyFromValAddress returns the public
+// key of the validator with the given validator address.
+func (k *Keeper) GetValidatorPubkeyFromValAddress(
+	ctx context.Context,
+	valAddr []byte,
+) ([bls12381.PubKeyLength]byte, error) {
+	validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+	if err != nil {
+		return [bls12381.PubKeyLength]byte{}, err
+	}
+
+	var key cmtprotocrypto.PublicKey
+	key, err = validator.CmtConsPublicKey()
+	if err != nil {
+		return [bls12381.PubKeyLength]byte{}, err
+	}
+
+	var pubKey [bls12381.PubKeyLength]byte
+	copy(pubKey[:], key.GetBls12381())
+
+	return pubKey, nil
 }

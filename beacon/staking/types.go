@@ -39,7 +39,4 @@ type ValsetChangeProvider interface {
 		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
 	) error
-	// ValidatorByConsensusAddress() sdkcollections.Map[
-	//	sdk.ConsAddress, sdk.ValAddress,
-	//]
 }

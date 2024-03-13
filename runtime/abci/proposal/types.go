@@ -23,46 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package proposal
 
 import (
-	"cosmossdk.io/x/staking/keeper"
+	"context"
+
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// ExtractProposalPublicKey returns the public key of the proposer of the block.
-func ExtractProposerPublicKey(
-	ctx sdk.Context,
-	stakingKeeper *keeper.Keeper,
-	proposerAddressBz []byte,
-) [bls12381.PubKeyLength]byte {
-	logger := ctx.Logger()
-
-	// Validate Reveal
-	v, err := stakingKeeper.ValidatorByConsensusAddress.Get(
-		ctx,
-		proposerAddressBz,
-	)
-	if err != nil {
-		logger.Warn("failed to get validator", "error", err)
-		panic("failed to get validator by consensus address")
-	}
-
-	validator, err := stakingKeeper.GetValidator(ctx, v)
-	if err != nil {
-		logger.Warn("failed to get validator", "error", err)
-		panic("failed to get validator by consensus address")
-	}
-
-	key, err := validator.CmtConsPublicKey()
-	if err != nil {
-		logger.Warn("failed to get validator", "error", err)
-		panic("failed to get validator by consensus address")
-	}
-
-	var pubKey [bls12381.PubKeyLength]byte
-	copy(pubKey[:], key.GetBls12381())
-
-	return pubKey
+// StakingKeeper provides the interface for the staking module.
+type StakingKeeper interface {
+	GetValidatorPubkeyFromConsAddress(
+		ctx context.Context,
+		consAddr []byte,
+	) ([bls12381.PubKeyLength]byte, error)
 }
