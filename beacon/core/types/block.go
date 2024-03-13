@@ -33,7 +33,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+// BeaconBlockDeneb is the block structure for the Deneb fork.
 type BeaconBlockDeneb struct {
 	Slot            primitives.Slot
 	ParentBlockRoot [32]byte `ssz-size:"32"`
