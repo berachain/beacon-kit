@@ -33,7 +33,6 @@ import (
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/cockroachdb/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -152,12 +151,12 @@ func (s *Service) validateStateTransition(
 	// VALIDATE RANDAO HERE ///
 	// ---------------------///
 
-	if !s.rp.VerifyReveal(
+	if err := s.rp.VerifyReveal(
 		proposerPubKey,
 		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
 		blk.GetRandaoReveal(),
-	) {
-		return errors.New("failed to verify reveal")
+	); err != nil {
+		return err
 	}
 
 	// ---------------------///

@@ -81,20 +81,19 @@ func (p *Processor) VerifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
-) bool {
-	ok := bls12381.VerifySignature(
+) error {
+	if ok := bls12381.VerifySignature(
 		proposerPubkey,
 		p.computeSigningRoot(epoch, p.getDomain(epoch)),
 		reveal,
-	)
-	if ok {
-		p.logger.Info("randao reveal successfully verified 🤫 ",
-			"reveal", reveal,
-		)
-	} else {
-		p.logger.Info("reveal verification failed")
+	); !ok {
+		return ErrInvalidSignature
 	}
-	return ok
+
+	p.logger.Info("randao reveal successfully verified 🤫 ",
+		"reveal", reveal,
+	)
+	return nil
 }
 
 // MixinNewReveal mixes in a new reveal.

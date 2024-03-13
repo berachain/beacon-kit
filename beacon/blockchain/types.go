@@ -87,7 +87,7 @@ type RandaoProcessor interface {
 		proposerPubkey [bls12381.PubKeyLength]byte,
 		epoch primitives.Epoch,
 		reveal randaotypes.Reveal,
-	) bool
+	) error
 }
 
 // StakingService is the interface for the staking service.

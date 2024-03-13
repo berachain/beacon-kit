@@ -23,17 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package randao
 
-import (
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
+import "github.com/cockroachdb/errors"
 
-// Reveal represents the signature of the RANDAO reveal.
-type Reveal [bls12381.SignatureLength]byte
-
-// MarshalText returns the hex representation of r.
-func (r Reveal) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(r[:]).MarshalText()
-}
+// ErrInvalidSignature is returned when the signature is invalid.
+var ErrInvalidSignature = errors.New("invalid signature")
