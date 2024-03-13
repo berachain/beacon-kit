@@ -22,6 +22,8 @@ func PrepareBlobsHandler(storage db.DB,
 	height int64, blk beacontypes.BeaconBlock,
 	blobs *engine.BlobsBundleV1) ([][]byte, error) {
 
+	//TODO: create blobtx type that appends the inclusion proof to the blob
+
 	// store the blobs under a single height.
 	ranger := file.NewRangeDB(storage)
 	for i, sidecar := range blobs.Blobs {
@@ -42,7 +44,7 @@ func PrepareBlobsHandler(storage db.DB,
 func ProcessBlobsHandler(storage db.DB,
 	height int64, commitments [][48]byte, blobs [][]byte) error {
 
-	// TODO: before storage handle validation
+	// TODO: verify blob inclusion. Since we include it in the block itself not a sub network its not required
 
 	ranger := file.NewRangeDB(storage)
 	// Store the blobs under a single height.
