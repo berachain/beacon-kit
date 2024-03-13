@@ -1,0 +1,122 @@
+{
+    "type": "table",
+    "title": "Panel Title",
+    "gridPos": {
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 8
+    },
+    "datasource": {
+      "uid": "f1c84fc4-3b70-4db2-937c-bd33d52e5f66",
+      "type": "loki"
+    },
+    "id": 1,
+    "targets": [
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "f1c84fc4-3b70-4db2-937c-bd33d52e5f66"
+        },
+        "refId": "A",
+        "expr": "{service=~\"el-.+\"} |= `Chain head was updated` | logfmt",
+        "queryType": "range",
+        "editorMode": "builder"
+      }
+    ],
+    "fieldConfig": {
+      "defaults": {
+        "custom": {
+          "align": "auto",
+          "cellOptions": {
+            "type": "auto"
+          },
+          "inspect": false
+        },
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "value": null,
+              "color": "green"
+            },
+            {
+              "value": 80,
+              "color": "red"
+            }
+          ]
+        },
+        "color": {
+          "mode": "thresholds"
+        }
+      },
+      "overrides": []
+    },
+    "options": {
+      "showHeader": true,
+      "cellHeight": "sm",
+      "footer": {
+        "show": false,
+        "reducer": [
+          "sum"
+        ],
+        "countRows": false,
+        "fields": ""
+      }
+    },
+    "pluginVersion": "9.5.12",
+    "transformations": [
+      {
+        "id": "extractFields",
+        "options": {
+          "source": "labels",
+          "replace": true,
+          "keepTime": false
+        }
+      },
+      {
+        "id": "groupBy",
+        "options": {
+          "fields": {
+            "number": {
+              "aggregations": [],
+              "operation": "groupby"
+            },
+            "hash": {
+              "aggregations": [
+                "distinctCount"
+              ],
+              "operation": "aggregate"
+            },
+            "root": {
+              "aggregations": [],
+              "operation": null
+            },
+            "service": {
+              "aggregations": [],
+              "operation": null
+            }
+          }
+        }
+      },
+      {
+        "id": "filterByValue",
+        "options": {
+          "filters": [
+            {
+              "fieldName": "hash (distinctCount)",
+              "config": {
+                "id": "greater",
+                "options": {
+                  "value": 1
+                }
+              }
+            }
+          ],
+          "type": "include",
+          "match": "any"
+        }
+      }
+    ]
+  }

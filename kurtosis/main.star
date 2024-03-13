@@ -54,8 +54,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         node_services.append({
             "name": el_client["name"],
             "service": el_client['service'],
-            "metrics_path": node_module.METRICS_PATH,
-            "type": node.el_type,
+            "metrics_path": node_modules[validator.el_type].METRICS_PATH,
+            "type": validator.el_type,
             "index": n,
         })
 
@@ -80,7 +80,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         node_services.append({
             "name": el_client["name"],
             "service": el_client['service'],
-            "metrics_path": node_module.METRICS_PATH,
+            "metrics_path": node_modules[full.el_type].METRICS_PATH,
             "type": full.el_type,
             "index": n,
         })

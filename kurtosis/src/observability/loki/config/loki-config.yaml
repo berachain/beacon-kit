@@ -36,17 +36,20 @@ common:
     filesystem:
       chunks_directory: /tmp/loki/chunks
       rules_directory: /tmp/loki/rules
-  replication_factor: 1
+  replication_factor: 3
   ring:
     kvstore:
       store: inmemory
+
+ingester:
+  chunk_encoding: snappy
 
 query_range:
   results_cache:
     cache:
       embedded_cache:
         enabled: true
-        max_size_mb: 100
+        max_size_mb: 2000
 
 schema_config:
   configs:
