@@ -26,13 +26,7 @@
 package types
 
 import (
-	"context"
-	"math/big"
-
 	"cosmossdk.io/log"
-	"github.com/cockroachdb/errors"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 )
 
@@ -68,68 +62,4 @@ func NewExecutionClientFromServiceCtx(
 // TODO: All nodes are validators rn.
 func (c *ExecutionClient) IsValidator() bool {
 	return true
-}
-
-// WaitForLatestBlockNumber waits for the head block number to reach the target.
-func (c *ExecutionClient) WaitForLatestBlockNumber(
-	ctx context.Context,
-	target uint64,
-) error {
-	if !c.JSONRPCConnection.isWebSocket {
-		return errors.New(
-			"cannot wait for block number on non-websocket connection",
-		)
-	}
-
-	ch := make(chan *coretypes.Header)
-	sub, err := c.SubscribeNewHead(ctx, ch)
-	if err != nil {
-		return err
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			sub.Unsubscribe()
-			return ctx.Err()
-		case header := <-ch:
-			c.logger.Info(
-				"received new head block",
-				"number",
-				header.Number.Uint64(),
-				"",
-			)
-			if header.Number.Uint64() >= target {
-				c.logger.Info("reached target block number 🎉", "target", target)
-				sub.Unsubscribe()
-				return nil
-			}
-		}
-	}
-}
-
-// WaitForFinalizedBlockNumber waits for the finalized block number to reach the
-// target block number.
-func (c *ExecutionClient) WaitForFinalizedBlockNumber(
-	ctx context.Context,
-	target uint64,
-) error {
-	finalQuery := big.NewInt(int64(rpc.FinalizedBlockNumber))
-retry:
-	// Retry until the head block number is at least the target.
-	if err := c.WaitForLatestBlockNumber(ctx, target+1); err != nil {
-		return err
-	}
-
-	// Just to be safe, check the finalized block number again.
-	finalized, err := c.BlockByNumber(ctx, finalQuery)
-	if err != nil {
-		return err
-	}
-
-	// If the finalized block number is less than the target, retry.
-	if finalized.Number().Uint64() < target {
-		goto retry
-	}
-	return nil
 }

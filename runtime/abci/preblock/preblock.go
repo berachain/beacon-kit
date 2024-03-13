@@ -30,6 +30,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/sync"
@@ -55,6 +56,11 @@ type BeaconPreBlockHandler struct {
 	// logger is the logger used by the handler.
 	logger log.Logger
 
+	// stakingKeeper provides access to the staking module. In the handler
+	// it is used to convert consAddress to pubkey, before passing it into
+	// the core beacon chain logic.
+	stakingKeeper StakingKeeper
+
 	// chainService is the service that is responsible for interacting with
 	// the beacon chain.
 	chainService *blockchain.Service
@@ -62,6 +68,7 @@ type BeaconPreBlockHandler struct {
 	// syncService is the service that is responsible for syncing the beacon
 	// chain.
 	syncService *sync.Service
+
 	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
 	nextHandler sdk.PreBlocker
@@ -72,16 +79,18 @@ type BeaconPreBlockHandler struct {
 func NewBeaconPreBlockHandler(
 	cfg *config.ABCI,
 	logger log.Logger,
+	stakingKeeper StakingKeeper,
 	chainService *blockchain.Service,
 	syncService *sync.Service,
 	nextHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
-		cfg:          cfg,
-		logger:       logger,
-		chainService: chainService,
-		syncService:  syncService,
-		nextHandler:  nextHandler,
+		cfg:           cfg,
+		logger:        logger,
+		stakingKeeper: stakingKeeper,
+		chainService:  chainService,
+		syncService:   syncService,
+		nextHandler:   nextHandler,
 	}
 }
 
@@ -91,8 +100,15 @@ func NewBeaconPreBlockHandler(
 func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
-	) (*sdk.ResponsePreBlock, error) {
+	) error {
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
+		proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
+			ctx,
+			req.ProposerAddress,
+		)
+		if err != nil {
+			return err
+		}
 
 		// Extract the beacon block from the ABCI request.
 		//
@@ -122,8 +138,9 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				h.chainService.ActiveForkVersionForSlot(
 					primitives.Slot(req.Height),
 				),
+				types.Reveal{},
 			); err != nil {
-				return nil, err
+				return err
 			}
 		}
 
@@ -134,6 +151,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		if err = h.chainService.ReceiveBeaconBlock(
 			ctx,
 			blk,
+			proposerPubkey,
 			cometBlockHash,
 		); err != nil {
 			h.logger.Warn(
@@ -159,12 +177,12 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 // callNextHandler calls the next pre-block handler in the chain.
 func (h *BeaconPreBlockHandler) callNextHandler(
 	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
-) (*sdk.ResponsePreBlock, error) {
+) error {
 	// If there is no child handler, we are done, this preblocker
 	// does not modify any consensus params so we return an empty
 	// response.
 	if h.nextHandler == nil {
-		return &sdk.ResponsePreBlock{}, nil
+		return nil
 	}
 
 	return h.nextHandler(ctx, req)

@@ -23,42 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package signing
 
-import (
-	"context"
+// DomainType is a 4-byte array used to represent a
+// domain type in BLS signing and verification.
+type DomainType [4]byte
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+// Domain constants for BLS domain types.
+// Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+//
+//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
+var (
+	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
 )
-
-// AcceptDepositIntoQueue records a deposit in the beacon state's queue.
-func (s *Service) AcceptDepositIntoQueue(
-	ctx context.Context,
-	deposit *beacontypes.Deposit,
-) error {
-	// Push the deposit to the beacon state's queue.
-	err := s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{deposit})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// ApplyDeposits processes the deposits in the beacon state's queue,
-// up to MaxDepositsPerBlock, by applying them to the underlying staking module.
-func (s *Service) ApplyDeposits(ctx context.Context) error {
-	beaconState := s.BeaconState(ctx)
-
-	// Get deposits, up to MaxDepositsPerBlock, from the queue
-	// to apply to the underlying low-level staking module (e.g Cosmos SDK's
-	// x/staking).
-	deposits, err := beaconState.DequeueDeposits(
-		s.BeaconCfg().Limits.MaxDepositsPerBlock,
-	)
-	if err != nil {
-		return err
-	}
-
-	// Apply deposists to the underlying staking module.
-	return s.vcp.ApplyChanges(ctx, deposits, nil)
-}

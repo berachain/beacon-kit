@@ -30,7 +30,6 @@ import (
 
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
@@ -38,7 +37,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBeaconStore(t *testing.T) {
+func TestValidatorIndexes(t *testing.T) {
 	testName := "test"
 	logger := sdklog.NewNopLogger()
 	keys := storetypes.NewKVStoreKeys(testName)
@@ -50,17 +49,34 @@ func TestBeaconStore(t *testing.T) {
 	beaconStore := beaconstore.NewStore(kvs)
 	beaconStore = beaconStore.WithContext(ctx)
 
-	t.Run("should work with deposit", func(t *testing.T) {
-		deposit := &beacontypes.Deposit{
-			Pubkey:      []byte("pubkey"),
-			Credentials: []byte("12345678901234567890123456789012"),
-			Amount:      100,
-			Signature:   []byte("signature"),
-		}
-		err := beaconStore.EnqueueDeposits([]*beacontypes.Deposit{deposit})
+	t.Run("add validator and replace its pubkey", func(t *testing.T) {
+		err := beaconStore.AddValidator(ctx, []byte("pubkey"))
 		require.NoError(t, err)
-		deposits, err := beaconStore.DequeueDeposits(1)
+
+		err = beaconStore.AddValidator(ctx, []byte("pubkey2"))
 		require.NoError(t, err)
-		require.Equal(t, deposit, deposits[0])
+
+		// get the index
+		index := beaconStore.ValidatorIndexByPubkey(ctx, []byte("pubkey2"))
+		require.Equal(t, uint64(1), index)
+
+		err = beaconStore.UpdateValidator(
+			ctx,
+			[]byte("pubkey2"),
+			[]byte("newpubkey"),
+		)
+		require.NoError(t, err)
+
+		// get the index again, it should be the same as before
+		index = beaconStore.ValidatorIndexByPubkey(ctx, []byte("newpubkey"))
+		require.Equal(t, uint64(1), index)
+	})
+
+	t.Run("add the same validator twice", func(t *testing.T) {
+		err := beaconStore.AddValidator(ctx, []byte("pubkeyA"))
+		require.NoError(t, err)
+
+		err = beaconStore.AddValidator(ctx, []byte("pubkeyA"))
+		require.Error(t, err)
 	})
 }

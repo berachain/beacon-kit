@@ -30,11 +30,20 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
+// Deposit Management
+
 // EnqueueDeposits pushes the deposits to the queue.
 func (s *Store) EnqueueDeposits(
 	deposits []*beacontypes.Deposit,
 ) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
+}
+
+// ExpectedDeposits returns the first numPeek deposits in the queue.
+func (s *Store) ExpectedDeposits(
+	numPeek uint64,
+) ([]*beacontypes.Deposit, error) {
+	return s.depositQueue.PeekMulti(s.ctx, numPeek)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
@@ -43,6 +52,8 @@ func (s *Store) DequeueDeposits(
 ) ([]*beacontypes.Deposit, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
+
+// Withdrawal Management
 
 // TODO: Consider consolidating BeaconState interface externally to x/beacon
 // to facilitate withdrawals from x/beacon_staking.

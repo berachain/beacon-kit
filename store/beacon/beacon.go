@@ -30,6 +30,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/lib/store/collections"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
@@ -40,6 +41,16 @@ import (
 type Store struct {
 	ctx context.Context
 
+	// validatorIndex is a sequence that provides the next
+	// available index for a new validator.
+	validatorIndex sdkcollections.Sequence
+
+	// validatorIndexToPubkey is a map that provides the
+	// public key for a given validator index.
+	validatorIndexToPubkey *sdkcollections.IndexedMap[
+		uint64, []byte, validatorsIndex,
+	]
+
 	// depositQueue is a list of depositQueue that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
 
@@ -47,6 +58,8 @@ type Store struct {
 	// head block root for block construction as needed
 	// by eip-4788.
 	parentBlockRoot sdkcollections.Item[[]byte]
+
+	randaoMix sdkcollections.Item[[types.MixLength]byte]
 }
 
 // Store creates a new instance of Store.
@@ -54,6 +67,19 @@ func NewStore(
 	kvs store.KVStoreService,
 ) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+	validatorIndex := sdkcollections.NewSequence(
+		schemaBuilder,
+		sdkcollections.NewPrefix(validatorIndexPrefix),
+		validatorIndexPrefix,
+	)
+	validatorIndexToPubkey := sdkcollections.NewIndexedMap[uint64, []byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(validatorIndexToPubkeyPrefix),
+		validatorIndexToPubkeyPrefix,
+		sdkcollections.Uint64Key,
+		sdkcollections.BytesValue,
+		newValidatorsIndex(schemaBuilder),
+	)
 	depositQueue := collections.NewQueue[*beacontypes.Deposit](
 		schemaBuilder,
 		depositQueuePrefix,
@@ -65,9 +91,20 @@ func NewStore(
 		parentBlockRootPrefix,
 		sdkcollections.BytesValue,
 	)
+
+	randaoMix := sdkcollections.NewItem[[types.MixLength]byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(randaoMixPrefix),
+		randaoMixPrefix,
+		encoding.Bytes32ValueCodec{},
+	)
+
 	return &Store{
-		depositQueue:    depositQueue,
-		parentBlockRoot: parentBlockRoot,
+		randaoMix:              randaoMix,
+		validatorIndex:         validatorIndex,
+		validatorIndexToPubkey: validatorIndexToPubkey,
+		depositQueue:           depositQueue,
+		parentBlockRoot:        parentBlockRoot,
 	}
 }
 

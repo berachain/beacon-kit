@@ -32,6 +32,8 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
+// ValsetChangeProvider is an interface that provides the
+// ability to apply changes to the validator set.
 type ValsetChangeProvider interface {
 	ApplyChanges(
 		context.Context,

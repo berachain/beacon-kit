@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,7 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abi
+package crypto
 
-// This file is used to generate the go bindings for the contracts.
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --pkg abi --abi ../out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./beacon_deposit_contract.abigen.go --type BeaconDepositContract
+import (
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+)
+
+// Signer defines an interface for cryptographic signing operations.
+// It uses generic type parameters Signature and Pubkey, both of which are
+// slices of bytes.
+type Signer[Signature any] interface {
+	// Sign takes a message as a slice of bytes and returns a signature as a
+	// slice of bytes and an error.
+	Sign(msg []byte) Signature
+}
+
+// NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
+func NewBLS12381Signer(
+	secretKey [bls12381.SecretKeyLength]byte,
+) (Signer[[bls12381.SignatureLength]byte], error) {
+	return bls12381.NewSigner(secretKey)
+}
