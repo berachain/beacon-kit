@@ -31,7 +31,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-const defaultElectraForkEpoch = 9999999999999999
+const (
+	defaultElectraForkEpoch   = 9999999999999999
+	defaultGenesisForkVersion = 0
+)
 
 // Forks conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Forks] = &Forks{}
@@ -43,6 +46,7 @@ func DefaultForksConfig() Forks {
 		ElectraForkEpoch: primitives.Epoch(
 			defaultElectraForkEpoch,
 		),
+		GenesisForkVersion: defaultGenesisForkVersion,
 	}
 }
 
@@ -52,6 +56,8 @@ type Forks struct {
 	// ElectraForkEpoch is used to represent the assigned fork epoch for
 	// electra.
 	ElectraForkEpoch primitives.Epoch
+	// GenesisForkVersion represents the genesis fork version.
+	GenesisForkVersion uint
 }
 
 // Parse parses the configuration.
@@ -69,6 +75,12 @@ func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 		return nil, err
 	}
 
+	if c.GenesisForkVersion, err = parser.GetUint(
+		flags.GenesisForkVersion,
+	); err != nil {
+		return nil, err
+	}
+
 	return &c, nil
 }
 
@@ -80,5 +92,7 @@ func (c Forks) Template() string {
 slots-per-epoch = {{.BeaconKit.Beacon.Forks.SlotsPerEpoch}}
 # Electra fork epoch
 electra-fork-epoch = {{.BeaconKit.Beacon.Forks.ElectraForkEpoch}}
+# Genesis fork version
+genesis-fork-version = {{.BeaconKit.Beacon.Forks.GenesisForkVersion}}
 `
 }
