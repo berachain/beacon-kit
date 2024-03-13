@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/runtime/modules/staking"
 )
 
 // DepInjectInput is the input for the dep inject framework.
@@ -40,7 +39,7 @@ type DepInjectInput struct {
 
 	Config *config.Config
 	Bsp    BeaconStorageBackend
-	Vcp    staking.ValsetChangeProvider
+	Vcp    ValsetChangeProvider
 	Logger log.Logger
 	Signer crypto.Signer[[bls12381.SignatureLength]byte]
 }

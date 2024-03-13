@@ -64,9 +64,9 @@ func NewProcessor(
 // -> BLSSignature:
 //
 //	domain = get_domain(state, DOMAIN_RANDAO, compute_epoch_at_slot(block.slot))
-//	signing_root = compute_signing_root(compute_epoch_at_slot(block.slot),
-//
-// domain)
+//	signing_root = compute_signing_root(
+//						compute_epoch_at_slot(block.slot),
+//						domain)
 //
 //	return bls.Sign(privkey, signing_root)
 func (p *Processor) BuildReveal(
@@ -103,13 +103,12 @@ func (p *Processor) MixinNewReveal(
 	blk beacontypes.BeaconBlock,
 ) error {
 	st := p.BeaconState(ctx)
-	randaoMix, err := st.RandaoMix()
+	mix, err := st.RandaoMix()
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
-	reveal := blk.GetRandaoReveal()
 
-	newMix := randaoMix.MixinNewReveal(reveal)
+	newMix := mix.MixinNewReveal(blk.GetRandaoReveal())
 	if err = st.SetRandaoMix(newMix); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
