@@ -29,6 +29,7 @@ import (
 	"crypto/sha256"
 	"errors"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/merkle"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/prysmaticlabs/gohashtree"
@@ -105,13 +106,20 @@ func VerifyKZGInclusionProof(commitment, root []byte, proof [][]byte, index uint
 // It then uses the `merkle.GenerateTrieFromItems` function to generate a sparse Merkle tree from the top level roots.
 // Finally, it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top proof, and appends it to the body proof.
 // Note that the last element of the top proof is removed before returning the final proof, as it is not needed.
-func MerkleProofKZGCommitment(commitments [][]byte, index int) ([][]byte, error) {
-	proof, err := bodyProof(commitments, index)
+func MerkleProofKZGCommitment(blk beacontypes.BeaconBlock, index int) ([][]byte, error) {
+	commitments := blk.GetBody().GetKzgCommitments()
+
+	cmts := make([][]byte, 0, len(commitments))
+	for i, c := range commitments {
+		cmts[i] = c[:]
+	}
+
+	proof, err := bodyProof(cmts, index)
 	if err != nil {
 		return nil, err
 	}
-	membersRoots, err := topLevelRoots(body)
 
+	membersRoots, err := topLevelRoots(body)
 	if err != nil {
 		return nil, err
 	}

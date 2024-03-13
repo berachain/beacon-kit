@@ -121,10 +121,11 @@ func (h *Handler) PrepareProposalHandler(
 
 	// TODO: does this exceed max block size?
 	blobBz, err := blockchain.PrepareBlobsHandler(h.blobstore, req.Height,
-		blk.GetBody().GetKzgCommitments(), blobs)
+		blk, blobs)
 	if err != nil {
 		return nil, err
 	}
+
 	// Blob position is always the second in an array up until the end
 	resp.Txs = append(blobBz, resp.Txs...)
 	return resp, nil
