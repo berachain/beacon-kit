@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
@@ -302,4 +303,18 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 func (s *KurtosisE2ESuite) TearDownSuite() {
 	s.Logger().Info("destroying enclave...")
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
+}
+
+// CheckForSuccessfulTx returns true if the transaction was successful.
+func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
+	tx common.Hash,
+) bool {
+	ctx, cancel := context.WithTimeout(s.Ctx(), DefaultE2ETestTimeout)
+	defer cancel()
+	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
+	if err != nil {
+		s.Logger().Error("error getting transaction receipt", "error", err)
+		return false
+	}
+	return receipt.Status == ethtypes.ReceiptStatusSuccessful
 }

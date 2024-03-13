@@ -66,9 +66,8 @@ func NewJSONRPCConnection(
 		prefix = "ws://"
 	}
 
-	if conn.Client, err = ethclient.Dial(
-		fmt.Sprintf("%s://0.0.0.0:%d", prefix, port.GetNumber()),
-	); err != nil {
+	clientURL := fmt.Sprintf("%s://0.0.0.0:%d", prefix, port.GetNumber())
+	if conn.Client, err = ethclient.Dial(clientURL); err != nil {
 		return nil, err
 	}
 

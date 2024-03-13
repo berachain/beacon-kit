@@ -23,32 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package suite
+pragma solidity ^0.8.24;
 
-import (
-	"time"
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
 
-	"github.com/ethereum/go-ethereum/params"
-)
+contract MintableERC20 is ERC20 {
+    constructor() ERC20() { }
 
-// Ether represents the number of wei in one ether, used for Ethereum
-// transactions.
-const (
-	Ether   = params.Ether
-	OneGwei = params.GWei  // 1 Gwei = 1e9 wei
-	TenGwei = 10 * OneGwei // 10 Gwei = 1e10 wei
-)
+    event Mint(address indexed to, uint256 amount);
 
-// EtherTransferGasLimit specifies the gas limit for a standard Ethereum
-// transfer.
-// This is the amount of gas required to perform a basic ether transfer.
-const (
-	EtherTransferGasLimit uint64 = 21000 // Standard gas limit for ether transfer
-)
+    function name() public view virtual override returns (string memory) {
+        return "Token";
+    }
 
-// DefaultE2ETestTimeout defines the default timeout duration for end-to-end
-// tests. This is used to specify how long to wait for a test before considering
-// it failed.
-const (
-	DefaultE2ETestTimeout = 60 * 5 * time.Second // timeout for E2E tests
-)
+    function symbol() public view virtual override returns (string memory) {
+        return "TK";
+    }
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+        emit Mint(to, amount);
+    }
+}
