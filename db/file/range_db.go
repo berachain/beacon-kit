@@ -27,6 +27,7 @@ package file
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -96,14 +97,15 @@ func (db *RangeDB) prefix(index uint64, key []byte) []byte {
 	return append([]byte(fmt.Sprintf("%d/", index)), key...)
 }
 
+// ExtractIndex extracts the index from a prefixed key.
 func ExtractIndex(prefixedKey []byte) (uint64, error) {
 	parts := bytes.SplitN(prefixedKey, []byte("/"), 2)
 	if len(parts) < 2 {
-		return 0, fmt.Errorf("invalid key format")
+		return 0, errors.New("invalid key format")
 	}
 
 	indexStr := string(parts[0])
-	index, err := strconv.ParseInt(indexStr, 10, 64) // adjust this as per your numeric type
+	index, err := strconv.ParseInt(indexStr, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("invalid index: %w", err)
 	}

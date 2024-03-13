@@ -26,6 +26,7 @@
 package file_test
 
 import (
+	"errors"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -148,6 +149,44 @@ func TestRangeDB(t *testing.T) {
 
 			if tt.testFunc != nil {
 				tt.testFunc(t, rdb)
+			}
+		})
+	}
+}
+
+func TestExtractIndex(t *testing.T) {
+	tests := []struct {
+		name        string
+		prefixedKey []byte
+		expectedIdx uint64
+		expectedErr error
+	}{
+		{
+			name:        "ValidKey",
+			prefixedKey: []byte("12345/testKey"),
+			expectedIdx: 12345,
+			expectedErr: nil,
+		},
+		{
+			name:        "InvalidKeyFormat",
+			prefixedKey: []byte("testKey"),
+			expectedIdx: 0,
+			expectedErr: errors.New("invalid key format"),
+		},
+		{
+			name:        "InvalidIndex",
+			prefixedKey: []byte("abc/testKey"),
+			expectedIdx: 0,
+			expectedErr: errors.New("invalid index: strconv.ParseInt: parsing \"abc\": invalid syntax"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idx, err := file.ExtractIndex(tt.prefixedKey)
+			require.Equal(t, tt.expectedIdx, idx)
+			if tt.expectedErr != nil {
+				require.ErrorContains(t, err, tt.expectedErr.Error())
 			}
 		})
 	}

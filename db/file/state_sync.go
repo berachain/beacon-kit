@@ -14,12 +14,6 @@ import (
 )
 
 const (
-	txHashSize = 32
-	ttlSize    = 8
-	chunkSize  = txHashSize + ttlSize
-)
-
-const (
 	// SnapshotFormat defines the snapshot format of exported blobs.
 	// No protobuf envelope, no metadata.
 	SnapshotFormat = 1
@@ -53,71 +47,55 @@ func (s *Snapshotter) SupportedFormats() []uint32 {
 // of the snapshot window given snapshotWriter.
 func (s *Snapshotter) SnapshotExtension(height uint64,
 	payloadWriter snapshot.ExtensionPayloadWriter) error {
-	// export all blobs as a single blob
-	exportBlocks := height - uint64(s.snapShotWindow)
 
-	ranger := NewRangeDB(s.db)
+	if err := afero.Walk(s.db.fs, s.db.rootDir,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(path, ".blob") {
+				return nil
+			}
 
-	afero.Walk(s.db.fs, s.db.rootDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
+			// Extract the filename from the path
+			_, filename := filepath.Split(path)
+
+			// Use a regular expression to find numbers in the filename
+			re, err := ExtractIndex([]byte(filename))
+			if err != nil {
+				return err
+			}
+
+			if s.snapShotWindow > height {
+				value, err1 := afero.ReadFile(s.db.fs, path)
+				if err1 != nil {
+					return err1
+				}
+
+				prefixedData := append([]byte(filename+"\n"), value...)
+
+				if err1 = payloadWriter(prefixedData); err1 != nil {
+					return err1
+				}
+			} else if re >= height-s.snapShotWindow && re <= height {
+				value, err1 := afero.ReadFile(s.db.fs, path)
+				if err1 != nil {
+					return err1
+				}
+
+				prefixedData := append([]byte(filename+"\n"), value...)
+
+				if err1 = payloadWriter(prefixedData); err1 != nil {
+					return err1
+				}
+			}
+
 			return nil
-		}
-		if !strings.HasSuffix(path, ".blob") {
-			return nil
-		}
-
-		// Extract the filename from the path
-		_, filename := filepath.Split(path)
-
-		// Use a regular expression to find numbers in the filename
-		re, err := ExtractIndex([]byte(filename))
-		if err != nil {
-			return err
-		}
-
-		if s.snapShotWindow > height {
-			value, err1 := afero.ReadFile(s.db.fs, path)
-			if err1 != nil {
-				return err1
-			}
-
-			prefixedData := append([]byte(filename+"\n"), value...)
-
-			if err1 = payloadWriter(prefixedData); err1 != nil {
-				return err1
-			}
-		} else if re >= height-s.snapShotWindow && re <= height {
-			value, err1 := afero.ReadFile(s.db.fs, path)
-			if err1 != nil {
-				return err1
-			}
-
-			prefixedData := append([]byte(filename+"\n"), value...)
-
-			if err1 = payloadWriter(prefixedData); err1 != nil {
-				return err1
-			}
-		}
-
-		return nil
-	})
-
-	// TODO: add iteration for the file system storage
-	for i := exportBlocks; i < height; i++ {
-		// load code and abort on error
-		bytes, err := ranger.Get(height, []byte("commitment"))
-		if err != nil {
-			return err
-		}
-
-		err = payloadWriter(bytes)
-		if err != nil {
-			return err
-		}
-
+		}); err != nil {
+		return err
 	}
 
 	return nil

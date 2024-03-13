@@ -71,6 +71,8 @@ type BeaconBlockBodyDeneb struct {
 	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
 }
 
+// If you are adding values to the BeaconBlockBodyDeneb struct,
+// the body length must be increased and GetTopLevelRoots updated
 const bodyLength = 5
 
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {
