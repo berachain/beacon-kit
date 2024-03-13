@@ -65,20 +65,8 @@ func TestHeader(t *testing.T) {
 		cmtHeader.Hash().String(),
 	)
 
-	timeLocation := cmtHeader.Time.Location()
-
-	header := types.CometBFTHeader{}
-	header.FromCometBFT(cmtHeader)
-
+	header := types.FromCometBFT(cmtHeader)
 	otherCmtHeader := header.ToCometBFT()
-	otherCmtHeader.Time = otherCmtHeader.Time.In(timeLocation)
-	require.Equal(t, cmtHeader, otherCmtHeader)
+	require.Equal(t, cmtHeader, *otherCmtHeader)
 	require.Equal(t, cmtHeader.Hash(), otherCmtHeader.Hash())
-
-	// If the time in cmtHeader is in UTC,
-	// we don't need to convert time in otherCmtHeader to UTC.
-	cmtHeader.Time = cmtHeader.Time.UTC()
-	otherCmtHeaderUTC := header.ToCometBFT()
-	require.Equal(t, cmtHeader, otherCmtHeaderUTC)
-	require.Equal(t, cmtHeader.Hash(), otherCmtHeaderUTC.Hash())
 }
