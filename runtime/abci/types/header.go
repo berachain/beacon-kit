@@ -87,12 +87,14 @@ type Consensus struct {
 // ToCometBFT converts CometBFTHeader to its CometBFT equivalent.
 func (h *CometBFTHeader) ToCometBFT() cometbft.Header {
 	return cometbft.Header{
+		//#nosec:G103 // Cast is safe as the struct is identical.
 		Version: *(*cmtversion.Consensus)(unsafe.Pointer(h.Version)),
 		ChainID: string(h.ChainID),
 		//#nosec:G701 // int64 is sufficient as block time is greater than a second.
 		Height: int64(h.Height),
 		//#nosec:G701 // int64 is sufficient for billions of years.
-		Time:               time.Unix(int64(h.Time), 0).UTC(),
+		Time: time.Unix(int64(h.Time), 0).UTC(),
+		//#nosec:G103 // Cast is safe as the struct is identical.
 		LastBlockID:        *(*cometbft.BlockID)(unsafe.Pointer(h.LastBlockID)),
 		LastCommitHash:     cmtbytes.HexBytes(h.LastCommitHash[:]),
 		DataHash:           cmtbytes.HexBytes(h.DataHash[:]),
@@ -108,12 +110,14 @@ func (h *CometBFTHeader) ToCometBFT() cometbft.Header {
 
 // FromCometBFT converts a CometBFT Header to its equivalent.
 func (h *CometBFTHeader) FromCometBFT(header cometbft.Header) {
+	//#nosec:G103 // Cast is safe as the struct is identical.
 	h.Version = (*Consensus)(unsafe.Pointer(&header.Version))
 	h.ChainID = []byte(header.ChainID)
 	//#nosec:G701 // A positive int64 can never overflow a uint64.
 	h.Height = uint64(header.Height)
 	//#nosec:G701 // A positive int64 can never overflow a uint64.
 	h.Time = uint64(header.Time.Unix())
+	//#nosec:G103 // Cast is safe as the struct is identical.
 	h.LastBlockID = (*BlockID)(unsafe.Pointer(&header.LastBlockID))
 	h.LastCommitHash = byteslib.ToBytes32(header.LastCommitHash)
 	h.DataHash = byteslib.ToBytes32(header.DataHash)
