@@ -80,7 +80,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
-	github.com/vektra/mockery/v2 v2.42.0
+	github.com/vektra/mockery/v2 v2.42.1
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
