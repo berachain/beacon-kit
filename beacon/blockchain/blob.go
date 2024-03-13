@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"sync"
 
+	"github.com/berachain/beacon-kit/beacon/core/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/db/file"
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // Create a pool of bytes.Buffers.
@@ -20,22 +22,31 @@ var bufPool = &sync.Pool{
 // Store the blobs in the blobstore.
 func PrepareBlobsHandler(storage db.DB,
 	height int64, blk beacontypes.BeaconBlock,
-	blobs *engine.BlobsBundleV1) ([][]byte, error) {
+	blobs *enginetypes.BlobsBundleV1) ([][]byte, error) {
 
-	//TODO: create blobtx type that appends the inclusion proof to the blob
-
-	// store the blobs under a single height.
 	ranger := file.NewRangeDB(storage)
+	var blobTx = make([]types.BlobTxSidecar, 0, len(blobs.Blobs))
 	for i, sidecar := range blobs.Blobs {
+		//Create Inclusion Proof
+		ic, err := kzg.MerkleProofKZGCommitment(blk, i)
+		if err != nil {
+			return nil, err
+		}
+		blob := types.BlobTxSidecar{
+			Blob:           sidecar,
+			KzgCommitment:  blobs.Commitments[i],
+			KzgProof:       blobs.Proofs[i],
+			InclusionProof: ic,
+		}
+
 		if err := ranger.Set(uint64(height), blobs.Commitments[i], sidecar); err != nil {
 			return nil, err
 		}
+
+		blobTx[i] = blob
 	}
 
-	var blobTx = make([][]byte, 0, len(blobs.Blobs))
-	for i, sidecar := range blobs.Blobs {
-		blobTx[i] = sidecar
-	}
+	//TODO: ssz encode the blobTx
 
 	return blobTx, nil
 }
