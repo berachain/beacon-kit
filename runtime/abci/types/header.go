@@ -27,6 +27,7 @@ package types
 
 import (
 	"time"
+	"unsafe"
 
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -42,7 +43,7 @@ import (
 type CometBFTHeader struct {
 	Version *Consensus
 	// ChainID is an unstructured string with a max length of 50-bytes.
-	ChainID []byte `ssz-size:"50"`
+	ChainID []byte `ssz-max:"50"`
 	Height  uint64
 	// Unix time in seconds.
 	Time uint64
@@ -83,70 +84,16 @@ type Consensus struct {
 	App   uint64
 }
 
-// ToCometBFT converts Consensus to its CometBFT equivalent.
-func (c *Consensus) ToCometBFT() cmtversion.Consensus {
-	return cmtversion.Consensus{
-		Block: c.Block,
-		App:   c.App,
-	}
-}
-
-// FromCometBFT converts a CometBFT Consensus to its equivalent.
-func (c *Consensus) FromCometBFT(consensus cmtversion.Consensus) {
-	c.Block = consensus.Block
-	c.App = consensus.App
-}
-
-// ToCometBFT converts BlockID to its CometBFT equivalent.
-func (b *BlockID) ToCometBFT() cometbft.BlockID {
-	if b.PartSetHeader == nil {
-		b.PartSetHeader = &PartSetHeader{}
-	}
-	return cometbft.BlockID{
-		Hash:          cmtbytes.HexBytes(b.Hash[:]),
-		PartSetHeader: b.PartSetHeader.ToCometBFT(),
-	}
-}
-
-// FromCometBFT converts a CometBFT BlockID to its equivalent.
-func (b *BlockID) FromCometBFT(blockID cometbft.BlockID) {
-	if b.PartSetHeader == nil {
-		b.PartSetHeader = &PartSetHeader{}
-	}
-	b.Hash = byteslib.ToBytes32(blockID.Hash)
-	b.PartSetHeader.FromCometBFT(blockID.PartSetHeader)
-}
-
-// ToCometBFT converts PartSetHeader to its CometBFT equivalent.
-func (p *PartSetHeader) ToCometBFT() cometbft.PartSetHeader {
-	return cometbft.PartSetHeader{
-		Hash:  cmtbytes.HexBytes(p.Hash[:]),
-		Total: p.Total,
-	}
-}
-
-// FromCometBFT converts a CometBFT PartSetHeader to its equivalent.
-func (p *PartSetHeader) FromCometBFT(partSetHeader cometbft.PartSetHeader) {
-	p.Hash = byteslib.ToBytes32(partSetHeader.Hash)
-	p.Total = partSetHeader.Total
-}
-
 // ToCometBFT converts CometBFTHeader to its CometBFT equivalent.
 func (h *CometBFTHeader) ToCometBFT() cometbft.Header {
-	if h.Version == nil {
-		h.Version = &Consensus{}
-	}
-	if h.LastBlockID == nil {
-		h.LastBlockID = &BlockID{}
-	}
 	return cometbft.Header{
-		Version: h.Version.ToCometBFT(),
+		Version: *(*cmtversion.Consensus)(unsafe.Pointer(h.Version)),
 		ChainID: string(h.ChainID),
 		//#nosec:G701 // int64 is sufficient as block time is greater than a second.
 		Height: int64(h.Height),
 		//#nosec:G701 // int64 is sufficient for billions of years.
 		Time:               time.Unix(int64(h.Time), 0).UTC(),
-		LastBlockID:        h.LastBlockID.ToCometBFT(),
+		LastBlockID:        *(*cometbft.BlockID)(unsafe.Pointer(h.LastBlockID)),
 		LastCommitHash:     cmtbytes.HexBytes(h.LastCommitHash[:]),
 		DataHash:           cmtbytes.HexBytes(h.DataHash[:]),
 		ValidatorsHash:     cmtbytes.HexBytes(h.ValidatorsHash[:]),
@@ -161,19 +108,13 @@ func (h *CometBFTHeader) ToCometBFT() cometbft.Header {
 
 // FromCometBFT converts a CometBFT Header to its equivalent.
 func (h *CometBFTHeader) FromCometBFT(header cometbft.Header) {
-	if h.Version == nil {
-		h.Version = &Consensus{}
-	}
-	if h.LastBlockID == nil {
-		h.LastBlockID = &BlockID{}
-	}
-	h.Version.FromCometBFT(header.Version)
+	h.Version = (*Consensus)(unsafe.Pointer(&header.Version))
 	h.ChainID = []byte(header.ChainID)
 	//#nosec:G701 // A positive int64 can never overflow a uint64.
 	h.Height = uint64(header.Height)
 	//#nosec:G701 // A positive int64 can never overflow a uint64.
 	h.Time = uint64(header.Time.Unix())
-	h.LastBlockID.FromCometBFT(header.LastBlockID)
+	h.LastBlockID = (*BlockID)(unsafe.Pointer(&header.LastBlockID))
 	h.LastCommitHash = byteslib.ToBytes32(header.LastCommitHash)
 	h.DataHash = byteslib.ToBytes32(header.DataHash)
 	h.ValidatorsHash = byteslib.ToBytes32(header.ValidatorsHash)
