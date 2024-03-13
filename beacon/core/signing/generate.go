@@ -25,13 +25,5 @@
 
 package signing
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
-// Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
-//
-//nolint:lll // Urls are long.
-type Data struct {
-	ObjectRoot []byte `ssz-size:"32"`
-	Domain     Domain `ssz-size:"32"`
-}
+// Generate the SSZ serialization code for the signing package.
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Data,ForkData -include ../../../primitives -output generated.ssz.go
