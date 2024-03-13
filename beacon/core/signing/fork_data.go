@@ -29,6 +29,6 @@ import "github.com/berachain/beacon-kit/primitives"
 
 // ForkData is the fork data used for signing.
 type ForkData struct {
-	CurrentVersion        [primitives.VersionLength]byte `ssz-size:"4"`
-	GenesisValidatorsRoot [HashRootLength]byte           `ssz-size:"32"`
+	CurrentVersion        [VersionLength]byte `ssz-size:"4"`
+	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
 }

@@ -26,12 +26,8 @@
 package primitives
 
 const (
-	VersionLength = 4
+	HashRootLength = 32
 )
 
-// Fork represents a fork in the chain.
-type Fork struct {
-	PreviousVersion [VersionLength]byte
-	CurrentVersion  [VersionLength]byte
-	Epoch           Epoch
-}
+// HashRoot is a 32-byte root of a hash tree structure.
+type HashRoot [HashRootLength]byte

@@ -26,5 +26,5 @@
 package signing
 
 const (
-	HashRootLength = 32
+	VersionLength = 4
 )
