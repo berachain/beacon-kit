@@ -80,6 +80,10 @@ func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
 	return s.enclave
 }
 
+func (s *KurtosisE2ESuite) Config() *kurtosis.E2ETestConfig {
+	return s.cfg
+}
+
 // KurtosisCtx returns the KurtosisContext associated with the KurtosisE2ESuite.
 // The KurtosisContext is a critical component that facilitates interaction with
 // the Kurtosis testnet, including creating and managing enclaves.
@@ -103,4 +107,14 @@ func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
 // Logger returns the logger for the test suite.
 func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
+}
+
+// GenesisAccount returns the genesis account for the test suite.
+func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
+	return s.genesisAccount
+}
+
+// TestAccounts returns the test accounts for the test suite.
+func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
+	return s.testAccounts
 }

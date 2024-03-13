@@ -23,32 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package suite
+pragma solidity ^0.8.24;
 
-import (
-	"time"
+import { Script } from "@forge-std/Script.sol";
+import { MintableERC20 } from "../test/MintableERC20.sol";
 
-	"github.com/ethereum/go-ethereum/params"
-)
+contract DeployAndCallERC20 is Script {
+    function run() public {
+        address dropAddress = address(12);
+        uint256 quantity = 50_000;
 
-// Ether represents the number of wei in one ether, used for Ethereum
-// transactions.
-const (
-	Ether   = params.Ether
-	OneGwei = params.GWei  // 1 Gwei = 1e9 wei
-	TenGwei = 10 * OneGwei // 10 Gwei = 1e10 wei
-)
+        vm.startBroadcast();
+        MintableERC20 drop = new MintableERC20();
 
-// EtherTransferGasLimit specifies the gas limit for a standard Ethereum
-// transfer.
-// This is the amount of gas required to perform a basic ether transfer.
-const (
-	EtherTransferGasLimit uint64 = 21000 // Standard gas limit for ether transfer
-)
+        for (uint256 i = 0; i < 10; i++) {
+            quantity += 50_000;
+            drop.mint(dropAddress, quantity);
+        }
 
-// DefaultE2ETestTimeout defines the default timeout duration for end-to-end
-// tests. This is used to specify how long to wait for a test before considering
-// it failed.
-const (
-	DefaultE2ETestTimeout = 60 * 5 * time.Second // timeout for E2E tests
-)
+        vm.stopBroadcast();
+    }
+}
