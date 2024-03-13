@@ -84,7 +84,7 @@ func ConvertCommitmentsToVersionedHashes(
 // The index is the position of the commitment in the Merkle tree.
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
-func VerifyKZGInclusionProof(commitment, root []byte, proof [][]byte, index uint64) error {
+func VerifyKZGInclusionProof(commitment, root []byte, proof [][]byte, index uint64) error { // TODO: add wrapped type with inclusion proofs
 	if len(root) != rootLength {
 		return errInvalidBodyRoot
 	}
@@ -119,10 +119,11 @@ func MerkleProofKZGCommitment(blk beacontypes.BeaconBlock, index int) ([][]byte,
 		return nil, err
 	}
 
-	membersRoots, err := topLevelRoots(body)
+	membersRoots, err := blk.GetBody().GetTopLevelRoots()
 	if err != nil {
 		return nil, err
 	}
+
 	sparse, err := merkle.GenerateTrieFromItems(membersRoots, logBodyLength)
 	if err != nil {
 		return nil, err

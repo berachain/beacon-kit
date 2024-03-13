@@ -119,7 +119,6 @@ func (h *Handler) PrepareProposalHandler(
 	// TODO: make more robust
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 
-	// TODO: does this exceed max block size?
 	blobBz, err := blockchain.PrepareBlobsHandler(h.blobstore, req.Height,
 		blk, blobs)
 	if err != nil {

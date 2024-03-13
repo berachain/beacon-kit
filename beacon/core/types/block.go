@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/config/version"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/lib/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 )
@@ -68,6 +69,44 @@ type BeaconBlockBodyDeneb struct {
 	Deposits           []*Deposit `                ssz-max:"16"`
 	ExecutionPayload   *enginetypes.ExecutableDataDeneb
 	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
+}
+
+const bodyLength = 5
+
+func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {
+	layer := make([][]byte, bodyLength)
+	for i := range layer {
+		layer[i] = make([]byte, 32)
+	}
+
+	randao := b.RandaoReveal
+	root, err := ssz.MerkleizeByteSliceSSZ(randao[:])
+	if err != nil {
+		return nil, err
+	}
+	copy(layer[0], root[:])
+
+	// graffiti
+	root = b.Graffiti
+	copy(layer[1], root[:])
+
+	// Deposits
+	dep := b.Deposits
+	root, err = ssz.MerkleizeListSSZ(dep, 16)
+	if err != nil {
+		return nil, err
+	}
+	copy(layer[3], root[:])
+
+	// Execution Payload
+	rt, err := b.ExecutionPayload.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	copy(layer[4], rt[:])
+
+	return layer, nil
 }
 
 func (b *BeaconBlockBodyDeneb) IsNil() bool {
