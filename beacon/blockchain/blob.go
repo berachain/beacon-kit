@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"sync"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/db/file"
 	"github.com/ethereum/go-ethereum/beacon/engine"
@@ -16,27 +17,17 @@ var bufPool = &sync.Pool{
 	},
 }
 
-// func sidecarFileKey(sidecar *eth.BlobSidecar) string {
-// 	return path.Join(bs.baseDir, fmt.Sprintf(
-// 		"%d_%x_%d_%x.blob",
-// 		sidecar.Slot,
-// 		sidecar.BlockRoot,
-// 		sidecar.Index,
-// 		sidecar.KzgCommitment,
-// 	))
-// }
-
 // Store the blobs in the blobstore.
 func PrepareBlobsHandler(storage db.DB,
-	height int64, commitments [][48]byte,
+	height int64, blk beacontypes.BeaconBlock,
 	blobs *engine.BlobsBundleV1) ([][]byte, error) {
 
-	// TODO: before storage handle validation
+	//TODO: create blobtx type that appends the inclusion proof to the blob
 
 	// store the blobs under a single height.
-	ranger := file.NewRangeDB[int64](storage)
+	ranger := file.NewRangeDB(storage)
 	for i, sidecar := range blobs.Blobs {
-		if err := ranger.Set(height, blobs.Commitments[i], sidecar); err != nil {
+		if err := ranger.Set(uint64(height), blobs.Commitments[i], sidecar); err != nil {
 			return nil, err
 		}
 	}
@@ -53,12 +44,12 @@ func PrepareBlobsHandler(storage db.DB,
 func ProcessBlobsHandler(storage db.DB,
 	height int64, commitments [][48]byte, blobs [][]byte) error {
 
-	// TODO: before storage handle validation
+	// TODO: verify blob inclusion. Since we include it in the block itself not a sub network its not required
 
-	ranger := file.NewRangeDB[int64](storage)
+	ranger := file.NewRangeDB(storage)
 	// Store the blobs under a single height.
 	for i, sidecar := range blobs {
-		if err := ranger.Set(height, commitments[i][:], sidecar); err != nil {
+		if err := ranger.Set(uint64(height), commitments[i][:], sidecar); err != nil {
 			return err
 		}
 	}

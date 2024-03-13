@@ -27,19 +27,24 @@ package file
 
 import "context"
 
-// RangeDBPruner prunes old indexes from the range DB.
-type RangeDBPruner[T numeric] struct {
-	db             *RangeDB[T]
-	notifyNewIndex chan T
-	pruneWindow    T
+// numeric is a type that represents a numeric type.
+type numeric interface {
+	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64
 }
 
-func NewRangeDBPruner[T numeric](
-	db *RangeDB[T],
-	pruneWindow T,
-	notifyNewIndex chan T,
-) *RangeDBPruner[T] {
-	return &RangeDBPruner[T]{
+// RangeDBPruner prunes old indexes from the range DB.
+type RangeDBPruner struct {
+	db             *RangeDB
+	notifyNewIndex chan uint64
+	pruneWindow    uint64
+}
+
+func NewRangeDBPruner(
+	db *RangeDB,
+	pruneWindow uint64,
+	notifyNewIndex chan uint64,
+) *RangeDBPruner {
+	return &RangeDBPruner{
 		db:             db,
 		notifyNewIndex: notifyNewIndex,
 		pruneWindow:    pruneWindow,
@@ -47,12 +52,12 @@ func NewRangeDBPruner[T numeric](
 }
 
 // Start starts a goroutine that listens for new indices to prune.
-func (p *RangeDBPruner[T]) Start(ctx context.Context) {
+func (p *RangeDBPruner) Start(ctx context.Context) {
 	go p.runLoop(ctx)
 }
 
 // NotifyNewIndex notifies the pruner of a new index.
-func (p *RangeDBPruner[T]) runLoop(ctx context.Context) {
+func (p *RangeDBPruner) runLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
