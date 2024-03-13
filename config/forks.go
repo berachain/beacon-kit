@@ -122,3 +122,12 @@ genesis-fork-version = {{.BeaconKit.Beacon.Forks.GenesisForkVersion}}
 deneb-fork-version = {{.BeaconKit.Beacon.Forks.DenebForkVersion}}
 `
 }
+
+// ForkAtEpoch returns the fork version at the given epoch.
+func (c Forks) ForkAtEpoch(epoch primitives.Epoch) uint32 {
+	if epoch < c.DenebForkEpoch {
+		return c.GenesisForkVersion
+	}
+	// Deneb is the latest supported fork.
+	return c.DenebForkVersion
+}
