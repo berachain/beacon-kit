@@ -25,18 +25,58 @@
 
 package signing
 
-// TODO: Do this properly, using [4]byte, for now its stupid simple.
-// TODO add forkbytes thing.
-type Domain [32]byte
+import (
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/prysmaticlabs/prysm/v5/config/params"
+)
 
-// BuildDomain creates and returns a new Domain instance.
-// This function initializes a Domain with its default value, which is a 32-byte
-// array filled with zeros.
-func BuildDomain() Domain {
-	return Domain{}
-}
+// Domain is the domain used for signing.
+type Domain [DomainLength]byte
 
 // Bytes returns the byte representation of the Domain.
 func (d *Domain) Bytes() []byte {
 	return d[:]
+}
+
+// ComputeDomain returns the domain for the DomainType and fork version.
+// def compute_domain(domain_type: DomainType, fork_version: Version=None, genesis_validators_root: Root=None) -> Domain:
+//
+//	"""
+//	Return the domain for the domain_type and fork_version.
+//	"""
+//	if fork_version is None:
+//	    fork_version = GENESIS_FORK_VERSION
+//	if genesis_validators_root is None:
+//	    genesis_validators_root = Root()  # all bytes zero by default
+//	fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)
+//	return Domain(domain_type + fork_data_root[:28])
+func ComputeDomain(
+	domainType DomainType,
+	forkVersion Version,
+	genesisValidatorsRoot primitives.HashRoot,
+) Domain {
+	if forkVersion == nil {
+		forkVersion = params.BeaconConfig().GenesisForkVersion
+	}
+	if genesisValidatorsRoot == nil {
+		genesisValidatorsRoot = params.BeaconConfig().ZeroHash[:]
+	}
+	var forkBytes [ForkVersionByteLength]byte
+	copy(forkBytes[:], forkVersion)
+
+	forkDataRoot, err := computeForkDataRoot(forkBytes[:], genesisValidatorsRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	return domain(domainType, forkDataRoot[:]), nil
+
+}
+
+// This returns the bls domain given by the domain type and fork data root.
+func domain(domainType [DomainByteLength]byte, forkDataRoot []byte) []byte {
+	var b []byte
+	b = append(b, domainType[:4]...)
+	b = append(b, forkDataRoot[:28]...)
+	return b
 }

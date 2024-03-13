@@ -27,8 +27,33 @@ package signing
 
 import "github.com/berachain/beacon-kit/primitives"
 
+type Version [VersionLength]byte
+
 // ForkData is the fork data used for signing.
 type ForkData struct {
-	CurrentVersion        [VersionLength]byte `ssz-size:"4"`
+	CurrentVersion        Version             `ssz-size:"4"`
 	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
+}
+
+// ComputeForkDataRoot computes the root of the fork data.
+// Spec:
+// def compute_fork_data_root(current_version: Version, genesis_validators_root: Root) -> Root:
+//
+//	"""
+//	Return the 32-byte fork data root for the current_version and genesis_validators_root.
+//	This is used primarily in signature domains to avoid collisions across forks/chains.
+//	"""
+//	return hash_tree_root(ForkData(
+//		current_version=current_version,
+//		genesis_validators_root=genesis_validators_root,
+//	))
+func computeForkDataRoot(
+	currentVersion Version,
+	genesisValidatorsRoot primitives.HashRoot,
+) (primitives.HashRoot, error) {
+	forkData := ForkData{
+		CurrentVersion:        currentVersion,
+		GenesisValidatorsRoot: genesisValidatorsRoot,
+	}
+	return forkData.HashTreeRoot()
 }
