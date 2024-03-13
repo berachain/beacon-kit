@@ -53,7 +53,12 @@ func (s *Store) DequeueDeposits(
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
-// Withdrawal Management
+// EnqueueWithdrawals pushes the withdrawals to the queue.
+func (s *Store) EnqueueWithdrawals(
+	withdrawals []*enginetypes.Withdrawal,
+) error {
+	return s.withdrawalQueue.PushMulti(s.ctx, withdrawals)
+}
 
 // TODO: Consider consolidating BeaconState interface externally to x/beacon
 // to facilitate withdrawals from x/beacon_staking.

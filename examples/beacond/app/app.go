@@ -125,7 +125,8 @@ func NewBeaconKitApp(
 				// supply beaconkit options
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 				// supply our custom staking wrapper.
-				// stakingwrapper.NewKeeper(app.StakingKeeper), // StakingKeeper is nil here.
+				// stakingwrapper.NewKeeper(app.StakingKeeper), // StakingKeeper
+				// is nil here.
 			),
 		),
 		&appBuilder,
