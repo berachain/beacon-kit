@@ -23,26 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package beacon
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+func (s *Store) SetRandaoMix(mix types.Mix) error {
+	return s.randaoMix.Set(s.ctx, mix)
 }
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
+func (s *Store) RandaoMix() (types.Mix, error) {
+	return s.randaoMix.Get(s.ctx)
 }

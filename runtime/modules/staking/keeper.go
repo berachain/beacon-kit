@@ -33,14 +33,13 @@ import (
 	sdkstaking "cosmossdk.io/x/staking/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/runtime"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var _ runtime.ValsetChangeProvider = &Keeper{}
+var _ ValsetChangeProvider = &Keeper{}
 
 // Keeper implements the StakingKeeper interface
 // as a wrapper around Cosmos SDK x/staking keeper.

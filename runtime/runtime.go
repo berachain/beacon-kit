@@ -33,8 +33,9 @@ import (
 	"github.com/berachain/beacon-kit/async/dispatch"
 	"github.com/berachain/beacon-kit/async/notify"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	builder "github.com/berachain/beacon-kit/beacon/builder"
+	"github.com/berachain/beacon-kit/beacon/builder"
 	localbuilder "github.com/berachain/beacon-kit/beacon/builder/local"
+	"github.com/berachain/beacon-kit/beacon/core/randao"
 	"github.com/berachain/beacon-kit/beacon/execution"
 	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
 	"github.com/berachain/beacon-kit/beacon/staking"
@@ -42,6 +43,8 @@ import (
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/cache"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/crypto"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	_ "github.com/berachain/beacon-kit/lib/maxprocs"
@@ -82,6 +85,7 @@ func NewDefaultBeaconKitRuntime(
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
 	logger log.Logger,
+	signer crypto.Signer[[bls12381.SignatureLength]byte],
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -153,10 +157,17 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
+	randaoProcessor := randao.NewProcessor(
+		randao.WithBeaconStateProvider(bsb),
+		randao.WithSigner(signer),
+		randao.WithLogger(logger.With("service", "randao")),
+	)
+
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
+		builder.WithRandaoProcessor(randaoProcessor),
 	)
 
 	// Build the sync service.
@@ -170,6 +181,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
+		blockchain.WithRandaoProcessor(randaoProcessor),
 		blockchain.WithSyncService(syncService),
 	)
 

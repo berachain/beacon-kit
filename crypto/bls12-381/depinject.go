@@ -23,26 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package bls12381
 
 import (
-	"context"
+	"fmt"
+	"os"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"cosmossdk.io/depinject"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+// DepInjectInput is the input for the dep inject framework.
+type DepInjectInput struct {
+	depinject.In
+
+	AppOpts servertypes.AppOptions
 }
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
+// DepInjectOutput is the output for the dep inject framework.
+type DepInjectOutput struct {
+	depinject.Out
+
+	BlsSigner *Signer
+}
+
+func ProvideBlsSigner(in DepInjectInput) DepInjectOutput {
+	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
+
+	key, err := NewSignerFromFile(
+		fmt.Sprintf("%s/config/priv_validator_key.json", homeDir),
+	)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	return DepInjectOutput{
+		BlsSigner: key,
+	}
 }

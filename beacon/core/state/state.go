@@ -26,6 +26,7 @@
 package state
 
 import (
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
@@ -43,15 +44,28 @@ type ReadOnlyBeaconState interface {
 	ReadWriteDepositQueue
 	ReadOnlyWithdrawals
 
-	GetParentBlockRoot() [32]byte
+	ReadOnlyRandaoMixes
 
-	// TODO: Actually decouple epocha nd slot
-	// GetEpochBySlot(primitives.Slot) primitives.Epoch
+	SetParentBlockRoot([32]byte)
+	GetParentBlockRoot() [32]byte
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
+	WriteOnlyRandaoMixes
 	SetParentBlockRoot([32]byte)
+}
+
+// WriteOnlyRandaoMixes defines a struct which only has write access to randao
+// mixes methods.
+type WriteOnlyRandaoMixes interface {
+	SetRandaoMix(types.Mix) error
+}
+
+// ReadOnlyRandaoMixes defines a struct which only has read access to randao
+// mixes methods.
+type ReadOnlyRandaoMixes interface {
+	RandaoMix() (types.Mix, error)
 }
 
 // ReadWriteDepositQueue has read and write access to deposit queue.

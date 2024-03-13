@@ -23,26 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package preblock
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
+// StakingKeeper provides the interface for the staking module.
+type StakingKeeper interface {
+	GetValidatorPubkeyFromConsAddress(
+		ctx context.Context,
+		consAddr []byte,
+	) ([bls12381.PubKeyLength]byte, error)
 }

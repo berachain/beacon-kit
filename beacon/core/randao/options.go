@@ -23,26 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package randao
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"cosmossdk.io/log"
+	crypto "github.com/berachain/beacon-kit/crypto"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+type Option func(*Processor) error
+
+// WithBeaconStateProvider sets the beacon state provider.
+func WithBeaconStateProvider(beaconStateProvider BeaconStateProvider) Option {
+	return func(p *Processor) error {
+		p.BeaconStateProvider = beaconStateProvider
+		return nil
+	}
 }
 
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
+// WithSigner sets the signer.
+func WithSigner(
+	signer crypto.Signer[[bls12381.SignatureLength]byte],
+) Option {
+	return func(p *Processor) error {
+		p.signer = signer
+		return nil
+	}
+}
+
+// WithLogger sets the logger.
+func WithLogger(logger log.Logger) Option {
+	return func(p *Processor) error {
+		p.logger = logger
+		return nil
+	}
 }

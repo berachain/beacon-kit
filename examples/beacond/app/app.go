@@ -30,6 +30,8 @@ import (
 	_ "embed"
 	"io"
 
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -42,7 +44,6 @@ import (
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	beaconkitconfig "github.com/berachain/beacon-kit/config"
-	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
@@ -107,13 +108,13 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
-	clientCtx := client.Context{}
+
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
-				cmdconfig.ProvideClientContext,
+				bls12381.ProvideBlsSigner,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -123,11 +124,10 @@ func NewBeaconKitApp(
 				// supply beaconkit options
 				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 				// supply our custom staking wrapper.
-				stakingwrapper.NewKeeper(app.StakingKeeper),
+				stakingwrapper.NewKeeper(app.StakingKeeper), // StakingKeeper is nil here.
 			),
 		),
 		&appBuilder,
-		&clientCtx,
 		&app.appCodec,
 		&app.legacyAmino,
 		&app.txConfig,
@@ -145,10 +145,8 @@ func NewBeaconKitApp(
 	); err != nil {
 		panic(err)
 	}
-
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
-
 	// Build all the ABCI Componenets.
 	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
@@ -156,6 +154,7 @@ func NewBeaconKitApp(
 		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
 			ProcessProposalHandler(),
 		nil,
+		stakingwrapper.NewKeeper(app.StakingKeeper),
 	)
 
 	// Set all the newly built ABCI Componenets on the App.
@@ -165,6 +164,7 @@ func NewBeaconKitApp(
 
 	// TODO: Fix Depinject.
 	app.BeaconKeeper.SetValsetChangeProvider(
+		// TODO add in dep inject
 		stakingwrapper.NewKeeper(app.StakingKeeper))
 
 	/**** End of BeaconKit Configuration ****/

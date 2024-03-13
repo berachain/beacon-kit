@@ -30,6 +30,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/lib/store/collections"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
@@ -57,6 +58,8 @@ type Store struct {
 	// head block root for block construction as needed
 	// by eip-4788.
 	parentBlockRoot sdkcollections.Item[[]byte]
+
+	randaoMix sdkcollections.Item[[types.MixLength]byte]
 }
 
 // Store creates a new instance of Store.
@@ -89,7 +92,15 @@ func NewStore(
 		sdkcollections.BytesValue,
 	)
 
+	randaoMix := sdkcollections.NewItem[[types.MixLength]byte](
+		schemaBuilder,
+		sdkcollections.NewPrefix(randaoMixPrefix),
+		randaoMixPrefix,
+		encoding.Bytes32ValueCodec{},
+	)
+
 	return &Store{
+		randaoMix:              randaoMix,
 		validatorIndex:         validatorIndex,
 		validatorIndexToPubkey: validatorIndexToPubkey,
 		depositQueue:           depositQueue,

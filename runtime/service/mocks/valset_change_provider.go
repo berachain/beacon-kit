@@ -5,13 +5,8 @@ package mocks
 import (
 	context "context"
 
-	collections "cosmossdk.io/collections"
-
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-
 	mock "github.com/stretchr/testify/mock"
-
-	stakingtypes "cosmossdk.io/x/staking/types"
 
 	types "github.com/berachain/beacon-kit/beacon/core/types"
 )
@@ -73,51 +68,6 @@ func (_c *ValsetChangeProvider_ApplyChanges_Call) Return(_a0 error) *ValsetChang
 }
 
 func (_c *ValsetChangeProvider_ApplyChanges_Call) RunAndReturn(run func(context.Context, []*types.Deposit, []*enginetypes.Withdrawal) error) *ValsetChangeProvider_ApplyChanges_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ValidatorsByValAddress provides a mock function with given fields:
-func (_m *ValsetChangeProvider) ValidatorsByValAddress() collections.Map[[]byte, stakingtypes.Validator] {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for ValidatorsByValAddress")
-	}
-
-	var r0 collections.Map[[]byte, stakingtypes.Validator]
-	if rf, ok := ret.Get(0).(func() collections.Map[[]byte, stakingtypes.Validator]); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(collections.Map[[]byte, stakingtypes.Validator])
-	}
-
-	return r0
-}
-
-// ValsetChangeProvider_ValidatorsByValAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidatorsByValAddress'
-type ValsetChangeProvider_ValidatorsByValAddress_Call struct {
-	*mock.Call
-}
-
-// ValidatorsByValAddress is a helper method to define mock.On call
-func (_e *ValsetChangeProvider_Expecter) ValidatorsByValAddress() *ValsetChangeProvider_ValidatorsByValAddress_Call {
-	return &ValsetChangeProvider_ValidatorsByValAddress_Call{Call: _e.mock.On("ValidatorsByValAddress")}
-}
-
-func (_c *ValsetChangeProvider_ValidatorsByValAddress_Call) Run(run func()) *ValsetChangeProvider_ValidatorsByValAddress_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *ValsetChangeProvider_ValidatorsByValAddress_Call) Return(_a0 collections.Map[[]byte, stakingtypes.Validator]) *ValsetChangeProvider_ValidatorsByValAddress_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ValsetChangeProvider_ValidatorsByValAddress_Call) RunAndReturn(run func() collections.Map[[]byte, stakingtypes.Validator]) *ValsetChangeProvider_ValidatorsByValAddress_Call {
 	_c.Call.Return(run)
 	return _c
 }
