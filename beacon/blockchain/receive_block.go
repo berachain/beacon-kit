@@ -147,10 +147,7 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
-	// ---------------------///
-	// VALIDATE RANDAO HERE ///
-	// ---------------------///
-
+	// Verify the RANDAO Reveal.
 	if err := s.rp.VerifyReveal(
 		proposerPubKey,
 		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
