@@ -56,12 +56,6 @@ func ToBytes32(input []byte) [32]byte {
 	return [32]byte(ExtendToSize(input, 32)) //nolint:gomnd // 32 bytes.
 }
 
-// ToBytes20 is a utility function that transforms a byte slice into a fixed
-// 20-byte array. If the input exceeds 20 bytes, it gets truncated.
-func ToBytes20(input []byte) [20]byte {
-	return [20]byte(ExtendToSize(input, 20)) //nolint:gomnd // 20 bytes.
-}
-
 // ExtendToSize extends a byte slice to a specified length. It returns the
 // original slice if it's already larger.
 func ExtendToSize(slice []byte, length int) []byte {
