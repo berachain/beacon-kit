@@ -31,9 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-const (
-	defaultElectraForkEpoch = 9999999999999999
-)
+const defaultElectraForkEpoch = 9999999999999999
 
 // Forks conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Forks] = &Forks{}
