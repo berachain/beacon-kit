@@ -60,6 +60,8 @@ type Node struct {
 	ClType string `json:"cl_type"`
 	// ElType denotes the type of execution layer client (e.g., reth).
 	ElType string `json:"el_type"`
+	// Replicas specifies the number of replicas to use for the client.
+	Replicas int `json:"replicas"`
 }
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
@@ -70,36 +72,42 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		AdditionalServices: []interface{}{},
 		Validators: []Node{
 			{
-				ElType:  "geth",
-				ClImage: "beacond:kurtosis-local",
-				ClType:  "beaconkit",
+				ElType:   "nethermind",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
 			},
 			{
-				ElType:  "reth",
-				ClImage: "beacond:kurtosis-local",
-				ClType:  "beaconkit",
+				ElType:   "geth",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
 			},
 			{
-				ElType:  "nethermind",
-				ClImage: "beacond:kurtosis-local",
-				ClType:  "beaconkit",
+				ElType:   "reth",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 2,
 			},
 		},
 		FullNodes: []Node{
 			{
-				ElType:  "nethermind",
-				ClImage: "beacond:kurtosis-local",
-				ClType:  "beaconkit",
+				ElType:   "nethermind",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
 			},
 			{
-				ElType:  "reth",
-				ClImage: "beacond:kurtosis-local",
-				ClType:  "beaconkit",
+				ElType:   "reth",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
 			},
 			{
-				ElType:  "geth",
-				ClImage: "beacond:kurtosis-local",
-				ClType:  "beaconkit",
+				ElType:   "geth",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 2,
 			},
 		},
 		RPCEndpoints: []RPCEndpoint{

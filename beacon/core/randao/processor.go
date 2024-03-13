@@ -88,7 +88,7 @@ func (p *Processor) VerifyReveal(
 		reveal,
 	)
 	if ok {
-		p.logger.Info("randao reveal verified successfully",
+		p.logger.Info("randao reveal successfully verified 🤫 ",
 			"reveal", reveal,
 		)
 	} else {
