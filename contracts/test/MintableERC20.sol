@@ -23,39 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+pragma solidity ^0.8.24;
 
-import (
-	"context"
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
 
-	sdkcollections "cosmossdk.io/collections"
-	stakingtypes "cosmossdk.io/x/staking/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-)
+contract MintableERC20 is ERC20 {
+    constructor() ERC20() { }
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
-}
+    event Mint(address indexed to, uint256 amount);
 
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
+    function name() public view virtual override returns (string memory) {
+        return "Token";
+    }
 
-// ValsetChangeProvider is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
-	ValidatorsByValAddress() sdkcollections.Map[[]byte, stakingtypes.Validator]
+    function symbol() public view virtual override returns (string memory) {
+        return "TK";
+    }
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+        emit Mint(to, amount);
+    }
 }

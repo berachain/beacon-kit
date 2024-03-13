@@ -66,7 +66,7 @@ require (
 	github.com/holiman/uint256 v1.2.4
 	github.com/huandu/skiplist v1.2.0
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240226135442-10e4707bd0ca
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.4
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.5
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/protolambda/ztyp v0.2.2
@@ -80,7 +80,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
-	github.com/vektra/mockery/v2 v2.42.0
+	github.com/vektra/mockery/v2 v2.42.1
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5

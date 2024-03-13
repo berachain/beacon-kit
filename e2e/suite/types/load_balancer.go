@@ -36,6 +36,8 @@ import (
 // behind an NGINX load balancer.
 type LoadBalancer struct {
 	*JSONRPCConnection
+
+	url string
 }
 
 func NewLoadBalancer(
@@ -53,11 +55,18 @@ func NewLoadBalancer(
 	}
 
 	// Then try to connect to the JSON-RPC Endpoint.
-	if conn.Client, err = ethclient.Dial(
-		fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber()),
-	); err != nil {
+	url := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
+	if conn.Client, err = ethclient.Dial(url); err != nil {
 		return nil, err
 	}
 
-	return &LoadBalancer{JSONRPCConnection: conn}, nil
+	return &LoadBalancer{
+		JSONRPCConnection: conn,
+		url:               url,
+	}, nil
+}
+
+// URL returns the URL of the load balancer.
+func (lb *LoadBalancer) URL() string {
+	return lb.url
 }

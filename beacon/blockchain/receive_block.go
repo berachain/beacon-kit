@@ -128,6 +128,13 @@ func (s *Service) validateStateTransition(
 		return beacontypes.ErrNilBlk
 	}
 
+	// Ensure Body is non nil.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
+	}
+
+	// Ensure the parent block root matches what we have locally.
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
@@ -135,12 +142,6 @@ func (s *Service) validateStateTransition(
 			parentBlockRoot,
 			blk.GetParentBlockRoot(),
 		)
-	}
-
-	// Ensure Body is non nil.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return beacontypes.ErrNilBlkBody
 	}
 
 	// ---------------------///

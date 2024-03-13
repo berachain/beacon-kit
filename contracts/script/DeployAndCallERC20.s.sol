@@ -23,39 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+pragma solidity ^0.8.24;
 
-import (
-	"context"
+import { Script } from "@forge-std/Script.sol";
+import { MintableERC20 } from "../test/MintableERC20.sol";
 
-	sdkcollections "cosmossdk.io/collections"
-	stakingtypes "cosmossdk.io/x/staking/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-)
+contract DeployAndCallERC20 is Script {
+    function run() public {
+        address dropAddress = address(12);
+        uint256 quantity = 50_000;
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
-}
+        vm.startBroadcast();
+        MintableERC20 drop = new MintableERC20();
 
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
+        for (uint256 i = 0; i < 10; i++) {
+            quantity += 50_000;
+            drop.mint(dropAddress, quantity);
+        }
 
-// ValsetChangeProvider is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
-	) error
-	ValidatorsByValAddress() sdkcollections.Map[[]byte, stakingtypes.Validator]
+        vm.stopBroadcast();
+    }
 }
