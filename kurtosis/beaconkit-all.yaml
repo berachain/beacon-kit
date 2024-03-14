@@ -50,3 +50,4 @@ rpc_endpoints:
       - el-full-reth-1:8545
       - el-full-geth-2:8545
 additional_services: ["prometheus", "grafana", "loki"]
+metrics_enabled_services: []
