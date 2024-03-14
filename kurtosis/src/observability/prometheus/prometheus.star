@@ -1,18 +1,45 @@
 prometheus = import_module("github.com/kurtosis-tech/prometheus-package/main.star")
 
+"""
+A service should follow the format of below example:
+
+{
+    ## required
+    "name": "api_service",
+    "service": {
+        "ip_address": "0.0.0.0",
+        "ports": {
+            "metrics": {
+                "number": 8080
+            }
+        }
+    },
+    "metrics_path": "/metrics",
+
+    ## optional
+    "labels": {
+        "service_type": "api"
+    },
+    "scrape_interval": "60s"
+}
+"""
 def start(plan, services):
     metrics_jobs = []
     for service in services:
-        labels = {} # use no labels if none provided
+        constant_labels = {} # use no constant labels if none provided
         if "labels" in service:
-            labels = service["labels"]
+            constant_labels = service["labels"]
+
+        scrape_interval = "5s" # use 5s as default scrape interval
+        if "scrape_interval" in service:
+            scrape_interval = service["scrape_interval"]
 
         metrics_job = {
             "Name": "{0}".format(service['name']),
             "Endpoint": "{0}:{1}".format(service["service"].ip_address, service["service"].ports["metrics"].number),
-            "Labels": labels,
+            "Labels": constant_labels,
             "MetricsPath": service["metrics_path"],
-            "ScrapeInterval": "1s",
+            "ScrapeInterval": scrape_interval,
         }
         metrics_jobs.append(metrics_job)
 
