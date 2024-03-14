@@ -57,7 +57,8 @@ func TestValidatorIndexes(t *testing.T) {
 		require.NoError(t, err)
 
 		// get the index
-		index := beaconStore.ValidatorIndexByPubkey(ctx, []byte("pubkey2"))
+		index, err := beaconStore.ValidatorIndexByPubkey(ctx, []byte("pubkey2"))
+		require.NoError(t, err)
 		require.Equal(t, uint64(1), index)
 
 		err = beaconStore.UpdateValidator(
@@ -68,7 +69,11 @@ func TestValidatorIndexes(t *testing.T) {
 		require.NoError(t, err)
 
 		// get the index again, it should be the same as before
-		index = beaconStore.ValidatorIndexByPubkey(ctx, []byte("newpubkey"))
+		index, err = beaconStore.ValidatorIndexByPubkey(
+			ctx,
+			[]byte("newpubkey"),
+		)
+		require.NoError(t, err)
 		require.Equal(t, uint64(1), index)
 	})
 

@@ -27,10 +27,6 @@ package types
 
 import (
 	"strconv"
-
-	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
-	abilib "github.com/berachain/beacon-kit/lib/abi"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
@@ -47,25 +43,6 @@ type Deposit struct {
 	Signature []byte `json:"signature"   ssz-max:"96"`
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
-}
-
-// UnmarshalEthLog unmarshals the log into a Deposit.
-func (d *Deposit) UnmarshalEthLog(log types.Log) error {
-	abigenType := &stakingabi.BeaconDepositContractDeposit{}
-	if err := (abilib.WrappedABI{ABI: stakingabi.DepositContractABI}).
-		UnpackLogs(abigenType, "Deposit", log); err != nil {
-		return err
-	}
-	if d == nil {
-		d = &Deposit{}
-	}
-
-	d.Pubkey = abigenType.Pubkey
-	d.Credentials = abigenType.Credentials
-	d.Amount = abigenType.Amount
-	d.Signature = abigenType.Signature
-	d.Index = abigenType.Index
-	return nil
 }
 
 // String returns a string representation of the Deposit.
