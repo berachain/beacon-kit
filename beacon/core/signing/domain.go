@@ -62,6 +62,9 @@ func GetDomain(
 	domainType DomainType,
 	epoch primitives.Epoch,
 ) (Domain, error) {
-	forkVersion := VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch))
-	return computeDomain(domainType, forkVersion, cfg.Network.ChainID)
+	return computeDomain(
+		domainType,
+		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
+		cfg.Network.ChainID,
+	)
 }
