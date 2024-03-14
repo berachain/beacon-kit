@@ -49,6 +49,8 @@ func ComputeDomain(
 	}
 	var bz []byte
 	bz = append(bz, domainType[:]...)
-	bz = append(bz, forkDataRoot[:(primitives.HashRootLength-DomainTypeLength)]...)
+	bz = append(
+		bz,
+		forkDataRoot[:(primitives.HashRootLength-DomainTypeLength)]...)
 	return Domain(bz), nil
 }
