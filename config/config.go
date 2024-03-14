@@ -56,7 +56,7 @@ type Config struct {
 	// ABCI is the configuration for ABCI related settings.
 	ABCI ABCI
 
-	// Beacon is the configuration for the fork epochs.
+	// Beacon is the configuration for the beacon chain.
 	Beacon Beacon
 
 	// Builder is the configuration for the local build payload timeout.

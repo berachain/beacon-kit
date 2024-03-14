@@ -76,4 +76,8 @@ const (
 	// ABCI Config.
 	abciRoot            = beaconKitRoot + "abci."
 	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
+
+	// Chain Config.
+	chainRoot = beaconKitRoot + "chain."
+	ChainID   = chainRoot + "chain-id"
 )
