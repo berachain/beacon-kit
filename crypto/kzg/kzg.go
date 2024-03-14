@@ -29,6 +29,7 @@ import (
 	"crypto/sha256"
 	"errors"
 
+	"github.com/berachain/beacon-kit/beacon/core/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/merkle"
 	"github.com/berachain/beacon-kit/primitives"
@@ -84,15 +85,15 @@ func ConvertCommitmentsToVersionedHashes(
 // The index is the position of the commitment in the Merkle tree.
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
-func VerifyKZGInclusionProof(commitment, root []byte, proof [][]byte, index uint64) error { // TODO: add wrapped type with inclusion proofs
+func VerifyKZGInclusionProof(root []byte, blob *types.BlobTxSidecar, index uint64) error { // TODO: add wrapped type with inclusion proofs
 	if len(root) != rootLength {
 		return errInvalidBodyRoot
 	}
 	chunks := make([][32]byte, 2)
-	copy(chunks[0][:], commitment)
-	copy(chunks[1][:], commitment[rootLength:])
+	copy(chunks[0][:], blob.KzgCommitment)
+	copy(chunks[1][:], blob.KzgCommitment[rootLength:])
 	gohashtree.HashChunks(chunks, chunks)
-	verified := merkle.VerifyMerkleProof(root, chunks[0][:], index+KZGOffset, proof)
+	verified := merkle.VerifyMerkleProof(root, chunks[0][:], index+KZGOffset, blob.InclusionProof)
 	if !verified {
 		return errInvalidInclusionProof
 	}
