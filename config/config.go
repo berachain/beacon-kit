@@ -67,6 +67,9 @@ type Config struct {
 
 	// FeatureFlags is the configuration for the feature flags.
 	FeatureFlags FeatureFlags
+
+	// Network is the network configuration from the cosmos app.
+	Network Network
 }
 
 // Template returns the configuration template.
@@ -80,8 +83,7 @@ func (c Config) Template() string {
 }
 
 // SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with
-// the
-// semantics of etheruem.
+// the semantics of ethereum.
 func SetupCosmosConfig() {
 	// set the address prefixes
 	config := sdk.GetConfig()
@@ -117,11 +119,12 @@ func readConfigFromAppOptsParser(
 	parser parser.AppOptionsParser,
 ) (*Config, error) {
 	var (
-		err       error
-		conf      = &Config{}
-		engineCfg *Engine
-		beaconCfg *Beacon
-		abciCfg   *ABCI
+		err        error
+		conf       = &Config{}
+		engineCfg  *Engine
+		beaconCfg  *Beacon
+		abciCfg    *ABCI
+		networkCfg *Network
 	)
 
 	// Read ABCI Config
@@ -157,6 +160,13 @@ func readConfigFromAppOptsParser(
 		return nil, err
 	}
 	conf.FeatureFlags = *featureFlagsCfg
+
+	// Read Network Config from AppOpts
+	networkCfg, err = Network{}.Parse(parser)
+	if err != nil {
+		return nil, err
+	}
+	conf.Network = *networkCfg
 
 	return conf, nil
 }
