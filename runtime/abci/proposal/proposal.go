@@ -32,9 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/health"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
-	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -128,37 +126,6 @@ func (h *Handler) ProcessProposalHandler(
 	ctx sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
-	logger := ctx.Logger().With("module", "process-proposal")
-	proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
-		ctx, req.ProposerAddress,
-	)
-	if err != nil {
-		logger.Error("failed to get proposer pubkey", "error")
-		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_REJECT}, err
-	}
-
-	// Extract the beacon block from the ABCI request.
-	//
-	// TODO: Block factory struct?
-	// TODO: Use protobuf and .(type)?
-	block, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
-		req, h.cfg.BeaconBlockPosition,
-		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
-	)
-	if err != nil || block == nil || block.IsNil() {
-		//nolint:nilerr // its okay for now todo.
-		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
-	}
-
-	// Import the block into the execution client to validate it.
-	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block, proposerPubkey, byteslib.ToBytes32(req.Hash)); err != nil {
-		logger.Warn("failed to receive beacon block", "error", err)
-		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
-	}
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
 	// after the underlying process proposal handler has run. This is to avoid

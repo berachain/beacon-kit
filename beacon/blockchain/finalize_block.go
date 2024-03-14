@@ -82,10 +82,6 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	if err = s.rp.MixinNewReveal(ctx, blk); err != nil {
-		return err
-	}
-
 	// TODO: PROCESS LOGS HERE
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
@@ -97,12 +93,6 @@ func (s *Service) FinalizeBeaconBlock(
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
-
-	// TODO: put into an actual function / flow
-	_, err = s.BeaconState(ctx).DequeueDeposits(
-		uint64(len(blk.GetBody().GetDeposits())))
-
-	// TODO: Actually Process Staking Deposits and Withdraws.
 	return err
 }
 

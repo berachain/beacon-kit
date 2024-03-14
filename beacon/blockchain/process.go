@@ -29,16 +29,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/beacon/core"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
-	"github.com/berachain/beacon-kit/primitives"
-	"golang.org/x/sync/errgroup"
 )
 
-// ReceiveBeaconBlock receives an incoming beacon block, it first validates
+// ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service) ReceiveBeaconBlock(
+func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubkey [bls12381.PubKeyLength]byte,
@@ -47,72 +46,55 @@ func (s *Service) ReceiveBeaconBlock(
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	var (
-		eg, groupCtx   = errgroup.WithContext(ctx)
-		isValidPayload bool
-		forkChoicer    = s.ForkchoiceStore(ctx)
-	)
 
 	// If the block is nil, We have to abort.
 	if blk == nil || blk.IsNil() {
 		return beacontypes.ErrNilBlk
 	}
 
-	// If we have already seen this block, we can skip processing it.
-	// TODO: should we store some historical data here?
-	if forkChoicer.HeadBeaconBlock() == blockHash {
-		s.Logger().Info(
-			"ignoring already processed beacon block",
-			// todo: don't use common for beacontypes
-			"hash", primitives.ExecutionHash(blockHash).Hex(),
-		)
-		return nil
-	}
-	forkChoicer.UpdateHeadBeaconBlock(blockHash)
-
-	// This go routine validates the consensus level aspects of the block.
-	// i.e: does it have a valid ancestor?
-	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, blk, proposerPubkey)
-		if err != nil {
-			s.Logger().
-				Error("failed to validate state transition", "error", err)
-			return err
-		}
-		return nil
-	})
+	// TODO:
+	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
 
 	// This go rountine validates the execution level aspects of the block.
 	// i.e: does newPayload return VALID?
-	eg.Go(func() error {
-		var err error
-		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, blk,
-		); err != nil {
-			s.Logger().
-				Error("failed to notify engine of new payload", "error", err)
-			return err
-		}
+	isValidPayload, err := s.validateExecutionOnBlock(
+		ctx, blk,
+	)
+	if err != nil {
+		s.Logger().
+			Error("failed to notify engine of new payload", "error", err)
+		return err
+	}
 
-		return nil
-	})
+	// This go routine validates the consensus level aspects of the block.
+	// i.e: does it have a valid ancestor?
+	if err = s.validateStateTransition(ctx, blk, proposerPubkey); err != nil {
+		s.Logger().
+			Error("failed to validate state transition", "error", err)
+		return err
+	}
+
+	// TODO: This is very much the wrong spot for this.
+	if err = s.rp.MixinNewReveal(ctx, blk); err != nil {
+		return err
+	}
 
 	// daStartTime := time.Now()
 	// if avs != nil {
-	// 	if err := avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
+	// avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
 	// 		return errors.Wrap(err, "could not validate blob data availability
 	// (AvailabilityStore.IsDataAvailable)")
 	// 	}
 	// } else {
-	// 	if err := s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
+	// s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
 	// 		return errors.Wrap(err, "could not validate blob data availability")
 	// 	}
 	// }
 
-	// Wait for the goroutines to finish.
-	if err := eg.Wait(); err != nil {
-		return err
-	}
+	// // Wait for the goroutines to finish.
+	// if err := eg.Wait(); err != nil {
+	// 	return err
+	// }
 
 	// Perform post block processing.
 	return s.postBlockProcess(
@@ -127,13 +109,8 @@ func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
-	// Ensure Body is non nil.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return beacontypes.ErrNilBlkBody
-	}
-
 	// Ensure the parent block root matches what we have locally.
+	// TODO: get rid of CometBFT stuff.
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
@@ -143,7 +120,14 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
+	// Create a new state processor.
+	sp := core.NewStateProcessor(
+		s.BeaconCfg(),
+		s.BeaconState(ctx),
+	)
+
 	// Verify the RANDAO Reveal.
+	// TODO: move into state processor.
 	if err := s.rp.VerifyReveal(
 		proposerPubKey,
 		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
@@ -156,35 +140,13 @@ func (s *Service) validateStateTransition(
 	//   VALIDATE KZG HERE  ///
 	// ---------------------///
 
-	// Ensure the block deposits are within the limits.
-	deposits := body.GetDeposits()
-	if uint64(len(deposits)) > s.BeaconCfg().Limits.MaxDepositsPerBlock {
-		return fmt.Errorf(
-			"too many deposits, expected: %d, got: %d",
-			s.BeaconCfg().Limits.MaxDepositsPerBlock, len(deposits),
-		)
-	}
+	// ---------------------///
+	//   Process Deposits   ///
+	// ---------------------///
 
-	// Ensure the deposits match the local state.
-	localDeposits, err := s.BeaconState(ctx).
-		ExpectedDeposits(uint64(len(deposits)))
-	if err != nil {
-		return err
-	}
-
-	// Ensure the deposits match the local state.
-	for i, dep := range deposits {
-		if dep == nil {
-			return beacontypes.ErrNilDeposit
-		}
-		if dep.Index != localDeposits[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				localDeposits[i].Index, dep.Index)
-		}
-	}
-
-	return nil
+	return sp.ProcessBlock(
+		blk,
+	)
 }
 
 // validateExecutionOnBlock checks the validity of a the execution payload
