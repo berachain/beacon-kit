@@ -178,7 +178,8 @@ func (h *Handler) ProcessProposalHandler(
 	blobPos := h.cfg.BlobBlockPosition
 	blobs := req.Txs[blobPos]
 
-	if err = builder.ProcessBlobsHandler(ctx, h.blobstore, req.Height, blobs); err != nil {
+	if err = builder.ProcessBlobsHandler(ctx, h.blobstore,
+		req.Height, blobs); err != nil {
 		return nil, err
 	}
 
