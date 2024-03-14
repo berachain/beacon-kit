@@ -1,9 +1,6 @@
 package builder
 
 import (
-	"bytes"
-	"sync"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
@@ -13,13 +10,6 @@ import (
 	"github.com/berachain/beacon-kit/db/file"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
-
-// Create a pool of bytes.Buffers.
-var bufPool = &sync.Pool{
-	New: func() interface{} {
-		return new(bytes.Buffer)
-	},
-}
 
 // Store the blobs in the blobstore.
 func PrepareBlobsHandler(ctx sdk.Context, storage db.DB,
