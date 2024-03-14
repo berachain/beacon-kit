@@ -82,10 +82,10 @@ type BeaconApp struct {
 	interfaceRegistry codectypes.InterfaceRegistry
 
 	// keepers
-	AccountKeeper         authkeeper.AccountKeeper
-	BankKeeper            bankkeeper.Keeper
-	StakingKeeper         *stakingkeeper.Keeper
-	WrappedStakingKeeper  *stakingwrapper.Keeper
+	AccountKeeper authkeeper.AccountKeeper
+	BankKeeper    bankkeeper.Keeper
+	StakingKeeper *stakingkeeper.Keeper
+
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
@@ -93,8 +93,9 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit required keepers
-	BeaconKeeper     *beaconkeeper.Keeper
-	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
+	BeaconKeeper        *beaconkeeper.Keeper
+	BeaconStakingKeeper *stakingwrapper.Keeper
+	BeaconKitRuntime    *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -140,8 +141,8 @@ func NewBeaconKitApp(
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
+		&app.BeaconStakingKeeper,
 		&app.BeaconKitRuntime,
-		&app.WrappedStakingKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -158,7 +159,7 @@ func NewBeaconKitApp(
 			PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 		nil,
-		app.WrappedStakingKeeper,
+		app.BeaconStakingKeeper,
 	)
 
 	// Set all the newly built ABCI Componenets on the App.
