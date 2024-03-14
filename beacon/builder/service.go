@@ -50,7 +50,6 @@ type PayloadBuilder interface {
 
 type RandaoProcessor interface {
 	BuildReveal(
-		ctx context.Context,
 		epoch primitives.Epoch,
 	) (types.Reveal, error)
 }
@@ -87,8 +86,7 @@ func (s *Service) RequestBestBlock(
 	// and safe block hashes to the execution client.
 
 	reveal, err := s.randaoProcessor.BuildReveal(
-		ctx, s.BeaconCfg().SlotToEpoch(slot),
-	)
+		s.BeaconCfg().SlotToEpoch(slot))
 	if err != nil {
 		return nil, fmt.Errorf("failed to build reveal: %w", err)
 	}

@@ -29,6 +29,7 @@ import (
 	"context"
 
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/execution"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
@@ -76,11 +77,10 @@ type LocalBuilder interface {
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor interface {
 	BuildReveal(
-		st context.Context,
 		epoch primitives.Epoch,
 	) (randaotypes.Reveal, error)
 	MixinNewReveal(
-		ctx context.Context,
+		st state.BeaconState,
 		blk beacontypes.BeaconBlock,
 	) error
 	VerifyReveal(
@@ -97,6 +97,7 @@ type StakingService interface {
 		logs []ethtypes.Log,
 	) error
 }
+
 type SyncService interface {
 	IsInitSync() bool
 	Status() error

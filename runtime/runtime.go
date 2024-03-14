@@ -156,7 +156,6 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(
-		randao.WithBeaconStateProvider(bsb),
 		randao.WithSigner(signer),
 		randao.WithLogger(logger.With("service", "randao")),
 	)
