@@ -64,7 +64,6 @@ func (c Chain) Parse(parser parser.AppOptionsParser) (*Chain, error) {
 
 // Template returns the configuration template.
 func (c Chain) Template() string {
-	
 	return `
 [beacon-kit.beacon-config.chain]
 # ChainID is the unique identifier for the beacon chain.
