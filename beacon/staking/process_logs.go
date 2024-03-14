@@ -78,7 +78,12 @@ func (s *Service) processDepositLog(
 		return err
 	}
 
+	s.Logger().Info(
+		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
+	)
+
 	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
+		Index:       d.Index,
 		Pubkey:      d.Pubkey,
 		Credentials: d.Credentials,
 		Amount:      d.Amount,
@@ -112,6 +117,10 @@ func (s *Service) processWithdrawalLog(
 	if !bytes.Equal(w.Credentials[:1], EthSecp256k1CredentialPrefix) {
 		return errors.New("invalid withdrawal credentials")
 	}
+
+	s.Logger().Info(
+		"she said, \"see you later, boi\" 💅", "deposit", w.Index, "amount", w.Amount,
+	)
 
 	return s.BeaconState(ctx).EnqueueWithdrawals([]*enginetypes.Withdrawal{{
 		Index:     w.Index,

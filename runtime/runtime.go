@@ -120,6 +120,7 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithGCD(gcd),
 	)
 
+	// Extrac the staking ABI.
 	depositABI, err := stakingabi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
