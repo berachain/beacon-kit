@@ -31,7 +31,6 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 )
 
@@ -40,7 +39,6 @@ import (
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
 ) error {
 	// If the block is nil, We have to abort.
@@ -74,14 +72,9 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
-	if err = s.validateStateTransition(ctx, blk, proposerPubkey); err != nil {
+	if err = s.validateStateTransition(ctx, blk); err != nil {
 		s.Logger().
 			Error("failed to validate state transition", "error", err)
-		return err
-	}
-
-	// TODO: This is very much the wrong spot for this.
-	if err = s.rp.MixinNewReveal(s.BeaconState(ctx), blk); err != nil {
 		return err
 	}
 
@@ -108,23 +101,12 @@ func (s *Service) ProcessBeaconBlock(
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
-	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
 	// Create a new state processor.
 	sp := core.NewStateProcessor(
 		s.BeaconCfg(),
 		s.rp,
 	)
-
-	// Verify the RANDAO Reveal.
-	// TODO: move into state processor.
-	if err := s.rp.VerifyReveal(
-		proposerPubKey,
-		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
-		blk.GetRandaoReveal(),
-	); err != nil {
-		return err
-	}
 
 	// ---------------------///
 	//   VALIDATE KZG HERE  ///
