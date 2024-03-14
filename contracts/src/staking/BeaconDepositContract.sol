@@ -41,26 +41,26 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @dev The minimum amount of stake that can be deposited to prevent dust.
     /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
-    uint64 private immutable MIN_DEPOSIT_AMOUNT_IN_GWEI = 32e9;
+    uint64 private constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 32e9;
 
     /// @dev The minimum amount of stake that can be redirected to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
-    uint256 private immutable MIN_REDIRECT_AMOUNT_IN_GWEI =
+    uint256 private constant MIN_REDIRECT_AMOUNT_IN_GWEI =
         MIN_DEPOSIT_AMOUNT_IN_GWEI / 10;
 
     /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
-    uint256 private immutable MIN_WITHDRAWAL_AMOUNT_IN_GWEI =
+    uint256 private constant MIN_WITHDRAWAL_AMOUNT_IN_GWEI =
         MIN_DEPOSIT_AMOUNT_IN_GWEI / 10;
 
     /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
-    uint8 private immutable PUBLIC_KEY_LENGTH = 48;
+    uint8 private constant PUBLIC_KEY_LENGTH = 48;
 
     /// @dev The length of the signature, SIGNATURE_LENGTH bytes.
-    uint8 private immutable SIGNATURE_LENGTH = 96;
+    uint8 private constant SIGNATURE_LENGTH = 96;
 
     /// @dev The length of the credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-    uint8 private immutable CREDENTIALS_LENGTH = 32;
+    uint8 private constant CREDENTIALS_LENGTH = 32;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           STORAGE                          */
