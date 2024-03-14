@@ -49,25 +49,23 @@ type Keeper struct {
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
+	vcp runtime.ValsetChangeProvider,
 ) *Keeper {
 	return &Keeper{
 		beaconStore:     beaconstore.NewStore(env.KVStoreService),
 		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
+		vcp:             vcp,
 	}
-}
-
-// SetValsetChangeProvider sets the valset change provider.
-func (k *Keeper) SetValsetChangeProvider(vcp runtime.ValsetChangeProvider) {
-	k.vcp = vcp
 }
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
-func (k *Keeper) BeaconState(ctx context.Context) state.BeaconState {
+func (k *Keeper) BeaconState(
+	ctx context.Context,
+) state.BeaconState {
 	return k.beaconStore.WithContext(ctx)
 }
 
-// BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
 //
 // TODO: Decouple from the Specific SingleSlotFinalityStore Impl.

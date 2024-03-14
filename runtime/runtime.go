@@ -81,14 +81,20 @@ func NewBeaconKitRuntime(
 //
 //nolint:funlen // This function is long because it sets up the services.
 func NewDefaultBeaconKitRuntime(
-	cfg *config.Config,
+	appOpts AppOptions,
+	signer crypto.Signer[[bls12381.SignatureLength]byte],
+	logger log.Logger,
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
-	logger log.Logger,
-	signer crypto.Signer[[bls12381.SignatureLength]byte],
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
+
+	// Read the configuration from the application options.
+	cfg, err := config.ReadConfigFromAppOpts(appOpts)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
@@ -190,6 +196,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(syncService),
 	)
 
+	// Build the health service.
 	healthService := service.New[health.Service](
 		health.WithBaseService(baseService.ShallowCopy("health")),
 		health.WithServiceRegistry(svcRegistry),
