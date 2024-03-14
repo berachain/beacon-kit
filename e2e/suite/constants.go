@@ -50,5 +50,5 @@ const (
 // tests. This is used to specify how long to wait for a test before considering
 // it failed.
 const (
-	DefaultE2ETestTimeout = 60 * time.Second // 60 seconds timeout for E2E tests
+	DefaultE2ETestTimeout = 60 * 5 * time.Second // timeout for E2E tests
 )

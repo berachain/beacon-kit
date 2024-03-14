@@ -31,12 +31,14 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
+// AppOptions is an interface that provides the ability to
+// retrieve options from the application.
+type AppOptions interface {
+	Get(string) interface{}
 }
 
 // BeaconStorageBackend is an interface that provides the
@@ -55,4 +57,14 @@ type ValsetChangeProvider interface {
 		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
 	) error
+
+	GetValidatorPubkeyFromConsAddress(
+		ctx context.Context,
+		consAddr []byte,
+	) ([bls12381.PubKeyLength]byte, error)
+
+	GetValidatorPubkeyFromValAddress(
+		ctx context.Context,
+		valAddr []byte,
+	) ([bls12381.PubKeyLength]byte, error)
 }

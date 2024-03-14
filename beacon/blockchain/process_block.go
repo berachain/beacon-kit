@@ -29,8 +29,6 @@ import (
 	"context"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/sync"
-	"github.com/cockroachdb/errors"
 )
 
 // postBlockProcess(.
@@ -51,18 +49,15 @@ func (s *Service) postBlockProcess(
 	}
 	payloadBlockHash := payload.GetBlockHash()
 
-	// If the consensus client is still syncing we are going to skip forkchoice
-	// updates. This means that if the consensus client is still syncing, we
-	// will not be able to build a block locally.
-	//
-	// NOTE: Status() will return nil during the initial syncing phase.
-	if errors.Is(s.ss.Status(), sync.ErrConsensusClientIsSyncing) {
-		return nil
-	}
-
 	// If the builder is enabled attempt to build a block locally.
 	// If we are in the sync state, we skip building blocks optimistically.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
+		// We have to do this in order to update it before FCU.
+		// TODO: In general we need to improve the control flow for
+		// Preblocker vs ProcessProposal.
+		if err := s.rp.MixinNewReveal(ctx, blk); err != nil {
+			return err
+		}
 		err := s.sendFCUWithAttributes(
 			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
 		)
@@ -72,6 +67,7 @@ func (s *Service) postBlockProcess(
 		s.Logger().
 			Error("failed to send forkchoice update in postBlockProcess", "error", err)
 	}
+
 	// Otherwise we send a forkchoice update to the execution client.
 	return s.sendFCU(ctx, payloadBlockHash)
 }

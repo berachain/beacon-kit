@@ -39,8 +39,9 @@ type ExecutionPayloadBody interface {
 	ssz.HashRoot
 	IsNil() bool
 	String() string
-	Version() int
+	Version() uint32
 	IsBlinded() bool
+	GetPrevRandao() [32]byte
 	GetBlockHash() primitives.ExecutionHash
 	GetParentHash() primitives.ExecutionHash
 }
@@ -54,6 +55,6 @@ type ExecutionPayload interface {
 
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
-	Version() int
+	Version() uint32
 	Validate() error
 }

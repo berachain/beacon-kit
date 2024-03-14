@@ -30,6 +30,8 @@ import (
 	_ "embed"
 	"io"
 
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -41,12 +43,10 @@ import (
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	beaconkitconfig "github.com/berachain/beacon-kit/config"
-	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
 	"github.com/berachain/beacon-kit/db/file"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking"
+	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -81,7 +81,7 @@ type BeaconApp struct {
 	txConfig          client.TxConfig
 	interfaceRegistry codectypes.InterfaceRegistry
 
-	// keepers
+	// cosmos sdk standard keepers
 	AccountKeeper         authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
@@ -91,9 +91,10 @@ type BeaconApp struct {
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
-	// beacon-kit required keepers
-	BeaconKeeper     *beaconkeeper.Keeper
-	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
+	// beacon-kit custom keepers
+	BeaconKeeper        *beaconkeeper.Keeper
+	BeaconStakingKeeper *stakingwrapper.Keeper
+	BeaconKitRuntime    *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -108,13 +109,13 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
-	clientCtx := client.Context{}
+
 	if err := depinject.Inject(
 		depinject.Configs(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
-				cmdconfig.ProvideClientContext,
+				bls12381.ProvideBlsSigner,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -122,13 +123,9 @@ func NewBeaconKitApp(
 				// supply the logger
 				logger,
 				// supply beaconkit options
-				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
-				// supply our custom staking wrapper.
-				stakingwrapper.NewKeeper(app.StakingKeeper),
 			),
 		),
 		&appBuilder,
-		&clientCtx,
 		&app.appCodec,
 		&app.legacyAmino,
 		&app.txConfig,
@@ -142,21 +139,25 @@ func NewBeaconKitApp(
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
+		&app.BeaconStakingKeeper,
 		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
 	}
-
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Componenets.
+	defaultProposalHandler := baseapp.NewDefaultProposalHandler(
+		app.Mempool(),
+		app,
+	)
 	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
-		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
+		defaultProposalHandler.
 			PrepareProposalHandler(),
-		baseapp.NewDefaultProposalHandler(app.Mempool(), app).
-			ProcessProposalHandler(),
+		defaultProposalHandler.ProcessProposalHandler(),
 		nil,
+		app.BeaconStakingKeeper,
 		file.NewDB(),
 	)
 

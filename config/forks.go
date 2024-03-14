@@ -39,6 +39,7 @@ var _ BeaconKitConfig[Forks] = &Forks{}
 // DefaultForksConfig returns the default forks configuration.
 func DefaultForksConfig() Forks {
 	return Forks{
+		SlotsPerEpoch: primitives.Slot(1),
 		ElectraForkEpoch: primitives.Epoch(
 			defaultElectraForkEpoch,
 		),
@@ -47,6 +48,7 @@ func DefaultForksConfig() Forks {
 
 // Config represents the configuration struct for the forks.
 type Forks struct {
+	SlotsPerEpoch primitives.Slot
 	// ElectraForkEpoch is used to represent the assigned fork epoch for
 	// electra.
 	ElectraForkEpoch primitives.Epoch
@@ -55,6 +57,12 @@ type Forks struct {
 // Parse parses the configuration.
 func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 	var err error
+	if c.SlotsPerEpoch, err = parser.GetUint64(
+		flags.SlotsPerEpoch,
+	); err != nil {
+		return nil, err
+	}
+
 	if c.ElectraForkEpoch, err = parser.GetEpoch(
 		flags.ElectraForkEpoch,
 	); err != nil {
@@ -68,6 +76,8 @@ func (c Forks) Parse(parser parser.AppOptionsParser) (*Forks, error) {
 func (c Forks) Template() string {
 	return `
 [beacon-kit.beacon-config.forks]
+# slots per epoch
+slots-per-epoch = {{.BeaconKit.Beacon.Forks.SlotsPerEpoch}}
 # Electra fork epoch
 electra-fork-epoch = {{.BeaconKit.Beacon.Forks.ElectraForkEpoch}}
 `

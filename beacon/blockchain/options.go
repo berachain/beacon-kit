@@ -55,11 +55,10 @@ func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
 	}
 }
 
-// WithStakingService is a function that returns an Option.
-// It sets the StakingService of the Service to the provided Service.
-func WithStakingService(sks StakingService) service.Option[Service] {
+// WithRandaoProcessor sets the randao processor.
+func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
 	return func(s *Service) error {
-		s.sks = sks
+		s.rp = rp
 		return nil
 	}
 }

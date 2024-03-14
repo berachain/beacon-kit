@@ -26,6 +26,7 @@
 package staking
 
 import (
+	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -35,6 +36,17 @@ func WithBaseService(
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.BaseService = base
+		return nil
+	}
+}
+
+// WithDepositABI returns an Option that sets the deposit
+// contract's ABI for the Service.
+func WithDepositABI(
+	abi *abi.WrappedABI,
+) service.Option[Service] {
+	return func(s *Service) error {
+		s.abi = abi
 		return nil
 	}
 }

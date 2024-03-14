@@ -30,6 +30,7 @@ import (
 	"fmt"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/berachain/beacon-kit/primitives"
 	"golang.org/x/sync/errgroup"
@@ -40,6 +41,7 @@ import (
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
+	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
@@ -71,7 +73,7 @@ func (s *Service) ReceiveBeaconBlock(
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, blk)
+		err := s.validateStateTransition(groupCtx, blk, proposerPubkey)
 		if err != nil {
 			s.Logger().
 				Error("failed to validate state transition", "error", err)
@@ -123,11 +125,15 @@ func (s *Service) ReceiveBeaconBlock(
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
+	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
-	if blk.IsNil() {
-		return beacontypes.ErrNilBlk
+	// Ensure Body is non nil.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
 	}
 
+	// Ensure the parent block root matches what we have locally.
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
@@ -137,9 +143,46 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
-	// TODO: Probably add RANDAO and Staking stuff here?
+	// Verify the RANDAO Reveal.
+	if err := s.rp.VerifyReveal(
+		proposerPubKey,
+		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
+		blk.GetRandaoReveal(),
+	); err != nil {
+		return err
+	}
 
-	// TODO: how do we handle hard fork boundaries?
+	// ---------------------///
+	//   VALIDATE KZG HERE  ///
+	// ---------------------///
+
+	// Ensure the block deposits are within the limits.
+	deposits := body.GetDeposits()
+	if uint64(len(deposits)) > s.BeaconCfg().Limits.MaxDepositsPerBlock {
+		return fmt.Errorf(
+			"too many deposits, expected: %d, got: %d",
+			s.BeaconCfg().Limits.MaxDepositsPerBlock, len(deposits),
+		)
+	}
+
+	// Ensure the deposits match the local state.
+	localDeposits, err := s.BeaconState(ctx).
+		ExpectedDeposits(uint64(len(deposits)))
+	if err != nil {
+		return err
+	}
+
+	// Ensure the deposits match the local state.
+	for i, dep := range deposits {
+		if dep == nil {
+			return beacontypes.ErrNilDeposit
+		}
+		if dep.Index != localDeposits[i].Index {
+			return fmt.Errorf(
+				"deposit index does not match, expected: %d, got: %d",
+				localDeposits[i].Index, dep.Index)
+		}
+	}
 
 	return nil
 }
@@ -151,10 +194,6 @@ func (s *Service) validateExecutionOnBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	if blk.IsNil() {
-		return false, beacontypes.ErrNilBlk
-	}
-
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	if payload.IsNil() {
@@ -172,6 +211,28 @@ func (s *Service) validateExecutionOnBlock(
 			safeHash,
 		)
 	}
+
+	expectedMix, err := s.BeaconState(ctx).RandaoMix()
+	if err != nil {
+		return false, err
+	}
+
+	// Ensure the prev randao matches the local state.
+	if payload.GetPrevRandao() != expectedMix {
+		return false, fmt.Errorf(
+			"prev randao does not match, expected: %x, got: %x",
+			expectedMix, payload.GetPrevRandao(),
+		)
+	}
+
+	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
+	// 	return fmt.Errorf("slot or genesis time in state is corrupt, cannot
+	// compute time: %v", err)
+	// } else if payload.Timestamp != expectedTime {
+	// 	return fmt.Errorf("state at slot %d, genesis time %d, expected execution
+	// payload time %d, but got %d",
+	// 		slot, genesisTime, expectedTime, payload.Timestamp)
+	// }
 
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(

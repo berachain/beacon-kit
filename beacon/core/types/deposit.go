@@ -25,18 +25,14 @@
 
 package types
 
-import "strconv"
-
-// TODO: move deposit off of protobuf once the staking prs are merged.
+import (
+	"strconv"
+)
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
-//
-
 type Deposit struct {
-	// Public key of the validator, which is compatible to the implementations
-	// of the PubKey interface in Cosmos SDK. 32-byte ed25519 public key is
-	// preferred.
+	// Public key of the validator specified in the deposit.
 	Pubkey []byte `json:"pubkey"      ssz-max:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
@@ -45,8 +41,8 @@ type Deposit struct {
 	Amount uint64 `json:"amount"`
 	// Signature of the deposit data.
 	Signature []byte `json:"signature"   ssz-max:"96"`
-	// Index of the deposit.
-	Index uint64 `json:"index"                    ssz-size:"8"`
+	// Index of the deposit in the deposit contract.
+	Index uint64 `json:"index"`
 }
 
 // String returns a string representation of the Deposit.

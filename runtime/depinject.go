@@ -26,28 +26,23 @@
 package runtime
 
 import (
+	"os"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/crypto"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
-
-//nolint:gochecknoinits // GRRRR fix later.
-func init() {
-	if err := depinject.Inject(
-		depinject.Provide(ProvideRuntime),
-	); err != nil {
-		panic(err)
-	}
-}
 
 // DepInjectInput is the input for the dep inject framework.
 type DepInjectInput struct {
 	depinject.In
 
-	Config *config.Config
-	Bsp    BeaconStorageBackend
-	Vcp    ValsetChangeProvider
-	Logger log.Logger
+	AppOpts AppOptions
+	Logger  log.Logger
+	Signer  crypto.Signer[[bls12381.SignatureLength]byte]
+	Bsp     BeaconStorageBackend
+	Vcp     ValsetChangeProvider
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -57,16 +52,19 @@ type DepInjectOutput struct {
 	Runtime *BeaconKitRuntime
 }
 
-// ProvideModule is a function that provides the module to the application.
+// ProvideRuntime is a function that provides the module to the application.
 func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 	r, err := NewDefaultBeaconKitRuntime(
-		in.Config,
+		in.AppOpts,
+		in.Signer,
+		in.Logger,
 		in.Bsp,
 		in.Vcp,
-		in.Logger,
 	)
 	if err != nil {
-		panic(err)
+		in.Logger.Error(
+			"failed to create beacon-kit runtime, exiting...", "error", err)
+		os.Exit(1)
 	}
 
 	return DepInjectOutput{
