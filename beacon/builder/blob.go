@@ -12,14 +12,14 @@ import (
 )
 
 // Store the blobs in the blobstore.
-func PrepareBlobsHandler(ctx sdk.Context, storage db.DB,
+func PrepareBlobsHandler(_ sdk.Context, storage db.DB,
 	height int64, blk beacontypes.BeaconBlock,
 	blobs *enginetypes.BlobsBundleV1) ([]byte, error) {
 
 	ranger := file.NewRangeDB(storage)
 	var blobTx = make([]*types.BlobTxSidecar, 0, len(blobs.Blobs))
 	for i, sidecar := range blobs.Blobs {
-		//Create Inclusion Proof
+		// Create Inclusion Proof
 		ic, err := kzg.MerkleProofKZGCommitment(blk, i)
 		if err != nil {
 			return nil, err
@@ -31,7 +31,8 @@ func PrepareBlobsHandler(ctx sdk.Context, storage db.DB,
 			InclusionProof: ic,
 		}
 
-		if err := ranger.Set(uint64(height), blobs.Commitments[i], sidecar); err != nil {
+		if err := ranger.Set(uint64(height),
+			blobs.Commitments[i], sidecar); err != nil {
 			return nil, err
 		}
 
@@ -44,7 +45,7 @@ func PrepareBlobsHandler(ctx sdk.Context, storage db.DB,
 }
 
 // Store the blobs in the blobstore.
-func ProcessBlobsHandler(ctx sdk.Context, storage db.DB,
+func ProcessBlobsHandler(_ sdk.Context, storage db.DB,
 	height int64, blobTx []byte) error {
 
 	bl := types.BlobSidecars{}

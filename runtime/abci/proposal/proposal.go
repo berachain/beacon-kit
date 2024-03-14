@@ -125,7 +125,7 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, err
 	}
 
-	// Blob position is always the second in an array up until the end
+	// Blob position is always the second in an array
 	resp.Txs = append([][]byte{blobBz}, resp.Txs...)
 	return resp, nil
 }
