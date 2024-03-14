@@ -120,7 +120,7 @@ func (sp *StateProcessor) processDeposits(
 		)
 	}
 
-	// Ensure the deposits match the local state.
+	// Dequeue and verify the logs.
 	localDeposits, err := sp.st.ExpectedDeposits(uint64(len(deposits)))
 	if err != nil {
 		return err
@@ -140,6 +140,8 @@ func (sp *StateProcessor) processDeposits(
 	return nil
 }
 
+// processWithdrawals processes the withdrawals and ensures they match the
+// local state.
 func (sp *StateProcessor) processWithdrawals(
 	withdrawals []*enginetypes.Withdrawal,
 ) error {
@@ -150,8 +152,8 @@ func (sp *StateProcessor) processWithdrawals(
 		)
 	}
 
-	// Ensure the deposits match the local state.
-	localWithdrawals, err := sp.st.ExpectedWithdrawals(uint64(len(withdrawals)))
+	// Dequeue and verify the withdrawals.
+	localWithdrawals, err := sp.st.DequeueWithdrawals(uint64(len(withdrawals)))
 	if err != nil {
 		return err
 	}

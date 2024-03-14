@@ -118,4 +118,5 @@ type ReadOnlyWithdrawals interface {
 // WriteOnlyWithdrawals only has write access to withdrawal methods.
 type WriteOnlyWithdrawals interface {
 	EnqueueWithdrawals([]*enginetypes.Withdrawal) error
+	DequeueWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
 }

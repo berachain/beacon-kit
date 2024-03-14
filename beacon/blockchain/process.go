@@ -58,10 +58,9 @@ func (s *Service) ProcessBeaconBlock(
 		return beacontypes.ErrNilBlk
 	}
 
-	forkChoicer := s.ForkchoiceStore(ctx)
-
 	// If we have already seen this block, we can skip processing it.
 	// TODO: should we store some historical data here?
+	forkChoicer := s.ForkchoiceStore(ctx)
 	if forkChoicer.HeadBeaconBlock() == blockHash {
 		s.Logger().Info(
 			"ignoring already processed beacon block",
@@ -70,7 +69,7 @@ func (s *Service) ProcessBeaconBlock(
 		)
 		return nil
 	}
-	s.ForkchoiceStore(ctx).UpdateHeadBeaconBlock(blockHash)
+	forkChoicer.UpdateHeadBeaconBlock(blockHash)
 
 	// TODO:
 	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
@@ -151,7 +150,7 @@ func (s *Service) validateStateTransition(
 
 	// Verify the RANDAO Reveal.
 	// TODO: move into state processor.
-	if err := s.rp.ProcessRandaoReveal(
+	if err := s.rp.VerifyReveal(
 		proposerPubKey,
 		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
 		blk.GetRandaoReveal(),
