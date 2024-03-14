@@ -34,8 +34,10 @@ type Epoch = uint64
 
 type SSZEpoch Epoch
 
-// HashTreeRoot return the epoch, represented as bytes in little endian,
-// padded on the right side with zeroed bytes to a total of 32 bytes.
+// HashTreeRoot return the merklized epoch,
+// represented as bytes in little endian,
+// padded on the right side with zeroed bytes
+// to a total of 32 bytes.
 func (e SSZEpoch) HashTreeRoot() (HashRoot, error) {
 	bz := make([]byte, HashRootLength)
 	binary.LittleEndian.PutUint64(bz, uint64(e))
