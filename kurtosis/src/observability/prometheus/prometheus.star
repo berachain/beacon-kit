@@ -3,10 +3,14 @@ prometheus = import_module("github.com/kurtosis-tech/prometheus-package/main.sta
 def start(plan, services):
     metrics_jobs = []
     for service in services:
+        labels = {} # use no labels if none provided
+        if "labels" in service:
+            labels = service["labels"]
+
         metrics_job = {
             "Name": "{0}".format(service['name']),
             "Endpoint": "{0}:{1}".format(service["service"].ip_address, service["service"].ports["metrics"].number),
-            "Labels": service["labels"],
+            "Labels": labels,
             "MetricsPath": service["metrics_path"],
             "ScrapeInterval": "1s",
         }

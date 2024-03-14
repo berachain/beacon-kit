@@ -47,6 +47,7 @@ def run(
     node_peering_info = beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
     el_enode_addrs = []
+    metrics_enabled_services = metrics_enabled_services[:] # copy to allow modifying the list
 
     # 4. Start network validators
     for n, validator in enumerate(validators):
