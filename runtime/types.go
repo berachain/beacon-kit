@@ -35,9 +35,10 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
+// AppOptions is an interface that provides the ability to
+// retrieve options from the application.
+type AppOptions interface {
+	Get(string) interface{}
 }
 
 // BeaconStorageBackend is an interface that provides the

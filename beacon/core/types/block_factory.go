@@ -38,7 +38,7 @@ func NewBeaconBlock(
 	slot primitives.Slot,
 	executionData enginetypes.ExecutionPayload,
 	parentBlockRoot [32]byte,
-	forkVersion int,
+	forkVersion uint32,
 	reveal types.Reveal,
 ) (BeaconBlock, error) {
 	var block BeaconBlock
@@ -69,7 +69,7 @@ func NewBeaconBlock(
 func EmptyBeaconBlock(
 	slot primitives.Slot,
 	parentBlockRoot [32]byte,
-	version int,
+	version uint32,
 	reveal types.Reveal,
 ) (BeaconBlock, error) {
 	return NewBeaconBlock(slot, nil, parentBlockRoot, version, reveal)
@@ -79,7 +79,7 @@ func EmptyBeaconBlock(
 // from the given SSZ bytes and fork version.
 func BeaconBlockFromSSZ(
 	bz []byte,
-	forkVersion int,
+	forkVersion uint32,
 ) (BeaconBlock, error) {
 	var block BeaconBlock
 	switch forkVersion {

@@ -141,7 +141,7 @@ func (s *BaseService) SetStatus(err error) {
 }
 
 // ActiveForkVersionForSlot returns the active fork version for the given slot.
-func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) int {
+func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) uint32 {
 	return s.BeaconCfg().ActiveForkVersion(slot)
 }
 

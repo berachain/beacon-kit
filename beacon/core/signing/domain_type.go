@@ -27,7 +27,7 @@ package signing
 
 // DomainType is a 4-byte array used to represent a
 // domain type in BLS signing and verification.
-type DomainType [4]byte
+type DomainType [DomainTypeLength]byte
 
 // Domain constants for BLS domain types.
 // Spec:
