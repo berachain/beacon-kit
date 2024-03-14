@@ -36,16 +36,12 @@ import { IStakeERC20 } from "./IStakeERC20.sol";
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
 contract ERC20BeaconDepositContract is BeaconDepositContract {
-    // Replace with example
-    address ERC20_DEPOSIT_ASSET = address(0x123);
+    /// @notice The ERC20 token contract that is used for staking.
+    /// TODO: Change this to the actual ERC20 token contract.
+    address public ERC20_DEPOSIT_ASSET;
 
-    /// @dev The address of the native asset as of EIP-7528.
-    function _assetDepositFunc(uint64 amount)
-        internal
-        virtual
-        override
-        returns (uint64)
-    {
+    /// @dev Validates the deposit amount and burns the staking asset from the sender.
+    function _deposit(uint64 amount) internal override returns (uint64) {
         // burn the staking asset from the sender, converting the gwei to wei.
         IStakeERC20(ERC20_DEPOSIT_ASSET).burn(msg.sender, uint256(amount) * 1e9);
         return amount;

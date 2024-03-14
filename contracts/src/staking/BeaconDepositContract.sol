@@ -68,22 +68,13 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @dev depositCount represents the number of deposits that
     /// have been made to the contract.
-    uint64 depositCount;
+    uint64 public depositCount;
     /// @dev withdrawalCount represents the number of withdrawals that
     /// have been requested.
-    uint64 withdrawalCount;
+    uint64 public withdrawalCount;
     /// @dev redirectCount represents the number of redirects that
     /// have been requested.
-    uint64 redirectCount;
-
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                            CONFIG                          */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @dev The address of the native asset as of EIP-7528.
-    function _assetDepositFunc(uint64) internal virtual returns (uint64) {
-        return _depositNative();
-    }
+    uint64 public redirectCount;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
@@ -111,18 +102,16 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InvalidSignatureLength();
         }
 
-        if (amount < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
+        uint64 amountInGwei = _deposit(amount);
+
+        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
             revert InsufficientDeposit();
         }
 
         unchecked {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
             emit Deposit(
-                pubkey,
-                credentials,
-                _assetDepositFunc(amount),
-                signature,
-                depositCount++
+                pubkey, credentials, amountInGwei, signature, depositCount++
             );
         }
     }
@@ -206,10 +195,8 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
     }
 
-    /**
-     * @notice Validates the deposit amount and sends the native asset to the zero address.
-     */
-    function _depositNative() private returns (uint64) {
+    /// @dev Validates the deposit amount and sends the native asset to the zero address.
+    function _deposit(uint64) internal virtual returns (uint64) {
         if (msg.value % 1 gwei != 0) {
             revert DepositNotMultipleOfGwei();
         }

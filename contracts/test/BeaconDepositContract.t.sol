@@ -7,6 +7,8 @@ import { IBeaconDepositContract } from
     "../src/staking/IBeaconDepositContract.sol";
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { BeaconDepositContract } from "@src/staking/BeaconDepositContract.sol";
+import { ERC20BeaconDepositContract } from
+    "@src/staking/extensions/ERC20BeaconDepositContract.sol";
 
 // Mock ERC20 token that we will use as the stake token.
 contract ERC20Test is ERC20 {
@@ -41,11 +43,13 @@ contract DepositContractTest is SoladyTest {
     bytes internal STAKING_CREDENTIALS = _credential(depositor);
 
     /// @dev the deposit contract address.
-    address internal DEPOSIT_CONTRACT_ADDRESS =
+    address internal constant DEPOSIT_CONTRACT_ADDRESS =
         0x00000000219ab540356cBB839Cbe05303d7705Fa;
 
+    bytes32 internal constant STAKING_ASSET_SLOT = bytes32(uint256(1));
+
     /// @dev the deposit contract.
-    BeaconDepositContract internal depositContract;
+    address internal depositContract;
 
     /// @dev the snapshot we will revert to after each test.
     uint256 internal snapshot;
@@ -57,21 +61,16 @@ contract DepositContractTest is SoladyTest {
     ERC20Test internal stakeToken;
 
     function setUp() public virtual {
-        DEPOSIT_CONTRACT_ADDRESS = address(new BeaconDepositContract());
-        depositContract = BeaconDepositContract(DEPOSIT_CONTRACT_ADDRESS);
+        depositContract = address(new ERC20BeaconDepositContract());
         // Deploy the STAKE token.
         stakeToken = new ERC20Test();
         // Set the STAKE_ASSET to the STAKE token.
-        bytes32 stakeAssetSlot = bytes32(uint256(0));
         bytes32 stakeAssetValue = bytes32(uint256(uint160(address(stakeToken))));
-        vm.store(DEPOSIT_CONTRACT_ADDRESS, stakeAssetSlot, stakeAssetValue);
+        vm.store(depositContract, STAKING_ASSET_SLOT, stakeAssetValue);
         snapshot = vm.snapshot();
 
         // Set the STAKE_ASSET to the NATIVE token.
-        address NATIVE_ASSET = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-        bytes32 nativeAssetSlot = bytes32(uint256(0));
-        bytes32 nativeAssetValue = bytes32(uint256(uint160(NATIVE_ASSET)));
-        vm.store(DEPOSIT_CONTRACT_ADDRESS, nativeAssetSlot, nativeAssetValue);
+        depositContract = address(new BeaconDepositContract());
         nativeSnapshot = vm.snapshot();
     }
 
@@ -79,7 +78,7 @@ contract DepositContractTest is SoladyTest {
         vm.revertTo(snapshot);
         vm.assume(pubKey.length != 96);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.deposit(
+        ERC20BeaconDepositContract(depositContract).deposit(
             bytes("wrong_public_key"),
             STAKING_CREDENTIALS,
             32e9,
@@ -90,7 +89,7 @@ contract DepositContractTest is SoladyTest {
     function test_DepositWrongPubKey() public {
         vm.revertTo(snapshot);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.deposit(
+        ERC20BeaconDepositContract(depositContract).deposit(
             bytes("wrong_public_key"),
             STAKING_CREDENTIALS,
             32e9,
@@ -107,7 +106,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
-        depositContract.deposit(
+        ERC20BeaconDepositContract(depositContract).deposit(
             _create48Byte(), credentials, 32e9, _create96Byte()
         );
     }
@@ -117,7 +116,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
-        depositContract.deposit(
+        ERC20BeaconDepositContract(depositContract).deposit(
             VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9, _create96Byte()
         );
     }
@@ -129,7 +128,7 @@ contract DepositContractTest is SoladyTest {
 
         vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit(
+        ERC20BeaconDepositContract(depositContract).deposit(
             VALIDATOR_PUBKEY,
             STAKING_CREDENTIALS,
             uint64(amount),
@@ -142,7 +141,7 @@ contract DepositContractTest is SoladyTest {
         stakeToken.mint(depositor, (32e9 - 1) * 1e9);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
         vm.prank(depositor);
-        depositContract.deposit(
+        ERC20BeaconDepositContract(depositContract).deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 - 1, _create96Byte()
         );
     }
@@ -156,7 +155,7 @@ contract DepositContractTest is SoladyTest {
         emit IBeaconDepositContract.Deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 0
         );
-        depositContract.deposit(
+        ERC20BeaconDepositContract(depositContract).deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
         );
     }
@@ -167,26 +166,34 @@ contract DepositContractTest is SoladyTest {
         vm.revertTo(snapshot);
         vm.assume(fromPubKey.length != 48);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.redirect(fromPubKey, VALIDATOR_PUBKEY, 32e9);
+        ERC20BeaconDepositContract(depositContract).redirect(
+            fromPubKey, VALIDATOR_PUBKEY, 32e9
+        );
     }
 
     function test_RedirectWrongFromPubKey() public {
         vm.revertTo(snapshot);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.redirect(bytes("wrong_pub_key"), VALIDATOR_PUBKEY, 32e9);
+        ERC20BeaconDepositContract(depositContract).redirect(
+            bytes("wrong_pub_key"), VALIDATOR_PUBKEY, 32e9
+        );
     }
 
     function testFuzz_WrongToPubKey(bytes calldata toPubKey) public {
         vm.revertTo(snapshot);
         vm.assume(toPubKey.length != 48);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.redirect(VALIDATOR_PUBKEY, toPubKey, 32e9);
+        ERC20BeaconDepositContract(depositContract).redirect(
+            VALIDATOR_PUBKEY, toPubKey, 32e9
+        );
     }
 
     function test_RedirectWrongToPubKey() public {
         vm.revertTo(snapshot);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.redirect(VALIDATOR_PUBKEY, bytes("wrong_pub_key"), 32e9);
+        ERC20BeaconDepositContract(depositContract).redirect(
+            VALIDATOR_PUBKEY, bytes("wrong_pub_key"), 32e9
+        );
     }
 
     function testFuzz_RedirectWrongAmount(uint256 amount) public {
@@ -196,7 +203,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InsufficientRedirectAmount.selector
         );
-        depositContract.redirect(
+        ERC20BeaconDepositContract(depositContract).redirect(
             VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, uint64(amount)
         );
     }
@@ -206,7 +213,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InsufficientRedirectAmount.selector
         );
-        depositContract.redirect(
+        ERC20BeaconDepositContract(depositContract).redirect(
             VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9 / 10 - 1
         );
     }
@@ -219,20 +226,24 @@ contract DepositContractTest is SoladyTest {
         emit IBeaconDepositContract.Redirect(
             VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, _credential(depositor), 32e9, 0
         );
-        depositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9);
+        ERC20BeaconDepositContract(depositContract).redirect(
+            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9
+        );
     }
 
     function testFuzz_WithdrawWrongPubKey(bytes calldata pubKey) public {
         vm.revertTo(snapshot);
         vm.assume(pubKey.length != 48);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.withdraw(pubKey, WITHDRAWAL_CREDENTIALS, 32e9);
+        ERC20BeaconDepositContract(depositContract).withdraw(
+            pubKey, WITHDRAWAL_CREDENTIALS, 32e9
+        );
     }
 
     function test_WithdrawWrongPubKey() public {
         vm.revertTo(snapshot);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        depositContract.withdraw(
+        ERC20BeaconDepositContract(depositContract).withdraw(
             bytes("wrong_pub_key"), WITHDRAWAL_CREDENTIALS, 32e9
         );
     }
@@ -247,7 +258,9 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
-        depositContract.withdraw(VALIDATOR_PUBKEY, withdrawalCredentials, 32e9);
+        ERC20BeaconDepositContract(depositContract).withdraw(
+            VALIDATOR_PUBKEY, withdrawalCredentials, 32e9
+        );
     }
 
     function test_WithdrawWrongWithdrawCredentials() public {
@@ -255,7 +268,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
-        depositContract.withdraw(
+        ERC20BeaconDepositContract(depositContract).withdraw(
             VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9
         );
     }
@@ -267,7 +280,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InsufficientWithdrawalAmount.selector
         );
-        depositContract.withdraw(
+        ERC20BeaconDepositContract(depositContract).withdraw(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, uint64(amount)
         );
     }
@@ -277,7 +290,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.InsufficientWithdrawalAmount.selector
         );
-        depositContract.withdraw(
+        ERC20BeaconDepositContract(depositContract).withdraw(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9 / 10 - 1
         );
     }
@@ -294,7 +307,9 @@ contract DepositContractTest is SoladyTest {
             32e9,
             0
         );
-        depositContract.withdraw(VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9);
+        ERC20BeaconDepositContract(depositContract).withdraw(
+            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
+        );
     }
 
     function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther)
@@ -305,7 +320,7 @@ contract DepositContractTest is SoladyTest {
         uint256 amountInGwei = amountInEther * 1 gwei;
         vm.deal(depositor, amountInGwei);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit{ value: amountInGwei }(
+        BeaconDepositContract(depositContract).deposit{ value: amountInGwei }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
     }
@@ -315,7 +330,7 @@ contract DepositContractTest is SoladyTest {
         uint256 amount = 31 gwei;
         vm.deal(depositor, amount);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit{ value: amount }(
+        BeaconDepositContract(depositContract).deposit{ value: amount }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
     }
@@ -330,7 +345,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
         );
-        depositContract.deposit{ value: amount }(
+        BeaconDepositContract(depositContract).deposit{ value: amount }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
     }
@@ -343,7 +358,7 @@ contract DepositContractTest is SoladyTest {
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
         );
         vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
+        BeaconDepositContract(depositContract).deposit{ value: amount }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
 
@@ -353,7 +368,7 @@ contract DepositContractTest is SoladyTest {
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
         );
         vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
+        BeaconDepositContract(depositContract).deposit{ value: amount }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
     }
@@ -365,7 +380,7 @@ contract DepositContractTest is SoladyTest {
         emit IBeaconDepositContract.Deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
         );
-        depositContract.deposit{ value: 32 ether }(
+        BeaconDepositContract(depositContract).deposit{ value: 32 ether }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
         );
     }
