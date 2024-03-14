@@ -32,6 +32,7 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -76,7 +77,8 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot, proposerPubkey [48]byte,
+	ctx context.Context, slot primitives.Slot,
+	proposerPubkey [bls12381.PubKeyLength]byte,
 ) (beacontypes.BeaconBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously

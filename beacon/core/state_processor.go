@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
@@ -191,7 +192,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	// Verify the RANDAO Reveal.
 	reveal := blk.GetBody().GetRandaoReveal()
 	if err = sp.rp.VerifyReveal(
-		[48]byte(pubkey),
+		[bls12381.PubKeyLength]byte(pubkey),
 		sp.cfg.SlotToEpoch(blk.GetSlot()),
 		reveal,
 	); err != nil {
