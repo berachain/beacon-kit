@@ -115,7 +115,7 @@ type ExecutableDataDeneb struct {
 }
 
 // Version returns the version of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) Version() int {
+func (d *ExecutableDataDeneb) Version() uint32 {
 	return version.Deneb
 }
 

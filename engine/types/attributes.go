@@ -34,7 +34,7 @@ import (
 //go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 type PayloadAttributes struct {
 	// version is the version of the payload attributes.
-	version int
+	version uint32
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp uint64 `json:"timestamp"             gencodec:"required"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -55,7 +55,7 @@ type PayloadAttributes struct {
 
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes(
-	forkVersion int,
+	forkVersion uint32,
 	timestamp uint64, prevRandao [32]byte,
 	suggestedFeeReceipient primitives.ExecutionAddress,
 	withdrawals []*Withdrawal,
@@ -102,6 +102,6 @@ func (p *PayloadAttributes) Validate() error {
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() int {
+func (p *PayloadAttributes) Version() uint32 {
 	return p.version
 }
