@@ -45,7 +45,7 @@ type Beacon struct {
 	// Validator is the configuration for the validator. Only utilized when
 	// this node is in the active validator set.
 	Validator Validator
-	// Chain is the general configuration for the beacon chain.
+	// Chain is the general chain-related configuration for the beacon chain.
 	Chain Chain
 }
 

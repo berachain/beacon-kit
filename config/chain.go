@@ -45,7 +45,7 @@ func DefaultChainConfig() Chain {
 }
 
 // Chain represents the configuration struct for
-// the general configuration of the beacon chain.
+// the general chain-related configuration of the beacon chain.
 type Chain struct {
 	ChainID uint64
 }
