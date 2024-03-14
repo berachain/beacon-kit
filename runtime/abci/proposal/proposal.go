@@ -84,6 +84,13 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
+	proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
+		ctx, req.ProposerAddress,
+	)
+	if err != nil {
+		return &abci.ResponsePrepareProposal{}, err
+	}
+
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
@@ -91,6 +98,7 @@ func (h *Handler) PrepareProposalHandler(
 	blk, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
+		proposerPubkey,
 	)
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
