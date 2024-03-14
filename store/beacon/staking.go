@@ -69,5 +69,11 @@ func (s *Store) EnqueueWithdrawals(
 func (s *Store) DequeueWithdrawals(
 	numDequeue uint64,
 ) ([]*enginetypes.Withdrawal, error) {
-	return s.withdrawalQueue.PopMulti(s.ctx, numDequeue)
+	withdrawals, err := s.withdrawalQueue.PopMulti(s.ctx, numDequeue)
+	if err != nil {
+		return nil, err
+	} else if withdrawals == nil {
+		withdrawals = make([]*enginetypes.Withdrawal, 0)
+	}
+	return withdrawals, nil
 }
