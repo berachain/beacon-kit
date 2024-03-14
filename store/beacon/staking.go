@@ -55,7 +55,11 @@ func (s *Store) DequeueDeposits(
 func (s *Store) ExpectedWithdrawals(
 	numView uint64,
 ) ([]*enginetypes.Withdrawal, error) {
-	return s.withdrawalQueue.PeekMulti(s.ctx, numView)
+	withdrawals, err := s.withdrawalQueue.PeekMulti(s.ctx, numView)
+	if err != nil {
+		return nil, err
+	}
+	return s.handleNilWithdrawals(withdrawals), nil
 }
 
 // EnqueueWithdrawals pushes the withdrawals to the queue.
@@ -72,8 +76,16 @@ func (s *Store) DequeueWithdrawals(
 	withdrawals, err := s.withdrawalQueue.PopMulti(s.ctx, numDequeue)
 	if err != nil {
 		return nil, err
-	} else if withdrawals == nil {
-		withdrawals = make([]*enginetypes.Withdrawal, 0)
 	}
-	return withdrawals, nil
+	return s.handleNilWithdrawals(withdrawals), nil
+}
+
+// handleNilWithdrawals returns an empty slice if the input is nil.
+func (Store) handleNilWithdrawals(
+	withdrawals []*enginetypes.Withdrawal,
+) []*enginetypes.Withdrawal {
+	if withdrawals == nil {
+		return make([]*enginetypes.Withdrawal, 0)
+	}
+	return withdrawals
 }
