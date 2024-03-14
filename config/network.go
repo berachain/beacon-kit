@@ -25,26 +25,13 @@
 
 package config
 
-import (
-	"github.com/berachain/beacon-kit/io/cli/parser"
-	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
-)
-
-// Network is the network configuration from the cosmos app.
+// Network is the network configuration from the CometBFT config.
+//
+// The configure inherits the CometBFT config so it does not need
+// to follow the BeaconKitConfig interface. Instead this config
+// is fetched directly from AppOpts via DepInject.
 type Network struct {
 	// ChainID is the CometBFT chain ID,
 	// which is a string, less than 50 bytes.
 	ChainID string
-}
-
-// Parse parses the configuration.
-func (c Network) Parse(parser parser.AppOptionsParser) (*Network, error) {
-	var err error
-	if c.ChainID, err = parser.GetString(
-		sdkflags.FlagChainID,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
 }

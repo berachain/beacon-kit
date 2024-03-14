@@ -68,7 +68,7 @@ type Config struct {
 	// FeatureFlags is the configuration for the feature flags.
 	FeatureFlags FeatureFlags
 
-	// Network is the network configuration from the cosmos app.
+	// Network is the network configuration from the CometBFT config.
 	Network Network
 }
 
@@ -119,12 +119,11 @@ func readConfigFromAppOptsParser(
 	parser parser.AppOptionsParser,
 ) (*Config, error) {
 	var (
-		err        error
-		conf       = &Config{}
-		engineCfg  *Engine
-		beaconCfg  *Beacon
-		abciCfg    *ABCI
-		networkCfg *Network
+		err       error
+		conf      = &Config{}
+		engineCfg *Engine
+		beaconCfg *Beacon
+		abciCfg   *ABCI
 	)
 
 	// Read ABCI Config
@@ -160,13 +159,6 @@ func readConfigFromAppOptsParser(
 		return nil, err
 	}
 	conf.FeatureFlags = *featureFlagsCfg
-
-	// Read Network Config from AppOpts
-	networkCfg, err = Network{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.Network = *networkCfg
 
 	return conf, nil
 }

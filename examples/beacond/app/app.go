@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"io"
 
+	"github.com/berachain/beacon-kit/config"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 
 	"cosmossdk.io/depinject"
@@ -115,6 +116,7 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
 				bls12381.ProvideBlsSigner,
+				config.ProvideNetworkCfg,
 			),
 			depinject.Supply(
 				// supply the application options
