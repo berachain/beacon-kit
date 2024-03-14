@@ -29,6 +29,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/beacon/core"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
@@ -36,9 +37,26 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ReceiveBeaconBlock receives an incoming beacon block, it first validates
+// ProcessSlot runs the slot processing logic. It happens every slot,
+// irrespective of if the slot (CometBFT block) contains a BeaconBlock or not.
+func (s *Service) ProcessSlot(
+	ctx context.Context,
+	cometBFTBlockHash [32]byte,
+) error {
+	// todo: likely deprecate using the cometBFTBLockHash.
+	s.ForkchoiceStore(ctx).UpdateHeadBeaconBlock(cometBFTBlockHash)
+	return nil
+}
+
+// ProcessBlob processes a blob.
+func (s *Service) ProcessBlob() error {
+	// TODO: 4844.
+	return nil
+}
+
+// ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service) ReceiveBeaconBlock(
+func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubkey [bls12381.PubKeyLength]byte,
@@ -50,13 +68,14 @@ func (s *Service) ReceiveBeaconBlock(
 	var (
 		eg, groupCtx   = errgroup.WithContext(ctx)
 		isValidPayload bool
-		forkChoicer    = s.ForkchoiceStore(ctx)
 	)
 
 	// If the block is nil, We have to abort.
 	if blk == nil || blk.IsNil() {
 		return beacontypes.ErrNilBlk
 	}
+
+	forkChoicer := s.ForkchoiceStore(ctx)
 
 	// If we have already seen this block, we can skip processing it.
 	// TODO: should we store some historical data here?
@@ -68,7 +87,9 @@ func (s *Service) ReceiveBeaconBlock(
 		)
 		return nil
 	}
-	forkChoicer.UpdateHeadBeaconBlock(blockHash)
+
+	// TODO:
+	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
 
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
@@ -99,12 +120,12 @@ func (s *Service) ReceiveBeaconBlock(
 
 	// daStartTime := time.Now()
 	// if avs != nil {
-	// 	if err := avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
+	// avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
 	// 		return errors.Wrap(err, "could not validate blob data availability
 	// (AvailabilityStore.IsDataAvailable)")
 	// 	}
 	// } else {
-	// 	if err := s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
+	// s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
 	// 		return errors.Wrap(err, "could not validate blob data availability")
 	// 	}
 	// }
@@ -127,13 +148,8 @@ func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
-	// Ensure Body is non nil.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return beacontypes.ErrNilBlkBody
-	}
-
 	// Ensure the parent block root matches what we have locally.
+	// TODO: get rid of CometBFT stuff.
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
@@ -143,8 +159,15 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
+	// Create a new state processor.
+	sp := core.NewStateProcessor(
+		s.BeaconCfg(),
+		s.BeaconState(ctx),
+	)
+
 	// Verify the RANDAO Reveal.
-	if err := s.rp.VerifyReveal(
+	// TODO: move into state processor.
+	if err := s.rp.ProcessRandaoReveal(
 		proposerPubKey,
 		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
 		blk.GetRandaoReveal(),
@@ -156,35 +179,13 @@ func (s *Service) validateStateTransition(
 	//   VALIDATE KZG HERE  ///
 	// ---------------------///
 
-	// Ensure the block deposits are within the limits.
-	deposits := body.GetDeposits()
-	if uint64(len(deposits)) > s.BeaconCfg().Limits.MaxDepositsPerBlock {
-		return fmt.Errorf(
-			"too many deposits, expected: %d, got: %d",
-			s.BeaconCfg().Limits.MaxDepositsPerBlock, len(deposits),
-		)
-	}
+	// ---------------------///
+	//   Process Deposits   ///
+	// ---------------------///
 
-	// Ensure the deposits match the local state.
-	localDeposits, err := s.BeaconState(ctx).
-		ExpectedDeposits(uint64(len(deposits)))
-	if err != nil {
-		return err
-	}
-
-	// Ensure the deposits match the local state.
-	for i, dep := range deposits {
-		if dep == nil {
-			return beacontypes.ErrNilDeposit
-		}
-		if dep.Index != localDeposits[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				localDeposits[i].Index, dep.Index)
-		}
-	}
-
-	return nil
+	return sp.ProcessBlock(
+		blk,
+	)
 }
 
 // validateExecutionOnBlock checks the validity of a the execution payload

@@ -83,7 +83,7 @@ type RandaoProcessor interface {
 		ctx context.Context,
 		blk beacontypes.BeaconBlock,
 	) error
-	VerifyReveal(
+	ProcessRandaoReveal(
 		proposerPubkey [bls12381.PubKeyLength]byte,
 		epoch primitives.Epoch,
 		reveal randaotypes.Reveal,

@@ -148,7 +148,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		// any required newPayload and/or forkchoice updates. If we have
 		// already ran this for the current block in ProcessProposal, this
 		// call will exit early.
-		if err = h.chainService.ReceiveBeaconBlock(
+		if err = h.chainService.ProcessBeaconBlock(
 			ctx,
 			blk,
 			proposerPubkey,

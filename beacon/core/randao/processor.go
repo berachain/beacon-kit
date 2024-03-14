@@ -76,8 +76,8 @@ func (p *Processor) BuildReveal(
 	return p.signer.Sign(p.computeSigningRoot(epoch, p.getDomain(epoch))), nil
 }
 
-// VerifyReveal verifies the reveal of the proposer.
-func (p *Processor) VerifyReveal(
+// ProcessRandaoReveal verifies the reveal of the proposer.
+func (p *Processor) ProcessRandaoReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	epoch primitives.Epoch,
 	reveal types.Reveal,

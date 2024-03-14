@@ -138,6 +138,15 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
+	defer func() {
+		if err = h.chainService.ProcessSlot(
+			ctx,
+			byteslib.ToBytes32(req.Hash),
+		); err != nil {
+			logger.Error("failed to process slot", "error", err)
+		}
+	}()
+
 	// Extract the beacon block from the ABCI request.
 	//
 	// TODO: Block factory struct?
@@ -149,15 +158,15 @@ func (h *Handler) ProcessProposalHandler(
 	if err != nil || block == nil || block.IsNil() {
 		//nolint:nilerr // its okay for now todo.
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
+			Status: abci.ResponseProcessProposal_ACCEPT}, err
 	}
 
 	// Import the block into the execution client to validate it.
-	if err = h.chainService.ReceiveBeaconBlock(
+	if err = h.chainService.ProcessBeaconBlock(
 		ctx, block, proposerPubkey, byteslib.ToBytes32(req.Hash)); err != nil {
 		logger.Warn("failed to receive beacon block", "error", err)
 		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
+			Status: abci.ResponseProcessProposal_ACCEPT}, err
 	}
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
