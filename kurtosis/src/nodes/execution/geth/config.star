@@ -64,7 +64,6 @@ CMD = [
 ]
 BOOTNODE_CMD = "--bootnodes"
 
-
 # Modify command flag --verbosity to change the verbosity level
 VERBOSITY_LEVELS = {
     GLOBAL_LOG_LEVEL.error: "1",

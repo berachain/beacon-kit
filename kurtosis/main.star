@@ -14,10 +14,12 @@ grafana = import_module("./src/observability/grafana/grafana.star")
 loki = import_module("./src/observability/loki/loki.star")
 
 def run(
-    plan, 
-    validators, full_nodes = [], rpc_endpoints = [], 
-    additional_services = [], metrics_enabled_services = []
-):
+        plan,
+        validators,
+        full_nodes = [],
+        rpc_endpoints = [],
+        additional_services = [],
+        metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -47,7 +49,7 @@ def run(
     node_peering_info = beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
     el_enode_addrs = []
-    metrics_enabled_services = metrics_enabled_services[:] # copy to allow modifying the list
+    metrics_enabled_services = metrics_enabled_services[:]  # copy to allow modifying the list
 
     # 4. Start network validators
     for n, validator in enumerate(validators):
@@ -56,7 +58,7 @@ def run(
 
         metrics_enabled_services.append({
             "name": el_client["name"],
-            "service": el_client['service'],
+            "service": el_client["service"],
             "metrics_path": node_modules[validator.el_type].METRICS_PATH,
         })
 
@@ -76,7 +78,7 @@ def run(
 
         metrics_enabled_services.append({
             "name": el_client["name"],
-            "service": el_client['service'],
+            "service": el_client["service"],
             "metrics_path": node_modules[full.el_type].METRICS_PATH,
         })
 
@@ -87,7 +89,7 @@ def run(
 
     if full_node_configs != {}:
         services = plan.add_services(configs = full_node_configs)
-        
+
         for name, service in services.items():
             metrics_enabled_services.append({
                 "name": name,

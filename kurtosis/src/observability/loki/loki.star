@@ -30,9 +30,8 @@ PROMTAIL_PORT_NUM = 9080
 PROMTAIL_PORT_SPEC_TEMPLATE = port_spec_lib.get_port_spec_template(PROMTAIL_PORT_NUM, "TCP", shared_utils.HTTP_APPLICATION_PROTOCOL)
 PROMTAIL_CMD = ["-config.file=/mnt/config/promtail-config.yaml"]
 
-
 PROMTAIL_FILES = {
-    "/mnt/config": PROMTAIL_CONFIG_ARTIFACT
+    "/mnt/config": PROMTAIL_CONFIG_ARTIFACT,
 }
 
 def upload_global_files(plan):
@@ -68,7 +67,7 @@ def start(plan):
         ports = {PROMTAIL_PORT_ID: PROMTAIL_PORT_SPEC_TEMPLATE},
         files = PROMTAIL_FILES,
         # entrypoint = node_module.ENTRYPOINT,
-        cmd = PROMTAIL_CMD
+        cmd = PROMTAIL_CMD,
     )
 
     promtail_service_config = service_config_lib.create_from_config(promtail_config)
