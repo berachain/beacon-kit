@@ -37,23 +37,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessSlot runs the slot processing logic. It happens every slot,
-// irrespective of if the slot (CometBFT block) contains a BeaconBlock or not.
-func (s *Service) ProcessSlot(
-	ctx context.Context,
-	cometBFTBlockHash [32]byte,
-) error {
-	// todo: likely deprecate using the cometBFTBLockHash.
-	s.ForkchoiceStore(ctx).UpdateHeadBeaconBlock(cometBFTBlockHash)
-	return nil
-}
-
-// ProcessBlob processes a blob.
-func (s *Service) ProcessBlob() error {
-	// TODO: 4844.
-	return nil
-}
-
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service) ProcessBeaconBlock(
@@ -87,6 +70,7 @@ func (s *Service) ProcessBeaconBlock(
 		)
 		return nil
 	}
+	s.ForkchoiceStore(ctx).UpdateHeadBeaconBlock(blockHash)
 
 	// TODO:
 	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)

@@ -138,15 +138,6 @@ func (h *Handler) ProcessProposalHandler(
 			Status: abci.ResponseProcessProposal_REJECT}, err
 	}
 
-	defer func() {
-		if err = h.chainService.ProcessSlot(
-			ctx,
-			byteslib.ToBytes32(req.Hash),
-		); err != nil {
-			logger.Error("failed to process slot", "error", err)
-		}
-	}()
-
 	// Extract the beacon block from the ABCI request.
 	//
 	// TODO: Block factory struct?
@@ -156,7 +147,6 @@ func (h *Handler) ProcessProposalHandler(
 		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
 	)
 	if err != nil || block == nil || block.IsNil() {
-		//nolint:nilerr // its okay for now todo.
 		return &abci.ResponseProcessProposal{
 			Status: abci.ResponseProcessProposal_ACCEPT}, err
 	}

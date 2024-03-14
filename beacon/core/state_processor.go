@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package core
 
 import (
@@ -27,11 +52,17 @@ func NewStateProcessor(
 	}
 }
 
+// ProcessSlot processes the slot and ensures it matches the local state.
+func (sp *StateProcessor) ProcessSlot(
+	_ uint64,
+) error {
+	return nil
+}
+
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor) ProcessBlock(
 	blk types.BeaconBlock,
 ) error {
-
 	// Ensure Body is non nil.
 	body := blk.GetBody()
 	if body.IsNil() {
@@ -71,6 +102,12 @@ func (sp *StateProcessor) ProcessBlock(
 	return nil
 }
 
+// ProcessBlob processes a blob.
+func (sp *StateProcessor) ProcessBlob() error {
+	// TODO: 4844.
+	return nil
+}
+
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor) processDeposits(
@@ -106,6 +143,30 @@ func (sp *StateProcessor) processDeposits(
 func (sp *StateProcessor) processWithdrawals(
 	withdrawals []*enginetypes.Withdrawal,
 ) error {
+	if uint64(len(withdrawals)) > sp.cfg.Limits.MaxWithdrawalsPerPayload {
+		return fmt.Errorf(
+			"too many withdrawals, expected: %d, got: %d",
+			sp.cfg.Limits.MaxWithdrawalsPerPayload, len(withdrawals),
+		)
+	}
+
+	// Ensure the deposits match the local state.
+	localWithdrawals, err := sp.st.ExpectedWithdrawals(uint64(len(withdrawals)))
+	if err != nil {
+		return err
+	}
+
+	// Ensure the deposits match the local state.
+	for i, dep := range withdrawals {
+		if dep == nil {
+			return types.ErrNilWithdrawal
+		}
+		if dep.Index != localWithdrawals[i].Index {
+			return fmt.Errorf(
+				"deposit index does not match, expected: %d, got: %d",
+				localWithdrawals[i].Index, dep.Index)
+		}
+	}
 	return nil
 }
 
