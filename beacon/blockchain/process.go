@@ -46,10 +46,6 @@ func (s *Service) ProcessBeaconBlock(
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
-	var (
-		// eg, groupCtx   = errgroup.WithContext(ctx)
-		isValidPayload bool
-	)
 
 	// If the block is nil, We have to abort.
 	if blk == nil || blk.IsNil() {
@@ -61,9 +57,10 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go rountine validates the execution level aspects of the block.
 	// i.e: does newPayload return VALID?
-	if _, err := s.validateExecutionOnBlock(
+	isValidPayload, err := s.validateExecutionOnBlock(
 		ctx, blk,
-	); err != nil {
+	)
+	if err != nil {
 		s.Logger().
 			Error("failed to notify engine of new payload", "error", err)
 		return err
@@ -71,8 +68,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
-	err := s.validateStateTransition(ctx, blk, proposerPubkey)
-	if err != nil {
+	if err = s.validateStateTransition(ctx, blk, proposerPubkey); err != nil {
 		s.Logger().
 			Error("failed to validate state transition", "error", err)
 		return err
