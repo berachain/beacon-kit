@@ -127,10 +127,6 @@ func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
-	if blk.IsNil() {
-		return beacontypes.ErrNilBlk
-	}
-
 	// Ensure Body is non nil.
 	body := blk.GetBody()
 	if body.IsNil() {
@@ -198,10 +194,6 @@ func (s *Service) validateExecutionOnBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	if blk.IsNil() {
-		return false, beacontypes.ErrNilBlk
-	}
-
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	if payload.IsNil() {
