@@ -33,8 +33,6 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
-	"github.com/berachain/beacon-kit/primitives"
-	"golang.org/x/sync/errgroup"
 )
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
@@ -49,7 +47,7 @@ func (s *Service) ProcessBeaconBlock(
 	// it up and reject the proposal, as we do not want to write a block
 	// finalization to the consensus layer that is invalid.
 	var (
-		eg, groupCtx   = errgroup.WithContext(ctx)
+		// eg, groupCtx   = errgroup.WithContext(ctx)
 		isValidPayload bool
 	)
 
@@ -58,48 +56,32 @@ func (s *Service) ProcessBeaconBlock(
 		return beacontypes.ErrNilBlk
 	}
 
-	// If we have already seen this block, we can skip processing it.
-	// TODO: should we store some historical data here?
-	forkChoicer := s.ForkchoiceStore(ctx)
-	if forkChoicer.HeadBeaconBlock() == blockHash {
-		s.Logger().Info(
-			"ignoring already processed beacon block",
-			// todo: don't use common for beacontypes
-			"hash", primitives.ExecutionHash(blockHash).Hex(),
-		)
-		return nil
-	}
-	forkChoicer.UpdateHeadBeaconBlock(blockHash)
-
 	// TODO:
 	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
 
-	// This go routine validates the consensus level aspects of the block.
-	// i.e: does it have a valid ancestor?
-	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, blk, proposerPubkey)
-		if err != nil {
-			s.Logger().
-				Error("failed to validate state transition", "error", err)
-			return err
-		}
-		return nil
-	})
-
 	// This go rountine validates the execution level aspects of the block.
 	// i.e: does newPayload return VALID?
-	eg.Go(func() error {
-		var err error
-		if isValidPayload, err = s.validateExecutionOnBlock(
-			groupCtx, blk,
-		); err != nil {
-			s.Logger().
-				Error("failed to notify engine of new payload", "error", err)
-			return err
-		}
+	if _, err := s.validateExecutionOnBlock(
+		ctx, blk,
+	); err != nil {
+		s.Logger().
+			Error("failed to notify engine of new payload", "error", err)
+		return err
+	}
 
-		return nil
-	})
+	// This go routine validates the consensus level aspects of the block.
+	// i.e: does it have a valid ancestor?
+	err := s.validateStateTransition(ctx, blk, proposerPubkey)
+	if err != nil {
+		s.Logger().
+			Error("failed to validate state transition", "error", err)
+		return err
+	}
+
+	// TODO: This is very much the wrong spot for this.
+	if err = s.rp.MixinNewReveal(ctx, blk); err != nil {
+		return err
+	}
 
 	// daStartTime := time.Now()
 	// if avs != nil {
@@ -113,10 +95,10 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
-	// Wait for the goroutines to finish.
-	if err := eg.Wait(); err != nil {
-		return err
-	}
+	// // Wait for the goroutines to finish.
+	// if err := eg.Wait(); err != nil {
+	// 	return err
+	// }
 
 	// Perform post block processing.
 	return s.postBlockProcess(

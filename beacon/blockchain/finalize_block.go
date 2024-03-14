@@ -82,10 +82,6 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	if err = s.rp.MixinNewReveal(ctx, blk); err != nil {
-		return err
-	}
-
 	// TODO: PROCESS LOGS HERE
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
