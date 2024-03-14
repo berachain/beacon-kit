@@ -30,7 +30,7 @@ import "github.com/berachain/beacon-kit/beacon/core/randao/types"
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		//nolint:lll
-		Eth1GenesisHash: "0x7b67dff2705bd1dd6133f5a6791c25bb457960d709cd4c318aed39690c4ef2c2",
+		Eth1GenesisHash: "0xb938bfdfcbf7f840b5cd93c5c9899335018f64a846c153db2c80b957b127d56f",
 		RandaoMix:       make([]byte, types.MixLength),
 	}
 }
