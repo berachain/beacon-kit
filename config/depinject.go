@@ -23,54 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package config
 
 import (
-	"os"
-
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/crypto"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
 )
 
 // DepInjectInput is the input for the dep inject framework.
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts    AppOptions
-	Logger     log.Logger
-	Signer     crypto.Signer[[bls12381.SignatureLength]byte]
-	NetworkCfg config.Network
-	Bsp        BeaconStorageBackend
-	Vcp        ValsetChangeProvider
+	AppOpts servertypes.AppOptions
 }
 
 // DepInjectOutput is the output for the dep inject framework.
 type DepInjectOutput struct {
 	depinject.Out
 
-	Runtime *BeaconKitRuntime
+	Network Network
 }
 
-// ProvideRuntime is a function that provides the module to the application.
-func ProvideRuntime(in DepInjectInput) DepInjectOutput {
-	r, err := NewDefaultBeaconKitRuntime(
-		in.AppOpts,
-		in.Signer,
-		in.NetworkCfg,
-		in.Logger,
-		in.Bsp,
-		in.Vcp,
-	)
-	if err != nil {
-		in.Logger.Error(
-			"failed to create beacon-kit runtime, exiting...", "error", err)
-		os.Exit(1)
-	}
+// ProvideNetworkCfg get the CometBFT network config
+// from the app options and inject it into the dep inject output.
+func ProvideNetworkCfg(in DepInjectInput) DepInjectOutput {
+	chainID := cast.ToString(in.AppOpts.Get(flags.FlagChainID))
 
 	return DepInjectOutput{
-		Runtime: r,
+		Network: Network{
+			ChainID: chainID,
+		},
 	}
 }

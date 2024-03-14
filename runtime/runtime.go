@@ -83,6 +83,7 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	appOpts AppOptions,
 	signer crypto.Signer[[bls12381.SignatureLength]byte],
+	networkCfg config.Network,
 	logger log.Logger,
 	bsb BeaconStorageBackend,
 	vcp ValsetChangeProvider,
@@ -95,6 +96,7 @@ func NewDefaultBeaconKitRuntime(
 	if err != nil {
 		return nil, err
 	}
+	cfg.Network = networkCfg
 
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(

@@ -41,9 +41,9 @@ func (d *Domain) Bytes() []byte {
 func ComputeDomain(
 	domainType DomainType,
 	forkVersion Version,
-	genesisValidatorsRoot primitives.HashRoot,
+	chainID string,
 ) (Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, genesisValidatorsRoot)
+	forkDataRoot, err := computeForkDataRoot(forkVersion, chainID)
 	if err != nil {
 		return Domain{}, err
 	}
