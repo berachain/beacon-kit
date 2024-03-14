@@ -37,16 +37,16 @@ import (
 	localbuilder "github.com/berachain/beacon-kit/beacon/builder/local"
 	"github.com/berachain/beacon-kit/beacon/core/randao"
 	"github.com/berachain/beacon-kit/beacon/execution"
-	loghandler "github.com/berachain/beacon-kit/beacon/execution/logs"
 	"github.com/berachain/beacon-kit/beacon/staking"
-	"github.com/berachain/beacon-kit/beacon/staking/logs"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/cache"
 	"github.com/berachain/beacon-kit/config"
+	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
+	"github.com/berachain/beacon-kit/lib/abi"
 	_ "github.com/berachain/beacon-kit/lib/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -120,17 +120,8 @@ func NewDefaultBeaconKitRuntime(
 		notify.WithGCD(gcd),
 	)
 
-	// logFactory is used by the execution service to unmarshal
-	// logs retrieved from the engine client.
-	stakingLogRequest, err := logs.NewStakingRequest(
-		cfg.Beacon.Execution.DepositContractAddress,
-	)
-	if err != nil {
-		return nil, err
-	}
-	logFactory, err := loghandler.NewFactory(
-		loghandler.WithRequest(stakingLogRequest),
-	)
+	// Extrac the staking ABI.
+	depositABI, err := stakingabi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +129,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the staking service.
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
+		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
 		staking.WithValsetChangeProvider(vcp),
 	)
 
@@ -145,7 +137,6 @@ func NewDefaultBeaconKitRuntime(
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
 		execution.WithEngineCaller(engineClient),
-		execution.WithLogFactory(logFactory),
 		execution.WithStakingService(stakingService),
 	)
 
@@ -157,12 +148,14 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
+	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(
 		randao.WithBeaconStateProvider(bsb),
 		randao.WithSigner(signer),
 		randao.WithLogger(logger.With("service", "randao")),
 	)
 
+	// Build the builder service.
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
@@ -177,6 +170,7 @@ func NewDefaultBeaconKitRuntime(
 		sync.WithConfig(sync.DefaultConfig()),
 	)
 
+	// Build the blockchain service.
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithExecutionService(executionService),
@@ -185,6 +179,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithSyncService(syncService),
 	)
 
+	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger),
 		service.WithService(builderService),

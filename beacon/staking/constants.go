@@ -23,49 +23,47 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package staking
 
 import (
-	"fmt"
-	"reflect"
-
-	"github.com/berachain/beacon-kit/primitives"
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// WithABI returns an Option for registering
-// the contract ABI with the TypeAllocator.
-func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		a.abi = contractAbi
-		a.sigToName = make(map[primitives.ExecutionHash]string)
-		a.sigToType = make(map[primitives.ExecutionHash]reflect.Type)
-		return nil
-	}
-}
+const (
+	// Name of the Deposit event
+	// in the deposit contract.
+	DepositEventName = "Deposit"
 
-// WithNameAndType returns an Option for registering
-// an event name and type under the given even signature
-// with the TypeAllocator.
-// NOTE: WithABI must be called before this function.
-func WithNameAndType(
-	sig primitives.ExecutionHash,
-	name string,
-	t reflect.Type,
-) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		event, ok := a.abi.Events[name]
-		if !ok {
-			return fmt.Errorf("event %s not found in ABI", name)
-		}
-		if event.ID != sig {
-			return fmt.Errorf(
-				"event %s signature does not match, expected %s, got %s",
-				name, event.ID.Hex(), sig.Hex(),
-			)
-		}
-		a.sigToName[sig] = name
-		a.sigToType[sig] = t
-		return nil
-	}
-}
+	// Name of the Redirect event
+	// in the deposit contract.
+	RedirectEventName = "Redirect"
+
+	// Name the Withdrawal event
+	// in the deposit contract.
+	WithdrawalEventName = "Withdrawal"
+)
+
+//nolint:gochecknoglobals // Avoid re-allocating these variables.
+var (
+	// Signature and type of the Deposit event
+	// in the deposit contract.
+	DepositEventSig = crypto.Keccak256Hash(
+		[]byte(DepositEventName + "(bytes,bytes,uint64,bytes,uint64)"),
+	)
+
+	// Signature and type of the Redirect event
+	// in the deposit contract.
+	RedirectEventSig = crypto.Keccak256Hash(
+		[]byte(RedirectEventName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
+	// RedirectType = reflect.TypeOf(enginetypes.Redirect{}).
+
+	// Signature and type of the Withdraw event
+	// in the deposit contract.
+	WithdrawalEventSig = crypto.Keccak256Hash(
+		[]byte(WithdrawalEventName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
+
+	//nolint:gochecknoglobals // Avoid re-allocating these variables.
+	EthSecp256k1CredentialPrefix = []byte{0x01}
+)

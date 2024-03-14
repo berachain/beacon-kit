@@ -144,6 +144,11 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 	return d.Transactions
 }
 
+// GetGasUsed returns the gas used of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetPrevRandao() [32]byte {
+	return d.Random
+}
+
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 	return d.Withdrawals
