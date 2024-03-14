@@ -6,14 +6,14 @@ A service should follow the format of below example:
 {
     ## required
     "name": "api_service",
-    "service": {
-        "ip_address": "0.0.0.0",
-        "ports": {
-            "metrics": {
-                "number": 8080
-            }
+    "service": Service(
+        ip_address="0.0.0.0",
+        ports={
+            "metrics": PortSpec(
+                number=8080
+            )
         }
-    },
+    ),
     "metrics_path": "/metrics",
 
     ## optional
@@ -30,7 +30,7 @@ def start(plan, services):
         if "labels" in service:
             constant_labels = service["labels"]
 
-        scrape_interval = "5s" # use 5s as default scrape interval
+        scrape_interval = prometheus.DEFAULT_SCRAPE_INTERVAL # use 5s as default scrape interval
         if "scrape_interval" in service:
             scrape_interval = service["scrape_interval"]
 
