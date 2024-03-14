@@ -6,6 +6,7 @@ def start(plan, services):
         metrics_job = {
             "Name": "{0}".format(service['name']),
             "Endpoint": "{0}:{1}".format(service["service"].ip_address, service["service"].ports["metrics"].number),
+            "Labels": service["labels"],
             "MetricsPath": service["metrics_path"],
             "ScrapeInterval": "1s",
         }
