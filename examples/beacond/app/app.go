@@ -85,6 +85,7 @@ type BeaconApp struct {
 	AccountKeeper         authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
+	WrappedStakingKeeper  *stakingwrapper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
@@ -115,7 +116,6 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
 				bls12381.ProvideBlsSigner,
-				stakingwrapper.ProvideStakingKeeper,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -141,6 +141,7 @@ func NewBeaconKitApp(
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,
+		&app.WrappedStakingKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -154,7 +155,7 @@ func NewBeaconKitApp(
 			PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 		nil,
-		stakingwrapper.NewKeeper(app.StakingKeeper),
+		app.WrappedStakingKeeper,
 	)
 
 	// Set all the newly built ABCI Componenets on the App.

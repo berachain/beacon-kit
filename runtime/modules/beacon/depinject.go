@@ -39,6 +39,7 @@ import (
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(ProvideModule),
+		appconfig.Provide(stakingwrapper.ProvideStakingKeeper),
 	)
 }
 
