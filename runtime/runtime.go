@@ -196,6 +196,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(syncService),
 	)
 
+	// Build the health service.
 	healthService := service.New[health.Service](
 		health.WithBaseService(baseService.ShallowCopy("health")),
 		health.WithServiceRegistry(svcRegistry),

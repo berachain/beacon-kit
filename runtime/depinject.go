@@ -26,6 +26,8 @@
 package runtime
 
 import (
+	"os"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/crypto"
@@ -60,7 +62,9 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		in.Vcp,
 	)
 	if err != nil {
-		panic(err)
+		in.Logger.Error(
+			"failed to create beacon-kit runtime, exiting...", "error", err)
+		os.Exit(1)
 	}
 
 	return DepInjectOutput{
