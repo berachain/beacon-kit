@@ -75,7 +75,7 @@ func (sp *StateProcessor) ProcessBlock(
 	// process the eth1 vote.
 	payload := body.GetExecutionPayload()
 	if payload.IsNil() {
-		return types.ErrNilPayloadInBlk
+		return types.ErrNilPayload
 	}
 
 	// common.ProcessHeader
@@ -117,13 +117,6 @@ func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
 	deposits []*types.Deposit,
 ) error {
-	if uint64(len(deposits)) > sp.cfg.Limits.MaxDepositsPerBlock {
-		return fmt.Errorf(
-			"too many deposits, expected: %d, got: %d",
-			sp.cfg.Limits.MaxDepositsPerBlock, len(deposits),
-		)
-	}
-
 	// Dequeue and verify the logs.
 	localDeposits, err := st.ExpectedDeposits(uint64(len(deposits)))
 	if err != nil {
@@ -150,13 +143,6 @@ func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
 	withdrawals []*enginetypes.Withdrawal,
 ) error {
-	if uint64(len(withdrawals)) > sp.cfg.Limits.MaxWithdrawalsPerPayload {
-		return fmt.Errorf(
-			"too many withdrawals, expected: %d, got: %d",
-			sp.cfg.Limits.MaxWithdrawalsPerPayload, len(withdrawals),
-		)
-	}
-
 	// Dequeue and verify the withdrawals.
 	localWithdrawals, err := st.DequeueWithdrawals(uint64(len(withdrawals)))
 	if err != nil {
