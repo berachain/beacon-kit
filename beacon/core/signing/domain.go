@@ -26,6 +26,7 @@
 package signing
 
 import (
+	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
@@ -37,8 +38,8 @@ func (d *Domain) Bytes() []byte {
 	return d[:]
 }
 
-// ComputeDomain returns the domain for the DomainType and fork version.
-func ComputeDomain(
+// computeDomain returns the domain for the DomainType and fork version.
+func computeDomain(
 	domainType DomainType,
 	forkVersion Version,
 	chainID string,
@@ -53,4 +54,17 @@ func ComputeDomain(
 		bz,
 		forkDataRoot[:(primitives.HashRootLength-DomainTypeLength)]...)
 	return Domain(bz), nil
+}
+
+// GetDomain returns the domain for the DomainType and epoch.
+func GetDomain(
+	cfg *config.Config,
+	domainType DomainType,
+	epoch primitives.Epoch,
+) (Domain, error) {
+	return computeDomain(
+		domainType,
+		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
+		cfg.Network.ChainID,
+	)
 }
