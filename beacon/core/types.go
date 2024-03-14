@@ -23,49 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package core
 
 import (
-	"context"
-
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// postBlockProcess(.
-func (s *Service) postBlockProcess(
-	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBlock,
-	blockHash [32]byte,
-	_ bool,
-) error {
-	// If the block is nil or empty, we return an error.
-	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
-	}
-
-	// If the block does not have a payload, we return an error.
-	payload := blk.GetBody().GetExecutionPayload()
-	if payload.IsNil() {
-		return ErrInvalidPayload
-	}
-	payloadBlockHash := payload.GetBlockHash()
-
-	// If the builder is enabled attempt to build a block locally.
-	// If we are in the sync state, we skip building blocks optimistically.
-	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		// We have to do this in order to update it before FCU.
-		// TODO: In general we need to improve the control flow for
-		// Preblocker vs ProcessProposal.
-		err := s.sendFCUWithAttributes(
-			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
-		)
-		if err == nil {
-			return nil
-		}
-		s.Logger().
-			Error("failed to send forkchoice update in postBlockProcess", "error", err)
-	}
-
-	// Otherwise we send a forkchoice update to the execution client.
-	return s.sendFCU(ctx, payloadBlockHash)
+// RandaoProcessor is the interface for the randao processor.
+type RandaoProcessor interface {
+	BuildReveal(
+		epoch primitives.Epoch,
+	) (randaotypes.Reveal, error)
+	MixinNewReveal(
+		st state.BeaconState,
+		blk beacontypes.BeaconBlock,
+	) error
+	VerifyReveal(
+		proposerPubkey [bls12381.PubKeyLength]byte,
+		epoch primitives.Epoch,
+		reveal randaotypes.Reveal,
+	) error
 }

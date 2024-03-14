@@ -26,12 +26,12 @@
 package randao
 
 import (
-	"context"
 	"fmt"
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/signing"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	crypto "github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
@@ -41,7 +41,6 @@ import (
 
 // Processor is the randao processor.
 type Processor struct {
-	BeaconStateProvider
 	signer crypto.Signer[[bls12381.SignatureLength]byte]
 	logger log.Logger
 }
@@ -70,10 +69,11 @@ func NewProcessor(
 //
 //	return bls.Sign(privkey, signing_root)
 func (p *Processor) BuildReveal(
-	_ context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	return p.signer.Sign(p.computeSigningRoot(epoch, p.getDomain(epoch))), nil
+	return p.signer.Sign(
+		p.computeSigningRoot(epoch, p.getDomain(epoch)),
+	), nil
 }
 
 // VerifyReveal verifies the reveal of the proposer.
@@ -98,10 +98,9 @@ func (p *Processor) VerifyReveal(
 
 // MixinNewReveal mixes in a new reveal.
 func (p *Processor) MixinNewReveal(
-	ctx context.Context,
+	st state.BeaconState,
 	blk beacontypes.BeaconBlock,
 ) error {
-	st := p.BeaconState(ctx)
 	mix, err := st.RandaoMix()
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)

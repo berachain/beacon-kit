@@ -33,14 +33,6 @@ import (
 
 type Option func(*Processor) error
 
-// WithBeaconStateProvider sets the beacon state provider.
-func WithBeaconStateProvider(beaconStateProvider BeaconStateProvider) Option {
-	return func(p *Processor) error {
-		p.BeaconStateProvider = beaconStateProvider
-		return nil
-	}
-}
-
 // WithSigner sets the signer.
 func WithSigner(
 	signer crypto.Signer[[bls12381.SignatureLength]byte],

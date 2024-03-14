@@ -43,13 +43,19 @@ func (s *Service) ProcessBeaconBlock(
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
 ) error {
-	// If we get any sort of error from the execution client, we bubble
-	// it up and reject the proposal, as we do not want to write a block
-	// finalization to the consensus layer that is invalid.
-
 	// If the block is nil, We have to abort.
 	if blk == nil || blk.IsNil() {
 		return beacontypes.ErrNilBlk
+	}
+
+	// Ensure the parent block root matches what we have locally.
+	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
+	if parentBlockRoot != blk.GetParentBlockRoot() {
+		return fmt.Errorf(
+			"parent root does not match, expected: %x, got: %x",
+			parentBlockRoot,
+			blk.GetParentBlockRoot(),
+		)
 	}
 
 	// TODO:
@@ -75,7 +81,7 @@ func (s *Service) ProcessBeaconBlock(
 	}
 
 	// TODO: This is very much the wrong spot for this.
-	if err = s.rp.MixinNewReveal(ctx, blk); err != nil {
+	if err = s.rp.MixinNewReveal(s.BeaconState(ctx), blk); err != nil {
 		return err
 	}
 
@@ -91,11 +97,6 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
-	// // Wait for the goroutines to finish.
-	// if err := eg.Wait(); err != nil {
-	// 	return err
-	// }
-
 	// Perform post block processing.
 	return s.postBlockProcess(
 		ctx, blk, blockHash, isValidPayload,
@@ -109,21 +110,10 @@ func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
-	// Ensure the parent block root matches what we have locally.
-	// TODO: get rid of CometBFT stuff.
-	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
-	if parentBlockRoot != blk.GetParentBlockRoot() {
-		return fmt.Errorf(
-			"parent root does not match, expected: %x, got: %x",
-			parentBlockRoot,
-			blk.GetParentBlockRoot(),
-		)
-	}
-
 	// Create a new state processor.
 	sp := core.NewStateProcessor(
 		s.BeaconCfg(),
-		s.BeaconState(ctx),
+		s.rp,
 	)
 
 	// Verify the RANDAO Reveal.
@@ -145,6 +135,7 @@ func (s *Service) validateStateTransition(
 	// ---------------------///
 
 	return sp.ProcessBlock(
+		s.BeaconState(ctx),
 		blk,
 	)
 }
