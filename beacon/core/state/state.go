@@ -101,7 +101,7 @@ type WriteOnlyDeposits interface {
 
 // ReadOnlyDeposits has read access to deposit queue.
 type ReadOnlyDeposits interface {
-	ExpectedDeposits(n uint64) ([]*beacontypes.Deposit, error)
+	ExpectedDeposits(uint64) ([]*beacontypes.Deposit, error)
 }
 
 // ReadWriteWithdrawals has read and write access to withdrawal methods.
@@ -112,7 +112,7 @@ type ReadWriteWithdrawals interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*enginetypes.Withdrawal, error)
+	ExpectedWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
 }
 
 // WriteOnlyWithdrawals only has write access to withdrawal methods.
