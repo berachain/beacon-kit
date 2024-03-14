@@ -51,6 +51,11 @@ type Withdrawal struct {
 	Amount    uint64                      `json:"amount"         ssz-size:"8"`
 }
 
+// String returns a string representation of the Withdrawal.
+func (w *Withdrawal) String() string {
+	return "<TODO>"
+}
+
 // field type overrides for gencodec.
 type withdrawalJSONMarshaling struct {
 	Index     hexutil.Uint64

@@ -220,6 +220,28 @@ func (s *Service) validateExecutionOnBlock(
 		)
 	}
 
+	// expectedMix, err := s.BeaconState(ctx).RandaoMix()
+	// if err != nil {
+	// 	return false, err
+	// }
+
+	// // Ensure the prev randao matches the local state.
+	// if payload.GetPrevRandao() != expectedMix {
+	// 	return false, fmt.Errorf(
+	// 		"prev randao does not match, expected: %x, got: %x",
+	// 		expectedMix, payload.GetPrevRandao(),
+	// 	)
+	// }
+
+	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
+	// 	return fmt.Errorf("slot or genesis time in state is corrupt, cannot
+	// compute time: %v", err)
+	// } else if payload.Timestamp != expectedTime {
+	// 	return fmt.Errorf("state at slot %d, genesis time %d, expected execution
+	// payload time %d, but got %d",
+	// 		slot, genesisTime, expectedTime, payload.Timestamp)
+	// }
+
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(
 		ctx,
