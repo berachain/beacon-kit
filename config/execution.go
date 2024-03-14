@@ -39,7 +39,7 @@ var _ BeaconKitConfig[Execution] = &Execution{}
 func DefaultExecutionConfig() Execution {
 	return Execution{
 		DepositContractAddress: common.HexToAddress(
-			"0x18Df82C7E422A42D47345Ed86B0E935E9718eBda",
+			"0x00000000219ab540356cbb839cbe05303d7705fa",
 		),
 	}
 }
