@@ -23,49 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package signing
 
-import (
-	"fmt"
-	"reflect"
+// DomainType is a 4-byte array used to represent a
+// domain type in BLS signing and verification.
+type DomainType [4]byte
 
-	"github.com/berachain/beacon-kit/primitives"
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+// Domain constants for BLS domain types.
+// Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+//
+//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
+var (
+	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
 )
-
-// WithABI returns an Option for registering
-// the contract ABI with the TypeAllocator.
-func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		a.abi = contractAbi
-		a.sigToName = make(map[primitives.ExecutionHash]string)
-		a.sigToType = make(map[primitives.ExecutionHash]reflect.Type)
-		return nil
-	}
-}
-
-// WithNameAndType returns an Option for registering
-// an event name and type under the given even signature
-// with the TypeAllocator.
-// NOTE: WithABI must be called before this function.
-func WithNameAndType(
-	sig primitives.ExecutionHash,
-	name string,
-	t reflect.Type,
-) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		event, ok := a.abi.Events[name]
-		if !ok {
-			return fmt.Errorf("event %s not found in ABI", name)
-		}
-		if event.ID != sig {
-			return fmt.Errorf(
-				"event %s signature does not match, expected %s, got %s",
-				name, event.ID.Hex(), sig.Hex(),
-			)
-		}
-		a.sigToName[sig] = name
-		a.sigToType[sig] = t
-		return nil
-	}
-}

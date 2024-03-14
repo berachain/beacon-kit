@@ -30,6 +30,7 @@ import (
 	"fmt"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/berachain/beacon-kit/primitives"
 	"golang.org/x/sync/errgroup"
@@ -40,6 +41,7 @@ import (
 func (s *Service) ReceiveBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
+	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
@@ -71,7 +73,7 @@ func (s *Service) ReceiveBeaconBlock(
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
 	eg.Go(func() error {
-		err := s.validateStateTransition(groupCtx, blk)
+		err := s.validateStateTransition(groupCtx, blk, proposerPubkey)
 		if err != nil {
 			s.Logger().
 				Error("failed to validate state transition", "error", err)
@@ -123,11 +125,19 @@ func (s *Service) ReceiveBeaconBlock(
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
+	proposerPubKey [bls12381.PubKeyLength]byte,
 ) error {
 	if blk.IsNil() {
 		return beacontypes.ErrNilBlk
 	}
 
+	// Ensure Body is non nil.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
+	}
+
+	// Ensure the parent block root matches what we have locally.
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
@@ -137,15 +147,14 @@ func (s *Service) validateStateTransition(
 		)
 	}
 
-	// Ensure Body is non nil.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return beacontypes.ErrNilBlkBody
+	// Verify the RANDAO Reveal.
+	if err := s.rp.VerifyReveal(
+		proposerPubKey,
+		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
+		blk.GetRandaoReveal(),
+	); err != nil {
+		return err
 	}
-
-	// ---------------------///
-	// VALIDATE RANDAO HERE ///
-	// ---------------------///
 
 	// ---------------------///
 	//   VALIDATE KZG HERE  ///
@@ -210,6 +219,28 @@ func (s *Service) validateExecutionOnBlock(
 			safeHash,
 		)
 	}
+
+	expectedMix, err := s.BeaconState(ctx).RandaoMix()
+	if err != nil {
+		return false, err
+	}
+
+	// Ensure the prev randao matches the local state.
+	if payload.GetPrevRandao() != expectedMix {
+		return false, fmt.Errorf(
+			"prev randao does not match, expected: %x, got: %x",
+			expectedMix, payload.GetPrevRandao(),
+		)
+	}
+
+	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
+	// 	return fmt.Errorf("slot or genesis time in state is corrupt, cannot
+	// compute time: %v", err)
+	// } else if payload.Timestamp != expectedTime {
+	// 	return fmt.Errorf("state at slot %d, genesis time %d, expected execution
+	// payload time %d, but got %d",
+	// 		slot, genesisTime, expectedTime, payload.Timestamp)
+	// }
 
 	// TODO: add some more safety checks here.
 	return s.es.NotifyNewPayload(

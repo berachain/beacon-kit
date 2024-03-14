@@ -10,6 +10,10 @@ forge-build: |
 forge-clean: |
 	@forge clean --root $(CONTRACTS_DIR)
 
+test-forge-unit:
+	@echo "Running forge unit tests..."
+	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge test 
+
 test-forge-cover:
 	@echo "Running forge test with coverage..."
 	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge build && forge coverage --nmt testFuzz --report lcov --report-file ../test-forge-cover.txt

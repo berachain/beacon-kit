@@ -40,14 +40,18 @@ full_nodes:
   - el_type: reth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
+    replicas: 2
   - el_type: geth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
+    replicas: 2
 rpc_endpoints:
   - type: nginx
     services:
       - el-full-nethermind-0:8545
       - el-full-reth-1:8545
-      - el-full-geth-2:8545
+      - el-full-reth-2:8545
+      - el-full-geth-3:8545
+      - el-full-geth-4:8545
 additional_services: ["prometheus", "grafana", "loki"]
 metrics_enabled_services: []

@@ -23,19 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package randao
 
-// Option is a function type that takes a pointer
-// to an object to build and returns an error.
-type Option[T any] func(*T) error
+import (
+	"context"
 
-// New helps us to create a new object with the provided options.
-func New[S any](opts ...Option[S]) *S {
-	var s S
-	for _, opt := range opts {
-		if err := opt(&s); err != nil {
-			panic(err)
-		}
-	}
-	return &s
+	"github.com/berachain/beacon-kit/beacon/core/state"
+)
+
+type BeaconStateProvider interface {
+	// BeaconState returns the current beacon state.
+	BeaconState(context.Context) state.BeaconState
 }

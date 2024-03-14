@@ -23,25 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package signing
 
-import "github.com/berachain/beacon-kit/primitives"
+// TODO: Do this properly, using [4]byte, for now its stupid simple.
+// TODO add forkbytes thing.
+type Domain [32]byte
 
-// LogRequest is a request for logs sent from a service.
-type LogRequest struct {
-	ContractAddress primitives.ExecutionAddress
-	Allocator       *TypeAllocator
+// BuildDomain creates and returns a new Domain instance.
+// This function initializes a Domain with its default value, which is a 32-byte
+// array filled with zeros.
+func BuildDomain() Domain {
+	return Domain{}
 }
 
-// LogContainer is a container for processed logs.
-type LogContainer interface {
-	BlockNumber() uint64
-	LogIndex() uint64
-}
-
-type LogCache interface {
-	// Insert inserts a log into the cache.
-	Insert(log LogContainer) error
-	// Remove removes at most n logs from the given index.
-	Remove(index uint64, n uint64) ([]LogContainer, error)
+// Bytes returns the byte representation of the Domain.
+func (d *Domain) Bytes() []byte {
+	return d[:]
 }

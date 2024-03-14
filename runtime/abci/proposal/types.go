@@ -23,18 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package proposal
 
-// SSZDomain is a 4-byte array used to represent a
-// domain type in BLS signing and verification.
-type SSZDomain = [4]byte
+import (
+	"context"
 
-// Domain constants for BLS domain types.
-// Spec:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
-//
-//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
-var (
-	DomainRandao  = SSZDomain{0x02, 0x00, 0x00, 0x00}
-	DomainDeposit = SSZDomain{0x03, 0x00, 0x00, 0x00}
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
+
+// StakingKeeper provides the interface for the staking module.
+type StakingKeeper interface {
+	GetValidatorPubkeyFromConsAddress(
+		ctx context.Context,
+		consAddr []byte,
+	) ([bls12381.PubKeyLength]byte, error)
+}

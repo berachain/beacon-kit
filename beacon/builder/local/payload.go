@@ -243,17 +243,23 @@ func (s *Service) getPayloadAttribute(
 	prevHeadRoot [32]byte,
 ) (enginetypes.PayloadAttributer, error) {
 	var (
-		st = s.BeaconState(ctx)
-		// TODO: RANDAO
-		prevRandao = [32]byte{}
-		// prevRandao, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
+		prevRandao [32]byte
+		st         = s.BeaconState(ctx)
 	)
 
 	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
+	withdrawals, err := st.ExpectedWithdrawals(
+		s.BeaconCfg().Limits.MaxWithdrawalsPerPayload,
+	)
 	if err != nil {
 		s.Logger().Error(
 			"Could not get expected withdrawals to get payload attribute", "error", err)
+		return nil, err
+	}
+
+	// Get the previous randao mix.
+	prevRandao, err = st.RandaoMix()
+	if err != nil {
 		return nil, err
 	}
 

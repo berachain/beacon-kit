@@ -23,17 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package types
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs SigningData -output generated.ssz.go
+import (
+	"github.com/berachain/beacon-kit/crypto/sha256"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
-// Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
-//
-//nolint:lll // Urls are long.
-type SigningData struct {
-	ObjectRoot []byte `ssz-size:"32"`
-	Domain     []byte `ssz-size:"32"`
+// Mix represents the current state of the RANDAO's entropy mixing process.
+// RANDAO can be conceptualized as a deck of cards being passed and shuffled
+// by each participant, thereby continuously re-randomizing the deck.
+// This process ensures that even if an individual's contribution to the
+// randomness is weak, the overall entropy of the system remains high. Mix keeps
+// track of this "current mix" or the state of the shuffled deck as it
+// circulates among participants.
+const MixLength = 32
+
+// Mix is a fixed-size array that stores the current state of the entropy mix.
+type Mix [MixLength]byte
+
+// MixinNewReveal takes a new reveal (signature) and combines it with the
+// current mix
+// using a XOR operation, then returns the updated mix.
+func (m Mix) MixinNewReveal(reveal Reveal) Mix {
+	for idx, b := range sha256.Hash(reveal[:]) {
+		m[idx] ^= b
+	}
+	return m
+}
+
+// MarshalText returns the hex representation of m.
+func (m Mix) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(m[:]).MarshalText()
 }

@@ -1108,8 +1108,8 @@ github.com/klauspost/compress v1.15.11/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrD
 github.com/klauspost/compress v1.17.7 h1:ehO88t2UGzQK66LMdE8tibEd1ErmzZjNEqWkjLAKQQg=
 github.com/klauspost/compress v1.17.7/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
 github.com/klauspost/cpuid v1.2.0/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
-github.com/klauspost/cpuid/v2 v2.2.5 h1:0E5MSMDEoAulmXNFquVs//DdoomxaoTY1kUhbc/qbZg=
-github.com/klauspost/cpuid/v2 v2.2.5/go.mod h1:Lcz8mBdAVJIBVzewtcLocK12l3Y+JytZYpaMropDUws=
+github.com/klauspost/cpuid/v2 v2.2.7 h1:ZWSB3igEs+d0qvnxR/ZBzXVmxkgt8DdzP6m9pfuVLDM=
+github.com/klauspost/cpuid/v2 v2.2.7/go.mod h1:Lcz8mBdAVJIBVzewtcLocK12l3Y+JytZYpaMropDUws=
 github.com/klauspost/pgzip v1.2.6 h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU=
 github.com/klauspost/pgzip v1.2.6/go.mod h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
@@ -1128,8 +1128,8 @@ github.com/kunwardeep/paralleltest v1.0.9 h1:3Sr2IfFNcsMmlqPk1cjTUbJ4zofKPGyHxen
 github.com/kunwardeep/paralleltest v1.0.9/go.mod h1:2C7s65hONVqY7Q5Efj5aLzRCNLjw2h4eMc9EcypGjcY=
 github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230818182330-1a86869414d2 h1:izciXrFyFR+ihJ7nLTOkoIX5GzBPIp8gVKlw94gIc98=
 github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230818182330-1a86869414d2/go.mod h1:bWSMQK3WHVTGHX9CjxPAb/LtzcmfOxID2wdzakSWQxo=
-github.com/kurtosis-tech/kurtosis/api/golang v0.88.4 h1:+PHsrAYnNJuATmdG+/4MXVmZp81/2FPyn0NNZM/S0IE=
-github.com/kurtosis-tech/kurtosis/api/golang v0.88.4/go.mod h1:9T22P7Vv3j5g6sbm78DxHQ4s9C4Cj3s9JjFQ7DFyYpM=
+github.com/kurtosis-tech/kurtosis/api/golang v0.88.5 h1:Bp0YLBb6RyvDx1B5XCR73HHLDj+Ez7h4boRV0wC8IkU=
+github.com/kurtosis-tech/kurtosis/api/golang v0.88.5/go.mod h1:9T22P7Vv3j5g6sbm78DxHQ4s9C4Cj3s9JjFQ7DFyYpM=
 github.com/kurtosis-tech/kurtosis/contexts-config-store v0.0.0-20230818184218-f4e3e773463b h1:hMoIM99QKcYQqsnK4AF7Lovi9ZD9ac6lZLZ5D/jx2x8=
 github.com/kurtosis-tech/kurtosis/contexts-config-store v0.0.0-20230818184218-f4e3e773463b/go.mod h1:4pFdrRwDz5R+Fov2ZuTaPhAVgjA2jhGh1Izf832sX7A=
 github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20230803130419-099ee7a4e3dc h1:7IlEpSehmWcNXOFpNP24Cu5HQI3af7GCBQw//m+LnvQ=
@@ -1639,8 +1639,8 @@ github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPU
 github.com/valyala/fasttemplate v1.2.1/go.mod h1:KHLXt3tVN2HBp8eijSv/kGJopbvo7S+qRAEEKiv+SiQ=
 github.com/vbatts/tar-split v0.11.5 h1:3bHCTIheBm1qFTcgh9oPu+nNBtX+XJIupG/vacinCts=
 github.com/vbatts/tar-split v0.11.5/go.mod h1:yZbwRsSeGjusneWgA781EKej9HF8vme8okylkAeNKLk=
-github.com/vektra/mockery/v2 v2.42.0 h1:xnP1KXjpcc1GD8jHRjgdpRIW4LDK5MdSMrhbJizAmaI=
-github.com/vektra/mockery/v2 v2.42.0/go.mod h1:XNTE9RIu3deGAGQRVjP1VZxGpQNm0YedZx4oDs3prr8=
+github.com/vektra/mockery/v2 v2.42.1 h1:z7l3O4jCzRZat3rm9jpHc8lzpR8bs1VBii7bYtl3KQs=
+github.com/vektra/mockery/v2 v2.42.1/go.mod h1:XNTE9RIu3deGAGQRVjP1VZxGpQNm0YedZx4oDs3prr8=
 github.com/x-cray/logrus-prefixed-formatter v0.5.2 h1:00txxvfBM9muc0jiLIEAkAcIMJzfthRT6usrui8uGmg=
 github.com/x-cray/logrus-prefixed-formatter v0.5.2/go.mod h1:2duySbKsL6M18s5GU7VPsoEPHyzalCE06qoARUCeBBE=
 github.com/xen0n/gosmopolitan v1.2.2 h1:/p2KTnMzwRexIW8GlKawsTWOxn7UHA+jCMF/V8HHtvU=

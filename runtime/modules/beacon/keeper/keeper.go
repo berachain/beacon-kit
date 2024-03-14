@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	"github.com/berachain/beacon-kit/runtime"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
@@ -42,6 +43,7 @@ import (
 type Keeper struct {
 	beaconStore     *beaconstore.Store
 	forkchoiceStore *forkchoicestore.Store
+	vcp             runtime.ValsetChangeProvider
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
@@ -52,6 +54,11 @@ func NewKeeper(
 		beaconStore:     beaconstore.NewStore(env.KVStoreService),
 		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
 	}
+}
+
+// SetValsetChangeProvider sets the valset change provider.
+func (k *Keeper) SetValsetChangeProvider(vcp runtime.ValsetChangeProvider) {
+	k.vcp = vcp
 }
 
 // BeaconState returns the beacon state struct initialized with a given
@@ -75,10 +82,15 @@ func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data types.GenesisState,
 ) error {
+	// Set the genesis RANDAO mix.
+	st := k.BeaconState(ctx)
+	if err := st.SetRandaoMix(data.Mix()); err != nil {
+		return err
+	}
+
+	// Set the genesis block data.
 	fcs := k.ForkchoiceStore(ctx)
 	hash := common.HexToHash(data.Eth1GenesisHash)
-
-	// At genesis, we assume that the genesis block is also safe and final.
 	fcs.SetGenesisEth1Hash(hash)
 	fcs.SetSafeEth1BlockHash(hash)
 	fcs.SetFinalizedEth1BlockHash(hash)

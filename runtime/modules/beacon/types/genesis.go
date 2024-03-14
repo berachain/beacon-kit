@@ -25,9 +25,16 @@
 
 package types
 
+import "github.com/berachain/beacon-kit/beacon/core/randao/types"
+
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		//nolint:lll
-		Eth1GenesisHash: "0x2e43469af70d310f5c2d81ff27cc482935f5c620601f1a6d3d21f5ab9192dd7c",
+		Eth1GenesisHash: "0x7b67dff2705bd1dd6133f5a6791c25bb457960d709cd4c318aed39690c4ef2c2",
+		RandaoMix:       make([]byte, types.MixLength),
 	}
+}
+
+func (gs *GenesisState) Mix() types.Mix {
+	return types.Mix(gs.RandaoMix)
 }

@@ -23,15 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package signing
 
-// WithRequest returns an Option for setting
-// the allocator for a given contract address.
-func WithRequest(
-	req *LogRequest,
-) Option[Factory] {
-	return func(f *Factory) error {
-		f.addressToAllocator[req.ContractAddress] = req.Allocator
-		return nil
-	}
+// SigningData is a struct used to compute
+// hash(root_hash(object), domain_hash).
+// Spec:
+// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
+//
+//nolint:lll // Urls are long.
+type Data struct {
+	ObjectRoot []byte `ssz-size:"32"`
+	Domain     Domain `ssz-size:"32"`
 }

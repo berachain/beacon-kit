@@ -26,10 +26,14 @@
 package staking
 
 import (
+	"bytes"
 	"context"
+	"errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	stakinglogs "github.com/berachain/beacon-kit/beacon/staking/logs"
+	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -47,11 +51,11 @@ func (s *Service) ProcessBlockEvents(
 		// Switch statement to handle different log types.
 		var err error
 		switch logSig := log.Topics[0]; {
-		case logSig == stakinglogs.DepositSig:
+		case logSig == DepositEventSig:
 			err = s.processDepositLog(ctx, log)
-		case logSig == stakinglogs.RedirectSig:
+		case logSig == RedirectEventSig:
 			err = s.processRedirectLog(ctx, log)
-		case logSig == stakinglogs.WithdrawalSig:
+		case logSig == WithdrawalEventSig:
 			err = s.processWithdrawalLog(ctx, log)
 		default:
 			continue
@@ -69,14 +73,22 @@ func (s *Service) processDepositLog(
 	ctx context.Context,
 	log coretypes.Log,
 ) error {
-	deposit := new(beacontypes.Deposit)
-	if err := deposit.UnmarshalEthLog(log); err != nil {
+	d := &stakingabi.BeaconDepositContractDeposit{}
+	if err := s.abi.UnpackLogs(d, DepositEventName, log); err != nil {
 		return err
 	}
-	s.Logger().
-		Info("he was a sk8r boi 🛹",
-			"deposit", deposit.Index, "amount", deposit.Amount)
-	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{deposit})
+
+	s.Logger().Info(
+		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
+	)
+
+	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
+		Index:       d.Index,
+		Pubkey:      d.Pubkey,
+		Credentials: d.Credentials,
+		Amount:      d.Amount,
+		Signature:   d.Signature,
+	}})
 }
 
 // processRedirectLog adds a redirect to the queue.
@@ -86,8 +98,34 @@ func (s *Service) processRedirectLog(_ context.Context, _ coretypes.Log) error {
 
 // processWithdrawalLog adds a withdrawal to the queue.
 func (s *Service) processWithdrawalLog(
-	_ context.Context,
-	_ coretypes.Log,
+	ctx context.Context,
+	log coretypes.Log,
 ) error {
-	return nil
+	w := &stakingabi.BeaconDepositContractWithdrawal{}
+	if err := s.abi.UnpackLogs(w, WithdrawalEventName, log); err != nil {
+		return err
+	}
+
+	// Get the validator index from the pubkey.
+	validator, err := s.BeaconState(ctx).
+		ValidatorIndexByPubkey(ctx, w.FromPubkey)
+	if err != nil {
+		return err
+	}
+
+	// Check to make sure credentials encoded correctly.
+	if !bytes.Equal(w.Credentials[:1], EthSecp256k1CredentialPrefix) {
+		return errors.New("invalid withdrawal credentials")
+	}
+
+	s.Logger().Info(
+		"she said, \"see you later, boi\" 💅", "deposit", w.Index, "amount", w.Amount,
+	)
+
+	return s.BeaconState(ctx).EnqueueWithdrawals([]*enginetypes.Withdrawal{{
+		Index:     w.Index,
+		Validator: validator,
+		Address:   primitives.ExecutionAddress(w.Credentials[12:]),
+		Amount:    w.Amount,
+	}})
 }

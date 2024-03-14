@@ -23,35 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs_test
+package signing
 
-import (
-	"testing"
-
-	"github.com/berachain/beacon-kit/beacon/staking/logs"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/require"
-)
-
-func TestLogSignatures(t *testing.T) {
-	require.Equal(t,
-		ethcrypto.Keccak256Hash(
-			[]byte(logs.DepositName+"(bytes,bytes,uint64,bytes,uint64)"),
-		),
-		logs.DepositSig,
-	)
-
-	require.Equal(t,
-		ethcrypto.Keccak256Hash(
-			[]byte(logs.RedirectName+"(bytes,bytes,bytes,uint64,uint64)"),
-		),
-		logs.RedirectSig,
-	)
-
-	require.Equal(t,
-		ethcrypto.Keccak256Hash(
-			[]byte(logs.WithdrawalName+"(bytes,bytes,bytes,uint64,uint64)"),
-		),
-		logs.WithdrawalSig,
-	)
-}
+// Generate the SSZ serialization code for the signing package.
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs Data,ForkData -include ../../../primitives -output generated.ssz.go

@@ -30,7 +30,9 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/store/collections"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
 )
@@ -40,16 +42,29 @@ import (
 type Store struct {
 	ctx context.Context
 
-	validatorIndex                    sdkcollections.Sequence
-	validatorIndexToValidatorOperator sdkcollections.Map[uint64, []byte]
+	// validatorIndex is a sequence that provides the next
+	// available index for a new validator.
+	validatorIndex sdkcollections.Sequence
 
-	// depositQueue is a list of depositQueue that are queued to be processed.
+	// validatorIndexToPubkey is a map that provides the
+	// public key for a given validator index.
+	validatorIndexToPubkey *sdkcollections.IndexedMap[
+		uint64, []byte, validatorsIndex,
+	]
+
+	// depositQueue is a list of deposits that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
+
+	// withdrawalQueue is a list of withdrawals that are queued to be processed.
+	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
 	// by eip-4788.
 	parentBlockRoot sdkcollections.Item[[]byte]
+
+	// randaoMix stores the randao mix for the current epoch.
+	randaoMix sdkcollections.Item[[types.MixLength]byte]
 }
 
 // Store creates a new instance of Store.
@@ -57,37 +72,42 @@ func NewStore(
 	kvs store.KVStoreService,
 ) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
-	validatorIndex := sdkcollections.NewSequence(
-		schemaBuilder,
-		sdkcollections.NewPrefix(validatorIndexPrefix),
-		validatorIndexPrefix,
-	)
-	validatorIndexToValidatorOperator := sdkcollections.NewMap[uint64, []byte](
-		schemaBuilder,
-		sdkcollections.NewPrefix(validatorIndexToAddressPrefix),
-		validatorIndexToAddressPrefix,
-		sdkcollections.Uint64Key,
-		sdkcollections.BytesValue,
-	)
-
-	depositQueue := collections.NewQueue[*beacontypes.Deposit](
-		schemaBuilder,
-		depositQueuePrefix,
-		encoding.SSZValueCodec[*beacontypes.Deposit]{},
-	)
-
-	parentBlockRoot := sdkcollections.NewItem[[]byte](
-		schemaBuilder,
-		sdkcollections.NewPrefix(parentBlockRootPrefix),
-		parentBlockRootPrefix,
-		sdkcollections.BytesValue,
-	)
-
 	return &Store{
-		validatorIndex:                    validatorIndex,
-		validatorIndexToValidatorOperator: validatorIndexToValidatorOperator,
-		depositQueue:                      depositQueue,
-		parentBlockRoot:                   parentBlockRoot,
+		validatorIndex: sdkcollections.NewSequence(
+			schemaBuilder,
+			sdkcollections.NewPrefix(validatorIndexPrefix),
+			validatorIndexPrefix,
+		),
+		validatorIndexToPubkey: sdkcollections.NewIndexedMap[uint64, []byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(validatorIndexToPubkeyPrefix),
+			validatorIndexToPubkeyPrefix,
+			sdkcollections.Uint64Key,
+			sdkcollections.BytesValue,
+			newValidatorsIndex(schemaBuilder),
+		),
+		depositQueue: collections.NewQueue[*beacontypes.Deposit](
+			schemaBuilder,
+			depositQueuePrefix,
+			encoding.SSZValueCodec[*beacontypes.Deposit]{},
+		),
+		withdrawalQueue: collections.NewQueue[*enginetypes.Withdrawal](
+			schemaBuilder,
+			withdrawalQueuePrefix,
+			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
+		),
+		parentBlockRoot: sdkcollections.NewItem[[]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(parentBlockRootPrefix),
+			parentBlockRootPrefix,
+			sdkcollections.BytesValue,
+		),
+		randaoMix: sdkcollections.NewItem[[types.MixLength]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(randaoMixPrefix),
+			randaoMixPrefix,
+			encoding.Bytes32ValueCodec{},
+		),
 	}
 }
 

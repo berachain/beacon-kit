@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2023 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -23,12 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abi
+package randao
 
-// This file is used to generate the go bindings for the contracts.
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --pkg abi --abi ../out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --bin ../out/BeaconDepositContract.sol/BeaconDepositContract.bin --out ./beacon_deposit_contract.abigen.go --type BeaconDepositContract
-
-var (
-	//nolint:gochecknoglobals // optimization at runtime.
-	DepositContractABI, _ = BeaconDepositContractMetaData.GetAbi()
+import (
+	"cosmossdk.io/log"
+	crypto "github.com/berachain/beacon-kit/crypto"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
+
+type Option func(*Processor) error
+
+// WithBeaconStateProvider sets the beacon state provider.
+func WithBeaconStateProvider(beaconStateProvider BeaconStateProvider) Option {
+	return func(p *Processor) error {
+		p.BeaconStateProvider = beaconStateProvider
+		return nil
+	}
+}
+
+// WithSigner sets the signer.
+func WithSigner(
+	signer crypto.Signer[[bls12381.SignatureLength]byte],
+) Option {
+	return func(p *Processor) error {
+		p.signer = signer
+		return nil
+	}
+}
+
+// WithLogger sets the logger.
+func WithLogger(logger log.Logger) Option {
+	return func(p *Processor) error {
+		p.logger = logger
+		return nil
+	}
+}

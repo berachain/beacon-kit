@@ -23,27 +23,47 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package staking
 
 import (
-	"fmt"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 const (
-	// Log from incorrect block.
-	ErrLogFromIncorrectBlock = "log from different block, " +
-		"expected %s, got %s, for block %d"
+	// Name of the Deposit event
+	// in the deposit contract.
+	DepositEventName = "Deposit"
+
+	// Name of the Redirect event
+	// in the deposit contract.
+	RedirectEventName = "Redirect"
+
+	// Name the Withdrawal event
+	// in the deposit contract.
+	WithdrawalEventName = "Withdrawal"
 )
 
-func NewErrLogFromIncorrectBlock(
-	blockHash string,
-	logBlockHash string,
-	logBlockNumber uint64,
-) error {
-	return fmt.Errorf(
-		ErrLogFromIncorrectBlock,
-		blockHash,
-		logBlockHash,
-		logBlockNumber,
+//nolint:gochecknoglobals // Avoid re-allocating these variables.
+var (
+	// Signature and type of the Deposit event
+	// in the deposit contract.
+	DepositEventSig = crypto.Keccak256Hash(
+		[]byte(DepositEventName + "(bytes,bytes,uint64,bytes,uint64)"),
 	)
-}
+
+	// Signature and type of the Redirect event
+	// in the deposit contract.
+	RedirectEventSig = crypto.Keccak256Hash(
+		[]byte(RedirectEventName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
+	// RedirectType = reflect.TypeOf(enginetypes.Redirect{}).
+
+	// Signature and type of the Withdraw event
+	// in the deposit contract.
+	WithdrawalEventSig = crypto.Keccak256Hash(
+		[]byte(WithdrawalEventName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
+
+	//nolint:gochecknoglobals // Avoid re-allocating these variables.
+	EthSecp256k1CredentialPrefix = []byte{0x01}
+)
