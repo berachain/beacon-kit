@@ -26,7 +26,7 @@
 package version
 
 const (
-	Phase0 = iota
+	Phase0 uint32 = iota
 	Altair
 	Bellatrix
 	Capella
