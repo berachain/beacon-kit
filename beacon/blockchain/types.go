@@ -76,7 +76,7 @@ type LocalBuilder interface {
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor interface {
 	BuildReveal(
-		ctx context.Context,
+		st context.Context,
 		epoch primitives.Epoch,
 	) (randaotypes.Reveal, error)
 	MixinNewReveal(
