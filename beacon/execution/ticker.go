@@ -25,47 +25,13 @@
 
 package execution
 
-import (
-	"time"
-
-	engineclient "github.com/berachain/beacon-kit/engine/client"
-	"github.com/berachain/beacon-kit/runtime/service"
-)
-
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithEngineCaller is an option to set the Caller for the Service.
-func WithEngineCaller(ec *engineclient.EngineClient) service.Option[Service] {
-	return func(s *Service) error {
-		s.engine = ec
-		return nil
-	}
-}
-
-// WithLogFactory is an option to set the LogFactory for the Service.
-func WithLogFactory(f LogFactory) service.Option[Service] {
-	return func(s *Service) error {
-		s.logFactory = f
-		return nil
-	}
-}
-
-func WithStakingService(ss StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.sks = ss
-		return nil
-	}
-}
-
-func WithHeadTicker(t time.Duration) service.Option[Service] {
-	return func(s *Service) error {
-		s.headTicker = time.NewTicker(t)
-		return nil
+func (s *Service) followHeadTicker(done <-chan struct{}) {
+	for {
+		select {
+		case <-done:
+			return
+		case <-s.headTicker.C:
+			return
+		}
 	}
 }

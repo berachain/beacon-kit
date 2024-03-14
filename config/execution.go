@@ -26,6 +26,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/cli/parser"
 	"github.com/berachain/beacon-kit/primitives"
@@ -41,6 +43,7 @@ func DefaultExecutionConfig() Execution {
 		DepositContractAddress: common.HexToAddress(
 			"0x18Df82C7E422A42D47345Ed86B0E935E9718eBda",
 		),
+		DurationPerBlock: 6 * time.Second,
 	}
 }
 
@@ -48,6 +51,7 @@ func DefaultExecutionConfig() Execution {
 // execution layer on the beacon chain.
 type Execution struct {
 	DepositContractAddress primitives.ExecutionAddress
+	DurationPerBlock       time.Duration
 }
 
 // Parse parses the configuration.
@@ -55,6 +59,11 @@ func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
 	var err error
 	if c.DepositContractAddress, err = parser.GetExecutionAddress(
 		flags.DepositContractAddress,
+	); err != nil {
+		return nil, err
+	}
+	if c.DurationPerBlock, err = parser.GetTimeDuration(
+		flags.DurationPerBlock,
 	); err != nil {
 		return nil, err
 	}
@@ -68,5 +77,8 @@ func (c Execution) Template() string {
 [beacon-kit.beacon-config.execution]
 # DepositContractAddress is the address of the deposit contract.
 deposit-contract-address = "{{.BeaconKit.Beacon.Execution.DepositContractAddress}}"
+
+# DurationPerBlock is the time duration for each block.
+duration-per-block = 6s
 `
 }

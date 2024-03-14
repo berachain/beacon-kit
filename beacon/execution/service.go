@@ -27,6 +27,7 @@ package execution
 
 import (
 	"context"
+	"time"
 
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -43,12 +44,16 @@ type Service struct {
 	engine *engineclient.EngineClient
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
-	sks        StakingService
+	// sks is the staking service.
+	sks StakingService
+	// headTicker is the ticker to represent the delay from head.
+	headTicker *time.Ticker
 }
 
 // Start spawns any goroutines required by the service.
 func (s *Service) Start(ctx context.Context) {
 	go s.engine.Start(ctx)
+	go s.followHeadTicker(ctx.Done())
 }
 
 // Status returns error if the service is not considered healthy.
@@ -128,4 +133,12 @@ func (s *Service) ProcessLogsInETH1Block(
 	}
 
 	return s.sks.ProcessBlockEvents(ctx, logsInBlock)
+}
+
+func (s *Service) GetLatestBlockNumber(
+	ctx context.Context,
+) {
+	// fill in with some logic of cometbftblock time mod eth block time
+	// round down if less than 0.5 * eth secs per block
+	// round up if other scenario
 }

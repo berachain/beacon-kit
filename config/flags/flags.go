@@ -63,6 +63,7 @@ const (
 	// Execution Config.
 	executionRoot          = beaconConfigRoot + "execution."
 	DepositContractAddress = executionRoot + "deposit-contract-address"
+	DurationPerBlock       = executionRoot + "duration-per-block"
 
 	// FeatureFlags Config.
 	featureFlagsRoot = beaconKitRoot + "feature-flags."

@@ -147,6 +147,7 @@ func NewDefaultBeaconKitRuntime(
 		execution.WithEngineCaller(engineClient),
 		execution.WithLogFactory(logFactory),
 		execution.WithStakingService(stakingService),
+		execution.WithHeadTicker(cfg.Beacon.Execution.DurationPerBlock),
 	)
 
 	// Build the local builder service.
