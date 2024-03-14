@@ -76,7 +76,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot,
+	ctx context.Context, slot primitives.Slot, proposerPubkey [48]byte,
 ) (beacontypes.BeaconBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -93,9 +93,19 @@ func (s *Service) RequestBestBlock(
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 
+	proposerIndex, err := s.BeaconState(ctx).
+		ValidatorIndexByPubkey(proposerPubkey[:])
+	if err != nil {
+		return nil, err
+	}
+
 	// Create a new empty block from the current state.
 	beaconBlock, err := beacontypes.EmptyBeaconBlock(
-		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot), reveal,
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		s.ActiveForkVersionForSlot(slot),
+		reveal,
 	)
 	if err != nil {
 		return nil, err

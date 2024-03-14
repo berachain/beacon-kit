@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/signing"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	crypto "github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
@@ -99,14 +98,14 @@ func (p *Processor) VerifyReveal(
 // MixinNewReveal mixes in a new reveal.
 func (p *Processor) MixinNewReveal(
 	st state.BeaconState,
-	blk beacontypes.BeaconBlock,
+	reveal types.Reveal,
 ) error {
 	mix, err := st.RandaoMix()
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
 
-	newMix := mix.MixinNewReveal(blk.GetRandaoReveal())
+	newMix := mix.MixinNewReveal(reveal)
 	if err = st.SetRandaoMix(newMix); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}

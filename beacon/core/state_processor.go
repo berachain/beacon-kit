@@ -28,10 +28,12 @@ package core
 import (
 	"fmt"
 
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -88,7 +90,9 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err := sp.processRandaoReveal(); err != nil {
+	if err := sp.processRandaoReveal(
+		st, blk.GetSlot(), blk.GetProposerIndex(), body.GetRandaoReveal(),
+	); err != nil {
 		return err
 	}
 
@@ -178,6 +182,30 @@ func (sp *StateProcessor) processWithdrawals(
 
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
-func (sp *StateProcessor) processRandaoReveal() error {
+func (sp *StateProcessor) processRandaoReveal(
+	st state.BeaconState,
+	slot primitives.Slot,
+	proposerIndex primitives.ValidatorIndex,
+	reveal randaotypes.Reveal,
+) error {
+	pubkey, err := st.ValidatorPubKeyByIndex(proposerIndex)
+	if err != nil {
+		return err
+	}
+
+	// Verify the RANDAO Reveal.
+	if err = sp.rp.VerifyReveal(
+		[48]byte(pubkey),
+		sp.cfg.SlotToEpoch(slot),
+		reveal,
+	); err != nil {
+		return err
+	}
+
+	// TODO: This is very much the wrong spot for this.
+	if err = sp.rp.MixinNewReveal(st, reveal); err != nil {
+		return err
+	}
+
 	return nil
 }

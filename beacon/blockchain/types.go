@@ -30,7 +30,6 @@ import (
 
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/execution"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -81,7 +80,7 @@ type RandaoProcessor interface {
 	) (randaotypes.Reveal, error)
 	MixinNewReveal(
 		st state.BeaconState,
-		blk beacontypes.BeaconBlock,
+		reveal randaotypes.Reveal,
 	) error
 	VerifyReveal(
 		proposerPubkey [bls12381.PubKeyLength]byte,
