@@ -29,10 +29,12 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 )
 
+// SetRandaoMix sets the current RANDAO mix in the store.
 func (s *Store) SetRandaoMix(mix types.Mix) error {
 	return s.randaoMix.Set(s.ctx, mix)
 }
 
+// RandaoMix retrieves the current RANDAO mix from the store.
 func (s *Store) RandaoMix() (types.Mix, error) {
 	return s.randaoMix.Get(s.ctx)
 }

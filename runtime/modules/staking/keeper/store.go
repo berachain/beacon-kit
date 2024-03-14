@@ -23,49 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs
+package staking
 
 import (
-	"fmt"
-	"reflect"
+	"context"
 
-	"github.com/berachain/beacon-kit/primitives"
-	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
-// WithABI returns an Option for registering
-// the contract ABI with the TypeAllocator.
-func WithABI(contractAbi *ethabi.ABI) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		a.abi = contractAbi
-		a.sigToName = make(map[primitives.ExecutionHash]string)
-		a.sigToType = make(map[primitives.ExecutionHash]reflect.Type)
-		return nil
+// GetValidatorPubkeyFromConsAddress returns the public
+// key of the proposer of the block.
+func (k *Keeper) GetValidatorPubkeyFromConsAddress(
+	ctx context.Context,
+	consAddr []byte,
+) ([bls12381.PubKeyLength]byte, error) {
+	valAddr, err := k.Keeper.ValidatorByConsensusAddress.Get(
+		ctx,
+		consAddr,
+	)
+	if err != nil {
+		return [bls12381.PubKeyLength]byte{}, err
 	}
+
+	return k.GetValidatorPubkeyFromValAddress(ctx, valAddr)
 }
 
-// WithNameAndType returns an Option for registering
-// an event name and type under the given even signature
-// with the TypeAllocator.
-// NOTE: WithABI must be called before this function.
-func WithNameAndType(
-	sig primitives.ExecutionHash,
-	name string,
-	t reflect.Type,
-) Option[TypeAllocator] {
-	return func(a *TypeAllocator) error {
-		event, ok := a.abi.Events[name]
-		if !ok {
-			return fmt.Errorf("event %s not found in ABI", name)
-		}
-		if event.ID != sig {
-			return fmt.Errorf(
-				"event %s signature does not match, expected %s, got %s",
-				name, event.ID.Hex(), sig.Hex(),
-			)
-		}
-		a.sigToName[sig] = name
-		a.sigToType[sig] = t
-		return nil
+// GetValidatorPubkeyFromValAddress returns the public
+// key of the validator with the given validator address.
+func (k *Keeper) GetValidatorPubkeyFromValAddress(
+	ctx context.Context,
+	valAddr []byte,
+) ([bls12381.PubKeyLength]byte, error) {
+	validator, err := k.Keeper.GetValidator(ctx, valAddr)
+	if err != nil {
+		return [bls12381.PubKeyLength]byte{}, err
 	}
+
+	var key cmtprotocrypto.PublicKey
+	key, err = validator.CmtConsPublicKey()
+	if err != nil {
+		return [bls12381.PubKeyLength]byte{}, err
+	}
+
+	var pubKey [bls12381.PubKeyLength]byte
+	copy(pubKey[:], key.GetBls12381())
+
+	return pubKey, nil
 }

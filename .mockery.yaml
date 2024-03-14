@@ -58,8 +58,3 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/beacon/execution/logs:
-    config:
-      recursive: True
-      with-expecter: true
-      include-regex: LogContainer

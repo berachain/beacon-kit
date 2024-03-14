@@ -30,20 +30,18 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
-// Deposit Management
+// ExpectedDeposits returns the first numPeek deposits in the queue.
+func (s *Store) ExpectedDeposits(
+	numView uint64,
+) ([]*beacontypes.Deposit, error) {
+	return s.depositQueue.PeekMulti(s.ctx, numView)
+}
 
 // EnqueueDeposits pushes the deposits to the queue.
 func (s *Store) EnqueueDeposits(
 	deposits []*beacontypes.Deposit,
 ) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
-}
-
-// ExpectedDeposits returns the first numPeek deposits in the queue.
-func (s *Store) ExpectedDeposits(
-	numPeek uint64,
-) ([]*beacontypes.Deposit, error) {
-	return s.depositQueue.PeekMulti(s.ctx, numPeek)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
@@ -53,12 +51,41 @@ func (s *Store) DequeueDeposits(
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
-// Withdrawal Management
+// ExpectedWithdrawals returns the first numView withdrawals in the queue.
+func (s *Store) ExpectedWithdrawals(
+	numView uint64,
+) ([]*enginetypes.Withdrawal, error) {
+	withdrawals, err := s.withdrawalQueue.PeekMulti(s.ctx, numView)
+	if err != nil {
+		return nil, err
+	}
+	return s.handleNilWithdrawals(withdrawals), nil
+}
 
-// TODO: Consider consolidating BeaconState interface externally to x/beacon
-// to facilitate withdrawals from x/beacon_staking.
-// TODO: Explore constructing BeaconState from multiple sources beyond
-// just x/beacon.
-func (s *Store) ExpectedWithdrawals() ([]*enginetypes.Withdrawal, error) {
-	return []*enginetypes.Withdrawal{}, nil
+// EnqueueWithdrawals pushes the withdrawals to the queue.
+func (s *Store) EnqueueWithdrawals(
+	withdrawals []*enginetypes.Withdrawal,
+) error {
+	return s.withdrawalQueue.PushMulti(s.ctx, withdrawals)
+}
+
+// EnqueueWithdrawals pushes the withdrawals to the queue.
+func (s *Store) DequeueWithdrawals(
+	numDequeue uint64,
+) ([]*enginetypes.Withdrawal, error) {
+	withdrawals, err := s.withdrawalQueue.PopMulti(s.ctx, numDequeue)
+	if err != nil {
+		return nil, err
+	}
+	return s.handleNilWithdrawals(withdrawals), nil
+}
+
+// handleNilWithdrawals returns an empty slice if the input is nil.
+func (Store) handleNilWithdrawals(
+	withdrawals []*enginetypes.Withdrawal,
+) []*enginetypes.Withdrawal {
+	if withdrawals == nil {
+		return make([]*enginetypes.Withdrawal, 0)
+	}
+	return withdrawals
 }

@@ -41,6 +41,7 @@ type ExecutionPayloadBody interface {
 	String() string
 	Version() uint32
 	IsBlinded() bool
+	GetPrevRandao() [32]byte
 	GetBlockHash() primitives.ExecutionHash
 	GetParentHash() primitives.ExecutionHash
 }

@@ -44,13 +44,23 @@ var _ ValsetChangeProvider = &Keeper{}
 // Keeper implements the StakingKeeper interface
 // as a wrapper around Cosmos SDK x/staking keeper.
 type Keeper struct {
-	stakingKeeper *sdkkeeper.Keeper
+	*sdkkeeper.Keeper
+}
+
+func ProvideStakingKeeper(
+	stakingKeeper *sdkkeeper.Keeper,
+) *Keeper {
+	return NewKeeper(stakingKeeper)
 }
 
 // NewKeeper creates a new instance of the staking Keeper.
 func NewKeeper(stakingKeeper *sdkkeeper.Keeper) *Keeper {
+	if stakingKeeper == nil {
+		panic("staking keeper is required")
+	}
+
 	return &Keeper{
-		stakingKeeper: stakingKeeper,
+		Keeper: stakingKeeper,
 	}
 }
 
@@ -65,7 +75,7 @@ func (k *Keeper) delegate(
 	}
 	amount := deposit.Amount
 	valConsAddr := sdk.GetConsAddress(validatorPK)
-	validator, err := k.stakingKeeper.GetValidator(
+	validator, err := k.Keeper.GetValidator(
 		ctx, sdk.ValAddress(valConsAddr),
 	)
 	if err != nil {
@@ -75,7 +85,7 @@ func (k *Keeper) delegate(
 		}
 		return 0, err
 	}
-	newShares, err := k.stakingKeeper.Delegate(
+	newShares, err := k.Keeper.Delegate(
 		ctx, sdk.AccAddress(valConsAddr),
 		sdkmath.NewIntFromUint64(amount),
 		sdkstaking.Unbonded, validator, true)

@@ -31,10 +31,19 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+// WrappedABI extends the abi.ABI struct to provide
+// additional functionality for working with wrapped ABIs.
 type WrappedABI struct {
 	*abi.ABI
 }
 
+// NewWrappedABI creates a new WrappedABI instance from a given abi.ABI
+// reference.
+func NewWrappedABI(a *abi.ABI) *WrappedABI {
+	return &WrappedABI{a}
+}
+
+// UnpackLogs attempts to unpack log entries for a specific event.
 func (wabi WrappedABI) UnpackLogs(
 	out interface{},
 	event string,
@@ -44,19 +53,23 @@ func (wabi WrappedABI) UnpackLogs(
 	if len(log.Topics) == 0 {
 		return errors.New("abi: cannot unpack anonymous event")
 	}
+	// Check for event signature mismatch.
 	if log.Topics[0] != wabi.Events[event].ID {
 		return errors.New("abi: event signature mismatch")
 	}
+	// Unpack the data if present.
 	if len(log.Data) > 0 {
 		if err := wabi.UnpackIntoInterface(out, event, log.Data); err != nil {
 			return err
 		}
 	}
+	// Collect indexed arguments for the event.
 	var indexed abi.Arguments
 	for _, arg := range wabi.Events[event].Inputs {
 		if arg.Indexed {
 			indexed = append(indexed, arg)
 		}
 	}
+	// Parse the topics to extract indexed event parameters.
 	return abi.ParseTopics(out, indexed, log.Topics[1:])
 }

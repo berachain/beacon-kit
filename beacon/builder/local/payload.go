@@ -248,7 +248,9 @@ func (s *Service) getPayloadAttribute(
 	)
 
 	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
+	withdrawals, err := st.ExpectedWithdrawals(
+		s.BeaconCfg().Limits.MaxWithdrawalsPerPayload,
+	)
 	if err != nil {
 		s.Logger().Error(
 			"Could not get expected withdrawals to get payload attribute", "error", err)

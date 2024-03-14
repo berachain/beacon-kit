@@ -83,7 +83,7 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrInvalidTimestamp
 	}
 
-	// TODO: Uncomment once randao is implemented.
+	// TODO: how to handle? PrevRandao is empty on block 1.
 	// if p.PrevRandao == [32]byte{} {
 	// 	return ErrEmptyPrevRandao
 	// }

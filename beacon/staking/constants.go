@@ -23,35 +23,47 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package logs_test
+package staking
 
 import (
-	"testing"
-
-	"github.com/berachain/beacon-kit/beacon/staking/logs"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/require"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func TestLogSignatures(t *testing.T) {
-	require.Equal(t,
-		ethcrypto.Keccak256Hash(
-			[]byte(logs.DepositName+"(bytes,bytes,uint64,bytes,uint64)"),
-		),
-		logs.DepositSig,
+const (
+	// Name of the Deposit event
+	// in the deposit contract.
+	DepositEventName = "Deposit"
+
+	// Name of the Redirect event
+	// in the deposit contract.
+	RedirectEventName = "Redirect"
+
+	// Name the Withdrawal event
+	// in the deposit contract.
+	WithdrawalEventName = "Withdrawal"
+)
+
+//nolint:gochecknoglobals // Avoid re-allocating these variables.
+var (
+	// Signature and type of the Deposit event
+	// in the deposit contract.
+	DepositEventSig = crypto.Keccak256Hash(
+		[]byte(DepositEventName + "(bytes,bytes,uint64,bytes,uint64)"),
 	)
 
-	require.Equal(t,
-		ethcrypto.Keccak256Hash(
-			[]byte(logs.RedirectName+"(bytes,bytes,bytes,uint64,uint64)"),
-		),
-		logs.RedirectSig,
+	// Signature and type of the Redirect event
+	// in the deposit contract.
+	RedirectEventSig = crypto.Keccak256Hash(
+		[]byte(RedirectEventName + "(bytes,bytes,bytes,uint64,uint64)"),
+	)
+	// RedirectType = reflect.TypeOf(enginetypes.Redirect{}).
+
+	// Signature and type of the Withdraw event
+	// in the deposit contract.
+	WithdrawalEventSig = crypto.Keccak256Hash(
+		[]byte(WithdrawalEventName + "(bytes,bytes,bytes,uint64,uint64)"),
 	)
 
-	require.Equal(t,
-		ethcrypto.Keccak256Hash(
-			[]byte(logs.WithdrawalName+"(bytes,bytes,bytes,uint64,uint64)"),
-		),
-		logs.WithdrawalSig,
-	)
-}
+	//nolint:gochecknoglobals // Avoid re-allocating these variables.
+	EthSecp256k1CredentialPrefix = []byte{0x01}
+)
