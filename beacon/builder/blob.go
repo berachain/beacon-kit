@@ -1,8 +1,10 @@
-package blockchain
+package builder
 
 import (
 	"bytes"
 	"sync"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
@@ -20,19 +22,19 @@ var bufPool = &sync.Pool{
 }
 
 // Store the blobs in the blobstore.
-func PrepareBlobsHandler(storage db.DB,
+func PrepareBlobsHandler(ctx sdk.Context, storage db.DB,
 	height int64, blk beacontypes.BeaconBlock,
-	blobs *enginetypes.BlobsBundleV1) ([][]byte, error) {
+	blobs *enginetypes.BlobsBundleV1) ([]byte, error) {
 
 	ranger := file.NewRangeDB(storage)
-	var blobTx = make([]types.BlobTxSidecar, 0, len(blobs.Blobs))
+	var blobTx = make([]*types.BlobTxSidecar, 0, len(blobs.Blobs))
 	for i, sidecar := range blobs.Blobs {
 		//Create Inclusion Proof
 		ic, err := kzg.MerkleProofKZGCommitment(blk, i)
 		if err != nil {
 			return nil, err
 		}
-		blob := types.BlobTxSidecar{
+		blob := &types.BlobTxSidecar{
 			Blob:           sidecar,
 			KzgCommitment:  blobs.Commitments[i],
 			KzgProof:       blobs.Proofs[i],
@@ -46,21 +48,25 @@ func PrepareBlobsHandler(storage db.DB,
 		blobTx[i] = blob
 	}
 
-	//TODO: ssz encode the blobTx
+	bl := types.BlobSidecars{BlobSidecars: blobTx}
 
-	return blobTx, nil
+	return bl.MarshalSSZ()
 }
 
 // Store the blobs in the blobstore.
-func ProcessBlobsHandler(storage db.DB,
-	height int64, commitments [][48]byte, blobs [][]byte) error {
+func ProcessBlobsHandler(ctx sdk.Context, storage db.DB,
+	height int64, blobTx []byte) error {
 
-	// TODO: verify blob inclusion. Since we include it in the block itself not a sub network its not required
+	bl := types.BlobSidecars{}
+	bl.UnmarshalSSZ(blobTx)
 
 	ranger := file.NewRangeDB(storage)
 	// Store the blobs under a single height.
-	for i, sidecar := range blobs {
-		if err := ranger.Set(uint64(height), commitments[i][:], sidecar); err != nil {
+	for i, sidecar := range bl.BlobSidecars {
+		if err := kzg.VerifyKZGInclusionProof([]byte{}, sidecar, uint64(i)); err != nil {
+			return err
+		}
+		if err := ranger.Set(uint64(height), sidecar.KzgCommitment, sidecar.Blob); err != nil {
 			return err
 		}
 	}

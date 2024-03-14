@@ -119,14 +119,14 @@ func (h *Handler) PrepareProposalHandler(
 	// TODO: make more robust
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 
-	blobBz, err := blockchain.PrepareBlobsHandler(h.blobstore, req.Height,
+	blobBz, err := builder.PrepareBlobsHandler(ctx, h.blobstore, req.Height,
 		blk, blobs)
 	if err != nil {
 		return nil, err
 	}
 
 	// Blob position is always the second in an array up until the end
-	resp.Txs = append(blobBz, resp.Txs...)
+	resp.Txs = append([][]byte{blobBz}, resp.Txs...)
 	return resp, nil
 }
 
@@ -175,9 +175,9 @@ func (h *Handler) ProcessProposalHandler(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
 
-	blobs := req.Txs[1:]
+	blobs := req.Txs[1]
 
-	if err = blockchain.ProcessBlobsHandler(h.blobstore, req.Height, block.GetBody().GetKzgCommitments(), blobs); err != nil {
+	if err = builder.ProcessBlobsHandler(ctx, h.blobstore, req.Height, blobs); err != nil {
 		return nil, err
 	}
 
