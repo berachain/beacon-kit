@@ -49,14 +49,15 @@ func (s *Service) postBlockProcess(
 	}
 	payloadBlockHash := payload.GetBlockHash()
 
-	// We have to do this in order to update it before FCU.
-	if err := s.rp.MixinNewReveal(ctx, blk); err != nil {
-		return err
-	}
-
 	// If the builder is enabled attempt to build a block locally.
 	// If we are in the sync state, we skip building blocks optimistically.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
+		// We have to do this in order to update it before FCU.
+		// TODO: In general we need to improve the control flow for
+		// Preblocker vs ProcessProposal.
+		if err := s.rp.MixinNewReveal(ctx, blk); err != nil {
+			return err
+		}
 		err := s.sendFCUWithAttributes(
 			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
 		)
