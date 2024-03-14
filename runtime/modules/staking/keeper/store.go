@@ -38,7 +38,7 @@ func (k *Keeper) GetValidatorPubkeyFromConsAddress(
 	ctx context.Context,
 	consAddr []byte,
 ) ([bls12381.PubKeyLength]byte, error) {
-	valAddr, err := k.stakingKeeper.ValidatorByConsensusAddress.Get(
+	valAddr, err := k.Keeper.ValidatorByConsensusAddress.Get(
 		ctx,
 		consAddr,
 	)
@@ -55,7 +55,7 @@ func (k *Keeper) GetValidatorPubkeyFromValAddress(
 	ctx context.Context,
 	valAddr []byte,
 ) ([bls12381.PubKeyLength]byte, error) {
-	validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+	validator, err := k.Keeper.GetValidator(ctx, valAddr)
 	if err != nil {
 		return [bls12381.PubKeyLength]byte{}, err
 	}
