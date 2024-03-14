@@ -348,6 +348,44 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
+    function testFuzz_DepositCount(uint256 count) public {
+        count = _bound(count, 1, 100);
+        vm.deal(depositor, 32 ether * count);
+        vm.startPrank(depositor);
+        uint256 depositCount;
+        for (uint256 i; i < count; ++i) {
+            depositContract.deposit{ value: 32 ether }(
+                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            );
+            ++depositCount;
+        }
+        assertEq(depositContract.depositCount(), depositCount);
+    }
+
+    function testFuzz_WithdrawCount(uint256 count) public {
+        count = _bound(count, 1, 100);
+        testFuzz_DepositCount(count);
+        uint256 withdrawalCount;
+        for (uint256 i; i < count; ++i) {
+            depositContract.withdraw(
+                VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
+            );
+            ++withdrawalCount;
+        }
+        assertEq(depositContract.withdrawalCount(), withdrawalCount);
+    }
+
+    function testFuzz_RedirectCount(uint256 count) public {
+        count = _bound(count, 1, 100);
+        vm.startPrank(depositor);
+        uint256 redirectCount;
+        for (uint256 i; i < count; ++i) {
+            depositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9);
+            ++redirectCount;
+        }
+        assertEq(depositContract.redirectCount(), redirectCount);
+    }
+
     function _credential(address addr) internal pure returns (bytes memory) {
         return abi.encodePacked(bytes1(0x01), bytes11(0x0), addr);
     }
