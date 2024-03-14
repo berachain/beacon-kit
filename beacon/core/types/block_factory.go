@@ -26,7 +26,7 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/config/version"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
@@ -36,16 +36,18 @@ import (
 // the given slot, time, execution data, and version.
 func NewBeaconBlock(
 	slot primitives.Slot,
+	proposerIndex primitives.ValidatorIndex,
 	executionData enginetypes.ExecutionPayload,
 	parentBlockRoot [32]byte,
 	forkVersion uint32,
-	reveal types.Reveal,
+	reveal randaotypes.Reveal,
 ) (BeaconBlock, error) {
 	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
 		block = &BeaconBlockDeneb{
 			Slot:            slot,
+			ProposerIndex:   proposerIndex,
 			ParentBlockRoot: parentBlockRoot,
 			Body: &BeaconBlockBodyDeneb{
 				RandaoReveal: reveal,
@@ -68,11 +70,19 @@ func NewBeaconBlock(
 // with no execution data.
 func EmptyBeaconBlock(
 	slot primitives.Slot,
+	proposerIndex primitives.ValidatorIndex,
 	parentBlockRoot [32]byte,
 	version uint32,
-	reveal types.Reveal,
+	reveal randaotypes.Reveal,
 ) (BeaconBlock, error) {
-	return NewBeaconBlock(slot, nil, parentBlockRoot, version, reveal)
+	return NewBeaconBlock(
+		slot,
+		proposerIndex,
+		nil,
+		parentBlockRoot,
+		version,
+		reveal,
+	)
 }
 
 // BeaconBlockFromSSZ assembles a new beacon block

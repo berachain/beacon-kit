@@ -26,7 +26,7 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	ssz "github.com/prysmaticlabs/fastssz"
@@ -48,14 +48,11 @@ type ReadOnlyBeaconBlock interface {
 	ssz.Unmarshaler
 	ssz.HashRoot
 	IsNil() bool
-	GetSlot() primitives.Slot
-	// TODO ProposerAddress() []byte
-	GetBody() BeaconBlockBody
-	GetParentBlockRoot() [32]byte
 	Version() uint32
-
-	// RandaoReveal returns the randao reveal of the block.
-	GetRandaoReveal() types.Reveal
+	GetSlot() primitives.Slot
+	GetParentBlockRoot() [32]byte
+	GetProposerIndex() primitives.ValidatorIndex
+	GetBody() BeaconBlockBody
 }
 
 type BeaconBlockBody interface {
@@ -76,6 +73,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
+	GetRandaoReveal() randaotypes.Reveal
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte
 }

@@ -26,7 +26,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/config/version"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -35,6 +34,10 @@ import (
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
+
+	// ProposerIndex is the index of the validator who proposed the block.
+	ProposerIndex primitives.ValidatorIndex
+
 	// ParentBlockRoot is the hash of the parent block.
 	ParentBlockRoot [32]byte `ssz-size:"32"`
 	// Body is the body of the BeaconBlockDeneb, containing the block's
@@ -52,22 +55,22 @@ func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil
 }
 
-// GetBody retrieves the body of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
-	return b.Body
-}
-
 // GetSlot retrieves the slot of the BeaconBlockDeneb.
 func (b *BeaconBlockDeneb) GetSlot() primitives.Slot {
 	return b.Slot
 }
 
+// GetSlot retrieves the slot of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) GetProposerIndex() primitives.ValidatorIndex {
+	return b.ProposerIndex
+}
+
+// GetBody retrieves the body of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
+	return b.Body
+}
+
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
 func (b *BeaconBlockDeneb) GetParentBlockRoot() [32]byte {
 	return b.ParentBlockRoot
-}
-
-// GetRandaoReveal retrieves the randao reveal of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetRandaoReveal() types.Reveal {
-	return b.Body.RandaoReveal
 }
