@@ -28,7 +28,6 @@ package runtime
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
@@ -37,11 +36,11 @@ import (
 type DepInjectInput struct {
 	depinject.In
 
-	Config *config.Config
-	Bsp    BeaconStorageBackend
-	Vcp    ValsetChangeProvider
-	Logger log.Logger
-	Signer crypto.Signer[[bls12381.SignatureLength]byte]
+	AppOpts AppOptions
+	Logger  log.Logger
+	Signer  crypto.Signer[[bls12381.SignatureLength]byte]
+	Bsp     BeaconStorageBackend
+	Vcp     ValsetChangeProvider
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -54,11 +53,11 @@ type DepInjectOutput struct {
 // ProvideRuntime is a function that provides the module to the application.
 func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 	r, err := NewDefaultBeaconKitRuntime(
-		in.Config,
+		in.AppOpts,
+		in.Signer,
+		in.Logger,
 		in.Bsp,
 		in.Vcp,
-		in.Logger,
-		in.Signer,
 	)
 	if err != nil {
 		panic(err)

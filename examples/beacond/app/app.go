@@ -43,7 +43,6 @@ import (
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	beaconkitconfig "github.com/berachain/beacon-kit/config"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
@@ -81,18 +80,17 @@ type BeaconApp struct {
 	txConfig          client.TxConfig
 	interfaceRegistry codectypes.InterfaceRegistry
 
-	// keepers
-	AccountKeeper authkeeper.AccountKeeper
-	BankKeeper    bankkeeper.Keeper
-	StakingKeeper *stakingkeeper.Keeper
-
+	// cosmos sdk standard keepers
+	AccountKeeper         authkeeper.AccountKeeper
+	BankKeeper            bankkeeper.Keeper
+	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
-	// beacon-kit required keepers
+	// beacon-kit custom keepers
 	BeaconKeeper        *beaconkeeper.Keeper
 	BeaconStakingKeeper *stakingwrapper.Keeper
 	BeaconKitRuntime    *beaconkitruntime.BeaconKitRuntime
@@ -124,7 +122,6 @@ func NewBeaconKitApp(
 				// supply the logger
 				logger,
 				// supply beaconkit options
-				beaconkitconfig.MustReadConfigFromAppOpts(appOpts),
 			),
 		),
 		&appBuilder,
