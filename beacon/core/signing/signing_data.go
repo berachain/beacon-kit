@@ -35,7 +35,7 @@ import "github.com/berachain/beacon-kit/primitives"
 //nolint:lll // Urls are long.
 type Data struct {
 	ObjectRoot primitives.HashRoot `ssz-size:"32"`
-	Domain     Domain              `ssz-size:"32"`
+	Domain     Domain              `ssz-size:"8"`
 }
 
 type SSZObject interface {

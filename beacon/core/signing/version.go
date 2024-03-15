@@ -26,34 +26,20 @@
 package signing
 
 import (
-	"encoding/binary"
-
-	"github.com/berachain/beacon-kit/primitives"
+	"crypto/sha256"
 )
 
 type Version [VersionLength]byte
 
-// ForkData is the fork data used for signing.
-type ForkData struct {
-	CurrentVersion Version `ssz-size:"4"`
-	ChainID        []byte  `ssz-max:"50"`
-}
-
-// computeForkDataRoot computes the root of the fork data.
-func computeForkDataRoot(
-	currentVersion Version,
-	chainID string,
-) (primitives.HashRoot, error) {
-	forkData := ForkData{
-		CurrentVersion: currentVersion,
-		ChainID:        []byte(chainID),
-	}
-	return forkData.HashTreeRoot()
-}
-
-// VersionFromUint returns a Version from a uint32.
-func VersionFromUint32(version uint32) Version {
-	versionBz := Version{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
+// computeVersion returns a Version from a fork version
+// and a chain-id to avoid signature replay across forks and chains.
+// A version is a combination of a 1-byte forkVersion (in little endian)
+// and the first 3 bytes of chainID's hash.
+func computeVersion(forkVersion uint32, chainID string) Version {
+	versionBz := []byte{}
+	var lastByteBitMask uint32 = 0xFF
+	versionBz = append(versionBz, byte(forkVersion&lastByteBitMask))
+	chainIDHash := sha256.Sum256([]byte(chainID))
+	versionBz = append(versionBz, chainIDHash[:VersionLength-1]...)
+	return Version(versionBz)
 }

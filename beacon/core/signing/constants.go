@@ -28,5 +28,5 @@ package signing
 const (
 	VersionLength    = 4
 	DomainTypeLength = 4
-	DomainLength     = 32
+	DomainLength     = 8
 )

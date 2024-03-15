@@ -42,17 +42,10 @@ func (d *Domain) Bytes() []byte {
 func computeDomain(
 	domainType DomainType,
 	forkVersion Version,
-	chainID string,
 ) (Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, chainID)
-	if err != nil {
-		return Domain{}, err
-	}
 	var bz []byte
 	bz = append(bz, domainType[:]...)
-	bz = append(
-		bz,
-		forkDataRoot[:(primitives.HashRootLength-DomainTypeLength)]...)
+	bz = append(bz, forkVersion[:]...)
 	return Domain(bz), nil
 }
 
@@ -64,7 +57,9 @@ func GetDomain(
 ) (Domain, error) {
 	return computeDomain(
 		domainType,
-		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		cfg.Network.ChainID,
+		computeVersion(
+			cfg.Beacon.ActiveForkVersionByEpoch(epoch),
+			cfg.Network.ChainID,
+		),
 	)
 }
