@@ -39,7 +39,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var _ ValsetChangeProvider = &Keeper{}
+var _ ValsetUpdater = &Keeper{}
 
 // Keeper implements the StakingKeeper interface
 // as a wrapper around Cosmos SDK x/staking keeper.

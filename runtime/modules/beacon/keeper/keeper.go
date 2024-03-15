@@ -43,13 +43,13 @@ import (
 type Keeper struct {
 	beaconStore     *beaconstore.Store
 	forkchoiceStore *forkchoicestore.Store
-	vcp             runtime.ValsetChangeProvider
+	vcp             runtime.ValsetUpdater
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
-	vcp runtime.ValsetChangeProvider,
+	vcp runtime.ValsetUpdater,
 ) *Keeper {
 	return &Keeper{
 		beaconStore:     beaconstore.NewStore(env.KVStoreService),

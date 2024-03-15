@@ -47,7 +47,7 @@ func NewBlockValidator(cfg *config.Beacon) *BlockValidator {
 }
 
 // ValidateBlock validates the incoming block.
-func (bv *BlockValidator) ValidatorBlock(
+func (bv *BlockValidator) ValidateBlock(
 	st state.BeaconState,
 	blk types.ReadOnlyBeaconBlock,
 ) error {
