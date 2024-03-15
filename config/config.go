@@ -136,7 +136,7 @@ func ReadChainIDFromAppOpts(
 			panic(fmt.Errorf("failed to open genesis file: %w", err))
 		}
 		defer func() {
-			if err := reader.Close(); err != nil {
+			if err = reader.Close(); err != nil {
 				panic(fmt.Errorf("failed to close genesis file: %w", err))
 			}
 		}()
