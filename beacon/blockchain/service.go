@@ -26,7 +26,6 @@
 package blockchain
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core"
 	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
@@ -39,5 +38,4 @@ type Service struct {
 	rp RandaoProcessor
 	ss SyncService
 	db db.DB
-	sp core.StateProcessor
 }
