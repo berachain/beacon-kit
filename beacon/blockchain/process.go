@@ -39,7 +39,6 @@ import (
 // and then processes the block.
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
-	height uint64,
 	blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
@@ -70,7 +69,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
-	if err = s.validateStateTransition(ctx, height, blk, proposerPubkey, blobs); err != nil {
+	if err = s.validateStateTransition(ctx, blk, proposerPubkey, blobs); err != nil {
 		s.Logger().
 			Error("failed to validate state transition", "error", err)
 		return err
@@ -108,7 +107,7 @@ func (s *Service) ProcessBeaconBlock(
 // TODO: Expand rules, consider modularity. Current implementation
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
-	ctx context.Context, height uint64, blk beacontypes.ReadOnlyBeaconBlock,
+	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubKey [bls12381.PubKeyLength]byte,
 	blobs *beacontypes.BlobSidecars,
 ) error {
@@ -145,7 +144,7 @@ func (s *Service) validateStateTransition(
 	// ---------------------------------------///
 
 	for i, sidecars := range blobs.BlobSidecars {
-		if err := sp.ProcessBlob(sidecars, height, uint64(i)); err != nil {
+		if err := sp.ProcessBlob(sidecars, blk.GetSlot(), uint64(i)); err != nil {
 			return err
 		}
 	}

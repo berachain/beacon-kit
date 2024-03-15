@@ -137,7 +137,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		cacheCtx, write := ctx.CacheContext()
 		if err = h.chainService.ProcessBeaconBlock(
 			cacheCtx,
-			uint64(req.Height),
 			blk,
 			proposerPubkey,
 			cometBlockHash,
