@@ -129,12 +129,17 @@ func ReadChainIDFromAppOpts(
 	homeDir := cast.ToString(appOpts.Get(sdkflags.FlagHome))
 	chainID := cast.ToString(appOpts.Get(sdkflags.FlagChainID))
 	if chainID == "" {
-		// fallback to genesis chain-id
-		reader, err := os.Open(filepath.Join(homeDir, "config", "genesis.json"))
+		// Read chain-id from genesis file.
+		filePath := filepath.Join(homeDir, "config", "genesis.json")
+		reader, err := os.Open(filepath.Clean(filePath))
 		if err != nil {
 			panic(fmt.Errorf("failed to open genesis file: %w", err))
 		}
-		defer reader.Close()
+		defer func() {
+			if err := reader.Close(); err != nil {
+				panic(fmt.Errorf("failed to close genesis file: %w", err))
+			}
+		}()
 
 		chainID, err = genutiltypes.ParseChainIDFromGenesis(reader)
 		if err != nil {
