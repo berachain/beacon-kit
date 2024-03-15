@@ -26,6 +26,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/config/version"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -98,6 +100,10 @@ func BeaconBlockFromSSZ(
 // BlobSideCarsFromSSZ decodes a byte slice into a BlobSidecars struct.
 // It returns a pointer to the decoded BlobSidecars struct and an error, if any.
 func BlobSideCarsFromSSZ(bz []byte) (*BlobSidecars, error) {
+	if len(bz) == 0 {
+		fmt.Println("blob sidecars from ssz is empty")
+		return nil, nil
+	}
 	var sideCars BlobSidecars
 	if err := sideCars.UnmarshalSSZ(bz); err != nil {
 		return nil, err

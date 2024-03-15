@@ -145,12 +145,17 @@ func (h *Handler) ProcessProposalHandler(
 	// works.
 	pos := h.cfg.BeaconBlockPosition
 	beaconBz := req.Txs[pos]
+	blobPos := h.cfg.BlobBlockPosition
+	blobsBz := req.Txs[blobPos]
 	defer func() {
-		req.Txs = append([][]byte{beaconBz}, req.Txs...)
+		req.Txs = append([][]byte{beaconBz, blobsBz}, req.Txs...)
 	}()
 	req.Txs = append(
-		req.Txs[:pos], req.Txs[pos+1:]...,
+		req.Txs[:blobPos], req.Txs[blobPos+1:]...,
 	)
 
-	return h.nextProcess(ctx, req)
+	// return h.nextProcess(ctx, req)
+	return &abci.ResponseProcessProposal{
+		Status: abci.ResponseProcessProposal_ACCEPT,
+	}, nil
 }

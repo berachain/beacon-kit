@@ -13,7 +13,7 @@ func PrepareBlobsHandler(
 	height int64, blk beacontypes.BeaconBlock,
 	blobs *enginetypes.BlobsBundleV1) ([]byte, error) {
 
-	var blobTx = make([]*types.BlobTxSidecar, 0, len(blobs.Blobs))
+	var blobTx = make([]*types.BlobTxSidecar, len(blobs.Blobs))
 	for i, sidecar := range blobs.Blobs {
 		// Create Inclusion Proof
 		ic, err := kzg.MerkleProofKZGCommitment(blk, i)
