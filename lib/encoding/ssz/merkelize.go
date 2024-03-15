@@ -4,9 +4,10 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/berachain/beacon-kit/crypto/merkle"
-	htr "github.com/berachain/beacon-kit/lib/hash"
+	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
+
+	htr "github.com/berachain/beacon-kit/lib/hash"
 )
 
 var errInvalidNilSlice = errors.New("invalid empty slice")
@@ -73,13 +74,13 @@ func MerkleizeVector(elements [][32]byte, length uint64) [32]byte {
 	depth := Depth(length)
 	// Return zerohash at depth
 	if len(elements) == 0 {
-		return merkle.ZeroHashes[depth]
+		return tree.ZeroHashes[depth]
 	}
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(elements)
 		oddNodeLength := layerLen%2 == 1
 		if oddNodeLength {
-			zerohash := merkle.ZeroHashes[i]
+			zerohash := tree.ZeroHashes[i]
 			elements = append(elements, zerohash)
 		}
 		elements = htr.VectorizedSha256(elements)

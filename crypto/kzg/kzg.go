@@ -108,7 +108,7 @@ func VerifyKZGInclusionProof(root []byte, blob *types.BlobTxSidecar, index uint6
 // Finally, it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top proof, and appends it to the body proof.
 // Note that the last element of the top proof is removed before returning the final proof, as it is not needed.
 func MerkleProofKZGCommitment(blk beacontypes.BeaconBlock, index int) ([][]byte, error) {
-	commitments := blk.GetBody().GetKzgCommitments()
+	commitments := blk.GetBody().GetBlobKzgCommitments()
 
 	cmts := make([][]byte, 0, len(commitments))
 	for i, c := range commitments {

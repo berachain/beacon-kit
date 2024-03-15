@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	builder "github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/beacon/sync"
-	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/runtime/abci/preblock"
 	"github.com/berachain/beacon-kit/runtime/abci/proposal"
@@ -43,7 +42,6 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	nextProcess sdk.ProcessProposalHandler,
 	nextPreblocker sdk.PreBlocker,
 	vcp ValsetChangeProvider,
-	blobStorage db.DB,
 ) (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
@@ -78,7 +76,6 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		chainService,
 		nextPrepare,
 		nextProcess,
-		blobStorage,
 	)
 
 	preBlocker := preblock.NewBeaconPreBlockHandler(

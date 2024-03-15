@@ -94,3 +94,13 @@ func BeaconBlockFromSSZ(
 	}
 	return block, nil
 }
+
+// BlobSideCarsFromSSZ decodes a byte slice into a BlobSidecars struct.
+// It returns a pointer to the decoded BlobSidecars struct and an error, if any.
+func BlobSideCarsFromSSZ(bz []byte) (*BlobSidecars, error) {
+	var sideCars BlobSidecars
+	if err := sideCars.UnmarshalSSZ(bz); err != nil {
+		return nil, err
+	}
+	return &sideCars, nil
+}

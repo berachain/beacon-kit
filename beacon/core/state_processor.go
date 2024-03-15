@@ -31,6 +31,9 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/crypto/kzg"
+	"github.com/berachain/beacon-kit/db"
+	"github.com/berachain/beacon-kit/db/file"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
@@ -39,16 +42,19 @@ import (
 type StateProcessor struct {
 	cfg *config.Beacon
 	st  state.BeaconState
+	db  db.DB
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	cfg *config.Beacon,
 	st state.BeaconState,
+	db db.DB,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg: cfg,
 		st:  st,
+		db:  db,
 	}
 }
 
@@ -103,8 +109,23 @@ func (sp *StateProcessor) ProcessBlock(
 }
 
 // ProcessBlob processes a blob.
-func (sp *StateProcessor) ProcessBlob() error {
-	// TODO: 4844.
+func (sp *StateProcessor) ProcessBlob(bs *types.BlobTxSidecar, height, index uint64) error {
+
+	ranger := file.NewRangeDB(sp.db)
+
+	// Store the blobs under a single height.
+	if err := kzg.VerifyKZGInclusionProof([]byte{}, bs, uint64(index)); err != nil {
+		return err
+	}
+
+	bz, err := bs.MarshalSSZ()
+	if err != nil {
+		return err
+	}
+
+	if err := ranger.Set(uint64(height), bs.KzgCommitment, bz); err != nil {
+		return err
+	}
 	return nil
 }
 

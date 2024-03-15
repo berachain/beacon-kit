@@ -39,9 +39,11 @@ import (
 // and then processes the block.
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
+	height uint64,
 	blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
+	blobs *beacontypes.BlobSidecars,
 ) error {
 	// If we get any sort of error from the execution client, we bubble
 	// it up and reject the proposal, as we do not want to write a block
@@ -68,7 +70,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
-	if err = s.validateStateTransition(ctx, blk, proposerPubkey); err != nil {
+	if err = s.validateStateTransition(ctx, height, blk, proposerPubkey, blobs); err != nil {
 		s.Logger().
 			Error("failed to validate state transition", "error", err)
 		return err
@@ -106,8 +108,9 @@ func (s *Service) ProcessBeaconBlock(
 // TODO: Expand rules, consider modularity. Current implementation
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
-	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
+	ctx context.Context, height uint64, blk beacontypes.ReadOnlyBeaconBlock,
 	proposerPubKey [bls12381.PubKeyLength]byte,
+	blobs *beacontypes.BlobSidecars,
 ) error {
 	// Ensure the parent block root matches what we have locally.
 	// TODO: get rid of CometBFT stuff.
@@ -124,6 +127,7 @@ func (s *Service) validateStateTransition(
 	sp := core.NewStateProcessor(
 		s.BeaconCfg(),
 		s.BeaconState(ctx),
+		s.db,
 	)
 
 	// Verify the RANDAO Reveal.
@@ -136,9 +140,15 @@ func (s *Service) validateStateTransition(
 		return err
 	}
 
-	// ---------------------///
-	//   VALIDATE KZG HERE  ///
-	// ---------------------///
+	// ---------------------------------------///
+	//   VALIDATE & STORE Blob sidecars HERE  ///
+	// ---------------------------------------///
+
+	for i, sidecars := range blobs.BlobSidecars {
+		if err := sp.ProcessBlob(sidecars, height, uint64(i)); err != nil {
+			return err
+		}
+	}
 
 	// ---------------------///
 	//   Process Deposits   ///
@@ -202,7 +212,7 @@ func (s *Service) validateExecutionOnBlock(
 		blk.GetSlot(),
 		payload,
 		kzg.ConvertCommitmentsToVersionedHashes(
-			body.GetKzgCommitments(),
+			body.GetBlobKzgCommitments(),
 		),
 		blk.GetParentBlockRoot(),
 	)

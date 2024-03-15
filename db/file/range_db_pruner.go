@@ -27,11 +27,6 @@ package file
 
 import "context"
 
-// numeric is a type that represents a numeric type.
-type numeric interface {
-	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64
-}
-
 // RangeDBPruner prunes old indexes from the range DB.
 type RangeDBPruner struct {
 	db             *RangeDB

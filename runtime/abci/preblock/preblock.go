@@ -125,6 +125,11 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return err
 		}
 
+		blobSideCars, err := abcitypes.GetBlobSideCars(ctx, req, h.cfg.BlobBlockPosition)
+		if err != nil {
+			return err
+		}
+
 		// Receive the beacon block to validate whether it is good and submit
 		// any required newPayload and/or forkchoice updates. If we have
 		// already ran this for the current block in ProcessProposal, this
@@ -132,9 +137,11 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		cacheCtx, write := ctx.CacheContext()
 		if err = h.chainService.ProcessBeaconBlock(
 			cacheCtx,
+			uint64(req.Height),
 			blk,
 			proposerPubkey,
 			cometBlockHash,
+			blobSideCars,
 		); err != nil {
 			h.logger.Warn(
 				"failed to receive beacon block",

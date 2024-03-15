@@ -79,11 +79,11 @@ func (db *RangeDB) Delete(index uint64, key []byte) error {
 // filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
 func (db *RangeDB) DeleteRange(from, to uint64) error {
+	f, ok := db.DB.(*DB)
+	if !ok {
+		return errors.New("rangedb: delete range not supported for this db")
+	}
 	for ; from < to; from++ {
-		f, ok := db.DB.(*DB)
-		if !ok {
-			continue
-		}
 		err := f.fs.RemoveAll(string(db.prefix(from, nil)))
 		if err != nil {
 			return err

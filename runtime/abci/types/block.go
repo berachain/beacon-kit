@@ -26,6 +26,7 @@
 package types
 
 import (
+	"context"
 	"time"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
@@ -66,4 +67,27 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 		return nil, ErrNilBeaconBlockInRequest
 	}
 	return beacontypes.BeaconBlockFromSSZ(blkBz, forkVersion)
+}
+
+func GetBlobSideCars(ctx context.Context, req ABCIRequest, bzIndex uint) (*beacontypes.BlobSidecars, error) {
+	if req == nil {
+		return nil, ErrNilABCIRequest
+	}
+
+	txs := req.GetTxs()
+
+	// Ensure there are transactions in the request and
+	// that the request is valid.
+	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
+		return nil, ErrNoBeaconBlockInRequest
+	} else if bzIndex >= uint(len(txs)) {
+		return nil, ErrBzIndexOutOfBounds
+	}
+
+	// Extract the beacon block from the ABCI request.
+	blkBz := txs[bzIndex]
+	if blkBz == nil {
+		return nil, ErrNilBeaconBlockInRequest
+	}
+	return beacontypes.BlobSideCarsFromSSZ(blkBz)
 }

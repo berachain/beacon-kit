@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/primitives"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -53,7 +52,6 @@ type Handler struct {
 	healthService  *health.Service
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
-	blobstore      db.DB
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -65,7 +63,6 @@ func NewHandler(
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
-	blobstore db.DB,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -75,7 +72,6 @@ func NewHandler(
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
-		blobstore:      blobstore,
 	}
 }
 
@@ -123,7 +119,7 @@ func (h *Handler) PrepareProposalHandler(
 	// TODO: make more robust
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 
-	blobBz, err := builder.PrepareBlobsHandler(ctx, h.blobstore, req.Height,
+	blobBz, err := builder.PrepareBlobsHandler(ctx, req.Height,
 		blk, blobs)
 	if err != nil {
 		return nil, err
@@ -155,14 +151,6 @@ func (h *Handler) ProcessProposalHandler(
 	req.Txs = append(
 		req.Txs[:pos], req.Txs[pos+1:]...,
 	)
-
-	blobPos := h.cfg.BlobBlockPosition
-	blobs := req.Txs[blobPos]
-
-	if err = builder.ProcessBlobsHandler(ctx, h.blobstore,
-		req.Height, blobs); err != nil {
-		return nil, err
-	}
 
 	return h.nextProcess(ctx, req)
 }

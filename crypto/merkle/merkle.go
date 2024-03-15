@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/protolambda/ztyp/tree"
+
 	bytesutil "github.com/berachain/beacon-kit/lib/bytes"
 )
 
@@ -39,7 +41,7 @@ func GenerateTrieFromItems(items [][]byte,
 	layers[0] = transformedLeaves
 	for i := uint64(0); i < depth; i++ {
 		if len(layers[i])%2 == 1 {
-			layers[i] = append(layers[i], ZeroHashes[i][:])
+			layers[i] = append(layers[i], tree.ZeroHashes[i][:])
 		}
 		updatedValues := make([][]byte, 0)
 		for j := 0; j < len(layers[i]); j += 2 {
@@ -72,7 +74,7 @@ func (m *SparseMerkleTrie) MerkleProof(index int) ([][]byte, error) {
 			item := bytesutil.ToBytes32(m.branches[i][subIndex])
 			proof[i] = item[:]
 		} else {
-			proof[i] = ZeroHashes[i][:]
+			proof[i] = tree.ZeroHashes[i][:]
 		}
 	}
 	var enc [32]byte
