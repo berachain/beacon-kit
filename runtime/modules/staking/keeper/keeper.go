@@ -86,7 +86,7 @@ func (k *Keeper) ApplyDeposit(
 	default:
 		_, err = k.Delegate(
 			ctx,
-			sdk.AccAddress(consAddr),
+			sdk.AccAddress(deposit.Credentials[12:]),
 			sdkmath.NewIntFromUint64(deposit.Amount),
 			sdkstaking.Unbonded,
 			validator,
@@ -131,10 +131,9 @@ func (k *Keeper) createValidator(
 
 	// Create a new validator with x/staking.
 	stake := sdkmath.NewIntFromUint64(deposit.Amount)
-	// TODO: make the byte prefixed credentials into a hard type.
-	operator := sdk.ValAddress(deposit.Credentials[12:]).String()
 	newValidator, err := sdkstaking.NewValidator(
-		operator,
+		// TODO: make the byte prefixed credentials into a hard type.
+		sdk.AccAddress(deposit.Credentials[12:]).String(),
 		validatorPubkey,
 		sdkstaking.Description{Moniker: validatorPubkey.Address().String()},
 	)
