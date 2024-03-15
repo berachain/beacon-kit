@@ -44,6 +44,7 @@ type Keeper struct {
 	*sdkkeeper.Keeper
 }
 
+// ProvideStakingKeeper is a provider for the staking keeper.
 func ProvideStakingKeeper(
 	stakingKeeper *sdkkeeper.Keeper,
 ) *Keeper {
@@ -130,14 +131,13 @@ func (k *Keeper) createValidator(
 	}
 
 	// Create a new validator with x/staking.
-	stake := sdkmath.NewIntFromUint64(deposit.Amount)
 	newValidator, err := sdkstaking.NewValidator(
 		// TODO: make the byte prefixed credentials into a hard type.
 		sdk.AccAddress(deposit.Credentials[12:]).String(),
 		validatorPubkey,
 		sdkstaking.Description{Moniker: validatorPubkey.Address().String()},
 	)
-	newValidator.Tokens = stake
+	newValidator.Tokens = sdkmath.NewIntFromUint64(deposit.Amount)
 	newValidator.DelegatorShares = sdkmath.LegacyNewDecFromInt(
 		newValidator.Tokens,
 	)
