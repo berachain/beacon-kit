@@ -112,6 +112,7 @@ func (k *Keeper) createValidator(
 	// Verify the deposit data against the signature.
 	// Deposit message is the deposit without the signature.
 	root, err := (&beacontypes.Deposit{
+		Index:       deposit.Index,
 		Pubkey:      deposit.Pubkey,
 		Credentials: deposit.Credentials,
 		Amount:      deposit.Amount,
