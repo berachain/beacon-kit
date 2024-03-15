@@ -38,7 +38,8 @@ func (d *Domain) Bytes() []byte {
 	return d[:]
 }
 
-// computeDomain returns the domain for the DomainType and fork version.
+// computeDomain returns the 8-byte domain
+// from the (4-byte) DomainType and (4-byte) fork version.
 func computeDomain(
 	domainType DomainType,
 	forkVersion Version,
