@@ -125,7 +125,10 @@ func (p *Processor) computeSigningRoot(
 ) (primitives.HashRoot, error) {
 	signingDomain, err := signing.GetDomain(p.cfg, signing.DomainRandao, epoch)
 	if err != nil {
-		return primitives.HashRoot{}, fmt.Errorf("failed to get domain: %w", err)
+		return primitives.HashRoot{}, fmt.Errorf(
+			"failed to get domain: %w",
+			err,
+		)
 	}
 	signingRoot, err := signing.ComputeSigningRoot(
 		primitives.SSZEpoch(epoch),

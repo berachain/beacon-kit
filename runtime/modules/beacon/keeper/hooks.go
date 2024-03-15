@@ -54,7 +54,7 @@ func (h StakingHooks) AfterValidatorCreated(
 	ctx context.Context,
 	valAddr sdk.ValAddress,
 ) error {
-	pubkey, err := h.k.vcp.GetValidatorPubkeyFromValAddress(ctx, valAddr)
+	pubkey, err := h.k.vsu.GetValidatorPubkeyFromValAddress(ctx, valAddr)
 	if err != nil {
 		return err
 	}
