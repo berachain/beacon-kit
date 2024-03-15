@@ -23,50 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package staking
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
-
-// AppOptions is an interface that provides the ability to
-// retrieve options from the application.
-type AppOptions interface {
-	Get(string) interface{}
-}
-
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	BeaconState(ctx context.Context) state.BeaconState
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
 
 // ValsetUpdater is an interface that provides the
 // ability to apply changes to the validator set.
 type ValsetUpdater interface {
-	ApplyDeposit(
-		ctx context.Context, deposit *beacontypes.Deposit,
+	ApplyChanges(
+		context.Context,
+		[]*beacontypes.Deposit,
+		[]*enginetypes.Withdrawal,
 	) error
-
-	ApplyWithdrawal(
-		ctx context.Context, withdrawal *enginetypes.Withdrawal,
-	) error
-
-	GetValidatorPubkeyFromConsAddress(
-		ctx context.Context,
-		consAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
-
-	GetValidatorPubkeyFromValAddress(
-		ctx context.Context,
-		valAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
 }

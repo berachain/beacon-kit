@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 )
@@ -86,12 +85,8 @@ func (s *Service) ProcessBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	bv := core.NewBlockValidator(
-		s.BeaconCfg(),
-	)
-
 	// Validate the block
-	if err := bv.ValidatorBlock(
+	if err := s.bv.ValidateBlock(
 		s.BeaconState(ctx), blk,
 	); err != nil {
 		return err
@@ -114,13 +109,10 @@ func (s *Service) validateExecutionOnBlock(
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
-		pv      = core.NewPayloadValidator(
-			s.BeaconCfg(),
-		)
 	)
 
 	// Validate the payload.
-	if err := pv.ValidatePayload(
+	if err := s.pv.ValidatePayload(
 		s.BeaconState(ctx),
 		s.ForkchoiceStore(ctx),
 		payload,
