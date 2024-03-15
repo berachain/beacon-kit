@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/db/file"
@@ -43,23 +44,25 @@ type StateProcessor struct {
 	cfg *config.Beacon
 	st  state.BeaconState
 	db  db.DB
+	rp  RandaoProcessor
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	cfg *config.Beacon,
-	st state.BeaconState,
 	db db.DB,
+	rp RandaoProcessor,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg: cfg,
-		st:  st,
 		db:  db,
+		rp:  rp,
 	}
 }
 
 // ProcessSlot processes the slot and ensures it matches the local state.
 func (sp *StateProcessor) ProcessSlot(
+	_ state.BeaconState,
 	_ uint64,
 ) error {
 	return nil
@@ -67,6 +70,7 @@ func (sp *StateProcessor) ProcessSlot(
 
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor) ProcessBlock(
+	st state.BeaconState,
 	blk types.BeaconBlock,
 ) error {
 	// Ensure Body is non nil.
@@ -78,13 +82,13 @@ func (sp *StateProcessor) ProcessBlock(
 	// process the eth1 vote.
 	payload := body.GetExecutionPayload()
 	if payload.IsNil() {
-		return types.ErrNilPayloadInBlk
+		return types.ErrNilPayload
 	}
 
 	// common.ProcessHeader
 
 	// process the withdrawals.
-	if err := sp.processWithdrawals(payload.GetWithdrawals()); err != nil {
+	if err := sp.processWithdrawals(st, payload.GetWithdrawals()); err != nil {
 		return err
 	}
 
@@ -92,14 +96,14 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err := sp.processRandaoReveal(); err != nil {
+	if err := sp.processRandaoReveal(st, blk); err != nil {
 		return err
 	}
 
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	if err := sp.processDeposits(body.GetDeposits()); err != nil {
+	if err := sp.processDeposits(st, body.GetDeposits()); err != nil {
 		return err
 	}
 
@@ -132,17 +136,11 @@ func (sp *StateProcessor) ProcessBlob(bs *types.BlobTxSidecar, height, index uin
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor) processDeposits(
+	st state.BeaconState,
 	deposits []*types.Deposit,
 ) error {
-	if uint64(len(deposits)) > sp.cfg.Limits.MaxDepositsPerBlock {
-		return fmt.Errorf(
-			"too many deposits, expected: %d, got: %d",
-			sp.cfg.Limits.MaxDepositsPerBlock, len(deposits),
-		)
-	}
-
 	// Dequeue and verify the logs.
-	localDeposits, err := sp.st.ExpectedDeposits(uint64(len(deposits)))
+	localDeposits, err := st.ExpectedDeposits(uint64(len(deposits)))
 	if err != nil {
 		return err
 	}
@@ -164,17 +162,11 @@ func (sp *StateProcessor) processDeposits(
 // processWithdrawals processes the withdrawals and ensures they match the
 // local state.
 func (sp *StateProcessor) processWithdrawals(
+	st state.BeaconState,
 	withdrawals []*enginetypes.Withdrawal,
 ) error {
-	if uint64(len(withdrawals)) > sp.cfg.Limits.MaxWithdrawalsPerPayload {
-		return fmt.Errorf(
-			"too many withdrawals, expected: %d, got: %d",
-			sp.cfg.Limits.MaxWithdrawalsPerPayload, len(withdrawals),
-		)
-	}
-
 	// Dequeue and verify the withdrawals.
-	localWithdrawals, err := sp.st.DequeueWithdrawals(uint64(len(withdrawals)))
+	localWithdrawals, err := st.DequeueWithdrawals(uint64(len(withdrawals)))
 	if err != nil {
 		return err
 	}
@@ -193,6 +185,28 @@ func (sp *StateProcessor) processWithdrawals(
 	return nil
 }
 
-func (sp *StateProcessor) processRandaoReveal() error {
-	return nil
+// processRandaoReveal processes the randao reveal and
+// ensures it matches the local state.
+func (sp *StateProcessor) processRandaoReveal(
+	st state.BeaconState,
+	blk types.BeaconBlock,
+) error {
+	// Ensure the proposer index is valid.
+	pubkey, err := st.ValidatorPubKeyByIndex(blk.GetProposerIndex())
+	if err != nil {
+		return err
+	}
+
+	// Verify the RANDAO Reveal.
+	reveal := blk.GetBody().GetRandaoReveal()
+	if err = sp.rp.VerifyReveal(
+		[bls12381.PubKeyLength]byte(pubkey),
+		sp.cfg.SlotToEpoch(blk.GetSlot()),
+		reveal,
+	); err != nil {
+		return err
+	}
+
+	// Mixin the reveal.
+	return sp.rp.MixinNewReveal(st, reveal)
 }

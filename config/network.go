@@ -23,48 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package config
 
-import (
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/primitives"
-)
-
-// Domain is the domain used for signing.
-type Domain [DomainLength]byte
-
-// Bytes returns the byte representation of the Domain.
-func (d *Domain) Bytes() []byte {
-	return d[:]
-}
-
-// computeDomain returns the domain for the DomainType and fork version.
-func computeDomain(
-	domainType DomainType,
-	forkVersion Version,
-	chainID string,
-) (Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, chainID)
-	if err != nil {
-		return Domain{}, err
-	}
-	var bz []byte
-	bz = append(bz, domainType[:]...)
-	bz = append(
-		bz,
-		forkDataRoot[:(primitives.HashRootLength-DomainTypeLength)]...)
-	return Domain(bz), nil
-}
-
-// GetDomain returns the domain for the DomainType and epoch.
-func GetDomain(
-	cfg *config.Config,
-	domainType DomainType,
-	epoch primitives.Epoch,
-) (Domain, error) {
-	return computeDomain(
-		domainType,
-		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		cfg.Network.ChainID,
-	)
+// Network is the network configuration from the CometBFT config.
+//
+// The configure inherits the CometBFT config so it does not need
+// to follow the BeaconKitConfig interface. Instead this config
+// is fetched directly from AppOpts via DepInject.
+type Network struct {
+	// ChainID is the CometBFT chain ID,
+	// which is a string, less than 50 bytes.
+	ChainID string
 }

@@ -29,9 +29,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -50,9 +51,8 @@ type PayloadBuilder interface {
 
 type RandaoProcessor interface {
 	BuildReveal(
-		ctx context.Context,
 		epoch primitives.Epoch,
-	) (types.Reveal, error)
+	) (randaotypes.Reveal, error)
 }
 
 // Service is responsible for building beacon blocks.
@@ -78,6 +78,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
+	proposerPubkey [bls12381.PubKeyLength]byte,
 ) (beacontypes.BeaconBlock, *enginetypes.BlobsBundleV1, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -87,17 +88,26 @@ func (s *Service) RequestBestBlock(
 	// and safe block hashes to the execution client.
 
 	reveal, err := s.randaoProcessor.BuildReveal(
-		ctx, s.BeaconCfg().SlotToEpoch(slot),
-	)
+		s.BeaconCfg().SlotToEpoch(slot))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to build reveal: %w", err)
 	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 
+	proposerIndex, err := s.BeaconState(ctx).
+		ValidatorIndexByPubkey(proposerPubkey[:])
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Create a new empty block from the current state.
 	beaconBlock, err := beacontypes.EmptyBeaconBlock(
-		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot), reveal,
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		s.ActiveForkVersionForSlot(slot),
+		reveal,
 	)
 	if err != nil {
 		return nil, nil, err

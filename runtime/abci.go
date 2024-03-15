@@ -41,7 +41,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
 	nextPreblocker sdk.PreBlocker,
-	vcp ValsetChangeProvider,
+	vsu ValsetUpdater,
 ) (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
@@ -70,7 +70,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
-		vcp,
+		vsu,
 		builderService,
 		healthService,
 		chainService,
@@ -81,7 +81,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	preBlocker := preblock.NewBeaconPreBlockHandler(
 		&r.cfg.ABCI,
 		r.logger,
-		vcp,
+		vsu,
 		chainService,
 		syncService,
 		nextPreblocker,

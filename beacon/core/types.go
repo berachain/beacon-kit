@@ -23,48 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package core
 
 import (
-	"github.com/berachain/beacon-kit/config"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-// Domain is the domain used for signing.
-type Domain [DomainLength]byte
-
-// Bytes returns the byte representation of the Domain.
-func (d *Domain) Bytes() []byte {
-	return d[:]
-}
-
-// computeDomain returns the domain for the DomainType and fork version.
-func computeDomain(
-	domainType DomainType,
-	forkVersion Version,
-	chainID string,
-) (Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, chainID)
-	if err != nil {
-		return Domain{}, err
-	}
-	var bz []byte
-	bz = append(bz, domainType[:]...)
-	bz = append(
-		bz,
-		forkDataRoot[:(primitives.HashRootLength-DomainTypeLength)]...)
-	return Domain(bz), nil
-}
-
-// GetDomain returns the domain for the DomainType and epoch.
-func GetDomain(
-	cfg *config.Config,
-	domainType DomainType,
-	epoch primitives.Epoch,
-) (Domain, error) {
-	return computeDomain(
-		domainType,
-		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		cfg.Network.ChainID,
-	)
+// RandaoProcessor is the interface for the randao processor.
+type RandaoProcessor interface {
+	BuildReveal(
+		epoch primitives.Epoch,
+	) (randaotypes.Reveal, error)
+	MixinNewReveal(
+		st state.BeaconState,
+		reveal randaotypes.Reveal,
+	) error
+	VerifyReveal(
+		proposerPubkey [bls12381.PubKeyLength]byte,
+		epoch primitives.Epoch,
+		reveal randaotypes.Reveal,
+	) error
 }

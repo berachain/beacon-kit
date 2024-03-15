@@ -26,6 +26,7 @@
 package types
 
 import (
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
 	"github.com/cockroachdb/errors"
@@ -54,6 +55,11 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
 func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][48]byte {
 	return b.BlobKzgCommitments
+}
+
+// GetRandaoReveal returns the RandaoReveal of the Body.
+func (b *BeaconBlockBodyDeneb) GetRandaoReveal() randaotypes.Reveal {
+	return b.RandaoReveal
 }
 
 // GetExecutionPayload returns the ExecutionPayload of the Body.
@@ -123,10 +129,6 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {
 	copy(layer[4], rt[:])
 
 	return layer, nil
-}
-
-func (b *BeaconBlockBodyDeneb) GetRandaoReveal() []byte {
-	return b.RandaoReveal[:]
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(

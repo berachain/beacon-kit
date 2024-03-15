@@ -27,19 +27,12 @@ package randao
 
 import (
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/config"
 	crypto "github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
 
 type Option func(*Processor) error
-
-// WithBeaconStateProvider sets the beacon state provider.
-func WithBeaconStateProvider(beaconStateProvider BeaconStateProvider) Option {
-	return func(p *Processor) error {
-		p.BeaconStateProvider = beaconStateProvider
-		return nil
-	}
-}
 
 // WithSigner sets the signer.
 func WithSigner(
@@ -55,6 +48,14 @@ func WithSigner(
 func WithLogger(logger log.Logger) Option {
 	return func(p *Processor) error {
 		p.logger = logger
+		return nil
+	}
+}
+
+// WithConfig sets the config.
+func WithConfig(cfg *config.Config) Option {
+	return func(p *Processor) error {
+		p.cfg = cfg
 		return nil
 	}
 }

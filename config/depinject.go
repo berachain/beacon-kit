@@ -23,48 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package config
 
 import (
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/primitives"
+	"cosmossdk.io/depinject"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
 )
 
-// Domain is the domain used for signing.
-type Domain [DomainLength]byte
+// DepInjectInput is the input for the dep inject framework.
+type DepInjectInput struct {
+	depinject.In
 
-// Bytes returns the byte representation of the Domain.
-func (d *Domain) Bytes() []byte {
-	return d[:]
+	AppOpts servertypes.AppOptions
 }
 
-// computeDomain returns the domain for the DomainType and fork version.
-func computeDomain(
-	domainType DomainType,
-	forkVersion Version,
-	chainID string,
-) (Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, chainID)
-	if err != nil {
-		return Domain{}, err
+// DepInjectOutput is the output for the dep inject framework.
+type DepInjectOutput struct {
+	depinject.Out
+
+	Network Network
+}
+
+// ProvideNetworkCfg get the CometBFT network config
+// from the app options and inject it into the dep inject output.
+func ProvideNetworkCfg(in DepInjectInput) DepInjectOutput {
+	chainID := cast.ToString(in.AppOpts.Get(flags.FlagChainID))
+
+	return DepInjectOutput{
+		Network: Network{
+			ChainID: chainID,
+		},
 	}
-	var bz []byte
-	bz = append(bz, domainType[:]...)
-	bz = append(
-		bz,
-		forkDataRoot[:(primitives.HashRootLength-DomainTypeLength)]...)
-	return Domain(bz), nil
-}
-
-// GetDomain returns the domain for the DomainType and epoch.
-func GetDomain(
-	cfg *config.Config,
-	domainType DomainType,
-	epoch primitives.Epoch,
-) (Domain, error) {
-	return computeDomain(
-		domainType,
-		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		cfg.Network.ChainID,
-	)
 }

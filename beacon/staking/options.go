@@ -51,13 +51,13 @@ func WithDepositABI(
 	}
 }
 
-// WithValsetChangeProvider returns an Option that sets
-// the ValsetChangeProvider for the Service.
-func WithValsetChangeProvider(
-	vcp ValsetChangeProvider,
+// WithValsetUpdater returns an Option that sets
+// the ValsetUpdater for the Service.
+func WithValsetUpdater(
+	vsu ValsetUpdater,
 ) service.Option[Service] {
 	return func(s *Service) error {
-		s.vcp = vcp
+		s.vsu = vsu
 		return nil
 	}
 }

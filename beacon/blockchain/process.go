@@ -27,11 +27,8 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/berachain/beacon-kit/beacon/core"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 )
 
@@ -40,19 +37,9 @@ import (
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	proposerPubkey [bls12381.PubKeyLength]byte,
 	blockHash [32]byte,
 	blobs *beacontypes.BlobSidecars,
 ) error {
-	// If we get any sort of error from the execution client, we bubble
-	// it up and reject the proposal, as we do not want to write a block
-	// finalization to the consensus layer that is invalid.
-
-	// If the block is nil, We have to abort.
-	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
-	}
-
 	// TODO:
 	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
 
@@ -69,14 +56,9 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go routine validates the consensus level aspects of the block.
 	// i.e: does it have a valid ancestor?
-	if err = s.validateStateTransition(ctx, blk, proposerPubkey, blobs); err != nil {
+	if err = s.validateStateTransition(ctx, blk, blobs); err != nil {
 		s.Logger().
 			Error("failed to validate state transition", "error", err)
-		return err
-	}
-
-	// TODO: This is very much the wrong spot for this.
-	if err = s.rp.MixinNewReveal(ctx, blk); err != nil {
 		return err
 	}
 
@@ -92,11 +74,6 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
-	// // Wait for the goroutines to finish.
-	// if err := eg.Wait(); err != nil {
-	// 	return err
-	// }
-
 	// Perform post block processing.
 	return s.postBlockProcess(
 		ctx, blk, blockHash, isValidPayload,
@@ -108,52 +85,23 @@ func (s *Service) ProcessBeaconBlock(
 // is hardcoded for single slot finality, which works but lacks flexibility.
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
-	proposerPubKey [bls12381.PubKeyLength]byte,
 	blobs *beacontypes.BlobSidecars,
 ) error {
-	// Ensure the parent block root matches what we have locally.
-	// TODO: get rid of CometBFT stuff.
-	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
-	if parentBlockRoot != blk.GetParentBlockRoot() {
-		return fmt.Errorf(
-			"parent root does not match, expected: %x, got: %x",
-			parentBlockRoot,
-			blk.GetParentBlockRoot(),
-		)
-	}
-
-	// Create a new state processor.
-	sp := core.NewStateProcessor(
-		s.BeaconCfg(),
-		s.BeaconState(ctx),
-		s.db,
-	)
-
-	// Verify the RANDAO Reveal.
-	// TODO: move into state processor.
-	if err := s.rp.VerifyReveal(
-		proposerPubKey,
-		s.BeaconCfg().SlotToEpoch(blk.GetSlot()),
-		blk.GetRandaoReveal(),
+	// Validate the block
+	if err := s.bv.ValidateBlock(
+		s.BeaconState(ctx), blk,
 	); err != nil {
 		return err
 	}
 
-	// ---------------------------------------///
-	//   VALIDATE & STORE Blob sidecars HERE  ///
-	// ---------------------------------------///
-
 	for i, sidecars := range blobs.BlobSidecars {
-		if err := sp.ProcessBlob(sidecars, blk.GetSlot(), uint64(i)); err != nil {
+		if err := s.sp.ProcessBlob(sidecars, blk.GetSlot(), uint64(i)); err != nil {
 			return err
 		}
 	}
 
-	// ---------------------///
-	//   Process Deposits   ///
-	// ---------------------///
-
-	return sp.ProcessBlock(
+	return s.sp.ProcessBlock(
+		s.BeaconState(ctx),
 		blk,
 	)
 }
@@ -165,47 +113,21 @@ func (s *Service) validateExecutionOnBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	body := blk.GetBody()
-	payload := body.GetExecutionPayload()
-	if payload.IsNil() {
-		return false, beacontypes.ErrNilPayloadInBlk
-	}
+	var (
+		body    = blk.GetBody()
+		payload = body.GetExecutionPayload()
+	)
 
-	// In BeaconKit, since we are currently operating on SingleSlot Finality
-	// we purposefully reject any block that is not a child of the last
-	// finalized block.
-	safeHash := s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash()
-	if safeHash != payload.GetParentHash() {
-		return false, fmt.Errorf(
-			"parent block with hash %x is not finalized, expected finalized hash %x",
-			payload.GetParentHash(),
-			safeHash,
-		)
-	}
-
-	expectedMix, err := s.BeaconState(ctx).RandaoMix()
-	if err != nil {
+	// Validate the payload.
+	if err := s.pv.ValidatePayload(
+		s.BeaconState(ctx),
+		s.ForkchoiceStore(ctx),
+		payload,
+	); err != nil {
 		return false, err
 	}
 
-	// Ensure the prev randao matches the local state.
-	if payload.GetPrevRandao() != expectedMix {
-		return false, fmt.Errorf(
-			"prev randao does not match, expected: %x, got: %x",
-			expectedMix, payload.GetPrevRandao(),
-		)
-	}
-
-	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
-	// 	return fmt.Errorf("slot or genesis time in state is corrupt, cannot
-	// compute time: %v", err)
-	// } else if payload.Timestamp != expectedTime {
-	// 	return fmt.Errorf("state at slot %d, genesis time %d, expected execution
-	// payload time %d, but got %d",
-	// 		slot, genesisTime, expectedTime, payload.Timestamp)
-	// }
-
-	// TODO: add some more safety checks here.
+	// Then we notify the engine of the new payload.
 	return s.es.NotifyNewPayload(
 		ctx,
 		blk.GetSlot(),
@@ -215,4 +137,43 @@ func (s *Service) validateExecutionOnBlock(
 		),
 		blk.GetParentBlockRoot(),
 	)
+}
+
+// postBlockProcess is called after a block has been processed.
+func (s *Service) postBlockProcess(
+	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
+	blockHash [32]byte,
+	_ bool,
+) error {
+	// If the block is nil or empty, we return an error.
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
+	}
+
+	// If the block does not have a payload, we return an error.
+	payload := blk.GetBody().GetExecutionPayload()
+	if payload.IsNil() {
+		return ErrInvalidPayload
+	}
+	payloadBlockHash := payload.GetBlockHash()
+
+	// If the builder is enabled attempt to build a block locally.
+	// If we are in the sync state, we skip building blocks optimistically.
+	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
+		// We have to do this in order to update it before FCU.
+		// TODO: In general we need to improve the control flow for
+		// Preblocker vs ProcessProposal.
+		err := s.sendFCUWithAttributes(
+			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
+		)
+		if err == nil {
+			return nil
+		}
+		s.Logger().
+			Error("failed to send forkchoice update in postBlockProcess", "error", err)
+	}
+
+	// Otherwise we send a forkchoice update to the execution client.
+	return s.sendFCU(ctx, payloadBlockHash)
 }

@@ -26,23 +26,22 @@
 package randao
 
 import (
-	"context"
 	"fmt"
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/signing"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/config"
 	crypto "github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Processor is the randao processor.
 type Processor struct {
-	BeaconStateProvider
 	signer crypto.Signer[[bls12381.SignatureLength]byte]
+	cfg    *config.Config
 	logger log.Logger
 }
 
@@ -70,10 +69,13 @@ func NewProcessor(
 //
 //	return bls.Sign(privkey, signing_root)
 func (p *Processor) BuildReveal(
-	_ context.Context,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	return p.signer.Sign(p.computeSigningRoot(epoch, p.getDomain(epoch))), nil
+	signingRoot, err := p.computeSigningRoot(epoch)
+	if err != nil {
+		return types.Reveal{}, err
+	}
+	return p.signer.Sign(signingRoot[:]), nil
 }
 
 // VerifyReveal verifies the reveal of the proposer.
@@ -82,9 +84,13 @@ func (p *Processor) VerifyReveal(
 	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) error {
+	signingRoot, err := p.computeSigningRoot(epoch)
+	if err != nil {
+		return err
+	}
 	if ok := bls12381.VerifySignature(
 		proposerPubkey,
-		p.computeSigningRoot(epoch, p.getDomain(epoch)),
+		signingRoot[:],
 		reveal,
 	); !ok {
 		return ErrInvalidSignature
@@ -98,16 +104,15 @@ func (p *Processor) VerifyReveal(
 
 // MixinNewReveal mixes in a new reveal.
 func (p *Processor) MixinNewReveal(
-	ctx context.Context,
-	blk beacontypes.BeaconBlock,
+	st state.BeaconState,
+	reveal types.Reveal,
 ) error {
-	st := p.BeaconState(ctx)
 	mix, err := st.RandaoMix()
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
 
-	newMix := mix.MixinNewReveal(blk.GetRandaoReveal())
+	newMix := mix.MixinNewReveal(reveal)
 	if err = st.SetRandaoMix(newMix); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
@@ -115,19 +120,23 @@ func (p *Processor) MixinNewReveal(
 	return nil
 }
 
-// computeSigningRoot computes the signing root.
-// // TODO: COMPLETE THIS IS CURRENTLY WRONG.
 func (p *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
-	_ signing.Domain,
-) []byte {
-	return sdktypes.Uint64ToBigEndian(epoch)
-}
-
-// getDomain returns the domain.
-// TODO: COMPLETE
-func (p *Processor) getDomain(
-	_ primitives.Epoch,
-) signing.Domain {
-	return signing.Domain{}
+) (primitives.HashRoot, error) {
+	signingDomain, err := signing.GetDomain(p.cfg, signing.DomainRandao, epoch)
+	if err != nil {
+		return primitives.HashRoot{}, fmt.Errorf(
+			"failed to get domain: %w",
+			err,
+		)
+	}
+	signingRoot, err := signing.ComputeSigningRoot(
+		primitives.SSZEpoch(epoch),
+		signingDomain,
+	)
+	if err != nil {
+		return primitives.HashRoot{},
+			fmt.Errorf("failed to compute signing root: %w", err)
+	}
+	return signingRoot, nil
 }

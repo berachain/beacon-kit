@@ -101,15 +101,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	) error {
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
 
-		// TODO: Get off of the beacon block.
-		proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
-			ctx,
-			req.ProposerAddress,
-		)
-		if err != nil {
-			return err
-		}
-
 		// Extract the beacon block from the ABCI request.
 		//
 		// TODO: Block factory struct?
@@ -138,7 +129,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		if err = h.chainService.ProcessBeaconBlock(
 			cacheCtx,
 			blk,
-			proposerPubkey,
 			cometBlockHash,
 			blobSideCars,
 		); err != nil {
