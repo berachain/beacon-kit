@@ -26,7 +26,7 @@
 package types
 
 import (
-	"errors"
+	"github.com/cockroachdb/errors"
 )
 
 var (
@@ -38,6 +38,25 @@ var (
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
 
-	// ErrNilBlock is an error for when the beacon block is nil.
-	ErrNilBlock = errors.New("nil beacon block")
+	// ErrNilBlk is an error for when the beacon block is nil.
+	ErrNilBlk = errors.New("nil beacon block")
+
+	// ErrNilPayload is an error for when there is no payload
+	// in a beacon block.
+	ErrNilPayload = errors.New("nil payload in beacon block")
+
+	// ErrNilBlkBody is an error for when the block body is nil.
+	ErrNilBlkBody = errors.New("nil block body")
+
+	// ErrNilDeposit is an error for when the deposit is nil.
+	ErrNilDeposit = errors.New("nil deposits")
+
+	// ErrNilDeposits is an error for when the deposits are nil.
+	ErrNilDeposits = errors.New("nil deposits")
+
+	// ErrNilWithdrawal is an error for when the deposit is nil.
+	ErrNilWithdrawal = errors.New("nil withdrawal")
+
+	// ErrNilWithdrawals is an error for when the deposits are nil.
+	ErrNilWithdrawals = errors.New("nil withdrawals")
 )

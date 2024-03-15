@@ -68,7 +68,7 @@ func (s *Service) FinalizeBeaconBlock(
 	}()
 
 	if blk.IsNil() {
-		return beacontypes.ErrNilBlock
+		return beacontypes.ErrNilBlk
 	}
 
 	payload := blk.GetBody().GetExecutionPayload()
@@ -82,16 +82,17 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
+	// TODO: PROCESS LOGS HERE
 	// TODO: PROCESS DEPOSITS HERE
 	// TODO: PROCESS VOLUNTARY EXITS HERE
-	_, err = s.es.ProcessLogsInETH1Block(
+	err = s.es.ProcessLogsInETH1Block(
 		ctx,
 		payloadBlockHash,
 	)
 	if err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
+		return err
 	}
-
 	return err
 }
 

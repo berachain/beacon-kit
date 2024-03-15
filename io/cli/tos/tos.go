@@ -26,13 +26,13 @@
 package tos
 
 import (
-	"errors"
 	"path/filepath"
 	"strings"
 
 	"github.com/berachain/beacon-kit/config/flags"
 	beaconprompt "github.com/berachain/beacon-kit/io/cli/prompt"
 	"github.com/berachain/beacon-kit/io/file"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"

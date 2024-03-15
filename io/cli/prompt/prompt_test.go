@@ -27,14 +27,15 @@ package prompt_test
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"testing"
 
 	"github.com/berachain/beacon-kit/io/cli/prompt"
 	"github.com/berachain/beacon-kit/io/cli/prompt/mocks"
+	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -101,14 +102,11 @@ func TestAskAndValidate(t *testing.T) {
 
 	p.Default = "default"
 	_, err := p.AskAndValidate()
-	if err.Error() != failedValidationErr.Error() {
-		t.Errorf("Expected 'wrong response', got %v", err)
-	}
+	require.Error(t, err)
+	require.Equal(t, failedValidationErr, err)
 
 	inputBuffer := bytes.NewReader([]byte("response\n"))
 	p.Cmd.SetIn(inputBuffer)
 	_, err = p.AskAndValidate()
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
+	require.NoError(t, err)
 }

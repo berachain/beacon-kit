@@ -27,12 +27,12 @@ package execution
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/engine/client"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 )
 

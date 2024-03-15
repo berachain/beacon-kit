@@ -26,72 +26,51 @@
 package types
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/config/version"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
 //go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
 type BeaconBlockDeneb struct {
-	Slot            primitives.Slot
+	// Slot represents the position of the block in the chain.
+	Slot primitives.Slot
+
+	// ProposerIndex is the index of the validator who proposed the block.
+	ProposerIndex primitives.ValidatorIndex
+
+	// ParentBlockRoot is the hash of the parent block.
 	ParentBlockRoot [32]byte `ssz-size:"32"`
-	Body            *BeaconBlockBodyDeneb
-	PayloadValue    [32]byte `ssz-size:"32"`
+	// Body is the body of the BeaconBlockDeneb, containing the block's
+	// operations.
+	Body *BeaconBlockBodyDeneb
 }
 
-// IsEmpty returns true if the block is nil or the body is nil.
+// Version identifies the version of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) Version() uint32 {
+	return version.Deneb
+}
+
+// IsNil checks if the BeaconBlockDeneb instance is nil.
 func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil
 }
 
-func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
-	return b.Body
-}
-
-// Version returns the version of the block.
-func (b *BeaconBlockDeneb) Version() int {
-	return version.Deneb
-}
-
+// GetSlot retrieves the slot of the BeaconBlockDeneb.
 func (b *BeaconBlockDeneb) GetSlot() primitives.Slot {
 	return b.Slot
 }
 
+// GetSlot retrieves the slot of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) GetProposerIndex() primitives.ValidatorIndex {
+	return b.ProposerIndex
+}
+
+// GetBody retrieves the body of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
+	return b.Body
+}
+
+// GetParentBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
 func (b *BeaconBlockDeneb) GetParentBlockRoot() [32]byte {
 	return b.ParentBlockRoot
-}
-
-type BeaconBlockBodyDeneb struct {
-	RandaoReveal       [96]byte   `ssz-size:"96"`
-	Graffiti           [32]byte   `ssz-size:"32"`
-	Deposits           []*Deposit `                ssz-max:"16"`
-	ExecutionPayload   *enginetypes.ExecutableDataDeneb
-	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
-}
-
-func (b *BeaconBlockBodyDeneb) GetRandaoReveal() []byte {
-	return b.RandaoReveal[:]
-}
-
-//
-//nolint:lll
-func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayload {
-	return b.ExecutionPayload
-}
-
-func (b *BeaconBlockBodyDeneb) AttachExecution(
-	executionData enginetypes.ExecutionPayload,
-) error {
-	var ok bool
-	b.ExecutionPayload, ok = executionData.(*enginetypes.ExecutableDataDeneb)
-	if !ok {
-		return errors.New("invalid execution data type")
-	}
-	return nil
-}
-
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][48]byte {
-	return b.BlobKzgCommitments
 }

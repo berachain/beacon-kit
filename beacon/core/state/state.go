@@ -26,8 +26,10 @@
 package state
 
 import (
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -39,28 +41,83 @@ type BeaconState interface {
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	// TODO: fill these in as we develop impl
-	ReadWriteDepositQueue
+	ReadOnlyDeposits
+	ReadOnlyRandaoMixes
+	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
+	SetParentBlockRoot([32]byte)
 	GetParentBlockRoot() [32]byte
-
-	// TODO: Actually decouple epocha nd slot
-	// GetEpochBySlot(primitives.Slot) primitives.Epoch
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
+	WriteOnlyDeposits
+	WriteOnlyRandaoMixes
+	WriteOnlyValidators
+	WriteOnlyWithdrawals
+
 	SetParentBlockRoot([32]byte)
 }
 
+// WriteOnlyRandaoMixes defines a struct which only has write access to randao
+// mixes methods.
+type WriteOnlyRandaoMixes interface {
+	SetRandaoMix(types.Mix) error
+}
+
+// ReadOnlyRandaoMixes defines a struct which only has read access to randao
+// mixes methods.
+type ReadOnlyRandaoMixes interface {
+	RandaoMix() (types.Mix, error)
+}
+
+// WriteOnlyValidators has write access to validator methods.
+type WriteOnlyValidators interface {
+	// Add methods here
+}
+
+// ReadOnlyValidators has read access to validator methods.
+type ReadOnlyValidators interface {
+	ValidatorIndexByPubkey(
+		[]byte,
+	) (primitives.ValidatorIndex, error)
+
+	ValidatorPubKeyByIndex(
+		primitives.ValidatorIndex,
+	) ([]byte, error)
+}
+
+// ReadWriteValidators has read and write access to validator methods.
+type ReadWriteDeposits interface {
+	ReadOnlyDeposits
+	WriteOnlyDeposits
+}
+
 // ReadWriteDepositQueue has read and write access to deposit queue.
-type ReadWriteDepositQueue interface {
+type WriteOnlyDeposits interface {
 	EnqueueDeposits([]*beacontypes.Deposit) error
-	DequeueDeposits(n uint64) ([]*beacontypes.Deposit, error)
+	DequeueDeposits(uint64) ([]*beacontypes.Deposit, error)
+}
+
+// ReadOnlyDeposits has read access to deposit queue.
+type ReadOnlyDeposits interface {
+	ExpectedDeposits(uint64) ([]*beacontypes.Deposit, error)
+}
+
+// ReadWriteWithdrawals has read and write access to withdrawal methods.
+type ReadWriteWithdrawals interface {
+	ReadOnlyWithdrawals
+	WriteOnlyWithdrawals
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*enginetypes.Withdrawal, error)
+	ExpectedWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
+}
+
+// WriteOnlyWithdrawals only has write access to withdrawal methods.
+type WriteOnlyWithdrawals interface {
+	EnqueueWithdrawals([]*enginetypes.Withdrawal) error
+	DequeueWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
 }

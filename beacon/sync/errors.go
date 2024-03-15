@@ -25,7 +25,7 @@
 
 package sync
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrConsensusClientIsSyncing indicates that the consensus client

@@ -29,12 +29,10 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	builder "github.com/berachain/beacon-kit/beacon/builder"
+	"github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/health"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
-	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,7 +41,12 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg            *config.ABCI
+	cfg *config.ABCI
+	// stakingKeeper provides access to the staking module. In the handler
+	// it is used to convert consAddress to pubkey, before passing it into
+	// the core beacon chain logic.
+	stakingKeeper StakingKeeper
+
 	builderService *builder.Service
 	chainService   *blockchain.Service
 	healthService  *health.Service
@@ -54,14 +57,17 @@ type Handler struct {
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
 	cfg *config.ABCI,
+	stakingKeeper StakingKeeper,
 	builderService *builder.Service,
 	healthService *health.Service,
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
+
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
+		stakingKeeper:  stakingKeeper,
 		builderService: builderService,
 		healthService:  healthService,
 		chainService:   chainService,
@@ -78,22 +84,29 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
+	proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
+		ctx, req.ProposerAddress,
+	)
+	if err != nil {
+		return &abci.ResponsePrepareProposal{}, err
+	}
+
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
 	// timing.
-	block, err := h.builderService.RequestBestBlock(
+	blk, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
+		proposerPubkey,
 	)
-
-	if err != nil {
-		logger.Error("failed to build block", "error", err)
+	if err != nil || blk == nil || blk.IsNil() {
+		logger.Error("failed to build block", "error", err, "block", blk)
 		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Marshal the block into bytes.
-	beaconBz, err := block.MarshalSSZ()
+	beaconBz, err := blk.MarshalSSZ()
 	if err != nil {
 		logger.Error("failed to marshal block", "error", err)
 	}
@@ -121,29 +134,6 @@ func (h *Handler) ProcessProposalHandler(
 	ctx sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
-	logger := ctx.Logger().With("module", "process-proposal")
-
-	// Extract the beacon block from the ABCI request.
-	//
-	// TODO: Block factory struct?
-	// TODO: Use protobuf and .(type)?
-	block, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
-		req, h.cfg.BeaconBlockPosition,
-		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
-	)
-	if err != nil {
-		//nolint:nilerr // its okay for now todo.
-		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
-	}
-
-	// Import the block into the execution client to validate it.
-	if err = h.chainService.ReceiveBeaconBlock(
-		ctx, block, byteslib.ToBytes32(req.Hash)); err != nil {
-		logger.Warn("failed to receive beacon block", "error", err)
-		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_ACCEPT}, nil
-	}
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
 	// after the underlying process proposal handler has run. This is to avoid

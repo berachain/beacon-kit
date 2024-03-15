@@ -27,6 +27,11 @@ package beacon
 
 // Collection prefixes.
 const (
-	parentBlockRootPrefix = "parent_block_root"
-	depositQueuePrefix    = "deposit_queue"
+	depositQueuePrefix           = "deposit_queue"
+	withdrawalQueuePrefix        = "withdrawal_queue"
+	randaoMixPrefix              = "randao_mix"
+	validatorIndexPrefix         = "val_idx"
+	parentBlockRootPrefix        = "parent_block_root"
+	validatorIndexToPubkeyPrefix = "val_idx_to_pk"
+	validatorPubkeyToIndexPrefix = "val_pk_to_idx"
 )

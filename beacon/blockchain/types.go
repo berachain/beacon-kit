@@ -27,24 +27,17 @@ package blockchain
 
 import (
 	"context"
-	"reflect"
 
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/execution"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
-	BuildLocalPayload(
-		ctx context.Context,
-		parentEth1Hash primitives.ExecutionHash,
-		slot primitives.Slot,
-		timestamp uint64,
-		parentBlockRoot [32]byte,
-	) (*enginetypes.PayloadID, error)
-}
-
+// ExecutionService is the interface for the execution service.
 type ExecutionService interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
@@ -62,13 +55,47 @@ type ExecutionService interface {
 		parentBlockRoot [32]byte,
 	) (bool, error)
 
+	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
 		blockHash primitives.ExecutionHash,
-	) ([]*reflect.Value, error)
+	) error
 }
 
-type StakingService interface{}
+// LocalBuilder is the interface for the builder service.
+type LocalBuilder interface {
+	BuildLocalPayload(
+		ctx context.Context,
+		parentEth1Hash primitives.ExecutionHash,
+		slot primitives.Slot,
+		timestamp uint64,
+		parentBlockRoot [32]byte,
+	) (*enginetypes.PayloadID, error)
+}
+
+// RandaoProcessor is the interface for the randao processor.
+type RandaoProcessor interface {
+	BuildReveal(
+		epoch primitives.Epoch,
+	) (randaotypes.Reveal, error)
+	MixinNewReveal(
+		st state.BeaconState,
+		reveal randaotypes.Reveal,
+	) error
+	VerifyReveal(
+		proposerPubkey [bls12381.PubKeyLength]byte,
+		epoch primitives.Epoch,
+		reveal randaotypes.Reveal,
+	) error
+}
+
+// StakingService is the interface for the staking service.
+type StakingService interface {
+	ProcessBlockEvents(
+		ctx context.Context,
+		logs []ethtypes.Log,
+	) error
+}
 
 type SyncService interface {
 	IsInitSync() bool

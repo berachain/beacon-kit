@@ -26,11 +26,12 @@
 package e2e_test
 
 import (
-	"context"
-	"time"
+	"encoding/hex"
+	"log"
+	"os/exec"
 
 	"github.com/berachain/beacon-kit/e2e/suite"
-	"golang.org/x/sync/errgroup"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 // BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
@@ -41,23 +42,33 @@ type BeaconKitE2ESuite struct {
 
 // TestBasicStartup tests the basic startup of the beacon-kit network.
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
-	targetBlock := uint64(5)
-	eg, groupCtx := errgroup.WithContext(context.Background())
-	groupCctx, cancel := context.WithTimeout(groupCtx, 90*time.Second)
-	defer cancel()
+	err := s.WaitForFinalizedBlockNumber(6)
+	s.Require().NoError(err)
+}
 
-	for _, executionClient := range s.ExecutionClients() {
-		eg.Go(
-			func() error {
-				return executionClient.WaitForLatestBlockNumber(
-					groupCctx,
-					targetBlock,
-				)
-			},
+// TestForgeScriptExecution tests the execution of a forge script
+// against the beacon-kit network.
+func (s *BeaconKitE2ESuite) TestForgeScriptExecution() {
+	url := s.KurtosisE2ESuite.JSONRPCBalancer().URL()
+	pk := hex.EncodeToString(crypto.FromECDSA(s.GenesisAccount().PrivateKey()))
+
+	// Change directory to /contracts/ before executing the command
+	cmdStr := "cd ../contracts && " +
+		"forge build && " +
+		"forge script ./script/DeployAndCallERC20.s.sol " +
+		"--broadcast --rpc-url=" + url + " " +
+		"--private-key=" + pk
+
+	// Execute the command
+	cmd := exec.Command("bash", "-c", cmdStr)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf(
+			"Failed to execute command: %s, with the error: %s",
+			cmdStr,
+			err,
 		)
 	}
 
-	if err := eg.Wait(); err != nil {
-		s.T().Fatal(err)
-	}
+	log.Printf("Output: %s\n", string(output))
 }

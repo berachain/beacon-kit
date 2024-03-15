@@ -104,7 +104,7 @@ func TestParser(t *testing.T) {
 	t.Run(
 		"should set and retrieve a primitives.ExecutionAddress",
 		func(t *testing.T) {
-			addressStr := "0x18df82c7e422a42d47345ed86b0e935e9718ebda"
+			addressStr := "0x00000000219ab540356cbb839cbe05303d7705fa"
 			runTestWithOutput(
 				t, appOpts, parserUnderTest.GetExecutionAddress, addressStr,
 				common.HexToAddress(addressStr),
@@ -117,7 +117,7 @@ func TestParser(t *testing.T) {
 		func(t *testing.T) {
 			addressStrs := []string{
 				"0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
-				"0x18df82c7e422a42d47345ed86b0e935e9718ebda",
+				"0x00000000219ab540356cbb839cbe05303d7705fa",
 			}
 			expectedAddresses := []primitives.ExecutionAddress{
 				common.HexToAddress(addressStrs[0]),

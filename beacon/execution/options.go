@@ -53,3 +53,10 @@ func WithLogFactory(f LogFactory) service.Option[Service] {
 		return nil
 	}
 }
+
+func WithStakingService(ss StakingService) service.Option[Service] {
+	return func(s *Service) error {
+		s.sks = ss
+		return nil
+	}
+}

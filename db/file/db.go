@@ -30,7 +30,7 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/log"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/spf13/afero"
 )
 

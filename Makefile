@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk kurtosis/kurtosis.mk
+include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk contracts/Makefile kurtosis/Makefile
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
@@ -29,16 +29,6 @@ clean:
 	@rm -rf .tmp/ 
 	@rm -rf $(OUT_DIR)
 	@$(MAKE) sszgen-clean proto-clean forge-clean
-
-#################
-#     forge     #
-#################
-
-forge-build: |
-	@forge build --extra-output-files bin --extra-output-files abi  --root $(CONTRACTS_DIR)
-
-forge-clean: |
-	@forge clean --root $(CONTRACTS_DIR)
 
 
 ###############################################################################
@@ -202,10 +192,6 @@ test-unit-fuzz:
 	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzOrderedCacheSimple ./lib/cache -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzOrderedCacheConcurrencySafety ./lib/cache -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzLogCacheSeq ./beacon/execution/logs/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzLogCacheConcurrency ./beacon/execution/logs/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzProcessLogs ./beacon/execution -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
@@ -222,22 +208,6 @@ test-e2e-no-build:
 #     forge     #
 #################
 
-test-forge-cover:
-	@echo "Running forge test with coverage..."
-	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=coverage forge build && forge coverage --nmt testFuzz --report lcov --report-file ../test-forge-cover.txt
-
-test-forge-fuzz:
-	@echo "Running forge fuzz tests..."
-	@cd $(CONTRACTS_DIR) && FOUNDRY_PROFILE=fuzz forge test
-
-forge-snapshot:
-	@echo "Running forge snapshot..."
-	@cd $(CONTRACTS_DIR) && forge snapshot --isolate --fuzz-runs 1
-
-forge-snapshot-diff:
-	@echo "Running forge snapshot diff..."
-	@cd $(CONTRACTS_DIR) && forge snapshot --diff --isolate --fuzz-runs 1
-
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -249,17 +219,6 @@ format:
 lint:
 	@$(MAKE) license buf-lint forge-lint golangci star-lint
 
-#################
-#     forge     #
-#################
-
-forge-lint-fix:
-	@echo "--> Running forge fmt"
-	@cd $(CONTRACTS_DIR) && forge fmt
-
-forge-lint:
-	@echo "--> Running forge lint"
-	@cd $(CONTRACTS_DIR) && forge fmt --check
 
 #################
 # golangci-lint #
@@ -336,7 +295,7 @@ slither:
 	-t \
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
-	trailofbits/eth-security-toolbox \
+	trailofbits/eth-security-toolbox:edge \
 	/bin/bash -c "cd /contracts && slither ./src/eip4788 && slither ./src/staking"
 
 
