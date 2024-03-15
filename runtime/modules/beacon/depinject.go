@@ -29,14 +29,17 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	modulev1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
+	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(ProvideModule),
+		appconfig.Provide(stakingwrapper.ProvideStakingKeeper),
 	)
 }
 
@@ -46,6 +49,7 @@ type DepInjectInput struct {
 
 	Config      *modulev1alpha1.Module
 	Environment appmodule.Environment
+	VCP         *stakingwrapper.Keeper
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -54,17 +58,21 @@ type DepInjectOutput struct {
 
 	Keeper *keeper.Keeper
 	Module appmodule.AppModule
+	Hooks  stakingtypes.StakingHooksWrapper
 }
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
 		in.Environment,
+		in.VCP,
 	)
-	m := NewAppModule(k)
 
 	return DepInjectOutput{
 		Keeper: k,
-		Module: m,
+		Module: NewAppModule(k),
+		Hooks: stakingtypes.StakingHooksWrapper{
+			StakingHooks: k.Hooks(),
+		},
 	}
 }

@@ -26,13 +26,19 @@
 package staking
 
 import (
+	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // Service represents the staking service.
 type Service struct {
+	// BaseService is the base service.
 	service.BaseService
 
+	// abi represents the configured deposit contract's
+	// abi.
+	abi *abi.WrappedABI
+
 	// vcp is responsible for applying validator set changes.
-	vcp ValsetChangeProvider
+	vcp ValsetUpdater
 }

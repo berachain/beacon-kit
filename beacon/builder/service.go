@@ -27,9 +27,12 @@ package builder
 
 import (
 	"context"
+	"fmt"
 
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -46,6 +49,12 @@ type PayloadBuilder interface {
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
+type RandaoProcessor interface {
+	BuildReveal(
+		epoch primitives.Epoch,
+	) (randaotypes.Reveal, error)
+}
+
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
@@ -57,6 +66,8 @@ type Service struct {
 	// The local Builder.
 	localBuilder   PayloadBuilder
 	remoteBuilders []PayloadBuilder
+
+	randaoProcessor RandaoProcessor
 }
 
 // LocalBuilder returns the local builder.
@@ -67,6 +78,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
 	ctx context.Context, slot primitives.Slot,
+	proposerPubkey [bls12381.PubKeyLength]byte,
 ) (beacontypes.BeaconBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -75,21 +87,32 @@ func (s *Service) RequestBestBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 
-	// // // TODO: SIGN UR RANDAO THINGY HERE OR SOMETHING.
-	// _ = s.beaconKitValKey
-	// // _, err := s.beaconKitValKey.Key.PrivKey.Sign([]byte("hello world"))
-	// // if err != nil {
-	// // 	return nil, err
-	// // }
+	reveal, err := s.randaoProcessor.BuildReveal(
+		s.BeaconCfg().SlotToEpoch(slot))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build reveal: %w", err)
+	}
 
 	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
 
+	proposerIndex, err := s.BeaconState(ctx).
+		ValidatorIndexByPubkey(proposerPubkey[:])
+	if err != nil {
+		return nil, err
+	}
+
 	// Create a new empty block from the current state.
 	beaconBlock, err := beacontypes.EmptyBeaconBlock(
-		slot, parentBlockRoot, s.ActiveForkVersionForSlot(slot),
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		s.ActiveForkVersionForSlot(slot),
+		reveal,
 	)
 	if err != nil {
 		return nil, err
+	} else if beaconBlock == nil {
+		return nil, beacontypes.ErrNilBlk
 	}
 
 	// Get the payload for the block.
@@ -110,9 +133,31 @@ func (s *Service) RequestBestBlock(
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
-	if err = beaconBlock.GetBody().AttachExecution(payload); err != nil {
+	body := beaconBlock.GetBody()
+	if body.IsNil() {
+		return nil, beacontypes.ErrNilBlkBody
+	}
+
+	// Dequeue deposits from the state.
+	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
+		s.BeaconCfg().Limits.MaxDepositsPerBlock,
+	)
+	if err != nil {
 		return nil, err
 	}
+
+	// Set the deposits on the block body.
+	body.SetDeposits(deposits)
+
+	// if err = b
+	if err = body.SetExecutionData(payload); err != nil {
+		return nil, err
+	}
+
+	s.Logger().Info("finished assembling beacon block 🛟",
+		"slot", slot,
+		"deposits", len(deposits),
+	)
 
 	// Return the block.
 	return beaconBlock, nil

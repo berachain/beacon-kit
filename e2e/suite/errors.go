@@ -25,7 +25,7 @@
 
 package suite
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
-// ErrPublicPortNotFound is returned when the public port is not found.
-var ErrPublicPortNotFound = errors.New("failed to get public ports")
+// ErrUnexpectedBalance is returned when the balance is unexpected.
+var ErrUnexpectedBalance = errors.New("unexpected balance")

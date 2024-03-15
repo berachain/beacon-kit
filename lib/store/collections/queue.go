@@ -114,6 +114,37 @@ func (q *Queue[V]) Pop(ctx context.Context) (V, error) {
 	return v, err
 }
 
+// PeekMulti returns the top n elements of the queue.
+func (q *Queue[V]) PeekMulti(ctx context.Context, n uint64) ([]V, error) {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+
+	var err error
+
+	headIdx, err := q.headSeq.Peek(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tailIdx, err := q.tailSeq.Peek(ctx)
+	if err != nil {
+		return nil, err
+	}
+	endIdx := min(tailIdx, headIdx+n)
+	ranger := new(sdkcollections.Range[uint64]).
+		StartInclusive(headIdx).EndExclusive(endIdx)
+	iter, err := q.container.Iterate(ctx, ranger)
+	if err != nil {
+		return nil, err
+	}
+	// iter.Values already closes the iterator.
+	values, err := iter.Values()
+	if err != nil {
+		return nil, err
+	}
+
+	return values, nil
+}
+
 // PopMulti returns the top n elements of the queue and removes them from the
 // queue.
 func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
@@ -137,6 +168,7 @@ func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// iter.Values already closes the iterator.
 	values, err := iter.Values()
 	if err != nil {

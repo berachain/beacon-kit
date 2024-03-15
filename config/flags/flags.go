@@ -51,6 +51,7 @@ const (
 
 	// Fork Config.
 	forkRoot         = beaconConfigRoot + "forks."
+	SlotsPerEpoch    = forkRoot + "slots-per-epoch"
 	ElectraForkEpoch = forkRoot + "electra-fork-epoch"
 
 	// Validator Config.
@@ -69,8 +70,8 @@ const (
 
 	// Limits Config.
 	limitsRoot     = beaconConfigRoot + "limits."
-	MaxDeposits    = limitsRoot + "max-deposits"
-	MaxWithdrawals = limitsRoot + "max-withdrawals"
+	MaxDeposits    = limitsRoot + "max-deposits-per-block"
+	MaxWithdrawals = limitsRoot + "max-withdrawals-per-payload"
 
 	// ABCI Config.
 	abciRoot            = beaconKitRoot + "abci."

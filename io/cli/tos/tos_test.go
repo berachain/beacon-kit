@@ -27,7 +27,6 @@ package tos_test
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/io/cli/prompt/mocks"
 	"github.com/berachain/beacon-kit/io/cli/tos"
 	"github.com/berachain/beacon-kit/io/file"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/stretchr/testify/mock"

@@ -26,6 +26,7 @@
 package blockchain
 
 import (
+	"github.com/berachain/beacon-kit/beacon/core"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -33,6 +34,15 @@ import (
 func WithBaseService(base service.BaseService) service.Option[Service] {
 	return func(s *Service) error {
 		s.BaseService = base
+		return nil
+	}
+}
+
+// WithBlockValidator is a function that returns an Option.
+// It sets the BlockValidator of the Service to the provided Service.
+func WithBlockValidator(bv *core.BlockValidator) service.Option[Service] {
+	return func(s *Service) error {
+		s.bv = bv
 		return nil
 	}
 }
@@ -55,11 +65,18 @@ func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
 	}
 }
 
-// WithStakingService is a function that returns an Option.
-// It sets the StakingService of the Service to the provided Service.
-func WithStakingService(sks StakingService) service.Option[Service] {
+// WithPayloadValidator is a function that returns an Option.
+func WithPayloadValidator(pv *core.PayloadValidator) service.Option[Service] {
 	return func(s *Service) error {
-		s.sks = sks
+		s.pv = pv
+		return nil
+	}
+}
+
+// WithStateProcessor is a function that returns an Option.
+func WithStateProcessor(sp *core.StateProcessor) service.Option[Service] {
+	return func(s *Service) error {
+		s.sp = sp
 		return nil
 	}
 }

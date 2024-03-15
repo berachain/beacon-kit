@@ -32,11 +32,12 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
-// ValsetChangeProvider is the interface for applying validator set changes.
-type ValsetChangeProvider interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
+// ValsetUpdater is the interface for applying validator set changes.
+type ValsetUpdater interface {
+	ApplyDeposit(
+		ctx context.Context, deposit *beacontypes.Deposit,
+	) error
+	ApplyWithdrawal(
+		ctx context.Context, withdrawal *enginetypes.Withdrawal,
 	) error
 }

@@ -25,7 +25,7 @@
 
 package key
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 // ErrNoPrivValidatorFound is returned when no priv validator is found.
 var ErrNoPrivValidatorFound = errors.New("no private key found for validator")

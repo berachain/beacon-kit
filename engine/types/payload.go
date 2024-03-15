@@ -115,7 +115,7 @@ type ExecutableDataDeneb struct {
 }
 
 // Version returns the version of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) Version() int {
+func (d *ExecutableDataDeneb) Version() uint32 {
 	return version.Deneb
 }
 
@@ -142,6 +142,11 @@ func (d *ExecutableDataDeneb) GetBlockHash() primitives.ExecutionHash {
 // GetTransactions returns the transactions of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 	return d.Transactions
+}
+
+// GetGasUsed returns the gas used of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetPrevRandao() [32]byte {
+	return d.Random
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.

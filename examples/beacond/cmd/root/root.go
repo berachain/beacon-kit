@@ -28,9 +28,10 @@ package root
 
 import (
 	"context"
-	"errors"
 	"io"
 	"os"
+
+	"github.com/cockroachdb/errors"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
@@ -86,7 +87,6 @@ func NewRootCmd() *cobra.Command {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
-			clientCtx = clientCtx.WithCmdContext(cmd.Context()).WithViper("")
 			clientCtx, err := client.ReadPersistentCommandFlags(
 				clientCtx,
 				cmd.Flags(),

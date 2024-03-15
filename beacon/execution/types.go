@@ -41,6 +41,13 @@ type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
 
+type StakingService interface {
+	ProcessBlockEvents(
+		ctx context.Context,
+		logs []ethtypes.Log,
+	) error
+}
+
 // LogFactory is an interface that can unmarshal Ethereum logs into objects,
 // in the form of reflect.Value, with appropriate types for each type of logs.
 type LogFactory interface {

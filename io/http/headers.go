@@ -26,10 +26,10 @@
 package http
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/node"
 )
 
@@ -45,10 +45,10 @@ func NewHeaderWithJWT(secret *jwt.Secret) http.Header {
 // AddJWTHeader adds a JWT header to the provided HTTP header.
 func AddJWTHeader(header http.Header, secret *jwt.Secret) error {
 	// Authenticate the execution node JSON-RPC endpoint.
-	jwtAuthHandler := node.NewJWTAuth(*secret)
-	if header == nil {
+	if secret == nil {
+		return errors.New("jwt.Secret is nil")
+	} else if header == nil {
 		return errors.New("http.Header is nil")
 	}
-
-	return jwtAuthHandler(header)
+	return node.NewJWTAuth(*secret)(header)
 }

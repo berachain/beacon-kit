@@ -30,9 +30,9 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
-	"github.com/pkg/errors"
 )
 
 // ErrUnauthenticatedConnection indicates that the connection is not
@@ -117,6 +117,16 @@ var (
 	// block hash for the payload.
 	ErrInvalidBlockHashPayloadStatus = errors.New(
 		"payload status is INVALID_BLOCK_HASH")
+
+	// ErrNilForkchoiceResponse indicates a nil forkchoice response.
+	ErrNilForkchoiceResponse = errors.New(
+		"nil forkchoice response",
+	)
+
+	// ErrNilPayloadStatus indicates a nil payload status.
+	ErrNilPayloadStatus = errors.New(
+		"nil payload status",
+	)
 
 	// ErrRequestTooLarge indicates that the request size exceeded the limit.
 	ErrRequestTooLarge = errors.New(

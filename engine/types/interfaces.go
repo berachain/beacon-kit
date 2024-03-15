@@ -39,8 +39,9 @@ type ExecutionPayloadBody interface {
 	ssz.HashRoot
 	IsNil() bool
 	String() string
-	Version() int
+	Version() uint32
 	IsBlinded() bool
+	GetPrevRandao() [32]byte
 	GetBlockHash() primitives.ExecutionHash
 	GetParentHash() primitives.ExecutionHash
 }
@@ -54,9 +55,6 @@ type ExecutionPayload interface {
 
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
-	GetPrevRandao() [32]byte
-	GetTimestamp() uint64
-	GetSuggestedFeeRecipient() primitives.ExecutionAddress
-	GetWithdrawals() []*Withdrawal
-	GetParentBeaconBlockRoot() [32]byte
+	Version() uint32
+	Validate() error
 }

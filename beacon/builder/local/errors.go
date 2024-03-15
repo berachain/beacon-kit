@@ -25,7 +25,7 @@
 
 package localbuilder
 
-import "github.com/pkg/errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
@@ -33,6 +33,9 @@ var (
 	ErrNilPayloadOnValidResponse = errors.New(
 		"received nil payload ID on VALID engine response",
 	)
+
+	// ErrNilPayloadID is returned when a nil payload ID is received.
+	ErrNilPayloadID = errors.New("received nil payload ID")
 
 	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
 	// cache.

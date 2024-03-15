@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/cli/parser"
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Limits conforms to the BeaconKitConfig interface.
@@ -37,7 +38,9 @@ var _ BeaconKitConfig[Execution] = &Execution{}
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultExecutionConfig() Execution {
 	return Execution{
-		DepositContractAddress: primitives.ExecutionAddress{},
+		DepositContractAddress: common.HexToAddress(
+			"0x00000000219ab540356cbb839cbe05303d7705fa",
+		),
 	}
 }
 

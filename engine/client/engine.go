@@ -32,7 +32,7 @@ import (
 	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
@@ -52,6 +52,8 @@ func (s *EngineClient) NewPayload(
 	)
 	if err != nil {
 		return nil, err
+	} else if result == nil {
+		return nil, ErrNilPayloadStatus
 	}
 
 	// This case is only true when the payload is invalid, so
@@ -85,7 +87,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
-	forkVersion int,
+	forkVersion uint32,
 ) (*enginetypes.PayloadID, *primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -93,6 +95,8 @@ func (s *EngineClient) ForkchoiceUpdated(
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
 	if err != nil {
 		return nil, nil, s.handleRPCError(err)
+	} else if result == nil {
+		return nil, nil, ErrNilForkchoiceResponse
 	}
 
 	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))
@@ -108,7 +112,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context,
 	state *enginetypes.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
-	forkVersion int,
+	forkVersion uint32,
 ) (*enginetypes.ForkchoiceResponse, error) {
 	switch forkVersion {
 	case version.Deneb:
@@ -121,7 +125,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
-	ctx context.Context, payloadID enginetypes.PayloadID, forkVersion int,
+	ctx context.Context, payloadID enginetypes.PayloadID, forkVersion uint32,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()

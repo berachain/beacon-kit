@@ -27,13 +27,23 @@ package suite
 
 import (
 	"context"
-	"strings"
+	"crypto/ecdsa"
+	"fmt"
+	"math/big"
+	"sync/atomic"
+	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/e2e/suite/types"
 	"github.com/berachain/beacon-kit/kurtosis"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+	"github.com/cockroachdb/errors"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
+	"github.com/sourcegraph/conc/iter"
 )
 
 // SetupSuite executes before the test suite begins execution.
@@ -43,21 +53,50 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 
 // Option is a function that sets a field on the KurtosisE2ESuite.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
+	var (
+		key1, key2, key3 *ecdsa.PrivateKey
+		err              error
+	)
+
 	// Setup some sane defaults.
 	s.cfg = kurtosis.DefaultE2ETestConfig()
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
+	s.testAccounts = make([]*types.EthAccount, 0)
+
+	s.genesisAccount = types.NewEthAccountFromHex(
+		"genesisAccount",
+		"fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
+	)
+	key1, err = crypto.GenerateKey()
+	s.Require().NoError(err, "Error generating key")
+	key2, err = crypto.GenerateKey()
+	s.Require().NoError(err, "Error generating key")
+	key3, err = crypto.GenerateKey()
+	s.Require().NoError(err, "Error generating key")
+
+	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
+		"testAccount1",
+		key1,
+	))
+	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
+		"testAccount2",
+		key2,
+	))
+	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
+		"testAccount1",
+		key3,
+	))
 
 	// Apply all the provided options, this allows
 	// the test suite to be configured in a flexible manner by
 	// the caller (i.e overriding defaults).
 	for _, opt := range opts {
-		if err := opt(s); err != nil {
+		if err = opt(s); err != nil {
 			s.Require().NoError(err, "Error applying option")
 		}
 	}
 
-	var err error
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
 	s.logger.Info("destroying any existing enclave...")
@@ -71,8 +110,10 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	s.logger.Info(
 		"spinning up enclave...",
-		"num_participants",
-		len(s.cfg.Participants),
+		"num_validators",
+		len(s.cfg.Validators),
+		"num_full_nodes",
+		len(s.cfg.FullNodes),
 	)
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
@@ -86,29 +127,175 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().NoError(err, "Error running Starlark package")
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
 	s.Require().Empty(result.ValidationErrors)
-	s.SetupExecutionClients()
+
+	s.logger.Info("enclave spun up successfully")
+	s.logger.Info("setting up execution clients")
+
+	// Setup the JSON-RPC balancer.
+	s.logger.Info("setting up JSON-RPC balancer")
+	err = s.SetupJSONRPCBalancer()
+	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
+	// Wait for the finalized block number to reach 1.
+	err = s.WaitForFinalizedBlockNumber(1)
+	s.Require().NoError(err, "Error waiting for finalized block number")
+
+	// Fund any requested accounts.
+	s.FundAccounts()
 }
 
-// SetupExecutionClients sets up the execution clients for the test suite.
-func (s *KurtosisE2ESuite) SetupExecutionClients() {
-	s.executionClients = make(map[string]*ExecutionClient)
-	svrcs, err := s.Enclave().GetServices()
-	s.Require().NoError(err, "Error getting services")
-	for name, v := range svrcs {
-		var serviceCtx *services.ServiceContext
-		serviceCtx, err = s.Enclave().GetServiceContext(string(v))
-		s.Require().NoError(err, "Error getting service context")
-		if strings.HasPrefix(string(name), "el-") {
-			if s.executionClients[string(name)], err = NewExecutionClientFromServiceCtx(
-				serviceCtx,
-				s.logger,
-			); err != nil {
-				// TODO: Figoure out how to handle clients that purposefully
-				// don't expose JSON-RPC.
-				s.Require().NoError(err, "Error creating execution client")
+// SetupNGINXBalancer sets up the NGINX balancer for the test suite.
+func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
+	sCtx, err := s.Enclave().GetServiceContext("nginx")
+	if err != nil {
+		return err
+	}
+
+	if s.nginxBalancer, err = types.NewLoadBalancer(
+		sCtx,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// FundAccounts funds the accounts for the test suite.
+func (s *KurtosisE2ESuite) FundAccounts() {
+	ctx := context.Background()
+	nonce := atomic.Uint64{}
+	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
+		ctx, s.genesisAccount.Address(),
+	)
+	s.Require().NoError(err, "Failed to get nonce for genesis account")
+	nonce.Store(pendingNonce)
+
+	var chainID *big.Int
+	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
+	s.Require().NoError(err, "failed to get chain ID")
+
+	_, err = iter.MapErr(
+		s.testAccounts,
+		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
+			account := *acc
+			var gasTipCap *big.Int
+			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
+				return nil, err
 			}
+
+			gasFeeCap := new(big.Int).Add(gasTipCap, big.NewInt(TenGwei))
+			nonceToSubmit := nonce.Add(1) - 1
+			value := big.NewInt(Ether)
+			dest := account.Address()
+			var signedTx *ethtypes.Transaction
+			if signedTx, err = s.genesisAccount.SignTx(
+				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
+					ChainID:   chainID,
+					Nonce:     nonceToSubmit,
+					GasTipCap: gasTipCap,
+					GasFeeCap: gasFeeCap,
+					Gas:       EtherTransferGasLimit,
+					To:        &dest,
+					Value:     value,
+					Data:      nil,
+				}),
+			); err != nil {
+				return nil, err
+			}
+
+			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
+			defer cancel()
+
+			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
+				s.logger.Error(
+					"error submitting funding transaction",
+					"error",
+					err,
+				)
+				return nil, err
+			}
+
+			s.logger.Info(
+				"funding transaction submitted, waiting for confirmation...",
+				"tx_hash", signedTx.Hash().Hex(), "nonce", nonceToSubmit,
+				"account", account.Name(), "value", value,
+			)
+
+			var receipt *ethtypes.Receipt
+			receipt, err = bind.WaitMined(cctx, s.JSONRPCBalancer(), signedTx)
+			if err != nil {
+				return nil, err
+			}
+
+			s.logger.Info(
+				"funding transaction confirmed",
+				"tx_hash", signedTx.Hash().Hex(),
+				"account", account.Name(),
+			)
+
+			// Verify the receipt status.
+			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+				return nil, err
+			}
+
+			// Verify the balance of the account
+			var balance *big.Int
+			if balance, err = s.JSONRPCBalancer().BalanceAt(
+				ctx, account.Address(), nil); err != nil {
+				return nil, err
+			} else if balance.Cmp(value) != 0 {
+				return nil, errors.Wrap(
+					ErrUnexpectedBalance,
+					fmt.Sprintf("expected: %v, got: %v", value, balance),
+				)
+			}
+			return receipt, nil
+		},
+	)
+	s.Require().NoError(err, "Error funding accounts")
+}
+
+// WaitForFinalizedBlockNumber waits for the finalized block number
+// to reach the target block number across all execution clients.
+func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
+	target uint64,
+) error {
+	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
+	defer cancel()
+	ticker := time.NewTicker(time.Second)
+	var finalBlockNum uint64
+	for finalBlockNum < target {
+		finalBlock, err := s.JSONRPCBalancer().BlockByNumber(cctx, nil)
+		if err != nil {
+			s.logger.Error("error getting finalized block number", "error", err)
+			continue
+		}
+		finalBlockNum = finalBlock.NumberU64()
+
+		s.logger.Info(
+			"waiting for finalized block number to reach target",
+			"target",
+			target,
+			"finalized",
+			finalBlockNum,
+		)
+
+		select {
+		case <-s.ctx.Done():
+			return s.ctx.Err()
+		case <-ticker.C:
+			continue
 		}
 	}
+
+	s.logger.Info(
+		"finalized block number reached target 🎉",
+		"target",
+		target,
+		"finalized",
+		finalBlockNum,
+	)
+
+	return nil
 }
 
 // TearDownSuite cleans up resources after all tests have been executed.
@@ -116,4 +303,18 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() {
 func (s *KurtosisE2ESuite) TearDownSuite() {
 	s.Logger().Info("destroying enclave...")
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
+}
+
+// CheckForSuccessfulTx returns true if the transaction was successful.
+func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
+	tx common.Hash,
+) bool {
+	ctx, cancel := context.WithTimeout(s.Ctx(), DefaultE2ETestTimeout)
+	defer cancel()
+	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
+	if err != nil {
+		s.Logger().Error("error getting transaction receipt", "error", err)
+		return false
+	}
+	return receipt.Status == ethtypes.ReceiptStatusSuccessful
 }

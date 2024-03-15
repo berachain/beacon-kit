@@ -32,7 +32,7 @@ import (
 
 // NewWithdrawal creates a new Withdrawal.
 func NewWithdrawal(
-	_ []byte, // validatorPubkey
+	_ []byte, // pubkey
 	amount uint64,
 ) *Withdrawal {
 	// TODO: implement
@@ -49,6 +49,11 @@ type Withdrawal struct {
 	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
 	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
 	Amount    uint64                      `json:"amount"         ssz-size:"8"`
+}
+
+// String returns a string representation of the Withdrawal.
+func (w *Withdrawal) String() string {
+	return "<TODO>"
 }
 
 // field type overrides for gencodec.

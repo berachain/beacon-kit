@@ -25,7 +25,7 @@
 
 package ethclient
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 // ErrNilResponse is an error that is returned when the response is nil.
 var ErrNilResponse = errors.New("nil response")

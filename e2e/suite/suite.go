@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/e2e/suite/types"
 	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
@@ -44,19 +45,27 @@ var Run = suite.Run
 // KurtosisE2ESuite.
 type KurtosisE2ESuite struct {
 	suite.Suite
-	cfg              *kurtosis.E2ETestConfig
-	logger           log.Logger
-	ctx              context.Context
-	kCtx             *kurtosis_context.KurtosisContext
-	enclave          *enclaves.EnclaveContext
-	consensusClients map[string]*ConsensusClient
-	executionClients map[string]*ExecutionClient
+	cfg     *kurtosis.E2ETestConfig
+	logger  log.Logger
+	ctx     context.Context
+	kCtx    *kurtosis_context.KurtosisContext
+	enclave *enclaves.EnclaveContext
+
+	// TODO: Figure out what these may be useful for.
+	// consensusClients map[string]*types.ConsensusClient
+	// executionClients map[string]*types.ExecutionClient
+	nginxBalancer *types.LoadBalancer
+
+	genesisAccount *types.EthAccount
+	testAccounts   []*types.EthAccount
 }
 
 // ConsensusClients returns the consensus clients associated with the
 // KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) ConsensusClients() map[string]*ConsensusClient {
-	return s.consensusClients
+//
+//nolint:lll
+func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
+	return nil
 }
 
 // Ctx returns the context associated with the KurtosisE2ESuite.
@@ -71,6 +80,10 @@ func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
 	return s.enclave
 }
 
+func (s *KurtosisE2ESuite) Config() *kurtosis.E2ETestConfig {
+	return s.cfg
+}
+
 // KurtosisCtx returns the KurtosisContext associated with the KurtosisE2ESuite.
 // The KurtosisContext is a critical component that facilitates interaction with
 // the Kurtosis testnet, including creating and managing enclaves.
@@ -80,11 +93,28 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 
 // ExecutionClients returns the execution clients associated with the
 // KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) ExecutionClients() map[string]*ExecutionClient {
-	return s.executionClients
+//
+//nolint:lll
+func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
+	return nil
+}
+
+// JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
+func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
+	return s.nginxBalancer
 }
 
 // Logger returns the logger for the test suite.
 func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
+}
+
+// GenesisAccount returns the genesis account for the test suite.
+func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
+	return s.genesisAccount
+}
+
+// TestAccounts returns the test accounts for the test suite.
+func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
+	return s.testAccounts
 }

@@ -26,6 +26,7 @@
 package staking
 
 import (
+	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -39,10 +40,21 @@ func WithBaseService(
 	}
 }
 
-// WithValsetChangeProvider returns an Option that sets
-// the ValsetChangeProvider for the Service.
-func WithValsetChangeProvider(
-	vcp ValsetChangeProvider,
+// WithDepositABI returns an Option that sets the deposit
+// contract's ABI for the Service.
+func WithDepositABI(
+	abi *abi.WrappedABI,
+) service.Option[Service] {
+	return func(s *Service) error {
+		s.abi = abi
+		return nil
+	}
+}
+
+// WithValsetUpdater returns an Option that sets
+// the ValsetUpdater for the Service.
+func WithValsetUpdater(
+	vcp ValsetUpdater,
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.vcp = vcp
