@@ -25,7 +25,21 @@
 
 package primitives
 
+import "encoding/binary"
+
 // Epoch represents a single epoch.
 // We don't really use epochs in BeaconKit.
 // But we keep them around for compatibility with the Ethereum 2.0 spec.
 type Epoch = uint64
+
+type SSZEpoch Epoch
+
+// HashTreeRoot return the merklized epoch,
+// represented as bytes in little endian,
+// padded on the right side with zeroed bytes
+// to a total of 32 bytes.
+func (e SSZEpoch) HashTreeRoot() (HashRoot, error) {
+	bz := make([]byte, HashRootLength)
+	binary.LittleEndian.PutUint64(bz, uint64(e))
+	return HashRoot(bz), nil
+}

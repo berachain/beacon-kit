@@ -26,8 +26,6 @@
 package state
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -82,9 +80,12 @@ type WriteOnlyValidators interface {
 // ReadOnlyValidators has read access to validator methods.
 type ReadOnlyValidators interface {
 	ValidatorIndexByPubkey(
-		context.Context,
 		[]byte,
 	) (primitives.ValidatorIndex, error)
+
+	ValidatorPubKeyByIndex(
+		primitives.ValidatorIndex,
+	) ([]byte, error)
 }
 
 // ReadWriteValidators has read and write access to validator methods.
@@ -118,4 +119,5 @@ type ReadOnlyWithdrawals interface {
 // WriteOnlyWithdrawals only has write access to withdrawal methods.
 type WriteOnlyWithdrawals interface {
 	EnqueueWithdrawals([]*enginetypes.Withdrawal) error
+	DequeueWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
 }

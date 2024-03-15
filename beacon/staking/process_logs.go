@@ -108,7 +108,7 @@ func (s *Service) processWithdrawalLog(
 
 	// Get the validator index from the pubkey.
 	validator, err := s.BeaconState(ctx).
-		ValidatorIndexByPubkey(ctx, w.FromPubkey)
+		ValidatorIndexByPubkey(w.FromPubkey)
 	if err != nil {
 		return err
 	}

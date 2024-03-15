@@ -30,9 +30,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
@@ -102,13 +100,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 	) error {
 		cometBlockHash := byteslib.ToBytes32(req.Hash)
-		proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
-			ctx,
-			req.ProposerAddress,
-		)
-		if err != nil {
-			return err
-		}
 
 		// Extract the beacon block from the ABCI request.
 		//
@@ -122,36 +113,17 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			),
 		)
 		if err != nil {
-			h.logger.Error(
-				"failed to extract beacon block from request",
-				"error",
-				err,
-			)
-
-			// If we fail to extract the beacon block from the request, we
-			// create an empty beacon block to continue processing.
-			// TODO: This is a temporary solution to avoid panics, we should
-			// handle this better.
-			if blk, err = beacontypes.EmptyBeaconBlock(
-				primitives.Slot(req.Height),
-				h.chainService.BeaconState(ctx).GetParentBlockRoot(),
-				h.chainService.ActiveForkVersionForSlot(
-					primitives.Slot(req.Height),
-				),
-				types.Reveal{},
-			); err != nil {
-				return err
-			}
+			return err
 		}
 
 		// Receive the beacon block to validate whether it is good and submit
 		// any required newPayload and/or forkchoice updates. If we have
 		// already ran this for the current block in ProcessProposal, this
 		// call will exit early.
-		if err = h.chainService.ReceiveBeaconBlock(
-			ctx,
+		cacheCtx, write := ctx.CacheContext()
+		if err = h.chainService.ProcessBeaconBlock(
+			cacheCtx,
 			blk,
-			proposerPubkey,
 			cometBlockHash,
 		); err != nil {
 			h.logger.Warn(
@@ -159,6 +131,8 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				"error",
 				err,
 			)
+		} else {
+			write()
 		}
 
 		// Process the finalization of the beacon block.

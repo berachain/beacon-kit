@@ -64,10 +64,12 @@ func (s *Store) UpdateValidator(
 
 // ValidatorPubKeyByIndex returns the validator address by index.
 func (s *Store) ValidatorIndexByPubkey(
-	ctx context.Context,
 	pubkey []byte,
 ) (primitives.ValidatorIndex, error) {
-	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(ctx, pubkey)
+	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
+		s.ctx,
+		pubkey,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -76,12 +78,11 @@ func (s *Store) ValidatorIndexByPubkey(
 
 // ValidatorPubKeyByIndex returns the validator address by index.
 func (s *Store) ValidatorPubKeyByIndex(
-	ctx context.Context,
 	index primitives.ValidatorIndex,
-) []byte {
-	pubkey, err := s.validatorIndexToPubkey.Get(ctx, index)
+) ([]byte, error) {
+	pubkey, err := s.validatorIndexToPubkey.Get(s.ctx, index)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return pubkey
+	return pubkey, err
 }

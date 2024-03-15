@@ -23,54 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package core
 
 import (
-	"os"
-
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/crypto"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
-	depinject.In
-
-	AppOpts    AppOptions
-	Logger     log.Logger
-	Signer     crypto.Signer[[bls12381.SignatureLength]byte]
-	NetworkCfg config.Network
-	Bsp        BeaconStorageBackend
-	Vcp        ValsetChangeProvider
-}
-
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
-	depinject.Out
-
-	Runtime *BeaconKitRuntime
-}
-
-// ProvideRuntime is a function that provides the module to the application.
-func ProvideRuntime(in DepInjectInput) DepInjectOutput {
-	r, err := NewDefaultBeaconKitRuntime(
-		in.AppOpts,
-		in.Signer,
-		in.NetworkCfg,
-		in.Logger,
-		in.Bsp,
-		in.Vcp,
-	)
-	if err != nil {
-		in.Logger.Error(
-			"failed to create beacon-kit runtime, exiting...", "error", err)
-		os.Exit(1)
-	}
-
-	return DepInjectOutput{
-		Runtime: r,
-	}
+// RandaoProcessor is the interface for the randao processor.
+type RandaoProcessor interface {
+	BuildReveal(
+		epoch primitives.Epoch,
+	) (randaotypes.Reveal, error)
+	MixinNewReveal(
+		st state.BeaconState,
+		reveal randaotypes.Reveal,
+	) error
+	VerifyReveal(
+		proposerPubkey [bls12381.PubKeyLength]byte,
+		epoch primitives.Epoch,
+		reveal randaotypes.Reveal,
+	) error
 }

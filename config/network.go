@@ -23,6 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package core contains core functions, utilities, and state transitions
-// required for the beacon chain to function properly.
-package core
+package config
+
+// Network is the network configuration from the CometBFT config.
+//
+// The configure inherits the CometBFT config so it does not need
+// to follow the BeaconKitConfig interface. Instead this config
+// is fetched directly from AppOpts via DepInject.
+type Network struct {
+	// ChainID is the CometBFT chain ID,
+	// which is a string, less than 50 bytes.
+	ChainID string
+}
