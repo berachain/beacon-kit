@@ -1,16 +1,15 @@
 package builder
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
-// Store the blobs in the blobstore.
-func PrepareBlobsHandler(_ sdk.Context,
+// PrepareBlobsHandler is responsible for attaching an inclusion proof to the
+// blob sidecar
+func PrepareBlobsHandler(
 	height int64, blk beacontypes.BeaconBlock,
 	blobs *enginetypes.BlobsBundleV1) ([]byte, error) {
 

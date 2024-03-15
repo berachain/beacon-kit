@@ -119,7 +119,7 @@ func (h *Handler) PrepareProposalHandler(
 	// TODO: make more robust
 	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
 
-	blobBz, err := builder.PrepareBlobsHandler(ctx, req.Height,
+	blobBz, err := builder.PrepareBlobsHandler(req.Height,
 		blk, blobs)
 	if err != nil {
 		return nil, err
