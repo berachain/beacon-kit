@@ -43,7 +43,6 @@ import (
 	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	"github.com/berachain/beacon-kit/db/file"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
@@ -158,7 +157,6 @@ func NewBeaconKitApp(
 		defaultProposalHandler.ProcessProposalHandler(),
 		nil,
 		app.BeaconStakingKeeper,
-		file.NewDB(),
 	)
 
 	// Set all the newly built ABCI Componenets on the App.
