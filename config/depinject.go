@@ -27,9 +27,7 @@ package config
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
 )
 
 // DepInjectInput is the input for the dep inject framework.
@@ -49,11 +47,9 @@ type DepInjectOutput struct {
 // ProvideNetworkCfg get the CometBFT network config
 // from the app options and inject it into the dep inject output.
 func ProvideNetworkCfg(in DepInjectInput) DepInjectOutput {
-	chainID := cast.ToString(in.AppOpts.Get(flags.FlagChainID))
-
 	return DepInjectOutput{
 		Network: Network{
-			ChainID: chainID,
+			ChainID: ReadChainIDFromAppOpts(in.AppOpts),
 		},
 	}
 }
