@@ -131,7 +131,8 @@ func (k *Keeper) createValidator(
 
 	// Create a new validator with x/staking.
 	stake := sdkmath.NewIntFromUint64(deposit.Amount)
-	operator := sdk.ValAddress(deposit.Credentials).String()
+	// TODO: make the byte prefixed credentials into a hard type.
+	operator := sdk.ValAddress(deposit.Credentials[12:]).String()
 	newValidator, err := sdkstaking.NewValidator(
 		operator,
 		validatorPubkey,
