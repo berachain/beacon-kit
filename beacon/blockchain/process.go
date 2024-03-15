@@ -92,7 +92,6 @@ func (s *Service) validateStateTransition(
 		return err
 	}
 
-	
 	return s.sp.ProcessBlock(
 		s.BeaconState(ctx),
 		blk,
