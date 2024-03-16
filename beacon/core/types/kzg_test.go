@@ -37,28 +37,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_BodyProof(t *testing.T) {
+func mockBody() *types.BeaconBlockBodyDeneb {
 	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
 	executionPayload := &enginetypes.ExecutableDataDeneb{
 		ParentHash:    common.HexToHash("0x01"),
 		FeeRecipient:  common.HexToAddress("0x02"),
 		StateRoot:     common.HexToHash("0x03"),
 		ReceiptsRoot:  common.HexToHash("0x04"),
-		LogsBloom:     []byte("bloom"),
+		LogsBloom:     bytes.Repeat([]byte("b"), 256),
 		Random:        common.HexToHash("0x05"),
-		BaseFeePerGas: []byte("baseFee"),
+		BaseFeePerGas: bytes.Repeat([]byte("f"), 32),
 		BlockHash:     common.HexToHash("0x06"),
 		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
 		ExtraData:     []byte("extra"),
 	}
 
-	body := &types.BeaconBlockBodyDeneb{
+	return &types.BeaconBlockBodyDeneb{
 		RandaoReveal:     [96]byte{0x01},
 		ExecutionPayload: executionPayload,
 		BlobKzgCommitments: [][48]byte{
 			[48]byte(bytes.Repeat([]byte("1"), 48)),
+			[48]byte(bytes.Repeat([]byte("2"), 48)),
+			[48]byte(bytes.Repeat([]byte("3"), 48)),
 		},
 	}
+}
+
+func Test_BodyProof(t *testing.T) {
+	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
+	body := mockBody()
 
 	// The body has the commitments.
 	commitments := body.GetBlobKzgCommitments()
@@ -94,40 +101,20 @@ func Test_BodyProof(t *testing.T) {
 }
 
 func Test_TopLevelRoots(t *testing.T) {
-	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
-	executionPayload := &enginetypes.ExecutableDataDeneb{
-		ParentHash:    common.HexToHash("0x01"),
-		FeeRecipient:  common.HexToAddress("0x02"),
-		StateRoot:     common.HexToHash("0x03"),
-		ReceiptsRoot:  common.HexToHash("0x04"),
-		LogsBloom:     bytes.Repeat([]byte("b"), 256),
-		Random:        common.HexToHash("0x05"),
-		BaseFeePerGas: bytes.Repeat([]byte("f"), 32),
-		BlockHash:     common.HexToHash("0x06"),
-		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
-		ExtraData:     []byte("extra"),
-	}
-
-	body := &types.BeaconBlockBodyDeneb{
-		RandaoReveal:     [96]byte{0x01},
-		ExecutionPayload: executionPayload,
-		BlobKzgCommitments: [][48]byte{
-			[48]byte(bytes.Repeat([]byte("1"), 48)),
-		},
-	}
+	body := mockBody()
 
 	// Commitments
 	commitments := body.GetBlobKzgCommitments()
-	commitmentsLeaves := types.LeavesFromCommitments(commitments)
-	depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
-	commitmentsSparse, err := trie.GenerateTrieFromItems(commitmentsLeaves, depth)
-	require.NoError(t, err, "Failed to generate trie from items")
-	commitmentsRoot, err := commitmentsSparse.HashTreeRoot()
+	commitmentsRoot, err := types.GetBlobKzgCommitmentsRoot(commitments)
 	require.NoError(t, err, "Failed to generate root hash")
 
 	// Body
 	bodyMembersRoots, err := types.GetTopLevelRoots(body)
 	require.NoError(t, err, "Failed to get top level roots")
+	// Add the commitments root to the body members roots.
+	// For this test only. We don't need to do this when
+	// generating the proof.
+	bodyMembersRoots = append(bodyMembersRoots, commitmentsRoot[:])
 	bodySparse, err := trie.GenerateTrieFromItems(bodyMembersRoots, 3)
 	require.NoError(t, err, "Failed to generate trie from member roots")
 	bodyRoot, err := bodySparse.HashTreeRoot()
@@ -148,70 +135,27 @@ func Test_TopLevelRoots(t *testing.T) {
 }
 
 // func Test_MerkleProofKZGCommitment(t *testing.T) {
-// 	kzgs := make([][]byte, 3)
-// 	kzgs[0] = make([]byte, 48)
-// 	_, err := rand.Read(kzgs[0])
-// 	require.NoError(t, err)
-// 	kzgs[1] = make([]byte, 48)
-// 	_, err = rand.Read(kzgs[1])
-// 	require.NoError(t, err)
-// 	kzgs[2] = make([]byte, 48)
-// 	_, err = rand.Read(kzgs[2])
-// 	require.NoError(t, err)
-// 	// pbBody := &beacontypes.BeaconBlockBodyDeneb{
-// 	// 	ExecutionPayload: &enginev1.ExecutionPayloadDeneb{
-// 	// 		ParentHash:    make([]byte, fieldparams.RootLength),
-// 	// 		FeeRecipient:  make([]byte, 20),
-// 	// 		StateRoot:     make([]byte, fieldparams.RootLength),
-// 	// 		ReceiptsRoot:  make([]byte, fieldparams.RootLength),
-// 	// 		LogsBloom:     make([]byte, 256),
-// 	// 		PrevRandao:    make([]byte, fieldparams.RootLength),
-// 	// 		BaseFeePerGas: make([]byte, fieldparams.RootLength),
-// 	// 		BlockHash:     make([]byte, fieldparams.RootLength),
-// 	// 		Transactions:  make([][]byte, 0),
-// 	// 		ExtraData:     make([]byte, 0),
-// 	// 	},
-// 	// 	Eth1Data: &ethpb.Eth1Data{
-// 	// 		DepositRoot: make([]byte, fieldparams.RootLength),
-// 	// 		BlockHash:   make([]byte, fieldparams.RootLength),
-// 	// 	},
-// 	// 	BlobKzgCommitments: kzgs,
-// 	// }
+// 	body := mockBody()
 
-// 	kzgs48 := make([][48]byte, 3)
-// 	for i, kzg := range kzgs {
-// 		copy(kzgs48[i][:], kzg)
-// 	}
-// 	body := &types.BeaconBlockBodyDeneb{
-// 		ExecutionPayload: &enginetypes.ExecutableDataDeneb{
-// 			ParentHash:    common.Hash{},
-// 			FeeRecipient:  common.Address{},
-// 			StateRoot:     common.Hash{},
-// 			ReceiptsRoot:  common.Hash{},
-// 			LogsBloom:     make([]byte, 256),
-// 			Random:        common.Hash{},
-// 			BaseFeePerGas: make([]byte, 32),
-// 			BlockHash:     common.Hash{},
-// 			Transactions:  make([][]byte, 0),
-// 			ExtraData:     make([]byte, 0),
-// 		},
-// 		BlobKzgCommitments: kzgs48,
-// 	}
 // 	blk := &types.BeaconBlockDeneb{
-// 		Slot:            0,
-// 		ProposerIndex:   0,
-// 		ParentBlockRoot: [32]byte{},
+// 		Slot:            1,
+// 		ProposerIndex:   1,
+// 		ParentBlockRoot: common.HexToHash("0x07"),
 // 		Body:            body,
 // 	}
-// 	require.NoError(t, err)
+
+// 	kzgs := body.GetBlobKzgCommitments()
 // 	index := 1
-// 	_, err = types.MerkleProofKZGCommitment(blk, 10)
+// 	_, err := types.MerkleProofKZGCommitment(
+// 		blk,
+// 		len(kzgs)+1,
+// 	)
 // 	require.NotNil(t, err)
 // 	proof, err := types.MerkleProofKZGCommitment(blk, index)
 // 	require.NoError(t, err)
 
 // 	chunk := make([][32]byte, 2)
-// 	copy(chunk[0][:], kzgs[index])
+// 	copy(chunk[0][:], kzgs[index][:])
 // 	copy(chunk[1][:], kzgs[index][32:])
 // 	gohashtree.HashChunks(chunk, chunk)
 // 	root, err := body.HashTreeRoot()

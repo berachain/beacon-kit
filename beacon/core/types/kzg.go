@@ -34,8 +34,8 @@ import (
 const (
 	rootLength                   = 32
 	logMaxBlobCommitments        = 12
-	logBodyLength                = 3
-	kzgPosition                  = 5 // TODO: this can be different in our use case
+	logBodyLength                = 3 // The log 2 of bodyLength (5).
+	kzgPosition                  = 4 // TODO: this can be different in our use case
 	KZGOffset             uint64 = 54 * 4096
 )
 

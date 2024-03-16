@@ -26,7 +26,6 @@
 package types
 
 import (
-	"fmt"
 	"math"
 
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
@@ -117,7 +116,6 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	randao := b.GetRandaoReveal()
 	root, err := ssz.MerkleizeByteSliceSSZ(randao[:])
-	fmt.Println("randao")
 	if err != nil {
 		return nil, err
 	}
@@ -125,13 +123,11 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	// graffiti
 	root = b.GetGraffiti()
-	fmt.Println("graffiti")
 	copy(layer[1], root[:])
 
 	// Deposits
 	dep := b.GetDeposits()
 	root, err = ssz.MerkleizeListSSZ(dep, 16)
-	fmt.Println("deposits")
 	if err != nil {
 		return nil, err
 	}
@@ -139,26 +135,26 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	// Execution Payload
 	rt, err := b.GetExecutionPayload().HashTreeRoot()
-	fmt.Println("execution payload: ", err)
 	if err != nil {
 		return nil, err
 	}
 	copy(layer[3], rt[:])
 
-	commitments := b.GetBlobKzgCommitments()
+	// KZG commitments is not needed
+	return layer, nil
+}
+
+func GetBlobKzgCommitmentsRoot(commitments [][48]byte) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
 	depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
-	commitmentsSparse, err := trie.GenerateTrieFromItems(commitmentsLeaves, depth)
+	commitmentsSparse, err := trie.GenerateTrieFromItems(
+		commitmentsLeaves,
+		depth,
+	)
 	if err != nil {
-		return nil, err
+		return [32]byte{}, err
 	}
-	commitmentsRoot, err := commitmentsSparse.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-	copy(layer[4], commitmentsRoot[:])
-
-	return layer, nil
+	return commitmentsSparse.HashTreeRoot()
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(
