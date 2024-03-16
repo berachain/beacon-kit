@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/crypto/kzg"
 	"github.com/berachain/beacon-kit/db"
 	"github.com/berachain/beacon-kit/db/file"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -125,7 +124,7 @@ func (sp *StateProcessor) ProcessBlob(
 		return err
 	}
 	// Store the blobs under a single height.
-	if err := kzg.VerifyKZGInclusionProof(bodyRoot[:], bs, uint64(index)); err != nil {
+	if err := types.VerifyKZGInclusionProof(bodyRoot[:], bs, uint64(index)); err != nil {
 		return err
 	}
 
