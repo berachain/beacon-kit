@@ -26,7 +26,6 @@
 package proposal
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -128,8 +127,6 @@ func (h *Handler) PrepareProposalHandler(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("BLOBS", blobBz)
 
 	// Blob position is always the second in an array
 	// Inject the beacon kit block into the proposal.
