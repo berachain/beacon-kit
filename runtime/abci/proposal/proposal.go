@@ -122,11 +122,6 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, ErrNextPrepareNilResp
 	}
 
-	// Inject the beacon kit block into the proposal.
-	// TODO: if comet includes txs this could break and or exceed max block size
-	// TODO: make more robust
-	resp.Txs = append([][]byte{beaconBz}, resp.Txs...)
-
 	blobBz, err := builder.PrepareBlobsHandler(req.Height,
 		blk, blobs)
 	if err != nil {
@@ -134,7 +129,10 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Blob position is always the second in an array
-	resp.Txs = append([][]byte{blobBz}, resp.Txs...)
+	// Inject the beacon kit block into the proposal.
+	// TODO: if comet includes txs this could break and or exceed max block size
+	// TODO: make more robust
+	resp.Txs = append([][]byte{beaconBz, blobBz}, resp.Txs...)
 	return resp, nil
 }
 
@@ -153,7 +151,7 @@ func (h *Handler) ProcessProposalHandler(
 	// works.
 	pos := h.cfg.BeaconBlockPosition
 	beaconBz := req.Txs[pos]
-	blobPos := h.cfg.BlobBlockPosition
+	blobPos := h.cfg.BlobSidecarsBlockPosition
 	blobsBz := req.Txs[blobPos]
 	defer func() {
 		req.Txs = append([][]byte{beaconBz, blobsBz}, req.Txs...)

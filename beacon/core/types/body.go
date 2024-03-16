@@ -91,8 +91,14 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 	return nil
 }
 
+// SetBlobKzgCommitments sets the BlobKzgCommitments of the
+// BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
+	b.BlobKzgCommitments = commitments
+}
+
 // If you are adding values to the BeaconBlockBodyDeneb struct,
-// the body length must be increased and GetTopLevelRoots updated
+// the body length must be increased and GetTopLevelRoots updated.
 const bodyLength = 5
 
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {

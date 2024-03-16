@@ -36,8 +36,8 @@ var _ BeaconKitConfig[ABCI] = ABCI{}
 // DefaultABCIConfig returns the default configuration for the proposal service.
 func DefaultABCIConfig() ABCI {
 	return ABCI{
-		BeaconBlockPosition: 0,
-		BlobBlockPosition:   1,
+		BeaconBlockPosition:       0,
+		BlobSidecarsBlockPosition: 1,
 	}
 }
 
@@ -45,8 +45,8 @@ func DefaultABCIConfig() ABCI {
 type ABCI struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
-	BeaconBlockPosition uint
-	BlobBlockPosition   uint
+	BeaconBlockPosition       uint
+	BlobSidecarsBlockPosition uint
 }
 
 // Parse parses the configuration.
@@ -54,6 +54,12 @@ func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
 	var err error
 	if c.BeaconBlockPosition, err = parser.GetUint(
 		flags.BeaconBlockPosition,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.BlobSidecarsBlockPosition, err = parser.GetUint(
+		flags.BlobSidecarsBlockPosition,
 	); err != nil {
 		return nil, err
 	}
@@ -67,5 +73,8 @@ func (c ABCI) Template() string {
 [beacon-kit.abci]
 # Position of the beacon block in the proposal
 beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
+
+# Position of the blob sidecars in the proposal
+blob-sidecars-block-proposal-position = {{.BeaconKit.ABCI.BlobSidecarsBlockPosition}}
 `
 }

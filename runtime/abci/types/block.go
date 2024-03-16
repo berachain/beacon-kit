@@ -69,7 +69,11 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 	return beacontypes.BeaconBlockFromSSZ(blkBz, forkVersion)
 }
 
-func GetBlobSideCars(ctx context.Context, req ABCIRequest, bzIndex uint) (*beacontypes.BlobSidecars, error) {
+func GetBlobSideCars(
+	ctx context.Context,
+	req ABCIRequest,
+	bzIndex uint,
+) (*beacontypes.BlobSidecars, error) {
 	if req == nil {
 		return nil, ErrNilABCIRequest
 	}
@@ -89,5 +93,6 @@ func GetBlobSideCars(ctx context.Context, req ABCIRequest, bzIndex uint) (*beaco
 	if blkBz == nil {
 		return nil, ErrNilBeaconBlockInRequest
 	}
+
 	return beacontypes.BlobSideCarsFromSSZ(blkBz)
 }

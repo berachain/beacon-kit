@@ -94,8 +94,8 @@ func (s *Service) validateStateTransition(
 		return err
 	}
 
-	for i, sidecars := range blobs.BlobSidecars {
-		if err := s.sp.ProcessBlob(sidecars, blk.GetSlot(), uint64(i)); err != nil {
+	for i, sidecars := range blobs.Sidecars {
+		if err := s.sp.ProcessBlob(blk.GetBody(), sidecars, blk.GetSlot(), uint64(i)); err != nil {
 			return err
 		}
 	}

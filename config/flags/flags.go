@@ -74,6 +74,7 @@ const (
 	MaxWithdrawals = limitsRoot + "max-withdrawals-per-payload"
 
 	// ABCI Config.
-	abciRoot            = beaconKitRoot + "abci."
-	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
+	abciRoot                  = beaconKitRoot + "abci."
+	BeaconBlockPosition       = abciRoot + "beacon-block-proposal-position"
+	BlobSidecarsBlockPosition = abciRoot + "blob-sidecars-block-proposal-position"
 )

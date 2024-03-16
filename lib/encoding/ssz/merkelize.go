@@ -1,13 +1,37 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package ssz
 
 import (
 	"encoding/binary"
 	"errors"
 
+	htr "github.com/berachain/beacon-kit/lib/hash"
 	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
-
-	htr "github.com/berachain/beacon-kit/lib/hash"
 )
 
 var errInvalidNilSlice = errors.New("invalid empty slice")
@@ -32,11 +56,13 @@ const (
 
 // Depth retrieves the appropriate depth for the provided trie size.
 func Depth(v uint64) (out uint8) {
-	// bitmagic: binary search through a uint32, offset down by 1 to not round powers of 2 up.
-	// Then adding 1 to it to not get the index of the first bit, but the length of the bits (depth of tree)
+	// bitmagic: binary search through a uint32, offset down by 1 to not round
+	// powers of 2 up. Then adding 1 to it to not get the index of the first
+	// bit, but the length of the bits (depth of tree)
 	// Zero is a special case, it has a 0 depth.
 	// Example:
-	//  (in out): (0 0), (1 0), (2 1), (3 2), (4 2), (5 3), (6 3), (7 3), (8 3), (9 4)
+	// (in out): (0 0), (1 0), (2 1), (3 2), (4 2), (5 3), (6 3), (7 3), (8 3),
+	// (9 4)
 	if v <= 1 {
 		return 0
 	}
@@ -102,14 +128,17 @@ func MerkleizeByteSliceSSZ(input []byte) ([32]byte, error) {
 	return MerkleizeVector(chunks, uint64(numChunks)), nil
 }
 
-// Hashable is an interface representing objects that implement HashTreeRoot()
+// Hashable is an interface representing objects that implement HashTreeRoot().
 type Hashable interface {
 	HashTreeRoot() ([32]byte, error)
 }
 
 // MerkleizeListSSZ hashes each element in the list and then returns the HTR of
 // the list of corresponding roots, with the length mixed in.
-func MerkleizeListSSZ[T Hashable](elements []T, limit uint64) ([32]byte, error) {
+func MerkleizeListSSZ[T Hashable](
+	elements []T,
+	limit uint64,
+) ([32]byte, error) {
 	body, err := MerkleizeVectorSSZ(elements, limit)
 	if err != nil {
 		return [32]byte{}, err
@@ -124,8 +153,11 @@ func MerkleizeListSSZ[T Hashable](elements []T, limit uint64) ([32]byte, error) 
 }
 
 // MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
-// of the corresponding list of roots
-func MerkleizeVectorSSZ[T Hashable](elements []T, length uint64) ([32]byte, error) {
+// of the corresponding list of roots.
+func MerkleizeVectorSSZ[T Hashable](
+	elements []T,
+	length uint64,
+) ([32]byte, error) {
 	roots := make([][32]byte, len(elements))
 	var err error
 	for i, el := range elements {
