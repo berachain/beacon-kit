@@ -517,8 +517,6 @@ github.com/creack/pty v1.1.18/go.mod h1:MOBLtS5ELjhRRrroQr9kyvTxUAFNvYEK993ew/Vr
 github.com/curioswitch/go-reassign v0.2.0 h1:G9UZyOcpk/d7Gd6mqYgd8XYWFMw/znxwGDUstnC9DIo=
 github.com/curioswitch/go-reassign v0.2.0/go.mod h1:x6OpXuWvgfQaMGks2BZybTngWjT84hqJfKoO8Tt/Roc=
 github.com/cyberdelia/templates v0.0.0-20141128023046-ca7fffd4298c/go.mod h1:GyV+0YP4qX0UQ7r2MoYZ+AvYDp12OF5yg4q8rGnyNh4=
-github.com/d4l3k/messagediff v1.2.1 h1:ZcAIMYsUg0EAp9X+tt8/enBE/Q8Yd5kzPynLyKptt9U=
-github.com/d4l3k/messagediff v1.2.1/go.mod h1:Oozbb1TVXFac9FtSIxHBMnBCq2qeH/2KkEQxENCrlLo=
 github.com/daixiang0/gci v0.12.1 h1:ugsG+KRYny1VK4oqrX4Vtj70bo4akYKa0tgT1DXMYiY=
 github.com/daixiang0/gci v0.12.1/go.mod h1:xtHP9N7AHdNvtRNfcx9gwTDfw7FRJx4bZUsiEfiNNAI=
 github.com/danieljoos/wincred v1.2.1 h1:dl9cBrupW8+r5250DYkYxocLeZ1Y4vB1kxgtjxw8GQs=
@@ -1432,14 +1430,8 @@ github.com/protolambda/ztyp v0.2.2 h1:rVcL3vBu9W/aV646zF6caLS/dyn9BN8NYiuJzicLNy
 github.com/protolambda/ztyp v0.2.2/go.mod h1:9bYgKGqg3wJqT9ac1gI2hnVb0STQq7p/1lapqrqY1dU=
 github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44 h1:c3p3UzV4vFA7xaCDphnDWOjpxcadrQ26l5b+ypsvyxo=
 github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44/go.mod h1:MA5zShstUwCQaE9faGHgCGvEWUbG87p4SAXINhmCkvg=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7 h1:0tVE4tdWQK9ZpYygoV7+vS6QkDvQVySboMVEIxBJmXw=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7/go.mod h1:wmuf/mdK4VMD+jA9ThwcUKjg3a2XWM9cVfFYjDyY4j4=
 github.com/prysmaticlabs/gohashtree v0.0.4-beta h1:H/EbCuXPeTV3lpKeXGPpEV9gsUpkqOOVnWapUyeWro4=
 github.com/prysmaticlabs/gohashtree v0.0.4-beta/go.mod h1:BFdtALS+Ffhg3lGQIHv9HDWuHS8cTvHZzrHWxwOtGOs=
-github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20230228205207-28762a7b9294 h1:q9wE0ZZRdTUAAeyFP/w0SwBEnCqlVy2+on6X2/e+eAU=
-github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20230228205207-28762a7b9294/go.mod h1:ZVEbRdnMkGhp/pu35zq4SXxtvUwWK0J1MATtekZpH2Y=
-github.com/prysmaticlabs/prysm/v5 v5.0.1 h1:GCFxthIfOOLq0y6UVklNfntZypGWLbQqCCrVvhmH8T0=
-github.com/prysmaticlabs/prysm/v5 v5.0.1/go.mod h1:RKq4hdSHNLPC6s56KCTDnZEKsxj6/lwsm1xW8SmCbj4=
 github.com/quasilyte/go-ruleguard v0.4.0 h1:DyM6r+TKL+xbKB4Nm7Afd1IQh9kEUKQs2pboWGKtvQo=
 github.com/quasilyte/go-ruleguard v0.4.0/go.mod h1:Eu76Z/R8IXtViWUIHkE3p8gdH3/PKk1eh3YGfaEof10=
 github.com/quasilyte/gogrep v0.5.0 h1:eTKODPXbI8ffJMN+W2aE0+oL0z/nh8/5eNdiO34SOAo=
@@ -1594,8 +1586,6 @@ github.com/tenntenn/text/transform v0.0.0-20200319021203-7eef512accb3 h1:f+jULpR
 github.com/tenntenn/text/transform v0.0.0-20200319021203-7eef512accb3/go.mod h1:ON8b8w4BN/kE1EOhwT0o+d62W65a6aPw1nouo9LMgyY=
 github.com/tetafro/godot v1.4.16 h1:4ChfhveiNLk4NveAZ9Pu2AN8QZ2nkUGFuadM9lrr5D0=
 github.com/tetafro/godot v1.4.16/go.mod h1:2oVxTBSftRTh4+MVfUaUXR6bn2GDXCaMcOG4Dk3rfio=
-github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e h1:cR8/SYRgyQCt5cNCMniB/ZScMkhI9nk8U5C7SbISXjo=
-github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e/go.mod h1:Tu4lItkATkonrYuvtVjG0/rhy15qrNGNTjPdaphtZ/8=
 github.com/tidwall/btree v1.7.0 h1:L1fkJH/AuEh5zBnnBbmTwQ5Lt+bRJ5A8EWecslvo9iI=
 github.com/tidwall/btree v1.7.0/go.mod h1:twD9XRA5jj9VUQGELzDO4HPQTNJsoWWfYEL+EUQ2cKY=
 github.com/timakin/bodyclose v0.0.0-20230421092635-574207250966 h1:quvGphlmUVU+nhpFa4gg4yJyTRJ13reZMDHrKwYw53M=
