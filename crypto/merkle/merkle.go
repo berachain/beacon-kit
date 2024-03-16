@@ -46,7 +46,8 @@ type SparseMerkleTrie struct {
 
 // GenerateTrieFromItems constructs a Merkle trie from a sequence of byte
 // slices.
-func GenerateTrieFromItems(items [][]byte,
+func GenerateTrieFromItems(
+	items [][]byte,
 	depth uint64,
 ) (*SparseMerkleTrie, error) {
 	if len(items) == 0 {
@@ -116,8 +117,12 @@ func (m *SparseMerkleTrie) MerkleProof(index int) ([][]byte, error) {
 }
 
 // VerifyMerkleProofWithDepth verifies a Merkle branch against a root of a trie.
-func VerifyMerkleProofWithDepth(root, item []byte, merkleIndex uint64,
-	proof [][]byte, depth uint64) bool {
+func VerifyMerkleProofWithDepth(
+	root, item []byte,
+	merkleIndex uint64,
+	proof [][]byte,
+	depth uint64,
+) bool {
 	if uint64(len(proof)) != depth+1 {
 		return false
 	}
@@ -135,11 +140,14 @@ func VerifyMerkleProofWithDepth(root, item []byte, merkleIndex uint64,
 
 // VerifyMerkleProof given a trie root, a leaf, the generalized merkle index
 // of the leaf in the trie, and the proof itself.
-func VerifyMerkleProof(root, item []byte, merkleIndex uint64,
+func VerifyMerkleProof(
+	root, item []byte,
+	merkleIndex uint64,
 	proof [][]byte) bool {
 	if len(proof) == 0 {
 		return false
 	}
-	return VerifyMerkleProofWithDepth(root, item, merkleIndex,
+	return VerifyMerkleProofWithDepth(
+		root, item, merkleIndex,
 		proof, uint64(len(proof)-1))
 }
