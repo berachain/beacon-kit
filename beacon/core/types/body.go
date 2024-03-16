@@ -62,6 +62,10 @@ func (b *BeaconBlockBodyDeneb) GetRandaoReveal() randaotypes.Reveal {
 	return b.RandaoReveal
 }
 
+func (b *BeaconBlockBodyDeneb) GetGraffiti() [32]byte {
+	return b.Graffiti
+}
+
 // GetExecutionPayload returns the ExecutionPayload of the Body.
 //
 //nolint:lll
@@ -101,13 +105,13 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
 // the body length must be increased and GetTopLevelRoots updated.
 const bodyLength = 5
 
-func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {
+func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	layer := make([][]byte, bodyLength)
 	for i := range layer {
 		layer[i] = make([]byte, 32)
 	}
 
-	randao := b.RandaoReveal
+	randao := b.GetRandaoReveal()
 	root, err := ssz.MerkleizeByteSliceSSZ(randao[:])
 	if err != nil {
 		return nil, err
@@ -115,11 +119,11 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {
 	copy(layer[0], root[:])
 
 	// graffiti
-	root = b.Graffiti
+	root = b.GetGraffiti()
 	copy(layer[1], root[:])
 
 	// Deposits
-	dep := b.Deposits
+	dep := b.GetDeposits()
 	root, err = ssz.MerkleizeListSSZ(dep, 16)
 	if err != nil {
 		return nil, err
@@ -127,7 +131,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {
 	copy(layer[3], root[:])
 
 	// Execution Payload
-	rt, err := b.ExecutionPayload.HashTreeRoot()
+	rt, err := b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}

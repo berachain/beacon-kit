@@ -75,7 +75,7 @@ type ReadOnlyBeaconBlockBody interface {
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
 	GetRandaoReveal() randaotypes.Reveal
+	GetGraffiti() [32]byte
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte
-	GetTopLevelRoots() ([][]byte, error)
 }
