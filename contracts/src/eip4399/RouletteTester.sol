@@ -58,12 +58,8 @@ contract RouletteTester {
             emit BetResult(msg.sender, betAmount, red, false, 0);
         } else {
             bool isRedWin = (randomNumber % 2 == 0);
-            if ((red && isRedWin) || (!red && !isRedWin)) {
+            if (red == isRedWin) {
                 uint256 winningAmount = betAmount * 2;
-                require(
-                    address(this).balance >= winningAmount,
-                    "Contract does not have enough funds."
-                );
                 payable(msg.sender).transfer(winningAmount);
                 emit BetResult(msg.sender, betAmount, red, true, winningAmount);
             } else {
