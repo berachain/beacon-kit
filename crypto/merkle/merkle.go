@@ -151,3 +151,23 @@ func VerifyMerkleProof(
 		root, item, merkleIndex,
 		proof, uint64(len(proof)-1))
 }
+
+// HashTreeRoot returns the hash root of the Merkle trie.
+//
+// sha256(concat(node, self.to_little_endian_64(self.deposit_count), slice(zero_bytes32, start=0, len=24))).
+func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
+	var enc [32]byte
+	numItems := uint64(len(m.originalItems))
+	zeroHash := [32]byte{
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+	}
+	if len(m.originalItems) == 1 && bytes.Equal(m.originalItems[0], zeroHash[:]) {
+		// Accounting for empty tries
+		numItems = 0
+	}
+	binary.LittleEndian.PutUint64(enc[:], numItems)
+	return sha256.Sum256(append(m.branches[len(m.branches)-1][0], enc[:]...)), nil
+}

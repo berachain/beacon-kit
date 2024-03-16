@@ -48,12 +48,15 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 	m, err := merkle.GenerateTrieFromItems(items, depth)
 	require.NoError(t, err)
 	require.NotNil(t, m)
-	root := [32]byte{
+	root, err := m.HashTreeRoot()
+	require.NoError(t, err)
+	expectedRoot := [32]byte{
 		0x90, 0x5e, 0xde, 0xcb, 0x94, 0x3e, 0x2e, 0x27,
 		0xa6, 0x42, 0x0b, 0x16, 0x91, 0xff, 0xbf, 0xf2,
 		0xc8, 0x38, 0xd3, 0x08, 0xd7, 0x48, 0xda, 0x31,
 		0x74, 0xdb, 0x58, 0x9f, 0x5f, 0x6e, 0xa9, 0x23,
 	}
+	require.Equal(t, expectedRoot[:], root[:])
 	proof, err := m.MerkleProof(0)
 	require.NoError(t, err)
 	require.Len(t, proof, int(depth)+1)
