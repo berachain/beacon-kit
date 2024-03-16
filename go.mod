@@ -400,7 +400,6 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/protolambda/bls12-381-util v0.0.0-20220416220906-d8552aa452c7 // indirect
 	github.com/protolambda/zrnt v0.30.0 // indirect
-	github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.0 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect

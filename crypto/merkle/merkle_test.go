@@ -29,7 +29,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/crypto/merkle"
-	"github.com/prysmaticlabs/prysm/v5/container/trie"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,7 +71,7 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 	proof, err = m.MerkleProof(3)
 	require.NoError(t, err)
 	require.True(t,
-		trie.VerifyMerkleProofWithDepth(
+		merkle.VerifyMerkleProofWithDepth(
 			root[:],
 			items[3],
 			3,
@@ -81,7 +80,7 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 		),
 	)
 	require.False(t,
-		trie.VerifyMerkleProofWithDepth(
+		merkle.VerifyMerkleProofWithDepth(
 			root[:], []byte("buzz"), 3,
 			proof, depth,
 		),
