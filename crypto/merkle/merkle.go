@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package merkle
 
 import (
@@ -7,9 +32,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/protolambda/ztyp/tree"
-
 	bytesutil "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/protolambda/ztyp/tree"
 )
 
 // SparseMerkleTrie implements a sparse, general purpose Merkle trie to be used
@@ -20,7 +44,8 @@ type SparseMerkleTrie struct {
 	originalItems [][]byte // list of provided items before hashing them into leaves.
 }
 
-// GenerateTrieFromItems constructs a Merkle trie from a sequence of byte slices.
+// GenerateTrieFromItems constructs a Merkle trie from a sequence of byte
+// slices.
 func GenerateTrieFromItems(items [][]byte,
 	depth uint64,
 ) (*SparseMerkleTrie, error) {
@@ -28,8 +53,10 @@ func GenerateTrieFromItems(items [][]byte,
 		return nil, errors.New("no items provided to generate Merkle trie")
 	}
 	if depth >= 63 {
-		return nil, errors.New("supported merkle trie depth exceeded (max uint64 depth is 63, " +
-			"theoretical max sparse merkle trie depth is 64)") // PowerOf2 would overflow
+		return nil, errors.New(
+			"supported merkle trie depth exceeded (max uint64 depth is 63, " +
+				"theoretical max sparse merkle trie depth is 64)",
+		) // PowerOf2 would overflow
 	}
 
 	leaves := items
@@ -65,7 +92,11 @@ func (m *SparseMerkleTrie) MerkleProof(index int) ([][]byte, error) {
 	}
 	leaves := m.branches[0]
 	if index >= len(leaves) {
-		return nil, fmt.Errorf("merkle index out of range in trie, max range: %d, received: %d", len(leaves), index)
+		return nil, fmt.Errorf(
+			"merkle index out of range in trie, max range: %d, received: %d",
+			len(leaves),
+			index,
+		)
 	}
 	merkleIndex := uint(index)
 	proof := make([][]byte, m.depth+1)

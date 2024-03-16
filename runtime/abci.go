@@ -26,14 +26,13 @@
 package runtime
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	builder "github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/runtime/abci/preblock"
 	"github.com/berachain/beacon-kit/runtime/abci/proposal"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.

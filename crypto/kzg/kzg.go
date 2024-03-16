@@ -40,8 +40,10 @@ import (
 var (
 	errInvalidIndex          = errors.New("index out of bounds")
 	errInvalidBodyRoot       = errors.New("invalid Beacon Block Body root")
-	errInvalidInclusionProof = errors.New("invalid KZG commitment inclusion proof")
-	errNilBlockHeader        = errors.New("received nil beacon block header")
+	errInvalidInclusionProof = errors.New(
+		"invalid KZG commitment inclusion proof",
+	)
+	errNilBlockHeader = errors.New("received nil beacon block header")
 )
 
 // ConvertCommitmentToVersionedHash computes a SHA-256 hash of the given
@@ -77,15 +79,21 @@ func ConvertCommitmentsToVersionedHashes(
 	})
 }
 
-// VerifyKZGInclusionProof verifies the inclusion proof for a commitment in a Merkle tree.
-// It takes the commitment, root hash, inclusion proof, and index as input parameters.
+// VerifyKZGInclusionProof verifies the inclusion proof for a commitment in a
+// Merkle tree. It takes the commitment, root hash, inclusion proof, and index
+// as input parameters.
 // The commitment is the value being proven to be included in the Merkle tree.
 // The root is the root hash of the Merkle tree.
-// The proof is a list of intermediate hashes that prove the inclusion of the commitment in the Merkle tree.
+// The proof is a list of intermediate hashes that prove the inclusion of the
+// commitment in the Merkle tree.
 // The index is the position of the commitment in the Merkle tree.
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
-func VerifyKZGInclusionProof(root []byte, blob *types.BlobSidecar, index uint64) error { // TODO: add wrapped type with inclusion proofs
+func VerifyKZGInclusionProof(
+	root []byte,
+	blob *types.BlobSidecar,
+	index uint64,
+) error { // TODO: add wrapped type with inclusion proofs
 	if len(root) != rootLength {
 		return errInvalidBodyRoot
 	}
@@ -93,21 +101,33 @@ func VerifyKZGInclusionProof(root []byte, blob *types.BlobSidecar, index uint64)
 	copy(chunks[0][:], blob.KzgCommitment)
 	copy(chunks[1][:], blob.KzgCommitment[rootLength:])
 	gohashtree.HashChunks(chunks, chunks)
-	verified := merkle.VerifyMerkleProof(root, chunks[0][:], index+KZGOffset, blob.InclusionProof)
+	verified := merkle.VerifyMerkleProof(
+		root,
+		chunks[0][:],
+		index+KZGOffset,
+		blob.InclusionProof,
+	)
 	if !verified {
 		return errInvalidInclusionProof
 	}
 	return nil
 }
 
-// MerkleProofKZGCommitment generates a Merkle proof for a given index in a list of commitments using the KZG algorithm.
-// It takes a 2D byte slice of commitments and an index as input, and returns a 2D byte slice representing the Merkle proof.
-// If an error occurs during the generation of the proof, it returns nil and the error.
-// The function internally calls the `bodyProof` function to generate the body proof, and the `topLevelRoots` function to obtain the top level roots.
-// It then uses the `merkle.GenerateTrieFromItems` function to generate a sparse Merkle tree from the top level roots.
-// Finally, it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top proof, and appends it to the body proof.
-// Note that the last element of the top proof is removed before returning the final proof, as it is not needed.
-func MerkleProofKZGCommitment(blk beacontypes.BeaconBlock, index int) ([][]byte, error) {
+// MerkleProofKZGCommitment generates a Merkle proof for a given index in a list
+// of commitments using the KZG algorithm. It takes a 2D byte slice of
+// commitments and an index as input, and returns a 2D byte slice representing
+// the Merkle proof. If an error occurs during the generation of the proof, it
+// returns nil and the error. The function internally calls the `bodyProof`
+// function to generate the body proof, and the `topLevelRoots` function to
+// obtain the top level roots. It then uses the `merkle.GenerateTrieFromItems`
+// function to generate a sparse Merkle tree from the top level roots. Finally,
+// it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top
+// proof, and appends it to the body proof. Note that the last element of the
+// top proof is removed before returning the final proof, as it is not needed.
+func MerkleProofKZGCommitment(
+	blk beacontypes.BeaconBlock,
+	index int,
+) ([][]byte, error) {
 	commitments := blk.GetBody().GetBlobKzgCommitments()
 
 	cmts := make([][]byte, len(commitments))
@@ -159,7 +179,7 @@ func bodyProof(commitments [][]byte, index int) ([][]byte, error) {
 	return proof, err
 }
 
-// leavesFromCommitments hashes each commitment to construct a slice of roots
+// leavesFromCommitments hashes each commitment to construct a slice of roots.
 func leavesFromCommitments(commitments [][]byte) [][]byte {
 	leaves := make([][]byte, len(commitments))
 	for i, kzg := range commitments {

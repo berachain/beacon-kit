@@ -113,8 +113,11 @@ func (sp *StateProcessor) ProcessBlock(
 }
 
 // ProcessBlob processes a blob.
-func (sp *StateProcessor) ProcessBlob(body types.BeaconBlockBody, bs *types.BlobSidecar, height, index uint64) error {
-
+func (sp *StateProcessor) ProcessBlob(
+	body types.BeaconBlockBody,
+	bs *types.BlobSidecar,
+	height, index uint64,
+) error {
 	ranger := file.NewRangeDB(sp.db)
 
 	bodyRoot, err := body.HashTreeRoot()
