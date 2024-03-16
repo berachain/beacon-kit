@@ -26,7 +26,11 @@
 package types
 
 import (
+	"fmt"
+	"math"
+
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
 	"github.com/cockroachdb/errors"
@@ -113,6 +117,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	randao := b.GetRandaoReveal()
 	root, err := ssz.MerkleizeByteSliceSSZ(randao[:])
+	fmt.Println("randao")
 	if err != nil {
 		return nil, err
 	}
@@ -120,23 +125,38 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	// graffiti
 	root = b.GetGraffiti()
+	fmt.Println("graffiti")
 	copy(layer[1], root[:])
 
 	// Deposits
 	dep := b.GetDeposits()
 	root, err = ssz.MerkleizeListSSZ(dep, 16)
+	fmt.Println("deposits")
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[3], root[:])
+	copy(layer[2], root[:])
 
 	// Execution Payload
 	rt, err := b.GetExecutionPayload().HashTreeRoot()
+	fmt.Println("execution payload: ", err)
 	if err != nil {
 		return nil, err
 	}
+	copy(layer[3], rt[:])
 
-	copy(layer[4], rt[:])
+	commitments := b.GetBlobKzgCommitments()
+	commitmentsLeaves := LeavesFromCommitments(commitments)
+	depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
+	commitmentsSparse, err := trie.GenerateTrieFromItems(commitmentsLeaves, depth)
+	if err != nil {
+		return nil, err
+	}
+	commitmentsRoot, err := commitmentsSparse.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+	copy(layer[4], commitmentsRoot[:])
 
 	return layer, nil
 }
@@ -150,8 +170,4 @@ func (b *BeaconBlockBodyDeneb) AttachExecution(
 		return errors.New("invalid execution data type")
 	}
 	return nil
-}
-
-func (b *BeaconBlockBodyDeneb) GetKzgCommitments() [][48]byte {
-	return b.BlobKzgCommitments
 }

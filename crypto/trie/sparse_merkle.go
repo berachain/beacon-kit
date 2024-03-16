@@ -43,8 +43,8 @@ const (
 	MaxTrieDepth = 62
 )
 
-// SparseMerkleTrie implements a sparse, general purpose Merkle trie to be used
-// across Ethereum consensus functionality.
+// SparseMerkleTrie implements a sparse, general purpose Merkle trie
+// to be used across Ethereum consensus functionality.
 type SparseMerkleTrie struct {
 	depth    uint
 	branches [][][]byte
@@ -59,8 +59,8 @@ func NewTrie(depth uint64) (*SparseMerkleTrie, error) {
 	return GenerateTrieFromItems(items, depth)
 }
 
-// GenerateTrieFromItems constructs a Merkle trie from a sequence of byte
-// slices.
+// GenerateTrieFromItems constructs a Merkle trie
+// from a sequence of byte slices.
 func GenerateTrieFromItems(
 	items [][]byte,
 	depth uint64,
@@ -106,21 +106,17 @@ func (m *SparseMerkleTrie) Items() [][]byte {
 	return m.originalItems
 }
 
-// HashTreeRoot of the Merkle trie as defined in the deposit contract.
-//
-//	Spec Definition:
-//	 sha256(concat(node, self.to_little_endian_64(self.deposit_count),
-//
-// slice(zero_bytes32, start=0, len=24))).
+// HashTreeRoot returns the hash root of the Merkle trie
+// defined in the deposit contract.
 func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
-	depositCount := uint64(len(m.originalItems))
+	numItems := uint64(len(m.originalItems))
 	if len(m.originalItems) == 1 &&
 		bytes.Equal(m.originalItems[0], tree.ZeroHashes[0][:]) {
 		// Accounting for empty tries
-		depositCount = 0
+		numItems = 0
 	}
-	binary.LittleEndian.PutUint64(enc[:], depositCount)
+	binary.LittleEndian.PutUint64(enc[:], numItems)
 	return sha256.Sum256(
 		append(m.branches[len(m.branches)-1][0], enc[:]...),
 	), nil

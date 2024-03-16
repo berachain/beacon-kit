@@ -37,7 +37,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBodyProof(t *testing.T) {
+func Test_BodyProof(t *testing.T) {
 	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
 	executionPayload := &enginetypes.ExecutableDataDeneb{
 		ParentHash:    common.HexToHash("0x01"),
@@ -61,7 +61,7 @@ func TestBodyProof(t *testing.T) {
 	}
 
 	// The body has the commitments.
-	commitments := body.GetKzgCommitments()
+	commitments := body.GetBlobKzgCommitments()
 
 	// Generate leaves from commitments
 	leaves := types.LeavesFromCommitments(commitments)
@@ -89,6 +89,60 @@ func TestBodyProof(t *testing.T) {
 		leaves[index],
 		uint64(index),
 		proof,
+	)
+	require.True(t, valid, "Merkle proof should be valid")
+}
+
+func Test_TopLevelRoots(t *testing.T) {
+	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
+	executionPayload := &enginetypes.ExecutableDataDeneb{
+		ParentHash:    common.HexToHash("0x01"),
+		FeeRecipient:  common.HexToAddress("0x02"),
+		StateRoot:     common.HexToHash("0x03"),
+		ReceiptsRoot:  common.HexToHash("0x04"),
+		LogsBloom:     bytes.Repeat([]byte("b"), 256),
+		Random:        common.HexToHash("0x05"),
+		BaseFeePerGas: bytes.Repeat([]byte("f"), 32),
+		BlockHash:     common.HexToHash("0x06"),
+		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
+		ExtraData:     []byte("extra"),
+	}
+
+	body := &types.BeaconBlockBodyDeneb{
+		RandaoReveal:     [96]byte{0x01},
+		ExecutionPayload: executionPayload,
+		BlobKzgCommitments: [][48]byte{
+			[48]byte(bytes.Repeat([]byte("1"), 48)),
+		},
+	}
+
+	// Commitments
+	commitments := body.GetBlobKzgCommitments()
+	commitmentsLeaves := types.LeavesFromCommitments(commitments)
+	depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
+	commitmentsSparse, err := trie.GenerateTrieFromItems(commitmentsLeaves, depth)
+	require.NoError(t, err, "Failed to generate trie from items")
+	commitmentsRoot, err := commitmentsSparse.HashTreeRoot()
+	require.NoError(t, err, "Failed to generate root hash")
+
+	// Body
+	bodyMembersRoots, err := types.GetTopLevelRoots(body)
+	require.NoError(t, err, "Failed to get top level roots")
+	bodySparse, err := trie.GenerateTrieFromItems(bodyMembersRoots, 3)
+	require.NoError(t, err, "Failed to generate trie from member roots")
+	bodyRoot, err := bodySparse.HashTreeRoot()
+	require.NoError(t, err, "Failed to generate root hash")
+
+	commitmentsIndex := 5
+	topProof, err := bodySparse.MerkleProof(commitmentsIndex)
+	require.NoError(t, err, "Failed to generate Merkle proof")
+
+	// Verify the Merkle proof
+	valid := trie.VerifyMerkleProof(
+		bodyRoot[:],
+		commitmentsRoot[:],
+		uint64(commitmentsIndex),
+		topProof,
 	)
 	require.True(t, valid, "Merkle proof should be valid")
 }
