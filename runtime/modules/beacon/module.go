@@ -27,6 +27,7 @@ package evm
 
 import (
 	"cosmossdk.io/core/appmodule"
+	v1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/v1alpha1"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -62,8 +63,8 @@ func (am AppModule) Name() string {
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
-	// types.RegisterMsgServiceServer(registrar, am.keeper)
+func (am AppModule) RegisterServices(registrar grpc.ServiceRegistrar) error {
+	v1alpha1.RegisterQueryServer(registrar, &APIServer{Keeper: am.keeper})
 	return nil
 }
 

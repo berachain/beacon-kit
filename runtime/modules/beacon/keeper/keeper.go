@@ -66,6 +66,11 @@ func (k *Keeper) BeaconState(
 	return k.beaconStore.WithContext(ctx)
 }
 
+// RawBeaconStore returns the raw beacon store initialized with a given
+func (k *Keeper) RawBeaconStore(ctx context.Context) *beaconstore.Store {
+	return k.beaconStore.WithContext(ctx)
+}
+
 // context and the store key.
 //
 // TODO: Decouple from the Specific SingleSlotFinalityStore Impl.

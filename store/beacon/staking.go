@@ -51,6 +51,11 @@ func (s *Store) DequeueDeposits(
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
+// LengthDeposits returns the number of deposits in the queue.
+func (s *Store) LengthDeposits() (uint64, error) {
+	return s.depositQueue.Len(s.ctx)
+}
+
 // ExpectedWithdrawals returns the first numView withdrawals in the queue.
 func (s *Store) ExpectedWithdrawals(
 	numView uint64,

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package runtime.modules.beacon.v1alpha1;
+
+import "cosmos/query/v1/query.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/berachain/beacon-kit/runtime/modules/beacon/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Validators queries all validators that match the given status.
+  //
+  // When called from another module, this query might consume a high amount of
+  // gas if the pagination field is incorrectly set.
+  rpc DepositQueueLength(google.protobuf.Empty) returns (DepositQueueLengthResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/beacon/v1alpha1/deposit_queue_length";
+  }
+}
+
+// DepositQueueLengthResponse is the response message for the DepositQueueLength RPC.
+// It contains the length of the deposit queue, indicating how many deposits are
+// currently waiting to be processed.
+message DepositQueueLengthResponse {
+  // length represents the number of deposits in the queue.
+  uint64 length = 1;
+}
