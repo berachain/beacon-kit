@@ -26,7 +26,7 @@
 package types_test
 
 import (
-	"math/rand"
+	"crypto/rand"
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"

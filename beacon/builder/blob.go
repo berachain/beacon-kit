@@ -28,7 +28,6 @@ package builder
 import (
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/crypto/kzg"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
@@ -41,7 +40,7 @@ func PrepareBlobsHandler(
 	var blobTx = make([]*types.BlobSidecar, len(blobs.Blobs))
 	for i := range len(blobs.Blobs) {
 		// Create Inclusion Proof
-		inclusionProof, err := kzg.MerkleProofKZGCommitment(blk, i)
+		inclusionProof, err := beacontypes.MerkleProofKZGCommitment(blk, i)
 		if err != nil {
 			return nil, err
 		}
