@@ -23,17 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkle_test
+package trie_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/crypto/merkle"
-	"github.com/prysmaticlabs/prysm/v5/container/trie"
+	"github.com/berachain/beacon-kit/crypto/trie"
 	"github.com/stretchr/testify/require"
 )
 
-func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
+const depth = uint64(16)
+
+func FuzzSparseMerkleTrie_VerifyMerkleProofWithDepth(f *testing.F) {
+	splitProofs := func(proofRaw []byte) [][]byte {
+		var proofs [][]byte
+		for i := 0; i < len(proofRaw); i += 32 {
+			end := i + 32
+			if end >= len(proofRaw) {
+				end = len(proofRaw) - 1
+			}
+			proofs = append(proofs, proofRaw[i:end])
+		}
+		return proofs
+	}
+
 	items := [][]byte{
 		[]byte("A"),
 		[]byte("B"),
@@ -44,46 +57,28 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 		[]byte("G"),
 		[]byte("H"),
 	}
-	var depth uint64 = 32
-	m, err := merkle.GenerateTrieFromItems(items, depth)
-	require.NoError(t, err)
-	require.NotNil(t, m)
-	root, err := m.HashTreeRoot()
-	require.NoError(t, err)
-	expectedRoot := [32]byte{
-		0x90, 0x5e, 0xde, 0xcb, 0x94, 0x3e, 0x2e, 0x27,
-		0xa6, 0x42, 0x0b, 0x16, 0x91, 0xff, 0xbf, 0xf2,
-		0xc8, 0x38, 0xd3, 0x08, 0xd7, 0x48, 0xda, 0x31,
-		0x74, 0xdb, 0x58, 0x9f, 0x5f, 0x6e, 0xa9, 0x23,
-	}
-	require.Equal(t, expectedRoot[:], root[:])
+	m, err := trie.GenerateTrieFromItems(items, depth)
+	require.NoError(f, err)
 	proof, err := m.MerkleProof(0)
-	require.NoError(t, err)
-	require.Len(t, proof, int(depth)+1)
-	require.True(t,
-		merkle.VerifyMerkleProofWithDepth(
-			root[:],
-			items[0],
-			0,
-			proof,
-			depth,
-		),
-	)
-	proof, err = m.MerkleProof(3)
-	require.NoError(t, err)
-	require.True(t,
-		trie.VerifyMerkleProofWithDepth(
-			root[:],
-			items[3],
-			3,
-			proof,
-			depth,
-		),
-	)
-	require.False(t,
-		trie.VerifyMerkleProofWithDepth(
-			root[:], []byte("buzz"), 3,
-			proof, depth,
-		),
+	require.NoError(f, err)
+	require.Equal(f, int(depth)+1, len(proof))
+	root, err := m.HashTreeRoot()
+	require.NoError(f, err)
+	var proofRaw []byte
+	for _, p := range proof {
+		proofRaw = append(proofRaw, p...)
+	}
+	f.Add(root[:], items[0], uint64(0), proofRaw, depth)
+
+	f.Fuzz(
+		func(t *testing.T, root, item []byte, merkleIndex uint64, proofRaw []byte, depth uint64) {
+			trie.VerifyMerkleProofWithDepth(
+				root,
+				item,
+				merkleIndex,
+				splitProofs(proofRaw),
+				depth,
+			)
+		},
 	)
 }

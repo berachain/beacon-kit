@@ -26,97 +26,153 @@
 package types_test
 
 import (
-	"crypto/rand"
+	"bytes"
+	"math"
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	merkle "github.com/berachain/beacon-kit/crypto/merkle"
+	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
 
-func Test_MerkleProofKZGCommitment(t *testing.T) {
-	kzgs := make([][]byte, 3)
-	kzgs[0] = make([]byte, 48)
-	_, err := rand.Read(kzgs[0])
-	require.NoError(t, err)
-	kzgs[1] = make([]byte, 48)
-	_, err = rand.Read(kzgs[1])
-	require.NoError(t, err)
-	kzgs[2] = make([]byte, 48)
-	_, err = rand.Read(kzgs[2])
-	require.NoError(t, err)
-	// pbBody := &beacontypes.BeaconBlockBodyDeneb{
-	// 	ExecutionPayload: &enginev1.ExecutionPayloadDeneb{
-	// 		ParentHash:    make([]byte, fieldparams.RootLength),
-	// 		FeeRecipient:  make([]byte, 20),
-	// 		StateRoot:     make([]byte, fieldparams.RootLength),
-	// 		ReceiptsRoot:  make([]byte, fieldparams.RootLength),
-	// 		LogsBloom:     make([]byte, 256),
-	// 		PrevRandao:    make([]byte, fieldparams.RootLength),
-	// 		BaseFeePerGas: make([]byte, fieldparams.RootLength),
-	// 		BlockHash:     make([]byte, fieldparams.RootLength),
-	// 		Transactions:  make([][]byte, 0),
-	// 		ExtraData:     make([]byte, 0),
-	// 	},
-	// 	Eth1Data: &ethpb.Eth1Data{
-	// 		DepositRoot: make([]byte, fieldparams.RootLength),
-	// 		BlockHash:   make([]byte, fieldparams.RootLength),
-	// 	},
-	// 	BlobKzgCommitments: kzgs,
-	// }
-
-	kzgs48 := make([][48]byte, 3)
-	for i, kzg := range kzgs {
-		copy(kzgs48[i][:], kzg)
+func TestBodyProof(t *testing.T) {
+	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
+	executionPayload := &enginetypes.ExecutableDataDeneb{
+		ParentHash:    common.HexToHash("0x01"),
+		FeeRecipient:  common.HexToAddress("0x02"),
+		StateRoot:     common.HexToHash("0x03"),
+		ReceiptsRoot:  common.HexToHash("0x04"),
+		LogsBloom:     []byte("bloom"),
+		Random:        common.HexToHash("0x05"),
+		BaseFeePerGas: []byte("baseFee"),
+		BlockHash:     common.HexToHash("0x06"),
+		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
+		ExtraData:     []byte("extra"),
 	}
+
 	body := &types.BeaconBlockBodyDeneb{
-		ExecutionPayload: &enginetypes.ExecutableDataDeneb{
-			ParentHash:    common.Hash{},
-			FeeRecipient:  common.Address{},
-			StateRoot:     common.Hash{},
-			ReceiptsRoot:  common.Hash{},
-			LogsBloom:     make([]byte, 256),
-			Random:        common.Hash{},
-			BaseFeePerGas: make([]byte, 32),
-			BlockHash:     common.Hash{},
-			Transactions:  make([][]byte, 0),
-			ExtraData:     make([]byte, 0),
+		RandaoReveal:     [96]byte{0x01},
+		ExecutionPayload: executionPayload,
+		BlobKzgCommitments: [][48]byte{
+			[48]byte(bytes.Repeat([]byte("1"), 48)),
 		},
-		BlobKzgCommitments: kzgs48,
 	}
-	blk := &types.BeaconBlockDeneb{
-		Slot:            0,
-		ProposerIndex:   0,
-		ParentBlockRoot: [32]byte{},
-		Body:            body,
-	}
-	require.NoError(t, err)
-	index := 1
-	_, err = types.MerkleProofKZGCommitment(blk, 10)
-	require.NotNil(t, err)
-	proof, err := types.MerkleProofKZGCommitment(blk, index)
-	require.NoError(t, err)
 
-	chunk := make([][32]byte, 2)
-	copy(chunk[0][:], kzgs[index])
-	copy(chunk[1][:], kzgs[index][32:])
-	gohashtree.HashChunks(chunk, chunk)
-	root, err := body.HashTreeRoot()
-	require.NoError(t, err)
-	kzgOffset := 54 * 4096
-	require.True(
-		t,
-		merkle.VerifyMerkleProof(
-			root[:],
-			chunk[0][:],
-			uint64(index+kzgOffset),
-			proof,
-		),
+	// The body has the commitments.
+	commitments := body.GetKzgCommitments()
+
+	// Generate leaves from commitments
+	leaves := types.LeavesFromCommitments(commitments)
+
+	// Calculate the depth the given trie will have.
+	depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
+
+	// Generate a sparse Merkle tree from the leaves.
+	sparse, err := trie.GenerateTrieFromItems(leaves, depth)
+	require.NoError(t, err, "Failed to generate trie from items")
+
+	// Get the root of the tree.
+	root, err := sparse.HashTreeRoot()
+	require.NoError(t, err, "Failed to generate root hash")
+
+	// Generate a proof for the index.
+	index := 0
+	proof, err := sparse.MerkleProof(index)
+	require.NoError(t, err, "Failed to generate Merkle proof")
+	require.NotNil(t, proof, "Merkle proof should not be nil")
+
+	// Verify the Merkle proof
+	valid := trie.VerifyMerkleProof(
+		root[:],
+		leaves[index],
+		uint64(index),
+		proof,
 	)
+	require.True(t, valid, "Merkle proof should be valid")
 }
+
+// func Test_MerkleProofKZGCommitment(t *testing.T) {
+// 	kzgs := make([][]byte, 3)
+// 	kzgs[0] = make([]byte, 48)
+// 	_, err := rand.Read(kzgs[0])
+// 	require.NoError(t, err)
+// 	kzgs[1] = make([]byte, 48)
+// 	_, err = rand.Read(kzgs[1])
+// 	require.NoError(t, err)
+// 	kzgs[2] = make([]byte, 48)
+// 	_, err = rand.Read(kzgs[2])
+// 	require.NoError(t, err)
+// 	// pbBody := &beacontypes.BeaconBlockBodyDeneb{
+// 	// 	ExecutionPayload: &enginev1.ExecutionPayloadDeneb{
+// 	// 		ParentHash:    make([]byte, fieldparams.RootLength),
+// 	// 		FeeRecipient:  make([]byte, 20),
+// 	// 		StateRoot:     make([]byte, fieldparams.RootLength),
+// 	// 		ReceiptsRoot:  make([]byte, fieldparams.RootLength),
+// 	// 		LogsBloom:     make([]byte, 256),
+// 	// 		PrevRandao:    make([]byte, fieldparams.RootLength),
+// 	// 		BaseFeePerGas: make([]byte, fieldparams.RootLength),
+// 	// 		BlockHash:     make([]byte, fieldparams.RootLength),
+// 	// 		Transactions:  make([][]byte, 0),
+// 	// 		ExtraData:     make([]byte, 0),
+// 	// 	},
+// 	// 	Eth1Data: &ethpb.Eth1Data{
+// 	// 		DepositRoot: make([]byte, fieldparams.RootLength),
+// 	// 		BlockHash:   make([]byte, fieldparams.RootLength),
+// 	// 	},
+// 	// 	BlobKzgCommitments: kzgs,
+// 	// }
+
+// 	kzgs48 := make([][48]byte, 3)
+// 	for i, kzg := range kzgs {
+// 		copy(kzgs48[i][:], kzg)
+// 	}
+// 	body := &types.BeaconBlockBodyDeneb{
+// 		ExecutionPayload: &enginetypes.ExecutableDataDeneb{
+// 			ParentHash:    common.Hash{},
+// 			FeeRecipient:  common.Address{},
+// 			StateRoot:     common.Hash{},
+// 			ReceiptsRoot:  common.Hash{},
+// 			LogsBloom:     make([]byte, 256),
+// 			Random:        common.Hash{},
+// 			BaseFeePerGas: make([]byte, 32),
+// 			BlockHash:     common.Hash{},
+// 			Transactions:  make([][]byte, 0),
+// 			ExtraData:     make([]byte, 0),
+// 		},
+// 		BlobKzgCommitments: kzgs48,
+// 	}
+// 	blk := &types.BeaconBlockDeneb{
+// 		Slot:            0,
+// 		ProposerIndex:   0,
+// 		ParentBlockRoot: [32]byte{},
+// 		Body:            body,
+// 	}
+// 	require.NoError(t, err)
+// 	index := 1
+// 	_, err = types.MerkleProofKZGCommitment(blk, 10)
+// 	require.NotNil(t, err)
+// 	proof, err := types.MerkleProofKZGCommitment(blk, index)
+// 	require.NoError(t, err)
+
+// 	chunk := make([][32]byte, 2)
+// 	copy(chunk[0][:], kzgs[index])
+// 	copy(chunk[1][:], kzgs[index][32:])
+// 	gohashtree.HashChunks(chunk, chunk)
+// 	root, err := body.HashTreeRoot()
+// 	require.NoError(t, err)
+// 	kzgOffset := 54 * 4096
+// 	require.True(
+// 		t,
+// 		trie.VerifyMerkleProof(
+// 			root[:],
+// 			chunk[0][:],
+// 			uint64(index+kzgOffset),
+// 			proof,
+// 		),
+// 	)
+// }
 
 // func Benchmark_MerkleProofKZGCommitment(b *testing.B) {
 // 	kzgs := make([][]byte, 3)

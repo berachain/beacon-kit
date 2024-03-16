@@ -23,16 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkle
+// Package trie defines utilities for sparse merkle tries for Ethereum
+// consensus.
+package trie
 
 import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
-	"errors"
 	"fmt"
 
-	bytesutil "github.com/berachain/beacon-kit/lib/bytes"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/pkg/errors"
 	"github.com/protolambda/ztyp/tree"
 )
 
@@ -42,6 +44,13 @@ type SparseMerkleTrie struct {
 	depth         uint
 	branches      [][][]byte
 	originalItems [][]byte // list of provided items before hashing them into leaves.
+}
+
+// NewTrie returns a new merkle trie filled with zerohashes to use.
+func NewTrie(depth uint64) (*SparseMerkleTrie, error) {
+	var zeroBytes [32]byte
+	items := [][]byte{zeroBytes[:]}
+	return GenerateTrieFromItems(items, depth)
 }
 
 // GenerateTrieFromItems constructs a Merkle trie from a sequence of byte
@@ -56,15 +65,14 @@ func GenerateTrieFromItems(
 	if depth >= 63 {
 		return nil, errors.New(
 			"supported merkle trie depth exceeded (max uint64 depth is 63, " +
-				"theoretical max sparse merkle trie depth is 64)",
-		) // PowerOf2 would overflow
+				"theoretical max sparse merkle trie depth is 64)") // PowerOf2 would overflow
 	}
 
 	leaves := items
 	layers := make([][][]byte, depth+1)
 	transformedLeaves := make([][]byte, len(leaves))
 	for i := range leaves {
-		arr := bytesutil.ToBytes32(leaves[i])
+		arr := byteslib.ToBytes32(leaves[i])
 		transformedLeaves[i] = arr[:]
 	}
 	layers[0] = transformedLeaves
@@ -86,6 +94,77 @@ func GenerateTrieFromItems(
 	}, nil
 }
 
+// Items returns the original items passed in when creating the Merkle trie.
+func (m *SparseMerkleTrie) Items() [][]byte {
+	return m.originalItems
+}
+
+// HashTreeRoot of the Merkle trie as defined in the deposit contract.
+//
+//	Spec Definition:
+//	 sha256(concat(node, self.to_little_endian_64(self.deposit_count),
+//
+// slice(zero_bytes32, start=0, len=24))).
+func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
+	var enc [32]byte
+	depositCount := uint64(len(m.originalItems))
+	if len(m.originalItems) == 1 &&
+		bytes.Equal(m.originalItems[0], tree.ZeroHashes[0][:]) {
+		// Accounting for empty tries
+		depositCount = 0
+	}
+	binary.LittleEndian.PutUint64(enc[:], depositCount)
+	return sha256.Sum256(
+		append(m.branches[len(m.branches)-1][0], enc[:]...),
+	), nil
+}
+
+// Insert an item into the trie.
+func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
+	if index < 0 {
+		return fmt.Errorf("negative index provided: %d", index)
+	}
+	for index >= len(m.branches[0]) {
+		m.branches[0] = append(m.branches[0], tree.ZeroHashes[0][:])
+	}
+	someItem := byteslib.ToBytes32(item)
+	m.branches[0][index] = someItem[:]
+	if index >= len(m.originalItems) {
+		m.originalItems = append(m.originalItems, someItem[:])
+	} else {
+		m.originalItems[index] = someItem[:]
+	}
+	currentIndex := index
+	root := byteslib.ToBytes32(item)
+	for i := 0; i < int(m.depth); i++ {
+		isLeft := currentIndex%2 == 0
+		neighborIdx := currentIndex ^ 1
+		var neighbor []byte
+		if neighborIdx >= len(m.branches[i]) {
+			neighbor = tree.ZeroHashes[i][:]
+		} else {
+			neighbor = m.branches[i][neighborIdx]
+		}
+		if isLeft {
+			parentHash := sha256.Sum256(append(root[:], neighbor...))
+			root = parentHash
+		} else {
+			parentHash := sha256.Sum256(append(neighbor, root[:]...))
+			root = parentHash
+		}
+		parentIdx := currentIndex / 2
+		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
+			newItem := root
+			m.branches[i+1] = append(m.branches[i+1], newItem[:])
+		} else {
+			newItem := root
+			m.branches[i+1][parentIdx] = newItem[:]
+		}
+		currentIndex = parentIdx
+	}
+	return nil
+}
+
 // MerkleProof computes a proof from a trie's branches using a Merkle index.
 func (m *SparseMerkleTrie) MerkleProof(index int) ([][]byte, error) {
 	if index < 0 {
@@ -104,7 +183,7 @@ func (m *SparseMerkleTrie) MerkleProof(index int) ([][]byte, error) {
 	for i := uint(0); i < m.depth; i++ {
 		subIndex := (merkleIndex / (1 << i)) ^ 1
 		if subIndex < uint(len(m.branches[i])) {
-			item := bytesutil.ToBytes32(m.branches[i][subIndex])
+			item := byteslib.ToBytes32(m.branches[i][subIndex])
 			proof[i] = item[:]
 		} else {
 			proof[i] = tree.ZeroHashes[i][:]
@@ -126,7 +205,7 @@ func VerifyMerkleProofWithDepth(
 	if uint64(len(proof)) != depth+1 {
 		return false
 	}
-	node := bytesutil.ToBytes32(item)
+	node := byteslib.ToBytes32(item)
 	for i := uint64(0); i <= depth; i++ {
 		if (merkleIndex & 1) == 1 {
 			node = sha256.Sum256(append(proof[i], node[:]...))
@@ -141,33 +220,45 @@ func VerifyMerkleProofWithDepth(
 // VerifyMerkleProof given a trie root, a leaf, the generalized merkle index
 // of the leaf in the trie, and the proof itself.
 func VerifyMerkleProof(
-	root, item []byte,
+	root, leaf []byte,
 	merkleIndex uint64,
-	proof [][]byte) bool {
+	proof [][]byte,
+) bool {
 	if len(proof) == 0 {
 		return false
 	}
 	return VerifyMerkleProofWithDepth(
-		root, item, merkleIndex,
-		proof, uint64(len(proof)-1))
+		root,
+		leaf,
+		merkleIndex,
+		proof,
+		uint64(len(proof)-1),
+	)
 }
 
-// HashTreeRoot returns the hash root of the Merkle trie.
-//
-// sha256(concat(node, self.to_little_endian_64(self.deposit_count), slice(zero_bytes32, start=0, len=24))).
-func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
-	var enc [32]byte
-	numItems := uint64(len(m.originalItems))
-	zeroHash := [32]byte{
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+// Copy performs a deep copy of the trie.
+func (m *SparseMerkleTrie) Copy() *SparseMerkleTrie {
+	dstBranches := make([][][]byte, len(m.branches))
+	for i1, srcB1 := range m.branches {
+		dstBranches[i1] = byteslib.SafeCopy2d(srcB1)
 	}
-	if len(m.originalItems) == 1 && bytes.Equal(m.originalItems[0], zeroHash[:]) {
-		// Accounting for empty tries
-		numItems = 0
+
+	return &SparseMerkleTrie{
+		depth:         m.depth,
+		branches:      dstBranches,
+		originalItems: byteslib.SafeCopy2d(m.originalItems),
 	}
-	binary.LittleEndian.PutUint64(enc[:], numItems)
-	return sha256.Sum256(append(m.branches[len(m.branches)-1][0], enc[:]...)), nil
+}
+
+// NumOfItems returns the num of items stored in
+// the sparse merkle trie. We handle a special case
+// where if there is only one item stored and it is an
+// empty 32-byte root.
+func (m *SparseMerkleTrie) NumOfItems() int {
+	var zeroBytes [32]byte
+	if len(m.originalItems) == 1 &&
+		bytes.Equal(m.originalItems[0], zeroBytes[:]) {
+		return 0
+	}
+	return len(m.originalItems)
 }
