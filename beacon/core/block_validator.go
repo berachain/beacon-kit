@@ -60,14 +60,14 @@ func (bv *BlockValidator) ValidateBlock(
 		return types.ErrNilBlkBody
 	}
 
-	// TODO: verify that state slot and beacon slot match.
-	// if st.Slot() != blk.GetSlot() {
-	// 	return fmt.Errorf(
-	// 		"slot does not match, expected: %d, got: %d",
-	// 		st.Slot(),
-	// 		blk.GetSlot(),
-	// 	)
-	// }
+	// Ensure the block slot matches the state slot.
+	if blk.GetSlot() != st.GetSlot() {
+		return fmt.Errorf(
+			"slot does not match, expected: %d, got: %d",
+			st.GetSlot(),
+			blk.GetSlot(),
+		)
+	}
 
 	if deposits := body.GetDeposits(); uint64(
 		len(deposits),
