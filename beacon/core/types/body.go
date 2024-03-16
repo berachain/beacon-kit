@@ -27,6 +27,7 @@ package types
 
 import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
 	"github.com/cockroachdb/errors"
@@ -120,7 +121,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][]byte, error) {
 
 	// Deposits
 	dep := b.Deposits
-	root, err = ssz.MerkleizeListSSZ(dep, 16)
+	root, err = sha256.BuildMerkleRoot(dep, 16)
 	if err != nil {
 		return nil, err
 	}
