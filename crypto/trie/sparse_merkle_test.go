@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/crypto/trie"
-	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,17 +53,14 @@ func TestGenerateTrieFromItems_DepthSupport(t *testing.T) {
 		[]byte("FFFFFF"),
 		[]byte("GGGGGGG"),
 	}
-	// max supported depth is 62 (uint64 will overflow above this)
-	// max theoretical depth is 64
-	var max_supported_trie_depth uint64 = 62
 	// Supported depth
-	m1, err := trie.GenerateTrieFromItems(items, max_supported_trie_depth)
+	m1, err := trie.GenerateTrieFromItems(items, trie.MaxTrieDepth)
 	require.NoError(t, err)
 	proof, err := m1.MerkleProof(2)
 	require.NoError(t, err)
-	require.Equal(t, len(proof), int(max_supported_trie_depth)+1)
+	require.Len(t, proof, int(trie.MaxTrieDepth)+1)
 	// Unsupported depth
-	_, err = trie.GenerateTrieFromItems(items, max_supported_trie_depth+1)
+	_, err = trie.GenerateTrieFromItems(items, trie.MaxTrieDepth+1)
 	require.Error(t, err)
 	errString := "supported merkle trie depth exceeded (max uint64 depth is 63, " +
 		"theoretical max sparse merkle trie depth is 64)"
@@ -88,21 +85,22 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 	require.NoError(t, err)
 	proof, err := m.MerkleProof(0)
 	require.NoError(t, err)
-	require.Equal(
+	require.Len(
 		t,
+		proof,
 		int(TreeDepth)+1,
-		len(proof),
 	)
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
-	if ok := trie.VerifyMerkleProofWithDepth(root[:], items[0], 0, proof, TreeDepth); !ok {
+	if ok := trie.VerifyMerkleProofWithDepth(
+		root[:], items[0], 0, proof, TreeDepth,
+	); !ok {
 		t.Error("First Merkle proof did not verify")
 	}
 	proof, err = m.MerkleProof(3)
 	require.NoError(t, err)
-	require.Equal(
+	require.True(
 		t,
-		true,
 		trie.VerifyMerkleProofWithDepth(
 			root[:],
 			items[3],
@@ -111,9 +109,8 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 			TreeDepth,
 		),
 	)
-	require.Equal(
+	require.False(
 		t,
-		false,
 		trie.VerifyMerkleProofWithDepth(
 			root[:],
 			[]byte("buzz"),
@@ -143,10 +140,10 @@ func TestMerkleTrie_VerifyMerkleProof(t *testing.T) {
 	require.NoError(t, err)
 	proof, err := m.MerkleProof(0)
 	require.NoError(t, err)
-	require.Equal(
+	require.Len(
 		t,
+		proof,
 		int(TreeDepth)+1,
-		len(proof),
 	)
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
@@ -155,10 +152,9 @@ func TestMerkleTrie_VerifyMerkleProof(t *testing.T) {
 	}
 	proof, err = m.MerkleProof(3)
 	require.NoError(t, err)
-	require.Equal(t, true, trie.VerifyMerkleProof(root[:], items[3], 3, proof))
-	require.Equal(
+	require.True(t, trie.VerifyMerkleProof(root[:], items[3], 3, proof))
+	require.False(
 		t,
-		false,
 		trie.VerifyMerkleProof(root[:], []byte("buzz"), 3, proof),
 	)
 }
@@ -202,9 +198,8 @@ func TestMerkleTrie_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
-	require.Equal(
+	require.True(
 		t,
-		true,
 		trie.VerifyMerkleProofWithDepth(root[:], items[0], 0, proof, depth),
 	)
 
@@ -214,10 +209,14 @@ func TestMerkleTrie_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	root, err = m.HashTreeRoot()
 	require.NoError(t, err)
-	if ok := trie.VerifyMerkleProofWithDepth(root[:], []byte{5}, 3, proof, depth); !ok {
+	if ok := trie.VerifyMerkleProofWithDepth(
+		root[:], []byte{5}, 3, proof, depth,
+	); !ok {
 		t.Error("Second Merkle proof did not verify")
 	}
-	if ok := trie.VerifyMerkleProofWithDepth(root[:], []byte{4}, 3, proof, depth); ok {
+	if ok := trie.VerifyMerkleProofWithDepth(
+		root[:], []byte{4}, 3, proof, depth,
+	); ok {
 		t.Error("Old item should not verify")
 	}
 
@@ -273,7 +272,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 	numDeposits := 16000
 	items := make([][]byte, numDeposits)
 	for i := 0; i < numDeposits; i++ {
-		someRoot := bytesutil.ToBytes32([]byte(strconv.Itoa(i)))
+		someRoot := byteslib.ToBytes32([]byte(strconv.Itoa(i)))
 		items[i] = someRoot[:]
 	}
 	tr, err := trie.GenerateTrieFromItems(
@@ -282,7 +281,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 	)
 	require.NoError(b, err)
 
-	someItem := bytesutil.ToBytes32([]byte("hello-world"))
+	someItem := byteslib.ToBytes32([]byte("hello-world"))
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		require.NoError(b, tr.Insert(someItem[:], i%numDeposits))
@@ -308,7 +307,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := normalTrie.MerkleProof(3)
+		_, err = normalTrie.MerkleProof(3)
 		require.NoError(b, err)
 	}
 }
@@ -336,7 +335,9 @@ func BenchmarkVerifyMerkleProofWithDepth(b *testing.B) {
 	require.NoError(b, err)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		if ok := trie.VerifyMerkleProofWithDepth(root[:], items[2], 2, proof, TreeDepth); !ok {
+		if ok := trie.VerifyMerkleProofWithDepth(
+			root[:], items[2], 2, proof, TreeDepth,
+		); !ok {
 			b.Error("Merkle proof did not verify")
 		}
 	}

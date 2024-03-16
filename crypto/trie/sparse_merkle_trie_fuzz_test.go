@@ -61,7 +61,7 @@ func FuzzSparseMerkleTrie_VerifyMerkleProofWithDepth(f *testing.F) {
 	require.NoError(f, err)
 	proof, err := m.MerkleProof(0)
 	require.NoError(f, err)
-	require.Equal(f, int(depth)+1, len(proof))
+	require.Len(f, proof, int(depth)+1)
 	root, err := m.HashTreeRoot()
 	require.NoError(f, err)
 	var proofRaw []byte
@@ -71,7 +71,10 @@ func FuzzSparseMerkleTrie_VerifyMerkleProofWithDepth(f *testing.F) {
 	f.Add(root[:], items[0], uint64(0), proofRaw, depth)
 
 	f.Fuzz(
-		func(t *testing.T, root, item []byte, merkleIndex uint64, proofRaw []byte, depth uint64) {
+		func(_ *testing.T,
+			root, item []byte, merkleIndex uint64,
+			proofRaw []byte, depth uint64,
+		) {
 			trie.VerifyMerkleProofWithDepth(
 				root,
 				item,

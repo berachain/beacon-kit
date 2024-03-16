@@ -38,12 +38,18 @@ import (
 	"github.com/protolambda/ztyp/tree"
 )
 
+const (
+	// 2^63 would overflow.
+	MaxTrieDepth = 62
+)
+
 // SparseMerkleTrie implements a sparse, general purpose Merkle trie to be used
 // across Ethereum consensus functionality.
 type SparseMerkleTrie struct {
-	depth         uint
-	branches      [][][]byte
-	originalItems [][]byte // list of provided items before hashing them into leaves.
+	depth    uint
+	branches [][][]byte
+	// list of provided items before hashing them into leaves.
+	originalItems [][]byte
 }
 
 // NewTrie returns a new merkle trie filled with zerohashes to use.
@@ -62,10 +68,11 @@ func GenerateTrieFromItems(
 	if len(items) == 0 {
 		return nil, errors.New("no items provided to generate Merkle trie")
 	}
-	if depth >= 63 {
+	if depth > MaxTrieDepth {
+		// PowerOf2 would overflow
 		return nil, errors.New(
 			"supported merkle trie depth exceeded (max uint64 depth is 63, " +
-				"theoretical max sparse merkle trie depth is 64)") // PowerOf2 would overflow
+				"theoretical max sparse merkle trie depth is 64)")
 	}
 
 	leaves := items
@@ -136,8 +143,9 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 	}
 	currentIndex := index
 	root := byteslib.ToBytes32(item)
+	two := 2
 	for i := 0; i < int(m.depth); i++ {
-		isLeft := currentIndex%2 == 0
+		isLeft := currentIndex%two == 0
 		neighborIdx := currentIndex ^ 1
 		var neighbor []byte
 		if neighborIdx >= len(m.branches[i]) {
@@ -152,7 +160,7 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 			parentHash := sha256.Sum256(append(neighbor, root[:]...))
 			root = parentHash
 		}
-		parentIdx := currentIndex / 2
+		parentIdx := currentIndex / two
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
 			newItem := root
 			m.branches[i+1] = append(m.branches[i+1], newItem[:])

@@ -39,7 +39,8 @@ func SafeCopy(cp []byte) []byte {
 	return nil
 }
 
-// SafeCopy2d will copy and return a non-nil 2d byte slice, otherwise it returns nil.
+// SafeCopy2d will copy and return a non-nil
+// 2d byte slice, otherwise it returns nil.
 func SafeCopy2d(ary [][]byte) [][]byte {
 	if ary != nil {
 		copied := make([][]byte, len(ary))
