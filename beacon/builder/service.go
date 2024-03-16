@@ -135,6 +135,12 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlkBody
 	}
 
+	commitments := make([][48]byte, len(blobsBundle.Commitments))
+	for i, c := range blobsBundle.Commitments {
+		commitments[i] = [48]byte(c)
+	}
+	body.SetBlobKzgCommitments(commitments)
+
 	// Dequeue deposits from the state.
 	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
 		s.BeaconCfg().Limits.MaxDepositsPerBlock,

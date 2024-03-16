@@ -35,6 +35,6 @@ const (
 	rootLength                   = 32
 	logMaxBlobCommitments        = 12
 	logBodyLength                = 4
-	kzgPosition                  = 11 // TODO: this can be different in our use case
+	kzgPosition                  = 5 // TODO: this can be different in our use case
 	KZGOffset             uint64 = 54 * 4096
 )

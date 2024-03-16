@@ -28,6 +28,7 @@ package kzg
 import (
 	"crypto/sha256"
 	"errors"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
@@ -85,7 +86,7 @@ func ConvertCommitmentsToVersionedHashes(
 // The index is the position of the commitment in the Merkle tree.
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
-func VerifyKZGInclusionProof(root []byte, blob *types.BlobTxSidecar, index uint64) error { // TODO: add wrapped type with inclusion proofs
+func VerifyKZGInclusionProof(root []byte, blob *types.BlobSidecar, index uint64) error { // TODO: add wrapped type with inclusion proofs
 	if len(root) != rootLength {
 		return errInvalidBodyRoot
 	}
@@ -110,25 +111,35 @@ func VerifyKZGInclusionProof(root []byte, blob *types.BlobTxSidecar, index uint6
 func MerkleProofKZGCommitment(blk beacontypes.BeaconBlock, index int) ([][]byte, error) {
 	commitments := blk.GetBody().GetBlobKzgCommitments()
 
-	cmts := make([][]byte, 0, len(commitments))
+	cmts := make([][]byte, len(commitments))
+	fmt.Println("PRE COMMITMENTS", len(commitments))
 	for i, c := range commitments {
 		cmts[i] = c[:]
 	}
 
+	fmt.Println("PRE BODY PROOF")
+
+	fmt.Println("LENGTH COMMITMENTS", len(cmts), "INDEX", index)
 	proof, err := bodyProof(cmts, index)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("PRE TOP LEVEL ROOTS")
 
 	membersRoots, err := blk.GetBody().GetTopLevelRoots()
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Println("PAST TOP LEVEL ROOTS")
+
 	sparse, err := merkle.GenerateTrieFromItems(membersRoots, logBodyLength)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("PRE MERKLE PROOF")
 	topProof, err := sparse.MerkleProof(kzgPosition)
 	if err != nil {
 		return nil, err
@@ -145,11 +156,15 @@ func bodyProof(commitments [][]byte, index int) ([][]byte, error) {
 	if index < 0 || index >= len(commitments) {
 		return nil, errors.New("index out of range")
 	}
+	fmt.Println("PRE LEAVES FROM COMMITMENTS")
 	leaves := leavesFromCommitments(commitments)
+	fmt.Println("PRE MERKLE GENERATE TRIE FROM ITEMS")
 	sparse, err := merkle.GenerateTrieFromItems(leaves, logMaxBlobCommitments)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("PRE MERKLE PROOF")
 	proof, err := sparse.MerkleProof(index)
 	if err != nil {
 		return nil, err

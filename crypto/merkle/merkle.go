@@ -22,7 +22,8 @@ type SparseMerkleTrie struct {
 
 // GenerateTrieFromItems constructs a Merkle trie from a sequence of byte slices.
 func GenerateTrieFromItems(items [][]byte,
-	depth uint64) (*SparseMerkleTrie, error) {
+	depth uint64,
+) (*SparseMerkleTrie, error) {
 	if len(items) == 0 {
 		return nil, errors.New("no items provided to generate Merkle trie")
 	}

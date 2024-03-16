@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
@@ -11,26 +13,30 @@ import (
 // blob sidecar
 func PrepareBlobsHandler(
 	height int64, blk beacontypes.BeaconBlock,
-	blobs *enginetypes.BlobsBundleV1) ([]byte, error) {
-
-	var blobTx = make([]*types.BlobTxSidecar, len(blobs.Blobs))
-	for i, sidecar := range blobs.Blobs {
+	blobs *enginetypes.BlobsBundleV1,
+) ([]byte, error) {
+	var blobTx = make([]*types.BlobSidecar, len(blobs.Blobs))
+	for i := range len(blobs.Blobs) {
+		fmt.Println("PREPARING BLOB")
 		// Create Inclusion Proof
-		ic, err := kzg.MerkleProofKZGCommitment(blk, i)
+		inclusionProof, err := kzg.MerkleProofKZGCommitment(blk, i)
 		if err != nil {
 			return nil, err
 		}
-		blob := &types.BlobTxSidecar{
-			Blob:           sidecar,
+
+		fmt.Println("CREATED INCLUSION PROOF")
+		blob := &types.BlobSidecar{
+			Blob:           blobs.Blobs[i],
 			KzgCommitment:  blobs.Commitments[i],
 			KzgProof:       blobs.Proofs[i],
-			InclusionProof: ic,
+			InclusionProof: inclusionProof,
 		}
 
 		blobTx[i] = blob
+		fmt.Println("CREATED BLOB")
 	}
 
-	bl := types.BlobSidecars{BlobSidecars: blobTx}
+	bl := types.BlobSidecars{Sidecars: blobTx}
 
 	return bl.MarshalSSZ()
 }

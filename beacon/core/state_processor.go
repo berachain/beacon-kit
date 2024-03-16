@@ -113,12 +113,16 @@ func (sp *StateProcessor) ProcessBlock(
 }
 
 // ProcessBlob processes a blob.
-func (sp *StateProcessor) ProcessBlob(bs *types.BlobTxSidecar, height, index uint64) error {
+func (sp *StateProcessor) ProcessBlob(body types.BeaconBlockBody, bs *types.BlobSidecar, height, index uint64) error {
 
 	ranger := file.NewRangeDB(sp.db)
 
+	bodyRoot, err := body.HashTreeRoot()
+	if err != nil {
+		return err
+	}
 	// Store the blobs under a single height.
-	if err := kzg.VerifyKZGInclusionProof([]byte{}, bs, uint64(index)); err != nil {
+	if err := kzg.VerifyKZGInclusionProof(bodyRoot[:], bs, uint64(index)); err != nil {
 		return err
 	}
 
