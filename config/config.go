@@ -143,7 +143,12 @@ func ReadChainIDFromAppOpts(
 
 		chainID, err = genutiltypes.ParseChainIDFromGenesis(reader)
 		if err != nil {
-			panic(fmt.Errorf("failed to parse chain-id from genesis file: %w", err))
+			panic(
+				fmt.Errorf(
+					"failed to parse chain-id from genesis file: %w",
+					err,
+				),
+			)
 		}
 	}
 	return chainID
