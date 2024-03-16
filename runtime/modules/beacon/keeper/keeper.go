@@ -52,7 +52,7 @@ func NewKeeper(
 	vsu runtime.ValsetUpdater,
 ) *Keeper {
 	return &Keeper{
-		beaconStore:     beaconstore.NewStore(env.KVStoreService),
+		beaconStore:     beaconstore.NewStore(env),
 		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
 		vsu:             vsu,
 	}
