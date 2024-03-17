@@ -49,6 +49,7 @@ func PrepareBlobsHandler(
 		}
 
 		blob := &beacontypes.BlobSidecar{
+			Index:          uint64(i),
 			Blob:           blobs.Blobs[i],
 			KzgCommitment:  blobs.Commitments[i],
 			KzgProof:       blobs.Proofs[i],
