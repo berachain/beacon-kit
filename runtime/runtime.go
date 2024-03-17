@@ -48,7 +48,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/lib/abi"
-	_ "github.com/berachain/beacon-kit/lib/maxprocs"
+	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
 )
@@ -84,7 +84,6 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	appOpts AppOptions,
 	signer crypto.Signer[[bls12381.SignatureLength]byte],
-	networkCfg config.Network,
 	logger log.Logger,
 	bsb BeaconStorageBackend,
 	vsu ValsetUpdater,
@@ -97,7 +96,6 @@ func NewDefaultBeaconKitRuntime(
 	if err != nil {
 		return nil, err
 	}
-	cfg.Network = networkCfg
 
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(

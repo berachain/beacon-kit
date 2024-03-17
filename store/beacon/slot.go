@@ -23,20 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256
+package beacon
 
-import (
-	"unsafe"
+import "github.com/berachain/beacon-kit/primitives"
 
-	"github.com/protolambda/ztyp/tree"
-)
-
-func ConvertTreeRootsToBytes(roots []tree.Root) [][32]byte {
-	//#nosec:G103 // This is a safe conversion.
-	return *(*[][32]byte)(unsafe.Pointer(&roots))
+// GetSlot returns the current slot.
+func (s *Store) GetSlot() primitives.Slot {
+	return primitives.Slot(
+		s.env.HeaderService.GetHeaderInfo(s.ctx).Height,
+	)
 }
 
-func ConvertBytesToTreeRoots(bytes [][32]byte) []tree.Root {
-	//#nosec:G103 // This is a safe conversion.
-	return *(*[]tree.Root)(unsafe.Pointer(&bytes))
+// GetChainID returns the chain ID.
+func (s *Store) GetChainID() string {
+	return s.env.HeaderService.GetHeaderInfo(s.ctx).ChainID
 }

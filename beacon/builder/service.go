@@ -30,6 +30,7 @@ import (
 	"fmt"
 
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
@@ -51,7 +52,7 @@ type PayloadBuilder interface {
 
 type RandaoProcessor interface {
 	BuildReveal(
-		epoch primitives.Epoch,
+		st state.BeaconState,
 	) (randaotypes.Reveal, error)
 }
 
@@ -86,17 +87,15 @@ func (s *Service) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
-
-	reveal, err := s.randaoProcessor.BuildReveal(
-		s.BeaconCfg().SlotToEpoch(slot))
+	st := s.BeaconState(ctx)
+	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build reveal: %w", err)
 	}
 
-	parentBlockRoot := s.BeaconState(ctx).GetParentBlockRoot()
+	parentBlockRoot := st.GetParentBlockRoot()
 
-	proposerIndex, err := s.BeaconState(ctx).
-		ValidatorIndexByPubkey(proposerPubkey[:])
+	proposerIndex, err := st.ValidatorIndexByPubkey(proposerPubkey[:])
 	if err != nil {
 		return nil, err
 	}

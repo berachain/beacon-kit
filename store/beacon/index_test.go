@@ -28,7 +28,7 @@ package beacon_test
 import (
 	"testing"
 
-	sdklog "cosmossdk.io/log"
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
@@ -39,14 +39,15 @@ import (
 
 func TestValidatorIndexes(t *testing.T) {
 	testName := "test"
-	logger := sdklog.NewNopLogger()
+	logger := log.NewTestLogger(t)
 	keys := storetypes.NewKVStoreKeys(testName)
 	cms := integration.CreateMultiStore(keys, logger)
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 	kvs := sdkruntime.NewKVStoreService(storeKey)
+	env := sdkruntime.NewEnvironment(kvs, logger)
 
-	beaconStore := beaconstore.NewStore(kvs)
+	beaconStore := beaconstore.NewStore(env)
 	beaconStore = beaconStore.WithContext(ctx)
 
 	t.Run("add validator and replace its pubkey", func(t *testing.T) {
