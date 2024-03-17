@@ -141,7 +141,7 @@ func (sp *StateProcessor) ProcessBlock(
 	}
 
 	// process the redirects and ensure they match the local state.
-	if err := sp.processRedirects(st, body.GetRedirects()); err != nil {
+	if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
 		return err
 	}
 
