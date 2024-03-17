@@ -122,7 +122,7 @@ func (p *Processor) verifyReveal(
 		return ErrInvalidSignature
 	}
 
-	p.logger.Info("randao reveal successfully verified 🤫 ",
+	p.logger.Info("randao reveal successfully verified 🐸",
 		"reveal", reveal,
 	)
 	return nil

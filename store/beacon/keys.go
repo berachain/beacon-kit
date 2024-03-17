@@ -32,6 +32,7 @@ const (
 	randaoMixPrefix               = "randao_mix"
 	validatorIndexPrefix          = "val_idx"
 	blockRootsPrefix              = "block_roots"
+	stateRootsPrefix              = "state_roots"
 	validatorIndexToPubkeyPrefix  = "val_idx_to_pk"
 	validatorPubkeyToIndexPrefix  = "val_pk_to_idx"
 	latestBeaconBlockHeaderPrefix = "latest_beacon_block_header"

@@ -59,14 +59,11 @@ type Store struct {
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
-	// parentBlockRoot provides access to the previous
-	// head block root for block construction as needed
-	// by eip-4788.
+	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
 
-	// parentBlockRoot provides access to the previous
-	// head block root for block construction as needed
-	// by eip-4788.
+	// stateRoots stores the state roots for the current epoch.
+	stateRoots sdkcollections.Map[uint64, [32]byte]
 
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, [types.MixLength]byte]
@@ -110,6 +107,13 @@ func NewStore(
 			schemaBuilder,
 			sdkcollections.NewPrefix(blockRootsPrefix),
 			blockRootsPrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
+		),
+		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(stateRootsPrefix),
+			stateRootsPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),

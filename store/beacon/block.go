@@ -26,9 +26,6 @@
 package beacon
 
 import (
-	"errors"
-
-	"cosmossdk.io/collections"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -45,13 +42,7 @@ func (s *Store) UpdateBlockRootAtIndex(
 func (s *Store) GetBlockRootAtIndex(
 	index uint64,
 ) (primitives.HashRoot, error) {
-	parentRoot, err := s.blockRoots.Get(s.ctx, index)
-	if errors.Is(err, collections.ErrNotFound) {
-		return [32]byte{}, nil
-	} else if err != nil {
-		return [32]byte{}, err
-	}
-	return parentRoot, nil
+	return s.blockRoots.Get(s.ctx, index)
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.

@@ -25,6 +25,21 @@
 
 package beacon
 
+import "github.com/berachain/beacon-kit/primitives"
+
+// UpdateStateRootAtIndex updates the state root at the given slot.
+func (s *Store) UpdateStateRootAtIndex(
+	slot uint64,
+	stateRoot primitives.HashRoot,
+) error {
+	return s.stateRoots.Set(s.ctx, slot, stateRoot)
+}
+
+// StateRootAtIndex returns the state root at the given slot.
+func (s *Store) StateRootAtIndex(slot uint64) (primitives.HashRoot, error) {
+	return s.stateRoots.Get(s.ctx, slot)
+}
+
 // Store is the interface for the beacon store.
 func (s *Store) HashTreeRoot() ([32]byte, error) {
 	// _, err := s.RandaoMix()
