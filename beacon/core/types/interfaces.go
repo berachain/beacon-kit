@@ -50,8 +50,9 @@ type ReadOnlyBeaconBlock interface {
 	IsNil() bool
 	Version() uint32
 	GetSlot() primitives.Slot
-	GetParentBlockRoot() primitives.HashRoot
 	GetProposerIndex() primitives.ValidatorIndex
+	GetParentBlockRoot() primitives.HashRoot
+	GetStateRoot() primitives.HashRoot
 	GetBody() BeaconBlockBody
 }
 

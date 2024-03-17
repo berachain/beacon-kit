@@ -54,7 +54,9 @@ func NewBeaconBlockHeader(
 		Slot:          blk.GetSlot(),
 		ProposerIndex: blk.GetProposerIndex(),
 		ParentRoot:    blk.GetParentBlockRoot(),
-		// StateRoot:     blk.GetStateRoot(),
-		BodyRoot: bodyRoot,
+		// TODO: handle actually setting the state root in prepare proposal.
+		// Compare state roots after execution.
+		StateRoot: blk.GetStateRoot(),
+		BodyRoot:  bodyRoot,
 	}, nil
 }

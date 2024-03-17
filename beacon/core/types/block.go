@@ -40,6 +40,9 @@ type BeaconBlockDeneb struct {
 	// ParentBlockRoot is the hash of the parent block.
 	ParentBlockRoot [32]byte `ssz-size:"32"`
 
+	// StateRoot is the hash of the state at the block.
+	StateRoot [32]byte `ssz-size:"32"`
+
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
 	Body *BeaconBlockBodyDeneb
@@ -73,4 +76,9 @@ func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
 // GetBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
 func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.HashRoot {
 	return b.ParentBlockRoot
+}
+
+// GetStateRoot retrieves the state root of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) GetStateRoot() primitives.HashRoot {
+	return b.StateRoot
 }
