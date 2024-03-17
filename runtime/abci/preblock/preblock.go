@@ -98,6 +98,12 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 	) error {
+		// Process the Slot.
+		if err := h.chainService.ProcessSlot(ctx); err != nil {
+			h.logger.Error("failed to process slot", "error", err)
+			return err
+		}
+
 		// Extract the beacon block from the ABCI request.
 		//
 		// TODO: Block factory struct?

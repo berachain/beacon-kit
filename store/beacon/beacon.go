@@ -66,6 +66,9 @@ type Store struct {
 
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Item[[types.MixLength]byte]
+
+	// latestBeaconBlockHeader stores the latest beacon block header.
+	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
 }
 
 // Store creates a new instance of Store.
@@ -111,6 +114,13 @@ func NewStore(
 			sdkcollections.NewPrefix(randaoMixPrefix),
 			randaoMixPrefix,
 			encoding.Bytes32ValueCodec{},
+		),
+		//nolint:lll
+		latestBeaconBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
+			schemaBuilder,
+			sdkcollections.NewPrefix(latestBeaconBlockHeaderPrefix),
+			latestBeaconBlockHeaderPrefix,
+			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
 		),
 	}
 }

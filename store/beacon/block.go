@@ -29,6 +29,7 @@ import (
 	"errors"
 
 	"cosmossdk.io/collections"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -53,4 +54,16 @@ func (s *Store) GetBlockRoot(
 		return [32]byte{}, err
 	}
 	return byteslib.ToBytes32(parentRoot), nil
+}
+
+// SetLatestBlockHeader sets the latest block header in the BeaconStore.
+func (s *Store) SetLatestBlockHeader(
+	header *beacontypes.BeaconBlockHeader,
+) error {
+	return s.latestBeaconBlockHeader.Set(s.ctx, header)
+}
+
+// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
+func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
+	return s.latestBeaconBlockHeader.Get(s.ctx)
 }

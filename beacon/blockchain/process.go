@@ -34,6 +34,16 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// ProcessSlot is run when a slot is missed.
+func (s *Service) ProcessSlot(
+	ctx context.Context,
+) error {
+	// Process the slot.
+	return s.sp.ProcessSlot(
+		s.BeaconState(ctx),
+	)
+}
+
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service) ProcessBeaconBlock(
@@ -49,14 +59,6 @@ func (s *Service) ProcessBeaconBlock(
 		st          = s.BeaconState(groupCtx)
 		err         error
 	)
-
-	// If the block errors out for any reason, we need to still
-	// ensure that the slot is processed.
-	defer func() {
-		if err != nil {
-			err = s.sp.ProcessSlot(st)
-		}
-	}()
 
 	// We can use an errgroup to run the validation functions concurrently.
 	g.Go(func() error {

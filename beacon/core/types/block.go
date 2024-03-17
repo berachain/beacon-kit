@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
