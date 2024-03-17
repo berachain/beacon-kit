@@ -78,7 +78,8 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot,
+	ctx context.Context,
+	slot primitives.Slot,
 	proposerPubkey [bls12381.PubKeyLength]byte,
 ) (beacontypes.BeaconBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)

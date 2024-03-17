@@ -111,10 +111,10 @@ func (s *Service) ProcessBeaconBlock(
 	// If the builder is enabled attempt to build a block locally.
 	// If we are in the sync state, we skip building blocks optimistically.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		if root, err = blk.HashTreeRoot(); err != nil {
+		root, err = st.GetBlockRoot(blk.GetSlot())
+		if err != nil {
 			return err
 		}
-
 		err = s.sendFCUWithAttributes(
 			ctx,
 			payload.GetBlockHash(),

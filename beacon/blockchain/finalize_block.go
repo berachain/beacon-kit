@@ -47,19 +47,6 @@ func (s *Service) FinalizeBeaconBlock(
 	)
 
 	defer func() {
-		// Always update the parent block root in the event
-		// that the beacon block is not valid.
-		if blk != nil || blk.IsNil() {
-			var root primitives.HashRoot
-			root, err = blk.HashTreeRoot()
-			if err != nil {
-				s.Logger().Error("failed to hash tree root", "error", err)
-			}
-			if err = st.SetBlockRoot(st.GetSlot(), root); err != nil {
-				s.Logger().Error("failed to set block root", "error", err)
-			}
-		}
-
 		// If something bad happens, we defensivelessly send a forkchoice update
 		// to bring us back to the last valid head.
 		go func() {

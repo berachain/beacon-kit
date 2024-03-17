@@ -75,7 +75,6 @@ func (sp *StateProcessor) ProcessSlot(
 		return err
 	}
 
-	// We set the StateRoot of this block to the previous state root.
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
 	// the StateRoot until the following block.
 	if (header.StateRoot == primitives.HashRoot{}) {
