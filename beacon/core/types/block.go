@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
@@ -40,6 +39,9 @@ type BeaconBlockDeneb struct {
 
 	// ParentBlockRoot is the hash of the parent block.
 	ParentBlockRoot [32]byte `ssz-size:"32"`
+
+	// StateRoot is the hash of the state at the block.
+	StateRoot [32]byte `ssz-size:"32"`
 
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
@@ -72,6 +74,11 @@ func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
 }
 
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetParentBlockRoot() [32]byte {
+func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.HashRoot {
 	return b.ParentBlockRoot
+}
+
+// GetStateRoot retrieves the state root of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) GetStateRoot() primitives.HashRoot {
+	return b.StateRoot
 }

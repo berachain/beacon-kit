@@ -23,26 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package types
 
-import (
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-)
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (randaotypes.Reveal, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal randaotypes.Reveal,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey [bls12381.PubKeyLength]byte,
-		reveal randaotypes.Reveal,
-	) error
-}
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go

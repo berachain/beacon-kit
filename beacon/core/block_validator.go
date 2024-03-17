@@ -79,7 +79,11 @@ func (bv *BlockValidator) ValidateBlock(
 	}
 
 	// Ensure the parent block root matches what we have locally.
-	parentBlockRoot := st.GetParentBlockRoot()
+	parentBlockRoot, err := st.GetBlockRoot(st.GetSlot() - 1)
+	if err != nil {
+		return err
+	}
+
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
 			"parent root does not match, expected: %x, got: %x",

@@ -23,16 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package staking
 
-// Collection prefixes.
-const (
-	depositQueuePrefix            = "deposit_queue"
-	withdrawalQueuePrefix         = "withdrawal_queue"
-	randaoMixPrefix               = "randao_mix"
-	validatorIndexPrefix          = "val_idx"
-	parentBlockRootPrefix         = "parent_block_root"
-	validatorIndexToPubkeyPrefix  = "val_idx_to_pk"
-	validatorPubkeyToIndexPrefix  = "val_pk_to_idx"
-	latestBeaconBlockHeaderPrefix = "latest_beacon_block_header"
+import (
+	"cosmossdk.io/depinject"
+	sdkkeeper "cosmossdk.io/x/staking/keeper"
 )
+
+type DepInjectInput struct {
+	depinject.In
+
+	StakingKeeper *sdkkeeper.Keeper
+	BankKeeper    BankKeeper
+}
+
+type DepInjectOutput struct {
+	depinject.Out
+
+	Keeper *Keeper
+}
+
+func ProvideStakingKeeper(in DepInjectInput) DepInjectOutput {
+	return DepInjectOutput{
+		Keeper: NewKeeper(in.StakingKeeper, &in.BankKeeper),
+	}
+}
