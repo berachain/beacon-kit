@@ -113,6 +113,7 @@ func (s *Service) ProcessBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
+	//nolint:contextcheck // todo fix
 	return s.sp.ProcessBlock(
 		s.BeaconState(ctx),
 		blk,

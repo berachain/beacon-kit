@@ -28,15 +28,24 @@ package staking
 import (
 	"context"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 )
 
 // ValsetUpdater is the interface for applying validator set changes.
 type ValsetUpdater interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
+	IncreaseConsensusPower(
+		ctx context.Context,
+		delegator [bls12381.SecretKeyLength]byte,
+		pubkey [bls12381.PubKeyLength]byte,
+		amount uint64,
+		signature []byte,
+		index uint64,
+	) error
+
+	DecreaseConsensusPower(
+		ctx context.Context,
+		delegator [bls12381.SecretKeyLength]byte,
+		pubkey [bls12381.PubKeyLength]byte,
+		amount uint64,
 	) error
 }

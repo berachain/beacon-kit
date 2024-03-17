@@ -30,6 +30,12 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+const (
+	StakingUnit       = "abgt"
+	StakingModuleName = "staking"
 )
 
 // ValsetUpdater is an interface that provides the
@@ -39,5 +45,32 @@ type ValsetUpdater interface {
 		context.Context,
 		[]*beacontypes.Deposit,
 		[]*enginetypes.Withdrawal,
+	) error
+}
+
+// BankKeeper is an interface that provides the ability to
+// mint, burn, and send coins.
+type BankKeeper interface {
+	// `MintCoins` mints coins to a module account.
+	MintCoins(
+		ctx context.Context,
+		moduleName string,
+		amt sdk.Coins,
+	) error
+
+	// `BurnCoins` burns coins from a module account.
+	BurnCoins(
+		ctx context.Context,
+		address []byte,
+		amt sdk.Coins,
+	) error
+
+	// `SendCoinsFromModuleToAccount` sends coins from a
+	// module account to an account.
+	SendCoinsFromModuleToAccount(
+		ctx context.Context,
+		senderModule string,
+		recipientAddr sdk.AccAddress,
+		amt sdk.Coins,
 	) error
 }
