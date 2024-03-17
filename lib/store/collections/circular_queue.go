@@ -51,7 +51,7 @@ func NewCircularQueue[V any](
 	size uint64,
 ) *CircularQueue[V] {
 	return &CircularQueue[V]{
-		container: collections.NewMap[uint64, V](
+		container: collections.NewMap(
 			schema,
 			collections.NewPrefix(name),
 			name,
