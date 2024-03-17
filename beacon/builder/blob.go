@@ -42,6 +42,7 @@ func PrepareBlobsHandler(
 		// Create Inclusion Proof
 		inclusionProof, err := beacontypes.MerkleProofKZGCommitment(
 			blk,
+			//#nosec:G701: fuck off gosec.
 			uint64(i),
 		)
 		if err != nil {
@@ -49,6 +50,7 @@ func PrepareBlobsHandler(
 		}
 
 		blobTx[i] = &beacontypes.BlobSidecar{
+			//#nosec:G701: fuck off gosec.
 			Index:          uint64(i),
 			Blob:           blobs.Blobs[i],
 			KzgCommitment:  blobs.Commitments[i],

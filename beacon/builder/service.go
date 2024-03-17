@@ -138,6 +138,11 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlkBody
 	}
 
+	// If we get returned a nil blobs bundle, we should return an error.
+	if blobsBundle == nil {
+		return nil, nil, beacontypes.ErrNilBlobsBundle
+	}
+
 	commitments := make([][48]byte, len(blobsBundle.Commitments))
 	for i, c := range blobsBundle.Commitments {
 		commitments[i] = [48]byte(c)

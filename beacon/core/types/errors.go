@@ -68,4 +68,7 @@ var (
 
 	// ErrNilWithdrawals is an error for when the deposits are nil.
 	ErrNilWithdrawals = errors.New("nil withdrawals")
+
+	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
+	ErrNilBlobsBundle = errors.New("nil blobs bundle")
 )
