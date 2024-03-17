@@ -32,13 +32,6 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// BlobCommitmentVersion is the version of the blob commitment.
-// It is the Version byte for the point evaluation precompile as
-// defined in EIP-4844.
-//
-// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
-const BlobCommitmentVersion uint8 = 0x01
-
 // ConvertCommitmentToVersionedHash computes a SHA-256 hash of the given
 // commitment and prefixes it with the BlobCommitmentVersion. This function is
 // used to generate
