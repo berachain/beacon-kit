@@ -32,6 +32,7 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/db"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // RangeDB is a database that stores versioned data.
@@ -94,7 +95,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 
 // prefix prefixes the given key with the index and a slash.
 func (db *RangeDB) prefix(index uint64, key []byte) []byte {
-	return append([]byte(fmt.Sprintf("%d/", index)), key...)
+	return []byte(fmt.Sprintf("%d/%s", index, hexutil.Encode(key)))
 }
 
 // ExtractIndex extracts the index from a prefixed key.

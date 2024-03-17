@@ -52,6 +52,8 @@ import (
 	_ "github.com/berachain/beacon-kit/lib/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -188,7 +190,13 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(&cfg.Beacon, file.NewDB(), randaoProcessor)),
+			core.NewStateProcessor(&cfg.Beacon, file.NewDB(
+				file.WithRootDirectory(
+					cast.ToString(appOpts.Get(flags.FlagHome))+"/data/blobs"),
+				file.WithFileExtension("ssz"),
+				file.WithDirectoryPermissions(0700),
+				file.WithLogger(logger),
+			), randaoProcessor)),
 		blockchain.WithSyncService(syncService),
 	)
 
