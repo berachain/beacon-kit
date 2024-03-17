@@ -29,7 +29,6 @@ import (
 	"context"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
 )
 
 // FinalizeBeaconBlock finalizes a beacon block by processing the logs,
@@ -42,36 +41,8 @@ func (s *Service) FinalizeBeaconBlock(
 ) error {
 	var (
 		err         error
-		st          = s.BeaconState(ctx)
 		forkChoicer = s.ForkchoiceStore(ctx)
 	)
-
-	defer func() {
-		// If something bad happens, we defensivelessly send a forkchoice update
-		// to bring us back to the last valid head.
-		go func() {
-			if err != nil {
-				var parentRoot [32]byte
-				parentRoot, err = st.GetBlockRoot(blk.GetSlot() - 1)
-				if err != nil {
-					s.Logger().
-						Error("failed to get parent block root", "error", err)
-					return
-				}
-				s.missedBlockTasks(
-					ctx,
-					blk.GetSlot(),
-					parentRoot,
-				)
-			}
-
-			s.Logger().Info(
-				"finalizing current forkchoice state",
-				"safe_hash", forkChoicer.JustifiedPayloadBlockHash().Hex(),
-				"finalized_hash", forkChoicer.FinalizedPayloadBlockHash().Hex(),
-			)
-		}()
-	}()
 
 	if blk.IsNil() {
 		return beacontypes.ErrNilBlk
@@ -97,40 +68,4 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 	return err
-}
-
-// missed block tasks is called when a block is missed. It sends a forkchoice
-// update to the execution client to bring the client back to the last valid
-// head (safe).
-func (s *Service) missedBlockTasks(
-	ctx context.Context,
-	slot primitives.Slot,
-	blockRoot [32]byte,
-) {
-	forkChoicer := s.ForkchoiceStore(ctx)
-
-	// If we are in the sync state, we skip building blocks
-	// optimistically.
-	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		err := s.sendFCUWithAttributes(
-			ctx,
-			forkChoicer.JustifiedPayloadBlockHash(),
-			slot,
-			blockRoot,
-		)
-		if err == nil {
-			return
-		}
-		s.Logger().Error(
-			"failed to send recovery forkchoice update w/attributes", "error", err,
-		)
-	}
-
-	// Otherwise we send a forkchoice update to the execution client.
-	err := s.sendFCU(ctx, forkChoicer.JustifiedPayloadBlockHash())
-	if err != nil {
-		s.Logger().Error(
-			"failed to send recovery forkchoice update", "error", err,
-		)
-	}
 }

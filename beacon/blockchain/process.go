@@ -34,7 +34,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessSlot is run when a slot is missed.
+// ProcessSlot processes the incoming beacon slot.
 func (s *Service) ProcessSlot(
 	ctx context.Context,
 ) error {
