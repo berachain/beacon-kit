@@ -26,6 +26,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -35,6 +37,7 @@ import (
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state consensus.
 type BeaconState interface {
+	Context() context.Context
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
 }

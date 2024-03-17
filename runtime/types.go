@@ -29,10 +29,8 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // AppOptions is an interface that provides the ability to
@@ -52,10 +50,20 @@ type BeaconStorageBackend interface {
 // ValsetUpdater is an interface that provides the
 // ability to apply changes to the validator set.
 type ValsetUpdater interface {
-	ApplyChanges(
-		context.Context,
-		[]*beacontypes.Deposit,
-		[]*enginetypes.Withdrawal,
+	IncreaseConsensusPower(
+		ctx context.Context,
+		delegator [bls12381.SecretKeyLength]byte,
+		pubkey [bls12381.PubKeyLength]byte,
+		amount uint64,
+		signature []byte,
+		index uint64,
+	) error
+
+	DecreaseConsensusPower(
+		ctx context.Context,
+		delegator [bls12381.SecretKeyLength]byte,
+		pubkey [bls12381.PubKeyLength]byte,
+		amount uint64,
 	) error
 
 	GetValidatorPubkeyFromConsAddress(

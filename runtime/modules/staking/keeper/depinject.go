@@ -23,47 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package staking
 
 import (
-	"context"
-
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"cosmossdk.io/depinject"
+	sdkkeeper "cosmossdk.io/x/staking/keeper"
 )
 
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (randaotypes.Reveal, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal randaotypes.Reveal,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey [bls12381.PubKeyLength]byte,
-		reveal randaotypes.Reveal,
-	) error
+type DepInjectInput struct {
+	depinject.In
+
+	StakingKeeper *sdkkeeper.Keeper
+	BankKeeper    BankKeeper
 }
 
-// ValsetUpdater is the interface for applying validator set changes.
-type ValsetUpdater interface {
-	IncreaseConsensusPower(
-		ctx context.Context,
-		delegator [bls12381.SecretKeyLength]byte,
-		pubkey [bls12381.PubKeyLength]byte,
-		amount uint64,
-		signature []byte,
-		index uint64,
-	) error
+type DepInjectOutput struct {
+	depinject.Out
 
-	DecreaseConsensusPower(
-		ctx context.Context,
-		delegator [bls12381.SecretKeyLength]byte,
-		pubkey [bls12381.PubKeyLength]byte,
-		amount uint64,
-	) error
+	Keeper *Keeper
+}
+
+func ProvideStakingKeeper(in DepInjectInput) DepInjectOutput {
+	return DepInjectOutput{
+		Keeper: NewKeeper(in.StakingKeeper, &in.BankKeeper),
+	}
 }

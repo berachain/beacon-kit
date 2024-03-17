@@ -92,6 +92,7 @@ func (s *Service) validateStateTransition(
 		return err
 	}
 
+	//nolint:contextcheck // todo handle better.
 	return s.sp.ProcessBlock(
 		s.BeaconState(ctx),
 		blk,
