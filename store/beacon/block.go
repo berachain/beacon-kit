@@ -34,19 +34,19 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-// SetBlockRoot sets a block root in the BeaconStore.
-func (s *Store) SetBlockRoot(
-	slot primitives.Slot,
+// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
+func (s *Store) UpdateBlockRootAtIndex(
+	index uint64,
 	root primitives.HashRoot,
 ) error {
-	return s.blockRoots.Push(s.ctx, slot, root[:])
+	return s.blockRoots.Set(s.ctx, index, root[:])
 }
 
 // GetBlockRoot retrieves the block root from the BeaconStore.
-func (s *Store) GetBlockRoot(
-	slot primitives.Slot,
+func (s *Store) GetBlockRootAtIndex(
+	index uint64,
 ) (primitives.HashRoot, error) {
-	parentRoot, err := s.blockRoots.Peek(s.ctx, slot)
+	parentRoot, err := s.blockRoots.Get(s.ctx, index)
 	if errors.Is(err, collections.ErrNotFound) {
 		return [32]byte{}, nil
 	} else if err != nil {

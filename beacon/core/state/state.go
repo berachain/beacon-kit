@@ -52,7 +52,7 @@ type ReadOnlyBeaconState interface {
 
 	GetSlot() primitives.Slot
 	GetChainID() string
-	GetBlockRoot(primitives.Slot) (primitives.HashRoot, error)
+	GetBlockRootAtIndex(uint64) (primitives.HashRoot, error)
 	GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error)
 }
 
@@ -62,7 +62,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
-	SetBlockRoot(primitives.Slot, primitives.HashRoot) error
+	UpdateBlockRootAtIndex(primitives.Slot, primitives.HashRoot) error
 	SetLatestBlockHeader(*beacontypes.BeaconBlockHeader) error
 }
 

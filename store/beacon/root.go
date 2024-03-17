@@ -32,15 +32,15 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	parentSlot := uint64(0)
-	if s.GetSlot() > 0 {
-		parentSlot = s.GetSlot() - 1
-	}
+	// parentSlot := uint64(0)
+	// if s.GetSlot() > 0 {
+	// 	parentSlot = s.GetSlot() - 1
+	// }
 
-	_, err = s.GetBlockRoot(parentSlot)
-	if err != nil {
-		return [32]byte{}, err
-	}
+	// _, err = s.GetBlockRootAtIndex(parentSlot)
+	// if err != nil {
+	// 	return [32]byte{}, err
+	// }
 
 	// TODO: This.
 	// return (&state.BeaconStateDeneb{

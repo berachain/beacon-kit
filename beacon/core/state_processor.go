@@ -94,9 +94,8 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	// Set the block root to be the previous block root.
-	if err = st.SetBlockRoot(
-		st.GetSlot(), /*%params.BeaconConfig().SlotsPerHistoricalRoot*/
-		prevBlockRoot,
+	if err = st.UpdateBlockRootAtIndex(
+		st.GetSlot()%sp.cfg.Limits.HistoricalRootsLimit, prevBlockRoot,
 	); err != nil {
 		return err
 	}
