@@ -66,37 +66,42 @@ func (sp *StateProcessor) ProcessSlot(
 	if err != nil {
 		return err
 	}
-	// if err := state.UpdateStateRootAtIndex(
-	// 	uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
-	// 	prevStateRoot,
-	// ); err != nil {
-	// 	return nil, err
-	// }
 
-	header, err := st.GetLatestBlockHeader()
+	// We update our state roots and block roots. Note: we use
+	// st.GetSlot() even though technically this was the state root from
+	// end of the previous slot.
+	if err = st.UpdateStateRootAtIndex(
+		st.GetSlot()%sp.cfg.Limits.SlotsPerHistoricalRoot,
+		prevStateRoot,
+	); err != nil {
+		return err
+	}
+
+	// We get the latest block header, this will not have
+	// a state root on it.
+	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
 	}
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
 	// the StateRoot until the following block.
-	if (header.StateRoot == primitives.HashRoot{}) {
-		header.StateRoot = prevStateRoot
-		if err = st.SetLatestBlockHeader(header); err != nil {
+	if (latestHeader.StateRoot == primitives.HashRoot{}) {
+		latestHeader.StateRoot = prevStateRoot
+		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
 			return err
 		}
 	}
 
+	// We update the block root.
 	var prevBlockRoot primitives.HashRoot
-	prevBlockRoot, err = header.HashTreeRoot()
+	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
 	}
 
-	// Set the block root to be the previous block root.
-	if err = st.SetBlockRoot(
-		st.GetSlot(), /*%params.BeaconConfig().SlotsPerHistoricalRoot*/
-		prevBlockRoot,
+	if err = st.UpdateBlockRootAtIndex(
+		st.GetSlot()%sp.cfg.Limits.SlotsPerHistoricalRoot, prevBlockRoot,
 	); err != nil {
 		return err
 	}
@@ -113,6 +118,7 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
+	// process the freshly created header.
 	if err = sp.processHeader(st, header); err != nil {
 		return err
 	}

@@ -87,8 +87,11 @@ func (pv *PayloadValidator) ValidatePayload(
 		)
 	}
 
-	// Get the latest RandaoMix.
-	expectedMix, err := st.RandaoMix()
+	// When we are validating a payload we expect that it was produced by
+	// the proposer for the slot that it is for.
+	expectedMix, err := st.RandaoMixAtIndex(
+		st.GetSlot() % pv.cfg.Limits.EpochsPerHistoricalVector,
+	)
 	if err != nil {
 		return err
 	}

@@ -89,7 +89,9 @@ func (s *Service) sendPostBlockFCU(
 	// forkchoice update with attributes.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
 		var root primitives.HashRoot
-		root, err := st.GetBlockRoot(st.GetSlot())
+		root, err := st.GetBlockRootAtIndex(
+			st.GetSlot() % s.BeaconCfg().Limits.SlotsPerHistoricalRoot,
+		)
 		if err != nil {
 			return
 		}

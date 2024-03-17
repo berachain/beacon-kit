@@ -25,24 +25,25 @@
 
 package beacon
 
+import "github.com/berachain/beacon-kit/primitives"
+
+// UpdateStateRootAtIndex updates the state root at the given slot.
+func (s *Store) UpdateStateRootAtIndex(
+	slot uint64,
+	stateRoot primitives.HashRoot,
+) error {
+	return s.stateRoots.Set(s.ctx, slot, stateRoot)
+}
+
+// StateRootAtIndex returns the state root at the given slot.
+func (s *Store) StateRootAtIndex(slot uint64) (primitives.HashRoot, error) {
+	return s.stateRoots.Get(s.ctx, slot)
+}
+
 // Store is the interface for the beacon store.
 func (s *Store) HashTreeRoot() ([32]byte, error) {
-	_, err := s.RandaoMix()
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	parentSlot := uint64(0)
-	if s.GetSlot() > 0 {
-		parentSlot = s.GetSlot() - 1
-	}
-
-	_, err = s.GetBlockRoot(parentSlot)
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	// TODO: This.
+	// TODO: Implement getting the HashTreeRoot (StateRoot)
+	// of the beacon store.
 	// return (&state.BeaconStateDeneb{
 	// 	Slot:          s.GetSlot(),
 	// 	PrevRandaoMix: randaoMix,

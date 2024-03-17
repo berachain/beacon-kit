@@ -28,34 +28,70 @@ package config
 import (
 	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/cli/parser"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // Limits conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Limits] = &Limits{}
 
+// Default configuration limits for the beacon chain.
 const (
-	defaultMaxDepositsPerBlock      = 16
+	// defaultEpochsPerHistoricalVector defines the default number of epochs.
+	defaultEpochsPerHistoricalVector = 1
+	// defaultSlotsPerHistoricalRoot defines the default limit for historical
+	// roots.
+	defaultSlotsPerHistoricalRoot = 32
+	// defaultMaxDepositsPerBlock specifies the default maximum number of
+	// deposits allowed per block.
+	defaultMaxDepositsPerBlock = 16
+	// defaultMaxWithdrawalsPerPayload indicates the default maximum number of
+	// withdrawals allowed per payload.
 	defaultMaxWithdrawalsPerPayload = 16
 )
 
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultLimitsConfig() Limits {
 	return Limits{
-		MaxDepositsPerBlock:      defaultMaxDepositsPerBlock,
-		MaxWithdrawalsPerPayload: defaultMaxWithdrawalsPerPayload,
+		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
+		SlotsPerHistoricalRoot:    defaultSlotsPerHistoricalRoot,
+		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
+		MaxWithdrawalsPerPayload:  defaultMaxWithdrawalsPerPayload,
 	}
 }
 
 // Limits represents the configuration struct for the limits on the beacon
 // chain.
 type Limits struct {
-	MaxDepositsPerBlock      uint64
+	// EpochsPerHistoricalVector defines the number of epochs per historical
+	// vector. (i.e RANDAO)
+	EpochsPerHistoricalVector primitives.Epoch
+	// SlotsPerHistoricalRoot defines the maximum number of historical root
+	// entries that can be stored.
+	SlotsPerHistoricalRoot uint64
+	// MaxDepositsPerBlock specifies the maximum number of deposit operations
+	// allowed per block.
+	MaxDepositsPerBlock uint64
+	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
+	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64
 }
 
 // Parse parses the configuration.
 func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 	var err error
+
+	if c.EpochsPerHistoricalVector, err = parser.GetEpoch(
+		flags.EpochsPerHistoricalVector,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.SlotsPerHistoricalRoot, err = parser.GetUint64(
+		flags.SlotsPerHistoricalRoot,
+	); err != nil {
+		return nil, err
+	}
+
 	if c.MaxDepositsPerBlock, err = parser.GetUint64(
 		flags.MaxDeposits,
 	); err != nil {
@@ -76,6 +112,12 @@ func (c Limits) Template() string {
 	//nolint:lll
 	return `
 [beacon-kit.beacon-config.limits]
+# EpochsPerHistoricalVector is the number of epochs per historical vector.
+epochs-per-historical-vector = {{.BeaconKit.Beacon.Limits.EpochsPerHistoricalVector}}
+
+# SlotsPerHistoricalRoot is the maximum number of historical roots that will be stored.
+slots-per-historical-root = {{.BeaconKit.Beacon.Limits.SlotsPerHistoricalRoot}}
+
 # MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.
 max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
 

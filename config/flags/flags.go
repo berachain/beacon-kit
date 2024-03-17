@@ -69,9 +69,11 @@ const (
 	_                = featureFlagsRoot
 
 	// Limits Config.
-	limitsRoot     = beaconConfigRoot + "limits."
-	MaxDeposits    = limitsRoot + "max-deposits-per-block"
-	MaxWithdrawals = limitsRoot + "max-withdrawals-per-payload"
+	limitsRoot                = beaconConfigRoot + "limits."
+	EpochsPerHistoricalVector = limitsRoot + "epochs-per-historical-vector"
+	SlotsPerHistoricalRoot    = limitsRoot + "slots-per-historical-root"
+	MaxDeposits               = limitsRoot + "max-deposits-per-block"
+	MaxWithdrawals            = limitsRoot + "max-withdrawals-per-payload"
 
 	// ABCI Config.
 	abciRoot                  = beaconKitRoot + "abci."

@@ -94,7 +94,8 @@ func (s *Service) RequestBestBlock(
 		return nil, fmt.Errorf("failed to build reveal: %w", err)
 	}
 
-	parentBlockRoot, err := st.GetBlockRoot(st.GetSlot() - 1)
+	parentBlockRoot, err := st.GetBlockRootAtIndex(
+		(st.GetSlot() - 1) % s.BeaconCfg().Limits.SlotsPerHistoricalRoot)
 	if err != nil {
 		return nil, err
 	}

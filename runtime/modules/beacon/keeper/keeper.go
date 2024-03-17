@@ -83,7 +83,17 @@ func (k *Keeper) InitGenesis(
 ) error {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
-	if err := st.SetRandaoMix(data.Mix()); err != nil {
+	if err := st.UpdateRandaoMixAtIndex(0, data.Mix()); err != nil {
+		return err
+	}
+
+	// Compare this snippet from beacon/keeper/keeper.go:
+	if err := st.UpdateStateRootAtIndex(0, [32]byte{}); err != nil {
+		return err
+	}
+
+	// Set the genesis block root.
+	if err := st.UpdateBlockRootAtIndex(0, [32]byte{}); err != nil {
 		return err
 	}
 
@@ -94,7 +104,20 @@ func (k *Keeper) InitGenesis(
 	fcs.SetSafeEth1BlockHash(hash)
 	fcs.SetFinalizedEth1BlockHash(hash)
 
-	return st.SetLatestBlockHeader(&beacontypes.BeaconBlockHeader{})
+	// Set the genesis block header.
+	if err := st.SetLatestBlockHeader(
+		&beacontypes.BeaconBlockHeader{
+			Slot:          0,
+			ProposerIndex: 0,
+			ParentRoot:    [32]byte{},
+			StateRoot:     [32]byte{},
+			BodyRoot:      [32]byte{},
+		},
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
