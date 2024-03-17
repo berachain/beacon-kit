@@ -84,11 +84,11 @@ func (bv *BlockValidator) ValidateBlock(
 		return err
 	}
 
-	if parentBlockRoot != blk.GetBlockRoot() {
+	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
 			"parent root does not match, expected: %x, got: %x",
 			parentBlockRoot,
-			blk.GetBlockRoot(),
+			blk.GetParentBlockRoot(),
 		)
 	}
 	return nil

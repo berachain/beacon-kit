@@ -162,6 +162,6 @@ func (s *Service) validateExecutionOnBlock(
 		kzg.ConvertCommitmentsToVersionedHashes(
 			body.GetBlobKzgCommitments(),
 		),
-		blk.GetBlockRoot(),
+		blk.GetParentBlockRoot(),
 	)
 }

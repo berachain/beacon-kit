@@ -72,6 +72,6 @@ func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
 }
 
 // GetBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetBlockRoot() primitives.HashRoot {
+func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.HashRoot {
 	return b.ParentBlockRoot
 }
