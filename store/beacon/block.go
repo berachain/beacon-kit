@@ -35,7 +35,6 @@ import (
 )
 
 // SetBlockRoot sets a block root in the BeaconStore.
-// It panics if there is an error setting the parent block root.
 func (s *Store) SetBlockRoot(
 	slot primitives.Slot,
 	root primitives.HashRoot,
