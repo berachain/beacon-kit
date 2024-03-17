@@ -76,15 +76,15 @@ type LocalBuilder interface {
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor interface {
 	BuildReveal(
-		epoch primitives.Epoch,
+		st state.BeaconState,
 	) (randaotypes.Reveal, error)
 	MixinNewReveal(
 		st state.BeaconState,
 		reveal randaotypes.Reveal,
 	) error
 	VerifyReveal(
+		st state.BeaconState,
 		proposerPubkey [bls12381.PubKeyLength]byte,
-		epoch primitives.Epoch,
 		reveal randaotypes.Reveal,
 	) error
 }

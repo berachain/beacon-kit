@@ -29,7 +29,7 @@ import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -41,6 +41,7 @@ import (
 // that provides access to all beacon related data.
 type Store struct {
 	ctx context.Context
+	env appmodule.Environment
 
 	// validatorIndex is a sequence that provides the next
 	// available index for a new validator.
@@ -69,10 +70,12 @@ type Store struct {
 
 // Store creates a new instance of Store.
 func NewStore(
-	kvs store.KVStoreService,
+	env appmodule.Environment,
 ) *Store {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
 	return &Store{
+		ctx: nil,
+		env: env,
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,
 			sdkcollections.NewPrefix(validatorIndexPrefix),
