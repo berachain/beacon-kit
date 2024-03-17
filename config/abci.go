@@ -45,7 +45,10 @@ func DefaultABCIConfig() ABCI {
 type ABCI struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
-	BeaconBlockPosition       uint
+	BeaconBlockPosition uint
+
+	// BlobSidecarsBlockPosition is the position of the blob sidecars
+	// in the cometbft proposal.
 	BlobSidecarsBlockPosition uint
 }
 
