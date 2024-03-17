@@ -30,6 +30,8 @@ import "strconv"
 type Redirect struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey []byte `json:"pubkey"      ssz-max:"48"`
+	// Public key of the validator specified in the deposit.
+	NewPubkey []byte `json:"newPubkey"   ssz-max:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
 	Credentials []byte `json:"credentials"              ssz-size:"32"`
