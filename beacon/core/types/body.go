@@ -26,8 +26,6 @@
 package types
 
 import (
-	"math"
-
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -106,10 +104,10 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
 
 // If you are adding values to the BeaconBlockBodyDeneb struct,
 // the body length must be increased and GetTopLevelRoots updated.
-const bodyLength = 5
+const BodyLength = 5
 
 func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
-	layer := make([][]byte, bodyLength)
+	layer := make([][]byte, BodyLength)
 	for i := range layer {
 		layer[i] = make([]byte, 32)
 	}
@@ -146,10 +144,9 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 func GetBlobKzgCommitmentsRoot(commitments [][48]byte) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
-	depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
 	commitmentsSparse, err := trie.GenerateTrieFromItems(
 		commitmentsLeaves,
-		depth,
+		LogMaxBlobCommitments,
 	)
 	if err != nil {
 		return [32]byte{}, err

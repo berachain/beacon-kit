@@ -32,11 +32,11 @@ import (
 )
 
 const (
-	rootLength                   = 32
-	logMaxBlobCommitments        = 12
-	logBodyLength                = 3 // The log 2 of bodyLength (5).
-	kzgPosition                  = 4 // TODO: this can be different in our use case
-	KZGOffset             uint64 = 54 * 4096
+	RootLength                   = 32
+	LogMaxBlobCommitments uint64 = 12 // Log_2 of MaxBlobCommitmentsPerBlock (4096)
+	LogBodyLength                = 3  // Log_2 of bodyLength (5).
+	KZGPosition                  = 4  // TODO: this can be different in our use case
+	KZGOffset             uint64 = 24 * 4096
 )
 
 // VerifyKZGInclusionProof verifies the inclusion proof for a commitment in a
@@ -54,12 +54,12 @@ func VerifyKZGInclusionProof(
 	blob *BlobSidecar,
 	index uint64,
 ) error { // TODO: add wrapped type with inclusion proofs
-	if len(root) != rootLength {
+	if len(root) != RootLength {
 		return errInvalidBodyRoot
 	}
 	chunks := make([][32]byte, 2)
 	copy(chunks[0][:], blob.KzgCommitment)
-	copy(chunks[1][:], blob.KzgCommitment[rootLength:])
+	copy(chunks[1][:], blob.KzgCommitment[RootLength:])
 	gohashtree.HashChunks(chunks, chunks)
 	verified := trie.VerifyMerkleProof(
 		root,
@@ -100,12 +100,12 @@ func MerkleProofKZGCommitment(
 		return nil, err
 	}
 
-	sparse, err := trie.GenerateTrieFromItems(membersRoots, logBodyLength)
+	sparse, err := trie.GenerateTrieFromItems(membersRoots, LogBodyLength)
 	if err != nil {
 		return nil, err
 	}
 
-	topProof, err := sparse.MerkleProof(kzgPosition)
+	topProof, err := sparse.MerkleProof(KZGPosition)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func BodyProof(commitments [][48]byte, index int) ([][]byte, error) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	sparse, err := trie.GenerateTrieFromItems(leaves, logMaxBlobCommitments)
+	sparse, err := trie.GenerateTrieFromItems(leaves, LogMaxBlobCommitments)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func LeavesFromCommitments(commitments [][48]byte) [][]byte {
 	for i, kzg := range commitments {
 		chunk := make([][32]byte, 2)
 		copy(chunk[0][:], kzg[:])
-		copy(chunk[1][:], kzg[rootLength:])
+		copy(chunk[1][:], kzg[RootLength:])
 		gohashtree.HashChunks(chunk, chunk)
 		leaves[i] = chunk[0][:]
 	}
