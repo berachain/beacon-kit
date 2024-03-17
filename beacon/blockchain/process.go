@@ -30,7 +30,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
-	"github.com/berachain/beacon-kit/primitives"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -51,9 +51,6 @@ func (s *Service) ProcessBeaconBlock(
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	var (
-		body        = blk.GetBody()
-		root        primitives.HashRoot
-		payload     = body.GetExecutionPayload()
 		fcs         = s.ForkchoiceStore(ctx)
 		g, groupCtx = errgroup.WithContext(ctx)
 		st          = s.BeaconState(groupCtx)
@@ -62,7 +59,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// We can use an errgroup to run the validation functions concurrently.
 	g.Go(func() error {
-		return s.pv.ValidatePayload(st, fcs, payload)
+		return s.pv.ValidatePayload(st, fcs, blk)
 	})
 
 	g.Go(func() error {
@@ -107,29 +104,7 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
-	// Perform post block processing.
-	// If the builder is enabled attempt to build a block locally.
-	// If we are in the sync state, we skip building blocks optimistically.
-	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		root, err = st.GetBlockRoot(blk.GetSlot())
-		if err != nil {
-			return err
-		}
-		err = s.sendFCUWithAttributes(
-			ctx,
-			payload.GetBlockHash(),
-			blk.GetSlot(),
-			root,
-		)
-		if err == nil {
-			return nil
-		}
-		s.Logger().
-			Error("failed to send forkchoice update in postBlockProcess", "error", err)
-	}
-
-	// Otherwise we send a forkchoice update to the execution client.
-	return s.sendFCU(ctx, payload.GetBlockHash())
+	return nil
 }
 
 // validateStateTransition checks a block's state transition.
@@ -166,4 +141,43 @@ func (s *Service) validateExecutionOnBlock(
 		),
 		blk.GetParentBlockRoot(),
 	)
+}
+
+// PostBlockProcess is called after a block has been processed.
+// It is responsible for processing logs and other post block tasks.
+func (s *Service) PostBlockProcess(
+	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
+) error {
+	var (
+		payload enginetypes.ExecutionPayload
+	)
+
+	// No matter what happens we always want to forkchoice at the end of post
+	// block processing.
+	defer func(payloadPtr *enginetypes.ExecutionPayload) {
+		s.sendPostBlockFCU(ctx, *payloadPtr)
+	}(&payload)
+
+	// If the block is nil, exit early.
+	if blk.IsNil() {
+		return nil
+	}
+
+	// Update the forkchoice.
+	payload = blk.GetBody().GetExecutionPayload()
+	payloadBlockHash := payload.GetBlockHash()
+	if err := s.ForkchoiceStore(ctx).InsertNode(payloadBlockHash); err != nil {
+		return err
+	}
+
+	if err := s.es.ProcessLogsInETH1Block(
+		ctx,
+		payloadBlockHash,
+	); err != nil {
+		s.Logger().Error("failed to process logs", "error", err)
+		return err
+	}
+
+	return nil
 }

@@ -134,15 +134,16 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				err,
 			)
 		} else {
+			// We only want to persist state changes if we successfully
+			// processed the block.
 			write()
 		}
 
 		// Process the finalization of the beacon block.
-		if err = h.chainService.FinalizeBeaconBlock(
+		if err = h.chainService.PostBlockProcess(
 			ctx, blk,
 		); err != nil {
-			h.chainService.Logger().
-				Error("failed to finalize beacon block", "error", err)
+			return err
 		}
 
 		// Call the nested child handler.

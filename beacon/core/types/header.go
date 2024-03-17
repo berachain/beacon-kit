@@ -25,7 +25,9 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/primitives"
+import (
+	"github.com/berachain/beacon-kit/primitives"
+)
 
 // BeaconBlockHeader is the header of a beacon block.
 type BeaconBlockHeader struct {
@@ -36,8 +38,9 @@ type BeaconBlockHeader struct {
 	BodyRoot      [32]byte `ssz-size:"32"`
 }
 
+// String returns a string representation of the beacon block header.
 func (h *BeaconBlockHeader) String() string {
-	return "TODO FIX"
+	return "TODO"
 }
 
 // NewBeaconBlockHeader creates a new beacon block header
@@ -54,7 +57,7 @@ func NewBeaconBlockHeader(
 		Slot:          blk.GetSlot(),
 		ProposerIndex: blk.GetProposerIndex(),
 		ParentRoot:    blk.GetParentBlockRoot(),
-		// TODO: handle actually setting the state root in prepare proposal.
+		// TODO: handle actually setting the state root in prepare proposal?
 		// Compare state roots after execution.
 		StateRoot: blk.GetStateRoot(),
 		BodyRoot:  bodyRoot,
