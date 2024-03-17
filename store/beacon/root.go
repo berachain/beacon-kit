@@ -28,21 +28,15 @@ package beacon
 import "github.com/berachain/beacon-kit/beacon/core/state"
 
 // Store is the interface for the beacon store.
-func (b *Store) HashTreeRoot() ([32]byte, error) {
-	randaoMix, err := b.RandaoMix()
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	nextWithdrawalIndex, err := b.depositQueue.Head(b.ctx)
+func (s *Store) HashTreeRoot() ([32]byte, error) {
+	randaoMix, err := s.RandaoMix()
 	if err != nil {
 		return [32]byte{}, err
 	}
 
 	return (&state.BeaconStateDeneb{
-		Slot:                b.GetSlot(),
-		PrevRandaoMix:       randaoMix,
-		PrevBlockRoot:       b.GetParentBlockRoot(),
-		NextWithdrawalIndex: nextWithdrawalIndex,
+		Slot:          s.GetSlot(),
+		PrevRandaoMix: randaoMix,
+		PrevBlockRoot: s.GetParentBlockRoot(),
 	}).HashTreeRoot()
 }

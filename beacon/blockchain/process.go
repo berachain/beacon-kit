@@ -159,7 +159,7 @@ func (s *Service) postBlockProcess(
 		// We have to do this in order to update it before FCU.
 		// TODO: In general we need to improve the control flow for
 		// Preblocker vs ProcessProposal.
-		err := s.sendFCUWithAttributes(
+		err = s.sendFCUWithAttributes(
 			ctx, payloadBlockHash, blk.GetSlot(), blkRoot,
 		)
 		if err == nil {

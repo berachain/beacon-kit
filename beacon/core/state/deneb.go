@@ -31,9 +31,8 @@ import (
 
 //go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconStateDeneb -include ../../../primitives -output generated.ssz.go
 type BeaconStateDeneb struct {
-	Slot                primitives.Slot `ssz-size:"8"`
-	PrevRandaoMix       [32]byte        `ssz-size:"32"`
-	PrevBlockRoot       [32]byte        `ssz-size:"32"`
-	NextWithdrawalIndex uint64          `ssz-size:"8"`
-	ExtraData           [32]byte        `ssz-size:"32"`
+	Slot          primitives.Slot `ssz-size:"8"`
+	PrevRandaoMix [32]byte        `ssz-size:"32"`
+	PrevBlockRoot [32]byte        `ssz-size:"32"`
+	ExtraData     [32]byte        `ssz-size:"32"`
 }

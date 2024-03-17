@@ -57,7 +57,11 @@ func (s *Service) FinalizeBeaconBlock(
 		// to bring us back to the last valid head.
 		go func() {
 			if err != nil {
-				s.missedBlockTasks(ctx, blk.GetSlot(), state.GetParentBlockRoot())
+				s.missedBlockTasks(
+					ctx,
+					blk.GetSlot(),
+					state.GetParentBlockRoot(),
+				)
 			}
 
 			s.Logger().Info(
