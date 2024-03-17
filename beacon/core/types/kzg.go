@@ -32,11 +32,12 @@ import (
 )
 
 const (
-	RootLength                   = 32
-	LogMaxBlobCommitments uint64 = 12 // Log_2 of MaxBlobCommitmentsPerBlock (4096)
-	LogBodyLength                = 3  // Log_2 of bodyLength (5).
-	KZGPosition                  = 4  // TODO: this can be different in our use case
-	KZGOffset             uint64 = 24 * 4096
+	RootLength                        = 32
+	MaxBlobCommitmentsPerBlock        = 16
+	LogMaxBlobCommitments      uint64 = 4 // Log_2 of MaxBlobCommitmentsPerBlock (16)
+	LogBodyLength                     = 3 // Log_2 of bodyLength (5).
+	KZGPosition                       = 4 // TODO: this can be different in our use case
+	KZGOffset                  uint64 = 24 * MaxBlobCommitmentsPerBlock
 )
 
 // VerifyKZGInclusionProof verifies the inclusion proof for a commitment in a

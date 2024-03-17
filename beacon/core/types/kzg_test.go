@@ -230,12 +230,11 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		),
 	)
 
-	kzgOffset := 24 * 4096
 	require.True(t,
 		trie.VerifyMerkleProof(
 			root[:],
 			chunk[0][:],
-			uint64(index+kzgOffset),
+			uint64(index+int(types.KZGOffset)),
 			proof,
 		),
 	)
