@@ -30,11 +30,11 @@ import (
 )
 
 // SetRandaoMix sets the current RANDAO mix in the store.
-func (s *Store) SetRandaoMix(mix types.Mix) error {
-	return s.randaoMix.Set(s.ctx, mix)
+func (s *Store) SetRandaoMix(index uint64, mix types.Mix) error {
+	return s.randaoMix.Set(s.ctx, index, mix)
 }
 
 // RandaoMix retrieves the current RANDAO mix from the store.
-func (s *Store) RandaoMix() (types.Mix, error) {
-	return s.randaoMix.Get(s.ctx)
+func (s *Store) RandaoMix(index uint64) (types.Mix, error) {
+	return s.randaoMix.Get(s.ctx, index)
 }

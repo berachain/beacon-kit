@@ -133,13 +133,14 @@ func (p *Processor) MixinNewReveal(
 	st state.BeaconState,
 	reveal types.Reveal,
 ) error {
-	mix, err := st.RandaoMix()
+	idx := st.GetSlot() % p.cfg.Beacon.Limits.EpochsPerHistoricalVector
+	mix, err := st.RandaoMix(idx)
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
 
 	newMix := mix.MixinNewReveal(reveal)
-	if err = st.SetRandaoMix(newMix); err != nil {
+	if err = st.SetRandaoMix(idx, newMix); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
 	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)

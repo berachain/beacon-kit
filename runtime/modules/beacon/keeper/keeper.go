@@ -83,7 +83,7 @@ func (k *Keeper) InitGenesis(
 ) error {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
-	if err := st.SetRandaoMix(data.Mix()); err != nil {
+	if err := st.SetRandaoMix(0, data.Mix()); err != nil {
 		return err
 	}
 

@@ -27,10 +27,10 @@ package beacon
 
 // Store is the interface for the beacon store.
 func (s *Store) HashTreeRoot() ([32]byte, error) {
-	_, err := s.RandaoMix()
-	if err != nil {
-		return [32]byte{}, err
-	}
+	// _, err := s.RandaoMix()
+	// if err != nil {
+	// 	return [32]byte{}, err
+	// }
 
 	// parentSlot := uint64(0)
 	// if s.GetSlot() > 0 {

@@ -88,7 +88,9 @@ func (pv *PayloadValidator) ValidatePayload(
 	}
 
 	// Get the latest RandaoMix.
-	expectedMix, err := st.RandaoMix()
+	expectedMix, err := st.RandaoMix(
+		st.GetSlot() % pv.cfg.Limits.EpochsPerHistoricalVector,
+	)
 	if err != nil {
 		return err
 	}
