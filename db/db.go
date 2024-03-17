@@ -25,7 +25,7 @@
 
 package db
 
-type BeaconKitDB interface {
+type DB interface {
 	Get(key []byte) ([]byte, error)
 	Has(key []byte) (bool, error)
 	Set(key []byte, value []byte) error
