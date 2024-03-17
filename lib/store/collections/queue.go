@@ -145,6 +145,29 @@ func (q *Queue[V]) PeekMulti(ctx context.Context, n uint64) ([]V, error) {
 	return values, nil
 }
 
+// PeekIndex returns the element at the given index.
+func (q *Queue[V]) PeekIndex(ctx context.Context, index uint64) (V, error) {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+
+	var (
+		err error
+		v   V
+	)
+	headIdx, err := q.headSeq.Peek(ctx)
+	if err != nil {
+		return v, err
+	}
+	tailIdx, err := q.tailSeq.Peek(ctx)
+	if err != nil {
+		return v, err
+	}
+	if index < headIdx || index >= tailIdx {
+		return v, sdkcollections.ErrNotFound
+	}
+	return q.container.Get(ctx, index)
+}
+
 // PopMulti returns the top n elements of the queue and removes them from the
 // queue.
 func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {

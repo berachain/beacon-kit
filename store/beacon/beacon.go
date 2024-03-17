@@ -62,7 +62,7 @@ type Store struct {
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
 	// by eip-4788.
-	parentBlockRoot sdkcollections.Item[[]byte]
+	blockRoots *collections.CircularQueue[[]byte]
 
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Item[[types.MixLength]byte]
@@ -99,11 +99,12 @@ func NewStore(
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
 		),
-		parentBlockRoot: sdkcollections.NewItem[[]byte](
+		blockRoots: collections.NewCircularQueue[[]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(parentBlockRootPrefix),
 			parentBlockRootPrefix,
 			sdkcollections.BytesValue,
+			//nolint:gomnd // todo fix.
+			32,
 		),
 		randaoMix: sdkcollections.NewItem[[types.MixLength]byte](
 			schemaBuilder,

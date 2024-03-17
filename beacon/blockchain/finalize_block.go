@@ -42,7 +42,7 @@ func (s *Service) FinalizeBeaconBlock(
 ) error {
 	var (
 		err         error
-		state       = s.BeaconState(ctx)
+		st          = s.BeaconState(ctx)
 		forkChoicer = s.ForkchoiceStore(ctx)
 	)
 
@@ -55,17 +55,24 @@ func (s *Service) FinalizeBeaconBlock(
 			if err != nil {
 				s.Logger().Error("failed to hash tree root", "error", err)
 			}
-			state.SetParentBlockRoot(root)
+			st.SetBlockRoot(st.GetSlot(), root)
 		}
 
 		// If something bad happens, we defensivelessly send a forkchoice update
 		// to bring us back to the last valid head.
 		go func() {
 			if err != nil {
+				var parentRoot [32]byte
+				parentRoot, err = st.GetBlockRoot(blk.GetSlot() - 1)
+				if err != nil {
+					s.Logger().
+						Error("failed to get parent block root", "error", err)
+					return
+				}
 				s.missedBlockTasks(
 					ctx,
 					blk.GetSlot(),
-					state.GetParentBlockRoot(),
+					parentRoot,
 				)
 			}
 

@@ -93,8 +93,10 @@ func (s *Service) RequestBestBlock(
 		return nil, fmt.Errorf("failed to build reveal: %w", err)
 	}
 
-	parentBlockRoot := st.GetParentBlockRoot()
-
+	parentBlockRoot, err := st.GetBlockRoot(st.GetSlot() - 1)
+	if err != nil {
+		return nil, err
+	}
 	proposerIndex, err := st.ValidatorIndexByPubkey(proposerPubkey[:])
 	if err != nil {
 		return nil, err

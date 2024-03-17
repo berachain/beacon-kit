@@ -34,9 +34,19 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
+	parentSlot := uint64(0)
+	if s.GetSlot() > 0 {
+		parentSlot = s.GetSlot() - 1
+	}
+
+	parentRoot, err := s.GetBlockRoot(parentSlot)
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	return (&state.BeaconStateDeneb{
 		Slot:          s.GetSlot(),
 		PrevRandaoMix: randaoMix,
-		PrevBlockRoot: s.GetParentBlockRoot(),
+		PrevBlockRoot: parentRoot,
 	}).HashTreeRoot()
 }

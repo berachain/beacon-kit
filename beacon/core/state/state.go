@@ -48,8 +48,7 @@ type ReadOnlyBeaconState interface {
 
 	GetSlot() primitives.Slot
 	GetChainID() string
-	SetParentBlockRoot(primitives.HashRoot)
-	GetParentBlockRoot() primitives.HashRoot
+	GetBlockRoot(primitives.Slot) (primitives.HashRoot, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -58,8 +57,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
-
-	SetParentBlockRoot(primitives.HashRoot)
+	SetBlockRoot(primitives.Slot, primitives.HashRoot)
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao

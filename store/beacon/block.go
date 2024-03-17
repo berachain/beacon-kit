@@ -30,21 +30,23 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-// SetParentBlockRoot sets the parent block root in the BeaconStore.
+// SetBlockRoot sets a block root in the BeaconStore.
 // It panics if there is an error setting the parent block root.
-func (s *Store) SetParentBlockRoot(parentRoot primitives.HashRoot) {
-	if err := s.parentBlockRoot.Set(s.ctx, parentRoot[:]); err != nil {
+func (s *Store) SetBlockRoot(slot primitives.Slot, root primitives.HashRoot) {
+	if err := s.blockRoots.Push(s.ctx, slot, root[:]); err != nil {
 		panic(err)
 	}
 }
 
-// GetParentBlockRoot retrieves the parent block root from the BeaconStore.
+// GetBlockRoot retrieves the block root from the BeaconStore.
 // It returns an empty hash if there is an error retrieving the parent block
 // root.
-func (s *Store) GetParentBlockRoot() primitives.HashRoot {
-	parentRoot, err := s.parentBlockRoot.Get(s.ctx)
+func (s *Store) GetBlockRoot(
+	slot primitives.Slot,
+) (primitives.HashRoot, error) {
+	parentRoot, err := s.blockRoots.Peek(s.ctx, slot)
 	if err != nil {
-		parentRoot = []byte{}
+		return [32]byte{}, err
 	}
-	return byteslib.ToBytes32(parentRoot)
+	return byteslib.ToBytes32(parentRoot), nil
 }
