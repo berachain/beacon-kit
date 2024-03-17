@@ -69,13 +69,13 @@ type WriteOnlyBeaconState interface {
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	SetRandaoMix(uint64, types.Mix) error
+	UpdateRandaoMixAtIndex(uint64, types.Mix) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	RandaoMix(uint64) (types.Mix, error)
+	RandaoMixAtIndex(uint64) (types.Mix, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.
