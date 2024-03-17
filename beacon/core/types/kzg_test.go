@@ -27,8 +27,6 @@ package types_test
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/binary"
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
@@ -143,13 +141,6 @@ func Test_TopLevelRoots(t *testing.T) {
 	require.NoError(t, err, "Failed to generate root hash")
 	require.Equal(t, types.BodyLength, bodySparse.NumOfItems())
 
-	bodyRoot, err := body.HashTreeRoot()
-	require.NoError(t, err, "Failed to generate root hash")
-	var enc [32]byte
-	binary.LittleEndian.PutUint64(enc[:], uint64(types.BodyLength))
-	root := sha256.Sum256(append(bodyRoot[:], enc[:]...))
-	require.Equal(t, root, bodySparseRoot[:])
-
 	topProof, err := bodySparse.MerkleProof(types.KZGPosition)
 	require.NoError(t, err, "Failed to generate Merkle proof")
 
@@ -191,7 +182,6 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	gohashtree.HashChunks(chunk, chunk)
 	root, err := body.HashTreeRoot()
 	require.NoError(t, err)
-	// kzgOffset := 24 * 4096
 
 	commitments := body.GetBlobKzgCommitments()
 	commitmentsRoot, err := types.GetBlobKzgCommitmentsRoot(commitments)
@@ -236,18 +226,19 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 			root[:],
 			commitmentsRoot[:],
 			uint64(types.KZGPosition),
-			topProof,
+			proof[types.LogMaxBlobCommitments+1:],
 		),
 	)
 
-	// require.True(t,
-	// 	trie.VerifyMerkleProof(
-	// 		root[:],
-	// 		chunk[0][:],
-	// 		uint64(index+kzgOffset),
-	// 		proof,
-	// 	),
-	// )
+	kzgOffset := 24 * 4096
+	require.True(t,
+		trie.VerifyMerkleProof(
+			root[:],
+			chunk[0][:],
+			uint64(index+kzgOffset),
+			proof,
+		),
+	)
 }
 
 // func Test_MerkleProofKZGCommitment(t *testing.T) {
