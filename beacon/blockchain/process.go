@@ -171,6 +171,7 @@ func (s *Service) PostBlockProcess(
 		return err
 	}
 
+	// Process the logs in the block.
 	if err := s.es.ProcessLogsInETH1Block(
 		ctx,
 		payloadBlockHash,
