@@ -23,37 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package types
 
 import (
-	"cosmossdk.io/depinject"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
-	depinject.In
-
-	AppOpts servertypes.AppOptions
+// BeaconBlockHeader is the header of a beacon block.
+type BeaconBlockHeader struct {
+	Slot          primitives.Slot
+	ProposerIndex primitives.ValidatorIndex
+	ParentRoot    [32]byte `ssz-size:"32"`
+	StateRoot     [32]byte `ssz-size:"32"`
+	BodyRoot      [32]byte `ssz-size:"32"`
 }
 
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
-	depinject.Out
-
-	Network Network
+// String returns a string representation of the beacon block header.
+func (h *BeaconBlockHeader) String() string {
+	return "TODO"
 }
 
-// ProvideNetworkCfg get the CometBFT network config
-// from the app options and inject it into the dep inject output.
-func ProvideNetworkCfg(in DepInjectInput) DepInjectOutput {
-	chainID := cast.ToString(in.AppOpts.Get(flags.FlagChainID))
-
-	return DepInjectOutput{
-		Network: Network{
-			ChainID: chainID,
-		},
+// NewBeaconBlockHeader creates a new beacon block header
+// from a beacon block.
+func NewBeaconBlockHeader(
+	blk BeaconBlock,
+) (*BeaconBlockHeader, error) {
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil, err
 	}
+
+	return &BeaconBlockHeader{
+		Slot:          blk.GetSlot(),
+		ProposerIndex: blk.GetProposerIndex(),
+		ParentRoot:    blk.GetParentBlockRoot(),
+		// TODO: handle actually setting the state root in prepare proposal?
+		// Compare state roots after execution.
+		StateRoot: blk.GetStateRoot(),
+		BodyRoot:  bodyRoot,
+	}, nil
 }

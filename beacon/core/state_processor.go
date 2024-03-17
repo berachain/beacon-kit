@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -40,24 +41,65 @@ import (
 type StateProcessor struct {
 	cfg *config.Beacon
 	rp  RandaoProcessor
+	vsu ValsetUpdater
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	cfg *config.Beacon,
 	rp RandaoProcessor,
+	vsu ValsetUpdater,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg: cfg,
 		rp:  rp,
+		vsu: vsu,
 	}
 }
 
-// ProcessSlot processes the slot and ensures it matches the local state.
+// ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor) ProcessSlot(
-	_ state.BeaconState,
-	_ uint64,
+	st state.BeaconState,
 ) error {
+	// Before we make any changes, we calculate the previous state root.
+	prevStateRoot, err := st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+	// if err := state.UpdateStateRootAtIndex(
+	// 	uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
+	// 	prevStateRoot,
+	// ); err != nil {
+	// 	return nil, err
+	// }
+
+	header, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return err
+	}
+
+	// We set the "rawHeader" in the StateProcessor, but cannot fill in
+	// the StateRoot until the following block.
+	if (header.StateRoot == primitives.HashRoot{}) {
+		header.StateRoot = prevStateRoot
+		if err = st.SetLatestBlockHeader(header); err != nil {
+			return err
+		}
+	}
+
+	var prevBlockRoot primitives.HashRoot
+	prevBlockRoot, err = header.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Set the block root to be the previous block root.
+	if err = st.SetBlockRoot(
+		st.GetSlot(), /*%params.BeaconConfig().SlotsPerHistoricalRoot*/
+		prevBlockRoot,
+	); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -66,22 +108,20 @@ func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
 	blk types.BeaconBlock,
 ) error {
-	// Ensure Body is non nil.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return types.ErrNilBlkBody
+	header, err := types.NewBeaconBlockHeader(blk)
+	if err != nil {
+		return err
 	}
 
-	// process the eth1 vote.
-	payload := body.GetExecutionPayload()
-	if payload.IsNil() {
-		return types.ErrNilPayload
+	if err = sp.processHeader(st, header); err != nil {
+		return err
 	}
-
-	// common.ProcessHeader
 
 	// process the withdrawals.
-	if err := sp.processWithdrawals(st, payload.GetWithdrawals()); err != nil {
+	body := blk.GetBody()
+	if err = sp.processWithdrawals(
+		st, body.GetExecutionPayload().GetWithdrawals(),
+	); err != nil {
 		return err
 	}
 
@@ -89,14 +129,14 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err := sp.processRandaoReveal(st, blk); err != nil {
+	if err = sp.processRandaoReveal(st, blk); err != nil {
 		return err
 	}
 
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	if err := sp.processDeposits(st, body.GetDeposits()); err != nil {
+	if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
 		return err
 	}
 
@@ -109,6 +149,25 @@ func (sp *StateProcessor) ProcessBlock(
 func (sp *StateProcessor) ProcessBlob(_ state.BeaconState) error {
 	// TODO: 4844.
 	return nil
+}
+
+// processHeader processes the header and ensures it matches the local state.
+func (sp *StateProcessor) processHeader(
+	st state.BeaconState,
+	header *types.BeaconBlockHeader,
+) error {
+	// Store as the new latest block
+	headerRaw := &types.BeaconBlockHeader{
+		Slot:          header.Slot,
+		ProposerIndex: header.ProposerIndex,
+		ParentRoot:    header.ParentRoot,
+		// state_root is zeroed and overwritten in the next `process_slot` call.
+		// with BlockHeaderState.UpdateStateRoot(), once the post state is
+		// available.
+		StateRoot: [32]byte{},
+		BodyRoot:  header.BodyRoot,
+	}
+	return st.SetLatestBlockHeader(headerRaw)
 }
 
 // ProcessDeposits processes the deposits and ensures they match the
@@ -133,6 +192,19 @@ func (sp *StateProcessor) processDeposits(
 				"deposit index does not match, expected: %d, got: %d",
 				localDeposits[i].Index, dep.Index)
 		}
+
+		// TODO: These changes are not encapsulated in the state root of
+		// the beacon store. @po-bera needs for EIP-4788.
+		if err = sp.vsu.IncreaseConsensusPower(
+			st.Context(),
+			[bls12381.SecretKeyLength]byte(dep.Credentials),
+			[bls12381.PubKeyLength]byte(dep.Pubkey),
+			dep.Amount,
+			dep.Signature,
+			dep.Index,
+		); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -150,14 +222,31 @@ func (sp *StateProcessor) processWithdrawals(
 	}
 
 	// Ensure the deposits match the local state.
-	for i, dep := range withdrawals {
-		if dep == nil {
+	for i, wd := range withdrawals {
+		if wd == nil {
 			return types.ErrNilWithdrawal
 		}
-		if dep.Index != localWithdrawals[i].Index {
+		if wd.Index != localWithdrawals[i].Index {
 			return fmt.Errorf(
 				"deposit index does not match, expected: %d, got: %d",
-				localWithdrawals[i].Index, dep.Index)
+				localWithdrawals[i].Index, wd.Index)
+		}
+		// TODO: These changes are not encapsulated in the state root of
+		// the beacon store. @po-bera needs for EIP-4788.
+		var pk []byte
+		pk, err = st.ValidatorPubKeyByIndex(
+			wd.Validator,
+		)
+		if err != nil {
+			return err
+		}
+		if err = sp.vsu.DecreaseConsensusPower(
+			st.Context(),
+			[bls12381.SecretKeyLength]byte(wd.Address[:]),
+			[bls12381.PubKeyLength]byte(pk),
+			wd.Amount,
+		); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -178,8 +267,8 @@ func (sp *StateProcessor) processRandaoReveal(
 	// Verify the RANDAO Reveal.
 	reveal := blk.GetBody().GetRandaoReveal()
 	if err = sp.rp.VerifyReveal(
+		st,
 		[bls12381.PubKeyLength]byte(pubkey),
-		sp.cfg.SlotToEpoch(blk.GetSlot()),
 		reveal,
 	); err != nil {
 		return err

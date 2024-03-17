@@ -23,20 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256
+package signing
 
-import (
-	"unsafe"
+import "github.com/berachain/beacon-kit/primitives"
 
-	"github.com/protolambda/ztyp/tree"
-)
-
-func ConvertTreeRootsToBytes(roots []tree.Root) [][32]byte {
-	//#nosec:G103 // This is a safe conversion.
-	return *(*[][32]byte)(unsafe.Pointer(&roots))
-}
-
-func ConvertBytesToTreeRoots(bytes [][32]byte) []tree.Root {
-	//#nosec:G103 // This is a safe conversion.
-	return *(*[]tree.Root)(unsafe.Pointer(&bytes))
+// SSZObject is the interface for the SSZ object.
+type SSZObject interface {
+	HashTreeRoot() (primitives.HashRoot, error)
 }

@@ -26,6 +26,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -35,6 +37,8 @@ import (
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state consensus.
 type BeaconState interface {
+	Context() context.Context
+	HashTreeRoot() ([32]byte, error)
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
 }
@@ -46,8 +50,10 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
-	SetParentBlockRoot([32]byte)
-	GetParentBlockRoot() [32]byte
+	GetSlot() primitives.Slot
+	GetChainID() string
+	GetBlockRoot(primitives.Slot) (primitives.HashRoot, error)
+	GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -56,8 +62,8 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
-
-	SetParentBlockRoot([32]byte)
+	SetBlockRoot(primitives.Slot, primitives.HashRoot) error
+	SetLatestBlockHeader(*beacontypes.BeaconBlockHeader) error
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao

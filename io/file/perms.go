@@ -23,15 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package file
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/beacon/core/state"
-)
-
-type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state.
-	BeaconState(context.Context) state.BeaconState
-}
+const RWRPerms = 0700

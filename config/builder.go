@@ -32,6 +32,14 @@ import (
 	"github.com/berachain/beacon-kit/io/cli/parser"
 )
 
+const (
+	// defaultLocalBuilderEnabled is the default value for local builder.
+	defaultLocalBuilderEnabled = true
+	// defaultLocalBuildPayloadTimeout is the default value for local build
+	// payload timeout.
+	defaultLocalBuildPayloadTimeout = 2500 * time.Millisecond
+)
+
 // Beacon conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[Beacon] = Beacon{}
 
@@ -50,8 +58,8 @@ type Builder struct {
 // DefaultBuilderConfig returns the default fork configuration.
 func DefaultBuilderConfig() Builder {
 	return Builder{
-		LocalBuilderEnabled:      true,
-		LocalBuildPayloadTimeout: 3 * time.Second, //nolint:gomnd // default config.
+		LocalBuilderEnabled:      defaultLocalBuilderEnabled,
+		LocalBuildPayloadTimeout: defaultLocalBuildPayloadTimeout,
 	}
 }
 

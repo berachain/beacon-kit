@@ -39,6 +39,6 @@ type Service struct {
 	// abi.
 	abi *abi.WrappedABI
 
-	// vcp is responsible for applying validator set changes.
-	vcp ValsetChangeProvider
+	// vsu is responsible for applying validator set changes.
+	vsu ValsetUpdater
 }

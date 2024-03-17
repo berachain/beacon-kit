@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
 	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
@@ -99,7 +98,11 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 	) error {
-		cometBlockHash := byteslib.ToBytes32(req.Hash)
+		// Process the Slot.
+		if err := h.chainService.ProcessSlot(ctx); err != nil {
+			h.logger.Error("failed to process slot", "error", err)
+			return err
+		}
 
 		// Extract the beacon block from the ABCI request.
 		//
@@ -116,31 +119,29 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return err
 		}
 
-		// Receive the beacon block to validate whether it is good and submit
-		// any required newPayload and/or forkchoice updates. If we have
-		// already ran this for the current block in ProcessProposal, this
-		// call will exit early.
+		// Processing the incoming beacon block and blobs.
 		cacheCtx, write := ctx.CacheContext()
 		if err = h.chainService.ProcessBeaconBlock(
 			cacheCtx,
 			blk,
-			cometBlockHash,
 		); err != nil {
 			h.logger.Warn(
 				"failed to receive beacon block",
 				"error",
 				err,
 			)
+			// TODO: Emit Evidence so that the validator can be slashed.
 		} else {
+			// We only want to persist state changes if we successfully
+			// processed the block.
 			write()
 		}
 
 		// Process the finalization of the beacon block.
-		if err = h.chainService.FinalizeBeaconBlock(
-			ctx, blk, cometBlockHash,
+		if err = h.chainService.PostBlockProcess(
+			ctx, blk,
 		); err != nil {
-			h.chainService.Logger().
-				Error("failed to finalize beacon block", "error", err)
+			return err
 		}
 
 		// Call the nested child handler.

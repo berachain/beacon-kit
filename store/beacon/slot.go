@@ -23,28 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package key
+package beacon
 
-import pvm "github.com/cometbft/cometbft/privval"
+import "github.com/berachain/beacon-kit/primitives"
 
-type CometBFTConfig interface {
-	PrivValidatorKeyFile() string
-	PrivValidatorStateFile() string
-}
-
-type BeaconKitValKey struct {
-	*pvm.FilePV
-}
-
-func LoadPrivValidatorKey(cmtCfg CometBFTConfig) (*BeaconKitValKey, error) {
-	filePv := pvm.LoadFilePV(
-		cmtCfg.PrivValidatorKeyFile(), cmtCfg.PrivValidatorStateFile(),
+// GetSlot returns the current slot.
+func (s *Store) GetSlot() primitives.Slot {
+	return primitives.Slot(
+		s.env.HeaderService.GetHeaderInfo(s.ctx).Height,
 	)
-	if filePv == nil {
-		return nil, ErrNoPrivValidatorFound
-	}
+}
 
-	return &BeaconKitValKey{
-		FilePV: filePv,
-	}, nil
+// GetChainID returns the chain ID.
+func (s *Store) GetChainID() string {
+	return s.env.HeaderService.GetHeaderInfo(s.ctx).ChainID
 }

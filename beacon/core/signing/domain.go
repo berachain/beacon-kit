@@ -59,12 +59,13 @@ func computeDomain(
 // GetDomain returns the domain for the DomainType and epoch.
 func GetDomain(
 	cfg *config.Config,
+	chainID string,
 	domainType DomainType,
 	epoch primitives.Epoch,
 ) (Domain, error) {
 	return computeDomain(
 		domainType,
 		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		cfg.Network.ChainID,
+		chainID,
 	)
 }

@@ -25,14 +25,28 @@
 
 package beacon
 
-// Collection prefixes.
-const (
-	depositQueuePrefix            = "deposit_queue"
-	withdrawalQueuePrefix         = "withdrawal_queue"
-	randaoMixPrefix               = "randao_mix"
-	validatorIndexPrefix          = "val_idx"
-	parentBlockRootPrefix         = "parent_block_root"
-	validatorIndexToPubkeyPrefix  = "val_idx_to_pk"
-	validatorPubkeyToIndexPrefix  = "val_pk_to_idx"
-	latestBeaconBlockHeaderPrefix = "latest_beacon_block_header"
-)
+// Store is the interface for the beacon store.
+func (s *Store) HashTreeRoot() ([32]byte, error) {
+	_, err := s.RandaoMix()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	parentSlot := uint64(0)
+	if s.GetSlot() > 0 {
+		parentSlot = s.GetSlot() - 1
+	}
+
+	_, err = s.GetBlockRoot(parentSlot)
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	// TODO: This.
+	// return (&state.BeaconStateDeneb{
+	// 	Slot:          s.GetSlot(),
+	// 	PrevRandaoMix: randaoMix,
+	// 	PrevBlockRoot: parentRoot,
+	// }).HashTreeRoot()
+	return [32]byte{}, nil
+}

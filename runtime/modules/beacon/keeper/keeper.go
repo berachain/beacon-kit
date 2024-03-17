@@ -30,6 +30,7 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/runtime"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
@@ -43,18 +44,18 @@ import (
 type Keeper struct {
 	beaconStore     *beaconstore.Store
 	forkchoiceStore *forkchoicestore.Store
-	vcp             runtime.ValsetChangeProvider
+	vsu             runtime.ValsetUpdater
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	env appmodule.Environment,
-	vcp runtime.ValsetChangeProvider,
+	vsu runtime.ValsetUpdater,
 ) *Keeper {
 	return &Keeper{
-		beaconStore:     beaconstore.NewStore(env.KVStoreService),
+		beaconStore:     beaconstore.NewStore(env),
 		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
-		vcp:             vcp,
+		vsu:             vsu,
 	}
 }
 
@@ -92,7 +93,8 @@ func (k *Keeper) InitGenesis(
 	fcs.SetGenesisEth1Hash(hash)
 	fcs.SetSafeEth1BlockHash(hash)
 	fcs.SetFinalizedEth1BlockHash(hash)
-	return nil
+
+	return st.SetLatestBlockHeader(&beacontypes.BeaconBlockHeader{})
 }
 
 // ExportGenesis exports the current state of the module as genesis state.

@@ -38,10 +38,6 @@ type Data struct {
 	Domain     Domain              `ssz-size:"32"`
 }
 
-type SSZObject interface {
-	HashTreeRoot() (primitives.HashRoot, error)
-}
-
 // ComputeSigningRoot computes the signing root for a given object and domain.
 // Spec:
 // def compute_signing_root(ssz_object: SSZObject, domain: Domain) -> Root:

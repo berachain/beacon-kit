@@ -107,6 +107,7 @@ func (db *DB) Delete(key []byte) error {
 }
 
 // pathForKey returns the path for a key.
+// TODO: for efficient storage we should expand this path
 func (db *DB) pathForKey(key []byte) string {
 	return string(key) + "." + db.extension
 }

@@ -23,12 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package skiplist
+package staking
 
 import (
-	"github.com/cockroachdb/errors"
+	"cosmossdk.io/depinject"
+	sdkkeeper "cosmossdk.io/x/staking/keeper"
 )
 
-var (
-	ErrEmptySkiplist = errors.New("skiplist is empty")
-)
+type DepInjectInput struct {
+	depinject.In
+
+	StakingKeeper *sdkkeeper.Keeper
+	BankKeeper    BankKeeper
+}
+
+type DepInjectOutput struct {
+	depinject.Out
+
+	Keeper *Keeper
+}
+
+func ProvideStakingKeeper(in DepInjectInput) DepInjectOutput {
+	return DepInjectOutput{
+		Keeper: NewKeeper(in.StakingKeeper, &in.BankKeeper),
+	}
+}
