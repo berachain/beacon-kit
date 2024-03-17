@@ -112,6 +112,9 @@ func (c Limits) Template() string {
 	//nolint:lll
 	return `
 [beacon-kit.beacon-config.limits]
+# EpochsPerHistoricalVector is the number of epochs per historical vector.
+epochs-per-historical-vector = {{.BeaconKit.Beacon.Limits.EpochsPerHistoricalVector}}
+
 # HistoricalRootsLimit is the maximum number of historical roots that will be stored.
 historical-roots-limit = {{.BeaconKit.Beacon.Limits.HistoricalRootsLimit}}
 
