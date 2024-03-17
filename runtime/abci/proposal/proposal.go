@@ -113,7 +113,7 @@ func (h *Handler) PrepareProposalHandler(
 	}
 
 	// Fire off the next prepare proposal handler, marshal the block and
-	// marhsal the blobs in parallel.
+	// marshal the blobs in parallel.
 	g.Go(func() error {
 		var localErr error
 		resp, localErr = h.nextPrepare(sdk.UnwrapSDKContext(groupCtx), req)
