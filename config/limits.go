@@ -116,7 +116,7 @@ func (c Limits) Template() string {
 epochs-per-historical-vector = {{.BeaconKit.Beacon.Limits.EpochsPerHistoricalVector}}
 
 # SlotsPerHistoricalRoot is the maximum number of historical roots that will be stored.
-historical-roots-limit = {{.BeaconKit.Beacon.Limits.SlotsPerHistoricalRoot}}
+slots-per-historical-root = {{.BeaconKit.Beacon.Limits.SlotsPerHistoricalRoot}}
 
 # MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.
 max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
