@@ -78,6 +78,7 @@ func (c Limits) Template() string {
 [beacon-kit.beacon-config.limits]
 # MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.
 max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
+
 # MaxWithdrawalsPerPayload is the maximum number of Withdrawals allowed in a payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.Limits.MaxWithdrawalsPerPayload}}
 `

@@ -23,15 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package types
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/beacon/core/state"
-)
-
-type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state.
-	BeaconState(context.Context) state.BeaconState
-}
+//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go

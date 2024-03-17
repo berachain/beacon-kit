@@ -30,21 +30,52 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"golang.org/x/sync/errgroup"
 )
+
+// ProcessSlot processes the incoming beacon slot.
+func (s *Service) ProcessSlot(
+	ctx context.Context,
+) error {
+	// Process the slot.
+	return s.sp.ProcessSlot(
+		s.BeaconState(ctx),
+	)
+}
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	blockHash [32]byte,
 ) error {
-	// TODO:
-	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
+	var (
+		fcs         = s.ForkchoiceStore(ctx)
+		g, groupCtx = errgroup.WithContext(ctx)
+		st          = s.BeaconState(groupCtx)
+		err         error
+	)
+
+	// We can use an errgroup to run the validation functions concurrently.
+	g.Go(func() error {
+		return s.pv.ValidatePayload(st, fcs, blk)
+	})
+
+	g.Go(func() error {
+		return s.bv.ValidateBlock(st, blk)
+	})
+
+	// Wait for the errgroup to finish, the error will be non-nil if any
+	// of the goroutines returned an error.
+	if err = g.Wait(); err != nil {
+		// If we fail any checks we process the slot and move on.
+		return err
+	}
 
 	// This go rountine validates the execution level aspects of the block.
 	// i.e: does newPayload return VALID?
-	isValidPayload, err := s.validateExecutionOnBlock(
+	_, err = s.validateExecutionOnBlock(
 		ctx, blk,
 	)
 	if err != nil {
@@ -73,10 +104,7 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
-	// Perform post block processing.
-	return s.postBlockProcess(
-		ctx, blk, blockHash, isValidPayload,
-	)
+	return nil
 }
 
 // validateStateTransition checks a block's state transition.
@@ -85,14 +113,7 @@ func (s *Service) ProcessBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	// Validate the block
-	if err := s.bv.ValidateBlock(
-		s.BeaconState(ctx), blk,
-	); err != nil {
-		return err
-	}
-
-	//nolint:contextcheck // todo handle better.
+	//nolint:contextcheck // todo fix
 	return s.sp.ProcessBlock(
 		s.BeaconState(ctx),
 		blk,
@@ -111,15 +132,6 @@ func (s *Service) validateExecutionOnBlock(
 		payload = body.GetExecutionPayload()
 	)
 
-	// Validate the payload.
-	if err := s.pv.ValidatePayload(
-		s.BeaconState(ctx),
-		s.ForkchoiceStore(ctx),
-		payload,
-	); err != nil {
-		return false, err
-	}
-
 	// Then we notify the engine of the new payload.
 	return s.es.NotifyNewPayload(
 		ctx,
@@ -132,41 +144,51 @@ func (s *Service) validateExecutionOnBlock(
 	)
 }
 
-// postBlockProcess is called after a block has been processed.
-func (s *Service) postBlockProcess(
+// PostBlockProcess is called after a block has been processed.
+// It is responsible for processing logs and other post block tasks.
+func (s *Service) PostBlockProcess(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	blockHash [32]byte,
-	_ bool,
 ) error {
-	// If the block is nil or empty, we return an error.
-	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
+	var (
+		payload enginetypes.ExecutionPayload
+	)
+
+	// No matter what happens we always want to forkchoice at the end of post
+	// block processing.
+	defer func(payloadPtr *enginetypes.ExecutionPayload) {
+		s.sendPostBlockFCU(ctx, *payloadPtr)
+	}(&payload)
+
+	// If the block is nil, exit early.
+	if blk.IsNil() {
+		return nil
 	}
 
-	// If the block does not have a payload, we return an error.
-	payload := blk.GetBody().GetExecutionPayload()
+	body := blk.GetBody()
+	if body.IsNil() {
+		return nil
+	}
+
+	// Update the forkchoice.
+	payload = blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {
-		return ErrInvalidPayload
+		return nil
 	}
+
 	payloadBlockHash := payload.GetBlockHash()
-
-	// If the builder is enabled attempt to build a block locally.
-	// If we are in the sync state, we skip building blocks optimistically.
-	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		// We have to do this in order to update it before FCU.
-		// TODO: In general we need to improve the control flow for
-		// Preblocker vs ProcessProposal.
-		err := s.sendFCUWithAttributes(
-			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
-		)
-		if err == nil {
-			return nil
-		}
-		s.Logger().
-			Error("failed to send forkchoice update in postBlockProcess", "error", err)
+	if err := s.ForkchoiceStore(ctx).InsertNode(payloadBlockHash); err != nil {
+		return err
 	}
 
-	// Otherwise we send a forkchoice update to the execution client.
-	return s.sendFCU(ctx, payloadBlockHash)
+	// Process the logs in the block.
+	if err := s.es.ProcessLogsInETH1Block(
+		ctx,
+		payloadBlockHash,
+	); err != nil {
+		s.Logger().Error("failed to process logs", "error", err)
+		return err
+	}
+
+	return nil
 }

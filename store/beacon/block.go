@@ -26,24 +26,43 @@
 package beacon
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"errors"
+
+	"cosmossdk.io/collections"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// SetParentBlockRoot sets the parent block root in the BeaconStore.
-// It panics if there is an error setting the parent block root.
-func (s *Store) SetParentBlockRoot(parentRoot [32]byte) {
-	if err := s.parentBlockRoot.Set(s.ctx, parentRoot[:]); err != nil {
-		panic(err)
-	}
+// SetBlockRoot sets a block root in the BeaconStore.
+func (s *Store) SetBlockRoot(
+	slot primitives.Slot,
+	root primitives.HashRoot,
+) error {
+	return s.blockRoots.Push(s.ctx, slot, root[:])
 }
 
-// GetParentBlockRoot retrieves the parent block root from the BeaconStore.
-// It returns an empty hash if there is an error retrieving the parent block
-// root.
-func (s *Store) GetParentBlockRoot() [32]byte {
-	parentRoot, err := s.parentBlockRoot.Get(s.ctx)
-	if err != nil {
-		parentRoot = []byte{}
+// GetBlockRoot retrieves the block root from the BeaconStore.
+func (s *Store) GetBlockRoot(
+	slot primitives.Slot,
+) (primitives.HashRoot, error) {
+	parentRoot, err := s.blockRoots.Peek(s.ctx, slot)
+	if errors.Is(err, collections.ErrNotFound) {
+		return [32]byte{}, nil
+	} else if err != nil {
+		return [32]byte{}, err
 	}
-	return common.BytesToHash(parentRoot)
+	return byteslib.ToBytes32(parentRoot), nil
+}
+
+// SetLatestBlockHeader sets the latest block header in the BeaconStore.
+func (s *Store) SetLatestBlockHeader(
+	header *beacontypes.BeaconBlockHeader,
+) error {
+	return s.latestBeaconBlockHeader.Set(s.ctx, header)
+}
+
+// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
+func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
+	return s.latestBeaconBlockHeader.Get(s.ctx)
 }
