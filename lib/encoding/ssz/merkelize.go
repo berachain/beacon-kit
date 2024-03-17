@@ -29,7 +29,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	htr "github.com/berachain/beacon-kit/lib/hash"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -110,7 +110,11 @@ func MerkleizeVector(elements [][32]byte, length uint64) [32]byte {
 			zerohash := tree.ZeroHashes[i]
 			elements = append(elements, zerohash)
 		}
-		elements = htr.VectorizedSha256(elements)
+		var err error
+		elements, err = sha256.BuildParentTreeRoots(elements)
+		if err != nil {
+			return tree.ZeroHashes[depth]
+		}
 	}
 	return elements[0]
 }

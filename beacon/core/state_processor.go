@@ -134,10 +134,7 @@ func (sp *StateProcessor) ProcessBlob(
 		return err
 	}
 
-	if err := ranger.Set(height, bs.KzgCommitment, bz); err != nil {
-		return err
-	}
-	return nil
+	return ranger.Set(height, bs.KzgCommitment, bz)
 }
 
 // ProcessDeposits processes the deposits and ensures they match the
