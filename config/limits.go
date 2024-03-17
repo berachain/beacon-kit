@@ -38,9 +38,9 @@ var _ BeaconKitConfig[Limits] = &Limits{}
 const (
 	// defaultEpochsPerHistoricalVector defines the default number of epochs.
 	defaultEpochsPerHistoricalVector = 1
-	// defaultHistoricalRootsLimit defines the default limit for historical
+	// defaultSlotsPerHistoricalRoot defines the default limit for historical
 	// roots.
-	defaultHistoricalRootsLimit = 32
+	defaultSlotsPerHistoricalRoot = 32
 	// defaultMaxDepositsPerBlock specifies the default maximum number of
 	// deposits allowed per block.
 	defaultMaxDepositsPerBlock = 16
@@ -53,7 +53,7 @@ const (
 func DefaultLimitsConfig() Limits {
 	return Limits{
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
-		HistoricalRootsLimit:      defaultHistoricalRootsLimit,
+		SlotsPerHistoricalRoot:    defaultSlotsPerHistoricalRoot,
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
 		MaxWithdrawalsPerPayload:  defaultMaxWithdrawalsPerPayload,
 	}
@@ -65,9 +65,9 @@ type Limits struct {
 	// EpochsPerHistoricalVector defines the number of epochs per historical
 	// vector. (i.e RANDAO)
 	EpochsPerHistoricalVector primitives.Epoch
-	// HistoricalRootsLimit defines the maximum number of historical root
+	// SlotsPerHistoricalRoot defines the maximum number of historical root
 	// entries that can be stored.
-	HistoricalRootsLimit uint64
+	SlotsPerHistoricalRoot uint64
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
 	// allowed per block.
 	MaxDepositsPerBlock uint64
@@ -86,8 +86,8 @@ func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 		return nil, err
 	}
 
-	if c.HistoricalRootsLimit, err = parser.GetUint64(
-		flags.HistoricalRootsLimit,
+	if c.SlotsPerHistoricalRoot, err = parser.GetUint64(
+		flags.SlotsPerHistoricalRoot,
 	); err != nil {
 		return nil, err
 	}
@@ -115,8 +115,8 @@ func (c Limits) Template() string {
 # EpochsPerHistoricalVector is the number of epochs per historical vector.
 epochs-per-historical-vector = {{.BeaconKit.Beacon.Limits.EpochsPerHistoricalVector}}
 
-# HistoricalRootsLimit is the maximum number of historical roots that will be stored.
-historical-roots-limit = {{.BeaconKit.Beacon.Limits.HistoricalRootsLimit}}
+# SlotsPerHistoricalRoot is the maximum number of historical roots that will be stored.
+historical-roots-limit = {{.BeaconKit.Beacon.Limits.SlotsPerHistoricalRoot}}
 
 # MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.
 max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}

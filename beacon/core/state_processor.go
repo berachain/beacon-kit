@@ -95,7 +95,7 @@ func (sp *StateProcessor) ProcessSlot(
 
 	// Set the block root to be the previous block root.
 	if err = st.UpdateBlockRootAtIndex(
-		st.GetSlot()%sp.cfg.Limits.HistoricalRootsLimit, prevBlockRoot,
+		st.GetSlot()%sp.cfg.Limits.SlotsPerHistoricalRoot, prevBlockRoot,
 	); err != nil {
 		return err
 	}

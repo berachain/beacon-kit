@@ -90,7 +90,7 @@ func (s *Service) sendPostBlockFCU(
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
 		var root primitives.HashRoot
 		root, err := st.GetBlockRootAtIndex(
-			st.GetSlot() % s.BeaconCfg().Limits.HistoricalRootsLimit,
+			st.GetSlot() % s.BeaconCfg().Limits.SlotsPerHistoricalRoot,
 		)
 		if err != nil {
 			return

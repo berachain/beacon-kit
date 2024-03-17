@@ -71,7 +71,7 @@ const (
 	// Limits Config.
 	limitsRoot                = beaconConfigRoot + "limits."
 	EpochsPerHistoricalVector = limitsRoot + "epochs-per-historical-vector"
-	HistoricalRootsLimit      = limitsRoot + "historical-roots-limit"
+	SlotsPerHistoricalRoot    = limitsRoot + "slots-per-historical-roots-limit"
 	MaxDeposits               = limitsRoot + "max-deposits-per-block"
 	MaxWithdrawals            = limitsRoot + "max-withdrawals-per-payload"
 

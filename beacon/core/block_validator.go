@@ -80,7 +80,7 @@ func (bv *BlockValidator) ValidateBlock(
 
 	// Ensure the parent block root matches what we have locally.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		(st.GetSlot() - 1) % bv.cfg.Limits.HistoricalRootsLimit)
+		(st.GetSlot() - 1) % bv.cfg.Limits.SlotsPerHistoricalRoot)
 	if err != nil {
 		return err
 	}
