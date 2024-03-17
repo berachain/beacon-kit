@@ -224,7 +224,7 @@ func (sp *StateProcessor) processRedirects(
 
 		// TODO: These changes are not encapsulated in the state root of
 		// the beacon store. @po-bera needs for EIP-4788.
-		if err = sp.vsu.IncreaseConsensusPower(
+		if err = sp.vsu.RedirectConsensusPower(
 			st.Context(),
 			[bls12381.SecretKeyLength]byte(dep.Credentials),
 			[bls12381.PubKeyLength]byte(dep.Pubkey),
