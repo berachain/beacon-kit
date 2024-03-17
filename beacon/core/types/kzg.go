@@ -32,12 +32,18 @@ import (
 )
 
 const (
-	RootLength                        = 32
-	MaxBlobCommitmentsPerBlock        = 16
-	LogMaxBlobCommitments      uint64 = 4 // Log_2 of MaxBlobCommitmentsPerBlock (16)
-	LogBodyLength                     = 3 // Log_2 of bodyLength (5).
-	KZGPosition                       = 4 // TODO: this can be different in our use case
-	KZGOffset                  uint64 = 24 * MaxBlobCommitmentsPerBlock
+	RootLength                 = 32
+	MaxBlobCommitmentsPerBlock = 16
+	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
+	LogMaxBlobCommitments uint64 = 4
+	// LogBodyLength is the Log_2 of BodyLength (5).
+	LogBodyLength = 3
+	// KZGPosition is the position of BlobKzgCommitments in the block body.
+	KZGPosition = 4
+	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
+	// in the merkle tree built from the block body.
+	KZGMerkleIndex        = 24
+	KZGOffset      uint64 = KZGMerkleIndex * MaxBlobCommitmentsPerBlock
 )
 
 // VerifyKZGInclusionProof verifies the inclusion proof for a commitment in a
