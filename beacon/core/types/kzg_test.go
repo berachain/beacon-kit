@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
@@ -164,10 +165,11 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	body := mockBody()
 
 	blk := &types.BeaconBlockDeneb{
-		Slot:            1,
-		ProposerIndex:   1,
-		ParentBlockRoot: common.HexToHash("0x07"),
-		Body:            body,
+		Slot:          1,
+		ProposerIndex: 1,
+		ParentBlockRoot: primitives.HashRoot(
+			common.HexToHash("0x07").Bytes()),
+		Body: body,
 	}
 
 	index := uint64(1)
