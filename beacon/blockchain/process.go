@@ -164,8 +164,17 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
+	body := blk.GetBody()
+	if body.IsNil() {
+		return nil
+	}
+
 	// Update the forkchoice.
 	payload = blk.GetBody().GetExecutionPayload()
+	if payload.IsNil() {
+		return nil
+	}
+
 	payloadBlockHash := payload.GetBlockHash()
 	if err := s.ForkchoiceStore(ctx).InsertNode(payloadBlockHash); err != nil {
 		return err

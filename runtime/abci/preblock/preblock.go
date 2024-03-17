@@ -119,10 +119,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return err
 		}
 
-		// Receive the beacon block to validate whether it is good and submit
-		// any required newPayload and/or forkchoice updates. If we have
-		// already ran this for the current block in ProcessProposal, this
-		// call will exit early.
+		// Processing the incoming beacon block and blobs.
 		cacheCtx, write := ctx.CacheContext()
 		if err = h.chainService.ProcessBeaconBlock(
 			cacheCtx,
@@ -133,6 +130,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 				"error",
 				err,
 			)
+			// TODO: Emit Evidence so that the validator can be slashed.
 		} else {
 			// We only want to persist state changes if we successfully
 			// processed the block.
