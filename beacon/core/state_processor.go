@@ -178,8 +178,8 @@ func (sp *StateProcessor) processRandaoReveal(
 	// Verify the RANDAO Reveal.
 	reveal := blk.GetBody().GetRandaoReveal()
 	if err = sp.rp.VerifyReveal(
+		st,
 		[bls12381.PubKeyLength]byte(pubkey),
-		sp.cfg.SlotToEpoch(blk.GetSlot()),
 		reveal,
 	); err != nil {
 		return err

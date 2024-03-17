@@ -40,8 +40,8 @@ import (
 
 // Processor is the randao processor.
 type Processor struct {
-	signer crypto.Signer[[bls12381.SignatureLength]byte]
 	cfg    *config.Config
+	signer crypto.Signer[[bls12381.SignatureLength]byte]
 	logger log.Logger
 }
 
@@ -69,9 +69,20 @@ func NewProcessor(
 //
 //	return bls.Sign(privkey, signing_root)
 func (p *Processor) BuildReveal(
+	st state.BeaconState,
+) (types.Reveal, error) {
+	return p.buildReveal(
+		st.GetChainID(),
+		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
+	)
+}
+
+// buildReveal creates a reveal for the proposer.
+func (p *Processor) buildReveal(
+	chainID string,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	signingRoot, err := p.computeSigningRoot(epoch)
+	signingRoot, err := p.computeSigningRoot(chainID, epoch)
 	if err != nil {
 		return types.Reveal{}, err
 	}
@@ -80,11 +91,26 @@ func (p *Processor) BuildReveal(
 
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) VerifyReveal(
+	st state.BeaconState,
 	proposerPubkey [bls12381.PubKeyLength]byte,
+	reveal types.Reveal,
+) error {
+	return p.verifyReveal(
+		proposerPubkey,
+		st.GetChainID(),
+		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
+		reveal,
+	)
+}
+
+// VerifyReveal verifies the reveal of the proposer.
+func (p *Processor) verifyReveal(
+	proposerPubkey [bls12381.PubKeyLength]byte,
+	chainID string,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) error {
-	signingRoot, err := p.computeSigningRoot(epoch)
+	signingRoot, err := p.computeSigningRoot(chainID, epoch)
 	if err != nil {
 		return err
 	}
@@ -121,9 +147,15 @@ func (p *Processor) MixinNewReveal(
 }
 
 func (p *Processor) computeSigningRoot(
+	chainID string,
 	epoch primitives.Epoch,
 ) (primitives.HashRoot, error) {
-	signingDomain, err := signing.GetDomain(p.cfg, signing.DomainRandao, epoch)
+	signingDomain, err := signing.GetDomain(
+		p.cfg,
+		chainID,
+		signing.DomainRandao,
+		epoch,
+	)
 	if err != nil {
 		return primitives.HashRoot{}, fmt.Errorf(
 			"failed to get domain: %w",

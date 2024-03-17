@@ -33,3 +33,8 @@ func (s *Store) GetSlot() primitives.Slot {
 		s.env.HeaderService.GetHeaderInfo(s.ctx).Height,
 	)
 }
+
+// GetChainID returns the chain ID.
+func (s *Store) GetChainID() string {
+	return s.env.HeaderService.GetHeaderInfo(s.ctx).ChainID
+}
