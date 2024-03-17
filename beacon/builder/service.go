@@ -78,7 +78,8 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 
 // RequestBestBlock builds a new beacon block.
 func (s *Service) RequestBestBlock(
-	ctx context.Context, slot primitives.Slot,
+	ctx context.Context,
+	slot primitives.Slot,
 	proposerPubkey [bls12381.PubKeyLength]byte,
 ) (beacontypes.BeaconBlock, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
@@ -93,8 +94,10 @@ func (s *Service) RequestBestBlock(
 		return nil, fmt.Errorf("failed to build reveal: %w", err)
 	}
 
-	parentBlockRoot := st.GetParentBlockRoot()
-
+	parentBlockRoot, err := st.GetBlockRoot(st.GetSlot() - 1)
+	if err != nil {
+		return nil, err
+	}
 	proposerIndex, err := st.ValidatorIndexByPubkey(proposerPubkey[:])
 	if err != nil {
 		return nil, err

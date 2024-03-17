@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice"
 	"github.com/berachain/beacon-kit/config"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 )
 
 // PayloadValidator is responsible for validating incoming.
@@ -51,8 +50,18 @@ func NewPayloadValidator(cfg *config.Beacon) *PayloadValidator {
 func (pv *PayloadValidator) ValidatePayload(
 	st state.BeaconState,
 	fc forkchoice.ForkChoicer,
-	payload enginetypes.ExecutionPayload,
+	blk types.BeaconBlock,
 ) error {
+	if blk == nil || blk.IsNil() {
+		return types.ErrNilBlk
+	}
+
+	body := blk.GetBody()
+	if body == nil || body.IsNil() {
+		return types.ErrNilBlkBody
+	}
+
+	payload := blk.GetBody().GetExecutionPayload()
 	if payload == nil || payload.IsNil() {
 		return types.ErrNilPayload
 	}

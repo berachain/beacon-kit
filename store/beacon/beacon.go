@@ -65,10 +65,13 @@ type Store struct {
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
 	// by eip-4788.
-	parentBlockRoot sdkcollections.Item[[]byte]
+	blockRoots *collections.CircularQueue[[]byte]
 
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Item[[types.MixLength]byte]
+
+	// latestBeaconBlockHeader stores the latest beacon block header.
+	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
 }
 
 // Store creates a new instance of Store.
@@ -107,17 +110,25 @@ func NewStore(
 			redirectQueuePrefix,
 			encoding.SSZValueCodec[*beacontypes.Redirect]{},
 		),
-		parentBlockRoot: sdkcollections.NewItem[[]byte](
+		blockRoots: collections.NewCircularQueue[[]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(parentBlockRootPrefix),
 			parentBlockRootPrefix,
 			sdkcollections.BytesValue,
+			//nolint:gomnd // todo fix.
+			32,
 		),
 		randaoMix: sdkcollections.NewItem[[types.MixLength]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(randaoMixPrefix),
 			randaoMixPrefix,
 			encoding.Bytes32ValueCodec{},
+		),
+		//nolint:lll
+		latestBeaconBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
+			schemaBuilder,
+			sdkcollections.NewPrefix(latestBeaconBlockHeaderPrefix),
+			latestBeaconBlockHeaderPrefix,
+			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
 		),
 	}
 }
