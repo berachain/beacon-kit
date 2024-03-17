@@ -26,12 +26,13 @@
 package beacon
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // SetParentBlockRoot sets the parent block root in the BeaconStore.
 // It panics if there is an error setting the parent block root.
-func (s *Store) SetParentBlockRoot(parentRoot [32]byte) {
+func (s *Store) SetParentBlockRoot(parentRoot primitives.HashRoot) {
 	if err := s.parentBlockRoot.Set(s.ctx, parentRoot[:]); err != nil {
 		panic(err)
 	}
@@ -40,10 +41,10 @@ func (s *Store) SetParentBlockRoot(parentRoot [32]byte) {
 // GetParentBlockRoot retrieves the parent block root from the BeaconStore.
 // It returns an empty hash if there is an error retrieving the parent block
 // root.
-func (s *Store) GetParentBlockRoot() [32]byte {
+func (s *Store) GetParentBlockRoot() primitives.HashRoot {
 	parentRoot, err := s.parentBlockRoot.Get(s.ctx)
 	if err != nil {
 		parentRoot = []byte{}
 	}
-	return common.BytesToHash(parentRoot)
+	return byteslib.ToBytes32(parentRoot)
 }

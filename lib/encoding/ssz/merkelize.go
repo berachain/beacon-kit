@@ -23,15 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package ssz
 
 import (
-	"context"
+	"errors"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/crypto/sha256"
 )
 
-type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state.
-	BeaconState(context.Context) state.BeaconState
+var errInvalidNilSlice = errors.New("invalid empty slice")
+
+// MerkleizeByteSliceSSZ hashes a byteslice by chunkifying it and returning the
+// corresponding HTR as if it were a fixed vector of bytes of the given length.
+func MerkleizeByteSliceSSZ(input []byte) ([32]byte, error) {
+	numChunks := (len(input) + 31) / 32
+	if numChunks == 0 {
+		return [32]byte{}, errInvalidNilSlice
+	}
+	chunks := make([][32]byte, numChunks)
+	for i := range chunks {
+		copy(chunks[i][:], input[32*i:])
+	}
+	return sha256.SafeMerkleizeVector(chunks, uint64(numChunks))
 }
