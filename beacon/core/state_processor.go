@@ -53,11 +53,34 @@ func NewStateProcessor(
 	}
 }
 
-// ProcessSlot processes the slot and ensures it matches the local state.
+// ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor) ProcessSlot(
-	_ state.BeaconState,
-	_ uint64,
+	st state.BeaconState,
 ) error {
+	// prevStateRoot, err := st.HashTreeRoot(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if err := state.UpdateStateRootAtIndex(
+	// 	uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
+	// 	prevStateRoot,
+	// ); err != nil {
+	// 	return nil, err
+	// }
+
+	prevBlockRoot, err := st.GetBlockRoot(st.GetSlot() - 1)
+	if err != nil {
+		return err
+	}
+
+	// Mark this slots previously block root as the block root from the last
+	// slot, since this slot was missed.
+	if err = st.SetBlockRoot(
+		st.GetSlot(), /*%params.BeaconConfig().SlotsPerHistoricalRoot*/
+		prevBlockRoot,
+	); err != nil {
+		return err
+	}
 	return nil
 }
 

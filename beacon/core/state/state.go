@@ -57,7 +57,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
-	SetBlockRoot(primitives.Slot, primitives.HashRoot)
+	SetBlockRoot(primitives.Slot, primitives.HashRoot) error
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao

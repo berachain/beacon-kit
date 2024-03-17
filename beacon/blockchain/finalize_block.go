@@ -55,7 +55,9 @@ func (s *Service) FinalizeBeaconBlock(
 			if err != nil {
 				s.Logger().Error("failed to hash tree root", "error", err)
 			}
-			st.SetBlockRoot(st.GetSlot(), root)
+			if err = st.SetBlockRoot(st.GetSlot(), root); err != nil {
+				s.Logger().Error("failed to set block root", "error", err)
+			}
 		}
 
 		// If something bad happens, we defensivelessly send a forkchoice update

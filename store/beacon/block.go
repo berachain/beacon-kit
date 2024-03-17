@@ -26,26 +26,30 @@
 package beacon
 
 import (
+	"errors"
+
+	"cosmossdk.io/collections"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
 // SetBlockRoot sets a block root in the BeaconStore.
 // It panics if there is an error setting the parent block root.
-func (s *Store) SetBlockRoot(slot primitives.Slot, root primitives.HashRoot) {
-	if err := s.blockRoots.Push(s.ctx, slot, root[:]); err != nil {
-		panic(err)
-	}
+func (s *Store) SetBlockRoot(
+	slot primitives.Slot,
+	root primitives.HashRoot,
+) error {
+	return s.blockRoots.Push(s.ctx, slot, root[:])
 }
 
 // GetBlockRoot retrieves the block root from the BeaconStore.
-// It returns an empty hash if there is an error retrieving the parent block
-// root.
 func (s *Store) GetBlockRoot(
 	slot primitives.Slot,
 ) (primitives.HashRoot, error) {
 	parentRoot, err := s.blockRoots.Peek(s.ctx, slot)
-	if err != nil {
+	if errors.Is(err, collections.ErrNotFound) {
+		return [32]byte{}, nil
+	} else if err != nil {
 		return [32]byte{}, err
 	}
 	return byteslib.ToBytes32(parentRoot), nil
