@@ -135,8 +135,9 @@ func (s *Store) Context() context.Context {
 	return s.ctx
 }
 
-// WithContext returns the Store with the given context.
+// WithContext returns a copy of the Store with the given context.
 func (s *Store) WithContext(ctx context.Context) *Store {
-	s.ctx = ctx
-	return s
+	copy := *s
+	copy.ctx = ctx
+	return &copy
 }
