@@ -26,6 +26,7 @@
 package file_test
 
 import (
+	"errors"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -37,16 +38,16 @@ import (
 func TestRangeDB(t *testing.T) {
 	tests := []struct {
 		name          string
-		setupFunc     func(rdb *file.RangeDB[int]) error
-		testFunc      func(t *testing.T, rdb *file.RangeDB[int])
+		setupFunc     func(rdb *file.RangeDB) error
+		testFunc      func(t *testing.T, rdb *file.RangeDB)
 		expectedError bool
 	}{
 		{
 			name: "Get",
-			setupFunc: func(rdb *file.RangeDB[int]) error {
+			setupFunc: func(rdb *file.RangeDB) error {
 				return rdb.Set(1, []byte("testKey"), []byte("testValue"))
 			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB[int]) {
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				gotValue, err := rdb.Get(1, []byte("testKey"))
 				require.NoError(t, err)
 				require.Equal(t, []byte("testValue"), gotValue)
@@ -54,10 +55,10 @@ func TestRangeDB(t *testing.T) {
 		},
 		{
 			name: "Has",
-			setupFunc: func(rdb *file.RangeDB[int]) error {
+			setupFunc: func(rdb *file.RangeDB) error {
 				return rdb.Set(1, []byte("testKey"), []byte("testValue"))
 			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB[int]) {
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				exists, err := rdb.Has(1, []byte("testKey"))
 				require.NoError(t, err)
 				require.True(t, exists)
@@ -65,10 +66,10 @@ func TestRangeDB(t *testing.T) {
 		},
 		{
 			name: "Set",
-			setupFunc: func(_ *file.RangeDB[int]) error {
+			setupFunc: func(_ *file.RangeDB) error {
 				return nil // No setup required
 			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB[int]) {
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				err := rdb.Set(1, []byte("testKey"), []byte("testValue"))
 				require.NoError(t, err)
 
@@ -79,10 +80,10 @@ func TestRangeDB(t *testing.T) {
 		},
 		{
 			name: "Delete",
-			setupFunc: func(rdb *file.RangeDB[int]) error {
+			setupFunc: func(rdb *file.RangeDB) error {
 				return rdb.Set(1, []byte("testKey"), []byte("testValue"))
 			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB[int]) {
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				err := rdb.Delete(1, []byte("testKey"))
 				require.NoError(t, err)
 
@@ -93,8 +94,8 @@ func TestRangeDB(t *testing.T) {
 		},
 		{
 			name: "DeleteRange",
-			setupFunc: func(rdb *file.RangeDB[int]) error {
-				for index := 1; index <= 5; index++ {
+			setupFunc: func(rdb *file.RangeDB) error {
+				for index := uint64(1); index <= 5; index++ {
 					if err := rdb.Set(
 						index, []byte("testKey"), []byte("testValue"),
 					); err != nil {
@@ -103,18 +104,18 @@ func TestRangeDB(t *testing.T) {
 				}
 				return nil
 			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB[int]) {
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				err := rdb.DeleteRange(1, 4)
 				require.NoError(t, err)
 
-				for index := 1; index <= 3; index++ {
+				for index := uint64(1); index <= 3; index++ {
 					var exists bool
 					exists, err = rdb.Has(index, []byte("testKey"))
 					require.NoError(t, err)
 					require.False(t, exists)
 				}
 
-				for index := 4; index <= 5; index++ {
+				for index := uint64(4); index <= 5; index++ {
 					var exists bool
 					exists, err = rdb.Has(index, []byte("testKey"))
 					require.NoError(t, err)
@@ -134,7 +135,7 @@ func TestRangeDB(t *testing.T) {
 				file.WithLogger(log.NewNopLogger()),
 				file.WithAferoFS(fs),
 			)
-			rdb := file.NewRangeDB[int](db)
+			rdb := file.NewRangeDB(db)
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -148,6 +149,46 @@ func TestRangeDB(t *testing.T) {
 
 			if tt.testFunc != nil {
 				tt.testFunc(t, rdb)
+			}
+		})
+	}
+}
+
+func TestExtractIndex(t *testing.T) {
+	tests := []struct {
+		name        string
+		prefixedKey []byte
+		expectedIdx uint64
+		expectedErr error
+	}{
+		{
+			name:        "ValidKey",
+			prefixedKey: []byte("12345/testKey"),
+			expectedIdx: 12345,
+			expectedErr: nil,
+		},
+		{
+			name:        "InvalidKeyFormat",
+			prefixedKey: []byte("testKey"),
+			expectedIdx: 0,
+			expectedErr: errors.New("invalid key format"),
+		},
+		{
+			name:        "InvalidIndex",
+			prefixedKey: []byte("abc/testKey"),
+			expectedIdx: 0,
+			expectedErr: errors.New(
+				"invalid index: strconv.ParseUint: parsing \"abc\": invalid syntax",
+			),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idx, err := file.ExtractIndex(tt.prefixedKey)
+			require.Equal(t, tt.expectedIdx, idx)
+			if tt.expectedErr != nil {
+				require.ErrorContains(t, err, tt.expectedErr.Error())
 			}
 		})
 	}
