@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 )
 
@@ -109,7 +110,7 @@ const BodyLength = 5
 func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	layer := make([][]byte, BodyLength)
 	for i := range layer {
-		layer[i] = make([]byte, 32)
+		layer[i] = make([]byte, primitives.HashRootLength)
 	}
 
 	randao := b.GetRandaoReveal()
@@ -125,7 +126,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	// Deposits
 	dep := b.GetDeposits()
-	// todo: config
+	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	root, err = ssz.MerkleizeListSSZ(dep, maxDepositsPerBlock)
 	if err != nil {

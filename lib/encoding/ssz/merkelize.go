@@ -30,11 +30,16 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/crypto/sha256"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
 var errInvalidNilSlice = errors.New("invalid empty slice")
+
+const (
+	two = 2
+)
 
 const (
 	mask0 = ^uint64((1 << (1 << iota)) - 1)
@@ -105,7 +110,7 @@ func MerkleizeVector(elements [][32]byte, length uint64) [32]byte {
 	}
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(elements)
-		oddNodeLength := layerLen%2 == 1
+		oddNodeLength := layerLen%two == 1
 		if oddNodeLength {
 			zerohash := tree.ZeroHashes[i]
 			elements = append(elements, zerohash)
@@ -116,13 +121,17 @@ func MerkleizeVector(elements [][32]byte, length uint64) [32]byte {
 			return tree.ZeroHashes[depth]
 		}
 	}
+	if len(elements) != 1 {
+		return tree.ZeroHashes[depth]
+	}
 	return elements[0]
 }
 
 // MerkleizeByteSliceSSZ hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
 func MerkleizeByteSliceSSZ(input []byte) ([32]byte, error) {
-	numChunks := (len(input) + 31) / 32
+	//nolint:gomnd // we add 31 in order to round up the division.
+	numChunks := (len(input) + 31) / primitives.HashRootLength
 	if numChunks == 0 {
 		return [32]byte{}, errInvalidNilSlice
 	}
@@ -148,7 +157,7 @@ func MerkleizeListSSZ[T Hashable](
 	if err != nil {
 		return [32]byte{}, err
 	}
-	chunks := make([][32]byte, 2)
+	chunks := make([][32]byte, two)
 	chunks[0] = body
 	binary.LittleEndian.PutUint64(chunks[1][:], uint64(len(elements)))
 	if err = gohashtree.Hash(chunks, chunks); err != nil {

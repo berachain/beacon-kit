@@ -32,6 +32,7 @@ import (
 )
 
 const (
+	Two                        = 2
 	RootLength                 = 32
 	MaxBlobCommitmentsPerBlock = 16
 	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
@@ -64,7 +65,7 @@ func VerifyKZGInclusionProof(
 	if len(root) != RootLength {
 		return errInvalidBodyRoot
 	}
-	chunks := make([][32]byte, 2)
+	chunks := make([][32]byte, Two)
 	copy(chunks[0][:], blob.KzgCommitment)
 	copy(chunks[1][:], blob.KzgCommitment[RootLength:])
 	gohashtree.HashChunks(chunks, chunks)
@@ -145,7 +146,7 @@ func BodyProof(commitments [][48]byte, index int) ([][]byte, error) {
 func LeavesFromCommitments(commitments [][48]byte) [][]byte {
 	leaves := make([][]byte, len(commitments))
 	for i, kzg := range commitments {
-		chunk := make([][32]byte, 2)
+		chunk := make([][32]byte, Two)
 		copy(chunk[0][:], kzg[:])
 		copy(chunk[1][:], kzg[RootLength:])
 		gohashtree.HashChunks(chunk, chunk)

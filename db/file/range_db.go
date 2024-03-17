@@ -35,6 +35,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// two is a constant for the number 2.
+const two = 2
+
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
 type RangeDB struct {
@@ -99,8 +102,8 @@ func (db *RangeDB) prefix(index uint64, key []byte) []byte {
 
 // ExtractIndex extracts the index from a prefixed key.
 func ExtractIndex(prefixedKey []byte) (uint64, error) {
-	parts := bytes.SplitN(prefixedKey, []byte("/"), 2)
-	if len(parts) < 2 {
+	parts := bytes.SplitN(prefixedKey, []byte("/"), two)
+	if len(parts) < two {
 		return 0, errors.New("invalid key format")
 	}
 

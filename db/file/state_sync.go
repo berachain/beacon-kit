@@ -70,6 +70,8 @@ func (s *Snapshotter) SupportedFormats() []uint32 {
 
 // SnapshotExtension exports the state
 // of the snapshot window given snapshotWriter.
+//
+//nolint:gocognit // todo:reee.
 func (s *Snapshotter) SnapshotExtension(height uint64,
 	payloadWriter snapshot.ExtensionPayloadWriter) error {
 	if err := afero.Walk(s.db.fs, s.db.rootDir,
@@ -148,7 +150,10 @@ func (s *Snapshotter) restore(_ uint64,
 			return err
 		}
 
-		split := bytes.SplitN(bz, []byte("\n"), 2)
+		split := bytes.SplitN(bz, []byte("\n"), two)
+		if len(split) != two {
+			return errors.New("invalid blob format")
+		}
 		receivedFilename := string(split[0])
 		receivedData := split[1]
 
