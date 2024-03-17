@@ -139,7 +139,14 @@ func (sp *StateProcessor) processDeposits(
 
 		// TODO: These changes are not encapsulated in the state root of
 		// the beacon store. @po-bera needs for EIP-4788.
-		if err = sp.vsu.ApplyDeposit(st.Context(), dep); err != nil {
+		if err = sp.vsu.IncreaseConsensusPower(
+			st.Context(),
+			[bls12381.SecretKeyLength]byte(dep.Credentials),
+			[bls12381.PubKeyLength]byte(dep.Pubkey),
+			dep.Amount,
+			dep.Signature,
+			dep.Index,
+		); err != nil {
 			return err
 		}
 	}
@@ -168,10 +175,21 @@ func (sp *StateProcessor) processWithdrawals(
 				"deposit index does not match, expected: %d, got: %d",
 				localWithdrawals[i].Index, wd.Index)
 		}
-
 		// TODO: These changes are not encapsulated in the state root of
 		// the beacon store. @po-bera needs for EIP-4788.
-		if err = sp.vsu.ApplyWithdrawal(st.Context(), wd); err != nil {
+		var pk []byte
+		pk, err = st.ValidatorPubKeyByIndex(
+			wd.Validator,
+		)
+		if err != nil {
+			return err
+		}
+		if err = sp.vsu.DecreaseConsensusPower(
+			st.Context(),
+			[bls12381.SecretKeyLength]byte(wd.Address[:]),
+			[bls12381.PubKeyLength]byte(pk),
+			wd.Amount,
+		); err != nil {
 			return err
 		}
 	}
