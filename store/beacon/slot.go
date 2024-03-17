@@ -33,11 +33,8 @@ func (s *Store) GetSlot() primitives.Slot {
 		s.env.HeaderService.GetHeaderInfo(s.ctx).Height,
 	)
 }
-<<<<<<< HEAD
 
 // GetChainID returns the chain ID.
 func (s *Store) GetChainID() string {
 	return s.env.HeaderService.GetHeaderInfo(s.ctx).ChainID
 }
-=======
->>>>>>> 1ef14af3 (feat(core): Add safety check to BlockValidator for CurrentSlot (#561))
