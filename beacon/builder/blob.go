@@ -41,7 +41,7 @@ func PrepareBlobsHandler(
 		// Create Inclusion Proof
 		inclusionProof, err := beacontypes.MerkleProofKZGCommitment(
 			blk,
-			uint(i),
+			i,
 		)
 		if err != nil {
 			return nil, err
