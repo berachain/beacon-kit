@@ -68,7 +68,7 @@ contract RouletteTester {
         }
     }
 
-    function depositFunds() external payable onlyOwner {
+    function depositFunds() external payable {
         emit Deposit(msg.sender, msg.value);
     }
 
