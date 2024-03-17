@@ -25,7 +25,10 @@
 
 package types
 
-import enginetypes "github.com/berachain/beacon-kit/engine/types"
+import (
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"golang.org/x/sync/errgroup"
+)
 
 // SideCars is a slice of blob side cars to be included in the block.
 type BlobSidecars struct {
@@ -48,27 +51,32 @@ func BuildBlobSidecar(
 	blobs *enginetypes.BlobsBundleV1,
 ) (*BlobSidecars, error) {
 	numBlobs := len(blobs.Blobs)
-	blobTx := make([]*BlobSidecar, numBlobs)
+	sidecars := make([]*BlobSidecar, numBlobs)
+	g := errgroup.Group{}
 	for i := 0; i < numBlobs; i++ {
-		// Create Inclusion Proof
-		inclusionProof, err := MerkleProofKZGCommitment(
-			blk,
-			//#nosec:G701: fuck off gosec.
-			uint64(i),
-		)
-		if err != nil {
-			return nil, err
-		}
+		i := i // capture range variable
+		g.Go(func() error {
+			// Create Inclusion Proof
+			inclusionProof, err := MerkleProofKZGCommitment(
+				blk,
+				//#nosec:G701: fuck off gosec.
+				uint64(i),
+			)
+			if err != nil {
+				return err
+			}
 
-		blobTx[i] = &BlobSidecar{
-			//#nosec:G701: fuck off gosec.
-			Index:          uint64(i),
-			Blob:           blobs.Blobs[i],
-			KzgCommitment:  blobs.Commitments[i],
-			KzgProof:       blobs.Proofs[i],
-			InclusionProof: inclusionProof,
-		}
+			sidecars[i] = &BlobSidecar{
+				//#nosec:G701: fuck off gosec.
+				Index:          uint64(i),
+				Blob:           blobs.Blobs[i],
+				KzgCommitment:  blobs.Commitments[i],
+				KzgProof:       blobs.Proofs[i],
+				InclusionProof: inclusionProof,
+			}
+			return nil
+		})
 	}
 
-	return &BlobSidecars{Sidecars: blobTx}, nil
+	return &BlobSidecars{Sidecars: sidecars}, g.Wait()
 }
