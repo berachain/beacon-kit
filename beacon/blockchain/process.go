@@ -30,6 +30,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
+	"golang.org/x/sync/errgroup"
 )
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
@@ -38,8 +39,28 @@ func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	// TODO:
-	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
+	var (
+		body        = blk.GetBody()
+		payload     = body.GetExecutionPayload()
+		fcs         = s.ForkchoiceStore(ctx)
+		g, groupCtx = errgroup.WithContext(ctx)
+	)
+
+	// We can use an errgroup to run the validation functions concurrently.
+	gSt := s.BeaconState(groupCtx)
+	g.Go(func() error {
+		return s.pv.ValidatePayload(gSt, fcs, payload)
+	})
+
+	g.Go(func() error {
+		return s.bv.ValidateBlock(gSt, blk)
+	})
+
+	// Wait for the errgroup to finish, the error will be non-nil if any
+	// of the goroutines returned an error.
+	if err := g.Wait(); err != nil {
+		return err
+	}
 
 	// This go rountine validates the execution level aspects of the block.
 	// i.e: does newPayload return VALID?
@@ -84,13 +105,6 @@ func (s *Service) ProcessBeaconBlock(
 func (s *Service) validateStateTransition(
 	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	// Validate the block
-	if err := s.bv.ValidateBlock(
-		s.BeaconState(ctx), blk,
-	); err != nil {
-		return err
-	}
-
 	return s.sp.ProcessBlock(
 		s.BeaconState(ctx),
 		blk,
@@ -108,15 +122,6 @@ func (s *Service) validateExecutionOnBlock(
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
 	)
-
-	// Validate the payload.
-	if err := s.pv.ValidatePayload(
-		s.BeaconState(ctx),
-		s.ForkchoiceStore(ctx),
-		payload,
-	); err != nil {
-		return false, err
-	}
 
 	// Then we notify the engine of the new payload.
 	return s.es.NotifyNewPayload(
