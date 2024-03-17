@@ -71,7 +71,10 @@ func NewProcessor(
 func (p *Processor) BuildReveal(
 	st state.BeaconState,
 ) (types.Reveal, error) {
-	return p.buildReveal(st.GetChainID(), p.cfg.Beacon.SlotToEpoch(st.GetSlot()))
+	return p.buildReveal(
+		st.GetChainID(),
+		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
+	)
 }
 
 // buildReveal creates a reveal for the proposer.
@@ -147,7 +150,12 @@ func (p *Processor) computeSigningRoot(
 	chainID string,
 	epoch primitives.Epoch,
 ) (primitives.HashRoot, error) {
-	signingDomain, err := signing.GetDomain(p.cfg, chainID, signing.DomainRandao, epoch)
+	signingDomain, err := signing.GetDomain(
+		p.cfg,
+		chainID,
+		signing.DomainRandao,
+		epoch,
+	)
 	if err != nil {
 		return primitives.HashRoot{}, fmt.Errorf(
 			"failed to get domain: %w",
