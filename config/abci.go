@@ -30,14 +30,23 @@ import (
 	"github.com/berachain/beacon-kit/io/cli/parser"
 )
 
+const (
+	// defaultBeaconBlockPosition is the default position of the beacon block in
+	// the proposal.
+	defaultBeaconBlockPosition = 0
+	// defaultBlobSidecarsBlockPosition is the default position of the blob
+	// sidecars in the proposal.
+	defaultBlobSidecarsBlockPosition = 1
+)
+
 // ABCI conforms to the BeaconKitConfig interface.
 var _ BeaconKitConfig[ABCI] = ABCI{}
 
 // DefaultABCIConfig returns the default configuration for the proposal service.
 func DefaultABCIConfig() ABCI {
 	return ABCI{
-		BeaconBlockPosition:       0,
-		BlobSidecarsBlockPosition: 1,
+		BeaconBlockPosition:       defaultBeaconBlockPosition,
+		BlobSidecarsBlockPosition: defaultBlobSidecarsBlockPosition,
 	}
 }
 
@@ -45,7 +54,10 @@ func DefaultABCIConfig() ABCI {
 type ABCI struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
-	BeaconBlockPosition       uint
+	BeaconBlockPosition uint
+
+	// BlobSidecarsBlockPosition is the position of the blob sidecars
+	// in the cometbft proposal.
 	BlobSidecarsBlockPosition uint
 }
 
