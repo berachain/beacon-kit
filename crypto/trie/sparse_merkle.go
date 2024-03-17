@@ -29,9 +29,10 @@ package trie
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+
+	"github.com/berachain/beacon-kit/crypto/sha256"
 
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/pkg/errors"
@@ -89,7 +90,7 @@ func GenerateTrieFromItems(
 		}
 		updatedValues := make([][]byte, 0)
 		for j := 0; j < len(layers[i]); j += 2 {
-			concat := sha256.Sum256(append(layers[i][j], layers[i][j+1]...))
+			concat := sha256.Hash(append(layers[i][j], layers[i][j+1]...))
 			updatedValues = append(updatedValues, concat[:])
 		}
 		layers[i+1] = updatedValues
@@ -117,7 +118,7 @@ func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
-	return sha256.Sum256(
+	return sha256.Hash(
 		append(m.branches[len(m.branches)-1][0], enc[:]...),
 	), nil
 }
@@ -150,10 +151,10 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 			neighbor = m.branches[i][neighborIdx]
 		}
 		if isLeft {
-			parentHash := sha256.Sum256(append(root[:], neighbor...))
+			parentHash := sha256.Hash(append(root[:], neighbor...))
 			root = parentHash
 		} else {
-			parentHash := sha256.Sum256(append(neighbor, root[:]...))
+			parentHash := sha256.Hash(append(neighbor, root[:]...))
 			root = parentHash
 		}
 		parentIdx := currentIndex / two
@@ -212,9 +213,9 @@ func VerifyMerkleProofWithDepth(
 	node := byteslib.ToBytes32(item)
 	for i := uint64(0); i <= depth; i++ {
 		if (merkleIndex & 1) == 1 {
-			node = sha256.Sum256(append(proof[i], node[:]...))
+			node = sha256.Hash(append(proof[i], node[:]...))
 		} else {
-			node = sha256.Sum256(append(node[:], proof[i]...))
+			node = sha256.Hash(append(node[:], proof[i]...))
 		}
 		merkleIndex /= 2
 	}
