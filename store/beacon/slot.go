@@ -23,33 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package beacon
 
-import (
-	"cosmossdk.io/depinject"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-)
+import "github.com/berachain/beacon-kit/primitives"
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
-	depinject.In
-
-	AppOpts servertypes.AppOptions
+// GetSlot returns the current slot.
+func (s *Store) GetSlot() primitives.Slot {
+	return primitives.Slot(
+		s.env.HeaderService.GetHeaderInfo(s.ctx).Height,
+	)
 }
 
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
-	depinject.Out
-
-	Network Network
-}
-
-// ProvideNetworkCfg get the CometBFT network config
-// from the app options and inject it into the dep inject output.
-func ProvideNetworkCfg(in DepInjectInput) DepInjectOutput {
-	return DepInjectOutput{
-		Network: Network{
-			ChainID: ReadChainIDFromAppOpts(in.AppOpts),
-		},
-	}
+// GetChainID returns the chain ID.
+func (s *Store) GetChainID() string {
+	return s.env.HeaderService.GetHeaderInfo(s.ctx).ChainID
 }

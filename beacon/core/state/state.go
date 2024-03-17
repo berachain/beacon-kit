@@ -46,6 +46,8 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
+	GetSlot() primitives.Slot
+	GetChainID() string
 	SetParentBlockRoot([32]byte)
 	GetParentBlockRoot() [32]byte
 }

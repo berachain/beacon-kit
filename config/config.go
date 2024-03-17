@@ -26,17 +26,10 @@
 package config
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-
 	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/cli/parser"
-	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
 
@@ -74,9 +67,6 @@ type Config struct {
 
 	// FeatureFlags is the configuration for the feature flags.
 	FeatureFlags FeatureFlags
-
-	// Network is the network configuration from the CometBFT config.
-	Network Network
 }
 
 // Template returns the configuration template.
@@ -119,39 +109,6 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	return readConfigFromAppOptsParser(
 		parser.AppOptionsParser{AppOptions: opts},
 	)
-}
-
-// ReadChainIDFromAppOpts reads the chain-id from the given
-// application options. If not found, it reads from the genesis file.
-func ReadChainIDFromAppOpts(
-	appOpts servertypes.AppOptions,
-) string {
-	homeDir := cast.ToString(appOpts.Get(sdkflags.FlagHome))
-	chainID := cast.ToString(appOpts.Get(sdkflags.FlagChainID))
-	if chainID == "" {
-		// Read chain-id from genesis file.
-		filePath := filepath.Join(homeDir, "config", "genesis.json")
-		reader, err := os.Open(filepath.Clean(filePath))
-		if err != nil {
-			panic(fmt.Errorf("failed to open genesis file: %w", err))
-		}
-		defer func() {
-			if err = reader.Close(); err != nil {
-				panic(fmt.Errorf("failed to close genesis file: %w", err))
-			}
-		}()
-
-		chainID, err = genutiltypes.ParseChainIDFromGenesis(reader)
-		if err != nil {
-			panic(
-				fmt.Errorf(
-					"failed to parse chain-id from genesis file: %w",
-					err,
-				),
-			)
-		}
-	}
-	return chainID
 }
 
 // readConfigFromAppOptsParser reads the configuration options from the given.

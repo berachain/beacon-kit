@@ -29,21 +29,20 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/primitives"
 )
 
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor interface {
 	BuildReveal(
-		epoch primitives.Epoch,
+		st state.BeaconState,
 	) (randaotypes.Reveal, error)
 	MixinNewReveal(
 		st state.BeaconState,
 		reveal randaotypes.Reveal,
 	) error
 	VerifyReveal(
+		st state.BeaconState,
 		proposerPubkey [bls12381.PubKeyLength]byte,
-		epoch primitives.Epoch,
 		reveal randaotypes.Reveal,
 	) error
 }
