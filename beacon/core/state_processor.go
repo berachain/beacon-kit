@@ -118,6 +118,7 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
+	// process the freshly created header.
 	if err = sp.processHeader(st, header); err != nil {
 		return err
 	}
