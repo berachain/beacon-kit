@@ -170,9 +170,9 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 }
 
 // MerkleProof computes a proof from a trie's branches using a Merkle index.
-func (m *SparseMerkleTrie) MerkleProof(index uint) ([][]byte, error) {
+func (m *SparseMerkleTrie) MerkleProof(index uint64) ([][]byte, error) {
 	leaves := m.branches[0]
-	if index >= uint(len(leaves)) {
+	if index >= uint64(len(leaves)) {
 		return nil, fmt.Errorf(
 			"merkle index out of range in trie, max range: %d, received: %d",
 			len(leaves),
@@ -183,7 +183,7 @@ func (m *SparseMerkleTrie) MerkleProof(index uint) ([][]byte, error) {
 	proof := make([][]byte, m.depth+1)
 	for i := uint(0); i < m.depth; i++ {
 		subIndex := (merkleIndex / (1 << i)) ^ 1
-		if subIndex < uint(len(m.branches[i])) {
+		if subIndex < uint64(len(m.branches[i])) {
 			item := byteslib.ToBytes32(m.branches[i][subIndex])
 			proof[i] = item[:]
 		} else {

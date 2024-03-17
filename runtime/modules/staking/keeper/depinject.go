@@ -23,6 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package staking
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BlobSidecar,BlobSidecars,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+import (
+	"cosmossdk.io/depinject"
+	sdkkeeper "cosmossdk.io/x/staking/keeper"
+)
+
+type DepInjectInput struct {
+	depinject.In
+
+	StakingKeeper *sdkkeeper.Keeper
+	BankKeeper    BankKeeper
+}
+
+type DepInjectOutput struct {
+	depinject.Out
+
+	Keeper *Keeper
+}
+
+func ProvideStakingKeeper(in DepInjectInput) DepInjectOutput {
+	return DepInjectOutput{
+		Keeper: NewKeeper(in.StakingKeeper, &in.BankKeeper),
+	}
+}

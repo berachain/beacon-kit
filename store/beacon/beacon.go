@@ -29,7 +29,7 @@ import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -41,6 +41,7 @@ import (
 // that provides access to all beacon related data.
 type Store struct {
 	ctx context.Context
+	env appmodule.Environment
 
 	// validatorIndex is a sequence that provides the next
 	// available index for a new validator.
@@ -61,18 +62,23 @@ type Store struct {
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
 	// by eip-4788.
-	parentBlockRoot sdkcollections.Item[[]byte]
+	blockRoots *collections.CircularQueue[[]byte]
 
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Item[[types.MixLength]byte]
+
+	// latestBeaconBlockHeader stores the latest beacon block header.
+	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
 }
 
 // Store creates a new instance of Store.
 func NewStore(
-	kvs store.KVStoreService,
+	env appmodule.Environment,
 ) *Store {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
 	return &Store{
+		ctx: nil,
+		env: env,
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,
 			sdkcollections.NewPrefix(validatorIndexPrefix),
@@ -96,11 +102,12 @@ func NewStore(
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
 		),
-		parentBlockRoot: sdkcollections.NewItem[[]byte](
+		blockRoots: collections.NewCircularQueue[[]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(parentBlockRootPrefix),
 			parentBlockRootPrefix,
 			sdkcollections.BytesValue,
+			//nolint:gomnd // todo fix.
+			32,
 		),
 		randaoMix: sdkcollections.NewItem[[types.MixLength]byte](
 			schemaBuilder,
@@ -108,7 +115,19 @@ func NewStore(
 			randaoMixPrefix,
 			encoding.Bytes32ValueCodec{},
 		),
+		//nolint:lll
+		latestBeaconBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
+			schemaBuilder,
+			sdkcollections.NewPrefix(latestBeaconBlockHeaderPrefix),
+			latestBeaconBlockHeaderPrefix,
+			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
+		),
 	}
+}
+
+// Context returns the context of the Store.
+func (s *Store) Context() context.Context {
+	return s.ctx
 }
 
 // WithContext returns the Store with the given context.

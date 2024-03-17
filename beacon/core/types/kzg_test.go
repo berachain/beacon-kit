@@ -88,7 +88,7 @@ func Test_BodyProof(t *testing.T) {
 
 	// Generate a proof for the index.
 	var proof [][]byte
-	for index := uint(0); index < uint(len(leaves)); index++ {
+	for index := uint64(0); index < uint64(len(leaves)); index++ {
 		proof, err = sparse.MerkleProof(index)
 		require.NoError(t, err, "Failed to generate Merkle proof")
 		require.NotNil(t, proof, "Merkle proof should not be nil")
@@ -98,7 +98,7 @@ func Test_BodyProof(t *testing.T) {
 		valid := trie.VerifyMerkleProof(
 			root[:],
 			leaves[index],
-			uint64(index),
+			index,
 			proof,
 		)
 		require.True(t, valid, "Merkle proof should be valid")
@@ -111,7 +111,7 @@ func Test_BodyProof(t *testing.T) {
 		valid = trie.VerifyMerkleProof(
 			root[:],
 			leaves[index],
-			uint64(index),
+			index,
 			proof,
 		)
 		require.True(t, valid, "Merkle proof should be valid")
@@ -170,7 +170,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		Body:            body,
 	}
 
-	index := uint(1)
+	index := uint64(1)
 	proof, err := types.MerkleProofKZGCommitment(blk, index)
 	require.NoError(t, err)
 	require.Len(t,
@@ -192,7 +192,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		trie.VerifyMerkleProofWithDepth(
 			commitmentsRoot[:],
 			chunk[0][:],
-			uint64(index),
+			index,
 			proof[:types.LogMaxBlobCommitments+1],
 			types.LogMaxBlobCommitments,
 		),
@@ -235,7 +235,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		trie.VerifyMerkleProof(
 			root[:],
 			chunk[0][:],
-			uint64(index+uint(types.KZGOffset)),
+			index+types.KZGOffset,
 			proof,
 		),
 	)

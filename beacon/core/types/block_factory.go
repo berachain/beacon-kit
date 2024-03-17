@@ -49,6 +49,8 @@ func NewBeaconBlock(
 			Slot:            slot,
 			ProposerIndex:   proposerIndex,
 			ParentBlockRoot: parentBlockRoot,
+			// TODO: HANDLE STATE ROOT CALCULATION. IN PREPARE PROPOSAL?
+			StateRoot: [32]byte{},
 			Body: &BeaconBlockBodyDeneb{
 				RandaoReveal: reveal,
 				Graffiti:     [32]byte{},

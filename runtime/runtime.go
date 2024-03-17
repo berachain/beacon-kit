@@ -88,7 +88,6 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	appOpts AppOptions,
 	signer crypto.Signer[[bls12381.SignatureLength]byte],
-	networkCfg config.Network,
 	logger log.Logger,
 	bsb BeaconStorageBackend,
 	vsu ValsetUpdater,
@@ -101,7 +100,6 @@ func NewDefaultBeaconKitRuntime(
 	if err != nil {
 		return nil, err
 	}
-	cfg.Network = networkCfg
 
 	// Build the service dispatcher.
 	gcd, err := dispatch.NewGrandCentralDispatch(
@@ -197,7 +195,7 @@ func NewDefaultBeaconKitRuntime(
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(file.RWRPerms),
 				filedb.WithLogger(logger),
-			), randaoProcessor)),
+			), randaoProcessor, vsu)),
 		blockchain.WithSyncService(syncService),
 	)
 

@@ -23,6 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package beacon
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BlobSidecar,BlobSidecars,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+// Store is the interface for the beacon store.
+func (s *Store) HashTreeRoot() ([32]byte, error) {
+	_, err := s.RandaoMix()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	parentSlot := uint64(0)
+	if s.GetSlot() > 0 {
+		parentSlot = s.GetSlot() - 1
+	}
+
+	_, err = s.GetBlockRoot(parentSlot)
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	// TODO: This.
+	// return (&state.BeaconStateDeneb{
+	// 	Slot:          s.GetSlot(),
+	// 	PrevRandaoMix: randaoMix,
+	// 	PrevBlockRoot: parentRoot,
+	// }).HashTreeRoot()
+	return [32]byte{}, nil
+}

@@ -60,14 +60,14 @@ func (bv *BlockValidator) ValidateBlock(
 		return types.ErrNilBlkBody
 	}
 
-	// TODO: verify that state slot and beacon slot match.
-	// if st.Slot() != blk.GetSlot() {
-	// 	return fmt.Errorf(
-	// 		"slot does not match, expected: %d, got: %d",
-	// 		st.Slot(),
-	// 		blk.GetSlot(),
-	// 	)
-	// }
+	// Ensure the block slot matches the state slot.
+	if blk.GetSlot() != st.GetSlot() {
+		return fmt.Errorf(
+			"slot does not match, expected: %d, got: %d",
+			st.GetSlot(),
+			blk.GetSlot(),
+		)
+	}
 
 	if deposits := body.GetDeposits(); uint64(
 		len(deposits),
@@ -79,7 +79,11 @@ func (bv *BlockValidator) ValidateBlock(
 	}
 
 	// Ensure the parent block root matches what we have locally.
-	parentBlockRoot := st.GetParentBlockRoot()
+	parentBlockRoot, err := st.GetBlockRoot(st.GetSlot() - 1)
+	if err != nil {
+		return err
+	}
+
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
 			"parent root does not match, expected: %x, got: %x",

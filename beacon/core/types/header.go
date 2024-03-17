@@ -23,15 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package types
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-type BeaconStateProvider interface {
-	// BeaconState returns the current beacon state.
-	BeaconState(context.Context) state.BeaconState
+// BeaconBlockHeader is the header of a beacon block.
+type BeaconBlockHeader struct {
+	Slot          primitives.Slot
+	ProposerIndex primitives.ValidatorIndex
+	ParentRoot    [32]byte `ssz-size:"32"`
+	StateRoot     [32]byte `ssz-size:"32"`
+	BodyRoot      [32]byte `ssz-size:"32"`
+}
+
+// String returns a string representation of the beacon block header.
+func (h *BeaconBlockHeader) String() string {
+	return "TODO"
+}
+
+// NewBeaconBlockHeader creates a new beacon block header
+// from a beacon block.
+func NewBeaconBlockHeader(
+	blk BeaconBlock,
+) (*BeaconBlockHeader, error) {
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	return &BeaconBlockHeader{
+		Slot:          blk.GetSlot(),
+		ProposerIndex: blk.GetProposerIndex(),
+		ParentRoot:    blk.GetParentBlockRoot(),
+		// TODO: handle actually setting the state root in prepare proposal?
+		// Compare state roots after execution.
+		StateRoot: blk.GetStateRoot(),
+		BodyRoot:  bodyRoot,
+	}, nil
 }

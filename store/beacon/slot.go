@@ -23,6 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package beacon
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BlobSidecar,BlobSidecars,BeaconBlockBodyDeneb,Deposit -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+import "github.com/berachain/beacon-kit/primitives"
+
+// GetSlot returns the current slot.
+func (s *Store) GetSlot() primitives.Slot {
+	return primitives.Slot(
+		s.env.HeaderService.GetHeaderInfo(s.ctx).Height,
+	)
+}
+
+// GetChainID returns the chain ID.
+func (s *Store) GetChainID() string {
+	return s.env.HeaderService.GetHeaderInfo(s.ctx).ChainID
+}

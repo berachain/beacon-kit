@@ -27,54 +27,57 @@ package collections
 
 import (
 	"context"
+	"errors"
 
-	sdkcollections "cosmossdk.io/collections"
+	"cosmossdk.io/collections"
 	sdkcodec "cosmossdk.io/collections/codec"
 )
 
 // CircularQueue is a simple queue implementation that uses a map and two
 // sequences.
 type CircularQueue[V any] struct {
-	queue *Queue[V]
-	size  uint64
+	// container is a map that holds the queue elements.
+	container collections.Map[uint64, V]
+
+	// size is the size of the queue.
+	size uint64
 }
 
 // NewCircularQueue creates a new queue with the provided prefix and name.
 func NewCircularQueue[V any](
-	schema *sdkcollections.SchemaBuilder, name string,
+	schema *collections.SchemaBuilder,
+	name string,
 	valueCodec sdkcodec.ValueCodec[V],
 	size uint64,
 ) *CircularQueue[V] {
 	return &CircularQueue[V]{
-		queue: NewQueue[V](
-			schema, name, valueCodec,
+		container: collections.NewMap(
+			schema,
+			collections.NewPrefix(name),
+			name,
+			collections.Uint64Key,
+			valueCodec,
 		),
 		size: size,
 	}
 }
 
-// Peek wraps the peek method.
-func (q *CircularQueue[V]) Peek(ctx context.Context) (V, error) {
-	return q.queue.Peek(ctx)
+// Push pushes a new element to the queue.
+func (q *CircularQueue[V]) Push(
+	ctx context.Context,
+	index uint64,
+	item V,
+) error {
+	return q.container.Set(ctx, index%q.size, item)
 }
 
-// Push pushes a new element to the queue and returns the element that was
-// evicted
-// by the circular property of the queue.
-func (q *CircularQueue[V]) Push(ctx context.Context, item V) (V, error) {
-	var v V
-	if err := q.queue.Push(ctx, item); err != nil {
+// Peek returns the element at the given index.
+func (q *CircularQueue[V]) Peek(ctx context.Context, index uint64) (V, error) {
+	v, err := q.container.Get(ctx, index%q.size)
+	if errors.Is(collections.ErrNotFound, err) {
+		return v, nil
+	} else if err != nil {
 		return v, err
 	}
-
-	if length, err := q.queue.Len(ctx); err != nil {
-		return v, err
-	} else if length > q.size {
-		v, err = q.queue.Pop(ctx)
-		if err != nil {
-			return v, err
-		}
-	}
-
 	return v, nil
 }
