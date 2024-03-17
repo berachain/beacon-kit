@@ -75,6 +75,7 @@ const (
 	MaxRedirects   = limitsRoot + "max-redirects-per-block"
 
 	// ABCI Config.
-	abciRoot            = beaconKitRoot + "abci."
-	BeaconBlockPosition = abciRoot + "beacon-block-proposal-position"
+	abciRoot                  = beaconKitRoot + "abci."
+	BeaconBlockPosition       = abciRoot + "beacon-block-proposal-position"
+	BlobSidecarsBlockPosition = abciRoot + "blob-sidecars-block-proposal-position"
 )
