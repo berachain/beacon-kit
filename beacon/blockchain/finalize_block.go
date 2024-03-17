@@ -50,7 +50,12 @@ func (s *Service) FinalizeBeaconBlock(
 		// Always update the parent block root in the event
 		// that the beacon block is not valid.
 		if blk != nil || blk.IsNil() {
-			state.SetParentBlockRoot(blk.GetParentBlockRoot())
+			var root primitives.HashRoot
+			root, err = blk.HashTreeRoot()
+			if err != nil {
+				s.Logger().Error("failed to hash tree root", "error", err)
+			}
+			state.SetParentBlockRoot(root)
 		}
 
 		// If something bad happens, we defensivelessly send a forkchoice update
