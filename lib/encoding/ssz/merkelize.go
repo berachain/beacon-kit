@@ -131,7 +131,7 @@ func MerkleizeVector(elements [][32]byte, length uint64) [32]byte {
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
 func MerkleizeByteSliceSSZ(input []byte) ([32]byte, error) {
 	//nolint:gomnd // we add 31 in order to round up the division.
-	numChunks := (len(input) + 31) / primitives.HashRootLength
+	numChunks := (uint64(len(input)) + 31) / primitives.HashRootLength
 	if numChunks == 0 {
 		return [32]byte{}, errInvalidNilSlice
 	}
@@ -139,7 +139,7 @@ func MerkleizeByteSliceSSZ(input []byte) ([32]byte, error) {
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
-	return MerkleizeVector(chunks, uint64(numChunks)), nil
+	return MerkleizeVector(chunks, numChunks), nil
 }
 
 // Hashable is an interface representing objects that implement HashTreeRoot().

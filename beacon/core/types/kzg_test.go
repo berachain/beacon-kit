@@ -88,7 +88,7 @@ func Test_BodyProof(t *testing.T) {
 
 	// Generate a proof for the index.
 	var proof [][]byte
-	for index := 0; index < len(leaves); index++ {
+	for index := uint(0); index < uint(len(leaves)); index++ {
 		proof, err = sparse.MerkleProof(index)
 		require.NoError(t, err, "Failed to generate Merkle proof")
 		require.NotNil(t, proof, "Merkle proof should not be nil")
@@ -170,7 +170,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		Body:            body,
 	}
 
-	index := 1
+	index := uint(1)
 	proof, err := types.MerkleProofKZGCommitment(blk, index)
 	require.NoError(t, err)
 	require.Len(t,
@@ -235,7 +235,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		trie.VerifyMerkleProof(
 			root[:],
 			chunk[0][:],
-			uint64(index+int(types.KZGOffset)),
+			uint64(index+uint(types.KZGOffset)),
 			proof,
 		),
 	)

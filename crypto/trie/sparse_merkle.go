@@ -140,7 +140,7 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 	currentIndex := index
 	root := byteslib.ToBytes32(item)
 	two := 2
-	for i := 0; i < int(m.depth); i++ {
+	for i := uint(0); i < m.depth; i++ {
 		isLeft := currentIndex%two == 0
 		neighborIdx := currentIndex ^ 1
 		var neighbor []byte
@@ -170,19 +170,16 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 }
 
 // MerkleProof computes a proof from a trie's branches using a Merkle index.
-func (m *SparseMerkleTrie) MerkleProof(index int) ([][]byte, error) {
-	if index < 0 {
-		return nil, fmt.Errorf("merkle index is negative: %d", index)
-	}
+func (m *SparseMerkleTrie) MerkleProof(index uint) ([][]byte, error) {
 	leaves := m.branches[0]
-	if index >= len(leaves) {
+	if index >= uint(len(leaves)) {
 		return nil, fmt.Errorf(
 			"merkle index out of range in trie, max range: %d, received: %d",
 			len(leaves),
 			index,
 		)
 	}
-	merkleIndex := uint(index)
+	merkleIndex := index
 	proof := make([][]byte, m.depth+1)
 	for i := uint(0); i < m.depth; i++ {
 		subIndex := (merkleIndex / (1 << i)) ^ 1
@@ -236,7 +233,7 @@ func VerifyMerkleProof(
 		leaf,
 		merkleIndex,
 		proof,
-		uint64(len(proof)-1),
+		uint64(len(proof))-1,
 	)
 }
 

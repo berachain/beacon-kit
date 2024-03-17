@@ -175,8 +175,6 @@ func TestMerkleTrie_NegativeIndexes(t *testing.T) {
 		TreeDepth,
 	)
 	require.NoError(t, err)
-	_, err = m.MerkleProof(-1)
-	require.ErrorContains(t, err, "merkle index is negative")
 	require.ErrorContains(
 		t,
 		m.Insert([]byte{'J'}, -1),

@@ -94,7 +94,7 @@ func VerifyKZGInclusionProof(
 // top proof is removed before returning the final proof, as it is not needed.
 func MerkleProofKZGCommitment(
 	blk BeaconBlock,
-	index int,
+	index uint,
 ) ([][]byte, error) {
 	commitments := blk.GetBody().GetBlobKzgCommitments()
 
@@ -125,8 +125,8 @@ func MerkleProofKZGCommitment(
 
 // BodyProof returns the Merkle proof of the subtree up to the root of the KZG
 // commitment list.
-func BodyProof(commitments [][48]byte, index int) ([][]byte, error) {
-	if index < 0 || index >= len(commitments) {
+func BodyProof(commitments [][48]byte, index uint) ([][]byte, error) {
+	if index >= uint(len(commitments)) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)

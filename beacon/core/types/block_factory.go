@@ -116,5 +116,6 @@ func BlobSideCarsFromSSZ(bz []byte) (*BlobSidecars, error) {
 	if err := sideCars.UnmarshalSSZ(bz); err != nil {
 		return nil, err
 	}
+
 	return &sideCars, nil
 }

@@ -108,10 +108,11 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 	}
 
 	indexStr := string(parts[0])
-	index, err := strconv.ParseInt(indexStr, 10, 64)
+	index, err := strconv.ParseUint(indexStr, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("invalid index: %w", err)
 	}
 
-	return uint64(index), nil
+	//#nosec:g
+	return index, nil
 }
