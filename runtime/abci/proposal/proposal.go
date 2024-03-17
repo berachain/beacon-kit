@@ -122,8 +122,7 @@ func (h *Handler) PrepareProposalHandler(
 		return nil, ErrNextPrepareNilResp
 	}
 
-	blobBz, err := builder.PrepareBlobsHandler(req.Height,
-		blk, blobs)
+	blobBz, err := builder.PrepareBlobsHandler(blk, blobs)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +138,7 @@ func (h *Handler) PrepareProposalHandler(
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *Handler) ProcessProposalHandler(
-	ctx sdk.Context, req *abci.RequestProcessProposal,
+	_ sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 

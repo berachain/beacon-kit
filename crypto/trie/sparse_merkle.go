@@ -35,6 +35,7 @@ import (
 
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/pkg/errors"
+	"github.com/protolambda/ztyp/tree"
 )
 
 const (
@@ -51,7 +52,7 @@ type SparseMerkleTrie struct {
 	originalItems [][]byte
 }
 
-// NewTrie returns a new merkle trie filled with zerohashes to use.
+// NewTrie returns a new merkle trie filled with tree.ZeroHashes to use.
 func NewTrie(depth uint64) (*SparseMerkleTrie, error) {
 	var zeroBytes [32]byte
 	items := [][]byte{zeroBytes[:]}
@@ -84,7 +85,7 @@ func GenerateTrieFromItems(
 	layers[0] = transformedLeaves
 	for i := uint64(0); i < depth; i++ {
 		if len(layers[i])%2 == 1 {
-			layers[i] = append(layers[i], ZeroHashes[i][:])
+			layers[i] = append(layers[i], tree.ZeroHashes[i][:])
 		}
 		updatedValues := make([][]byte, 0)
 		for j := 0; j < len(layers[i]); j += 2 {
@@ -111,7 +112,7 @@ func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
 	numItems := uint64(len(m.originalItems))
 	if len(m.originalItems) == 1 &&
-		bytes.Equal(m.originalItems[0], ZeroHashes[0][:]) {
+		bytes.Equal(m.originalItems[0], tree.ZeroHashes[0][:]) {
 		// Accounting for empty tries
 		numItems = 0
 	}
@@ -127,7 +128,7 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 		return fmt.Errorf("negative index provided: %d", index)
 	}
 	for index >= len(m.branches[0]) {
-		m.branches[0] = append(m.branches[0], ZeroHashes[0][:])
+		m.branches[0] = append(m.branches[0], tree.ZeroHashes[0][:])
 	}
 	someItem := byteslib.ToBytes32(item)
 	m.branches[0][index] = someItem[:]
@@ -144,7 +145,7 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 		neighborIdx := currentIndex ^ 1
 		var neighbor []byte
 		if neighborIdx >= len(m.branches[i]) {
-			neighbor = ZeroHashes[i][:]
+			neighbor = tree.ZeroHashes[i][:]
 		} else {
 			neighbor = m.branches[i][neighborIdx]
 		}
@@ -189,7 +190,7 @@ func (m *SparseMerkleTrie) MerkleProof(index int) ([][]byte, error) {
 			item := byteslib.ToBytes32(m.branches[i][subIndex])
 			proof[i] = item[:]
 		} else {
-			proof[i] = ZeroHashes[i][:]
+			proof[i] = tree.ZeroHashes[i][:]
 		}
 	}
 	var enc [32]byte

@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/crypto/sha256"
-	"github.com/prysmaticlabs/prysm/v5/container/trie"
+	"github.com/protolambda/ztyp/tree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,7 +45,7 @@ func Test_SafeMerkleizeVector(t *testing.T) {
 			name:            "empty roots list",
 			roots:           make([][32]byte, 0),
 			maxRootsAllowed: 16,
-			expected:        trie.ZeroHashes[0],
+			expected:        tree.ZeroHashes[0],
 			wantErr:         false,
 		},
 		{

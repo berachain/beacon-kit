@@ -125,7 +125,9 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	// Deposits
 	dep := b.GetDeposits()
-	root, err = ssz.MerkleizeListSSZ(dep, 16)
+	// todo: config
+	maxDepositsPerBlock := uint64(16)
+	root, err = ssz.MerkleizeListSSZ(dep, maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}

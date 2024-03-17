@@ -29,8 +29,8 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/berachain/beacon-kit/crypto/trie"
 	htr "github.com/berachain/beacon-kit/lib/hash"
+	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -55,7 +55,7 @@ const (
 )
 
 // Depth retrieves the appropriate depth for the provided trie size.
-func Depth(v uint64) (out uint8) {
+func Depth(v uint64) uint8 {
 	// bitmagic: binary search through a uint32, offset down by 1 to not round
 	// powers of 2 up. Then adding 1 to it to not get the index of the first
 	// bit, but the length of the bits (depth of tree)
@@ -63,6 +63,7 @@ func Depth(v uint64) (out uint8) {
 	// Example:
 	// (in out): (0 0), (1 0), (2 1), (3 2), (4 2), (5 3), (6 3), (7 3), (8 3),
 	// (9 4)
+	out := uint8(0)
 	if v <= 1 {
 		return 0
 	}
@@ -91,7 +92,7 @@ func Depth(v uint64) (out uint8) {
 		out |= bit0
 	}
 	out++
-	return
+	return out
 }
 
 // MerkleizeVector uses our optimized routine to hash a list of 32-byte
@@ -100,13 +101,13 @@ func MerkleizeVector(elements [][32]byte, length uint64) [32]byte {
 	depth := Depth(length)
 	// Return zerohash at depth
 	if len(elements) == 0 {
-		return trie.ZeroHashes[depth]
+		return tree.ZeroHashes[depth]
 	}
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(elements)
 		oddNodeLength := layerLen%2 == 1
 		if oddNodeLength {
-			zerohash := trie.ZeroHashes[i]
+			zerohash := tree.ZeroHashes[i]
 			elements = append(elements, zerohash)
 		}
 		elements = htr.VectorizedSha256(elements)
@@ -146,7 +147,7 @@ func MerkleizeListSSZ[T Hashable](
 	chunks := make([][32]byte, 2)
 	chunks[0] = body
 	binary.LittleEndian.PutUint64(chunks[1][:], uint64(len(elements)))
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
+	if err = gohashtree.Hash(chunks, chunks); err != nil {
 		return [32]byte{}, err
 	}
 	return chunks[0], err

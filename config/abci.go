@@ -69,6 +69,7 @@ func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
 
 // Template returns the configuration template for the abci config.
 func (c ABCI) Template() string {
+	//nolint:lll
 	return `
 [beacon-kit.abci]
 # Position of the beacon block in the proposal

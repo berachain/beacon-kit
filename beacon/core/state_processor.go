@@ -41,7 +41,6 @@ import (
 // main state transition for the beacon chain.
 type StateProcessor struct {
 	cfg *config.Beacon
-	st  state.BeaconState
 	db  db.DB
 	rp  RandaoProcessor
 }
@@ -124,7 +123,9 @@ func (sp *StateProcessor) ProcessBlob(
 		return err
 	}
 	// Store the blobs under a single height.
-	if err := types.VerifyKZGInclusionProof(bodyRoot[:], bs, uint64(index)); err != nil {
+	if err = types.VerifyKZGInclusionProof(
+		bodyRoot[:], bs, index,
+	); err != nil {
 		return err
 	}
 
@@ -133,7 +134,7 @@ func (sp *StateProcessor) ProcessBlob(
 		return err
 	}
 
-	if err := ranger.Set(uint64(height), bs.KzgCommitment, bz); err != nil {
+	if err := ranger.Set(height, bs.KzgCommitment, bz); err != nil {
 		return err
 	}
 	return nil

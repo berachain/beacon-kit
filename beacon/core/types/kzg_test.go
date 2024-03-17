@@ -87,8 +87,9 @@ func Test_BodyProof(t *testing.T) {
 	require.NoError(t, err, "Failed to generate root hash")
 
 	// Generate a proof for the index.
+	var proof [][]byte
 	for index := 0; index < len(leaves); index++ {
-		proof, err := sparse.MerkleProof(index)
+		proof, err = sparse.MerkleProof(index)
 		require.NoError(t, err, "Failed to generate Merkle proof")
 		require.NotNil(t, proof, "Merkle proof should not be nil")
 		require.Len(t, proof, int(depth)+1)

@@ -117,7 +117,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		}
 
 		blobSideCars, err := abcitypes.GetBlobSideCars(
-			ctx, req, h.cfg.BlobSidecarsBlockPosition,
+			req, h.cfg.BlobSidecarsBlockPosition,
 		)
 		if err != nil {
 			return err

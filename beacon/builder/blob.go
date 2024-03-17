@@ -33,7 +33,7 @@ import (
 // PrepareBlobsHandler is responsible for attaching an inclusion proof to the
 // blob sidecar.
 func PrepareBlobsHandler(
-	height int64, blk beacontypes.BeaconBlock,
+	blk beacontypes.BeaconBlock,
 	blobs *enginetypes.BlobsBundleV1,
 ) ([]byte, error) {
 	var blobTx = make([]*beacontypes.BlobSidecar, len(blobs.Blobs))

@@ -26,7 +26,6 @@
 package types
 
 import (
-	"context"
 	"time"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
@@ -70,7 +69,6 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 }
 
 func GetBlobSideCars(
-	ctx context.Context,
 	req ABCIRequest,
 	bzIndex uint,
 ) (*beacontypes.BlobSidecars, error) {
