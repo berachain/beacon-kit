@@ -36,6 +36,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle
@@ -81,7 +82,14 @@ func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *abci.RequestPrepareProposal,
 ) (*abci.ResponsePrepareProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
-	logger := ctx.Logger().With("module", "prepare-proposal")
+
+	var (
+		beaconBz       []byte
+		blobSidecarsBz []byte
+		resp           *abci.ResponsePrepareProposal
+		g, groupCtx    = errgroup.WithContext(ctx)
+		logger         = ctx.Logger().With("module", "prepare-proposal")
+	)
 
 	proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
 		ctx, req.ProposerAddress,
@@ -104,34 +112,53 @@ func (h *Handler) PrepareProposalHandler(
 		return &abci.ResponsePrepareProposal{}, err
 	}
 
-	// Marshal the block into bytes.
-	beaconBz, err := blk.MarshalSSZ()
-	if err != nil {
-		logger.Error("failed to marshal block", "error", err)
-	}
+	// Fire off the next prepare proposal handler, marshal the block and
+	// marhsal the blobs in parallel.
+	g.Go(func() error {
+		var localErr error
+		resp, localErr = h.nextPrepare(sdk.UnwrapSDKContext(groupCtx), req)
+		if err != nil {
+			return localErr
+		}
 
-	// Run the remainder of the prepare proposal handler.
-	resp, err := h.nextPrepare(ctx, req)
-	if err != nil {
-		return nil, err
-	}
+		return nil
+	})
 
-	// If the response is nil, the implementations of
-	// `nextPrepare` is bad.
-	if resp == nil {
-		return nil, ErrNextPrepareNilResp
-	}
+	g.Go(func() error {
+		var localErr error
+		beaconBz, localErr = blk.MarshalSSZ()
+		if err != nil {
+			logger.Error("failed to marshal block", "error", err)
+			return localErr
+		}
+		return nil
+	})
 
-	blobBz, err := builder.PrepareBlobsHandler(blk, blobs)
-	if err != nil {
-		return nil, err
+	g.Go(func() error {
+		var localErr error
+		blobSidecarsBz, localErr = blobs.MarshalSSZ()
+		if err != nil {
+			logger.Error("failed to marshal blobs", "error", err)
+			return localErr
+		}
+		return nil
+	})
+
+	// Wait for the errgroup to finish, the error will be non-nil if any
+	if err = g.Wait(); err != nil {
+		return &abci.ResponsePrepareProposal{}, err
 	}
 
 	// Blob position is always the second in an array
 	// Inject the beacon kit block into the proposal.
 	// TODO: if comet includes txs this could break and or exceed max block size
 	// TODO: make more robust
-	resp.Txs = append([][]byte{beaconBz, blobBz}, resp.Txs...)
+	// If the response is nil, the implementations of
+	// `nextPrepare` is bad.
+	if resp == nil {
+		return &abci.ResponsePrepareProposal{}, ErrNextPrepareNilResp
+	}
+	resp.Txs = append([][]byte{beaconBz, blobSidecarsBz}, resp.Txs...)
 	return resp, nil
 }
 

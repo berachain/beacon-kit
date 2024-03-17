@@ -81,7 +81,7 @@ func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
 	proposerPubkey [bls12381.PubKeyLength]byte,
-) (beacontypes.BeaconBlock, *enginetypes.BlobsBundleV1, error) {
+) (beacontypes.BeaconBlock, *beacontypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -105,7 +105,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Create a new empty block from the current state.
-	beaconBlock, err := beacontypes.EmptyBeaconBlock(
+	blk, err := beacontypes.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -114,7 +114,7 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return nil, nil, err
-	} else if beaconBlock == nil {
+	} else if blk == nil {
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
@@ -126,14 +126,14 @@ func (s *Service) RequestBestBlock(
 		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
 	)
 	if err != nil {
-		return beaconBlock, nil, err
+		return blk, nil, err
 	}
 
 	// TODO: allow external block builders to override the payload.
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
-	body := beaconBlock.GetBody()
+	body := blk.GetBody()
 	if body.IsNil() {
 		return nil, nil, beacontypes.ErrNilBlkBody
 	}
@@ -165,11 +165,17 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
+	// Build the blob sidecars.
+	blobSidecars, err := beacontypes.BuildBlobSidecar(blk, blobsBundle)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	s.Logger().Info("finished assembling beacon block 🛟",
 		"slot", slot,
 		"deposits", len(deposits),
 	)
 
 	// Return the block.
-	return beaconBlock, blobsBundle, nil
+	return blk, blobSidecars, nil
 }

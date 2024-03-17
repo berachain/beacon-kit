@@ -25,6 +25,8 @@
 
 package types
 
+import enginetypes "github.com/berachain/beacon-kit/engine/types"
+
 // SideCars is a slice of blob side cars to be included in the block.
 type BlobSidecars struct {
 	Sidecars []*BlobSidecar `ssz-max:"6"`
@@ -37,4 +39,36 @@ type BlobSidecar struct {
 	KzgCommitment  []byte   `ssz-size:"48"`
 	KzgProof       []byte   `ssz-size:"48"`
 	InclusionProof [][]byte `ssz-size:"8,32"`
+}
+
+// BuildBlobSidecar creates a blob sidecar from the given blobs and
+// beacon block.
+func BuildBlobSidecar(
+	blk BeaconBlock,
+	blobs *enginetypes.BlobsBundleV1,
+) (*BlobSidecars, error) {
+	numBlobs := len(blobs.Blobs)
+	blobTx := make([]*BlobSidecar, numBlobs)
+	for i := 0; i < numBlobs; i++ {
+		// Create Inclusion Proof
+		inclusionProof, err := MerkleProofKZGCommitment(
+			blk,
+			//#nosec:G701: fuck off gosec.
+			uint64(i),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		blobTx[i] = &BlobSidecar{
+			//#nosec:G701: fuck off gosec.
+			Index:          uint64(i),
+			Blob:           blobs.Blobs[i],
+			KzgCommitment:  blobs.Commitments[i],
+			KzgProof:       blobs.Proofs[i],
+			InclusionProof: inclusionProof,
+		}
+	}
+
+	return &BlobSidecars{Sidecars: blobTx}, nil
 }
