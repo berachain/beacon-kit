@@ -67,4 +67,14 @@ type ValsetUpdater interface {
 		pubkey [bls12381.PubKeyLength]byte,
 		amount uint64,
 	) error
+
+	RedirectConsensusPower(
+		ctx context.Context,
+		delegator [bls12381.SecretKeyLength]byte,
+		pubkey [bls12381.PubKeyLength]byte,
+		newPubkey [bls12381.PubKeyLength]byte,
+		amount uint64,
+		signature []byte,
+		index uint64,
+	) error
 }

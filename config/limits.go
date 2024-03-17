@@ -36,6 +36,7 @@ var _ BeaconKitConfig[Limits] = &Limits{}
 const (
 	defaultMaxDepositsPerBlock      = 16
 	defaultMaxWithdrawalsPerPayload = 16
+	defaultMaxRedirectsPerBlock     = 16
 )
 
 // DefaultValidatorConfig returns the default validator configuration.
@@ -51,6 +52,7 @@ func DefaultLimitsConfig() Limits {
 type Limits struct {
 	MaxDepositsPerBlock      uint64
 	MaxWithdrawalsPerPayload uint64
+	MaxRedirectsPerBlock     uint64
 }
 
 // Parse parses the configuration.
@@ -68,6 +70,12 @@ func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 		return nil, err
 	}
 
+	if c.MaxRedirectsPerBlock, err = parser.GetUint64(
+		flags.MaxRedirects,
+	); err != nil {
+		return nil, err
+	}
+
 	return &c, nil
 }
 
@@ -80,5 +88,7 @@ func (c Limits) Template() string {
 max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
 # MaxWithdrawalsPerPayload is the maximum number of Withdrawals allowed in a payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.Limits.MaxWithdrawalsPerPayload}}
+# MaxRedirectsPerBlock is the maximum number of Redirects allowed in a block.
+max-redirects-per-block = {{.BeaconKit.Beacon.Limits.MaxRedirectsPerBlock}}
 `
 }

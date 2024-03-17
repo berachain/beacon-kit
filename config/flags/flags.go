@@ -72,6 +72,7 @@ const (
 	limitsRoot     = beaconConfigRoot + "limits."
 	MaxDeposits    = limitsRoot + "max-deposits-per-block"
 	MaxWithdrawals = limitsRoot + "max-withdrawals-per-payload"
+	MaxRedirects   = limitsRoot + "max-redirects-per-block"
 
 	// ABCI Config.
 	abciRoot            = beaconKitRoot + "abci."

@@ -29,6 +29,7 @@ package beacon
 const (
 	depositQueuePrefix           = "deposit_queue"
 	withdrawalQueuePrefix        = "withdrawal_queue"
+	redirectQueuePrefix          = "redirect_queue"
 	randaoMixPrefix              = "randao_mix"
 	validatorIndexPrefix         = "val_idx"
 	parentBlockRootPrefix        = "parent_block_root"

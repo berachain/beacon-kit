@@ -48,6 +48,7 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyRandaoMixes
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
+	ReadOnlyRedirects
 
 	SetParentBlockRoot([32]byte)
 	GetParentBlockRoot() [32]byte
@@ -59,6 +60,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
+	WriteOnlyRedirects
 
 	SetParentBlockRoot([32]byte)
 }
@@ -123,4 +125,13 @@ type ReadOnlyWithdrawals interface {
 type WriteOnlyWithdrawals interface {
 	EnqueueWithdrawals([]*enginetypes.Withdrawal) error
 	DequeueWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
+}
+
+type ReadOnlyRedirects interface {
+	ExpectedRedirects(uint64) ([]*beacontypes.Redirect, error)
+}
+
+type WriteOnlyRedirects interface {
+	EnqueueRedirects([]*beacontypes.Redirect) error
+	DequeueRedirects(uint64) ([]*beacontypes.Redirect, error)
 }

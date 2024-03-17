@@ -64,7 +64,7 @@ func NewKeeper(
 	}
 }
 
-// delegate delegates the deposit to the validator.
+// IncreaseConsensusPower delegates the deposit to the validator.
 func (k *Keeper) IncreaseConsensusPower(
 	ctx context.Context,
 	delegator [bls12381.SecretKeyLength]byte,
@@ -77,27 +77,76 @@ func (k *Keeper) IncreaseConsensusPower(
 		ctx,
 		&sdkbls.PubKey{Key: pubkey[:]},
 	)
-	switch {
-	// if it is not found, then we create a new one.
-	case errors.Is(err, sdkstaking.ErrNoValidatorFound):
-		_, err = k.createValidator(
-			ctx,
+
+	// If the validator is not found, then we create a new one.
+	if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
+		validator, err = k.createValidator(
 			delegator,
 			pubkey,
 			amount,
 			signature,
 			index,
 		)
+		if err != nil {
+			return err
+		}
+		// If the err is not missing validator, we return the error.
+	} else if err != nil {
 		return err
-	case err != nil:
-		return err
-	// Otherwise, we found a validator and we deposit to it.
-	default:
-		return k.mintAndDelegate(ctx, delegator[:], validator, amount)
 	}
+	return k.mintAndDelegate(ctx, delegator[:], validator, amount)
 }
 
-// undelegate undelegates the validator.
+// RedirectConsensusPower redirects the consensus power from the old.
+func (k *Keeper) RedirectConsensusPower(
+	ctx context.Context,
+	delegator [bls12381.SecretKeyLength]byte,
+	pubkey [bls12381.PubKeyLength]byte,
+	newPubkey [bls12381.PubKeyLength]byte,
+	amount uint64,
+	signature []byte,
+	index uint64,
+) error {
+	validator, err := k.getValidatorFromPubkey(
+		ctx,
+		&sdkbls.PubKey{Key: pubkey[:]},
+	)
+	if err != nil {
+		return err
+	}
+
+	newValidator, err := k.getValidatorFromPubkey(
+		ctx,
+		&sdkbls.PubKey{Key: newPubkey[:]},
+	)
+
+	// If the new validator is not found, then we create a new one.
+	if errors.Is(err, sdkstaking.ErrNoValidatorFound) {
+		newValidator, err = k.createValidator(
+			delegator,
+			pubkey,
+			amount,
+			signature,
+			index,
+		)
+		if err != nil {
+			return err
+		}
+		// If the err is not missing validator, we return the error.
+	} else if err != nil {
+		return err
+	}
+
+	return k.redelegate(
+		ctx,
+		delegator[:],
+		validator,
+		newValidator,
+		amount,
+	)
+}
+
+// DecreaseConsensusPower undelegate undelegates the validator.
 func (k *Keeper) DecreaseConsensusPower(
 	ctx context.Context,
 	delegator [bls12381.SecretKeyLength]byte,
@@ -112,7 +161,7 @@ func (k *Keeper) DecreaseConsensusPower(
 		return err
 	}
 
-	return k.withdrawAndBurn(
+	return k.undelegateAndBurn(
 		ctx,
 		delegator[:],
 		validator,
@@ -123,7 +172,6 @@ func (k *Keeper) DecreaseConsensusPower(
 // createValidator creates a new validator with the given public
 // key and amount of tokens.
 func (k *Keeper) createValidator(
-	ctx context.Context,
 	delegator [bls12381.SecretKeyLength]byte,
 	validatorPubkey [bls12381.PubKeyLength]byte,
 	amount uint64,
@@ -161,21 +209,7 @@ func (k *Keeper) createValidator(
 	if err != nil {
 		return sdkstaking.Validator{}, err
 	}
-
-	if err = k.mintAndDelegate(
-		ctx,
-		delegator[:],
-		newValidator,
-		amount,
-	); err != nil {
-		return sdkstaking.Validator{}, err
-	}
-
-	newValidator.Tokens = sdkmath.NewIntFromUint64(amount)
-	newValidator.DelegatorShares = sdkmath.LegacyNewDecFromInt(
-		newValidator.Tokens,
-	)
-	return newValidator, err
+	return newValidator, nil
 }
 
 // GetValidatorFromPubkey returns the validator from the given public key.
@@ -219,6 +253,7 @@ func (k *Keeper) mintAndDelegate(
 		return err
 	}
 
+	// Delegate the coins to the validator.
 	_, err = k.Delegate(
 		ctx,
 		sdk.AccAddress(delegator[12:]),
@@ -230,15 +265,17 @@ func (k *Keeper) mintAndDelegate(
 	return err
 }
 
-// withdrawAndBurn undelegates the staking coins from the validator
+// undelegateAndBurn undelegates the staking coins from the validator
 // and burns them.
-func (k *Keeper) withdrawAndBurn(
+func (k *Keeper) undelegateAndBurn(
 	ctx context.Context,
 	delegator []byte,
 	validator sdkstaking.Validator,
 	amount uint64,
 ) error {
 	var err error
+
+	// Undelegate the coins from the validator.
 	_, _, err = k.Undelegate(
 		ctx,
 		sdk.AccAddress(delegator[12:]),
@@ -253,5 +290,25 @@ func (k *Keeper) withdrawAndBurn(
 		sdk.NewCoin(StakingUnit, sdkmath.NewIntFromUint64(amount)),
 	}
 
+	// Burn the coins.
 	return k.bk.BurnCoins(ctx, sdk.AccAddress(delegator[12:]), coins)
+}
+
+// redelegate redelegates the staking coins from the old validator
+// to the new validator.
+func (k *Keeper) redelegate(
+	ctx context.Context,
+	delegator []byte,
+	validator sdkstaking.Validator,
+	newValidator sdkstaking.Validator,
+	amount uint64,
+) error {
+	_, err := k.BeginRedelegation(
+		ctx,
+		sdk.AccAddress(delegator[12:]),
+		sdk.ValAddress(validator.OperatorAddress),    // TODO: Check if correct
+		sdk.ValAddress(newValidator.OperatorAddress), // TODO: Check if correct
+		sdkmath.LegacyNewDecFromInt(sdkmath.NewIntFromUint64(amount)),
+	)
+	return err
 }

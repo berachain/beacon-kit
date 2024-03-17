@@ -62,6 +62,7 @@ type BeaconBlockBody interface {
 
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
+	SetRedirects([]*Redirect)
 	SetExecutionData(enginetypes.ExecutionPayload) error
 }
 
@@ -73,6 +74,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
+	GetRedirects() []*Redirect
 	GetRandaoReveal() randaotypes.Reveal
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte

@@ -58,6 +58,9 @@ type Store struct {
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
+	// redirectQueue is a list of redirects that are queued to be processed.
+	redirectQueue *collections.Queue[*beacontypes.Redirect]
+
 	// parentBlockRoot provides access to the previous
 	// head block root for block construction as needed
 	// by eip-4788.
@@ -95,6 +98,11 @@ func NewStore(
 			schemaBuilder,
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
+		),
+		redirectQueue: collections.NewQueue[*beacontypes.Redirect](
+			schemaBuilder,
+			redirectQueuePrefix,
+			encoding.SSZValueCodec[*beacontypes.Redirect]{},
 		),
 		parentBlockRoot: sdkcollections.NewItem[[]byte](
 			schemaBuilder,

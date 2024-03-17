@@ -81,11 +81,32 @@ func (s *Store) DequeueWithdrawals(
 }
 
 // handleNilWithdrawals returns an empty slice if the input is nil.
-func (Store) handleNilWithdrawals(
+func (s *Store) handleNilWithdrawals(
 	withdrawals []*enginetypes.Withdrawal,
 ) []*enginetypes.Withdrawal {
 	if withdrawals == nil {
 		return make([]*enginetypes.Withdrawal, 0)
 	}
 	return withdrawals
+}
+
+// ExpectedRedirects returns the first numView redirects in the queue.
+func (s *Store) ExpectedRedirects(
+	numView uint64,
+) ([]*beacontypes.Redirect, error) {
+	return s.redirectQueue.PeekMulti(s.ctx, numView)
+}
+
+// EnqueueRedirects pushes the redirects to the queue.
+func (s *Store) EnqueueRedirects(
+	redirects []*beacontypes.Redirect,
+) error {
+	return s.redirectQueue.PushMulti(s.ctx, redirects)
+}
+
+// DequeueRedirects returns the first numDequeue redirects in the queue.
+func (s *Store) DequeueRedirects(
+	numDequeue uint64,
+) ([]*beacontypes.Redirect, error) {
+	return s.redirectQueue.PopMulti(s.ctx, numDequeue)
 }

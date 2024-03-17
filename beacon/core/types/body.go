@@ -40,6 +40,8 @@ type BeaconBlockBodyDeneb struct {
 	Graffiti [32]byte `ssz-size:"32"`
 	// Deposits is the list of deposits included in the body.
 	Deposits []*Deposit `                ssz-max:"16"`
+	// Redirects is the list of redirects included in the body.
+	Redirects []*Redirect `                ssz-max:"16"`
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
@@ -76,6 +78,16 @@ func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
 	b.Deposits = deposits
+}
+
+// GetRedirects returns the Redirects of the BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) GetRedirects() []*Redirect {
+	return b.Redirects
+}
+
+// SetRedirects sets the Redirects of the BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) SetRedirects(redirects []*Redirect) {
+	b.Redirects = redirects
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
