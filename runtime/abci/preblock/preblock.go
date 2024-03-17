@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/primitives"
 	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
@@ -99,8 +98,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(
 		ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 	) error {
-		cometBlockHash := byteslib.ToBytes32(req.Hash)
-
 		// Extract the beacon block from the ABCI request.
 		//
 		// TODO: Block factory struct?
@@ -124,7 +121,6 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		if err = h.chainService.ProcessBeaconBlock(
 			cacheCtx,
 			blk,
-			cometBlockHash,
 		); err != nil {
 			h.logger.Warn(
 				"failed to receive beacon block",
@@ -137,7 +133,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 
 		// Process the finalization of the beacon block.
 		if err = h.chainService.FinalizeBeaconBlock(
-			ctx, blk, cometBlockHash,
+			ctx, blk,
 		); err != nil {
 			h.chainService.Logger().
 				Error("failed to finalize beacon block", "error", err)

@@ -37,7 +37,6 @@ import (
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	blockHash [32]byte,
 ) error {
 	// TODO:
 	// expectedProposer, err := epc.GetBeaconProposer(benv.Slot)
@@ -75,7 +74,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Perform post block processing.
 	return s.postBlockProcess(
-		ctx, blk, blockHash, isValidPayload,
+		ctx, blk, isValidPayload,
 	)
 }
 
@@ -135,7 +134,6 @@ func (s *Service) validateExecutionOnBlock(
 func (s *Service) postBlockProcess(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	blockHash [32]byte,
 	_ bool,
 ) error {
 	// If the block is nil or empty, we return an error.
@@ -150,6 +148,11 @@ func (s *Service) postBlockProcess(
 	}
 	payloadBlockHash := payload.GetBlockHash()
 
+	blkRoot, err := blk.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
 	// If the builder is enabled attempt to build a block locally.
 	// If we are in the sync state, we skip building blocks optimistically.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
@@ -157,7 +160,7 @@ func (s *Service) postBlockProcess(
 		// TODO: In general we need to improve the control flow for
 		// Preblocker vs ProcessProposal.
 		err := s.sendFCUWithAttributes(
-			ctx, payloadBlockHash, blk.GetSlot(), blockHash,
+			ctx, payloadBlockHash, blk.GetSlot(), blkRoot,
 		)
 		if err == nil {
 			return nil

@@ -69,6 +69,11 @@ func NewQueue[V any](
 	}
 }
 
+// Head wraps the head method with a read lock.
+func (q *Queue[V]) Head(ctx context.Context) (uint64, error) {
+	return q.headSeq.Peek(ctx)
+}
+
 // Peek wraps the peek method with a read lock.
 func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
 	q.mu.RLock()

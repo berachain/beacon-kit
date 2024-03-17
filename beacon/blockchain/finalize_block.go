@@ -39,7 +39,6 @@ import (
 func (s *Service) FinalizeBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	blockRoot [32]byte,
 ) error {
 	var (
 		err         error
@@ -50,13 +49,15 @@ func (s *Service) FinalizeBeaconBlock(
 	defer func() {
 		// Always update the parent block root in the event
 		// that the beacon block is not valid.
-		state.SetParentBlockRoot(blockRoot)
+		if blk != nil || blk.IsNil() {
+			state.SetParentBlockRoot(blk.GetParentBlockRoot())
+		}
 
 		// If something bad happens, we defensivelessly send a forkchoice update
 		// to bring us back to the last valid head.
 		go func() {
 			if err != nil {
-				s.missedBlockTasks(ctx, blk.GetSlot(), blockRoot)
+				s.missedBlockTasks(ctx, blk.GetSlot(), state.GetParentBlockRoot())
 			}
 
 			s.Logger().Info(
@@ -82,9 +83,6 @@ func (s *Service) FinalizeBeaconBlock(
 		return err
 	}
 
-	// TODO: PROCESS LOGS HERE
-	// TODO: PROCESS DEPOSITS HERE
-	// TODO: PROCESS VOLUNTARY EXITS HERE
 	err = s.es.ProcessLogsInETH1Block(
 		ctx,
 		payloadBlockHash,
