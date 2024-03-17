@@ -31,6 +31,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/cockroachdb/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -75,13 +76,16 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go rountine validates the execution level aspects of the block.
 	// i.e: does newPayload return VALID?
-	_, err = s.validateExecutionOnBlock(
+	var isValidPayload bool
+	isValidPayload, err = s.validateExecutionOnBlock(
 		ctx, blk,
 	)
 	if err != nil {
 		s.Logger().
 			Error("failed to notify engine of new payload", "error", err)
 		return err
+	} else if !isValidPayload {
+		return errors.New("execution payload is not valid")
 	}
 
 	// This go routine validates the consensus level aspects of the block.
