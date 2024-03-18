@@ -82,13 +82,13 @@ func (s *Service) processDepositLog(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
 
-	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
+	return s.BeaconState(ctx).EnqueueDeposit(&beacontypes.Deposit{
 		Index:       d.Index,
 		Pubkey:      d.Pubkey,
 		Credentials: d.Credentials,
 		Amount:      d.Amount,
 		Signature:   d.Signature,
-	}})
+	})
 }
 
 // processRedirectLog adds a redirect to the queue.

@@ -49,15 +49,15 @@ type Store struct {
 
 	// validatorIndexToPubkey is a map that provides the
 	// public key for a given validator index.
-	validatorIndexToPubkey *sdkcollections.IndexedMap[
+	validatorIndexToPubkey sdkcollections.IndexedMap[
 		uint64, []byte, validatorsIndex,
 	]
 
 	// depositQueue is a list of deposits that are queued to be processed.
-	depositQueue *collections.Queue[*beacontypes.Deposit]
+	depositQueue collections.Queue[*beacontypes.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
-	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
+	withdrawalQueue collections.Queue[*enginetypes.Withdrawal]
 
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
@@ -85,7 +85,7 @@ func NewStore(
 			sdkcollections.NewPrefix(validatorIndexPrefix),
 			validatorIndexPrefix,
 		),
-		validatorIndexToPubkey: sdkcollections.NewIndexedMap[uint64, []byte](
+		validatorIndexToPubkey: *sdkcollections.NewIndexedMap[uint64, []byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(validatorIndexToPubkeyPrefix),
 			validatorIndexToPubkeyPrefix,
@@ -93,12 +93,12 @@ func NewStore(
 			sdkcollections.BytesValue,
 			newValidatorsIndex(schemaBuilder),
 		),
-		depositQueue: collections.NewQueue[*beacontypes.Deposit](
+		depositQueue: *collections.NewQueue[*beacontypes.Deposit](
 			schemaBuilder,
 			depositQueuePrefix,
 			encoding.SSZValueCodec[*beacontypes.Deposit]{},
 		),
-		withdrawalQueue: collections.NewQueue[*enginetypes.Withdrawal](
+		withdrawalQueue: *collections.NewQueue[*enginetypes.Withdrawal](
 			schemaBuilder,
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},

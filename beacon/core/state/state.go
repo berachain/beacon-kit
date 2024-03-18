@@ -116,7 +116,7 @@ type ReadWriteDeposits interface {
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
 type WriteOnlyDeposits interface {
-	EnqueueDeposits([]*beacontypes.Deposit) error
+	EnqueueDeposit(*beacontypes.Deposit) error
 	DequeueDeposits(uint64) ([]*beacontypes.Deposit, error)
 }
 

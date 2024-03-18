@@ -183,7 +183,7 @@ func (sp *StateProcessor) processDeposits(
 	deposits []*types.Deposit,
 ) error {
 	// Dequeue and verify the logs.
-	localDeposits, err := st.ExpectedDeposits(uint64(len(deposits)))
+	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
 	if err != nil {
 		return err
 	}

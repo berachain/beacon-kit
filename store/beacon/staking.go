@@ -37,17 +37,19 @@ func (s *Store) ExpectedDeposits(
 	return s.depositQueue.PeekMulti(s.ctx, numView)
 }
 
-// EnqueueDeposits pushes the deposits to the queue.
-func (s *Store) EnqueueDeposits(
-	deposits []*beacontypes.Deposit,
+// EnqueueDeposit pushes the deposits to the queue.
+func (s *Store) EnqueueDeposit(
+	deposits *beacontypes.Deposit,
 ) error {
-	return s.depositQueue.PushMulti(s.ctx, deposits)
+	// return nil
+	return s.depositQueue.Push(s.ctx, deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (s *Store) DequeueDeposits(
 	numDequeue uint64,
 ) ([]*beacontypes.Deposit, error) {
+	// return make([]*beacontypes.Deposit, 0), nil
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
