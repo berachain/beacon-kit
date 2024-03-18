@@ -23,13 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg
+package core
 
-const (
-	// BlobCommitmentVersion is the version of the blob commitment.
-	// It is the Version byte for the point evaluation precompile as
-	// defined in EIP-4844.
-	//
-	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
-	BlobCommitmentVersion uint8 = 0x01
+import "errors"
+
+// ErrAttemptedToVerifyNilSidecar is returned when an attempt is made to store a
+// nil sidecar.
+var ErrAttemptedToVerifyNilSidecar = errors.New(
+	"attempted to verify nil sidecar",
 )

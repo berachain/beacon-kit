@@ -23,20 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package state
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"context"
+
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	es ExecutionService
-	lb LocalBuilder
-	ss SyncService
-	bv *core.BlockValidator
-	sp *core.StateProcessor
-	pv *core.PayloadValidator
+// The AvailabilityStore interface is responsible for validating and storing
+// sidecars for specific blocks, as well as verifying sidecars that have already
+// been stored.
+type AvailabilityStore interface {
+	// IsDataAvailable ensures that all blobs referenced in the block are
+	// securely stored before it returns without an error.
+	IsDataAvailable(
+		ctx context.Context, slot primitives.Slot, b beacontypes.ReadOnlyBeaconBlock,
+	) bool
+	// Persist makes sure that the sidecar remains accessible for data
+	// availability checks throughout the beacon node's operation.
+	Persist(slot primitives.Slot, sc ...*beacontypes.BlobSidecar) error
 }

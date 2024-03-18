@@ -49,19 +49,22 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
+	blobs *beacontypes.BlobSidecars,
 ) error {
 	var (
+		avs         = s.AvailabilityStore(ctx)
 		fcs         = s.ForkchoiceStore(ctx)
 		g, groupCtx = errgroup.WithContext(ctx)
 		st          = s.BeaconState(groupCtx)
 		err         error
 	)
 
-	// We can use an errgroup to run the validation functions concurrently.
+	// Validate payload in Parallel.
 	g.Go(func() error {
 		return s.pv.ValidatePayload(st, fcs, blk)
 	})
 
+	// Validate block in Parallel.
 	g.Go(func() error {
 		return s.bv.ValidateBlock(st, blk)
 	})
@@ -84,14 +87,33 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// This go routine validates the consensus level aspects of the block.
-	// i.e: does it have a valid ancestor?
-	if err = s.validateStateTransition(ctx, blk); err != nil {
-		s.Logger().
-			Error("failed to validate state transition", "error", err)
+	// We want to get a headstart on blob processing since it
+	// is a relatively expensive operation.
+	g.Go(func() error {
+		return s.sp.ProcessBlobs(
+			avs,
+			blk,
+			blobs,
+		)
+	})
+
+	g.Go(func() error {
+		//nolint:contextcheck // todo fix
+		return s.sp.ProcessBlock(
+			s.BeaconState(ctx),
+			blk,
+		)
+	})
+
+	// Wait for the errgroup to finish, the error will be non-nil if any
+	// of the goroutines returned an error.
+	if err = g.Wait(); err != nil {
+		// If we fail any checks we process the slot and move on.
 		return err
 	}
 
+	// TODO: Validate the data availability as well as check for the
+	// minimum DA required time.
 	// daStartTime := time.Now()
 	// if avs != nil {
 	// avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
@@ -105,19 +127,6 @@ func (s *Service) ProcessBeaconBlock(
 	// }
 
 	return nil
-}
-
-// validateStateTransition checks a block's state transition.
-// TODO: Expand rules, consider modularity. Current implementation
-// is hardcoded for single slot finality, which works but lacks flexibility.
-func (s *Service) validateStateTransition(
-	ctx context.Context, blk beacontypes.ReadOnlyBeaconBlock,
-) error {
-	//nolint:contextcheck // todo fix
-	return s.sp.ProcessBlock(
-		s.BeaconState(ctx),
-		blk,
-	)
 }
 
 // validateExecutionOnBlock checks the validity of a the execution payload

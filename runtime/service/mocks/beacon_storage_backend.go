@@ -25,6 +25,54 @@ func (_m *BeaconStorageBackend) EXPECT() *BeaconStorageBackend_Expecter {
 	return &BeaconStorageBackend_Expecter{mock: &_m.Mock}
 }
 
+// AvailabilityStore provides a mock function with given fields: ctx
+func (_m *BeaconStorageBackend) AvailabilityStore(ctx context.Context) state.AvailabilityStore {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AvailabilityStore")
+	}
+
+	var r0 state.AvailabilityStore
+	if rf, ok := ret.Get(0).(func(context.Context) state.AvailabilityStore); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(state.AvailabilityStore)
+		}
+	}
+
+	return r0
+}
+
+// BeaconStorageBackend_AvailabilityStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AvailabilityStore'
+type BeaconStorageBackend_AvailabilityStore_Call struct {
+	*mock.Call
+}
+
+// AvailabilityStore is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *BeaconStorageBackend_Expecter) AvailabilityStore(ctx interface{}) *BeaconStorageBackend_AvailabilityStore_Call {
+	return &BeaconStorageBackend_AvailabilityStore_Call{Call: _e.mock.On("AvailabilityStore", ctx)}
+}
+
+func (_c *BeaconStorageBackend_AvailabilityStore_Call) Run(run func(ctx context.Context)) *BeaconStorageBackend_AvailabilityStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *BeaconStorageBackend_AvailabilityStore_Call) Return(_a0 state.AvailabilityStore) *BeaconStorageBackend_AvailabilityStore_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *BeaconStorageBackend_AvailabilityStore_Call) RunAndReturn(run func(context.Context) state.AvailabilityStore) *BeaconStorageBackend_AvailabilityStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BeaconState provides a mock function with given fields: ctx
 func (_m *BeaconStorageBackend) BeaconState(ctx context.Context) state.BeaconState {
 	ret := _m.Called(ctx)

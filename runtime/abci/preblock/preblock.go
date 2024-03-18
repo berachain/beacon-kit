@@ -119,11 +119,19 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return err
 		}
 
+		blobSideCars, err := abcitypes.GetBlobSideCars(
+			req, h.cfg.BlobSidecarsBlockPosition,
+		)
+		if err != nil {
+			return err
+		}
+
 		// Processing the incoming beacon block and blobs.
 		cacheCtx, write := ctx.CacheContext()
 		if err = h.chainService.ProcessBeaconBlock(
 			cacheCtx,
 			blk,
+			blobSideCars,
 		); err != nil {
 			h.logger.Warn(
 				"failed to receive beacon block",

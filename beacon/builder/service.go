@@ -81,7 +81,7 @@ func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
 	proposerPubkey [bls12381.PubKeyLength]byte,
-) (beacontypes.BeaconBlock, error) {
+) (beacontypes.BeaconBlock, *beacontypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -91,21 +91,22 @@ func (s *Service) RequestBestBlock(
 	st := s.BeaconState(ctx)
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build reveal: %w", err)
+		return nil, nil, fmt.Errorf("failed to build reveal: %w", err)
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(st.GetSlot() - 1) % s.BeaconCfg().Limits.SlotsPerHistoricalRoot)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	proposerIndex, err := st.ValidatorIndexByPubkey(proposerPubkey[:])
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	beaconBlock, err := beacontypes.EmptyBeaconBlock(
+	blk, err := beacontypes.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -113,9 +114,9 @@ func (s *Service) RequestBestBlock(
 		reveal,
 	)
 	if err != nil {
-		return nil, err
-	} else if beaconBlock == nil {
-		return nil, beacontypes.ErrNilBlk
+		return nil, nil, err
+	} else if blk == nil {
+		return nil, nil, beacontypes.ErrNilBlk
 	}
 
 	// Get the payload for the block.
@@ -126,27 +127,35 @@ func (s *Service) RequestBestBlock(
 		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
 	)
 	if err != nil {
-		return beaconBlock, err
+		return blk, nil, err
 	}
-
-	// TODO: Dencun
-	_ = blobsBundle
 
 	// TODO: allow external block builders to override the payload.
 	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
-	body := beaconBlock.GetBody()
+	body := blk.GetBody()
 	if body.IsNil() {
-		return nil, beacontypes.ErrNilBlkBody
+		return nil, nil, beacontypes.ErrNilBlkBody
 	}
+
+	// If we get returned a nil blobs bundle, we should return an error.
+	if blobsBundle == nil {
+		return nil, nil, beacontypes.ErrNilBlobsBundle
+	}
+
+	commitments := make([][48]byte, len(blobsBundle.Commitments))
+	for i, c := range blobsBundle.Commitments {
+		commitments[i] = [48]byte(c)
+	}
+	body.SetBlobKzgCommitments(commitments)
 
 	// Dequeue deposits from the state.
 	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
 		s.BeaconCfg().Limits.MaxDepositsPerBlock,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Set the deposits on the block body.
@@ -154,7 +163,13 @@ func (s *Service) RequestBestBlock(
 
 	// if err = b
 	if err = body.SetExecutionData(payload); err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	// Build the blob sidecars.
+	blobSidecars, err := beacontypes.BuildBlobSidecar(blk, blobsBundle)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	s.Logger().Info("finished assembling beacon block 🛟",
@@ -163,5 +178,5 @@ func (s *Service) RequestBestBlock(
 	)
 
 	// Return the block.
-	return beaconBlock, nil
+	return blk, blobSidecars, nil
 }
