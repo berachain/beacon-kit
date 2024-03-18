@@ -26,13 +26,16 @@
 package proposal
 
 import (
+	"errors"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/config"
+	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/primitives"
+	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -165,9 +168,45 @@ func (h *Handler) PrepareProposalHandler(
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *Handler) ProcessProposalHandler(
-	_ sdk.Context, req *abci.RequestProcessProposal,
+	ctx sdk.Context, req *abci.RequestProcessProposal,
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
+	logger := ctx.Logger().With("module", "process-proposal")
+	// If the request is nil we can just accept the proposal and it'll slash the
+	// proposer.
+	blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
+		req, h.cfg.BeaconBlockPosition,
+		h.chainService.ActiveForkVersionForSlot(primitives.Slot(req.Height)),
+	)
+	if err != nil {
+		logger.Error(
+			"failed to retrieve beacon block from request",
+			"error",
+			err,
+		)
+
+		return &abci.ResponseProcessProposal{
+			Status: abci.ResponseProcessProposal_ACCEPT,
+		}, nil
+	}
+
+	// If the block is syncing, we reject the proposal. This is guard against a
+	// potential attack under the unlikely scenario in which a supermajority of
+	// validators have their EL's syncing. If nodes were to accept this proposal
+	// optmistically when they are syncing, it could potentially allow for a
+	// malicious validator to push a bad block through.
+	//
+	// TODO: figure out a way to prevent newPayload from being called twiced as
+	// it will be called again
+	// in PreBlocker.
+	if err = h.chainService.ValidateExecutionPayloadOnBlk(ctx, blk); errors.Is(
+		err,
+		engineclient.ErrSyncingPayloadStatus,
+	) {
+		return &abci.ResponseProcessProposal{
+			Status: abci.ResponseProcessProposal_REJECT,
+		}, err
+	}
 
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
 	// after the underlying process proposal handler has run. This is to avoid

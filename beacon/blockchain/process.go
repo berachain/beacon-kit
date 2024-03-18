@@ -31,7 +31,6 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/cockroachdb/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -55,18 +54,17 @@ func (s *Service) ProcessBeaconBlock(
 	var (
 		avs         = s.AvailabilityStore(ctx)
 		g, groupCtx = errgroup.WithContext(ctx)
-		st          = s.BeaconState(groupCtx)
 		err         error
 	)
 
 	// Validate payload in Parallel.
 	g.Go(func() error {
-		return s.ValidateExecutionPayloadOnBlk(ctx, blk)
+		return s.ValidateExecutionPayloadOnBlk(groupCtx, blk)
 	})
 
 	// Validate block in Parallel.
 	g.Go(func() error {
-		return s.bv.ValidateBlock(st, blk)
+		return s.ValidateBlock(groupCtx, blk)
 	})
 
 	// Wait for the errgroup to finish, the error will be non-nil if any
@@ -153,7 +151,7 @@ func (s *Service) ValidateExecutionPayloadOnBlk(
 	}
 
 	// Then we notify the engine of the new payload.
-	if isValidPayload, err := s.es.NotifyNewPayload(
+	if _, err := s.es.NotifyNewPayload(
 		ctx,
 		blk.GetSlot(),
 		payload,
@@ -163,8 +161,6 @@ func (s *Service) ValidateExecutionPayloadOnBlk(
 		blk.GetParentBlockRoot(),
 	); err != nil {
 		return err
-	} else if !isValidPayload {
-		return errors.New("invalid payload")
 	}
 	return nil
 }

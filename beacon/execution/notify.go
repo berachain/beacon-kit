@@ -54,14 +54,16 @@ func (s *Service) notifyNewPayload(
 		ctx, payload, versionedHashes, &parentBlockRoot,
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, client.ErrSyncingPayloadStatus):
 		s.Logger().Info("new payload called with optimistic block",
 			"payload_block_hash", (payload.GetBlockHash()),
 			"parent_hash", (payload.GetParentHash()),
 			"for_slot", slot,
 		)
 		return false, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
+		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		s.Logger().Error(
 			"invalid payload status",
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
@@ -101,14 +103,16 @@ func (s *Service) notifyForkchoiceUpdate(
 		s.ActiveForkVersionForSlot(fcuConfig.ProposingSlot),
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, client.ErrSyncingPayloadStatus):
 		s.Logger().Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"for_slot", fcuConfig.ProposingSlot,
 		)
 		telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
+		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		s.Logger().Error("invalid payload status", "error", err)
 		telemetry.IncrCounter(1, MetricsKeyInvalidPayloadStatus)
 		// Attempt to get the chain back into a valid state, by
