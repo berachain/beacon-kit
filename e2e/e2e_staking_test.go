@@ -37,6 +37,7 @@ import (
 // against the beacon-kit network.
 func (s *BeaconKitE2ESuite) TestDepositContract() {
 	client := s.ConsensusClients()["cl-validator-beaconkit-0"]
+	s.Require().NotNil(client)
 
 	pubkey, err := client.GetPubKey(s.Ctx())
 	s.Require().NoError(err)
@@ -50,7 +51,6 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 
-	
 	bz := byteslib.PrependExtendToSize(s.GenesisAccount().Address().Bytes(), 32)
 	bz[0] = 0x01
 
