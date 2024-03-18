@@ -54,11 +54,11 @@ func (s *Store) IsDataAvailable(
 	ctx context.Context,
 	slot primitives.Slot,
 	b beacontypes.ReadOnlyBeaconBlock,
-) error {
+) bool {
 	_ = ctx
 	_ = slot
 	_ = b
-	return nil
+	return true
 }
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
@@ -67,23 +67,19 @@ func (s *Store) Persist(
 	slot primitives.Slot,
 	sidecars ...*beacontypes.BlobSidecar,
 ) error {
-	_, err := iter.MapErr(
+	// Ensure the blobs are available.
+	return errors.Join(iter.Map(
 		sidecars,
-		func(sidecar **beacontypes.BlobSidecar) ([]any, error) {
+		func(sidecar **beacontypes.BlobSidecar) error {
 			if *sidecar == nil {
-				return nil, errors.New("sidecar is nil")
+				return ErrAttemptedToStoreNilSidecar
 			}
 			sc := *sidecar
 			bz, err := sc.MarshalSSZ()
 			if err != nil {
-				return nil, err
+				return err
 			}
-			err = s.Set(slot, sc.KzgCommitment, bz)
-			if err != nil {
-				return nil, err
-			}
-			return nil, nil
+			return s.Set(slot, sc.KzgCommitment, bz)
 		},
-	)
-	return err
+	)...)
 }
