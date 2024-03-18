@@ -59,13 +59,14 @@ type Store struct {
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
-	// parentBlockRoot provides access to the previous
-	// head block root for block construction as needed
-	// by eip-4788.
-	blockRoots *collections.CircularQueue[[]byte]
+	// blockRoots stores the block roots for the current epoch.
+	blockRoots sdkcollections.Map[uint64, [32]byte]
+
+	// stateRoots stores the state roots for the current epoch.
+	stateRoots sdkcollections.Map[uint64, [32]byte]
 
 	// randaoMix stores the randao mix for the current epoch.
-	randaoMix sdkcollections.Item[[types.MixLength]byte]
+	randaoMix sdkcollections.Map[uint64, [types.MixLength]byte]
 
 	// latestBeaconBlockHeader stores the latest beacon block header.
 	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
@@ -102,17 +103,25 @@ func NewStore(
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
 		),
-		blockRoots: collections.NewCircularQueue[[]byte](
+		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			parentBlockRootPrefix,
-			sdkcollections.BytesValue,
-			//nolint:gomnd // todo fix.
-			32,
+			sdkcollections.NewPrefix(blockRootsPrefix),
+			blockRootsPrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
 		),
-		randaoMix: sdkcollections.NewItem[[types.MixLength]byte](
+		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(stateRootsPrefix),
+			stateRootsPrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
+		),
+		randaoMix: sdkcollections.NewMap[uint64, [types.MixLength]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(randaoMixPrefix),
 			randaoMixPrefix,
+			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
 		//nolint:lll
@@ -130,8 +139,9 @@ func (s *Store) Context() context.Context {
 	return s.ctx
 }
 
-// WithContext returns the Store with the given context.
+// WithContext returns a copy of the Store with the given context.
 func (s *Store) WithContext(ctx context.Context) *Store {
-	s.ctx = ctx
-	return s
+	cpy := *s
+	cpy.ctx = ctx
+	return &cpy
 }

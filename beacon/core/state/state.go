@@ -47,12 +47,13 @@ type BeaconState interface {
 type ReadOnlyBeaconState interface {
 	ReadOnlyDeposits
 	ReadOnlyRandaoMixes
+	ReadOnlyStateRoots
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
 	GetSlot() primitives.Slot
 	GetChainID() string
-	GetBlockRoot(primitives.Slot) (primitives.HashRoot, error)
+	GetBlockRootAtIndex(uint64) (primitives.HashRoot, error)
 	GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error)
 }
 
@@ -60,22 +61,35 @@ type ReadOnlyBeaconState interface {
 type WriteOnlyBeaconState interface {
 	WriteOnlyDeposits
 	WriteOnlyRandaoMixes
+	WriteOnlyStateRoots
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
-	SetBlockRoot(primitives.Slot, primitives.HashRoot) error
+	UpdateBlockRootAtIndex(primitives.Slot, primitives.HashRoot) error
 	SetLatestBlockHeader(*beacontypes.BeaconBlockHeader) error
+}
+
+// WriteOnlyStateRoots defines a struct which only has write access to state
+// roots methods.
+type WriteOnlyStateRoots interface {
+	UpdateStateRootAtIndex(uint64, primitives.HashRoot) error
+}
+
+// ReadOnlyStateRoots defines a struct which only has read access to state roots
+// methods.
+type ReadOnlyStateRoots interface {
+	StateRootAtIndex(uint64) (primitives.HashRoot, error)
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	SetRandaoMix(types.Mix) error
+	UpdateRandaoMixAtIndex(uint64, types.Mix) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	RandaoMix() (types.Mix, error)
+	RandaoMixAtIndex(uint64) (types.Mix, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.

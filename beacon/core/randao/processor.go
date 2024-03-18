@@ -122,7 +122,7 @@ func (p *Processor) verifyReveal(
 		return ErrInvalidSignature
 	}
 
-	p.logger.Info("randao reveal successfully verified 🤫 ",
+	p.logger.Info("randao reveal successfully verified 🐸",
 		"reveal", reveal,
 	)
 	return nil
@@ -133,13 +133,22 @@ func (p *Processor) MixinNewReveal(
 	st state.BeaconState,
 	reveal types.Reveal,
 ) error {
-	mix, err := st.RandaoMix()
+	// Get last slots randao mix.
+	mix, err := st.RandaoMixAtIndex(
+		st.GetSlot() % p.cfg.Beacon.Limits.EpochsPerHistoricalVector,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
 
+	// Mix in the reveal with the previous slotsmix.
 	newMix := mix.MixinNewReveal(reveal)
-	if err = st.SetRandaoMix(newMix); err != nil {
+
+	// Set this slots mix to the new mix.
+	if err = st.UpdateRandaoMixAtIndex(
+		st.GetSlot()%p.cfg.Beacon.Limits.EpochsPerHistoricalVector,
+		newMix,
+	); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
 	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
