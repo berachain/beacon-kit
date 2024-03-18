@@ -78,11 +78,11 @@ func VerifyMerkleProofWithDepth(
 
 // MerkleProof computes a proof from a trie's branches using a Merkle index.
 func (m *SparseMerkleTrie) MerkleProof(index uint64) ([][]byte, error) {
-	leaves := m.branches[0]
-	if index >= uint64(len(leaves)) {
+	numLeaves := uint64(len(m.branches[0]))
+	if index >= numLeaves {
 		return nil, fmt.Errorf(
 			"merkle index out of range in trie, max range: %d, received: %d",
-			len(leaves),
+			numLeaves,
 			index,
 		)
 	}
