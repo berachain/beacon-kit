@@ -25,18 +25,42 @@
 
 package bytes
 
-// SafeCopy will copy and return a non-nil byte slice, otherwise it returns nil.
-func SafeCopy(cp []byte) []byte {
-	if cp != nil {
-		if len(cp) == 32 { //nolint:gomnd // 32 is the size of a hash
-			copied := [32]byte(cp)
-			return copied[:]
-		}
-		copied := make([]byte, len(cp))
-		copy(copied, cp)
-		return copied
+// SafeCopy creates a copy of the provided byte slice. If the input slice is
+// non-nil and has a length of 32 bytes, it assumes the slice represents a hash
+// and copies it into a fixed-size array before returning a slice of that array.
+// For other non-nil slices, it returns a dynamically allocated copy. If the
+// input slice is nil, it returns nil.
+func SafeCopy(src []byte) []byte {
+	if src == nil {
+		return nil
 	}
-	return nil
+
+	//nolint:gomnd // 32 bytes.
+	if len(src) == 32 {
+		var copied [32]byte
+		copy(copied[:], src)
+		return copied[:]
+	}
+
+	copied := make([]byte, len(src))
+	copy(copied, src)
+	return copied
+}
+
+// SafeCopy2D creates a copy of a two-dimensional byte slice. It iterates over
+// the outer slice, copying each inner slice using SafeCopy. If the input is
+// non-nil, it returns a copy of the
+// two-dimensional slice. If the input is nil, it returns nil.
+func SafeCopy2D(src [][]byte) [][]byte {
+	if src == nil {
+		return nil
+	}
+
+	copied := make([][]byte, len(src))
+	for i, s := range src {
+		copied[i] = SafeCopy(s)
+	}
+	return copied
 }
 
 // CopyAndReverseEndianess will copy the input byte slice and return the
@@ -53,7 +77,8 @@ func CopyAndReverseEndianess(input []byte) []byte {
 // ToBytes32 is a utility function that transforms a byte slice into a fixed
 // 32-byte array. If the input exceeds 32 bytes, it gets truncated.
 func ToBytes32(input []byte) [32]byte {
-	return [32]byte(ExtendToSize(input, 32)) //nolint:gomnd // 32 bytes.
+	//nolint:gomnd // 32 bytes.
+	return [32]byte(ExtendToSize(input, 32))
 }
 
 // ExtendToSize extends a byte slice to a specified length. It returns the
