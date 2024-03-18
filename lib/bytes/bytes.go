@@ -63,19 +63,6 @@ func SafeCopy2D(src [][]byte) [][]byte {
 	return copied
 }
 
-// SafeCopy2d will copy and return a non-nil
-// 2d byte slice, otherwise it returns nil.
-func SafeCopy2d(ary [][]byte) [][]byte {
-	if ary != nil {
-		copied := make([][]byte, len(ary))
-		for i, a := range ary {
-			copied[i] = SafeCopy(a)
-		}
-		return copied
-	}
-	return nil
-}
-
 // CopyAndReverseEndianess will copy the input byte slice and return the
 // flipped version of it.
 func CopyAndReverseEndianess(input []byte) []byte {

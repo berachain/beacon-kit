@@ -241,13 +241,13 @@ func VerifyMerkleProof(
 func (m *SparseMerkleTrie) Copy() *SparseMerkleTrie {
 	dstBranches := make([][][]byte, len(m.branches))
 	for i1, srcB1 := range m.branches {
-		dstBranches[i1] = byteslib.SafeCopy2d(srcB1)
+		dstBranches[i1] = byteslib.SafeCopy2D(srcB1)
 	}
 
 	return &SparseMerkleTrie{
 		depth:         m.depth,
 		branches:      dstBranches,
-		originalItems: byteslib.SafeCopy2d(m.originalItems),
+		originalItems: byteslib.SafeCopy2D(m.originalItems),
 	}
 }
 
