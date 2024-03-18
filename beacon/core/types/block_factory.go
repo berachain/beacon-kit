@@ -28,7 +28,6 @@ package types
 import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/config/version"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
@@ -37,7 +36,6 @@ import (
 func NewBeaconBlock(
 	slot primitives.Slot,
 	proposerIndex primitives.ValidatorIndex,
-	executionData enginetypes.ExecutionPayload,
 	parentBlockRoot [32]byte,
 	forkVersion uint32,
 	reveal randaotypes.Reveal,
@@ -59,12 +57,6 @@ func NewBeaconBlock(
 	default:
 		return nil, ErrForkVersionNotSupported
 	}
-
-	if executionData != nil {
-		if err := block.GetBody().SetExecutionData(executionData); err != nil {
-			return nil, err
-		}
-	}
 	return block, nil
 }
 
@@ -80,7 +72,6 @@ func EmptyBeaconBlock(
 	return NewBeaconBlock(
 		slot,
 		proposerIndex,
-		nil,
 		parentBlockRoot,
 		version,
 		reveal,

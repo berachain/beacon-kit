@@ -30,6 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
+// BeaconBlockDeneb represents a block in the beacon chain during
+// the Deneb fork.
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
@@ -38,10 +40,10 @@ type BeaconBlockDeneb struct {
 	ProposerIndex primitives.ValidatorIndex
 
 	// ParentBlockRoot is the hash of the parent block.
-	ParentBlockRoot [32]byte `ssz-size:"32"`
+	ParentBlockRoot primitives.HashRoot `ssz-size:"32"`
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot [32]byte `ssz-size:"32"`
+	StateRoot primitives.HashRoot `ssz-size:"32"`
 
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
