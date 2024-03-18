@@ -174,7 +174,7 @@ func (s *Service) RequestBestBlock(
 
 	s.Logger().Info("finished assembling beacon block 🛟",
 		"slot", slot,
-		// "deposits", len(deposits),
+		"deposits", len(deposits),
 	)
 
 	// Return the block.
