@@ -25,5 +25,46 @@
 
 package types
 
+import (
+	"context"
+	"fmt"
+
+	rpcclient "github.com/cometbft/cometbft/rpc/client"
+	httpclient "github.com/cometbft/cometbft/rpc/client/http"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+)
+
 // ConsensusClient represents a consensus client.
-type ConsensusClient struct{}
+type ConsensusClient struct {
+	*services.ServiceContext
+	rpcclient.Client
+}
+
+// NewConsensusClient creates a new consensus client.
+func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
+	// Start by trying to get the public port for the JSON-RPC WebSocket
+	port, ok := serviceCtx.GetPublicPorts()["cometbft-rpc"]
+	if !ok {
+		panic("Couldn't find the public port for the JSON-RPC WebSocket")
+	}
+	clientURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
+	client, err := httpclient.New(clientURL, "/websocket")
+	if err != nil {
+		panic(err)
+	}
+
+	return &ConsensusClient{
+		ServiceContext: serviceCtx,
+		Client:         client,
+	}
+}
+
+// QueryValidators queries the validators.
+func (cc *ConsensusClient) QueryValidators(ctx context.Context) error {
+	res, err := cc.Client.Validators(ctx, nil, nil, nil)
+	if err != nil {
+		return err
+	}
+	_ = res
+	return nil
+}
