@@ -46,7 +46,7 @@ const (
 // SparseMerkleTrie implements a sparse, general purpose Merkle trie
 // to be used across Ethereum consensus functionality.
 type SparseMerkleTrie struct {
-	depth    uint
+	depth    uint64
 	branches [][][]byte
 	// list of provided items before hashing them into leaves.
 	originalItems [][]byte
@@ -60,6 +60,9 @@ func NewFromItems(
 ) (*SparseMerkleTrie, error) {
 	if len(items) == 0 {
 		return nil, errors.New("no items provided to generate Merkle trie")
+	}
+	if depth == 0 {
+		return nil, errors.New("depth must be greater than 0")
 	}
 	if depth > MaxTrieDepth {
 		// PowerOf2 would overflow
@@ -90,7 +93,7 @@ func NewFromItems(
 	return &SparseMerkleTrie{
 		branches:      layers,
 		originalItems: items,
-		depth:         uint(depth),
+		depth:         depth,
 	}, nil
 }
 
@@ -133,7 +136,7 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 	currentIndex := index
 	root := byteslib.ToBytes32(item)
 	two := 2
-	for i := uint(0); i < m.depth; i++ {
+	for i := uint64(0); i < m.depth; i++ {
 		isLeft := currentIndex%two == 0
 		neighborIdx := currentIndex ^ 1
 		var neighbor []byte

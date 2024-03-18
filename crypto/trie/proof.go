@@ -88,7 +88,7 @@ func (m *SparseMerkleTrie) MerkleProof(index uint64) ([][]byte, error) {
 	}
 	merkleIndex := index
 	proof := make([][]byte, m.depth+1)
-	for i := uint(0); i < m.depth; i++ {
+	for i := uint64(0); i < m.depth; i++ {
 		subIndex := (merkleIndex / (1 << i)) ^ 1
 		if subIndex < uint64(len(m.branches[i])) {
 			item := byteslib.ToBytes32(m.branches[i][subIndex])
