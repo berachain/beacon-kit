@@ -71,7 +71,7 @@ type Node struct {
 //nolint:gomnd // default values.
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []interface{}{},
+		AdditionalServices: []interface{}{"goomy_blob"},
 		Validators: []Node{
 			{
 				ElType:   "nethermind",
