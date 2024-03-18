@@ -52,9 +52,10 @@ func TestDeposits(t *testing.T) {
 	beaconStore = beaconStore.WithContext(ctx)
 
 	t.Run("should work with deposit", func(t *testing.T) {
+		cred := []byte("12345678901234567890123456789012")
 		deposit := &beacontypes.Deposit{
 			Pubkey:      []byte("pubkey"),
-			Credentials: []byte("12345678901234567890123456789012"),
+			Credentials: beacontypes.DepositCredentials(cred),
 			Amount:      100,
 			Signature:   []byte("signature"),
 		}
