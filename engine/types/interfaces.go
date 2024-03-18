@@ -27,7 +27,7 @@ package enginetypes
 
 import (
 	"github.com/berachain/beacon-kit/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // ExecutionPayloadBody is the interface for the execution data of a block.
