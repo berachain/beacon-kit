@@ -151,7 +151,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 func GetBlobKzgCommitmentsRoot(commitments [][48]byte) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
-	commitmentsSparse, err := trie.GenerateTrieFromItems(
+	commitmentsSparse, err := trie.NewFromItems(
 		commitmentsLeaves,
 		LogMaxBlobCommitments,
 	)

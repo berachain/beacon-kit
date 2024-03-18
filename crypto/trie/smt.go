@@ -52,16 +52,9 @@ type SparseMerkleTrie struct {
 	originalItems [][]byte
 }
 
-// NewTrie returns a new merkle trie filled with tree.ZeroHashes to use.
-func NewTrie(depth uint64) (*SparseMerkleTrie, error) {
-	var zeroBytes [32]byte
-	items := [][]byte{zeroBytes[:]}
-	return GenerateTrieFromItems(items, depth)
-}
-
-// GenerateTrieFromItems constructs a Merkle trie
+// NewFromItems constructs a Merkle trie
 // from a sequence of byte slices.
-func GenerateTrieFromItems(
+func NewFromItems(
 	items [][]byte,
 	depth uint64,
 ) (*SparseMerkleTrie, error) {
@@ -194,47 +187,6 @@ func (m *SparseMerkleTrie) MerkleProof(index uint64) ([][]byte, error) {
 	binary.LittleEndian.PutUint64(enc[:], uint64(len(m.originalItems)))
 	proof[len(proof)-1] = enc[:]
 	return proof, nil
-}
-
-// VerifyMerkleProofWithDepth verifies a Merkle branch against a root of a trie.
-func VerifyMerkleProofWithDepth(
-	root, item []byte,
-	merkleIndex uint64,
-	proof [][]byte,
-	depth uint64,
-) bool {
-	if uint64(len(proof)) != depth+1 {
-		return false
-	}
-	node := byteslib.ToBytes32(item)
-	for i := uint64(0); i <= depth; i++ {
-		if (merkleIndex & 1) == 1 {
-			node = sha256.Hash(append(proof[i], node[:]...))
-		} else {
-			node = sha256.Hash(append(node[:], proof[i]...))
-		}
-		merkleIndex /= 2
-	}
-	return bytes.Equal(root, node[:])
-}
-
-// VerifyMerkleProof given a trie root, a leaf, the generalized merkle index
-// of the leaf in the trie, and the proof itself.
-func VerifyMerkleProof(
-	root, leaf []byte,
-	merkleIndex uint64,
-	proof [][]byte,
-) bool {
-	if len(proof) == 0 {
-		return false
-	}
-	return VerifyMerkleProofWithDepth(
-		root,
-		leaf,
-		merkleIndex,
-		proof,
-		uint64(len(proof))-1,
-	)
 }
 
 // Copy performs a deep copy of the trie.

@@ -79,7 +79,7 @@ func Test_BodyProof(t *testing.T) {
 	depth := types.LogMaxBlobCommitments
 
 	// Generate a sparse Merkle tree from the leaves.
-	sparse, err := trie.GenerateTrieFromItems(leaves, depth)
+	sparse, err := trie.NewFromItems(leaves, depth)
 	require.NoError(t, err, "Failed to generate trie from items")
 	require.Equal(t, len(leaves), sparse.NumOfItems())
 
@@ -134,7 +134,7 @@ func Test_TopLevelRoots(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	bodyMembersRoots[types.KZGPosition] = commitmentsRoot[:]
-	bodySparse, err := trie.GenerateTrieFromItems(
+	bodySparse, err := trie.NewFromItems(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)
@@ -207,7 +207,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	// bodyMembersRoots[types.KZGPosition] = commitmentsRoot[:]
-	bodySparse, err := trie.GenerateTrieFromItems(
+	bodySparse, err := trie.NewFromItems(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)

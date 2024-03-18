@@ -38,12 +38,12 @@ const (
 	TreeDepth uint64 = 32
 )
 
-func TestGenerateTrieFromItems_NoItemsProvided(t *testing.T) {
-	_, err := trie.GenerateTrieFromItems(nil, TreeDepth)
+func TestNewFromItems_NoItemsProvided(t *testing.T) {
+	_, err := trie.NewFromItems(nil, TreeDepth)
 	require.ErrorContains(t, err, "no items provided to generate Merkle trie")
 }
 
-func TestGenerateTrieFromItems_DepthSupport(t *testing.T) {
+func TestNewFromItems_DepthSupport(t *testing.T) {
 	items := [][]byte{
 		[]byte("A"),
 		[]byte("BB"),
@@ -54,13 +54,13 @@ func TestGenerateTrieFromItems_DepthSupport(t *testing.T) {
 		[]byte("GGGGGGG"),
 	}
 	// Supported depth
-	m1, err := trie.GenerateTrieFromItems(items, trie.MaxTrieDepth)
+	m1, err := trie.NewFromItems(items, trie.MaxTrieDepth)
 	require.NoError(t, err)
 	proof, err := m1.MerkleProof(2)
 	require.NoError(t, err)
 	require.Len(t, proof, int(trie.MaxTrieDepth)+1)
 	// Unsupported depth
-	_, err = trie.GenerateTrieFromItems(items, trie.MaxTrieDepth+1)
+	_, err = trie.NewFromItems(items, trie.MaxTrieDepth+1)
 	require.Error(t, err)
 	errString := "supported merkle trie depth exceeded (max uint64 depth is 63, " +
 		"theoretical max sparse merkle trie depth is 64)"
@@ -78,7 +78,7 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 		[]byte("G"),
 		[]byte("H"),
 	}
-	m, err := trie.GenerateTrieFromItems(
+	m, err := trie.NewFromItems(
 		items,
 		TreeDepth,
 	)
@@ -133,7 +133,7 @@ func TestMerkleTrie_VerifyMerkleProof(t *testing.T) {
 		[]byte("H"),
 	}
 
-	m, err := trie.GenerateTrieFromItems(
+	m, err := trie.NewFromItems(
 		items,
 		TreeDepth,
 	)
@@ -170,7 +170,7 @@ func TestMerkleTrie_NegativeIndexes(t *testing.T) {
 		[]byte("G"),
 		[]byte("H"),
 	}
-	m, err := trie.GenerateTrieFromItems(
+	m, err := trie.NewFromItems(
 		items,
 		TreeDepth,
 	)
@@ -189,8 +189,8 @@ func TestMerkleTrie_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 		{3},
 		{4},
 	}
-	depth := TreeDepth + 1
-	m, err := trie.GenerateTrieFromItems(items, depth)
+	treeDepth := TreeDepth + 1
+	m, err := trie.NewFromItems(items, treeDepth)
 	require.NoError(t, err)
 	proof, err := m.MerkleProof(0)
 	require.NoError(t, err)
@@ -198,7 +198,7 @@ func TestMerkleTrie_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	require.True(
 		t,
-		trie.VerifyMerkleProofWithDepth(root[:], items[0], 0, proof, depth),
+		trie.VerifyMerkleProofWithDepth(root[:], items[0], 0, proof, treeDepth),
 	)
 
 	// Now we update the trie.
@@ -207,16 +207,12 @@ func TestMerkleTrie_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	root, err = m.HashTreeRoot()
 	require.NoError(t, err)
-	if ok := trie.VerifyMerkleProofWithDepth(
-		root[:], []byte{5}, 3, proof, depth,
-	); !ok {
-		t.Error("Second Merkle proof did not verify")
-	}
-	if ok := trie.VerifyMerkleProofWithDepth(
-		root[:], []byte{4}, 3, proof, depth,
-	); ok {
-		t.Error("Old item should not verify")
-	}
+	require.True(t, trie.VerifyMerkleProofWithDepth(
+		root[:], []byte{5}, 3, proof, treeDepth,
+	), "Second Merkle proof did not verify")
+	require.False(t, trie.VerifyMerkleProofWithDepth(
+		root[:], []byte{4}, 3, proof, treeDepth,
+	), "Old item should not verify")
 
 	// Now we update the trie at an index larger than the number of items.
 	require.NoError(t, m.Insert([]byte{6}, 15))
@@ -229,7 +225,7 @@ func TestCopy_OK(t *testing.T) {
 		{3},
 		{4},
 	}
-	source, err := trie.GenerateTrieFromItems(
+	source, err := trie.NewFromItems(
 		items,
 		TreeDepth+1,
 	)
@@ -246,7 +242,7 @@ func TestCopy_OK(t *testing.T) {
 	require.Equal(t, a, b)
 }
 
-func BenchmarkGenerateTrieFromItems(b *testing.B) {
+func BenchmarkNewFromItems(b *testing.B) {
 	items := [][]byte{
 		[]byte("A"),
 		[]byte("BB"),
@@ -257,7 +253,7 @@ func BenchmarkGenerateTrieFromItems(b *testing.B) {
 		[]byte("GGGGGGG"),
 	}
 	for i := 0; i < b.N; i++ {
-		_, err := trie.GenerateTrieFromItems(
+		_, err := trie.NewFromItems(
 			items,
 			TreeDepth,
 		)
@@ -273,7 +269,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 		someRoot := byteslib.ToBytes32([]byte(strconv.Itoa(i)))
 		items[i] = someRoot[:]
 	}
-	tr, err := trie.GenerateTrieFromItems(
+	tr, err := trie.NewFromItems(
 		items,
 		TreeDepth,
 	)
@@ -297,7 +293,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 		[]byte("FFFFFF"),
 		[]byte("GGGGGGG"),
 	}
-	normalTrie, err := trie.GenerateTrieFromItems(
+	normalTrie, err := trie.NewFromItems(
 		items,
 		TreeDepth,
 	)
@@ -321,7 +317,7 @@ func BenchmarkVerifyMerkleProofWithDepth(b *testing.B) {
 		[]byte("FFFFFF"),
 		[]byte("GGGGGGG"),
 	}
-	m, err := trie.GenerateTrieFromItems(
+	m, err := trie.NewFromItems(
 		items,
 		TreeDepth,
 	)

@@ -57,7 +57,7 @@ func FuzzSparseMerkleTrie_VerifyMerkleProofWithDepth(f *testing.F) {
 		[]byte("G"),
 		[]byte("H"),
 	}
-	m, err := trie.GenerateTrieFromItems(items, depth)
+	m, err := trie.NewFromItems(items, depth)
 	require.NoError(f, err)
 	proof, err := m.MerkleProof(0)
 	require.NoError(f, err)

@@ -87,7 +87,7 @@ func VerifyKZGInclusionProof(
 // the Merkle proof. If an error occurs during the generation of the proof, it
 // returns nil and the error. The function internally calls the `BodyProof`
 // function to generate the body proof, and the `topLevelRoots` function to
-// obtain the top level roots. It then uses the `trie.GenerateTrieFromItems`
+// obtain the top level roots. It then uses the `trie.NewFromItems`
 // function to generate a sparse Merkle tree from the top level roots. Finally,
 // it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top
 // proof, and appends it to the body proof. Note that the last element of the
@@ -108,7 +108,7 @@ func MerkleProofKZGCommitment(
 		return nil, err
 	}
 
-	sparse, err := trie.GenerateTrieFromItems(membersRoots, LogBodyLength)
+	sparse, err := trie.NewFromItems(membersRoots, LogBodyLength)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func BodyProof(commitments [][48]byte, index uint64) ([][]byte, error) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	sparse, err := trie.GenerateTrieFromItems(leaves, LogMaxBlobCommitments)
+	sparse, err := trie.NewFromItems(leaves, LogMaxBlobCommitments)
 	if err != nil {
 		return nil, err
 	}
