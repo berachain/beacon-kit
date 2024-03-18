@@ -50,25 +50,20 @@ func BuildBlobSidecar(
 	blk BeaconBlock,
 	blobs *enginetypes.BlobsBundleV1,
 ) (*BlobSidecars, error) {
-	numBlobs := len(blobs.Blobs)
+	numBlobs := uint64(len(blobs.Blobs))
 	sidecars := make([]*BlobSidecar, numBlobs)
 	g := errgroup.Group{}
-	for i := 0; i < numBlobs; i++ {
+	for i := uint64(0); i < numBlobs; i++ {
 		i := i // capture range variable
 		g.Go(func() error {
 			// Create Inclusion Proof
-			inclusionProof, err := MerkleProofKZGCommitment(
-				blk,
-				//#nosec:G701: fuck off gosec.
-				uint64(i),
-			)
+			inclusionProof, err := MerkleProofKZGCommitment(blk, i)
 			if err != nil {
 				return err
 			}
 
 			sidecars[i] = &BlobSidecar{
-				//#nosec:G701: fuck off gosec.
-				Index:          uint64(i),
+				Index:          i,
 				Blob:           blobs.Blobs[i],
 				KzgCommitment:  blobs.Commitments[i],
 				KzgProof:       blobs.Proofs[i],
