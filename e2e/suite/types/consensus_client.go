@@ -61,7 +61,7 @@ func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
 }
 
 // GetPubKey returns the public key of the validat running on this node.
-func (cc *ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
+func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (cc *ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 }
 
 // GetConsensusPower returns the consensus power of the node.
-func (cc *ConsensusClient) GetConsensusPower(
+func (cc ConsensusClient) GetConsensusPower(
 	ctx context.Context,
 ) (uint64, error) {
 	res, err := cc.Client.Status(ctx)
