@@ -27,9 +27,12 @@ package trie
 
 import (
 	"bytes"
+	"encoding/binary"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/crypto/sha256"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/protolambda/ztyp/tree"
 )
 
 // VerifyMerkleProof given a trie root, a leaf, the generalized merkle index
@@ -71,4 +74,31 @@ func VerifyMerkleProofWithDepth(
 		merkleIndex /= 2
 	}
 	return bytes.Equal(root, node[:])
+}
+
+// MerkleProof computes a proof from a trie's branches using a Merkle index.
+func (m *SparseMerkleTrie) MerkleProof(index uint64) ([][]byte, error) {
+	leaves := m.branches[0]
+	if index >= uint64(len(leaves)) {
+		return nil, fmt.Errorf(
+			"merkle index out of range in trie, max range: %d, received: %d",
+			len(leaves),
+			index,
+		)
+	}
+	merkleIndex := index
+	proof := make([][]byte, m.depth+1)
+	for i := uint(0); i < m.depth; i++ {
+		subIndex := (merkleIndex / (1 << i)) ^ 1
+		if subIndex < uint64(len(m.branches[i])) {
+			item := byteslib.ToBytes32(m.branches[i][subIndex])
+			proof[i] = item[:]
+		} else {
+			proof[i] = tree.ZeroHashes[i][:]
+		}
+	}
+	var enc [32]byte
+	binary.LittleEndian.PutUint64(enc[:], uint64(len(m.originalItems)))
+	proof[len(proof)-1] = enc[:]
+	return proof, nil
 }

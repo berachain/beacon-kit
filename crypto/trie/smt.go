@@ -162,33 +162,6 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 	return nil
 }
 
-// MerkleProof computes a proof from a trie's branches using a Merkle index.
-func (m *SparseMerkleTrie) MerkleProof(index uint64) ([][]byte, error) {
-	leaves := m.branches[0]
-	if index >= uint64(len(leaves)) {
-		return nil, fmt.Errorf(
-			"merkle index out of range in trie, max range: %d, received: %d",
-			len(leaves),
-			index,
-		)
-	}
-	merkleIndex := index
-	proof := make([][]byte, m.depth+1)
-	for i := uint(0); i < m.depth; i++ {
-		subIndex := (merkleIndex / (1 << i)) ^ 1
-		if subIndex < uint64(len(m.branches[i])) {
-			item := byteslib.ToBytes32(m.branches[i][subIndex])
-			proof[i] = item[:]
-		} else {
-			proof[i] = tree.ZeroHashes[i][:]
-		}
-	}
-	var enc [32]byte
-	binary.LittleEndian.PutUint64(enc[:], uint64(len(m.originalItems)))
-	proof[len(proof)-1] = enc[:]
-	return proof, nil
-}
-
 // Copy performs a deep copy of the trie.
 func (m *SparseMerkleTrie) Copy() *SparseMerkleTrie {
 	dstBranches := make([][][]byte, len(m.branches))
