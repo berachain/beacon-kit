@@ -29,6 +29,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cockroachdb/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
@@ -59,12 +60,25 @@ func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
 	}
 }
 
-// QueryValidators queries the validators.
-func (cc *ConsensusClient) QueryValidators(ctx context.Context) error {
-	res, err := cc.Client.Validators(ctx, nil, nil, nil)
+// GetPubKey returns the public key of the validat running on this node.
+func (cc *ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
+	res, err := cc.Client.Status(ctx)
 	if err != nil {
-		return err
+		return nil, err
+	} else if res.ValidatorInfo.PubKey == nil {
+		return nil, errors.New("node public key is nil")
 	}
-	_ = res
-	return nil
+
+	return res.ValidatorInfo.PubKey.Bytes(), nil
+}
+
+// GetConsensusPower returns the consensus power of the node.
+func (cc *ConsensusClient) GetConsensusPower(
+	ctx context.Context,
+) (uint64, error) {
+	res, err := cc.Client.Status(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return uint64(res.ValidatorInfo.VotingPower), nil
 }

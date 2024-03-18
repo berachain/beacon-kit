@@ -156,16 +156,15 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() error {
 }
 
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
+	s.consensusClients = make(map[string]*types.ConsensusClient)
 	sCtx, err := s.Enclave().GetServiceContext("cl-validator-beaconkit-0")
 	if err != nil {
 		return err
 	}
 
-	client := types.NewConsensusClient(
+	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
 		sCtx,
 	)
-
-	client.QueryValidators(s.Ctx())
 	return nil
 }
 

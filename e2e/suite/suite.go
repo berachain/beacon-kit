@@ -52,7 +52,7 @@ type KurtosisE2ESuite struct {
 	enclave *enclaves.EnclaveContext
 
 	// TODO: Figure out what these may be useful for.
-	// consensusClients map[string]*types.ConsensusClient
+	consensusClients map[string]*types.ConsensusClient
 	// executionClients map[string]*types.ExecutionClient
 	nginxBalancer *types.LoadBalancer
 
