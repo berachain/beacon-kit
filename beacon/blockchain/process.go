@@ -132,6 +132,10 @@ func (s *Service) ValidateExecutionPayloadOnBlk(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
+	}
+
 	body := blk.GetBody()
 	if body.IsNil() {
 		return beacontypes.ErrNilBlkBody
