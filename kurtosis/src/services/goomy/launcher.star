@@ -34,7 +34,7 @@ def get_config(
 
     blob_cmd = "./blob-spammer -p {0} combined -b 2 -t 2 --max-pending 3 -h {1}".format(
         funding_account.private_key,
-        rpc_endpoint.ports["http"].url,
+        rpc_endpoint,
     )
 
     return ServiceConfig(

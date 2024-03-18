@@ -79,7 +79,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
             goomy_blob.launch_goomy_blob(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[0],
-                plan.get_service("nginx"),
+                plan.get_service("nginx").ports["http"].url,
                 goomy_blob_args,
             )
             plan.print("Successfully launched goomy the blob spammer")
