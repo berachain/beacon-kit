@@ -29,7 +29,7 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/lib/encoding/ssz"
+	"github.com/berachain/beacon-kit/lib/ssz"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 )
@@ -38,7 +38,7 @@ import (
 // chain.
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
-	RandaoReveal randaotypes.Reveal `ssz-size:"96"`
+	RandaoReveal [96]byte `ssz-size:"96"`
 
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
@@ -131,9 +131,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 
 	// Deposits
 	dep := b.GetDeposits()
-	//nolint:gomnd // TODO: Config
-	maxDepositsPerBlock := uint64(16)
-	root, err = ssz.MerkleizeListSSZ(dep, maxDepositsPerBlock)
+	root, err = ssz.MerkleizeListSSZ(dep)
 	if err != nil {
 		return nil, err
 	}
