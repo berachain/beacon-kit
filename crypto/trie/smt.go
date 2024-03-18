@@ -59,7 +59,9 @@ func NewFromItems(
 	depth uint64,
 ) (*SparseMerkleTrie, error) {
 	if len(items) == 0 {
-		return &SparseMerkleTrie{}, errors.New("no items provided to generate Merkle trie")
+		return &SparseMerkleTrie{}, errors.New(
+			"no items provided to generate Merkle trie",
+		)
 	}
 	if depth == 0 {
 		return &SparseMerkleTrie{}, errors.New("depth must be greater than 0")
