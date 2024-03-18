@@ -60,6 +60,11 @@ func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][48]byte {
 	return b.BlobKzgCommitments
 }
 
+// GetGraffiti returns the Graffiti of the Body.
+func (b *BeaconBlockBodyDeneb) GetGraffiti() [32]byte {
+	return b.Graffiti
+}
+
 // GetRandaoReveal returns the RandaoReveal of the Body.
 func (b *BeaconBlockBodyDeneb) GetRandaoReveal() randaotypes.Reveal {
 	return b.RandaoReveal
