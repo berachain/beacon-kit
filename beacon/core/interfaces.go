@@ -30,7 +30,9 @@ import (
 
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // RandaoProcessor is the interface for the randao processor.
@@ -53,7 +55,7 @@ type RandaoProcessor interface {
 type ValsetUpdater interface {
 	IncreaseConsensusPower(
 		ctx context.Context,
-		delegator [bls12381.SecretKeyLength]byte,
+		delegator beacontypes.DepositCredentials,
 		pubkey [bls12381.PubKeyLength]byte,
 		amount uint64,
 		signature []byte,
@@ -62,7 +64,7 @@ type ValsetUpdater interface {
 
 	DecreaseConsensusPower(
 		ctx context.Context,
-		delegator [bls12381.SecretKeyLength]byte,
+		delegator primitives.ExecutionAddress,
 		pubkey [bls12381.PubKeyLength]byte,
 		amount uint64,
 	) error

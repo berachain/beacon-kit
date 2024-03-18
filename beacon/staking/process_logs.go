@@ -26,14 +26,11 @@
 package staking
 
 import (
-	"bytes"
 	"context"
-	"errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -85,7 +82,7 @@ func (s *Service) processDepositLog(
 	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
 		Index:       d.Index,
 		Pubkey:      d.Pubkey,
-		Credentials: d.Credentials,
+		Credentials: beacontypes.DepositCredentials(d.Credentials),
 		Amount:      d.Amount,
 		Signature:   d.Signature,
 	}})
@@ -113,9 +110,10 @@ func (s *Service) processWithdrawalLog(
 		return err
 	}
 
-	// Check to make sure credentials encoded correctly.
-	if !bytes.Equal(w.Credentials[:1], EthSecp256k1CredentialPrefix) {
-		return errors.New("invalid withdrawal credentials")
+	executionAddr, err := beacontypes.DepositCredentials(w.Credentials).
+		ToExecutionAddress()
+	if err != nil {
+		return err
 	}
 
 	s.Logger().Info(
@@ -125,7 +123,7 @@ func (s *Service) processWithdrawalLog(
 	return s.BeaconState(ctx).EnqueueWithdrawals([]*enginetypes.Withdrawal{{
 		Index:     w.Index,
 		Validator: validator,
-		Address:   primitives.ExecutionAddress(w.Credentials[12:]),
+		Address:   executionAddr,
 		Amount:    w.Amount,
 	}})
 }

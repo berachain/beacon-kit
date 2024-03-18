@@ -230,7 +230,7 @@ func (sp *StateProcessor) processDeposits(
 		// the beacon store. @po-bera needs for EIP-4788.
 		if err = sp.vsu.IncreaseConsensusPower(
 			st.Context(),
-			[bls12381.SecretKeyLength]byte(dep.Credentials),
+			dep.Credentials,
 			[bls12381.PubKeyLength]byte(dep.Pubkey),
 			dep.Amount,
 			dep.Signature,
@@ -275,7 +275,7 @@ func (sp *StateProcessor) processWithdrawals(
 		}
 		if err = sp.vsu.DecreaseConsensusPower(
 			st.Context(),
-			[bls12381.SecretKeyLength]byte(wd.Address[:]),
+			wd.Address,
 			[bls12381.PubKeyLength]byte(pk),
 			wd.Amount,
 		); err != nil {

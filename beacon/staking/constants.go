@@ -63,7 +63,4 @@ var (
 	WithdrawalEventSig = crypto.Keccak256Hash(
 		[]byte(WithdrawalEventName + "(bytes,bytes,bytes,uint64,uint64)"),
 	)
-
-	//nolint:gochecknoglobals // Avoid re-allocating these variables.
-	EthSecp256k1CredentialPrefix = []byte{0x01}
 )

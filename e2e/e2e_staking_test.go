@@ -78,13 +78,25 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
 
+	// Get the block num
+	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get original evm balance
+	balance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(),
+		s.GenesisAccount().Address(),
+		big.NewInt(int64(blkNum)),
+	)
+	s.Require().NoError(err)
+
 	// Create a deposit transaction.
 	val, _ := big.NewFloat(32e18).Int(nil)
 	tx, err := dc.Deposit(&bind.TransactOpts{
 		From:   s.GenesisAccount().Address(),
 		Value:  val,
 		Signer: s.GenesisAccount().SignerFunc(chainID),
-	}, pubkey, credentials, 0, signature[:])
+	}, pubkey, credentials, 32e9, signature[:])
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
@@ -93,9 +105,56 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
 	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
+	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 
-	// Check that the consensus power has increased.
+	// Wait for the log to be processed.
+	targetBlkNum := blkNum + 5
+	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	s.Require().NoError(err)
+
+	// Check to see if evm balance decreased.
+	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(),
+		s.GenesisAccount().Address(),
+		big.NewInt(int64(targetBlkNum)),
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
+
 	newPower, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().Greater(newPower, power)
+
+	// Submit withdrawal
+	tx, err = dc.Withdraw(&bind.TransactOpts{
+		From:   s.GenesisAccount().Address(),
+		Signer: s.GenesisAccount().SignerFunc(chainID),
+	}, pubkey, credentials, 32e9)
+	s.Require().NoError(err)
+
+	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(1), receipt.Status)
+	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
+	s.Logger().
+		Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
+
+	// Wait for the log to be processed.
+	targetBlkNum += 5
+	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	s.Require().NoError(err)
+
+	// Check to see if new balance is greater than the previous balance
+	postWithdrawBalance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(),
+		s.GenesisAccount().Address(),
+		big.NewInt(int64(targetBlkNum)),
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
+
+	// Check to see if consensus power is back to the original power
+	postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().Equal(postWithdrawPower, power)
 }
