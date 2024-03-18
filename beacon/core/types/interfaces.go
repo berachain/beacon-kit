@@ -56,16 +56,20 @@ type ReadOnlyBeaconBlock interface {
 	GetBody() BeaconBlockBody
 }
 
+// BeaconBlockBody is the interface for a beacon block body.
 type BeaconBlockBody interface {
 	WriteOnlyBeaconBlockBody
 	ReadOnlyBeaconBlockBody
 }
 
+// WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetExecutionData(enginetypes.ExecutionPayload) error
 }
 
+// ReadOnlyBeaconBlockBody is the interface for
+// a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
@@ -74,6 +78,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
+	GetGraffiti() [32]byte
 	GetRandaoReveal() randaotypes.Reveal
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte
