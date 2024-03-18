@@ -141,17 +141,16 @@ func (s *Service) RequestBestBlock(
 		return nil, beacontypes.ErrNilBlkBody
 	}
 
-	// // Dequeue deposits from the state.
-	// deposits, err := s.BeaconState(ctx).ExpectedDeposits(
-	// 	s.BeaconCfg().Limits.MaxDepositsPerBlock,
-	// )
-	// if err != nil {
-	// 	return nil, err
-	// }
+	// Dequeue deposits from the state.
+	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
+		s.BeaconCfg().Limits.MaxDepositsPerBlock,
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Set the deposits on the block body.
-	// body.SetDeposits(deposits)
-	body.SetDeposits(make([]*beacontypes.Deposit, 0))
+	body.SetDeposits(deposits)
 
 	// if err = b
 	if err = body.SetExecutionData(payload); err != nil {
