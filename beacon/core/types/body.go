@@ -73,10 +73,6 @@ func (b *BeaconBlockBodyDeneb) GetRandaoReveal() randaotypes.Reveal {
 	return b.RandaoReveal
 }
 
-func (b *BeaconBlockBodyDeneb) GetGraffiti() [32]byte {
-	return b.Graffiti
-}
-
 // GetExecutionPayload returns the ExecutionPayload of the Body.
 //
 //nolint:lll

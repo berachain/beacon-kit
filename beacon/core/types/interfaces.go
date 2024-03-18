@@ -81,7 +81,6 @@ type ReadOnlyBeaconBlockBody interface {
 	GetDeposits() []*Deposit
 	GetGraffiti() [32]byte
 	GetRandaoReveal() randaotypes.Reveal
-	GetGraffiti() [32]byte
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte
 }
