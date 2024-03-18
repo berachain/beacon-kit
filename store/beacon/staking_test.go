@@ -58,7 +58,7 @@ func TestDeposits(t *testing.T) {
 			Amount:      100,
 			Signature:   []byte("signature"),
 		}
-		err := beaconStore.EnqueueDeposit(deposit)
+		err := beaconStore.EnqueueDeposits([]*beacontypes.Deposit{deposit})
 		require.NoError(t, err)
 		deposits, err := beaconStore.DequeueDeposits(1)
 		require.NoError(t, err)
