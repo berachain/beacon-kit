@@ -67,7 +67,6 @@ func (s *Store) Persist(
 	slot primitives.Slot,
 	sidecars ...*beacontypes.BlobSidecar,
 ) error {
-	// Ensure the blobs are available.
 	return errors.Join(iter.Map(
 		sidecars,
 		func(sidecar **beacontypes.BlobSidecar) error {
