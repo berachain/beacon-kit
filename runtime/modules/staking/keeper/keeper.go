@@ -251,17 +251,32 @@ func (k *Keeper) withdrawAndBurn(
 		return err
 	}
 
+	shares, err := validator.SharesFromTokens(sdkmath.NewIntFromUint64(amount))
+	if err != nil {
+		return err
+	}
+
+	_, err = k.ValidateUnbondAmount(
+		ctx,
+		sdk.AccAddress(delegator),
+		valBz,
+		shares.TruncateInt(),
+	)
+	if err != nil {
+		return err
+	}
+
 	_, _, err = k.Undelegate(
 		ctx,
 		sdk.AccAddress(delegator),
 		valBz,
-		sdkmath.LegacyNewDecFromInt(sdkmath.NewIntFromUint64(amount)),
+		shares,
 	)
 	if err != nil {
 		return err
 	}
 
-	_, err = k.CompleteUnbonding(
+	coinsToBurn, err := k.CompleteUnbonding(
 		ctx,
 		sdk.AccAddress(delegator),
 		valBz,
@@ -270,9 +285,5 @@ func (k *Keeper) withdrawAndBurn(
 		return err
 	}
 
-	coins := sdk.Coins{
-		sdk.NewCoin(StakingUnit, sdkmath.NewIntFromUint64(amount)),
-	}
-
-	return k.bk.BurnCoins(ctx, sdk.AccAddress(delegator), coins)
+	return k.bk.BurnCoins(ctx, sdk.AccAddress(delegator), coinsToBurn)
 }
