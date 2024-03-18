@@ -78,7 +78,7 @@ func (s *Store) Persist(
 			if err != nil {
 				return err
 			}
-			return s.Set(slot, sc.KzgCommitment, bz)
+			return s.Set(slot, s.KzgCommitment, bz)
 		},
 	)...)
 }
