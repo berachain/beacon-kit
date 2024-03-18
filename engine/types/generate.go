@@ -33,7 +33,7 @@ import (
 // For cleanliness we put all go:generate directives and marshalling overrides
 // in a single file.
 
-//go:generate go run github.com/prysmaticlabs/fastssz/sszgen -path . -objs ExecutableDataDeneb,Withdrawal -include ../../primitives,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output generated.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ExecutableDataDeneb,Withdrawal -include ../../primitives,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output generated.ssz.go
 
 // JSON type overrides for PayloadAttributes.
 type payloadAttributesJSONMarshaling struct {
