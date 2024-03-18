@@ -85,7 +85,9 @@ func (a EthAccount) SignTx(
 
 // SignerFunc returns a signer function for the account.
 func (a EthAccount) SignerFunc(chainID *big.Int) bind.SignerFn {
-	return func(addr common.Address, tx *types.Transaction) (*types.Transaction, error) {
+	return func(
+		addr common.Address, tx *types.Transaction,
+	) (*types.Transaction, error) {
 		if addr != a.Address() {
 			return nil, errors.New("account not authorized to sign")
 		}

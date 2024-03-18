@@ -54,7 +54,10 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 
-	credentials := byteslib.PrependExtendToSize(s.GenesisAccount().Address().Bytes(), 32)
+	credentials := byteslib.PrependExtendToSize(
+		s.GenesisAccount().Address().Bytes(),
+		32,
+	)
 	credentials[0] = 0x01
 
 	signature := [96]byte{}
