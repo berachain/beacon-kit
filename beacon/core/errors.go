@@ -23,18 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package core
 
-import (
-	"context"
+import "errors"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+// ErrAttemptedToVerifyNilSidecar is returned when an attempt is made to store a
+// nil sidecar.
+var ErrAttemptedToVerifyNilSidecar = errors.New(
+	"attempted to verify nil sidecar",
 )
-
-// BeaconStorageBackend is the interface for the beacon storage backend.
-type BeaconStorageBackend interface {
-	AvailabilityStore(ctx context.Context) state.AvailabilityStore
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
