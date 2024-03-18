@@ -35,13 +35,17 @@ import (
 // chain.
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
-	RandaoReveal [96]byte `ssz-size:"96"`
+	RandaoReveal randaotypes.Reveal `ssz-size:"96"`
+
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
+
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `                ssz-max:"16"`
+	Deposits []*Deposit `ssz-max:"16"`
+
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
+
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
 }
