@@ -10,3 +10,13 @@ GLOBAL_LOG_LEVEL = struct(
 
 JWT_MOUNT_PATH_ON_CONTAINER = "/jwt/jwtsecret"
 JWT_FILEPATH = "/kurtosis/src/nodes/jwtsecret"
+
+def new_prefunded_account(address, private_key):
+    return struct(address=address, private_key=private_key)
+
+PRE_FUNDED_ACCOUNTS = [
+    new_prefunded_account(
+        "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
+        "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
+    ),
+]
