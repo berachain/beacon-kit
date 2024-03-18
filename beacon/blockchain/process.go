@@ -31,6 +31,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/cockroachdb/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -53,7 +54,6 @@ func (s *Service) ProcessBeaconBlock(
 ) error {
 	var (
 		avs         = s.AvailabilityStore(ctx)
-		fcs         = s.ForkchoiceStore(ctx)
 		g, groupCtx = errgroup.WithContext(ctx)
 		st          = s.BeaconState(groupCtx)
 		err         error
@@ -61,7 +61,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Validate payload in Parallel.
 	g.Go(func() error {
-		return s.pv.ValidatePayload(st, fcs, blk)
+		return s.ValidateExecutionPayloadOnBlk(ctx, blk)
 	})
 
 	// Validate block in Parallel.
@@ -73,17 +73,6 @@ func (s *Service) ProcessBeaconBlock(
 	// of the goroutines returned an error.
 	if err = g.Wait(); err != nil {
 		// If we fail any checks we process the slot and move on.
-		return err
-	}
-
-	// This go rountine validates the execution level aspects of the block.
-	// i.e: does newPayload return VALID?
-	_, err = s.validateExecutionOnBlock(
-		ctx, blk,
-	)
-	if err != nil {
-		s.Logger().
-			Error("failed to notify engine of new payload", "error", err)
 		return err
 	}
 
@@ -129,20 +118,42 @@ func (s *Service) ProcessBeaconBlock(
 	return nil
 }
 
-// validateExecutionOnBlock checks the validity of a the execution payload
-// on the beacon block.
-func (s *Service) validateExecutionOnBlock(
+// ValidateBlock validates the incoming beacon block.
+func (s *Service) ValidateBlock(
+	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
+) error {
+	return s.bv.ValidateBlock(
+		s.BeaconState(ctx), blk,
+	)
+}
+
+// ValidateExecutionPayloadOnBlk validates the execution payload on the block.
+func (s *Service) ValidateExecutionPayloadOnBlk(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-) (bool, error) {
-	var (
-		body    = blk.GetBody()
-		payload = body.GetExecutionPayload()
-	)
+) error {
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
+	}
+
+	payload := blk.GetBody().GetExecutionPayload()
+	if payload.IsNil() {
+		return beacontypes.ErrNilPayload
+	}
+
+	if err := s.pv.ValidatePayload(
+		s.BeaconState(ctx),
+		s.ForkchoiceStore(ctx),
+		blk,
+	); err != nil {
+		return err
+	}
 
 	// Then we notify the engine of the new payload.
-	return s.es.NotifyNewPayload(
+	if isValidPayload, err := s.es.NotifyNewPayload(
 		ctx,
 		blk.GetSlot(),
 		payload,
@@ -150,7 +161,12 @@ func (s *Service) validateExecutionOnBlock(
 			body.GetBlobKzgCommitments(),
 		),
 		blk.GetParentBlockRoot(),
-	)
+	); err != nil {
+		return err
+	} else if !isValidPayload {
+		return errors.New("invalid payload")
+	}
+	return nil
 }
 
 // PostBlockProcess is called after a block has been processed.
