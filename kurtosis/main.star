@@ -75,7 +75,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     for s in additional_services:
         if s == "goomy_blob":
             plan.print("Launching Goomy the Blob Spammer")
-            goomy_blob_args = {"goomy_blob_args": ""}
+            goomy_blob_args = {"goomy_blob_args": []}
             goomy_blob.launch_goomy_blob(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[0],
@@ -83,5 +83,5 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
                 goomy_blob_args,
             )
             plan.print("Successfully launched goomy the blob spammer")
-    
+
     plan.print("Successfully launched development network")

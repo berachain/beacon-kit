@@ -12,7 +12,7 @@ JWT_MOUNT_PATH_ON_CONTAINER = "/jwt/jwtsecret"
 JWT_FILEPATH = "/kurtosis/src/nodes/jwtsecret"
 
 def new_prefunded_account(address, private_key):
-    return struct(address=address, private_key=private_key)
+    return struct(address = address, private_key = private_key)
 
 PRE_FUNDED_ACCOUNTS = [
     new_prefunded_account(
