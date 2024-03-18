@@ -65,7 +65,7 @@ type KurtosisE2ESuite struct {
 //
 //nolint:lll
 func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
-	return nil
+	return s.consensusClients
 }
 
 // Ctx returns the context associated with the KurtosisE2ESuite.
