@@ -27,11 +27,13 @@ package blob
 
 import (
 	"context"
+	"errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/db"
 	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/sourcegraph/conc/iter"
 )
 
 // Store is the default implementation of the AvailabilityStore.
@@ -59,21 +61,29 @@ func (s *Store) IsDataAvailable(
 	return nil
 }
 
-// Persist makes sure that the sidecar remains accessible for data.
+// Persist ensures the sidecar data remains accessible, utilizing parallel
+// processing for efficiency.
 func (s *Store) Persist(
-	slot primitives.Slot, sc ...*beacontypes.BlobSidecar,
+	slot primitives.Slot,
+	sidecars ...*beacontypes.BlobSidecar,
 ) error {
-	for _, sidecar := range sc {
-		// Marshal the sidecar into a byte slice.
-		bz, err := sidecar.MarshalSSZ()
-		if err != nil {
-			return err
-		}
-
-		// Store the sidecar in the database.
-		if err = s.Set(slot, sidecar.KzgCommitment, bz); err != nil {
-			return err
-		}
-	}
-	return nil
+	_, err := iter.MapErr(
+		sidecars,
+		func(sidecar **beacontypes.BlobSidecar) ([]any, error) {
+			if *sidecar == nil {
+				return nil, errors.New("sidecar is nil")
+			}
+			sc := *sidecar
+			bz, err := sc.MarshalSSZ()
+			if err != nil {
+				return nil, err
+			}
+			err = s.Set(slot, sc.KzgCommitment, bz)
+			if err != nil {
+				return nil, err
+			}
+			return nil, nil
+		},
+	)
+	return err
 }
