@@ -26,21 +26,25 @@
 package types
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/primitives"
 )
 
 // BeaconBlockHeader is the header of a beacon block.
 type BeaconBlockHeader struct {
-	Slot          primitives.Slot
-	ProposerIndex primitives.ValidatorIndex
-	ParentRoot    [32]byte `ssz-size:"32"`
-	StateRoot     [32]byte `ssz-size:"32"`
-	BodyRoot      [32]byte `ssz-size:"32"`
+	Slot          primitives.Slot           `json:"slot"`
+	ProposerIndex primitives.ValidatorIndex `json:"proposerIndex"`
+	ParentRoot    [32]byte                  `json:"parentRoot"    ssz-size:"32"`
+	StateRoot     [32]byte                  `json:"stateRoot"     ssz-size:"32"`
+	BodyRoot      [32]byte                  `json:"bodyRoot"      ssz-size:"32"`
 }
 
 // String returns a string representation of the beacon block header.
 func (h *BeaconBlockHeader) String() string {
-	return "TODO"
+	//#nosec:G703 // ignore potential marshalling failure.
+	output, _ := json.Marshal(h)
+	return string(output)
 }
 
 // NewBeaconBlockHeader creates a new beacon block header

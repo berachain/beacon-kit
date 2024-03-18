@@ -25,32 +25,31 @@
 
 package types
 
-import (
-	"strconv"
-)
+import "encoding/json"
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey []byte `json:"pubkey"      ssz-max:"48"`
+	Pubkey []byte `json:"pubkey" ssz-max:"48"`
+
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials []byte `json:"credentials"              ssz-size:"32"`
+	Credentials []byte `json:"credentials" ssz-size:"32"`
+
 	// Deposit amount in gwei.
 	Amount uint64 `json:"amount"`
+
 	// Signature of the deposit data.
-	Signature []byte `json:"signature"   ssz-max:"96"`
+	Signature []byte `json:"signature" ssz-max:"96"`
+
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
 }
 
 // String returns a string representation of the Deposit.
 func (d *Deposit) String() string {
-	return "Deposit{" +
-		"Pubkey: " + string(d.Pubkey) +
-		", Credentials: " + string(d.Credentials) +
-		", Amount: " + strconv.FormatUint(d.Amount, 10) +
-		", Signature: " + string(d.Signature) +
-		"}"
+	//#nosec:G703 // ignore potential marshalling failure.
+	output, _ := json.Marshal(d)
+	return string(output)
 }

@@ -30,7 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-// BeaconBlockDeneb is the block structure for the Deneb fork.
+// BeaconBlockDeneb represents a block in the beacon chain during
+// the Deneb fork.
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
