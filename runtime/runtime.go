@@ -45,16 +45,12 @@ import (
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/crypto"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	filedb "github.com/berachain/beacon-kit/db/file"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
-	"github.com/berachain/beacon-kit/io/file"
 	"github.com/berachain/beacon-kit/lib/abi"
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -189,13 +185,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(&cfg.Beacon, filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(appOpts.Get(flags.FlagHome))+"/data/blobs"),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(file.RWRPerms),
-				filedb.WithLogger(logger),
-			), randaoProcessor, vsu)),
+			core.NewStateProcessor(&cfg.Beacon, randaoProcessor, vsu)),
 		blockchain.WithSyncService(syncService),
 	)
 

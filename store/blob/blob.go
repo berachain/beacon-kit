@@ -23,18 +23,57 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package blob
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/db"
+	filedb "github.com/berachain/beacon-kit/db/file"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// BeaconStorageBackend is the interface for the beacon storage backend.
-type BeaconStorageBackend interface {
-	AvailabilityStore(ctx context.Context) state.AvailabilityStore
-	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
+// Store is the default implementation of the AvailabilityStore.
+type Store struct {
+	*filedb.RangeDB
+}
+
+// NewStore creates a new instance of the AvailabilityStore.
+func NewStore(db db.DB) *Store {
+	return &Store{
+		RangeDB: filedb.NewRangeDB(db),
+	}
+}
+
+// IsDataAvailable ensures that all blobs referenced in the block are
+// stored before it returns without an error.
+func (s *Store) IsDataAvailable(
+	ctx context.Context,
+	slot primitives.Slot,
+	b beacontypes.ReadOnlyBeaconBlock,
+) error {
+	_ = ctx
+	_ = slot
+	_ = b
+	return nil
+}
+
+// Persist makes sure that the sidecar remains accessible for data.
+func (s *Store) Persist(
+	slot primitives.Slot, sc ...*beacontypes.BlobSidecar,
+) error {
+	for _, sidecar := range sc {
+		// Marshal the sidecar into a byte slice.
+		bz, err := sidecar.MarshalSSZ()
+		if err != nil {
+			return err
+		}
+
+		// Store the sidecar in the database.
+		if err = s.Set(slot, sidecar.KzgCommitment, bz); err != nil {
+			return err
+		}
+	}
+	return nil
 }

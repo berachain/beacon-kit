@@ -32,8 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/db"
-	"github.com/berachain/beacon-kit/db/file"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -42,7 +40,6 @@ import (
 // main state transition for the beacon chain.
 type StateProcessor struct {
 	cfg *config.Beacon
-	db  db.DB
 	rp  RandaoProcessor
 	vsu ValsetUpdater
 }
@@ -50,13 +47,11 @@ type StateProcessor struct {
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	cfg *config.Beacon,
-	db db.DB,
 	rp RandaoProcessor,
 	vsu ValsetUpdater,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg: cfg,
-		db:  db,
 		rp:  rp,
 		vsu: vsu,
 	}
@@ -157,30 +152,28 @@ func (sp *StateProcessor) ProcessBlock(
 }
 
 // ProcessBlob processes a blob.
-func (sp *StateProcessor) ProcessBlob(
-	body types.BeaconBlockBody,
-	bs *types.BlobSidecar,
-	height uint64,
+func (sp *StateProcessor) ProcessBlobs(
+	avs state.AvailabilityStore,
+	blk types.BeaconBlock,
+	sidecars *types.BlobSidecars,
 ) error {
-	ranger := file.NewRangeDB(sp.db)
+	body := blk.GetBody()
+	// Verify the KZG inclusion proofs.
 
-	bodyRoot, err := body.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-	// Store the blobs under a single height.
-	if err = types.VerifyKZGInclusionProof(
-		bodyRoot[:], bs, bs.Index,
-	); err != nil {
-		return err
-	}
-
-	bz, err := bs.MarshalSSZ()
-	if err != nil {
-		return err
+	for _, sidecar := range sidecars.Sidecars {
+		bodyRoot, err := body.HashTreeRoot()
+		if err != nil {
+			return err
+		}
+		// Store the blobs under a single height.
+		if err = types.VerifyKZGInclusionProof(
+			bodyRoot[:], sidecar, sidecar.Index,
+		); err != nil {
+			return err
+		}
 	}
 
-	return ranger.Set(height, bs.KzgCommitment, bz)
+	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
 }
 
 // processHeader processes the header and ensures it matches the local state.
