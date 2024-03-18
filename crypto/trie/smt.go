@@ -59,16 +59,16 @@ func NewFromItems(
 	depth uint64,
 ) (*SparseMerkleTrie, error) {
 	if len(items) == 0 {
-		return &SparseMerkleTrie{}, errors.New(
+		return nil, errors.New(
 			"no items provided to generate Merkle trie",
 		)
 	}
 	if depth == 0 {
-		return &SparseMerkleTrie{}, errors.New("depth must be greater than 0")
+		return nil, errors.New("depth must be greater than 0")
 	}
 	if depth > MaxTrieDepth {
 		// PowerOf2 would overflow
-		return &SparseMerkleTrie{}, errors.New(
+		return nil, errors.New(
 			"supported merkle trie depth exceeded (max uint64 depth is 63, " +
 				"theoretical max sparse merkle trie depth is 64)")
 	}
