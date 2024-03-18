@@ -79,6 +79,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
 	github.com/vektra/mockery/v2 v2.42.1
+	go.opencensus.io v0.24.0
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f
 	golang.org/x/pkgsite v0.0.0-20240207182209-c85e0a86aff5
@@ -471,7 +472,6 @@ require (
 	go-simpler.org/musttag v0.8.0 // indirect
 	go-simpler.org/sloglint v0.4.0 // indirect
 	go.etcd.io/bbolt v1.3.8 // indirect
-	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 	go.opentelemetry.io/otel v1.24.0 // indirect

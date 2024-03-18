@@ -48,6 +48,7 @@ func DefaultConfig() *Config {
 		Builder:      DefaultBuilderConfig(),
 		Engine:       DefaultEngineConfig(),
 		FeatureFlags: DefaultFeatureFlagsConfig(),
+		RPC:          DefaultRPCConfig(),
 	}
 }
 
@@ -64,6 +65,9 @@ type Config struct {
 
 	// Engine is the configuration for the execution client.
 	Engine Engine
+
+	// RPC is the configuration for the RPC service.
+	RPC RPC
 
 	// FeatureFlags is the configuration for the feature flags.
 	FeatureFlags FeatureFlags
@@ -156,6 +160,9 @@ func readConfigFromAppOptsParser(
 		return nil, err
 	}
 	conf.FeatureFlags = *featureFlagsCfg
+
+	// Read RPC Config
+	conf.RPC = DefaultRPCConfig()
 
 	return conf, nil
 }

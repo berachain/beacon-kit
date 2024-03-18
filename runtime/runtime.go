@@ -28,7 +28,6 @@ package runtime
 
 import (
 	"context"
-
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/async/dispatch"
 	"github.com/berachain/beacon-kit/async/notify"
@@ -38,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core"
 	"github.com/berachain/beacon-kit/beacon/core/randao"
 	"github.com/berachain/beacon-kit/beacon/execution"
+	"github.com/berachain/beacon-kit/beacon/rpc"
 	"github.com/berachain/beacon-kit/beacon/staking"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/cache"
@@ -189,6 +189,12 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithSyncService(syncService),
 	)
 
+	// Build the RPC service.
+	rpcService := service.New[rpc.Service](
+		rpc.WithBaseService(baseService.ShallowCopy("rpc")),
+		rpc.WithConfig(&cfg.RPC),
+	)
+
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger),
@@ -198,6 +204,7 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(notificationService),
 		service.WithService(stakingService),
 		service.WithService(syncService),
+		service.WithService(rpcService),
 	)
 
 	// Build the health service.
