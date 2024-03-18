@@ -43,6 +43,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 
 	pubkey, err := client.GetPubKey(s.Ctx())
 	s.Require().NoError(err)
+	s.Require().Len(pubkey, 48)
 
 	_, err = client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
@@ -53,22 +54,21 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 
-	bz := byteslib.PrependExtendToSize(s.GenesisAccount().Address().Bytes(), 32)
-	bz[0] = 0x01
+	credentials := byteslib.PrependExtendToSize(s.GenesisAccount().Address().Bytes(), 32)
+	credentials[0] = 0x01
 
-	val, _ := big.NewFloat(32e18).Int(nil)
-	tx, err := dc.Deposit(&bind.TransactOpts{
-		From:  s.GenesisAccount().Address(),
-		Value: val,
-	}, pubkey, bz, 32e9, nil)
-	s.Require().NoError(err)
+	signature := [96]byte{}
+	s.Require().Len(signature[:], 96)
 
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
-	tx, err = s.GenesisAccount().SignTx(chainID, tx)
-	s.Require().NoError(err)
 
-	err = s.JSONRPCBalancer().SendTransaction(s.Ctx(), tx)
+	val, _ := big.NewFloat(32e18).Int(nil)
+	tx, err := dc.Deposit(&bind.TransactOpts{
+		From:   s.GenesisAccount().Address(),
+		Value:  val,
+		Signer: s.GenesisAccount().SignerFunc(chainID),
+	}, pubkey, credentials, 0, signature[:])
 	s.Require().NoError(err)
 
 	var receipt *coretypes.Receipt
