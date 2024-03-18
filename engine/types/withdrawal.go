@@ -26,6 +26,8 @@
 package enginetypes
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -42,7 +44,9 @@ type Withdrawal struct {
 
 // String returns a string representation of the Withdrawal.
 func (w *Withdrawal) String() string {
-	return "<TODO>"
+	//#nosec:G703 // ignore potential marshalling failure.
+	output, _ := json.Marshal(w)
+	return string(output)
 }
 
 // field type overrides for gencodec.
