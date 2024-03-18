@@ -80,5 +80,7 @@ func (cc *ConsensusClient) GetConsensusPower(
 	if err != nil {
 		return 0, err
 	}
+
+	//#nosec:G701 // VotingPower won't ever be negative.
 	return uint64(res.ValidatorInfo.VotingPower), nil
 }
