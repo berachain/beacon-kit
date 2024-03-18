@@ -52,13 +52,13 @@ func (s *Service) sendFCU(
 func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	headEth1Hash primitives.ExecutionHash,
-	slot primitives.Slot,
+	forSlot primitives.Slot,
 	parentBlockRoot [32]byte,
 ) error {
 	_, err := s.lb.BuildLocalPayload(
 		ctx,
 		headEth1Hash,
-		slot+1,
+		forSlot,
 		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
 		parentBlockRoot,
@@ -98,7 +98,7 @@ func (s *Service) sendPostBlockFCU(
 		err = s.sendFCUWithAttributes(
 			ctx,
 			headHash,
-			st.GetSlot(),
+			st.GetSlot()+1,
 			root,
 		)
 		if err == nil {
