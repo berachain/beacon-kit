@@ -27,7 +27,10 @@ package types
 
 import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/lib/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 )
 
@@ -89,6 +92,77 @@ func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetExecutionData(
+	executionData enginetypes.ExecutionPayload,
+) error {
+	var ok bool
+	b.ExecutionPayload, ok = executionData.(*enginetypes.ExecutableDataDeneb)
+	if !ok {
+		return errors.New("invalid execution data type")
+	}
+	return nil
+}
+
+// SetBlobKzgCommitments sets the BlobKzgCommitments of the
+// BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
+	b.BlobKzgCommitments = commitments
+}
+
+// If you are adding values to the BeaconBlockBodyDeneb struct,
+// the body length must be increased and GetTopLevelRoots updated.
+const BodyLength = 5
+
+func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
+	layer := make([][]byte, BodyLength)
+	for i := range layer {
+		layer[i] = make([]byte, primitives.HashRootLength)
+	}
+
+	randao := b.GetRandaoReveal()
+	root, err := ssz.MerkleizeByteSliceSSZ(randao[:])
+	if err != nil {
+		return nil, err
+	}
+	copy(layer[0], root[:])
+
+	// graffiti
+	root = b.GetGraffiti()
+	copy(layer[1], root[:])
+
+	// Deposits
+	dep := b.GetDeposits()
+	//nolint:gomnd // TODO: Config
+	maxDepositsPerBlock := uint64(16)
+	root, err = ssz.MerkleizeListSSZ(dep, maxDepositsPerBlock)
+	if err != nil {
+		return nil, err
+	}
+	copy(layer[2], root[:])
+
+	// Execution Payload
+	rt, err := b.GetExecutionPayload().HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+	copy(layer[3], rt[:])
+
+	// KZG commitments is not needed
+	return layer, nil
+}
+
+func GetBlobKzgCommitmentsRoot(commitments [][48]byte) ([32]byte, error) {
+	commitmentsLeaves := LeavesFromCommitments(commitments)
+	commitmentsSparse, err := trie.NewFromItems(
+		commitmentsLeaves,
+		LogMaxBlobCommitments,
+	)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return commitmentsSparse.HashTreeRoot()
+}
+
+func (b *BeaconBlockBodyDeneb) AttachExecution(
 	executionData enginetypes.ExecutionPayload,
 ) error {
 	var ok bool

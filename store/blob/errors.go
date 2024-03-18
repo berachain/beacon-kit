@@ -23,20 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package blob
 
-import (
-	"github.com/berachain/beacon-kit/beacon/core"
-	"github.com/berachain/beacon-kit/runtime/service"
-)
+import "errors"
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	es ExecutionService
-	lb LocalBuilder
-	ss SyncService
-	bv *core.BlockValidator
-	sp *core.StateProcessor
-	pv *core.PayloadValidator
-}
+// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to store a
+// nil sidecar.
+var ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")

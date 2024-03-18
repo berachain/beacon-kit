@@ -42,6 +42,7 @@ type AppOptions interface {
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend interface {
+	AvailabilityStore(ctx context.Context) state.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
 	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore

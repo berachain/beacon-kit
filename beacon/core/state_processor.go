@@ -34,6 +34,8 @@ import (
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
+	"github.com/sourcegraph/conc/iter"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -152,9 +154,34 @@ func (sp *StateProcessor) ProcessBlock(
 }
 
 // ProcessBlob processes a blob.
-func (sp *StateProcessor) ProcessBlob(_ state.BeaconState) error {
-	// TODO: 4844.
-	return nil
+func (sp *StateProcessor) ProcessBlobs(
+	avs state.AvailabilityStore,
+	blk types.BeaconBlock,
+	sidecars *types.BlobSidecars,
+) error {
+	// Verify the KZG inclusion proofs.
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the blobs are available.
+	if err = errors.Join(iter.Map(
+		sidecars.Sidecars,
+		func(sidecar **types.BlobSidecar) error {
+			if *sidecar == nil {
+				return ErrAttemptedToVerifyNilSidecar
+			}
+			// Store the blobs under a single height.
+			return types.VerifyKZGInclusionProof(
+				bodyRoot[:], *sidecar, (*sidecar).Index,
+			)
+		},
+	)...); err != nil {
+		return err
+	}
+
+	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
 }
 
 // processHeader processes the header and ensures it matches the local state.

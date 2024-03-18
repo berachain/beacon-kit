@@ -30,9 +30,14 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	stakingtypes "cosmossdk.io/x/staking/types"
+	filedb "github.com/berachain/beacon-kit/db/file"
+	"github.com/berachain/beacon-kit/io/file"
 	modulev1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
 )
 
 //nolint:gochecknoinits // GRRRR fix later.
@@ -47,6 +52,7 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
+	AppOpts       servertypes.AppOptions
 	Config        *modulev1alpha1.Module
 	Environment   appmodule.Environment
 	ValsetUpdater *stakingwrapper.Keeper
@@ -64,6 +70,13 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := keeper.NewKeeper(
+		filedb.NewDB(
+			filedb.WithRootDirectory(
+				cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),
+			filedb.WithFileExtension("ssz"),
+			filedb.WithDirectoryPermissions(file.RWRPerms),
+			filedb.WithLogger(in.Environment.Logger),
+		),
 		in.Environment,
 		in.ValsetUpdater,
 	)

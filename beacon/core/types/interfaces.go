@@ -66,6 +66,7 @@ type BeaconBlockBody interface {
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetExecutionData(enginetypes.ExecutionPayload) error
+	SetBlobKzgCommitments([][48]byte)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
