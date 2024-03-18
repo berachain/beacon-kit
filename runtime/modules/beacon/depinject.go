@@ -29,7 +29,6 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	"cosmossdk.io/log"
 	stakingtypes "cosmossdk.io/x/staking/types"
 	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/io/file"
@@ -70,17 +69,14 @@ type DepInjectOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
-	db := filedb.NewDB(
-		filedb.WithRootDirectory(
-			cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),
-		filedb.WithFileExtension("ssz"),
-		filedb.WithDirectoryPermissions(file.RWRPerms),
-		// TODO: use real logger.
-		filedb.WithLogger(log.NewNopLogger()),
-	)
-
 	k := keeper.NewKeeper(
-		db,
+		filedb.NewDB(
+			filedb.WithRootDirectory(
+				cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),
+			filedb.WithFileExtension("ssz"),
+			filedb.WithDirectoryPermissions(file.RWRPerms),
+			filedb.WithLogger(in.Environment.Logger),
+		),
 		in.Environment,
 		in.ValsetUpdater,
 	)
