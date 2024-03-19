@@ -74,8 +74,21 @@ func (k *Keeper) IncreaseConsensusPower(
 	signature []byte,
 	index uint64,
 ) error {
-	validator, err := k.getValidatorFromPubkey(
-		ctx,
+	var (
+		err       error
+		validator sdkstaking.Validator
+	)
+
+	cctx, write := sdk.UnwrapSDKContext(ctx).CacheContext()
+	defer func() {
+		if err == nil {
+			write()
+		}
+		k.Logger().Error("failed to decrease consensus power", "error", err)
+	}()
+
+	validator, err = k.getValidatorFromPubkey(
+		cctx,
 		&sdkbls.PubKey{Key: pubkey[:]},
 	)
 
@@ -95,11 +108,14 @@ func (k *Keeper) IncreaseConsensusPower(
 	} else if err != nil {
 		return err
 	}
-	executionAddress, err := delegator.ToExecutionAddress()
+
+	var executionAddress primitives.ExecutionAddress
+	executionAddress, err = delegator.ToExecutionAddress()
 	if err != nil {
 		return err
 	}
-	return k.mintAndDelegate(ctx, executionAddress, validator, amount)
+	err = k.mintAndDelegate(ctx, executionAddress, validator, amount)
+	return err
 }
 
 // RedirectConsensusPower redirects the consensus power from the old
@@ -113,8 +129,21 @@ func (k *Keeper) RedirectConsensusPower(
 	signature []byte,
 	index uint64,
 ) error {
-	validator, err := k.getValidatorFromPubkey(
-		ctx,
+	var (
+		err       error
+		validator sdkstaking.Validator
+	)
+
+	cctx, write := sdk.UnwrapSDKContext(ctx).CacheContext()
+	defer func() {
+		if err == nil {
+			write()
+		}
+		k.Logger().Error("failed to decrease consensus power", "error", err)
+	}()
+
+	validator, err = k.getValidatorFromPubkey(
+		cctx,
 		&sdkbls.PubKey{Key: pubkey[:]},
 	)
 	if err != nil {
@@ -122,7 +151,7 @@ func (k *Keeper) RedirectConsensusPower(
 	}
 
 	newValidator, err := k.getValidatorFromPubkey(
-		ctx,
+		cctx,
 		&sdkbls.PubKey{Key: newPubkey[:]},
 	)
 
@@ -143,19 +172,21 @@ func (k *Keeper) RedirectConsensusPower(
 		return err
 	}
 
-	executionAddress, err := delegator.ToExecutionAddress()
+	var executionAddress primitives.ExecutionAddress
+	executionAddress, err = delegator.ToExecutionAddress()
 	if err != nil {
 		return err
 	}
 
 	// Redirects the consensus power to the new validator.
-	return k.redelegate(
+	err = k.redelegate(
 		ctx,
 		executionAddress,
 		validator,
 		newValidator,
 		amount,
 	)
+	return err
 }
 
 // undelegate undelegates the validator.
@@ -165,20 +196,35 @@ func (k *Keeper) DecreaseConsensusPower(
 	pubkey [bls12381.PubKeyLength]byte,
 	amount uint64,
 ) error {
-	validator, err := k.getValidatorFromPubkey(
-		ctx,
+	var (
+		err       error
+		validator sdkstaking.Validator
+	)
+
+	cctx, write := sdk.UnwrapSDKContext(ctx).CacheContext()
+	defer func() {
+		if err == nil {
+			write()
+		}
+		k.Logger().Error("failed to decrease consensus power", "error", err)
+		err = nil
+	}()
+
+	validator, err = k.getValidatorFromPubkey(
+		cctx,
 		&sdkbls.PubKey{Key: pubkey[:]},
 	)
 	if err != nil {
 		return err
 	}
 
-	return k.withdrawAndBurn(
-		ctx,
+	err = k.withdrawAndBurn(
+		cctx,
 		delegator[:],
 		validator,
 		amount,
 	)
+	return err
 }
 
 // createValidator creates a new validator with the given public

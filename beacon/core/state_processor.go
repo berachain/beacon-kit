@@ -324,7 +324,7 @@ func (sp *StateProcessor) processWithdrawals(
 			[bls12381.PubKeyLength]byte(pk),
 			wd.Amount,
 		); err != nil {
-			return err
+			continue
 		}
 	}
 	return nil
