@@ -52,8 +52,6 @@ import (
 	distrtypes "cosmossdk.io/x/distribution/types"
 	_ "cosmossdk.io/x/evidence" // import for side-effects
 	evidencetypes "cosmossdk.io/x/evidence/types"
-	_ "cosmossdk.io/x/gov"
-	govtypes "cosmossdk.io/x/gov/types"
 	_ "cosmossdk.io/x/mint" // import for side-effects
 	minttypes "cosmossdk.io/x/mint/types"
 	_ "cosmossdk.io/x/protocolpool" // import for side-effects
@@ -108,7 +106,6 @@ var (
 			Account:     stakingtypes.NotBondedPoolName,
 			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
 		},
-		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner}},
 	}
 
 	// blocked account addresses
@@ -148,7 +145,6 @@ var (
 						stakingtypes.ModuleName,
 					},
 					EndBlockers: []string{
-						govtypes.ModuleName,
 						stakingtypes.ModuleName,
 						pooltypes.ModuleName,
 					},
@@ -169,7 +165,6 @@ var (
 						distrtypes.ModuleName,
 						stakingtypes.ModuleName,
 						slashingtypes.ModuleName,
-						govtypes.ModuleName,
 						minttypes.ModuleName,
 						genutiltypes.ModuleName,
 						evidencetypes.ModuleName,
