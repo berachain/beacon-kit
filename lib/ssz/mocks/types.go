@@ -33,13 +33,35 @@ import (
 
 type Uint8 uint8
 
+const (
+	BitsPerByte = 8
+)
+
+func (v Uint8) SizeSSZ() int {
+	return 8 / BitsPerByte
+}
+
+func (v Uint8) MarshalSSZ() []byte {
+	return []byte{byte(v)}
+}
+
 func (v Uint8) HashTreeRoot() ([32]byte, error) {
 	bz := make([]byte, 32)
-	binary.LittleEndian.PutUint16(bz, uint16(v))
+	bz[0] = byte(v)
 	return [32]byte(bz), nil
 }
 
 type Uint16 uint16
+
+func (v Uint16) SizeSSZ() int {
+	return 16 / BitsPerByte
+}
+
+func (v Uint16) MarshalSSZ() []byte {
+	bz := make([]byte, v.SizeSSZ())
+	binary.LittleEndian.PutUint16(bz, uint16(v))
+	return bz
+}
 
 func (v Uint16) HashTreeRoot() ([32]byte, error) {
 	bz := make([]byte, 32)
@@ -49,6 +71,16 @@ func (v Uint16) HashTreeRoot() ([32]byte, error) {
 
 type Uint32 uint32
 
+func (v Uint32) SizeSSZ() int {
+	return 32 / BitsPerByte
+}
+
+func (v Uint32) MarshalSSZ() []byte {
+	bz := make([]byte, v.SizeSSZ())
+	binary.LittleEndian.PutUint32(bz, uint32(v))
+	return bz
+}
+
 func (v Uint32) HashTreeRoot() ([32]byte, error) {
 	bz := make([]byte, 32)
 	binary.LittleEndian.PutUint32(bz, uint32(v))
@@ -56,6 +88,16 @@ func (v Uint32) HashTreeRoot() ([32]byte, error) {
 }
 
 type Uint64 uint64
+
+func (v Uint64) SizeSSZ() int {
+	return 64 / BitsPerByte
+}
+
+func (v Uint64) MarshalSSZ() []byte {
+	bz := make([]byte, v.SizeSSZ())
+	binary.LittleEndian.PutUint64(bz, uint64(v))
+	return bz
+}
 
 func (v Uint64) HashTreeRoot() ([32]byte, error) {
 	bz := make([]byte, 32)
@@ -79,13 +121,28 @@ func (v Bool) HashTreeRoot() ([32]byte, error) {
 	return [32]byte(bz), nil
 }
 
-type MockUint64Container struct {
-	Uint64Field Uint64
+type UintN interface {
+	MarshalSSZ() []byte
+}
+
+type Vector[T UintN] []T
+
+func (v Vector[T]) HashTreeRoot() ([32]byte, error) {
+	length := len(v)
+	bz := make([]byte, 0)
+	for i := 0; i < length; i++ {
+		bz = append(bz, v[i].MarshalSSZ()...)
+	}
+	return ssz.MerkleizeByteSliceSSZ(bz)
+}
+
+type MockSingleFieldContainer[T ssz.Hashable] struct {
+	Field T
 }
 
 // We can have a generator for this.
-func (c *MockUint64Container) Fields() []ssz.Hashable {
+func (c *MockSingleFieldContainer[T]) Fields() []ssz.Hashable {
 	return []ssz.Hashable{
-		c.Uint64Field,
+		c.Field,
 	}
 }

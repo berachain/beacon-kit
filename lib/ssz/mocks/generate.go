@@ -25,4 +25,4 @@
 
 package mocks
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs Uint64Container -output generated.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs Uint8Container,Uint16Container,Uint32Container,Uint64Container,BoolContainer,ByteContainer,Vector4Container,Vector5Container,Vector6Container -output generated.ssz.go

@@ -76,6 +76,8 @@ func MerkleizeVectorSSZ[T Hashable](
 	return trie.HashTreeRoot(), nil
 }
 
+// MerkleizeContainerSSZ hashes the container by building a merkle tree and
+// returning the root.
 func MerkleizeContainerSSZ[C Container](
 	container C,
 ) ([32]byte, error) {

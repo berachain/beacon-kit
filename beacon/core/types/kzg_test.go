@@ -277,7 +277,6 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 // 			uint64(index+i*4096),
 // 			proof,
 // 		)
-// 		fmt.Printf("i: %d, ok: %v\n", i, ok)
 // 	}
 
 // 	require.True(

@@ -46,5 +46,17 @@ type BoolContainer struct {
 }
 
 type ByteContainer struct {
-	ByteField byte
+	ByteField uint8
+}
+
+type Vector4Container struct {
+	VectorField []uint64 `ssz-size:"4"`
+}
+
+type Vector5Container struct {
+	VectorField []uint64 `ssz-size:"5"`
+}
+
+type Vector6Container struct {
+	VectorField []uint64 `ssz-size:"6"`
 }

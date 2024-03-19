@@ -26,8 +26,6 @@
 package ssz
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
 )
@@ -82,7 +80,6 @@ func NewFromChunks(
 			chunks = append(chunks, tree.ZeroHashes[i])
 		}
 		var err error
-		fmt.Printf("%x", chunks)
 		chunks, err = sha256.BuildParentTreeRoots(chunks)
 		if err != nil {
 			return nil, err
@@ -91,7 +88,6 @@ func NewFromChunks(
 		layers[i+1] = make([][32]byte, layerLen)
 		copy(layers[i+1], chunks)
 	}
-	fmt.Printf("%x", chunks)
 	// At the end of the loop, elements will only
 	// contain the root of the trie.
 	if len(chunks) != 1 {
@@ -121,7 +117,7 @@ func NewFromByteSlice(input []byte) (*SparseMerkleTrie, error) {
 }
 
 // NewFromVector builds a SparseMerkleTrie from
-// a fixed-size vector of elements.
+// a fixed-length vector of elements.
 func NewFromVector[T Hashable](
 	elements []T,
 ) (*SparseMerkleTrie, error) {
@@ -139,8 +135,8 @@ func NewFromVector[T Hashable](
 	return NewFromChunks(elemRoots, length)
 }
 
-// NewFromList builds a SparseMerkleTrie from a list of elements,
-// with the length mixed in.
+// NewFromList builds a SparseMerkleTrie from a variable-length
+// list of elements, with the length mixed in.
 func NewFromList[T Hashable](
 	elements []T,
 ) (*SparseMerkleTrie, error) {
