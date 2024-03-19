@@ -79,13 +79,15 @@ func ceilLog2(x uint32) (uint32, error) {
 	}
 	for x > 1 {
 		x >>= 1
-		y += 1
+		y++
 	}
 	return y, nil
 }
 
-// This test explains the calculation of the KZG commitment root's Merkle index
-// in the Body's Merkle tree based on the index of the KZG commitment list in the Body.
+// This test explains the calculation of the
+// KZG commitment root's Merkle index
+// in the Body's Merkle tree based on the
+// index of the KZG commitment list in the Body.
 func Test_KZGRootIndex(t *testing.T) {
 	// Level of the KZG commitment root's parent.
 	kzgParentRootLevel, err := ceilLog2(types.BodyLength)
@@ -96,7 +98,7 @@ func Test_KZGRootIndex(t *testing.T) {
 	kzgParentRootIndex := types.KZGPosition + (1 << kzgParentRootLevel)
 	// The KZG commitment root is the left child of its parent.
 	// Its Merkle index is the double of its parent's Merkle index.
-	require.Equal(t, 2*kzgParentRootIndex, types.KZGMerkleIndex)
+	require.Equal(t, types.KZGMerkleIndex, 2*kzgParentRootIndex)
 }
 
 func Test_BodyProof(t *testing.T) {
