@@ -24,6 +24,9 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 validators:
+  - el_type: besu
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
   - el_type: nethermind
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
@@ -34,6 +37,9 @@ validators:
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
 full_nodes:
+  - el_type: besu
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
   - el_type: nethermind
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
@@ -48,9 +54,9 @@ full_nodes:
 rpc_endpoints:
   - type: nginx
     services:
-      - el-full-nethermind-0:8545
-      - el-full-reth-1:8545
+      - el-full-besu-0:8545
+      - el-full-nethermind-1:8545
       - el-full-reth-2:8545
-      - el-full-geth-3:8545
+      - el-full-reth-3:8545
       - el-full-geth-4:8545
 additional_services: []
