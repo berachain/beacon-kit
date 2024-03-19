@@ -40,10 +40,10 @@ const (
 	// LogBodyLength is the Log_2 of BodyLength (5).
 	LogBodyLength = 3
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
-	KZGPosition = 4
+	KZGPosition = 5
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
-	KZGMerkleIndex        = 24
+	KZGMerkleIndex        = 32
 	KZGOffset      uint64 = KZGMerkleIndex * MaxBlobCommitmentsPerBlock
 )
 
