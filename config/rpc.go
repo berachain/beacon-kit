@@ -15,10 +15,6 @@ type RPC struct {
 	Host string
 	// Port is the port of the RPC service.
 	Port int
-	// CertFlag is the flag for the certificate file.
-	CertFlag string
-	// KeyFlag is the flag for the key file.
-	KeyFlag string
 }
 
 func DefaultRPCConfig() RPC {
