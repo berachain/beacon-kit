@@ -89,8 +89,27 @@ func (s *Service) processDepositLog(
 }
 
 // processRedirectLog adds a redirect to the queue.
-func (s *Service) processRedirectLog(_ context.Context, _ coretypes.Log) error {
-	return nil
+func (s *Service) processRedirectLog(
+	ctx context.Context,
+	log coretypes.Log,
+) error {
+	r := &stakingabi.BeaconDepositContractRedirect{}
+	if err := s.abi.UnpackLogs(r, RedirectEventName, log); err != nil {
+		return err
+	}
+
+	s.Logger().Info(
+		"he wasn't good enough for her 🤷‍♂️", "deposit",
+		r.Index, "amount", r.Amount,
+	)
+
+	return s.BeaconState(ctx).EnqueueRedirects([]*beacontypes.Redirect{{
+		Index:       r.Index,
+		Credentials: beacontypes.DepositCredentials(r.Credentials),
+		Pubkey:      r.FromPubkey,
+		NewPubkey:   r.ToPubkey,
+		Amount:      r.Amount,
+	}})
 }
 
 // processWithdrawalLog adds a withdrawal to the queue.

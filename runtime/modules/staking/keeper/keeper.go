@@ -95,7 +95,11 @@ func (k *Keeper) IncreaseConsensusPower(
 	} else if err != nil {
 		return err
 	}
-	return k.mintAndDelegate(ctx, delegator[:], validator, amount)
+	executionAddress, err := delegator.ToExecutionAddress()
+	if err != nil {
+		return err
+	}
+	return k.mintAndDelegate(ctx, executionAddress, validator, amount)
 }
 
 // RedirectConsensusPower redirects the consensus power from the old
@@ -139,10 +143,15 @@ func (k *Keeper) RedirectConsensusPower(
 		return err
 	}
 
+	executionAddress, err := delegator.ToExecutionAddress()
+	if err != nil {
+		return err
+	}
+
 	// Redirects the consensus power to the new validator.
 	return k.redelegate(
 		ctx,
-		delegator,
+		executionAddress,
 		validator,
 		newValidator,
 		amount,
@@ -234,7 +243,7 @@ func (k *Keeper) getValidatorFromPubkey(
 // specified validator.
 func (k *Keeper) mintAndDelegate(
 	ctx context.Context,
-	delegator []byte,
+	delegator primitives.ExecutionAddress,
 	validator sdkstaking.Validator,
 	amount uint64,
 ) error {
@@ -256,7 +265,7 @@ func (k *Keeper) mintAndDelegate(
 	if err = k.bk.SendCoinsFromModuleToAccount(
 		ctx,
 		StakingModuleName,
-		sdk.AccAddress(delegator[12:]),
+		sdk.AccAddress(delegator[:]),
 		coins,
 	); err != nil {
 		return err
@@ -264,7 +273,7 @@ func (k *Keeper) mintAndDelegate(
 
 	_, err = k.Delegate(
 		ctx,
-		sdk.AccAddress(delegator[12:]),
+		sdk.AccAddress(delegator[:]),
 		sdkmath.NewIntFromUint64(amount),
 		sdkstaking.Unbonded, // TODO: Check if this is the correct value.
 		validator,
@@ -277,7 +286,7 @@ func (k *Keeper) mintAndDelegate(
 // to the new validator.
 func (k *Keeper) redelegate(
 	ctx context.Context,
-	delegator beacontypes.DepositCredentials,
+	delegator primitives.ExecutionAddress,
 	validator sdkstaking.Validator,
 	newValidator sdkstaking.Validator,
 	amount uint64,
@@ -300,17 +309,32 @@ func (k *Keeper) redelegate(
 		return err
 	}
 
-	delegatorAddress, err := delegator.ToExecutionAddress()
+	_, err = k.ValidateUnbondAmount(
+		ctx,
+		sdk.AccAddress(delegator[:]),
+		valBz,
+		shares.TruncateInt(),
+	)
 	if err != nil {
 		return err
 	}
 
 	_, err = k.BeginRedelegation(
 		ctx,
-		sdk.AccAddress(delegatorAddress[:]),
+		sdk.AccAddress(delegator[:]),
 		valBz,
 		newValBz,
 		shares,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = k.CompleteRedelegation(
+		ctx,
+		sdk.AccAddress(delegator[:]),
+		valBz,
+		newValBz,
 	)
 	return err
 }

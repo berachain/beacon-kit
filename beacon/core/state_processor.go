@@ -254,7 +254,7 @@ func (sp *StateProcessor) processRedirects(
 	redirects []*types.Redirect,
 ) error {
 	// Dequeue and verify the logs.
-	localRedirects, err := st.ExpectedRedirects(uint64(len(redirects)))
+	localRedirects, err := st.DequeueRedirects(uint64(len(redirects)))
 	if err != nil {
 		return err
 	}
