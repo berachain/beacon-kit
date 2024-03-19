@@ -153,8 +153,8 @@ func (k *Keeper) RedirectConsensusPower(
 		return err
 	}
 
-	//nolint:contextcheck // We are using the cache context.
 	var newValidator sdkstaking.Validator
+	//nolint:contextcheck // We are using the cache context.
 	newValidator, err = k.getValidatorFromPubkey(
 		cctx,
 		&sdkbls.PubKey{Key: newPubkey[:]},
