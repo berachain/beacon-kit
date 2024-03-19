@@ -97,6 +97,12 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
+			{
+				ElType:   "besu",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
 		},
 		FullNodes: []Node{
 			{
@@ -123,6 +129,12 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
+			{
+				ElType:   "besu",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
 		},
 		RPCEndpoints: []RPCEndpoint{
 			{
@@ -132,6 +144,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 					"el-full-reth-1:8545",
 					"el-full-geth-2:8545",
 					"el-full-erigon-4:8545",
+					"el-full-besu-5:8545",
 				},
 			},
 		},
