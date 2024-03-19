@@ -68,7 +68,7 @@ type Node struct {
 // pre-populating with a standard set of validators and no additional
 // services.
 //
-//nolint:gomnd // default values.
+
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		AdditionalServices: []interface{}{},
@@ -89,7 +89,13 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "reth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 2,
+				Replicas: 1,
+			},
+			{
+				ElType:   "erigon",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
 			},
 			{
 				ElType:   "besu",
@@ -115,7 +121,13 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "geth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 2,
+				Replicas: 1,
+			},
+			{
+				ElType:   "erigon",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
 			},
 			{
 				ElType:   "besu",
@@ -131,6 +143,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 					"el-full-nethermind-0:8545",
 					"el-full-reth-1:8545",
 					"el-full-geth-2:8545",
+					"el-full-erigon-3:8545",
 					"el-full-besu-4:8545",
 				},
 			},
