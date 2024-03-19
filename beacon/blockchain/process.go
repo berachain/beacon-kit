@@ -185,17 +185,17 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
-	payloadBlockHash := payload.GetBlockHash()
-	if err := s.ForkchoiceStore(ctx).InsertNode(payloadBlockHash); err != nil {
-		return err
-	}
-
 	// Process the logs in the block.
 	if err := s.es.ProcessLogsInETH1Block(
 		ctx,
-		payloadBlockHash,
+		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
+		return err
+	}
+
+	payloadBlockHash := payload.GetBlockHash()
+	if err := s.ForkchoiceStore(ctx).InsertNode(payloadBlockHash); err != nil {
 		return err
 	}
 

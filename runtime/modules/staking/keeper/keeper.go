@@ -33,6 +33,7 @@ import (
 	sdkstaking "cosmossdk.io/x/staking/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 	sdkbls "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,7 +68,7 @@ func NewKeeper(
 // delegate delegates the deposit to the validator.
 func (k *Keeper) IncreaseConsensusPower(
 	ctx context.Context,
-	delegator [bls12381.SecretKeyLength]byte,
+	delegator beacontypes.DepositCredentials,
 	pubkey [bls12381.PubKeyLength]byte,
 	amount uint64,
 	signature []byte,
@@ -100,7 +101,7 @@ func (k *Keeper) IncreaseConsensusPower(
 // undelegate undelegates the validator.
 func (k *Keeper) DecreaseConsensusPower(
 	ctx context.Context,
-	delegator [bls12381.SecretKeyLength]byte,
+	delegator primitives.ExecutionAddress,
 	pubkey [bls12381.PubKeyLength]byte,
 	amount uint64,
 ) error {
@@ -124,7 +125,7 @@ func (k *Keeper) DecreaseConsensusPower(
 // key and amount of tokens.
 func (k *Keeper) createValidator(
 	ctx context.Context,
-	delegator [bls12381.SecretKeyLength]byte,
+	delegator beacontypes.DepositCredentials,
 	validatorPubkey [bls12381.PubKeyLength]byte,
 	amount uint64,
 	signature []byte,
@@ -135,7 +136,7 @@ func (k *Keeper) createValidator(
 	root, err := (&beacontypes.Deposit{
 		Index:       index,
 		Pubkey:      validatorPubkey[:],
-		Credentials: delegator[:],
+		Credentials: delegator,
 		Amount:      amount,
 	}).HashTreeRoot()
 	if err != nil {
@@ -151,10 +152,15 @@ func (k *Keeper) createValidator(
 		return sdkstaking.Validator{}, errors.New("could not verify signature")
 	}
 
+	delegatorAddress, err := delegator.ToExecutionAddress()
+	if err != nil {
+		return sdkstaking.Validator{}, err
+	}
+
 	// Create a new validator with x/staking.
 	newValidator, err := sdkstaking.NewValidator(
 		// TODO: make the byte prefixed credentials into a hard type.
-		sdk.AccAddress(delegator[12:]).String(),
+		sdk.AccAddress(delegatorAddress[:]).String(),
 		sdkblsPubKey,
 		sdkstaking.Description{Moniker: sdkblsPubKey.Address().String()},
 	)
@@ -239,19 +245,45 @@ func (k *Keeper) withdrawAndBurn(
 	amount uint64,
 ) error {
 	var err error
-	_, _, err = k.Undelegate(
+	valBz, err := k.ValidatorAddressCodec().
+		StringToBytes(validator.GetOperator())
+	if err != nil {
+		return err
+	}
+
+	shares, err := validator.SharesFromTokens(sdkmath.NewIntFromUint64(amount))
+	if err != nil {
+		return err
+	}
+
+	_, err = k.ValidateUnbondAmount(
 		ctx,
-		sdk.AccAddress(delegator[12:]),
-		sdk.ValAddress(validator.OperatorAddress), // TODO: Check if correct
-		sdkmath.LegacyNewDecFromInt(sdkmath.NewIntFromUint64(amount)),
+		sdk.AccAddress(delegator),
+		valBz,
+		shares.TruncateInt(),
 	)
 	if err != nil {
 		return err
 	}
 
-	coins := sdk.Coins{
-		sdk.NewCoin(StakingUnit, sdkmath.NewIntFromUint64(amount)),
+	_, _, err = k.Undelegate(
+		ctx,
+		sdk.AccAddress(delegator),
+		valBz,
+		shares,
+	)
+	if err != nil {
+		return err
 	}
 
-	return k.bk.BurnCoins(ctx, sdk.AccAddress(delegator[12:]), coins)
+	coinsToBurn, err := k.CompleteUnbonding(
+		ctx,
+		sdk.AccAddress(delegator),
+		valBz,
+	)
+	if err != nil {
+		return err
+	}
+
+	return k.bk.BurnCoins(ctx, sdk.AccAddress(delegator), coinsToBurn)
 }
