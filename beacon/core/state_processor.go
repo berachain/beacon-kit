@@ -148,6 +148,11 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
+	// process the redirects and ensure they match the local state.
+	if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
+		return err
+	}
+
 	// ProcessVoluntaryExits
 
 	return nil
@@ -235,6 +240,46 @@ func (sp *StateProcessor) processDeposits(
 			dep.Amount,
 			dep.Signature,
 			dep.Index,
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// processRedirects processes the redirects and ensures they match the
+// local state.
+func (sp *StateProcessor) processRedirects(
+	st state.BeaconState,
+	redirects []*types.Redirect,
+) error {
+	// Dequeue and verify the logs.
+	localRedirects, err := st.DequeueRedirects(uint64(len(redirects)))
+	if err != nil {
+		return err
+	}
+
+	// Ensure the redirects match the local state.
+	for i, red := range redirects {
+		if red == nil {
+			return types.ErrNilRedirect
+		}
+		if red.Index != localRedirects[i].Index {
+			return fmt.Errorf(
+				"redirect index does not match, expected: %d, got: %d",
+				localRedirects[i].Index, red.Index)
+		}
+
+		// TODO: These changes are not encapsulated in the state root of
+		// the beacon store. @po-bera needs for EIP-4788.
+		if err = sp.vsu.RedirectConsensusPower(
+			st.Context(),
+			red.Credentials,
+			[bls12381.PubKeyLength]byte(red.Pubkey),
+			[bls12381.PubKeyLength]byte(red.NewPubkey),
+			red.Amount,
+			red.Signature,
+			red.Index,
 		); err != nil {
 			return err
 		}

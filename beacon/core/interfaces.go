@@ -62,6 +62,16 @@ type ValsetUpdater interface {
 		index uint64,
 	) error
 
+	RedirectConsensusPower(
+		ctx context.Context,
+		delegator beacontypes.DepositCredentials,
+		pubkey [bls12381.PubKeyLength]byte,
+		newPubkey [bls12381.PubKeyLength]byte,
+		amount uint64,
+		signature []byte,
+		index uint64,
+	) error
+
 	DecreaseConsensusPower(
 		ctx context.Context,
 		delegator primitives.ExecutionAddress,

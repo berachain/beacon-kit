@@ -37,13 +37,16 @@ const (
 	MaxBlobCommitmentsPerBlock = 16
 	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
 	LogMaxBlobCommitments uint64 = 4
-	// LogBodyLength is the Log_2 of BodyLength (5).
+	// If you are adding values to the BeaconBlockBodyDeneb struct,
+	// the body length must be increased and GetTopLevelRoots updated.
+	BodyLength = 6
+	// LogBodyLength is the Log_2 of BodyLength (6).
 	LogBodyLength = 3
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
-	KZGPosition = 4
+	KZGPosition = 5
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
-	KZGMerkleIndex        = 24
+	KZGMerkleIndex        = 26
 	KZGOffset      uint64 = KZGMerkleIndex * MaxBlobCommitmentsPerBlock
 )
 

@@ -44,6 +44,9 @@ const (
 	// defaultMaxDepositsPerBlock specifies the default maximum number of
 	// deposits allowed per block.
 	defaultMaxDepositsPerBlock = 16
+	// defaultMaxRedirectsPerBlock specifies the default maximum number of
+	// redirects allowed per block.
+	defaultMaxRedirectsPerBlock = 16
 	// defaultMaxWithdrawalsPerPayload indicates the default maximum number of
 	// withdrawals allowed per payload.
 	defaultMaxWithdrawalsPerPayload = 16
@@ -55,6 +58,7 @@ func DefaultLimitsConfig() Limits {
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
 		SlotsPerHistoricalRoot:    defaultSlotsPerHistoricalRoot,
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
+		MaxRedirectsPerBlock:      defaultMaxRedirectsPerBlock,
 		MaxWithdrawalsPerPayload:  defaultMaxWithdrawalsPerPayload,
 	}
 }
@@ -71,6 +75,9 @@ type Limits struct {
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
 	// allowed per block.
 	MaxDepositsPerBlock uint64
+	// MaxRedirectsPerBlock specifies the maximum number of redirect operations
+	// allowed per block.
+	MaxRedirectsPerBlock uint64
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64
@@ -98,6 +105,12 @@ func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 		return nil, err
 	}
 
+	if c.MaxRedirectsPerBlock, err = parser.GetUint64(
+		flags.MaxRedirects,
+	); err != nil {
+		return nil, err
+	}
+
 	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(
 		flags.MaxWithdrawals,
 	); err != nil {
@@ -120,6 +133,9 @@ slots-per-historical-root = {{.BeaconKit.Beacon.Limits.SlotsPerHistoricalRoot}}
 
 # MaxDepositsPerBlock is the maximum number of Deposits allowed in a block.
 max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
+
+# MaxRedirectsPerBlock is the maximum number of Redirects allowed in a block.
+max-redirects-per-block = {{.BeaconKit.Beacon.Limits.MaxRedirectsPerBlock}}
 
 # MaxWithdrawalsPerPayload is the maximum number of Withdrawals allowed in a payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.Limits.MaxWithdrawalsPerPayload}}

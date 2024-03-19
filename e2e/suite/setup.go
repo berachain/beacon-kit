@@ -162,8 +162,15 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	if err != nil {
 		return err
 	}
-
 	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
+		sCtx,
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-1"] = types.NewConsensusClient(
 		sCtx,
 	)
 	return nil
