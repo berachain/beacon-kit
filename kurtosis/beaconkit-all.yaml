@@ -58,5 +58,6 @@ rpc_endpoints:
       - el-full-reth-1:8545
       - el-full-reth-2:8545
       - el-full-geth-3:8545
+      - el-full-geth-4:8545
       - el-full-erigon-5:8545
 additional_services: []
