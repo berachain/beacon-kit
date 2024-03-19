@@ -206,7 +206,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			var gasTipCap *big.Int
 
 			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
-				if rpcErr, ok := err.(rpc.Error); ok && rpcErr.ErrorCode() == -32601 {
+				var rpcErr rpc.Error
+				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
 					// Besu does not support eth_maxPriorityFeePerGas
 					// so we use a default value of 10 Gwei.
 					gasTipCap = big.NewInt(TenGwei)
