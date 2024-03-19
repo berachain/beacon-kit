@@ -84,7 +84,7 @@ func (k *Keeper) IncreaseConsensusPower(
 		if err == nil {
 			write()
 		}
-		k.Logger().Error("failed to decrease consensus power", "error", err)
+		k.Logger().Error("failed to increase consensus power", "error", err)
 	}()
 
 	//nolint:contextcheck // We are using the cache context.
@@ -141,7 +141,7 @@ func (k *Keeper) RedirectConsensusPower(
 		if err == nil {
 			write()
 		}
-		k.Logger().Error("failed to decrease consensus power", "error", err)
+		k.Logger().Error("failed to redirect consensus power", "error", err)
 	}()
 
 	//nolint:contextcheck // We are using the cache context.
