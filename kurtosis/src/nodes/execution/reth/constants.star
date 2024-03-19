@@ -1,5 +1,5 @@
 global_constants = import_module("../../../constants.star")
-defaults = import_module('./../constants.star')
+defaults = import_module("./../constants.star")
 
 GLOBAL_CLIENT_LOG_LEVEL = global_constants.GLOBAL_CLIENT_LOG_LEVEL
 KURTOSIS_IP_ADDRESS_PLACEHOLDER = global_constants.KURTOSIS_IP_ADDRESS_PLACEHOLDER
@@ -10,10 +10,11 @@ EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER = defaults.EXECUTION_DATA_DIRPATH_ON_
 NODE_CONFIG_ARTIFACT_NAME = "reth-config"
 CONFIG_FILENAME = "reth-config.toml"
 GENESIS_FILENAME = "genesis.json"
+
 # The files that only need to be uploaded once to be read by every node
 # NOTE: THIS MUST REFERENCE THE FILEPATH RELATIVE TO execution.star
 GLOBAL_FILES = [
-    ("./reth/reth-config.toml", NODE_CONFIG_ARTIFACT_NAME)
+    ("./reth/reth-config.toml", NODE_CONFIG_ARTIFACT_NAME),
 ]
 
 RPC_PORT_NUM = defaults.RPC_PORT_NUM
@@ -42,28 +43,46 @@ FILES = {
     "/jwt": "jwt_file",
 }
 CMD = [
-    "reth", "init",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-    "--chain", "/root/genesis/{}".format(GENESIS_FILENAME),
+    "reth",
+    "init",
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--chain",
+    "/root/genesis/{}".format(GENESIS_FILENAME),
     "&&",
-    "reth", "node",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-    "--chain", "/root/genesis/{}".format(GENESIS_FILENAME),
+    "reth",
+    "node",
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--chain",
+    "/root/genesis/{}".format(GENESIS_FILENAME),
     "--http",
-    "--http.addr", "0.0.0.0",
-    "--http.corsdomain", "'*'",
-    "--http.api", "admin,eth,net,web3,txpool,debug,trace",
+    "--http.addr",
+    "0.0.0.0",
+    "--http.corsdomain",
+    "'*'",
+    "--http.api",
+    "admin,eth,net,web3,txpool,debug,trace",
     "--ws",
-    "--ws.addr", "0.0.0.0",
-    "--ws.port", str(WS_PORT_NUM),
-    "--ws.api", "net,eth",
-    "--ws.origins", "'*'",
-    "--authrpc.port", str(ENGINE_RPC_PORT_NUM),
-    "--authrpc.jwtsecret", global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
-    "--authrpc.addr", "0.0.0.0",
-    "--metrics", "0.0.0.0:{0}".format(METRICS_PORT_NUM),
+    "--ws.addr",
+    "0.0.0.0",
+    "--ws.port",
+    str(WS_PORT_NUM),
+    "--ws.api",
+    "net,eth",
+    "--ws.origins",
+    "'*'",
+    "--authrpc.port",
+    str(ENGINE_RPC_PORT_NUM),
+    "--authrpc.jwtsecret",
+    global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
+    "--authrpc.addr",
+    "0.0.0.0",
+    "--metrics",
+    "0.0.0.0:{0}".format(METRICS_PORT_NUM),
     # "--config", CONFIG_LOCATION,
-    "--nat", "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER
+    "--nat",
+    "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
 ]
 BOOTNODE_CMD = "--bootnodes"
 

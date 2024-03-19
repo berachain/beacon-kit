@@ -10,6 +10,7 @@ EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER = "/home/erigon{}".format(defaults.EX
 # NODE_CONFIG_ARTIFACT_NAME = "erigon-config"
 # CONFIG_FILENAME = "erigon-config.toml"
 GENESIS_FILENAME = "genesis.json"
+
 # The files that only need to be uploaded once to be read by every node
 # NOTE: THIS MUST REFERENCE THE FILEPATH RELATIVE TO execution.star
 GLOBAL_FILES = [
@@ -36,6 +37,7 @@ METRICS_PATH = defaults.METRICS_PATH
 GENESIS_FILEPATH = "/home/erigon/genesis"
 IMAGE = "thorax/erigon:devel"
 ENTRYPOINT = ["sh", "-c"]
+
 # CONFIG_LOCATION = "/root/.erigon/{}".format(CONFIG_FILENAME)
 FILES = {
     # "/root/.erigon": NODE_CONFIG_ARTIFACT_NAME,
@@ -45,36 +47,52 @@ FILES = {
 CMD = [
     "erigon",
     "init",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "{}/{}".format(GENESIS_FILEPATH, GENESIS_FILENAME),
     "&&",
     "erigon",
     # "--config", CONFIG_LOCATION,
-    "--nat", "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
+    "--nat",
+    "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
     "--metrics",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-    "--port", str(DISCOVERY_PORT_NUM),
-    "--http.api", "eth,erigon,engine,web3,net,debug,trace,txpool,admin",
-    "--http.vhosts", "'*'",
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--port",
+    str(DISCOVERY_PORT_NUM),
+    "--http.api",
+    "eth,erigon,engine,web3,net,debug,trace,txpool,admin",
+    "--http.vhosts",
+    "'*'",
     "--ws",
     "--allow-insecure-unlock",
-    "--nat", "extip:{}".format(KURTOSIS_IP_ADDRESS_PLACEHOLDER),
+    "--nat",
+    "extip:{}".format(KURTOSIS_IP_ADDRESS_PLACEHOLDER),
     "--http",
-    "--http.addr", "0.0.0.0",
-    "--http.corsdomain", "'*'",
-    "--http.port", "{}".format(RPC_PORT_NUM),
-    "--authrpc.jwtsecret", global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
-    "--authrpc.addr", "0.0.0.0",
-    "--authrpc.port", "{}".format(ENGINE_RPC_PORT_NUM),
-    "--authrpc.vhosts", "'*'",
+    "--http.addr",
+    "0.0.0.0",
+    "--http.corsdomain",
+    "'*'",
+    "--http.port",
+    "{}".format(RPC_PORT_NUM),
+    "--authrpc.jwtsecret",
+    global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
+    "--authrpc.addr",
+    "0.0.0.0",
+    "--authrpc.port",
+    "{}".format(ENGINE_RPC_PORT_NUM),
+    "--authrpc.vhosts",
+    "'*'",
     "--metrics",
-    "--metrics.addr", "0.0.0.0",
-    "--metrics.port", "{}".format(METRICS_PORT_NUM),
-    "--networkid", "80087",
+    "--metrics.addr",
+    "0.0.0.0",
+    "--metrics.port",
+    "{}".format(METRICS_PORT_NUM),
+    "--networkid",
+    "80087",
     "--db.size.limit={}MB".format(3000),
 ]
 BOOTNODE_CMD = "--bootnodes"
-
 
 # Modify command flag --verbosity to change the verbosity level
 VERBOSITY_LEVELS = {

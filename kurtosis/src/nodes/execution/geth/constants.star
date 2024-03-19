@@ -1,5 +1,5 @@
 global_constants = import_module("../../../constants.star")
-defaults = import_module('./../constants.star')
+defaults = import_module("./../constants.star")
 
 GLOBAL_CLIENT_LOG_LEVEL = global_constants.GLOBAL_CLIENT_LOG_LEVEL
 KURTOSIS_IP_ADDRESS_PLACEHOLDER = global_constants.KURTOSIS_IP_ADDRESS_PLACEHOLDER
@@ -10,10 +10,11 @@ EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER = defaults.EXECUTION_DATA_DIRPATH_ON_
 NODE_CONFIG_ARTIFACT_NAME = "geth-config"
 CONFIG_FILENAME = "geth-config.toml"
 GENESIS_FILENAME = "genesis.json"
+
 # The files that only need to be uploaded once to be read by every node
 # NOTE: THIS MUST REFERENCE THE FILEPATH RELATIVE TO execution.star
 GLOBAL_FILES = [
-    ("./geth/geth-config.toml", NODE_CONFIG_ARTIFACT_NAME)
+    ("./geth/geth-config.toml", NODE_CONFIG_ARTIFACT_NAME),
 ]
 
 IMAGE = "ethereum/client-go:latest"
@@ -27,15 +28,20 @@ FILES = {
 CMD = [
     "geth",
     "init",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "/root/genesis/{}".format(GENESIS_FILENAME),
     "&&",
     "geth",
-    "--config", CONFIG_LOCATION,
-    "--nat", "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
+    "--config",
+    CONFIG_LOCATION,
+    "--nat",
+    "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
     "--metrics",
-    "--datadir", EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-    "--networkid", "80087"
+    "--datadir",
+    EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--networkid",
+    "80087",
 ]
 BOOTNODE_CMD = "--bootnodes"
 
