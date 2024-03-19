@@ -2,13 +2,13 @@ package rpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/berachain/beacon-kit/beacon/rpc/beacon"
 	"github.com/berachain/beacon-kit/config"
-	"go.opencensus.io/plugin/ocgrpc"
-	"google.golang.org/grpc/credentials"
-	"net"
-
-	"google.golang.org/grpc"
+	"github.com/gorilla/mux"
+	"net/http"
+	"time"
 
 	"github.com/berachain/beacon-kit/runtime/service"
 )
@@ -16,44 +16,33 @@ import (
 type Service struct {
 	service.BaseService
 
-	cfg        *config.RPC
-	grpcServer *grpc.Server
-	listener   net.Listener
+	cfg    *config.RPC
+	Router *mux.Router
+	server *http.Server
 }
 
 func (s *Service) Start(ctx context.Context) {
+	logger := s.Logger().With("module", "rpc")
 	address := fmt.Sprintf("%s:%d", s.cfg.Host, s.cfg.Port)
-	lis, err := net.Listen("tcp", address)
-	if err != nil {
-		s.BaseService.Logger().Error("failed to listen: ", err)
-		panic(err)
-	}
-	s.listener = lis
-	s.BaseService.Logger().Info(fmt.Sprintf("gRPC server listening on port %d", s.cfg.Port))
+	s.Router = newRouter()
 
-	opts := []grpc.ServerOption{
-		grpc.StatsHandler(&ocgrpc.ServerHandler{}),
-	}
+	s.initializeBeaconServerRoutes(&beacon.Server{})
 
-	if s.cfg.CertFlag != "" && s.cfg.KeyFlag != "" {
-		creds, err := credentials.NewServerTLSFromFile(s.cfg.CertFlag, s.cfg.KeyFlag)
-		if err != nil {
-			s.Logger().Error(fmt.Sprintf("Failed to create gRPC server with TLS: %v", err))
-		}
-		opts = append(opts, grpc.Creds(creds))
-	} else {
-		s.Logger().Warn("You are using an insecure gRPC server. If you are running your beacon node and " +
-			"validator on the same machines, you can ignore this message. If you want to know " +
-			"how to enable secure connections, see: https://docs.prylabs.network/docs/prysm-usage/secure-grpc")
+	s.server = &http.Server{
+		Addr:              address,
+		Handler:           s.Router,
+		ReadHeaderTimeout: time.Second,
 	}
-
-	s.grpcServer = grpc.NewServer(opts...)
 
 	go func() {
-		if s.listener != nil {
-			if err := s.grpcServer.Serve(s.listener); err != nil {
-				s.Logger().Error(fmt.Sprintf("Failed to serve gRPC server: %v", err))
-			}
+		logger.With("address", address).Info("Starting gRPC gateway")
+		if err := s.server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			logger.Error(fmt.Sprintf("Failed to start RPC server: %v", err))
+			return
 		}
 	}()
+}
+
+func (s *Service) initializeBeaconServerRoutes(beaconServer *beacon.Server) {
+	s.Router.HandleFunc("/eth/v1/beacon/states/{state_id}/randao", beaconServer.GetRandao).Methods(http.MethodGet)
 }
