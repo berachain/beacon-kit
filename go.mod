@@ -21,7 +21,7 @@ replace (
 	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
+	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240318230110-d72af9a8368e
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.2-0.20240311143937-fea88d13c52f
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240311143937-fea88d13c52f
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0

@@ -383,9 +383,6 @@ func BuildCreateValidatorMsg(
 		Credentials: valStr,
 		Pubkey:      config.PubKey.Bytes(),
 	}
-	if err != nil {
-		return txBldr, msg, err
-	}
 
 	if generateOnly {
 		ip := config.IP
