@@ -87,6 +87,7 @@ func (k *Keeper) IncreaseConsensusPower(
 		k.Logger().Error("failed to decrease consensus power", "error", err)
 	}()
 
+	//nolint:contextcheck // We are using the cache context.
 	validator, err = k.getValidatorFromPubkey(
 		cctx,
 		&sdkbls.PubKey{Key: pubkey[:]},
@@ -114,7 +115,8 @@ func (k *Keeper) IncreaseConsensusPower(
 	if err != nil {
 		return err
 	}
-	err = k.mintAndDelegate(ctx, executionAddress, validator, amount)
+	//nolint:contextcheck // We are using the cache context.
+	err = k.mintAndDelegate(cctx, executionAddress, validator, amount)
 	return err
 }
 
@@ -142,6 +144,7 @@ func (k *Keeper) RedirectConsensusPower(
 		k.Logger().Error("failed to decrease consensus power", "error", err)
 	}()
 
+	//nolint:contextcheck // We are using the cache context.
 	validator, err = k.getValidatorFromPubkey(
 		cctx,
 		&sdkbls.PubKey{Key: pubkey[:]},
@@ -150,6 +153,7 @@ func (k *Keeper) RedirectConsensusPower(
 		return err
 	}
 
+	//nolint:contextcheck // We are using the cache context.
 	newValidator, err := k.getValidatorFromPubkey(
 		cctx,
 		&sdkbls.PubKey{Key: newPubkey[:]},
@@ -179,8 +183,9 @@ func (k *Keeper) RedirectConsensusPower(
 	}
 
 	// Redirects the consensus power to the new validator.
+	//nolint:contextcheck // We are using the cache context.
 	err = k.redelegate(
-		ctx,
+		cctx,
 		executionAddress,
 		validator,
 		newValidator,
@@ -210,6 +215,7 @@ func (k *Keeper) DecreaseConsensusPower(
 		err = nil
 	}()
 
+	//nolint:contextcheck // We are using the cache context.
 	validator, err = k.getValidatorFromPubkey(
 		cctx,
 		&sdkbls.PubKey{Key: pubkey[:]},
@@ -218,6 +224,7 @@ func (k *Keeper) DecreaseConsensusPower(
 		return err
 	}
 
+	//nolint:contextcheck // We are using the cache context.
 	err = k.withdrawAndBurn(
 		cctx,
 		delegator[:],
