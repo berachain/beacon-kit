@@ -47,13 +47,26 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	client := s.ConsensusClients()["cl-validator-beaconkit-0"]
 	s.Require().NotNil(client)
 
+	// Get the second consensus client.
+	client2 := s.ConsensusClients()["cl-validator-beaconkit-1"]
+	s.Require().NotNil(client2)
+
 	// Get the public key.
 	pubkey, err := client.GetPubKey(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().Len(pubkey, 48)
 
+	// Get the second public key.
+	pubkey2, err := client2.GetPubKey(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().Len(pubkey2, 48)
+
 	// Get the consensus power.
 	power, err := client.GetConsensusPower(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get the second consensus power.
+	power2, err := client2.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
@@ -105,7 +118,6 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
 	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
-	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
 	targetBlkNum := blkNum + 5
@@ -121,23 +133,47 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
 
-	newPower, err := client.GetConsensusPower(s.Ctx())
+	powerAfterDeposit, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().Greater(newPower, power)
+	s.Require().Greater(powerAfterDeposit, power)
+
+	// Create a redirect transaction.
+	tx, err = dc.Redirect(&bind.TransactOpts{
+		From:   s.GenesisAccount().Address(),
+		Signer: s.GenesisAccount().SignerFunc(chainID),
+	}, pubkey, pubkey2, 32e9)
+	s.Require().NoError(err)
+
+	// Wait for the transaction to be mined.
+	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(1), receipt.Status)
+	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
+
+	// Wait for the log to be processed.
+	targetBlkNum += 5
+	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	s.Require().NoError(err)
+
+	// Check to see if consensus power is transferred
+	powerAfterRedirect, err := client.GetConsensusPower(s.Ctx())
+	s.Require().NoError(err)
+	power2AfterRedirect, err := client2.GetConsensusPower(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().Equal(powerAfterDeposit, power2AfterRedirect)
+	s.Require().Equal(powerAfterRedirect, power)
 
 	// Submit withdrawal
 	tx, err = dc.Withdraw(&bind.TransactOpts{
 		From:   s.GenesisAccount().Address(),
 		Signer: s.GenesisAccount().SignerFunc(chainID),
-	}, pubkey, credentials, 32e9)
+	}, pubkey2, credentials, 32e9)
 	s.Require().NoError(err)
 
 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
 	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
-	s.Logger().
-		Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
 	targetBlkNum += 5
@@ -154,7 +190,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
 
 	// Check to see if consensus power is back to the original power
-	postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
+	power2AfterWithdraw, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().Equal(postWithdrawPower, power)
+	s.Require().Equal(power2AfterWithdraw, power2)
 }
