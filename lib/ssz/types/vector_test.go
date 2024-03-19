@@ -23,16 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package types_test
 
-type Vector4Container struct {
-	VectorField []uint64 `ssz-size:"4"`
-}
+import (
+	"testing"
 
-type Vector5Container struct {
-	VectorField []uint64 `ssz-size:"5"`
-}
+	"github.com/berachain/beacon-kit/lib/ssz/common"
+	"github.com/berachain/beacon-kit/lib/ssz/mocks"
+	"github.com/berachain/beacon-kit/lib/ssz/types"
+	"github.com/stretchr/testify/require"
+)
 
-type Vector6Container struct {
-	VectorField []uint64 `ssz-size:"6"`
+func Test_VectorBasicObjects(t *testing.T) {
+	size := 6
+	elems := make([]uint64, size)
+	for i := range elems {
+		elems[i] = uint64(i) + 1
+	}
+
+	mockContainer := &mocks.Vector6Container{
+		VectorField: elems,
+	}
+
+	sszElems := make([]types.Uint64, size)
+	for i := range elems {
+		sszElems[i] = types.Uint64(elems[i])
+	}
+	sszVec := &types.Vector[types.Uint64]{
+		Length:   uint64(size),
+		ElemType: common.TypeUint,
+		Elems:    sszElems,
+	}
+
+	h1, err := mockContainer.HashTreeRoot()
+	require.NoError(t, err)
+
+	h2, err := sszVec.HashTreeRoot()
+	require.NoError(t, err)
+
+	require.Equal(t, h1, h2)
 }

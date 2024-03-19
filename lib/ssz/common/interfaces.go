@@ -23,16 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package common
 
-type Vector4Container struct {
-	VectorField []uint64 `ssz-size:"4"`
+type SSZObject interface {
+	Marshal() ([]byte, error)
+	HashTreeRoot() ([32]byte, error)
+	Type() Type
 }
 
-type Vector5Container struct {
-	VectorField []uint64 `ssz-size:"5"`
+type Basic interface {
+	SSZObject
+	// Size returns the length, in bytes,
+	// of the serialized form of the basic type.
+	Size() uint32
 }
 
-type Vector6Container struct {
-	VectorField []uint64 `ssz-size:"6"`
+type Composite interface {
+	SSZObject
+	Elements() []SSZObject
 }

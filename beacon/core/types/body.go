@@ -119,7 +119,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	}
 
 	randao := b.GetRandaoReveal()
-	root, err := ssz.MerkleizeByteSliceSSZ(randao[:])
+	root, err := ssz.MerkleizeByteSlice(randao[:])
 	if err != nil {
 		return nil, err
 	}

@@ -23,13 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ssz
+package types
 
-// Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable interface {
-	HashTreeRoot() ([32]byte, error)
+import (
+	"github.com/berachain/beacon-kit/lib/ssz/common"
+)
+
+type Container struct {
+	Fields []common.SSZObject
 }
 
-type Container interface {
-	Fields() []Hashable
+func (c *Container) Marshal() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (c *Container) HashTreeRoot() ([32]byte, error) {
+	return [32]byte{}, nil
+}
+
+func (c *Container) Values() []common.SSZObject {
+	return c.Fields
+}
+
+func (c *Container) Type() common.Type {
+	return common.TypeContainer
 }

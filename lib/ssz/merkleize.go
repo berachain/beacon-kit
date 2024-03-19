@@ -25,63 +25,30 @@
 
 package ssz
 
+import "github.com/berachain/beacon-kit/lib/ssz/common"
+
 const (
 	two = 2
 )
 
-// MerkleizeChunksSSZ hashes a list of chunks by building
-// a merkle tree and returning the root.
-func MerkleizeChunksSSZ(
-	chunks [][32]byte,
-	limit uint64,
+func MerkleizeBasic(
+	value common.SSZObject,
+	fixedSize bool,
 ) ([32]byte, error) {
-	trie, err := NewFromChunks(chunks, limit)
+	trie, err := BuildTreeFromBasic(value, fixedSize)
 	if err != nil {
 		return [32]byte{}, err
 	}
 	return trie.HashTreeRoot(), nil
 }
 
-// MerkleizeByteSliceSSZ hashes a byteslice by chunkifying it and returning the
-// corresponding HTR as if it were a fixed vector of bytes of the given length.
-func MerkleizeByteSliceSSZ(input []byte) ([32]byte, error) {
-	trie, err := NewFromByteSlice(input)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return trie.HashTreeRoot(), nil
-}
-
-// MerkleizeListSSZ hashes each element in the list and then returns the HTR of
-// the list of corresponding roots, with the length mixed in.
-func MerkleizeListSSZ[T Hashable](
-	elements []T,
-) ([32]byte, error) {
-	trie, err := NewFromList(elements)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return trie.HashTreeRoot(), nil
-}
-
-// MerkleizeVectorSSZ hashes each element in the list and then returns the HTR
+// MerkleizeComposite hashes each element in the list and then returns the HTR
 // of the corresponding list of roots.
-func MerkleizeVectorSSZ[T Hashable](
-	elements []T,
+func MerkleizeComposite(
+	value common.Composite,
+	fixedSize bool,
 ) ([32]byte, error) {
-	trie, err := NewFromVector(elements)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return trie.HashTreeRoot(), nil
-}
-
-// MerkleizeContainerSSZ hashes the container by building a merkle tree and
-// returning the root.
-func MerkleizeContainerSSZ[C Container](
-	container C,
-) ([32]byte, error) {
-	trie, err := NewFromContainer(container)
+	trie, err := BuildTreeFromComposite(value, fixedSize)
 	if err != nil {
 		return [32]byte{}, err
 	}

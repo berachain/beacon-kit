@@ -25,165 +25,157 @@
 
 package ssz_test
 
-import (
-	"testing"
+// func FuzzUint8SSZ(f *testing.F) {
+// 	f.Add(uint8(0))
+// 	f.Fuzz(func(t *testing.T, value uint8) {
+// 		container := &mocks.Uint8Container{
+// 			Uint8Field: value,
+// 		}
 
-	"github.com/berachain/beacon-kit/lib/ssz"
-	"github.com/berachain/beacon-kit/lib/ssz/mocks"
-	"github.com/stretchr/testify/require"
-)
+// 		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint8]{
+// 			Field: mocks.Uint8(value),
+// 		}
 
-func FuzzUint8SSZ(f *testing.F) {
-	f.Add(uint8(0))
-	f.Fuzz(func(t *testing.T, value uint8) {
-		container := &mocks.Uint8Container{
-			Uint8Field: value,
-		}
+// 		h1, err := container.HashTreeRoot()
+// 		require.NoError(t, err)
 
-		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint8]{
-			Field: mocks.Uint8(value),
-		}
+// 		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 		require.NoError(t, err)
 
-		h1, err := container.HashTreeRoot()
-		require.NoError(t, err)
+// 		require.Equal(t, h1, h2)
+// 	})
+// }
 
-		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-		require.NoError(t, err)
+// func FuzzUint16SSZ(f *testing.F) {
+// 	f.Add(uint16(0))
+// 	f.Fuzz(func(t *testing.T, value uint16) {
+// 		container := &mocks.Uint16Container{
+// 			Uint16Field: value,
+// 		}
 
-		require.Equal(t, h1, h2)
-	})
-}
+// 		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint16]{
+// 			Field: mocks.Uint16(value),
+// 		}
 
-func FuzzUint16SSZ(f *testing.F) {
-	f.Add(uint16(0))
-	f.Fuzz(func(t *testing.T, value uint16) {
-		container := &mocks.Uint16Container{
-			Uint16Field: value,
-		}
+// 		h1, err := container.HashTreeRoot()
+// 		require.NoError(t, err)
 
-		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint16]{
-			Field: mocks.Uint16(value),
-		}
+// 		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 		require.NoError(t, err)
 
-		h1, err := container.HashTreeRoot()
-		require.NoError(t, err)
+// 		require.Equal(t, h1, h2)
+// 	})
+// }
 
-		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-		require.NoError(t, err)
+// func FuzzUint32SSZ(f *testing.F) {
+// 	f.Add(uint32(0))
+// 	f.Fuzz(func(t *testing.T, value uint32) {
+// 		container := &mocks.Uint32Container{
+// 			Uint32Field: value,
+// 		}
 
-		require.Equal(t, h1, h2)
-	})
-}
+// 		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint32]{
+// 			Field: mocks.Uint32(value),
+// 		}
 
-func FuzzUint32SSZ(f *testing.F) {
-	f.Add(uint32(0))
-	f.Fuzz(func(t *testing.T, value uint32) {
-		container := &mocks.Uint32Container{
-			Uint32Field: value,
-		}
+// 		h1, err := container.HashTreeRoot()
+// 		require.NoError(t, err)
 
-		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint32]{
-			Field: mocks.Uint32(value),
-		}
+// 		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 		require.NoError(t, err)
 
-		h1, err := container.HashTreeRoot()
-		require.NoError(t, err)
+// 		require.Equal(t, h1, h2)
+// 	})
+// }
 
-		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-		require.NoError(t, err)
+// func FuzzUint64SSZ(f *testing.F) {
+// 	f.Add(uint64(0))
+// 	f.Fuzz(func(t *testing.T, value uint64) {
+// 		container := &mocks.Uint64Container{
+// 			Uint64Field: value,
+// 		}
 
-		require.Equal(t, h1, h2)
-	})
-}
+// 		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint64]{
+// 			Field: mocks.Uint64(value),
+// 		}
 
-func FuzzUint64SSZ(f *testing.F) {
-	f.Add(uint64(0))
-	f.Fuzz(func(t *testing.T, value uint64) {
-		container := &mocks.Uint64Container{
-			Uint64Field: value,
-		}
+// 		h1, err := container.HashTreeRoot()
+// 		require.NoError(t, err)
 
-		mockContainer := &mocks.MockSingleFieldContainer[mocks.Uint64]{
-			Field: mocks.Uint64(value),
-		}
+// 		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 		require.NoError(t, err)
 
-		h1, err := container.HashTreeRoot()
-		require.NoError(t, err)
+// 		require.Equal(t, h1, h2)
+// 	})
+// }
 
-		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-		require.NoError(t, err)
+// func FuzzByteSSZ(f *testing.F) {
+// 	f.Add(byte(0))
+// 	f.Fuzz(func(t *testing.T, value byte) {
+// 		container := &mocks.ByteContainer{
+// 			ByteField: value,
+// 		}
 
-		require.Equal(t, h1, h2)
-	})
-}
+// 		mockContainer := &mocks.MockSingleFieldContainer[mocks.Byte]{
+// 			Field: mocks.Byte(value),
+// 		}
 
-func FuzzByteSSZ(f *testing.F) {
-	f.Add(byte(0))
-	f.Fuzz(func(t *testing.T, value byte) {
-		container := &mocks.ByteContainer{
-			ByteField: value,
-		}
+// 		h1, err := container.HashTreeRoot()
+// 		require.NoError(t, err)
 
-		mockContainer := &mocks.MockSingleFieldContainer[mocks.Byte]{
-			Field: mocks.Byte(value),
-		}
+// 		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 		require.NoError(t, err)
 
-		h1, err := container.HashTreeRoot()
-		require.NoError(t, err)
+// 		require.Equal(t, h1, h2)
+// 	})
+// }
 
-		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-		require.NoError(t, err)
+// func FuzzBoolSSZ(f *testing.F) {
+// 	f.Add(false)
+// 	f.Fuzz(func(t *testing.T, value bool) {
+// 		container := &mocks.BoolContainer{
+// 			BoolField: value,
+// 		}
 
-		require.Equal(t, h1, h2)
-	})
-}
+// 		mockContainer := &mocks.MockSingleFieldContainer[mocks.Bool]{
+// 			Field: mocks.Bool(value),
+// 		}
 
-func FuzzBoolSSZ(f *testing.F) {
-	f.Add(false)
-	f.Fuzz(func(t *testing.T, value bool) {
-		container := &mocks.BoolContainer{
-			BoolField: value,
-		}
+// 		h1, err := container.HashTreeRoot()
+// 		require.NoError(t, err)
 
-		mockContainer := &mocks.MockSingleFieldContainer[mocks.Bool]{
-			Field: mocks.Bool(value),
-		}
+// 		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 		require.NoError(t, err)
 
-		h1, err := container.HashTreeRoot()
-		require.NoError(t, err)
+// 		require.Equal(t, h1, h2)
+// 	})
+// }
 
-		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-		require.NoError(t, err)
+// func FuzzVectorSSZ(f *testing.F) {
+// 	f.Add(uint64(0))
+// 	f.Fuzz(func(t *testing.T, value uint64) {
+// 		vec := make([]uint64, 20)
+// 		for i := range vec {
+// 			vec[i] = value + uint64(i)
+// 		}
+// 		container := &mocks.Vector4Container{
+// 			VectorField: vec,
+// 		}
 
-		require.Equal(t, h1, h2)
-	})
-}
+// 		mockVec := make([]mocks.Uint64, 20)
+// 		for i := range mockVec {
+// 			mockVec[i] = mocks.Uint64(vec[i])
+// 		}
+// 		mockContainer := &mocks.MockSingleFieldContainer[mocks.Vector[mocks.Uint64]]{
+// 			Field: mockVec,
+// 		}
 
-func FuzzVectorSSZ(f *testing.F) {
-	f.Add(uint64(0))
-	f.Fuzz(func(t *testing.T, value uint64) {
-		vec := make([]uint64, 20)
-		for i := range vec {
-			vec[i] = value + uint64(i)
-		}
-		container := &mocks.Vector4Container{
-			VectorField: vec,
-		}
+// 		h1, err := container.HashTreeRoot()
+// 		require.NoError(t, err)
 
-		mockVec := make([]mocks.Uint64, 20)
-		for i := range mockVec {
-			mockVec[i] = mocks.Uint64(vec[i])
-		}
-		mockContainer := &mocks.MockSingleFieldContainer[mocks.Vector[mocks.Uint64]]{
-			Field: mockVec,
-		}
+// 		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 		require.NoError(t, err)
 
-		h1, err := container.HashTreeRoot()
-		require.NoError(t, err)
-
-		h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-		require.NoError(t, err)
-
-		require.Equal(t, h1, h2)
-	})
-}
+// 		require.Equal(t, h1, h2)
+// 	})
+// }

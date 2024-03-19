@@ -23,16 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package ssz
 
-type Vector4Container struct {
-	VectorField []uint64 `ssz-size:"4"`
-}
+import (
+	"encoding/binary"
 
-type Vector5Container struct {
-	VectorField []uint64 `ssz-size:"5"`
-}
+	"github.com/berachain/beacon-kit/lib/ssz/common"
+)
 
-type Vector6Container struct {
-	VectorField []uint64 `ssz-size:"6"`
+func MarshalComposite(c common.Composite) ([]byte, error) {
+	elems := c.Elements()
+	size := len(elems)
+
+	fixedParts := make([][]byte, size)
+	variableParts := make([][]byte, size)
+
+	fixedLen := uint32(0)
+	prefixSumVariableLen := make([]uint32, size+1)
+
+	for i, v := range elems {
+		bz, err := v.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		if !common.IsVariableSize(v.Type()) {
+			fixedParts[i] = bz
+			fixedLen += uint32(len(bz))
+		} else {
+			variableParts[i] = bz
+			fixedLen += common.BytesPerLengthOffset
+			prefixSumVariableLen[i+1] = prefixSumVariableLen[i] + uint32(len(bz))
+		}
+	}
+
+	for i, p := range fixedParts {
+		if len(p) == 0 {
+			binary.LittleEndian.PutUint32(fixedParts[i], fixedLen+prefixSumVariableLen[i])
+		}
+	}
+
+	bz := make([]byte, 0)
+	for _, p := range fixedParts {
+		bz = append(bz, p...)
+	}
+	for _, p := range variableParts {
+		bz = append(bz, p...)
+	}
+	return bz, nil
 }

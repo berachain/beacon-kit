@@ -23,16 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package common
 
-type Vector4Container struct {
-	VectorField []uint64 `ssz-size:"4"`
+const (
+	BitsPerByte          = 8
+	BytesPerChunk        = 32
+	BytesPerLengthOffset = 4
+)
+
+// Type is a SSZ type.
+type Type int
+
+const (
+	// TypeUndefined is a sentinel zero value.
+	TypeUndefined Type = iota
+	// TypeUint is a SSZ int type, include byte.
+	TypeUint
+	// TypeBool is a SSZ bool type.
+	TypeBool
+	// TypeBytes is a SSZ fixed or dynamic bytes type.
+	TypeBytes
+	// TypeVector is a SSZ vector.
+	TypeVector
+	// TypeList is a SSZ list.
+	TypeList
+	// TypeContainer is a SSZ container.
+	TypeContainer
+)
+
+func IsBasicType(t Type) bool {
+	return t == TypeUint || t == TypeBool
 }
 
-type Vector5Container struct {
-	VectorField []uint64 `ssz-size:"5"`
-}
-
-type Vector6Container struct {
-	VectorField []uint64 `ssz-size:"6"`
+func IsVariableSize(t Type) bool {
+	switch t {
+	case TypeList, TypeContainer:
+		return true
+	default:
+		return false
+	}
 }

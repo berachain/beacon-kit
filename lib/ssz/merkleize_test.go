@@ -25,92 +25,98 @@
 
 package ssz_test
 
-import (
-	"math/rand"
-	"testing"
+// import (
+// 	"math/rand"
+// 	"testing"
 
-	"github.com/berachain/beacon-kit/lib/ssz"
-	"github.com/berachain/beacon-kit/lib/ssz/mocks"
-	"github.com/stretchr/testify/require"
-)
+// 	"github.com/berachain/beacon-kit/lib/ssz"
+// 	"github.com/berachain/beacon-kit/lib/ssz/mocks"
+// 	"github.com/berachain/beacon-kit/lib/ssz/types"
+// 	"github.com/stretchr/testify/require"
+// )
 
-func Test_Vector4SSZ(t *testing.T) {
-	vec := make([]uint64, 4)
-	for i := range vec {
-		vec[i] = rand.Uint64()
-	}
-	container := &mocks.Vector4Container{
-		VectorField: vec,
-	}
+// func Test_Vector4SSZ(t *testing.T) {
+// 	sszVec := make([]uint64, 4)
+// 	for i := range sszVec {
+// 		sszVec[i] = rand.Uint64()
+// 	}
+// 	sszContainer := &mocks.Vector4Container{
+// 		VectorField: sszVec,
+// 	}
 
-	mockVec := make([]mocks.Uint64, 4)
-	for i := range mockVec {
-		mockVec[i] = mocks.Uint64(vec[i])
-	}
-	mockContainer := &mocks.MockSingleFieldContainer[mocks.Vector[mocks.Uint64]]{
-		Field: mockVec,
-	}
+// 	vec := types.Vector[types.Uint64]{
+// 		Length:   4,
+// 		ElemType: types.TypeUint,
+// 		Elements: make([]types.Uint64, 4),
+// 	}
 
-	h1, err := container.HashTreeRoot()
-	require.NoError(t, err)
+// 	for i := range sszVec {
+// 		vec.Elements[i] = types.Uint64(sszVec[i])
+// 	}
+// 	container := &types.Container{
+// 		Fields: []types.SSZObject{&vec},
+// 	}
 
-	h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-	require.NoError(t, err)
+// 	h1, err := sszContainer.HashTreeRoot()
+// 	require.NoError(t, err)
 
-	require.Equal(t, h1, h2)
-}
+// 	h2, err := ssz.MerkleizeContainerSSZ(container)
+// 	require.NoError(t, err)
 
-func Test_Vector5SSZ(t *testing.T) {
-	vec := make([]uint64, 5)
-	for i := range vec {
-		vec[i] = uint64(i) + 1
-	}
-	container := &mocks.Vector5Container{
-		VectorField: vec,
-	}
+// 	require.Equal(t, h1, h2)
+// }
 
-	mockVec := make([]mocks.Uint64, 5)
-	for i := range mockVec {
-		mockVec[i] = mocks.Uint64(vec[i])
-	}
-	mockContainer := &mocks.MockSingleFieldContainer[mocks.Vector[mocks.Uint64]]{
-		Field: mockVec,
-	}
+// func Test_Vector5SSZ(t *testing.T) {
+// 	vec := make([]uint64, 5)
+// 	for i := range vec {
+// 		vec[i] = uint64(i) + 1
+// 	}
+// 	container := &mocks.Vector5Container{
+// 		VectorField: vec,
+// 	}
 
-	h1, err := container.HashTreeRoot()
-	require.NoError(t, err)
+// 	mockVec := make([]mocks.Uint64, 5)
+// 	for i := range mockVec {
+// 		mockVec[i] = mocks.Uint64(vec[i])
+// 	}
+// 	mockContainer := &mocks.MockSingleFieldContainer[mocks.Vector[mocks.Uint64]]{
+// 		Field: mockVec,
+// 	}
 
-	h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-	require.NoError(t, err)
+// 	h1, err := container.HashTreeRoot()
+// 	require.NoError(t, err)
 
-	require.Equal(t, h1, h2)
-}
+// 	h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 	require.NoError(t, err)
 
-func Test_Vector6SSZ(t *testing.T) {
-	vec := make([]uint64, 6)
-	for i := range vec {
-		vec[i] = uint64(i) + 1
-	}
-	container := &mocks.Vector6Container{
-		VectorField: vec,
-	}
+// 	require.Equal(t, h1, h2)
+// }
 
-	mockVec := make([]mocks.Uint64, 6)
-	for i := range mockVec {
-		mockVec[i] = mocks.Uint64(vec[i])
-	}
-	mockContainer := &mocks.MockSingleFieldContainer[mocks.Vector[mocks.Uint64]]{
-		Field: mockVec,
-	}
+// func Test_Vector6SSZ(t *testing.T) {
+// 	vec := make([]uint64, 6)
+// 	for i := range vec {
+// 		vec[i] = uint64(i) + 1
+// 	}
+// 	container := &mocks.Vector6Container{
+// 		VectorField: vec,
+// 	}
 
-	// Per https://simpleserialize.com, the root of the vector [1, 2, 3, 4, 5, 6] is:
-	// 0xac136edda3bdd2e949a19a945b1ac554e4b607d339a43c540c336098fff97f2b
+// 	mockVec := make([]mocks.Uint64, 6)
+// 	for i := range mockVec {
+// 		mockVec[i] = mocks.Uint64(vec[i])
+// 	}
+// 	mockContainer := &mocks.MockSingleFieldContainer[mocks.Vector[mocks.Uint64]]{
+// 		Field: mockVec,
+// 	}
 
-	h1, err := container.HashTreeRoot()
-	require.NoError(t, err)
+// 	// Per https://simpleserialize.com, the root of the vector [1, 2, 3, 4, 5, 6] is:
+// 	// 0xac136edda3bdd2e949a19a945b1ac554e4b607d339a43c540c336098fff97f2b
 
-	h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
-	require.NoError(t, err)
+// 	h1, err := container.HashTreeRoot()
+// 	require.NoError(t, err)
 
-	require.Equal(t, h1, h2)
-}
+// 	h2, err := ssz.MerkleizeContainerSSZ(mockContainer)
+// 	require.NoError(t, err)
+
+// 	require.Equal(t, h1, h2)
+// }

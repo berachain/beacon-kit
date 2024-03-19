@@ -27,11 +27,8 @@ package ssz
 
 import (
 	"github.com/berachain/beacon-kit/crypto/sha256"
+	"github.com/berachain/beacon-kit/lib/ssz/common"
 	"github.com/protolambda/ztyp/tree"
-)
-
-const (
-	chunkSize = 32
 )
 
 // SparseMerkleTrie implements a sparse, general purpose Merkle trie
@@ -48,13 +45,19 @@ func (m *SparseMerkleTrie) HashTreeRoot() [32]byte {
 	return m.branches[len(m.branches)-1][0]
 }
 
-// NewFromChunks uses our optimized routine to build
+// BuildTreeFromChunks uses our optimized routine to build
 // a SparseMerkleTrie from a vector of 32-byte chunks.
-func NewFromChunks(
+// limit=0 means no limit.
+func BuildTreeFromChunks(
 	chunks [][32]byte,
 	limit uint64,
 ) (*SparseMerkleTrie, error) {
 	length := uint64(len(chunks))
+	// No limit, set the limit to the length of the chunks.
+	if limit == 0 {
+		limit = length
+	}
+
 	if limit < length {
 		return nil, ErrInputExceedsLimit
 	}
@@ -70,6 +73,14 @@ func NewFromChunks(
 		}, nil
 	}
 
+	if length == 1 {
+		return &SparseMerkleTrie{
+			depth:    depth,
+			branches: [][][32]byte{{chunks[0]}},
+		}, nil
+	}
+
+	// Build the binary tree from the chunks.
 	layers := make([][][32]byte, depth+1)
 	layers[0] = make([][32]byte, length)
 	copy(layers[0], chunks)
@@ -99,28 +110,60 @@ func NewFromChunks(
 	}, nil
 }
 
-// NewFromByteSlice builds a SparseMerkleTrie from a byte slice.
-// The byte slice can be considered as a vector of 32-byte chunks.
-// The leaves of the trie are built by chunkifying the byte slice
-// into 32-byte chunks.
-func NewFromByteSlice(input []byte) (*SparseMerkleTrie, error) {
-	//nolint:gomnd // we add 31 in order to round up the division.
-	numChunks := (uint64(len(input)) + 31) / chunkSize
+// ChunkifyBytes pads the input byte slice to the next multiple of 32,
+// if needed, and chunkifies it into 32-byte chunks.
+func ChunkifyBytes(input []byte) ([][32]byte, error) {
+	// Add (chunkSize - 1) to round up the division
+	// to the next multiple of chunkSize.
+	var chunkSize = common.BytesPerChunk
+	numChunks := (len(input) + (chunkSize - 1)) / chunkSize
 	if numChunks == 0 {
 		return nil, ErrInvalidNilSlice
 	}
 	chunks := make([][32]byte, numChunks)
 	for i := range chunks {
-		copy(chunks[i][:], input[chunkSize*i:])
+		copy(chunks[i][:], input[i*chunkSize:])
 	}
-	return NewFromChunks(chunks, numChunks)
+	return chunks, nil
 }
 
-// NewFromVector builds a SparseMerkleTrie from
-// a fixed-length vector of elements.
-func NewFromVector[T Hashable](
-	elements []T,
+// BuildTreeFromBasic builds a SparseMerkleTrie from a basic object,
+// or a vector of basic objects (fixedSize=true)
+// or from a list of basic objects (fixedSize=false).
+func BuildTreeFromBasic(
+	value common.SSZObject,
+	fixedSized bool,
 ) (*SparseMerkleTrie, error) {
+	bz, err := value.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	chunks, err := ChunkifyBytes(bz)
+	if err != nil {
+		return nil, err
+	}
+	var limit uint64
+	if !fixedSized {
+		// TODO: Limit for the list of basic objects.
+		limit = 0
+	}
+	body, err := BuildTreeFromChunks(chunks, limit)
+	if err != nil {
+		return nil, err
+	}
+	if fixedSized {
+		return body, nil
+	}
+	// Mix in the length of the list of basic objects.
+	return mixInLength(body, uint64(len(chunks))), nil
+}
+
+// BuildTreeFromComposite builds a SparseMerkleTrie from a composite type.
+func BuildTreeFromComposite(
+	value common.Composite,
+	fixedSize bool,
+) (*SparseMerkleTrie, error) {
+	elements := value.Elements()
 	length := uint64(len(elements))
 	elemRoots := make([][32]byte, length)
 	var err error
@@ -130,31 +173,25 @@ func NewFromVector[T Hashable](
 			return nil, err
 		}
 	}
-	// Per the spec, limit=None, whose behavior
-	// is the same as limit=length.
-	return NewFromChunks(elemRoots, length)
-}
-
-// NewFromList builds a SparseMerkleTrie from a variable-length
-// list of elements, with the length mixed in.
-func NewFromList[T Hashable](
-	elements []T,
-) (*SparseMerkleTrie, error) {
-	body, err := NewFromVector(elements)
+	// Per the spec, if fixedSize, limit=None.
+	// Otherwise, limit=(32*length + 31) / 32 = length.
+	// In both cases, the effect is the same as limit=length.
+	body, err := BuildTreeFromChunks(elemRoots, length)
 	if err != nil {
 		return nil, err
 	}
-	bodyRoot := body.HashTreeRoot()
-	root := tree.GetHashFn().Mixin(bodyRoot, uint64(len(elements)))
-	return &SparseMerkleTrie{
-		depth:    body.depth + 1,
-		branches: append(body.branches, [][32]byte{root}),
-	}, nil
+	if fixedSize {
+		return body, nil
+	}
+	// Mix in the length of the variable-length composite type.
+	return mixInLength(body, length), nil
 }
 
-// NewFromContainer builds a SparseMerkleTrie from a container.
-func NewFromContainer[C Container](
-	container C,
-) (*SparseMerkleTrie, error) {
-	return NewFromVector(container.Fields())
+func mixInLength(t *SparseMerkleTrie, length uint64) *SparseMerkleTrie {
+	bodyRoot := t.HashTreeRoot()
+	root := tree.GetHashFn().Mixin(bodyRoot, length)
+	return &SparseMerkleTrie{
+		depth:    t.depth + 1,
+		branches: append(t.branches, [][32]byte{root}),
+	}
 }

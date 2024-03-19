@@ -23,16 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package types
 
-type Vector4Container struct {
-	VectorField []uint64 `ssz-size:"4"`
+import (
+	"github.com/berachain/beacon-kit/lib/ssz"
+	"github.com/berachain/beacon-kit/lib/ssz/common"
+)
+
+type Vector[T common.SSZObject] struct {
+	Length   uint64
+	ElemType common.Type
+	Elems    []T
 }
 
-type Vector5Container struct {
-	VectorField []uint64 `ssz-size:"5"`
+func (v *Vector[T]) Marshal() ([]byte, error) {
+	return ssz.MarshalComposite(v)
 }
 
-type Vector6Container struct {
-	VectorField []uint64 `ssz-size:"6"`
+func (v *Vector[T]) HashTreeRoot() ([32]byte, error) {
+	if common.IsBasicType(v.ElemType) {
+		return ssz.MerkleizeBasic(v, true)
+	}
+	return ssz.MerkleizeComposite(v, true)
+}
+
+func (v *Vector[T]) Elements() []common.SSZObject {
+	elements := make([]common.SSZObject, len(v.Elems))
+	for i, elem := range v.Elems {
+		elements[i] = elem
+	}
+	return elements
+}
+
+func (v *Vector[T]) Type() common.Type {
+	return common.TypeVector
 }

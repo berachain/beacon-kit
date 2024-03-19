@@ -23,26 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package types
 
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/lib/ssz"
+	"github.com/berachain/beacon-kit/lib/ssz/common"
 )
 
 type Uint8 uint8
 
-const (
-	BitsPerByte = 8
-)
-
-func (v Uint8) SizeSSZ() int {
-	return 8 / BitsPerByte
+func (v Uint8) Size() int {
+	return 8 / common.BitsPerByte
 }
 
-func (v Uint8) MarshalSSZ() []byte {
-	return []byte{byte(v)}
+func (v Uint8) Type() common.Type {
+	return common.TypeUint
+}
+
+func (v Uint8) Marshal() ([]byte, error) {
+	return []byte{byte(v)}, nil
 }
 
 func (v Uint8) HashTreeRoot() ([32]byte, error) {
@@ -53,14 +53,18 @@ func (v Uint8) HashTreeRoot() ([32]byte, error) {
 
 type Uint16 uint16
 
-func (v Uint16) SizeSSZ() int {
-	return 16 / BitsPerByte
+func (v Uint16) Size() int {
+	return 16 / common.BitsPerByte
 }
 
-func (v Uint16) MarshalSSZ() []byte {
-	bz := make([]byte, v.SizeSSZ())
+func (v Uint16) Type() common.Type {
+	return common.TypeUint
+}
+
+func (v Uint16) Marshal() ([]byte, error) {
+	bz := make([]byte, v.Size())
 	binary.LittleEndian.PutUint16(bz, uint16(v))
-	return bz
+	return bz, nil
 }
 
 func (v Uint16) HashTreeRoot() ([32]byte, error) {
@@ -71,14 +75,18 @@ func (v Uint16) HashTreeRoot() ([32]byte, error) {
 
 type Uint32 uint32
 
-func (v Uint32) SizeSSZ() int {
-	return 32 / BitsPerByte
+func (v Uint32) Size() int {
+	return 32 / common.BitsPerByte
 }
 
-func (v Uint32) MarshalSSZ() []byte {
-	bz := make([]byte, v.SizeSSZ())
+func (v Uint32) Type() common.Type {
+	return common.TypeUint
+}
+
+func (v Uint32) Marshal() ([]byte, error) {
+	bz := make([]byte, v.Size())
 	binary.LittleEndian.PutUint32(bz, uint32(v))
-	return bz
+	return bz, nil
 }
 
 func (v Uint32) HashTreeRoot() ([32]byte, error) {
@@ -89,14 +97,18 @@ func (v Uint32) HashTreeRoot() ([32]byte, error) {
 
 type Uint64 uint64
 
-func (v Uint64) SizeSSZ() int {
-	return 64 / BitsPerByte
+func (v Uint64) Size() int {
+	return 64 / common.BitsPerByte
 }
 
-func (v Uint64) MarshalSSZ() []byte {
-	bz := make([]byte, v.SizeSSZ())
+func (v Uint64) Type() common.Type {
+	return common.TypeUint
+}
+
+func (v Uint64) Marshal() ([]byte, error) {
+	bz := make([]byte, v.Size())
 	binary.LittleEndian.PutUint64(bz, uint64(v))
-	return bz
+	return bz, nil
 }
 
 func (v Uint64) HashTreeRoot() ([32]byte, error) {
@@ -105,13 +117,25 @@ func (v Uint64) HashTreeRoot() ([32]byte, error) {
 	return [32]byte(bz), nil
 }
 
-type Byte byte
-
-func (v Byte) HashTreeRoot() ([32]byte, error) {
-	return (Uint8(v)).HashTreeRoot()
-}
+type Byte = Uint8
 
 type Bool bool
+
+func (v Bool) Size() int {
+	return 1
+}
+
+func (v Bool) Type() common.Type {
+	return common.TypeBool
+}
+
+func (v Bool) Marshal() ([]byte, error) {
+	bz := make([]byte, 1)
+	if v {
+		bz[0] = 0x01
+	}
+	return bz, nil
+}
 
 func (v Bool) HashTreeRoot() ([32]byte, error) {
 	bz := make([]byte, 32)
@@ -119,30 +143,4 @@ func (v Bool) HashTreeRoot() ([32]byte, error) {
 		bz[0] = 1
 	}
 	return [32]byte(bz), nil
-}
-
-type UintN interface {
-	MarshalSSZ() []byte
-}
-
-type Vector[T UintN] []T
-
-func (v Vector[T]) HashTreeRoot() ([32]byte, error) {
-	length := len(v)
-	bz := make([]byte, 0)
-	for i := 0; i < length; i++ {
-		bz = append(bz, v[i].MarshalSSZ()...)
-	}
-	return ssz.MerkleizeByteSliceSSZ(bz)
-}
-
-type MockSingleFieldContainer[T ssz.Hashable] struct {
-	Field T
-}
-
-// We can have a generator for this.
-func (c *MockSingleFieldContainer[T]) Fields() []ssz.Hashable {
-	return []ssz.Hashable{
-		c.Field,
-	}
 }
