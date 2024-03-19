@@ -121,10 +121,6 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
 	b.BlobKzgCommitments = commitments
 }
 
-// If you are adding values to the BeaconBlockBodyDeneb struct,
-// the body length must be increased and GetTopLevelRoots updated.
-const BodyLength = 6
-
 func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	layer := make([][]byte, BodyLength)
 	for i := range layer {
