@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -14,6 +16,7 @@ import (
 // Server defines a server implementation of the gRPC Beacon Chain service,
 // providing RPC endpoints to access data relevant to the Ethereum Beacon Chain.
 type Server struct {
+	State state.ReadOnlyRandaoMixes
 }
 
 // GetRandao fetches the RANDAO mix for the requested epoch from the state identified by state_id.
@@ -21,8 +24,21 @@ type Server struct {
 // By adjusting the state_id parameter you can query for any historic value of the RANDAO mix.
 // Ordinarily states from the same epoch will mutate the RANDAO mix for that epoch as blocks are applied.
 func (s *Server) GetRandao(w http.ResponseWriter, r *http.Request) {
+	stateId := mux.Vars(r)["state_id"]
+	if stateId == "" {
+		HandleError(w, "state_id is required in URL params", http.StatusBadRequest)
+		return
+	}
+
+	stateIdAsInt, err := strconv.ParseUint(stateId, 10, 64)
+	randao, err := s.State.RandaoMixAtIndex(stateIdAsInt)
+	if err != nil {
+		HandleError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	resp := &GetRandaoResponse{
-		Data:                &Randao{Randao: hexutil.Encode([]byte("randao"))},
+		Data:                &Randao{Randao: hexutil.Encode(randao[:])},
 		ExecutionOptimistic: true,
 		Finalized:           true,
 	}
