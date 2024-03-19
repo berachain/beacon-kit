@@ -50,7 +50,7 @@ func Test_VectorBasicObjects(t *testing.T) {
 		sszElems[i] = types.Uint64(elems[i])
 	}
 	sszVec := &types.Vector[types.Uint64]{
-		Length:   uint64(size),
+		Size:     uint64(size),
 		ElemType: common.TypeUint,
 		Elems:    sszElems,
 	}

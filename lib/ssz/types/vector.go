@@ -31,7 +31,7 @@ import (
 )
 
 type Vector[T common.SSZObject] struct {
-	Length   uint64
+	Size     uint64
 	ElemType common.Type
 	Elems    []T
 }
