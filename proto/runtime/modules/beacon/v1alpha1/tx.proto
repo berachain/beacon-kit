@@ -23,24 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+syntax = "proto3";
+package runtime.modules.beacon.v1alpha1;
 
-import (
-	fmt "fmt"
+// import "google/protobuf/any.proto";
+import "amino/amino.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
-)
+option go_package = "github.com/berachain/beacon-kit/runtime/modules/beacon/types";
 
-const ModuleName = "beacon"
+// Msg defines the x/mint Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
 
-// RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	fmt.Println("CALLING")
-	registry.RegisterImplementations(
-		(*sdk.Msg)(nil),
-		&MsgCreateValidatorX{},
-	)
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+  // CreateValidator defines a method for creating a new validator.
+  rpc CreateValidator(MsgCreateValidatorX) returns (MsgCreateValidatorResponse);
 }
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+//
+// Since: cosmos-sdk 0.47
+message MsgCreateValidatorX {
+  option (cosmos.msg.v1.signer) = "credentials";
+  option (amino.name) = "beacon/MsgCreateValidatorX";
+  string credentials = 1 [(cosmos_proto.scalar) = "cosmos.ValidatorAddressString"];
+  bytes pubkey = 2;
+}
+
+// MsgCreateValidatorResponse defines the Msg/CreateValidator response type.
+message MsgCreateValidatorResponse {}

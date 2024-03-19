@@ -31,7 +31,10 @@ import (
 	"cosmossdk.io/client/v2/offchain"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	authcmd "cosmossdk.io/x/auth/client/cli"
+	banktypes "cosmossdk.io/x/bank/types"
 	beaconconfig "github.com/berachain/beacon-kit/config"
+	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	validatorcli "github.com/berachain/beacon-kit/validator/cli"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -54,7 +57,7 @@ import (
 func InitRootCommand[T servertypes.Application](
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
-	_ codectypes.InterfaceRegistry,
+	registry codectypes.InterfaceRegistry,
 	_ codec.Codec,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
@@ -87,6 +90,11 @@ func InitRootCommand[T servertypes.Application](
 		rootCmd, newApp, startCmdOptions, beaconconfig.AddBeaconKitFlags,
 	)
 
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&beacontypes.MsgCreateValidatorX{},
+	)
+
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
@@ -95,6 +103,12 @@ func InitRootCommand[T servertypes.Application](
 		txCommand(),
 		keys.Commands(),
 		offchain.OffChain(),
+		validatorcli.GenTxCmd(
+			mm,
+			txConfig,
+			&banktypes.GenesisBalancesIterator{},
+			txConfig.SigningContext().ValidatorAddressCodec(),
+		),
 	)
 }
 

@@ -147,6 +147,7 @@ var (
 					EndBlockers: []string{
 						stakingtypes.ModuleName,
 						pooltypes.ModuleName,
+						beacontypes.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
 						{

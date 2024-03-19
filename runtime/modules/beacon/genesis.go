@@ -30,6 +30,8 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm
@@ -55,18 +57,39 @@ func (AppModule) ValidateGenesis(
 func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
-) error {
+) []abci.ValidatorUpdate {
 	var gs types.GenesisState
 	if err := json.Unmarshal(bz, &gs); err != nil {
-		return err
+		panic(err)
 	}
-	return am.keeper.InitGenesis(ctx, gs)
+	if err := am.keeper.InitGenesis(ctx, gs); err != nil {
+		panic(err)
+	}
+
+	// Get the public key of the validator
+	pk, err := am.keeper.BeaconState(ctx).ValidatorPubKeyByIndex(0)
+	if err != nil {
+		panic(err)
+	}
+
+	return []abci.ValidatorUpdate{
+		{
+			PubKey: crypto.PublicKey{
+				Sum: &crypto.PublicKey_Bls12381{Bls12381: pk},
+			},
+			Power: 696969969696,
+		},
+	}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
 func (am AppModule) ExportGenesis(
 	ctx context.Context,
-) (json.RawMessage, error) {
-	return json.Marshal(am.keeper.ExportGenesis(ctx))
+) json.RawMessage {
+	bz, err := json.Marshal(am.keeper.ExportGenesis(ctx))
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }

@@ -31,6 +31,7 @@ import (
 	"io"
 	"os"
 
+	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cockroachdb/errors"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -94,6 +95,8 @@ func NewRootCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			beacontypes.RegisterInterfaces(clientCtx.InterfaceRegistry)
 
 			if err = tos.VerifyTosAcceptedOrPrompt(
 				app.AppName, cmdconfig.TermsOfServiceURL, clientCtx, cmd,

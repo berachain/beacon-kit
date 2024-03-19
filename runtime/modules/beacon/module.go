@@ -26,9 +26,15 @@
 package evm
 
 import (
+	"context"
+	"fmt"
+
 	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"google.golang.org/grpc"
 )
@@ -37,9 +43,12 @@ import (
 const ConsensusVersion = 1
 
 var (
-	_ appmodule.HasServices = AppModule{}
-	_ appmodule.AppModule   = AppModule{}
-	_ module.HasGenesis     = AppModule{}
+	_ appmodule.HasServices        = AppModule{}
+	_ appmodule.AppModule          = AppModule{}
+	_ module.HasRegisterInterfaces = AppModule{}
+	_ appmodule.HasServices        = AppModule{}
+	_ module.HasABCIGenesis        = AppModule{}
+	_ module.HasABCIEndBlock       = AppModule{}
 )
 
 // AppModule implements an application module for the evm module.
@@ -62,9 +71,14 @@ func (am AppModule) Name() string {
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
-	// types.RegisterMsgServiceServer(registrar, am.keeper)
+func (am AppModule) RegisterServices(registrar grpc.ServiceRegistrar) error {
+	types.RegisterMsgServer(registrar, am.keeper)
 	return nil
+}
+
+func (am AppModule) RegisterInterfaces(r registry.LegacyRegistry) {
+	fmt.Println("CALLING")
+	types.RegisterInterfaces(r)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
@@ -75,3 +89,23 @@ func (am AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
+
+func (am AppModule) EndBlock(
+	ctx context.Context,
+) ([]abci.ValidatorUpdate, error) {
+	// Get the public key of the validator
+	pk, err := am.keeper.BeaconState(ctx).ValidatorPubKeyByIndex(0)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the validator update
+	return []abci.ValidatorUpdate{
+		{
+			PubKey: crypto.PublicKey{
+				Sum: &crypto.PublicKey_Bls12381{Bls12381: pk},
+			},
+			Power: 696969969696,
+		},
+	}, nil
+}

@@ -23,24 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package keeper
 
 import (
-	fmt "fmt"
+	"context"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 )
 
-const ModuleName = "beacon"
+func (k *Keeper) CreateValidator(
+	ctx context.Context,
+	msg *types.MsgCreateValidatorX,
+) (*types.MsgCreateValidatorResponse, error) {
+	if err := k.beaconStore.AddValidator(ctx, msg.Pubkey); err != nil {
+		return nil, err
+	}
 
-// RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	fmt.Println("CALLING")
-	registry.RegisterImplementations(
-		(*sdk.Msg)(nil),
-		&MsgCreateValidatorX{},
-	)
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+	return &types.MsgCreateValidatorResponse{}, nil
 }

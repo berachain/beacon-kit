@@ -86,7 +86,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	jq '.app_state["staking"]["params"]["bond_denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.app_state["mint"]["params"]["mint_denom"]="abgt"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
-	jq '.app_state["staking"]["params"]["unbonding_time"]="0s"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+	jq '.app_state["staking"]["params"]["unbonding_time"]="1ms"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.consensus["params"]["block"]["max_gas"]="30000000"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 	# Allocate genesis accounts (cosmos formatted addresses)
@@ -98,7 +98,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond genesis add-genesis-account cosmos1yrene6g2zwjttemf0c65fscg8w8c55w58yh8rl 69000000000000000000000000abgt --keyring-backend $KEYRING --home "$HOMEDIR"
 
 	# Sign genesis transaction
-	./build/bin/beacond genesis gentx dev 1000000000000000000000abgt --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" 
+	./build/bin/beacond customgentx dev 1000000000000000000000abgt --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" 
 	## In case you want to create multiple validators at genesis
 	## 1. Back to `./build/bin/beacond keys add` step, init more keys
 	## 2. Back to `./build/bin/beacond add-genesis-account` step, add balance for those
