@@ -23,44 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package e2e_test
 
 import (
+	"encoding/hex"
+	"log"
+	"os/exec"
+
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-const (
-	// Name of the Deposit event
-	// in the deposit contract.
-	DepositEventName = "Deposit"
-
-	// Name of the Redirect event
-	// in the deposit contract.
-	RedirectEventName = "Redirect"
-
-	// Name the Withdrawal event
-	// in the deposit contract.
-	WithdrawalEventName = "Withdrawal"
-)
-
-//nolint:gochecknoglobals // Avoid re-allocating these variables.
-var (
-	// Signature and type of the Deposit event
-	// in the deposit contract.
-	DepositEventSig = crypto.Keccak256Hash(
-		[]byte(DepositEventName + "(bytes,bytes,uint64,bytes,uint64)"),
+// TestForgeScriptExecution tests the execution of a forge script
+// against the beacon-kit network.
+func (s *BeaconKitE2ESuite) TestForgeScriptExecution() {
+	url := s.KurtosisE2ESuite.JSONRPCBalancer().URL()
+	pk := hex.EncodeToString(
+		crypto.FromECDSA(s.GenesisAccount().PrivateKey()),
 	)
 
-	// Signature and type of the Redirect event
-	// in the deposit contract.
-	RedirectEventSig = crypto.Keccak256Hash(
-		[]byte(RedirectEventName + "(bytes,bytes,bytes,uint64,uint64)"),
-	)
-	// RedirectType = reflect.TypeOf(enginetypes.Redirect{}).
+	// Change directory to /contracts/ before executing the command
+	cmdStr := "cd ../contracts && " +
+		"forge build && " +
+		"forge script ./script/DeployAndCallERC20.s.sol " +
+		"--broadcast --rpc-url=" + url + " " +
+		"--private-key=" + pk
 
-	// Signature and type of the Withdraw event
-	// in the deposit contract.
-	WithdrawalEventSig = crypto.Keccak256Hash(
-		[]byte(WithdrawalEventName + "(bytes,bytes,bytes,uint64,uint64)"),
-	)
-)
+	// Execute the command
+	cmd := exec.Command("bash", "-c", cmdStr)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf(
+			"Failed to execute command: %s, with the error: %s",
+			cmdStr,
+			err,
+		)
+	}
+
+	s.Logger().Info("Output: %s\n", string(output))
+}
