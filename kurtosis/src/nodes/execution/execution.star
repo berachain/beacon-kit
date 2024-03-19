@@ -2,8 +2,6 @@ execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
 builtins = import_module("../../lib/builtins.star")
-service_config_lib = import_module("../../lib/service_config.star")
-builtins = import_module("../../lib/builtins.star")
 
 RPC_PORT_NUM = 8545
 WS_PORT_NUM = 8546
@@ -44,12 +42,6 @@ def upload_global_files(plan, node_modules):
         src = constants.JWT_FILEPATH,
         name = "jwt_file",
     )
-    for node_module in node_modules.values():
-        for global_file in node_module.GLOBAL_FILES:
-            plan.upload_files(
-                src = global_file[0],
-                name = global_file[1],
-            )
     for node_module in node_modules.values():
         for global_file in node_module.GLOBAL_FILES:
             plan.upload_files(
@@ -101,7 +93,6 @@ def add_bootnodes(node_module, config, bootnodes):
 def deploy_node(plan, config):
     service_config = service_config_lib.create_from_config(config)
 
-    return plan.add_service(
     return plan.add_service(
         name = config["name"],
         config = service_config,

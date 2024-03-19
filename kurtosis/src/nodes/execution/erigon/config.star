@@ -1,7 +1,7 @@
 global_constants = import_module("../../../constants.star")
-defaults = import_module('./../constants.star')
+defaults = import_module("./../config.star")
 
-GLOBAL_CLIENT_LOG_LEVEL = global_constants.GLOBAL_CLIENT_LOG_LEVEL
+GLOBAL_LOG_LEVEL = global_constants.GLOBAL_LOG_LEVEL
 KURTOSIS_IP_ADDRESS_PLACEHOLDER = global_constants.KURTOSIS_IP_ADDRESS_PLACEHOLDER
 
 # The dirpath of the execution data directory on the client container
@@ -71,18 +71,18 @@ CMD = [
     "--metrics.addr", "0.0.0.0",
     "--metrics.port", "{}".format(METRICS_PORT_NUM),
     "--networkid", "80087",
-    "--db.size.limit={}MB".format(3000)
+    "--db.size.limit={}MB".format(3000),
 ]
 BOOTNODE_CMD = "--bootnodes"
 
 
 # Modify command flag --verbosity to change the verbosity level
 VERBOSITY_LEVELS = {
-    GLOBAL_CLIENT_LOG_LEVEL.error: "1",
-    GLOBAL_CLIENT_LOG_LEVEL.warn: "2",
-    GLOBAL_CLIENT_LOG_LEVEL.info: "3",
-    GLOBAL_CLIENT_LOG_LEVEL.debug: "4",
-    GLOBAL_CLIENT_LOG_LEVEL.trace: "5",
+    GLOBAL_LOG_LEVEL.error: "1",
+    GLOBAL_LOG_LEVEL.warn: "2",
+    GLOBAL_LOG_LEVEL.info: "3",
+    GLOBAL_LOG_LEVEL.debug: "4",
+    GLOBAL_LOG_LEVEL.trace: "5",
 }
 
 USED_PORTS = defaults.USED_PORTS

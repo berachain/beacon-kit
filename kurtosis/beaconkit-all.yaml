@@ -33,6 +33,9 @@ validators:
   - el_type: geth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
+  - el_type: erigon
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
 full_nodes:
   - el_type: nethermind
     cl_type: beaconkit
@@ -44,7 +47,10 @@ full_nodes:
   - el_type: geth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
-    replicas: 2
+    replicas: 1
+  - el_type: erigon
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
 rpc_endpoints:
   - type: nginx
     services:
@@ -52,5 +58,5 @@ rpc_endpoints:
       - el-full-reth-1:8545
       - el-full-reth-2:8545
       - el-full-geth-3:8545
-      - el-full-geth-4:8545
+      - el-full-erigon-5:8545
 additional_services: []
