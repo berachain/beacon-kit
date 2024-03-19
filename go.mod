@@ -21,12 +21,12 @@ replace (
 	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240312054917-baa54a151c5a
+	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240318230110-d72af9a8368e
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.2-0.20240311143937-fea88d13c52f
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240311143937-fea88d13c52f
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
 	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240312054917-baa54a151c5a
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240318230110-d72af9a8368e
 )
 
 require (
@@ -52,13 +52,14 @@ require (
 	github.com/bazelbuild/buildtools v0.0.0-20240207142252-03bf520394af
 	github.com/bufbuild/buf v1.30.0
 	github.com/cockroachdb/errors v1.11.1
-	github.com/cometbft/cometbft v0.38.5
+	github.com/cometbft/cometbft v0.38.6
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.5-0.20240306165022-aadcb8867530
+	github.com/ferranbt/fastssz v0.1.4-0.20240313091718-ea99d10bdae6
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.56.2
 	github.com/google/addlicense v1.1.1
@@ -69,7 +70,6 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/protolambda/ztyp v0.2.2
-	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/segmentio/golines v0.12.2
 	github.com/sourcegraph/conc v0.3.0
@@ -210,7 +210,6 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/fgprof v0.9.4 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/ferranbt/fastssz v0.1.2 // indirect
 	github.com/firefart/nonamedreturns v1.0.4 // indirect
 	github.com/fjl/memsize v0.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect

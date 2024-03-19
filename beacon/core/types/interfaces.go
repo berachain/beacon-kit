@@ -29,7 +29,7 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconBlock is the interface for a beacon block.

@@ -127,20 +127,45 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().NoError(err, "Error running Starlark package")
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
 	s.Require().Empty(result.ValidationErrors)
-
 	s.logger.Info("enclave spun up successfully")
+
 	s.logger.Info("setting up execution clients")
+	err = s.SetupExecutionClients()
+	s.Require().NoError(err, "Error setting up execution clients")
+
+	s.logger.Info("setting up consensus clients")
+	err = s.SetupConsensusClients()
+	s.Require().NoError(err, "Error setting up consensus clients")
 
 	// Setup the JSON-RPC balancer.
 	s.logger.Info("setting up JSON-RPC balancer")
 	err = s.SetupJSONRPCBalancer()
 	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
+
 	// Wait for the finalized block number to reach 1.
 	err = s.WaitForFinalizedBlockNumber(1)
 	s.Require().NoError(err, "Error waiting for finalized block number")
 
 	// Fund any requested accounts.
 	s.FundAccounts()
+}
+
+// SetupExecutionClients sets up the execution clients for the test suite.
+func (s *KurtosisE2ESuite) SetupExecutionClients() error {
+	return nil
+}
+
+func (s *KurtosisE2ESuite) SetupConsensusClients() error {
+	s.consensusClients = make(map[string]*types.ConsensusClient)
+	sCtx, err := s.Enclave().GetServiceContext("cl-validator-beaconkit-0")
+	if err != nil {
+		return err
+	}
+
+	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
+		sCtx,
+	)
+	return nil
 }
 
 // SetupNGINXBalancer sets up the NGINX balancer for the test suite.

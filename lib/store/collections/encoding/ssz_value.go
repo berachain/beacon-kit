@@ -29,7 +29,7 @@ import (
 	"reflect"
 
 	"cosmossdk.io/collections/codec"
-	fssz "github.com/prysmaticlabs/fastssz"
+	fssz "github.com/ferranbt/fastssz"
 )
 
 // SSZMarshallable defines an interface for types that can be

@@ -94,6 +94,13 @@ var (
 			Permissions: []string{authtypes.Minter},
 		},
 		{
+			Account: stakingtypes.ModuleName,
+			Permissions: []string{
+				authtypes.Minter,
+				authtypes.Burner,
+			},
+		},
+		{
 			Account:     stakingtypes.BondedPoolName,
 			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
 		},
