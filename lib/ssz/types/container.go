@@ -41,7 +41,7 @@ func (c *Container) HashTreeRoot() ([32]byte, error) {
 	return [32]byte{}, nil
 }
 
-func (c *Container) Values() []common.SSZObject {
+func (c *Container) Elements() []common.SSZObject {
 	return c.Fields
 }
 
