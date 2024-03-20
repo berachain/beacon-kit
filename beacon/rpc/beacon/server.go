@@ -16,7 +16,8 @@ import (
 // Server defines a server implementation of the gRPC Beacon Chain service,
 // providing RPC endpoints to access data relevant to the Ethereum Beacon Chain.
 type Server struct {
-	State state.ReadOnlyRandaoMixes
+	BeaconState state.BeaconState
+	State       state.ReadOnlyRandaoMixes
 }
 
 // GetRandao fetches the RANDAO mix for the requested epoch from the state identified by state_id.
@@ -31,6 +32,7 @@ func (s *Server) GetRandao(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stateIdAsInt, err := strconv.ParseUint(stateId, 10, 64)
+
 	randao, err := s.State.RandaoMixAtIndex(stateIdAsInt)
 	if err != nil {
 		HandleError(w, err.Error(), http.StatusInternalServerError)

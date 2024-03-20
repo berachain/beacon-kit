@@ -30,7 +30,7 @@ func (s *Service) Start(ctx context.Context) {
 	s.router = newRouter()
 
 	s.initializeBeaconServerRoutes(&beacon.Server{
-		State: s.BeaconState(ctx),
+		BeaconState: s.BeaconState(ctx),
 	})
 
 	s.server = &http.Server{
