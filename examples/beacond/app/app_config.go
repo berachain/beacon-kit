@@ -31,10 +31,7 @@ import (
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
 	bankmodulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
-	evidencemodulev1 "cosmossdk.io/api/cosmos/evidence/module/v1"
 	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
-	mintmodulev1 "cosmossdk.io/api/cosmos/mint/module/v1"
-	slashingmodulev1 "cosmossdk.io/api/cosmos/slashing/module/v1"
 	stakingmodulev1 "cosmossdk.io/api/cosmos/staking/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	upgrademodulev1 "cosmossdk.io/api/cosmos/upgrade/module/v1"
@@ -48,17 +45,8 @@ import (
 	vestingtypes "cosmossdk.io/x/auth/vesting/types"
 	_ "cosmossdk.io/x/bank" // import for side-effects
 	banktypes "cosmossdk.io/x/bank/types"
-	_ "cosmossdk.io/x/distribution" // import for side-effects
-	distrtypes "cosmossdk.io/x/distribution/types"
-	_ "cosmossdk.io/x/evidence" // import for side-effects
-	evidencetypes "cosmossdk.io/x/evidence/types"
-	_ "cosmossdk.io/x/mint" // import for side-effects
-	minttypes "cosmossdk.io/x/mint/types"
-	_ "cosmossdk.io/x/protocolpool" // import for side-effects
-	pooltypes "cosmossdk.io/x/protocolpool/types"
-	_ "cosmossdk.io/x/slashing" // import for side-effects
-	slashingtypes "cosmossdk.io/x/slashing/types"
-	_ "cosmossdk.io/x/staking" // import for side-effects
+	_ "cosmossdk.io/x/distribution" // import for side-effect
+	_ "cosmossdk.io/x/staking"      // import for side-effects
 	stakingtypes "cosmossdk.io/x/staking/types"
 	_ "cosmossdk.io/x/upgrade" // import for side-effects
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -85,13 +73,6 @@ var (
 	// module account permissions
 	moduleAccPerms = []*authmodulev1.ModuleAccountPermission{
 		{Account: authtypes.FeeCollectorName},
-		{Account: distrtypes.ModuleName},
-		{Account: pooltypes.ModuleName},
-		{Account: pooltypes.StreamAccount},
-		{
-			Account:     minttypes.ModuleName,
-			Permissions: []string{authtypes.Minter},
-		},
 		{
 			Account: stakingtypes.ModuleName,
 			Permissions: []string{
@@ -112,8 +93,6 @@ var (
 	// blocked account addresses
 	blockAccAddrs = []string{
 		authtypes.FeeCollectorName,
-		distrtypes.ModuleName,
-		minttypes.ModuleName,
 		stakingtypes.BondedPoolName,
 		stakingtypes.NotBondedPoolName,
 		// We allow the following module accounts to receive funds:
@@ -139,15 +118,10 @@ var (
 					// NOTE: staking module is required if HistoricalEntries
 					// param > 0
 					BeginBlockers: []string{
-						minttypes.ModuleName,
-						distrtypes.ModuleName,
-						slashingtypes.ModuleName,
-						evidencetypes.ModuleName,
 						stakingtypes.ModuleName,
 					},
 					EndBlockers: []string{
 						stakingtypes.ModuleName,
-						pooltypes.ModuleName,
 						beacontypes.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
@@ -164,15 +138,10 @@ var (
 					InitGenesis: []string{
 						authtypes.ModuleName,
 						banktypes.ModuleName,
-						distrtypes.ModuleName,
 						stakingtypes.ModuleName,
-						slashingtypes.ModuleName,
-						minttypes.ModuleName,
 						genutiltypes.ModuleName,
-						evidencetypes.ModuleName,
 						upgradetypes.ModuleName,
 						vestingtypes.ModuleName,
-						pooltypes.ModuleName,
 						beacontypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis
@@ -218,10 +187,6 @@ var (
 				}),
 			},
 			{
-				Name:   slashingtypes.ModuleName,
-				Config: appconfig.WrapAny(&slashingmodulev1.Module{}),
-			},
-			{
 				Name:   "tx",
 				Config: appconfig.WrapAny(&txconfigv1.Config{}),
 			},
@@ -232,14 +197,6 @@ var (
 			{
 				Name:   upgradetypes.ModuleName,
 				Config: appconfig.WrapAny(&upgrademodulev1.Module{}),
-			},
-			{
-				Name:   evidencetypes.ModuleName,
-				Config: appconfig.WrapAny(&evidencemodulev1.Module{}),
-			},
-			{
-				Name:   minttypes.ModuleName,
-				Config: appconfig.WrapAny(&mintmodulev1.Module{}),
 			},
 			{
 				Name:   consensustypes.ModuleName,

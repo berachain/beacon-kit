@@ -91,7 +91,8 @@ func (h *Handler) PrepareProposalHandler(
 		logger         = ctx.Logger().With("module", "prepare-proposal")
 	)
 
-	// proposerP/ubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
+	// proposerP/ubkey, err :=
+	// h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
 	// 	ctx, req.ProposerAddress,
 	// )
 	// if err != nil {

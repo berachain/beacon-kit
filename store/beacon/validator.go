@@ -69,7 +69,6 @@ func (s *Store) UpdateValidator(
 func (s *Store) ValidatorIndexByPubkey(
 	pubkey []byte,
 ) (primitives.ValidatorIndex, error) {
-
 	fmt.Println("HERE", pubkey)
 	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
 		s.ctx,
