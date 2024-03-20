@@ -32,6 +32,7 @@ import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	authcmd "cosmossdk.io/x/auth/client/cli"
 	beaconconfig "github.com/berachain/beacon-kit/config"
+	beaconcli "github.com/berachain/beacon-kit/config/cli"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -95,6 +96,10 @@ func InitRootCommand[T servertypes.Application](
 		txCommand(),
 		keys.Commands(),
 		offchain.OffChain(),
+	)
+
+	rootCmd.AddCommand(
+		beaconcli.NewGenerateJWTCommand(),
 	)
 }
 
