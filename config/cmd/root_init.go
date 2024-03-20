@@ -199,11 +199,11 @@ func txCommand() *cobra.Command {
 
 func jwtCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "jwt",
-		Short: "JWT subcommands",
-		DisableFlagParsing: false,
+		Use:                        "jwt",
+		Short:                      "JWT subcommands",
+		DisableFlagParsing:         false,
 		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
-		RunE: client.ValidateCmd,
+		RunE:                       client.ValidateCmd,
 	}
 
 	cmd.AddCommand(

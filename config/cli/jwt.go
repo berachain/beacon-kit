@@ -37,10 +37,8 @@ import (
 const (
 	DefaultSecretFileName = "jwt.hex"
 	FlagOutputPath        = "output-path"
-	FlagInputPath		 = "input-path"
+	FlagInputPath         = "input-path"
 )
-
-
 
 // NewGenerateJWTCommand creates a new command for generating a JWT secret.
 func NewGenerateJWTCommand() *cobra.Command {
@@ -71,15 +69,15 @@ func NewValidateJWTCommand() *cobra.Command {
 		Use:   "validate",
 		Short: "Validates a JWT secret conforms to Engine-RPC requirements",
 		Long: `This command validates a JWT secret by checking if the JWT secret
-adheres to the proper format. If no output file path is specified, it uses the default 
+is formatted properly. If no output file path is specified, it uses the default 
 file name "jwt.hex" in the current directory.`,
-		RunE : func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Get the file path from the command flags.
 			inputPath, err := getFilePath(cmd, FlagInputPath)
 			if err != nil {
 				return err
 			}
-			
+
 			return validateJWTSecret(cmd, inputPath)
 		},
 	}
