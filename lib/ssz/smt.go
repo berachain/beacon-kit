@@ -132,7 +132,7 @@ func ChunkifyBytes(input []byte) ([][32]byte, error) {
 // or from a list of basic objects (fixedSize=false).
 func BuildTreeFromBasic(
 	value common.SSZObject,
-	fixedSized bool,
+	fixedSize bool,
 ) (*SparseMerkleTrie, error) {
 	bz, err := value.Marshal()
 	if err != nil {
@@ -143,7 +143,7 @@ func BuildTreeFromBasic(
 		return nil, err
 	}
 	var limit uint64
-	if !fixedSized {
+	if !fixedSize {
 		// TODO: Limit for the list of basic objects.
 		limit = 0
 	}
@@ -151,7 +151,7 @@ func BuildTreeFromBasic(
 	if err != nil {
 		return nil, err
 	}
-	if fixedSized {
+	if fixedSize {
 		return body, nil
 	}
 	// Mix in the length of the list of basic objects.

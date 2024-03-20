@@ -30,6 +30,7 @@ import (
 )
 
 type Container struct {
+	Typ    common.TypeContainer
 	Fields []common.SSZObject
 }
 
@@ -46,5 +47,5 @@ func (c *Container) Elements() []common.SSZObject {
 }
 
 func (c *Container) Type() common.Type {
-	return common.TypeContainer
+	return c.Typ
 }

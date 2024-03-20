@@ -34,32 +34,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_VectorBasicObjects(t *testing.T) {
-	size := 6
-	elems := make([]uint64, size)
-	for i := range elems {
-		elems[i] = uint64(i) + 1
+type mockSSZObject interface {
+	HashTreeRoot() ([32]byte, error)
+}
+
+func mockContainer(elems []uint64) mockSSZObject {
+	switch len(elems) {
+	case 4:
+		return &mocks.Vector4Container{VectorField: elems}
+	case 5:
+		return &mocks.Vector5Container{VectorField: elems}
+	case 6:
+		return &mocks.Vector6Container{VectorField: elems}
 	}
+	return nil
+}
 
-	mockContainer := &mocks.Vector6Container{
-		VectorField: elems,
+func Test_Uint64Vector(t *testing.T) {
+	for _, size := range []int{4, 5, 6} {
+		elems := make([]uint64, size)
+		for i := range elems {
+			elems[i] = uint64(i) + 1
+		}
+
+		mockContainer := mockContainer(elems)
+
+		sszElems := make([]types.Uint64, size)
+		for i := range elems {
+			sszElems[i] = types.Uint64(elems[i])
+		}
+		sszVec := &types.Vector[types.Uint64]{
+			Typ: common.TypeVector{
+				Size:     size,
+				ElemType: common.TypeUint{Size: 64},
+			},
+			Elems: sszElems,
+		}
+
+		h1, err := mockContainer.HashTreeRoot()
+		require.NoError(t, err)
+
+		h2, err := sszVec.HashTreeRoot()
+		require.NoError(t, err)
+
+		require.Equal(t, h1, h2, "HashTreeRoot mismatch", size)
 	}
-
-	sszElems := make([]types.Uint64, size)
-	for i := range elems {
-		sszElems[i] = types.Uint64(elems[i])
-	}
-	sszVec := &types.Vector[types.Uint64]{
-		Size:     uint64(size),
-		ElemType: common.TypeUint,
-		Elems:    sszElems,
-	}
-
-	h1, err := mockContainer.HashTreeRoot()
-	require.NoError(t, err)
-
-	h2, err := sszVec.HashTreeRoot()
-	require.NoError(t, err)
-
-	require.Equal(t, h1, h2)
 }

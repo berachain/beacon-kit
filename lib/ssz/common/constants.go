@@ -31,35 +31,21 @@ const (
 	BytesPerLengthOffset = 4
 )
 
-// Type is a SSZ type.
-type Type int
+type Kind uint8
 
 const (
-	// TypeUndefined is a sentinel zero value.
-	TypeUndefined Type = iota
-	// TypeUint is a SSZ int type, include byte.
-	TypeUint
-	// TypeBool is a SSZ bool type.
-	TypeBool
-	// TypeBytes is a SSZ fixed or dynamic bytes type.
-	TypeBytes
-	// TypeVector is a SSZ vector.
-	TypeVector
-	// TypeList is a SSZ list.
-	TypeList
-	// TypeContainer is a SSZ container.
-	TypeContainer
+	// KindUndefined is a sentinel zero value.
+	KindUndefined Kind = iota
+	// KindUint is a SSZ int type, include byte.
+	KindUint
+	// KindBool is a SSZ bool type.
+	KindBool
+	// KindBytes is a SSZ fixed or dynamic bytes type.
+	KindBytes
+	// KindVector is a SSZ vector.
+	KindVector
+	// KindList is a SSZ list.
+	KindList
+	// KindContainer is a SSZ container.
+	KindContainer
 )
-
-func IsBasicType(t Type) bool {
-	return t == TypeUint || t == TypeBool
-}
-
-func IsVariableSize(t Type) bool {
-	switch t {
-	case TypeList, TypeContainer:
-		return true
-	default:
-		return false
-	}
-}

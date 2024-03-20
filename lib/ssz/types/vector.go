@@ -31,9 +31,8 @@ import (
 )
 
 type Vector[T common.SSZObject] struct {
-	Size     uint64
-	ElemType common.Type
-	Elems    []T
+	Typ   common.TypeVector
+	Elems []T
 }
 
 func (v *Vector[T]) Marshal() ([]byte, error) {
@@ -41,7 +40,7 @@ func (v *Vector[T]) Marshal() ([]byte, error) {
 }
 
 func (v *Vector[T]) HashTreeRoot() ([32]byte, error) {
-	if common.IsBasicType(v.ElemType) {
+	if common.IsBasicType(v.Typ.ElemType) {
 		return ssz.MerkleizeBasic(v, true)
 	}
 	return ssz.MerkleizeComposite(v, true)
@@ -56,5 +55,5 @@ func (v *Vector[T]) Elements() []common.SSZObject {
 }
 
 func (v *Vector[T]) Type() common.Type {
-	return common.TypeVector
+	return v.Typ
 }

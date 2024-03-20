@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ssz_test
+package types_test
 
 // func FuzzUint8SSZ(f *testing.F) {
 // 	f.Add(uint8(0))

@@ -33,9 +33,6 @@ type SSZObject interface {
 
 type Basic interface {
 	SSZObject
-	// Size returns the length, in bytes,
-	// of the serialized form of the basic type.
-	Size() uint32
 }
 
 type Composite interface {

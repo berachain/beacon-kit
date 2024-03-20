@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/lib/ssz/common"
 )
 
+// MarshalComposite marshals a composite object into a byte slice.
 func MarshalComposite(c common.Composite) ([]byte, error) {
 	elems := c.Elements()
 	size := len(elems)

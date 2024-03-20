@@ -33,12 +33,8 @@ import (
 
 type Uint8 uint8
 
-func (v Uint8) Size() int {
-	return 8 / common.BitsPerByte
-}
-
 func (v Uint8) Type() common.Type {
-	return common.TypeUint
+	return common.TypeUint{Size: 8}
 }
 
 func (v Uint8) Marshal() ([]byte, error) {
@@ -53,16 +49,12 @@ func (v Uint8) HashTreeRoot() ([32]byte, error) {
 
 type Uint16 uint16
 
-func (v Uint16) Size() int {
-	return 16 / common.BitsPerByte
-}
-
 func (v Uint16) Type() common.Type {
-	return common.TypeUint
+	return common.TypeUint{Size: 16}
 }
 
 func (v Uint16) Marshal() ([]byte, error) {
-	bz := make([]byte, v.Size())
+	bz := make([]byte, v.Type().(common.BasicType).SizeOf())
 	binary.LittleEndian.PutUint16(bz, uint16(v))
 	return bz, nil
 }
@@ -75,16 +67,12 @@ func (v Uint16) HashTreeRoot() ([32]byte, error) {
 
 type Uint32 uint32
 
-func (v Uint32) Size() int {
-	return 32 / common.BitsPerByte
-}
-
 func (v Uint32) Type() common.Type {
-	return common.TypeUint
+	return common.TypeUint{Size: 32}
 }
 
 func (v Uint32) Marshal() ([]byte, error) {
-	bz := make([]byte, v.Size())
+	bz := make([]byte, v.Type().(common.BasicType).SizeOf())
 	binary.LittleEndian.PutUint32(bz, uint32(v))
 	return bz, nil
 }
@@ -97,16 +85,12 @@ func (v Uint32) HashTreeRoot() ([32]byte, error) {
 
 type Uint64 uint64
 
-func (v Uint64) Size() int {
-	return 64 / common.BitsPerByte
-}
-
 func (v Uint64) Type() common.Type {
-	return common.TypeUint
+	return common.TypeUint{Size: 64}
 }
 
 func (v Uint64) Marshal() ([]byte, error) {
-	bz := make([]byte, v.Size())
+	bz := make([]byte, v.Type().(common.BasicType).SizeOf())
 	binary.LittleEndian.PutUint64(bz, uint64(v))
 	return bz, nil
 }
@@ -121,12 +105,8 @@ type Byte = Uint8
 
 type Bool bool
 
-func (v Bool) Size() int {
-	return 1
-}
-
 func (v Bool) Type() common.Type {
-	return common.TypeBool
+	return common.TypeBool{}
 }
 
 func (v Bool) Marshal() ([]byte, error) {
