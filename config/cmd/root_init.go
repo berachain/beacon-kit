@@ -96,10 +96,7 @@ func InitRootCommand[T servertypes.Application](
 		txCommand(),
 		keys.Commands(),
 		offchain.OffChain(),
-	)
-
-	rootCmd.AddCommand(
-		beaconcli.NewGenerateJWTCommand(),
+		jwtCommand(),
 	)
 }
 
@@ -195,6 +192,23 @@ func txCommand() *cobra.Command {
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
 		authcmd.GetSimulateCmd(),
+	)
+
+	return cmd
+}
+
+func jwtCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "jwt",
+		Short: "JWT subcommands",
+		DisableFlagParsing: false,
+		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		RunE: client.ValidateCmd,
+	}
+
+	cmd.AddCommand(
+		beaconcli.NewGenerateJWTCommand(),
+		beaconcli.NewValidateJWTCommand(),
 	)
 
 	return cmd
