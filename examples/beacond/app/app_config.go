@@ -32,7 +32,6 @@ import (
 	bankmodulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
 	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
-	stakingmodulev1 "cosmossdk.io/api/cosmos/staking/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	upgrademodulev1 "cosmossdk.io/api/cosmos/upgrade/module/v1"
 	vestingmodulev1 "cosmossdk.io/api/cosmos/vesting/module/v1"
@@ -45,9 +44,6 @@ import (
 	vestingtypes "cosmossdk.io/x/auth/vesting/types"
 	_ "cosmossdk.io/x/bank" // import for side-effects
 	banktypes "cosmossdk.io/x/bank/types"
-	_ "cosmossdk.io/x/distribution" // import for side-effect
-	_ "cosmossdk.io/x/staking"      // import for side-effects
-	stakingtypes "cosmossdk.io/x/staking/types"
 	_ "cosmossdk.io/x/upgrade" // import for side-effects
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	_ "github.com/berachain/beacon-kit/runtime/modules/beacon"
@@ -73,28 +69,11 @@ var (
 	// module account permissions
 	moduleAccPerms = []*authmodulev1.ModuleAccountPermission{
 		{Account: authtypes.FeeCollectorName},
-		{
-			Account: stakingtypes.ModuleName,
-			Permissions: []string{
-				authtypes.Minter,
-				authtypes.Burner,
-			},
-		},
-		{
-			Account:     stakingtypes.BondedPoolName,
-			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
-		},
-		{
-			Account:     stakingtypes.NotBondedPoolName,
-			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
-		},
 	}
 
 	// blocked account addresses
 	blockAccAddrs = []string{
 		authtypes.FeeCollectorName,
-		stakingtypes.BondedPoolName,
-		stakingtypes.NotBondedPoolName,
 		// We allow the following module accounts to receive funds:
 		// govtypes.ModuleName
 		// pooltypes.ModuleName
@@ -117,11 +96,8 @@ var (
 					// CanWithdrawInvariant invariant.
 					// NOTE: staking module is required if HistoricalEntries
 					// param > 0
-					BeginBlockers: []string{
-						stakingtypes.ModuleName,
-					},
+					BeginBlockers: []string{},
 					EndBlockers: []string{
-						stakingtypes.ModuleName,
 						beacontypes.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
@@ -138,7 +114,6 @@ var (
 					InitGenesis: []string{
 						authtypes.ModuleName,
 						banktypes.ModuleName,
-						stakingtypes.ModuleName,
 						genutiltypes.ModuleName,
 						upgradetypes.ModuleName,
 						vestingtypes.ModuleName,
@@ -174,16 +149,6 @@ var (
 				Name: banktypes.ModuleName,
 				Config: appconfig.WrapAny(&bankmodulev1.Module{
 					BlockedModuleAccountsOverride: blockAccAddrs,
-				}),
-			},
-			{
-				Name: stakingtypes.ModuleName,
-				Config: appconfig.WrapAny(&stakingmodulev1.Module{
-					// NOTE: specifying a prefix is only necessary when using
-					// bech32 addresses If not specified, the auth Bech32Prefix
-					// appended with "valoper" and "valcons" is used by default
-					Bech32PrefixValidator: "cosmosvaloper",
-					Bech32PrefixConsensus: "cosmosvalcons",
 				}),
 			},
 			{

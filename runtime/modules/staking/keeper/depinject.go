@@ -27,14 +27,12 @@ package staking
 
 import (
 	"cosmossdk.io/depinject"
-	sdkkeeper "cosmossdk.io/x/staking/keeper"
 )
 
 type DepInjectInput struct {
 	depinject.In
 
-	StakingKeeper *sdkkeeper.Keeper
-	BankKeeper    BankKeeper
+	BankKeeper BankKeeper
 }
 
 type DepInjectOutput struct {
@@ -45,6 +43,6 @@ type DepInjectOutput struct {
 
 func ProvideStakingKeeper(in DepInjectInput) DepInjectOutput {
 	return DepInjectOutput{
-		Keeper: NewKeeper(in.StakingKeeper, &in.BankKeeper),
+		Keeper: NewKeeper(nil, &in.BankKeeper),
 	}
 }

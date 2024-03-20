@@ -31,11 +31,6 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"cosmossdk.io/collections"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/staking"
-	stakingtypes "cosmossdk.io/x/staking/types"
-
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -74,10 +69,10 @@ func (app *BeaconApp) ExportAppStateAndValidators(
 		return servertypes.ExportedApp{}, err
 	}
 
-	validators, err := staking.WriteValidators(ctx, app.StakingKeeper)
+	// validators, err := staking.WriteValidators(ctx, nil)
 	return servertypes.ExportedApp{
 		AppState:        appState,
-		Validators:      validators,
+		Validators:      nil,
 		Height:          height,
 		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
 	}, err
@@ -91,12 +86,12 @@ func (app *BeaconApp) prepForZeroHeightGenesis(
 	ctx sdk.Context,
 	jailAllowedAddrs []string,
 ) {
-	applyAllowedAddrs := false
+	// applyAllowedAddrs := false
 
-	// check if there is a allowed address list
-	if len(jailAllowedAddrs) > 0 {
-		applyAllowedAddrs = true
-	}
+	// // check if there is a allowed address list
+	// if len(jailAllowedAddrs) > 0 {
+	// 	applyAllowedAddrs = true
+	// }
 
 	allowedAddrsMap := make(map[string]bool)
 
@@ -118,82 +113,6 @@ func (app *BeaconApp) prepForZeroHeightGenesis(
 	ctx = ctx.WithBlockHeight(height)
 
 	/* Handle staking state. */
-
-	// iterate through redelegations, reset creation height
-	err := app.StakingKeeper.IterateRedelegations(
-		ctx,
-		func(_ int64, red stakingtypes.Redelegation) (stop bool) {
-			for i := range red.Entries {
-				red.Entries[i].CreationHeight = 0
-			}
-			err := app.StakingKeeper.SetRedelegation(ctx, red)
-			if err != nil {
-				panic(err)
-			}
-			return false
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	// iterate through unbonding delegations, reset creation height
-	err = app.StakingKeeper.UnbondingDelegations.Walk(
-		ctx,
-		nil,
-		func(key collections.Pair[[]byte, []byte], ubd stakingtypes.UnbondingDelegation) (stop bool, err error) {
-			for i := range ubd.Entries {
-				ubd.Entries[i].CreationHeight = 0
-			}
-			err = app.StakingKeeper.SetUnbondingDelegation(ctx, ubd)
-			if err != nil {
-				return true, err
-			}
-			return false, err
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-	// Iterate through validators by power descending, reset bond heights, and
-	// update bond intra-tx counters.
-	store := ctx.KVStore(app.kvStoreKeys()[stakingtypes.StoreKey])
-	iter := storetypes.KVStoreReversePrefixIterator(
-		store,
-		stakingtypes.ValidatorsKey,
-	)
-	counter := int16(0)
-
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(
-			stakingtypes.AddressFromValidatorsKey(iter.Key()),
-		)
-		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
-		if err != nil {
-			panic("expected validator, not found")
-		}
-
-		validator.UnbondingHeight = 0
-		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
-			validator.Jailed = true
-		}
-
-		if err = app.StakingKeeper.SetValidator(ctx, validator); err != nil {
-			panic(err)
-		}
-		counter++
-	}
-
-	if err := iter.Close(); err != nil {
-		app.Logger().
-			Error("error while closing the key-value store reverse prefix iterator: ", err)
-		return
-	}
-
-	_, err = app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	/* Handle slashing state. */
 

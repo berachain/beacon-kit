@@ -35,6 +35,7 @@ import (
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdkbls "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -51,18 +52,16 @@ func NewKeeper(
 	stakingKeeper *sdkkeeper.Keeper,
 	bankKeeper *BankKeeper,
 ) *Keeper {
-	if stakingKeeper == nil {
-		panic("staking keeper is required")
-	}
-
-	if bankKeeper == nil {
-		panic("bank keeper is required")
-	}
-
 	return &Keeper{
 		Keeper: stakingKeeper,
 		bk:     *bankKeeper,
 	}
+}
+
+// ApplyAndReturnValidatorSetUpdates returns the validator set updates.
+// REQUIRED UNTIL FORKED GENUTIL MODULE.
+func (k *Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) (updates []abci.ValidatorUpdate, err error) {
+	return nil, nil
 }
 
 // IncreaseConsensusPower delegates the deposit to the validator.
