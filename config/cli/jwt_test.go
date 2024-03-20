@@ -40,7 +40,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 		"command should be available and have correct use",
 		func(t *testing.T) {
 			cmd := cli.NewGenerateJWTCommand()
-			require.Equal(t, "generate-jwt-secret", cmd.Use)
+			require.Equal(t, "generate", cmd.Use)
 		},
 	)
 
