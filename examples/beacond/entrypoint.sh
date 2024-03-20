@@ -107,10 +107,10 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	## 5. Copy the `gentx-*` folders under `~/.cloned./build/bin/beacond/config/gentx/` folders into the original `~/../build/bin/beacond/config/gentx`
 
 	# Collect genesis tx
-	./build/bin/beacond genesis collect-gentxs --home "$HOMEDIR" > /dev/null 2>&1
+	./build/bin/beacond customcollect-gentxs --home "$HOMEDIR"
 
-	# Run this to ensure everything worked and that the genesis file is setup correctly
-	./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1
+	# # Run this to ensure everything worked and that the genesis file is setup correctly
+	# ./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m

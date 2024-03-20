@@ -87,7 +87,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("TOP OF THIS FUNCTION")
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -383,6 +382,9 @@ func BuildCreateValidatorMsg(
 		Credentials: valStr,
 		Pubkey:      config.PubKey.Bytes(),
 	}
+
+	// _ = msg2
+	// msg := &banktypes.MsgSend{}
 
 	if generateOnly {
 		ip := config.IP

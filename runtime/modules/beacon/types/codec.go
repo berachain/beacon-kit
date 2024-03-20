@@ -26,8 +26,6 @@
 package types
 
 import (
-	fmt "fmt"
-
 	"cosmossdk.io/core/registry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
@@ -37,7 +35,6 @@ const ModuleName = "beacon"
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
 func RegisterInterfaces(registry registry.LegacyRegistry) {
-	fmt.Println("CALLING")
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgCreateValidatorX{},

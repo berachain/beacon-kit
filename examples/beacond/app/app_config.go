@@ -64,6 +64,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	_ "github.com/berachain/beacon-kit/runtime/modules/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
+	_ "github.com/berachain/beacon-kit/runtime/modules/beacon/api/v1alpha1"
 	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"

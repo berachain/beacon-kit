@@ -109,6 +109,11 @@ func InitRootCommand[T servertypes.Application](
 			&banktypes.GenesisBalancesIterator{},
 			txConfig.SigningContext().ValidatorAddressCodec(),
 		),
+		validatorcli.CollectGenTxsCmd(
+			&banktypes.GenesisBalancesIterator{},
+			validatorcli.DefaultMessageValidator,
+			txConfig.SigningContext().ValidatorAddressCodec(),
+		),
 	)
 }
 

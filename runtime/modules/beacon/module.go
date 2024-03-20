@@ -27,7 +27,6 @@ package evm
 
 import (
 	"context"
-	"fmt"
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/registry"
@@ -77,7 +76,6 @@ func (am AppModule) RegisterServices(registrar grpc.ServiceRegistrar) error {
 }
 
 func (am AppModule) RegisterInterfaces(r registry.LegacyRegistry) {
-	fmt.Println("CALLING")
 	types.RegisterInterfaces(r)
 }
 

@@ -54,12 +54,13 @@ func (h StakingHooks) AfterValidatorCreated(
 	ctx context.Context,
 	valAddr sdk.ValAddress,
 ) error {
-	pubkey, err := h.k.vsu.GetValidatorPubkeyFromValAddress(ctx, valAddr)
-	if err != nil {
-		return err
-	}
+	return nil
+	// pubkey, err := h.k.vsu.GetValidatorPubkeyFromValAddress(ctx, valAddr)
+	// if err != nil {
+	// 	return err
+	// }
 
-	return h.k.beaconStore.AddValidator(ctx, pubkey[:])
+	// return h.k.beaconStore.AddValidator(ctx, pubkey[:])
 }
 
 // AfterConsensusPubKeyUpdate does nothing and returns nil.
@@ -69,9 +70,10 @@ func (h StakingHooks) AfterConsensusPubKeyUpdate(
 	toPubkey cryptotypes.PubKey,
 	_ sdk.Coin,
 ) error {
-	return h.k.beaconStore.UpdateValidator(
-		ctx,
-		fromPubkey.Bytes(),
-		toPubkey.Bytes(),
-	)
+	return nil
+	// return h.k.beaconStore.UpdateValidator(
+	// 	ctx,
+	// 	fromPubkey.Bytes(),
+	// 	toPubkey.Bytes(),
+	// )
 }

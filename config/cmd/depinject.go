@@ -34,6 +34,7 @@ import (
 	"cosmossdk.io/x/auth/tx"
 	authtxconfig "cosmossdk.io/x/auth/tx/config"
 	"cosmossdk.io/x/auth/types"
+	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -100,6 +101,8 @@ func ProvideClientContext(
 		NewGRPCCoinMetadataQueryFn(
 			clientCtx,
 		)
+	beacontypes.RegisterInterfaces(clientCtx.Codec.InterfaceRegistry())
+	txConfigOpts.JSONEncoder = tx.DefaultJSONTxEncoder(clientCtx.Codec)
 	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
 	if err != nil {
 		panic(err)

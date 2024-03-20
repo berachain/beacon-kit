@@ -64,7 +64,7 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 	if err != nil {
 		in.Logger.Error(
 			"failed to create beacon-kit runtime, exiting...", "error", err)
-		os.Exit(1)
+		os.Exit(123)
 	}
 
 	return DepInjectOutput{

@@ -40,6 +40,7 @@ import (
 	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
 	"github.com/berachain/beacon-kit/examples/beacond/app"
 	"github.com/berachain/beacon-kit/io/cli/tos"
+	validatorcli "github.com/berachain/beacon-kit/validator/cli"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -67,10 +68,12 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+				// validatorcli.DefaultMessageValidator,
 			),
 			depinject.Provide(
 				cmdconfig.ProvideClientContext,
 				cmdconfig.ProvideKeyring,
+				validatorcli.ProvideMessageValidator,
 			),
 		),
 		&autoCliOpts,

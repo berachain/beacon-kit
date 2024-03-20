@@ -56,7 +56,7 @@ func ProvideBlsSigner(in DepInjectInput) DepInjectOutput {
 		fmt.Sprintf("%s/config/priv_validator_key.json", homeDir),
 	)
 	if err != nil {
-		os.Exit(1)
+		os.Exit(123)
 	}
 
 	return DepInjectOutput{
