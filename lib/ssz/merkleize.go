@@ -31,11 +31,8 @@ const (
 	two = 2
 )
 
-func MerkleizeBasic(
-	value common.SSZObject,
-	fixedSize bool,
-) ([32]byte, error) {
-	trie, err := BuildTreeFromBasic(value, fixedSize)
+func MerkleizeBasic(value common.SSZObject) ([32]byte, error) {
+	trie, err := BuildTreeFromBasic(value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -44,11 +41,8 @@ func MerkleizeBasic(
 
 // MerkleizeComposite hashes each element in the list and then returns the HTR
 // of the corresponding list of roots.
-func MerkleizeComposite(
-	value common.Composite,
-	fixedSize bool,
-) ([32]byte, error) {
-	trie, err := BuildTreeFromComposite(value, fixedSize)
+func MerkleizeComposite(value common.Composite) ([32]byte, error) {
+	trie, err := BuildTreeFromComposite(value)
 	if err != nil {
 		return [32]byte{}, err
 	}

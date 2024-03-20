@@ -114,3 +114,7 @@ func IsVariableSize(t Type) bool {
 		return false
 	}
 }
+
+func IsList(t Type) bool {
+	return t.Kind() == KindList
+}

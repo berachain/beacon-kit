@@ -41,9 +41,9 @@ func (v *Vector[T]) Marshal() ([]byte, error) {
 
 func (v *Vector[T]) HashTreeRoot() ([32]byte, error) {
 	if common.IsBasicType(v.Typ.ElemType) {
-		return ssz.MerkleizeBasic(v, true)
+		return ssz.MerkleizeBasic(v)
 	}
-	return ssz.MerkleizeComposite(v, true)
+	return ssz.MerkleizeComposite(v)
 }
 
 func (v *Vector[T]) Elements() []common.SSZObject {

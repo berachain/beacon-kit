@@ -30,23 +30,30 @@ import (
 	"github.com/berachain/beacon-kit/lib/ssz/common"
 )
 
-type Container struct {
-	Typ    common.TypeContainer
-	Fields []common.SSZObject
+type List[T common.SSZObject] struct {
+	Typ   common.TypeList
+	Elems []T
 }
 
-func (c *Container) Marshal() ([]byte, error) {
-	return ssz.MarshalComposite(c)
+func (v *List[T]) Marshal() ([]byte, error) {
+	return ssz.MarshalComposite(v)
 }
 
-func (c *Container) HashTreeRoot() ([32]byte, error) {
-	return ssz.MerkleizeComposite(c)
+func (v *List[T]) HashTreeRoot() ([32]byte, error) {
+	if common.IsBasicType(v.Typ.ElemType) {
+		return ssz.MerkleizeBasic(v)
+	}
+	return ssz.MerkleizeComposite(v)
 }
 
-func (c *Container) Elements() []common.SSZObject {
-	return c.Fields
+func (v *List[T]) Elements() []common.SSZObject {
+	elements := make([]common.SSZObject, len(v.Elems))
+	for i, elem := range v.Elems {
+		elements[i] = elem
+	}
+	return elements
 }
 
-func (c *Container) Type() common.Type {
-	return c.Typ
+func (v *List[T]) Type() common.Type {
+	return v.Typ
 }

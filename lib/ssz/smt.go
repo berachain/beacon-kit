@@ -115,7 +115,7 @@ func BuildTreeFromChunks(
 func ChunkifyBytes(input []byte) ([][32]byte, error) {
 	// Add (chunkSize - 1) to round up the division
 	// to the next multiple of chunkSize.
-	var chunkSize = common.BytesPerChunk
+	chunkSize := common.BytesPerChunk
 	numChunks := (len(input) + (chunkSize - 1)) / chunkSize
 	if numChunks == 0 {
 		return nil, ErrInvalidNilSlice
@@ -128,12 +128,8 @@ func ChunkifyBytes(input []byte) ([][32]byte, error) {
 }
 
 // BuildTreeFromBasic builds a SparseMerkleTrie from a basic object,
-// or a vector of basic objects (fixedSize=true)
-// or from a list of basic objects (fixedSize=false).
-func BuildTreeFromBasic(
-	value common.SSZObject,
-	fixedSize bool,
-) (*SparseMerkleTrie, error) {
+// or a vector of basic objects or from a list of basic objects.
+func BuildTreeFromBasic(value common.SSZObject) (*SparseMerkleTrie, error) {
 	bz, err := value.Marshal()
 	if err != nil {
 		return nil, err
@@ -142,27 +138,30 @@ func BuildTreeFromBasic(
 	if err != nil {
 		return nil, err
 	}
+	isList := common.IsList(value.Type())
 	var limit uint64
-	if !fixedSize {
-		// TODO: Limit for the list of basic objects.
-		limit = 0
+	if isList {
+		// List[B, N]: limit = (N * size_of(B) + 31) // 32
+		valueType := value.Type().(common.TypeList)
+		elemType := valueType.ElemType.(common.BasicType)
+		chunkSize := common.BytesPerChunk
+		limit = uint64((valueType.MaxSize*elemType.SizeOf() +
+			(chunkSize - 1)) / chunkSize)
 	}
 	body, err := BuildTreeFromChunks(chunks, limit)
 	if err != nil {
 		return nil, err
 	}
-	if fixedSize {
+	if !isList {
 		return body, nil
 	}
 	// Mix in the length of the list of basic objects.
 	return mixInLength(body, uint64(len(chunks))), nil
 }
 
-// BuildTreeFromComposite builds a SparseMerkleTrie from a composite type.
-func BuildTreeFromComposite(
-	value common.Composite,
-	fixedSize bool,
-) (*SparseMerkleTrie, error) {
+// BuildTreeFromComposite builds a SparseMerkleTrie from a composite object,
+// i.e. list/vector of composite objects or container.
+func BuildTreeFromComposite(value common.Composite) (*SparseMerkleTrie, error) {
 	elements := value.Elements()
 	length := uint64(len(elements))
 	elemRoots := make([][32]byte, length)
@@ -180,7 +179,7 @@ func BuildTreeFromComposite(
 	if err != nil {
 		return nil, err
 	}
-	if fixedSize {
+	if !common.IsList(value.Type()) {
 		return body, nil
 	}
 	// Mix in the length of the variable-length composite type.
