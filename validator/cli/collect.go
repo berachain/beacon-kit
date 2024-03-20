@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package cli
 
 import (
@@ -8,10 +33,8 @@ import (
 	"sort"
 	"strings"
 
-	cfg "github.com/cometbft/cometbft/config"
-
 	bankexported "cosmossdk.io/x/bank/exported"
-
+	cfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
@@ -20,20 +43,37 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
-// GenAppStateFromConfig gets the genesis app state from the config
-func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodingConfig,
-	config *cfg.Config, initCfg types.InitConfig, genesis *types.AppGenesis, genBalIterator types.GenesisBalancesIterator,
-	validator types.MessageValidator, valAddrCodec sdkruntime.ValidatorAddressCodec,
+// GenAppStateFromConfig gets the genesis app state from the config.
+func GenAppStateFromConfig(
+	cdc codec.JSONCodec,
+	txEncodingConfig client.TxEncodingConfig,
+	config *cfg.Config,
+	initCfg types.InitConfig,
+	genesis *types.AppGenesis,
+	genBalIterator types.GenesisBalancesIterator,
+	validator types.MessageValidator,
+	valAddrCodec sdkruntime.ValidatorAddressCodec,
 ) (appState json.RawMessage, err error) {
 	// process genesis transactions, else create default genesis.json
 	appGenTxs, persistentPeers, err := CollectTxs(
-		cdc, txEncodingConfig.TxJSONDecoder(), config.Moniker, initCfg.GenTxsDir, genesis, genBalIterator, validator, valAddrCodec)
+		cdc,
+		txEncodingConfig.TxJSONDecoder(),
+		config.Moniker,
+		initCfg.GenTxsDir,
+		genesis,
+		genBalIterator,
+		validator,
+		valAddrCodec,
+	)
 	if err != nil {
 		return appState, err
 	}
 
 	config.P2P.PersistentPeers = persistentPeers
-	cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
+	cfg.WriteConfigFile(
+		filepath.Join(config.RootDir, "config", "config.toml"),
+		config,
+	)
 
 	// if there are no gen txs to be processed, return the default empty state
 	if len(appGenTxs) == 0 {
@@ -46,7 +86,12 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodi
 		return appState, err
 	}
 
-	appGenesisState, err = genutil.SetGenTxsInAppGenesisState(cdc, txEncodingConfig.TxJSONEncoder(), appGenesisState, appGenTxs)
+	appGenesisState, err = genutil.SetGenTxsInAppGenesisState(
+		cdc,
+		txEncodingConfig.TxJSONEncoder(),
+		appGenesisState,
+		appGenTxs,
+	)
 	if err != nil {
 		return appState, err
 	}
@@ -63,10 +108,16 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodi
 }
 
 // CollectTxs processes and validates application's genesis Txs and returns
-// the list of appGenTxs, and persistent peers required to generate genesis.json.
-func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTxsDir string,
-	genesis *types.AppGenesis, genBalIterator types.GenesisBalancesIterator,
-	validator types.MessageValidator, valAddrCodec sdkruntime.ValidatorAddressCodec,
+// the list of appGenTxs, and persistent peers required to generate
+// genesis.json.
+func CollectTxs(
+	cdc codec.JSONCodec,
+	txJSONDecoder sdk.TxDecoder,
+	moniker, genTxsDir string,
+	genesis *types.AppGenesis,
+	genBalIterator types.GenesisBalancesIterator,
+	validator types.MessageValidator,
+	valAddrCodec sdkruntime.ValidatorAddressCodec,
 ) (appGenTxs []sdk.Tx, persistentPeers string, err error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
@@ -111,7 +162,11 @@ func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTx
 			return appGenTxs, persistentPeers, err
 		}
 
-		genTx, err := types.ValidateAndGetGenTx(jsonRawTx, txJSONDecoder, validator)
+		genTx, err := types.ValidateAndGetGenTx(
+			jsonRawTx,
+			txJSONDecoder,
+			validator,
+		)
 		if err != nil {
 			return appGenTxs, persistentPeers, err
 		}
@@ -124,7 +179,8 @@ func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTx
 
 		// memoTx, ok := genTx.(sdk.TxWithMemo)
 		// if !ok {
-		// 	return appGenTxs, persistentPeers, fmt.Errorf("expected TxWithMemo, got %T", genTx)
+		// 	return appGenTxs, persistentPeers, fmt.Errorf("expected TxWithMemo,
+		// got %T", genTx)
 		// }
 		// nodeAddrIP := memoTx.GetMemo()
 
@@ -134,7 +190,8 @@ func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTx
 		// TODO abstract out staking message validation back to staking
 		// msg := msgs[0].(*beacontypes.MsgCreateValidatorX)
 
-		// // validate validator addresses and funds against the accounts in the state
+		// // validate validator addresses and funds against the accounts in the
+		// state
 		// valAddr, err := valAddrCodec.StringToBytes(msg.ValidatorAddress)
 		// if err != nil {
 		// 	return appGenTxs, persistentPeers, err
@@ -149,22 +206,26 @@ func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTx
 		// // 		fmt.Printf("CollectTxs-1, called from %s#%d\n", file, no)
 		// // 	}
 
-		// // 	return appGenTxs, persistentPeers, fmt.Errorf("account %s balance not in genesis state: %+v", valAccAddr, balancesMap)
+		// // 	return appGenTxs, persistentPeers, fmt.Errorf("account %s balance
+		// not in genesis state: %+v", valAccAddr, balancesMap)
 		// // }
 
 		// _, valOk := balancesMap[valAccAddr]
 		// if !valOk {
 		// 	_, file, no, ok := runtime.Caller(1)
 		// 	if ok {
-		// 		fmt.Printf("CollectTxs-2, called from %s#%d - %s\n", file, no, sdk.AccAddress(msg.ValidatorAddress).String())
+		// 		fmt.Printf("CollectTxs-2, called from %s#%d - %s\n", file, no,
+		// sdk.AccAddress(msg.ValidatorAddress).String())
 		// 	}
-		// 	return appGenTxs, persistentPeers, fmt.Errorf("account %s balance not in genesis state: %+v", valAddr, balancesMap)
+		// 	return appGenTxs, persistentPeers, fmt.Errorf("account %s balance
+		// not in genesis state: %+v", valAddr, balancesMap)
 		// }
 
 		// if delBal.GetCoins().AmountOf(msg.Value.Denom).LT(msg.Value.Amount) {
 		// 	return appGenTxs, persistentPeers, fmt.Errorf(
 		// 		"insufficient fund for delegation %v: %v < %v",
-		// 		delBal.GetAddress(), delBal.GetCoins().AmountOf(msg.Value.Denom), msg.Value.Amount,
+		// 		delBal.GetAddress(), delBal.GetCoins().AmountOf(msg.Value.Denom),
+		// msg.Value.Amount,
 		// 	)
 		// }
 

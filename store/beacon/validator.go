@@ -27,6 +27,7 @@ package beacon
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -40,6 +41,8 @@ func (s *Store) AddValidator(
 	if err != nil {
 		return err
 	}
+
+	fmt.Print("SETTING IDX", 0, idx)
 	return s.validatorIndexToPubkey.Set(ctx, idx, pubkey)
 }
 
@@ -66,6 +69,8 @@ func (s *Store) UpdateValidator(
 func (s *Store) ValidatorIndexByPubkey(
 	pubkey []byte,
 ) (primitives.ValidatorIndex, error) {
+
+	fmt.Println("HERE", pubkey)
 	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
 		s.ctx,
 		pubkey,

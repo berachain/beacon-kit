@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"google.golang.org/grpc"
 )
@@ -92,18 +91,18 @@ func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]abci.ValidatorUpdate, error) {
 	// Get the public key of the validator
-	pk, err := am.keeper.BeaconState(ctx).ValidatorPubKeyByIndex(0)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return the validator update
-	return []abci.ValidatorUpdate{
-		{
-			PubKey: crypto.PublicKey{
-				Sum: &crypto.PublicKey_Bls12381{Bls12381: pk},
-			},
-			Power: 696969969696,
-		},
-	}, nil
+	// pk, err := am.keeper.BeaconState(ctx).ValidatorPubKeyByIndex(0)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return nil, nil
+	// // Return the validator update
+	// return []abci.ValidatorUpdate{
+	// 	{
+	// 		PubKey: crypto.PublicKey{
+	// 			Sum: &crypto.PublicKey_Bls12381{Bls12381: pk},
+	// 		},
+	// 		Power: 696969969696,
+	// 	},
+	// }, nil
 }
