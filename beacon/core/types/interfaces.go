@@ -29,7 +29,7 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	ssz "github.com/prysmaticlabs/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconBlock is the interface for a beacon block.
@@ -56,16 +56,22 @@ type ReadOnlyBeaconBlock interface {
 	GetBody() BeaconBlockBody
 }
 
+// BeaconBlockBody is the interface for a beacon block body.
 type BeaconBlockBody interface {
 	WriteOnlyBeaconBlockBody
 	ReadOnlyBeaconBlockBody
 }
 
+// WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
+	SetRedirects([]*Redirect)
 	SetExecutionData(enginetypes.ExecutionPayload) error
+	SetBlobKzgCommitments([][48]byte)
 }
 
+// ReadOnlyBeaconBlockBody is the interface for
+// a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
@@ -74,6 +80,8 @@ type ReadOnlyBeaconBlockBody interface {
 
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
+	GetRedirects() []*Redirect
+	GetGraffiti() [32]byte
 	GetRandaoReveal() randaotypes.Reveal
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte

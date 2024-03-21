@@ -32,9 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/runtime"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
+	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -42,21 +44,31 @@ import (
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	beaconStore     *beaconstore.Store
-	forkchoiceStore *forkchoicestore.Store
-	vsu             runtime.ValsetUpdater
+	availabilityStore *blob.Store
+	beaconStore       *beaconstore.Store
+	forkchoiceStore   *forkchoicestore.Store
+	vsu               runtime.ValsetUpdater
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
+	fdb *filedb.DB,
 	env appmodule.Environment,
 	vsu runtime.ValsetUpdater,
 ) *Keeper {
 	return &Keeper{
-		beaconStore:     beaconstore.NewStore(env),
-		forkchoiceStore: forkchoicestore.NewStore(env.KVStoreService),
-		vsu:             vsu,
+		availabilityStore: blob.NewStore(fdb),
+		beaconStore:       beaconstore.NewStore(env),
+		forkchoiceStore:   forkchoicestore.NewStore(env.KVStoreService),
+		vsu:               vsu,
 	}
+}
+
+// AvailabilityStore returns the availability store struct initialized with a.
+func (k *Keeper) AvailabilityStore(
+	_ context.Context,
+) state.AvailabilityStore {
+	return k.availabilityStore
 }
 
 // BeaconState returns the beacon state struct initialized with a given

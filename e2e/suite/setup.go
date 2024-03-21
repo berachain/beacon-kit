@@ -41,6 +41,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/sourcegraph/conc/iter"
@@ -127,20 +128,52 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().NoError(err, "Error running Starlark package")
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
 	s.Require().Empty(result.ValidationErrors)
-
 	s.logger.Info("enclave spun up successfully")
+
 	s.logger.Info("setting up execution clients")
+	err = s.SetupExecutionClients()
+	s.Require().NoError(err, "Error setting up execution clients")
+
+	s.logger.Info("setting up consensus clients")
+	err = s.SetupConsensusClients()
+	s.Require().NoError(err, "Error setting up consensus clients")
 
 	// Setup the JSON-RPC balancer.
 	s.logger.Info("setting up JSON-RPC balancer")
 	err = s.SetupJSONRPCBalancer()
 	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
+
 	// Wait for the finalized block number to reach 1.
 	err = s.WaitForFinalizedBlockNumber(1)
 	s.Require().NoError(err, "Error waiting for finalized block number")
 
 	// Fund any requested accounts.
 	s.FundAccounts()
+}
+
+// SetupExecutionClients sets up the execution clients for the test suite.
+func (s *KurtosisE2ESuite) SetupExecutionClients() error {
+	return nil
+}
+
+func (s *KurtosisE2ESuite) SetupConsensusClients() error {
+	s.consensusClients = make(map[string]*types.ConsensusClient)
+	sCtx, err := s.Enclave().GetServiceContext("cl-validator-beaconkit-0")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
+		sCtx,
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-1"] = types.NewConsensusClient(
+		sCtx,
+	)
+	return nil
 }
 
 // SetupNGINXBalancer sets up the NGINX balancer for the test suite.
@@ -178,8 +211,16 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
 			account := *acc
 			var gasTipCap *big.Int
+
 			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
-				return nil, err
+				var rpcErr rpc.Error
+				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
+					// Besu does not support eth_maxPriorityFeePerGas
+					// so we use a default value of 10 Gwei.
+					gasTipCap = big.NewInt(TenGwei)
+				} else {
+					return nil, err
+				}
 			}
 
 			gasFeeCap := new(big.Int).Add(gasTipCap, big.NewInt(TenGwei))

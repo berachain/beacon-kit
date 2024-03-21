@@ -23,13 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg
+package types
 
-const (
-	// BlobCommitmentVersion is the version of the blob commitment.
-	// It is the Version byte for the point evaluation precompile as
-	// defined in EIP-4844.
-	//
-	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
-	BlobCommitmentVersion uint8 = 0x01
-)
+import "strconv"
+
+type Redirect struct {
+	// Public key of the validator specified in the deposit.
+	Pubkey []byte `json:"pubkey"      ssz-max:"48"`
+	// Public key of the validator specified in the deposit.
+	NewPubkey []byte `json:"newPubkey"   ssz-max:"48"`
+	// A staking credentials with
+	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+	Credentials DepositCredentials `json:"credentials"              ssz-size:"32"`
+	// Deposit amount in gwei.
+	Amount uint64 `json:"amount"`
+	// Signature of the deposit data.
+	Signature []byte `json:"signature"   ssz-max:"96"`
+	// Index of the redirect in the deposit contract.
+	Index uint64
+}
+
+func (r *Redirect) String() string {
+	return "Redirect{" +
+		"Pubkey: " + string(r.Pubkey) +
+		", Credentials: " + string(r.Credentials[:]) +
+		", Amount: " + strconv.FormatUint(r.Amount, 10) +
+		", Signature: " + string(r.Signature) +
+		"}"
+}

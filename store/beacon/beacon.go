@@ -56,6 +56,9 @@ type Store struct {
 	// depositQueue is a list of deposits that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
 
+	// redirectQueue is a list of redirects that are queued to be processed.
+	redirectQueue *collections.Queue[*beacontypes.Redirect]
+
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
@@ -97,6 +100,11 @@ func NewStore(
 			schemaBuilder,
 			depositQueuePrefix,
 			encoding.SSZValueCodec[*beacontypes.Deposit]{},
+		),
+		redirectQueue: collections.NewQueue[*beacontypes.Redirect](
+			schemaBuilder,
+			redirectQueuePrefix,
+			encoding.SSZValueCodec[*beacontypes.Redirect]{},
 		),
 		withdrawalQueue: collections.NewQueue[*enginetypes.Withdrawal](
 			schemaBuilder,

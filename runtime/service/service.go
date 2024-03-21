@@ -88,6 +88,13 @@ func (s *BaseService) GCD() *dispatch.GrandCentralDispatch {
 	return s.gcd
 }
 
+// AvailabilityStore returns the availability store from the BaseService.
+func (s *BaseService) AvailabilityStore(
+	ctx context.Context,
+) state.AvailabilityStore {
+	return s.bsb.AvailabilityStore(ctx)
+}
+
 // BeaconState returns the beacon state from the BaseService.
 func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 	return s.bsb.BeaconState(ctx)

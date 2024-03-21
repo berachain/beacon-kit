@@ -40,6 +40,7 @@ import (
 	upgrademodulev1 "cosmossdk.io/api/cosmos/upgrade/module/v1"
 	vestingmodulev1 "cosmossdk.io/api/cosmos/vesting/module/v1"
 	"cosmossdk.io/depinject/appconfig"
+	sdkmath "cosmossdk.io/math"
 	_ "cosmossdk.io/x/auth"
 	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
 	authtypes "cosmossdk.io/x/auth/types"
@@ -51,8 +52,6 @@ import (
 	distrtypes "cosmossdk.io/x/distribution/types"
 	_ "cosmossdk.io/x/evidence" // import for side-effects
 	evidencetypes "cosmossdk.io/x/evidence/types"
-	_ "cosmossdk.io/x/gov"
-	govtypes "cosmossdk.io/x/gov/types"
 	_ "cosmossdk.io/x/mint" // import for side-effects
 	minttypes "cosmossdk.io/x/mint/types"
 	_ "cosmossdk.io/x/protocolpool" // import for side-effects
@@ -67,12 +66,19 @@ import (
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 const AppName = "BeaconKitApp"
+
+//nolint:gochecknoinits // required to overrided cosmos variable.
+func init() {
+	sdk.DefaultPowerReduction = sdkmath.NewInt(params.GWei)
+}
 
 var (
 	// module account permissions
@@ -86,6 +92,13 @@ var (
 			Permissions: []string{authtypes.Minter},
 		},
 		{
+			Account: stakingtypes.ModuleName,
+			Permissions: []string{
+				authtypes.Minter,
+				authtypes.Burner,
+			},
+		},
+		{
 			Account:     stakingtypes.BondedPoolName,
 			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
 		},
@@ -93,7 +106,6 @@ var (
 			Account:     stakingtypes.NotBondedPoolName,
 			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
 		},
-		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner}},
 	}
 
 	// blocked account addresses
@@ -133,7 +145,6 @@ var (
 						stakingtypes.ModuleName,
 					},
 					EndBlockers: []string{
-						govtypes.ModuleName,
 						stakingtypes.ModuleName,
 						pooltypes.ModuleName,
 					},
@@ -154,7 +165,6 @@ var (
 						distrtypes.ModuleName,
 						stakingtypes.ModuleName,
 						slashingtypes.ModuleName,
-						govtypes.ModuleName,
 						minttypes.ModuleName,
 						genutiltypes.ModuleName,
 						evidencetypes.ModuleName,

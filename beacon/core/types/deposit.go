@@ -25,7 +25,16 @@
 
 package types
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/cockroachdb/errors"
+)
+
+var ErrInvalidDepositCredentials = errors.New("")
+
+const EthSecp256k1CredentialPrefix = iota + 1
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
@@ -35,7 +44,7 @@ type Deposit struct {
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials []byte `json:"credentials" ssz-size:"32"`
+	Credentials DepositCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
 	Amount uint64 `json:"amount"`
@@ -52,4 +61,16 @@ func (d *Deposit) String() string {
 	//#nosec:G703 // ignore potential marshalling failure.
 	output, _ := json.Marshal(d)
 	return string(output)
+}
+
+type DepositCredentials [32]byte
+
+func (c DepositCredentials) ToExecutionAddress() (
+	primitives.ExecutionAddress,
+	error,
+) {
+	if c[0] != byte(EthSecp256k1CredentialPrefix) {
+		return primitives.ExecutionAddress{}, ErrInvalidDepositCredentials
+	}
+	return primitives.ExecutionAddress(c[12:]), nil
 }

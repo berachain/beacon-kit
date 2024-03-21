@@ -46,6 +46,7 @@ type BeaconState interface {
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
 	ReadOnlyDeposits
+	ReadOnlyRedirects
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
@@ -60,6 +61,7 @@ type ReadOnlyBeaconState interface {
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
 	WriteOnlyDeposits
+	WriteOnlyRedirects
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
@@ -123,6 +125,23 @@ type WriteOnlyDeposits interface {
 // ReadOnlyDeposits has read access to deposit queue.
 type ReadOnlyDeposits interface {
 	ExpectedDeposits(uint64) ([]*beacontypes.Deposit, error)
+}
+
+// ReadWriteRedirectQueue has read and write access to redirect queue.
+type ReadWriteRedirectQueue interface {
+	ReadOnlyRedirects
+	WriteOnlyRedirects
+}
+
+// WriteOnlyRedirects has write access to redirect queue.
+type WriteOnlyRedirects interface {
+	EnqueueRedirects([]*beacontypes.Redirect) error
+	DequeueRedirects(uint64) ([]*beacontypes.Redirect, error)
+}
+
+// ReadOnlyRedirects has read access to redirect queue.
+type ReadOnlyRedirects interface {
+	ExpectedRedirects(uint64) ([]*beacontypes.Redirect, error)
 }
 
 // ReadWriteWithdrawals has read and write access to withdrawal methods.

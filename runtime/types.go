@@ -29,8 +29,10 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // AppOptions is an interface that provides the ability to
@@ -42,6 +44,7 @@ type AppOptions interface {
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend interface {
+	AvailabilityStore(ctx context.Context) state.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
 	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
@@ -52,8 +55,18 @@ type BeaconStorageBackend interface {
 type ValsetUpdater interface {
 	IncreaseConsensusPower(
 		ctx context.Context,
-		delegator [bls12381.SecretKeyLength]byte,
+		delegator beacontypes.DepositCredentials,
 		pubkey [bls12381.PubKeyLength]byte,
+		amount uint64,
+		signature []byte,
+		index uint64,
+	) error
+
+	RedirectConsensusPower(
+		ctx context.Context,
+		delegator beacontypes.DepositCredentials,
+		pubkey [bls12381.PubKeyLength]byte,
+		newPubkey [bls12381.PubKeyLength]byte,
 		amount uint64,
 		signature []byte,
 		index uint64,
@@ -61,7 +74,7 @@ type ValsetUpdater interface {
 
 	DecreaseConsensusPower(
 		ctx context.Context,
-		delegator [bls12381.SecretKeyLength]byte,
+		delegator primitives.ExecutionAddress,
 		pubkey [bls12381.PubKeyLength]byte,
 		amount uint64,
 	) error
