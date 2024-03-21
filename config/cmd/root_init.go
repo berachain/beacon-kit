@@ -35,6 +35,7 @@ import (
 	beaconconfig "github.com/berachain/beacon-kit/config"
 	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	validatorcli "github.com/berachain/beacon-kit/validator/cli"
+	beaconcli "github.com/berachain/beacon-kit/config/cli"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -114,6 +115,7 @@ func InitRootCommand[T servertypes.Application](
 			validatorcli.DefaultMessageValidator,
 			txConfig.SigningContext().ValidatorAddressCodec(),
 		),
+		jwtCommand(),
 	)
 }
 
@@ -209,6 +211,23 @@ func txCommand() *cobra.Command {
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
 		authcmd.GetSimulateCmd(),
+	)
+
+	return cmd
+}
+
+func jwtCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "jwt",
+		Short:                      "JWT subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		RunE:                       client.ValidateCmd,
+	}
+
+	cmd.AddCommand(
+		beaconcli.NewGenerateJWTCommand(),
+		beaconcli.NewValidateJWTCommand(),
 	)
 
 	return cmd
