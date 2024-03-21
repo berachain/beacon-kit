@@ -37,19 +37,20 @@ import (
 const (
 	DefaultSecretFileName = "jwt.hex"
 	FlagOutputPath        = "output-path"
+	FlagInputPath         = "input-path"
 )
 
 // NewGenerateJWTCommand creates a new command for generating a JWT secret.
 func NewGenerateJWTCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "generate-jwt-secret",
+		Use:   "generate",
 		Short: "Generates a new JWT authentication secret",
 		Long: `This command generates a new JWT authentication secret and 
 writes it to a file. If no output file path is specified, it uses the default 
 file name "jwt.hex" in the current directory.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Get the file path from the command flags.
-			outputPath, err := getFilePath(cmd)
+			outputPath, err := getFilePath(cmd, FlagOutputPath)
 			if err != nil {
 				return err
 			}
@@ -62,10 +63,35 @@ file name "jwt.hex" in the current directory.`,
 	return cmd
 }
 
+// NewValidateJWTCommand creates a new command for validating a JWT secret.
+func NewValidateJWTCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validate",
+		Short: "Validates a JWT secret conforms to Engine-RPC requirements",
+		Long: `This command validates a JWT secret by checking if the JWT secret
+is formatted properly. If no output file path is specified, it uses the default 
+file name "jwt.hex" in the current directory.`,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			// Get the file path from the command flags.
+			inputPath, err := getFilePath(cmd, FlagInputPath)
+			if err != nil {
+				return err
+			}
+
+			return validateJWTSecret(cmd, inputPath)
+		},
+	}
+
+	cmd.Flags().StringP(
+		FlagInputPath, "i", "", "Optional input file path for the JWT secret",
+	)
+	return cmd
+}
+
 // getFilePath retrieves the file path for the JWT secret from the command flag.
 // If no path is specified, it returns the default secret file name.
-func getFilePath(cmd *cobra.Command) (string, error) {
-	specifiedFilePath, err := cmd.Flags().GetString(FlagOutputPath)
+func getFilePath(cmd *cobra.Command, path string) (string, error) {
+	specifiedFilePath, err := cmd.Flags().GetString(path)
 	if err != nil {
 		return "", err
 	}
@@ -120,5 +146,15 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 		"Successfully wrote new JSON-RPC authentication secret to: %s",
 		fileName,
 	)
+	return nil
+}
+
+func validateJWTSecret(cmd *cobra.Command, filePath string) error {
+	_, err := jwt.NewFromFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	cmd.Printf("Successfully validated JWT secret")
 	return nil
 }
