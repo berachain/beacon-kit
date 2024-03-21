@@ -135,7 +135,7 @@ func (p *Processor) MixinNewReveal(
 ) error {
 	// Get last slots randao mix.
 	mix, err := st.RandaoMixAtIndex(
-		st.GetSlot() % p.cfg.Beacon.Limits.EpochsPerHistoricalVector,
+		st.GetSlot()/p.cfg.Beacon.Limits.EpochsPerHistoricalVector - 1,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
@@ -144,14 +144,15 @@ func (p *Processor) MixinNewReveal(
 	// Mix in the reveal with the previous slotsmix.
 	newMix := mix.MixinNewReveal(reveal)
 
+	index := st.GetSlot() / p.cfg.Beacon.Limits.EpochsPerHistoricalVector
 	// Set this slots mix to the new mix.
 	if err = st.UpdateRandaoMixAtIndex(
-		st.GetSlot()%p.cfg.Beacon.Limits.EpochsPerHistoricalVector,
+		index,
 		newMix,
 	); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
-	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
+	p.logger.Info("randao mix updated 🎲", "new_mix", newMix, "index", index)
 	return nil
 }
 

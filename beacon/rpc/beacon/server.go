@@ -4,21 +4,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/berachain/beacon-kit/runtime/service"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 // Server defines a server implementation of the gRPC Beacon Chain service,
 // providing RPC endpoints to access data relevant to the Ethereum Beacon Chain.
 type Server struct {
 	ContextGetter func(height int64, prove bool) (sdk.Context, error)
-	Service       service.BaseService
+	Service       service.BeaconStorageBackend
+}
+
+func (s *Server) RegisterRoutes(router *mux.Router, contextGetter func(height int64, prove bool) (sdk.Context, error)) {
+	router.HandleFunc("/eth/v1/beacon/states/{state_id}/randao", s.GetRandao).Methods(http.MethodGet)
 }
 
 // GetRandao fetches the RANDAO mix for the requested epoch from the state identified by state_id.

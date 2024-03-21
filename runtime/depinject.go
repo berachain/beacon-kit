@@ -26,7 +26,6 @@
 package runtime
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"os"
 
 	"cosmossdk.io/depinject"
@@ -39,12 +38,11 @@ import (
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts       AppOptions
-	Logger        log.Logger
-	Signer        crypto.Signer[[bls12381.SignatureLength]byte]
-	Bsp           BeaconStorageBackend
-	Vsu           ValsetUpdater
-	ContextGetter func(height int64, prove bool) (sdk.Context, error)
+	AppOpts AppOptions
+	Logger  log.Logger
+	Signer  crypto.Signer[[bls12381.SignatureLength]byte]
+	Bsp     BeaconStorageBackend
+	Vsu     ValsetUpdater
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -62,7 +60,6 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		in.Logger,
 		in.Bsp,
 		in.Vsu,
-		in.ContextGetter,
 	)
 	if err != nil {
 		in.Logger.Error(

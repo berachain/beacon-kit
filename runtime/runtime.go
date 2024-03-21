@@ -28,6 +28,7 @@ package runtime
 
 import (
 	"context"
+
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/async/dispatch"
 	"github.com/berachain/beacon-kit/async/notify"
@@ -37,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core"
 	"github.com/berachain/beacon-kit/beacon/core/randao"
 	"github.com/berachain/beacon-kit/beacon/execution"
-	"github.com/berachain/beacon-kit/beacon/rpc"
 	"github.com/berachain/beacon-kit/beacon/staking"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/cache"
@@ -51,7 +51,6 @@ import (
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -88,7 +87,6 @@ func NewDefaultBeaconKitRuntime(
 	logger log.Logger,
 	bsb BeaconStorageBackend,
 	vsu ValsetUpdater,
-	contextGetter func(height int64, prove bool) (sdk.Context, error),
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -191,13 +189,6 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithSyncService(syncService),
 	)
 
-	// Build the RPC service.
-	rpcService := service.New[rpc.Service](
-		rpc.WithBaseService(baseService.ShallowCopy("rpc")),
-		rpc.WithConfig(&cfg.RPC),
-		rpc.WithContextGetter(contextGetter),
-	)
-
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger),
@@ -207,7 +198,6 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(notificationService),
 		service.WithService(stakingService),
 		service.WithService(syncService),
-		service.WithService(rpcService),
 	)
 
 	// Build the health service.

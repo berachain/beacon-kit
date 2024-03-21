@@ -28,9 +28,9 @@ package app
 import (
 	"context"
 	_ "embed"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"io"
 
+	"github.com/berachain/beacon-kit/beacon/rpc/beacon"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 
 	"cosmossdk.io/depinject"
@@ -53,6 +53,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 )
@@ -116,7 +118,6 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
 				bls12381.ProvideBlsSigner,
-				ProvideContextGetter,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -212,23 +213,15 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	return keys
 }
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
-	depinject.In
+// RegisterAPIRoutes registers all application module routes with the provided
+// API server.
+func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 
-	App *BeaconApp
-}
-
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
-	depinject.Out
-
-	ContextGetter func(height int64, prove bool) (sdk.Context, error)
-}
-
-// ProvideContextGetter is a function that returns a function that returns a context from the App
-func ProvideContextGetter(input DepInjectInput) DepInjectOutput {
-	return DepInjectOutput{
-		ContextGetter: input.App.BaseApp.CreateQueryContext,
+	svr := &beacon.Server{
+		ContextGetter: app.BaseApp.CreateQueryContext,
+		Service:       app.BeaconKeeper,
 	}
+	// app.Server.RegisterRoutes(apiSvr.Router, app.BaseApp.CreateQueryContext)
+	svr.RegisterRoutes(apiSvr.Router, app.BaseApp.CreateQueryContext)
 }
