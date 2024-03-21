@@ -222,6 +222,6 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 		ContextGetter: app.BaseApp.CreateQueryContext,
 		Service:       app.BeaconKeeper,
 	}
-	// app.Server.RegisterRoutes(apiSvr.Router, app.BaseApp.CreateQueryContext)
-	svr.RegisterRoutes(apiSvr.Router, app.BaseApp.CreateQueryContext)
+
+	svr.RegisterRoutes(apiSvr.Router)
 }
