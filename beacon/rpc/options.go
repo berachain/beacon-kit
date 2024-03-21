@@ -3,6 +3,7 @@ package rpc
 import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/runtime/service"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // WithBaseService sets the base service for the RPC service.
@@ -18,6 +19,14 @@ func WithBaseService(bs service.BaseService) service.Option[Service] {
 func WithConfig(cfg *config.RPC) service.Option[Service] {
 	return func(s *Service) error {
 		s.cfg = cfg
+
+		return nil
+	}
+}
+
+func WithContextGetter(contextGetter func(height int64, prove bool) (sdk.Context, error)) service.Option[Service] {
+	return func(s *Service) error {
+		s.contextGetter = contextGetter
 
 		return nil
 	}

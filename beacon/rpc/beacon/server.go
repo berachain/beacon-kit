@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/runtime/service"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -16,8 +17,8 @@ import (
 // Server defines a server implementation of the gRPC Beacon Chain service,
 // providing RPC endpoints to access data relevant to the Ethereum Beacon Chain.
 type Server struct {
-	BeaconState state.BeaconState
-	State       state.ReadOnlyRandaoMixes
+	ContextGetter func(height int64, prove bool) (sdk.Context, error)
+	Service       service.BaseService
 }
 
 // GetRandao fetches the RANDAO mix for the requested epoch from the state identified by state_id.
@@ -33,7 +34,13 @@ func (s *Server) GetRandao(w http.ResponseWriter, r *http.Request) {
 
 	stateIdAsInt, err := strconv.ParseUint(stateId, 10, 64)
 
-	randao, err := s.State.RandaoMixAtIndex(stateIdAsInt)
+	ctx, err := s.ContextGetter(int64(stateIdAsInt), false)
+	if err != nil {
+		HandleError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	randao, err := s.Service.BeaconState(ctx).RandaoMixAtIndex(stateIdAsInt)
 	if err != nil {
 		HandleError(w, err.Error(), http.StatusInternalServerError)
 		return

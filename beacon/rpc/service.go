@@ -7,6 +7,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/rpc/beacon"
 	"github.com/berachain/beacon-kit/config"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
 	"net/http"
 	"time"
@@ -21,7 +22,8 @@ type Service struct {
 	router *mux.Router
 	server *http.Server
 
-	st state.ReadOnlyRandaoMixes
+	st            state.ReadOnlyRandaoMixes
+	contextGetter func(height int64, prove bool) (sdk.Context, error)
 }
 
 func (s *Service) Start(ctx context.Context) {
@@ -30,7 +32,8 @@ func (s *Service) Start(ctx context.Context) {
 	s.router = newRouter()
 
 	s.initializeBeaconServerRoutes(&beacon.Server{
-		BeaconState: s.BeaconState(ctx),
+		ContextGetter: s.contextGetter,
+		Service:       s.BaseService,
 	})
 
 	s.server = &http.Server{

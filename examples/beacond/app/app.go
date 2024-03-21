@@ -28,6 +28,7 @@ package app
 import (
 	"context"
 	_ "embed"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"io"
 
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
@@ -115,6 +116,7 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
 				bls12381.ProvideBlsSigner,
+				ProvideContextGetter,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -143,6 +145,7 @@ func NewBeaconKitApp(
 	); err != nil {
 		panic(err)
 	}
+
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
@@ -207,4 +210,25 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
+}
+
+// DepInjectInput is the input for the dep inject framework.
+type DepInjectInput struct {
+	depinject.In
+
+	App *BeaconApp
+}
+
+// DepInjectOutput is the output for the dep inject framework.
+type DepInjectOutput struct {
+	depinject.Out
+
+	ContextGetter func(height int64, prove bool) (sdk.Context, error)
+}
+
+// ProvideContextGetter is a function that returns a function that returns a context from the App
+func ProvideContextGetter(input DepInjectInput) DepInjectOutput {
+	return DepInjectOutput{
+		ContextGetter: input.App.BaseApp.CreateQueryContext,
+	}
 }

@@ -51,6 +51,7 @@ import (
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -87,6 +88,7 @@ func NewDefaultBeaconKitRuntime(
 	logger log.Logger,
 	bsb BeaconStorageBackend,
 	vsu ValsetUpdater,
+	contextGetter func(height int64, prove bool) (sdk.Context, error),
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -193,6 +195,7 @@ func NewDefaultBeaconKitRuntime(
 	rpcService := service.New[rpc.Service](
 		rpc.WithBaseService(baseService.ShallowCopy("rpc")),
 		rpc.WithConfig(&cfg.RPC),
+		rpc.WithContextGetter(contextGetter),
 	)
 
 	// Build the service registry.
