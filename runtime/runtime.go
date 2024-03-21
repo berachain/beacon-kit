@@ -50,7 +50,6 @@ import (
 	"github.com/berachain/beacon-kit/lib/abi"
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
-	"github.com/cosmos/cosmos-sdk/client"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -222,12 +221,10 @@ func NewDefaultBeaconKitRuntime(
 // StartServices starts the services.
 func (r *BeaconKitRuntime) StartServices(
 	ctx context.Context,
-	clientCtx client.Context,
 ) {
 	var syncService *sync.Service
 	if err := r.services.FetchService(&syncService); err != nil {
 		panic(err)
 	}
-	syncService.SetClientContext(clientCtx)
 	r.services.StartAll(ctx)
 }
