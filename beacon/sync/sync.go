@@ -30,7 +30,7 @@ import (
 )
 
 // CheckELSync checks if the execution layer is syncing.
-func (s *Service) CheckCLSync(ctx context.Context) {
+func (s *Service) CheckCLSync(_ context.Context) {
 	// Call the CometBFT Client to get the sync progress.
 	// resultStatus, err := s.clientCtx.Client.Status(ctx)
 	// s.isSyncedCond.L.Lock()
@@ -81,7 +81,7 @@ func (s *Service) CheckELSync(ctx context.Context) {
 
 // UpdateNumCLPeers updates the number of peers connected at the consensus
 // layer.
-func (s *Service) UpdateNumCLPeers(ctx context.Context) {
+func (s *Service) UpdateNumCLPeers(_ context.Context) {
 	// // Call the CometBFT Client to get the sync progress.
 	// netInfo, err := s.clientCtx.Client.(client.NetworkClient).NetInfo(ctx)
 	// if err != nil {
