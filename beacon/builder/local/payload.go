@@ -76,7 +76,7 @@ func (s *Service) BuildLocalPayload(
 		return nil, err
 	} else if payloadID == nil {
 		s.Logger().Warn("received nil payload ID on VALID engine response",
-			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
+			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"for_slot", fcuConfig.ProposingSlot,
 		)
 
@@ -131,10 +131,10 @@ func (s *Service) GetBestPayload(
 		// for it to be resolved and then return the data. This case should very
 		// rarely be hit
 		// if your consensus and execution clients are operating well.
-		s.Logger().Warn(fmt.Sprintf(
-			"%s, notifying execution client to construct a new payload ...",
-			err.Error(),
-		))
+		s.Logger().Warn(
+			err.Error() +
+				": notifying execution client to construct a new payload ...",
+		)
 
 		//#nosec:G701 // won't overflow, time cannot be negative.
 		payload, blobsBundle, overrideBuilder, err = s.buildAndWaitForLocalPayload(
