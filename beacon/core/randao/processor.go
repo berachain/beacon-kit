@@ -152,7 +152,7 @@ func (p *Processor) MixinNewReveal(
 	); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
-	p.logger.Info("randao mix updated 🎲", "new_mix", newMix, "index", st.GetSlot()/p.cfg.Beacon.Limits.EpochsPerHistoricalVector)
+	p.logger.Info("randao mix updated 🎲", "new_mix", newMix, "index", st.GetSlot()%p.cfg.Beacon.Limits.EpochsPerHistoricalVector)
 	return nil
 }
 
