@@ -27,11 +27,14 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/cockroachdb/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+	"io"
+	"net/http"
 )
 
 // ConsensusClient represents a consensus client.
@@ -84,7 +87,36 @@ func (cc ConsensusClient) GetConsensusPower(
 	return uint64(res.ValidatorInfo.VotingPower), nil
 }
 
-func (cc ConsensusClient) GetRandao(ctx context.Context) ([]byte, error) {
-	"cometbft-rest"
-	return nil, nil
+type RandaoResponse struct {
+	Data RandaoResponseData `json:"data"`
+}
+
+type RandaoResponseData struct {
+	Randao string `json:"randao"`
+}
+
+func (cc ConsensusClient) GetRandaoMix() (RandaoResponse, error) {
+	port, ok := cc.ServiceContext.GetPublicPorts()["cometbft-rest"]
+	if !ok {
+		panic("Couldn't find the public port for the REST API")
+	}
+
+	resp, err := http.Get(fmt.Sprintf("http://0.0.0.0:%d/eth/v1/beacon/states/0/randao", port.GetNumber()))
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	var randaoResponse RandaoResponse
+	err = json.Unmarshal(body, &randaoResponse)
+	if err != nil {
+		panic(err)
+	}
+
+	return randaoResponse, nil
 }
