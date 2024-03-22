@@ -28,7 +28,6 @@ package types
 import (
 	"context"
 	"fmt"
-
 	"github.com/cockroachdb/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
@@ -83,4 +82,9 @@ func (cc ConsensusClient) GetConsensusPower(
 
 	//#nosec:G701 // VotingPower won't ever be negative.
 	return uint64(res.ValidatorInfo.VotingPower), nil
+}
+
+func (cc ConsensusClient) GetRandao(ctx context.Context) ([]byte, error) {
+	"cometbft-rest"
+	return nil, nil
 }
