@@ -39,6 +39,7 @@ import (
 	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
 	"github.com/berachain/beacon-kit/examples/beacond/app"
 	"github.com/berachain/beacon-kit/io/cli/tos"
+	cmdlib "github.com/berachain/beacon-kit/lib/cmd"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -127,7 +128,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	cmdconfig.InitRootCommand(
+	cmdlib.DefaultRootCommand(
 		rootCmd,
 		clientCtx.TxConfig,
 		mm,

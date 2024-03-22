@@ -30,7 +30,6 @@ import (
 
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	beaconconfig "github.com/berachain/beacon-kit/config"
-	cmdlib "github.com/berachain/beacon-kit/lib/cmd"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -45,7 +44,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func InitRootCommand[T servertypes.Application](
+func DefaultRootCommand[T servertypes.Application](
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
 	mm *module.Manager,
@@ -68,23 +67,23 @@ func InitRootCommand[T servertypes.Application](
 	// Add all the commands to the root command.
 	rootCmd.AddCommand(
 		// `comet`
-		cmdlib.CometBFTCommands(newApp),
+		CometBFTCommands(newApp),
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `debug`
 		debug.Cmd(),
 		// `genesis`
-		cmdlib.GenesisCommands(txConfig, mm, appExport),
+		GenesisCommands(txConfig, mm, appExport),
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `jwt`
-		cmdlib.JWTCommands(),
+		JWTCommands(),
 		// `keys`
 		keys.Commands(),
 		// `prune`
 		pruning.Cmd(newApp),
 		// `query`
-		cmdlib.QueryCommands(),
+		QueryCommands(),
 		// `rollback`
 		server.NewRollbackCmd(newApp),
 		// `snapshots`
@@ -94,7 +93,7 @@ func InitRootCommand[T servertypes.Application](
 		// `status`
 		server.StatusCommand(),
 		// `tx`
-		cmdlib.TxCommands(),
+		TxCommands(),
 		// `version`
 		version.NewVersionCommand(),
 	)
