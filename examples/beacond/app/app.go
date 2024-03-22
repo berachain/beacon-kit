@@ -102,7 +102,6 @@ func NewBeaconKitApp(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	bech32Prefix string,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {

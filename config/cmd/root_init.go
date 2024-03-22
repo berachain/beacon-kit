@@ -28,23 +28,16 @@ package cmd
 import (
 	"context"
 
-	"cosmossdk.io/client/v2/offchain"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	authcmd "cosmossdk.io/x/auth/client/cli"
 	beaconconfig "github.com/berachain/beacon-kit/config"
-	beaconcli "github.com/berachain/beacon-kit/config/cli"
-	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+	cmdlib "github.com/berachain/beacon-kit/lib/cmd"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
@@ -55,8 +48,6 @@ import (
 func InitRootCommand[T servertypes.Application](
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
-	_ codectypes.InterfaceRegistry,
-	_ codec.Codec,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
 	postSetupFn func(
@@ -65,151 +56,46 @@ func InitRootCommand[T servertypes.Application](
 	) error,
 	appExport servertypes.AppExporter,
 ) {
-	cfg := sdk.GetConfig()
-	cfg.Seal()
-
-	// add the flag to automagically accept the TOS
+	// Add the ToS Flag to the root command.
 	beaconconfig.AddToSFlag(rootCmd)
 
-	rootCmd.AddCommand(
-		genutilcli.InitCmd(mm),
-		// NewTestnetCmd(basicManager, banktypes.GenesisBalancesIterator{}),
-		debug.Cmd(),
-		confixcmd.ConfigCommand(),
-		pruning.Cmd(newApp),
-		snapshot.Cmd(newApp),
-	)
-
+	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
+		AddFlags:  beaconconfig.AddBeaconKitFlags,
 		PostSetup: postSetupFn,
 	}
 
-	AddCommands(
-		rootCmd, newApp, startCmdOptions, beaconconfig.AddBeaconKitFlags,
-	)
-
-	// add keybase, auxiliary RPC, query, genesis, and tx child commands
+	// Add all the commands to the root command.
 	rootCmd.AddCommand(
-		server.StatusCommand(),
-		genesisCommand(txConfig, mm, appExport),
-		queryCommand(),
-		txCommand(),
+		// `comet`
+		cmdlib.CometBFTCommands(newApp),
+		// `config`
+		confixcmd.ConfigCommand(),
+		// `debug`
+		debug.Cmd(),
+		// `genesis`
+		cmdlib.GenesisCommands(txConfig, mm, appExport),
+		// `init`
+		genutilcli.InitCmd(mm),
+		// `jwt`
+		cmdlib.JWTCommands(),
+		// `keys`
 		keys.Commands(),
-		offchain.OffChain(),
-		jwtCommand(),
-	)
-}
-
-func AddCommands[T servertypes.Application](
-	rootCmd *cobra.Command,
-	appCreator servertypes.AppCreator[T],
-	opts server.StartCmdOptions[T],
-	addStartFlags servertypes.ModuleInitFlags,
-) {
-	cometCmd := &cobra.Command{
-		Use:     "comet",
-		Aliases: []string{"cometbft", "tendermint"},
-		Short:   "CometBFT subcommands",
-	}
-
-	cometCmd.AddCommand(
-		server.ShowNodeIDCmd(),
-		server.ShowValidatorCmd(),
-		server.ShowAddressCmd(),
-		server.VersionCmd(),
-		cmtcmd.ResetAllCmd,
-		cmtcmd.ResetStateCmd,
-		server.BootstrapStateCmd(appCreator),
-	)
-
-	startCmd := server.StartCmdWithOptions(appCreator, opts)
-	if addStartFlags != nil {
-		addStartFlags(startCmd)
-	}
-
-	rootCmd.AddCommand(
-		startCmd,
-		cometCmd,
+		// `prune`
+		pruning.Cmd(newApp),
+		// `query`
+		cmdlib.QueryCommands(),
+		// `rollback`
+		server.NewRollbackCmd(newApp),
+		// `snapshots`
+		snapshot.Cmd(newApp),
+		// `start`
+		server.StartCmdWithOptions(newApp, startCmdOptions),
+		// `status`
+		server.StatusCommand(),
+		// `tx`
+		cmdlib.TxCommands(),
+		// `version`
 		version.NewVersionCommand(),
-		server.NewRollbackCmd(appCreator),
 	)
-}
-
-// genesisCommand builds genesis-related `simd genesis` command. Users may
-// provide application specific commands as a parameter.
-func genesisCommand(
-	txConfig client.TxConfig,
-	mm *module.Manager,
-	appExport servertypes.AppExporter,
-	cmds ...*cobra.Command,
-) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, mm, appExport)
-
-	for _, subCmd := range cmds {
-		cmd.AddCommand(subCmd)
-	}
-	return cmd
-}
-
-func queryCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "query",
-		Aliases:                    []string{"q"},
-		Short:                      "Querying subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		rpc.QueryEventForTxCmd(),
-		server.QueryBlockCmd(),
-		authcmd.QueryTxsByEventsCmd(),
-		server.QueryBlocksCmd(),
-		authcmd.QueryTxCmd(),
-		server.QueryBlockResultsCmd(),
-	)
-
-	return cmd
-}
-
-func txCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "tx",
-		Short:                      "Transactions subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		authcmd.GetSignCommand(),
-		authcmd.GetSignBatchCommand(),
-		authcmd.GetMultiSignCommand(),
-		authcmd.GetMultiSignBatchCmd(),
-		authcmd.GetValidateSignaturesCommand(),
-		authcmd.GetBroadcastCommand(),
-		authcmd.GetEncodeCommand(),
-		authcmd.GetDecodeCommand(),
-		authcmd.GetSimulateCmd(),
-	)
-
-	return cmd
-}
-
-func jwtCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "jwt",
-		Short:                      "JWT subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		beaconcli.NewGenerateJWTCommand(),
-		beaconcli.NewValidateJWTCommand(),
-	)
-
-	return cmd
 }
