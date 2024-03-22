@@ -44,15 +44,19 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// PostSetupFn is a function that is called after the application is created
+// and.
+type PostSetupFn[T servertypes.Application] func(
+	app T, svrCtx *server.Context, clientCtx client.Context,
+	ctx context.Context, g *errgroup.Group) error
+
+// DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[T servertypes.Application](
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
-	postSetupFn func(
-		app T, svrCtx *server.Context,
-		clientCtx client.Context, ctx context.Context, g *errgroup.Group,
-	) error,
+	postSetupFn PostSetupFn[T],
 	appExport servertypes.AppExporter,
 ) {
 	// Add the ToS Flag to the root command.
