@@ -27,31 +27,33 @@ package sync
 
 import (
 	"context"
+
+	"github.com/cometbft/cometbft/rpc/client"
 )
 
 // CheckELSync checks if the execution layer is syncing.
-func (s *Service) CheckCLSync(_ context.Context) {
+func (s *Service) CheckCLSync(ctx context.Context) {
 	// Call the CometBFT Client to get the sync progress.
-	// resultStatus, err := s.clientCtx.Client.Status(ctx)
-	// s.isSyncedCond.L.Lock()
-	// defer s.isSyncedCond.L.Unlock()
-	// if err != nil {
-	// 	s.isCLSynced = false
-	// 	return
-	// }
+	resultStatus, err := s.clientCtx.Client.Status(ctx)
+	s.isSyncedCond.L.Lock()
+	defer s.isSyncedCond.L.Unlock()
+	if err != nil {
+		s.isCLSynced = false
+		return
+	}
 
-	// // If we are not catchup, then say we are synced.
-	// s.isCLSynced = !resultStatus.SyncInfo.CatchingUp
+	// If we are not catchup, then say we are synced.
+	s.isCLSynced = !resultStatus.SyncInfo.CatchingUp
 
-	// // Add a log if syncing.
-	// if !s.isCLSynced {
-	// 	s.Logger().Warn(
-	// 		"beacon client is attemping to sync.... ",
-	// 		"current_beacon", resultStatus.SyncInfo.LatestBlockHeight,
-	// 		"highest_beacon", resultStatus.SyncInfo.CatchingUp,
-	// 		"starting_beacon", resultStatus.SyncInfo.EarliestBlockHeight,
-	// 	)
-	// }
+	// Add a log if syncing.
+	if !s.isCLSynced {
+		s.Logger().Warn(
+			"beacon client is attemping to sync.... ",
+			"current_beacon", resultStatus.SyncInfo.LatestBlockHeight,
+			"highest_beacon", resultStatus.SyncInfo.CatchingUp,
+			"starting_beacon", resultStatus.SyncInfo.EarliestBlockHeight,
+		)
+	}
 }
 
 // CheckELSync checks if the execution layer is syncing.
@@ -81,17 +83,17 @@ func (s *Service) CheckELSync(ctx context.Context) {
 
 // UpdateNumCLPeers updates the number of peers connected at the consensus
 // layer.
-func (s *Service) UpdateNumCLPeers(_ context.Context) {
-	// // Call the CometBFT Client to get the sync progress.
-	// netInfo, err := s.clientCtx.Client.(client.NetworkClient).NetInfo(ctx)
-	// if err != nil {
-	// 	s.clNumPeers = 0
-	// 	return
-	// }
+func (s *Service) UpdateNumCLPeers(ctx context.Context) {
+	// Call the CometBFT Client to get the sync progress.
+	netInfo, err := s.clientCtx.Client.(client.NetworkClient).NetInfo(ctx)
+	if err != nil {
+		s.clNumPeers = 0
+		return
+	}
 
-	// //#nosec:G701 // if our number of peers overflows a int64
-	// // we have bigger problems.
-	// s.clNumPeers = uint64(netInfo.NPeers)
+	//#nosec:G701 // if our number of peers overflows a int64
+	// we have bigger problems.
+	s.clNumPeers = uint64(netInfo.NPeers)
 }
 
 // UpdateNumELPeers updates the number of peers connected at the execution
@@ -104,5 +106,5 @@ func (s *Service) UpdateNumELPeers(_ context.Context) {
 	// 	s.elNumPeers = 0
 	// 	return
 	// }
-	// s.elNumPeers = 0
+	s.elNumPeers = 0
 }

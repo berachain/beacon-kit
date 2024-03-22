@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cockroachdb/errors"
+	cosmosclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/sourcegraph/conc"
 )
 
@@ -45,8 +46,8 @@ const syncLoopInterval = 5 * time.Second
 type Service struct {
 	service.BaseService
 	engineClient *client.EngineClient
-	// clientCtx    *cosmosclient.Context
-	cfg *Config
+	clientCtx    *cosmosclient.Context
+	cfg          *Config
 
 	isInitSync        bool
 	isSyncedLock      *sync.RWMutex
@@ -56,6 +57,14 @@ type Service struct {
 	isCLSynced        bool
 	elNumPeers        uint64
 	clNumPeers        uint64
+}
+
+// SetClientContext sets the client context for the service.
+func (s *Service) SetClientContext(clientCtx cosmosclient.Context) {
+	if s == nil {
+		panic("service is nil")
+	}
+	s.clientCtx = &clientCtx
 }
 
 // Start initiates the synchronization service.

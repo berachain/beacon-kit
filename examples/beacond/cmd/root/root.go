@@ -27,6 +27,7 @@
 package root
 
 import (
+	"context"
 	"io"
 	"os"
 
@@ -48,6 +49,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the main
@@ -132,7 +134,13 @@ func NewRootCmd() *cobra.Command {
 		clientCtx.Codec,
 		moduleBasicManager,
 		newApp,
-		nil,
+		func(
+			_app servertypes.Application,
+			svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group,
+		) error {
+			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
+		},
+
 		appExport,
 	)
 

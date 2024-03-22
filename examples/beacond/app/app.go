@@ -181,12 +181,20 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
+	return app
+}
+
+// PostStartup is called after the app has started up and CometBFT is connected.
+func (app *BeaconApp) PostStartup(
+	ctx context.Context,
+	clientCtx client.Context,
+) error {
 	// Initial check for execution client sync.
 	app.BeaconKitRuntime.StartServices(
-		context.Background(),
+		ctx,
+		clientCtx,
 	)
-
-	return app
+	return nil
 }
 
 // kvStoreKeys returns the KVStoreKeys for the app.
