@@ -52,6 +52,8 @@ func GenesisCommands(
 	return cmd
 }
 
+// QueryCommands constructs a new cobra.Command to interact with querying
+// subcommands.
 func QueryCommands() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
@@ -62,6 +64,7 @@ func QueryCommands() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	// Adding subcommands for querying blockchain data.
 	cmd.AddCommand(
 		rpc.QueryEventForTxCmd(),
 		server.QueryBlockCmd(),
@@ -74,6 +77,7 @@ func QueryCommands() *cobra.Command {
 	return cmd
 }
 
+// TxCommands creates a new cobra.Command for transaction-related subcommands.
 func TxCommands() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",

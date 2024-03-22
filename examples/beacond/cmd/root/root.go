@@ -128,7 +128,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	cmdlib.DefaultRootCommand(
+	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
 		clientCtx.TxConfig,
 		mm,
@@ -139,7 +139,6 @@ func NewRootCmd() *cobra.Command {
 		) error {
 			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
 		},
-
 		appExport,
 	)
 

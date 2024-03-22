@@ -44,7 +44,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func DefaultRootCommand[T servertypes.Application](
+func DefaultRootCommandSetup[T servertypes.Application](
 	rootCmd *cobra.Command,
 	txConfig client.TxConfig,
 	mm *module.Manager,
