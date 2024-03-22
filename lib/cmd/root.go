@@ -45,7 +45,7 @@ import (
 )
 
 // PostSetupFn is a function that is called after the application is created
-// and.
+// and the cosmos server is started.
 type PostSetupFn[T servertypes.Application] func(
 	app T, svrCtx *server.Context, clientCtx client.Context,
 	ctx context.Context, g *errgroup.Group) error
