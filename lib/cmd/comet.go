@@ -32,7 +32,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// JWTCommands creates a new command for managing JWT secrets.
+// CometBFTCommands creates a new command for managing CometBFT
+// related commands.
 func CometBFTCommands[T servertypes.Application](
 	appCreator servertypes.AppCreator[T],
 ) *cobra.Command {
