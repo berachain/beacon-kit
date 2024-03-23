@@ -51,27 +51,6 @@ func (s *Store) DequeueDeposits(
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 
-// ExpectedRedirects returns the first numPeek redirects in the queue.
-func (s *Store) ExpectedRedirects(
-	numView uint64,
-) ([]*beacontypes.Redirect, error) {
-	return s.redirectQueue.PeekMulti(s.ctx, numView)
-}
-
-// EnqueueRedirects pushes the redirects to the queue.
-func (s *Store) EnqueueRedirects(
-	redirects []*beacontypes.Redirect,
-) error {
-	return s.redirectQueue.PushMulti(s.ctx, redirects)
-}
-
-// DequeueRedirects returns the first numDequeue redirects in the queue.
-func (s *Store) DequeueRedirects(
-	numDequeue uint64,
-) ([]*beacontypes.Redirect, error) {
-	return s.redirectQueue.PopMulti(s.ctx, numDequeue)
-}
-
 // ExpectedWithdrawals returns the first numView withdrawals in the queue.
 func (s *Store) ExpectedWithdrawals(
 	numView uint64,

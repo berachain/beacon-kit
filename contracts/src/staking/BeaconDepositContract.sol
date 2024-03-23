@@ -72,9 +72,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @dev withdrawalCount represents the number of withdrawals that
     /// have been requested.
     uint64 public withdrawalCount;
-    /// @dev redirectCount represents the number of redirects that
-    /// have been requested.
-    uint64 public redirectCount;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
@@ -112,36 +109,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
             emit Deposit(
                 pubkey, credentials, amountInGwei, signature, depositCount++
-            );
-        }
-    }
-
-    /// @inheritdoc IBeaconDepositContract
-    function redirect(
-        bytes calldata fromPubkey,
-        bytes calldata toPubkey,
-        uint64 amount
-    )
-        external
-    {
-        if (
-            fromPubkey.length != PUBLIC_KEY_LENGTH
-                || toPubkey.length != PUBLIC_KEY_LENGTH
-        ) {
-            revert InvalidPubKeyLength();
-        }
-
-        if (amount < MIN_REDIRECT_AMOUNT_IN_GWEI) {
-            revert InsufficientRedirectAmount();
-        }
-
-        unchecked {
-            emit Redirect(
-                fromPubkey,
-                toPubkey,
-                _toCredentials(msg.sender),
-                amount,
-                redirectCount++
             );
         }
     }

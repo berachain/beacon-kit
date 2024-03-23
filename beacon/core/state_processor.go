@@ -144,11 +144,6 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
-	// process the redirects and ensure they match the local state.
-	if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
-		return err
-	}
-
 	// ProcessVoluntaryExits
 
 	return nil
@@ -248,34 +243,6 @@ func (sp *StateProcessor) processDeposits(
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-// processRedirects processes the redirects and ensures they match the
-// local state.
-func (sp *StateProcessor) processRedirects(
-	st state.BeaconState,
-	redirects []*types.Redirect,
-) error {
-	// Dequeue and verify the logs.
-	localRedirects, err := st.DequeueRedirects(uint64(len(redirects)))
-	if err != nil {
-		return err
-	}
-
-	// Ensure the redirects match the local state.
-	for i, red := range redirects {
-		if red == nil {
-			return types.ErrNilRedirect
-		}
-		if red.Index != localRedirects[i].Index {
-			return fmt.Errorf(
-				"redirect index does not match, expected: %d, got: %d",
-				localRedirects[i].Index, red.Index)
-		}
-
-		// TODO: Renable redirects.
 	}
 	return nil
 }

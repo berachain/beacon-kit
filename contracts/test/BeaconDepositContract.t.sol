@@ -150,64 +150,6 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_RedirectWrongFromPubKey(bytes calldata fromPubKey)
-        public
-    {
-        vm.assume(fromPubKey.length != 48);
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.redirect(fromPubKey, VALIDATOR_PUBKEY, 32e9);
-    }
-
-    function test_RedirectWrongFromPubKey() public {
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.redirect(
-            bytes("wrong_pub_key"), VALIDATOR_PUBKEY, 32e9
-        );
-    }
-
-    function testFuzz_WrongToPubKey(bytes calldata toPubKey) public {
-        vm.assume(toPubKey.length != 48);
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.redirect(VALIDATOR_PUBKEY, toPubKey, 32e9);
-    }
-
-    function test_RedirectWrongToPubKey() public {
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.redirect(
-            VALIDATOR_PUBKEY, bytes("wrong_pub_key"), 32e9
-        );
-    }
-
-    function testFuzz_RedirectWrongAmount(uint256 amount) public {
-        amount = _bound(amount, 1, 32e9 / 10 - 1);
-
-        vm.expectRevert(
-            IBeaconDepositContract.InsufficientRedirectAmount.selector
-        );
-        erc20DepositContract.redirect(
-            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, uint64(amount)
-        );
-    }
-
-    function test_RedirectWrongAmount() public {
-        vm.expectRevert(
-            IBeaconDepositContract.InsufficientRedirectAmount.selector
-        );
-        erc20DepositContract.redirect(
-            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9 / 10 - 1
-        );
-    }
-
-    function testRedirect() public {
-        vm.expectEmit(true, true, true, true);
-
-        vm.prank(depositor);
-        emit IBeaconDepositContract.Redirect(
-            VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, _credential(depositor), 32e9, 0
-        );
-        erc20DepositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9);
-    }
-
     function testFuzz_WithdrawWrongPubKey(bytes calldata pubKey) public {
         vm.assume(pubKey.length != 48);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
@@ -389,25 +331,6 @@ contract DepositContractTest is SoladyTest {
             ++withdrawalCount;
         }
         assertEq(depositContract.withdrawalCount(), withdrawalCount);
-    }
-
-    function testFuzz_RedirectCount(uint256 count) public {
-        count = _bound(count, 1, 100);
-        vm.startPrank(depositor);
-        uint64 redirectCount;
-        for (uint256 i; i < count; ++i) {
-            vm.expectEmit(true, true, true, true);
-            emit IBeaconDepositContract.Redirect(
-                VALIDATOR_PUBKEY,
-                VALIDATOR_PUBKEY,
-                _credential(depositor),
-                32 gwei,
-                redirectCount
-            );
-            depositContract.redirect(VALIDATOR_PUBKEY, VALIDATOR_PUBKEY, 32e9);
-            ++redirectCount;
-        }
-        assertEq(depositContract.redirectCount(), redirectCount);
     }
 
     function _credential(address addr) internal pure returns (bytes memory) {
