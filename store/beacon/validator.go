@@ -28,7 +28,6 @@ package beacon
 import (
 	"context"
 
-	"cosmossdk.io/collections"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -74,30 +73,32 @@ func (s *Store) ValidatorIndexByConsAddr(
 	return idx, nil
 }
 
-// GetAllValidators retrieves all validators from the beacon state.
-// TODO: Use the heap and limit the number of validators that will
-// be pulled here, cause this could get ugly runtime wise.
-func (s *Store) GetAllValidators(
+// GetValidatorsByEffectiveBalance retrieves all validators from the
+// beacon state.
+func (s *Store) GetValidatorsByEffectiveBalance(
 	ctx context.Context,
 ) ([]*beacontypes.Validator, error) {
-	iter, err := s.validatorByIndex.IterateRaw(
+	var (
+		vals []*beacontypes.Validator
+		v    *beacontypes.Validator
+		idx  primitives.ValidatorIndex
+	)
+
+	iter, err := s.validatorByIndex.Indexes.EffectiveBalance.Iterate(
 		ctx,
 		nil,
-		nil,
-		collections.OrderAscending,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	var (
-		vals []*beacontypes.Validator
-		v    *beacontypes.Validator
-	)
-
+	// Iterate over all validators and collect them.
 	for ; iter.Valid(); iter.Next() {
-		v, err = iter.Value()
+		idx, err = iter.PrimaryKey()
 		if err != nil {
+			return nil, err
+		}
+		if v, err = s.validatorByIndex.Get(ctx, idx); err != nil {
 			return nil, err
 		}
 		vals = append(vals, v)

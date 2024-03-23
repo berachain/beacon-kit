@@ -37,8 +37,12 @@ import (
 type validatorsIndex struct {
 	// Pubkey is a unique index mapping a validator's public key to their
 	// numeric ID and vice versa.
-	Pubkey   *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
+	Pubkey *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
+	// ConsAddr is a unique index mapping a validator's consensus address to
 	ConsAddr *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
+	// EffectiveBalance is a multi-index mapping a validator's effective balance
+	// to their numeric ID.
+	EffectiveBalance *indexes.Multi[uint64, uint64, *beacontypes.Validator]
 }
 
 // IndexesList returns a list of all indexes associated with the
@@ -49,6 +53,7 @@ func (a validatorsIndex) IndexesList() []sdkcollections.Index[
 	return []sdkcollections.Index[uint64, *beacontypes.Validator]{
 		a.Pubkey,
 		a.ConsAddr,
+		a.EffectiveBalance,
 	}
 }
 
@@ -80,6 +85,18 @@ func newValidatorsIndex(sb *sdkcollections.SchemaBuilder) validatorsIndex {
 				addr := (&bls.PubKey{Key: validator.Pubkey[:]}).
 					Address()
 				return addr, nil
+			},
+		),
+		EffectiveBalance: indexes.NewMulti(
+			sb,
+			sdkcollections.NewPrefix(validatorEffectiveBalanceToIndexPrefix),
+			validatorEffectiveBalanceToIndexPrefix,
+			sdkcollections.Uint64Key,
+			sdkcollections.Uint64Key,
+			// The mapping function simply returns the effective balance as the
+			// index key.
+			func(_ uint64, validator *beacontypes.Validator) (uint64, error) {
+				return validator.EffectiveBalance, nil
 			},
 		),
 	}

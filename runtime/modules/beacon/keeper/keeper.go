@@ -136,7 +136,7 @@ func (k *Keeper) InitGenesis(
 	}
 
 	// Get the public key of the validator
-	val, err := k.beaconStore.GetAllValidators(ctx)
+	val, err := k.beaconStore.GetValidatorsByEffectiveBalance(ctx)
 	if err != nil {
 		panic(err)
 	}
