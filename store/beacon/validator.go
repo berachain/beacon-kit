@@ -34,7 +34,6 @@ import (
 
 // AddValidator registers a new validator in the beacon state.
 func (s *Store) AddValidator(
-
 	val *beacontypes.Validator,
 ) error {
 	idx, err := s.validatorIndex.Next(s.ctx)
@@ -42,7 +41,7 @@ func (s *Store) AddValidator(
 		return err
 	}
 
-	return s.validatorByIndex.Set(s.ctx, idx, val)
+	return s.validators.Set(s.ctx, idx, val)
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
@@ -50,14 +49,14 @@ func (s *Store) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
 	val *beacontypes.Validator,
 ) error {
-	return s.validatorByIndex.Set(s.ctx, index, val)
+	return s.validators.Set(s.ctx, index, val)
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
 func (s *Store) ValidatorIndexByPubkey(
 	pubkey []byte,
 ) (primitives.ValidatorIndex, error) {
-	idx, err := s.validatorByIndex.Indexes.Pubkey.MatchExact(
+	idx, err := s.validators.Indexes.Pubkey.MatchExact(
 		s.ctx,
 		pubkey,
 	)
@@ -71,7 +70,7 @@ func (s *Store) ValidatorIndexByPubkey(
 func (s *Store) ValidatorIndexByConsAddr(
 	consAddress []byte,
 ) (primitives.ValidatorIndex, error) {
-	idx, err := s.validatorByIndex.Indexes.ConsAddr.MatchExact(
+	idx, err := s.validators.Indexes.ConsAddr.MatchExact(
 		s.ctx,
 		consAddress,
 	)
@@ -92,7 +91,7 @@ func (s *Store) GetValidatorsByEffectiveBalance(
 		idx  primitives.ValidatorIndex
 	)
 
-	iter, err := s.validatorByIndex.Indexes.EffectiveBalance.Iterate(
+	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(
 		ctx,
 		nil,
 	)
@@ -106,7 +105,7 @@ func (s *Store) GetValidatorsByEffectiveBalance(
 		if err != nil {
 			return nil, err
 		}
-		if v, err = s.validatorByIndex.Get(ctx, idx); err != nil {
+		if v, err = s.validators.Get(ctx, idx); err != nil {
 			return nil, err
 		}
 		vals = append(vals, v)
@@ -118,7 +117,7 @@ func (s *Store) GetValidatorsByEffectiveBalance(
 func (s *Store) ValidatorByIndex(
 	index primitives.ValidatorIndex,
 ) (*beacontypes.Validator, error) {
-	val, err := s.validatorByIndex.Get(s.ctx, index)
+	val, err := s.validators.Get(s.ctx, index)
 	if err != nil {
 		return nil, err
 	}
