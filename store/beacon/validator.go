@@ -90,9 +90,13 @@ func (s *Store) GetAllValidators(
 		return nil, err
 	}
 
-	var vals []*beacontypes.Validator
+	var (
+		vals []*beacontypes.Validator
+		v    *beacontypes.Validator
+	)
+
 	for ; iter.Valid(); iter.Next() {
-		v, err := iter.Value()
+		v, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}

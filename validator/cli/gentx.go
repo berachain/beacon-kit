@@ -43,6 +43,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -87,16 +88,20 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 			version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			clientCtx, err := client.GetClientTxContext(cmd)
+			var (
+				nodeID    string
+				valPubKey cryptotypes.PubKey
+				serverCtx = server.GetServerContextFromCmd(cmd)
+				config    = serverCtx.Config
+			)
+
+			var clientCtx client.Context
+			clientCtx, err = client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// cdc := clientCtx.Codec
-			config := serverCtx.Config
-
-			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(
+			nodeID, valPubKey, err = genutil.InitializeNodeValidatorFiles(
 				serverCtx.Config,
 			)
 			if err != nil {
@@ -107,14 +112,19 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 			}
 
 			// read --nodeID, if empty take it from priv_validator.json
-			if nodeIDString, _ := cmd.Flags().GetString(
+			var nodeIDString string
+			if nodeIDString, err = cmd.Flags().GetString(
 				cli.FlagNodeID,
-			); nodeIDString != "" {
+			); err != nil {
+				return errors.Wrap(err, "failed to get node ID")
+			} else if nodeIDString != "" {
 				nodeID = nodeIDString
 			}
 
 			// read --pubkey, if empty take it from priv_validator.json
-			if pkStr, _ := cmd.Flags().GetString(cli.FlagPubKey); pkStr != "" {
+			var pkStr string
+			if pkStr, err = cmd.Flags().GetString(cli.FlagPubKey); err != nil ||
+				pkStr != "" {
 				if err = clientCtx.Codec.UnmarshalInterfaceJSON(
 					[]byte(pkStr), &valPubKey); err != nil {
 					return errors.Wrap(
@@ -124,7 +134,9 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 				}
 			}
 
-			appGenesis, err := types.AppGenesisFromFile(config.GenesisFile())
+			// read the genesis doc from the file
+			var appGenesis *types.AppGenesis
+			appGenesis, err = types.AppGenesisFromFile(config.GenesisFile())
 			if err != nil {
 				return errors.Wrapf(
 					err,
@@ -145,7 +157,8 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 
 			name := args[0]
-			key, err := clientCtx.Keyring.Key(name)
+			var key *keyring.Record
+			key, err = clientCtx.Keyring.Key(name)
 			if err != nil {
 				return errors.Wrapf(
 					err,
@@ -155,12 +168,16 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 			}
 
 			moniker := config.Moniker
-			if m, _ := cmd.Flags().GetString(cli.FlagMoniker); m != "" {
+
+			var m string
+			if m, err = cmd.Flags().GetString(cli.FlagMoniker); err != nil ||
+				m != "" {
 				moniker = m
 			}
 
 			// set flags for creating a gentx
-			createValCfg, err := cli.PrepareConfigForTxCreateValidator(
+			var createValCfg cli.TxCreateValidatorConfig
+			createValCfg, err = cli.PrepareConfigForTxCreateValidator(
 				cmd.Flags(),
 				moniker,
 				nodeID,
@@ -194,12 +211,14 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 			// 	return errors.Wrap(err, "failed to validate account in genesis")
 			// }
 
-			txFactory, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			var txFactory tx.Factory
+			txFactory, err = tx.NewFactoryCLI(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			pub, err := key.GetAddress()
+			var pub sdk.AccAddress
+			pub, err = key.GetAddress()
 			if err != nil {
 				return err
 			}
@@ -219,7 +238,11 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 			createValCfg.Amount = amount
 
 			// create a 'create-validator' message
-			txBldr, msg, err := BuildCreateValidatorMsg(
+			var (
+				txBldr tx.Factory
+				msg    sdk.Msg
+			)
+			txBldr, msg, err = BuildCreateValidatorMsg(
 				clientCtx,
 				createValCfg,
 				txFactory,
@@ -256,13 +279,15 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 			}
 
 			// read the transaction
-			stdTx, err := readUnsignedGenTxFile(clientCtx, w)
+			var stdTx sdk.Tx
+			stdTx, err = readUnsignedGenTxFile(clientCtx, w)
 			if err != nil {
 				return errors.Wrap(err, "failed to read unsigned gen tx file")
 			}
 
 			// sign the transaction and write it to the output file
-			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
+			var txBuilder client.TxBuilder
+			txBuilder, err = clientCtx.TxConfig.WrapTxBuilder(stdTx)
 			if err != nil {
 				return fmt.Errorf("error creating tx builder: %w", err)
 			}
@@ -272,8 +297,10 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 				return errors.Wrap(err, "failed to sign std tx")
 			}
 
-			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
-			if outputDocument == "" {
+			var outputDocument string
+			outputDocument, err = cmd.Flags().
+				GetString(flags.FlagOutputDocument)
+			if err != nil || outputDocument == "" {
 				outputDocument, err = makeOutputFilepath(config.RootDir, nodeID)
 				if err != nil {
 					return errors.Wrap(err, "failed to create output file path")
@@ -296,9 +323,12 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 				"to the given file instead of the default location")
 	cmd.Flags().AddFlagSet(fsCreateValidator)
 	flags.AddTxFlagsToCmd(cmd)
-	_ = cmd.Flags().
+	err = cmd.Flags().
 		MarkHidden(flags.FlagOutput)
-		// signing makes sense to output only json
+	// signing makes sense to output only json
+	if err != nil {
+		panic(err)
+	}
 
 	return cmd
 }
@@ -338,6 +368,7 @@ func writeSignedGenTx(
 	outputDocument string,
 	tx sdk.Tx,
 ) error {
+	//#nosec:G302,G304 // ignore error about file permissions
 	outputFile, err := os.OpenFile(
 		outputDocument,
 		os.O_CREATE|os.O_EXCL|os.O_WRONLY,
@@ -346,6 +377,7 @@ func writeSignedGenTx(
 	if err != nil {
 		return err
 	}
+	//#nosec:G307 // ignore error about file permissions
 	defer outputFile.Close()
 
 	json, err := clientCtx.TxConfig.TxJSONEncoder()(tx)

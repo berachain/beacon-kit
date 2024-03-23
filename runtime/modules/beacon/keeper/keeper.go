@@ -147,6 +147,7 @@ func (k *Keeper) InitGenesis(
 			PubKey: crypto.PublicKey{
 				Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
 			},
+			//#nosec:G701 // This is a constant value
 			Power: int64(validator.EffectiveBalance),
 		}
 	}
