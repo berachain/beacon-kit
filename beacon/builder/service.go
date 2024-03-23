@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -80,7 +79,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-	proposerPubkey [bls12381.PubKeyLength]byte,
+	consensusAdress []byte,
 ) (beacontypes.BeaconBlock, *beacontypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -100,11 +99,12 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
-	// proposerIndex, err := st.ValidatorIndexByPubkey(proposerPubkey[:])
+	// Get the proposer index for the slot.
+	proposerIndex, err := st.ValidatorIndexByConsAddr(consensusAdress)
 	if err != nil {
 		return nil, nil, err
 	}
-	proposerIndex := uint64(0)
+	// proposerIndex := uint64(0)
 
 	// Create a new empty block from the current state.
 	blk, err := beacontypes.EmptyBeaconBlock(

@@ -28,46 +28,28 @@ package beacon
 import (
 	"context"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
 // AddValidator registers a new validator in the beacon state.
 func (s *Store) AddValidator(
 	ctx context.Context,
-	pubkey []byte,
+	val *beacontypes.Validator,
 ) error {
 	idx, err := s.validatorIndex.Next(ctx)
 	if err != nil {
 		return err
 	}
 
-	return s.validatorIndexToPubkey.Set(ctx, idx, pubkey)
-}
-
-// UpdateValidator updates the pubkey of a validator.
-func (s *Store) UpdateValidator(
-	ctx context.Context,
-	oldPubkey []byte,
-	newPubkey []byte,
-) error {
-	// Get the index of the old pubkey.
-	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
-		ctx,
-		oldPubkey,
-	)
-	if err != nil {
-		return err
-	}
-
-	// Set the new one
-	return s.validatorIndexToPubkey.Set(ctx, idx, newPubkey)
+	return s.validatorByIndex.Set(ctx, idx, val)
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
 func (s *Store) ValidatorIndexByPubkey(
 	pubkey []byte,
 ) (primitives.ValidatorIndex, error) {
-	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
+	idx, err := s.validatorByIndex.Indexes.Pubkey.MatchExact(
 		s.ctx,
 		pubkey,
 	)
@@ -77,13 +59,27 @@ func (s *Store) ValidatorIndexByPubkey(
 	return idx, nil
 }
 
-// ValidatorPubKeyByIndex returns the validator address by index.
-func (s *Store) ValidatorPubKeyByIndex(
+// ValidatorIndexByConsAddress returns the validator index by consensus address.
+func (s *Store) ValidatorIndexByConsAddr(
+	consAddress []byte,
+) (primitives.ValidatorIndex, error) {
+	idx, err := s.validatorByIndex.Indexes.ConsAddr.MatchExact(
+		s.ctx,
+		consAddress,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return idx, nil
+}
+
+// ValidatorByIndex returns the validator address by index.
+func (s *Store) ValidatorByIndex(
 	index primitives.ValidatorIndex,
-) ([]byte, error) {
-	pubkey, err := s.validatorIndexToPubkey.Get(s.ctx, index)
+) (*beacontypes.Validator, error) {
+	val, err := s.validatorByIndex.Get(s.ctx, index)
 	if err != nil {
 		return nil, err
 	}
-	return pubkey, err
+	return val, err
 }

@@ -313,8 +313,8 @@ func (sp *StateProcessor) processWithdrawals(
 		}
 		// TODO: These changes are not encapsulated in the state root of
 		// the beacon store. @po-bera needs for EIP-4788.
-		var pk []byte
-		pk, err = st.ValidatorPubKeyByIndex(
+		var val *types.Validator
+		val, err = st.ValidatorByIndex(
 			wd.Validator,
 		)
 		if err != nil {
@@ -323,7 +323,7 @@ func (sp *StateProcessor) processWithdrawals(
 		if err = sp.vsu.DecreaseConsensusPower(
 			st.Context(),
 			wd.Address,
-			[bls12381.PubKeyLength]byte(pk),
+			val.Pubkey,
 			wd.Amount,
 		); err != nil {
 			// TODO: this is probably bad, but keeps testnet up for now...
@@ -340,7 +340,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	blk types.BeaconBlock,
 ) error {
 	// Ensure the proposer index is valid.
-	pubkey, err := st.ValidatorPubKeyByIndex(blk.GetProposerIndex())
+	val, err := st.ValidatorByIndex(blk.GetProposerIndex())
 	if err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	reveal := blk.GetBody().GetRandaoReveal()
 	if err = sp.rp.VerifyReveal(
 		st,
-		[bls12381.PubKeyLength]byte(pubkey),
+		val.Pubkey,
 		reveal,
 	); err != nil {
 		return err

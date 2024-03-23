@@ -67,7 +67,7 @@ func (am AppModule) InitGenesis(
 	}
 
 	// Get the public key of the validator
-	pk, err := am.keeper.BeaconState(ctx).ValidatorPubKeyByIndex(0)
+	val, err := am.keeper.BeaconState(ctx).ValidatorByIndex(0)
 	if err != nil {
 		panic(err)
 	}
@@ -75,9 +75,9 @@ func (am AppModule) InitGenesis(
 	return []abci.ValidatorUpdate{
 		{
 			PubKey: crypto.PublicKey{
-				Sum: &crypto.PublicKey_Bls12381{Bls12381: pk},
+				Sum: &crypto.PublicKey_Bls12381{Bls12381: val.Pubkey[:]},
 			},
-			Power: 696969969696,
+			Power: int64(val.EffectiveBalance),
 		},
 	}
 }

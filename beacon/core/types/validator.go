@@ -39,3 +39,8 @@ type Validator struct {
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
 }
+
+// String returns a string representation of the Validator.
+func (v Validator) String() string {
+	return string(v.Pubkey[:])
+}

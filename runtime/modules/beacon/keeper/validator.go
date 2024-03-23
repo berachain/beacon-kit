@@ -28,14 +28,25 @@ package keeper
 import (
 	"context"
 
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
+// CreateValidator creates a new validator in the beacon state.
 func (k *Keeper) CreateValidator(
 	ctx context.Context,
 	msg *types.MsgCreateValidatorX,
 ) (*types.MsgCreateValidatorResponse, error) {
-	if err := k.beaconStore.AddValidator(ctx, msg.Pubkey); err != nil {
+	address := common.HexToAddress(msg.Credentials)
+	val := &beacontypes.Validator{
+		Pubkey: [48]byte(msg.Pubkey),
+		Credentials: beacontypes.
+			NewCredentialsFromExecutionAddress(address),
+		EffectiveBalance: 1, // todo: should be zero at creation.
+		Slashed:          false,
+	}
+	if err := k.beaconStore.AddValidator(ctx, val); err != nil {
 		return nil, err
 	}
 

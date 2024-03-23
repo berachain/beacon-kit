@@ -91,15 +91,6 @@ func (h *Handler) PrepareProposalHandler(
 		logger         = ctx.Logger().With("module", "prepare-proposal")
 	)
 
-	// proposerP/ubkey, err :=
-	// h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
-	// 	ctx, req.ProposerAddress,
-	// )
-	// if err != nil {
-	// 	return &abci.ResponsePrepareProposal{}, err
-	// }
-	proposerPubkey := [48]byte{}
-
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
@@ -107,7 +98,7 @@ func (h *Handler) PrepareProposalHandler(
 	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
-		proposerPubkey,
+		req.ProposerAddress,
 	)
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)

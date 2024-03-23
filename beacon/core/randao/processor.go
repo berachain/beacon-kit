@@ -95,13 +95,12 @@ func (p *Processor) VerifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	reveal types.Reveal,
 ) error {
-	return nil
-	// return p.verifyReveal(
-	// proposerPubkey,
-	// st.GetChainID(),
-	// p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
-	// reveal,
-	// )
+	return p.verifyReveal(
+		proposerPubkey,
+		st.GetChainID(),
+		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
+		reveal,
+	)
 }
 
 // VerifyReveal verifies the reveal of the proposer.

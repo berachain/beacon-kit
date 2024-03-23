@@ -28,6 +28,8 @@ package beacon
 import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	bls "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
 
 // validatorsIndex is a structure that holds a unique index for validators based
@@ -35,13 +37,19 @@ import (
 type validatorsIndex struct {
 	// Pubkey is a unique index mapping a validator's public key to their
 	// numeric ID and vice versa.
-	Pubkey *indexes.Unique[[]byte, uint64, []byte]
+	Pubkey   *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
+	ConsAddr *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
 }
 
 // IndexesList returns a list of all indexes associated with the
 // validatorsIndex.
-func (a validatorsIndex) IndexesList() []sdkcollections.Index[uint64, []byte] {
-	return []sdkcollections.Index[uint64, []byte]{a.Pubkey}
+func (a validatorsIndex) IndexesList() []sdkcollections.Index[
+	uint64, *beacontypes.Validator,
+] {
+	return []sdkcollections.Index[uint64, *beacontypes.Validator]{
+		a.Pubkey,
+		a.ConsAddr,
+	}
 }
 
 // NewValidatorsIndex creates a new validatorsIndex with a unique index for
@@ -56,8 +64,22 @@ func newValidatorsIndex(sb *sdkcollections.SchemaBuilder) validatorsIndex {
 			sdkcollections.Uint64Key,
 			// The mapping function simply returns the public key as the index
 			// key.
-			func(_ uint64, pubkey []byte) ([]byte, error) {
-				return pubkey, nil
+			func(_ uint64, validator *beacontypes.Validator) ([]byte, error) {
+				return validator.Pubkey[:], nil
+			},
+		),
+		ConsAddr: indexes.NewUnique(
+			sb,
+			sdkcollections.NewPrefix(validatorConsAddrToIndexPrefix),
+			validatorConsAddrToIndexPrefix,
+			sdkcollections.BytesKey,
+			sdkcollections.Uint64Key,
+			// The mapping function simply returns the consensus address as the
+			// index key.
+			func(_ uint64, validator *beacontypes.Validator) ([]byte, error) {
+				addr := (&bls.PubKey{Key: validator.Pubkey[:]}).
+					Address()
+				return addr, nil
 			},
 		),
 	}

@@ -47,10 +47,10 @@ type Store struct {
 	// available index for a new validator.
 	validatorIndex sdkcollections.Sequence
 
-	// validatorIndexToPubkey is a map that provides the
+	// validatorByIndex is a map that provides the
 	// public key for a given validator index.
-	validatorIndexToPubkey *sdkcollections.IndexedMap[
-		uint64, []byte, validatorsIndex,
+	validatorByIndex *sdkcollections.IndexedMap[
+		uint64, *beacontypes.Validator, validatorsIndex,
 	]
 
 	// depositQueue is a list of deposits that are queued to be processed.
@@ -88,12 +88,14 @@ func NewStore(
 			sdkcollections.NewPrefix(validatorIndexPrefix),
 			validatorIndexPrefix,
 		),
-		validatorIndexToPubkey: sdkcollections.NewIndexedMap[uint64, []byte](
+		validatorByIndex: sdkcollections.NewIndexedMap[
+			uint64, *beacontypes.Validator,
+		](
 			schemaBuilder,
-			sdkcollections.NewPrefix(validatorIndexToPubkeyPrefix),
-			validatorIndexToPubkeyPrefix,
+			sdkcollections.NewPrefix(validatorByIndexPrefix),
+			validatorByIndexPrefix,
 			sdkcollections.Uint64Key,
-			sdkcollections.BytesValue,
+			encoding.SSZValueCodec[*beacontypes.Validator]{},
 			newValidatorsIndex(schemaBuilder),
 		),
 		depositQueue: collections.NewQueue[*beacontypes.Deposit](

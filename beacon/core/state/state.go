@@ -105,9 +105,14 @@ type ReadOnlyValidators interface {
 		[]byte,
 	) (primitives.ValidatorIndex, error)
 
-	ValidatorPubKeyByIndex(
+	// TODO: I don't love introducing cons address here.
+	ValidatorIndexByConsAddr(
+		[]byte,
+	) (primitives.ValidatorIndex, error)
+
+	ValidatorByIndex(
 		primitives.ValidatorIndex,
-	) ([]byte, error)
+	) (*beacontypes.Validator, error)
 }
 
 // ReadWriteValidators has read and write access to validator methods.
