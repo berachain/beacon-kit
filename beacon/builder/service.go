@@ -29,8 +29,6 @@ import (
 	"context"
 	"fmt"
 
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -49,12 +47,6 @@ type PayloadBuilder interface {
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (randaotypes.Reveal, error)
-}
-
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
@@ -64,9 +56,14 @@ type Service struct {
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder   PayloadBuilder
+	localBuilder PayloadBuilder
+
+	// remoteBuilders represents a list of remote block builders, these
+	// builders are connected to other execution clients via the EngineAPI.
 	remoteBuilders []PayloadBuilder
 
+	// randaoProcessor is responsible for building the reveal for the
+	// current slot.
 	randaoProcessor RandaoProcessor
 }
 
@@ -104,7 +101,6 @@ func (s *Service) RequestBestBlock(
 	if err != nil {
 		return nil, nil, err
 	}
-	// proposerIndex := uint64(0)
 
 	// Create a new empty block from the current state.
 	blk, err := beacontypes.EmptyBeaconBlock(
