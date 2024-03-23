@@ -309,13 +309,8 @@ func (sp *StateProcessor) processWithdrawals(
 			continue
 		}
 
-		// TODO: unhood this.
-		if wd.Amount > val.EffectiveBalance {
-			val.EffectiveBalance = 0
-		} else {
-			val.EffectiveBalance -= wd.Amount
-		}
-
+		wd.Amount = min(val.EffectiveBalance, wd.Amount)
+		val.EffectiveBalance -= wd.Amount
 		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
 			return err
 		}
