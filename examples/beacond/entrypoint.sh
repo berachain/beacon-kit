@@ -97,7 +97,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond genesis add-genesis-account cosmos1yrene6g2zwjttemf0c65fscg8w8c55w58yh8rl 69000000000000000000000000abgt --keyring-backend $KEYRING --home "$HOMEDIR"
 
 	# Sign genesis transaction
-	./build/bin/beacond customgentx dev 1000000000000000000000abgt --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" 
+	./build/bin/beacond genesis customgentx dev 1000000000000000000000abgt --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR" 
 	## In case you want to create multiple validators at genesis
 	## 1. Back to `./build/bin/beacond keys add` step, init more keys
 	## 2. Back to `./build/bin/beacond add-genesis-account` step, add balance for those
@@ -106,7 +106,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	## 5. Copy the `gentx-*` folders under `~/.cloned./build/bin/beacond/config/gentx/` folders into the original `~/../build/bin/beacond/config/gentx`
 
 	# Collect genesis tx
-	./build/bin/beacond customcollect-gentxs --home "$HOMEDIR"
+	./build/bin/beacond genesis customcollect-gentxs --home "$HOMEDIR"
 
 	# # Run this to ensure everything worked and that the genesis file is setup correctly
 	# ./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1

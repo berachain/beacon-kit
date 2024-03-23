@@ -23,14 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cli_test
+package cmd_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/berachain/beacon-kit/config/cli"
+	cmdlib "github.com/berachain/beacon-kit/lib/cmd"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/require"
 )
@@ -39,25 +39,25 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 	t.Run(
 		"command should be available and have correct use",
 		func(t *testing.T) {
-			cmd := cli.NewGenerateJWTCommand()
+			cmd := cmdlib.NewGenerateJWTCommand()
 			require.Equal(t, "generate", cmd.Use)
 		},
 	)
 
 	t.Run("should create proper file in current directory", func(t *testing.T) {
-		cmd := cli.NewGenerateJWTCommand()
-		cmd.SetArgs([]string{"--output-path", cli.DefaultSecretFileName})
+		cmd := cmdlib.NewGenerateJWTCommand()
+		cmd.SetArgs([]string{"--output-path", cmdlib.DefaultSecretFileName})
 		require.NoError(t, cmd.Execute())
 
 		// We check the file has the contents we expect.
-		checkAuthFileIntegrity(t, cli.DefaultSecretFileName)
+		checkAuthFileIntegrity(t, cmdlib.DefaultSecretFileName)
 
-		require.NoError(t, os.RemoveAll(cli.DefaultSecretFileName))
+		require.NoError(t, os.RemoveAll(cmdlib.DefaultSecretFileName))
 	})
 
 	t.Run("should create proper file in specified folder", func(t *testing.T) {
 		customOutput := filepath.Join("data", "jwt.hex")
-		cmd := cli.NewGenerateJWTCommand()
+		cmd := cmdlib.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", customOutput})
 		require.NoError(t, cmd.Execute())
 
@@ -75,7 +75,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 			"nested",
 			"jwt.hex",
 		)
-		cmd := cli.NewGenerateJWTCommand()
+		cmd := cmdlib.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", customOutputPath})
 		require.NoError(t, cmd.Execute())
 
@@ -98,7 +98,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 
 		// Execute the command with the --force flag to override the existing
 		// file
-		cmd := cli.NewGenerateJWTCommand()
+		cmd := cmdlib.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", tempFile.Name()})
 		require.NoError(t, cmd.Execute())
 

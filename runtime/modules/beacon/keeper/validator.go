@@ -27,7 +27,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 )
@@ -39,8 +38,6 @@ func (k *Keeper) CreateValidator(
 	if err := k.beaconStore.AddValidator(ctx, msg.Pubkey); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("CREATING VALIDATOR YUHHH", msg.Pubkey)
 
 	return &types.MsgCreateValidatorResponse{}, nil
 }

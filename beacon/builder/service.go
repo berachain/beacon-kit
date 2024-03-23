@@ -100,15 +100,11 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
-	// fmt.Println("PRE VAL INDEX")
 	// proposerIndex, err := st.ValidatorIndexByPubkey(proposerPubkey[:])
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
+	if err != nil {
+		return nil, nil, err
+	}
 	proposerIndex := uint64(0)
-	fmt.Println("POST VAL INDEX")
-
-	fmt.Println("HERE")
 
 	// Create a new empty block from the current state.
 	blk, err := beacontypes.EmptyBeaconBlock(
@@ -162,8 +158,6 @@ func (s *Service) RequestBestBlock(
 	if err != nil {
 		return nil, nil, err
 	}
-
-	fmt.Println("HERE?")
 
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)

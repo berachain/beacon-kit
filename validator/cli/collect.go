@@ -135,7 +135,7 @@ func CollectTxs(
 
 	genBalIterator.IterateGenesisBalances(
 		cdc, appState,
-		func(balance bankexported.GenesisBalance) (stop bool) {
+		func(balance bankexported.GenesisBalance) bool {
 			addr := balance.GetAddress()
 			balancesMap[addr] = balance
 			return false

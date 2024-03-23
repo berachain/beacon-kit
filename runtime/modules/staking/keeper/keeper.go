@@ -60,7 +60,9 @@ func NewKeeper(
 
 // ApplyAndReturnValidatorSetUpdates returns the validator set updates.
 // REQUIRED UNTIL FORKED GENUTIL MODULE.
-func (k *Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) (updates []abci.ValidatorUpdate, err error) {
+func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
+	context.Context,
+) ([]abci.ValidatorUpdate, error) {
 	return nil, nil
 }
 
