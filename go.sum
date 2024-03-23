@@ -224,8 +224,8 @@ cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f h1:E7UVQk1onNvksv0W0HTPtwa
 cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f/go.mod h1:ca/peKvDEvelyhTsfzPyETxTavpMzPMMTJASapsLh/w=
 cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 h1:XQJj9Dv9Gtze0l2TF79BU5lkP6MkUveTUuKICmxoz+o=
 cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190/go.mod h1:7WUGupOvmlHJoIMBz1JbObQxeo6/TDiuDBxmtod8HRg=
-cosmossdk.io/x/tx v0.13.2-0.20240311143937-fea88d13c52f h1:L7Z19K6W5PPtysvXo5IYCpk713KusosjYoq3UBLk5CE=
-cosmossdk.io/x/tx v0.13.2-0.20240311143937-fea88d13c52f/go.mod h1:tJDvVlUsmt1jr+kqTwjQfGW7JIT37Luh7tXGOise24c=
+cosmossdk.io/x/tx v0.13.1 h1:Mg+EMp67Pz+NukbJqYxuo8uRp7N/a9uR+oVS9pONtj8=
+cosmossdk.io/x/tx v0.13.1/go.mod h1:CBCU6fsRVz23QGFIQBb1DNX2DztJCf3jWyEkHY2nJQ0=
 cosmossdk.io/x/upgrade v0.0.0-20240311143937-fea88d13c52f h1:tAus9QebwtzHkpOY1a9rsIVCI823p5f8KpgUG0gQrAQ=
 cosmossdk.io/x/upgrade v0.0.0-20240311143937-fea88d13c52f/go.mod h1:g4AkL72l4icUlhSQVoI7HskheyTHIIOFRk82OxTtaTE=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
