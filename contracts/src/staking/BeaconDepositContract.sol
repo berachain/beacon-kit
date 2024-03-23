@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-pragma solidity 0.8.24;
+pragma solidity 0.8.25;
 
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
 
@@ -42,11 +42,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @dev The minimum amount of stake that can be deposited to prevent dust.
     /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
     uint64 private constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 32e9;
-
-    /// @dev The minimum amount of stake that can be redirected to prevent dust.
-    /// leaving the buffer for their deposit to be slashed.
-    uint256 private constant MIN_REDIRECT_AMOUNT_IN_GWEI =
-        MIN_DEPOSIT_AMOUNT_IN_GWEI / 10;
 
     /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
     /// leaving the buffer for their deposit to be slashed.
