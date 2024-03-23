@@ -77,22 +77,24 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		panic(err)
 	}
 
-	validatorUpdates := make([]abci.ValidatorUpdate, len(val))
+	validatorUpdates := make([]abci.ValidatorUpdate, 0)
 	for i, validator := range val {
-		validatorUpdates[i] = abci.ValidatorUpdate{
-			PubKey: crypto.PublicKey{
-				Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
-			},
-			//#nosec:G701 // This is a constant value
-			Power: int64(validator.EffectiveBalance),
+		pk := crypto.PublicKey{
+			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
 		}
 
 		// TODO: Config
 		// Max 100 validators in the active set.
-		//nolint:gomnd // lol bet.
-		if i > 100 {
+
+		if i > 100 || validator.EffectiveBalance == 0 {
 			break
 		}
+
+		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+			PubKey: pk,
+			//#nosec:G701 // This is a constant value
+			Power: int64(validator.EffectiveBalance),
+		})
 	}
 	return validatorUpdates, nil
 }
