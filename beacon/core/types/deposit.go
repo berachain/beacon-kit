@@ -28,7 +28,6 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 )
 
@@ -61,16 +60,4 @@ func (d *Deposit) String() string {
 	//#nosec:G703 // ignore potential marshalling failure.
 	output, _ := json.Marshal(d)
 	return string(output)
-}
-
-type DepositCredentials [32]byte
-
-func (c DepositCredentials) ToExecutionAddress() (
-	primitives.ExecutionAddress,
-	error,
-) {
-	if c[0] != byte(EthSecp256k1CredentialPrefix) {
-		return primitives.ExecutionAddress{}, ErrInvalidDepositCredentials
-	}
-	return primitives.ExecutionAddress(c[12:]), nil
 }
