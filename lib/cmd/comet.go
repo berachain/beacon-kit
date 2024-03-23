@@ -23,22 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package cmd
 
 import (
-	"github.com/berachain/beacon-kit/config/cli"
+	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 
-// Cmd returns the snapshots group command.
-func BeaconKitCommands() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "beacon-kit",
-		Short: "BeaconKit related commands",
+// CometBFTCommands creates a new command for managing CometBFT
+// related commands.
+func CometBFTCommands[T servertypes.Application](
+	appCreator servertypes.AppCreator[T],
+) *cobra.Command {
+	cometCmd := &cobra.Command{
+		Use:     "comet",
+		Aliases: []string{"cometbft", "tendermint"},
+		Short:   "CometBFT subcommands",
 	}
-	cmd.AddCommand(
-		cli.NewGenerateJWTCommand(),
+
+	cometCmd.AddCommand(
+		server.ShowNodeIDCmd(),
+		server.ShowValidatorCmd(),
+		server.ShowAddressCmd(),
+		server.VersionCmd(),
+		cmtcmd.ResetAllCmd,
+		cmtcmd.ResetStateCmd,
+		server.BootstrapStateCmd(appCreator),
 	)
 
-	return cmd
+	return cometCmd
 }

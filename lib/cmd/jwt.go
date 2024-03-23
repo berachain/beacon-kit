@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cli
+package cmd
 
 import (
 	"path/filepath"
@@ -39,6 +39,24 @@ const (
 	FlagOutputPath        = "output-path"
 	FlagInputPath         = "input-path"
 )
+
+// JWTCommands creates a new command for managing JWT secrets.
+func JWTCommands() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "jwt",
+		Short:                      "JWT subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		RunE:                       client.ValidateCmd,
+	}
+
+	cmd.AddCommand(
+		NewGenerateJWTCommand(),
+		NewValidateJWTCommand(),
+	)
+
+	return cmd
+}
 
 // NewGenerateJWTCommand creates a new command for generating a JWT secret.
 func NewGenerateJWTCommand() *cobra.Command {
