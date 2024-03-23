@@ -614,6 +614,8 @@ github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/ferranbt/fastssz v0.1.4-0.20240313091718-ea99d10bdae6 h1:RSIcus4W10W1y/tr9ziGyFj993mKbgn0vAddtznRDYg=
 github.com/ferranbt/fastssz v0.1.4-0.20240313091718-ea99d10bdae6/go.mod h1:6k0aMYH+MKixk6U/7EjUJ6jWPWVlKglknlxzR12WRrI=
+github.com/ferranbt/fastssz v0.1.4-0.20240321120424-9547d3fe0e9c h1:xVtiMOCEMJCbYs4+EmXVJxkZlxnLJtv1Rn575xP98RQ=
+github.com/ferranbt/fastssz v0.1.4-0.20240321120424-9547d3fe0e9c/go.mod h1:EGSbefgAPd3M0hlBwOCw4Mkj+0YAaSnXw1QeLasY6XQ=
 github.com/firefart/nonamedreturns v1.0.4 h1:abzI1p7mAEPYuR4A+VLKn4eNDOycjYo2phmY9sfv40Y=
 github.com/firefart/nonamedreturns v1.0.4/go.mod h1:TDhe/tjI1BXo48CmYbUduTV7BdIga8MAO/xbKdcVsGI=
 github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e h1:bBLctRc7kr01YGvaDfgLbTwjFNW5jdp5y5rj8XXBHfY=
