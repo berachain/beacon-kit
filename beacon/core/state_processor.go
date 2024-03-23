@@ -309,7 +309,8 @@ func (sp *StateProcessor) processWithdrawals(
 			continue
 		}
 
-		// TODO: This is like super hood, but how do we want to perform validation.
+		// TODO: This is like super hood, but how do we want to perform
+		// validation.
 		// Just unlikely I guess?
 		wd.Amount = min(val.EffectiveBalance, wd.Amount)
 		val.EffectiveBalance -= wd.Amount
