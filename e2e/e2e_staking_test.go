@@ -63,11 +63,6 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 
-	code, err := s.JSONRPCBalancer().
-		CodeAt(s.Ctx(), common.HexToAddress(DepositContractAddress), nil)
-	s.Require().NoError(err)
-	s.Require().NotEmpty(code)
-
 	// Generate the credentials.
 	credentials := byteslib.PrependExtendToSize(
 		s.GenesisAccount().Address().Bytes(),
@@ -110,6 +105,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
 	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
+	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
 	targetBlkNum := blkNum + 5
@@ -125,20 +121,9 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
 
-	powerAfterDeposit, err := client.GetConsensusPower(s.Ctx())
+	newPower, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().Greater(powerAfterDeposit, power)
-
-	// Wait for the transaction to be mined.
-	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
-	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
-
-	// Wait for the log to be processed.
-	targetBlkNum += 5
-	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
-	s.Require().NoError(err)
+	s.Require().Greater(newPower, power)
 
 	// Submit withdrawal
 	tx, err = dc.Withdraw(&bind.TransactOpts{
@@ -151,6 +136,8 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
 	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
+	s.Logger().
+		Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
 	targetBlkNum += 5
@@ -165,4 +152,9 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
+
+	// Check to see if consensus power is back to the original power
+	postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().Equal(postWithdrawPower, power)
 }
