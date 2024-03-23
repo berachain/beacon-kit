@@ -70,7 +70,13 @@ func CollectGenTxsCmd(
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
-			genTxDir, _ := cmd.Flags().GetString(flagGenTxDir)
+			// Read the genesis transactions from the default directory
+			// or from the one provided by the flag.
+			var genTxDir string
+			genTxDir, err = cmd.Flags().GetString(flagGenTxDir)
+			if err != nil {
+				return errors.Wrap(err, "failed to get gentx dir")
+			}
 			genTxsDir := genTxDir
 			if genTxsDir == "" {
 				genTxsDir = filepath.Join(config.RootDir, "config", "gentx")

@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -97,21 +98,21 @@ func (k *Keeper) ForkchoiceStore(
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data types.GenesisState,
-) error {
+) ([]abci.ValidatorUpdate, error) {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
 	if err := st.UpdateRandaoMixAtIndex(0, data.Mix()); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Compare this snippet from beacon/keeper/keeper.go:
 	if err := st.UpdateStateRootAtIndex(0, [32]byte{}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Set the genesis block root.
 	if err := st.UpdateBlockRootAtIndex(0, [32]byte{}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Set the genesis block data.
@@ -131,10 +132,25 @@ func (k *Keeper) InitGenesis(
 			BodyRoot:      [32]byte{},
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	// Get the public key of the validator
+	val, err := k.beaconStore.GetAllValidators(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	validatorUpdates := make([]abci.ValidatorUpdate, len(val))
+	for i, validator := range val {
+		validatorUpdates[i] = abci.ValidatorUpdate{
+			PubKey: crypto.PublicKey{
+				Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
+			},
+			Power: int64(validator.EffectiveBalance),
+		}
+	}
+	return validatorUpdates, nil
 }
 
 // ExportGenesis exports the current state of the module as genesis state.

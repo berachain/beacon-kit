@@ -28,6 +28,7 @@ package beacon
 import (
 	"context"
 
+	"cosmossdk.io/collections"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -71,6 +72,33 @@ func (s *Store) ValidatorIndexByConsAddr(
 		return 0, err
 	}
 	return idx, nil
+}
+
+// GetAllValidators retrieves all validators from the beacon state.
+// TODO: Use the heap and limit the number of validators that will
+// be pulled here, cause this could get ugly runtime wise.
+func (s *Store) GetAllValidators(
+	ctx context.Context,
+) ([]*beacontypes.Validator, error) {
+	iter, err := s.validatorByIndex.IterateRaw(
+		ctx,
+		nil,
+		nil,
+		collections.OrderAscending,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var vals []*beacontypes.Validator
+	for ; iter.Valid(); iter.Next() {
+		v, err := iter.Value()
+		if err != nil {
+			return nil, err
+		}
+		vals = append(vals, v)
+	}
+	return vals, nil
 }
 
 // ValidatorByIndex returns the validator address by index.

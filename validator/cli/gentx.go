@@ -61,7 +61,10 @@ func GenTxCmd(
 	_ types.GenesisBalancesIterator,
 	valAdddressCodec address.Codec,
 ) *cobra.Command {
-	ipDefault, _ := server.ExternalIP()
+	ipDefault, err := server.ExternalIP()
+	if err != nil {
+		ipDefault = ""
+	}
 	fsCreateValidator, defaultsDesc := cli.CreateValidatorMsgFlagSet(ipDefault)
 
 	cmd := &cobra.Command{

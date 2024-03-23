@@ -87,22 +87,9 @@ func (am AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
 
+// EndBlock returns the validator set updates from the beacon state.
 func (am AppModule) EndBlock(
-	_ context.Context,
+	ctx context.Context,
 ) ([]abci.ValidatorUpdate, error) {
-	// Get the public key of the validator
-	// pk, err := am.keeper.BeaconState(ctx).ValidatorPubKeyByIndex(0)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	return nil, nil
-	// // Return the validator update
-	// return []abci.ValidatorUpdate{
-	// 	{
-	// 		PubKey: crypto.PublicKey{
-	// 			Sum: &crypto.PublicKey_Bls12381{Bls12381: pk},
-	// 		},
-	// 		Power: 696969969696,
-	// 	},
-	// }, nil
+	return am.keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 }
