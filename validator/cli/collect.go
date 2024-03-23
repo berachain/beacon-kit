@@ -33,7 +33,6 @@ import (
 	"sort"
 	"strings"
 
-	bankexported "cosmossdk.io/x/bank/exported"
 	cfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -53,8 +52,9 @@ func GenAppStateFromConfig(
 	genBalIterator types.GenesisBalancesIterator,
 	validator types.MessageValidator,
 	valAddrCodec sdkruntime.ValidatorAddressCodec,
-) (appState json.RawMessage, err error) {
+) (json.RawMessage, error) {
 	// process genesis transactions, else create default genesis.json
+	var appState json.RawMessage
 	appGenTxs, persistentPeers, err := CollectTxs(
 		cdc,
 		txEncodingConfig.TxJSONDecoder(),
@@ -66,7 +66,7 @@ func GenAppStateFromConfig(
 		valAddrCodec,
 	)
 	if err != nil {
-		return appState, err
+		return nil, err
 	}
 
 	config.P2P.PersistentPeers = persistentPeers
@@ -77,13 +77,13 @@ func GenAppStateFromConfig(
 
 	// if there are no gen txs to be processed, return the default empty state
 	if len(appGenTxs) == 0 {
-		return appState, errors.New("there must be at least one genesis tx")
+		return nil, errors.New("there must be at least one genesis tx")
 	}
 
 	// create the app state
 	appGenesisState, err := types.GenesisStateFromAppGenesis(genesis)
 	if err != nil {
-		return appState, err
+		return nil, err
 	}
 
 	appGenesisState, err = genutil.SetGenTxsInAppGenesisState(
@@ -93,7 +93,7 @@ func GenAppStateFromConfig(
 		appGenTxs,
 	)
 	if err != nil {
-		return appState, err
+		return nil, err
 	}
 
 	appState, err = json.MarshalIndent(appGenesisState, "", "  ")
@@ -121,7 +121,11 @@ func CollectTxs(
 ) (appGenTxs []sdk.Tx, persistentPeers string, err error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
-	var appState map[string]json.RawMessage
+	var (
+		appState     map[string]json.RawMessage
+		addressesIPs []string
+	)
+
 	if err = json.Unmarshal(genesis.AppState, &appState); err != nil {
 		return appGenTxs, persistentPeers, err
 	}
@@ -131,19 +135,15 @@ func CollectTxs(
 		return appGenTxs, persistentPeers, err
 	}
 
-	balancesMap := make(map[string]bankexported.GenesisBalance)
-
-	genBalIterator.IterateGenesisBalances(
-		cdc, appState,
-		func(balance bankexported.GenesisBalance) bool {
-			addr := balance.GetAddress()
-			balancesMap[addr] = balance
-			return false
-		},
-	)
-
-	// addresses and IPs (and port) validator server info
-	var addressesIPs []string
+	// balancesMap := make(map[string]bankexported.GenesisBalance)
+	// genBalIterator.IterateGenesisBalances(
+	// 	cdc, appState,
+	// 	func(balance bankexported.GenesisBalance) bool {
+	// 		addr := balance.GetAddress()
+	// 		balancesMap[addr] = balance
+	// 		return false
+	// 	},
+	// )
 
 	// TODO (https://github.com/cosmos/cosmos-sdk/issues/17815):
 	// Examine CPU and RAM profiles to see if we can parsing

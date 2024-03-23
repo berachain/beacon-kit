@@ -101,7 +101,6 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			beacontypes.RegisterInterfaces(clientCtx.InterfaceRegistry)
-
 			if err = tos.VerifyTosAcceptedOrPrompt(
 				app.AppName, cmdconfig.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
@@ -118,7 +117,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			if err := client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
+			if err = client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
 				return err
 			}
 

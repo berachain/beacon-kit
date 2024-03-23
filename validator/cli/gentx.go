@@ -113,7 +113,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 
 			// read --pubkey, if empty take it from priv_validator.json
 			if pkStr, _ := cmd.Flags().GetString(cli.FlagPubKey); pkStr != "" {
-				if err := clientCtx.Codec.UnmarshalInterfaceJSON(
+				if err = clientCtx.Codec.UnmarshalInterfaceJSON(
 					[]byte(pkStr), &valPubKey); err != nil {
 					return errors.Wrap(
 						err,
