@@ -97,6 +97,10 @@ type ReadOnlyRandaoMixes interface {
 // WriteOnlyValidators has write access to validator methods.
 type WriteOnlyValidators interface {
 	// Add methods here
+	UpdateValidatorAtIndex(
+		primitives.ValidatorIndex,
+		*beacontypes.Validator,
+	) error
 }
 
 // ReadOnlyValidators has read access to validator methods.

@@ -184,7 +184,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(&cfg.Beacon, randaoProcessor, nil)),
+			core.NewStateProcessor(&cfg.Beacon, randaoProcessor)),
 		blockchain.WithSyncService(syncService),
 	)
 

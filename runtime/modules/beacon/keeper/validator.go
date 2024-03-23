@@ -46,7 +46,7 @@ func (k *Keeper) CreateValidator(
 		EffectiveBalance: 1, // todo: should be zero at creation.
 		Slashed:          false,
 	}
-	if err := k.beaconStore.AddValidator(ctx, val); err != nil {
+	if err := k.beaconStore.WithContext(ctx).AddValidator(val); err != nil {
 		return nil, err
 	}
 

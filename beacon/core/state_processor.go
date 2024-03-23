@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
@@ -43,19 +42,16 @@ import (
 type StateProcessor struct {
 	cfg *config.Beacon
 	rp  RandaoProcessor
-	vsu ValsetUpdater
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	cfg *config.Beacon,
 	rp RandaoProcessor,
-	vsu ValsetUpdater,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg: cfg,
 		rp:  rp,
-		vsu: vsu,
 	}
 }
 
@@ -144,18 +140,13 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	debug := false
+	if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
+		return err
+	}
 
-	// Skipping the deposit processing for now.
-	if debug {
-		if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
-			return err
-		}
-
-		// process the redirects and ensure they match the local state.
-		if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
-			return err
-		}
+	// process the redirects and ensure they match the local state.
+	if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
+		return err
 	}
 
 	// ProcessVoluntaryExits
@@ -230,24 +221,32 @@ func (sp *StateProcessor) processDeposits(
 		if dep == nil {
 			return types.ErrNilDeposit
 		}
+
 		if dep.Index != localDeposits[i].Index {
 			return fmt.Errorf(
 				"deposit index does not match, expected: %d, got: %d",
 				localDeposits[i].Index, dep.Index)
 		}
 
-		// TODO: These changes are not encapsulated in the state root of
-		// the beacon store. @po-bera needs for EIP-4788.
-		if err = sp.vsu.IncreaseConsensusPower(
-			st.Context(),
-			dep.Credentials,
-			[bls12381.PubKeyLength]byte(dep.Pubkey),
-			dep.Amount,
-			dep.Signature,
-			dep.Index,
-		); err != nil {
-			// TODO: this is probably bad, but keeps testnet up for now...
+		// TODO make the two following calls into a single call.
+		var idx uint64
+		idx, err = st.ValidatorIndexByPubkey(dep.Pubkey)
+		if err != nil {
 			continue
+		}
+
+		var val *types.Validator
+		val, err = st.ValidatorByIndex(idx)
+		if err != nil {
+			continue
+		}
+
+		// TODO: unhood this.
+		val.EffectiveBalance += dep.Amount
+		//nolint:gomnd // TODO: config we cap the effective balance at 32e9.
+		val.EffectiveBalance = min(val.EffectiveBalance, 32e9)
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -276,20 +275,7 @@ func (sp *StateProcessor) processRedirects(
 				localRedirects[i].Index, red.Index)
 		}
 
-		// TODO: These changes are not encapsulated in the state root of
-		// the beacon store. @po-bera needs for EIP-4788.
-		if err = sp.vsu.RedirectConsensusPower(
-			st.Context(),
-			red.Credentials,
-			[bls12381.PubKeyLength]byte(red.Pubkey),
-			[bls12381.PubKeyLength]byte(red.NewPubkey),
-			red.Amount,
-			red.Signature,
-			red.Index,
-		); err != nil {
-			// TODO: this is probably bad, but keeps testnet up for now...
-			continue
-		}
+		// TODO: Renable redirects.
 	}
 	return nil
 }
@@ -316,23 +302,22 @@ func (sp *StateProcessor) processWithdrawals(
 				"deposit index does not match, expected: %d, got: %d",
 				localWithdrawals[i].Index, wd.Index)
 		}
-		// TODO: These changes are not encapsulated in the state root of
-		// the beacon store. @po-bera needs for EIP-4788.
+
 		var val *types.Validator
-		val, err = st.ValidatorByIndex(
-			wd.Validator,
-		)
+		val, err = st.ValidatorByIndex(wd.Validator)
 		if err != nil {
-			return err
-		}
-		if err = sp.vsu.DecreaseConsensusPower(
-			st.Context(),
-			wd.Address,
-			val.Pubkey,
-			wd.Amount,
-		); err != nil {
-			// TODO: this is probably bad, but keeps testnet up for now...
 			continue
+		}
+
+		// TODO: unhood this.
+		if wd.Amount > val.EffectiveBalance {
+			val.EffectiveBalance = 0
+		} else {
+			val.EffectiveBalance -= wd.Amount
+		}
+
+		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
+			return err
 		}
 	}
 	return nil

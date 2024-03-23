@@ -64,10 +64,37 @@ func NewKeeper(
 
 // ApplyAndReturnValidatorSetUpdates returns the validator set updates from
 // the beacon state.
+//
+// TODO: this function is horribly inefficient and should be replaced with a
+// more efficient implementation, that does not update the entire
+// valset every block.
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
-	context.Context,
+	ctx context.Context,
 ) ([]abci.ValidatorUpdate, error) {
-	return []abci.ValidatorUpdate{}, nil
+	// Get the public key of the validator
+	val, err := k.beaconStore.GetValidatorsByEffectiveBalance(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	validatorUpdates := make([]abci.ValidatorUpdate, len(val))
+	for i, validator := range val {
+		validatorUpdates[i] = abci.ValidatorUpdate{
+			PubKey: crypto.PublicKey{
+				Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
+			},
+			//#nosec:G701 // This is a constant value
+			Power: int64(validator.EffectiveBalance),
+		}
+
+		// TODO: Config
+		// Max 100 validators in the active set.
+		//nolint:gomnd // lol bet.
+		if i > 100 {
+			break
+		}
+	}
+	return validatorUpdates, nil
 }
 
 // AvailabilityStore returns the availability store struct initialized with a.
@@ -135,23 +162,10 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	// Get the public key of the validator
-	val, err := k.beaconStore.GetValidatorsByEffectiveBalance(ctx)
-	if err != nil {
-		panic(err)
-	}
-
-	validatorUpdates := make([]abci.ValidatorUpdate, len(val))
-	for i, validator := range val {
-		validatorUpdates[i] = abci.ValidatorUpdate{
-			PubKey: crypto.PublicKey{
-				Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
-			},
-			//#nosec:G701 // This is a constant value
-			Power: int64(validator.EffectiveBalance),
-		}
-	}
-	return validatorUpdates, nil
+	// TODO: don't need to set any validators here if we are setting in
+	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
+	// full initial update here.
+	return nil, nil
 }
 
 // ExportGenesis exports the current state of the module as genesis state.

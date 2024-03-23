@@ -197,15 +197,13 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
 	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
-		ctx, s.genesisAccount.Address(),
-	)
+		ctx, s.genesisAccount.Address())
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
 	nonce.Store(pendingNonce)
 
 	var chainID *big.Int
 	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
-
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
@@ -275,6 +273,14 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			// Verify the receipt status.
 			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+				return nil, err
+			}
+
+			// Wait an extra block to ensure all clients are in sync.
+			//nolint:contextcheck // its okay.
+			if err = s.WaitForFinalizedBlockNumber(
+				receipt.BlockNumber.Uint64() + 1,
+			); err != nil {
 				return nil, err
 			}
 

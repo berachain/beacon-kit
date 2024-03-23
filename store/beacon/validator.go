@@ -34,15 +34,23 @@ import (
 
 // AddValidator registers a new validator in the beacon state.
 func (s *Store) AddValidator(
-	ctx context.Context,
+
 	val *beacontypes.Validator,
 ) error {
-	idx, err := s.validatorIndex.Next(ctx)
+	idx, err := s.validatorIndex.Next(s.ctx)
 	if err != nil {
 		return err
 	}
 
-	return s.validatorByIndex.Set(ctx, idx, val)
+	return s.validatorByIndex.Set(s.ctx, idx, val)
+}
+
+// UpdateValidatorAtIndex updates a validator at a specific index.
+func (s *Store) UpdateValidatorAtIndex(
+	index primitives.ValidatorIndex,
+	val *beacontypes.Validator,
+) error {
+	return s.validatorByIndex.Set(s.ctx, index, val)
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
