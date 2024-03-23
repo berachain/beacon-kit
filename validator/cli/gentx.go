@@ -53,10 +53,12 @@ import (
 )
 
 // GenTxCmd builds the application's gentx command.
+//
+//nolint:funlen,gocognit,maintidx // todo fix
 func GenTxCmd(
 	mm *module.Manager,
-	txEncCfg client.TxEncodingConfig,
-	genBalIterator types.GenesisBalancesIterator,
+	_ client.TxEncodingConfig,
+	_ types.GenesisBalancesIterator,
 	valAdddressCodec address.Codec,
 ) *cobra.Command {
 	ipDefault, _ := server.ExternalIP()
@@ -67,21 +69,16 @@ func GenTxCmd(
 		Short: "Generate a genesis tx carrying a self delegation",
 		Args:  cobra.ExactArgs(2), //nolint:gomnd // there are two arguments.
 		Long: fmt.Sprintf(
-			`Generate a genesis transaction that creates a validator with a self-delegation,
-that is signed by the key in the Keyring referenced by a given name. A node ID and consensus
-pubkey may optionally be provided. If they are omitted, they will be retrieved from the priv_validator.json
+			`Generate a genesis transaction that creates a validator 
+with a self-delegation, that is signed by the key in the Keyring referenced
+by a given name. 
+A node ID and consensus pubkey may optionally be provided. If they are omitted, 
+they will be retrieved from the priv_validator.json
 file. The following default parameters are included:
     %s
 
 Example:
-$ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=os --chain-id=test-chain-1 \
-    --moniker="myvalidator" \
-    --commission-max-change-rate=0.01 \
-    --commission-max-rate=1.0 \
-    --commission-rate=0.07 \
-    --details="..." \
-    --security-contact="..." \
-    --website="..."
+$ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 `,
 			defaultsDesc,
 			version.AppName,
@@ -107,7 +104,9 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			}
 
 			// read --nodeID, if empty take it from priv_validator.json
-			if nodeIDString, _ := cmd.Flags().GetString(cli.FlagNodeID); nodeIDString != "" {
+			if nodeIDString, _ := cmd.Flags().GetString(
+				cli.FlagNodeID,
+			); nodeIDString != "" {
 				nodeID = nodeIDString
 			}
 
@@ -249,11 +248,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			// 	}
 			// }
 
-			clientCtx.InterfaceRegistry.RegisterImplementations(
-				(*sdk.Msg)(nil),
-				&beacontypes.MsgCreateValidatorX{},
-			)
-			beacontypes.RegisterInterfaces(clientCtx.InterfaceRegistry)
 			if err = txBldr.PrintUnsignedTx(clientCtx, msg); err != nil {
 				return errors.Wrap(err, "failed to print unsigned std tx")
 			}
@@ -270,7 +264,8 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return fmt.Errorf("error creating tx builder: %w", err)
 			}
 
-			if err = authclient.SignTx(txFactory, clientCtx, name, txBuilder, true, true); err != nil {
+			if err = authclient.SignTx(
+				txFactory, clientCtx, name, txBuilder, true, true); err != nil {
 				return errors.Wrap(err, "failed to sign std tx")
 			}
 
@@ -282,7 +277,8 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				}
 			}
 
-			if err := writeSignedGenTx(clientCtx, outputDocument, txBuilder.GetTx()); err != nil {
+			if err = writeSignedGenTx(
+				clientCtx, outputDocument, txBuilder.GetTx()); err != nil {
 				return errors.Wrap(err, "failed to write signed gen tx")
 			}
 
@@ -293,7 +289,8 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 
 	cmd.Flags().
 		String(flags.FlagOutputDocument, "",
-			"Write the genesis transaction JSON document to the given file instead of the default location")
+			"Write the genesis transaction JSON document "+
+				"to the given file instead of the default location")
 	cmd.Flags().AddFlagSet(fsCreateValidator)
 	flags.AddTxFlagsToCmd(cmd)
 	_ = cmd.Flags().

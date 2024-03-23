@@ -104,6 +104,10 @@ func CollectGenTxsCmd(
 	}
 
 	cmd.Flags().
-		String(flagGenTxDir, "", "override default \"gentx\" directory from which collect and execute genesis transactions; default [--home]/config/gentx/")
+		String(
+			flagGenTxDir, "",
+			"override default \"gentx\" directory from which "+
+				"collect and execute genesis transactions; "+
+				"default [--home]/config/gentx/")
 	return cmd
 }

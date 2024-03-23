@@ -86,39 +86,35 @@ func GenAppStateFromConfig(
 		return nil, err
 	}
 
-	appGenesisState, err = genutil.SetGenTxsInAppGenesisState(
+	if appGenesisState, err = genutil.SetGenTxsInAppGenesisState(
 		cdc,
 		txEncodingConfig.TxJSONEncoder(),
 		appGenesisState,
 		appGenTxs,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, err
 	}
 
-	appState, err = json.MarshalIndent(appGenesisState, "", "  ")
-	if err != nil {
+	if appState, err = json.MarshalIndent(appGenesisState, "", "  "); err != nil {
 		return appState, err
 	}
 
 	genesis.AppState = appState
-	err = genutil.ExportGenesisFile(genesis, config.GenesisFile())
-
-	return appState, err
+	return appState, genutil.ExportGenesisFile(genesis, config.GenesisFile())
 }
 
 // CollectTxs processes and validates application's genesis Txs and returns
 // the list of appGenTxs, and persistent peers required to generate
 // genesis.json.
 func CollectTxs(
-	cdc codec.JSONCodec,
+	_ codec.JSONCodec,
 	txJSONDecoder sdk.TxDecoder,
-	moniker, genTxsDir string,
+	_, genTxsDir string,
 	genesis *types.AppGenesis,
-	genBalIterator types.GenesisBalancesIterator,
+	_ types.GenesisBalancesIterator,
 	validator types.MessageValidator,
-	valAddrCodec sdkruntime.ValidatorAddressCodec,
-) (appGenTxs []sdk.Tx, persistentPeers string, err error) {
+	_ sdkruntime.ValidatorAddressCodec,
+) ([]sdk.Tx, string, error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
 	var (
@@ -126,13 +122,13 @@ func CollectTxs(
 		addressesIPs []string
 	)
 
-	if err = json.Unmarshal(genesis.AppState, &appState); err != nil {
-		return appGenTxs, persistentPeers, err
+	if err := json.Unmarshal(genesis.AppState, &appState); err != nil {
+		return nil, "", err
 	}
 
 	fos, err := os.ReadDir(genTxsDir)
 	if err != nil {
-		return appGenTxs, persistentPeers, err
+		return nil, "", err
 	}
 
 	// balancesMap := make(map[string]bankexported.GenesisBalance)
@@ -148,6 +144,7 @@ func CollectTxs(
 	// TODO (https://github.com/cosmos/cosmos-sdk/issues/17815):
 	// Examine CPU and RAM profiles to see if we can parsing
 	// and ValidateAndGetGenTx concurrent.
+	appGenTxs := make([]sdk.Tx, 0)
 	for _, fo := range fos {
 		if fo.IsDir() {
 			continue
@@ -160,16 +157,17 @@ func CollectTxs(
 		var jsonRawTx []byte
 		jsonRawTx, err = os.ReadFile(filepath.Join(genTxsDir, fo.Name()))
 		if err != nil {
-			return appGenTxs, persistentPeers, err
+			return nil, "", err
 		}
 
-		genTx, err := types.ValidateAndGetGenTx(
+		var genTx sdk.Tx
+		genTx, err = types.ValidateAndGetGenTx(
 			jsonRawTx,
 			txJSONDecoder,
 			validator,
 		)
 		if err != nil {
-			return appGenTxs, persistentPeers, err
+			return nil, "", err
 		}
 
 		appGenTxs = append(appGenTxs, genTx)
@@ -237,7 +235,5 @@ func CollectTxs(
 	}
 
 	sort.Strings(addressesIPs)
-	persistentPeers = strings.Join(addressesIPs, ",")
-
-	return appGenTxs, persistentPeers, nil
+	return appGenTxs, strings.Join(addressesIPs, ","), nil
 }
