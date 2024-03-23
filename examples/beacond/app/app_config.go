@@ -34,14 +34,11 @@ import (
 	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	upgrademodulev1 "cosmossdk.io/api/cosmos/upgrade/module/v1"
-	vestingmodulev1 "cosmossdk.io/api/cosmos/vesting/module/v1"
 	"cosmossdk.io/depinject/appconfig"
 	sdkmath "cosmossdk.io/math"
 	_ "cosmossdk.io/x/auth"
 	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
 	authtypes "cosmossdk.io/x/auth/types"
-	_ "cosmossdk.io/x/auth/vesting" // import for side-effects
-	vestingtypes "cosmossdk.io/x/auth/vesting/types"
 	_ "cosmossdk.io/x/bank" // import for side-effects
 	banktypes "cosmossdk.io/x/bank/types"
 	_ "cosmossdk.io/x/upgrade" // import for side-effects
@@ -116,7 +113,6 @@ var (
 						banktypes.ModuleName,
 						genutiltypes.ModuleName,
 						upgradetypes.ModuleName,
-						vestingtypes.ModuleName,
 						beacontypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis
@@ -140,10 +136,6 @@ var (
 					// "cosmos1cwwv22j5ca08ggdv9c2uky355k908694z577tv", // or a
 					// specific address
 				}),
-			},
-			{
-				Name:   vestingtypes.ModuleName,
-				Config: appconfig.WrapAny(&vestingmodulev1.Module{}),
 			},
 			{
 				Name: banktypes.ModuleName,
