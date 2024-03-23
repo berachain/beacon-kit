@@ -122,7 +122,7 @@ func CollectTxs(
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
-	if err := json.Unmarshal(genesis.AppState, &appState); err != nil {
+	if err = json.Unmarshal(genesis.AppState, &appState); err != nil {
 		return appGenTxs, persistentPeers, err
 	}
 
@@ -157,7 +157,8 @@ func CollectTxs(
 		}
 
 		// get the genTx
-		jsonRawTx, err := os.ReadFile(filepath.Join(genTxsDir, fo.Name()))
+		var jsonRawTx []byte
+		jsonRawTx, err = os.ReadFile(filepath.Join(genTxsDir, fo.Name()))
 		if err != nil {
 			return appGenTxs, persistentPeers, err
 		}

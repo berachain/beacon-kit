@@ -26,9 +26,6 @@
 package cli
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
 	"path/filepath"
 
 	"cosmossdk.io/errors"
@@ -79,13 +76,6 @@ func CollectGenTxsCmd(
 				genTxsDir = filepath.Join(config.RootDir, "config", "gentx")
 			}
 
-			toPrint := newPrintInfo(
-				config.Moniker,
-				appGenesis.ChainID,
-				nodeID,
-				genTxsDir,
-				json.RawMessage(""),
-			)
 			initCfg := types.NewInitConfig(
 				appGenesis.ChainID,
 				genTxsDir,
@@ -93,7 +83,7 @@ func CollectGenTxsCmd(
 				valPubKey,
 			)
 
-			appMessage, err := GenAppStateFromConfig(
+			_, err = GenAppStateFromConfig(
 				cdc,
 				clientCtx.TxConfig,
 				config,
@@ -109,46 +99,11 @@ func CollectGenTxsCmd(
 					"failed to get genesis app state from config",
 				)
 			}
-
-			toPrint.AppMessage = appMessage
-
-			return displayInfo(toPrint)
+			return nil
 		},
 	}
 
 	cmd.Flags().
 		String(flagGenTxDir, "", "override default \"gentx\" directory from which collect and execute genesis transactions; default [--home]/config/gentx/")
 	return cmd
-}
-
-type printInfo struct {
-	Moniker    string          `json:"moniker"     yaml:"moniker"`
-	ChainID    string          `json:"chain_id"    yaml:"chain_id"`
-	NodeID     string          `json:"node_id"     yaml:"node_id"`
-	GenTxsDir  string          `json:"gentxs_dir"  yaml:"gentxs_dir"`
-	AppMessage json.RawMessage `json:"app_message" yaml:"app_message"`
-}
-
-func newPrintInfo(
-	moniker, chainID, nodeID, genTxsDir string,
-	appMessage json.RawMessage,
-) printInfo {
-	return printInfo{
-		Moniker:    moniker,
-		ChainID:    chainID,
-		NodeID:     nodeID,
-		GenTxsDir:  genTxsDir,
-		AppMessage: appMessage,
-	}
-}
-
-func displayInfo(info printInfo) error {
-	out, err := json.MarshalIndent(info, "", " ")
-	if err != nil {
-		return err
-	}
-
-	_, err = fmt.Fprintf(os.Stderr, "%s\n", out)
-
-	return err
 }

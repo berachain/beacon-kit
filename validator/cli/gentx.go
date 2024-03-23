@@ -65,7 +65,7 @@ func GenTxCmd(
 	cmd := &cobra.Command{
 		Use:   "customgentx [key_name] [amount]",
 		Short: "Generate a genesis tx carrying a self delegation",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(2), //nolint:gomnd // there are two arguments.
 		Long: fmt.Sprintf(
 			`Generate a genesis transaction that creates a validator with a self-delegation,
 that is signed by the key in the Keyring referenced by a given name. A node ID and consensus
@@ -113,7 +113,8 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 
 			// read --pubkey, if empty take it from priv_validator.json
 			if pkStr, _ := cmd.Flags().GetString(cli.FlagPubKey); pkStr != "" {
-				if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(pkStr), &valPubKey); err != nil {
+				if err := clientCtx.Codec.UnmarshalInterfaceJSON(
+					[]byte(pkStr), &valPubKey); err != nil {
 					return errors.Wrap(
 						err,
 						"failed to unmarshal validator public key",
@@ -291,7 +292,8 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 	}
 
 	cmd.Flags().
-		String(flags.FlagOutputDocument, "", "Write the genesis transaction JSON document to the given file instead of the default location")
+		String(flags.FlagOutputDocument, "",
+			"Write the genesis transaction JSON document to the given file instead of the default location")
 	cmd.Flags().AddFlagSet(fsCreateValidator)
 	flags.AddTxFlagsToCmd(cmd)
 	_ = cmd.Flags().

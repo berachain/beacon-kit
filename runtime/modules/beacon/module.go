@@ -88,7 +88,7 @@ func (am AppModule) IsOnePerModuleType() {}
 func (am AppModule) IsAppModule() {}
 
 func (am AppModule) EndBlock(
-	ctx context.Context,
+	_ context.Context,
 ) ([]abci.ValidatorUpdate, error) {
 	// Get the public key of the validator
 	// pk, err := am.keeper.BeaconState(ctx).ValidatorPubKeyByIndex(0)
