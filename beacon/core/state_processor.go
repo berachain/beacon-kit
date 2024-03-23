@@ -144,13 +144,18 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
-		return err
-	}
+	debug := false
 
-	// process the redirects and ensure they match the local state.
-	if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
-		return err
+	// Skipping the deposit processing for now.
+	if debug {
+		if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
+			return err
+		}
+
+		// process the redirects and ensure they match the local state.
+		if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
+			return err
+		}
 	}
 
 	// ProcessVoluntaryExits
