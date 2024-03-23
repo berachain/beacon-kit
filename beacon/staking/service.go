@@ -38,7 +38,4 @@ type Service struct {
 	// abi represents the configured deposit contract's
 	// abi.
 	abi *abi.WrappedABI
-
-	// vsu is responsible for applying validator set changes.
-	vsu ValsetUpdater
 }

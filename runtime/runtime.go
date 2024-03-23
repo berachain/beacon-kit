@@ -136,7 +136,6 @@ func NewDefaultBeaconKitRuntime(
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
-		staking.WithValsetUpdater(nil),
 	)
 
 	// Build the execution service.
