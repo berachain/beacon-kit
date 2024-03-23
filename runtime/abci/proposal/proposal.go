@@ -42,12 +42,7 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg *config.ABCI
-	// stakingKeeper provides access to the staking module. In the handler
-	// it is used to convert consAddress to pubkey, before passing it into
-	// the core beacon chain logic.
-	stakingKeeper StakingKeeper
-
+	cfg            *config.ABCI
 	builderService *builder.Service
 	chainService   *blockchain.Service
 	healthService  *health.Service
@@ -58,7 +53,6 @@ type Handler struct {
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
 	cfg *config.ABCI,
-	stakingKeeper StakingKeeper,
 	builderService *builder.Service,
 	healthService *health.Service,
 	chainService *blockchain.Service,
@@ -67,7 +61,6 @@ func NewHandler(
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
-		stakingKeeper:  stakingKeeper,
 		builderService: builderService,
 		healthService:  healthService,
 		chainService:   chainService,

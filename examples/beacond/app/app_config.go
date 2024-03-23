@@ -90,9 +90,7 @@ var (
 					// During begin block slashing happens after
 					// distr.BeginBlocker so that there is nothing left over in
 					// the validator fee pool, so as to keep the
-					// CanWithdrawInvariant invariant.
-					// NOTE: staking module is required if HistoricalEntries
-					// param > 0
+					// CanWithdrawInvariant invariant happy.
 					BeginBlockers: []string{},
 					EndBlockers: []string{
 						beacontypes.ModuleName,

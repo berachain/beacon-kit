@@ -78,14 +78,4 @@ type ValsetUpdater interface {
 		pubkey [bls12381.PubKeyLength]byte,
 		amount uint64,
 	) error
-
-	GetValidatorPubkeyFromConsAddress(
-		ctx context.Context,
-		consAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
-
-	GetValidatorPubkeyFromValAddress(
-		ctx context.Context,
-		valAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
 }

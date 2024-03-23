@@ -42,7 +42,6 @@ type DepInjectInput struct {
 	Logger  log.Logger
 	Signer  crypto.Signer[[bls12381.SignatureLength]byte]
 	Bsp     BeaconStorageBackend
-	Vsu     ValsetUpdater
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -59,7 +58,6 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		in.Signer,
 		in.Logger,
 		in.Bsp,
-		in.Vsu,
 	)
 	if err != nil {
 		in.Logger.Error(

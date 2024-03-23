@@ -39,7 +39,6 @@ import (
 	bankkeeper "cosmossdk.io/x/bank/keeper"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
 	validatorcli "github.com/berachain/beacon-kit/validator/cli"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -81,9 +80,8 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit custom keepers
-	BeaconKeeper        *beaconkeeper.Keeper
-	BeaconStakingKeeper *stakingwrapper.Keeper
-	BeaconKitRuntime    *beaconkitruntime.BeaconKitRuntime
+	BeaconKeeper     *beaconkeeper.Keeper
+	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -123,7 +121,6 @@ func NewBeaconKitApp(
 		&app.BankKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
-		&app.BeaconStakingKeeper,
 		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
@@ -141,7 +138,6 @@ func NewBeaconKitApp(
 			PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 		nil,
-		app.BeaconStakingKeeper,
 	)
 
 	// Set all the newly built ABCI Componenets on the App.

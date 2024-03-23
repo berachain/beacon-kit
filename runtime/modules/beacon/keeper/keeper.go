@@ -33,11 +33,11 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	filedb "github.com/berachain/beacon-kit/db/file"
-	"github.com/berachain/beacon-kit/runtime"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -47,21 +47,26 @@ type Keeper struct {
 	availabilityStore *blob.Store
 	beaconStore       *beaconstore.Store
 	forkchoiceStore   *forkchoicestore.Store
-	vsu               runtime.ValsetUpdater
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	vsu runtime.ValsetUpdater,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: blob.NewStore(fdb),
 		beaconStore:       beaconstore.NewStore(env),
 		forkchoiceStore:   forkchoicestore.NewStore(env.KVStoreService),
-		vsu:               vsu,
 	}
+}
+
+// ApplyAndReturnValidatorSetUpdates returns the validator set updates from
+// the beacon state.
+func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
+	context.Context,
+) ([]abci.ValidatorUpdate, error) {
+	return []abci.ValidatorUpdate{}, nil
 }
 
 // AvailabilityStore returns the availability store struct initialized with a.

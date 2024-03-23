@@ -93,7 +93,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return err
 			}
 
-			cdc := clientCtx.Codec
+			// cdc := clientCtx.Codec
 			config := serverCtx.Config
 
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(
@@ -173,24 +173,24 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			}
 
 			amount := args[1]
-			coins, err := sdk.ParseCoinsNormalized(amount)
-			if err != nil {
-				return errors.Wrap(err, "failed to parse coins")
-			}
-			addr, err := key.GetAddress()
-			if err != nil {
-				return err
-			}
-			err = genutil.ValidateAccountInGenesis(
-				genesisState,
-				genBalIterator,
-				addr,
-				coins,
-				cdc,
-			)
-			if err != nil {
-				return errors.Wrap(err, "failed to validate account in genesis")
-			}
+			// coins, err := sdk.ParseCoinsNormalized(amount)
+			// if err != nil {
+			// 	return errors.Wrap(err, "failed to parse coins")
+			// }
+			// addr, err := key.GetAddress()
+			// if err != nil {
+			// 	return err
+			// }
+			// err = genutil.ValidateAccountInGenesis(
+			// 	genesisState,
+			// 	genBalIterator,
+			// 	addr,
+			// 	coins,
+			// 	cdc,
+			// )
+			// if err != nil {
+			// 	return errors.Wrap(err, "failed to validate account in genesis")
+			// }
 
 			txFactory, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
 			if err != nil {

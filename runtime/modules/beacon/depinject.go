@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/io/file"
 	modulev1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
@@ -43,7 +42,6 @@ import (
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(ProvideModule),
-		appconfig.Provide(stakingwrapper.ProvideStakingKeeper),
 	)
 }
 
@@ -75,7 +73,6 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 			filedb.WithLogger(in.Environment.Logger),
 		),
 		in.Environment,
-		nil,
 	)
 
 	return DepInjectOutput{
