@@ -44,12 +44,8 @@ mv $TMP_GENESIS $GENESIS
 # If keys exist they should be deleted
 /usr/bin/beacond keys add "$BEACOND_MONIKER" --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME" --indiscreet --output json > "$BEACOND_HOME/config/mnemonic.json"
 
-
-# Allocate genesis accounts (cosmos formatted addresses)
-/usr/bin/beacond genesis add-genesis-account "$BEACOND_MONIKER" 100000000000000000000000000abgt --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME"
-
 # Sign genesis transaction
-/usr/bin/beacond genesis gentx "$BEACOND_MONIKER" 1000000000000000000000abgt --keyring-backend $BEACOND_KEYRING_BACKEND --chain-id $BEACOND_CHAIN_ID --home "$BEACOND_HOME" 
+/usr/bin/beacond genesis customgentx "$BEACOND_MONIKER" 1000000000000000000000abgt --keyring-backend $BEACOND_KEYRING_BACKEND --chain-id $BEACOND_CHAIN_ID --home "$BEACOND_HOME" 
 ## In case you want to create multiple validators at genesis
 ## 1. Back to `/usr/bin/beacond keys add` step, init more keys
 ## 2. Back to `/usr/bin/beacond add-genesis-account` step, add balance for those
