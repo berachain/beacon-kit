@@ -143,7 +143,9 @@ func (k *Keeper) InitGenesis(
 ) ([]abci.ValidatorUpdate, error) {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
-	if err := st.UpdateRandaoMixAtIndex(0, randaotypes.Mix(data.RandaoMix)); err != nil {
+	if err := st.UpdateRandaoMixAtIndex(
+		0, randaotypes.Mix(data.RandaoMix),
+	); err != nil {
 		return nil, err
 	}
 
