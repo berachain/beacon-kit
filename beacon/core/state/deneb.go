@@ -36,7 +36,7 @@ import (
 func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 	return &BeaconStateDeneb{
 		Eth1GenesisHash: common.HexToHash(
-			"0x39c568cca7a1fb13cdbd0a10237385cfb199ac23de08a1cdca474c850ac6b2e8",
+			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
 		),
 		RandaoMix: make([]byte, types.MixLength),
 	}
