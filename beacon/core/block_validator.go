@@ -78,15 +78,6 @@ func (bv *BlockValidator) ValidateBlock(
 		)
 	}
 
-	if redirects := body.GetRedirects(); uint64(
-		len(redirects),
-	) > bv.cfg.Limits.MaxRedirectsPerBlock {
-		return fmt.Errorf(
-			"too many redirects, expected: %d, got: %d",
-			bv.cfg.Limits.MaxRedirectsPerBlock, len(redirects),
-		)
-	}
-
 	// Ensure the parent block root matches what we have locally.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(st.GetSlot() - 1) % bv.cfg.Limits.SlotsPerHistoricalRoot)

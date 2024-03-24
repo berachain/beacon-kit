@@ -63,12 +63,6 @@ var (
 	// ErrNilDeposits is an error for when the deposits are nil.
 	ErrNilDeposits = errors.New("nil deposits")
 
-	// ErrNilRedirect is an error for when the redirect is nil.
-	ErrNilRedirect = errors.New("nil redirect")
-
-	// ErrNilRedirects is an error for when the redirects are nil.
-	ErrNilRedirects = errors.New("nil redirects")
-
 	// ErrNilWithdrawal is an error for when the deposit is nil.
 	ErrNilWithdrawal = errors.New("nil withdrawal")
 

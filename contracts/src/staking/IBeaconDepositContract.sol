@@ -103,9 +103,6 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();
 
-    /// @dev Error thrown when the redirect amount is too small, to prevent dust redirects.
-    error InsufficientRedirectAmount();
-
     /// @dev Error thrown when the withdrawal amount is too small, to prevent dust withdrawals.
     error InsufficientWithdrawalAmount();
 

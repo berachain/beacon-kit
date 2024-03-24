@@ -161,17 +161,6 @@ func (s *Service) RequestBestBlock(
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
-	// Dequeue redirects from the state.
-	redirects, err := s.BeaconState(ctx).ExpectedRedirects(
-		s.BeaconCfg().Limits.MaxRedirectsPerBlock,
-	)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Set the redirects on the block body.
-	body.SetRedirects(redirects)
-
 	// if err = b
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, nil, err
