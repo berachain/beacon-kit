@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-pragma solidity 0.8.24;
+pragma solidity 0.8.25;
 
 /// @title IBeaconDepositContract
 /// @author Berachain Team.
@@ -103,9 +103,6 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();
 
-    /// @dev Error thrown when the redirect amount is too small, to prevent dust redirects.
-    error InsufficientRedirectAmount();
-
     /// @dev Error thrown when the withdrawal amount is too small, to prevent dust withdrawals.
     error InsufficientWithdrawalAmount();
 
@@ -130,21 +127,6 @@ interface IBeaconDepositContract {
     )
         external
         payable;
-
-    /**
-     * @notice Submit a redirect stake message, this allows depositors to move their stake from one validator to another.
-     * @notice This function is only callable by the owner of the stake. Hence the signature is not required.
-     * @param fromPubkey is the public key of the source validator where we are removing the stake from.
-     * @param toPubkey is the public key of the destination validator where we are adding the stake to.
-     * @param amount is the amount of stake to be redirected, this amount needs to be calculated offchain, in Gwei.
-     *   since validator tokens are not fungible, and their shares -> stake amount can differ.
-     */
-    function redirect(
-        bytes calldata fromPubkey,
-        bytes calldata toPubkey,
-        uint64 amount
-    )
-        external;
 
     /**
      * @notice Submit a withdrawal message to the Beaconchain.
