@@ -7,7 +7,6 @@ replace (
 	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240312054917-baa54a151c5a
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240311143937-fea88d13c52f
-	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240311143937-fea88d13c52f
 	cosmossdk.io/tools/confix => cosmossdk.io/tools/confix v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/auth => github.com/berachain/cosmos-sdk/x/auth v0.0.0-20240312054917-baa54a151c5a
