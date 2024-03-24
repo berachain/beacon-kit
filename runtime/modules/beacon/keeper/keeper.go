@@ -74,7 +74,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 ) ([]abci.ValidatorUpdate, error) {
 	store := k.beaconStore.WithContext(ctx)
 	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
+	val, err := k.beaconStore.GetValidatorsByEffectiveBalance(ctx, 100)
 	if err != nil {
 		panic(err)
 	}

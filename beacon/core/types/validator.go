@@ -25,6 +25,8 @@
 
 package types
 
+import "fmt"
+
 // Validator is a struct that represents a validator in the beacon chain.
 // Validator represents a participant in the beacon chain consensus mechanism.
 // It holds the validator's public key, withdrawal credentials, effective
@@ -43,4 +45,16 @@ type Validator struct {
 // String returns a string representation of the Validator.
 func (v Validator) String() string {
 	return string(v.Pubkey[:])
+}
+
+type ValidatorSet struct {
+	ValidatorIndices []uint64 `json:"validatorIndices" ssz-size:"100"`
+}
+
+func (vs ValidatorSet) String() string {
+	allIdxs := []string{}
+	for _, v := range vs.ValidatorIndices {
+		allIdxs = append(allIdxs, fmt.Sprint(v))
+	}
+	return fmt.Sprintf("ValidatorSet{%s}", allIdxs)
 }
