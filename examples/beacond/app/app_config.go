@@ -33,7 +33,6 @@ import (
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
 	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
-	upgrademodulev1 "cosmossdk.io/api/cosmos/upgrade/module/v1"
 	"cosmossdk.io/depinject/appconfig"
 	sdkmath "cosmossdk.io/math"
 	_ "cosmossdk.io/x/auth"
@@ -41,8 +40,6 @@ import (
 	authtypes "cosmossdk.io/x/auth/types"
 	_ "cosmossdk.io/x/bank" // import for side-effects
 	banktypes "cosmossdk.io/x/bank/types"
-	_ "cosmossdk.io/x/upgrade" // import for side-effects
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	_ "github.com/berachain/beacon-kit/runtime/modules/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	_ "github.com/berachain/beacon-kit/runtime/modules/beacon/api/v1alpha1"
@@ -84,9 +81,7 @@ var (
 				Config: appconfig.WrapAny(&runtimev1alpha1.Module{
 					AppName: AppName,
 					// NOTE: upgrade module is required to be prioritized
-					PreBlockers: []string{
-						upgradetypes.ModuleName,
-					},
+					PreBlockers: []string{},
 					// During begin block slashing happens after
 					// distr.BeginBlocker so that there is nothing left over in
 					// the validator fee pool, so as to keep the
@@ -110,7 +105,6 @@ var (
 						authtypes.ModuleName,
 						banktypes.ModuleName,
 						genutiltypes.ModuleName,
-						upgradetypes.ModuleName,
 						beacontypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis
@@ -148,10 +142,6 @@ var (
 			{
 				Name:   genutiltypes.ModuleName,
 				Config: appconfig.WrapAny(&genutilmodulev1.Module{}),
-			},
-			{
-				Name:   upgradetypes.ModuleName,
-				Config: appconfig.WrapAny(&upgrademodulev1.Module{}),
 			},
 			{
 				Name:   consensustypes.ModuleName,

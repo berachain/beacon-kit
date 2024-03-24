@@ -23,17 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
-package runtime.modules.beacon.v1alpha1;
+package state
 
-option go_package = "github.com/berachain/beacon-kit/runtime/modules/beacon/types";
-
-// GenesisState is the genesis-state for the x/oracle module, it takes a set of
-// predefined CurrencyPairGeneses
-message GenesisState {
-  // NextID is the next ID to be used for a CurrencyPair
-  string eth1_genesis_hash = 1;
-
-  // randao mix
-  bytes randao_mix = 2;
-}
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconStateDeneb -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go

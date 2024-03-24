@@ -277,15 +277,6 @@ gosec:
 	@echo "--> Running gosec"
 	@go run github.com/cosmos/gosec/v2/cmd/gosec -exclude G702 ./...
 
-
-#################
-#     pkgsite     #
-#################
-
-pkgsite:
-	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/berachain/beacon-kit/..."
-	@go run golang.org/x/pkgsite/cmd/pkgsite -http=:6060
-
 #################
 #    slither    #
 #################

@@ -23,18 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package state
 
-import "github.com/berachain/beacon-kit/beacon/core/randao/types"
+import (
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
-func DefaultGenesis() *GenesisState {
-	return &GenesisState{
-		//nolint:lll
-		Eth1GenesisHash: "0xb938bfdfcbf7f840b5cd93c5c9899335018f64a846c153db2c80b957b127d56f",
-		RandaoMix:       make([]byte, types.MixLength),
+// DefaultBeaconStateDeneb returns a default BeaconStateDeneb.
+func DefaultBeaconStateDeneb() *BeaconStateDeneb {
+	return &BeaconStateDeneb{
+		Eth1GenesisHash: common.HexToHash(
+			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
+		),
+		RandaoMix: make([]byte, types.MixLength),
 	}
 }
 
-func (gs *GenesisState) Mix() types.Mix {
-	return types.Mix(gs.RandaoMix)
+// TODO setup this properly.
+//
+//go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
+type BeaconStateDeneb struct {
+	Eth1GenesisHash primitives.ExecutionHash `json:"eth1GenesisHash" ssz-size:"32"`
+	RandaoMix       []byte                   `json:"randaoMix"       ssz-size:"32"`
+}
+
+// beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
+// BeaconStateDeneb.
+type beaconStateDenebJSONMarshaling struct {
+	RandaoMix hexutil.Bytes
 }
