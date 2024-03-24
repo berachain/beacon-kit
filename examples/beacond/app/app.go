@@ -109,7 +109,6 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
-				// supply beaconkit options
 			),
 		),
 		&appBuilder,

@@ -69,7 +69,6 @@ func (app *BeaconApp) ExportAppStateAndValidators(
 		return servertypes.ExportedApp{}, err
 	}
 
-	// validators, err := staking.WriteValidators(ctx, nil)
 	return servertypes.ExportedApp{
 		AppState:        appState,
 		Validators:      nil,
