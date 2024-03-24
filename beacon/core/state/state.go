@@ -107,11 +107,6 @@ type ReadOnlyValidators interface {
 		[]byte,
 	) (primitives.ValidatorIndex, error)
 
-	// TODO: I don't love introducing cons address here.
-	ValidatorIndexByConsAddr(
-		[]byte,
-	) (primitives.ValidatorIndex, error)
-
 	ValidatorByIndex(
 		primitives.ValidatorIndex,
 	) (*beacontypes.Validator, error)

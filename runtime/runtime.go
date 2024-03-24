@@ -166,6 +166,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
 		builder.WithRandaoProcessor(randaoProcessor),
+		builder.WithSigner(signer),
 	)
 
 	// Build the sync service.

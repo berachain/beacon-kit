@@ -71,18 +71,15 @@ func (s *Store) ValidatorIndexByPubkey(
 	return idx, nil
 }
 
-// ValidatorIndexByConsAddress returns the validator index by consensus address.
-func (s *Store) ValidatorIndexByConsAddr(
-	consAddress []byte,
-) (primitives.ValidatorIndex, error) {
-	idx, err := s.validators.Indexes.ConsAddr.MatchExact(
-		s.ctx,
-		consAddress,
-	)
+// ValidatorByIndex returns the validator address by index.
+func (s *Store) ValidatorByIndex(
+	index primitives.ValidatorIndex,
+) (*beacontypes.Validator, error) {
+	val, err := s.validators.Get(s.ctx, index)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return idx, nil
+	return val, err
 }
 
 // GetValidatorsByEffectiveBalance retrieves all validators from the
@@ -116,15 +113,4 @@ func (s *Store) GetValidatorsByEffectiveBalance() (
 		vals = append(vals, v)
 	}
 	return vals, nil
-}
-
-// ValidatorByIndex returns the validator address by index.
-func (s *Store) ValidatorByIndex(
-	index primitives.ValidatorIndex,
-) (*beacontypes.Validator, error) {
-	val, err := s.validators.Get(s.ctx, index)
-	if err != nil {
-		return nil, err
-	}
-	return val, err
 }

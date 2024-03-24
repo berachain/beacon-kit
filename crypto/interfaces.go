@@ -27,12 +27,16 @@ package crypto
 
 import (
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/itsdevbear/comet-bls12-381/bls"
 )
 
 // Signer defines an interface for cryptographic signing operations.
 // It uses generic type parameters Signature and Pubkey, both of which are
 // slices of bytes.
 type Signer[Signature any] interface {
+	// PublicKey returns the public key of the signer.
+	PublicKey() bls.PubKey
+
 	// Sign takes a message as a slice of bytes and returns a signature as a
 	// slice of bytes and an error.
 	Sign(msg []byte) Signature

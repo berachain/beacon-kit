@@ -65,6 +65,9 @@ type Service struct {
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
 	randaoProcessor RandaoProcessor
+
+	// signer is used to retrieve the public key of this node.
+	signer Signer
 }
 
 // LocalBuilder returns the local builder.
@@ -76,7 +79,6 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-	consensusAdress []byte,
 ) (beacontypes.BeaconBlock, *beacontypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -97,7 +99,9 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Get the proposer index for the slot.
-	proposerIndex, err := st.ValidatorIndexByConsAddr(consensusAdress)
+	proposerIndex, err := st.ValidatorIndexByPubkey(
+		s.signer.PublicKey().Marshal(),
+	)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -29,7 +29,6 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	bls "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
 
 // Collection prefixes.
@@ -46,8 +45,6 @@ type ValidatorsIndex struct {
 	// Pubkey is a unique index mapping a validator's public key to their
 	// numeric ID and vice versa.
 	Pubkey *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
-	// ConsAddr is a unique index mapping a validator's consensus address to
-	ConsAddr *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
 	// EffectiveBalance is a multi-index mapping a validator's effective balance
 	// to their numeric ID.
 	EffectiveBalance *indexes.Multi[uint64, uint64, *beacontypes.Validator]
@@ -60,7 +57,6 @@ func (a ValidatorsIndex) IndexesList() []sdkcollections.Index[
 ] {
 	return []sdkcollections.Index[uint64, *beacontypes.Validator]{
 		a.Pubkey,
-		a.ConsAddr,
 		a.EffectiveBalance,
 	}
 }
@@ -78,18 +74,6 @@ func NewValidatorsIndex(sb *sdkcollections.SchemaBuilder) ValidatorsIndex {
 
 			func(_ uint64, validator *beacontypes.Validator) ([]byte, error) {
 				return validator.Pubkey[:], nil
-			},
-		),
-		ConsAddr: indexes.NewUnique(
-			sb,
-			sdkcollections.NewPrefix(validatorConsAddrToIndexPrefix),
-			validatorConsAddrToIndexPrefix,
-			sdkcollections.BytesKey,
-			sdkcollections.Uint64Key,
-			func(_ uint64, validator *beacontypes.Validator) ([]byte, error) {
-				addr := (&bls.PubKey{Key: validator.Pubkey[:]}).
-					Address()
-				return addr, nil
 			},
 		),
 		EffectiveBalance: indexes.NewMulti(

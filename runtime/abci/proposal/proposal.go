@@ -98,7 +98,6 @@ func (h *Handler) PrepareProposalHandler(
 	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
-		req.ProposerAddress,
 	)
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
