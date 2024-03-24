@@ -26,7 +26,8 @@
 package state
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -38,7 +39,8 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		Eth1GenesisHash: common.HexToHash(
 			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
 		),
-		RandaoMix: make([]byte, types.MixLength),
+		Validators: make([]*types.Validator, 0),
+		RandaoMix:  make([]byte, randaotypes.MixLength),
 	}
 }
 
@@ -47,6 +49,7 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 //go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
 type BeaconStateDeneb struct {
 	Eth1GenesisHash primitives.ExecutionHash `json:"eth1GenesisHash" ssz-size:"32"`
+	Validators      []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
 	RandaoMix       []byte                   `json:"randaoMix"       ssz-size:"32"`
 }
 
