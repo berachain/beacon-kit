@@ -27,7 +27,7 @@ pragma solidity 0.8.25;
 
 /// @title IBeaconDepositContract
 /// @author Berachain Team.
-/// @dev This contract is used to create validator, deposit, redirect and withdraw stake from the Beaconchain.
+/// @dev This contract is used to create validator, deposit and withdraw stake from the Beaconchain.
 interface IBeaconDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        EVENTS                              */
@@ -46,22 +46,6 @@ interface IBeaconDepositContract {
         bytes credentials,
         uint64 amount,
         bytes signature,
-        uint64 index
-    );
-
-    /**
-     * @dev Emitted when a redirect of stake is made.
-     * @param credentials The public key of the account redirecting their stake.
-     * @param fromPubkey The public key of the validator that is being redirected from.
-     * @param toPubkey The public key of the validator that is being redirected to.
-     * @param amount The amount of stake be redirected, in Gwei.
-     * @param index The index of the redirect.
-     */
-    event Redirect(
-        bytes fromPubkey,
-        bytes toPubkey,
-        bytes credentials,
-        uint64 amount,
         uint64 index
     );
 

@@ -30,7 +30,7 @@ import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
 /**
  * @title BeaconDepositContract
  * @author Berachain Team
- * @notice A contract that handles deposits, withdrawals, and redirections of stake.
+ * @notice A contract that handles deposits and withdrawals of stake.
  * @dev Its events are used by the beacon chain to manage the staking process.
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
