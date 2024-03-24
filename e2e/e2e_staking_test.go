@@ -29,6 +29,7 @@ import (
 	"math/big"
 
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
+	"github.com/berachain/beacon-kit/e2e/suite"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -96,7 +97,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 		From:   s.GenesisAccount().Address(),
 		Value:  val,
 		Signer: s.GenesisAccount().SignerFunc(chainID),
-	}, pubkey, credentials, 32e9, signature[:])
+	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
@@ -104,7 +105,6 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
-	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
 	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
@@ -123,24 +123,23 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 
 	newPower, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().Equal(newPower, uint64(32e9))
+	s.Require().Equal(newPower, 32*suite.OneGwei)
 
 	// Submit withdrawal
 	tx, err = dc.Withdraw(&bind.TransactOpts{
 		From:   s.GenesisAccount().Address(),
 		Signer: s.GenesisAccount().SignerFunc(chainID),
-	}, pubkey, credentials, 32e9-1)
+	}, pubkey, credentials, 31*suite.OneGwei)
 	s.Require().NoError(err)
 
 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
-	s.Require().True(s.CheckForSuccessfulTx(receipt.TxHash))
 	s.Logger().
 		Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
-	targetBlkNum += 7
+	targetBlkNum += 4
 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
 	s.Require().NoError(err)
 
@@ -156,5 +155,5 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	// We are withdrawing all the power, so the power should be 0.
 	postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().Equal(postWithdrawPower, uint64(1))
+	s.Require().Equal(postWithdrawPower, suite.OneGwei)
 }

@@ -42,19 +42,19 @@ func (s *Store) AddValidator(
 	return s.validators.Set(s.ctx, idx, val)
 }
 
-// AddValidator registers a new validator in the beacon state.
-func (s *Store) RemoveValidatorAtIndex(
-	idx primitives.ValidatorIndex,
-) error {
-	return s.validators.Remove(s.ctx, idx)
-}
-
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (s *Store) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
 	val *beacontypes.Validator,
 ) error {
 	return s.validators.Set(s.ctx, index, val)
+}
+
+// AddValidator registers a new validator in the beacon state.
+func (s *Store) RemoveValidatorAtIndex(
+	idx primitives.ValidatorIndex,
+) error {
+	return s.validators.Remove(s.ctx, idx)
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.

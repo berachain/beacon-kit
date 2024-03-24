@@ -215,27 +215,24 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
 					// Besu does not support eth_maxPriorityFeePerGas
 					// so we use a default value of 10 Gwei.
-					gasTipCap = big.NewInt(TenGwei)
+					gasTipCap = big.NewInt(0).SetUint64(TenGwei)
 				} else {
 					return nil, err
 				}
 			}
 
-			gasFeeCap := new(big.Int).Add(gasTipCap, big.NewInt(TenGwei))
+			gasFeeCap := new(big.Int).Add(
+				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
 			value := big.NewInt(Ether)
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
 				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-					ChainID:   chainID,
-					Nonce:     nonceToSubmit,
-					GasTipCap: gasTipCap,
-					GasFeeCap: gasFeeCap,
-					Gas:       EtherTransferGasLimit,
-					To:        &dest,
-					Value:     value,
-					Data:      nil,
+					ChainID: chainID, Nonce: nonceToSubmit,
+					GasTipCap: gasTipCap, GasFeeCap: gasFeeCap,
+					Gas: EtherTransferGasLimit, To: &dest,
+					Value: value, Data: nil,
 				}),
 			); err != nil {
 				return nil, err
@@ -243,7 +240,6 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
 			defer cancel()
-
 			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
 				s.logger.Error(
 					"error submitting funding transaction",
@@ -260,8 +256,10 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			)
 
 			var receipt *ethtypes.Receipt
-			receipt, err = bind.WaitMined(cctx, s.JSONRPCBalancer(), signedTx)
-			if err != nil {
+
+			if receipt, err = bind.WaitMined(
+				cctx, s.JSONRPCBalancer(), signedTx,
+			); err != nil {
 				return nil, err
 			}
 
