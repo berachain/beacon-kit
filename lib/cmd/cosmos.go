@@ -30,21 +30,21 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 )
 
 // GenesisCommands builds genesis-related `simd genesis` command. Users may
 // provide application specific commands as a parameter.
 func GenesisCommands(
-	txConfig client.TxConfig,
-	mm *module.Manager,
-	appExport servertypes.AppExporter,
 	cmds ...*cobra.Command,
 ) *cobra.Command {
-	cmd := genutilcli.Commands(txConfig, mm, appExport)
+	cmd := &cobra.Command{
+		Use:                        "genesis",
+		Short:                      "Application's genesis-related subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		RunE:                       client.ValidateCmd,
+	}
 
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)

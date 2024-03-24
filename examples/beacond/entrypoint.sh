@@ -78,23 +78,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond config set client keyring-backend $KEYRING --home "$HOMEDIR"
 	./build/bin/beacond config set client chain-id "$CHAINID" --home "$HOMEDIR"
 
-	# If keys exist they should be deleted
-	./build/bin/beacond keys add dev --no-backup --keyring-backend $KEYRING --home "$HOMEDIR" 
-
 	# Change parameter token denominations to abgt
 	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
-	
-	# Sign genesis transaction
-	./build/bin/beacond genesis customgentx dev 1000000000000000000000abgt --chain-id $CHAINID --home "$HOMEDIR" 
-	## In case you want to create multiple validators at genesis
-	## 1. Back to `./build/bin/beacond keys add` step, init more keys
-	## 2. Back to `./build/bin/beacond add-genesis-account` step, add balance for those
-	## 3. Clone this ~/../build/bin/beacond home directory into some others, let's say `~/.cloned./build/bin/beacond`
-	## 4. Run `gentx` in each of those folders
-	## 5. Copy the `gentx-*` folders under `~/.cloned./build/bin/beacond/config/gentx/` folders into the original `~/../build/bin/beacond/config/gentx`
 
-	# # Collect genesis tx
-	./build/bin/beacond genesis customcollect-gentxs --home "$HOMEDIR"
 	./build/bin/beacond genesis add-validator --home "$HOMEDIR"
 	# # Run this to ensure everything worked and that the genesis file is setup correctly
 	# ./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1

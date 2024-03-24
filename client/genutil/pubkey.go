@@ -42,7 +42,7 @@ import (
 func AddPubkeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-validator",
-		Short: "Collect genesis txs and output a genesis.json file",
+		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config

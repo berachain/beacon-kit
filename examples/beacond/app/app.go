@@ -37,7 +37,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
-	validatorcli "github.com/berachain/beacon-kit/client/genutil"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	dbm "github.com/cosmos/cosmos-db"
@@ -102,7 +101,6 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
 				bls12381.ProvideBlsSigner,
-				validatorcli.ProvideMessageValidator,
 			),
 			depinject.Supply(
 				// supply the application options

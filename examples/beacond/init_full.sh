@@ -34,8 +34,3 @@ set -x
 # Set client config
 /usr/bin/beacond config set client keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME"
 /usr/bin/beacond config set client chain-id "$BEACOND_CHAIN_ID" --home "$BEACOND_HOME"
-
-
-# If keys exist they should be deleted
-/usr/bin/beacond keys add "$BEACOND_MONIKER" --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME" --indiscreet --output json > "$BEACOND_HOME/config/mnemonic.json"
-

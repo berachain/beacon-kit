@@ -29,7 +29,6 @@ import (
 	"context"
 
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	banktypes "cosmossdk.io/x/bank/types"
 	validatorcli "github.com/berachain/beacon-kit/client/genutil"
 	beaconconfig "github.com/berachain/beacon-kit/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -55,11 +54,9 @@ type PostSetupFn[T servertypes.Application] func(
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[T servertypes.Application](
 	rootCmd *cobra.Command,
-	txConfig client.TxConfig,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
 	postSetupFn PostSetupFn[T],
-	appExport servertypes.AppExporter,
 ) {
 	// Add the ToS Flag to the root command.
 	beaconconfig.AddToSFlag(rootCmd)
@@ -80,20 +77,6 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		debug.Cmd(),
 		// `genesis`
 		GenesisCommands(
-			txConfig,
-			mm,
-			appExport,
-			validatorcli.CollectGenTxsCmd(
-				banktypes.GenesisBalancesIterator{},
-				validatorcli.DefaultMessageValidator,
-				txConfig.SigningContext().ValidatorAddressCodec(),
-			),
-			validatorcli.GenTxCmd(
-				mm,
-				txConfig,
-				banktypes.GenesisBalancesIterator{},
-				txConfig.SigningContext().ValidatorAddressCodec(),
-			),
 			validatorcli.AddPubkeyCmd(),
 		),
 		// `init`

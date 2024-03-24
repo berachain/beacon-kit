@@ -37,7 +37,6 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	validatorcli "github.com/berachain/beacon-kit/client/genutil"
 	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
 	"github.com/berachain/beacon-kit/examples/beacond/app"
 	"github.com/berachain/beacon-kit/io/cli/tos"
@@ -74,7 +73,6 @@ func NewRootCmd() *cobra.Command {
 			depinject.Provide(
 				cmdconfig.ProvideClientContext,
 				cmdconfig.ProvideKeyring,
-				validatorcli.ProvideMessageValidator,
 			),
 		),
 		&autoCliOpts,
@@ -135,7 +133,6 @@ func NewRootCmd() *cobra.Command {
 
 	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
-		clientCtx.TxConfig,
 		mm,
 		newApp,
 		func(
@@ -144,7 +141,6 @@ func NewRootCmd() *cobra.Command {
 		) error {
 			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
 		},
-		appExport,
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {

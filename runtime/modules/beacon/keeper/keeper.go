@@ -182,7 +182,6 @@ func (k *Keeper) InitGenesis(
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
 
-	var err error
 	store := k.beaconStore.WithContext(ctx)
 	validatorUpdates := make([]abci.ValidatorUpdate, 0)
 	for _, validator := range data.Validators {
@@ -190,20 +189,8 @@ func (k *Keeper) InitGenesis(
 			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
 		}
 
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
-			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey[:])
-			if err != nil {
-				return nil, err
-			}
-			if err = store.WithContext(ctx).
-				RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
+		if err := store.AddValidator(validator); err != nil {
+			return nil, err
 		}
 
 		// TODO: this works, but there is a bug where if we send a validator to
@@ -214,9 +201,8 @@ func (k *Keeper) InitGenesis(
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
-		_ = validatorUpdates
 	}
-	return nil, nil
+	return validatorUpdates, nil
 }
 
 // ExportGenesis exports the current state of the module as genesis state.

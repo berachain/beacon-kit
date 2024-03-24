@@ -31,7 +31,6 @@ import (
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
 	bankmodulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
-	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	"cosmossdk.io/depinject/appconfig"
 	authtypes "cosmossdk.io/x/auth/types"
@@ -40,7 +39,6 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	_ "cosmossdk.io/x/auth"
 	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
@@ -94,7 +92,6 @@ var (
 					InitGenesis: []string{
 						authtypes.ModuleName,
 						banktypes.ModuleName,
-						genutiltypes.ModuleName,
 						beacontypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis
@@ -128,10 +125,6 @@ var (
 			{
 				Name:   "tx",
 				Config: appconfig.WrapAny(&txconfigv1.Config{}),
-			},
-			{
-				Name:   genutiltypes.ModuleName,
-				Config: appconfig.WrapAny(&genutilmodulev1.Module{}),
 			},
 			{
 				Name:   consensustypes.ModuleName,
