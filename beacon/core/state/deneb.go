@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // DefaultBeaconStateDeneb returns a default BeaconStateDeneb.
@@ -43,8 +44,14 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 
 // TODO setup this properly.
 //
-//go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -out deneb.json.go
+//go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
 type BeaconStateDeneb struct {
 	Eth1GenesisHash primitives.ExecutionHash `json:"eth1GenesisHash" ssz-size:"32"`
 	RandaoMix       []byte                   `json:"randaoMix"       ssz-size:"32"`
+}
+
+// beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
+// BeaconStateDeneb.
+type beaconStateDenebJSONMarshaling struct {
+	RandaoMix hexutil.Bytes
 }

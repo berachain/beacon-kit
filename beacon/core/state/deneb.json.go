@@ -6,13 +6,16 @@ import (
 	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
+
+var _ = (*beaconStateDenebJSONMarshaling)(nil)
 
 // MarshalJSON marshals as JSON.
 func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 	type BeaconStateDeneb struct {
-		Eth1GenesisHash common.Hash `json:"eth1GenesisHash" ssz-size:"32"`
-		RandaoMix       []byte      `json:"randaoMix"       ssz-size:"32"`
+		Eth1GenesisHash common.Hash   `json:"eth1GenesisHash" ssz-size:"32"`
+		RandaoMix       hexutil.Bytes `json:"randaoMix"       ssz-size:"32"`
 	}
 	var enc BeaconStateDeneb
 	enc.Eth1GenesisHash = b.Eth1GenesisHash
@@ -23,8 +26,8 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	type BeaconStateDeneb struct {
-		Eth1GenesisHash *common.Hash `json:"eth1GenesisHash" ssz-size:"32"`
-		RandaoMix       []byte       `json:"randaoMix"       ssz-size:"32"`
+		Eth1GenesisHash *common.Hash   `json:"eth1GenesisHash" ssz-size:"32"`
+		RandaoMix       *hexutil.Bytes `json:"randaoMix"       ssz-size:"32"`
 	}
 	var dec BeaconStateDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -34,7 +37,7 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		b.Eth1GenesisHash = *dec.Eth1GenesisHash
 	}
 	if dec.RandaoMix != nil {
-		b.RandaoMix = dec.RandaoMix
+		b.RandaoMix = *dec.RandaoMix
 	}
 	return nil
 }
