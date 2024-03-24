@@ -214,6 +214,7 @@ func (k *Keeper) InitGenesis(
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
+		_ = validatorUpdates
 	}
 	return nil, nil
 }
