@@ -35,10 +35,10 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/core/address"
-	"cosmossdk.io/errors"
 	authclient "cosmossdk.io/x/auth/client"
 	"cosmossdk.io/x/staking/client/cli"
 	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"

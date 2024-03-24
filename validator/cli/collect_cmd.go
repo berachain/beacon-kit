@@ -28,7 +28,7 @@ package cli
 import (
 	"path/filepath"
 
-	"cosmossdk.io/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
