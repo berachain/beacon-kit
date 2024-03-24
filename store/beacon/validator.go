@@ -26,8 +26,6 @@
 package beacon
 
 import (
-	"context"
-
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -42,6 +40,13 @@ func (s *Store) AddValidator(
 	}
 
 	return s.validators.Set(s.ctx, idx, val)
+}
+
+// AddValidator registers a new validator in the beacon state.
+func (s *Store) RemoveValidatorAtIndex(
+	idx primitives.ValidatorIndex,
+) error {
+	return s.validators.Remove(s.ctx, idx)
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
@@ -82,9 +87,9 @@ func (s *Store) ValidatorIndexByConsAddr(
 
 // GetValidatorsByEffectiveBalance retrieves all validators from the
 // beacon state.
-func (s *Store) GetValidatorsByEffectiveBalance(
-	ctx context.Context,
-) ([]*beacontypes.Validator, error) {
+func (s *Store) GetValidatorsByEffectiveBalance() (
+	[]*beacontypes.Validator, error,
+) {
 	var (
 		vals []*beacontypes.Validator
 		v    *beacontypes.Validator
@@ -92,7 +97,7 @@ func (s *Store) GetValidatorsByEffectiveBalance(
 	)
 
 	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(
-		ctx,
+		s.ctx,
 		nil,
 	)
 	if err != nil {
@@ -105,7 +110,7 @@ func (s *Store) GetValidatorsByEffectiveBalance(
 		if err != nil {
 			return nil, err
 		}
-		if v, err = s.validators.Get(ctx, idx); err != nil {
+		if v, err = s.validators.Get(s.ctx, idx); err != nil {
 			return nil, err
 		}
 		vals = append(vals, v)

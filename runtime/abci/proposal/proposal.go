@@ -26,6 +26,7 @@
 package proposal
 
 import (
+	"runtime/debug"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -83,6 +84,12 @@ func (h *Handler) PrepareProposalHandler(
 		g, groupCtx    = errgroup.WithContext(ctx)
 		logger         = ctx.Logger().With("module", "prepare-proposal")
 	)
+
+	defer func() {
+		if r := recover(); r != nil {
+			debug.PrintStack()
+		}
+	}()
 
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
@@ -155,12 +162,24 @@ func (h *Handler) ProcessProposalHandler(
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 
+	defer func() {
+		if r := recover(); r != nil {
+			debug.PrintStack()
+		}
+	}()
+
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
 	// after the underlying process proposal handler has run. This is to avoid
 	// making a copy of the entire request.
 	//
 	// TODO: there has to be a more friendly way to handle this, but hey it
 	// works.
+
+	if req == nil || req.Txs == nil || len(req.Txs) < 2 {
+		return &abci.ResponseProcessProposal{
+			Status: abci.ResponseProcessProposal_REJECT,
+		}, nil
+	}
 	pos := h.cfg.BeaconBlockPosition
 	beaconBz := req.Txs[pos]
 	blobPos := h.cfg.BlobSidecarsBlockPosition

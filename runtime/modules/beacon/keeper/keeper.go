@@ -33,6 +33,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	filedb "github.com/berachain/beacon-kit/db/file"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
@@ -71,28 +72,41 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]abci.ValidatorUpdate, error) {
+	store := k.beaconStore.WithContext(ctx)
 	// Get the public key of the validator
-	val, err := k.beaconStore.GetValidatorsByEffectiveBalance(ctx)
+	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
 		panic(err)
 	}
 
 	validatorUpdates := make([]abci.ValidatorUpdate, 0)
-	for i, validator := range val {
+	for _, validator := range val {
 		pk := crypto.PublicKey{
 			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
 		}
 
 		// TODO: Config
 		// Max 100 validators in the active set.
-
-		if i > 100 || validator.EffectiveBalance == 0 {
-			break
+		// TODO: this is kinda hood.
+		if validator.EffectiveBalance == 0 {
+			var idx primitives.ValidatorIndex
+			idx, err = store.WithContext(ctx).
+				ValidatorIndexByPubkey(validator.Pubkey[:])
+			if err != nil {
+				return nil, err
+			}
+			if err = store.WithContext(ctx).
+				RemoveValidatorAtIndex(idx); err != nil {
+				return nil, err
+			}
 		}
 
+		// TODO: this works, but there is a bug where if we send a validator to
+		// 0 voting power, it can somehow still propose the next block? This
+		// feels big bad.
 		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
 			PubKey: pk,
-			//#nosec:G701 // This is a constant value
+			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
 	}
