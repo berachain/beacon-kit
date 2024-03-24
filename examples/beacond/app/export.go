@@ -33,7 +33,6 @@ import (
 
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/store/types"
-	slashingtypes "cosmossdk.io/x/slashing/types"
 	"cosmossdk.io/x/staking"
 	stakingtypes "cosmossdk.io/x/staking/types"
 
@@ -194,24 +193,5 @@ func (app *BeaconApp) prepForZeroHeightGenesis(
 	_, err = app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	/* Handle slashing state. */
-
-	// reset start height on signing infos
-	err = app.SlashingKeeper.ValidatorSigningInfo.Walk(
-		ctx,
-		nil,
-		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool, err error) {
-			info.StartHeight = 0
-			err = app.SlashingKeeper.ValidatorSigningInfo.Set(ctx, addr, info)
-			if err != nil {
-				return true, err
-			}
-			return false, nil
-		},
-	)
-	if err != nil {
-		panic(err)
 	}
 }

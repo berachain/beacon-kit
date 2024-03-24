@@ -27,15 +27,6 @@ Through utilizing the [Ethereum Engine API](https://github.com/ethereum/executio
 - **Besu**: An enterprise-grade Ethereum client developed under the Apache 2.0 license and written in Java.
 - **Reth**: A Rust-based Ethereum client, focusing on performance and reliability.
 
-## Documentation
-
-BeaconKit leverages `pkgsite` for it's core documentation, you can run `pkgsite` locally and run a web-ui of the
-latest documentation:
-
-```bash
-make pkgsite
-```
-
 ## Running a Local Development Network
 
 **Prerequisites:**
