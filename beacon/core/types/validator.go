@@ -49,12 +49,9 @@ func (v Validator) String() string {
 
 type ValidatorSet struct {
 	ValidatorIndices []uint64 `json:"validatorIndices" ssz-size:"100"`
+	ValidatorPowers  []uint64 `json:"validatorPowers"  ssz-size:"100"`
 }
 
 func (vs ValidatorSet) String() string {
-	allIdxs := []string{}
-	for _, v := range vs.ValidatorIndices {
-		allIdxs = append(allIdxs, fmt.Sprint(v))
-	}
-	return fmt.Sprintf("ValidatorSet{%s}", allIdxs)
+	return fmt.Sprintf("ValidatorSet{Indices: %v, Powers: %v}", vs.ValidatorIndices, vs.ValidatorPowers)
 }

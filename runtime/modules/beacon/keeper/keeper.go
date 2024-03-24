@@ -33,13 +33,11 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	filedb "github.com/berachain/beacon-kit/db/file"
-	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -74,43 +72,67 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 ) ([]abci.ValidatorUpdate, error) {
 	store := k.beaconStore.WithContext(ctx)
 	// Get the public key of the validator
-	val, err := k.beaconStore.GetValidatorsByEffectiveBalance(ctx, 100)
+	idxs, val, err := k.beaconStore.GetValidatorsByEffectiveBalance(100)
 	if err != nil {
 		panic(err)
 	}
 
-	validatorUpdates := make([]abci.ValidatorUpdate, 0)
-	for _, validator := range val {
-		pk := crypto.PublicKey{
-			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
-		}
-
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
-			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey[:])
-			if err != nil {
-				return nil, err
-			}
-			if err = store.WithContext(ctx).
-				RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
-
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: pk,
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
+	oldValset, err := store.GetLastValidatorSet()
+	if err != nil {
+		return nil, err
 	}
+
+	newValset := &beacontypes.ValidatorSet{
+		ValidatorIndices: idxs,
+		ValidatorPowers:  []uint64{},
+	}
+
+	for i := range val {
+		newValset.ValidatorPowers = append(newValset.ValidatorPowers, val[i].EffectiveBalance)
+	}
+
+	validatorUpdates := compareValsets(oldValset, newValset)
+
+	// validatorUpdates := make([]abci.ValidatorUpdate, 0)
+	// for _, validator := range val {
+	// 	pk := crypto.PublicKey{
+	// 		Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
+	// 	}
+
+	// 	// TODO: Config
+	// 	// Max 100 validators in the active set.
+	// 	// TODO: this is kinda hood.
+	// 	if validator.EffectiveBalance == 0 {
+	// 		var idx primitives.ValidatorIndex
+	// 		idx, err = store.WithContext(ctx).
+	// 			ValidatorIndexByPubkey(validator.Pubkey[:])
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		if err = store.WithContext(ctx).
+	// 			RemoveValidatorAtIndex(idx); err != nil {
+	// 			return nil, err
+	// 		}
+	// 	}
+
+	// 	// TODO: this works, but there is a bug where if we send a validator to
+	// 	// 0 voting power, it can somehow still propose the next block? This
+	// 	// feels big bad.
+	// 	validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+	// 		PubKey: pk,
+	// 		//#nosec:G701 // will not realistically cause a problem.
+	// 		Power: int64(validator.EffectiveBalance),
+	// 	})
+	// }
 	return validatorUpdates, nil
+}
+
+func compareValsets(
+	oldValset, newValset *beacontypes.ValidatorSet,
+) []abci.ValidatorUpdate {
+	validatorUpdates := make([]abci.ValidatorUpdate, 0)
+	// TODO: compare old and new valset
+	return validatorUpdates
 }
 
 // AvailabilityStore returns the availability store struct initialized with a.
