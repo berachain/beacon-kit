@@ -25,10 +25,15 @@
 
 package types
 
+import "github.com/ethereum/go-ethereum/common/hexutil"
+
 // Validator is a struct that represents a validator in the beacon chain.
 // Validator represents a participant in the beacon chain consensus mechanism.
 // It holds the validator's public key, withdrawal credentials, effective
 // balance, and slashing status.
+//
+
+//go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey [48]byte `json:"pubkey"           ssz-size:"48"`
@@ -38,6 +43,12 @@ type Validator struct {
 	EffectiveBalance uint64 `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
+}
+
+// JSON type overrides for ExecutionPayloadEnvelope.
+type validatorJSONMarshaling struct {
+	Pubkey      hexutil.Bytes
+	Credentials hexutil.Bytes
 }
 
 // String returns a string representation of the Validator.

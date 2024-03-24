@@ -94,6 +94,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 				banktypes.GenesisBalancesIterator{},
 				txConfig.SigningContext().ValidatorAddressCodec(),
 			),
+			validatorcli.AddPubkeyCmd(),
 		),
 		// `init`
 		genutilcli.InitCmd(mm),

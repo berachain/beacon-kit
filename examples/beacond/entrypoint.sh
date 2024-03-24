@@ -95,7 +95,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 
 	# # Collect genesis tx
 	./build/bin/beacond genesis customcollect-gentxs --home "$HOMEDIR"
-
+	./build/bin/beacond genesis add-validator --home "$HOMEDIR"
 	# # Run this to ensure everything worked and that the genesis file is setup correctly
 	# ./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1
 fi
