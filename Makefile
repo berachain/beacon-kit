@@ -327,12 +327,7 @@ buf-lint:
 #    sszgen    #
 #################
 
-sszgen-install:
-	@echo "--> Installing sszgen"
-	@go install github.com/itsdevbear/fastssz/sszgen
-
 sszgen-clean:
-	@find . -name '*.pb_encoding.go' -delete
 	@find . -name '*.ssz.go' -delete
 
 ##############################################################################
@@ -351,7 +346,7 @@ repo-rinse: |
 
 .PHONY: clean format lint \
 	buf-install buf-lint-fix buf-lint \
-	sszgen-install sszgen-clean sszgen proto-clean \
+	sszgen-clean sszgen proto-clean \
 	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
