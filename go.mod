@@ -13,7 +13,6 @@ replace (
 	cosmossdk.io/x/auth => github.com/berachain/cosmos-sdk/x/auth v0.0.0-20240312054917-baa54a151c5a
 	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240311143937-fea88d13c52f
