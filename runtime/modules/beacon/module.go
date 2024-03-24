@@ -68,18 +68,19 @@ func (am AppModule) Name() string {
 	return types.ModuleName
 }
 
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
+
+// RegisterInterfaces registers the module's interface types.
+func (am AppModule) RegisterInterfaces(r registry.LegacyRegistry) {
+	types.RegisterInterfaces(r)
+}
+
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(registrar grpc.ServiceRegistrar) error {
 	types.RegisterMsgServer(registrar, am.keeper)
 	return nil
 }
-
-func (am AppModule) RegisterInterfaces(r registry.LegacyRegistry) {
-	types.RegisterInterfaces(r)
-}
-
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (am AppModule) IsOnePerModuleType() {}
