@@ -16,11 +16,8 @@ replace (
 	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240318230110-d72af9a8368e
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.2-0.20240311143937-fea88d13c52f
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240311143937-fea88d13c52f
@@ -41,7 +38,6 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/bank v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/distribution v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
 	github.com/bazelbuild/buildtools v0.0.0-20240207142252-03bf520394af

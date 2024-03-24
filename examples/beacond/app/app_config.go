@@ -43,8 +43,7 @@ import (
 	vestingtypes "cosmossdk.io/x/auth/vesting/types"
 	_ "cosmossdk.io/x/bank" // import for side-effects
 	banktypes "cosmossdk.io/x/bank/types"
-	_ "cosmossdk.io/x/distribution" // import for side-effects
-	_ "cosmossdk.io/x/staking"      // import for side-effects
+	_ "cosmossdk.io/x/staking" // import for side-effects
 	stakingtypes "cosmossdk.io/x/staking/types"
 	_ "github.com/berachain/beacon-kit/runtime/modules/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
