@@ -37,12 +37,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	authkeeper "cosmossdk.io/x/auth/keeper"
 	bankkeeper "cosmossdk.io/x/bank/keeper"
-	evidencekeeper "cosmossdk.io/x/evidence/keeper"
-	mintkeeper "cosmossdk.io/x/mint/keeper"
 	_ "cosmossdk.io/x/protocolpool"
-	slashingkeeper "cosmossdk.io/x/slashing/keeper"
 	stakingkeeper "cosmossdk.io/x/staking/keeper"
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
@@ -84,10 +80,6 @@ type BeaconApp struct {
 	AccountKeeper         authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
-	SlashingKeeper        slashingkeeper.Keeper
-	MintKeeper            mintkeeper.Keeper
-	UpgradeKeeper         *upgradekeeper.Keeper
-	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit custom keepers
@@ -131,10 +123,6 @@ func NewBeaconKitApp(
 		&app.AccountKeeper,
 		&app.BankKeeper,
 		&app.StakingKeeper,
-		&app.SlashingKeeper,
-		&app.MintKeeper,
-		&app.UpgradeKeeper,
-		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconStakingKeeper,
