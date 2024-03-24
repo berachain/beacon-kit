@@ -256,14 +256,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home --chain-id=test-1
 				)
 			}
 
-			if key.GetType() == keyring.TypeOffline ||
-				key.GetType() == keyring.TypeMulti {
-				cmd.PrintErrln(
-					"Offline key passed in. Use `tx sign` command to sign.",
-				)
-				return txBldr.PrintUnsignedTx(clientCtx, msg)
-			}
-
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
