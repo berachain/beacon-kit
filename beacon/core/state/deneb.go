@@ -67,5 +67,6 @@ type BeaconStateDeneb struct {
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
 // BeaconStateDeneb.
 type beaconStateDenebJSONMarshaling struct {
-	RandaoMix hexutil.Bytes
+	GenesisValidatorsRoot hexutil.Bytes
+	RandaoMix             hexutil.Bytes
 }
