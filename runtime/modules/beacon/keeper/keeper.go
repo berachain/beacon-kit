@@ -29,16 +29,15 @@ import (
 	"context"
 
 	"cosmossdk.io/core/appmodule"
+	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/runtime"
-	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -91,11 +90,11 @@ func (k *Keeper) ForkchoiceStore(
 // InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
-	data types.GenesisState,
+	data state.BeaconStateDeneb,
 ) error {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
-	if err := st.UpdateRandaoMixAtIndex(0, data.Mix()); err != nil {
+	if err := st.UpdateRandaoMixAtIndex(0, types.Mix(data.RandaoMix)); err != nil {
 		return err
 	}
 
@@ -111,10 +110,9 @@ func (k *Keeper) InitGenesis(
 
 	// Set the genesis block data.
 	fcs := k.ForkchoiceStore(ctx)
-	hash := common.HexToHash(data.Eth1GenesisHash)
-	fcs.SetGenesisEth1Hash(hash)
-	fcs.SetSafeEth1BlockHash(hash)
-	fcs.SetFinalizedEth1BlockHash(hash)
+	fcs.SetGenesisEth1Hash(data.Eth1GenesisHash)
+	fcs.SetSafeEth1BlockHash(data.Eth1GenesisHash)
+	fcs.SetFinalizedEth1BlockHash(data.Eth1GenesisHash)
 
 	// Set the genesis block header.
 	if err := st.SetLatestBlockHeader(
@@ -133,8 +131,8 @@ func (k *Keeper) InitGenesis(
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
-	return &types.GenesisState{
-		Eth1GenesisHash: k.ForkchoiceStore(ctx).GenesisEth1Hash().Hex(),
+func (k *Keeper) ExportGenesis(ctx context.Context) *state.BeaconStateDeneb {
+	return &state.BeaconStateDeneb{
+		Eth1GenesisHash: k.ForkchoiceStore(ctx).GenesisEth1Hash(),
 	}
 }
