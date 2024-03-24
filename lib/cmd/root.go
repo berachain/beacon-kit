@@ -30,8 +30,8 @@ import (
 
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	banktypes "cosmossdk.io/x/bank/types"
+	validatorcli "github.com/berachain/beacon-kit/client/genutil"
 	beaconconfig "github.com/berachain/beacon-kit/config"
-	validatorcli "github.com/berachain/beacon-kit/validator/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
