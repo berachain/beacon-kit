@@ -88,9 +88,9 @@ func (s *Service) sendPostBlockFCU(
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		var (
-			err error
-		)
+		// TODO: This BlockRoot calculation is sound, but very confusing
+		// and hard to explain to someone who is not familiar with the
+		// nuance of our implementation. We should refactor this.
 		h, err := st.GetLatestBlockHeader()
 		if err != nil {
 			s.Logger().
@@ -105,13 +105,12 @@ func (s *Service) sendPostBlockFCU(
 			return
 		}
 
-		err = s.sendFCUWithAttributes(
+		if err = s.sendFCUWithAttributes(
 			ctx,
 			headHash,
 			st.GetSlot()+1,
 			root,
-		)
-		if err == nil {
+		); err == nil {
 			return
 		}
 
