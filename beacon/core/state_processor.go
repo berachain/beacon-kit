@@ -236,10 +236,12 @@ func (sp *StateProcessor) processDeposits(
 			continue
 		}
 
-		// TODO: unhood this.
-		val.EffectiveBalance += dep.Amount
-		//nolint:gomnd // TODO: config we cap the effective balance at 32e9.
-		val.EffectiveBalance = min(val.EffectiveBalance, 32e9)
+		// TODO: Configuration Variable.
+		
+		val.EffectiveBalance = min(
+			val.EffectiveBalance+dep.Amount,
+			sp.cfg.Limits.MaxEffectiveBalance,
+		)
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err
 		}
@@ -279,8 +281,7 @@ func (sp *StateProcessor) processWithdrawals(
 		// TODO: This is like super hood, but how do we want to perform
 		// validation.
 		// Just unlikely I guess?
-		wd.Amount = min(val.EffectiveBalance, wd.Amount)
-		val.EffectiveBalance -= wd.Amount
+		val.EffectiveBalance -= min(val.EffectiveBalance, wd.Amount)
 		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
 			return err
 		}

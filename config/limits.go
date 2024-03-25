@@ -47,6 +47,9 @@ const (
 	// defaultMaxWithdrawalsPerPayload indicates the default maximum number of
 	// withdrawals allowed per payload.
 	defaultMaxWithdrawalsPerPayload = 16
+	// defaultMaxEffectiveBalance is the default maximum effective balance
+	// allowed.
+	defaultMaxEffectiveBalance = 32e9
 )
 
 // DefaultValidatorConfig returns the default validator configuration.
@@ -56,6 +59,7 @@ func DefaultLimitsConfig() Limits {
 		SlotsPerHistoricalRoot:    defaultSlotsPerHistoricalRoot,
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
 		MaxWithdrawalsPerPayload:  defaultMaxWithdrawalsPerPayload,
+		MaxEffectiveBalance:       defaultMaxEffectiveBalance,
 	}
 }
 
@@ -74,6 +78,9 @@ type Limits struct {
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64
+	// MaxEffectiveBalance is the maximum effective balance allowed for a
+	// validator.
+	MaxEffectiveBalance uint64
 }
 
 // Parse parses the configuration.
@@ -104,6 +111,12 @@ func (c Limits) Parse(parser parser.AppOptionsParser) (*Limits, error) {
 		return nil, err
 	}
 
+	if c.MaxEffectiveBalance, err = parser.GetUint64(
+		flags.MaxEffectiveBalance,
+	); err != nil {
+		return nil, err
+	}
+
 	return &c, nil
 }
 
@@ -123,5 +136,8 @@ max-deposits-per-block = {{.BeaconKit.Beacon.Limits.MaxDepositsPerBlock}}
 
 # MaxWithdrawalsPerPayload is the maximum number of Withdrawals allowed in a payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.Limits.MaxWithdrawalsPerPayload}}
+
+# MaxEffectiveBalance is the maximum effective balance allowed.
+max-effective-balance = {{.BeaconKit.Beacon.Limits.MaxEffectiveBalance}}
 `
 }

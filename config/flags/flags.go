@@ -74,6 +74,7 @@ const (
 	SlotsPerHistoricalRoot    = limitsRoot + "slots-per-historical-root"
 	MaxDeposits               = limitsRoot + "max-deposits-per-block"
 	MaxWithdrawals            = limitsRoot + "max-withdrawals-per-payload"
+	MaxEffectiveBalance       = limitsRoot + "max-effective-balance"
 
 	// ABCI Config.
 	abciRoot                  = beaconKitRoot + "abci."
