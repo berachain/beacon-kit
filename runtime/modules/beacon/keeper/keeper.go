@@ -114,6 +114,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 				PubKey: crypto.PublicKey{
 					Sum: &crypto.PublicKey_Bls12381{Bls12381: v.Pubkey[:]},
 				},
+				//#nosec:G701 // will not realistically cause a problem.
 				Power: int64(v.EffectiveBalance),
 			})
 		}
