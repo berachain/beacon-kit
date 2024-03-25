@@ -92,6 +92,9 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		}
 	}
 
+	// TODO: this works, but there is a bug where if we send a validator to
+	// 0 voting power, it can somehow still propose the next block? This
+	// feels big bad.
 	newValsetMap := map[uint64]*beacontypes.Validator{}
 	for i := range valIdxs {
 		newValsetMap[valIdxs[i]] = val[i]
