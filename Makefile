@@ -303,7 +303,7 @@ proto:
 	@$(MAKE) buf-lint-fix buf-lint proto-build
 
 proto-build:
-	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
+	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate_pulsar.sh
 
 proto-clean:
 	@find . -name '*.pb.go' -delete
