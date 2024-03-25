@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	// bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381".
 	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/primitives"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
