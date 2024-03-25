@@ -23,13 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package evm
+package beacon
 
 import (
 	"context"
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm
@@ -54,18 +55,26 @@ func (AppModule) ValidateGenesis(
 func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
-) error {
+) []abci.ValidatorUpdate {
 	var gs state.BeaconStateDeneb
 	if err := json.Unmarshal(bz, &gs); err != nil {
-		return err
+		panic(err)
 	}
-	return am.keeper.InitGenesis(ctx, gs)
+	ups, err := am.keeper.InitGenesis(ctx, gs)
+	if err != nil {
+		panic(err)
+	}
+	return ups
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
 func (am AppModule) ExportGenesis(
 	ctx context.Context,
-) (json.RawMessage, error) {
-	return json.Marshal(am.keeper.ExportGenesis(ctx))
+) json.RawMessage {
+	bz, err := json.Marshal(am.keeper.ExportGenesis(ctx))
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }

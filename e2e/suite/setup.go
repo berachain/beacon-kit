@@ -197,15 +197,13 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
 	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
-		ctx, s.genesisAccount.Address(),
-	)
+		ctx, s.genesisAccount.Address())
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
 	nonce.Store(pendingNonce)
 
 	var chainID *big.Int
 	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
-
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
@@ -217,27 +215,24 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
 					// Besu does not support eth_maxPriorityFeePerGas
 					// so we use a default value of 10 Gwei.
-					gasTipCap = big.NewInt(TenGwei)
+					gasTipCap = big.NewInt(0).SetUint64(TenGwei)
 				} else {
 					return nil, err
 				}
 			}
 
-			gasFeeCap := new(big.Int).Add(gasTipCap, big.NewInt(TenGwei))
+			gasFeeCap := new(big.Int).Add(
+				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
 			value := big.NewInt(Ether)
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
 				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-					ChainID:   chainID,
-					Nonce:     nonceToSubmit,
-					GasTipCap: gasTipCap,
-					GasFeeCap: gasFeeCap,
-					Gas:       EtherTransferGasLimit,
-					To:        &dest,
-					Value:     value,
-					Data:      nil,
+					ChainID: chainID, Nonce: nonceToSubmit,
+					GasTipCap: gasTipCap, GasFeeCap: gasFeeCap,
+					Gas: EtherTransferGasLimit, To: &dest,
+					Value: value, Data: nil,
 				}),
 			); err != nil {
 				return nil, err
@@ -245,7 +240,6 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
 			defer cancel()
-
 			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
 				s.logger.Error(
 					"error submitting funding transaction",
@@ -262,8 +256,10 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			)
 
 			var receipt *ethtypes.Receipt
-			receipt, err = bind.WaitMined(cctx, s.JSONRPCBalancer(), signedTx)
-			if err != nil {
+
+			if receipt, err = bind.WaitMined(
+				cctx, s.JSONRPCBalancer(), signedTx,
+			); err != nil {
 				return nil, err
 			}
 
@@ -275,6 +271,14 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			// Verify the receipt status.
 			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+				return nil, err
+			}
+
+			// Wait an extra block to ensure all clients are in sync.
+			//nolint:contextcheck // its okay.
+			if err = s.WaitForFinalizedBlockNumber(
+				receipt.BlockNumber.Uint64() + 1,
+			); err != nil {
 				return nil, err
 			}
 

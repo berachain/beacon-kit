@@ -26,13 +26,9 @@
 package core
 
 import (
-	"context"
-
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/primitives"
 )
 
 // RandaoProcessor is the interface for the randao processor.
@@ -48,24 +44,5 @@ type RandaoProcessor interface {
 		st state.BeaconState,
 		proposerPubkey [bls12381.PubKeyLength]byte,
 		reveal randaotypes.Reveal,
-	) error
-}
-
-// ValsetUpdater is the interface for applying validator set changes.
-type ValsetUpdater interface {
-	IncreaseConsensusPower(
-		ctx context.Context,
-		delegator beacontypes.DepositCredentials,
-		pubkey [bls12381.PubKeyLength]byte,
-		amount uint64,
-		signature []byte,
-		index uint64,
-	) error
-
-	DecreaseConsensusPower(
-		ctx context.Context,
-		delegator primitives.ExecutionAddress,
-		pubkey [bls12381.PubKeyLength]byte,
-		amount uint64,
 	) error
 }

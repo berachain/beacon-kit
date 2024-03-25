@@ -29,15 +29,17 @@ import (
 	"context"
 
 	"cosmossdk.io/core/appmodule"
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	filedb "github.com/berachain/beacon-kit/db/file"
-	"github.com/berachain/beacon-kit/runtime"
+	"github.com/berachain/beacon-kit/primitives"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -46,21 +48,68 @@ type Keeper struct {
 	availabilityStore *blob.Store
 	beaconStore       *beaconstore.Store
 	forkchoiceStore   *forkchoicestore.Store
-	vsu               runtime.ValsetUpdater
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	vsu runtime.ValsetUpdater,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: blob.NewStore(fdb),
 		beaconStore:       beaconstore.NewStore(env),
 		forkchoiceStore:   forkchoicestore.NewStore(env.KVStoreService),
-		vsu:               vsu,
 	}
+}
+
+// ApplyAndReturnValidatorSetUpdates returns the validator set updates from
+// the beacon state.
+//
+// TODO: this function is horribly inefficient and should be replaced with a
+// more efficient implementation, that does not update the entire
+// valset every block.
+func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
+	ctx context.Context,
+) ([]abci.ValidatorUpdate, error) {
+	store := k.beaconStore.WithContext(ctx)
+	// Get the public key of the validator
+	val, err := store.GetValidatorsByEffectiveBalance()
+	if err != nil {
+		panic(err)
+	}
+
+	validatorUpdates := make([]abci.ValidatorUpdate, 0)
+	for _, validator := range val {
+		pk := crypto.PublicKey{
+			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
+		}
+
+		// TODO: Config
+		// Max 100 validators in the active set.
+		// TODO: this is kinda hood.
+		if validator.EffectiveBalance == 0 {
+			var idx primitives.ValidatorIndex
+			idx, err = store.WithContext(ctx).
+				ValidatorIndexByPubkey(validator.Pubkey[:])
+			if err != nil {
+				return nil, err
+			}
+			if err = store.WithContext(ctx).
+				RemoveValidatorAtIndex(idx); err != nil {
+				return nil, err
+			}
+		}
+
+		// TODO: this works, but there is a bug where if we send a validator to
+		// 0 voting power, it can somehow still propose the next block? This
+		// feels big bad.
+		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+			PubKey: pk,
+			//#nosec:G701 // will not realistically cause a problem.
+			Power: int64(validator.EffectiveBalance),
+		})
+	}
+	return validatorUpdates, nil
 }
 
 // AvailabilityStore returns the availability store struct initialized with a.
@@ -91,21 +140,23 @@ func (k *Keeper) ForkchoiceStore(
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,
-) error {
+) ([]abci.ValidatorUpdate, error) {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
-	if err := st.UpdateRandaoMixAtIndex(0, types.Mix(data.RandaoMix)); err != nil {
-		return err
+	if err := st.UpdateRandaoMixAtIndex(
+		0, randaotypes.Mix(data.RandaoMix),
+	); err != nil {
+		return nil, err
 	}
 
 	// Compare this snippet from beacon/keeper/keeper.go:
 	if err := st.UpdateStateRootAtIndex(0, [32]byte{}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Set the genesis block root.
 	if err := st.UpdateBlockRootAtIndex(0, [32]byte{}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Set the genesis block data.
@@ -124,10 +175,34 @@ func (k *Keeper) InitGenesis(
 			BodyRoot:      [32]byte{},
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	// TODO: don't need to set any validators here if we are setting in
+	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
+	// full initial update here.
+
+	store := k.beaconStore.WithContext(ctx)
+	validatorUpdates := make([]abci.ValidatorUpdate, 0)
+	for _, validator := range data.Validators {
+		pk := crypto.PublicKey{
+			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
+		}
+
+		if err := store.AddValidator(validator); err != nil {
+			return nil, err
+		}
+
+		// TODO: this works, but there is a bug where if we send a validator to
+		// 0 voting power, it can somehow still propose the next block? This
+		// feels big bad.
+		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+			PubKey: pk,
+			//#nosec:G701 // will not realistically cause a problem.
+			Power: int64(validator.EffectiveBalance),
+		})
+	}
+	return validatorUpdates, nil
 }
 
 // ExportGenesis exports the current state of the module as genesis state.

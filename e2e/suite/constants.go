@@ -35,8 +35,8 @@ import (
 // transactions.
 const (
 	Ether   = params.Ether
-	OneGwei = params.GWei  // 1 Gwei = 1e9 wei
-	TenGwei = 10 * OneGwei // 10 Gwei = 1e10 wei
+	OneGwei = uint64(params.GWei) // 1 Gwei = 1e9 wei
+	TenGwei = 10 * OneGwei        // 10 Gwei = 1e10 wei
 )
 
 // EtherTransferGasLimit specifies the gas limit for a standard Ethereum

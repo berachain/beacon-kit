@@ -69,3 +69,11 @@ func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
 		return nil
 	}
 }
+
+// WithSigner sets the signer.
+func WithSigner(signer Signer) service.Option[Service] {
+	return func(s *Service) error {
+		s.signer = signer
+		return nil
+	}
+}

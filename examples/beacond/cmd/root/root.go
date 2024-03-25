@@ -67,6 +67,7 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+				// validatorcli.DefaultMessageValidator,
 			),
 			depinject.Provide(
 				cmdconfig.ProvideClientContext,
@@ -112,7 +113,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			if err := client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
+			if err = client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
 				return err
 			}
 
@@ -130,7 +131,6 @@ func NewRootCmd() *cobra.Command {
 
 	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
-		clientCtx.TxConfig,
 		mm,
 		newApp,
 		func(
@@ -139,7 +139,6 @@ func NewRootCmd() *cobra.Command {
 		) error {
 			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
 		},
-		appExport,
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {

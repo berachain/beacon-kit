@@ -31,67 +31,32 @@ import (
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
 	bankmodulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
-	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
-	stakingmodulev1 "cosmossdk.io/api/cosmos/staking/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	"cosmossdk.io/depinject/appconfig"
-	sdkmath "cosmossdk.io/math"
-	_ "cosmossdk.io/x/auth"
-	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
 	authtypes "cosmossdk.io/x/auth/types"
-	_ "cosmossdk.io/x/auth/vesting" // import for side-effects
-	vestingtypes "cosmossdk.io/x/auth/vesting/types"
-	_ "cosmossdk.io/x/bank" // import for side-effects
 	banktypes "cosmossdk.io/x/bank/types"
-	_ "cosmossdk.io/x/staking" // import for side-effects
-	stakingtypes "cosmossdk.io/x/staking/types"
-	_ "github.com/berachain/beacon-kit/runtime/modules/beacon"
+	"github.com/berachain/beacon-kit/runtime/modules/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
-	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/ethereum/go-ethereum/params"
+
+	_ "cosmossdk.io/x/auth"
+	_ "cosmossdk.io/x/auth/tx/config"            // import for side-effects
+	_ "cosmossdk.io/x/bank"                      // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 )
 
 const AppName = "BeaconKitApp"
-
-//nolint:gochecknoinits // required to overrided cosmos variable.
-func init() {
-	sdk.DefaultPowerReduction = sdkmath.NewInt(params.GWei)
-}
 
 var (
 	// module account permissions
 	moduleAccPerms = []*authmodulev1.ModuleAccountPermission{
 		{Account: authtypes.FeeCollectorName},
-		{
-			Account: stakingtypes.ModuleName,
-			Permissions: []string{
-				authtypes.Minter,
-				authtypes.Burner,
-			},
-		},
-		{
-			Account:     stakingtypes.BondedPoolName,
-			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
-		},
-		{
-			Account:     stakingtypes.NotBondedPoolName,
-			Permissions: []string{authtypes.Burner, stakingtypes.ModuleName},
-		},
 	}
 
 	// blocked account addresses
 	blockAccAddrs = []string{
 		authtypes.FeeCollectorName,
-		stakingtypes.BondedPoolName,
-		stakingtypes.NotBondedPoolName,
-		// We allow the following module accounts to receive funds:
-		// govtypes.ModuleName
-		// pooltypes.ModuleName
 	}
 
 	// application configuration (used by depinject)
@@ -100,20 +65,11 @@ var (
 			{
 				Name: runtime.ModuleName,
 				Config: appconfig.WrapAny(&runtimev1alpha1.Module{
-					AppName: AppName,
-					// NOTE: upgrade module is required to be prioritized
-					PreBlockers: []string{},
-					// During begin block slashing happens after
-					// distr.BeginBlocker so that there is nothing left over in
-					// the validator fee pool, so as to keep the
-					// CanWithdrawInvariant invariant.
-					// NOTE: staking module is required if HistoricalEntries
-					// param > 0
-					BeginBlockers: []string{
-						stakingtypes.ModuleName,
-					},
+					AppName:       AppName,
+					PreBlockers:   []string{},
+					BeginBlockers: []string{},
 					EndBlockers: []string{
-						stakingtypes.ModuleName,
+						beacon.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
 						{
@@ -121,26 +77,11 @@ var (
 							KvStoreKey: "acc",
 						},
 					},
-					// NOTE: The genutils module must occur after staking so
-					// that pools are
-					// properly initialized with tokens from genesis accounts.
-					// NOTE: The genutils module must also occur after auth so
-					// that it can access the params from auth.
 					InitGenesis: []string{
 						authtypes.ModuleName,
 						banktypes.ModuleName,
-						stakingtypes.ModuleName,
-						genutiltypes.ModuleName,
-						vestingtypes.ModuleName,
-						beacontypes.ModuleName,
+						beacon.ModuleName,
 					},
-					// When ExportGenesis is not specified, the export genesis
-					// module order
-					// is equal to the init genesis order
-					// ExportGenesis: []string{},
-					// Uncomment if you want to set a custom migration order
-					// here.
-					// OrderMigrations: []string{},
 				}),
 			},
 			{
@@ -163,29 +104,15 @@ var (
 				}),
 			},
 			{
-				Name: stakingtypes.ModuleName,
-				Config: appconfig.WrapAny(&stakingmodulev1.Module{
-					// NOTE: specifying a prefix is only necessary when using
-					// bech32 addresses If not specified, the auth Bech32Prefix
-					// appended with "valoper" and "valcons" is used by default
-					Bech32PrefixValidator: "cosmosvaloper",
-					Bech32PrefixConsensus: "cosmosvalcons",
-				}),
-			},
-			{
 				Name:   "tx",
 				Config: appconfig.WrapAny(&txconfigv1.Config{}),
-			},
-			{
-				Name:   genutiltypes.ModuleName,
-				Config: appconfig.WrapAny(&genutilmodulev1.Module{}),
 			},
 			{
 				Name:   consensustypes.ModuleName,
 				Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
 			},
 			{
-				Name:   beacontypes.ModuleName,
+				Name:   beacon.ModuleName,
 				Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
 			},
 		},

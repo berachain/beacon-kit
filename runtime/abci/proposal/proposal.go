@@ -26,6 +26,7 @@
 package proposal
 
 import (
+	"runtime/debug"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -42,12 +43,7 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg *config.ABCI
-	// stakingKeeper provides access to the staking module. In the handler
-	// it is used to convert consAddress to pubkey, before passing it into
-	// the core beacon chain logic.
-	stakingKeeper StakingKeeper
-
+	cfg            *config.ABCI
 	builderService *builder.Service
 	chainService   *blockchain.Service
 	healthService  *health.Service
@@ -58,7 +54,6 @@ type Handler struct {
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
 	cfg *config.ABCI,
-	stakingKeeper StakingKeeper,
 	builderService *builder.Service,
 	healthService *health.Service,
 	chainService *blockchain.Service,
@@ -67,7 +62,6 @@ func NewHandler(
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
-		stakingKeeper:  stakingKeeper,
 		builderService: builderService,
 		healthService:  healthService,
 		chainService:   chainService,
@@ -91,12 +85,11 @@ func (h *Handler) PrepareProposalHandler(
 		logger         = ctx.Logger().With("module", "prepare-proposal")
 	)
 
-	proposerPubkey, err := h.stakingKeeper.GetValidatorPubkeyFromConsAddress(
-		ctx, req.ProposerAddress,
-	)
-	if err != nil {
-		return &abci.ResponsePrepareProposal{}, err
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			debug.PrintStack()
+		}
+	}()
 
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
@@ -105,7 +98,6 @@ func (h *Handler) PrepareProposalHandler(
 	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx,
 		primitives.Slot(req.Height),
-		proposerPubkey,
 	)
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
@@ -169,12 +161,24 @@ func (h *Handler) ProcessProposalHandler(
 ) (*abci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 
+	defer func() {
+		if r := recover(); r != nil {
+			debug.PrintStack()
+		}
+	}()
+
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
 	// after the underlying process proposal handler has run. This is to avoid
 	// making a copy of the entire request.
 	//
 	// TODO: there has to be a more friendly way to handle this, but hey it
 	// works.
+
+	if req == nil || req.Txs == nil || len(req.Txs) < 2 {
+		return &abci.ResponseProcessProposal{
+			Status: abci.ResponseProcessProposal_REJECT,
+		}, nil
+	}
 	pos := h.cfg.BeaconBlockPosition
 	beaconBz := req.Txs[pos]
 	blobPos := h.cfg.BlobSidecarsBlockPosition

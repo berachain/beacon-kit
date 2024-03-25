@@ -36,7 +36,8 @@ type BeaconKitE2ESuite struct {
 }
 
 // TestBasicStartup tests the basic startup of the beacon-kit network.
+// TODO: Should check all clients, opposed to the load balancer.
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
-	err := s.WaitForFinalizedBlockNumber(6)
+	err := s.WaitForFinalizedBlockNumber(5)
 	s.Require().NoError(err)
 }

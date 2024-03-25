@@ -144,6 +144,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 					"el-full-reth-1:8545",
 					"el-full-geth-2:8545",
 					"el-full-erigon-3:8545",
+					// Besu causing flakey tests.
 					// "el-full-besu-4:8545",
 				},
 			},

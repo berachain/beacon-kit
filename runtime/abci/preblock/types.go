@@ -24,17 +24,3 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package preblock
-
-import (
-	"context"
-
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-)
-
-// StakingKeeper provides the interface for the staking module.
-type StakingKeeper interface {
-	GetValidatorPubkeyFromConsAddress(
-		ctx context.Context,
-		consAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
-}

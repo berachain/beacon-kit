@@ -4,7 +4,9 @@ package state
 
 import (
 	"encoding/json"
+	"errors"
 
+	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -14,11 +16,15 @@ var _ = (*beaconStateDenebJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 	type BeaconStateDeneb struct {
-		Eth1GenesisHash common.Hash   `json:"eth1GenesisHash" ssz-size:"32"`
-		RandaoMix       hexutil.Bytes `json:"randaoMix"       ssz-size:"32"`
+		GenesisValidatorsRoot hexutil.Bytes      `json:"genesisValidatorsRoot" ssz-size:"32"`
+		Eth1GenesisHash       common.Hash        `json:"eth1GenesisHash" ssz-size:"32"`
+		Validators            []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+		RandaoMix             hexutil.Bytes      `json:"randaoMix" ssz-size:"32"`
 	}
 	var enc BeaconStateDeneb
+	enc.GenesisValidatorsRoot = b.GenesisValidatorsRoot[:]
 	enc.Eth1GenesisHash = b.Eth1GenesisHash
+	enc.Validators = b.Validators
 	enc.RandaoMix = b.RandaoMix
 	return json.Marshal(&enc)
 }
@@ -26,15 +32,26 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	type BeaconStateDeneb struct {
-		Eth1GenesisHash *common.Hash   `json:"eth1GenesisHash" ssz-size:"32"`
-		RandaoMix       *hexutil.Bytes `json:"randaoMix"       ssz-size:"32"`
+		GenesisValidatorsRoot *hexutil.Bytes     `json:"genesisValidatorsRoot" ssz-size:"32"`
+		Eth1GenesisHash       *common.Hash       `json:"eth1GenesisHash" ssz-size:"32"`
+		Validators            []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+		RandaoMix             *hexutil.Bytes     `json:"randaoMix" ssz-size:"32"`
 	}
 	var dec BeaconStateDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
+	if dec.GenesisValidatorsRoot != nil {
+		if len(*dec.GenesisValidatorsRoot) != len(b.GenesisValidatorsRoot) {
+			return errors.New("field 'genesisValidatorsRoot' has wrong length, need 32 items")
+		}
+		copy(b.GenesisValidatorsRoot[:], *dec.GenesisValidatorsRoot)
+	}
 	if dec.Eth1GenesisHash != nil {
 		b.Eth1GenesisHash = *dec.Eth1GenesisHash
+	}
+	if dec.Validators != nil {
+		b.Validators = dec.Validators
 	}
 	if dec.RandaoMix != nil {
 		b.RandaoMix = *dec.RandaoMix

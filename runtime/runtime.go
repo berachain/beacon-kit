@@ -86,7 +86,6 @@ func NewDefaultBeaconKitRuntime(
 	signer crypto.Signer[[bls12381.SignatureLength]byte],
 	logger log.Logger,
 	bsb BeaconStorageBackend,
-	vsu ValsetUpdater,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -137,7 +136,6 @@ func NewDefaultBeaconKitRuntime(
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
-		staking.WithValsetUpdater(vsu),
 	)
 
 	// Build the execution service.
@@ -168,6 +166,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
 		builder.WithRandaoProcessor(randaoProcessor),
+		builder.WithSigner(signer),
 	)
 
 	// Build the sync service.
@@ -185,7 +184,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(&cfg.Beacon, randaoProcessor, vsu)),
+			core.NewStateProcessor(&cfg.Beacon, randaoProcessor)),
 		blockchain.WithSyncService(syncService),
 	)
 

@@ -25,4 +25,4 @@
 
 package state
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconStateDeneb -include ../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconStateDeneb -include ../types,../../../primitives,../../../engine/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go

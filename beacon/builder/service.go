@@ -29,11 +29,8 @@ import (
 	"context"
 	"fmt"
 
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -50,12 +47,6 @@ type PayloadBuilder interface {
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }
 
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (randaotypes.Reveal, error)
-}
-
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
@@ -65,10 +56,18 @@ type Service struct {
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder   PayloadBuilder
+	localBuilder PayloadBuilder
+
+	// remoteBuilders represents a list of remote block builders, these
+	// builders are connected to other execution clients via the EngineAPI.
 	remoteBuilders []PayloadBuilder
 
+	// randaoProcessor is responsible for building the reveal for the
+	// current slot.
 	randaoProcessor RandaoProcessor
+
+	// signer is used to retrieve the public key of this node.
+	signer Signer
 }
 
 // LocalBuilder returns the local builder.
@@ -80,7 +79,6 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-	proposerPubkey [bls12381.PubKeyLength]byte,
 ) (beacontypes.BeaconBlock, *beacontypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -100,7 +98,10 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
-	proposerIndex, err := st.ValidatorIndexByPubkey(proposerPubkey[:])
+	// Get the proposer index for the slot.
+	proposerIndex, err := st.ValidatorIndexByPubkey(
+		s.signer.PublicKey().Marshal(),
+	)
 	if err != nil {
 		return nil, nil, err
 	}

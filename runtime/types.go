@@ -29,10 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/primitives"
 )
 
 // AppOptions is an interface that provides the ability to
@@ -48,34 +45,4 @@ type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
 	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
 	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
-}
-
-// ValsetUpdater is an interface that provides the
-// ability to apply changes to the validator set.
-type ValsetUpdater interface {
-	IncreaseConsensusPower(
-		ctx context.Context,
-		delegator beacontypes.DepositCredentials,
-		pubkey [bls12381.PubKeyLength]byte,
-		amount uint64,
-		signature []byte,
-		index uint64,
-	) error
-
-	DecreaseConsensusPower(
-		ctx context.Context,
-		delegator primitives.ExecutionAddress,
-		pubkey [bls12381.PubKeyLength]byte,
-		amount uint64,
-	) error
-
-	GetValidatorPubkeyFromConsAddress(
-		ctx context.Context,
-		consAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
-
-	GetValidatorPubkeyFromValAddress(
-		ctx context.Context,
-		valAddr []byte,
-	) ([bls12381.PubKeyLength]byte, error)
 }

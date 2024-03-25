@@ -23,18 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package builder
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	bls "github.com/itsdevbear/comet-bls12-381/bls"
 )
 
-const ModuleName = "beacon"
+// RandaoProcessor defines the interface for processing RANDAO reveals.
+type RandaoProcessor interface {
+	// BuildReveal generates a RANDAO reveal based on the given beacon state.
+	// It returns a Reveal object and any error encountered during the process.
+	BuildReveal(st state.BeaconState) (randaotypes.Reveal, error)
+}
 
-// RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations(
-		(*sdk.Msg)(nil),
-	)
+// Signer is an interface for objects that can sign messages.
+type Signer interface {
+	PublicKey() bls.PubKey
 }

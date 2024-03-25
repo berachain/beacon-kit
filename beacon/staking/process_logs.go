@@ -97,14 +97,13 @@ func (s *Service) processWithdrawalLog(
 	}
 
 	// Get the validator index from the pubkey.
-	validator, err := s.BeaconState(ctx).
-		ValidatorIndexByPubkey(w.FromPubkey)
+	valIdx, err := s.BeaconState(ctx).ValidatorIndexByPubkey(w.FromPubkey)
 	if err != nil {
 		return err
 	}
 
-	executionAddr, err := beacontypes.DepositCredentials(w.Credentials).
-		ToExecutionAddress()
+	executionAddr, err := beacontypes.
+		DepositCredentials(w.Credentials).ToExecutionAddress()
 	if err != nil {
 		return err
 	}
@@ -115,7 +114,7 @@ func (s *Service) processWithdrawalLog(
 
 	return s.BeaconState(ctx).EnqueueWithdrawals([]*enginetypes.Withdrawal{{
 		Index:     w.Index,
-		Validator: validator,
+		Validator: valIdx,
 		Address:   executionAddr,
 		Amount:    w.Amount,
 	}})

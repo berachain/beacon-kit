@@ -7,15 +7,11 @@ replace (
 	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240312054917-baa54a151c5a
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240311143937-fea88d13c52f
-	cosmossdk.io/tools/confix => cosmossdk.io/tools/confix v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/auth => github.com/berachain/cosmos-sdk/x/auth v0.0.0-20240312054917-baa54a151c5a
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240318230110-d72af9a8368e
-	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.2-0.20240311143937-fea88d13c52f
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
 	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240318230110-d72af9a8368e
@@ -28,12 +24,10 @@ require (
 	cosmossdk.io/core v0.12.1-0.20231114100755-569e3ff6a0d7
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
 	cosmossdk.io/log v1.3.1
-	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.0
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/bank v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
 	github.com/bazelbuild/buildtools v0.0.0-20240207142252-03bf520394af
 	github.com/bufbuild/buf v1.30.0
@@ -42,6 +36,7 @@ require (
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.51.0
+	github.com/cosmos/gogoproto v1.4.12
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.5-0.20240306165022-aadcb8867530
 	github.com/ferranbt/fastssz v0.1.4-0.20240321120424-9547d3fe0e9c
@@ -80,6 +75,7 @@ require (
 	connectrpc.com/connect v1.15.0 // indirect
 	connectrpc.com/otelconnect v0.7.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
+	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/x/accounts v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a // indirect
 	cosmossdk.io/x/tx v0.13.1 // indirect
@@ -150,7 +146,6 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/gogoproto v1.4.12 // indirect
 	github.com/cosmos/iavl v1.1.1 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect

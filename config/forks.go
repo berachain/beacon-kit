@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
+// defaultElectraForkEpoch is the default epoch for the electra fork.
 const defaultElectraForkEpoch = 9999999999999999
 
 // Forks conforms to the BeaconKitConfig interface.
