@@ -63,12 +63,11 @@ type BeaconApp struct {
 	txConfig          client.TxConfig
 	interfaceRegistry codectypes.InterfaceRegistry
 
-	// cosmos sdk standard keepers
+	// TODO: should we restructure the relationship between
+	// the BeaconKeeper BeaconKitRuntime?
+	BeaconKeeper          *beaconkeeper.Keeper
+	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
 	ConsensusParamsKeeper consensuskeeper.Keeper
-
-	// beacon-kit custom keepers
-	BeaconKeeper     *beaconkeeper.Keeper
-	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
