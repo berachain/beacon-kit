@@ -34,7 +34,6 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	filedb "github.com/berachain/beacon-kit/db/file"
-	"github.com/berachain/beacon-kit/primitives"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
@@ -85,9 +84,12 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	validatorUpdates := make([]abci.ValidatorUpdate, 0)
 
 	// in the comparisons below we don't care about order, so we use maps to make it easier
-	oldValsetMap := map[uint64]uint64{}
+	oldValsetMap := map[uint64]*beacontypes.Validator{}
 	for i := range oldValset.ValidatorIndices {
-		oldValsetMap[oldValset.ValidatorIndices[i]] = oldValset.ValidatorPowers[i]
+		oldValsetMap[oldValset.ValidatorIndices[i]] = &beacontypes.Validator{
+			Pubkey:           oldValset.ValidatorPubKeys[i],
+			EffectiveBalance: oldValset.ValidatorPowers[i],
+		}
 	}
 
 	newValsetMap := map[uint64]*beacontypes.Validator{}
@@ -97,9 +99,9 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 
 	// check if any of the new validators are in the old valset and update their power if needed
 	for valIdx, v := range newValsetMap {
-		oldPower, ok := oldValsetMap[valIdx]
+		oldVal, ok := oldValsetMap[valIdx]
 		// if not found, add it. If found and the power has changed, update it.
-		if !ok || (ok && v.EffectiveBalance != oldPower) {
+		if !ok || (ok && v.EffectiveBalance != oldVal.EffectiveBalance) {
 			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
 				PubKey: crypto.PublicKey{
 					Sum: &crypto.PublicKey_Bls12381{Bls12381: v.Pubkey[:]},
@@ -111,17 +113,11 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 
 	// now check if any of the old validators are not in the new valset and remove them
 	for valIdx := range oldValsetMap {
-		_, ok := newValsetMap[valIdx]
+		oldVal, ok := newValsetMap[valIdx]
 		if !ok {
-			// if a validator is not in the new valset, get their pubkey and set its power to 0
-			val, err := store.ValidatorByIndex(primitives.ValidatorIndex(valIdx))
-			if err != nil {
-				return nil, err
-			}
-
 			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
 				PubKey: crypto.PublicKey{
-					Sum: &crypto.PublicKey_Bls12381{Bls12381: val.Pubkey[:]},
+					Sum: &crypto.PublicKey_Bls12381{Bls12381: oldVal.Pubkey[:]},
 				},
 				Power: 0,
 			})
@@ -132,10 +128,12 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	newValset := &beacontypes.ValidatorSet{
 		ValidatorIndices: valIdxs,
 		ValidatorPowers:  []uint64{},
+		ValidatorPubKeys: [][48]byte{},
 	}
 
 	for i := range val {
 		newValset.ValidatorPowers = append(newValset.ValidatorPowers, val[i].EffectiveBalance)
+		newValset.ValidatorPubKeys = append(newValset.ValidatorPubKeys, val[i].Pubkey)
 	}
 
 	if err := store.SetLastValidatorSet(newValset); err != nil {

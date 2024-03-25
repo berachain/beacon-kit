@@ -61,8 +61,9 @@ func (v Validator) String() string {
 }
 
 type ValidatorSet struct {
-	ValidatorIndices []uint64 `json:"validatorIndices" ssz-size:"100"`
-	ValidatorPowers  []uint64 `json:"validatorPowers"  ssz-size:"100"`
+	ValidatorIndices []uint64   `json:"validatorIndices" ssz-size:"100"`
+	ValidatorPowers  []uint64   `json:"validatorPowers"  ssz-size:"100"`
+	ValidatorPubKeys [][48]byte `json:"validatorPubKeys" ssz-size:"?,48" ssz-max:"100"`
 }
 
 func (vs ValidatorSet) String() string {
