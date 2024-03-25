@@ -88,13 +88,23 @@ func (s *Service) sendPostBlockFCU(
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		var root primitives.HashRoot
-		root, err := st.GetBlockRootAtIndex(
-			st.GetSlot() % s.BeaconCfg().SlotsPerHistoricalRoot,
+		var (
+			err error
 		)
+		h, err := st.GetLatestBlockHeader()
 		if err != nil {
+			s.Logger().
+				Error("failed to get latest block header in postBlockProcess", "error", err)
 			return
 		}
+
+		root, err := h.HashTreeRoot()
+		if err != nil {
+			s.Logger().
+				Error("failed to get block header root in postBlockProcess", "error", err)
+			return
+		}
+
 		err = s.sendFCUWithAttributes(
 			ctx,
 			headHash,

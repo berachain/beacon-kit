@@ -97,7 +97,6 @@ func (s *Service) RequestBestBlock(
 	if err != nil {
 		return nil, nil, err
 	}
-
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
 		s.signer.PublicKey().Marshal(),
