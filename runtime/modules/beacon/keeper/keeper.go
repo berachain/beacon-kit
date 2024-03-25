@@ -27,7 +27,10 @@ package keeper
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/core/appmodule"
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
@@ -77,7 +80,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	}
 
 	oldValset, err := store.GetLastValidatorSet()
-	if err != nil {
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
 		return nil, err
 	}
 
@@ -85,10 +88,12 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 
 	// in the comparisons below we don't care about order, so we use maps to make it easier
 	oldValsetMap := map[uint64]*beacontypes.Validator{}
-	for i := range oldValset.ValidatorIndices {
-		oldValsetMap[oldValset.ValidatorIndices[i]] = &beacontypes.Validator{
-			Pubkey:           oldValset.ValidatorPubKeys[i],
-			EffectiveBalance: oldValset.ValidatorPowers[i],
+	if oldValset != nil {
+		for i := range oldValset.ValidatorIndices {
+			oldValsetMap[oldValset.ValidatorIndices[i]] = &beacontypes.Validator{
+				Pubkey:           oldValset.ValidatorPubKeys[i],
+				EffectiveBalance: oldValset.ValidatorPowers[i],
+			}
 		}
 	}
 
@@ -140,7 +145,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	}
 
 	if err := store.SetLastValidatorSet(newValset); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to set last validator set: %w", err)
 	}
 
 	return validatorUpdates, nil

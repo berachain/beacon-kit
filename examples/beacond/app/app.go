@@ -32,17 +32,17 @@ import (
 
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	authkeeper "cosmossdk.io/x/auth/keeper"
-	bankkeeper "cosmossdk.io/x/bank/keeper"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -56,9 +56,14 @@ var (
 
 // AppConfig returns the default app config.
 func AppConfig() depinject.Config {
+	addrCdc := addresscodec.NewBech32Codec("bera")
 	return depinject.Configs(
-		// appconfig.LoadYAML(AppConfigYAML),
 		BeaconAppConfig,
+		depinject.Supply(
+			func() address.Codec { return addrCdc },
+			func() runtime.ValidatorAddressCodec { return addrCdc },
+			func() runtime.ConsensusAddressCodec { return addrCdc },
+		),
 	)
 }
 
@@ -74,8 +79,6 @@ type BeaconApp struct {
 	interfaceRegistry codectypes.InterfaceRegistry
 
 	// cosmos sdk standard keepers
-	AccountKeeper         authkeeper.AccountKeeper
-	BankKeeper            bankkeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit custom keepers
@@ -114,8 +117,6 @@ func NewBeaconKitApp(
 		&app.legacyAmino,
 		&app.txConfig,
 		&app.interfaceRegistry,
-		&app.AccountKeeper,
-		&app.BankKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,

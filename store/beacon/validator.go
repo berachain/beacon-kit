@@ -112,7 +112,7 @@ func (s *Store) GetValidatorsByEffectiveBalance(limit int) (
 		return nil, nil, err
 	}
 
-	return nil, vals, nil
+	return valsIdxs, vals, nil
 }
 
 func (s *Store) GetLastValidatorSet() (*beacontypes.ValidatorSet, error) {
@@ -122,5 +122,14 @@ func (s *Store) GetLastValidatorSet() (*beacontypes.ValidatorSet, error) {
 func (s *Store) SetLastValidatorSet(
 	valSet *beacontypes.ValidatorSet,
 ) error {
+	if len(valSet.ValidatorIndices) < 100 {
+		// fill the rest with zeros
+		for i := len(valSet.ValidatorIndices); i < 100; i++ {
+			valSet.ValidatorIndices = append(valSet.ValidatorIndices, 0)
+			valSet.ValidatorPowers = append(valSet.ValidatorPowers, 0)
+			valSet.ValidatorPubKeys = append(valSet.ValidatorPubKeys, [48]byte{})
+		}
+	}
+
 	return s.lastValidatorSet.Set(s.ctx, valSet)
 }
