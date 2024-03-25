@@ -29,8 +29,8 @@ import (
 	"context"
 	"encoding/json"
 
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm
@@ -55,26 +55,18 @@ func (AppModule) ValidateGenesis(
 func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
-) []abci.ValidatorUpdate {
+) ([]appmodulev2.ValidatorUpdate, error) {
 	var gs state.BeaconStateDeneb
 	if err := json.Unmarshal(bz, &gs); err != nil {
-		panic(err)
+		return nil, err
 	}
-	ups, err := am.keeper.InitGenesis(ctx, gs)
-	if err != nil {
-		panic(err)
-	}
-	return ups
+	return am.keeper.InitGenesis(ctx, gs)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
 func (am AppModule) ExportGenesis(
 	ctx context.Context,
-) json.RawMessage {
-	bz, err := json.Marshal(am.keeper.ExportGenesis(ctx))
-	if err != nil {
-		panic(err)
-	}
-	return bz
+) (json.RawMessage, error) {
+	return json.Marshal(am.keeper.ExportGenesis(ctx))
 }

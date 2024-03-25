@@ -28,10 +28,9 @@ package beacon
 import (
 	"context"
 
-	"cosmossdk.io/core/appmodule"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -43,7 +42,7 @@ const (
 )
 
 var (
-	_ appmodule.AppModule    = AppModule{}
+	_ appmodulev2.AppModule  = AppModule{}
 	_ module.HasABCIGenesis  = AppModule{}
 	_ module.HasABCIEndBlock = AppModule{}
 )
@@ -71,7 +70,7 @@ func (am AppModule) Name() string {
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // RegisterInterfaces registers the module's interface types.
-func (am AppModule) RegisterInterfaces(registry.LegacyRegistry) {}
+func (am AppModule) RegisterInterfaces(registry.InterfaceRegistrar) {}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (am AppModule) IsOnePerModuleType() {}
@@ -82,6 +81,6 @@ func (am AppModule) IsAppModule() {}
 // EndBlock returns the validator set updates from the beacon state.
 func (am AppModule) EndBlock(
 	ctx context.Context,
-) ([]abci.ValidatorUpdate, error) {
+) ([]appmodulev2.ValidatorUpdate, error) {
 	return am.keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 }
