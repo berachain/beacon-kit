@@ -4,7 +4,7 @@ go 1.22.0
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api 0e0184dc761b795affc0070ec310da42c7983ffd
+	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240325183213-0e0184dc761b
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240325170708-c46688729fd9
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240325170708-c46688729fd9
 	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240325170708-c46688729fd9
@@ -13,9 +13,9 @@ replace (
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240325170708-c46688729fd9
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240325170708-c46688729fd9
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
-	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk 0e0184dc761b795affc0070ec310da42c7983ffd
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240325183213-0e0184dc761b
 )
+
 require (
 	cosmossdk.io/api v0.7.3
 	cosmossdk.io/client/v2 v2.0.0-20240221095859-541df89f2bb4
