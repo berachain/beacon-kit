@@ -32,13 +32,11 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/berachain/beacon-kit/config"
 	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
 	"github.com/berachain/beacon-kit/examples/beacond/cmd/root"
 )
 
 func main() {
-	config.SetupCosmosConfig()
 	rootCmd := root.NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).

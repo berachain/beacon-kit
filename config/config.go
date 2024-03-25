@@ -27,9 +27,9 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/config/params"
 	"github.com/berachain/beacon-kit/io/cli/parser"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 )
 
@@ -44,10 +44,11 @@ type BeaconKitConfig[T any] interface {
 func DefaultConfig() *Config {
 	return &Config{
 		ABCI:         DefaultABCIConfig(),
-		Beacon:       DefaultBeaconConfig(),
+		Beacon:       params.DefaultBeaconConfig(),
 		Builder:      DefaultBuilderConfig(),
 		Engine:       DefaultEngineConfig(),
 		FeatureFlags: DefaultFeatureFlagsConfig(),
+		Validator:    DefaultValidatorConfig(),
 	}
 }
 
@@ -57,7 +58,7 @@ type Config struct {
 	ABCI ABCI
 
 	// Beacon is the configuration for the fork epochs.
-	Beacon Beacon
+	Beacon params.BeaconChainConfig
 
 	// Builder is the configuration for the local build payload timeout.
 	Builder Builder
@@ -67,6 +68,9 @@ type Config struct {
 
 	// FeatureFlags is the configuration for the feature flags.
 	FeatureFlags FeatureFlags
+
+	// Validator is the configuration for the validator.
+	Validator Validator
 }
 
 // Template returns the configuration template.
@@ -76,21 +80,8 @@ func (c Config) Template() string {
 ###                                BeaconKit                                ###
 ###############################################################################
 ` + c.ABCI.Template() + c.Beacon.Template() +
-		c.Builder.Template() + c.Engine.Template() + c.FeatureFlags.Template()
-}
-
-// SetupCosmosConfig sets up the Cosmos SDK configuration to be compatible with
-// the semantics of ethereum.
-func SetupCosmosConfig() {
-	// set the address prefixes
-	config := sdk.GetConfig()
-
-	// We use CoinType == 60 to match Ethereum.
-	// This is not strictly necessary, though highly recommended.
-	// TODO: add to app config
-	// config.SetCoinType(60) //nolint:gomnd // its okay.
-	// config.SetPurpose(sdk.Purpose)
-	config.Seal()
+		c.Builder.Template() + c.Engine.Template() +
+		c.FeatureFlags.Template() + c.Validator.Template()
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
@@ -119,7 +110,7 @@ func readConfigFromAppOptsParser(
 		err       error
 		conf      = &Config{}
 		engineCfg *Engine
-		beaconCfg *Beacon
+		beaconCfg *params.BeaconChainConfig
 		abciCfg   *ABCI
 	)
 
@@ -131,7 +122,7 @@ func readConfigFromAppOptsParser(
 	conf.ABCI = *abciCfg
 
 	// Read Beacon Config
-	beaconCfg, err = Beacon{}.Parse(parser)
+	beaconCfg, err = params.BeaconChainConfig{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +174,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
-		defaultCfg.Beacon.Validator.SuggestedFeeRecipient.Hex(),
+		defaultCfg.Validator.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
 	)
 }

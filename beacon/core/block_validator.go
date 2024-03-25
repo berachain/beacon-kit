@@ -30,17 +30,17 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/config/params"
 )
 
 // BlockValidator is responsible for validating incoming
 // BeaconBlocks.
 type BlockValidator struct {
-	cfg *config.Beacon
+	cfg *params.BeaconChainConfig
 }
 
 // NewBlockValidator creates a new block validator.
-func NewBlockValidator(cfg *config.Beacon) *BlockValidator {
+func NewBlockValidator(cfg *params.BeaconChainConfig) *BlockValidator {
 	return &BlockValidator{
 		cfg: cfg,
 	}
@@ -71,16 +71,16 @@ func (bv *BlockValidator) ValidateBlock(
 
 	if deposits := body.GetDeposits(); uint64(
 		len(deposits),
-	) > bv.cfg.Limits.MaxDepositsPerBlock {
+	) > bv.cfg.MaxDepositsPerBlock {
 		return fmt.Errorf(
 			"too many deposits, expected: %d, got: %d",
-			bv.cfg.Limits.MaxDepositsPerBlock, len(deposits),
+			bv.cfg.MaxDepositsPerBlock, len(deposits),
 		)
 	}
 
 	// Ensure the parent block root matches what we have locally.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		(st.GetSlot() - 1) % bv.cfg.Limits.SlotsPerHistoricalRoot)
+		(blk.GetSlot() - 1) % bv.cfg.SlotsPerHistoricalRoot)
 	if err != nil {
 		return err
 	}

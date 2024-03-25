@@ -41,39 +41,32 @@ const (
 	RequiredChainID         = engineRoot + "required-chain-id"
 
 	// Beacon Config.
-	beaconConfigRoot   = beaconKitRoot + "beacon-config."
-	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
+	BeaconKitAcceptTos        = beaconKitRoot + "accept-tos"
+	beaconChainRoot           = beaconKitRoot + "beacon-chain."
+	MinDepositAmount          = beaconChainRoot + "min-deposit-amount"
+	MaxEffectiveBalance       = beaconChainRoot + "max-effective-balance"
+	SlotsPerEpoch             = beaconChainRoot + "slots-per-epoch"
+	SlotsPerHistoricalRoot    = beaconChainRoot + "slots-per-historical-root"
+	DepositContractAddress    = beaconChainRoot + "deposit-contract-address"
+	ElectraForkEpoch          = beaconChainRoot + "electra-fork-epoch"
+	EpochsPerHistoricalVector = beaconChainRoot + "epochs-per-historical-vector"
+	MaxDepositsPerBlock       = beaconChainRoot + "max-deposits-per-block"
+	MaxWithdrawalsPerPayload  = beaconChainRoot + "max-withdrawals-per-payload"
 
 	// Builder Config.
 	builderRoot              = beaconKitRoot + "builder."
 	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
 	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
 
-	// Fork Config.
-	forkRoot         = beaconConfigRoot + "forks."
-	SlotsPerEpoch    = forkRoot + "slots-per-epoch"
-	ElectraForkEpoch = forkRoot + "electra-fork-epoch"
-
 	// Validator Config.
-	validator               = beaconConfigRoot + "validator."
+	validator               = beaconKitRoot + "validator."
 	SuggestedFeeRecipient   = validator + "suggested-fee-recipient"
 	Graffiti                = validator + "graffiti"
 	NumRandaoRevealsToTrack = validator + "num-randao-reveals-to-track"
 
-	// Execution Config.
-	executionRoot          = beaconConfigRoot + "execution."
-	DepositContractAddress = executionRoot + "deposit-contract-address"
-
 	// FeatureFlags Config.
 	featureFlagsRoot = beaconKitRoot + "feature-flags."
 	_                = featureFlagsRoot
-
-	// Limits Config.
-	limitsRoot                = beaconConfigRoot + "limits."
-	EpochsPerHistoricalVector = limitsRoot + "epochs-per-historical-vector"
-	SlotsPerHistoricalRoot    = limitsRoot + "slots-per-historical-root"
-	MaxDeposits               = limitsRoot + "max-deposits-per-block"
-	MaxWithdrawals            = limitsRoot + "max-withdrawals-per-payload"
 
 	// ABCI Config.
 	abciRoot                  = beaconKitRoot + "abci."

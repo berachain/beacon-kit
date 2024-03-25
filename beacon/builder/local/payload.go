@@ -249,7 +249,7 @@ func (s *Service) getPayloadAttribute(
 
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals(
-		s.BeaconCfg().Limits.MaxWithdrawalsPerPayload,
+		s.BeaconCfg().MaxWithdrawalsPerPayload,
 	)
 	if err != nil {
 		s.Logger().Error(
@@ -259,7 +259,7 @@ func (s *Service) getPayloadAttribute(
 
 	// Get the previous randao mix.
 	prevRandao, err = st.RandaoMixAtIndex(
-		st.GetSlot() % s.BeaconCfg().Limits.EpochsPerHistoricalVector,
+		(slot - 1) % s.BeaconCfg().EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return nil, err
@@ -269,7 +269,7 @@ func (s *Service) getPayloadAttribute(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
-		s.BeaconCfg().Validator.SuggestedFeeRecipient,
+		s.validatorCfg.SuggestedFeeRecipient,
 		withdrawals,
 		prevHeadRoot,
 	)

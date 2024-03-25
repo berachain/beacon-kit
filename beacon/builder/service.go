@@ -93,11 +93,10 @@ func (s *Service) RequestBestBlock(
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		(st.GetSlot() - 1) % s.BeaconCfg().Limits.SlotsPerHistoricalRoot)
+		(st.GetSlot() - 1) % s.BeaconCfg().SlotsPerHistoricalRoot)
 	if err != nil {
 		return nil, nil, err
 	}
-
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
 		s.signer.PublicKey().Marshal(),
@@ -153,7 +152,7 @@ func (s *Service) RequestBestBlock(
 
 	// Dequeue deposits from the state.
 	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
-		s.BeaconCfg().Limits.MaxDepositsPerBlock,
+		s.BeaconCfg().MaxDepositsPerBlock,
 	)
 	if err != nil {
 		return nil, nil, err

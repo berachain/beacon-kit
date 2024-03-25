@@ -151,6 +151,7 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithBuilderConfig(&cfg.Builder),
 		localbuilder.WithExecutionService(executionService),
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+		localbuilder.WithValidatorConfig(&cfg.Validator),
 	)
 
 	// Build the Randao Processor.

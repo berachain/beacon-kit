@@ -151,16 +151,19 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	// Set the genesis block root.
-	if err := st.UpdateBlockRootAtIndex(0, [32]byte{}); err != nil {
-		return nil, err
-	}
-
 	// Set the genesis block data.
 	fcs := k.ForkchoiceStore(ctx)
 	fcs.SetGenesisEth1Hash(data.Eth1GenesisHash)
 	fcs.SetSafeEth1BlockHash(data.Eth1GenesisHash)
 	fcs.SetFinalizedEth1BlockHash(data.Eth1GenesisHash)
+
+	emptyHeader := &beacontypes.BeaconBlockHeader{
+		Slot:          0,
+		ProposerIndex: 0,
+		ParentRoot:    [32]byte{},
+		StateRoot:     [32]byte{},
+		BodyRoot:      [32]byte{},
+	}
 
 	// Set the genesis block header.
 	if err := st.SetLatestBlockHeader(
@@ -175,6 +178,16 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
+	headerHtr, err := emptyHeader.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the genesis block root.
+	if err = st.UpdateBlockRootAtIndex(0, headerHtr); err != nil {
+		return nil, err
+	}
+
 	// TODO: don't need to set any validators here if we are setting in
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
@@ -182,7 +195,7 @@ func (k *Keeper) InitGenesis(
 	store := k.beaconStore.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for _, validator := range data.Validators {
-		if err := store.AddValidator(validator); err != nil {
+		if err = store.AddValidator(validator); err != nil {
 			return nil, err
 		}
 

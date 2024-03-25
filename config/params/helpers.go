@@ -23,15 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package params
 
-// Network is the network configuration from the CometBFT config.
-//
-// The configure inherits the CometBFT config so it does not need
-// to follow the BeaconKitConfig interface. Instead this config
-// is fetched directly from AppOpts via DepInject.
-type Network struct {
-	// ChainID is the CometBFT chain ID,
-	// which is a string, less than 50 bytes.
-	ChainID string
+import (
+	"github.com/berachain/beacon-kit/config/version"
+	"github.com/berachain/beacon-kit/primitives"
+)
+
+// ActiveForkVersion returns the active fork version for a given slot.
+func (c BeaconChainConfig) ActiveForkVersion(slot primitives.Slot) uint32 {
+	return c.ActiveForkVersionByEpoch(c.SlotToEpoch(slot))
+}
+
+// ActiveForkVersionBySlot returns the active fork version for a given epoch.
+func (c BeaconChainConfig) ActiveForkVersionByEpoch(
+	epoch primitives.Epoch,
+) uint32 {
+	if epoch >= c.ElectraForkEpoch {
+		return version.Electra
+	}
+
+	// In BeaconKit we assume the Deneb fork is always active.
+	return version.Deneb
+}
+
+// SlotToEpoch converts a slot to an epoch.
+func (c BeaconChainConfig) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
+	return slot / c.SlotsPerEpoch
 }

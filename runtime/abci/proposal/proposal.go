@@ -91,6 +91,11 @@ func (h *Handler) PrepareProposalHandler(
 		}
 	}()
 
+	// Process the Slot to set the state root for the block.
+	if err := h.chainService.ProcessSlot(ctx); err != nil {
+		return &abci.ResponsePrepareProposal{}, err
+	}
+
 	// We start by requesting the validator service to build us a block. This
 	// may be from pulling a previously built payload from the local cache or it
 	// may be by asking for a forkchoice from the execution client, depending on
