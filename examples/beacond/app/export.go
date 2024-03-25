@@ -27,12 +27,10 @@ package app
 
 import (
 	"encoding/json"
-	"log"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a
@@ -53,7 +51,7 @@ func (app *BeaconApp) ExportAppStateAndValidators(
 	height := app.LastBlockHeight() + 1
 	if forZeroHeight {
 		height = 0
-		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
+		panic("not supported, just look at the genesis file u goofy")
 	}
 
 	genState, err := app.ModuleManager.ExportGenesisForModules(
@@ -75,61 +73,4 @@ func (app *BeaconApp) ExportAppStateAndValidators(
 		Height:          height,
 		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
 	}, err
-}
-
-// prepare for fresh start at zero height
-// NOTE zero height genesis is a temporary feature which will be deprecated
-//
-//	in favor of export at a block height
-func (app *BeaconApp) prepForZeroHeightGenesis(
-	ctx sdk.Context,
-	jailAllowedAddrs []string,
-) {
-	// applyAllowedAddrs := false
-
-	// // check if there is a allowed address list
-	// if len(jailAllowedAddrs) > 0 {
-	// 	applyAllowedAddrs = true
-	// }
-
-	allowedAddrsMap := make(map[string]bool)
-
-	for _, addr := range jailAllowedAddrs {
-		_, err := sdk.ValAddressFromBech32(addr)
-		if err != nil {
-			log.Fatal(err)
-		}
-		allowedAddrsMap[addr] = true
-	}
-
-	/* Handle fee distribution state. */
-
-	// set context height to zero
-	height := ctx.BlockHeight()
-	ctx = ctx.WithBlockHeight(0)
-
-	// reset context height
-	ctx = ctx.WithBlockHeight(height)
-
-	/* Handle staking state. */
-
-	/* Handle slashing state. */
-
-	// // reset start height on signing infos
-	// err = app.SlashingKeeper.ValidatorSigningInfo.Walk(
-	// 	ctx,
-	// 	nil,
-	// 	func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo)
-	// (stop bool, err error) {
-	// 		info.StartHeight = 0
-	// 		err = app.SlashingKeeper.ValidatorSigningInfo.Set(ctx, addr, info)
-	// 		if err != nil {
-	// 			return true, err
-	// 		}
-	// 		return false, nil
-	// 	},
-	// )
-	// if err != nil {
-	// 	panic(err)
-	// }
 }
