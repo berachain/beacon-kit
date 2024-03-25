@@ -56,7 +56,6 @@ var (
 					EndBlockers: []string{
 						beacon.ModuleName,
 					},
-
 					InitGenesis: []string{
 						beacon.ModuleName,
 					},
