@@ -42,9 +42,8 @@ const (
 )
 
 var (
-	_ appmodulev2.AppModule = AppModule{}
-	_ module.HasABCIGenesis = AppModule{}
-	// _ appmodulev2.HasUpdateValidators = AppModule{}.
+	_ appmodulev2.AppModule  = AppModule{}
+	_ module.HasABCIGenesis  = AppModule{}
 	_ module.HasABCIEndBlock = AppModule{}
 )
 
