@@ -72,43 +72,76 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]abci.ValidatorUpdate, error) {
 	store := k.beaconStore.WithContext(ctx)
-	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
+	valIdxs, val, err := store.GetValidatorsByEffectiveBalance(100)
 	if err != nil {
 		panic(err)
 	}
 
-	validatorUpdates := make([]abci.ValidatorUpdate, 0)
-	for _, validator := range val {
-		pk := crypto.PublicKey{
-			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
-		}
+	oldValset, err := store.GetLastValidatorSet()
+	if err != nil {
+		return nil, err
+	}
 
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
-			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey[:])
+	validatorUpdates := make([]abci.ValidatorUpdate, 0)
+
+	// in the comparisons below we don't care about order, so we use maps to make it easier
+	oldValsetMap := map[uint64]uint64{}
+	for i := range oldValset.ValidatorIndices {
+		oldValsetMap[oldValset.ValidatorIndices[i]] = oldValset.ValidatorPowers[i]
+	}
+
+	newValsetMap := map[uint64]*beacontypes.Validator{}
+	for i := range valIdxs {
+		newValsetMap[valIdxs[i]] = val[i]
+	}
+
+	// check if any of the new validators are in the old valset and update their power if needed
+	for valIdx, v := range newValsetMap {
+		oldPower, ok := oldValsetMap[valIdx]
+		// if not found, add it. If found and the power has changed, update it.
+		if !ok || (ok && v.EffectiveBalance != oldPower) {
+			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+				PubKey: crypto.PublicKey{
+					Sum: &crypto.PublicKey_Bls12381{Bls12381: v.Pubkey[:]},
+				},
+				Power: int64(v.EffectiveBalance),
+			})
+		}
+	}
+
+	// now check if any of the old validators are not in the new valset and remove them
+	for valIdx := range oldValsetMap {
+		_, ok := newValsetMap[valIdx]
+		if !ok {
+			// if a validator is not in the new valset, get their pubkey and set its power to 0
+			val, err := store.ValidatorByIndex(primitives.ValidatorIndex(valIdx))
 			if err != nil {
 				return nil, err
 			}
-			if err = store.WithContext(ctx).
-				RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
 
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: pk,
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
+			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+				PubKey: crypto.PublicKey{
+					Sum: &crypto.PublicKey_Bls12381{Bls12381: val.Pubkey[:]},
+				},
+				Power: 0,
+			})
+		}
 	}
+
+	// create the new valset to store
+	newValset := &beacontypes.ValidatorSet{
+		ValidatorIndices: valIdxs,
+		ValidatorPowers:  []uint64{},
+	}
+
+	for i := range val {
+		newValset.ValidatorPowers = append(newValset.ValidatorPowers, val[i].EffectiveBalance)
+	}
+
+	if err := store.SetLastValidatorSet(newValset); err != nil {
+		return nil, err
+	}
+
 	return validatorUpdates, nil
 }
 

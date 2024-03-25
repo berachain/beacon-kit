@@ -25,7 +25,11 @@
 
 package types
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"fmt"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 // Validator is a struct that represents a validator in the beacon chain.
 // Validator represents a participant in the beacon chain consensus mechanism.
@@ -54,4 +58,13 @@ type validatorJSONMarshaling struct {
 // String returns a string representation of the Validator.
 func (v Validator) String() string {
 	return string(v.Pubkey[:])
+}
+
+type ValidatorSet struct {
+	ValidatorIndices []uint64 `json:"validatorIndices" ssz-size:"100"`
+	ValidatorPowers  []uint64 `json:"validatorPowers"  ssz-size:"100"`
+}
+
+func (vs ValidatorSet) String() string {
+	return fmt.Sprintf("ValidatorSet{Indices: %v, Powers: %v}", vs.ValidatorIndices, vs.ValidatorPowers)
 }

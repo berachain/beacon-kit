@@ -26,6 +26,8 @@
 package beacon
 
 import (
+	"cosmossdk.io/collections"
+	"cosmossdk.io/collections/indexes"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -84,13 +86,12 @@ func (s *Store) ValidatorByIndex(
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (s *Store) GetValidatorsByEffectiveBalance() (
-	[]*beacontypes.Validator, error,
+func (s *Store) GetValidatorsByEffectiveBalance(limit int) (
+	[]uint64, []*beacontypes.Validator, error,
 ) {
 	var (
-		vals []*beacontypes.Validator
-		v    *beacontypes.Validator
-		idx  primitives.ValidatorIndex
+		vals     []*beacontypes.Validator
+		valsIdxs []uint64
 	)
 
 	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(
@@ -98,19 +99,28 @@ func (s *Store) GetValidatorsByEffectiveBalance() (
 		nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Iterate over all validators and collect them.
-	for ; iter.Valid(); iter.Next() {
-		idx, err = iter.PrimaryKey()
-		if err != nil {
-			return nil, err
-		}
-		if v, err = s.validators.Get(s.ctx, idx); err != nil {
-			return nil, err
-		}
-		vals = append(vals, v)
+	err = indexes.ScanKeyValues(s.ctx, s.validators, iter, func(kv collections.KeyValue[uint64, *beacontypes.Validator]) (stop bool) {
+		vals = append(vals, kv.Value)
+		valsIdxs = append(valsIdxs, kv.Key)
+		return limit > 0 && len(vals) == limit
+	})
+	if err != nil {
+		return nil, nil, err
 	}
-	return vals, nil
+
+	return nil, vals, nil
+}
+
+func (s *Store) GetLastValidatorSet() (*beacontypes.ValidatorSet, error) {
+	return s.lastValidatorSet.Get(s.ctx)
+}
+
+func (s *Store) SetLastValidatorSet(
+	valSet *beacontypes.ValidatorSet,
+) error {
+	return s.lastValidatorSet.Set(s.ctx, valSet)
 }

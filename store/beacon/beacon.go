@@ -70,6 +70,9 @@ type Store struct {
 
 	// latestBeaconBlockHeader stores the latest beacon block header.
 	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
+
+	// lastValidatorSet stores the latest validator set with validator index and power.
+	lastValidatorSet sdkcollections.Item[*beacontypes.ValidatorSet]
 }
 
 // Store creates a new instance of Store.
@@ -132,6 +135,12 @@ func NewStore(
 			sdkcollections.NewPrefix(latestBeaconBlockHeaderPrefix),
 			latestBeaconBlockHeaderPrefix,
 			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
+		),
+		lastValidatorSet: sdkcollections.NewItem[*beacontypes.ValidatorSet](
+			schemaBuilder,
+			sdkcollections.NewPrefix(lastValidatorSetPrefix),
+			lastValidatorSetPrefix,
+			encoding.SSZValueCodec[*beacontypes.ValidatorSet]{},
 		),
 	}
 }
