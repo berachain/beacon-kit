@@ -72,6 +72,8 @@ cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f h1:E7UVQk1onNvksv0W0HTPtwa
 cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f/go.mod h1:ca/peKvDEvelyhTsfzPyETxTavpMzPMMTJASapsLh/w=
 cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 h1:XQJj9Dv9Gtze0l2TF79BU5lkP6MkUveTUuKICmxoz+o=
 cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190/go.mod h1:7WUGupOvmlHJoIMBz1JbObQxeo6/TDiuDBxmtod8HRg=
+cosmossdk.io/x/staking v0.0.0-20240311143937-fea88d13c52f h1:o5Lml9IbEipOFmQaTXWtaziTCnlRAJWQxh4D/jOUvkc=
+cosmossdk.io/x/staking v0.0.0-20240311143937-fea88d13c52f/go.mod h1:QLbkwQbhYkklVqSm4YcNjNjGF1ga3ontWhxLK01qfxI=
 cosmossdk.io/x/tx v0.13.1 h1:Mg+EMp67Pz+NukbJqYxuo8uRp7N/a9uR+oVS9pONtj8=
 cosmossdk.io/x/tx v0.13.1/go.mod h1:CBCU6fsRVz23QGFIQBb1DNX2DztJCf3jWyEkHY2nJQ0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
@@ -184,8 +186,6 @@ github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240318230110-d72af9a8368e h1:5
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240318230110-d72af9a8368e/go.mod h1:hQxp1SZ+8kRzF8yRSsvkyWhi+U++rpy9m3QWTxxF0zY=
 github.com/berachain/cosmos-sdk/api v0.4.2-0.20240312054917-baa54a151c5a h1:VE7FlLqJU1aXCEgx+mAiY4OqKN4vJD8Zn8qlMVxYPlY=
 github.com/berachain/cosmos-sdk/api v0.4.2-0.20240312054917-baa54a151c5a/go.mod h1:HeHwDUAdOxVmKdon59hCbnipUkAaWGfkGMRenWUUQd8=
-github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240318230110-d72af9a8368e h1:wGxlgOtqp50UCBNUJuz7yx478CqHvkZyLuTr24oP+9s=
-github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240318230110-d72af9a8368e/go.mod h1:GpWSmSkzhpr9+CAKhIFBvTAiu4kAim5dWBbgqsp5xqc=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 h1:41iFGWnSlI2gVpmOtVTJZNodLdLQLn/KsJqFvXwnd/s=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
