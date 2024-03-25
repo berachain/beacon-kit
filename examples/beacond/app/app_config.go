@@ -41,10 +41,8 @@ import (
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 
 	_ "cosmossdk.io/x/auth"
-	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
-	_ "cosmossdk.io/x/bank"           // import for side-effects
-	_ "github.com/berachain/beacon-kit/runtime/modules/beacon"
-	_ "github.com/berachain/beacon-kit/runtime/modules/beacon/api/v1alpha1"
+	_ "cosmossdk.io/x/auth/tx/config"            // import for side-effects
+	_ "cosmossdk.io/x/bank"                      // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 )
 
