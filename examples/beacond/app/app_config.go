@@ -79,8 +79,8 @@ func AppConfig() depinject.Config {
 		}),
 		depinject.Supply(
 			func() address.Codec { return addrCdc },
-			func() runtime.ValidatorAddressCodec { return addrCdc },
-			func() runtime.ConsensusAddressCodec { return addrCdc },
+			func() address.ValidatorAddressCodec { return addrCdc },
+			func() address.ConsensusAddressCodec { return addrCdc },
 		),
 	)
 }

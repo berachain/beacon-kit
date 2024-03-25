@@ -4,16 +4,16 @@ go 1.22.0
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240312054917-baa54a151c5a
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240311143937-fea88d13c52f
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240311143937-fea88d13c52f
+	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240325184954-fae9fbd80a0a
+	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240325170708-c46688729fd9
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240325170708-c46688729fd9
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240325170708-c46688729fd9
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240325170708-c46688729fd9
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240325170708-c46688729fd9
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240325170708-c46688729fd9
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240325170708-c46688729fd9
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
-	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240318230110-d72af9a8368e
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240325184954-fae9fbd80a0a
 )
 
 require (
@@ -302,7 +302,7 @@ require (
 	github.com/leonklingele/grouper v1.1.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
-	github.com/linxGnu/grocksdb v1.8.12 // indirect
+	github.com/linxGnu/grocksdb v1.8.14 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lufeee/execinquery v1.2.1 // indirect
 	github.com/macabu/inamedparam v0.1.3 // indirect
