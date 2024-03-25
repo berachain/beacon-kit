@@ -35,7 +35,7 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		MaxEffectiveBalance: uint64(32e9),
 		// Time parameters constants.
 		SlotsPerEpoch:          1,
-		SlotsPerHistoricalRoot: 2,
+		SlotsPerHistoricalRoot: 1,
 		// Eth1-related values.
 		DepositContractAddress: common.HexToAddress(
 			"0x00000000219ab540356cbb839cbe05303d7705fa",
