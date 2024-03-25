@@ -35,8 +35,8 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	authtypes "cosmossdk.io/x/auth/types"
 	banktypes "cosmossdk.io/x/bank/types"
+	"github.com/berachain/beacon-kit/runtime/modules/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
-	beacontypes "github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 
@@ -67,16 +67,11 @@ var (
 			{
 				Name: runtime.ModuleName,
 				Config: appconfig.WrapAny(&runtimev1alpha1.Module{
-					AppName: AppName,
-					// NOTE: upgrade module is required to be prioritized
-					PreBlockers: []string{},
-					// During begin block slashing happens after
-					// distr.BeginBlocker so that there is nothing left over in
-					// the validator fee pool, so as to keep the
-					// CanWithdrawInvariant invariant happy.
+					AppName:       AppName,
+					PreBlockers:   []string{},
 					BeginBlockers: []string{},
 					EndBlockers: []string{
-						beacontypes.ModuleName,
+						beacon.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
 						{
@@ -84,23 +79,11 @@ var (
 							KvStoreKey: "acc",
 						},
 					},
-					// NOTE: The genutils module must occur after staking so
-					// that pools are
-					// properly initialized with tokens from genesis accounts.
-					// NOTE: The genutils module must also occur after auth so
-					// that it can access the params from auth.
 					InitGenesis: []string{
 						authtypes.ModuleName,
 						banktypes.ModuleName,
-						beacontypes.ModuleName,
+						beacon.ModuleName,
 					},
-					// When ExportGenesis is not specified, the export genesis
-					// module order
-					// is equal to the init genesis order
-					// ExportGenesis: []string{},
-					// Uncomment if you want to set a custom migration order
-					// here.
-					// OrderMigrations: []string{},
 				}),
 			},
 			{
@@ -131,7 +114,7 @@ var (
 				Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
 			},
 			{
-				Name:   beacontypes.ModuleName,
+				Name:   beacon.ModuleName,
 				Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
 			},
 		},

@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package evm
+package beacon
 
 import (
 	"context"
@@ -31,22 +31,21 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"google.golang.org/grpc"
 )
 
-// ConsensusVersion defines the current x/beacon module consensus version.
-const ConsensusVersion = 1
+const (
+	// ConsensusVersion defines the current x/beacon module consensus version.
+	ConsensusVersion = 1
+	// ModuleName is the module name constant used in many places.
+	ModuleName = "beacon"
+)
 
 var (
-	_ appmodule.HasServices        = AppModule{}
-	_ appmodule.AppModule          = AppModule{}
-	_ module.HasRegisterInterfaces = AppModule{}
-	_ appmodule.HasServices        = AppModule{}
-	_ module.HasABCIGenesis        = AppModule{}
-	_ module.HasABCIEndBlock       = AppModule{}
+	_ appmodule.AppModule    = AppModule{}
+	_ module.HasABCIGenesis  = AppModule{}
+	_ module.HasABCIEndBlock = AppModule{}
 )
 
 // AppModule implements an application module for the evm module.
@@ -65,22 +64,14 @@ func NewAppModule(
 
 // Name is the name of this module.
 func (am AppModule) Name() string {
-	return types.ModuleName
+	return ModuleName
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // RegisterInterfaces registers the module's interface types.
-func (am AppModule) RegisterInterfaces(r registry.LegacyRegistry) {
-	types.RegisterInterfaces(r)
-}
-
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(registrar grpc.ServiceRegistrar) error {
-	types.RegisterMsgServer(registrar, am.keeper)
-	return nil
-}
+func (am AppModule) RegisterInterfaces(registry.LegacyRegistry) {}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (am AppModule) IsOnePerModuleType() {}
