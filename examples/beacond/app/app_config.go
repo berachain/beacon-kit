@@ -28,93 +28,59 @@ package app
 import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
-	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
-	bankmodulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
+	"cosmossdk.io/core/address"
+	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	authtypes "cosmossdk.io/x/auth/types"
-	banktypes "cosmossdk.io/x/bank/types"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 
-	_ "cosmossdk.io/x/auth"
 	_ "cosmossdk.io/x/auth/tx/config"            // import for side-effects
-	_ "cosmossdk.io/x/bank"                      // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
 )
 
 const AppName = "BeaconKitApp"
 
-var (
-	// module account permissions
-	moduleAccPerms = []*authmodulev1.ModuleAccountPermission{
-		{Account: authtypes.FeeCollectorName},
-	}
-
-	// blocked account addresses
-	blockAccAddrs = []string{
-		authtypes.FeeCollectorName,
-	}
-
-	// application configuration (used by depinject)
-	BeaconAppConfig = appconfig.Compose(&appv1alpha1.Config{
-		Modules: []*appv1alpha1.ModuleConfig{
-			{
-				Name: runtime.ModuleName,
-				Config: appconfig.WrapAny(&runtimev1alpha1.Module{
-					AppName:       AppName,
-					PreBlockers:   []string{},
-					BeginBlockers: []string{},
-					EndBlockers: []string{
-						beacon.ModuleName,
-					},
-					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
-						{
-							ModuleName: authtypes.ModuleName,
-							KvStoreKey: "acc",
-						},
-					},
-					InitGenesis: []string{
-						authtypes.ModuleName,
-						banktypes.ModuleName,
-						beacon.ModuleName,
-					},
-				}),
+// AppConfig returns the default app config.
+func AppConfig() depinject.Config {
+	addrCdc := addresscodec.NewBech32Codec("bera")
+	return depinject.Configs(
+		appconfig.Compose(&appv1alpha1.Config{
+			Modules: []*appv1alpha1.ModuleConfig{
+				{
+					Name: runtime.ModuleName,
+					Config: appconfig.WrapAny(&runtimev1alpha1.Module{
+						AppName:       AppName,
+						PreBlockers:   []string{},
+						BeginBlockers: []string{},
+						EndBlockers:   []string{beacon.ModuleName},
+						InitGenesis:   []string{beacon.ModuleName},
+					}),
+				},
+				{
+					Name:   beacon.ModuleName,
+					Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
+				},
+				{
+					Name:   consensustypes.ModuleName,
+					Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
+				},
+				{
+					Name: "tx",
+					Config: appconfig.WrapAny(&txconfigv1.Config{
+						SkipAnteHandler: true,
+					}),
+				},
 			},
-			{
-				Name: authtypes.ModuleName,
-				Config: appconfig.WrapAny(&authmodulev1.Module{
-					Bech32Prefix:             "cosmos",
-					ModuleAccountPermissions: moduleAccPerms,
-					// By default modules authority is the governance module.
-					// This is configurable with the following: Authority:
-					// "group", // A custom module authority can be set using a
-					// module name Authority:
-					// "cosmos1cwwv22j5ca08ggdv9c2uky355k908694z577tv", // or a
-					// specific address
-				}),
-			},
-			{
-				Name: banktypes.ModuleName,
-				Config: appconfig.WrapAny(&bankmodulev1.Module{
-					BlockedModuleAccountsOverride: blockAccAddrs,
-				}),
-			},
-			{
-				Name:   "tx",
-				Config: appconfig.WrapAny(&txconfigv1.Config{}),
-			},
-			{
-				Name:   consensustypes.ModuleName,
-				Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
-			},
-			{
-				Name:   beacon.ModuleName,
-				Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
-			},
-		},
-	})
-)
+		}),
+		depinject.Supply(
+			func() address.Codec { return addrCdc },
+			func() runtime.ValidatorAddressCodec { return addrCdc },
+			func() runtime.ConsensusAddressCodec { return addrCdc },
+		),
+	)
+}

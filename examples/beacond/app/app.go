@@ -35,8 +35,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	authkeeper "cosmossdk.io/x/auth/keeper"
-	bankkeeper "cosmossdk.io/x/bank/keeper"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	dbm "github.com/cosmos/cosmos-db"
@@ -54,14 +52,6 @@ var (
 	_ servertypes.Application = (*BeaconApp)(nil)
 )
 
-// AppConfig returns the default app config.
-func AppConfig() depinject.Config {
-	return depinject.Configs(
-		// appconfig.LoadYAML(AppConfigYAML),
-		BeaconAppConfig,
-	)
-}
-
 // BeaconApp extends an ABCI application, but with most of its parameters
 // exported.
 // They are exported for convenience in creating helper functions, as object
@@ -74,8 +64,6 @@ type BeaconApp struct {
 	interfaceRegistry codectypes.InterfaceRegistry
 
 	// cosmos sdk standard keepers
-	AccountKeeper         authkeeper.AccountKeeper
-	BankKeeper            bankkeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// beacon-kit custom keepers
@@ -114,8 +102,6 @@ func NewBeaconKitApp(
 		&app.legacyAmino,
 		&app.txConfig,
 		&app.interfaceRegistry,
-		&app.AccountKeeper,
-		&app.BankKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,

@@ -74,10 +74,6 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	# # Set moniker and chain-id (Moniker can be anything, chain-id must be an integer)
 	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR" --beacon-kit.accept-tos
 	
-	# Set client config
-	./build/bin/beacond config set client keyring-backend $KEYRING --home "$HOMEDIR"
-	./build/bin/beacond config set client chain-id "$CHAINID" --home "$HOMEDIR"
-
 	# Change parameter token denominations to abgt
 	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
