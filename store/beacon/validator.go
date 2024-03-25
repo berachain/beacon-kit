@@ -50,7 +50,7 @@ func (s *Store) UpdateValidatorAtIndex(
 	return s.validators.Set(s.ctx, index, val)
 }
 
-// AddValidator registers a new validator in the beacon state.
+// RemoveValidatorAtIndex removes a validator at a specified index.
 func (s *Store) RemoveValidatorAtIndex(
 	idx primitives.ValidatorIndex,
 ) error {
@@ -82,8 +82,8 @@ func (s *Store) ValidatorByIndex(
 	return val, err
 }
 
-// GetValidatorsByEffectiveBalance retrieves all validators from the
-// beacon state.
+// GetValidatorsByEffectiveBalance retrieves all validators sorted by
+// effective balance from the beacon state.
 func (s *Store) GetValidatorsByEffectiveBalance() (
 	[]*beacontypes.Validator, error,
 ) {

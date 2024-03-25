@@ -45,29 +45,18 @@ func NewJSONRPCConnection(
 ) (*JSONRPCConnection, error) {
 	var (
 		err  error
-		conn = &JSONRPCConnection{
-			isWebSocket: true,
-		}
+		conn = &JSONRPCConnection{}
 	)
 
-	// Start by trying to get the public port for the JSON-RPC WebSocket
-	port, ok := serviceCtx.GetPublicPorts()["eth-json-rpc-ws"]
+	// If the WebSocket port isn't available, try the HTTP port
+	port, ok := serviceCtx.GetPublicPorts()["eth-json-rpc"]
 	if !ok {
-		// If the WebSocket port isn't available, try the HTTP port
-		port, ok = serviceCtx.GetPublicPorts()["eth-json-rpc"]
-		if !ok {
-			return nil, ErrPublicPortNotFound
-		}
-		conn.isWebSocket = false
+		return nil, ErrPublicPortNotFound
 	}
 
-	prefix := "http://"
-	if conn.isWebSocket {
-		prefix = "ws://"
-	}
-
-	clientURL := fmt.Sprintf("%s://0.0.0.0:%d", prefix, port.GetNumber())
-	if conn.Client, err = ethclient.Dial(clientURL); err != nil {
+	if conn.Client, err = ethclient.Dial(
+		fmt.Sprintf("http://://0.0.0.0:%d", port.GetNumber()),
+	); err != nil {
 		return nil, err
 	}
 

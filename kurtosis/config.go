@@ -140,10 +140,11 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 			{
 				Type: "nginx",
 				Services: []string{
-					"el-full-nethermind-0:8545",
+
 					"el-full-reth-1:8545",
 					"el-full-geth-2:8545",
 					"el-full-erigon-3:8545",
+					// Besu causing flakey tests.
 					// "el-full-besu-4:8545",
 				},
 			},

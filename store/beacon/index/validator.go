@@ -39,7 +39,7 @@ const (
 	validatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
 )
 
-// validatorsIndex is a structure that holds a unique index for validators based
+// ValidatorsIndex is a struct that holds a unique index for validators based
 // on their public key.
 type ValidatorsIndex struct {
 	// Pubkey is a unique index mapping a validator's public key to their
