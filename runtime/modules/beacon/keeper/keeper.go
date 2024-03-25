@@ -29,17 +29,19 @@ import (
 	"context"
 
 	"cosmossdk.io/core/appmodule"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+
+	// bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/primitives"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -70,7 +72,7 @@ func NewKeeper(
 // valset every block.
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
-) ([]abci.ValidatorUpdate, error) {
+) ([]appmodulev2.ValidatorUpdate, error) {
 	store := k.beaconStore.WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
@@ -78,11 +80,8 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		panic(err)
 	}
 
-	validatorUpdates := make([]abci.ValidatorUpdate, 0)
+	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for _, validator := range val {
-		pk := crypto.PublicKey{
-			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
-		}
 
 		// TODO: Config
 		// Max 100 validators in the active set.
@@ -103,8 +102,9 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		// TODO: this works, but there is a bug where if we send a validator to
 		// 0 voting power, it can somehow still propose the next block? This
 		// feels big bad.
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: pk,
+		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+			PubKey:     validator.Pubkey[:],
+			PubKeyType: (&bls12381.PubKey{}).Type(),
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
@@ -140,7 +140,7 @@ func (k *Keeper) ForkchoiceStore(
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,
-) ([]abci.ValidatorUpdate, error) {
+) ([]appmodulev2.ValidatorUpdate, error) {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
 	if err := st.UpdateRandaoMixAtIndex(
@@ -183,11 +183,8 @@ func (k *Keeper) InitGenesis(
 	// full initial update here.
 
 	store := k.beaconStore.WithContext(ctx)
-	validatorUpdates := make([]abci.ValidatorUpdate, 0)
+	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for _, validator := range data.Validators {
-		pk := crypto.PublicKey{
-			Sum: &crypto.PublicKey_Bls12381{Bls12381: validator.Pubkey[:]},
-		}
 
 		if err := store.AddValidator(validator); err != nil {
 			return nil, err
@@ -196,8 +193,9 @@ func (k *Keeper) InitGenesis(
 		// TODO: this works, but there is a bug where if we send a validator to
 		// 0 voting power, it can somehow still propose the next block? This
 		// feels big bad.
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: pk,
+		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+			PubKey:     validator.Pubkey[:],
+			PubKeyType: (&bls12381.PubKey{}).Type(),
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
