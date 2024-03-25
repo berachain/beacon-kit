@@ -81,54 +81,33 @@ func (c BeaconChainConfig) Template() string {
 	return `
 [beacon-kit.beacon-chain]
 
-#######################################
-###            Gwei Values          ###
-#######################################
-
+########### Gwei Values ###########
 # MinDepositAmount is the minimum deposit amount per deposit transaction.
 min-deposit-amount = {{.BeaconKit.Beacon.MinDepositAmount}}
 
 # MaxEffectiveBalance is the maximum effective balance allowed for a validator.
 max-effective-balance = {{.BeaconKit.Beacon.MaxEffectiveBalance}}
 
-
-#######################################
-###          Time Parameters        ###
-#######################################
-
+########### Time Parameters ##########
 # SlotsPerEpoch is the number of slots per epoch.
 slots-per-epoch = {{.BeaconKit.Beacon.SlotsPerEpoch}}
 
 # SlotsPerHistoricalRoot is the number of slots per historical root.
 slots-per-historical-root = {{.BeaconKit.Beacon.SlotsPerHistoricalRoot}}
 
-
-#######################################
-###            Eth1 Data            ###
-#######################################
-
+########### Eth1 Data ###########
 # DepositContractAddress is the address of the deposit contract.
 deposit-contract-address = "{{.BeaconKit.Beacon.DepositContractAddress}}"
 
-
-#######################################
-###              Forks              ###
-#######################################
+########### Forks ###########
 # Electra fork epoch
 electra-fork-epoch = {{.BeaconKit.Beacon.ElectraForkEpoch}}
 
-#######################################
-###        State List Lengths       ###
-#######################################
-
+########### State List Lengths ###########
 # EpochsPerHistoricalVector is the number of epochs in the historical vector.
 epochs-per-historical-vector = {{.BeaconKit.Beacon.EpochsPerHistoricalVector}}
 
-
-#######################################
-###          Max Operations         ###
-#######################################
-
+########### Max Operations ###########
 # MaxDepositsPerBlock specifies the maximum number of deposit operations allowed per block.
 max-deposits-per-block = {{.BeaconKit.Beacon.MaxDepositsPerBlock}}
 
