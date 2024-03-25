@@ -34,8 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-
-	// bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	// bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381".
 	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/primitives"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
@@ -82,7 +81,6 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for _, validator := range val {
-
 		// TODO: Config
 		// Max 100 validators in the active set.
 		// TODO: this is kinda hood.
@@ -185,7 +183,6 @@ func (k *Keeper) InitGenesis(
 	store := k.beaconStore.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for _, validator := range data.Validators {
-
 		if err := store.AddValidator(validator); err != nil {
 			return nil, err
 		}
