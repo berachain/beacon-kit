@@ -98,6 +98,10 @@ func (s *Service) sendPostBlockFCU(
 			return
 		}
 
+		// TODO: once we have state root calculation, we need to precalculate it
+		// here
+		// and then attach to the header before calculating the HTR.
+
 		root, err := h.HashTreeRoot()
 		if err != nil {
 			s.Logger().
