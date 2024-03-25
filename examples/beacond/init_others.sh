@@ -36,5 +36,9 @@ mv $GENESIS $TMP_GENESIS
 
 mv $TMP_GENESIS $GENESIS
 
+# Set client config
+/usr/bin/beacond config set client keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME"
+/usr/bin/beacond config set client chain-id "$BEACOND_CHAIN_ID" --home "$BEACOND_HOME"
+
 # Add pubkey to the genesis file.
 /usr/bin/beacond genesis add-validator --home "$BEACOND_HOME"
