@@ -30,7 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/config/params"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
@@ -40,13 +40,13 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
-	cfg *config.Beacon
+	cfg *params.BeaconChainConfig
 	rp  RandaoProcessor
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
-	cfg *config.Beacon,
+	cfg *params.BeaconChainConfig,
 	rp RandaoProcessor,
 ) *StateProcessor {
 	return &StateProcessor{
@@ -69,7 +69,7 @@ func (sp *StateProcessor) ProcessSlot(
 	// st.GetSlot() even though technically this was the state root from
 	// end of the previous slot.
 	if err = st.UpdateStateRootAtIndex(
-		st.GetSlot()%sp.cfg.Limits.SlotsPerHistoricalRoot,
+		st.GetSlot()%sp.cfg.SlotsPerHistoricalRoot,
 		prevStateRoot,
 	); err != nil {
 		return err
@@ -99,7 +99,7 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		st.GetSlot()%sp.cfg.Limits.SlotsPerHistoricalRoot, prevBlockRoot,
+		st.GetSlot()%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
 	); err != nil {
 		return err
 	}
@@ -237,10 +237,10 @@ func (sp *StateProcessor) processDeposits(
 		}
 
 		// TODO: Configuration Variable.
-		
+
 		val.EffectiveBalance = min(
 			val.EffectiveBalance+dep.Amount,
-			sp.cfg.Limits.MaxEffectiveBalance,
+			sp.cfg.MaxEffectiveBalance,
 		)
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err

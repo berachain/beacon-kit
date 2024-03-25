@@ -23,50 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package params
 
-import (
-	"github.com/berachain/beacon-kit/config/flags"
-	"github.com/berachain/beacon-kit/io/cli/parser"
-	"github.com/berachain/beacon-kit/primitives"
-	"github.com/ethereum/go-ethereum/common"
-)
+import "github.com/ethereum/go-ethereum/common"
 
-// Limits conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[Execution] = &Execution{}
-
-// DefaultValidatorConfig returns the default validator configuration.
-func DefaultExecutionConfig() Execution {
-	return Execution{
+func DefaultBeaconConfig() BeaconChainConfig {
+	//nolint:gomnd // default settings.
+	return BeaconChainConfig{
+		// Gwei value constants.
+		MinDepositAmount:    uint64(1e9),
+		MaxEffectiveBalance: uint64(32e9),
+		// Time parameters constants.
+		SlotsPerEpoch:          1,
+		SlotsPerHistoricalRoot: 1,
+		// Eth1-related values.
 		DepositContractAddress: common.HexToAddress(
 			"0x00000000219ab540356cbb839cbe05303d7705fa",
 		),
+		// Fork-related values.
+		ElectraForkEpoch: 9999999999999999,
+		// State list length constants.
+		EpochsPerHistoricalVector: 1,
+		// Max operations per block constants.
+		MaxDepositsPerBlock:      16,
+		MaxWithdrawalsPerPayload: 16,
 	}
-}
-
-// Execution represents the configuration struct for the
-// execution layer on the beacon chain.
-type Execution struct {
-	DepositContractAddress primitives.ExecutionAddress
-}
-
-// Parse parses the configuration.
-func (c Execution) Parse(parser parser.AppOptionsParser) (*Execution, error) {
-	var err error
-	if c.DepositContractAddress, err = parser.GetExecutionAddress(
-		flags.DepositContractAddress,
-	); err != nil {
-		return nil, err
-	}
-	return &c, nil
-}
-
-// Template returns the configuration template.
-func (c Execution) Template() string {
-	//nolint:lll
-	return `
-[beacon-kit.beacon-config.execution]
-# DepositContractAddress is the address of the deposit contract.
-deposit-contract-address = "{{.BeaconKit.Beacon.Execution.DepositContractAddress}}"
-`
 }

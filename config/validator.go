@@ -80,9 +80,9 @@ func (c Validator) Template() string {
 [beacon-kit.beacon-config.validator]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
 # from this node.
-suggested-fee-recipient = "{{.BeaconKit.Beacon.Validator.SuggestedFeeRecipient}}"
+suggested-fee-recipient = "{{.BeaconKit.Validator.SuggestedFeeRecipient}}"
 
 # Graffiti string that will be included in the graffiti field of the beacon block.
-graffiti = "{{.BeaconKit.Beacon.Validator.Graffiti}}"
+graffiti = "{{.BeaconKit.Validator.Graffiti}}"
 `
 }
