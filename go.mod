@@ -11,7 +11,7 @@ replace (
 	cosmossdk.io/x/auth => github.com/berachain/cosmos-sdk/x/auth v0.0.0-20240312054917-baa54a151c5a
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240311143937-fea88d13c52f
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240311143937-fea88d13c52f
-	cosmossdk.io/x/staking => github.com/berachain/cosmos-sdk/x/staking v0.0.0-20240318230110-d72af9a8368e
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240311143937-fea88d13c52f
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
 	// This replace is always required in tandem with the above cosmossdk.io replaces to keep us on main sdk.
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240318230110-d72af9a8368e
