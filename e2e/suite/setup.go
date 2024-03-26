@@ -41,6 +41,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/sourcegraph/conc/iter"
@@ -127,20 +128,52 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().NoError(err, "Error running Starlark package")
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
 	s.Require().Empty(result.ValidationErrors)
-
 	s.logger.Info("enclave spun up successfully")
+
 	s.logger.Info("setting up execution clients")
+	err = s.SetupExecutionClients()
+	s.Require().NoError(err, "Error setting up execution clients")
+
+	s.logger.Info("setting up consensus clients")
+	err = s.SetupConsensusClients()
+	s.Require().NoError(err, "Error setting up consensus clients")
 
 	// Setup the JSON-RPC balancer.
 	s.logger.Info("setting up JSON-RPC balancer")
 	err = s.SetupJSONRPCBalancer()
 	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
+
 	// Wait for the finalized block number to reach 1.
 	err = s.WaitForFinalizedBlockNumber(1)
 	s.Require().NoError(err, "Error waiting for finalized block number")
 
 	// Fund any requested accounts.
 	s.FundAccounts()
+}
+
+// SetupExecutionClients sets up the execution clients for the test suite.
+func (s *KurtosisE2ESuite) SetupExecutionClients() error {
+	return nil
+}
+
+func (s *KurtosisE2ESuite) SetupConsensusClients() error {
+	s.consensusClients = make(map[string]*types.ConsensusClient)
+	sCtx, err := s.Enclave().GetServiceContext("cl-validator-beaconkit-0")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
+		sCtx,
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-1"] = types.NewConsensusClient(
+		sCtx,
+	)
+	return nil
 }
 
 // SetupNGINXBalancer sets up the NGINX balancer for the test suite.
@@ -164,39 +197,42 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
 	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
-		ctx, s.genesisAccount.Address(),
-	)
+		ctx, s.genesisAccount.Address())
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
 	nonce.Store(pendingNonce)
 
 	var chainID *big.Int
 	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
-
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
 			account := *acc
 			var gasTipCap *big.Int
+
 			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
-				return nil, err
+				var rpcErr rpc.Error
+				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
+					// Besu does not support eth_maxPriorityFeePerGas
+					// so we use a default value of 10 Gwei.
+					gasTipCap = big.NewInt(0).SetUint64(TenGwei)
+				} else {
+					return nil, err
+				}
 			}
 
-			gasFeeCap := new(big.Int).Add(gasTipCap, big.NewInt(TenGwei))
+			gasFeeCap := new(big.Int).Add(
+				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
 			value := big.NewInt(Ether)
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
 				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-					ChainID:   chainID,
-					Nonce:     nonceToSubmit,
-					GasTipCap: gasTipCap,
-					GasFeeCap: gasFeeCap,
-					Gas:       EtherTransferGasLimit,
-					To:        &dest,
-					Value:     value,
-					Data:      nil,
+					ChainID: chainID, Nonce: nonceToSubmit,
+					GasTipCap: gasTipCap, GasFeeCap: gasFeeCap,
+					Gas: EtherTransferGasLimit, To: &dest,
+					Value: value, Data: nil,
 				}),
 			); err != nil {
 				return nil, err
@@ -204,7 +240,6 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
 			defer cancel()
-
 			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
 				s.logger.Error(
 					"error submitting funding transaction",
@@ -221,8 +256,10 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			)
 
 			var receipt *ethtypes.Receipt
-			receipt, err = bind.WaitMined(cctx, s.JSONRPCBalancer(), signedTx)
-			if err != nil {
+
+			if receipt, err = bind.WaitMined(
+				cctx, s.JSONRPCBalancer(), signedTx,
+			); err != nil {
 				return nil, err
 			}
 
@@ -234,6 +271,14 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			// Verify the receipt status.
 			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+				return nil, err
+			}
+
+			// Wait an extra block to ensure all clients are in sync.
+			//nolint:contextcheck // its okay.
+			if err = s.WaitForFinalizedBlockNumber(
+				receipt.BlockNumber.Uint64() + 1,
+			); err != nil {
 				return nil, err
 			}
 

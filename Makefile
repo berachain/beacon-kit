@@ -277,15 +277,6 @@ gosec:
 	@echo "--> Running gosec"
 	@go run github.com/cosmos/gosec/v2/cmd/gosec -exclude G702 ./...
 
-
-#################
-#     pkgsite     #
-#################
-
-pkgsite:
-	@echo "Starting pkgsite server at http://localhost:6060/pkg/github.com/berachain/beacon-kit/..."
-	@go run golang.org/x/pkgsite/cmd/pkgsite -http=:6060
-
 #################
 #    slither    #
 #################
@@ -312,7 +303,7 @@ proto:
 	@$(MAKE) buf-lint-fix buf-lint proto-build
 
 proto-build:
-	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate.sh
+	@docker run --rm -v ${CURRENT_DIR}:/workspace --workdir /workspace $(protoImageName):$(protoImageVersion) sh ./build/scripts/proto_generate_pulsar.sh
 
 proto-clean:
 	@find . -name '*.pb.go' -delete
@@ -336,12 +327,7 @@ buf-lint:
 #    sszgen    #
 #################
 
-sszgen-install:
-	@echo "--> Installing sszgen"
-	@go install github.com/itsdevbear/fastssz/sszgen
-
 sszgen-clean:
-	@find . -name '*.pb_encoding.go' -delete
 	@find . -name '*.ssz.go' -delete
 
 ##############################################################################
@@ -360,7 +346,7 @@ repo-rinse: |
 
 .PHONY: clean format lint \
 	buf-install buf-lint-fix buf-lint \
-	sszgen-install sszgen-clean sszgen proto-clean \
+	sszgen-clean sszgen proto-clean \
 	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \

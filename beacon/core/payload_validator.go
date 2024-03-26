@@ -31,16 +31,16 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice"
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/config/params"
 )
 
 // PayloadValidator is responsible for validating incoming.
 type PayloadValidator struct {
-	cfg *config.Beacon
+	cfg *params.BeaconChainConfig
 }
 
 // NewPayloadValidator creates a new payload validator.
-func NewPayloadValidator(cfg *config.Beacon) *PayloadValidator {
+func NewPayloadValidator(cfg *params.BeaconChainConfig) *PayloadValidator {
 	return &PayloadValidator{
 		cfg: cfg,
 	}
@@ -68,10 +68,10 @@ func (pv *PayloadValidator) ValidatePayload(
 
 	if withdrawals := payload.GetWithdrawals(); uint64(
 		len(payload.GetWithdrawals()),
-	) > pv.cfg.Limits.MaxWithdrawalsPerPayload {
+	) > pv.cfg.MaxWithdrawalsPerPayload {
 		return fmt.Errorf(
 			"too many withdrawals, expected: %d, got: %d",
-			pv.cfg.Limits.MaxWithdrawalsPerPayload, len(withdrawals),
+			pv.cfg.MaxWithdrawalsPerPayload, len(withdrawals),
 		)
 	}
 
@@ -87,8 +87,11 @@ func (pv *PayloadValidator) ValidatePayload(
 		)
 	}
 
-	// Get the latest RandaoMix.
-	expectedMix, err := st.RandaoMix()
+	// When we are validating a payload we expect that it was produced by
+	// the proposer for the slot that it is for.
+	expectedMix, err := st.RandaoMixAtIndex(
+		uint64(st.GetSlot()) % pv.cfg.EpochsPerHistoricalVector,
+	)
 	if err != nil {
 		return err
 	}

@@ -23,23 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package evm
+package beacon
 
 import (
-	"cosmossdk.io/core/appmodule"
+	"context"
+
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"google.golang.org/grpc"
 )
 
-// ConsensusVersion defines the current x/beacon module consensus version.
-const ConsensusVersion = 1
+const (
+	// ConsensusVersion defines the current x/beacon module consensus version.
+	ConsensusVersion = 1
+	// ModuleName is the module name constant used in many places.
+	ModuleName = "beacon"
+)
 
 var (
-	_ appmodule.HasServices = AppModule{}
-	_ appmodule.AppModule   = AppModule{}
-	_ module.HasGenesis     = AppModule{}
+	_ appmodulev2.AppModule  = AppModule{}
+	_ module.HasABCIGenesis  = AppModule{}
+	_ module.HasABCIEndBlock = AppModule{}
 )
 
 // AppModule implements an application module for the evm module.
@@ -58,20 +63,24 @@ func NewAppModule(
 
 // Name is the name of this module.
 func (am AppModule) Name() string {
-	return types.ModuleName
-}
-
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ grpc.ServiceRegistrar) error {
-	// types.RegisterMsgServiceServer(registrar, am.keeper)
-	return nil
+	return ModuleName
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
+
+// RegisterInterfaces registers the module's interface types.
+func (am AppModule) RegisterInterfaces(registry.InterfaceRegistrar) {}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (am AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
+
+// EndBlock returns the validator set updates from the beacon state.
+func (am AppModule) EndBlock(
+	ctx context.Context,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+}

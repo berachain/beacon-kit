@@ -29,14 +29,14 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config"
 	crypto "github.com/berachain/beacon-kit/crypto"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 type Option func(*Processor) error
 
 // WithSigner sets the signer.
 func WithSigner(
-	signer crypto.Signer[[bls12381.SignatureLength]byte],
+	signer crypto.Signer[primitives.BLSSignature],
 ) Option {
 	return func(p *Processor) error {
 		p.signer = signer

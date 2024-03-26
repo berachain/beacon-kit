@@ -30,6 +30,15 @@ import (
 )
 
 var (
+	// errInvalidIndex          = errors.New("index out of bounds").
+	errInvalidBodyRoot       = errors.New("invalid Beacon Block Body root")
+	errInvalidInclusionProof = errors.New(
+		"invalid KZG commitment inclusion proof",
+	)
+	// errNilBlockHeader = errors.New("received nil beacon block header").
+)
+
+var (
 	// ErrInvalidExecutionValue is an error for when the
 	// execution value is invalid.
 	ErrInvalidExecutionValue = errors.New("invalid execution value")
@@ -59,4 +68,7 @@ var (
 
 	// ErrNilWithdrawals is an error for when the deposits are nil.
 	ErrNilWithdrawals = errors.New("nil withdrawals")
+
+	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
+	ErrNilBlobsBundle = errors.New("nil blobs bundle")
 )

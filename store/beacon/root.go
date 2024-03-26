@@ -25,28 +25,55 @@
 
 package beacon
 
+import (
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/primitives"
+)
+
+// UpdateStateRootAtIndex updates the state root at the given slot.
+func (s *Store) UpdateStateRootAtIndex(
+	slot uint64,
+	stateRoot primitives.Root,
+) error {
+	return s.stateRoots.Set(s.ctx, slot, stateRoot)
+}
+
+// StateRootAtIndex returns the state root at the given slot.
+func (s *Store) StateRootAtIndex(slot uint64) (primitives.Root, error) {
+	return s.stateRoots.Get(s.ctx, slot)
+}
+
 // Store is the interface for the beacon store.
 func (s *Store) HashTreeRoot() ([32]byte, error) {
-	_, err := s.RandaoMix()
+	// TODO: Implement getting the HashTreeRoot (StateRoot)
+	// We currently return at least *SOMETHING* so that we
+	// can simulate having to keep track of the StateRoot of the
+	// BeaconState, since this value with change every slot.
+	// TODO: Actually implementation.
+	randaoMix, err := s.RandaoMixAtIndex(0)
 	if err != nil {
 		return [32]byte{}, err
 	}
 
-	parentSlot := uint64(0)
-	if s.GetSlot() > 0 {
-		parentSlot = s.GetSlot() - 1
-	}
+	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
+	randaoMixes[0] = randaoMix
 
-	_, err = s.GetBlockRoot(parentSlot)
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	// TODO: This.
-	// return (&state.BeaconStateDeneb{
-	// 	Slot:          s.GetSlot(),
-	// 	PrevRandaoMix: randaoMix,
-	// 	PrevBlockRoot: parentRoot,
-	// }).HashTreeRoot()
-	return [32]byte{}, nil
+	return (&state.BeaconStateDeneb{
+		GenesisValidatorsRoot: primitives.Root{},
+		Slot:                  0,
+		LatestBlockHeader: &beacontypes.BeaconBlockHeader{
+			Slot:          0,
+			ProposerIndex: 0,
+			ParentRoot:    [32]byte{},
+			StateRoot:     [32]byte{},
+			BodyRoot:      [32]byte{},
+		},
+		BlockRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
+		StateRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
+		Eth1GenesisHash:  [32]byte{},
+		Eth1DepositIndex: 0,
+		Validators:       []*beacontypes.Validator{},
+		RandaoMixes:      randaoMixes,
+	}).HashTreeRoot()
 }

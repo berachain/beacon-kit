@@ -34,10 +34,6 @@ const (
 	// in the deposit contract.
 	DepositEventName = "Deposit"
 
-	// Name of the Redirect event
-	// in the deposit contract.
-	RedirectEventName = "Redirect"
-
 	// Name the Withdrawal event
 	// in the deposit contract.
 	WithdrawalEventName = "Withdrawal"
@@ -51,19 +47,9 @@ var (
 		[]byte(DepositEventName + "(bytes,bytes,uint64,bytes,uint64)"),
 	)
 
-	// Signature and type of the Redirect event
-	// in the deposit contract.
-	RedirectEventSig = crypto.Keccak256Hash(
-		[]byte(RedirectEventName + "(bytes,bytes,bytes,uint64,uint64)"),
-	)
-	// RedirectType = reflect.TypeOf(enginetypes.Redirect{}).
-
 	// Signature and type of the Withdraw event
 	// in the deposit contract.
 	WithdrawalEventSig = crypto.Keccak256Hash(
 		[]byte(WithdrawalEventName + "(bytes,bytes,bytes,uint64,uint64)"),
 	)
-
-	//nolint:gochecknoglobals // Avoid re-allocating these variables.
-	EthSecp256k1CredentialPrefix = []byte{0x01}
 )

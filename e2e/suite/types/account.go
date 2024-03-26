@@ -27,9 +27,12 @@ package types
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -78,6 +81,18 @@ func (a EthAccount) SignTx(
 	return types.SignTx(
 		tx, types.LatestSignerForChainID(chainID), a.pk,
 	)
+}
+
+// SignerFunc returns a signer function for the account.
+func (a EthAccount) SignerFunc(chainID *big.Int) bind.SignerFn {
+	return func(
+		addr common.Address, tx *types.Transaction,
+	) (*types.Transaction, error) {
+		if addr != a.Address() {
+			return nil, errors.New("account not authorized to sign")
+		}
+		return a.SignTx(chainID, tx)
+	}
 }
 
 // PrivateKey returns the private key of the account.

@@ -35,6 +35,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/store/collections"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
+	"github.com/berachain/beacon-kit/store/beacon/index"
 )
 
 // Store is a wrapper around an sdk.Context
@@ -47,11 +48,12 @@ type Store struct {
 	// available index for a new validator.
 	validatorIndex sdkcollections.Sequence
 
-	// validatorIndexToPubkey is a map that provides the
-	// public key for a given validator index.
-	validatorIndexToPubkey *sdkcollections.IndexedMap[
-		uint64, []byte, validatorsIndex,
+	// validators stores the list of validators.
+	validators *sdkcollections.IndexedMap[
+		uint64, *beacontypes.Validator, index.ValidatorsIndex,
 	]
+
+	genesisValidatorsRoot sdkcollections.Item[[32]byte]
 
 	// depositQueue is a list of deposits that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
@@ -59,13 +61,14 @@ type Store struct {
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
-	// parentBlockRoot provides access to the previous
-	// head block root for block construction as needed
-	// by eip-4788.
-	blockRoots *collections.CircularQueue[[]byte]
+	// blockRoots stores the block roots for the current epoch.
+	blockRoots sdkcollections.Map[uint64, [32]byte]
+
+	// stateRoots stores the state roots for the current epoch.
+	stateRoots sdkcollections.Map[uint64, [32]byte]
 
 	// randaoMix stores the randao mix for the current epoch.
-	randaoMix sdkcollections.Item[[types.MixLength]byte]
+	randaoMix sdkcollections.Map[uint64, [types.MixLength]byte]
 
 	// latestBeaconBlockHeader stores the latest beacon block header.
 	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
@@ -84,13 +87,21 @@ func NewStore(
 			sdkcollections.NewPrefix(validatorIndexPrefix),
 			validatorIndexPrefix,
 		),
-		validatorIndexToPubkey: sdkcollections.NewIndexedMap[uint64, []byte](
+		validators: sdkcollections.NewIndexedMap[
+			uint64, *beacontypes.Validator,
+		](
 			schemaBuilder,
-			sdkcollections.NewPrefix(validatorIndexToPubkeyPrefix),
-			validatorIndexToPubkeyPrefix,
+			sdkcollections.NewPrefix(validatorByIndexPrefix),
+			validatorByIndexPrefix,
 			sdkcollections.Uint64Key,
-			sdkcollections.BytesValue,
-			newValidatorsIndex(schemaBuilder),
+			encoding.SSZValueCodec[*beacontypes.Validator]{},
+			index.NewValidatorsIndex(schemaBuilder),
+		),
+		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(genesisValidatorsRootPrefix),
+			genesisValidatorsRootPrefix,
+			encoding.Bytes32ValueCodec{},
 		),
 		depositQueue: collections.NewQueue[*beacontypes.Deposit](
 			schemaBuilder,
@@ -102,17 +113,25 @@ func NewStore(
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
 		),
-		blockRoots: collections.NewCircularQueue[[]byte](
+		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			parentBlockRootPrefix,
-			sdkcollections.BytesValue,
-			//nolint:gomnd // todo fix.
-			32,
+			sdkcollections.NewPrefix(blockRootsPrefix),
+			blockRootsPrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
 		),
-		randaoMix: sdkcollections.NewItem[[types.MixLength]byte](
+		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(stateRootsPrefix),
+			stateRootsPrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
+		),
+		randaoMix: sdkcollections.NewMap[uint64, [types.MixLength]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(randaoMixPrefix),
 			randaoMixPrefix,
+			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
 		//nolint:lll
@@ -130,8 +149,9 @@ func (s *Store) Context() context.Context {
 	return s.ctx
 }
 
-// WithContext returns the Store with the given context.
+// WithContext returns a copy of the Store with the given context.
 func (s *Store) WithContext(ctx context.Context) *Store {
-	s.ctx = ctx
-	return s
+	cpy := *s
+	cpy.ctx = ctx
+	return &cpy
 }

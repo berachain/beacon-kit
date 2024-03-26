@@ -44,10 +44,10 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/crypto"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/lib/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -83,10 +83,9 @@ func NewBeaconKitRuntime(
 //nolint:funlen // This function is long because it sets up the services.
 func NewDefaultBeaconKitRuntime(
 	appOpts AppOptions,
-	signer crypto.Signer[[bls12381.SignatureLength]byte],
+	signer crypto.Signer[primitives.BLSSignature],
 	logger log.Logger,
 	bsb BeaconStorageBackend,
-	vsu ValsetUpdater,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -137,7 +136,6 @@ func NewDefaultBeaconKitRuntime(
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
-		staking.WithValsetUpdater(vsu),
 	)
 
 	// Build the execution service.
@@ -153,6 +151,7 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithBuilderConfig(&cfg.Builder),
 		localbuilder.WithExecutionService(executionService),
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+		localbuilder.WithValidatorConfig(&cfg.Validator),
 	)
 
 	// Build the Randao Processor.
@@ -168,6 +167,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
 		builder.WithRandaoProcessor(randaoProcessor),
+		builder.WithSigner(signer),
 	)
 
 	// Build the sync service.
@@ -185,7 +185,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(&cfg.Beacon, randaoProcessor, vsu)),
+			core.NewStateProcessor(&cfg.Beacon, randaoProcessor)),
 		blockchain.WithSyncService(syncService),
 	)
 

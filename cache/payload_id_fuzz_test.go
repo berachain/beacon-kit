@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/cache"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,9 +40,10 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4, 5, 6, 7, 8})
 	f.Add(uint64(2), []byte{4, 5, 6}, []byte{9, 10, 11, 12, 13, 14, 15, 16})
 	f.Add(uint64(3), []byte{7, 8, 9}, []byte{17, 18, 19, 20, 21, 22, 23, 24})
-	f.Fuzz(func(t *testing.T, slot uint64, _r, _p []byte) {
+	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
 		copy(r[:], _r)
+		slot := primitives.Slot(s)
 		pid := enginetypes.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid)
@@ -73,8 +75,9 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 	// Intentionally invalid inputs
 	f.Add(uint64(1), []byte{1, 2, 3, 4, 5, 6, 7, 8, 9}, []byte{1, 2, 3})
 
-	f.Fuzz(func(t *testing.T, slot uint64, _r, _p []byte) {
+	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
+		slot := primitives.Slot(s)
 		if len(_r) > 32 {
 			// Expecting an error or specific handling of oversized input
 			t.Skip(
@@ -96,9 +99,9 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4})
 
-	f.Fuzz(func(t *testing.T, slot uint64, _r, _p []byte) {
+	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		cacheUnderTest := cache.NewPayloadIDCache()
-
+		slot := primitives.Slot(s)
 		var wg sync.WaitGroup
 		wg.Add(2)
 

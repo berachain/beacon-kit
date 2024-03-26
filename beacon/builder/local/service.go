@@ -36,6 +36,7 @@ import (
 type Service struct {
 	service.BaseService
 	cfg          *config.Builder
+	validatorCfg *config.Validator
 	es           ExecutionService
 	payloadCache *cache.PayloadIDCache
 }

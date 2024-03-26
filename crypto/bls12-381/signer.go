@@ -26,6 +26,7 @@
 package bls12381
 
 import (
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cometbft/cometbft/p2p"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -65,6 +66,6 @@ func NewSignerFromFile(filePath string) (*Signer, error) {
 // Sign generates a signature for a given message using the signer's secret key.
 // It returns the signature and any error encountered during the signing
 // process.
-func (b *Signer) Sign(msg []byte) [SignatureLength]byte {
-	return [SignatureLength]byte(b.SecretKey.Sign(msg).Marshal())
+func (b *Signer) Sign(msg []byte) primitives.BLSSignature {
+	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal())
 }

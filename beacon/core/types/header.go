@@ -26,21 +26,27 @@
 package types
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/primitives"
 )
 
 // BeaconBlockHeader is the header of a beacon block.
+//
+//go:generate go run github.com/fjl/gencodec -type BeaconBlockHeader -out header.json.go
 type BeaconBlockHeader struct {
-	Slot          primitives.Slot
-	ProposerIndex primitives.ValidatorIndex
-	ParentRoot    [32]byte `ssz-size:"32"`
-	StateRoot     [32]byte `ssz-size:"32"`
-	BodyRoot      [32]byte `ssz-size:"32"`
+	Slot          primitives.Slot           `json:"slot"`
+	ProposerIndex primitives.ValidatorIndex `json:"proposerIndex"`
+	ParentRoot    primitives.Root           `json:"parentRoot"    ssz-size:"32"`
+	StateRoot     primitives.Root           `json:"stateRoot"     ssz-size:"32"`
+	BodyRoot      primitives.Root           `json:"bodyRoot"      ssz-size:"32"`
 }
 
 // String returns a string representation of the beacon block header.
 func (h *BeaconBlockHeader) String() string {
-	return "TODO"
+	//#nosec:G703 // ignore potential marshalling failure.
+	output, _ := json.Marshal(h)
+	return string(output)
 }
 
 // NewBeaconBlockHeader creates a new beacon block header
@@ -57,9 +63,7 @@ func NewBeaconBlockHeader(
 		Slot:          blk.GetSlot(),
 		ProposerIndex: blk.GetProposerIndex(),
 		ParentRoot:    blk.GetParentBlockRoot(),
-		// TODO: handle actually setting the state root in prepare proposal?
-		// Compare state roots after execution.
-		StateRoot: blk.GetStateRoot(),
-		BodyRoot:  bodyRoot,
+		StateRoot:     blk.GetStateRoot(),
+		BodyRoot:      bodyRoot,
 	}, nil
 }

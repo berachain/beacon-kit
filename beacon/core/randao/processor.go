@@ -41,7 +41,7 @@ import (
 // Processor is the randao processor.
 type Processor struct {
 	cfg    *config.Config
-	signer crypto.Signer[[bls12381.SignatureLength]byte]
+	signer crypto.Signer[primitives.BLSSignature]
 	logger log.Logger
 }
 
@@ -71,18 +71,23 @@ func NewProcessor(
 func (p *Processor) BuildReveal(
 	st state.BeaconState,
 ) (types.Reveal, error) {
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return types.Reveal{}, err
+	}
+
 	return p.buildReveal(
-		st.GetChainID(),
+		genesisValidatorsRoot,
 		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
 	)
 }
 
 // buildReveal creates a reveal for the proposer.
 func (p *Processor) buildReveal(
-	chainID string,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	signingRoot, err := p.computeSigningRoot(chainID, epoch)
+	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
 	if err != nil {
 		return types.Reveal{}, err
 	}
@@ -92,12 +97,16 @@ func (p *Processor) buildReveal(
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) VerifyReveal(
 	st state.BeaconState,
-	proposerPubkey [bls12381.PubKeyLength]byte,
+	proposerPubkey primitives.BLSPubkey,
 	reveal types.Reveal,
 ) error {
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return err
+	}
 	return p.verifyReveal(
 		proposerPubkey,
-		st.GetChainID(),
+		genesisValidatorsRoot,
 		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
 		reveal,
 	)
@@ -105,12 +114,12 @@ func (p *Processor) VerifyReveal(
 
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) verifyReveal(
-	proposerPubkey [bls12381.PubKeyLength]byte,
-	chainID string,
+	proposerPubkey primitives.BLSPubkey,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) error {
-	signingRoot, err := p.computeSigningRoot(chainID, epoch)
+	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
 	if err != nil {
 		return err
 	}
@@ -122,7 +131,7 @@ func (p *Processor) verifyReveal(
 		return ErrInvalidSignature
 	}
 
-	p.logger.Info("randao reveal successfully verified 🤫 ",
+	p.logger.Info("randao reveal successfully verified 🐸",
 		"reveal", reveal,
 	)
 	return nil
@@ -133,13 +142,22 @@ func (p *Processor) MixinNewReveal(
 	st state.BeaconState,
 	reveal types.Reveal,
 ) error {
-	mix, err := st.RandaoMix()
+	// Get last slots randao mix.
+	mix, err := st.RandaoMixAtIndex(
+		uint64(st.GetSlot()) % p.cfg.Beacon.EpochsPerHistoricalVector,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
 
+	// Mix in the reveal with the previous slotsmix.
 	newMix := mix.MixinNewReveal(reveal)
-	if err = st.SetRandaoMix(newMix); err != nil {
+
+	// Set this slots mix to the new mix.
+	if err = st.UpdateRandaoMixAtIndex(
+		uint64(st.GetSlot())%p.cfg.Beacon.EpochsPerHistoricalVector,
+		newMix,
+	); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
 	}
 	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
@@ -147,27 +165,27 @@ func (p *Processor) MixinNewReveal(
 }
 
 func (p *Processor) computeSigningRoot(
-	chainID string,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
-) (primitives.HashRoot, error) {
+) (primitives.Root, error) {
 	signingDomain, err := signing.GetDomain(
 		p.cfg,
-		chainID,
+		genesisValidatorsRoot,
 		signing.DomainRandao,
 		epoch,
 	)
 	if err != nil {
-		return primitives.HashRoot{}, fmt.Errorf(
+		return primitives.Root{}, fmt.Errorf(
 			"failed to get domain: %w",
 			err,
 		)
 	}
 	signingRoot, err := signing.ComputeSigningRoot(
-		primitives.SSZEpoch(epoch),
+		epoch,
 		signingDomain,
 	)
 	if err != nil {
-		return primitives.HashRoot{},
+		return primitives.Root{},
 			fmt.Errorf("failed to compute signing root: %w", err)
 	}
 	return signingRoot, nil

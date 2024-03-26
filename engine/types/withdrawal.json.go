@@ -5,6 +5,7 @@ package enginetypes
 import (
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -43,7 +44,7 @@ func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 		w.Index = uint64(*dec.Index)
 	}
 	if dec.Validator != nil {
-		w.Validator = uint64(*dec.Validator)
+		w.Validator = primitives.SSZUInt64(*dec.Validator)
 	}
 	if dec.Address != nil {
 		w.Address = *dec.Address

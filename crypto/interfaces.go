@@ -27,12 +27,17 @@ package crypto
 
 import (
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/itsdevbear/comet-bls12-381/bls"
 )
 
 // Signer defines an interface for cryptographic signing operations.
 // It uses generic type parameters Signature and Pubkey, both of which are
 // slices of bytes.
 type Signer[Signature any] interface {
+	// PublicKey returns the public key of the signer.
+	PublicKey() bls.PubKey
+
 	// Sign takes a message as a slice of bytes and returns a signature as a
 	// slice of bytes and an error.
 	Sign(msg []byte) Signature
@@ -41,6 +46,6 @@ type Signer[Signature any] interface {
 // NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
 func NewBLS12381Signer(
 	secretKey [bls12381.SecretKeyLength]byte,
-) (Signer[[bls12381.SignatureLength]byte], error) {
+) (Signer[primitives.BLSSignature], error) {
 	return bls12381.NewSigner(secretKey)
 }

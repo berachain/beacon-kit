@@ -31,7 +31,6 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/execution"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -84,7 +83,7 @@ type RandaoProcessor interface {
 	) error
 	VerifyReveal(
 		st state.BeaconState,
-		proposerPubkey [bls12381.PubKeyLength]byte,
+		proposerPubkey primitives.BLSPubkey,
 		reveal randaotypes.Reveal,
 	) error
 }

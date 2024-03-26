@@ -40,21 +40,5 @@ mv $TMP_GENESIS $GENESIS
 /usr/bin/beacond config set client keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME"
 /usr/bin/beacond config set client chain-id "$BEACOND_CHAIN_ID" --home "$BEACOND_HOME"
 
-
-# If keys exist they should be deleted
-/usr/bin/beacond keys add "$BEACOND_MONIKER" --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME" --indiscreet --output json > "$BEACOND_HOME/config/mnemonic.json"
-
-
-# Allocate genesis accounts (cosmos formatted addresses)
-/usr/bin/beacond genesis add-genesis-account "$BEACOND_MONIKER" 100000000000000000000000000abgt --keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME"
-
-# Sign genesis transaction
-/usr/bin/beacond genesis gentx "$BEACOND_MONIKER" 1000000000000000000000abgt --keyring-backend $BEACOND_KEYRING_BACKEND --chain-id $BEACOND_CHAIN_ID --home "$BEACOND_HOME" 
-## In case you want to create multiple validators at genesis
-## 1. Back to `/usr/bin/beacond keys add` step, init more keys
-## 2. Back to `/usr/bin/beacond add-genesis-account` step, add balance for those
-## 3. Clone this ~/./usr/bin/beacond home directory into some others, let's say `~/.cloned/usr/bin/beacond`
-## 4. Run `gentx` in each of those folders
-## 5. Copy the `gentx-*` folders under `~/.cloned/usr/bin/beacond/config/gentx/` folders into the original `~/./usr/bin/beacond/config/gentx`
-
-
+# Add pubkey to the genesis file.
+/usr/bin/beacond genesis add-validator --home "$BEACOND_HOME"

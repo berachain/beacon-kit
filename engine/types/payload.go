@@ -26,12 +26,11 @@
 package enginetypes
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/version"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
-	"github.com/berachain/beacon-kit/math"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
@@ -39,7 +38,7 @@ import (
 
 type ExecutionPayloadEnvelope interface {
 	GetExecutionPayload() ExecutionPayload
-	GetValue() math.Wei
+	GetValue() primitives.Wei
 	GetBlobsBundle() *BlobsBundleV1
 	ShouldOverrideBuilder() bool
 }
@@ -57,12 +56,12 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
 	return e.ExecutionPayload
 }
 
-func (e *ExecutionPayloadEnvelopeDeneb) GetValue() math.Wei {
+func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
 	val, ok := uint256.FromBig(e.BlockValue)
 	if !ok {
-		return math.Wei{}
+		return primitives.Wei{}
 	}
-	return math.Wei{Int: val}
+	return primitives.Wei{Int: val}
 }
 
 func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *BlobsBundleV1 {
@@ -154,45 +153,9 @@ func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 	return d.Withdrawals
 }
 
+// String returns the string representation of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) String() string {
-	return fmt.Sprintf(
-		"ExecutableDataDeneb{\n"+
-			"\tParentHash: %s,\n"+
-			"\tFeeRecipient: %s,\n"+
-			"\tStateRoot: %s,\n"+
-			"\tReceiptsRoot: %s,\n"+
-			"\tLogsBloom: %x,\n"+
-			"\tRandom: %s,\n"+
-			"\tNumber: %d,\n"+
-			"\tGasLimit: %d,\n"+
-			"\tGasUsed: %d,\n"+
-			"\tTimestamp: %d,\n"+
-			"\tExtraData: %s,\n"+
-			"\tBaseFeePerGas: %s,\n"+
-			"\tBlockHash: %s,\n"+
-			"\tTransactions: %x,\n"+
-			"\tWithdrawals: %v,\n"+
-			"\tBlobGasUsed: %d,\n"+
-			"\tExcessBlobGas: %d,\n"+
-			"}",
-		d.ParentHash.String(),
-		d.FeeRecipient.String(),
-		d.StateRoot.String(),
-		d.ReceiptsRoot.String(),
-		d.LogsBloom,
-		d.Random.String(),
-		d.Number,
-		d.GasLimit,
-		d.GasUsed,
-		d.Timestamp,
-		d.ExtraData,
-		big.NewInt(0).
-			SetBytes(byteslib.CopyAndReverseEndianess(d.BaseFeePerGas)).
-			String(),
-		d.BlockHash.String(),
-		d.Transactions,
-		d.Withdrawals,
-		d.BlobGasUsed,
-		d.ExcessBlobGas,
-	)
+	//#nosec:G703 // ignore potential marshalling failure.
+	output, _ := json.Marshal(d)
+	return string(output)
 }

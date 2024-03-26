@@ -68,6 +68,67 @@ func TestSafeCopy(t *testing.T) {
 	}
 }
 
+func TestSafeCopy2D(t *testing.T) {
+	tests := []struct {
+		name     string
+		original [][]byte
+	}{
+		{
+			name: "Normal case",
+			original: [][]byte{
+				{1, 2, 3},
+				{4, 5, 6},
+				{7, 8, 9},
+			},
+		},
+		{
+			name:     "Empty slice",
+			original: [][]byte{},
+		},
+		{
+			name: "Single element slice",
+			original: [][]byte{
+				{9},
+			},
+		},
+		{
+			name: "Mixed lengths",
+			original: [][]byte{
+				{1, 2, 3},
+				{4},
+				{5, 6},
+			},
+		},
+		{
+			name: "Nil inner slice",
+			original: [][]byte{
+				nil,
+				{1, 2, 3},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			copied := byteslib.SafeCopy2D(tt.original)
+
+			if !reflect.DeepEqual(tt.original, copied) {
+				t.Errorf("SafeCopy2D did not copy the slice correctly")
+			}
+
+			// Modifying the copied slice should not affect the original slice
+			if len(copied) > 0 && len(copied[0]) > 0 {
+				copied[0][0] = 10
+				if tt.original[0][0] == copied[0][0] {
+					t.Errorf(
+						"Modifying the copied slice affected the original slice",
+					)
+				}
+			}
+		})
+	}
+}
+
 func TestReverseEndianness(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -95,6 +156,43 @@ func TestReverseEndianness(t *testing.T) {
 				t.Errorf(
 					"ReverseEndianness(%v) = %v, want %v",
 					tt.name, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestPrependExtendToSize(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		length   int
+		expected []byte
+	}{
+		{name: "Extend smaller slice",
+			input:    []byte{1, 2, 3},
+			length:   5,
+			expected: []byte{0, 0, 1, 2, 3}},
+		{name: "Extend equal size slice",
+			input:    []byte{4, 5, 6},
+			length:   3,
+			expected: []byte{4, 5, 6}},
+		{name: "Extend larger slice, to smaller size does nothing",
+			input:    []byte{7, 8, 9},
+			length:   2,
+			expected: []byte{7, 8, 9}},
+		{name: "Extend empty slice",
+			input:    []byte{},
+			length:   4,
+			expected: []byte{0, 0, 0, 0}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := byteslib.PrependExtendToSize(tt.input, tt.length)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf(
+					"PrependExtendToSize(%v, %v) = %v, want %v",
+					tt.input, tt.length, result, tt.expected)
 			}
 		})
 	}

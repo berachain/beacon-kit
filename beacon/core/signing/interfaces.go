@@ -29,5 +29,5 @@ import "github.com/berachain/beacon-kit/primitives"
 
 // SSZObject is the interface for the SSZ object.
 type SSZObject interface {
-	HashTreeRoot() (primitives.HashRoot, error)
+	HashTreeRoot() (primitives.Root, error)
 }

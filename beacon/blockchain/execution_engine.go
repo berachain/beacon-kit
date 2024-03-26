@@ -52,13 +52,13 @@ func (s *Service) sendFCU(
 func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	headEth1Hash primitives.ExecutionHash,
-	slot primitives.Slot,
+	forSlot primitives.Slot,
 	parentBlockRoot [32]byte,
 ) error {
 	_, err := s.lb.BuildLocalPayload(
 		ctx,
 		headEth1Hash,
-		slot+1,
+		forSlot,
 		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
 		parentBlockRoot,
@@ -88,18 +88,37 @@ func (s *Service) sendPostBlockFCU(
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
-		var root primitives.HashRoot
-		root, err := st.GetBlockRoot(st.GetSlot())
+		// TODO: This BlockRoot calculation is sound, but very confusing
+		// and hard to explain to someone who is not familiar with the
+		// nuance of our implementation. We should refactor this.
+		h, err := st.GetLatestBlockHeader()
 		if err != nil {
+			s.Logger().
+				Error("failed to get latest block header in postBlockProcess", "error", err)
 			return
 		}
-		err = s.sendFCUWithAttributes(
+
+		stateRoot, err := st.HashTreeRoot()
+		if err != nil {
+			s.Logger().
+				Error("failed to get state root in postBlockProcess", "error", err)
+			return
+		}
+
+		h.StateRoot = stateRoot
+		root, err := h.HashTreeRoot()
+		if err != nil {
+			s.Logger().
+				Error("failed to get block header root in postBlockProcess", "error", err)
+			return
+		}
+
+		if err = s.sendFCUWithAttributes(
 			ctx,
 			headHash,
-			st.GetSlot(),
+			st.GetSlot()+1,
 			root,
-		)
-		if err == nil {
+		); err == nil {
 			return
 		}
 

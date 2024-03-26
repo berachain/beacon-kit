@@ -39,6 +39,7 @@ import (
 	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
 	"github.com/berachain/beacon-kit/examples/beacond/app"
 	"github.com/berachain/beacon-kit/io/cli/tos"
+	cmdlib "github.com/berachain/beacon-kit/lib/cmd"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -56,9 +57,9 @@ import (
 // function.
 func NewRootCmd() *cobra.Command {
 	var (
-		autoCliOpts        autocli.AppOptions
-		moduleBasicManager *module.Manager
-		clientCtx          client.Context
+		autoCliOpts autocli.AppOptions
+		mm          *module.Manager
+		clientCtx   client.Context
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -66,6 +67,7 @@ func NewRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+				// validatorcli.DefaultMessageValidator,
 			),
 			depinject.Provide(
 				cmdconfig.ProvideClientContext,
@@ -73,7 +75,7 @@ func NewRootCmd() *cobra.Command {
 			),
 		),
 		&autoCliOpts,
-		&moduleBasicManager,
+		&mm,
 		&clientCtx,
 	); err != nil {
 		panic(err)
@@ -111,7 +113,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			if err := client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
+			if err = client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
 				return err
 			}
 
@@ -127,12 +129,9 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	cmdconfig.InitRootCommand(
+	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
-		clientCtx.TxConfig,
-		clientCtx.InterfaceRegistry,
-		clientCtx.Codec,
-		moduleBasicManager,
+		mm,
 		newApp,
 		func(
 			_app servertypes.Application,
@@ -140,8 +139,6 @@ func NewRootCmd() *cobra.Command {
 		) error {
 			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
 		},
-
-		appExport,
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
@@ -162,7 +159,6 @@ func newApp(
 
 	return app.NewBeaconKitApp(
 		logger, db, traceStore, true,
-		"",
 		appOpts,
 		baseappOptions...,
 	)
@@ -205,7 +201,6 @@ func appExport(
 			db,
 			traceStore,
 			false,
-			"",
 			appOpts,
 		)
 
@@ -213,7 +208,7 @@ func appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, "", appOpts)
+		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, appOpts)
 	}
 
 	return beaconApp.ExportAppStateAndValidators(

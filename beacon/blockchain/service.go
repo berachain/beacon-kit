@@ -36,7 +36,6 @@ type Service struct {
 	es ExecutionService
 	lb LocalBuilder
 	ss SyncService
-
 	bv *core.BlockValidator
 	sp *core.StateProcessor
 	pv *core.PayloadValidator

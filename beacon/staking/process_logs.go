@@ -26,14 +26,11 @@
 package staking
 
 import (
-	"bytes"
 	"context"
-	"errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -44,7 +41,7 @@ func (s *Service) ProcessBlockEvents(
 ) error {
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
-		if log.Address != s.BeaconCfg().Execution.DepositContractAddress {
+		if log.Address != s.BeaconCfg().DepositContractAddress {
 			continue
 		}
 
@@ -53,8 +50,6 @@ func (s *Service) ProcessBlockEvents(
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
 			err = s.processDepositLog(ctx, log)
-		case logSig == RedirectEventSig:
-			err = s.processRedirectLog(ctx, log)
 		case logSig == WithdrawalEventSig:
 			err = s.processWithdrawalLog(ctx, log)
 		default:
@@ -85,15 +80,10 @@ func (s *Service) processDepositLog(
 	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
 		Index:       d.Index,
 		Pubkey:      d.Pubkey,
-		Credentials: d.Credentials,
+		Credentials: beacontypes.DepositCredentials(d.Credentials),
 		Amount:      d.Amount,
 		Signature:   d.Signature,
 	}})
-}
-
-// processRedirectLog adds a redirect to the queue.
-func (s *Service) processRedirectLog(_ context.Context, _ coretypes.Log) error {
-	return nil
 }
 
 // processWithdrawalLog adds a withdrawal to the queue.
@@ -107,15 +97,15 @@ func (s *Service) processWithdrawalLog(
 	}
 
 	// Get the validator index from the pubkey.
-	validator, err := s.BeaconState(ctx).
-		ValidatorIndexByPubkey(w.FromPubkey)
+	valIdx, err := s.BeaconState(ctx).ValidatorIndexByPubkey(w.FromPubkey)
 	if err != nil {
 		return err
 	}
 
-	// Check to make sure credentials encoded correctly.
-	if !bytes.Equal(w.Credentials[:1], EthSecp256k1CredentialPrefix) {
-		return errors.New("invalid withdrawal credentials")
+	executionAddr, err := beacontypes.
+		DepositCredentials(w.Credentials).ToExecutionAddress()
+	if err != nil {
+		return err
 	}
 
 	s.Logger().Info(
@@ -124,8 +114,8 @@ func (s *Service) processWithdrawalLog(
 
 	return s.BeaconState(ctx).EnqueueWithdrawals([]*enginetypes.Withdrawal{{
 		Index:     w.Index,
-		Validator: validator,
-		Address:   primitives.ExecutionAddress(w.Credentials[12:]),
+		Validator: valIdx,
+		Address:   executionAddr,
 		Amount:    w.Amount,
 	}})
 }
