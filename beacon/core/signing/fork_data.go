@@ -31,17 +31,15 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-type Version [VersionLength]byte
-
 // ForkData is the fork data used for signing.
 type ForkData struct {
-	CurrentVersion        Version             `ssz-size:"4"`
+	CurrentVersion        primitives.Version  `ssz-size:"4"`
 	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
 }
 
 // computeForkDataRoot computes the root of the fork data.
 func computeForkDataRoot(
-	currentVersion Version,
+	currentVersion primitives.Version,
 	genesisValidatorsRoot primitives.HashRoot,
 ) (primitives.HashRoot, error) {
 	forkData := ForkData{
@@ -52,8 +50,8 @@ func computeForkDataRoot(
 }
 
 // VersionFromUint returns a Version from a uint32.
-func VersionFromUint32(version uint32) Version {
-	versionBz := Version{}
+func VersionFromUint32(version uint32) primitives.Version {
+	versionBz := primitives.Version{}
 	binary.LittleEndian.PutUint32(versionBz[:], version)
 	return versionBz
 }

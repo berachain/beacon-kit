@@ -69,7 +69,7 @@ func (sp *StateProcessor) ProcessSlot(
 	// st.GetSlot() even though technically this was the state root from
 	// end of the previous slot.
 	if err = st.UpdateStateRootAtIndex(
-		(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot,
+		uint64(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot,
 		prevStateRoot,
 	); err != nil {
 		return err
@@ -99,7 +99,7 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
+		uint64(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
 	); err != nil {
 		return err
 	}
@@ -233,7 +233,7 @@ func (sp *StateProcessor) processDeposits(
 		}
 
 		// TODO make the two following calls into a single call.
-		var idx uint64
+		var idx primitives.ValidatorIndex
 		idx, err = st.ValidatorIndexByPubkey(dep.Pubkey)
 		if err != nil {
 			continue

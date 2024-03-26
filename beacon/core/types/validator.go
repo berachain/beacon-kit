@@ -32,7 +32,12 @@ import "github.com/ethereum/go-ethereum/common/hexutil"
 // It holds the validator's public key, withdrawal credentials, effective
 // balance, and slashing status.
 //
-
+// Ethereum 2.0 Reference:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
+//
+// TODO: Epoch Eligibility stuff.
+//
+//nolint:lll
 //go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.

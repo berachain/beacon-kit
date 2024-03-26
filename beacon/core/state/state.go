@@ -64,7 +64,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyStateRoots
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
-	UpdateBlockRootAtIndex(primitives.Slot, primitives.HashRoot) error
+	UpdateBlockRootAtIndex(uint64, primitives.HashRoot) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
 }
 

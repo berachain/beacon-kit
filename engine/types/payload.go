@@ -31,7 +31,6 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/version"
-	"github.com/berachain/beacon-kit/math"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
@@ -39,7 +38,7 @@ import (
 
 type ExecutionPayloadEnvelope interface {
 	GetExecutionPayload() ExecutionPayload
-	GetValue() math.Wei
+	GetValue() primitives.Wei
 	GetBlobsBundle() *BlobsBundleV1
 	ShouldOverrideBuilder() bool
 }
@@ -57,12 +56,12 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
 	return e.ExecutionPayload
 }
 
-func (e *ExecutionPayloadEnvelopeDeneb) GetValue() math.Wei {
+func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
 	val, ok := uint256.FromBig(e.BlockValue)
 	if !ok {
-		return math.Wei{}
+		return primitives.Wei{}
 	}
-	return math.Wei{Int: val}
+	return primitives.Wei{Int: val}
 }
 
 func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *BlobsBundleV1 {

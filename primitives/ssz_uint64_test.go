@@ -35,7 +35,7 @@ import (
 // This file is for if we ever need to do any epoch tests.
 
 func TestSSZEpoch(t *testing.T) {
-	epoch := primitives.SSZEpoch(1)
+	epoch := primitives.Epoch(1)
 	root, err := epoch.HashTreeRoot()
 	require.NoError(t, err)
 	require.Len(t, root, primitives.HashRootLength)
@@ -46,7 +46,7 @@ func TestSSZEpoch(t *testing.T) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	}, root[:])
 
-	epoch = primitives.SSZEpoch(2)
+	epoch = primitives.Epoch(2)
 	root, err = epoch.HashTreeRoot()
 	require.NoError(t, err)
 	require.Len(t, root, primitives.HashRootLength)
@@ -58,7 +58,7 @@ func TestSSZEpoch(t *testing.T) {
 	}, root[:])
 
 	// 1234 = 0x04D2
-	epoch = primitives.SSZEpoch(1234)
+	epoch = primitives.Epoch(1234)
 	root, err = epoch.HashTreeRoot()
 	require.NoError(t, err)
 	require.Len(t, root, primitives.HashRootLength)

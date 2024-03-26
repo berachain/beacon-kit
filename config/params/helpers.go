@@ -49,5 +49,5 @@ func (c BeaconChainConfig) ActiveForkVersionByEpoch(
 
 // SlotToEpoch converts a slot to an epoch.
 func (c BeaconChainConfig) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
-	return slot / c.SlotsPerEpoch
+	return primitives.Epoch(uint64(slot) / c.SlotsPerEpoch)
 }

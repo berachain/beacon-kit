@@ -25,21 +25,57 @@
 
 package primitives
 
-import "encoding/binary"
+import (
+	"fmt"
 
-// Epoch represents a single epoch.
-// We don't really use epochs in BeaconKit.
-// But we keep them around for compatibility with the Ethereum 2.0 spec.
-type Epoch = uint64
+	"github.com/holiman/uint256"
+)
 
-type SSZEpoch Epoch
+const (
+	// WeiPerEther is the number of Wei in an Eth.
+	WeiPerEther = 1e18
 
-// HashTreeRoot return the merklized epoch,
-// represented as bytes in little endian,
-// padded on the right side with zeroed bytes
-// to a total of 32 bytes.
-func (e SSZEpoch) HashTreeRoot() (HashRoot, error) {
-	bz := make([]byte, HashRootLength)
-	binary.LittleEndian.PutUint64(bz, uint64(e))
-	return HashRoot(bz), nil
+	// GweiPerEther is the number of Gwei in an Eth.
+	GweiPerEther = 1e9
+
+	// WeiPerGwei is the number of Wei in a Gwei.
+	WeiPerGwei = 1e9
+)
+
+type (
+	// Wei is the smallest unit of Ether, represented as a pointer to a Uint256.
+	Wei struct {
+		*uint256.Int
+	}
+
+	// Gwei is a denomination of 1e9 Wei represented as an uint64.
+	Gwei uint64
+)
+
+// ZeroWei returns a zero Wei.
+func ZeroWei() Wei {
+	return Wei{uint256.NewInt(0)}
+}
+
+// WeiFromBytes converts a Wei to a byte slice.
+func WeiFromBytes(bz []byte) Wei {
+	return Wei{uint256.NewInt(0).SetBytes(bz)}
+}
+
+// ToGwei converts Wei to uint64 gwei.
+// It DOES not modify the underlying value.
+func (w Wei) ToGwei() Gwei {
+	if w.Int == nil {
+		return 0
+	}
+	copied := new(uint256.Int).Set(w.Int)
+	copied.Div(copied, uint256.NewInt(WeiPerGwei))
+	return Gwei(copied.Uint64())
+}
+
+// WeiToEther returns the value of a Wei as an Ether.
+// FOR DISPLAY PURPOSES ONLY. Do not use for actual
+// blockchain things.
+func (w Wei) ToEther() string {
+	return fmt.Sprintf("%.4f", w.Int.Float64()/WeiPerEther)
 }

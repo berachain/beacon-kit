@@ -41,7 +41,7 @@ func (d *Domain) Bytes() []byte {
 // computeDomain returns the domain for the DomainType and fork version.
 func computeDomain(
 	domainType DomainType,
-	forkVersion Version,
+	forkVersion primitives.Version,
 	genesisValidatorsRoot primitives.HashRoot,
 ) (Domain, error) {
 	forkDataRoot, err := computeForkDataRoot(forkVersion, genesisValidatorsRoot)

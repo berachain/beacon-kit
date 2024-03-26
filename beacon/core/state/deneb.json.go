@@ -18,7 +18,7 @@ var _ = (*beaconStateDenebJSONMarshaling)(nil)
 func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 	type BeaconStateDeneb struct {
 		GenesisValidatorsRoot        hexutil.Bytes            `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Slot                         uint64                   `json:"slot"`
+		Slot                         primitives.Slot          `json:"slot"`
 		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.HashRoot    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.HashRoot    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
@@ -63,7 +63,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	type BeaconStateDeneb struct {
 		GenesisValidatorsRoot        *hexutil.Bytes           `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Slot                         *uint64                  `json:"slot"`
+		Slot                         *primitives.Slot         `json:"slot"`
 		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.HashRoot    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.HashRoot    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
