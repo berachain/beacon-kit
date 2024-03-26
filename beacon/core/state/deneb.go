@@ -33,6 +33,10 @@ import (
 )
 
 // DefaultBeaconStateDeneb returns a default BeaconStateDeneb.
+//
+// TODO: take in BeaconConfig params to determine the
+// default length of the arrays, which we are currently
+// and INCORRECTLY setting to 0.
 func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 	return &BeaconStateDeneb{
 		GenesisValidatorsRoot: primitives.HashRoot{},
