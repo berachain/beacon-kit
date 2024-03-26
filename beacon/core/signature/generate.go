@@ -23,10 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-const (
-	VersionLength    = 4
-	DomainTypeLength = 4
-	DomainLength     = 32
-)
+// Generate the SSZ serialization code for the signing package.
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData,Fork,ForkData -include ../../../primitives -output generated.ssz.go

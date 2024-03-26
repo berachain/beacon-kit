@@ -31,6 +31,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -79,10 +80,10 @@ func (s *Service) processDepositLog(
 
 	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
 		Index:       d.Index,
-		Pubkey:      d.Pubkey,
+		Pubkey:      primitives.BLSPubkey(d.Pubkey),
 		Credentials: beacontypes.DepositCredentials(d.Credentials),
-		Amount:      d.Amount,
-		Signature:   d.Signature,
+		Amount:      primitives.Gwei(d.Amount),
+		Signature:   primitives.BLSSignature(d.Signature),
 	}})
 }
 
@@ -116,6 +117,6 @@ func (s *Service) processWithdrawalLog(
 		Index:     w.Index,
 		Validator: valIdx,
 		Address:   executionAddr,
-		Amount:    w.Amount,
+		Amount:    primitives.Gwei(w.Amount),
 	}})
 }

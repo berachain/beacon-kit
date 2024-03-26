@@ -23,40 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-import (
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/primitives"
-)
-
-// computeDomain returns the domain for the DomainType and fork version.
-func computeDomain(
-	domainType DomainType,
-	forkVersion primitives.Version,
-	genesisValidatorsRoot primitives.Root,
-) (primitives.Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, genesisValidatorsRoot)
-	if err != nil {
-		return primitives.Domain{}, err
-	}
-	return primitives.Domain(
-		append(
-			domainType[:],
-			forkDataRoot[:(primitives.RootLength-DomainTypeLength)]...),
-	), nil
-}
-
-// GetDomain returns the domain for the DomainType and epoch.
-func GetDomain(
-	cfg *config.Config,
-	genesisValidatorsRoot primitives.Root,
-	domainType DomainType,
-	epoch primitives.Epoch,
-) (primitives.Domain, error) {
-	return computeDomain(
-		domainType,
-		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		genesisValidatorsRoot,
-	)
-}
+type BLSSignature [96]byte

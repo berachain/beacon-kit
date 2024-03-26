@@ -240,7 +240,7 @@ func (sp *StateProcessor) processDeposits(
 
 		// TODO make the two following calls into a single call.
 		var idx primitives.ValidatorIndex
-		idx, err = st.ValidatorIndexByPubkey(dep.Pubkey)
+		idx, err = st.ValidatorIndexByPubkey(dep.Pubkey[:])
 		if err != nil {
 			continue
 		}
@@ -255,7 +255,7 @@ func (sp *StateProcessor) processDeposits(
 
 		val.EffectiveBalance = min(
 			val.EffectiveBalance+dep.Amount,
-			sp.cfg.MaxEffectiveBalance,
+			primitives.Gwei(sp.cfg.MaxEffectiveBalance),
 		)
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err
@@ -294,7 +294,7 @@ func (sp *StateProcessor) processWithdrawals(
 		}
 
 		val.EffectiveBalance -= min(
-			val.EffectiveBalance, sp.cfg.MaxEffectiveBalance,
+			val.EffectiveBalance, wd.Amount,
 		)
 		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
 			return err

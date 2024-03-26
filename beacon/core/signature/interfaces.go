@@ -23,18 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-// DomainType is a 4-byte array used to represent a
-// domain type in BLS signing and verification.
-type DomainType [DomainTypeLength]byte
+import "github.com/berachain/beacon-kit/primitives"
 
-// Domain constants for BLS domain types.
-// Spec:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
-//
-//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
-var (
-	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
-	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
-)
+// SSZObject is the interface for the SSZ object.
+type SSZObject interface {
+	HashTreeRoot() (primitives.Root, error)
+}

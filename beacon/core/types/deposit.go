@@ -28,6 +28,7 @@ package types
 import (
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 )
 
@@ -39,17 +40,17 @@ const EthSecp256k1CredentialPrefix = iota + 1
 // layer.
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey []byte `json:"pubkey" ssz-max:"48"`
+	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
 	Credentials DepositCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount uint64 `json:"amount"`
+	Amount primitives.Gwei `json:"amount"`
 
 	// Signature of the deposit data.
-	Signature []byte `json:"signature" ssz-max:"96"`
+	Signature primitives.BLSSignature `json:"signature" ssz-max:"96"`
 
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`

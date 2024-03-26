@@ -29,7 +29,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/beacon/core/signing"
+	"github.com/berachain/beacon-kit/beacon/core/signature"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/config"
 	crypto "github.com/berachain/beacon-kit/crypto"
@@ -182,10 +182,10 @@ func (p *Processor) computeSigningRoot(
 	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 ) (primitives.Root, error) {
-	signingDomain, err := signing.GetDomain(
+	signingDomain, err := signature.GetDomain(
 		p.cfg,
 		genesisValidatorsRoot,
-		signing.DomainRandao,
+		signature.DomainRandao,
 		epoch,
 	)
 	if err != nil {
@@ -194,8 +194,7 @@ func (p *Processor) computeSigningRoot(
 			err,
 		)
 	}
-
-	signingRoot, err := signing.ComputeSigningRoot(
+	signingRoot, err := signature.ComputeSigningRoot(
 		epoch,
 		signingDomain,
 	)
