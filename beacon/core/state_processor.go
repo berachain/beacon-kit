@@ -106,6 +106,20 @@ func (sp *StateProcessor) ProcessSlot(
 	return nil
 }
 
+// def process_block(state: BeaconState, block: BeaconBlock) -> None:
+//
+//	process_block_header(state, block)
+//	# [Modified in Capella] Removed `is_execution_enabled` check in Capella
+//	process_withdrawals(state, block.body.execution_payload)  # [New in Capella]
+//	process_execution_payload(state, block.body, EXECUTION_ENGINE)  # [Modified
+//
+// in Capella]
+//
+//	process_randao(state, block.body)
+//	process_eth1_data(state, block.body)
+//	process_operations(state, block.body)  # [Modified in Capella]
+//	process_sync_aggregate(state, block.body.sync_aggregate)
+//
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
@@ -140,7 +154,7 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
+	if err = sp.processOperations(st, body); err != nil {
 		return err
 	}
 
@@ -197,6 +211,15 @@ func (sp *StateProcessor) processHeader(
 		BodyRoot:  header.BodyRoot,
 	}
 	return st.SetLatestBlockHeader(headerRaw)
+}
+
+// processOperations processes the operations and ensures they match the
+// local state.
+func (sp *StateProcessor) processOperations(
+	st state.BeaconState,
+	body types.BeaconBlockBody,
+) error {
+	return sp.processDeposits(st, body.GetDeposits())
 }
 
 // ProcessDeposits processes the deposits and ensures they match the
