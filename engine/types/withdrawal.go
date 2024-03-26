@@ -39,7 +39,7 @@ type Withdrawal struct {
 	Index     uint64                      `json:"index"          ssz-size:"8"`
 	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
 	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    uint64                      `json:"amount"         ssz-size:"8"`
+	Amount    primitives.Gwei             `json:"amount"         ssz-size:"8"`
 }
 
 // String returns a string representation of the Withdrawal.

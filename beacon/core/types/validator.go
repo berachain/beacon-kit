@@ -42,7 +42,7 @@ type Validator struct {
 	// WithdrawalCredentials are an address that controls the validator.
 	WithdrawalCredentials DepositCredentials `json:"withdrawalCredentials" ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
-	EffectiveBalance uint64 `json:"effectiveBalance"`
+	EffectiveBalance primitives.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
 	// ActivationEligibilityEpoch is the epoch in which the validator became
@@ -88,7 +88,7 @@ func (v Validator) IsEligibleForActivationQueue(
 	maxEffectiveBalance primitives.Gwei,
 ) bool {
 	return v.ActivationEligibilityEpoch == params.FarFutureEpoch &&
-		v.EffectiveBalance == uint64(maxEffectiveBalance)
+		v.EffectiveBalance == maxEffectiveBalance
 }
 
 // IsSlashed as defined in the Ethereum 2.0 Spec

@@ -50,7 +50,7 @@ func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 		w.Address = *dec.Address
 	}
 	if dec.Amount != nil {
-		w.Amount = uint64(*dec.Amount)
+		w.Amount = primitives.Gwei(*dec.Amount)
 	}
 	return nil
 }

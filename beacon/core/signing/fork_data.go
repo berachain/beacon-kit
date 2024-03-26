@@ -50,9 +50,9 @@ type Fork struct {
 //nolint:lll
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
-	CurrentVersion primitives.Version
+	CurrentVersion primitives.Version `ssz-size:"4"`
 	// GenesisValidatorsRoot is the root of the genesis validators.
-	GenesisValidatorsRoot primitives.Root
+	GenesisValidatorsRoot primitives.Root `ssz-size:"32"`
 }
 
 // computeForkDataRoot computes the root of the fork data.
