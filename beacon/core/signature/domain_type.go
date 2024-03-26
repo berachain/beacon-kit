@@ -25,9 +25,7 @@
 
 package signature
 
-// DomainType is a 4-byte array used to represent a
-// domain type in BLS signing and verification.
-type DomainType [DomainTypeLength]byte
+import "github.com/berachain/beacon-kit/primitives"
 
 // Domain constants for BLS domain types.
 // Spec:
@@ -35,6 +33,6 @@ type DomainType [DomainTypeLength]byte
 //
 //nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
 var (
-	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
-	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
+	DomainRandao  = primitives.DomainType{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = primitives.DomainType{0x03, 0x00, 0x00, 0x00}
 )

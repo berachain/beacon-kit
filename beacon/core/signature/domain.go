@@ -35,7 +35,7 @@ import (
 //
 //nolint:lll
 func ComputeDomain(
-	domainType DomainType,
+	domainType primitives.DomainType,
 	forkVersion primitives.Version,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Domain, error) {
@@ -54,7 +54,7 @@ func ComputeDomain(
 func GetDomain(
 	cfg *config.Config,
 	genesisValidatorsRoot primitives.Root,
-	domainType DomainType,
+	domainType primitives.DomainType,
 	epoch primitives.Epoch,
 ) (primitives.Domain, error) {
 	return ComputeDomain(
