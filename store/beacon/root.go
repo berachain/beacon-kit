@@ -25,7 +25,11 @@
 
 package beacon
 
-import "github.com/berachain/beacon-kit/primitives"
+import (
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/primitives"
+)
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (s *Store) UpdateStateRootAtIndex(
@@ -43,11 +47,19 @@ func (s *Store) StateRootAtIndex(slot uint64) (primitives.HashRoot, error) {
 // Store is the interface for the beacon store.
 func (s *Store) HashTreeRoot() ([32]byte, error) {
 	// TODO: Implement getting the HashTreeRoot (StateRoot)
-	// of the beacon store.
-	// return (&state.BeaconStateDeneb{
-	// 	Slot:          s.GetSlot(),
-	// 	PrevRandaoMix: randaoMix,
-	// 	PrevBlockRoot: parentRoot,
-	// }).HashTreeRoot()
-	return [32]byte{}, nil
+	// We currently return at least *SOMETHING* so that we
+	// can simulate having to keep track of the StateRoot of the
+	// BeaconState, since this value with change every slot.
+	// TODO: Actually implementation.
+	randaoMix, err := s.RandaoMixAtIndex(0)
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	return (&state.BeaconStateDeneb{
+		GenesisValidatorsRoot: [32]byte{},
+		Eth1GenesisHash:       [32]byte{},
+		RandaoMix:             randaoMix[:],
+		Validators:            []*beacontypes.Validator{},
+	}).HashTreeRoot()
 }

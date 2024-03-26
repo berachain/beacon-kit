@@ -46,9 +46,6 @@ type BeaconBlockBodyDeneb struct {
 	// Deposits is the list of deposits included in the body.
 	Deposits []*Deposit `ssz-max:"16"`
 
-	// Redirects is the list of redirects included in the body.
-	Redirects []*Redirect `ssz-max:"16"`
-
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
 
@@ -91,16 +88,6 @@ func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
 	b.Deposits = deposits
-}
-
-// GetRedirects returns the Redirects of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetRedirects() []*Redirect {
-	return b.Redirects
-}
-
-// SetRedirects sets the Redirects of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetRedirects(redirects []*Redirect) {
-	b.Redirects = redirects
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
@@ -148,22 +135,12 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	}
 	copy(layer[2], root[:])
 
-	// Redirects
-	red := b.GetRedirects()
-	//nolint:gomnd // TODO: Config
-	maxRedirectsPerBlock := uint64(16)
-	root, err = ssz.MerkleizeListSSZ(red, maxRedirectsPerBlock)
-	if err != nil {
-		return nil, err
-	}
-	copy(layer[3], root[:])
-
 	// Execution Payload
 	rt, err := b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[4], rt[:])
+	copy(layer[3], rt[:])
 
 	// KZG commitments is not needed
 	return layer, nil

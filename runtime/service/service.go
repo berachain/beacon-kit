@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/forkchoice"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/config/params"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
@@ -112,7 +113,7 @@ func (s *BaseService) ForkchoiceStore(
 
 // BeaconCfg returns the configuration settings of the beacon node from
 // the BaseService.
-func (s *BaseService) BeaconCfg() *config.Beacon {
+func (s *BaseService) BeaconCfg() *params.BeaconChainConfig {
 	return &s.cfg.Beacon
 }
 

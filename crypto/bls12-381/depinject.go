@@ -26,7 +26,6 @@
 package bls12381
 
 import (
-	"fmt"
 	"os"
 
 	"cosmossdk.io/depinject"
@@ -53,7 +52,7 @@ func ProvideBlsSigner(in DepInjectInput) DepInjectOutput {
 	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
 
 	key, err := NewSignerFromFile(
-		fmt.Sprintf("%s/config/priv_validator_key.json", homeDir),
+		homeDir + "/config/priv_validator_key.json",
 	)
 	if err != nil {
 		os.Exit(1)

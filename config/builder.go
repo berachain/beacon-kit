@@ -40,9 +40,6 @@ const (
 	defaultLocalBuildPayloadTimeout = 2500 * time.Millisecond
 )
 
-// Beacon conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[Beacon] = Beacon{}
-
 // Builder is the configuration for the payload builder.
 type Builder struct {
 	// LocalBuilderEnabled determines if the local builder is enabled.

@@ -41,7 +41,7 @@ func (s *Service) ProcessBlockEvents(
 ) error {
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
-		if log.Address != s.BeaconCfg().Execution.DepositContractAddress {
+		if log.Address != s.BeaconCfg().DepositContractAddress {
 			continue
 		}
 
@@ -50,8 +50,6 @@ func (s *Service) ProcessBlockEvents(
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
 			err = s.processDepositLog(ctx, log)
-		case logSig == RedirectEventSig:
-			err = s.processRedirectLog(ctx, log)
 		case logSig == WithdrawalEventSig:
 			err = s.processWithdrawalLog(ctx, log)
 		default:
@@ -88,30 +86,6 @@ func (s *Service) processDepositLog(
 	}})
 }
 
-// processRedirectLog adds a redirect to the queue.
-func (s *Service) processRedirectLog(
-	ctx context.Context,
-	log coretypes.Log,
-) error {
-	r := &stakingabi.BeaconDepositContractRedirect{}
-	if err := s.abi.UnpackLogs(r, RedirectEventName, log); err != nil {
-		return err
-	}
-
-	s.Logger().Info(
-		"he wasn't good enough for her 🤷‍♂️", "deposit",
-		r.Index, "amount", r.Amount,
-	)
-
-	return s.BeaconState(ctx).EnqueueRedirects([]*beacontypes.Redirect{{
-		Index:       r.Index,
-		Credentials: beacontypes.DepositCredentials(r.Credentials),
-		Pubkey:      r.FromPubkey,
-		NewPubkey:   r.ToPubkey,
-		Amount:      r.Amount,
-	}})
-}
-
 // processWithdrawalLog adds a withdrawal to the queue.
 func (s *Service) processWithdrawalLog(
 	ctx context.Context,
@@ -123,14 +97,13 @@ func (s *Service) processWithdrawalLog(
 	}
 
 	// Get the validator index from the pubkey.
-	validator, err := s.BeaconState(ctx).
-		ValidatorIndexByPubkey(w.FromPubkey)
+	valIdx, err := s.BeaconState(ctx).ValidatorIndexByPubkey(w.FromPubkey)
 	if err != nil {
 		return err
 	}
 
-	executionAddr, err := beacontypes.DepositCredentials(w.Credentials).
-		ToExecutionAddress()
+	executionAddr, err := beacontypes.
+		DepositCredentials(w.Credentials).ToExecutionAddress()
 	if err != nil {
 		return err
 	}
@@ -141,7 +114,7 @@ func (s *Service) processWithdrawalLog(
 
 	return s.BeaconState(ctx).EnqueueWithdrawals([]*enginetypes.Withdrawal{{
 		Index:     w.Index,
-		Validator: validator,
+		Validator: valIdx,
 		Address:   executionAddr,
 		Amount:    w.Amount,
 	}})

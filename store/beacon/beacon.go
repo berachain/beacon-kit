@@ -35,6 +35,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/store/collections"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
+	"github.com/berachain/beacon-kit/store/beacon/index"
 )
 
 // Store is a wrapper around an sdk.Context
@@ -47,17 +48,13 @@ type Store struct {
 	// available index for a new validator.
 	validatorIndex sdkcollections.Sequence
 
-	// validatorIndexToPubkey is a map that provides the
-	// public key for a given validator index.
-	validatorIndexToPubkey *sdkcollections.IndexedMap[
-		uint64, []byte, validatorsIndex,
+	// validators stores the list of validators.
+	validators *sdkcollections.IndexedMap[
+		uint64, *beacontypes.Validator, index.ValidatorsIndex,
 	]
 
 	// depositQueue is a list of deposits that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
-
-	// redirectQueue is a list of redirects that are queued to be processed.
-	redirectQueue *collections.Queue[*beacontypes.Redirect]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
@@ -88,23 +85,20 @@ func NewStore(
 			sdkcollections.NewPrefix(validatorIndexPrefix),
 			validatorIndexPrefix,
 		),
-		validatorIndexToPubkey: sdkcollections.NewIndexedMap[uint64, []byte](
+		validators: sdkcollections.NewIndexedMap[
+			uint64, *beacontypes.Validator,
+		](
 			schemaBuilder,
-			sdkcollections.NewPrefix(validatorIndexToPubkeyPrefix),
-			validatorIndexToPubkeyPrefix,
+			sdkcollections.NewPrefix(validatorByIndexPrefix),
+			validatorByIndexPrefix,
 			sdkcollections.Uint64Key,
-			sdkcollections.BytesValue,
-			newValidatorsIndex(schemaBuilder),
+			encoding.SSZValueCodec[*beacontypes.Validator]{},
+			index.NewValidatorsIndex(schemaBuilder),
 		),
 		depositQueue: collections.NewQueue[*beacontypes.Deposit](
 			schemaBuilder,
 			depositQueuePrefix,
 			encoding.SSZValueCodec[*beacontypes.Deposit]{},
-		),
-		redirectQueue: collections.NewQueue[*beacontypes.Redirect](
-			schemaBuilder,
-			redirectQueuePrefix,
-			encoding.SSZValueCodec[*beacontypes.Redirect]{},
 		),
 		withdrawalQueue: collections.NewQueue[*enginetypes.Withdrawal](
 			schemaBuilder,

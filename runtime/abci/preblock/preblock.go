@@ -53,11 +53,6 @@ type BeaconPreBlockHandler struct {
 	// logger is the logger used by the handler.
 	logger log.Logger
 
-	// stakingKeeper provides access to the staking module. In the handler
-	// it is used to convert consAddress to pubkey, before passing it into
-	// the core beacon chain logic.
-	stakingKeeper StakingKeeper
-
 	// chainService is the service that is responsible for interacting with
 	// the beacon chain.
 	chainService *blockchain.Service
@@ -76,18 +71,16 @@ type BeaconPreBlockHandler struct {
 func NewBeaconPreBlockHandler(
 	cfg *config.ABCI,
 	logger log.Logger,
-	stakingKeeper StakingKeeper,
 	chainService *blockchain.Service,
 	syncService *sync.Service,
 	nextHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
-		cfg:           cfg,
-		logger:        logger,
-		stakingKeeper: stakingKeeper,
-		chainService:  chainService,
-		syncService:   syncService,
-		nextHandler:   nextHandler,
+		cfg:          cfg,
+		logger:       logger,
+		chainService: chainService,
+		syncService:  syncService,
+		nextHandler:  nextHandler,
 	}
 }
 

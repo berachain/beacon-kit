@@ -50,14 +50,3 @@ func WithDepositABI(
 		return nil
 	}
 }
-
-// WithValsetUpdater returns an Option that sets
-// the ValsetUpdater for the Service.
-func WithValsetUpdater(
-	vsu ValsetUpdater,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.vsu = vsu
-		return nil
-	}
-}

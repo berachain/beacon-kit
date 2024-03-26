@@ -85,7 +85,6 @@ func (s *Service) ProcessBeaconBlock(
 	})
 
 	g.Go(func() error {
-		//nolint:contextcheck // todo fix
 		return s.sp.ProcessBlock(
 			s.BeaconState(ctx),
 			blk,

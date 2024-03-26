@@ -76,7 +76,7 @@ func (s *Service) BuildLocalPayload(
 		return nil, err
 	} else if payloadID == nil {
 		s.Logger().Warn("received nil payload ID on VALID engine response",
-			"head_eth1_hash", fmt.Sprintf("%#x", fcuConfig.HeadEth1Hash),
+			"head_eth1_hash", fcuConfig.HeadEth1Hash,
 			"for_slot", fcuConfig.ProposingSlot,
 		)
 
@@ -131,10 +131,10 @@ func (s *Service) GetBestPayload(
 		// for it to be resolved and then return the data. This case should very
 		// rarely be hit
 		// if your consensus and execution clients are operating well.
-		s.Logger().Warn(fmt.Sprintf(
-			"%s, notifying execution client to construct a new payload ...",
-			err.Error(),
-		))
+		s.Logger().Warn(
+			err.Error() +
+				": notifying execution client to construct a new payload ...",
+		)
 
 		//#nosec:G701 // won't overflow, time cannot be negative.
 		payload, blobsBundle, overrideBuilder, err = s.buildAndWaitForLocalPayload(
@@ -249,7 +249,7 @@ func (s *Service) getPayloadAttribute(
 
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals(
-		s.BeaconCfg().Limits.MaxWithdrawalsPerPayload,
+		s.BeaconCfg().MaxWithdrawalsPerPayload,
 	)
 	if err != nil {
 		s.Logger().Error(
@@ -259,7 +259,7 @@ func (s *Service) getPayloadAttribute(
 
 	// Get the previous randao mix.
 	prevRandao, err = st.RandaoMixAtIndex(
-		st.GetSlot() % s.BeaconCfg().Limits.EpochsPerHistoricalVector,
+		(slot - 1) % s.BeaconCfg().EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return nil, err
@@ -269,7 +269,7 @@ func (s *Service) getPayloadAttribute(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
-		s.BeaconCfg().Validator.SuggestedFeeRecipient,
+		s.validatorCfg.SuggestedFeeRecipient,
 		withdrawals,
 		prevHeadRoot,
 	)

@@ -35,17 +35,8 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	authkeeper "cosmossdk.io/x/auth/keeper"
-	bankkeeper "cosmossdk.io/x/bank/keeper"
-	evidencekeeper "cosmossdk.io/x/evidence/keeper"
-	mintkeeper "cosmossdk.io/x/mint/keeper"
-	_ "cosmossdk.io/x/protocolpool"
-	slashingkeeper "cosmossdk.io/x/slashing/keeper"
-	stakingkeeper "cosmossdk.io/x/staking/keeper"
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
-	stakingwrapper "github.com/berachain/beacon-kit/runtime/modules/staking/keeper"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -61,14 +52,6 @@ var (
 	_ servertypes.Application = (*BeaconApp)(nil)
 )
 
-// AppConfig returns the default app config.
-func AppConfig() depinject.Config {
-	return depinject.Configs(
-		// appconfig.LoadYAML(AppConfigYAML),
-		BeaconAppConfig,
-	)
-}
-
 // BeaconApp extends an ABCI application, but with most of its parameters
 // exported.
 // They are exported for convenience in creating helper functions, as object
@@ -80,20 +63,11 @@ type BeaconApp struct {
 	txConfig          client.TxConfig
 	interfaceRegistry codectypes.InterfaceRegistry
 
-	// cosmos sdk standard keepers
-	AccountKeeper         authkeeper.AccountKeeper
-	BankKeeper            bankkeeper.Keeper
-	StakingKeeper         *stakingkeeper.Keeper
-	SlashingKeeper        slashingkeeper.Keeper
-	MintKeeper            mintkeeper.Keeper
-	UpgradeKeeper         *upgradekeeper.Keeper
-	EvidenceKeeper        evidencekeeper.Keeper
+	// TODO: should we restructure the relationship between
+	// the BeaconKeeper BeaconKitRuntime?
+	BeaconKeeper          *beaconkeeper.Keeper
+	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
 	ConsensusParamsKeeper consensuskeeper.Keeper
-
-	// beacon-kit custom keepers
-	BeaconKeeper        *beaconkeeper.Keeper
-	BeaconStakingKeeper *stakingwrapper.Keeper
-	BeaconKitRuntime    *beaconkitruntime.BeaconKitRuntime
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -102,7 +76,6 @@ func NewBeaconKitApp(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	bech32Prefix string,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
@@ -121,7 +94,6 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
-				// supply beaconkit options
 			),
 		),
 		&appBuilder,
@@ -129,16 +101,8 @@ func NewBeaconKitApp(
 		&app.legacyAmino,
 		&app.txConfig,
 		&app.interfaceRegistry,
-		&app.AccountKeeper,
-		&app.BankKeeper,
-		&app.StakingKeeper,
-		&app.SlashingKeeper,
-		&app.MintKeeper,
-		&app.UpgradeKeeper,
-		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
-		&app.BeaconStakingKeeper,
 		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
@@ -156,7 +120,6 @@ func NewBeaconKitApp(
 			PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
 		nil,
-		app.BeaconStakingKeeper,
 	)
 
 	// Set all the newly built ABCI Componenets on the App.

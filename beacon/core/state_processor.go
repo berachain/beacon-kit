@@ -30,8 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/config"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/config/params"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
@@ -41,21 +40,18 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
-	cfg *config.Beacon
+	cfg *params.BeaconChainConfig
 	rp  RandaoProcessor
-	vsu ValsetUpdater
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
-	cfg *config.Beacon,
+	cfg *params.BeaconChainConfig,
 	rp RandaoProcessor,
-	vsu ValsetUpdater,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg: cfg,
 		rp:  rp,
-		vsu: vsu,
 	}
 }
 
@@ -73,7 +69,7 @@ func (sp *StateProcessor) ProcessSlot(
 	// st.GetSlot() even though technically this was the state root from
 	// end of the previous slot.
 	if err = st.UpdateStateRootAtIndex(
-		st.GetSlot()%sp.cfg.Limits.SlotsPerHistoricalRoot,
+		(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot,
 		prevStateRoot,
 	); err != nil {
 		return err
@@ -103,7 +99,7 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		st.GetSlot()%sp.cfg.Limits.SlotsPerHistoricalRoot, prevBlockRoot,
+		(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
 	); err != nil {
 		return err
 	}
@@ -145,11 +141,6 @@ func (sp *StateProcessor) ProcessBlock(
 
 	// process the deposits and ensure they match the local state.
 	if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
-		return err
-	}
-
-	// process the redirects and ensure they match the local state.
-	if err = sp.processRedirects(st, body.GetRedirects()); err != nil {
 		return err
 	}
 
@@ -225,62 +216,33 @@ func (sp *StateProcessor) processDeposits(
 		if dep == nil {
 			return types.ErrNilDeposit
 		}
+
 		if dep.Index != localDeposits[i].Index {
 			return fmt.Errorf(
 				"deposit index does not match, expected: %d, got: %d",
 				localDeposits[i].Index, dep.Index)
 		}
 
-		// TODO: These changes are not encapsulated in the state root of
-		// the beacon store. @po-bera needs for EIP-4788.
-		if err = sp.vsu.IncreaseConsensusPower(
-			st.Context(),
-			dep.Credentials,
-			[bls12381.PubKeyLength]byte(dep.Pubkey),
-			dep.Amount,
-			dep.Signature,
-			dep.Index,
-		); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// processRedirects processes the redirects and ensures they match the
-// local state.
-func (sp *StateProcessor) processRedirects(
-	st state.BeaconState,
-	redirects []*types.Redirect,
-) error {
-	// Dequeue and verify the logs.
-	localRedirects, err := st.DequeueRedirects(uint64(len(redirects)))
-	if err != nil {
-		return err
-	}
-
-	// Ensure the redirects match the local state.
-	for i, red := range redirects {
-		if red == nil {
-			return types.ErrNilRedirect
-		}
-		if red.Index != localRedirects[i].Index {
-			return fmt.Errorf(
-				"redirect index does not match, expected: %d, got: %d",
-				localRedirects[i].Index, red.Index)
+		// TODO make the two following calls into a single call.
+		var idx uint64
+		idx, err = st.ValidatorIndexByPubkey(dep.Pubkey)
+		if err != nil {
+			continue
 		}
 
-		// TODO: These changes are not encapsulated in the state root of
-		// the beacon store. @po-bera needs for EIP-4788.
-		if err = sp.vsu.RedirectConsensusPower(
-			st.Context(),
-			red.Credentials,
-			[bls12381.PubKeyLength]byte(red.Pubkey),
-			[bls12381.PubKeyLength]byte(red.NewPubkey),
-			red.Amount,
-			red.Signature,
-			red.Index,
-		); err != nil {
+		var val *types.Validator
+		val, err = st.ValidatorByIndex(idx)
+		if err != nil {
+			continue
+		}
+
+		// TODO: Configuration Variable.
+
+		val.EffectiveBalance = min(
+			val.EffectiveBalance+dep.Amount,
+			sp.cfg.MaxEffectiveBalance,
+		)
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err
 		}
 	}
@@ -309,21 +271,18 @@ func (sp *StateProcessor) processWithdrawals(
 				"deposit index does not match, expected: %d, got: %d",
 				localWithdrawals[i].Index, wd.Index)
 		}
-		// TODO: These changes are not encapsulated in the state root of
-		// the beacon store. @po-bera needs for EIP-4788.
-		var pk []byte
-		pk, err = st.ValidatorPubKeyByIndex(
-			wd.Validator,
-		)
+
+		var val *types.Validator
+		val, err = st.ValidatorByIndex(wd.Validator)
 		if err != nil {
-			return err
+			continue
 		}
-		if err = sp.vsu.DecreaseConsensusPower(
-			st.Context(),
-			wd.Address,
-			[bls12381.PubKeyLength]byte(pk),
-			wd.Amount,
-		); err != nil {
+
+		// TODO: This is like super hood, but how do we want to perform
+		// validation.
+		// Just unlikely I guess?
+		val.EffectiveBalance -= min(val.EffectiveBalance, wd.Amount)
+		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
 			return err
 		}
 	}
@@ -337,7 +296,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	blk types.BeaconBlock,
 ) error {
 	// Ensure the proposer index is valid.
-	pubkey, err := st.ValidatorPubKeyByIndex(blk.GetProposerIndex())
+	val, err := st.ValidatorByIndex(blk.GetProposerIndex())
 	if err != nil {
 		return err
 	}
@@ -346,7 +305,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	reveal := blk.GetBody().GetRandaoReveal()
 	if err = sp.rp.VerifyReveal(
 		st,
-		[bls12381.PubKeyLength]byte(pubkey),
+		val.Pubkey,
 		reveal,
 	); err != nil {
 		return err

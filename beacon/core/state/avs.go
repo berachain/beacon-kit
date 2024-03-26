@@ -28,7 +28,7 @@ package state
 import (
 	"context"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
@@ -39,9 +39,9 @@ type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		ctx context.Context, slot primitives.Slot, b beacontypes.ReadOnlyBeaconBlock,
+		ctx context.Context, slot primitives.Slot, b types.ReadOnlyBeaconBlock,
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(slot primitives.Slot, sc ...*beacontypes.BlobSidecar) error
+	Persist(slot primitives.Slot, sc ...*types.BlobSidecar) error
 }

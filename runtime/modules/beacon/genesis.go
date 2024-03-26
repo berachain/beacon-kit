@@ -23,19 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package evm
+package beacon
 
 import (
 	"context"
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/runtime/modules/beacon/types"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/beacon/core/state"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm
 // module.
 func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(types.DefaultGenesis())
+	bz, err := json.Marshal(state.DefaultBeaconStateDeneb())
 	if err != nil {
 		panic(err)
 	}
@@ -50,15 +51,14 @@ func (AppModule) ValidateGenesis(
 	return nil
 }
 
-// InitGenesis performs genesis initialization for the evm module. It returns
-// no validator updates.
+// InitGenesis performs genesis initialization for the beacon module.
 func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
-) error {
-	var gs types.GenesisState
+) ([]appmodulev2.ValidatorUpdate, error) {
+	var gs state.BeaconStateDeneb
 	if err := json.Unmarshal(bz, &gs); err != nil {
-		return err
+		return nil, err
 	}
 	return am.keeper.InitGenesis(ctx, gs)
 }

@@ -26,47 +26,42 @@
 package beacon
 
 import (
-	"context"
-
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
 // AddValidator registers a new validator in the beacon state.
 func (s *Store) AddValidator(
-	ctx context.Context,
-	pubkey []byte,
+	val *beacontypes.Validator,
 ) error {
-	idx, err := s.validatorIndex.Next(ctx)
+	idx, err := s.validatorIndex.Next(s.ctx)
 	if err != nil {
 		return err
 	}
-	return s.validatorIndexToPubkey.Set(ctx, idx, pubkey)
+
+	return s.validators.Set(s.ctx, idx, val)
 }
 
-// UpdateValidator updates the pubkey of a validator.
-func (s *Store) UpdateValidator(
-	ctx context.Context,
-	oldPubkey []byte,
-	newPubkey []byte,
+// UpdateValidatorAtIndex updates a validator at a specific index.
+func (s *Store) UpdateValidatorAtIndex(
+	index primitives.ValidatorIndex,
+	val *beacontypes.Validator,
 ) error {
-	// Get the index of the old pubkey.
-	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
-		ctx,
-		oldPubkey,
-	)
-	if err != nil {
-		return err
-	}
+	return s.validators.Set(s.ctx, index, val)
+}
 
-	// Set the new one
-	return s.validatorIndexToPubkey.Set(ctx, idx, newPubkey)
+// RemoveValidatorAtIndex removes a validator at a specified index.
+func (s *Store) RemoveValidatorAtIndex(
+	idx primitives.ValidatorIndex,
+) error {
+	return s.validators.Remove(s.ctx, idx)
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
 func (s *Store) ValidatorIndexByPubkey(
 	pubkey []byte,
 ) (primitives.ValidatorIndex, error) {
-	idx, err := s.validatorIndexToPubkey.Indexes.Pubkey.MatchExact(
+	idx, err := s.validators.Indexes.Pubkey.MatchExact(
 		s.ctx,
 		pubkey,
 	)
@@ -76,13 +71,46 @@ func (s *Store) ValidatorIndexByPubkey(
 	return idx, nil
 }
 
-// ValidatorPubKeyByIndex returns the validator address by index.
-func (s *Store) ValidatorPubKeyByIndex(
+// ValidatorByIndex returns the validator address by index.
+func (s *Store) ValidatorByIndex(
 	index primitives.ValidatorIndex,
-) ([]byte, error) {
-	pubkey, err := s.validatorIndexToPubkey.Get(s.ctx, index)
+) (*beacontypes.Validator, error) {
+	val, err := s.validators.Get(s.ctx, index)
 	if err != nil {
 		return nil, err
 	}
-	return pubkey, err
+	return val, err
+}
+
+// GetValidatorsByEffectiveBalance retrieves all validators sorted by
+// effective balance from the beacon state.
+func (s *Store) GetValidatorsByEffectiveBalance() (
+	[]*beacontypes.Validator, error,
+) {
+	var (
+		vals []*beacontypes.Validator
+		v    *beacontypes.Validator
+		idx  primitives.ValidatorIndex
+	)
+
+	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(
+		s.ctx,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate over all validators and collect them.
+	for ; iter.Valid(); iter.Next() {
+		idx, err = iter.PrimaryKey()
+		if err != nil {
+			return nil, err
+		}
+		if v, err = s.validators.Get(s.ctx, idx); err != nil {
+			return nil, err
+		}
+		vals = append(vals, v)
+	}
+	return vals, nil
 }

@@ -62,3 +62,11 @@ func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
 		return nil
 	}
 }
+
+// WithValidatorConfig sets the validator config.
+func WithValidatorConfig(cfg *config.Validator) service.Option[Service] {
+	return func(s *Service) error {
+		s.validatorCfg = cfg
+		return nil
+	}
+}
