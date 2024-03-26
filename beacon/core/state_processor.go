@@ -84,7 +84,7 @@ func (sp *StateProcessor) ProcessSlot(
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
 	// the StateRoot until the following block.
-	if (latestHeader.StateRoot == primitives.HashRoot{}) {
+	if (latestHeader.StateRoot == primitives.Root{}) {
 		latestHeader.StateRoot = prevStateRoot
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
 			return err
@@ -92,7 +92,7 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	// We update the block root.
-	var prevBlockRoot primitives.HashRoot
+	var prevBlockRoot primitives.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err

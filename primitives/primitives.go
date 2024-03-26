@@ -28,7 +28,7 @@ package primitives
 import "github.com/ethereum/go-ethereum/common"
 
 const (
-	HashRootLength = 32
+	RootLength = 32
 )
 
 type (
@@ -63,7 +63,7 @@ type (
 
 	// Root as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	HashRoot Bytes32
+	Root Bytes32
 
 	// Hash32 as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types

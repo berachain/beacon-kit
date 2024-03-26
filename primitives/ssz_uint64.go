@@ -34,8 +34,8 @@ type SSZUInt64 uint64
 // represented as bytes in little endian,
 // padded on the right side with zeroed bytes
 // to a total of 32 bytes.
-func (e SSZUInt64) HashTreeRoot() (HashRoot, error) {
-	bz := make([]byte, HashRootLength)
+func (e SSZUInt64) HashTreeRoot() (Root, error) {
+	bz := make([]byte, RootLength)
 	binary.LittleEndian.PutUint64(bz, uint64(e))
-	return HashRoot(bz), nil
+	return Root(bz), nil
 }

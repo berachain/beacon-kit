@@ -204,7 +204,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	blk := &types.BeaconBlockDeneb{
 		Slot:          1,
 		ProposerIndex: 1,
-		ParentBlockRoot: primitives.HashRoot(
+		ParentBlockRoot: primitives.Root(
 			common.HexToHash("0x07").Bytes()),
 		Body: body,
 	}

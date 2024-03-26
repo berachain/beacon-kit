@@ -33,15 +33,15 @@ import (
 
 // ForkData is the fork data used for signing.
 type ForkData struct {
-	CurrentVersion        primitives.Version  `ssz-size:"4"`
-	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
+	CurrentVersion        primitives.Version `ssz-size:"4"`
+	GenesisValidatorsRoot primitives.Root    `ssz-size:"32"`
 }
 
 // computeForkDataRoot computes the root of the fork data.
 func computeForkDataRoot(
 	currentVersion primitives.Version,
-	genesisValidatorsRoot primitives.HashRoot,
-) (primitives.HashRoot, error) {
+	genesisValidatorsRoot primitives.Root,
+) (primitives.Root, error) {
 	forkData := ForkData{
 		CurrentVersion:        currentVersion,
 		GenesisValidatorsRoot: genesisValidatorsRoot,

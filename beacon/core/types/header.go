@@ -37,9 +37,9 @@ import (
 type BeaconBlockHeader struct {
 	Slot          primitives.Slot           `json:"slot"`
 	ProposerIndex primitives.ValidatorIndex `json:"proposerIndex"`
-	ParentRoot    primitives.HashRoot       `json:"parentRoot"    ssz-size:"32"`
-	StateRoot     primitives.HashRoot       `json:"stateRoot"     ssz-size:"32"`
-	BodyRoot      primitives.HashRoot       `json:"bodyRoot"      ssz-size:"32"`
+	ParentRoot    primitives.Root           `json:"parentRoot"    ssz-size:"32"`
+	StateRoot     primitives.Root           `json:"stateRoot"     ssz-size:"32"`
+	BodyRoot      primitives.Root           `json:"bodyRoot"      ssz-size:"32"`
 }
 
 // String returns a string representation of the beacon block header.

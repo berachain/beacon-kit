@@ -40,10 +40,10 @@ type BeaconBlockDeneb struct {
 	ProposerIndex primitives.ValidatorIndex
 
 	// ParentBlockRoot is the hash of the parent block.
-	ParentBlockRoot primitives.HashRoot `ssz-size:"32"`
+	ParentBlockRoot primitives.Root `ssz-size:"32"`
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot primitives.HashRoot `ssz-size:"32"`
+	StateRoot primitives.Root `ssz-size:"32"`
 
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
@@ -76,11 +76,11 @@ func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
 }
 
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.HashRoot {
+func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.Root {
 	return b.ParentBlockRoot
 }
 
 // GetStateRoot retrieves the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetStateRoot() primitives.HashRoot {
+func (b *BeaconBlockDeneb) GetStateRoot() primitives.Root {
 	return b.StateRoot
 }

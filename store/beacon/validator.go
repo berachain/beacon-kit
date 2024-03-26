@@ -33,14 +33,14 @@ import (
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
 // state.
 func (s *Store) SetGenesisValidatorsRoot(
-	root primitives.HashRoot,
+	root primitives.Root,
 ) error {
 	return s.genesisValidatorsRoot.Set(s.ctx, root)
 }
 
 // GetGenesisValidatorsRoot retrieves the genesis validators root from the
 // beacon state.
-func (s *Store) GetGenesisValidatorsRoot() (primitives.HashRoot, error) {
+func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
 	return s.genesisValidatorsRoot.Get(s.ctx)
 }
 

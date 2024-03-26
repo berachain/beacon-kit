@@ -39,15 +39,15 @@ import (
 // and INCORRECTLY setting to 0.
 func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 	return &BeaconStateDeneb{
-		GenesisValidatorsRoot: primitives.HashRoot{},
+		GenesisValidatorsRoot: primitives.Root{},
 
 		Slot: 0,
 		LatestBlockHeader: &types.BeaconBlockHeader{
 			Slot:          0,
 			ProposerIndex: 0,
-			ParentRoot:    primitives.HashRoot{},
-			StateRoot:     primitives.HashRoot{},
-			BodyRoot:      primitives.HashRoot{},
+			ParentRoot:    primitives.Root{},
+			StateRoot:     primitives.Root{},
+			BodyRoot:      primitives.Root{},
 		},
 		BlockRoots: make([][32]byte, 0),
 		StateRoots: make([][32]byte, 0),
@@ -69,8 +69,8 @@ type BeaconStateDeneb struct {
 	// Versioning
 	//
 	//nolint:lll
-	GenesisValidatorsRoot primitives.HashRoot `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  primitives.Slot     `json:"slot"`
+	GenesisValidatorsRoot primitives.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
+	Slot                  primitives.Slot `json:"slot"`
 
 	// History
 	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
@@ -96,7 +96,7 @@ type BeaconStateDeneb struct {
 // BeaconStateDeneb.
 type beaconStateDenebJSONMarshaling struct {
 	GenesisValidatorsRoot hexutil.Bytes
-	BlockRoots            []primitives.HashRoot
-	StateRoots            []primitives.HashRoot
-	RandaoMixes           []primitives.HashRoot
+	BlockRoots            []primitives.Root
+	StateRoots            []primitives.Root
+	RandaoMixes           []primitives.Root
 }

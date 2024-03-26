@@ -33,7 +33,7 @@ import (
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (s *Store) UpdateBlockRootAtIndex(
 	index uint64,
-	root primitives.HashRoot,
+	root primitives.Root,
 ) error {
 	return s.blockRoots.Set(s.ctx, index, root)
 }
@@ -41,7 +41,7 @@ func (s *Store) UpdateBlockRootAtIndex(
 // GetBlockRoot retrieves the block root from the BeaconStore.
 func (s *Store) GetBlockRootAtIndex(
 	index uint64,
-) (primitives.HashRoot, error) {
+) (primitives.Root, error) {
 	return s.blockRoots.Get(s.ctx, index)
 }
 

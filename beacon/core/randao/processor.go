@@ -84,7 +84,7 @@ func (p *Processor) BuildReveal(
 
 // buildReveal creates a reveal for the proposer.
 func (p *Processor) buildReveal(
-	genesisValidatorsRoot primitives.HashRoot,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
 	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
@@ -115,7 +115,7 @@ func (p *Processor) VerifyReveal(
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) verifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
-	genesisValidatorsRoot primitives.HashRoot,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) error {
@@ -165,9 +165,9 @@ func (p *Processor) MixinNewReveal(
 }
 
 func (p *Processor) computeSigningRoot(
-	genesisValidatorsRoot primitives.HashRoot,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
-) (primitives.HashRoot, error) {
+) (primitives.Root, error) {
 	signingDomain, err := signing.GetDomain(
 		p.cfg,
 		genesisValidatorsRoot,
@@ -175,7 +175,7 @@ func (p *Processor) computeSigningRoot(
 		epoch,
 	)
 	if err != nil {
-		return primitives.HashRoot{}, fmt.Errorf(
+		return primitives.Root{}, fmt.Errorf(
 			"failed to get domain: %w",
 			err,
 		)
@@ -185,7 +185,7 @@ func (p *Processor) computeSigningRoot(
 		signingDomain,
 	)
 	if err != nil {
-		return primitives.HashRoot{},
+		return primitives.Root{},
 			fmt.Errorf("failed to compute signing root: %w", err)
 	}
 	return signingRoot, nil

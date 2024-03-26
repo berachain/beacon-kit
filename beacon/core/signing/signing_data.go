@@ -34,8 +34,8 @@ import "github.com/berachain/beacon-kit/primitives"
 //
 //nolint:lll // Urls are long.
 type Data struct {
-	ObjectRoot primitives.HashRoot `ssz-size:"32"`
-	Domain     Domain              `ssz-size:"32"`
+	ObjectRoot primitives.Root `ssz-size:"32"`
+	Domain     Domain          `ssz-size:"32"`
 }
 
 // ComputeSigningRoot computes the signing root for a given object and domain.
@@ -49,10 +49,10 @@ type Data struct {
 func ComputeSigningRoot(
 	sszObject SSZObject,
 	domain Domain,
-) (primitives.HashRoot, error) {
+) (primitives.Root, error) {
 	objectRoot, err := sszObject.HashTreeRoot()
 	if err != nil {
-		return primitives.HashRoot{}, err
+		return primitives.Root{}, err
 	}
 	data := Data{
 		ObjectRoot: objectRoot,

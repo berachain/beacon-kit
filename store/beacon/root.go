@@ -34,13 +34,13 @@ import (
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (s *Store) UpdateStateRootAtIndex(
 	slot uint64,
-	stateRoot primitives.HashRoot,
+	stateRoot primitives.Root,
 ) error {
 	return s.stateRoots.Set(s.ctx, slot, stateRoot)
 }
 
 // StateRootAtIndex returns the state root at the given slot.
-func (s *Store) StateRootAtIndex(slot uint64) (primitives.HashRoot, error) {
+func (s *Store) StateRootAtIndex(slot uint64) (primitives.Root, error) {
 	return s.stateRoots.Get(s.ctx, slot)
 }
 
@@ -60,7 +60,7 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 	randaoMixes[0] = randaoMix
 
 	return (&state.BeaconStateDeneb{
-		GenesisValidatorsRoot: primitives.HashRoot{},
+		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
 		LatestBlockHeader: &beacontypes.BeaconBlockHeader{
 			Slot:          0,

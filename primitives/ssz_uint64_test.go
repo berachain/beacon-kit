@@ -38,7 +38,7 @@ func TestSSZEpoch(t *testing.T) {
 	epoch := primitives.Epoch(1)
 	root, err := epoch.HashTreeRoot()
 	require.NoError(t, err)
-	require.Len(t, root, primitives.HashRootLength)
+	require.Len(t, root, primitives.RootLength)
 	require.Equal(t, []byte{
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -49,7 +49,7 @@ func TestSSZEpoch(t *testing.T) {
 	epoch = primitives.Epoch(2)
 	root, err = epoch.HashTreeRoot()
 	require.NoError(t, err)
-	require.Len(t, root, primitives.HashRootLength)
+	require.Len(t, root, primitives.RootLength)
 	require.Equal(t, []byte{
 		0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -61,7 +61,7 @@ func TestSSZEpoch(t *testing.T) {
 	epoch = primitives.Epoch(1234)
 	root, err = epoch.HashTreeRoot()
 	require.NoError(t, err)
-	require.Len(t, root, primitives.HashRootLength)
+	require.Len(t, root, primitives.RootLength)
 	require.Equal(t, []byte{
 		0xd2, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
