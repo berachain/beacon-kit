@@ -26,7 +26,6 @@
 package types
 
 import (
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/config/version"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -38,7 +37,7 @@ func NewBeaconBlock(
 	proposerIndex primitives.ValidatorIndex,
 	parentBlockRoot [32]byte,
 	forkVersion uint32,
-	reveal randaotypes.Reveal,
+	reveal primitives.BLSSignature,
 ) (BeaconBlock, error) {
 	var block BeaconBlock
 	switch forkVersion {
@@ -65,9 +64,9 @@ func NewBeaconBlock(
 func EmptyBeaconBlock(
 	slot primitives.Slot,
 	proposerIndex primitives.ValidatorIndex,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 	version uint32,
-	reveal randaotypes.Reveal,
+	reveal primitives.BLSSignature,
 ) (BeaconBlock, error) {
 	return NewBeaconBlock(
 		slot,

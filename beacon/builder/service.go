@@ -93,7 +93,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(st.GetSlot()-1) % s.BeaconCfg().SlotsPerHistoricalRoot,
+		uint64(slot) % s.BeaconCfg().SlotsPerHistoricalRoot,
 	)
 	if err != nil {
 		return nil, nil, err

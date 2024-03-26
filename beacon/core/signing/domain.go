@@ -30,30 +30,21 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-// Domain is the domain used for signing.
-type Domain [DomainLength]byte
-
-// Bytes returns the byte representation of the Domain.
-func (d *Domain) Bytes() []byte {
-	return d[:]
-}
-
 // computeDomain returns the domain for the DomainType and fork version.
 func computeDomain(
 	domainType DomainType,
 	forkVersion primitives.Version,
 	genesisValidatorsRoot primitives.Root,
-) (Domain, error) {
+) (primitives.Domain, error) {
 	forkDataRoot, err := computeForkDataRoot(forkVersion, genesisValidatorsRoot)
 	if err != nil {
-		return Domain{}, err
+		return primitives.Domain{}, err
 	}
-	var bz []byte
-	bz = append(bz, domainType[:]...)
-	bz = append(
-		bz,
-		forkDataRoot[:(primitives.RootLength-DomainTypeLength)]...)
-	return Domain(bz), nil
+	return primitives.Domain(
+		append(
+			domainType[:],
+			forkDataRoot[:(primitives.RootLength-DomainTypeLength)]...),
+	), nil
 }
 
 // GetDomain returns the domain for the DomainType and epoch.
@@ -62,7 +53,7 @@ func GetDomain(
 	genesisValidatorsRoot primitives.Root,
 	domainType DomainType,
 	epoch primitives.Epoch,
-) (Domain, error) {
+) (primitives.Domain, error) {
 	return computeDomain(
 		domainType,
 		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),

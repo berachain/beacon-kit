@@ -60,11 +60,16 @@ func (bv *BlockValidator) ValidateBlock(
 		return types.ErrNilBlkBody
 	}
 
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	// Ensure the block slot matches the state slot.
-	if blk.GetSlot() != st.GetSlot() {
+	if blk.GetSlot() != slot {
 		return fmt.Errorf(
 			"slot does not match, expected: %d, got: %d",
-			st.GetSlot(),
+			slot,
 			blk.GetSlot(),
 		)
 	}

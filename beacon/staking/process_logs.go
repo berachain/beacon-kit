@@ -31,7 +31,6 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -82,7 +81,7 @@ func (s *Service) processDepositLog(
 		Index:       d.Index,
 		Pubkey:      d.Pubkey,
 		Credentials: beacontypes.DepositCredentials(d.Credentials),
-		Amount:      primitives.Gwei(d.Amount),
+		Amount:      d.Amount,
 		Signature:   d.Signature,
 	}})
 }

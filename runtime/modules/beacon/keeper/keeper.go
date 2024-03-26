@@ -151,6 +151,10 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
+	if err := st.SetSlot(0); err != nil {
+		return nil, err
+	}
+
 	// Set the genesis block data.
 	fcs := k.ForkchoiceStore(ctx)
 	fcs.SetGenesisEth1Hash(data.Eth1GenesisHash)

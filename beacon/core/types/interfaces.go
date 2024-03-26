@@ -26,7 +26,6 @@
 package types
 
 import (
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	ssz "github.com/ferranbt/fastssz"
@@ -80,7 +79,7 @@ type ReadOnlyBeaconBlockBody interface {
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
 	GetGraffiti() [32]byte
-	GetRandaoReveal() randaotypes.Reveal
+	GetRandaoReveal() primitives.BLSSignature
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() [][48]byte
 }

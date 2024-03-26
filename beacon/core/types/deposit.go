@@ -28,7 +28,6 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
 )
 
@@ -47,7 +46,7 @@ type Deposit struct {
 	Credentials DepositCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount primitives.Gwei `json:"amount"`
+	Amount uint64 `json:"amount"`
 
 	// Signature of the deposit data.
 	Signature []byte `json:"signature" ssz-max:"96"`

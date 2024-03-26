@@ -59,6 +59,11 @@ func NewStateProcessor(
 func (sp *StateProcessor) ProcessSlot(
 	st state.BeaconState,
 ) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot, err := st.HashTreeRoot()
 	if err != nil {
@@ -69,7 +74,7 @@ func (sp *StateProcessor) ProcessSlot(
 	// st.GetSlot() even though technically this was the state root from
 	// end of the previous slot.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot,
+		uint64(slot)%sp.cfg.SlotsPerHistoricalRoot,
 		prevStateRoot,
 	); err != nil {
 		return err
@@ -99,11 +104,12 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		uint64(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
+		uint64(slot)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
 	); err != nil {
 		return err
 	}
-	return nil
+
+	return st.SetSlot(slot + 1)
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
@@ -249,7 +255,7 @@ func (sp *StateProcessor) processDeposits(
 
 		val.EffectiveBalance = min(
 			val.EffectiveBalance+dep.Amount,
-			primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+			sp.cfg.MaxEffectiveBalance,
 		)
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err
@@ -288,7 +294,7 @@ func (sp *StateProcessor) processWithdrawals(
 		}
 
 		val.EffectiveBalance -= min(
-			val.EffectiveBalance, primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+			val.EffectiveBalance, sp.cfg.MaxEffectiveBalance,
 		)
 		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
 			return err

@@ -17,7 +17,7 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 	type Validator struct {
 		Pubkey                     primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
 		WithdrawalCredentials      hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
-		EffectiveBalance           primitives.Gwei      `json:"effectiveBalance"`
+		EffectiveBalance           uint64               `json:"effectiveBalance"`
 		Slashed                    bool                 `json:"slashed"`
 		ActivationEligibilityEpoch primitives.SSZUInt64
 		ActivationEpoch            primitives.SSZUInt64
@@ -41,7 +41,7 @@ func (v *Validator) UnmarshalJSON(input []byte) error {
 	type Validator struct {
 		Pubkey                     *primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
 		WithdrawalCredentials      *hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
-		EffectiveBalance           *primitives.Gwei      `json:"effectiveBalance"`
+		EffectiveBalance           *uint64               `json:"effectiveBalance"`
 		Slashed                    *bool                 `json:"slashed"`
 		ActivationEligibilityEpoch *primitives.SSZUInt64
 		ActivationEpoch            *primitives.SSZUInt64
