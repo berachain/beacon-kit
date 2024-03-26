@@ -18,14 +18,14 @@ var _ = (*beaconStateDenebJSONMarshaling)(nil)
 func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 	type BeaconStateDeneb struct {
 		GenesisValidatorsRoot        hexutil.Bytes            `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Slot                         primitives.Slot          `json:"slot"`
+		Slot                         primitives.SSZUInt64     `json:"slot"`
 		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
-		BlockRoots                   []primitives.Root    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		StateRoots                   []primitives.Root    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		BlockRoots                   []primitives.Root        `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots                   []primitives.Root        `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		Eth1GenesisHash              common.Hash              `json:"eth1GenesisHash"  ssz-size:"32"`
 		Eth1DepositIndex             uint64                   `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
-		RandaoMixes                  []primitives.Root    `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+		RandaoMixes                  []primitives.Root        `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          uint64                   `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex uint64                   `json:"nextWithdrawalValidatorIndex"`
 	}
@@ -63,14 +63,14 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	type BeaconStateDeneb struct {
 		GenesisValidatorsRoot        *hexutil.Bytes           `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Slot                         *primitives.Slot         `json:"slot"`
+		Slot                         *primitives.SSZUInt64    `json:"slot"`
 		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
-		BlockRoots                   []primitives.Root    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		StateRoots                   []primitives.Root    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		BlockRoots                   []primitives.Root        `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots                   []primitives.Root        `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		Eth1GenesisHash              *common.Hash             `json:"eth1GenesisHash"  ssz-size:"32"`
 		Eth1DepositIndex             *uint64                  `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
-		RandaoMixes                  []primitives.Root    `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+		RandaoMixes                  []primitives.Root        `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          *uint64                  `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex *uint64                  `json:"nextWithdrawalValidatorIndex"`
 	}

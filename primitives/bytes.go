@@ -31,9 +31,16 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// Bytes4 represents a 4-byte array.
 type Bytes4 [4]byte
+
+// Bytes32 represents a 32-byte array.
 type Bytes32 [32]byte
+
+// Bytes48 represents a 48-byte array.
 type Bytes48 [48]byte
+
+// Bytes96 represents a 96-byte array.
 type Bytes96 [96]byte
 
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes4.
