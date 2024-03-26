@@ -14,14 +14,14 @@ var _ = (*validatorJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (v Validator) MarshalJSON() ([]byte, error) {
 	type Validator struct {
-		Pubkey           hexutil.Bytes `json:"pubkey"           ssz-size:"48"`
-		Credentials      hexutil.Bytes `json:"credentials"      ssz-size:"32"`
-		EffectiveBalance uint64        `json:"effectiveBalance"`
-		Slashed          bool          `json:"slashed"`
+		Pubkey                hexutil.Bytes `json:"pubkey"                ssz-size:"48"`
+		WithdrawalCredentials hexutil.Bytes `json:"withdrawalCredentials" ssz-size:"32"`
+		EffectiveBalance      uint64        `json:"effectiveBalance"`
+		Slashed               bool          `json:"slashed"`
 	}
 	var enc Validator
 	enc.Pubkey = v.Pubkey[:]
-	enc.Credentials = v.Credentials[:]
+	enc.WithdrawalCredentials = v.WithdrawalCredentials[:]
 	enc.EffectiveBalance = v.EffectiveBalance
 	enc.Slashed = v.Slashed
 	return json.Marshal(&enc)
@@ -30,10 +30,10 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (v *Validator) UnmarshalJSON(input []byte) error {
 	type Validator struct {
-		Pubkey           *hexutil.Bytes `json:"pubkey"           ssz-size:"48"`
-		Credentials      *hexutil.Bytes `json:"credentials"      ssz-size:"32"`
-		EffectiveBalance *uint64        `json:"effectiveBalance"`
-		Slashed          *bool          `json:"slashed"`
+		Pubkey                *hexutil.Bytes `json:"pubkey"                ssz-size:"48"`
+		WithdrawalCredentials *hexutil.Bytes `json:"withdrawalCredentials" ssz-size:"32"`
+		EffectiveBalance      *uint64        `json:"effectiveBalance"`
+		Slashed               *bool          `json:"slashed"`
 	}
 	var dec Validator
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -45,11 +45,11 @@ func (v *Validator) UnmarshalJSON(input []byte) error {
 		}
 		copy(v.Pubkey[:], *dec.Pubkey)
 	}
-	if dec.Credentials != nil {
-		if len(*dec.Credentials) != len(v.Credentials) {
-			return errors.New("field 'credentials' has wrong length, need 32 items")
+	if dec.WithdrawalCredentials != nil {
+		if len(*dec.WithdrawalCredentials) != len(v.WithdrawalCredentials) {
+			return errors.New("field 'withdrawalCredentials' has wrong length, need 32 items")
 		}
-		copy(v.Credentials[:], *dec.Credentials)
+		copy(v.WithdrawalCredentials[:], *dec.WithdrawalCredentials)
 	}
 	if dec.EffectiveBalance != nil {
 		v.EffectiveBalance = *dec.EffectiveBalance

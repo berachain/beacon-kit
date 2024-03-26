@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/lib/encoding/ssz"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -72,7 +73,7 @@ func AddPubkeyCmd() *cobra.Command {
 			validator := &beacontypes.Validator{
 				Pubkey: [48]byte(valPubKey.Bytes()),
 				// TODO: credentials.
-				Credentials: beacontypes.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: beacontypes.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
 				EffectiveBalance: 1,
@@ -87,7 +88,12 @@ func AddPubkeyCmd() *cobra.Command {
 			}
 
 			beaconState.Validators = append(beaconState.Validators, validator)
-
+			beaconState.GenesisValidatorsRoot, err = ssz.MerkleizeVectorSSZ(
+				beaconState.Validators, uint64(len(beaconState.Validators)),
+			)
+			if err != nil {
+				return errors.Wrap(err, "failed to merkleize validators")
+			}
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal beacon state")

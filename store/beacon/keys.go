@@ -38,4 +38,5 @@ const (
 	validatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
 	validatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
 	latestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
+	genesisValidatorsRootPrefix            = "genesis_validators_root"
 )

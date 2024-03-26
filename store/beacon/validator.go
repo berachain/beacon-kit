@@ -30,6 +30,20 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
+// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// state.
+func (s *Store) SetGenesisValidatorsRoot(
+	root primitives.HashRoot,
+) error {
+	return s.genesisValidatorsRoot.Set(s.ctx, root)
+}
+
+// GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// beacon state.
+func (s *Store) GetGenesisValidatorsRoot() (primitives.HashRoot, error) {
+	return s.genesisValidatorsRoot.Get(s.ctx)
+}
+
 // AddValidator registers a new validator in the beacon state.
 func (s *Store) AddValidator(
 	val *beacontypes.Validator,

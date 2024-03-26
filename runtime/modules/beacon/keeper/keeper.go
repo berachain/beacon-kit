@@ -209,6 +209,12 @@ func (k *Keeper) InitGenesis(
 			Power: int64(validator.EffectiveBalance),
 		})
 	}
+
+	if err = store.SetGenesisValidatorsRoot(
+		data.GenesisValidatorsRoot,
+	); err != nil {
+		return nil, err
+	}
 	return validatorUpdates, nil
 }
 

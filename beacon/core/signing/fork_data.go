@@ -35,18 +35,18 @@ type Version [VersionLength]byte
 
 // ForkData is the fork data used for signing.
 type ForkData struct {
-	CurrentVersion Version `ssz-size:"4"`
-	ChainID        []byte  `ssz-max:"50"`
+	CurrentVersion        Version             `ssz-size:"4"`
+	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
 }
 
 // computeForkDataRoot computes the root of the fork data.
 func computeForkDataRoot(
 	currentVersion Version,
-	chainID string,
+	genesisValidatorsRoot primitives.HashRoot,
 ) (primitives.HashRoot, error) {
 	forkData := ForkData{
-		CurrentVersion: currentVersion,
-		ChainID:        []byte(chainID),
+		CurrentVersion:        currentVersion,
+		GenesisValidatorsRoot: genesisValidatorsRoot,
 	}
 	return forkData.HashTreeRoot()
 }

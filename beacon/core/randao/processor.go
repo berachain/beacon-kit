@@ -71,18 +71,23 @@ func NewProcessor(
 func (p *Processor) BuildReveal(
 	st state.BeaconState,
 ) (types.Reveal, error) {
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return types.Reveal{}, err
+	}
+
 	return p.buildReveal(
-		st.GetChainID(),
+		genesisValidatorsRoot,
 		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
 	)
 }
 
 // buildReveal creates a reveal for the proposer.
 func (p *Processor) buildReveal(
-	chainID string,
+	genesisValidatorsRoot primitives.HashRoot,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
-	signingRoot, err := p.computeSigningRoot(chainID, epoch)
+	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
 	if err != nil {
 		return types.Reveal{}, err
 	}
@@ -95,9 +100,13 @@ func (p *Processor) VerifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
 	reveal types.Reveal,
 ) error {
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return err
+	}
 	return p.verifyReveal(
 		proposerPubkey,
-		st.GetChainID(),
+		genesisValidatorsRoot,
 		p.cfg.Beacon.SlotToEpoch(st.GetSlot()),
 		reveal,
 	)
@@ -106,11 +115,11 @@ func (p *Processor) VerifyReveal(
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) verifyReveal(
 	proposerPubkey [bls12381.PubKeyLength]byte,
-	chainID string,
+	genesisValidatorsRoot primitives.HashRoot,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) error {
-	signingRoot, err := p.computeSigningRoot(chainID, epoch)
+	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
 	if err != nil {
 		return err
 	}
@@ -156,12 +165,12 @@ func (p *Processor) MixinNewReveal(
 }
 
 func (p *Processor) computeSigningRoot(
-	chainID string,
+	genesisValidatorsRoot primitives.HashRoot,
 	epoch primitives.Epoch,
 ) (primitives.HashRoot, error) {
 	signingDomain, err := signing.GetDomain(
 		p.cfg,
-		chainID,
+		genesisValidatorsRoot,
 		signing.DomainRandao,
 		epoch,
 	)

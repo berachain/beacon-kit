@@ -52,7 +52,7 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyWithdrawals
 
 	GetSlot() primitives.Slot
-	GetChainID() string
+	GetGenesisValidatorsRoot() (primitives.HashRoot, error)
 	GetBlockRootAtIndex(uint64) (primitives.HashRoot, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 }
