@@ -44,10 +44,10 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/crypto"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/lib/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -83,7 +83,7 @@ func NewBeaconKitRuntime(
 //nolint:funlen // This function is long because it sets up the services.
 func NewDefaultBeaconKitRuntime(
 	appOpts AppOptions,
-	signer crypto.Signer[[bls12381.SignatureLength]byte],
+	signer crypto.Signer[primitives.BLSSignature],
 	logger log.Logger,
 	bsb BeaconStorageBackend,
 ) (*BeaconKitRuntime, error) {

@@ -41,7 +41,7 @@ import (
 // Processor is the randao processor.
 type Processor struct {
 	cfg    *config.Config
-	signer crypto.Signer[[bls12381.SignatureLength]byte]
+	signer crypto.Signer[primitives.BLSSignature]
 	logger log.Logger
 }
 

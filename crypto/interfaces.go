@@ -27,6 +27,7 @@ package crypto
 
 import (
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/itsdevbear/comet-bls12-381/bls"
 )
 
@@ -45,6 +46,6 @@ type Signer[Signature any] interface {
 // NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
 func NewBLS12381Signer(
 	secretKey [bls12381.SecretKeyLength]byte,
-) (Signer[[bls12381.SignatureLength]byte], error) {
+) (Signer[primitives.BLSSignature], error) {
 	return bls12381.NewSigner(secretKey)
 }
