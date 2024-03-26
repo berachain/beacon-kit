@@ -56,10 +56,24 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
+	randaoMixes := make([][32]byte, 32)
+	randaoMixes[0] = randaoMix
+
 	return (&state.BeaconStateDeneb{
 		GenesisValidatorsRoot: primitives.HashRoot{},
-		Eth1GenesisHash:       [32]byte{},
-		RandaoMixes:           [][32]byte{randaoMix},
-		Validators:            []*beacontypes.Validator{},
+		Slot:                  0,
+		LatestBlockHeader: &beacontypes.BeaconBlockHeader{
+			Slot:          0,
+			ProposerIndex: 0,
+			ParentRoot:    [32]byte{},
+			StateRoot:     [32]byte{},
+			BodyRoot:      [32]byte{},
+		},
+		BlockRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
+		StateRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
+		Eth1GenesisHash:  [32]byte{},
+		Eth1DepositIndex: 0,
+		Validators:       []*beacontypes.Validator{},
+		RandaoMixes:      randaoMixes,
 	}).HashTreeRoot()
 }

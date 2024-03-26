@@ -52,13 +52,13 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		),
 		Eth1DepositIndex: 0,
 		Validators:       make([]*types.Validator, 0),
-		RandaoMixes: make(
-			[][32]byte,
-			32, //nolint:gomnd // 32 is the number of epochs.
-		),
+		RandaoMixes:      make([][32]byte, 1),
 	}
 }
 
+// TODO: should we replace ? in ssz-size with values to ensure we are hash tree
+// rooting correctly?
+//
 //go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
 //nolint:lll // various json tags.
 type BeaconStateDeneb struct {
@@ -70,8 +70,8 @@ type BeaconStateDeneb struct {
 
 	// History
 	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        [][32]byte               `json:"blockRoots"        ssz-size:"8192,32"`
-	StateRoots        [][32]byte               `json:"stateRoots"        ssz-size:"8192,32"`
+	BlockRoots        [][32]byte               `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        [][32]byte               `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
 	Eth1GenesisHash  primitives.ExecutionHash `json:"eth1GenesisHash"  ssz-size:"32"`
@@ -81,7 +81,7 @@ type BeaconStateDeneb struct {
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
 
 	// Randomness
-	RandaoMixes [][32]byte `json:"randaoMix" ssz-size:"65536,32"`
+	RandaoMixes [][32]byte `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal

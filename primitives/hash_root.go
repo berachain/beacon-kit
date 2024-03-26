@@ -25,7 +25,9 @@
 
 package primitives
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 const (
 	HashRootLength = 32
@@ -51,7 +53,7 @@ func (h HashRoot) String() string {
 
 // MarshalText implements the encoding.TextMarshaler interface.
 func (h HashRoot) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(h[:]), nil
+	return []byte(h.String()), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.

@@ -20,12 +20,12 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		GenesisValidatorsRoot hexutil.Bytes            `json:"genesisValidatorsRoot" ssz-size:"32"`
 		Slot                  uint64                   `json:"slot"`
 		LatestBlockHeader     *types.BeaconBlockHeader `json:"latestBlockHeader"`
-		BlockRoots            []primitives.HashRoot    `json:"blockRoots"        ssz-size:"8192,32"`
-		StateRoots            []primitives.HashRoot    `json:"stateRoots"        ssz-size:"8192,32"`
+		BlockRoots            []primitives.HashRoot    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots            []primitives.HashRoot    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		Eth1GenesisHash       common.Hash              `json:"eth1GenesisHash"  ssz-size:"32"`
 		Eth1DepositIndex      uint64                   `json:"eth1DepositIndex"`
 		Validators            []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
-		RandaoMixes           []primitives.HashRoot    `json:"randaoMix" ssz-size:"65536,32"`
+		RandaoMixes           []primitives.HashRoot    `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 	}
 	var enc BeaconStateDeneb
 	enc.GenesisValidatorsRoot = b.GenesisValidatorsRoot[:]
@@ -61,12 +61,12 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		GenesisValidatorsRoot *hexutil.Bytes           `json:"genesisValidatorsRoot" ssz-size:"32"`
 		Slot                  *uint64                  `json:"slot"`
 		LatestBlockHeader     *types.BeaconBlockHeader `json:"latestBlockHeader"`
-		BlockRoots            []primitives.HashRoot    `json:"blockRoots"        ssz-size:"8192,32"`
-		StateRoots            []primitives.HashRoot    `json:"stateRoots"        ssz-size:"8192,32"`
+		BlockRoots            []primitives.HashRoot    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots            []primitives.HashRoot    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		Eth1GenesisHash       *common.Hash             `json:"eth1GenesisHash"  ssz-size:"32"`
 		Eth1DepositIndex      *uint64                  `json:"eth1DepositIndex"`
 		Validators            []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
-		RandaoMixes           []primitives.HashRoot    `json:"randaoMix" ssz-size:"65536,32"`
+		RandaoMixes           []primitives.HashRoot    `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 	}
 	var dec BeaconStateDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {
