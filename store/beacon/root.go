@@ -51,6 +51,12 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 	// can simulate having to keep track of the StateRoot of the
 	// BeaconState, since this value with change every slot.
 	// TODO: Actually implementation.
+
+	slot, err := s.GetSlot()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	randaoMix, err := s.RandaoMixAtIndex(0)
 	if err != nil {
 		return [32]byte{}, err
@@ -59,21 +65,20 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
 	randaoMixes[0] = randaoMix
 
+	latestBlockHeader, err := s.GetLatestBlockHeader()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	return (&state.BeaconStateDeneb{
 		GenesisValidatorsRoot: primitives.Root{},
-		Slot:                  0,
-		LatestBlockHeader: &beacontypes.BeaconBlockHeader{
-			Slot:          0,
-			ProposerIndex: 0,
-			ParentRoot:    [32]byte{},
-			StateRoot:     [32]byte{},
-			BodyRoot:      [32]byte{},
-		},
-		BlockRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
-		StateRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
-		Eth1GenesisHash:  [32]byte{},
-		Eth1DepositIndex: 0,
-		Validators:       []*beacontypes.Validator{},
-		RandaoMixes:      randaoMixes,
+		Slot:                  slot,
+		LatestBlockHeader:     latestBlockHeader,
+		BlockRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
+		StateRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
+		Eth1GenesisHash:       [32]byte{},
+		Eth1DepositIndex:      0,
+		Validators:            []*beacontypes.Validator{},
+		RandaoMixes:           randaoMixes,
 	}).HashTreeRoot()
 }
