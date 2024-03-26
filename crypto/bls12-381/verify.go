@@ -35,7 +35,7 @@ import (
 // It returns true if the signature is valid, otherwise it panics if an error
 // occurs during the verification process.
 func VerifySignature(
-	pubKey [PubKeyLength]byte,
+	pubKey primitives.BLSPubkey,
 	msg []byte,
 	signature primitives.BLSSignature,
 ) bool {
