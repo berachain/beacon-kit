@@ -4,39 +4,36 @@ package types
 
 import (
 	"encoding/json"
-	"errors"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/primitives"
 )
-
-var _ = (*beaconBlockHeaderJSONMarshaling)(nil)
 
 // MarshalJSON marshals as JSON.
 func (b BeaconBlockHeader) MarshalJSON() ([]byte, error) {
 	type BeaconBlockHeader struct {
-		Slot          uint64        `json:"slot"`
-		ProposerIndex uint64        `json:"proposerIndex"`
-		ParentRoot    hexutil.Bytes `json:"parentRoot"    ssz-size:"32"`
-		StateRoot     hexutil.Bytes `json:"stateRoot"     ssz-size:"32"`
-		BodyRoot      hexutil.Bytes `json:"bodyRoot"      ssz-size:"32"`
+		Slot          uint64              `json:"slot"`
+		ProposerIndex uint64              `json:"proposerIndex"`
+		ParentRoot    primitives.HashRoot `json:"parentRoot"    ssz-size:"32"`
+		StateRoot     primitives.HashRoot `json:"stateRoot"     ssz-size:"32"`
+		BodyRoot      primitives.HashRoot `json:"bodyRoot"      ssz-size:"32"`
 	}
 	var enc BeaconBlockHeader
 	enc.Slot = b.Slot
 	enc.ProposerIndex = b.ProposerIndex
-	enc.ParentRoot = b.ParentRoot[:]
-	enc.StateRoot = b.StateRoot[:]
-	enc.BodyRoot = b.BodyRoot[:]
+	enc.ParentRoot = b.ParentRoot
+	enc.StateRoot = b.StateRoot
+	enc.BodyRoot = b.BodyRoot
 	return json.Marshal(&enc)
 }
 
 // UnmarshalJSON unmarshals from JSON.
 func (b *BeaconBlockHeader) UnmarshalJSON(input []byte) error {
 	type BeaconBlockHeader struct {
-		Slot          *uint64        `json:"slot"`
-		ProposerIndex *uint64        `json:"proposerIndex"`
-		ParentRoot    *hexutil.Bytes `json:"parentRoot"    ssz-size:"32"`
-		StateRoot     *hexutil.Bytes `json:"stateRoot"     ssz-size:"32"`
-		BodyRoot      *hexutil.Bytes `json:"bodyRoot"      ssz-size:"32"`
+		Slot          *uint64              `json:"slot"`
+		ProposerIndex *uint64              `json:"proposerIndex"`
+		ParentRoot    *primitives.HashRoot `json:"parentRoot"    ssz-size:"32"`
+		StateRoot     *primitives.HashRoot `json:"stateRoot"     ssz-size:"32"`
+		BodyRoot      *primitives.HashRoot `json:"bodyRoot"      ssz-size:"32"`
 	}
 	var dec BeaconBlockHeader
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -49,22 +46,13 @@ func (b *BeaconBlockHeader) UnmarshalJSON(input []byte) error {
 		b.ProposerIndex = *dec.ProposerIndex
 	}
 	if dec.ParentRoot != nil {
-		if len(*dec.ParentRoot) != len(b.ParentRoot) {
-			return errors.New("field 'parentRoot' has wrong length, need 32 items")
-		}
-		copy(b.ParentRoot[:], *dec.ParentRoot)
+		b.ParentRoot = *dec.ParentRoot
 	}
 	if dec.StateRoot != nil {
-		if len(*dec.StateRoot) != len(b.StateRoot) {
-			return errors.New("field 'stateRoot' has wrong length, need 32 items")
-		}
-		copy(b.StateRoot[:], *dec.StateRoot)
+		b.StateRoot = *dec.StateRoot
 	}
 	if dec.BodyRoot != nil {
-		if len(*dec.BodyRoot) != len(b.BodyRoot) {
-			return errors.New("field 'bodyRoot' has wrong length, need 32 items")
-		}
-		copy(b.BodyRoot[:], *dec.BodyRoot)
+		b.BodyRoot = *dec.BodyRoot
 	}
 	return nil
 }
