@@ -30,10 +30,8 @@ import (
 )
 
 type (
-	// SSZUInt64 is a HashTreeRootable uint64.
-	SSZUInt64 uint64
 	// SSZUInt64List is a list of SSZUInt64.
-	SSZUInt64List []SSZUInt64
+	SSZUInt64 uint64
 )
 
 // HashTreeRoot return the merklized epoch,

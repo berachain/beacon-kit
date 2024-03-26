@@ -47,19 +47,19 @@ type (
 type (
 	// Slot as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Slot = SSZUInt64
+	Slot uint64
 
 	// Epoch as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Epoch = SSZUInt64
+	Epoch uint64
 
 	// CommitteeIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	CommitteeIndex = SSZUInt64
+	CommitteeIndex uint64
 
 	// ValidatorIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	ValidatorIndex = SSZUInt64
+	ValidatorIndex uint64
 
 	// Root as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types

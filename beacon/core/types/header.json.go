@@ -11,11 +11,11 @@ import (
 // MarshalJSON marshals as JSON.
 func (b BeaconBlockHeader) MarshalJSON() ([]byte, error) {
 	type BeaconBlockHeader struct {
-		Slot          primitives.SSZUInt64 `json:"slot"`
-		ProposerIndex primitives.SSZUInt64 `json:"proposerIndex"`
-		ParentRoot    primitives.Root      `json:"parentRoot"    ssz-size:"32"`
-		StateRoot     primitives.Root      `json:"stateRoot"     ssz-size:"32"`
-		BodyRoot      primitives.Root      `json:"bodyRoot"      ssz-size:"32"`
+		Slot          primitives.Slot           `json:"slot"`
+		ProposerIndex primitives.ValidatorIndex `json:"proposerIndex"`
+		ParentRoot    primitives.Root           `json:"parentRoot"    ssz-size:"32"`
+		StateRoot     primitives.Root           `json:"stateRoot"     ssz-size:"32"`
+		BodyRoot      primitives.Root           `json:"bodyRoot"      ssz-size:"32"`
 	}
 	var enc BeaconBlockHeader
 	enc.Slot = b.Slot
@@ -29,11 +29,11 @@ func (b BeaconBlockHeader) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BeaconBlockHeader) UnmarshalJSON(input []byte) error {
 	type BeaconBlockHeader struct {
-		Slot          *primitives.SSZUInt64 `json:"slot"`
-		ProposerIndex *primitives.SSZUInt64 `json:"proposerIndex"`
-		ParentRoot    *primitives.Root      `json:"parentRoot"    ssz-size:"32"`
-		StateRoot     *primitives.Root      `json:"stateRoot"     ssz-size:"32"`
-		BodyRoot      *primitives.Root      `json:"bodyRoot"      ssz-size:"32"`
+		Slot          *primitives.Slot           `json:"slot"`
+		ProposerIndex *primitives.ValidatorIndex `json:"proposerIndex"`
+		ParentRoot    *primitives.Root           `json:"parentRoot"    ssz-size:"32"`
+		StateRoot     *primitives.Root           `json:"stateRoot"     ssz-size:"32"`
+		BodyRoot      *primitives.Root           `json:"bodyRoot"      ssz-size:"32"`
 	}
 	var dec BeaconBlockHeader
 	if err := json.Unmarshal(input, &dec); err != nil {

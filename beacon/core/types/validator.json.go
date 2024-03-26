@@ -19,10 +19,10 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 		WithdrawalCredentials      hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
 		EffectiveBalance           primitives.Gwei      `json:"effectiveBalance"`
 		Slashed                    bool                 `json:"slashed"`
-		ActivationEligibilityEpoch primitives.SSZUInt64
-		ActivationEpoch            primitives.SSZUInt64
-		ExitEpoch                  primitives.SSZUInt64
-		WithdrawableEpoch          primitives.SSZUInt64
+		ActivationEligibilityEpoch primitives.Epoch
+		ActivationEpoch            primitives.Epoch
+		ExitEpoch                  primitives.Epoch
+		WithdrawableEpoch          primitives.Epoch
 	}
 	var enc Validator
 	enc.Pubkey = v.Pubkey
@@ -43,10 +43,10 @@ func (v *Validator) UnmarshalJSON(input []byte) error {
 		WithdrawalCredentials      *hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
 		EffectiveBalance           *primitives.Gwei      `json:"effectiveBalance"`
 		Slashed                    *bool                 `json:"slashed"`
-		ActivationEligibilityEpoch *primitives.SSZUInt64
-		ActivationEpoch            *primitives.SSZUInt64
-		ExitEpoch                  *primitives.SSZUInt64
-		WithdrawableEpoch          *primitives.SSZUInt64
+		ActivationEligibilityEpoch *primitives.Epoch
+		ActivationEpoch            *primitives.Epoch
+		ExitEpoch                  *primitives.Epoch
+		WithdrawableEpoch          *primitives.Epoch
 	}
 	var dec Validator
 	if err := json.Unmarshal(input, &dec); err != nil {

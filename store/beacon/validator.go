@@ -48,7 +48,7 @@ func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
 func (s *Store) AddValidator(
 	val *beacontypes.Validator,
 ) error {
-	// Get the next validator index.
+	// Get the ne
 	idx, err := s.validatorIndex.Next(s.ctx)
 	if err != nil {
 		return err

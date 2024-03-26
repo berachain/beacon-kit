@@ -195,7 +195,7 @@ func (p *Processor) computeSigningRoot(
 		)
 	}
 	signingRoot, err := signature.ComputeSigningRoot(
-		epoch,
+		primitives.SSZUInt64(epoch),
 		signingDomain,
 	)
 
