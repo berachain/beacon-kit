@@ -14,8 +14,8 @@ var _ = (*validatorJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (v Validator) MarshalJSON() ([]byte, error) {
 	type Validator struct {
-		Pubkey                hexutil.Bytes `json:"pubkey"           ssz-size:"48"`
-		WithdrawalCredentials hexutil.Bytes `json:"withdrawalCredentials"      ssz-size:"32"`
+		Pubkey                hexutil.Bytes `json:"pubkey"                ssz-size:"48"`
+		WithdrawalCredentials hexutil.Bytes `json:"withdrawalCredentials" ssz-size:"32"`
 		EffectiveBalance      uint64        `json:"effectiveBalance"`
 		Slashed               bool          `json:"slashed"`
 	}
@@ -30,8 +30,8 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (v *Validator) UnmarshalJSON(input []byte) error {
 	type Validator struct {
-		Pubkey                *hexutil.Bytes `json:"pubkey"           ssz-size:"48"`
-		WithdrawalCredentials *hexutil.Bytes `json:"withdrawalCredentials"      ssz-size:"32"`
+		Pubkey                *hexutil.Bytes `json:"pubkey"                ssz-size:"48"`
+		WithdrawalCredentials *hexutil.Bytes `json:"withdrawalCredentials" ssz-size:"32"`
 		EffectiveBalance      *uint64        `json:"effectiveBalance"`
 		Slashed               *bool          `json:"slashed"`
 	}
