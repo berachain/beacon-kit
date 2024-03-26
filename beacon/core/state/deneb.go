@@ -45,15 +45,15 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 			StateRoot:     primitives.HashRoot{},
 			BodyRoot:      primitives.HashRoot{},
 		},
-		BlockRoots: make([][]byte, 0),
-		StateRoots: make([][]byte, 0),
+		BlockRoots: make([][32]byte, 0),
+		StateRoots: make([][32]byte, 0),
 		Eth1GenesisHash: common.HexToHash(
 			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
 		),
 		Eth1DepositIndex: 0,
 		Validators:       make([]*types.Validator, 0),
 		RandaoMixes: make(
-			[][]byte,
+			[][32]byte,
 			32, //nolint:gomnd // 32 is the number of epochs.
 		),
 	}
@@ -70,8 +70,8 @@ type BeaconStateDeneb struct {
 
 	// History
 	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        [][]byte                 `json:"blockRoots"        ssz-size:"8192,32"`
-	StateRoots        [][]byte                 `json:"stateRoots"        ssz-size:"8192,32"`
+	BlockRoots        [][32]byte               `json:"blockRoots"        ssz-size:"8192,32"`
+	StateRoots        [][32]byte               `json:"stateRoots"        ssz-size:"8192,32"`
 
 	// Eth1
 	Eth1GenesisHash  primitives.ExecutionHash `json:"eth1GenesisHash"  ssz-size:"32"`
@@ -81,14 +81,14 @@ type BeaconStateDeneb struct {
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
 
 	// Randomness
-	RandaoMixes [][]byte `json:"randaoMix" ssz-size:"65536,32"`
+	RandaoMixes [][32]byte `json:"randaoMix" ssz-size:"65536,32"`
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
 // BeaconStateDeneb.
 type beaconStateDenebJSONMarshaling struct {
 	GenesisValidatorsRoot hexutil.Bytes
-	BlockRoots            []hexutil.Bytes
-	StateRoots            []hexutil.Bytes
-	RandaoMixes           []hexutil.Bytes
+	BlockRoots            []primitives.HashRoot
+	StateRoots            []primitives.HashRoot
+	RandaoMixes           []primitives.HashRoot
 }

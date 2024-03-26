@@ -42,7 +42,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.2.4
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240226135442-10e4707bd0ca
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.8
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.9
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/protolambda/ztyp v0.2.2

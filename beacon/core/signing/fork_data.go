@@ -35,8 +35,8 @@ type Version [VersionLength]byte
 
 // ForkData is the fork data used for signing.
 type ForkData struct {
-	CurrentVersion        Version `ssz-size:"4"`
-	GenesisValidatorsRoot primitives.HashRoot
+	CurrentVersion        Version             `ssz-size:"4"`
+	GenesisValidatorsRoot primitives.HashRoot `ssz-size:"32"`
 }
 
 // computeForkDataRoot computes the root of the fork data.
