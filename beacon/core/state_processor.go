@@ -235,10 +235,24 @@ func (sp *StateProcessor) processDeposits(
 				localDeposits[i].Index, dep.Index)
 		}
 
-		// TODO: Add this
-		// if err := st.IncrementDepositIndex(); err != nil {
-		// 	return err
-		// }
+		var depIdx uint64
+		depIdx, err = st.GetEth1DepositIndex()
+		if err != nil {
+			return err
+		}
+
+		// TODO: this is bad but safe.
+		if dep.Index != depIdx {
+			return fmt.Errorf(
+				"deposit index does not match, expected: %d, got: %d",
+				depIdx, dep.Index)
+		}
+
+		// TODO: this is a shitty spot for this.
+		// TODO: deprecate using this.
+		if err = st.SetEth1DepositIndex(depIdx); err != nil {
+			return err
+		}
 		sp.processDeposit(st, dep)
 	}
 	return nil

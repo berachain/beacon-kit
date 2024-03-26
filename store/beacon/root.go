@@ -33,15 +33,15 @@ import (
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (s *Store) UpdateStateRootAtIndex(
-	slot uint64,
+	idx uint64,
 	stateRoot primitives.Root,
 ) error {
-	return s.stateRoots.Set(s.ctx, slot, stateRoot)
+	return s.stateRoots.Set(s.ctx, idx, stateRoot)
 }
 
 // StateRootAtIndex returns the state root at the given slot.
-func (s *Store) StateRootAtIndex(slot uint64) (primitives.Root, error) {
-	return s.stateRoots.Get(s.ctx, slot)
+func (s *Store) StateRootAtIndex(idx uint64) (primitives.Root, error) {
+	return s.stateRoots.Get(s.ctx, idx)
 }
 
 // Store is the interface for the beacon store.
