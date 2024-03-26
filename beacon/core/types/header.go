@@ -29,15 +29,26 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/primitives"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // BeaconBlockHeader is the header of a beacon block.
+//
+//go:generate go run github.com/fjl/gencodec -type BeaconBlockHeader -field-override beaconBlockHeaderJSONMarshaling -out header.json.go
 type BeaconBlockHeader struct {
 	Slot          primitives.Slot           `json:"slot"`
 	ProposerIndex primitives.ValidatorIndex `json:"proposerIndex"`
 	ParentRoot    [32]byte                  `json:"parentRoot"    ssz-size:"32"`
 	StateRoot     [32]byte                  `json:"stateRoot"     ssz-size:"32"`
 	BodyRoot      [32]byte                  `json:"bodyRoot"      ssz-size:"32"`
+}
+
+// beaconBlockHeaderJSONMarshaling is a type used to override the JSON
+// marshaling.
+type beaconBlockHeaderJSONMarshaling struct {
+	ParentRoot hexutil.Bytes
+	StateRoot  hexutil.Bytes
+	BodyRoot   hexutil.Bytes
 }
 
 // String returns a string representation of the beacon block header.
@@ -61,9 +72,7 @@ func NewBeaconBlockHeader(
 		Slot:          blk.GetSlot(),
 		ProposerIndex: blk.GetProposerIndex(),
 		ParentRoot:    blk.GetParentBlockRoot(),
-		// TODO: handle actually setting the state root in prepare proposal?
-		// Compare state roots after execution.
-		StateRoot: blk.GetStateRoot(),
-		BodyRoot:  bodyRoot,
+		StateRoot:     blk.GetStateRoot(),
+		BodyRoot:      bodyRoot,
 	}, nil
 }

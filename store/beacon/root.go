@@ -57,9 +57,9 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 	}
 
 	return (&state.BeaconStateDeneb{
-		GenesisValidatorsRoot: [32]byte{},
+		GenesisValidatorsRoot: primitives.HashRoot{},
 		Eth1GenesisHash:       [32]byte{},
-		RandaoMix:             randaoMix[:],
+		RandaoMixes:           [][]byte{randaoMix[:]},
 		Validators:            []*beacontypes.Validator{},
 	}).HashTreeRoot()
 }
