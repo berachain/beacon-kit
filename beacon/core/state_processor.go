@@ -69,7 +69,7 @@ func (sp *StateProcessor) ProcessSlot(
 	// st.GetSlot() even though technically this was the state root from
 	// end of the previous slot.
 	if err = st.UpdateStateRootAtIndex(
-		(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot,
+		uint64(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot,
 		prevStateRoot,
 	); err != nil {
 		return err
@@ -84,7 +84,7 @@ func (sp *StateProcessor) ProcessSlot(
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
 	// the StateRoot until the following block.
-	if (latestHeader.StateRoot == primitives.HashRoot{}) {
+	if (latestHeader.StateRoot == primitives.Root{}) {
 		latestHeader.StateRoot = prevStateRoot
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
 			return err
@@ -92,14 +92,14 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	// We update the block root.
-	var prevBlockRoot primitives.HashRoot
+	var prevBlockRoot primitives.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
+		uint64(st.GetSlot()-1)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
 	); err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	if err = sp.processDeposits(st, body.GetDeposits()); err != nil {
+	if err = sp.processOperations(st, body); err != nil {
 		return err
 	}
 
@@ -199,6 +199,15 @@ func (sp *StateProcessor) processHeader(
 	return st.SetLatestBlockHeader(headerRaw)
 }
 
+// processOperations processes the operations and ensures they match the
+// local state.
+func (sp *StateProcessor) processOperations(
+	st state.BeaconState,
+	body types.BeaconBlockBody,
+) error {
+	return sp.processDeposits(st, body.GetDeposits())
+}
+
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor) processDeposits(
@@ -224,7 +233,7 @@ func (sp *StateProcessor) processDeposits(
 		}
 
 		// TODO make the two following calls into a single call.
-		var idx uint64
+		var idx primitives.ValidatorIndex
 		idx, err = st.ValidatorIndexByPubkey(dep.Pubkey)
 		if err != nil {
 			continue

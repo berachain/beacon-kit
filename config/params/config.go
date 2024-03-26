@@ -45,9 +45,9 @@ type BeaconChainConfig struct {
 	// Time parameters constants.
 	//
 	// SlotsPerEpoch is the number of slots per epoch.
-	SlotsPerEpoch primitives.Slot `mapstructure:"slots-per-epoch"`
+	SlotsPerEpoch uint64 `mapstructure:"slots-per-epoch"`
 	// SlotsPerHistoricalRoot is the number of slots per historical root.
-	SlotsPerHistoricalRoot primitives.Slot `mapstructure:"slots-per-historical-root"`
+	SlotsPerHistoricalRoot uint64 `mapstructure:"slots-per-historical-root"`
 
 	// Eth1-related values.
 	//

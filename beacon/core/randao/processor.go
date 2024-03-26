@@ -41,7 +41,7 @@ import (
 // Processor is the randao processor.
 type Processor struct {
 	cfg    *config.Config
-	signer crypto.Signer[[bls12381.SignatureLength]byte]
+	signer crypto.Signer[primitives.BLSSignature]
 	logger log.Logger
 }
 
@@ -84,7 +84,7 @@ func (p *Processor) BuildReveal(
 
 // buildReveal creates a reveal for the proposer.
 func (p *Processor) buildReveal(
-	genesisValidatorsRoot primitives.HashRoot,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 ) (types.Reveal, error) {
 	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
@@ -97,7 +97,7 @@ func (p *Processor) buildReveal(
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) VerifyReveal(
 	st state.BeaconState,
-	proposerPubkey [bls12381.PubKeyLength]byte,
+	proposerPubkey primitives.BLSPubkey,
 	reveal types.Reveal,
 ) error {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
@@ -114,8 +114,8 @@ func (p *Processor) VerifyReveal(
 
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) verifyReveal(
-	proposerPubkey [bls12381.PubKeyLength]byte,
-	genesisValidatorsRoot primitives.HashRoot,
+	proposerPubkey primitives.BLSPubkey,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
 ) error {
@@ -144,7 +144,7 @@ func (p *Processor) MixinNewReveal(
 ) error {
 	// Get last slots randao mix.
 	mix, err := st.RandaoMixAtIndex(
-		st.GetSlot() % p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(st.GetSlot()) % p.cfg.Beacon.EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
@@ -155,7 +155,7 @@ func (p *Processor) MixinNewReveal(
 
 	// Set this slots mix to the new mix.
 	if err = st.UpdateRandaoMixAtIndex(
-		st.GetSlot()%p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(st.GetSlot())%p.cfg.Beacon.EpochsPerHistoricalVector,
 		newMix,
 	); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
@@ -165,9 +165,9 @@ func (p *Processor) MixinNewReveal(
 }
 
 func (p *Processor) computeSigningRoot(
-	genesisValidatorsRoot primitives.HashRoot,
+	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
-) (primitives.HashRoot, error) {
+) (primitives.Root, error) {
 	signingDomain, err := signing.GetDomain(
 		p.cfg,
 		genesisValidatorsRoot,
@@ -175,17 +175,17 @@ func (p *Processor) computeSigningRoot(
 		epoch,
 	)
 	if err != nil {
-		return primitives.HashRoot{}, fmt.Errorf(
+		return primitives.Root{}, fmt.Errorf(
 			"failed to get domain: %w",
 			err,
 		)
 	}
 	signingRoot, err := signing.ComputeSigningRoot(
-		primitives.SSZEpoch(epoch),
+		epoch,
 		signingDomain,
 	)
 	if err != nil {
-		return primitives.HashRoot{},
+		return primitives.Root{},
 			fmt.Errorf("failed to compute signing root: %w", err)
 	}
 	return signingRoot, nil

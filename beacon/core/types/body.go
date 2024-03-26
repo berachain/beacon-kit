@@ -111,7 +111,7 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
 func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	layer := make([][]byte, BodyLength)
 	for i := range layer {
-		layer[i] = make([]byte, primitives.HashRootLength)
+		layer[i] = make([]byte, primitives.RootLength)
 	}
 
 	randao := b.GetRandaoReveal()

@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package math_test
+package primitives_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/math"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +37,7 @@ func TestWeiToGwei(t *testing.T) {
 	tests := []struct {
 		name string
 		v    *uint256.Int
-		want math.Gwei
+		want primitives.Gwei
 	}{
 		{"just below 1 Gwei", uint256.NewInt(1e9 - 1), 0},
 		{"exactly 1 Gwei", uint256.NewInt(1e9), 1},
@@ -53,7 +53,7 @@ func TestWeiToGwei(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := math.Wei{tt.v}.ToGwei()
+			got := primitives.Wei{tt.v}.ToGwei()
 			if got != tt.want {
 				t.Errorf("WeiToGwei() = %v, want %v", got, tt.want)
 			}
@@ -63,10 +63,10 @@ func TestWeiToGwei(t *testing.T) {
 
 func TestWeiToGwei_CopyOk(t *testing.T) {
 	v := uint256.NewInt(1e9)
-	got := math.Wei{v}.ToGwei()
+	got := primitives.Wei{v}.ToGwei()
 
 	require.Equal(
-		t, math.Gwei(1), got, "conversion result mismatch")
+		t, primitives.Gwei(1), got, "conversion result mismatch")
 	require.Equal(
 		t, uint256.NewInt(1e9).Uint64(), v.Uint64(), "original value modified")
 }
@@ -86,7 +86,7 @@ func TestWeiToEther(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := math.Wei{tt.v}.ToEther()
+			got := primitives.Wei{tt.v}.ToEther()
 			if got != tt.want {
 				t.Errorf("WeiToEther() = %v, want %v", got, tt.want)
 			}

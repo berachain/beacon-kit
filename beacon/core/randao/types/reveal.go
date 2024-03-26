@@ -26,14 +26,8 @@
 package types
 
 import (
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // Reveal represents the signature of the RANDAO reveal.
-type Reveal [bls12381.SignatureLength]byte
-
-// MarshalText returns the hex representation of r.
-func (r Reveal) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(r[:]).MarshalText()
-}
+type Reveal = primitives.BLSSignature

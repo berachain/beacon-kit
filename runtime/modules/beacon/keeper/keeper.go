@@ -141,7 +141,7 @@ func (k *Keeper) InitGenesis(
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
 	if err := st.UpdateRandaoMixAtIndex(
-		0, randaotypes.Mix(data.RandaoMix),
+		0, randaotypes.Mix(data.RandaoMixes[0]),
 	); err != nil {
 		return nil, err
 	}

@@ -34,13 +34,13 @@ import (
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (s *Store) UpdateStateRootAtIndex(
 	slot uint64,
-	stateRoot primitives.HashRoot,
+	stateRoot primitives.Root,
 ) error {
 	return s.stateRoots.Set(s.ctx, slot, stateRoot)
 }
 
 // StateRootAtIndex returns the state root at the given slot.
-func (s *Store) StateRootAtIndex(slot uint64) (primitives.HashRoot, error) {
+func (s *Store) StateRootAtIndex(slot uint64) (primitives.Root, error) {
 	return s.stateRoots.Get(s.ctx, slot)
 }
 
@@ -56,10 +56,24 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
+	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
+	randaoMixes[0] = randaoMix
+
 	return (&state.BeaconStateDeneb{
-		GenesisValidatorsRoot: [32]byte{},
-		Eth1GenesisHash:       [32]byte{},
-		RandaoMix:             randaoMix[:],
-		Validators:            []*beacontypes.Validator{},
+		GenesisValidatorsRoot: primitives.Root{},
+		Slot:                  0,
+		LatestBlockHeader: &beacontypes.BeaconBlockHeader{
+			Slot:          0,
+			ProposerIndex: 0,
+			ParentRoot:    [32]byte{},
+			StateRoot:     [32]byte{},
+			BodyRoot:      [32]byte{},
+		},
+		BlockRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
+		StateRoots:       make([][32]byte, 32), //nolint:gomnd // temp.
+		Eth1GenesisHash:  [32]byte{},
+		Eth1DepositIndex: 0,
+		Validators:       []*beacontypes.Validator{},
+		RandaoMixes:      randaoMixes,
 	}).HashTreeRoot()
 }

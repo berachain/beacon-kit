@@ -25,16 +25,19 @@
 
 package bls12381
 
-import "github.com/itsdevbear/comet-bls12-381/bls/blst"
+import (
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
+)
 
 // VerifySignature checks if a given signature is valid for a message and public
 // key.
 // It returns true if the signature is valid, otherwise it panics if an error
 // occurs during the verification process.
 func VerifySignature(
-	pubKey [PubKeyLength]byte,
+	pubKey primitives.BLSPubkey,
 	msg []byte,
-	signature [SignatureLength]byte,
+	signature primitives.BLSSignature,
 ) bool {
 	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
 	if err != nil {

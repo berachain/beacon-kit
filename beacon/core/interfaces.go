@@ -28,7 +28,7 @@ package core
 import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 // RandaoProcessor is the interface for the randao processor.
@@ -42,7 +42,7 @@ type RandaoProcessor interface {
 	) error
 	VerifyReveal(
 		st state.BeaconState,
-		proposerPubkey [bls12381.PubKeyLength]byte,
+		proposerPubkey primitives.BLSPubkey,
 		reveal randaotypes.Reveal,
 	) error
 }

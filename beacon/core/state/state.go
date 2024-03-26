@@ -52,8 +52,8 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyWithdrawals
 
 	GetSlot() primitives.Slot
-	GetGenesisValidatorsRoot() (primitives.HashRoot, error)
-	GetBlockRootAtIndex(uint64) (primitives.HashRoot, error)
+	GetGenesisValidatorsRoot() (primitives.Root, error)
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 }
 
@@ -64,20 +64,20 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyStateRoots
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
-	UpdateBlockRootAtIndex(primitives.Slot, primitives.HashRoot) error
+	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
 // roots methods.
 type WriteOnlyStateRoots interface {
-	UpdateStateRootAtIndex(uint64, primitives.HashRoot) error
+	UpdateStateRootAtIndex(uint64, primitives.Root) error
 }
 
 // ReadOnlyStateRoots defines a struct which only has read access to state roots
 // methods.
 type ReadOnlyStateRoots interface {
-	StateRootAtIndex(uint64) (primitives.HashRoot, error)
+	StateRootAtIndex(uint64) (primitives.Root, error)
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao

@@ -33,14 +33,14 @@ import (
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
 // state.
 func (s *Store) SetGenesisValidatorsRoot(
-	root primitives.HashRoot,
+	root primitives.Root,
 ) error {
 	return s.genesisValidatorsRoot.Set(s.ctx, root)
 }
 
 // GetGenesisValidatorsRoot retrieves the genesis validators root from the
 // beacon state.
-func (s *Store) GetGenesisValidatorsRoot() (primitives.HashRoot, error) {
+func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
 	return s.genesisValidatorsRoot.Get(s.ctx)
 }
 
@@ -61,14 +61,14 @@ func (s *Store) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
 	val *beacontypes.Validator,
 ) error {
-	return s.validators.Set(s.ctx, index, val)
+	return s.validators.Set(s.ctx, uint64(index), val)
 }
 
 // RemoveValidatorAtIndex removes a validator at a specified index.
 func (s *Store) RemoveValidatorAtIndex(
 	idx primitives.ValidatorIndex,
 ) error {
-	return s.validators.Remove(s.ctx, idx)
+	return s.validators.Remove(s.ctx, uint64(idx))
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
@@ -82,14 +82,14 @@ func (s *Store) ValidatorIndexByPubkey(
 	if err != nil {
 		return 0, err
 	}
-	return idx, nil
+	return primitives.ValidatorIndex(idx), nil
 }
 
 // ValidatorByIndex returns the validator address by index.
 func (s *Store) ValidatorByIndex(
 	index primitives.ValidatorIndex,
 ) (*beacontypes.Validator, error) {
-	val, err := s.validators.Get(s.ctx, index)
+	val, err := s.validators.Get(s.ctx, uint64(index))
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (s *Store) GetValidatorsByEffectiveBalance() (
 	var (
 		vals []*beacontypes.Validator
 		v    *beacontypes.Validator
-		idx  primitives.ValidatorIndex
+		idx  uint64
 	)
 
 	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(

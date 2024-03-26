@@ -25,15 +25,17 @@
 
 package primitives
 
-import "github.com/ethereum/go-ethereum/common"
+import "encoding/binary"
 
-type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash = common.Hash
-)
+// SSZUInt64 is a HashTreeRootable uint64.
+type SSZUInt64 uint64
+
+// HashTreeRoot return the merklized epoch,
+// represented as bytes in little endian,
+// padded on the right side with zeroed bytes
+// to a total of 32 bytes.
+func (e SSZUInt64) HashTreeRoot() (Root, error) {
+	bz := make([]byte, RootLength)
+	binary.LittleEndian.PutUint64(bz, uint64(e))
+	return Root(bz), nil
+}

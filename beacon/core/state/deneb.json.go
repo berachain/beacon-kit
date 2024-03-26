@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -16,26 +17,62 @@ var _ = (*beaconStateDenebJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 	type BeaconStateDeneb struct {
-		GenesisValidatorsRoot hexutil.Bytes      `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Eth1GenesisHash       common.Hash        `json:"eth1GenesisHash" ssz-size:"32"`
-		Validators            []*types.Validator `json:"validators" ssz-max:"1099511627776"`
-		RandaoMix             hexutil.Bytes      `json:"randaoMix" ssz-size:"32"`
+		GenesisValidatorsRoot        hexutil.Bytes            `json:"genesisValidatorsRoot" ssz-size:"32"`
+		Slot                         primitives.SSZUInt64     `json:"slot"`
+		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
+		BlockRoots                   []primitives.Root        `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots                   []primitives.Root        `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		Eth1GenesisHash              common.Hash              `json:"eth1GenesisHash"  ssz-size:"32"`
+		Eth1DepositIndex             uint64                   `json:"eth1DepositIndex"`
+		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
+		RandaoMixes                  []primitives.Root        `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+		NextWithdrawalIndex          uint64                   `json:"nextWithdrawalIndex"`
+		NextWithdrawalValidatorIndex uint64                   `json:"nextWithdrawalValidatorIndex"`
 	}
 	var enc BeaconStateDeneb
 	enc.GenesisValidatorsRoot = b.GenesisValidatorsRoot[:]
+	enc.Slot = b.Slot
+	enc.LatestBlockHeader = b.LatestBlockHeader
+	if b.BlockRoots != nil {
+		enc.BlockRoots = make([]primitives.Root, len(b.BlockRoots))
+		for k, v := range b.BlockRoots {
+			enc.BlockRoots[k] = v
+		}
+	}
+	if b.StateRoots != nil {
+		enc.StateRoots = make([]primitives.Root, len(b.StateRoots))
+		for k, v := range b.StateRoots {
+			enc.StateRoots[k] = v
+		}
+	}
 	enc.Eth1GenesisHash = b.Eth1GenesisHash
+	enc.Eth1DepositIndex = b.Eth1DepositIndex
 	enc.Validators = b.Validators
-	enc.RandaoMix = b.RandaoMix
+	if b.RandaoMixes != nil {
+		enc.RandaoMixes = make([]primitives.Root, len(b.RandaoMixes))
+		for k, v := range b.RandaoMixes {
+			enc.RandaoMixes[k] = v
+		}
+	}
+	enc.NextWithdrawalIndex = b.NextWithdrawalIndex
+	enc.NextWithdrawalValidatorIndex = b.NextWithdrawalValidatorIndex
 	return json.Marshal(&enc)
 }
 
 // UnmarshalJSON unmarshals from JSON.
 func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	type BeaconStateDeneb struct {
-		GenesisValidatorsRoot *hexutil.Bytes     `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Eth1GenesisHash       *common.Hash       `json:"eth1GenesisHash" ssz-size:"32"`
-		Validators            []*types.Validator `json:"validators" ssz-max:"1099511627776"`
-		RandaoMix             *hexutil.Bytes     `json:"randaoMix" ssz-size:"32"`
+		GenesisValidatorsRoot        *hexutil.Bytes           `json:"genesisValidatorsRoot" ssz-size:"32"`
+		Slot                         *primitives.SSZUInt64    `json:"slot"`
+		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
+		BlockRoots                   []primitives.Root        `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots                   []primitives.Root        `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		Eth1GenesisHash              *common.Hash             `json:"eth1GenesisHash"  ssz-size:"32"`
+		Eth1DepositIndex             *uint64                  `json:"eth1DepositIndex"`
+		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
+		RandaoMixes                  []primitives.Root        `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+		NextWithdrawalIndex          *uint64                  `json:"nextWithdrawalIndex"`
+		NextWithdrawalValidatorIndex *uint64                  `json:"nextWithdrawalValidatorIndex"`
 	}
 	var dec BeaconStateDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -47,14 +84,44 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		}
 		copy(b.GenesisValidatorsRoot[:], *dec.GenesisValidatorsRoot)
 	}
+	if dec.Slot != nil {
+		b.Slot = *dec.Slot
+	}
+	if dec.LatestBlockHeader != nil {
+		b.LatestBlockHeader = dec.LatestBlockHeader
+	}
+	if dec.BlockRoots != nil {
+		b.BlockRoots = make([][32]byte, len(dec.BlockRoots))
+		for k, v := range dec.BlockRoots {
+			b.BlockRoots[k] = v
+		}
+	}
+	if dec.StateRoots != nil {
+		b.StateRoots = make([][32]byte, len(dec.StateRoots))
+		for k, v := range dec.StateRoots {
+			b.StateRoots[k] = v
+		}
+	}
 	if dec.Eth1GenesisHash != nil {
 		b.Eth1GenesisHash = *dec.Eth1GenesisHash
+	}
+	if dec.Eth1DepositIndex != nil {
+		b.Eth1DepositIndex = *dec.Eth1DepositIndex
 	}
 	if dec.Validators != nil {
 		b.Validators = dec.Validators
 	}
-	if dec.RandaoMix != nil {
-		b.RandaoMix = *dec.RandaoMix
+	if dec.RandaoMixes != nil {
+		b.RandaoMixes = make([][32]byte, len(dec.RandaoMixes))
+		for k, v := range dec.RandaoMixes {
+			b.RandaoMixes[k] = v
+		}
+	}
+	if dec.NextWithdrawalIndex != nil {
+		b.NextWithdrawalIndex = *dec.NextWithdrawalIndex
+	}
+	if dec.NextWithdrawalValidatorIndex != nil {
+		b.NextWithdrawalValidatorIndex = *dec.NextWithdrawalValidatorIndex
 	}
 	return nil
 }

@@ -136,7 +136,7 @@ func (c *AppOptionsParser) GetUint(key string) (uint, error) {
 // GetEpoch retrieves a primitives.Epoch value from a configuration key.
 func (c *AppOptionsParser) GetEpoch(key string) (primitives.Epoch, error) {
 	epoch, err := handleError(c, cast.ToUint64E, key)
-	return epoch, err
+	return primitives.Epoch(epoch), err
 }
 
 // GetUint64Ptr retrieves a pointer to a uint64 value fro	m a configuration key.
