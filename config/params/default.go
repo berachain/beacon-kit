@@ -31,8 +31,9 @@ func DefaultBeaconConfig() BeaconChainConfig {
 	//nolint:gomnd // default settings.
 	return BeaconChainConfig{
 		// Gwei value constants.
-		MinDepositAmount:    uint64(1e9),
-		MaxEffectiveBalance: uint64(32e9),
+		MinDepositAmount:          uint64(1e9),
+		MaxEffectiveBalance:       uint64(32e9),
+		EffectiveBalanceIncrement: uint64(1e9),
 		// Time parameters constants.
 		SlotsPerEpoch:          1,
 		SlotsPerHistoricalRoot: 1,

@@ -251,8 +251,7 @@ func (sp *StateProcessor) processDeposits(
 			continue
 		}
 
-		// TODO: Configuration Variable.
-
+		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance = min(
 			val.EffectiveBalance+dep.Amount,
 			primitives.Gwei(sp.cfg.MaxEffectiveBalance),
@@ -293,6 +292,7 @@ func (sp *StateProcessor) processWithdrawals(
 			continue
 		}
 
+		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance -= min(
 			val.EffectiveBalance, wd.Amount,
 		)
