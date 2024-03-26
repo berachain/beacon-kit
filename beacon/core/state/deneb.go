@@ -59,9 +59,6 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 	}
 }
 
-// TODO setup this properly.
-// s
-//
 //go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
 //nolint:lll // various json tags.
 type BeaconStateDeneb struct {
