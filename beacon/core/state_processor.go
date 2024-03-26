@@ -262,7 +262,7 @@ func (sp *StateProcessor) processDeposits(
 
 		// TODO: this is a shitty spot for this.
 		// TODO: deprecate using this.
-		if err = st.SetEth1DepositIndex(depIdx); err != nil {
+		if err = st.SetEth1DepositIndex(depIdx + 1); err != nil {
 			return err
 		}
 		sp.processDeposit(st, dep)
