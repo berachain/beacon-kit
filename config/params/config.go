@@ -41,6 +41,8 @@ type BeaconChainConfig struct {
 	// MaxEffectiveBalance is the maximum effective balance allowed for a
 	// validator.
 	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
+	// EffectiveBalanceIncrement is the effective balance increment.
+	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
 
 	// Time parameters constants.
 	//
@@ -88,6 +90,9 @@ min-deposit-amount = {{.BeaconKit.Beacon.MinDepositAmount}}
 # MaxEffectiveBalance is the maximum effective balance allowed for a validator.
 max-effective-balance = {{.BeaconKit.Beacon.MaxEffectiveBalance}}
 
+# EffectiveBalanceIncrement is the effective balance increment.
+effective-balance-increment = {{.BeaconKit.Beacon.EffectiveBalanceIncrement}}
+
 ########### Time Parameters ##########
 # SlotsPerEpoch is the number of slots per epoch.
 slots-per-epoch = {{.BeaconKit.Beacon.SlotsPerEpoch}}
@@ -129,6 +134,12 @@ func (c BeaconChainConfig) Parse(
 
 	if c.MaxEffectiveBalance, err = parser.GetUint64(
 		flags.MaxEffectiveBalance,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.EffectiveBalanceIncrement, err = parser.GetUint64(
+		flags.EffectiveBalanceIncrement,
 	); err != nil {
 		return nil, err
 	}

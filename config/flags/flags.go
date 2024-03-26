@@ -45,6 +45,7 @@ const (
 	beaconChainRoot           = beaconKitRoot + "beacon-chain."
 	MinDepositAmount          = beaconChainRoot + "min-deposit-amount"
 	MaxEffectiveBalance       = beaconChainRoot + "max-effective-balance"
+	EffectiveBalanceIncrement = beaconChainRoot + "effective-balance-increment"
 	SlotsPerEpoch             = beaconChainRoot + "slots-per-epoch"
 	SlotsPerHistoricalRoot    = beaconChainRoot + "slots-per-historical-root"
 	DepositContractAddress    = beaconChainRoot + "deposit-contract-address"
