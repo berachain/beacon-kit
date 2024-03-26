@@ -86,6 +86,10 @@ type BeaconStateDeneb struct {
 
 	// Randomness
 	RandaoMixes [][32]byte `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+
+	// Withdrawals
+	NextWithdrawalIndex          uint64 `json:"nextWithdrawalIndex"`
+	NextWithdrawalValidatorIndex uint64 `json:"nextWithdrawalValidatorIndex"`
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
