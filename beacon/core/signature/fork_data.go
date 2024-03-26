@@ -37,9 +37,9 @@ import (
 //nolint:lll
 type Fork struct {
 	// PreviousVersion is the last version before the fork.
-	PreviousVersion primitives.Version
+	PreviousVersion primitives.Version `ssz-size:"32"`
 	// CurrentVersion is the first version after the fork.
-	CurrentVersion primitives.Version
+	CurrentVersion primitives.Version `ssz-size:"32"`
 	// Epoch is the epoch at which the fork occurred.
 	Epoch primitives.Epoch
 }
@@ -50,12 +50,12 @@ type Fork struct {
 //nolint:lll
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
-	CurrentVersion primitives.Version
+	CurrentVersion primitives.Version `ssz-size:"4"`
 	// GenesisValidatorsRoot is the root of the genesis validators.
-	GenesisValidatorsRoot primitives.Root
+	GenesisValidatorsRoot primitives.Root `ssz-size:"32"`
 }
 
-// VersionFromUint returns a Version from a uint32.
+// VersionFromUint returns a primitives.Version from a uint32.
 func VersionFromUint32(version uint32) primitives.Version {
 	versionBz := primitives.Version{}
 	binary.LittleEndian.PutUint32(versionBz[:], version)
