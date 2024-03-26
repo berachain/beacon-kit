@@ -23,27 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
 import "github.com/berachain/beacon-kit/primitives"
 
-// SigningData as defined in the Ethereum 2.0 Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
+// SigningData as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 //
 //nolint:lll
-type Data struct {
+type SigningData struct {
 	ObjectRoot primitives.Root `ssz-size:"32"`
 	Domain     Domain          `ssz-size:"32"`
 }
 
-// ComputeSigningRoot computes the signing root for a given object and domain.
-// Spec:
-// def compute_signing_root(ssz_object: SSZObject, domain: Domain) -> Root:
+// ComputeSigningRoot as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
 //
-//	return hash_tree_root(SigningData(
-//	    object_root=hash_tree_root(ssz_object),
-//	    domain=domain,
-//	))
+//nolint:lll
 func ComputeSigningRoot(
 	sszObject SSZObject,
 	domain Domain,
@@ -52,7 +48,7 @@ func ComputeSigningRoot(
 	if err != nil {
 		return primitives.Root{}, err
 	}
-	data := Data{
+	data := SigningData{
 		ObjectRoot: objectRoot,
 		Domain:     domain,
 	}

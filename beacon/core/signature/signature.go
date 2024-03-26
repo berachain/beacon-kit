@@ -23,10 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-const (
-	VersionLength    = 4
-	DomainTypeLength = 4
-	DomainLength     = 32
-)
+type BLSSignature [96]byte

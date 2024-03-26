@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
 import (
 	"encoding/binary"
@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-// Fork as defined in the Ethereum 2.0 Spec:
+// Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 //
 //nolint:lll
@@ -44,19 +44,29 @@ type Fork struct {
 	Epoch primitives.Epoch
 }
 
-// ForkData as defined in the Ethereum 2.0 Spec:
+// ForkData as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
 //
 //nolint:lll
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
-	CurrentVersion primitives.Version `ssz-size:"4"`
+	CurrentVersion primitives.Version
 	// GenesisValidatorsRoot is the root of the genesis validators.
-	GenesisValidatorsRoot primitives.Root `ssz-size:"32"`
+	GenesisValidatorsRoot primitives.Root
 }
 
-// computeForkDataRoot computes the root of the fork data.
-func computeForkDataRoot(
+// VersionFromUint returns a Version from a uint32.
+func VersionFromUint32(version uint32) primitives.Version {
+	versionBz := primitives.Version{}
+	binary.LittleEndian.PutUint32(versionBz[:], version)
+	return versionBz
+}
+
+// ComputeForkDataRoot as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_fork_data_root
+//
+//nolint:lll
+func ComputeForkDataRoot(
 	currentVersion primitives.Version,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
@@ -67,9 +77,20 @@ func computeForkDataRoot(
 	return forkData.HashTreeRoot()
 }
 
-// VersionFromUint returns a Version from a uint32.
-func VersionFromUint32(version uint32) primitives.Version {
-	versionBz := primitives.Version{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
+// ComputeForkDigest as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_fork_digest
+//
+//nolint:lll
+func ComputeForkDigest(
+	currentVersion primitives.Version,
+	genesisValidatorsRoot primitives.Root,
+) (primitives.ForkDigest, error) {
+	forkDataRoot, err := ComputeForkDataRoot(
+		currentVersion,
+		genesisValidatorsRoot,
+	)
+	if err != nil {
+		return primitives.ForkDigest{}, err
+	}
+	return primitives.ForkDigest(forkDataRoot[:4]), nil
 }

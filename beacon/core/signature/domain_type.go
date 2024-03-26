@@ -23,49 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-import (
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/primitives"
+// DomainType is a 4-byte array used to represent a
+// domain type in BLS signing and verification.
+type DomainType [DomainTypeLength]byte
+
+// Domain constants for BLS domain types.
+// Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+//
+//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
+var (
+	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
 )
-
-// Domain is the domain used for signing.
-type Domain [DomainLength]byte
-
-// Bytes returns the byte representation of the Domain.
-func (d *Domain) Bytes() []byte {
-	return d[:]
-}
-
-// computeDomain returns the domain for the DomainType and fork version.
-func computeDomain(
-	domainType DomainType,
-	forkVersion primitives.Version,
-	genesisValidatorsRoot primitives.Root,
-) (Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, genesisValidatorsRoot)
-	if err != nil {
-		return Domain{}, err
-	}
-	var bz []byte
-	bz = append(bz, domainType[:]...)
-	bz = append(
-		bz,
-		forkDataRoot[:(primitives.RootLength-DomainTypeLength)]...)
-	return Domain(bz), nil
-}
-
-// GetDomain returns the domain for the DomainType and epoch.
-func GetDomain(
-	cfg *config.Config,
-	genesisValidatorsRoot primitives.Root,
-	domainType DomainType,
-	epoch primitives.Epoch,
-) (Domain, error) {
-	return computeDomain(
-		domainType,
-		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		genesisValidatorsRoot,
-	)
-}
