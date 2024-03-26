@@ -23,11 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-import "github.com/berachain/beacon-kit/primitives"
-
-// SSZObject is the interface for the SSZ object.
-type SSZObject interface {
-	HashTreeRoot() (primitives.Root, error)
-}
+const (
+	VersionLength    = 4
+	DomainTypeLength = 4
+	DomainLength     = 32
+)

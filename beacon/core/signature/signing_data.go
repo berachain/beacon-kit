@@ -23,6 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-type BLSSignature [96]byte
+import "github.com/berachain/beacon-kit/primitives"
+
+// SigningData as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
+//
+//nolint:lll
+type SigningData struct {
+	ObjectRoot primitives.Root `ssz-size:"32"`
+	Domain     Domain          `ssz-size:"32"`
+}
+
+// ComputeSigningRoot as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
+//
+//nolint:lll
+func ComputeSigningRoot(
+	sszObject SSZObject,
+	domain Domain,
+) (primitives.Root, error) {
+	objectRoot, err := sszObject.HashTreeRoot()
+	if err != nil {
+		return primitives.Root{}, err
+	}
+	data := SigningData{
+		ObjectRoot: objectRoot,
+		Domain:     domain,
+	}
+	return data.HashTreeRoot()
+}

@@ -23,40 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
 import "github.com/berachain/beacon-kit/primitives"
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
-// Spec:
-// https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
-//
-//nolint:lll // Urls are long.
-type Data struct {
-	ObjectRoot primitives.Root `ssz-size:"32"`
-	Domain     Domain          `ssz-size:"32"`
-}
-
-// ComputeSigningRoot computes the signing root for a given object and domain.
-// Spec:
-// def compute_signing_root(ssz_object: SSZObject, domain: Domain) -> Root:
-//
-//	return hash_tree_root(SigningData(
-//	    object_root=hash_tree_root(ssz_object),
-//	    domain=domain,
-//	))
-func ComputeSigningRoot(
-	sszObject SSZObject,
-	domain Domain,
-) (primitives.Root, error) {
-	objectRoot, err := sszObject.HashTreeRoot()
-	if err != nil {
-		return primitives.Root{}, err
-	}
-	data := Data{
-		ObjectRoot: objectRoot,
-		Domain:     domain,
-	}
-	return data.HashTreeRoot()
+// SSZObject is the interface for the SSZ object.
+type SSZObject interface {
+	HashTreeRoot() (primitives.Root, error)
 }

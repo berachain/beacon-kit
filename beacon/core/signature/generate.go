@@ -23,49 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-import (
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/primitives"
-)
-
-// Domain is the domain used for signing.
-type Domain [DomainLength]byte
-
-// Bytes returns the byte representation of the Domain.
-func (d *Domain) Bytes() []byte {
-	return d[:]
-}
-
-// computeDomain returns the domain for the DomainType and fork version.
-func computeDomain(
-	domainType DomainType,
-	forkVersion primitives.Version,
-	genesisValidatorsRoot primitives.Root,
-) (Domain, error) {
-	forkDataRoot, err := computeForkDataRoot(forkVersion, genesisValidatorsRoot)
-	if err != nil {
-		return Domain{}, err
-	}
-	var bz []byte
-	bz = append(bz, domainType[:]...)
-	bz = append(
-		bz,
-		forkDataRoot[:(primitives.RootLength-DomainTypeLength)]...)
-	return Domain(bz), nil
-}
-
-// GetDomain returns the domain for the DomainType and epoch.
-func GetDomain(
-	cfg *config.Config,
-	genesisValidatorsRoot primitives.Root,
-	domainType DomainType,
-	epoch primitives.Epoch,
-) (Domain, error) {
-	return computeDomain(
-		domainType,
-		VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
-		genesisValidatorsRoot,
-	)
-}
+// Generate the SSZ serialization code for the signing package.
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData,ForkData -include ../../../primitives -output generated.ssz.go

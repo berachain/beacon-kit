@@ -23,35 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signing
+package signature
 
-import (
-	"encoding/binary"
+// DomainType is a 4-byte array used to represent a
+// domain type in BLS signing and verification.
+type DomainType [DomainTypeLength]byte
 
-	"github.com/berachain/beacon-kit/primitives"
+// Domain constants for BLS domain types.
+// Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+//
+//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
+var (
+	DomainRandao  = DomainType{0x02, 0x00, 0x00, 0x00}
+	DomainDeposit = DomainType{0x03, 0x00, 0x00, 0x00}
 )
-
-// ForkData is the fork data used for signing.
-type ForkData struct {
-	CurrentVersion        primitives.Version `ssz-size:"4"`
-	GenesisValidatorsRoot primitives.Root    `ssz-size:"32"`
-}
-
-// computeForkDataRoot computes the root of the fork data.
-func computeForkDataRoot(
-	currentVersion primitives.Version,
-	genesisValidatorsRoot primitives.Root,
-) (primitives.Root, error) {
-	forkData := ForkData{
-		CurrentVersion:        currentVersion,
-		GenesisValidatorsRoot: genesisValidatorsRoot,
-	}
-	return forkData.HashTreeRoot()
-}
-
-// VersionFromUint returns a Version from a uint32.
-func VersionFromUint32(version uint32) primitives.Version {
-	versionBz := primitives.Version{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
-}
