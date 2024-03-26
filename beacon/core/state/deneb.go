@@ -83,6 +83,7 @@ type BeaconStateDeneb struct {
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
 	RandaoMixes [][32]byte `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`

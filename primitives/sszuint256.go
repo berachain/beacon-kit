@@ -34,6 +34,11 @@ import (
 	"github.com/holiman/uint256"
 )
 
+// Hashable is an interface representing objects that implement HashTreeRoot().
+type Hashable interface {
+	HashTreeRoot() (Root, error)
+}
+
 const thirtyTwo = 32
 
 // SSZUInt256 represents a ssz-able uint64.

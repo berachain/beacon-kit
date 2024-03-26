@@ -55,6 +55,9 @@ type Store struct {
 		uint64, *beacontypes.Validator, index.ValidatorsIndex,
 	]
 
+	// balances stores the list of balances.
+	balances sdkcollections.Map[uint64, uint64]
+
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
 
 	// depositQueue is a list of deposits that are queued to be processed.
@@ -103,6 +106,13 @@ func NewStore(
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[*beacontypes.Validator]{},
 			index.NewValidatorsIndex(schemaBuilder),
+		),
+		balances: sdkcollections.NewMap[uint64, uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(balancesPrefix),
+			balancesPrefix,
+			sdkcollections.Uint64Key,
+			sdkcollections.Uint64Value,
 		),
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,

@@ -25,20 +25,32 @@
 
 package beacon
 
-// Collection prefixes.
-const (
-	depositQueuePrefix                     = "deposit_queue"
-	withdrawalQueuePrefix                  = "withdrawal_queue"
-	randaoMixPrefix                        = "randao_mix"
-	validatorIndexPrefix                   = "val_idx"
-	blockRootsPrefix                       = "block_roots"
-	stateRootsPrefix                       = "state_roots"
-	validatorByIndexPrefix                 = "val_idx_to_pk"
-	validatorPubkeyToIndexPrefix           = "val_pk_to_idx"
-	validatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
-	validatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
-	latestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
-	slotPrefix                             = "slot"
-	balancesPrefix                         = "balances"
-	genesisValidatorsRootPrefix            = "genesis_validators_root"
+import (
+	"github.com/berachain/beacon-kit/primitives"
 )
+
+// IncreaseBalance increases the balance of a validator.
+func (s *Store) IncreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	if err != nil {
+		return err
+	}
+	balance += uint64(delta)
+	return s.balances.Set(s.ctx, uint64(idx), balance)
+}
+
+// DecreaseBalance decreases the balance of a validator.
+func (s *Store) DecreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	if err != nil {
+		return err
+	}
+	balance -= min(balance, uint64(delta))
+	return s.balances.Set(s.ctx, uint64(idx), balance)
+}

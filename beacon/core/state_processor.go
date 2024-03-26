@@ -228,39 +228,56 @@ func (sp *StateProcessor) processDeposits(
 
 	// Ensure the deposits match the local state.
 	for i, dep := range deposits {
-		if dep == nil {
-			return types.ErrNilDeposit
-		}
-
 		if dep.Index != localDeposits[i].Index {
 			return fmt.Errorf(
 				"deposit index does not match, expected: %d, got: %d",
 				localDeposits[i].Index, dep.Index)
 		}
 
-		// TODO make the two following calls into a single call.
-		var idx primitives.ValidatorIndex
-		idx, err = st.ValidatorIndexByPubkey(dep.Pubkey[:])
-		if err != nil {
-			continue
-		}
+		// TODO: Add this
+		// if err := st.IncrementDepositIndex(); err != nil {
+		// 	return err
+		// }
+		sp.processDeposit(st, dep)
+	}
+	return nil
+}
 
+// processDeposit processes the deposit and ensures it matches the local state.
+func (sp *StateProcessor) processDeposit(
+	st state.BeaconState,
+	dep *types.Deposit,
+) {
+	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey[:])
+	if err != nil {
+		_ = 0
+		// # Verify the deposit signature (proof of possession) which is not
+		// checked by the deposit contract
+		// deposit_message = DepositMessage(
+		//     pubkey=pubkey,
+		//     withdrawal_credentials=withdrawal_credentials,
+		//     amount=amount,
+		// )
+		// domain = compute_domain(DOMAIN_DEPOSIT)  # Fork-agnostic domain since
+		// deposits are valid across forks
+		// signing_root = compute_signing_root(deposit_message, domain)
+		// if bls.Verify(pubkey, signing_root, signature):
+		// add_validator_to_registry(state, pubkey, withdrawal_credentials,
+		// amount)
+	} else {
 		var val *types.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
-			continue
+			return
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
-		val.EffectiveBalance = min(
-			val.EffectiveBalance+dep.Amount,
-			primitives.Gwei(sp.cfg.MaxEffectiveBalance),
-		)
+		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
+			primitives.Gwei(sp.cfg.MaxEffectiveBalance))
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-			return err
+			return
 		}
 	}
-	return nil
 }
 
 // processWithdrawals processes the withdrawals and ensures they match the

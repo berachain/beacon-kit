@@ -25,10 +25,16 @@
 
 package primitives
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
-// SSZUInt64 is a HashTreeRootable uint64.
-type SSZUInt64 uint64
+type (
+	// SSZUInt64 is a HashTreeRootable uint64.
+	SSZUInt64 uint64
+	// SSZUInt64List is a list of SSZUInt64.
+	SSZUInt64List []SSZUInt64
+)
 
 // HashTreeRoot return the merklized epoch,
 // represented as bytes in little endian,

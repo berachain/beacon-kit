@@ -25,6 +25,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		Eth1GenesisHash              common.Hash              `json:"eth1GenesisHash"  ssz-size:"32"`
 		Eth1DepositIndex             uint64                   `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
+		Balances                     []uint64                 `json:"balances"   ssz-max:"1099511627776"`
 		RandaoMixes                  []primitives.Root        `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          uint64                   `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex uint64                   `json:"nextWithdrawalValidatorIndex"`
@@ -48,6 +49,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 	enc.Eth1GenesisHash = b.Eth1GenesisHash
 	enc.Eth1DepositIndex = b.Eth1DepositIndex
 	enc.Validators = b.Validators
+	enc.Balances = b.Balances
 	if b.RandaoMixes != nil {
 		enc.RandaoMixes = make([]primitives.Root, len(b.RandaoMixes))
 		for k, v := range b.RandaoMixes {
@@ -70,6 +72,7 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		Eth1GenesisHash              *common.Hash             `json:"eth1GenesisHash"  ssz-size:"32"`
 		Eth1DepositIndex             *uint64                  `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
+		Balances                     []uint64                 `json:"balances"   ssz-max:"1099511627776"`
 		RandaoMixes                  []primitives.Root        `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          *uint64                  `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex *uint64                  `json:"nextWithdrawalValidatorIndex"`
@@ -110,6 +113,9 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	}
 	if dec.Validators != nil {
 		b.Validators = dec.Validators
+	}
+	if dec.Balances != nil {
+		b.Balances = dec.Balances
 	}
 	if dec.RandaoMixes != nil {
 		b.RandaoMixes = make([][32]byte, len(dec.RandaoMixes))
