@@ -49,7 +49,7 @@ type (
 	}
 
 	// Gwei is a denomination of 1e9 Wei represented as an uint64.
-	Gwei uint64
+	Gwei SSZUInt64
 )
 
 // ZeroWei returns a zero Wei.

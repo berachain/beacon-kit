@@ -23,7 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signature
+package params
 
-// Generate the SSZ serialization code for the signing package.
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData,Fork,ForkData -include ../../../primitives -output generated.ssz.go
+import "github.com/berachain/beacon-kit/primitives"
+
+// This file contains various constants as defined:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
+//
+//nolint:lll
+const (
+	// Uint64Max represents the maximum value for a uint64.
+	Uint64Max = uint64(2 ^ 64 - 1)
+	// Uint64MaxSqrt represents the square root of the maximum value for a
+	// uint64.
+	Uint64MaxSqrt = uint64(4294967295)
+	// GenesisSlot represents the initial slot in the system.
+	GenesisSlot = primitives.Slot(0)
+	// GenesisEpoch represents the initial epoch in the system.
+	GenesisEpoch = primitives.Epoch(0)
+	// FarFutureEpoch represents a far future epoch value.
+	FarFutureEpoch = primitives.Epoch(Uint64Max)
+)

@@ -25,35 +25,79 @@
 
 package types
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"github.com/berachain/beacon-kit/config/params"
+	"github.com/berachain/beacon-kit/primitives"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
-// Validator is a struct that represents a validator in the beacon chain.
-// Validator represents a participant in the beacon chain consensus mechanism.
-// It holds the validator's public key, withdrawal credentials, effective
-// balance, and slashing status.
-//
-// Ethereum 2.0 Reference:
+// Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
-//
-// TODO: Epoch Eligibility stuff.
 //
 //nolint:lll
 //go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey [48]byte `json:"pubkey"                ssz-size:"48"`
+	Pubkey primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials [32]byte `json:"withdrawalCredentials" ssz-size:"32"`
+	WithdrawalCredentials DepositCredentials `json:"withdrawalCredentials" ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
-	EffectiveBalance uint64 `json:"effectiveBalance"`
+	EffectiveBalance primitives.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
+	// ActivationEligibilityEpoch is the epoch in which the validator became
+	// eligible for activation.
+	ActivationEligibilityEpoch primitives.Epoch
+	// ActivationEpoch is the epoch in which the validator activated.
+	ActivationEpoch primitives.Epoch
+	// ExitEpoch is the epoch in which the validator exited.
+	ExitEpoch primitives.Epoch
+	// WithdrawableEpoch is the epoch in which the validator can withdraw.
+	WithdrawableEpoch primitives.Epoch
 }
 
 // JSON type overrides for ExecutionPayloadEnvelope.
 type validatorJSONMarshaling struct {
-	Pubkey                hexutil.Bytes
 	WithdrawalCredentials hexutil.Bytes
+}
+
+// IsActive as defined in the Ethereum 2.0 Spec
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_active_validator
+//
+//nolint:lll
+func (v Validator) IsActive(epoch primitives.Epoch) bool {
+	return v.ActivationEpoch <= epoch && epoch < v.ExitEpoch
+}
+
+// IsEligibleForActivation as defined in the Ethereum 2.0 Spec
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
+//
+//nolint:lll
+func (v Validator) IsEligibleForActivation(
+	finalizedEpoch primitives.Epoch,
+) bool {
+	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
+		v.ActivationEpoch == params.FarFutureEpoch
+}
+
+// IsEligibleForActivationQueue as defined in the Ethereum 2.0 Spec
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
+//
+//nolint:lll
+func (v Validator) IsEligibleForActivationQueue(
+	maxEffectiveBalance primitives.Gwei,
+) bool {
+	return v.ActivationEligibilityEpoch == params.FarFutureEpoch &&
+		v.EffectiveBalance == maxEffectiveBalance
+}
+
+// IsSlashed as defined in the Ethereum 2.0 Spec
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_slashable_validator
+//
+//nolint:lll
+func (v Validator) IsSlashable(epoch primitives.Epoch) bool {
+	return !v.Slashed && v.ActivationEpoch <= epoch &&
+		epoch < v.WithdrawableEpoch
 }
 
 // String returns a string representation of the Validator.
