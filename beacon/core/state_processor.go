@@ -109,6 +109,13 @@ func (sp *StateProcessor) ProcessSlot(
 		return err
 	}
 
+	// Process the Epoch Boundary.
+	if uint64(slot+1)%sp.cfg.SlotsPerEpoch == 0 {
+		if err = sp.processEpoch(st); err != nil {
+			return err
+		}
+	}
+
 	return st.SetSlot(slot + 1)
 }
 
@@ -184,6 +191,11 @@ func (sp *StateProcessor) ProcessBlobs(
 	}
 
 	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
+}
+
+// processEpoch processes the epoch and ensures it matches the local state.
+func (sp *StateProcessor) processEpoch(_ state.BeaconState) error {
+	return nil
 }
 
 // processHeader processes the header and ensures it matches the local state.
