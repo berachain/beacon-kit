@@ -56,7 +56,7 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	randaoMixes := make([][32]byte, 32)
+	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
 	randaoMixes[0] = randaoMix
 
 	return (&state.BeaconStateDeneb{
