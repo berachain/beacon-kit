@@ -47,7 +47,7 @@ func VersionFromUint32(version uint32) primitives.Version {
 	return versionBz
 }
 
-// ComputeForkDataRoot as defiend in the Ethereum 2.0 specification.
+// ComputeForkDataRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_fork_data_root
 //
 //nolint:lll
@@ -62,7 +62,7 @@ func ComputeForkDataRoot(
 	return forkData.HashTreeRoot()
 }
 
-// ComputeForkDigest as defiend in the Ethereum 2.0 specification.
+// ComputeForkDigest as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_fork_digest
 //
 //nolint:lll
