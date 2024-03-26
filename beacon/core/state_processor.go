@@ -211,6 +211,7 @@ func (sp *StateProcessor) processOperations(
 	st state.BeaconState,
 	body types.BeaconBlockBody,
 ) error {
+	// if len(body.GetDeposits()) == min(0, len(body.GetDeposits())) {
 	return sp.processDeposits(st, body.GetDeposits())
 }
 

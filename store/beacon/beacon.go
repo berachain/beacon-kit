@@ -43,8 +43,23 @@ import (
 type Store struct {
 	ctx context.Context
 
+	// genesisValidatorsRoot is the root of the genesis validators.
+	genesisValidatorsRoot sdkcollections.Item[[32]byte]
+
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
+
+	// latestBeaconBlockHeader stores the latest beacon block header.
+	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
+
+	// blockRoots stores the block roots for the current epoch.
+	blockRoots sdkcollections.Map[uint64, [32]byte]
+
+	// stateRoots stores the state roots for the current epoch.
+	stateRoots sdkcollections.Map[uint64, [32]byte]
+
+	// eth1DepositIndex is the index of the latest eth1 deposit.
+	eth1DepositIndex sdkcollections.Item[uint64]
 
 	// validatorIndex is a sequence that provides the next
 	// available index for a new validator.
@@ -58,25 +73,14 @@ type Store struct {
 	// balances stores the list of balances.
 	balances sdkcollections.Map[uint64, uint64]
 
-	genesisValidatorsRoot sdkcollections.Item[[32]byte]
-
 	// depositQueue is a list of deposits that are queued to be processed.
 	depositQueue *collections.Queue[*beacontypes.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
-	// blockRoots stores the block roots for the current epoch.
-	blockRoots sdkcollections.Map[uint64, [32]byte]
-
-	// stateRoots stores the state roots for the current epoch.
-	stateRoots sdkcollections.Map[uint64, [32]byte]
-
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, [types.MixLength]byte]
-
-	// latestBeaconBlockHeader stores the latest beacon block header.
-	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
 }
 
 // Store creates a new instance of Store.
@@ -86,10 +90,36 @@ func NewStore(
 	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
 	return &Store{
 		ctx: nil,
+		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(genesisValidatorsRootPrefix),
+			genesisValidatorsRootPrefix,
+			encoding.Bytes32ValueCodec{},
+		),
 		slot: sdkcollections.NewItem[uint64](
 			schemaBuilder,
 			sdkcollections.NewPrefix(slotPrefix),
 			slotPrefix,
+			sdkcollections.Uint64Value,
+		),
+		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(blockRootsPrefix),
+			blockRootsPrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
+		),
+		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(stateRootsPrefix),
+			stateRootsPrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
+		),
+		eth1DepositIndex: sdkcollections.NewItem[uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(eth1DepositIndexPrefix),
+			eth1DepositIndexPrefix,
 			sdkcollections.Uint64Value,
 		),
 		validatorIndex: sdkcollections.NewSequence(
@@ -114,12 +144,6 @@ func NewStore(
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
-			schemaBuilder,
-			sdkcollections.NewPrefix(genesisValidatorsRootPrefix),
-			genesisValidatorsRootPrefix,
-			encoding.Bytes32ValueCodec{},
-		),
 		depositQueue: collections.NewQueue[*beacontypes.Deposit](
 			schemaBuilder,
 			depositQueuePrefix,
@@ -130,20 +154,7 @@ func NewStore(
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
 		),
-		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
-			schemaBuilder,
-			sdkcollections.NewPrefix(blockRootsPrefix),
-			blockRootsPrefix,
-			sdkcollections.Uint64Key,
-			encoding.Bytes32ValueCodec{},
-		),
-		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
-			schemaBuilder,
-			sdkcollections.NewPrefix(stateRootsPrefix),
-			stateRootsPrefix,
-			sdkcollections.Uint64Key,
-			encoding.Bytes32ValueCodec{},
-		),
+
 		randaoMix: sdkcollections.NewMap[uint64, [types.MixLength]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(randaoMixPrefix),

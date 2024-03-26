@@ -40,5 +40,6 @@ const (
 	latestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
 	slotPrefix                             = "slot"
 	balancesPrefix                         = "balances"
+	eth1DepositIndexPrefix                 = "eth1_deposit_index"
 	genesisValidatorsRootPrefix            = "genesis_validators_root"
 )
