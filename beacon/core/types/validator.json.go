@@ -15,14 +15,14 @@ var _ = (*validatorJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (v Validator) MarshalJSON() ([]byte, error) {
 	type Validator struct {
-		Pubkey                     primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
+		Pubkey                     primitives.Bytes48   `json:"pubkey"                ssz-size:"48"`
 		WithdrawalCredentials      hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
 		EffectiveBalance           primitives.Gwei      `json:"effectiveBalance"`
 		Slashed                    bool                 `json:"slashed"`
-		ActivationEligibilityEpoch primitives.SSZUInt64
-		ActivationEpoch            primitives.SSZUInt64
-		ExitEpoch                  primitives.SSZUInt64
-		WithdrawableEpoch          primitives.SSZUInt64
+		ActivationEligibilityEpoch primitives.SSZUInt64 `json:"activationEligibilityEpoch"`
+		ActivationEpoch            primitives.SSZUInt64 `json:"activationEpoch"`
+		ExitEpoch                  primitives.SSZUInt64 `json:"exitEpoch"`
+		WithdrawableEpoch          primitives.SSZUInt64 `json:"withdrawableEpoch"`
 	}
 	var enc Validator
 	enc.Pubkey = v.Pubkey
@@ -39,14 +39,14 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (v *Validator) UnmarshalJSON(input []byte) error {
 	type Validator struct {
-		Pubkey                     *primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
+		Pubkey                     *primitives.Bytes48   `json:"pubkey"                ssz-size:"48"`
 		WithdrawalCredentials      *hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
 		EffectiveBalance           *primitives.Gwei      `json:"effectiveBalance"`
 		Slashed                    *bool                 `json:"slashed"`
-		ActivationEligibilityEpoch *primitives.SSZUInt64
-		ActivationEpoch            *primitives.SSZUInt64
-		ExitEpoch                  *primitives.SSZUInt64
-		WithdrawableEpoch          *primitives.SSZUInt64
+		ActivationEligibilityEpoch *primitives.SSZUInt64 `json:"activationEligibilityEpoch"`
+		ActivationEpoch            *primitives.SSZUInt64 `json:"activationEpoch"`
+		ExitEpoch                  *primitives.SSZUInt64 `json:"exitEpoch"`
+		WithdrawableEpoch          *primitives.SSZUInt64 `json:"withdrawableEpoch"`
 	}
 	var dec Validator
 	if err := json.Unmarshal(input, &dec); err != nil {
