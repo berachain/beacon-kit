@@ -55,11 +55,13 @@ func (bv *BlockValidator) ValidateBlock(
 		return types.ErrNilBlk
 	}
 
+	// Get the block body.
 	body := blk.GetBody()
 	if body == nil || body.IsNil() {
 		return types.ErrNilBlkBody
 	}
 
+	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -74,6 +76,23 @@ func (bv *BlockValidator) ValidateBlock(
 		)
 	}
 
+	// Get the latest block header.
+	latestBlockHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the block is within the acceptable range.
+	if blk.GetSlot() <= latestBlockHeader.Slot {
+		return fmt.Errorf(
+			"block slot is too low, expected: > %d, got: %d",
+			latestBlockHeader.Slot,
+			blk.GetSlot(),
+		)
+	}
+
+	// Ensure the block is within the acceptable range.
+	// TODO: move this is in the wrong spot.
 	if deposits := body.GetDeposits(); uint64(
 		len(deposits),
 	) > bv.cfg.MaxDepositsPerBlock {
@@ -83,13 +102,13 @@ func (bv *BlockValidator) ValidateBlock(
 		)
 	}
 
-	// Ensure the parent block root matches what we have locally.
-	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(blk.GetSlot()-1) % bv.cfg.SlotsPerHistoricalRoot)
+	// Ensure the parent root matches the latest block header.
+	parentBlockRoot, err := latestBlockHeader.HashTreeRoot()
 	if err != nil {
 		return err
 	}
 
+	// Ensure the parent root matches the latest block header.
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return fmt.Errorf(
 			"parent root does not match, expected: %x, got: %x",
