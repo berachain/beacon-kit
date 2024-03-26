@@ -26,7 +26,6 @@
 package types
 
 import (
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
@@ -69,7 +68,7 @@ func (b *BeaconBlockBodyDeneb) GetGraffiti() [32]byte {
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.
-func (b *BeaconBlockBodyDeneb) GetRandaoReveal() randaotypes.Reveal {
+func (b *BeaconBlockBodyDeneb) GetRandaoReveal() primitives.BLSSignature {
 	return b.RandaoReveal
 }
 

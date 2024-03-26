@@ -74,6 +74,7 @@ func ComputeForkDataRoot(
 		CurrentVersion:        currentVersion,
 		GenesisValidatorsRoot: genesisValidatorsRoot,
 	}
+
 	return forkData.HashTreeRoot()
 }
 

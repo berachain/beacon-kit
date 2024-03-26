@@ -259,7 +259,7 @@ func (s *Service) getPayloadAttribute(
 
 	// Get the previous randao mix.
 	prevRandao, err = st.RandaoMixAtIndex(
-		uint64((slot - 1)) % s.BeaconCfg().EpochsPerHistoricalVector,
+		uint64(slot) % s.BeaconCfg().EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return nil, err

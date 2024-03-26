@@ -51,7 +51,8 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
-	GetSlot() primitives.Slot
+	GetSlot() (primitives.Slot, error)
+	SetSlot(primitives.Slot) error
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)

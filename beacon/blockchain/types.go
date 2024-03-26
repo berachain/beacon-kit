@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/execution"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
@@ -76,15 +75,15 @@ type LocalBuilder interface {
 type RandaoProcessor interface {
 	BuildReveal(
 		st state.BeaconState,
-	) (randaotypes.Reveal, error)
+	) (primitives.BLSSignature, error)
 	MixinNewReveal(
 		st state.BeaconState,
-		reveal randaotypes.Reveal,
+		reveal primitives.BLSSignature,
 	) error
 	VerifyReveal(
 		st state.BeaconState,
 		proposerPubkey primitives.BLSPubkey,
-		reveal randaotypes.Reveal,
+		reveal primitives.BLSSignature,
 	) error
 }
 

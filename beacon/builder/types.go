@@ -26,8 +26,8 @@
 package builder
 
 import (
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/primitives"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 )
 
@@ -35,7 +35,7 @@ import (
 type RandaoProcessor interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st state.BeaconState) (randaotypes.Reveal, error)
+	BuildReveal(st state.BeaconState) (primitives.BLSSignature, error)
 }
 
 // Signer is an interface for objects that can sign messages.

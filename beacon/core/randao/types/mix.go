@@ -27,6 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/crypto/sha256"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -45,7 +46,7 @@ type Mix [MixLength]byte
 // MixinNewReveal takes a new reveal (signature) and combines it with the
 // current mix
 // using a XOR operation, then returns the updated mix.
-func (m Mix) MixinNewReveal(reveal Reveal) Mix {
+func (m Mix) MixinNewReveal(reveal primitives.BLSSignature) Mix {
 	for idx, b := range sha256.Hash(reveal[:]) {
 		m[idx] ^= b
 	}

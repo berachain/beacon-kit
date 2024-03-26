@@ -42,7 +42,9 @@ import (
 // that provides access to all beacon related data.
 type Store struct {
 	ctx context.Context
-	env appmodule.Environment
+
+	// slot is the current slot.
+	slot sdkcollections.Item[uint64]
 
 	// validatorIndex is a sequence that provides the next
 	// available index for a new validator.
@@ -81,7 +83,12 @@ func NewStore(
 	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
 	return &Store{
 		ctx: nil,
-		env: env,
+		slot: sdkcollections.NewItem[uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(slotPrefix),
+			slotPrefix,
+			sdkcollections.Uint64Value,
+		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,
 			sdkcollections.NewPrefix(validatorIndexPrefix),

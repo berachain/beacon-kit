@@ -28,8 +28,12 @@ package beacon
 import "github.com/berachain/beacon-kit/primitives"
 
 // GetSlot returns the current slot.
-func (s *Store) GetSlot() primitives.Slot {
-	return primitives.Slot(
-		s.env.HeaderService.GetHeaderInfo(s.ctx).Height,
-	)
+func (s *Store) GetSlot() (primitives.Slot, error) {
+	slot, err := s.slot.Get(s.ctx)
+	return primitives.Slot(slot), err
+}
+
+// SetSlot sets the current slot.
+func (s *Store) SetSlot(slot primitives.Slot) error {
+	return s.slot.Set(s.ctx, uint64(slot))
 }

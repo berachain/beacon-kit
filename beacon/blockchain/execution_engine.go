@@ -87,6 +87,7 @@ func (s *Service) sendPostBlockFCU(
 
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
+	//nolint:nestif // todo:cleanup
 	if s.BuilderCfg().LocalBuilderEnabled && !s.ss.IsInitSync() {
 		// TODO: This BlockRoot calculation is sound, but very confusing
 		// and hard to explain to someone who is not familiar with the
@@ -113,10 +114,16 @@ func (s *Service) sendPostBlockFCU(
 			return
 		}
 
+		slot, err := st.GetSlot()
+		if err != nil {
+			s.Logger().
+				Error("failed to get slot in postBlockProcess", "error", err)
+		}
+
 		if err = s.sendFCUWithAttributes(
 			ctx,
 			headHash,
-			st.GetSlot()+1,
+			slot+1,
 			root,
 		); err == nil {
 			return

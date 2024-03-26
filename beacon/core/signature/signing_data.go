@@ -32,8 +32,8 @@ import "github.com/berachain/beacon-kit/primitives"
 //
 //nolint:lll
 type SigningData struct {
-	ObjectRoot primitives.Root `ssz-size:"32"`
-	Domain     Domain          `ssz-size:"32"`
+	ObjectRoot primitives.Root   `ssz-size:"32"`
+	Domain     primitives.Domain `ssz-size:"32"`
 }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
@@ -42,7 +42,7 @@ type SigningData struct {
 //nolint:lll
 func ComputeSigningRoot(
 	sszObject SSZObject,
-	domain Domain,
+	domain primitives.Domain,
 ) (primitives.Root, error) {
 	objectRoot, err := sszObject.HashTreeRoot()
 	if err != nil {

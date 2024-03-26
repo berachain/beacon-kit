@@ -87,10 +87,15 @@ func (pv *PayloadValidator) ValidatePayload(
 		)
 	}
 
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	// When we are validating a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.RandaoMixAtIndex(
-		uint64(st.GetSlot()) % pv.cfg.EpochsPerHistoricalVector,
+		uint64(slot) % pv.cfg.EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return err
