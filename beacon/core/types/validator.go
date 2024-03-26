@@ -38,22 +38,22 @@ import (
 //go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
+	Pubkey primitives.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials DepositCredentials `json:"withdrawalCredentials" ssz-size:"32"`
+	WithdrawalCredentials DepositCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance primitives.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
 	// ActivationEligibilityEpoch is the epoch in which the validator became
 	// eligible for activation.
-	ActivationEligibilityEpoch primitives.Epoch
+	ActivationEligibilityEpoch primitives.Epoch `json:"activationEligibilityEpoch"`
 	// ActivationEpoch is the epoch in which the validator activated.
-	ActivationEpoch primitives.Epoch
+	ActivationEpoch primitives.Epoch `json:"activationEpoch"`
 	// ExitEpoch is the epoch in which the validator exited.
-	ExitEpoch primitives.Epoch
+	ExitEpoch primitives.Epoch `json:"exitEpoch"`
 	// WithdrawableEpoch is the epoch in which the validator can withdraw.
-	WithdrawableEpoch primitives.Epoch
+	WithdrawableEpoch primitives.Epoch `json:"withdrawableEpoch"`
 }
 
 // JSON type overrides for ExecutionPayloadEnvelope.

@@ -34,32 +34,8 @@ import (
 // Bytes4 represents a 4-byte array.
 type Bytes4 [4]byte
 
-// Bytes32 represents a 32-byte array.
-type Bytes32 [32]byte
-
-// Bytes48 represents a 48-byte array.
-type Bytes48 [48]byte
-
-// Bytes96 represents a 96-byte array.
-type Bytes96 [96]byte
-
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes4.
 func (h *Bytes4) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
-func (h *Bytes32) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for Bytes48.
-func (h *Bytes48) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for Bytes96.
-func (h *Bytes96) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)
 }
 
@@ -68,38 +44,8 @@ func (h Bytes4) String() string {
 	return hexutil.Encode(h[:])
 }
 
-// String returns the hex string representation of Bytes32.
-func (h Bytes32) String() string {
-	return hexutil.Encode(h[:])
-}
-
-// String returns the hex string representation of Bytes48.
-func (h Bytes48) String() string {
-	return hexutil.Encode(h[:])
-}
-
-// String returns the hex string representation of Bytes96.
-func (h Bytes96) String() string {
-	return hexutil.Encode(h[:])
-}
-
 // MarshalText implements the encoding.TextMarshaler interface for Bytes4.
 func (h Bytes4) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface for Bytes32.
-func (h Bytes32) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface for Bytes48.
-func (h Bytes48) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface for Bytes96.
-func (h Bytes96) MarshalText() ([]byte, error) {
 	return []byte(h.String()), nil
 }
 
@@ -108,14 +54,68 @@ func (h *Bytes4) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
 }
 
+// Bytes32 represents a 32-byte array.
+type Bytes32 [32]byte
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
+func (h *Bytes32) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+// String returns the hex string representation of Bytes32.
+func (h Bytes32) String() string {
+	return hexutil.Encode(h[:])
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for Bytes32.
+func (h Bytes32) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
+}
+
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
 func (h *Bytes32) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
 }
 
+// Bytes48 represents a 48-byte array.
+type Bytes48 [48]byte
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes48.
+func (h *Bytes48) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+// String returns the hex string representation of Bytes48.
+func (h Bytes48) String() string {
+	return hexutil.Encode(h[:])
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for Bytes48.
+func (h Bytes48) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
+}
+
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes48.
 func (h *Bytes48) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
+}
+
+// Bytes96 represents a 96-byte array.
+type Bytes96 [96]byte
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes96.
+func (h *Bytes96) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+// String returns the hex string representation of Bytes96.
+func (h Bytes96) String() string {
+	return hexutil.Encode(h[:])
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for Bytes96.
+func (h Bytes96) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes96.
