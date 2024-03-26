@@ -97,7 +97,7 @@ func (p *Processor) buildReveal(
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) VerifyReveal(
 	st state.BeaconState,
-	proposerPubkey [bls12381.PubKeyLength]byte,
+	proposerPubkey primitives.BLSPubkey,
 	reveal types.Reveal,
 ) error {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
@@ -114,7 +114,7 @@ func (p *Processor) VerifyReveal(
 
 // VerifyReveal verifies the reveal of the proposer.
 func (p *Processor) verifyReveal(
-	proposerPubkey [bls12381.PubKeyLength]byte,
+	proposerPubkey primitives.BLSPubkey,
 	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 	reveal types.Reveal,
