@@ -44,7 +44,7 @@ func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 		w.Index = uint64(*dec.Index)
 	}
 	if dec.Validator != nil {
-		w.Validator = primitives.SSZUInt64(*dec.Validator)
+		w.Validator = primitives.ValidatorIndex(*dec.Validator)
 	}
 	if dec.Address != nil {
 		w.Address = *dec.Address

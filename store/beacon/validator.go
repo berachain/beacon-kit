@@ -48,12 +48,19 @@ func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
 func (s *Store) AddValidator(
 	val *beacontypes.Validator,
 ) error {
+	// Get the ne
 	idx, err := s.validatorIndex.Next(s.ctx)
 	if err != nil {
 		return err
 	}
 
-	return s.validators.Set(s.ctx, idx, val)
+	// Push onto the validators list.
+	if err = s.validators.Set(s.ctx, idx, val); err != nil {
+		return err
+	}
+
+	// Push onto the balances list.
+	return s.balances.Set(s.ctx, idx, uint64(val.EffectiveBalance))
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.

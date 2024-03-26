@@ -121,12 +121,14 @@ type ReadWriteDeposits interface {
 
 // ReadWriteDepositQueue has read and write access to deposit queue.
 type WriteOnlyDeposits interface {
+	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits([]*types.Deposit) error
 	DequeueDeposits(uint64) ([]*types.Deposit, error)
 }
 
 // ReadOnlyDeposits has read access to deposit queue.
 type ReadOnlyDeposits interface {
+	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) ([]*types.Deposit, error)
 }
 

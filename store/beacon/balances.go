@@ -23,59 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package beacon
 
 import (
-	"fmt"
-
-	"github.com/holiman/uint256"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-const (
-	// WeiPerEther is the number of Wei in an Eth.
-	WeiPerEther = 1e18
-
-	// GweiPerEther is the number of Gwei in an Eth.
-	GweiPerEther = 1e9
-
-	// WeiPerGwei is the number of Wei in a Gwei.
-	WeiPerGwei = 1e9
-)
-
-type (
-	// Wei is the smallest unit of Ether, represented as a pointer to a Uint256.
-	Wei struct {
-		*uint256.Int
+// IncreaseBalance increases the balance of a validator.
+func (s *Store) IncreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	if err != nil {
+		return err
 	}
-
-	// Gwei is a denomination of 1e9 Wei represented as an uint64.
-	Gwei uint64
-)
-
-// ZeroWei returns a zero Wei.
-func ZeroWei() Wei {
-	return Wei{uint256.NewInt(0)}
+	balance += uint64(delta)
+	return s.balances.Set(s.ctx, uint64(idx), balance)
 }
 
-// WeiFromBytes converts a Wei to a byte slice.
-func WeiFromBytes(bz []byte) Wei {
-	return Wei{uint256.NewInt(0).SetBytes(bz)}
-}
-
-// ToGwei converts Wei to uint64 gwei.
-// It DOES not modify the underlying value.
-func (w Wei) ToGwei() Gwei {
-	if w.Int == nil {
-		return 0
+// DecreaseBalance decreases the balance of a validator.
+func (s *Store) DecreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	if err != nil {
+		return err
 	}
-	copied := new(uint256.Int).Set(w.Int)
-	copied.Div(copied, uint256.NewInt(WeiPerGwei))
-	return Gwei(copied.Uint64())
-}
-
-// WeiToEther returns the value of a Wei as an Ether.
-// FOR DISPLAY PURPOSES ONLY. Do not use for actual
-// blockchain things.
-func (w Wei) ToEther() string {
-	return fmt.Sprintf("%.4f", w.Int.Float64()/WeiPerEther)
+	balance -= min(balance, uint64(delta))
+	return s.balances.Set(s.ctx, uint64(idx), balance)
 }

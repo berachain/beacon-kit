@@ -30,7 +30,6 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/crypto/sha256"
-	"github.com/berachain/beacon-kit/primitives"
 	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -38,7 +37,8 @@ import (
 var errInvalidNilSlice = errors.New("invalid empty slice")
 
 const (
-	two = 2
+	two            = 2
+	hashRootLength = 32
 )
 
 // Hashable is an interface representing objects that implement HashTreeRoot().
@@ -77,7 +77,7 @@ func MerkleizeVector(elements [][32]byte, length uint64) [32]byte {
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
 func MerkleizeByteSliceSSZ(input []byte) ([32]byte, error) {
 	//nolint:gomnd // we add 31 in order to round up the division.
-	numChunks := (uint64(len(input)) + 31) / primitives.RootLength
+	numChunks := (uint64(len(input)) + 31) / hashRootLength
 	if numChunks == 0 {
 		return [32]byte{}, errInvalidNilSlice
 	}

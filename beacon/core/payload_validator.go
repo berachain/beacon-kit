@@ -87,6 +87,7 @@ func (pv *PayloadValidator) ValidatePayload(
 		)
 	}
 
+	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
