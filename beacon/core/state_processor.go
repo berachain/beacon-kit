@@ -106,20 +106,6 @@ func (sp *StateProcessor) ProcessSlot(
 	return nil
 }
 
-// def process_block(state: BeaconState, block: BeaconBlock) -> None:
-//
-//	process_block_header(state, block)
-//	# [Modified in Capella] Removed `is_execution_enabled` check in Capella
-//	process_withdrawals(state, block.body.execution_payload)  # [New in Capella]
-//	process_execution_payload(state, block.body, EXECUTION_ENGINE)  # [Modified
-//
-// in Capella]
-//
-//	process_randao(state, block.body)
-//	process_eth1_data(state, block.body)
-//	process_operations(state, block.body)  # [Modified in Capella]
-//	process_sync_aggregate(state, block.body.sync_aggregate)
-//
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
