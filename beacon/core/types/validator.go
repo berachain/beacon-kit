@@ -36,9 +36,9 @@ import "github.com/ethereum/go-ethereum/common/hexutil"
 //go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey [48]byte `json:"pubkey"           ssz-size:"48"`
-	// Credentials are an address that controls the validator.
-	Credentials [32]byte `json:"credentials"      ssz-size:"32"`
+	Pubkey [48]byte `json:"pubkey"                ssz-size:"48"`
+	// WithdrawalCredentials are an address that controls the validator.
+	WithdrawalCredentials [32]byte `json:"withdrawalCredentials" ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance uint64 `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -47,8 +47,8 @@ type Validator struct {
 
 // JSON type overrides for ExecutionPayloadEnvelope.
 type validatorJSONMarshaling struct {
-	Pubkey      hexutil.Bytes
-	Credentials hexutil.Bytes
+	Pubkey                hexutil.Bytes
+	WithdrawalCredentials hexutil.Bytes
 }
 
 // String returns a string representation of the Validator.
