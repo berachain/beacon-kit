@@ -83,7 +83,7 @@ func NewValidatorsIndex(sb *sdkcollections.SchemaBuilder) ValidatorsIndex {
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Key,
 			func(_ uint64, validator *beacontypes.Validator) (uint64, error) {
-				return uint64(validator.EffectiveBalance), nil
+				return validator.EffectiveBalance, nil
 			},
 		),
 	}

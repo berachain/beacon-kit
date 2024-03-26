@@ -249,7 +249,7 @@ func (sp *StateProcessor) processDeposits(
 
 		val.EffectiveBalance = min(
 			val.EffectiveBalance+dep.Amount,
-			primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+			sp.cfg.MaxEffectiveBalance,
 		)
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err
@@ -288,7 +288,7 @@ func (sp *StateProcessor) processWithdrawals(
 		}
 
 		val.EffectiveBalance -= min(
-			val.EffectiveBalance, primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+			val.EffectiveBalance, sp.cfg.MaxEffectiveBalance,
 		)
 		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
 			return err
