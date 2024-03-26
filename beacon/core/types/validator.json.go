@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -14,36 +15,45 @@ var _ = (*validatorJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (v Validator) MarshalJSON() ([]byte, error) {
 	type Validator struct {
-		Pubkey                hexutil.Bytes `json:"pubkey"                ssz-size:"48"`
-		WithdrawalCredentials hexutil.Bytes `json:"withdrawalCredentials" ssz-size:"32"`
-		EffectiveBalance      uint64        `json:"effectiveBalance"`
-		Slashed               bool          `json:"slashed"`
+		Pubkey                     primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
+		WithdrawalCredentials      hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
+		EffectiveBalance           primitives.Gwei      `json:"effectiveBalance"`
+		Slashed                    bool                 `json:"slashed"`
+		ActivationEligibilityEpoch primitives.SSZUInt64
+		ActivationEpoch            primitives.SSZUInt64
+		ExitEpoch                  primitives.SSZUInt64
+		WithdrawableEpoch          primitives.SSZUInt64
 	}
 	var enc Validator
-	enc.Pubkey = v.Pubkey[:]
+	enc.Pubkey = v.Pubkey
 	enc.WithdrawalCredentials = v.WithdrawalCredentials[:]
 	enc.EffectiveBalance = v.EffectiveBalance
 	enc.Slashed = v.Slashed
+	enc.ActivationEligibilityEpoch = v.ActivationEligibilityEpoch
+	enc.ActivationEpoch = v.ActivationEpoch
+	enc.ExitEpoch = v.ExitEpoch
+	enc.WithdrawableEpoch = v.WithdrawableEpoch
 	return json.Marshal(&enc)
 }
 
 // UnmarshalJSON unmarshals from JSON.
 func (v *Validator) UnmarshalJSON(input []byte) error {
 	type Validator struct {
-		Pubkey                *hexutil.Bytes `json:"pubkey"                ssz-size:"48"`
-		WithdrawalCredentials *hexutil.Bytes `json:"withdrawalCredentials" ssz-size:"32"`
-		EffectiveBalance      *uint64        `json:"effectiveBalance"`
-		Slashed               *bool          `json:"slashed"`
+		Pubkey                     *primitives.BLSPubkey `json:"pubkey"                ssz-size:"48"`
+		WithdrawalCredentials      *hexutil.Bytes        `json:"withdrawalCredentials" ssz-size:"32"`
+		EffectiveBalance           *primitives.Gwei      `json:"effectiveBalance"`
+		Slashed                    *bool                 `json:"slashed"`
+		ActivationEligibilityEpoch *primitives.SSZUInt64
+		ActivationEpoch            *primitives.SSZUInt64
+		ExitEpoch                  *primitives.SSZUInt64
+		WithdrawableEpoch          *primitives.SSZUInt64
 	}
 	var dec Validator
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	if dec.Pubkey != nil {
-		if len(*dec.Pubkey) != len(v.Pubkey) {
-			return errors.New("field 'pubkey' has wrong length, need 48 items")
-		}
-		copy(v.Pubkey[:], *dec.Pubkey)
+		v.Pubkey = *dec.Pubkey
 	}
 	if dec.WithdrawalCredentials != nil {
 		if len(*dec.WithdrawalCredentials) != len(v.WithdrawalCredentials) {
@@ -56,6 +66,18 @@ func (v *Validator) UnmarshalJSON(input []byte) error {
 	}
 	if dec.Slashed != nil {
 		v.Slashed = *dec.Slashed
+	}
+	if dec.ActivationEligibilityEpoch != nil {
+		v.ActivationEligibilityEpoch = *dec.ActivationEligibilityEpoch
+	}
+	if dec.ActivationEpoch != nil {
+		v.ActivationEpoch = *dec.ActivationEpoch
+	}
+	if dec.ExitEpoch != nil {
+		v.ExitEpoch = *dec.ExitEpoch
+	}
+	if dec.WithdrawableEpoch != nil {
+		v.WithdrawableEpoch = *dec.WithdrawableEpoch
 	}
 	return nil
 }

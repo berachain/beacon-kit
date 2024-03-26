@@ -249,7 +249,7 @@ func (sp *StateProcessor) processDeposits(
 
 		val.EffectiveBalance = min(
 			val.EffectiveBalance+dep.Amount,
-			sp.cfg.MaxEffectiveBalance,
+			primitives.Gwei(sp.cfg.MaxEffectiveBalance),
 		)
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return err
@@ -287,10 +287,9 @@ func (sp *StateProcessor) processWithdrawals(
 			continue
 		}
 
-		// TODO: This is like super hood, but how do we want to perform
-		// validation.
-		// Just unlikely I guess?
-		val.EffectiveBalance -= min(val.EffectiveBalance, wd.Amount)
+		val.EffectiveBalance -= min(
+			val.EffectiveBalance, primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+		)
 		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
 			return err
 		}

@@ -49,7 +49,7 @@ func (b *BeaconStateDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Offset (7) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(b.Validators) * 89
+	offset += len(b.Validators) * 121
 
 	// Offset (8) 'RandaoMixes'
 	dst = ssz.WriteOffset(dst, offset)
@@ -192,7 +192,7 @@ func (b *BeaconStateDeneb) UnmarshalSSZ(buf []byte) error {
 	// Field (7) 'Validators'
 	{
 		buf = tail[o7:o8]
-		num, err := ssz.DivideInt2(len(buf), 89, 1099511627776)
+		num, err := ssz.DivideInt2(len(buf), 121, 1099511627776)
 		if err != nil {
 			return err
 		}
@@ -201,7 +201,7 @@ func (b *BeaconStateDeneb) UnmarshalSSZ(buf []byte) error {
 			if b.Validators[ii] == nil {
 				b.Validators[ii] = new(types.Validator)
 			}
-			if err = b.Validators[ii].UnmarshalSSZ(buf[ii*89 : (ii+1)*89]); err != nil {
+			if err = b.Validators[ii].UnmarshalSSZ(buf[ii*121 : (ii+1)*121]); err != nil {
 				return err
 			}
 		}
@@ -233,7 +233,7 @@ func (b *BeaconStateDeneb) SizeSSZ() (size int) {
 	size += len(b.StateRoots) * 32
 
 	// Field (7) 'Validators'
-	size += len(b.Validators) * 89
+	size += len(b.Validators) * 121
 
 	// Field (8) 'RandaoMixes'
 	size += len(b.RandaoMixes) * 32

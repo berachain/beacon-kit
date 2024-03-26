@@ -31,10 +31,28 @@ import (
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-// ForkData is the fork data used for signing.
+// Fork as defined in the Ethereum 2.0 Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
+//
+//nolint:lll
+type Fork struct {
+	// PreviousVersion is the last version before the fork.
+	PreviousVersion primitives.Version
+	// CurrentVersion is the first version after the fork.
+	CurrentVersion primitives.Version
+	// Epoch is the epoch at which the fork occurred.
+	Epoch primitives.Epoch
+}
+
+// ForkData as defined in the Ethereum 2.0 Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
+//
+//nolint:lll
 type ForkData struct {
-	CurrentVersion        primitives.Version `ssz-size:"4"`
-	GenesisValidatorsRoot primitives.Root    `ssz-size:"32"`
+	// CurrentVersion is the current version of the fork.
+	CurrentVersion primitives.Version
+	// GenesisValidatorsRoot is the root of the genesis validators.
+	GenesisValidatorsRoot primitives.Root
 }
 
 // computeForkDataRoot computes the root of the fork data.

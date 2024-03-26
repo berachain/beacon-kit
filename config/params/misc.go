@@ -23,42 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package params
 
-import (
-	"encoding/json"
+import "github.com/berachain/beacon-kit/primitives"
 
-	"github.com/berachain/beacon-kit/primitives"
-	"github.com/cockroachdb/errors"
+// This file contains various constants as defined:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
+//
+//nolint:lll
+const (
+	// Uint64Max represents the maximum value for a uint64.
+	Uint64Max = uint64(2 ^ 64 - 1)
+	// Uint64MaxSqrt represents the square root of the maximum value for a
+	// uint64.
+	Uint64MaxSqrt = uint64(4294967295)
+	// GenesisSlot represents the initial slot in the system.
+	GenesisSlot = primitives.Slot(0)
+	// GenesisEpoch represents the initial epoch in the system.
+	GenesisEpoch = primitives.Epoch(0)
+	// FarFutureEpoch represents a far future epoch value.
+	FarFutureEpoch = primitives.Epoch(Uint64Max)
 )
-
-var ErrInvalidDepositCredentials = errors.New("")
-
-const EthSecp256k1CredentialPrefix = iota + 1
-
-// Deposit into the consensus layer from the deposit contract in the execution
-// layer.
-type Deposit struct {
-	// Public key of the validator specified in the deposit.
-	Pubkey []byte `json:"pubkey" ssz-max:"48"`
-
-	// A staking credentials with
-	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials DepositCredentials `json:"credentials" ssz-size:"32"`
-
-	// Deposit amount in gwei.
-	Amount primitives.Gwei `json:"amount"`
-
-	// Signature of the deposit data.
-	Signature []byte `json:"signature" ssz-max:"96"`
-
-	// Index of the deposit in the deposit contract.
-	Index uint64 `json:"index"`
-}
-
-// String returns a string representation of the Deposit.
-func (d *Deposit) String() string {
-	//#nosec:G703 // ignore potential marshalling failure.
-	output, _ := json.Marshal(d)
-	return string(output)
-}

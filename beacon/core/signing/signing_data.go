@@ -27,12 +27,10 @@ package signing
 
 import "github.com/berachain/beacon-kit/primitives"
 
-// SigningData is a struct used to compute
-// hash(root_hash(object), domain_hash).
-// Spec:
+// SigningData as defined in the Ethereum 2.0 Spec:
 // https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#signingdata.
 //
-//nolint:lll // Urls are long.
+//nolint:lll
 type Data struct {
 	ObjectRoot primitives.Root `ssz-size:"32"`
 	Domain     Domain          `ssz-size:"32"`
