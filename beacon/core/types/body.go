@@ -37,7 +37,7 @@ import (
 // chain.
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
-	RandaoReveal [96]byte `ssz-size:"96"`
+	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
 
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
