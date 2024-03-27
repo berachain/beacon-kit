@@ -78,7 +78,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// This go rountine validates the execution level aspects of the block.
 	// i.e: does newPayload return VALID?
-	_, err = s.validateExecutionOnBlock(
+	_, err = s.verifyAndNotifyNewPayload(
 		ctx, blk,
 	)
 	if err != nil {
@@ -128,9 +128,9 @@ func (s *Service) ProcessBeaconBlock(
 	return nil
 }
 
-// validateExecutionOnBlock checks the validity of a the execution payload
+// verifyAndNotifyNewPayload checks the validity of a the execution payload
 // on the beacon block.
-func (s *Service) validateExecutionOnBlock(
+func (s *Service) verifyAndNotifyNewPayload(
 	// todo: parentRoot hashs should be on blk.
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,

@@ -33,24 +33,25 @@ import (
 	"github.com/berachain/beacon-kit/config/params"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	"github.com/cockroachdb/errors"
-	"github.com/sourcegraph/conc/iter"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
 	cfg *params.BeaconChainConfig
+	bp  BlobsProcessor
 	rp  RandaoProcessor
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	cfg *params.BeaconChainConfig,
+	bp BlobsProcessor,
 	rp RandaoProcessor,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg: cfg,
+		bp:  bp,
 		rp:  rp,
 	}
 }
@@ -119,6 +120,15 @@ func (sp *StateProcessor) ProcessSlot(
 	return st.SetSlot(slot + 1)
 }
 
+// ProcessBlobs processes the blobs and ensures they match the local state.
+func (sp *StateProcessor) ProcessBlobs(
+	avs state.AvailabilityStore,
+	blk types.BeaconBlock,
+	sidecars *types.BlobSidecars,
+) error {
+	return sp.bp.ProcessBlobs(avs, blk, sidecars)
+}
+
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
@@ -160,37 +170,6 @@ func (sp *StateProcessor) ProcessBlock(
 	// ProcessVoluntaryExits
 
 	return nil
-}
-
-// ProcessBlob processes a blob.
-func (sp *StateProcessor) ProcessBlobs(
-	avs state.AvailabilityStore,
-	blk types.BeaconBlock,
-	sidecars *types.BlobSidecars,
-) error {
-	// Verify the KZG inclusion proofs.
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
-	// Ensure the blobs are available.
-	if err = errors.Join(iter.Map(
-		sidecars.Sidecars,
-		func(sidecar **types.BlobSidecar) error {
-			if *sidecar == nil {
-				return ErrAttemptedToVerifyNilSidecar
-			}
-			// Store the blobs under a single height.
-			return types.VerifyKZGInclusionProof(
-				bodyRoot[:], *sidecar, (*sidecar).Index,
-			)
-		},
-	)...); err != nil {
-		return err
-	}
-
-	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
 }
 
 // processEpoch processes the epoch and ensures it matches the local state.

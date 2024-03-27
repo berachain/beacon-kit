@@ -23,35 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package blobs
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/sourcegraph/conc/iter"
 )
 
-// BlobsProcessor is the interface for the blobs processor.
-type BlobsProcessor interface {
-	ProcessBlobs(
-		avs state.AvailabilityStore,
-		blk types.BeaconBlock,
-		sidecars *types.BlobSidecars,
-	) error
+// Processor is the processor for blobs.
+type Processor struct{}
+
+// NewProcessor creates a new processor.
+func NewProcessor() *Processor {
+	return &Processor{}
 }
 
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (primitives.BLSSignature, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal primitives.BLSSignature,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
-	) error
+// ProcessBlob processes a blob.
+func (sp *Processor) ProcessBlobs(
+	avs state.AvailabilityStore,
+	blk types.BeaconBlock,
+	sidecars *types.BlobSidecars,
+) error {
+	// Verify the KZG inclusion proofs.
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the blobs are available.
+	if err = errors.Join(iter.Map(
+		sidecars.Sidecars,
+		func(sidecar **types.BlobSidecar) error {
+			if *sidecar == nil {
+				return ErrAttemptedToVerifyNilSidecar
+			}
+			// Store the blobs under a single height.
+			return types.VerifyKZGInclusionProof(
+				bodyRoot[:], *sidecar, (*sidecar).Index,
+			)
+		},
+	)...); err != nil {
+		return err
+	}
+
+	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
 }
