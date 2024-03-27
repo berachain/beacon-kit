@@ -134,6 +134,8 @@ func (k *Keeper) ForkchoiceStore(
 }
 
 // InitGenesis initializes the genesis state of the module.
+//
+// TODO: This whole thing needs to be abstracted into beacon/core/state
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,
@@ -189,6 +191,10 @@ func (k *Keeper) InitGenesis(
 
 	// Set the genesis block root.
 	if err = st.UpdateBlockRootAtIndex(0, headerHtr); err != nil {
+		return nil, err
+	}
+
+	if err = st.SetEth1DepositIndex(0); err != nil {
 		return nil, err
 	}
 
