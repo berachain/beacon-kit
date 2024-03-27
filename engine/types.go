@@ -23,38 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package engine
 
 import (
+	"github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	ssz "github.com/ferranbt/fastssz"
 )
 
-// ExecutionPayloadBody is the interface for the execution data of a block.
-// It contains all the fields that are part of both an execution payload header
-// and a full execution payload.
-type ExecutionPayloadBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	IsNil() bool
-	String() string
-	Version() uint32
-	IsBlinded() bool
-	GetPrevRandao() [32]byte
-	GetBlockHash() primitives.ExecutionHash
-	GetParentHash() primitives.ExecutionHash
+// NewPayloadRequest as per the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
+//
+//nolint:lll
+type NewPayloadRequest struct {
+	// ExecutionPayload is the payload to the execution client.
+	ExecutionPayload types.ExecutionPayload
+	// VersionedHashes is the versioned hashes of the execution payload.
+	VersionedHashes []primitives.ExecutionHash
+	// ParentBeaconBlockRoot is the root of the parent beacon block.
+	ParentBeaconBlockRoot *primitives.Root
 }
 
-// ExecutionPayload represents the execution data of a block.
-type ExecutionPayload interface {
-	ExecutionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
-}
-
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	Version() uint32
-	Validate() error
+// NewForkchoiceUpdateRequest.
+type NewForkchoiceUpdateRequest struct {
+	// State is the forkchoice state.
+	State *types.ForkchoiceState
+	// PayloadAttributes is the payload attributer.
+	PayloadAttributes types.PayloadAttributer
+	// ForkVersion is the fork version that we
+	// are going to be submitting for.
+	ForkVersion uint32
 }

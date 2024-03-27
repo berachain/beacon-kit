@@ -135,20 +135,19 @@ func (s *Service) verifyAndNotifyNewPayload(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) (bool, error) {
-	var (
-		body    = blk.GetBody()
-		payload = body.GetExecutionPayload()
-	)
+	body := blk.GetBody()
+	executionPayload := body.GetExecutionPayload()
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 
 	// Then we notify the engine of the new payload.
 	return s.es.NotifyNewPayload(
 		ctx,
 		blk.GetSlot(),
-		payload,
+		executionPayload,
 		kzg.ConvertCommitmentsToVersionedHashes(
 			body.GetBlobKzgCommitments(),
 		),
-		blk.GetParentBlockRoot(),
+		parentBeaconBlockRoot,
 	)
 }
 

@@ -23,38 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package engine
 
-import (
-	"github.com/berachain/beacon-kit/primitives"
-	ssz "github.com/ferranbt/fastssz"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrExecutionClientDisconnected represents an error when
+	/// the execution client is disconnected.
+	ErrExecutionClientDisconnected = errors.New(
+		"execution client disconnected")
+
+	// ErrAcceptedSyncingPayloadStatus represents an error when
+	// the payload status is SYNCING or ACCEPTED.
+	ErrAcceptedSyncingPayloadStatus = errors.New(
+		"payload status is SYNCING or ACCEPTED")
+
+	// ErrInvalidPayloadStatus represents an error when the
+	// payload status is INVALID.
+	ErrInvalidPayloadStatus = errors.New(
+		"payload status is INVALID")
+
+	// ErrBadBlockProduced represents an error when the beacon
+	// chain has produced a bad block.
+	ErrBadBlockProduced = errors.New(
+		"beacon chain has produced a bad block, RIP walrus")
 )
-
-// ExecutionPayloadBody is the interface for the execution data of a block.
-// It contains all the fields that are part of both an execution payload header
-// and a full execution payload.
-type ExecutionPayloadBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	IsNil() bool
-	String() string
-	Version() uint32
-	IsBlinded() bool
-	GetPrevRandao() [32]byte
-	GetBlockHash() primitives.ExecutionHash
-	GetParentHash() primitives.ExecutionHash
-}
-
-// ExecutionPayload represents the execution data of a block.
-type ExecutionPayload interface {
-	ExecutionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
-}
-
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	Version() uint32
-	Validate() error
-}
