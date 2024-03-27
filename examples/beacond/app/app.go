@@ -27,7 +27,6 @@ package app
 
 import (
 	"context"
-	_ "embed"
 	"io"
 
 	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"

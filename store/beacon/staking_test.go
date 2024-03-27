@@ -58,7 +58,7 @@ func TestDeposits(t *testing.T) {
 			Pubkey: primitives.BLSPubkey(
 				bytes.ToBytes48([]byte("pubkey")),
 			),
-			Credentials: beacontypes.DepositCredentials(cred),
+			Credentials: beacontypes.WithdrawalCredentials(cred),
 			Amount:      100,
 			Signature: primitives.BLSSignature(
 				bytes.ToBytes96([]byte("signature")),

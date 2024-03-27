@@ -35,7 +35,7 @@ import (
 
 func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 	address := primitives.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
-	expectedCredentials := types.DepositCredentials{}
+	expectedCredentials := types.WithdrawalCredentials{}
 	expectedCredentials[0] = 0x01 // EthSecp256k1CredentialPrefix
 	copy(expectedCredentials[12:], address[:])
 	for i := 1; i < 12; i++ {
@@ -70,7 +70,7 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 
 func TestToExecutionAddress(t *testing.T) {
 	expectedAddress := primitives.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
-	credentials := types.DepositCredentials{}
+	credentials := types.WithdrawalCredentials{}
 	for i := range credentials {
 		// First byte should be 0x01
 		switch {
@@ -94,7 +94,7 @@ func TestToExecutionAddress(t *testing.T) {
 }
 
 func TestToExecutionAddress_InvalidPrefix(t *testing.T) {
-	credentials := types.DepositCredentials{}
+	credentials := types.WithdrawalCredentials{}
 	for i := range credentials {
 		credentials[i] = 0x00 // Invalid prefix
 	}

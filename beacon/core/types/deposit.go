@@ -32,7 +32,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-var ErrInvalidDepositCredentials = errors.New("")
+var ErrInvalidWithdrawalCredentials = errors.New("")
 
 const EthSecp256k1CredentialPrefix = iota + 1
 
@@ -44,7 +44,7 @@ type Deposit struct {
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials DepositCredentials `json:"credentials" ssz-size:"32"`
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
 	Amount primitives.Gwei `json:"amount"`

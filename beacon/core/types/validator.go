@@ -40,7 +40,7 @@ type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey primitives.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials DepositCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance primitives.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -59,6 +59,35 @@ type Validator struct {
 // JSON type overrides for ExecutionPayloadEnvelope.
 type validatorJSONMarshaling struct {
 	WithdrawalCredentials hexutil.Bytes
+}
+
+// NewValidatorFromDeposit creates a new Validator from the
+// given public key, withdrawal credentials, and amount.
+//
+// As defined in the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#deposits
+//
+//nolint:lll
+func NewValidatorFromDeposit(
+	pubkey primitives.BLSPubkey,
+	withdrawalCredentials WithdrawalCredentials,
+	amount primitives.Gwei,
+	effectiveBalanceIncrement primitives.Gwei,
+	maxEffectiveBalance primitives.Gwei,
+) Validator {
+	return Validator{
+		Pubkey:                pubkey,
+		WithdrawalCredentials: withdrawalCredentials,
+		EffectiveBalance: min(
+			amount-amount%effectiveBalanceIncrement,
+			maxEffectiveBalance,
+		),
+		Slashed:                    false,
+		ActivationEligibilityEpoch: params.FarFutureEpoch,
+		ActivationEpoch:            params.FarFutureEpoch,
+		ExitEpoch:                  params.FarFutureEpoch,
+		WithdrawableEpoch:          params.FarFutureEpoch,
+	}
 }
 
 // IsActive as defined in the Ethereum 2.0 Spec

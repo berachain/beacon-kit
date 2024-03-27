@@ -81,7 +81,7 @@ func (s *Service) processDepositLog(
 	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
 		Index:       d.Index,
 		Pubkey:      primitives.BLSPubkey(d.Pubkey),
-		Credentials: beacontypes.DepositCredentials(d.Credentials),
+		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
 		Amount:      primitives.Gwei(d.Amount),
 		Signature:   primitives.BLSSignature(d.Signature),
 	}})
@@ -104,7 +104,7 @@ func (s *Service) processWithdrawalLog(
 	}
 
 	executionAddr, err := beacontypes.
-		DepositCredentials(w.Credentials).ToExecutionAddress()
+		WithdrawalCredentials(w.Credentials).ToExecutionAddress()
 	if err != nil {
 		return err
 	}

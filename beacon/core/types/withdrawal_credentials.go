@@ -27,27 +27,28 @@ package types
 
 import "github.com/berachain/beacon-kit/primitives"
 
-// DepositCredentials is a staking credential that is used to identify a
+// WithdrawalCredentials is a staking credential that is used to identify a
 // validator.
-type DepositCredentials [32]byte
+type WithdrawalCredentials primitives.Bytes32
 
-// NewCredentialsFromExecutionAddress creates a new DepositCredentials from an.
+// NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
+// an.
 func NewCredentialsFromExecutionAddress(
 	address primitives.ExecutionAddress,
-) DepositCredentials {
-	credentials := DepositCredentials{}
+) WithdrawalCredentials {
+	credentials := WithdrawalCredentials{}
 	credentials[0] = 0x01
 	copy(credentials[12:], address[:])
 	return credentials
 }
 
-// ToExecutionAddress converts the DepositCredentials to an ExecutionAddress.
-func (c DepositCredentials) ToExecutionAddress() (
+// ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
+func (wc WithdrawalCredentials) ToExecutionAddress() (
 	primitives.ExecutionAddress,
 	error,
 ) {
-	if c[0] != byte(EthSecp256k1CredentialPrefix) {
-		return primitives.ExecutionAddress{}, ErrInvalidDepositCredentials
+	if wc[0] != byte(EthSecp256k1CredentialPrefix) {
+		return primitives.ExecutionAddress{}, ErrInvalidWithdrawalCredentials
 	}
-	return primitives.ExecutionAddress(c[12:]), nil
+	return primitives.ExecutionAddress(wc[12:]), nil
 }
