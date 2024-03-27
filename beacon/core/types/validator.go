@@ -74,8 +74,8 @@ func NewValidatorFromDeposit(
 	amount primitives.Gwei,
 	effectiveBalanceIncrement primitives.Gwei,
 	maxEffectiveBalance primitives.Gwei,
-) Validator {
-	return Validator{
+) *Validator {
+	return &Validator{
 		Pubkey:                pubkey,
 		WithdrawalCredentials: withdrawalCredentials,
 		EffectiveBalance: min(

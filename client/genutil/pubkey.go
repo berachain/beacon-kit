@@ -26,12 +26,14 @@
 package cli
 
 import (
-	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/lib/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cockroachdb/errors"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -64,50 +66,77 @@ func AddPubkeyCmd() *cobra.Command {
 			}
 
 			// create the app state
-			appGenesisState, err := types.GenesisStateFromAppGenesis(genesis)
+			_, err = types.GenesisStateFromAppGenesis(genesis)
 			if err != nil {
 				return err
 			}
 
-			// Create a new validator and add it to the app state.
-			validator := &beacontypes.Validator{
-				Pubkey: [48]byte(valPubKey.Bytes()),
-				// TODO: credentials.
-				WithdrawalCredentials: beacontypes.NewCredentialsFromExecutionAddress(
+			// TODO: Should we do deposits here?
+			validator := beacontypes.NewValidatorFromDeposit(
+				primitives.BLSPubkey(valPubKey.Bytes()),
+				beacontypes.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
-				EffectiveBalance: 1,
-				Slashed:          false,
-			}
-
-			beaconState := &state.BeaconStateDeneb{}
-			if err = json.Unmarshal(
-				appGenesisState["beacon"], beaconState,
-			); err != nil {
-				return errors.Wrap(err, "failed to unmarshal beacon state")
-			}
-
-			beaconState.Validators = append(beaconState.Validators, validator)
-			beaconState.GenesisValidatorsRoot, err = ssz.MerkleizeVectorSSZ(
-				beaconState.Validators, uint64(len(beaconState.Validators)),
+				1e9,  //nolint:gomnd // temp.
+				1e9,  //nolint:gomnd // temp.
+				32e9, //nolint:gomnd // temp.
 			)
-			if err != nil {
-				return errors.Wrap(err, "failed to merkleize validators")
+
+			//#nosec:G703 // Ignore errors on this line.
+			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
+			if outputDocument == "" {
+				outputDocument, err = makeOutputFilepath(config.RootDir,
+					primitives.BLSPubkey(valPubKey.Bytes()).String())
+				if err != nil {
+					return errors.Wrap(err, "failed to create output file path")
+				}
 			}
-			appGenesisState["beacon"], err = json.Marshal(beaconState)
-			if err != nil {
-				return errors.Wrap(err, "failed to marshal beacon state")
+			if err = writeValidatorStruct(outputDocument, validator); err != nil {
+				return errors.Wrap(err, "failed to write signed gen tx")
 			}
 
-			if genesis.AppState, err = json.MarshalIndent(
-				appGenesisState, "", "  ",
-			); err != nil {
-				return err
-			}
-
-			return genutil.ExportGenesisFile(genesis, config.GenesisFile())
+			return nil
 		},
 	}
 
 	return cmd
+}
+
+func makeOutputFilepath(rootDir, pubkey string) (string, error) {
+	writePath := filepath.Join(rootDir, "config", "gentx")
+	if err := os.MkdirAll(writePath, 0o700); err != nil {
+		return "", fmt.Errorf(
+			"could not create directory %q: %w",
+			writePath,
+			err,
+		)
+	}
+
+	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", pubkey)), nil
+}
+
+func writeValidatorStruct(
+	outputDocument string,
+	validator *beacontypes.Validator,
+) error {
+	//#nosec:G302,G304 // Ignore errors on this line.
+	outputFile, err := os.OpenFile(
+		outputDocument,
+		os.O_CREATE|os.O_EXCL|os.O_WRONLY,
+		0o644,
+	)
+	if err != nil {
+		return err
+	}
+
+	//#nosec:G307 // Ignore errors on this line.
+	defer outputFile.Close()
+
+	bz, err := validator.MarshalJSON()
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
+
+	return err
 }

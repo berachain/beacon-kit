@@ -75,14 +75,14 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
                 artifact_names = ["cosmos-genesis-{}".format(n - 1)],
             )
 
-        # if n == num_validators - 1 and n != 0:
-        #     collected_gentx = []
-        #     for other_validator_id in range(num_validators - 1):
-        #         collected_gentx.append("cosmos-gentx-{}".format(other_validator_id))
+        if n == num_validators - 1 and n != 0:
+            collected_gentx = []
+            for other_validator_id in range(num_validators - 1):
+                collected_gentx.append("cosmos-gentx-{}".format(other_validator_id))
 
-        #     beacond_config.files["/root/.beacond/config/gentx"] = Directory(
-        #         artifact_names = collected_gentx,
-        #     )
+            beacond_config.files["/root/.beacond/config/gentx"] = Directory(
+                artifact_names = collected_gentx,
+            )
 
         plan.add_service(
             name = cl_service_name,
@@ -147,11 +147,11 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
             name = "cosmos-genesis-{}".format(file_suffix),
         )
 
-        # gentx_artifact = plan.store_service_files(
-        #     service_name = cl_service_name,
-        #     src = "/root/.beacond/config/gentx/*",
-        #     name = "cosmos-gentx-{}".format(n),
-        # )
+        gentx_artifact = plan.store_service_files(
+            service_name = cl_service_name,
+            src = "/root/.beacond/config/gentx/*",
+            name = "cosmos-gentx-{}".format(n),
+        )
 
         # Node has completed its genesis step. We will add it back later once genesis is complete
         plan.remove_service(
