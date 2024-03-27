@@ -26,6 +26,8 @@
 package beacon
 
 import (
+	"cosmossdk.io/collections/indexes"
+	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
@@ -53,4 +55,31 @@ func (s *Store) DecreaseBalance(
 	}
 	balance -= min(balance, uint64(delta))
 	return s.balances.Set(s.ctx, uint64(idx), balance)
+}
+
+// GetTotalActiveBalances returns the total active balances of all validators.
+// TODO: unhood this and probably store this as just a value changed on writes.
+func (s *Store) GetTotalActiveBalances(
+	slotsPerEpoch uint64,
+) (primitives.Gwei, error) {
+	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(s.ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	epoch, err := s.GetEpoch(slotsPerEpoch)
+	if err != nil {
+		return 0, err
+	}
+
+	totalActiveBalances := primitives.Gwei(0)
+	return totalActiveBalances, indexes.ScanValues(
+		s.ctx, s.validators, iter, func(v *beacontypes.Validator,
+		) bool {
+			if v.IsActive(epoch) {
+				totalActiveBalances += v.EffectiveBalance
+			}
+			return false
+		},
+	)
 }

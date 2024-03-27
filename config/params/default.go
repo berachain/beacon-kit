@@ -45,6 +45,7 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		ElectraForkEpoch: 9999999999999999,
 		// State list length constants.
 		EpochsPerHistoricalVector: 1,
+		EpochsPerSlashingsVector:  1,
 		// Max operations per block constants.
 		MaxDepositsPerBlock:      16,
 		MaxWithdrawalsPerPayload: 16,
