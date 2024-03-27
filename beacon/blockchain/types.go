@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/beacon/execution"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -37,21 +36,6 @@ import (
 
 // ExecutionService is the interface for the execution service.
 type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		fcuConfig *execution.FCUConfig,
-	) (*enginetypes.PayloadID, error)
-
-	// NotifyNewPayload notifies the execution client of a new payload.
-	NotifyNewPayload(
-		ctx context.Context,
-		payload enginetypes.ExecutionPayload,
-		versionedHashes []primitives.ExecutionHash,
-		parentBlockRoot primitives.Root,
-	) (bool, error)
-
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,

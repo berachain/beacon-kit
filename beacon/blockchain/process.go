@@ -30,6 +30,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
+	"github.com/berachain/beacon-kit/engine"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -78,13 +79,16 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Then we notify the engine of the new payload.
 	body := blk.GetBody()
-	if _, err = s.es.NotifyNewPayload(
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if _, err = s.ee.VerifyAndNotifyNewPayload(
 		ctx,
-		body.GetExecutionPayload(),
-		kzg.ConvertCommitmentsToVersionedHashes(
-			body.GetBlobKzgCommitments(),
-		),
-		blk.GetParentBlockRoot(),
+		&engine.NewPayloadRequest{
+			ExecutionPayload: body.GetExecutionPayload(),
+			VersionedHashes: kzg.ConvertCommitmentsToVersionedHashes(
+				body.GetBlobKzgCommitments(),
+			),
+			ParentBeaconBlockRoot: &parentBeaconBlockRoot,
+		},
 	); err != nil {
 		s.Logger().
 			Error("failed to notify engine of new payload", "error", err)
