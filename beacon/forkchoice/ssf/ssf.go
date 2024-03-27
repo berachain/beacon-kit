@@ -34,9 +34,6 @@ import (
 // ForkChoice represents the single-slot finality forkchoice algoritmn.
 type ForkChoice struct {
 	kv SingleSlotFinalityStore
-
-	// latestBeaconBlock is the latest beacon block.
-	latestBeaconBlock [32]byte
 }
 
 // New creates a new forkchoice instance.
@@ -68,18 +65,6 @@ func (f ForkChoice) InsertNode(
 	f.kv.SetFinalizedEth1BlockHash(hash)
 	f.kv.SetSafeEth1BlockHash(hash)
 	return nil
-}
-
-// TODO: Should this live in Forkchoicer?
-func (f *ForkChoice) HeadBeaconBlock() [32]byte {
-	return f.latestBeaconBlock
-}
-
-// TODO: Should this live in Forkchoicer?
-func (f *ForkChoice) UpdateHeadBeaconBlock(
-	blockHash [32]byte,
-) {
-	f.latestBeaconBlock = blockHash
 }
 
 // JustifiedPayloadBlockHash returns the justified checkpoint.
