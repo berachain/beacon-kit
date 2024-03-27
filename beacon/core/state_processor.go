@@ -438,24 +438,39 @@ func (sp *StateProcessor) processSlashings(
 		slashableEpoch := (uint64(epoch) + sp.cfg.EpochsPerSlashingsVector) / 2
 		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
-			// Calculate the penalty.
-			increment := sp.cfg.EffectiveBalanceIncrement
-			balDivIncrement := uint64(val.EffectiveBalance) / increment
-			penaltyNumerator := balDivIncrement * adjustedTotalSlashingBalance
-			penalty := penaltyNumerator / uint64(totalBalance) * increment
-
-			// Get the val index and decrease the balance of the validator.
-			var idx primitives.ValidatorIndex
-			idx, err = st.ValidatorIndexByPubkey(val.Pubkey[:])
-			if err != nil {
-				return err
-			}
-			if err = st.DecreaseBalance(
-				idx, primitives.Gwei(penalty),
+			if err = sp.processSlash(
+				st,
+				val,
+				adjustedTotalSlashingBalance,
+				uint64(totalBalance),
 			); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// processSlash handles the logic for slashing a validator.
+//
+//nolint:unused // will be used later
+func (sp *StateProcessor) processSlash(
+	st state.BeaconState,
+	val *types.Validator,
+	adjustedTotalSlashingBalance uint64,
+	totalBalance uint64,
+) error {
+	// Calculate the penalty.
+	increment := sp.cfg.EffectiveBalanceIncrement
+	balDivIncrement := uint64(val.EffectiveBalance) / increment
+	penaltyNumerator := balDivIncrement * adjustedTotalSlashingBalance
+	penalty := penaltyNumerator / totalBalance * increment
+
+	// Get the val index and decrease the balance of the validator.
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey[:])
+	if err != nil {
+		return err
+	}
+
+	return st.DecreaseBalance(idx, primitives.Gwei(penalty))
 }
