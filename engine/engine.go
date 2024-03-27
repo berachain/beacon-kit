@@ -116,7 +116,7 @@ func (ee *ExecutionEngine) NotifyForkchoiceUpdate(
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
-		req.State.HeadBlockHash = *latestValidHash
+		req.State.HeadBlockHash = req.State.SafeBlockHash
 		payloadID, latestValidHash, err = ee.NotifyForkchoiceUpdate(ctx, req)
 		if err != nil {
 			// We have to return the error here since this function

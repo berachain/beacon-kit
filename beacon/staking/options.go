@@ -26,6 +26,7 @@
 package staking
 
 import (
+	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
@@ -47,6 +48,15 @@ func WithDepositABI(
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.abi = abi
+		return nil
+	}
+}
+
+func WithExecutionEngine(
+	ee *engine.ExecutionEngine,
+) service.Option[Service] {
+	return func(s *Service) error {
+		s.ee = ee
 		return nil
 	}
 }

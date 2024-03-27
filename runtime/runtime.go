@@ -140,12 +140,11 @@ func NewDefaultBeaconKitRuntime(
 		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
 	)
 
+	executionEngine := engine.NewExecutionEngine(engineClient, logger)
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
-		execution.WithExecutionEngine(
-			engine.NewExecutionEngine(engineClient, logger),
-		),
+		execution.WithExecutionEngine(executionEngine),
 		execution.WithStakingService(stakingService),
 	)
 
@@ -188,7 +187,7 @@ func NewDefaultBeaconKitRuntime(
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
-		blockchain.WithExecutionService(executionService),
+		blockchain.WithExecutionEngine(executionEngine),
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
