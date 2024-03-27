@@ -76,12 +76,16 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// This go rountine validates the execution level aspects of the block.
-	// i.e: does newPayload return VALID?
-	_, err = s.verifyAndNotifyNewPayload(
-		ctx, blk,
-	)
-	if err != nil {
+	// Then we notify the engine of the new payload.
+	body := blk.GetBody()
+	if _, err = s.es.NotifyNewPayload(
+		ctx,
+		body.GetExecutionPayload(),
+		kzg.ConvertCommitmentsToVersionedHashes(
+			body.GetBlobKzgCommitments(),
+		),
+		blk.GetParentBlockRoot(),
+	); err != nil {
 		s.Logger().
 			Error("failed to notify engine of new payload", "error", err)
 		return err
@@ -126,28 +130,6 @@ func (s *Service) ProcessBeaconBlock(
 	// }
 
 	return nil
-}
-
-// verifyAndNotifyNewPayload checks the validity of a the execution payload
-// on the beacon block.
-func (s *Service) verifyAndNotifyNewPayload(
-	// todo: parentRoot hashs should be on blk.
-	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBlock,
-) (bool, error) {
-	body := blk.GetBody()
-	executionPayload := body.GetExecutionPayload()
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-
-	// Then we notify the engine of the new payload.
-	return s.es.NotifyNewPayload(
-		ctx,
-		executionPayload,
-		kzg.ConvertCommitmentsToVersionedHashes(
-			body.GetBlobKzgCommitments(),
-		),
-		parentBeaconBlockRoot,
-	)
 }
 
 // PostBlockProcess is called after a block has been processed.
