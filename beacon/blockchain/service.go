@@ -34,11 +34,11 @@ import (
 // Service is the blockchain service.
 type Service struct {
 	service.BaseService
-	es ExecutionService
-	ee *engine.ExecutionEngine
-	lb LocalBuilder
-	ss SyncService
-	bv *core.BlockValidator
-	sp *core.StateProcessor
-	pv *core.PayloadValidator
+	ee  *engine.ExecutionEngine
+	lb  LocalBuilder
+	ss  SyncService
+	sks StakingService
+	bv  *core.BlockValidator
+	sp  *core.StateProcessor
+	pv  *core.PayloadValidator
 }

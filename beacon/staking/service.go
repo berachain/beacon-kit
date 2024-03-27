@@ -26,8 +26,11 @@
 package staking
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/lib/abi"
+	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -42,4 +45,28 @@ type Service struct {
 	// abi represents the configured deposit contract's
 	// abi.
 	abi *abi.WrappedABI
+}
+
+// ProcessLogsInETH1Block gets logs in the Eth1 block
+// received from the execution client and processes them to
+// convert them into appropriate objects that can be consumed
+// by other services.
+func (s *Service) ProcessLogsInETH1Block(
+	ctx context.Context,
+	blockHash primitives.ExecutionHash,
+) error {
+	// Gather all the logs corresponding to
+	// the addresses of interest from this block.
+	logsInBlock, err := s.ee.GetLogs(
+		ctx,
+		blockHash,
+		[]primitives.ExecutionAddress{
+			s.BeaconCfg().DepositContractAddress,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return s.ProcessBlockEvents(ctx, logsInBlock)
 }

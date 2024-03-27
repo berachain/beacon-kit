@@ -57,15 +57,6 @@ func WithExecutionEngine(ee *engine.ExecutionEngine) service.Option[Service] {
 	}
 }
 
-// WithExecutionService is a function that returns an Option.
-// It sets the ExecutionService of the Service to the provided Service.
-func WithExecutionService(es ExecutionService) service.Option[Service] {
-	return func(s *Service) error {
-		s.es = es
-		return nil
-	}
-}
-
 // WithLocalBuilder is a function that returns an Option.
 // It sets the BuilderService of the Service to the provided Service.
 func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
@@ -79,6 +70,15 @@ func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
 func WithPayloadValidator(pv *core.PayloadValidator) service.Option[Service] {
 	return func(s *Service) error {
 		s.pv = pv
+		return nil
+	}
+}
+
+// WithExecutionService is a function that returns an Option.
+// It sets the ExecutionService of the Service to the provided Service.
+func WithStakingService(sks StakingService) service.Option[Service] {
+	return func(s *Service) error {
+		s.sks = sks
 		return nil
 	}
 }

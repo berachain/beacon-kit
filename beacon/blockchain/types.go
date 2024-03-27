@@ -31,17 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
-
-// ExecutionService is the interface for the execution service.
-type ExecutionService interface {
-	// ProcessLogsInETH1Block processes logs in an eth1 block.
-	ProcessLogsInETH1Block(
-		ctx context.Context,
-		blockHash primitives.ExecutionHash,
-	) error
-}
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {
@@ -72,9 +62,10 @@ type RandaoProcessor interface {
 
 // StakingService is the interface for the staking service.
 type StakingService interface {
-	ProcessBlockEvents(
+	// ProcessLogsInETH1Block processes logs in an eth1 block.
+	ProcessLogsInETH1Block(
 		ctx context.Context,
-		logs []ethtypes.Log,
+		blockHash primitives.ExecutionHash,
 	) error
 }
 
