@@ -29,9 +29,31 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/engine"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
+
+type ExecutionEngine interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *engine.NewGetPayloadRequest,
+	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *engine.NewForkchoiceUpdateRequest,
+	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
+
+	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
+	// execution
+	VerifyAndNotifyNewPayload(
+		ctx context.Context,
+		req *engine.NewPayloadRequest,
+	) (bool, error)
+}
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {

@@ -26,47 +26,25 @@
 package localbuilder
 
 import (
-	"github.com/berachain/beacon-kit/cache"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"context"
+
+	"github.com/berachain/beacon-kit/engine"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *engine.NewGetPayloadRequest,
+	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
-	}
-}
-
-// WithExecutionEngine sets the execution engine.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
-	return func(s *Service) error {
-		s.pc = pc
-		return nil
-	}
-}
-
-// WithValidatorConfig sets the validator config.
-func WithValidatorConfig(vcfg *config.Validator) service.Option[Service] {
-	return func(s *Service) error {
-		s.vcfg = vcfg
-		return nil
-	}
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *engine.NewForkchoiceUpdateRequest,
+	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
 }

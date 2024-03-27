@@ -63,7 +63,7 @@ func (s *Service) BuildLocalPayload(
 		// TODO: don't use execution hash for beacon root.
 		"parent_block_root", common.Hash(parentBlockRoot),
 	)
-	payloadID, _, err = s.es.NotifyForkchoiceUpdate(
+	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx, &engine.NewForkchoiceUpdateRequest{
 			State: &enginetypes.ForkchoiceState{
 				HeadBlockHash: parentEth1Hash,
@@ -94,7 +94,7 @@ func (s *Service) BuildLocalPayload(
 		"payload_id", payloadID,
 	)
 
-	s.payloadCache.Set(
+	s.pc.Set(
 		slot,
 		parentBlockRoot,
 		*payloadID,
@@ -162,7 +162,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
-	payloadID, found := s.payloadCache.Get(slot, parentBlockRoot)
+	payloadID, found := s.pc.Get(slot, parentBlockRoot)
 	if found && (payloadID != enginetypes.PayloadID{}) {
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
@@ -273,7 +273,7 @@ func (s *Service) getPayloadAttribute(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
-		s.validatorCfg.SuggestedFeeRecipient,
+		s.vcfg.SuggestedFeeRecipient,
 		withdrawals,
 		prevHeadRoot,
 	)
@@ -290,7 +290,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		return nil, nil, false, ErrNilPayloadID
 	}
 
-	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
+	payload, blobsBundle, overrideBuilder, err := s.ee.GetPayload(
 		ctx,
 		&engine.NewGetPayloadRequest{
 			PayloadID:   *payloadID,
