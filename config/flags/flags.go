@@ -51,6 +51,7 @@ const (
 	DepositContractAddress    = beaconChainRoot + "deposit-contract-address"
 	ElectraForkEpoch          = beaconChainRoot + "electra-fork-epoch"
 	EpochsPerHistoricalVector = beaconChainRoot + "epochs-per-historical-vector"
+	EpochsPerSlashingsVector  = beaconChainRoot + "epochs-per-slashings-vector"
 	MaxDepositsPerBlock       = beaconChainRoot + "max-deposits-per-block"
 	MaxWithdrawalsPerPayload  = beaconChainRoot + "max-withdrawals-per-payload"
 

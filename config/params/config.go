@@ -66,6 +66,8 @@ type BeaconChainConfig struct {
 	// EpochsPerHistoricalVector is the number of epochs in the historical
 	// vector.
 	EpochsPerHistoricalVector uint64 `mapstructure:"epochs-per-historical-vector"`
+	// EpochsPerSlashingsVector is the number of epochs in the slashings vector.
+	EpochsPerSlashingsVector uint64 `mapstructure:"epochs-per-slashings-vector"`
 
 	// Max operations per block constants.
 	//
@@ -111,6 +113,9 @@ electra-fork-epoch = {{.BeaconKit.Beacon.ElectraForkEpoch}}
 ########### State List Lengths ###########
 # EpochsPerHistoricalVector is the number of epochs in the historical vector.
 epochs-per-historical-vector = {{.BeaconKit.Beacon.EpochsPerHistoricalVector}}
+
+# EpochsPerSlashingsVector is the number of epochs in the slashings vector.
+epochs-per-slashings-vector = {{.BeaconKit.Beacon.EpochsPerSlashingsVector}}
 
 ########### Max Operations ###########
 # MaxDepositsPerBlock specifies the maximum number of deposit operations allowed per block.
@@ -170,6 +175,12 @@ func (c BeaconChainConfig) Parse(
 
 	if c.EpochsPerHistoricalVector, err = parser.GetUint64(
 		flags.EpochsPerHistoricalVector,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.EpochsPerSlashingsVector, err = parser.GetUint64(
+		flags.EpochsPerSlashingsVector,
 	); err != nil {
 		return nil, err
 	}
