@@ -52,10 +52,12 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyWithdrawals
 
 	GetSlot() (primitives.Slot, error)
-	SetSlot(primitives.Slot) error
+	GetEpoch(uint64) (primitives.Epoch, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
+	GetValidators() ([]*types.Validator, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -65,8 +67,10 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyStateRoots
 	WriteOnlyValidators
 	WriteOnlyWithdrawals
+	SetSlot(primitives.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
+	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state

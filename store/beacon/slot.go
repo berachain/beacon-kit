@@ -37,3 +37,12 @@ func (s *Store) GetSlot() (primitives.Slot, error) {
 func (s *Store) SetSlot(slot primitives.Slot) error {
 	return s.slot.Set(s.ctx, uint64(slot))
 }
+
+// GetEpoch returns the current epoch.
+func (s *Store) GetEpoch(slotsPerEpoch uint64) (primitives.Epoch, error) {
+	slots, err := s.slot.Get(s.ctx)
+	if err != nil {
+		return 0, err
+	}
+	return primitives.Epoch(slots / slotsPerEpoch), nil
+}

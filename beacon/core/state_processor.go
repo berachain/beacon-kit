@@ -372,3 +372,105 @@ func (sp *StateProcessor) processRandaoReveal(
 	// Mixin the reveal.
 	return sp.rp.MixinNewReveal(st, reveal)
 }
+
+// processProposerSlashing as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#proposer-slashings
+//
+//nolint:lll,unused // will be used later
+func (sp *StateProcessor) processProposerSlashing(
+	_ state.BeaconState,
+	// ps types.ProposerSlashing,
+) error {
+	return nil
+}
+
+// processAttesterSlashing as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#attester-slashings
+//
+//nolint:lll,unused // will be used later
+func (sp *StateProcessor) processAttesterSlashing(
+	_ state.BeaconState,
+	// as types.AttesterSlashing,
+) error {
+	return nil
+}
+
+// processSlashings as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings
+//
+// processSlashings processes the slashings and ensures they match the local
+// state.
+//
+//nolint:lll,unused // will be used later
+func (sp *StateProcessor) processSlashings(
+	st state.BeaconState,
+) error {
+	slotsPerEpoch := sp.cfg.SlotsPerEpoch
+	totalBalance, err := st.GetTotalActiveBalances(slotsPerEpoch)
+	if err != nil {
+		return err
+	}
+
+	// TODO: FILL THIS IN A LATER PR
+	totalSlashings := uint64(0)
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#rewards-and-penalties
+	// Set to 1 initially.
+	// TODO: Move to a config
+	proportionalSlashingMultiplier := uint64(1)
+	adjustedTotalSlashingBalance := min(
+		totalSlashings*proportionalSlashingMultiplier, uint64(totalBalance),
+	)
+	vals, err := st.GetValidators()
+	if err != nil {
+		return err
+	}
+
+	// Get the current epoch
+	epoch, err := st.GetEpoch(slotsPerEpoch)
+	if err != nil {
+		return err
+	}
+
+	// Iterate through the validators.
+	for _, val := range vals {
+		// Checks if the validator is slashable.
+		//nolint:gomnd // this is in the spec
+		slashableEpoch := (uint64(epoch) + sp.cfg.EpochsPerSlashingsVector) / 2
+		// If the validator is slashable, and slashed
+		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
+			if err = sp.processSlash(
+				st,
+				val,
+				adjustedTotalSlashingBalance,
+				uint64(totalBalance),
+			); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// processSlash handles the logic for slashing a validator.
+//
+//nolint:unused // will be used later
+func (sp *StateProcessor) processSlash(
+	st state.BeaconState,
+	val *types.Validator,
+	adjustedTotalSlashingBalance uint64,
+	totalBalance uint64,
+) error {
+	// Calculate the penalty.
+	increment := sp.cfg.EffectiveBalanceIncrement
+	balDivIncrement := uint64(val.EffectiveBalance) / increment
+	penaltyNumerator := balDivIncrement * adjustedTotalSlashingBalance
+	penalty := penaltyNumerator / totalBalance * increment
+
+	// Get the val index and decrease the balance of the validator.
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey[:])
+	if err != nil {
+		return err
+	}
+
+	return st.DecreaseBalance(idx, primitives.Gwei(penalty))
+}

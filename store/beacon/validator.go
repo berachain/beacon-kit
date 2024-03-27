@@ -103,6 +103,32 @@ func (s *Store) ValidatorByIndex(
 	return val, err
 }
 
+// GetValidators retrieves all validators from the beacon state.
+func (s *Store) GetValidators() (
+	[]*beacontypes.Validator, error,
+) {
+	var (
+		vals []*beacontypes.Validator
+		val  *beacontypes.Validator
+	)
+
+	iter, err := s.validators.Iterate(s.ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for iter.Valid() {
+		val, err = iter.Value()
+		if err != nil {
+			return nil, err
+		}
+		vals = append(vals, val)
+		iter.Next()
+	}
+
+	return vals, nil
+}
+
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
 func (s *Store) GetValidatorsByEffectiveBalance() (
