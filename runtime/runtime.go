@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core"
 	"github.com/berachain/beacon-kit/beacon/core/blobs"
 	"github.com/berachain/beacon-kit/beacon/core/randao"
-	"github.com/berachain/beacon-kit/beacon/execution"
 	"github.com/berachain/beacon-kit/beacon/staking"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/cache"
@@ -122,6 +121,9 @@ func NewDefaultBeaconKitRuntime(
 		engineclient.WithLogger(logger),
 	)
 
+	// TODO: move.
+	engineClient.Start(context.Background())
+
 	// Build the Notification Service.
 	notificationService := service.New(
 		notify.WithBaseService(baseService.ShallowCopy("notify")),
@@ -134,18 +136,14 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
+	// Build the execution engine.
+	executionEngine := engine.NewExecutionEngine(engineClient, logger)
+
 	// Build the staking service.
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
-	)
-
-	executionEngine := engine.NewExecutionEngine(engineClient, logger)
-	// Build the execution service.
-	executionService := service.New[execution.Service](
-		execution.WithBaseService(baseService.ShallowCopy("execution")),
-		execution.WithExecutionEngine(executionEngine),
-		execution.WithStakingService(stakingService),
+		staking.WithExecutionEngine(executionEngine),
 	)
 
 	// Build the local builder service.
@@ -188,9 +186,9 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
 		blockchain.WithExecutionEngine(executionEngine),
-		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
+		blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
 			core.NewStateProcessor(
 				&cfg.Beacon,
@@ -205,7 +203,6 @@ func NewDefaultBeaconKitRuntime(
 		service.WithLogger(logger),
 		service.WithService(builderService),
 		service.WithService(chainService),
-		service.WithService(executionService),
 		service.WithService(notificationService),
 		service.WithService(stakingService),
 		service.WithService(syncService),

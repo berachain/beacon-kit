@@ -23,32 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package localbuilder
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/engine"
-	"github.com/berachain/beacon-kit/runtime/service"
+	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/primitives"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *engine.NewGetPayloadRequest,
+	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 
-// WithExecutionEngine is an option to set the Caller for the Service.
-func WithExecutionEngine(ec *engine.ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.engine = ec
-		return nil
-	}
-}
-
-func WithStakingService(ss StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.sks = ss
-		return nil
-	}
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *engine.NewForkchoiceUpdateRequest,
+	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
 }

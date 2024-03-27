@@ -169,7 +169,7 @@ func (s *Service) PostBlockProcess(
 	}
 
 	// Process the logs in the block.
-	if err := s.es.ProcessLogsInETH1Block(
+	if err := s.sks.ProcessLogsInETH1Block(
 		ctx,
 		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
 	); err != nil {
