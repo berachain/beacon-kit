@@ -45,6 +45,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/crypto"
+	"github.com/berachain/beacon-kit/engine"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/lib/abi"
@@ -142,7 +143,9 @@ func NewDefaultBeaconKitRuntime(
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
-		execution.WithEngineCaller(engineClient),
+		execution.WithExecutionEngine(
+			engine.NewExecutionEngine(engineClient, logger),
+		),
 		execution.WithStakingService(stakingService),
 	)
 

@@ -28,7 +28,7 @@ package execution
 import (
 	"context"
 
-	engineclient "github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/engine"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -40,7 +40,7 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution
 	// client.
-	engine *engineclient.EngineClient
+	engine *engine.ExecutionEngine
 	// logFactory is the factory for creating objects from Ethereum logs.
 	logFactory LogFactory
 	sks        StakingService
@@ -61,7 +61,24 @@ func (s *Service) Status() error {
 func (s *Service) NotifyForkchoiceUpdate(
 	ctx context.Context, fcuConfig *FCUConfig,
 ) (*enginetypes.PayloadID, error) {
-	return s.notifyForkchoiceUpdate(ctx, fcuConfig)
+	forkChoicer := s.ForkchoiceStore(ctx)
+	// Notify the execution engine of the forkchoice update.
+	payloadID, _, err := s.engine.NotifyForkchoiceUpdate(
+		ctx,
+		&engine.NewForkchoiceUpdateRequest{
+			State: &enginetypes.ForkchoiceState{
+				HeadBlockHash:      fcuConfig.HeadEth1Hash,
+				SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash(),
+				FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash(),
+			},
+			PayloadAttributes: fcuConfig.Attributes,
+			ForkVersion: s.ActiveForkVersionForSlot(
+				fcuConfig.ProposingSlot,
+			),
+		},
+	)
+
+	return payloadID, err
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
@@ -78,17 +95,18 @@ func (s *Service) GetPayload(
 // It returns true if the EL has returned VALID for the block.
 func (s *Service) NotifyNewPayload(
 	ctx context.Context,
-	slot primitives.Slot,
 	payload enginetypes.ExecutionPayload,
 	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot [32]byte,
 ) (bool, error) {
-	return s.notifyNewPayload(
+	temp := primitives.Root(parentBlockRoot)
+	return s.engine.VerifyAndNotifyNewPayload(
 		ctx,
-		slot,
-		payload,
-		versionedHashes,
-		parentBlockRoot,
+		&engine.NewPayloadRequest{
+			ExecutionPayload:      payload,
+			VersionedHashes:       versionedHashes,
+			ParentBeaconBlockRoot: &temp,
+		},
 	)
 }
 

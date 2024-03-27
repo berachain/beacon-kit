@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // ExecutionEngine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -41,6 +42,36 @@ import (
 type ExecutionEngine struct {
 	ec     *client.EngineClient
 	logger log.Logger
+}
+
+// NewExecuitionEngine creates a new ExecutionEngine.
+func NewExecutionEngine(
+	ec *client.EngineClient,
+	logger log.Logger,
+) *ExecutionEngine {
+	return &ExecutionEngine{
+		ec:     ec,
+		logger: logger,
+	}
+}
+
+// Start spawns any goroutines required by the service.
+func (ee *ExecutionEngine) Start(ctx context.Context) {
+	go ee.ec.Start(ctx)
+}
+
+// Status returns error if the service is not considered healthy.
+func (ee *ExecutionEngine) Status() error {
+	return ee.ec.Status()
+}
+
+// TODO move.
+func (ee *ExecutionEngine) GetLogs(
+	ctx context.Context,
+	blockHash primitives.ExecutionHash,
+	addrs []primitives.ExecutionAddress,
+) ([]coretypes.Log, error) {
+	return ee.ec.GetLogs(ctx, blockHash, addrs)
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.

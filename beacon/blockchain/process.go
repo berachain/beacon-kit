@@ -142,7 +142,6 @@ func (s *Service) verifyAndNotifyNewPayload(
 	// Then we notify the engine of the new payload.
 	return s.es.NotifyNewPayload(
 		ctx,
-		blk.GetSlot(),
 		executionPayload,
 		kzg.ConvertCommitmentsToVersionedHashes(
 			body.GetBlobKzgCommitments(),
