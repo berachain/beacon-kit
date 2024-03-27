@@ -53,7 +53,7 @@ func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	headEth1Hash primitives.ExecutionHash,
 	forSlot primitives.Slot,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) error {
 	_, err := s.lb.BuildLocalPayload(
 		ctx,

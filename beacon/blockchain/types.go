@@ -49,7 +49,7 @@ type ExecutionService interface {
 		ctx context.Context,
 		payload enginetypes.ExecutionPayload,
 		versionedHashes []primitives.ExecutionHash,
-		parentBlockRoot [32]byte,
+		parentBlockRoot primitives.Root,
 	) (bool, error)
 
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
@@ -66,7 +66,7 @@ type LocalBuilder interface {
 		parentEth1Hash primitives.ExecutionHash,
 		slot primitives.Slot,
 		timestamp uint64,
-		parentBlockRoot [32]byte,
+		parentBlockRoot primitives.Root,
 	) (*enginetypes.PayloadID, error)
 }
 

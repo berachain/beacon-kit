@@ -42,7 +42,7 @@ type PayloadBuilder interface {
 	GetBestPayload(
 		ctx context.Context,
 		slot primitives.Slot,
-		parentBlockRoot [32]byte,
+		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 }

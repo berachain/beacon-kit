@@ -97,15 +97,14 @@ func (s *Service) NotifyNewPayload(
 	ctx context.Context,
 	payload enginetypes.ExecutionPayload,
 	versionedHashes []primitives.ExecutionHash,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) (bool, error) {
-	temp := primitives.Root(parentBlockRoot)
 	return s.engine.VerifyAndNotifyNewPayload(
 		ctx,
 		&engine.NewPayloadRequest{
 			ExecutionPayload:      payload,
 			VersionedHashes:       versionedHashes,
-			ParentBeaconBlockRoot: &temp,
+			ParentBeaconBlockRoot: &parentBlockRoot,
 		},
 	)
 }

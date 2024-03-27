@@ -44,7 +44,7 @@ func (s *Service) BuildLocalPayload(
 	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) (*enginetypes.PayloadID, error) {
 	// Assemble the payload attributes.
 	attrs, err := s.getPayloadAttribute(
@@ -107,7 +107,7 @@ func (s *Service) BuildLocalPayload(
 func (s *Service) GetBestPayload(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
@@ -154,7 +154,7 @@ func (s *Service) GetBestPayload(
 func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
@@ -187,7 +187,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
