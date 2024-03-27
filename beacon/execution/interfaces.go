@@ -28,15 +28,8 @@ package execution
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
-
-// BeaconStorageBackend is an interface that wraps the basic BeaconState method.
-type BeaconStorageBackend interface {
-	// BeaconState provides access to the underlying beacon state.
-	BeaconState(ctx context.Context) state.BeaconState
-}
 
 // StakingService is an interface that wraps the basic StakingService methods.
 type StakingService interface {

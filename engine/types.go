@@ -53,3 +53,12 @@ type NewForkchoiceUpdateRequest struct {
 	// are going to be submitting for.
 	ForkVersion uint32
 }
+
+// NewGetPayloadRequest represents a request to get a payload.
+type NewGetPayloadRequest struct {
+	// PayloadID is the payload ID.
+	PayloadID types.PayloadID
+	// ForkVersion is the fork version that we are
+	// currently on.
+	ForkVersion uint32
+}

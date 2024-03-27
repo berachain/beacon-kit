@@ -28,6 +28,7 @@ package localbuilder
 import (
 	"github.com/berachain/beacon-kit/cache"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -47,8 +48,8 @@ func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
 	}
 }
 
-// WithExecutionService sets the execution service.
-func WithExecutionService(es ExecutionService) service.Option[Service] {
+// WithExecutionEngine sets the execution engine.
+func WithExecutionEngine(es *engine.ExecutionEngine) service.Option[Service] {
 	return func(s *Service) error {
 		s.es = es
 		return nil

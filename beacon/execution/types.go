@@ -24,26 +24,3 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package execution
-
-import (
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
-)
-
-// FCUConfig is a struct that holds the configuration for a fork choice update.
-type FCUConfig struct {
-	// HeadEth1Hash is the hash of the head eth1 block we are updating the
-	// execution client's head to be.
-	HeadEth1Hash primitives.ExecutionHash
-
-	// ProposingSlot is the slot that the execution client should propose a
-	// block
-	// for if Attributes neither nil nor empty.
-	ProposingSlot primitives.Slot
-
-	// Attributes is a list of payload attributes to include in a forkchoice
-	// update to the execution client. It is used to signal to the execution
-	// client that
-	// it should build a payload.
-	Attributes enginetypes.PayloadAttributer
-}

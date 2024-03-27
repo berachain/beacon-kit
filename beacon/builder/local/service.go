@@ -28,6 +28,7 @@ package localbuilder
 import (
 	"github.com/berachain/beacon-kit/cache"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -37,6 +38,6 @@ type Service struct {
 	service.BaseService
 	cfg          *config.Builder
 	validatorCfg *config.Validator
-	es           ExecutionService
+	es           *engine.ExecutionEngine
 	payloadCache *cache.PayloadIDCache
 }

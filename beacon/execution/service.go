@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/engine"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
@@ -52,59 +51,6 @@ func (s *Service) Start(ctx context.Context) {
 // Status returns error if the service is not considered healthy.
 func (s *Service) Status() error {
 	return s.engine.Status()
-}
-
-// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-// TODO: handle the bools better i.e attrs, retry, async.
-func (s *Service) NotifyForkchoiceUpdate(
-	ctx context.Context, fcuConfig *FCUConfig,
-) (*enginetypes.PayloadID, error) {
-	forkChoicer := s.ForkchoiceStore(ctx)
-	// Notify the execution engine of the forkchoice update.
-	payloadID, _, err := s.engine.NotifyForkchoiceUpdate(
-		ctx,
-		&engine.NewForkchoiceUpdateRequest{
-			State: &enginetypes.ForkchoiceState{
-				HeadBlockHash:      fcuConfig.HeadEth1Hash,
-				SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash(),
-				FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash(),
-			},
-			PayloadAttributes: fcuConfig.Attributes,
-			ForkVersion: s.ActiveForkVersionForSlot(
-				fcuConfig.ProposingSlot,
-			),
-		},
-	)
-
-	return payloadID, err
-}
-
-// GetPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetPayload(
-	ctx context.Context, payloadID enginetypes.PayloadID, slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
-	return s.engine.GetPayload(
-		ctx, payloadID,
-		s.BeaconCfg().ActiveForkVersion(slot),
-	)
-}
-
-// NotifyNewPayload notifies the execution client of a new payload.
-// It returns true if the EL has returned VALID for the block.
-func (s *Service) NotifyNewPayload(
-	ctx context.Context,
-	payload enginetypes.ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash,
-	parentBlockRoot primitives.Root,
-) (bool, error) {
-	return s.engine.VerifyAndNotifyNewPayload(
-		ctx,
-		&engine.NewPayloadRequest{
-			ExecutionPayload:      payload,
-			VersionedHashes:       versionedHashes,
-			ParentBeaconBlockRoot: &parentBlockRoot,
-		},
-	)
 }
 
 // ProcessLogsInETH1Block gets logs in the Eth1 block

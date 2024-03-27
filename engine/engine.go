@@ -77,12 +77,11 @@ func (ee *ExecutionEngine) GetLogs(
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *ExecutionEngine) GetPayload(
 	ctx context.Context,
-	payloadID types.PayloadID,
-	forkVersion uint32,
+	req *NewGetPayloadRequest,
 ) (types.ExecutionPayload, *types.BlobsBundleV1, bool, error) {
 	return ee.ec.GetPayload(
-		ctx, payloadID,
-		forkVersion,
+		ctx, req.PayloadID,
+		req.ForkVersion,
 	)
 }
 

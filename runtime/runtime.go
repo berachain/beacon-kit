@@ -152,7 +152,7 @@ func NewDefaultBeaconKitRuntime(
 	localBuilder := service.New[localbuilder.Service](
 		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
 		localbuilder.WithBuilderConfig(&cfg.Builder),
-		localbuilder.WithExecutionService(executionService),
+		localbuilder.WithExecutionEngine(executionEngine),
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 		localbuilder.WithValidatorConfig(&cfg.Validator),
 	)
