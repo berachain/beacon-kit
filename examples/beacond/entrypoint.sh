@@ -78,8 +78,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 	./build/bin/beacond genesis add-validator --home "$HOMEDIR"
-	# # Run this to ensure everything worked and that the genesis file is setup correctly
-	# ./build/bin/beacond genesis validate-genesis --home "$HOMEDIR" > /dev/null 2>&1
+	./build/bin/beacond genesis collect-validators --home "$HOMEDIR" 
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m
