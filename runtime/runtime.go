@@ -188,6 +188,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
 		blockchain.WithExecutionEngine(executionEngine),
+		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
