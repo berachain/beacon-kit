@@ -41,9 +41,7 @@ type Service struct {
 	// engine gives the notifier access to the engine api of the execution
 	// client.
 	engine *engine.ExecutionEngine
-	// logFactory is the factory for creating objects from Ethereum logs.
-	logFactory LogFactory
-	sks        StakingService
+	sks    StakingService
 }
 
 // Start spawns any goroutines required by the service.
@@ -110,7 +108,7 @@ func (s *Service) NotifyNewPayload(
 }
 
 // ProcessLogsInETH1Block gets logs in the Eth1 block
-// received from the execution client and uses LogFactory to
+// received from the execution client and processes them to
 // convert them into appropriate objects that can be consumed
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(

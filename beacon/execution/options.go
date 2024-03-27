@@ -46,14 +46,6 @@ func WithExecutionEngine(ec *engine.ExecutionEngine) service.Option[Service] {
 	}
 }
 
-// WithLogFactory is an option to set the LogFactory for the Service.
-func WithLogFactory(f LogFactory) service.Option[Service] {
-	return func(s *Service) error {
-		s.logFactory = f
-		return nil
-	}
-}
-
 func WithStakingService(ss StakingService) service.Option[Service] {
 	return func(s *Service) error {
 		s.sks = ss

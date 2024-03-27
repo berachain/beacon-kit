@@ -27,10 +27,8 @@ package execution
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/primitives"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -40,19 +38,10 @@ type BeaconStorageBackend interface {
 	BeaconState(ctx context.Context) state.BeaconState
 }
 
+// StakingService is an interface that wraps the basic StakingService methods.
 type StakingService interface {
 	ProcessBlockEvents(
 		ctx context.Context,
 		logs []ethtypes.Log,
 	) error
-}
-
-// LogFactory is an interface that can unmarshal Ethereum logs into objects,
-// in the form of reflect.Value, with appropriate types for each type of logs.
-type LogFactory interface {
-	GetRegisteredAddresses() []primitives.ExecutionAddress
-	ProcessLogs(
-		logs []ethtypes.Log,
-		blockHash primitives.ExecutionHash,
-	) ([]*reflect.Value, error)
 }
