@@ -28,8 +28,7 @@ package execution
 import (
 	"context"
 
-	engineclient "github.com/berachain/beacon-kit/engine/client"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
@@ -40,10 +39,8 @@ type Service struct {
 	service.BaseService
 	// engine gives the notifier access to the engine api of the execution
 	// client.
-	engine *engineclient.EngineClient
-	// logFactory is the factory for creating objects from Ethereum logs.
-	logFactory LogFactory
-	sks        StakingService
+	engine *engine.ExecutionEngine
+	sks    StakingService
 }
 
 // Start spawns any goroutines required by the service.
@@ -56,58 +53,8 @@ func (s *Service) Status() error {
 	return s.engine.Status()
 }
 
-// NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-// TODO: handle the bools better i.e attrs, retry, async.
-func (s *Service) NotifyForkchoiceUpdate(
-	ctx context.Context, fcuConfig *FCUConfig,
-) (*enginetypes.PayloadID, error) {
-	var (
-		err       error
-		payloadID *enginetypes.PayloadID
-	)
-	// Push the forkchoice request to the forkchoice dispatcher, we want to
-	// block until
-	if e := s.GCD().GetQueue(forkchoiceDispatchQueue).Sync(func() {
-		payloadID, err = s.notifyForkchoiceUpdate(ctx, fcuConfig)
-	}); e != nil {
-		return nil, e
-	}
-
-	// s.logProcessor.ReadLogsFromBlock(ctx, fucu.HeadEth1Hash)
-
-	return payloadID, err
-}
-
-// GetPayload returns the payload and blobs bundle for the given slot.
-func (s *Service) GetPayload(
-	ctx context.Context, payloadID enginetypes.PayloadID, slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
-	return s.engine.GetPayload(
-		ctx, payloadID,
-		s.BeaconCfg().ActiveForkVersion(slot),
-	)
-}
-
-// NotifyNewPayload notifies the execution client of a new payload.
-// It returns true if the EL has returned VALID for the block.
-func (s *Service) NotifyNewPayload(
-	ctx context.Context,
-	slot primitives.Slot,
-	payload enginetypes.ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash,
-	parentBlockRoot [32]byte,
-) (bool, error) {
-	return s.notifyNewPayload(
-		ctx,
-		slot,
-		payload,
-		versionedHashes,
-		parentBlockRoot,
-	)
-}
-
 // ProcessLogsInETH1Block gets logs in the Eth1 block
-// received from the execution client and uses LogFactory to
+// received from the execution client and processes them to
 // convert them into appropriate objects that can be consumed
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(

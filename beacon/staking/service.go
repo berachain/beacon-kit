@@ -26,6 +26,7 @@
 package staking
 
 import (
+	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
@@ -34,6 +35,9 @@ import (
 type Service struct {
 	// BaseService is the base service.
 	service.BaseService
+
+	// ee represents the execution engine.
+	ee *engine.ExecutionEngine
 
 	// abi represents the configured deposit contract's
 	// abi.

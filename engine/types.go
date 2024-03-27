@@ -23,25 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package engine
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/beacon/execution"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
 
-type ExecutionService interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context, fcuConfig *execution.FCUConfig,
-	) (*enginetypes.PayloadID, error)
+// NewPayloadRequest as per the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
+//
+//nolint:lll
+type NewPayloadRequest struct {
+	// ExecutionPayload is the payload to the execution client.
+	ExecutionPayload types.ExecutionPayload
+	// VersionedHashes is the versioned hashes of the execution payload.
+	VersionedHashes []primitives.ExecutionHash
+	// ParentBeaconBlockRoot is the root of the parent beacon block.
+	ParentBeaconBlockRoot *primitives.Root
+}
 
-	// GetPayload gets a payload for a given payload ID and slot.
-	GetPayload(
-		ctx context.Context, payloadID enginetypes.PayloadID, slot primitives.Slot,
-	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
+// NewForkchoiceUpdateRequest.
+type NewForkchoiceUpdateRequest struct {
+	// State is the forkchoice state.
+	State *types.ForkchoiceState
+	// PayloadAttributes is the payload attributer.
+	PayloadAttributes types.PayloadAttributer
+	// ForkVersion is the fork version that we
+	// are going to be submitting for.
+	ForkVersion uint32
+}
+
+// NewGetPayloadRequest represents a request to get a payload.
+type NewGetPayloadRequest struct {
+	// PayloadID is the payload ID.
+	PayloadID types.PayloadID
+	// ForkVersion is the fork version that we are
+	// currently on.
+	ForkVersion uint32
 }

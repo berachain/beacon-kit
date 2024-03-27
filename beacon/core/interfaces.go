@@ -27,8 +27,18 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
+
+// BlobsProcessor is the interface for the blobs processor.
+type BlobsProcessor interface {
+	ProcessBlobs(
+		avs state.AvailabilityStore,
+		blk types.BeaconBlock,
+		sidecars *types.BlobSidecars,
+	) error
+}
 
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor interface {

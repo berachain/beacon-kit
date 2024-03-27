@@ -23,12 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package execution
 
-import "errors"
+import (
+	"context"
 
-// ErrAttemptedToVerifyNilSidecar is returned when an attempt is made to store a
-// nil sidecar.
-var ErrAttemptedToVerifyNilSidecar = errors.New(
-	"attempted to verify nil sidecar",
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
+
+// StakingService is an interface that wraps the basic StakingService methods.
+type StakingService interface {
+	ProcessBlockEvents(
+		ctx context.Context,
+		logs []ethtypes.Log,
+	) error
+}

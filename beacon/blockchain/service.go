@@ -27,6 +27,7 @@ package blockchain
 
 import (
 	"github.com/berachain/beacon-kit/beacon/core"
+	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -34,6 +35,7 @@ import (
 type Service struct {
 	service.BaseService
 	es ExecutionService
+	ee *engine.ExecutionEngine
 	lb LocalBuilder
 	ss SyncService
 	bv *core.BlockValidator

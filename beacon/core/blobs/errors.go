@@ -23,15 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package blobs
 
-const (
-	// MetricsKeyAcceptedSyncingPayloadStatus is used to count the number of
-	// times an
-	// accepted or syncing payload status is received.
-	//nolint:lll
-	MetricsKeyAcceptedSyncingPayloadStatus = "beaconkit.execution.accepted_syncing_payload_status"
-	// MetricsInvalidPayloadStatus is used to count the number of times an
-	// invalid payload status is received.
-	MetricsKeyInvalidPayloadStatus = "beaconkit.execution.invalid_payload_status"
+import "errors"
+
+// ErrAttemptedToVerifyNilSidecar is returned when an attempt is made to store a
+// nil sidecar.
+var ErrAttemptedToVerifyNilSidecar = errors.New(
+	"attempted to verify nil sidecar",
 )

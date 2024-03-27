@@ -35,7 +35,7 @@ import (
 func NewBeaconBlock(
 	slot primitives.Slot,
 	proposerIndex primitives.ValidatorIndex,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 	forkVersion uint32,
 	reveal primitives.BLSSignature,
 ) (BeaconBlock, error) {

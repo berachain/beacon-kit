@@ -43,16 +43,10 @@ type ForkChoicer interface {
 type Reader interface {
 	JustifiedPayloadBlockHash() primitives.ExecutionHash
 	FinalizedPayloadBlockHash() primitives.ExecutionHash
-
-	// TODO: eventually deprecate this.
-	HeadBeaconBlock() [32]byte
 }
 
 type Writer interface {
 	BlockProcessor
-
-	// Eventually deprecate this
-	UpdateHeadBeaconBlock([32]byte)
 }
 
 // BlockProcessor processes the block that's used for accounting fork choice.

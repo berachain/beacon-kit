@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/beacon/execution"
+	"github.com/berachain/beacon-kit/engine"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -44,7 +44,7 @@ func (s *Service) BuildLocalPayload(
 	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) (*enginetypes.PayloadID, error) {
 	// Assemble the payload attributes.
 	attrs, err := s.getPayloadAttribute(
@@ -52,12 +52,6 @@ func (s *Service) BuildLocalPayload(
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w error when getting payload attributes", err)
-	}
-
-	fcuConfig := &execution.FCUConfig{
-		HeadEth1Hash:  parentEth1Hash,
-		ProposingSlot: slot,
-		Attributes:    attrs,
 	}
 
 	// Notify the execution client of the forkchoice update.
@@ -69,15 +63,25 @@ func (s *Service) BuildLocalPayload(
 		// TODO: don't use execution hash for beacon root.
 		"parent_block_root", common.Hash(parentBlockRoot),
 	)
-	payloadID, err = s.es.NotifyForkchoiceUpdate(
-		ctx, fcuConfig,
+	payloadID, _, err = s.es.NotifyForkchoiceUpdate(
+		ctx, &engine.NewForkchoiceUpdateRequest{
+			State: &enginetypes.ForkchoiceState{
+				HeadBlockHash: parentEth1Hash,
+				SafeBlockHash: s.ForkchoiceStore(ctx).
+					JustifiedPayloadBlockHash(),
+				FinalizedBlockHash: s.ForkchoiceStore(ctx).
+					FinalizedPayloadBlockHash(),
+			},
+			PayloadAttributes: attrs,
+			ForkVersion:       s.ActiveForkVersionForSlot(slot),
+		},
 	)
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
 		s.Logger().Warn("received nil payload ID on VALID engine response",
-			"head_eth1_hash", fcuConfig.HeadEth1Hash,
-			"for_slot", fcuConfig.ProposingSlot,
+			"head_eth1_hash", parentEth1Hash,
+			"for_slot", slot,
 		)
 
 		s.SetStatus(ErrNilPayloadOnValidResponse)
@@ -85,13 +89,13 @@ func (s *Service) BuildLocalPayload(
 	}
 
 	s.Logger().Info("forkchoice updated with payload attributes",
-		"head_eth1_hash", fcuConfig.HeadEth1Hash,
-		"for_slot", fcuConfig.ProposingSlot,
+		"head_eth1_hash", parentEth1Hash,
+		"for_slot", slot,
 		"payload_id", payloadID,
 	)
 
 	s.payloadCache.Set(
-		fcuConfig.ProposingSlot,
+		slot,
 		parentBlockRoot,
 		*payloadID,
 	)
@@ -107,7 +111,7 @@ func (s *Service) BuildLocalPayload(
 func (s *Service) GetBestPayload(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
@@ -154,7 +158,7 @@ func (s *Service) GetBestPayload(
 func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
@@ -187,7 +191,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
@@ -288,8 +292,10 @@ func (s *Service) getPayloadFromExecutionClient(
 
 	payload, blobsBundle, overrideBuilder, err := s.es.GetPayload(
 		ctx,
-		*payloadID,
-		slot,
+		&engine.NewGetPayloadRequest{
+			PayloadID:   *payloadID,
+			ForkVersion: s.BeaconCfg().ActiveForkVersion(slot),
+		},
 	)
 	if err != nil {
 		return nil, nil, false, err

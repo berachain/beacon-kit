@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/builder"
 	localbuilder "github.com/berachain/beacon-kit/beacon/builder/local"
 	"github.com/berachain/beacon-kit/beacon/core"
+	"github.com/berachain/beacon-kit/beacon/core/blobs"
 	"github.com/berachain/beacon-kit/beacon/core/randao"
 	"github.com/berachain/beacon-kit/beacon/execution"
 	"github.com/berachain/beacon-kit/beacon/staking"
@@ -44,6 +45,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/crypto"
+	"github.com/berachain/beacon-kit/engine"
 	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/lib/abi"
@@ -138,10 +140,11 @@ func NewDefaultBeaconKitRuntime(
 		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
 	)
 
+	executionEngine := engine.NewExecutionEngine(engineClient, logger)
 	// Build the execution service.
 	executionService := service.New[execution.Service](
 		execution.WithBaseService(baseService.ShallowCopy("execution")),
-		execution.WithEngineCaller(engineClient),
+		execution.WithExecutionEngine(executionEngine),
 		execution.WithStakingService(stakingService),
 	)
 
@@ -149,10 +152,13 @@ func NewDefaultBeaconKitRuntime(
 	localBuilder := service.New[localbuilder.Service](
 		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
 		localbuilder.WithBuilderConfig(&cfg.Builder),
-		localbuilder.WithExecutionService(executionService),
+		localbuilder.WithExecutionEngine(executionEngine),
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 		localbuilder.WithValidatorConfig(&cfg.Validator),
 	)
+
+	// Build the Blobs Processor.
+	blobsProcessor := blobs.NewProcessor()
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(
@@ -181,11 +187,16 @@ func NewDefaultBeaconKitRuntime(
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
+		blockchain.WithExecutionEngine(executionEngine),
 		blockchain.WithExecutionService(executionService),
 		blockchain.WithLocalBuilder(localBuilder),
 		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(&cfg.Beacon, randaoProcessor)),
+			core.NewStateProcessor(
+				&cfg.Beacon,
+				blobsProcessor,
+				randaoProcessor,
+			)),
 		blockchain.WithSyncService(syncService),
 	)
 

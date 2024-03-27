@@ -23,28 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package blobs
 
-import "github.com/cockroachdb/errors"
+import (
+	"errors"
 
-var (
-	// ErrExecutionClientDisconnected represents an error when
-	/// the execution client is disconnected.
-	ErrExecutionClientDisconnected = errors.New(
-		"execution client disconnected")
-
-	// ErrAcceptedSyncingPayloadStatus represents an error when
-	// the payload status is SYNCING or ACCEPTED.
-	ErrAcceptedSyncingPayloadStatus = errors.New(
-		"payload status is SYNCING or ACCEPTED")
-
-	// ErrInvalidPayloadStatus represents an error when the
-	// payload status is INVALID.
-	ErrInvalidPayloadStatus = errors.New(
-		"payload status is INVALID")
-
-	// ErrBadBlockProduced represents an error when the beacon
-	// chain has produced a bad block.
-	ErrBadBlockProduced = errors.New(
-		"beacon chain has produced a bad block, RIP walrus")
+	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/sourcegraph/conc/iter"
 )
+
+// Processor is the processor for blobs.
+type Processor struct{}
+
+// NewProcessor creates a new processor.
+func NewProcessor() *Processor {
+	return &Processor{}
+}
+
+// ProcessBlob processes a blob.
+func (sp *Processor) ProcessBlobs(
+	avs state.AvailabilityStore,
+	blk types.BeaconBlock,
+	sidecars *types.BlobSidecars,
+) error {
+	// Verify the KZG inclusion proofs.
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the blobs are available.
+	if err = errors.Join(iter.Map(
+		sidecars.Sidecars,
+		func(sidecar **types.BlobSidecar) error {
+			if *sidecar == nil {
+				return ErrAttemptedToVerifyNilSidecar
+			}
+			// Store the blobs under a single height.
+			return types.VerifyKZGInclusionProof(
+				bodyRoot[:], *sidecar, (*sidecar).Index,
+			)
+		},
+	)...); err != nil {
+		return err
+	}
+
+	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
+}

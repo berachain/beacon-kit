@@ -23,6 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// execution defines a service that listens to the latest event logs
-// from the validator deposit contract and the ETH 1.0 blockchain.
-package execution
+package engine
+
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrExecutionClientDisconnected represents an error when
+	/// the execution client is disconnected.
+	ErrExecutionClientDisconnected = errors.New(
+		"execution client disconnected")
+
+	// ErrAcceptedSyncingPayloadStatus represents an error when
+	// the payload status is SYNCING or ACCEPTED.
+	ErrAcceptedSyncingPayloadStatus = errors.New(
+		"payload status is SYNCING or ACCEPTED")
+
+	// ErrInvalidPayloadStatus represents an error when the
+	// payload status is INVALID.
+	ErrInvalidPayloadStatus = errors.New(
+		"payload status is INVALID")
+
+	// ErrBadBlockProduced represents an error when the beacon
+	// chain has produced a bad block.
+	ErrBadBlockProduced = errors.New(
+		"beacon chain has produced a bad block, RIP walrus")
+)

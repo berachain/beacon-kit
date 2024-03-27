@@ -29,7 +29,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/beacon/execution"
+	"github.com/berachain/beacon-kit/engine"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/primitives"
 )
@@ -39,10 +39,17 @@ func (s *Service) sendFCU(
 	ctx context.Context,
 	headEth1Hash primitives.ExecutionHash,
 ) error {
-	_, err := s.es.NotifyForkchoiceUpdate(
-		ctx, &execution.FCUConfig{
-			HeadEth1Hash: headEth1Hash,
-		})
+	forkChoicer := s.ForkchoiceStore(ctx)
+	_, _, err := s.ee.NotifyForkchoiceUpdate(
+		ctx,
+		&engine.NewForkchoiceUpdateRequest{
+			State: &enginetypes.ForkchoiceState{
+				HeadBlockHash:      headEth1Hash,
+				SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash(),
+				FinalizedBlockHash: forkChoicer.FinalizedPayloadBlockHash(),
+			},
+		},
+	)
 	return err
 }
 
@@ -53,7 +60,7 @@ func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	headEth1Hash primitives.ExecutionHash,
 	forSlot primitives.Slot,
-	parentBlockRoot [32]byte,
+	parentBlockRoot primitives.Root,
 ) error {
 	_, err := s.lb.BuildLocalPayload(
 		ctx,

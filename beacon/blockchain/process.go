@@ -30,6 +30,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/crypto/kzg"
+	"github.com/berachain/beacon-kit/engine"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -76,12 +77,19 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// This go rountine validates the execution level aspects of the block.
-	// i.e: does newPayload return VALID?
-	_, err = s.validateExecutionOnBlock(
-		ctx, blk,
-	)
-	if err != nil {
+	// Then we notify the engine of the new payload.
+	body := blk.GetBody()
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if _, err = s.ee.VerifyAndNotifyNewPayload(
+		ctx,
+		&engine.NewPayloadRequest{
+			ExecutionPayload: body.GetExecutionPayload(),
+			VersionedHashes: kzg.ConvertCommitmentsToVersionedHashes(
+				body.GetBlobKzgCommitments(),
+			),
+			ParentBeaconBlockRoot: &parentBeaconBlockRoot,
+		},
+	); err != nil {
 		s.Logger().
 			Error("failed to notify engine of new payload", "error", err)
 		return err
@@ -126,30 +134,6 @@ func (s *Service) ProcessBeaconBlock(
 	// }
 
 	return nil
-}
-
-// validateExecutionOnBlock checks the validity of a the execution payload
-// on the beacon block.
-func (s *Service) validateExecutionOnBlock(
-	// todo: parentRoot hashs should be on blk.
-	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBlock,
-) (bool, error) {
-	var (
-		body    = blk.GetBody()
-		payload = body.GetExecutionPayload()
-	)
-
-	// Then we notify the engine of the new payload.
-	return s.es.NotifyNewPayload(
-		ctx,
-		blk.GetSlot(),
-		payload,
-		kzg.ConvertCommitmentsToVersionedHashes(
-			body.GetBlobKzgCommitments(),
-		),
-		blk.GetParentBlockRoot(),
-	)
 }
 
 // PostBlockProcess is called after a block has been processed.
