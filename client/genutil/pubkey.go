@@ -82,6 +82,7 @@ func AddPubkeyCmd() *cobra.Command {
 				32e9, //nolint:gomnd // temp.
 			)
 
+			//#nosec:G703 // Ignore errors on this line.
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
 			if outputDocument == "" {
 				outputDocument, err = makeOutputFilepath(config.RootDir,
@@ -118,6 +119,7 @@ func writeValidatorStruct(
 	outputDocument string,
 	validator *beacontypes.Validator,
 ) error {
+	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := os.OpenFile(
 		outputDocument,
 		os.O_CREATE|os.O_EXCL|os.O_WRONLY,
@@ -126,6 +128,8 @@ func writeValidatorStruct(
 	if err != nil {
 		return err
 	}
+
+	//#nosec:G307 // Ignore errors on this line.
 	defer outputFile.Close()
 
 	bz, err := validator.MarshalJSON()
