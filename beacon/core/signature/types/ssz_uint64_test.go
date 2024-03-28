@@ -23,11 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives_test
+package types_test
 
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/beacon/core/signature/types"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +36,7 @@ import (
 // This file is for if we ever need to do any epoch tests.
 
 func TestSSZEpoch(t *testing.T) {
-	epoch := primitives.SSZUInt64(1)
+	epoch := types.SSZUInt64(1)
 	root, err := epoch.HashTreeRoot()
 	require.NoError(t, err)
 	require.Len(t, root, primitives.RootLength)
@@ -46,7 +47,7 @@ func TestSSZEpoch(t *testing.T) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	}, root[:])
 
-	epoch = primitives.SSZUInt64(2)
+	epoch = types.SSZUInt64(2)
 	root, err = epoch.HashTreeRoot()
 	require.NoError(t, err)
 	require.Len(t, root, primitives.RootLength)
@@ -58,7 +59,7 @@ func TestSSZEpoch(t *testing.T) {
 	}, root[:])
 
 	// 1234 = 0x04D2
-	epoch = primitives.SSZUInt64(1234)
+	epoch = types.SSZUInt64(1234)
 	root, err = epoch.HashTreeRoot()
 	require.NoError(t, err)
 	require.Len(t, root, primitives.RootLength)

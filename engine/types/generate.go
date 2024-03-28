@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/lib/encoding/uint256"
 	"github.com/berachain/beacon-kit/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -48,7 +49,7 @@ type executableDataDenebMarshaling struct {
 	GasLimit      hexutil.Uint64
 	GasUsed       hexutil.Uint64
 	Timestamp     hexutil.Uint64
-	BaseFeePerGas primitives.SSZUInt256
+	BaseFeePerGas uint256.LittleEndian
 	Random        primitives.ExecutionHash
 	ExtraData     hexutil.Bytes
 	LogsBloom     hexutil.Bytes
