@@ -25,23 +25,38 @@
 
 package beacon
 
-// Collection prefixes.
-const (
-	depositQueuePrefix                     = "deposit_queue"
-	withdrawalQueuePrefix                  = "withdrawal_queue"
-	randaoMixPrefix                        = "randao_mix"
-	slashingsPrefix                        = "slashings"
-	totalSlashingPrefix                    = "total_slashing"
-	validatorIndexPrefix                   = "val_idx"
-	blockRootsPrefix                       = "block_roots"
-	stateRootsPrefix                       = "state_roots"
-	validatorByIndexPrefix                 = "val_idx_to_pk"
-	validatorPubkeyToIndexPrefix           = "val_pk_to_idx"
-	validatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
-	validatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
-	latestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
-	slotPrefix                             = "slot"
-	balancesPrefix                         = "balances"
-	eth1DepositIndexPrefix                 = "eth1_deposit_index"
-	genesisValidatorsRootPrefix            = "genesis_validators_root"
-)
+import "errors"
+
+// UpdateSlashingAtIndex sets the slashing amount in the store.
+func (s *Store) UpdateSlashingAtIndex(index uint64, amount uint64) error {
+	// Update the total slashing amount before overwriting the old amount.
+	total, err := s.totalSlashing.Get(s.ctx)
+	if err != nil {
+		return err
+	}
+
+	oldValue, err := s.SlashingAtIndex(index)
+	if err != nil {
+		return err
+	}
+
+	// Defensive check but total - oldValue should never underflow.
+	if oldValue > total {
+		return errors.New("count of total slashing is not up to date")
+	}
+	if err = s.totalSlashing.Set(s.ctx, total-oldValue+amount); err != nil {
+		return err
+	}
+
+	return s.slashings.Set(s.ctx, index, amount)
+}
+
+// SlashingAtIndex retrieves the slashing amount by index from the store.
+func (s *Store) SlashingAtIndex(index uint64) (uint64, error) {
+	return s.slashings.Get(s.ctx, index)
+}
+
+// TotalSlashing retrieves the total slashing amount from the store.
+func (s *Store) TotalSlashing() (uint64, error) {
+	return s.totalSlashing.Get(s.ctx)
+}
