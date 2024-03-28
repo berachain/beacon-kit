@@ -173,7 +173,11 @@ func (sp *StateProcessor) ProcessBlock(
 }
 
 // processEpoch processes the epoch and ensures it matches the local state.
-func (sp *StateProcessor) processEpoch(_ state.BeaconState) error {
+func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
+	var err error
+	if err = sp.processRandaoMixesReset(st); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -350,6 +354,16 @@ func (sp *StateProcessor) processRandaoReveal(
 
 	// Mixin the reveal.
 	return sp.rp.MixinNewReveal(st, reveal)
+}
+
+// processRandaoMixesReset as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
+//
+//nolint:lll
+func (sp *StateProcessor) processRandaoMixesReset(
+	st state.BeaconState,
+) error {
+	return sp.rp.MixesReset(st)
 }
 
 // processProposerSlashing as defined in the Ethereum 2.0 specification.
