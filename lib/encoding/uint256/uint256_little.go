@@ -39,7 +39,7 @@ const thirtyTwo = 32
 // LittleEndian represents a uint256 number. It
 // is designed to marshal and unmarshal JSON in little-endian
 // format, while under the hood storing the value as big-endian
-// for compatibility wih
+// for compatibility wih.
 type LittleEndian []byte
 
 // UInt256 converts an LittleEndian to a uint256.Int.
@@ -53,7 +53,7 @@ func (s *LittleEndian) Big() *big.Int {
 }
 
 // MarshalJSON marshals a LittleEndian to JSON, it flips the endianness
-// before encoding it to hex.
+// before encoding it to hex such that it is marshalled as big-endian.
 func (s LittleEndian) MarshalJSON() ([]byte, error) {
 	baseFee := new(big.Int).
 		SetBytes(byteslib.CopyAndReverseEndianess(s))
@@ -61,8 +61,8 @@ func (s LittleEndian) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals a LittleEndian from JSON by decoding the hex
-// string
-// and flipping the endianness.
+// string and flipping the endianness, such that it is unmarshalled as
+// big-endian.
 func (s *LittleEndian) UnmarshalJSON(input []byte) error {
 	input = bytes.Trim(input, "\"")
 	baseFee, err := hexutil.DecodeBig(string(input))
