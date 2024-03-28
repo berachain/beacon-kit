@@ -39,7 +39,7 @@ const thirtyTwo = 32
 // LittleEndian represents a uint256 number. It
 // is designed to marshal and unmarshal JSON in little-endian
 // format, while under the hood storing the value as big-endian
-// for compatibility wih.
+// for compatibility with.
 type LittleEndian []byte
 
 // UInt256 converts an LittleEndian to a uint256.Int.
