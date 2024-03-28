@@ -175,6 +175,9 @@ func (sp *StateProcessor) ProcessBlock(
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
 	var err error
+	if err = sp.processSlashingsReset(st); err != nil {
+		return err
+	}
 	if err = sp.processRandaoMixesReset(st); err != nil {
 		return err
 	}
@@ -364,6 +367,22 @@ func (sp *StateProcessor) processRandaoMixesReset(
 	st state.BeaconState,
 ) error {
 	return sp.rp.MixesReset(st)
+}
+
+// processSlashingsReset as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
+//
+//nolint:lll
+func (sp *StateProcessor) processSlashingsReset(
+	st state.BeaconState,
+) error {
+	epoch, err := st.GetEpoch(sp.cfg.SlotsPerEpoch)
+	if err != nil {
+		return err
+	}
+
+	index := (uint64(epoch) + 1) % sp.cfg.EpochsPerSlashingsVector
+	return st.UpdateSlashingAtIndex(index, 0)
 }
 
 // processProposerSlashing as defined in the Ethereum 2.0 specification.

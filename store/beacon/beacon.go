@@ -176,8 +176,8 @@ func NewStore(
 		),
 		totalSlashing: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(slashingsPrefix),
-			slashingsPrefix,
+			sdkcollections.NewPrefix(totalSlashingPrefix),
+			totalSlashingPrefix,
 			sdkcollections.Uint64Value,
 		),
 		//nolint:lll

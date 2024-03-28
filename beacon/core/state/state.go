@@ -72,6 +72,7 @@ type WriteOnlyBeaconState interface {
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
+	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
