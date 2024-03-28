@@ -30,6 +30,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/core/signature"
+	"github.com/berachain/beacon-kit/beacon/core/signature/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/config"
 	crypto "github.com/berachain/beacon-kit/crypto"
@@ -195,7 +196,7 @@ func (p *Processor) computeSigningRoot(
 		)
 	}
 	signingRoot, err := signature.ComputeSigningRoot(
-		primitives.SSZUInt64(epoch),
+		types.SSZUInt64(epoch),
 		signingDomain,
 	)
 

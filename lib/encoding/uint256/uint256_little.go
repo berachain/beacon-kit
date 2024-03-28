@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package uint256
 
 import (
 	"bytes"
@@ -34,45 +34,44 @@ import (
 	"github.com/holiman/uint256"
 )
 
-// Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable interface {
-	HashTreeRoot() (Root, error)
-}
-
 const thirtyTwo = 32
 
-// SSZUInt256 represents a ssz-able uint64.
-type SSZUInt256 []byte
+// LittleEndian represents a uint256 number. It
+// is designed to marshal and unmarshal JSON in little-endian
+// format, while under the hood storing the value as big-endian
+// for compatibility with.
+type LittleEndian []byte
 
-// UInt256 converts an SSZUInt256 to a uint256.Int.
-func (s *SSZUInt256) UInt256() *uint256.Int {
+// UInt256 converts an LittleEndian to a uint256.Int.
+func (s *LittleEndian) UInt256() *uint256.Int {
 	return new(uint256.Int).SetBytes([]byte(*s))
 }
 
-// Big converts an SSZUInt256 to a big.Int.
-func (s *SSZUInt256) Big() *big.Int {
+// Big converts an LittleEndian to a big.Int.
+func (s *LittleEndian) Big() *big.Int {
 	return new(big.Int).SetBytes([]byte(*s))
 }
 
-// UnmarshalJSON unmarshals a SSZUInt256 from JSON by decoding the hex string
-// and flipping the endianness.
-func (s *SSZUInt256) UnmarshalJSON(input []byte) error {
+// MarshalJSON marshals a LittleEndian to JSON, it flips the endianness
+// before encoding it to hex such that it is marshalled as big-endian.
+func (s LittleEndian) MarshalJSON() ([]byte, error) {
+	baseFee := new(big.Int).
+		SetBytes(byteslib.CopyAndReverseEndianess(s))
+	return []byte("\"" + hexutil.EncodeBig(baseFee) + "\""), nil
+}
+
+// UnmarshalJSON unmarshals a LittleEndian from JSON by decoding the hex
+// string and flipping the endianness, such that it is unmarshalled as
+// big-endian.
+func (s *LittleEndian) UnmarshalJSON(input []byte) error {
 	input = bytes.Trim(input, "\"")
 	baseFee, err := hexutil.DecodeBig(string(input))
 	if err != nil {
 		return err
 	}
-	*s = SSZUInt256(byteslib.ExtendToSize(
+	*s = LittleEndian(byteslib.ExtendToSize(
 		byteslib.CopyAndReverseEndianess(baseFee.Bytes()),
 		thirtyTwo,
 	))
 	return nil
-}
-
-// MarshalJSON marshals a SSZUInt256 to JSON, it flips the endianness
-// before encoding it to hex.
-func (s SSZUInt256) MarshalJSON() ([]byte, error) {
-	baseFee := new(big.Int).
-		SetBytes(byteslib.CopyAndReverseEndianess(s))
-	return []byte("\"" + hexutil.EncodeBig(baseFee) + "\""), nil
 }

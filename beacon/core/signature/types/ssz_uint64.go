@@ -23,14 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package types
 
 import (
 	"encoding/binary"
+
+	"github.com/berachain/beacon-kit/primitives"
 )
 
 type (
-	// SSZUInt64List is a list of SSZUInt64.
+	// SSZUint64 is a special uint64 that implements
+	// signature.SSZObject interface.
 	SSZUInt64 uint64
 )
 
@@ -38,8 +41,8 @@ type (
 // represented as bytes in little endian,
 // padded on the right side with zeroed bytes
 // to a total of 32 bytes.
-func (e SSZUInt64) HashTreeRoot() (Root, error) {
-	bz := make([]byte, RootLength)
+func (e SSZUInt64) HashTreeRoot() (primitives.Root, error) {
+	bz := make([]byte, primitives.RootLength)
 	binary.LittleEndian.PutUint64(bz, uint64(e))
-	return Root(bz), nil
+	return primitives.Root(bz), nil
 }
