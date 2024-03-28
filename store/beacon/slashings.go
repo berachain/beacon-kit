@@ -25,10 +25,17 @@
 
 package beacon
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/berachain/beacon-kit/primitives"
+)
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *Store) UpdateSlashingAtIndex(index uint64, amount uint64) error {
+func (s *Store) UpdateSlashingAtIndex(
+	index uint64,
+	amount primitives.Gwei,
+) error {
 	// Update the total slashing amount before overwriting the old amount.
 	total, err := s.totalSlashing.Get(s.ctx)
 	if err != nil {
@@ -41,22 +48,33 @@ func (s *Store) UpdateSlashingAtIndex(index uint64, amount uint64) error {
 	}
 
 	// Defensive check but total - oldValue should never underflow.
-	if oldValue > total {
+	if uint64(oldValue) > total {
 		return errors.New("count of total slashing is not up to date")
 	}
-	if err = s.totalSlashing.Set(s.ctx, total-oldValue+amount); err != nil {
+	if err = s.totalSlashing.Set(
+		s.ctx,
+		total-uint64(oldValue)+uint64(amount),
+	); err != nil {
 		return err
 	}
 
-	return s.slashings.Set(s.ctx, index, amount)
+	return s.slashings.Set(s.ctx, index, uint64(amount))
 }
 
 // SlashingAtIndex retrieves the slashing amount by index from the store.
-func (s *Store) SlashingAtIndex(index uint64) (uint64, error) {
-	return s.slashings.Get(s.ctx, index)
+func (s *Store) SlashingAtIndex(index uint64) (primitives.Gwei, error) {
+	amount, err := s.slashings.Get(s.ctx, index)
+	if err != nil {
+		return 0, err
+	}
+	return primitives.Gwei(amount), nil
 }
 
 // TotalSlashing retrieves the total slashing amount from the store.
-func (s *Store) TotalSlashing() (uint64, error) {
-	return s.totalSlashing.Get(s.ctx)
+func (s *Store) TotalSlashing() (primitives.Gwei, error) {
+	total, err := s.totalSlashing.Get(s.ctx)
+	if err != nil {
+		return 0, err
+	}
+	return primitives.Gwei(total), nil
 }

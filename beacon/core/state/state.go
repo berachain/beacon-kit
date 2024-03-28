@@ -58,6 +58,7 @@ type ReadOnlyBeaconState interface {
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
+	TotalSlashing() (primitives.Gwei, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.

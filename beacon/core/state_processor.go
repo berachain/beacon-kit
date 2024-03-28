@@ -405,13 +405,17 @@ func (sp *StateProcessor) processSlashings(
 	}
 
 	// TODO: FILL THIS IN A LATER PR
-	totalSlashings := uint64(0)
+	totalSlashings, err := st.TotalSlashing()
+	if err != nil {
+		return err
+	}
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#rewards-and-penalties
 	// Set to 1 initially.
 	// TODO: Move to a config
 	proportionalSlashingMultiplier := uint64(1)
 	adjustedTotalSlashingBalance := min(
-		totalSlashings*proportionalSlashingMultiplier, uint64(totalBalance),
+		uint64(totalSlashings)*proportionalSlashingMultiplier,
+		uint64(totalBalance),
 	)
 	vals, err := st.GetValidators()
 	if err != nil {
