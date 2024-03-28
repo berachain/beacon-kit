@@ -65,7 +65,6 @@ func (s *Store) UpdateSlashingAtIndex(
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
 func (s *Store) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
 	amount, err := s.slashings.Get(s.ctx, index)
-	// if !errors.Is(err, sdkcollections.ErrNotFound) && err != nil {
 	if err != nil {
 		return 0, err
 	}
@@ -75,7 +74,6 @@ func (s *Store) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
 // TotalSlashing retrieves the total slashing amount from the store.
 func (s *Store) GetTotalSlashing() (primitives.Gwei, error) {
 	total, err := s.totalSlashing.Get(s.ctx)
-	// if !errors.Is(err, sdkcollections.ErrNotFound) && err != nil {
 	if err != nil {
 		return 0, err
 	}
