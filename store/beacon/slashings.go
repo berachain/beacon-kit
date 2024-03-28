@@ -42,7 +42,7 @@ func (s *Store) UpdateSlashingAtIndex(
 		return err
 	}
 
-	oldValue, err := s.SlashingAtIndex(index)
+	oldValue, err := s.GetSlashingAtIndex(index)
 	if err != nil {
 		return err
 	}
@@ -61,8 +61,8 @@ func (s *Store) UpdateSlashingAtIndex(
 	return s.slashings.Set(s.ctx, index, uint64(amount))
 }
 
-// SlashingAtIndex retrieves the slashing amount by index from the store.
-func (s *Store) SlashingAtIndex(index uint64) (primitives.Gwei, error) {
+// GetSlashingAtIndex retrieves the slashing amount by index from the store.
+func (s *Store) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
 	amount, err := s.slashings.Get(s.ctx, index)
 	if err != nil {
 		return 0, err
@@ -71,7 +71,7 @@ func (s *Store) SlashingAtIndex(index uint64) (primitives.Gwei, error) {
 }
 
 // TotalSlashing retrieves the total slashing amount from the store.
-func (s *Store) TotalSlashing() (primitives.Gwei, error) {
+func (s *Store) GetTotalSlashing() (primitives.Gwei, error) {
 	total, err := s.totalSlashing.Get(s.ctx)
 	if err != nil {
 		return 0, err

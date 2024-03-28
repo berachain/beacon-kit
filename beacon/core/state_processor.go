@@ -405,7 +405,7 @@ func (sp *StateProcessor) processSlashings(
 	}
 
 	// TODO: FILL THIS IN A LATER PR
-	totalSlashings, err := st.TotalSlashing()
+	totalSlashings, err := st.GetTotalSlashing()
 	if err != nil {
 		return err
 	}

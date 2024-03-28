@@ -58,7 +58,7 @@ type ReadOnlyBeaconState interface {
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
-	TotalSlashing() (primitives.Gwei, error)
+	GetTotalSlashing() (primitives.Gwei, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -95,7 +95,7 @@ type WriteOnlyRandaoMixes interface {
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	RandaoMixAtIndex(uint64) (randaotypes.Mix, error)
+	GetRandaoMixAtIndex(uint64) (randaotypes.Mix, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.

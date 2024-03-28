@@ -98,7 +98,7 @@ func (p *Processor) MixinNewReveal(
 	}
 
 	// Get last slots randao mix.
-	mix, err := st.RandaoMixAtIndex(
+	mix, err := st.GetRandaoMixAtIndex(
 		uint64(slot) % p.cfg.Beacon.EpochsPerHistoricalVector,
 	)
 	if err != nil {
@@ -149,7 +149,7 @@ func (p *Processor) MixesReset(st state.BeaconState) error {
 	if err != nil {
 		return err
 	}
-	mix, err := st.RandaoMixAtIndex(uint64(epoch))
+	mix, err := st.GetRandaoMixAtIndex(uint64(epoch))
 	if err != nil {
 		return err
 	}
