@@ -25,7 +25,7 @@
 
 package signature
 
-import "github.com/berachain/beacon-kit/primitives"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 // Domain constants for BLS domain types.
 // Spec:

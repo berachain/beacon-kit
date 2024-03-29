@@ -28,7 +28,7 @@ package bls12381_test
 import (
 	"testing"
 
-	bls12_381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	bls12_381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/stretchr/testify/require"
 )

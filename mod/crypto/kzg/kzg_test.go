@@ -23,29 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package crypto
+package kzg_test
 
 import (
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/primitives"
-	"github.com/itsdevbear/comet-bls12-381/bls"
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/crypto/kzg"
 )
 
-// Signer defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type Signer[Signature any] interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() bls.PubKey
+func TestConvertCommitmentToVersionedHash(t *testing.T) {
+	commitment := [48]byte{}
+	copy(commitment[:], []byte("test commitment"))
+	// Assuming BlobCommitmentVersion is a byte value
+	expectedPrefix := kzg.BlobCommitmentVersion
 
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign(msg []byte) Signature
+	hash := kzg.ConvertCommitmentToVersionedHash(commitment)
+	if hash[0] != expectedPrefix {
+		t.Errorf(
+			"expected first byte of hash to be %v, got %v",
+			expectedPrefix,
+			hash[0],
+		)
+	}
+
+	if len(hash) != 32 {
+		t.Errorf("expected hash length to be 32, got %d", len(hash))
+	}
 }
 
-// NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
-func NewBLS12381Signer(
-	secretKey [bls12381.SecretKeyLength]byte,
-) (Signer[primitives.BLSSignature], error) {
-	return bls12381.NewSigner(secretKey)
+func TestConvertCommitmentsToVersionedHashes(t *testing.T) {
+	commitments := make([][48]byte, 2)
+	copy(commitments[0][:], "commitment 1")
+	copy(commitments[1][:], "commitment 2")
+	hashes := kzg.ConvertCommitmentsToVersionedHashes(commitments)
+
+	if len(hashes) != len(commitments) {
+		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))
+	}
+
+	for i, hash := range hashes {
+		if hash[0] != kzg.BlobCommitmentVersion {
+			t.Errorf(
+				"expected first byte of hash %d to be %v, got %v",
+				i,
+				kzg.BlobCommitmentVersion,
+				hash[0],
+			)
+		}
+	}
 }

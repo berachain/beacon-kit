@@ -28,7 +28,7 @@ package types
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 type (

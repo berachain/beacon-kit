@@ -25,7 +25,7 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/primitives"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 // WithdrawalCredentials is a staking credential that is used to identify a
 // validator.

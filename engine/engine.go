@@ -33,7 +33,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 

@@ -28,7 +28,7 @@ package signature
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // Fork as defined in the Ethereum 2.0 specification:

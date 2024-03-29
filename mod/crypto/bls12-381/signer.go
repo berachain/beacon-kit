@@ -26,27 +26,46 @@
 package bls12381
 
 import (
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/cometbft/cometbft/p2p"
+	bls "github.com/itsdevbear/comet-bls12-381/bls"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// VerifySignature checks if a given signature is valid for a message and public
-// key.
-// It returns true if the signature is valid, otherwise it panics if an error
-// occurs during the verification process.
-func VerifySignature(
-	pubKey primitives.BLSPubkey,
-	msg []byte,
-	signature primitives.BLSSignature,
-) bool {
-	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
+// Signer holds the secret key used for signing operations.
+type Signer struct {
+	bls.SecretKey
+}
+
+// NewSigner creates a new Signer instance given a secret key.
+func NewSigner(keyBz [SecretKeyLength]byte) (*Signer, error) {
+	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
 	if err != nil {
-		return false
+		return nil, err
 	}
-	sig, err := blst.SignatureFromBytes(signature[:])
+	return &Signer{
+		SecretKey: secretKey,
+	}, nil
+}
+
+// NewSignerFromFile creates a new Signer instance given a
+// file path to a CometBFT node key.
+//
+// TODO: In order to make RANDAO signing compatible with the BLS12-381
+// we need to extend the PrivVal interface to allow signing arbitrary things.
+// @tac0turtle.
+func NewSignerFromFile(filePath string) (*Signer, error) {
+	key, err := p2p.LoadNodeKey(filePath)
 	if err != nil {
-		return false
+		return nil, err
 	}
 
-	return sig.Verify(pubkey, msg)
+	return NewSigner([SecretKeyLength]byte(key.PrivKey.Bytes()))
+}
+
+// Sign generates a signature for a given message using the signer's secret key.
+// It returns the signature and any error encountered during the signing
+// process.
+func (b *Signer) Sign(msg []byte) primitives.BLSSignature {
+	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal())
 }

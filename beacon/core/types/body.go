@@ -26,10 +26,10 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/crypto/trie"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
 )
 

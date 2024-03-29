@@ -26,7 +26,7 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	ssz "github.com/ferranbt/fastssz"
 )
 

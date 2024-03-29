@@ -29,7 +29,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/berachain/beacon-kit/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/crypto/sha256"
 	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )

@@ -28,7 +28,7 @@ package kzg
 import (
 	"crypto/sha256"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/sourcegraph/conc/iter"
 )
 

@@ -25,7 +25,7 @@
 
 package beacon
 
-import "github.com/berachain/beacon-kit/primitives"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 // GetSlot returns the current slot.
 func (s *Store) GetSlot() (primitives.Slot, error) {

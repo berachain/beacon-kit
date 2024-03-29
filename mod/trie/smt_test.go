@@ -29,8 +29,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/berachain/beacon-kit/crypto/trie"
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/stretchr/testify/require"
 )
 

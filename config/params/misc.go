@@ -25,7 +25,7 @@
 
 package params
 
-import "github.com/berachain/beacon-kit/primitives"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 // This file contains various constants as defined:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc

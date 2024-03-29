@@ -28,7 +28,7 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BeaconBlockHeader is the header of a beacon block.

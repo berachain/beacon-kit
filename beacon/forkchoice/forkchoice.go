@@ -28,7 +28,7 @@ package forkchoice
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // ForkChoicer represents the full fork choice interface composed of all the

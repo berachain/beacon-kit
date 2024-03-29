@@ -26,8 +26,8 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/crypto/sha256"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 

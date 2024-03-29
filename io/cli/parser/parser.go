@@ -31,7 +31,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

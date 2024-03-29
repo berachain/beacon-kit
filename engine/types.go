@@ -27,7 +27,7 @@ package engine
 
 import (
 	"github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:

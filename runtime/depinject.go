@@ -30,8 +30,8 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/crypto"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // DepInjectInput is the input for the dep inject framework.

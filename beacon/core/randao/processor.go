@@ -33,9 +33,9 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/signature/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/config"
-	crypto "github.com/berachain/beacon-kit/crypto"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/primitives"
+	crypto "github.com/berachain/beacon-kit/mod/crypto"
+	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // Processor is the randao processor.

@@ -23,52 +23,65 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256_test
+package trie_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/crypto/sha256"
-	"github.com/protolambda/ztyp/tree"
+	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/stretchr/testify/require"
 )
 
-func Test_SafeMerkleizeVector(t *testing.T) {
-	tests := []struct {
-		name            string
-		roots           [][32]byte
-		maxRootsAllowed uint64
-		expected        [32]byte
-		wantErr         bool
-	}{
-		{
-			name:            "empty roots list",
-			roots:           make([][32]byte, 0),
-			maxRootsAllowed: 16,
-			expected:        tree.ZeroHashes[0],
-			wantErr:         false,
-		},
-		{
-			name:            "maxRootsAllowed is less than the number of roots",
-			roots:           [][32]byte{{0x01}, {0x01}, {0x01}, {0x01}},
-			maxRootsAllowed: 3,
-			expected:        [32]byte{0x00},
-			wantErr:         true,
-		},
+const depth = uint64(16)
+
+func FuzzSparseMerkleTrie_VerifyMerkleProofWithDepth(f *testing.F) {
+	splitProofs := func(proofRaw []byte) [][]byte {
+		var proofs [][]byte
+		for i := 0; i < len(proofRaw); i += 32 {
+			end := i + 32
+			if end >= len(proofRaw) {
+				end = len(proofRaw) - 1
+			}
+			proofs = append(proofs, proofRaw[i:end])
+		}
+		return proofs
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			root, err := sha256.SafeMerkleizeVector(
-				tt.roots,
-				tt.maxRootsAllowed,
-			)
-			if !tt.wantErr {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-			}
-			require.Equal(t, tt.expected, root)
-		})
+	items := [][]byte{
+		[]byte("A"),
+		[]byte("B"),
+		[]byte("C"),
+		[]byte("D"),
+		[]byte("E"),
+		[]byte("F"),
+		[]byte("G"),
+		[]byte("H"),
 	}
+	m, err := trie.NewFromItems(items, depth)
+	require.NoError(f, err)
+	proof, err := m.MerkleProof(0)
+	require.NoError(f, err)
+	require.Len(f, proof, int(depth)+1)
+	root, err := m.HashTreeRoot()
+	require.NoError(f, err)
+	var proofRaw []byte
+	for _, p := range proof {
+		proofRaw = append(proofRaw, p...)
+	}
+	f.Add(root[:], items[0], uint64(0), proofRaw, depth)
+
+	f.Fuzz(
+		func(_ *testing.T,
+			root, item []byte, merkleIndex uint64,
+			proofRaw []byte, depth uint64,
+		) {
+			trie.VerifyMerkleProofWithDepth(
+				root,
+				item,
+				merkleIndex,
+				splitProofs(proofRaw),
+				depth,
+			)
+		},
+	)
 }

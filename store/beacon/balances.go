@@ -28,7 +28,7 @@ package beacon
 import (
 	"cosmossdk.io/collections/indexes"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // IncreaseBalance increases the balance of a validator.

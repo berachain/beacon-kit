@@ -26,7 +26,7 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/crypto/trie"
+	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
 	"github.com/prysmaticlabs/gohashtree"
 )

@@ -29,7 +29,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 func TestBytes4UnmarshalJSON(t *testing.T) {

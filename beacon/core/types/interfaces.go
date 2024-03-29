@@ -27,7 +27,7 @@ package types
 
 import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	ssz "github.com/ferranbt/fastssz"
 )
 

@@ -27,7 +27,7 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon

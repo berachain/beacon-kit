@@ -27,7 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/config/version"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BeaconBlock assembles a new beacon block from

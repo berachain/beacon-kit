@@ -7,7 +7,7 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )

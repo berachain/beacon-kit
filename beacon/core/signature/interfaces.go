@@ -25,7 +25,7 @@
 
 package signature
 
-import "github.com/berachain/beacon-kit/primitives"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 // SSZObject is the interface for the SSZ object.
 type SSZObject interface {

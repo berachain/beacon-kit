@@ -32,7 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/cache"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/stretchr/testify/require"
 )
 

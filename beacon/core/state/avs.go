@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing

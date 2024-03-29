@@ -32,7 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/io/cli/parser"
 	"github.com/berachain/beacon-kit/io/cli/parser/mocks"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/mock"

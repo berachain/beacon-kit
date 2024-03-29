@@ -32,7 +32,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/lib/bytes"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"

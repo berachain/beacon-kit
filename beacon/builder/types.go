@@ -27,7 +27,7 @@ package builder
 
 import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 )
 

@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

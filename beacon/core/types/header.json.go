@@ -5,7 +5,7 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // MarshalJSON marshals as JSON.

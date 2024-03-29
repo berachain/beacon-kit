@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/core/signature/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/stretchr/testify/require"
 )
 

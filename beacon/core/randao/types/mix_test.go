@@ -30,8 +30,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/crypto/sha256"
+	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/crypto/sha256"
 	"github.com/stretchr/testify/require"
 )
 

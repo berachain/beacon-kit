@@ -26,7 +26,7 @@
 package cache
 
 import (
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )

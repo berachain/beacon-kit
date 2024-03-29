@@ -28,7 +28,7 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // UpdateStateRootAtIndex updates the state root at the given slot.

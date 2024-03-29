@@ -37,7 +37,7 @@ import (
 	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
 	"github.com/berachain/beacon-kit/io/http"
 	"github.com/berachain/beacon-kit/io/jwt"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"

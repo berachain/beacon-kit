@@ -35,7 +35,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	filedb "github.com/berachain/beacon-kit/db/file"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
 	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"

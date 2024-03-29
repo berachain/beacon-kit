@@ -23,52 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg_test
+package sha256_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/crypto/kzg"
+	"github.com/berachain/beacon-kit/mod/crypto/sha256"
+	"github.com/protolambda/ztyp/tree"
+	"github.com/stretchr/testify/require"
 )
 
-func TestConvertCommitmentToVersionedHash(t *testing.T) {
-	commitment := [48]byte{}
-	copy(commitment[:], []byte("test commitment"))
-	// Assuming BlobCommitmentVersion is a byte value
-	expectedPrefix := kzg.BlobCommitmentVersion
-
-	hash := kzg.ConvertCommitmentToVersionedHash(commitment)
-	if hash[0] != expectedPrefix {
-		t.Errorf(
-			"expected first byte of hash to be %v, got %v",
-			expectedPrefix,
-			hash[0],
-		)
+func Test_SafeMerkleizeVector(t *testing.T) {
+	tests := []struct {
+		name            string
+		roots           [][32]byte
+		maxRootsAllowed uint64
+		expected        [32]byte
+		wantErr         bool
+	}{
+		{
+			name:            "empty roots list",
+			roots:           make([][32]byte, 0),
+			maxRootsAllowed: 16,
+			expected:        tree.ZeroHashes[0],
+			wantErr:         false,
+		},
+		{
+			name:            "maxRootsAllowed is less than the number of roots",
+			roots:           [][32]byte{{0x01}, {0x01}, {0x01}, {0x01}},
+			maxRootsAllowed: 3,
+			expected:        [32]byte{0x00},
+			wantErr:         true,
+		},
 	}
 
-	if len(hash) != 32 {
-		t.Errorf("expected hash length to be 32, got %d", len(hash))
-	}
-}
-
-func TestConvertCommitmentsToVersionedHashes(t *testing.T) {
-	commitments := make([][48]byte, 2)
-	copy(commitments[0][:], "commitment 1")
-	copy(commitments[1][:], "commitment 2")
-	hashes := kzg.ConvertCommitmentsToVersionedHashes(commitments)
-
-	if len(hashes) != len(commitments) {
-		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))
-	}
-
-	for i, hash := range hashes {
-		if hash[0] != kzg.BlobCommitmentVersion {
-			t.Errorf(
-				"expected first byte of hash %d to be %v, got %v",
-				i,
-				kzg.BlobCommitmentVersion,
-				hash[0],
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root, err := sha256.SafeMerkleizeVector(
+				tt.roots,
+				tt.maxRootsAllowed,
 			)
-		}
+			if !tt.wantErr {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+			require.Equal(t, tt.expected, root)
+		})
 	}
 }

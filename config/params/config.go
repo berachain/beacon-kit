@@ -28,7 +28,7 @@ package params
 import (
 	flags "github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/cli/parser"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 //nolint:lll // struct tags may create long lines.

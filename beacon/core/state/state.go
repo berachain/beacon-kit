@@ -31,7 +31,7 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BeaconState is the interface for the beacon state. It

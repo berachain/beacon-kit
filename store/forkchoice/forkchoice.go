@@ -32,7 +32,7 @@ import (
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // TODO: Decouple from the Specific SingleSlotFinalityStore Impl.

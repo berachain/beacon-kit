@@ -28,7 +28,7 @@ package ssf
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // ForkChoice represents the single-slot finality forkchoice algoritmn.

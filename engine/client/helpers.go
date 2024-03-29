@@ -27,7 +27,7 @@ package client
 
 import (
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // processPayloadStatusResult processes the payload status result and

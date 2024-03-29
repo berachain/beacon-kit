@@ -30,7 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/engine"
 	"github.com/berachain/beacon-kit/lib/abi"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 

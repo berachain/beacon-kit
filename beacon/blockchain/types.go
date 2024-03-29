@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/engine"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 type ExecutionEngine interface {

@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/config/params"
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // StateProcessor is a basic Processor, which takes care of the

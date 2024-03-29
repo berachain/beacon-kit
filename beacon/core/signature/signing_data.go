@@ -25,7 +25,7 @@
 
 package signature
 
-import "github.com/berachain/beacon-kit/primitives"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 // SigningData as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata

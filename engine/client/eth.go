@@ -29,7 +29,7 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 

@@ -29,7 +29,7 @@ import (
 	"context"
 
 	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"

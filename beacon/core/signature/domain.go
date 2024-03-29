@@ -27,7 +27,7 @@ package signature
 
 import (
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.

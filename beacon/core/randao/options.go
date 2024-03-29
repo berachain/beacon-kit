@@ -28,8 +28,8 @@ package randao
 import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config"
-	crypto "github.com/berachain/beacon-kit/crypto"
-	"github.com/berachain/beacon-kit/primitives"
+	crypto "github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 type Option func(*Processor) error

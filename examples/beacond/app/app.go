@@ -29,7 +29,7 @@ import (
 	"context"
 	"io"
 
-	bls12381 "github.com/berachain/beacon-kit/crypto/bls12-381"
+	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
