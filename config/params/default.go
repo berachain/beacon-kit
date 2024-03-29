@@ -47,7 +47,8 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		EpochsPerHistoricalVector: 1,
 		EpochsPerSlashingsVector:  1,
 		// Max operations per block constants.
-		MaxDepositsPerBlock:      16,
-		MaxWithdrawalsPerPayload: 16,
+		MaxDepositsPerBlock:            16,
+		MaxWithdrawalsPerPayload:       16,
+		ProportionalSlashingMultiplier: 1,
 	}
 }
