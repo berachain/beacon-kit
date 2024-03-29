@@ -6,4 +6,5 @@ use (
 	./mod/execution
 	./mod/interfaces
 	./mod/primitives
+	./mod/trie
 )
