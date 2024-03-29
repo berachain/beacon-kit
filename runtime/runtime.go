@@ -46,6 +46,7 @@ import (
 	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
@@ -136,7 +137,7 @@ func NewDefaultBeaconKitRuntime(
 	}
 
 	// Build the execution engine.
-	executionEngine := engine.NewExecutionEngine(engineClient, logger)
+	executionEngine := execution.NewEngine(engineClient, logger)
 
 	// Build the staking service.
 	stakingService := service.New[staking.Service](

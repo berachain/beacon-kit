@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -37,20 +38,20 @@ type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *engine.NewGetPayloadRequest,
+		req *execution.NewGetPayloadRequest,
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engine.NewForkchoiceUpdateRequest,
+		req *execution.NewForkchoiceUpdateRequest,
 	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
 
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engine.NewPayloadRequest,
+		req *execution.NewPayloadRequest,
 	) (bool, error)
 }
 
