@@ -43,6 +43,8 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
+
+	light "github.com/berachain/beacon-kit/light/cmd"
 )
 
 // PostSetupFn is a function that is called after the application is created
@@ -102,5 +104,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		TxCommands(),
 		// `version`
 		version.NewVersionCommand(),
+		// `light client`
+		light.LightClientCmd(),
 	)
 }
