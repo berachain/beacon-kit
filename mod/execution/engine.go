@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package execution
 
 import (
 	"context"
@@ -31,42 +31,42 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/engine/client"
-	"github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// ExecutionEngine is Beacon-Kit's implementation of the `ExecutionEngine`
+// Engine is Beacon-Kit's implementation of the `Engine`
 // from the Ethereum 2.0 Specification.
-type ExecutionEngine struct {
+type Engine struct {
 	ec     *client.EngineClient
 	logger log.Logger
 }
 
-// NewExecuitionEngine creates a new ExecutionEngine.
-func NewExecutionEngine(
+// NewExecuitionEngine creates a new Engine.
+func NewEngine(
 	ec *client.EngineClient,
 	logger log.Logger,
-) *ExecutionEngine {
-	return &ExecutionEngine{
+) *Engine {
+	return &Engine{
 		ec:     ec,
 		logger: logger,
 	}
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *ExecutionEngine) Start(ctx context.Context) {
+func (ee *Engine) Start(ctx context.Context) {
 	go ee.ec.Start(ctx)
 }
 
 // Status returns error if the service is not considered healthy.
-func (ee *ExecutionEngine) Status() error {
+func (ee *Engine) Status() error {
 	return ee.ec.Status()
 }
 
 // TODO move.
-func (ee *ExecutionEngine) GetLogs(
+func (ee *Engine) GetLogs(
 	ctx context.Context,
 	blockHash primitives.ExecutionHash,
 	addrs []primitives.ExecutionAddress,
@@ -75,7 +75,7 @@ func (ee *ExecutionEngine) GetLogs(
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *ExecutionEngine) GetPayload(
+func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *NewGetPayloadRequest,
 ) (types.ExecutionPayload, *types.BlobsBundleV1, bool, error) {
@@ -86,7 +86,7 @@ func (ee *ExecutionEngine) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *ExecutionEngine) NotifyForkchoiceUpdate(
+func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *NewForkchoiceUpdateRequest,
 ) (*types.PayloadID, *primitives.ExecutionHash, error) {
@@ -137,7 +137,7 @@ func (ee *ExecutionEngine) NotifyForkchoiceUpdate(
 // - IsValidBlockHash
 // - IsValidVersionedHashes
 // from the Ethereum 2.0 Specification from within the NewPayload call.
-func (ee *ExecutionEngine) VerifyAndNotifyNewPayload(
+func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *NewPayloadRequest,
 ) (bool, error) {

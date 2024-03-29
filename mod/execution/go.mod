@@ -1,4 +1,4 @@
-module github.com/berachain/beacon-kit/mod/primitives
+module github.com/berachain/beacon-kit/mod/execution
 
 go 1.22.1
 

@@ -30,7 +30,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/engine/client/cache"
+	"github.com/berachain/beacon-kit/mod/execution/client/cache"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"

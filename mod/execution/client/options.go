@@ -27,9 +27,9 @@ package client
 
 import (
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/engine/client/cache"
-	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
 	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/berachain/beacon-kit/mod/execution/client/cache"
+	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 )
 
 // Option is a function type that takes a pointer to an engineClient and returns

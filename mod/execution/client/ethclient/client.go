@@ -28,7 +28,7 @@ package ethclient
 import (
 	"context"
 
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/ethclient"

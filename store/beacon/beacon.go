@@ -32,9 +32,9 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/store/collections"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/store/beacon/index"
 )
 

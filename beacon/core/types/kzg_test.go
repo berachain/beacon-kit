@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"

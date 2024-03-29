@@ -29,8 +29,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/engine"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/mod/execution"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -42,7 +42,7 @@ func (s *Service) sendFCU(
 	forkChoicer := s.ForkchoiceStore(ctx)
 	_, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		&engine.NewForkchoiceUpdateRequest{
+		&execution.NewForkchoiceUpdateRequest{
 			State: &enginetypes.ForkchoiceState{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      forkChoicer.JustifiedPayloadBlockHash(),

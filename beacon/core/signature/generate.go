@@ -26,4 +26,4 @@
 package signature
 
 // Generate the SSZ serialization code for the signing package.
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData,Fork,ForkData -include ../../../primitives -output generated.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData,Fork,ForkData -include ../../../mod/primitives -output generated.ssz.go

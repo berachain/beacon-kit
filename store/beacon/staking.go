@@ -27,7 +27,7 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 )
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.

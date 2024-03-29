@@ -26,7 +26,7 @@
 package types
 
 import (
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"golang.org/x/sync/errgroup"
 )
 

@@ -26,7 +26,7 @@
 package sync
 
 import (
-	"github.com/berachain/beacon-kit/engine/client"
+	"github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 

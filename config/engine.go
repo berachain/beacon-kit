@@ -27,8 +27,8 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/config/flags"
-	engineclient "github.com/berachain/beacon-kit/engine/client"
 	"github.com/berachain/beacon-kit/io/cli/parser"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 )
 
 // Engine conforms to the BeaconKitConfig interface.

@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/config/version"
-	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 )

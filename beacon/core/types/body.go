@@ -26,8 +26,8 @@
 package types
 
 import (
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"

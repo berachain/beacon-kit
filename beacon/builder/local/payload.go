@@ -30,8 +30,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/engine"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
+	"github.com/berachain/beacon-kit/mod/execution"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/ethereum/go-ethereum/common"
@@ -64,7 +64,7 @@ func (s *Service) BuildLocalPayload(
 		"parent_block_root", common.Hash(parentBlockRoot),
 	)
 	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
-		ctx, &engine.NewForkchoiceUpdateRequest{
+		ctx, &execution.NewForkchoiceUpdateRequest{
 			State: &enginetypes.ForkchoiceState{
 				HeadBlockHash: parentEth1Hash,
 				SafeBlockHash: s.ForkchoiceStore(ctx).
@@ -292,7 +292,7 @@ func (s *Service) getPayloadFromExecutionClient(
 
 	payload, blobsBundle, overrideBuilder, err := s.ee.GetPayload(
 		ctx,
-		&engine.NewGetPayloadRequest{
+		&execution.NewGetPayloadRequest{
 			PayloadID:   *payloadID,
 			ForkVersion: s.BeaconCfg().ActiveForkVersion(slot),
 		},

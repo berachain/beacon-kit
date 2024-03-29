@@ -33,10 +33,10 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/engine/client/cache"
-	eth "github.com/berachain/beacon-kit/engine/client/ethclient"
 	"github.com/berachain/beacon-kit/io/http"
 	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/berachain/beacon-kit/mod/execution/client/cache"
+	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
