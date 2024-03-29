@@ -31,7 +31,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/berachain/beacon-kit/db"
+	db "github.com/berachain/beacon-kit/mod/storage"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 

@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/db/file"
+	file "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )

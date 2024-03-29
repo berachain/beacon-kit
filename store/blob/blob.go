@@ -30,9 +30,9 @@ import (
 	"errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/db"
-	filedb "github.com/berachain/beacon-kit/db/file"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	db "github.com/berachain/beacon-kit/mod/storage"
+	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/sourcegraph/conc/iter"
 )
 
