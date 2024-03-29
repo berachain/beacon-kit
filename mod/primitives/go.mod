@@ -6,6 +6,7 @@ require (
 	github.com/cockroachdb/errors v1.11.1
 	github.com/ethereum/go-ethereum v1.13.5-0.20240328163540-a3829178af6c
 	github.com/holiman/uint256 v1.2.4
+	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -21,6 +22,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

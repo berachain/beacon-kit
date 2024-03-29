@@ -29,9 +29,9 @@ import (
 	"context"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/mod/crypto/kzg"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"golang.org/x/sync/errgroup"
 )
 

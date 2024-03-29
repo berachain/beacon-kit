@@ -28,7 +28,7 @@ package kzg_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/crypto/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
 func TestConvertCommitmentToVersionedHash(t *testing.T) {
