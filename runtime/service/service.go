@@ -30,7 +30,6 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/async/dispatch"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/forkchoice"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
@@ -45,7 +44,6 @@ type BaseService struct {
 	bsb    BeaconStorageBackend
 	name   string
 	cfg    *config.Config
-	gcd    *dispatch.GrandCentralDispatch
 	logger log.Logger
 	fcr    forkchoice.ForkChoicer
 
@@ -60,12 +58,10 @@ type BaseService struct {
 func NewBaseService(
 	cfg *config.Config,
 	bsp BeaconStorageBackend,
-	gcd *dispatch.GrandCentralDispatch,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
 		bsb:    bsp,
-		gcd:    gcd,
 		logger: logger,
 		cfg:    cfg,
 		fcr:    ssf.New(bsp.ForkchoiceStore(context.Background())),
@@ -81,12 +77,6 @@ func (s *BaseService) Name() string {
 // It is used for logging messages in a structured manner.
 func (s *BaseService) Logger() log.Logger {
 	return s.logger
-}
-
-// GCD returns the GrandCentralDispatch instance of the BaseService.
-// It is used for managing asynchronous tasks and dispatching events.
-func (s *BaseService) GCD() *dispatch.GrandCentralDispatch {
-	return s.gcd
 }
 
 // AvailabilityStore returns the availability store from the BaseService.

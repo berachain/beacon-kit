@@ -30,8 +30,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/async/dispatch"
-	"github.com/berachain/beacon-kit/async/notify"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/builder"
 	localbuilder "github.com/berachain/beacon-kit/beacon/builder/local"
@@ -97,22 +95,10 @@ func NewDefaultBeaconKitRuntime(
 		return nil, err
 	}
 
-	// Build the service dispatcher.
-	gcd, err := dispatch.NewGrandCentralDispatch(
-		dispatch.WithLogger(logger),
-		dispatch.WithDispatchQueue(
-			"dispatch.forkchoice",
-			dispatch.QueueTypeSerial,
-		),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Create the base service, we will the create shallow copies for each
 	// service.
 	baseService := service.NewBaseService(
-		cfg, bsb, gcd, logger,
+		cfg, bsb, logger,
 	)
 
 	// Build the client to interact with the Engine API.
@@ -123,12 +109,6 @@ func NewDefaultBeaconKitRuntime(
 
 	// TODO: move.
 	engineClient.Start(context.Background())
-
-	// Build the Notification Service.
-	notificationService := service.New(
-		notify.WithBaseService(baseService.ShallowCopy("notify")),
-		notify.WithGCD(gcd),
-	)
 
 	// Extrac the staking ABI.
 	depositABI, err := stakingabi.BeaconDepositContractMetaData.GetAbi()
@@ -203,7 +183,6 @@ func NewDefaultBeaconKitRuntime(
 		service.WithLogger(logger),
 		service.WithService(builderService),
 		service.WithService(chainService),
-		service.WithService(notificationService),
 		service.WithService(stakingService),
 		service.WithService(syncService),
 	)
