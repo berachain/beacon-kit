@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/beacon/forkchoice"
-	"github.com/berachain/beacon-kit/config/params"
+	"github.com/berachain/beacon-kit/mod/config/params"
 )
 
 // PayloadValidator is responsible for validating incoming.

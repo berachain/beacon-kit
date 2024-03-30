@@ -27,8 +27,8 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/config/flags"
-	"github.com/berachain/beacon-kit/config/params"
 	"github.com/berachain/beacon-kit/io/cli/parser"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
