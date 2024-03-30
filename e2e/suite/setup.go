@@ -34,8 +34,8 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/e2e/config"
 	"github.com/berachain/beacon-kit/e2e/suite/types"
-	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -60,7 +60,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	)
 
 	// Setup some sane defaults.
-	s.cfg = kurtosis.DefaultE2ETestConfig()
+	s.cfg = config.DefaultE2ETestConfig()
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
 	s.testAccounts = make([]*types.EthAccount, 0)

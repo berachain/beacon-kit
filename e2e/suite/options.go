@@ -29,14 +29,14 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/kurtosis"
+	"github.com/berachain/beacon-kit/e2e/config"
 )
 
 // Type Option is a function that sets a field on the KurtosisE2ESuite.
 type Option func(*KurtosisE2ESuite) error
 
 // WithConfig sets the E2ETestConfig for the test suite.
-func WithConfig(cfg *kurtosis.E2ETestConfig) Option {
+func WithConfig(cfg *config.E2ETestConfig) Option {
 	return func(s *KurtosisE2ESuite) error {
 		s.cfg = cfg
 		return nil

@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/e2e/config"
 	"github.com/berachain/beacon-kit/e2e/suite/types"
-	"github.com/berachain/beacon-kit/kurtosis"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/stretchr/testify/suite"
@@ -45,7 +45,7 @@ var Run = suite.Run
 // KurtosisE2ESuite.
 type KurtosisE2ESuite struct {
 	suite.Suite
-	cfg     *kurtosis.E2ETestConfig
+	cfg     *config.E2ETestConfig
 	logger  log.Logger
 	ctx     context.Context
 	kCtx    *kurtosis_context.KurtosisContext
@@ -80,7 +80,8 @@ func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
 	return s.enclave
 }
 
-func (s *KurtosisE2ESuite) Config() *kurtosis.E2ETestConfig {
+// Config returns the E2ETestConfig associated with the KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) Config() *config.E2ETestConfig {
 	return s.cfg
 }
 

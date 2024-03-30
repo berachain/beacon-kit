@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 //nolint:tagliatelle // starlark uses snek case.
-package kurtosis
+package config
 
 import (
 	"encoding/json"
