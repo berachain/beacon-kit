@@ -45,12 +45,11 @@ type BeaconKitConfig[T any] interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:         DefaultABCIConfig(),
-		Beacon:       params.DefaultBeaconConfig(),
-		Builder:      builder.DefaultBuilderConfig(),
-		Engine:       engineclient.DefaultConfig(),
-		FeatureFlags: DefaultFeatureFlagsConfig(),
-		Validator:    DefaultValidatorConfig(),
+		ABCI:      DefaultABCIConfig(),
+		Beacon:    params.DefaultBeaconConfig(),
+		Builder:   builder.DefaultBuilderConfig(),
+		Engine:    engineclient.DefaultConfig(),
+		Validator: DefaultValidatorConfig(),
 	}
 }
 
@@ -68,9 +67,6 @@ type Config struct {
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config
 
-	// FeatureFlags is the configuration for the feature flags.
-	FeatureFlags FeatureFlags
-
 	// Validator is the configuration for the validator.
 	Validator Validator
 }
@@ -83,7 +79,7 @@ func (c Config) Template() string {
 ###############################################################################
 ` + c.ABCI.Template() + c.Beacon.Template() +
 		c.Builder.Template() + c.Engine.Template() +
-		c.FeatureFlags.Template() + c.Validator.Template()
+		c.Validator.Template()
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
@@ -143,13 +139,6 @@ func readConfigFromAppOptsParser(
 		return nil, err
 	}
 	conf.Engine = *engineCfg
-
-	featureFlagsCfg, err := FeatureFlags{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.FeatureFlags = *featureFlagsCfg
-
 	return conf, nil
 }
 

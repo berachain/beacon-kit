@@ -114,11 +114,6 @@ func (s *BaseService) BuilderCfg() *builder.Config {
 	return &s.cfg.Builder
 }
 
-// FeatureFlags returns the feature flags from the BaseService.
-func (s *BaseService) FeatureFlags() *config.FeatureFlags {
-	return &s.cfg.FeatureFlags
-}
-
 // Start is an intentional no-op for the BaseService.
 func (s *BaseService) Start(context.Context) {}
 
