@@ -25,7 +25,7 @@
 
 package primitives
 
-import "github.com/cockroachdb/errors"
+import "errors"
 
 // ErrInvalidBufferSize indicates that the provided buffer size is invalid.
 var ErrInvalidBufferSize = errors.New("invalid buffer size")
