@@ -35,7 +35,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/berachain/beacon-kit/light/app"
-	"github.com/berachain/beacon-kit/light/provider/comet"
+	"github.com/berachain/beacon-kit/light/client/provider/comet"
 )
 
 // beacond light beacond-2061 --hash 587FD10EF595CB799E36F0C21A51861C6D2C81C7452868FA2B8178C7C1689710 --height 6461

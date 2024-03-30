@@ -9,8 +9,8 @@ import (
 
 	"github.com/berachain/beacon-kit/io/cli/prompt"
 	"github.com/berachain/beacon-kit/light/app"
-	"github.com/berachain/beacon-kit/light/provider"
-	"github.com/berachain/beacon-kit/light/provider/comet"
+	"github.com/berachain/beacon-kit/light/client/provider"
+	"github.com/berachain/beacon-kit/light/client/provider/comet"
 )
 
 func ConfigFromCmd(logger log.Logger, chainID string, cmd *cobra.Command) (*app.Config, error) {

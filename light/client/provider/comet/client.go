@@ -10,7 +10,7 @@ import (
 	cometMath "github.com/cometbft/cometbft/libs/math"
 	"github.com/cometbft/cometbft/light"
 
-	"github.com/berachain/beacon-kit/light/provider/comet/types"
+	"github.com/berachain/beacon-kit/light/client/provider/comet/types"
 )
 
 func NewClient(

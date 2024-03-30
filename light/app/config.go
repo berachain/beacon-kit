@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/berachain/beacon-kit/light/provider"
-	"github.com/berachain/beacon-kit/light/provider/comet"
+	"github.com/berachain/beacon-kit/light/client/provider"
+	"github.com/berachain/beacon-kit/light/client/provider/comet"
 )
 
 type Config struct {

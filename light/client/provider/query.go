@@ -30,7 +30,7 @@ func (p *Provider) QueryWithProof(ctx context.Context, key string, height int64)
 }
 
 func (p *Provider) RunGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64, prove bool) (abci.ResponseQuery, metadata.MD, error) {
-	// parse height header
+	// // parse height header
 	// if heights := md.Get(grpctypes.GRPCBlockHeightHeader); len(heights) > 0 {
 	// 	height, err := strconv.ParseInt(heights[0], 10, 64)
 	// 	if err != nil {

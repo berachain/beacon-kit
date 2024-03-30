@@ -5,7 +5,7 @@ import (
 
 	"github.com/cometbft/cometbft/types"
 
-	"github.com/berachain/beacon-kit/light/provider"
+	"github.com/berachain/beacon-kit/light/client/provider"
 )
 
 // Client is a client for the Light API.
