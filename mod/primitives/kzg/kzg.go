@@ -26,10 +26,8 @@
 package kzg
 
 import (
-	"crypto/sha256"
-
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/sourcegraph/conc/iter"
+	sha256 "github.com/minio/sha256-simd"
 )
 
 // BlobCommitmentVersion is the version of the blob commitment.
@@ -67,7 +65,9 @@ func ConvertCommitmentToVersionedHash(
 func ConvertCommitmentsToVersionedHashes(
 	commitments [][48]byte,
 ) []primitives.ExecutionHash {
-	return iter.Map(commitments, func(bz *[48]byte) primitives.ExecutionHash {
-		return ConvertCommitmentToVersionedHash(*bz)
-	})
+	hashes := make([]primitives.ExecutionHash, len(commitments))
+	for i, bz := range commitments {
+		hashes[i] = ConvertCommitmentToVersionedHash(bz)
+	}
+	return hashes
 }
