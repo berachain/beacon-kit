@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/io/cli/parser"
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
@@ -47,7 +48,7 @@ func DefaultConfig() *Config {
 		ABCI:         DefaultABCIConfig(),
 		Beacon:       params.DefaultBeaconConfig(),
 		Builder:      builder.DefaultBuilderConfig(),
-		Engine:       DefaultEngineConfig(),
+		Engine:       engineclient.DefaultConfig(),
 		FeatureFlags: DefaultFeatureFlagsConfig(),
 		Validator:    DefaultValidatorConfig(),
 	}
@@ -65,7 +66,7 @@ type Config struct {
 	Builder builder.Config
 
 	// Engine is the configuration for the execution client.
-	Engine Engine
+	Engine engineclient.Config
 
 	// FeatureFlags is the configuration for the feature flags.
 	FeatureFlags FeatureFlags
@@ -110,7 +111,7 @@ func readConfigFromAppOptsParser(
 	var (
 		err       error
 		conf      = &Config{}
-		engineCfg *Engine
+		engineCfg *engineclient.Config
 		beaconCfg *params.BeaconChainConfig
 		abciCfg   *ABCI
 	)
@@ -137,7 +138,7 @@ func readConfigFromAppOptsParser(
 	conf.Builder = *builderCfg
 
 	// Read Engine Client Config
-	engineCfg, err = Engine{}.Parse(parser)
+	engineCfg, err = engineclient.Config{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
