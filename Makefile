@@ -334,7 +334,10 @@ sszgen-clean:
 ###############################################################################
 
 tidy: |
-	go mod tidy
+	@for module in $(MODULES); do \
+		echo "Running go mod tidy in $$module"; \
+		(cd $$module && go mod tidy) || exit 1; \
+	done
 
 repo-rinse: |
 	git clean -xfd
