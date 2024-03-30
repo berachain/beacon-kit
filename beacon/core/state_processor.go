@@ -376,7 +376,7 @@ func (sp *StateProcessor) processRandaoMixesReset(
 func (sp *StateProcessor) processSlashingsReset(
 	st state.BeaconState,
 ) error {
-	epoch, err := st.GetEpoch(sp.cfg.SlotsPerEpoch)
+	epoch, err := st.GetCurrentEpoch(sp.cfg.SlotsPerEpoch)
 	if err != nil {
 		return err
 	}
@@ -438,7 +438,7 @@ func (sp *StateProcessor) processSlashings(
 	}
 
 	// Get the current epoch
-	epoch, err := st.GetEpoch(slotsPerEpoch)
+	epoch, err := st.GetCurrentEpoch(slotsPerEpoch)
 	if err != nil {
 		return err
 	}

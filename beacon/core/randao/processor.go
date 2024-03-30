@@ -145,7 +145,7 @@ func (p *Processor) VerifyReveal(
 // MixesReset resets the randao mixes.
 // process_randao_mixes_reset in the Ethereum 2.0 specification.
 func (p *Processor) MixesReset(st state.BeaconState) error {
-	epoch, err := st.GetEpoch(p.cfg.Beacon.SlotsPerEpoch)
+	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,10 @@ func (p *Processor) MixesReset(st state.BeaconState) error {
 	if err != nil {
 		return err
 	}
-	return st.UpdateRandaoMixAtIndex(uint64(epoch)+1, mix)
+	return st.UpdateRandaoMixAtIndex(
+		uint64(epoch+1)%p.cfg.Beacon.EpochsPerHistoricalVector,
+		mix,
+	)
 }
 
 // verifyReveal verifies the reveal of the proposer.

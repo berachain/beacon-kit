@@ -220,6 +220,13 @@ func (k *Keeper) InitGenesis(
 		})
 	}
 
+	// Set the genesis slashing data.
+	for i := range data.Slashings {
+		if err = store.UpdateSlashingAtIndex(uint64(i), 0); err != nil {
+			return nil, err
+		}
+	}
+
 	if err = store.SetGenesisValidatorsRoot(
 		data.GenesisValidatorsRoot,
 	); err != nil {

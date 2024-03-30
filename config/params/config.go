@@ -177,7 +177,7 @@ func (c BeaconChainConfig) Parse(
 		return nil, err
 	}
 
-	if c.ElectraForkEpoch, err = parser.GetEpoch(
+	if c.ElectraForkEpoch, err = parser.GetCurrentEpoch(
 		flags.ElectraForkEpoch,
 	); err != nil {
 		return nil, err
