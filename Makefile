@@ -333,11 +333,9 @@ sszgen-clean:
 ###                             Dependencies                                ###
 ###############################################################################
 
-tidy: |
-	@for module in $(MODULES); do \
-		echo "Running go mod tidy in $$module"; \
-		(cd $$module && go mod tidy) || exit 1; \
-	done
+tidy:
+	@echo "Running go mod tidy in all modules"
+	@find . -name 'go.mod' -execdir go mod tidy \;
 
 repo-rinse: |
 	git clean -xfd
