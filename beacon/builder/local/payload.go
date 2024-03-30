@@ -34,7 +34,6 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // BuildLocalPayload builds a payload for the given slot and
@@ -60,8 +59,7 @@ func (s *Service) BuildLocalPayload(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
 		"parent_eth1_hash", parentEth1Hash,
-		// TODO: don't use execution hash for beacon root.
-		"parent_block_root", common.Hash(parentBlockRoot),
+		"parent_block_root", parentBlockRoot,
 	)
 	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx, &execution.NewForkchoiceUpdateRequest{

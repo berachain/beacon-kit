@@ -52,6 +52,9 @@ type Service struct {
 	service.BaseService
 	cfg *builder.Config
 
+	// signer is used to retrieve the public key of this node.
+	signer Signer
+
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
@@ -65,9 +68,6 @@ type Service struct {
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
 	randaoProcessor RandaoProcessor
-
-	// signer is used to retrieve the public key of this node.
-	signer Signer
 }
 
 // LocalBuilder returns the local builder.
