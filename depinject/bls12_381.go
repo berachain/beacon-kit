@@ -23,32 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bls12381
+package depinject
 
 import (
 	"os"
 
 	"cosmossdk.io/depinject"
+	bls12_381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/cometbft/cometbft/p2p"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
+// BlsSignerInput is the input for the dep inject framework.
+type BlsSignerInput struct {
 	depinject.In
 
 	AppOpts servertypes.AppOptions
 }
 
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
+// BlsSignerOutput is the output for the dep inject framework.
+type BlsSignerOutput struct {
 	depinject.Out
 
-	BlsSigner *Signer
+	BlsSigner *bls12_381.Signer
 }
 
-func ProvideBlsSigner(in DepInjectInput) DepInjectOutput {
+func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
 	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
 
 	key, err := NewSignerFromFile(
@@ -58,7 +60,23 @@ func ProvideBlsSigner(in DepInjectInput) DepInjectOutput {
 		os.Exit(1)
 	}
 
-	return DepInjectOutput{
+	return BlsSignerOutput{
 		BlsSigner: key,
 	}
+}
+
+// NewSignerFromFile creates a new Signer instance given a
+// file path to a CometBFT node key.
+//
+// TODO: In order to make RANDAO signing compatible with the BLS12-381
+// we need to extend the PrivVal interface to allow signing arbitrary things.
+// @tac0turtle.
+func NewSignerFromFile(filePath string) (*bls12_381.Signer, error) {
+	key, err := p2p.LoadNodeKey(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return bls12_381.NewSigner(
+		[bls12_381.SecretKeyLength]byte(key.PrivKey.Bytes()))
 }

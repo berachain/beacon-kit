@@ -29,11 +29,10 @@ import (
 	"context"
 	"io"
 
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
-
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	bkdepinject "github.com/berachain/beacon-kit/depinject"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	dbm "github.com/cosmos/cosmos-db"
@@ -86,7 +85,7 @@ func NewBeaconKitApp(
 			AppConfig(),
 			depinject.Provide(
 				beaconkitruntime.ProvideRuntime,
-				bls12381.ProvideBlsSigner,
+				bkdepinject.ProvideBlsSigner,
 			),
 			depinject.Supply(
 				// supply the application options
