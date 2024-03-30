@@ -23,21 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
-
-import (
-	"github.com/berachain/beacon-kit/cache"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/mod/builder"
-	"github.com/berachain/beacon-kit/runtime/service"
-)
-
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	cfg  *builder.Config
-	vcfg *config.Validator
-	ee   ExecutionEngine
-	pc   *cache.PayloadIDCache
-}
+package builder

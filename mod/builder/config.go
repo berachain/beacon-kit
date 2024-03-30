@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package builder
 
 import (
 	"time"
@@ -41,7 +41,7 @@ const (
 )
 
 // Builder is the configuration for the payload builder.
-type Builder struct {
+type Config struct {
 	// LocalBuilderEnabled determines if the local builder is enabled.
 	LocalBuilderEnabled bool
 	// LocalBuildPayloadTimeout is the timeout parameter for local build
@@ -53,15 +53,15 @@ type Builder struct {
 }
 
 // DefaultBuilderConfig returns the default fork configuration.
-func DefaultBuilderConfig() Builder {
-	return Builder{
+func DefaultBuilderConfig() Config {
+	return Config{
 		LocalBuilderEnabled:      defaultLocalBuilderEnabled,
 		LocalBuildPayloadTimeout: defaultLocalBuildPayloadTimeout,
 	}
 }
 
 // Parse parses the configuration.
-func (c Builder) Parse(parser parser.AppOptionsParser) (*Builder, error) {
+func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
 	localBuilderEnabled, err := parser.GetBool(flags.LocalBuilderEnabled)
 	if err != nil {
 		return nil, err
@@ -74,14 +74,14 @@ func (c Builder) Parse(parser parser.AppOptionsParser) (*Builder, error) {
 		return nil, err
 	}
 
-	return &Builder{
+	return &Config{
 		LocalBuilderEnabled:      localBuilderEnabled,
 		LocalBuildPayloadTimeout: payloadTimeout,
 	}, nil
 }
 
 // Template returns the configuration template.
-func (c Builder) Template() string {
+func (c Config) Template() string {
 	//nolint:lll
 	return `
 [beacon-kit.builder]

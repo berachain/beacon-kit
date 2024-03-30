@@ -28,6 +28,7 @@ package config
 import (
 	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/cli/parser"
+	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
@@ -45,7 +46,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		ABCI:         DefaultABCIConfig(),
 		Beacon:       params.DefaultBeaconConfig(),
-		Builder:      DefaultBuilderConfig(),
+		Builder:      builder.DefaultBuilderConfig(),
 		Engine:       DefaultEngineConfig(),
 		FeatureFlags: DefaultFeatureFlagsConfig(),
 		Validator:    DefaultValidatorConfig(),
@@ -61,7 +62,7 @@ type Config struct {
 	Beacon params.BeaconChainConfig
 
 	// Builder is the configuration for the local build payload timeout.
-	Builder Builder
+	Builder builder.Config
 
 	// Engine is the configuration for the execution client.
 	Engine Engine
@@ -129,7 +130,7 @@ func readConfigFromAppOptsParser(
 	conf.Beacon = *beaconCfg
 
 	// Read Bilder Config
-	builderCfg, err := Builder{}.Parse(parser)
+	builderCfg, err := builder.Config{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}

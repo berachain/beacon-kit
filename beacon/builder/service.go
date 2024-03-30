@@ -30,7 +30,7 @@ import (
 	"fmt"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/builder"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -50,7 +50,7 @@ type PayloadBuilder interface {
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
-	cfg *config.Builder
+	cfg *builder.Config
 
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.

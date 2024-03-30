@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/forkchoice"
 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -109,7 +110,7 @@ func (s *BaseService) BeaconCfg() *params.BeaconChainConfig {
 
 // BuilderCfg returns the configuration settings of the builder from
 // the BaseService.
-func (s *BaseService) BuilderCfg() *config.Builder {
+func (s *BaseService) BuilderCfg() *builder.Config {
 	return &s.cfg.Builder
 }
 

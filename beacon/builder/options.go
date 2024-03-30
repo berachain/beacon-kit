@@ -26,7 +26,7 @@
 package builder
 
 import (
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -39,7 +39,7 @@ func WithBaseService(svc service.BaseService) service.Option[Service] {
 }
 
 // WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *config.Builder) service.Option[Service] {
+func WithBuilderConfig(cfg *builder.Config) service.Option[Service] {
 	return func(s *Service) error {
 		s.cfg = cfg
 		return nil
