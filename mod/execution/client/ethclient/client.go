@@ -114,8 +114,8 @@ func (s *Eth1Client) GetPayloadV3(
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByHash(
 	ctx context.Context, hash primitives.ExecutionHash, withTxs bool,
-) (*enginetypes.ExecutionBlock, error) {
-	result := &enginetypes.ExecutionBlock{}
+) (*primitives.ExecutionBlock, error) {
+	result := &primitives.ExecutionBlock{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByHashMethod, hash, withTxs)
 	return result, err
@@ -125,8 +125,8 @@ func (s *Eth1Client) ExecutionBlockByHash(
 // by calling eth_getBlockByNumber via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByNumber(
 	ctx context.Context, num rpc.BlockNumber, withTxs bool,
-) (*enginetypes.ExecutionBlock, error) {
-	result := &enginetypes.ExecutionBlock{}
+) (*primitives.ExecutionBlock, error) {
+	result := &primitives.ExecutionBlock{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err
