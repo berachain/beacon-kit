@@ -32,9 +32,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"errors"
+
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/mod/crypto/sha256"
-	"github.com/cockroachdb/errors"
 	"github.com/protolambda/ztyp/tree"
 )
 
