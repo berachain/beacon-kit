@@ -28,6 +28,7 @@ package signature
 import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
@@ -46,7 +47,7 @@ func ComputeDomain(
 	return primitives.Domain(
 		append(
 			domainType[:],
-			forkDataRoot[:(primitives.RootLength-DomainTypeLength)]...),
+			forkDataRoot[:(primitives.RootLength-constants.DomainTypeLength)]...),
 	), nil
 }
 

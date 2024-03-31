@@ -28,7 +28,6 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // Mix is a fixed-size array that stores the current state of the entropy mix.
@@ -42,9 +41,4 @@ func (m Mix) MixinNewReveal(reveal primitives.BLSSignature) Mix {
 		m[idx] ^= b
 	}
 	return m
-}
-
-// MarshalText returns the hex representation of m.
-func (m Mix) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(m[:]).MarshalText()
 }

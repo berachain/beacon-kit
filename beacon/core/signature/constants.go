@@ -26,7 +26,5 @@
 package signature
 
 const (
-	VersionLength    = 4
-	DomainTypeLength = 4
-	DomainLength     = 32
+	VersionLength = 4
 )
