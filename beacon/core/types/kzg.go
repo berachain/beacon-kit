@@ -26,6 +26,7 @@
 package types
 
 import (
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
 	"github.com/prysmaticlabs/gohashtree"
@@ -62,7 +63,7 @@ const (
 // Otherwise, it returns an error indicating an invalid inclusion proof.
 func VerifyKZGInclusionProof(
 	root []byte,
-	blob *BlobSidecar,
+	blob *datypes.BlobSidecar,
 	index uint64,
 ) error { // TODO: add wrapped type with inclusion proofs
 	if len(root) != RootLength {

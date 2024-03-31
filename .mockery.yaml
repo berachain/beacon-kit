@@ -33,11 +33,6 @@ packages:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
-  github.com/berachain/beacon-kit/beacon/forkchoice/ssf:
-    config:
-      recursive: True
-      with-expecter: true
-      include-regex: SingleSlotFinalityStore
   github.com/berachain/beacon-kit/runtime/service:
     config:
       recursive: True

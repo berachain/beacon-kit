@@ -8,12 +8,12 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the Fork object.
+// MarshalSSZ ssz marshals the Fork object
 func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(f)
 }
 
-// MarshalSSZTo ssz marshals the Fork object to a target array.
+// MarshalSSZTo ssz marshals the Fork object to a target array
 func (f *Fork) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -29,7 +29,7 @@ func (f *Fork) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the Fork object.
+// UnmarshalSSZ ssz unmarshals the Fork object
 func (f *Fork) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -49,18 +49,18 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Fork object.
+// SizeSSZ returns the ssz encoded size in bytes for the Fork object
 func (f *Fork) SizeSSZ() (size int) {
 	size = 72
 	return
 }
 
-// HashTreeRoot ssz hashes the Fork object.
+// HashTreeRoot ssz hashes the Fork object
 func (f *Fork) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(f)
 }
 
-// HashTreeRootWith ssz hashes the Fork object with a hasher.
+// HashTreeRootWith ssz hashes the Fork object with a hasher
 func (f *Fork) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -77,17 +77,17 @@ func (f *Fork) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the Fork object.
+// GetTree ssz hashes the Fork object
 func (f *Fork) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(f)
 }
 
-// MarshalSSZ ssz marshals the ForkData object.
+// MarshalSSZ ssz marshals the ForkData object
 func (f *ForkData) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(f)
 }
 
-// MarshalSSZTo ssz marshals the ForkData object to a target array.
+// MarshalSSZTo ssz marshals the ForkData object to a target array
 func (f *ForkData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -100,7 +100,7 @@ func (f *ForkData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the ForkData object.
+// UnmarshalSSZ ssz unmarshals the ForkData object
 func (f *ForkData) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -117,18 +117,18 @@ func (f *ForkData) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ForkData object.
+// SizeSSZ returns the ssz encoded size in bytes for the ForkData object
 func (f *ForkData) SizeSSZ() (size int) {
 	size = 36
 	return
 }
 
-// HashTreeRoot ssz hashes the ForkData object.
+// HashTreeRoot ssz hashes the ForkData object
 func (f *ForkData) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(f)
 }
 
-// HashTreeRootWith ssz hashes the ForkData object with a hasher.
+// HashTreeRootWith ssz hashes the ForkData object with a hasher
 func (f *ForkData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -142,17 +142,17 @@ func (f *ForkData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the ForkData object.
+// GetTree ssz hashes the ForkData object
 func (f *ForkData) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(f)
 }
 
-// MarshalSSZ ssz marshals the SigningData object.
+// MarshalSSZ ssz marshals the SigningData object
 func (s *SigningData) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(s)
 }
 
-// MarshalSSZTo ssz marshals the SigningData object to a target array.
+// MarshalSSZTo ssz marshals the SigningData object to a target array
 func (s *SigningData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -165,7 +165,7 @@ func (s *SigningData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the SigningData object.
+// UnmarshalSSZ ssz unmarshals the SigningData object
 func (s *SigningData) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -182,18 +182,18 @@ func (s *SigningData) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the SigningData object.
+// SizeSSZ returns the ssz encoded size in bytes for the SigningData object
 func (s *SigningData) SizeSSZ() (size int) {
 	size = 64
 	return
 }
 
-// HashTreeRoot ssz hashes the SigningData object.
+// HashTreeRoot ssz hashes the SigningData object
 func (s *SigningData) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(s)
 }
 
-// HashTreeRootWith ssz hashes the SigningData object with a hasher.
+// HashTreeRootWith ssz hashes the SigningData object with a hasher
 func (s *SigningData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -207,7 +207,7 @@ func (s *SigningData) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the SigningData object.
+// GetTree ssz hashes the SigningData object
 func (s *SigningData) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(s)
 }

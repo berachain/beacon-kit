@@ -29,6 +29,7 @@ import (
 	"context"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
@@ -50,7 +51,7 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	blobs *beacontypes.BlobSidecars,
+	blobs *datypes.BlobSidecars,
 ) error {
 	var (
 		avs         = s.AvailabilityStore(ctx)

@@ -23,13 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blob
+package da
 
 import (
 	"context"
 	"errors"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	db "github.com/berachain/beacon-kit/mod/storage"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
@@ -65,11 +66,11 @@ func (s *Store) IsDataAvailable(
 // processing for efficiency.
 func (s *Store) Persist(
 	slot primitives.Slot,
-	sidecars ...*beacontypes.BlobSidecar,
+	sidecars ...*types.BlobSidecar,
 ) error {
 	return errors.Join(iter.Map(
 		sidecars,
-		func(sidecar **beacontypes.BlobSidecar) error {
+		func(sidecar **types.BlobSidecar) error {
 			if *sidecar == nil {
 				return ErrAttemptedToStoreNilSidecar
 			}

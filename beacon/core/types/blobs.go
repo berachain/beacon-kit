@@ -26,32 +26,19 @@
 package types
 
 import (
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"golang.org/x/sync/errgroup"
 )
-
-// SideCars is a slice of blob side cars to be included in the block.
-type BlobSidecars struct {
-	Sidecars []*BlobSidecar `ssz-max:"6"`
-}
-
-// BlobSidecar is a struct that contains blobs and their associated information.
-type BlobSidecar struct {
-	Index          uint64
-	Blob           []byte   `ssz-size:"131072"`
-	KzgCommitment  []byte   `ssz-size:"48"`
-	KzgProof       []byte   `ssz-size:"48"`
-	InclusionProof [][]byte `ssz-size:"8,32"`
-}
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
 // beacon block.
 func BuildBlobSidecar(
 	blk BeaconBlock,
 	blobs *enginetypes.BlobsBundleV1,
-) (*BlobSidecars, error) {
+) (*datypes.BlobSidecars, error) {
 	numBlobs := uint64(len(blobs.Blobs))
-	sidecars := make([]*BlobSidecar, numBlobs)
+	sidecars := make([]*datypes.BlobSidecar, numBlobs)
 	g := errgroup.Group{}
 	for i := uint64(0); i < numBlobs; i++ {
 		i := i // capture range variable
@@ -62,7 +49,7 @@ func BuildBlobSidecar(
 				return err
 			}
 
-			sidecars[i] = &BlobSidecar{
+			sidecars[i] = &datypes.BlobSidecar{
 				Index:          i,
 				Blob:           blobs.Blobs[i],
 				KzgCommitment:  blobs.Commitments[i],
@@ -73,5 +60,5 @@ func BuildBlobSidecar(
 		})
 	}
 
-	return &BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return &datypes.BlobSidecars{Sidecars: sidecars}, g.Wait()
 }

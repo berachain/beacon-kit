@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -43,5 +44,5 @@ type AvailabilityStore interface {
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(slot primitives.Slot, sc ...*types.BlobSidecar) error
+	Persist(slot primitives.Slot, sc ...*datypes.BlobSidecar) error
 }

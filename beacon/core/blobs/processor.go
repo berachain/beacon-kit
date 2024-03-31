@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -45,7 +46,7 @@ func NewProcessor() *Processor {
 func (sp *Processor) ProcessBlobs(
 	avs state.AvailabilityStore,
 	blk types.BeaconBlock,
-	sidecars *types.BlobSidecars,
+	sidecars *datypes.BlobSidecars,
 ) error {
 	// Verify the KZG inclusion proofs.
 	bodyRoot, err := blk.GetBody().HashTreeRoot()
@@ -56,7 +57,7 @@ func (sp *Processor) ProcessBlobs(
 	// Ensure the blobs are available.
 	if err = errors.Join(iter.Map(
 		sidecars.Sidecars,
-		func(sidecar **types.BlobSidecar) error {
+		func(sidecar **datypes.BlobSidecar) error {
 			if *sidecar == nil {
 				return ErrAttemptedToVerifyNilSidecar
 			}

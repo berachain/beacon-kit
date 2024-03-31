@@ -184,9 +184,9 @@ test-unit-cover:
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
-	go test ./cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/builder/cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/builder/cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/builder/cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./mod/crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}

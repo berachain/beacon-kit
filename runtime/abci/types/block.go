@@ -29,6 +29,7 @@ import (
 	"time"
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 )
 
 // ABCIRequest is the interface for an ABCI request.
@@ -71,7 +72,7 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 func GetBlobSideCars(
 	req ABCIRequest,
 	bzIndex uint,
-) (*beacontypes.BlobSidecars, error) {
+) (*datypes.BlobSidecars, error) {
 	if req == nil {
 		return nil, ErrNilABCIRequest
 	}
@@ -92,5 +93,5 @@ func GetBlobSideCars(
 		return nil, ErrNilBeaconBlockInRequest
 	}
 
-	return beacontypes.BlobSideCarsFromSSZ(blkBz)
+	return datypes.BlobSideCarsFromSSZ(blkBz)
 }

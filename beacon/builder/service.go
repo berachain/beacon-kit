@@ -31,6 +31,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/mod/builder"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -79,7 +80,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
-) (beacontypes.BeaconBlock, *beacontypes.BlobSidecars, error) {
+) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be

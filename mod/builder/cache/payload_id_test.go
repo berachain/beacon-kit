@@ -28,7 +28,7 @@ package cache_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/cache"
+	"github.com/berachain/beacon-kit/mod/builder/cache"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/stretchr/testify/require"

@@ -26,9 +26,9 @@
 package localbuilder
 
 import (
-	"github.com/berachain/beacon-kit/cache"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/builder"
+	"github.com/berachain/beacon-kit/mod/builder/cache"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 

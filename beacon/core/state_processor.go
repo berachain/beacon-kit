@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/mod/config/params"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -124,7 +125,7 @@ func (sp *StateProcessor) ProcessSlot(
 func (sp *StateProcessor) ProcessBlobs(
 	avs state.AvailabilityStore,
 	blk types.BeaconBlock,
-	sidecars *types.BlobSidecars,
+	sidecars *datypes.BlobSidecars,
 ) error {
 	return sp.bp.ProcessBlobs(avs, blk, sidecars)
 }

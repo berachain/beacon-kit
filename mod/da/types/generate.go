@@ -23,36 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package types
 
-import (
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/beacon/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
-// BlobsProcessor is the interface for the blobs processor.
-type BlobsProcessor interface {
-	ProcessBlobs(
-		avs state.AvailabilityStore,
-		blk types.BeaconBlock,
-		sidecars *datypes.BlobSidecars,
-	) error
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (primitives.BLSSignature, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal primitives.BLSSignature,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
-	) error
-}
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BlobSidecar,BlobSidecars -include ../../crypto/bls12-381,../../primitives,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go

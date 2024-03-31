@@ -23,36 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package types
 
-import (
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/beacon/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
-// BlobsProcessor is the interface for the blobs processor.
-type BlobsProcessor interface {
-	ProcessBlobs(
-		avs state.AvailabilityStore,
-		blk types.BeaconBlock,
-		sidecars *datypes.BlobSidecars,
-	) error
+// SideCars is a slice of blob side cars to be included in the block.
+type BlobSidecars struct {
+	Sidecars []*BlobSidecar `ssz-max:"6"`
 }
 
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (primitives.BLSSignature, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal primitives.BLSSignature,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
-	) error
+// BlobSidecar is a struct that contains blobs and their associated information.
+type BlobSidecar struct {
+	Index          uint64
+	Blob           []byte   `ssz-size:"131072"`
+	KzgCommitment  []byte   `ssz-size:"48"`
+	KzgProof       []byte   `ssz-size:"48"`
+	InclusionProof [][]byte `ssz-size:"8,32"`
+}
+
+// BlobSideCarsFromSSZ decodes a byte slice into a BlobSidecars struct.
+// It returns a pointer to the decoded BlobSidecars struct and an error, if any.
+func BlobSideCarsFromSSZ(bz []byte) (*BlobSidecars, error) {
+	if len(bz) == 0 {
+		//nolint:nilnil // todo:fix
+		return nil, nil
+	}
+	var sideCars BlobSidecars
+	if err := sideCars.UnmarshalSSZ(bz); err != nil {
+		return nil, err
+	}
+
+	return &sideCars, nil
 }

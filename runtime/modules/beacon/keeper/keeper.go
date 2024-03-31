@@ -33,10 +33,10 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
-	"github.com/berachain/beacon-kit/store/blob"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -44,7 +44,7 @@ import (
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	availabilityStore *blob.Store
+	availabilityStore *da.Store
 	beaconStore       *beaconstore.Store
 }
 
@@ -54,7 +54,7 @@ func NewKeeper(
 	env appmodule.Environment,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: blob.NewStore(fdb),
+		availabilityStore: da.NewStore(fdb),
 		beaconStore:       beaconstore.NewStore(env),
 	}
 }
