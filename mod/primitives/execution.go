@@ -43,4 +43,7 @@ type (
 
 	// ExecutionBlock represents a block on the execution layer.
 	ExecutionBlock = coretypes.Block
+
+	// ExecutionHeader represents a header on the execution layer.
+	ExecutionHeader = coretypes.Header
 )

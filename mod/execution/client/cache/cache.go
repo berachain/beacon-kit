@@ -27,14 +27,21 @@ package cache
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	ethcoretypes "github.com/ethereum/go-ethereum/core/types"
 	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )
 
 // EngineCache is a cache for data retrieved by the EngineClient.
 type EngineCache struct {
-	headerByNumberCache *lru.LRU[uint64, *ethcoretypes.Header]
-	headerByHashCache   *lru.LRU[primitives.ExecutionHash, *ethcoretypes.Header]
+	// headerByNumberCache is an LRU cache that maps block numbers to their
+	// corresponding headers.
+	headerByNumberCache *lru.LRU[
+		uint64, *primitives.ExecutionHeader,
+	]
+	// headerByHashCache is an LRU cache that maps block hashes to their
+	// corresponding headers.
+	headerByHashCache *lru.LRU[
+		primitives.ExecutionHash, *primitives.ExecutionHeader,
+	]
 }
 
 // NewEngineCacheWithConfig creates a new EngineCache with the given config.
@@ -42,12 +49,16 @@ func NewEngineCache(
 	config Config,
 ) *EngineCache {
 	return &EngineCache{
-		headerByNumberCache: lru.NewLRU[uint64, *ethcoretypes.Header](
+		headerByNumberCache: lru.NewLRU[
+			uint64, *primitives.ExecutionHeader,
+		](
 			config.HeaderSize,
 			nil,
 			config.HeaderTTL,
 		),
-		headerByHashCache: lru.NewLRU[primitives.ExecutionHash, *ethcoretypes.Header](
+		headerByHashCache: lru.NewLRU[
+			primitives.ExecutionHash, *primitives.ExecutionHeader,
+		](
 			config.HeaderSize,
 			nil,
 			config.HeaderTTL,
@@ -63,20 +74,20 @@ func NewEngineCacheWithDefaultConfig() *EngineCache {
 // HeaderByNumber returns the header with the given number.
 func (c *EngineCache) HeaderByNumber(
 	number uint64,
-) (*ethcoretypes.Header, bool) {
+) (*primitives.ExecutionHeader, bool) {
 	return c.headerByNumberCache.Get(number)
 }
 
 // HeaderByHash returns the header with the given hash.
 func (c *EngineCache) HeaderByHash(
 	hash primitives.ExecutionHash,
-) (*ethcoretypes.Header, bool) {
+) (*primitives.ExecutionHeader, bool) {
 	return c.headerByHashCache.Get(hash)
 }
 
 // AddHeader adds the given header to the cache.
 func (c *EngineCache) AddHeader(
-	header *ethcoretypes.Header,
+	header *primitives.ExecutionHeader,
 ) {
 	number := header.Number.Uint64()
 	if oldHeader, ok := c.headerByNumberCache.Get(number); ok {
