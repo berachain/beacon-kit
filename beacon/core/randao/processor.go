@@ -92,14 +92,14 @@ func (p *Processor) MixinNewReveal(
 	st state.BeaconState,
 	reveal primitives.BLSSignature,
 ) error {
-	slot, err := st.GetSlot()
+	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
 	if err != nil {
 		return err
 	}
 
 	// Get last slots randao mix.
 	mix, err := st.GetRandaoMixAtIndex(
-		uint64(slot) % p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get randao mix: %w", err)
@@ -110,7 +110,7 @@ func (p *Processor) MixinNewReveal(
 
 	// Set this slots mix to the new mix.
 	if err = st.UpdateRandaoMixAtIndex(
-		uint64(slot)%p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(epoch)%p.cfg.Beacon.EpochsPerHistoricalVector,
 		newMix,
 	); err != nil {
 		return fmt.Errorf("failed to set new randao mix: %w", err)
@@ -149,7 +149,9 @@ func (p *Processor) MixesReset(st state.BeaconState) error {
 	if err != nil {
 		return err
 	}
-	mix, err := st.GetRandaoMixAtIndex(uint64(epoch))
+	mix, err := st.GetRandaoMixAtIndex(
+		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
+	)
 	if err != nil {
 		return err
 	}
