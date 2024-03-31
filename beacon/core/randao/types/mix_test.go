@@ -30,15 +30,15 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/mod/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMix(t *testing.T) {
 	var initMix types.Mix = sha256.Hash([]byte("init"))
 
-	var randomReveal1 [bls12381.SignatureLength]byte
+	var randomReveal1 [constants.BLSSignatureLength]byte
 	_, err := rand.Read(randomReveal1[:])
 	require.NoError(t, err)
 
@@ -51,7 +51,7 @@ func TestMix(t *testing.T) {
 	)
 
 	// Reveal 2, second signer
-	var randomReveal2 [bls12381.SignatureLength]byte
+	var randomReveal2 [constants.BLSSignatureLength]byte
 	_, err = rand.Read(randomReveal2[:])
 	require.NoError(t, err)
 

@@ -30,6 +30,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	bls12_381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -78,5 +79,5 @@ func NewSignerFromFile(filePath string) (*bls12_381.Signer, error) {
 	}
 
 	return bls12_381.NewSigner(
-		[bls12_381.SecretKeyLength]byte(key.PrivKey.Bytes()))
+		[constants.BLSSecretKeyLength]byte(key.PrivKey.Bytes()))
 }

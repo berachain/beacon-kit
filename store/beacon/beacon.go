@@ -30,7 +30,6 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/lib/store/collections"
 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
@@ -83,7 +82,7 @@ type Store struct {
 	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
 
 	// randaoMix stores the randao mix for the current epoch.
-	randaoMix sdkcollections.Map[uint64, [types.MixLength]byte]
+	randaoMix sdkcollections.Map[uint64, [32]byte]
 }
 
 // Store creates a new instance of Store.
@@ -164,7 +163,7 @@ func NewStore(
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
 		),
 
-		randaoMix: sdkcollections.NewMap[uint64, [types.MixLength]byte](
+		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(randaoMixPrefix),
 			randaoMixPrefix,

@@ -28,6 +28,7 @@ package kzg_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
@@ -35,7 +36,7 @@ func TestConvertCommitmentToVersionedHash(t *testing.T) {
 	commitment := [48]byte{}
 	copy(commitment[:], []byte("test commitment"))
 	// Assuming BlobCommitmentVersion is a byte value
-	expectedPrefix := kzg.BlobCommitmentVersion
+	expectedPrefix := constants.BlobCommitmentVersion
 
 	hash := kzg.ConvertCommitmentToVersionedHash(commitment)
 	if hash[0] != expectedPrefix {
@@ -62,11 +63,11 @@ func TestConvertCommitmentsToVersionedHashes(t *testing.T) {
 	}
 
 	for i, hash := range hashes {
-		if hash[0] != kzg.BlobCommitmentVersion {
+		if hash[0] != constants.BlobCommitmentVersion {
 			t.Errorf(
 				"expected first byte of hash %d to be %v, got %v",
 				i,
-				kzg.BlobCommitmentVersion,
+				constants.BlobCommitmentVersion,
 				hash[0],
 			)
 		}

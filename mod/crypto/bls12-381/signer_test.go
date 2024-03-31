@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	bls12_381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/stretchr/testify/require"
 )
@@ -63,7 +64,7 @@ func TestSigner_FailOnInvalidSignature(t *testing.T) {
 	key1, err := blst.RandKey()
 	require.NoError(t, err, "Failed to generate random key")
 	signer, err := bls12_381.NewSigner(
-		[bls12_381.SecretKeyLength]byte(key1.Marshal()),
+		[constants.BLSSecretKeyLength]byte(key1.Marshal()),
 	)
 	require.NoError(t, err, "Failed to create signer")
 
@@ -83,7 +84,7 @@ func TestSigner_FailOnInvalidSignature(t *testing.T) {
 
 	// Attempt to verify the incorrect signature
 	valid := bls12_381.VerifySignature(
-		[bls12_381.PubKeyLength]byte(pubKeyBytes),
+		[constants.BLSPubkeyLength]byte(pubKeyBytes),
 		message,
 		signedByWrongKey,
 	)

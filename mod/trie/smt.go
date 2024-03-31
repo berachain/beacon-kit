@@ -30,9 +30,8 @@ package trie
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
-
 	"errors"
+	"fmt"
 
 	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/mod/crypto/sha256"

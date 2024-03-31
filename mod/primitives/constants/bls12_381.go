@@ -23,23 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bls12381
+package constants
 
 const (
-	// SignatureLength defines the byte length of a BLS12-381 Signature
-	// It is defined to be 96 bytes as defined in the Ethereum 2.0
-	// Specification.
-	//
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	//
-	//nolint:lll
-	SignatureLength = 96
+	// BLSSignatureLength defines the byte length of a BLS12-381 Signature.
+	// It is 96 bytes as defined in the Ethereum 2.0 Specification.
+	BLSSignatureLength = 96
 
-	// PubKeyLength defines the byte length of a BLS12-381 public key.
+	// BLSPubkeyLength defines the byte length of a BLS12-381 public key.
 	// As per the standard, it is set to 48 bytes.
-	PubKeyLength = 48
+	BLSPubkeyLength = 48
 
 	// SecretKeyLength defines the byte length of a BLS12-381 secret key.
 	// It is defined to be 32 bytes in length.
-	SecretKeyLength = 32
+	BLSSecretKeyLength = 32
 )

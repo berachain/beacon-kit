@@ -23,30 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package crypto
+package constants
 
-import (
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/itsdevbear/comet-bls12-381/bls"
+const (
+	// BlobCommitmentVersion is the version of the blob commitment.
+	// It is the Version byte for the point evaluation precompile as
+	// defined in EIP-4844.
+	//
+	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
+	BlobCommitmentVersion uint8 = 0x01
+
+	// MaxBlobsPerBlock is the maximum number of blobs that can be included in a
+	// block.
+	MaxBlobsPerBlock uint = 6
 )
-
-// Signer defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type Signer[Signature any] interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() bls.PubKey
-
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign(msg []byte) Signature
-}
-
-// NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
-func NewBLS12381Signer(
-	secretKey [constants.BLSSecretKeyLength]byte,
-) (Signer[primitives.BLSSignature], error) {
-	return bls12381.NewSigner(secretKey)
-}

@@ -31,17 +31,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// Mix represents the current state of the RANDAO's entropy mixing process.
-// RANDAO can be conceptualized as a deck of cards being passed and shuffled
-// by each participant, thereby continuously re-randomizing the deck.
-// This process ensures that even if an individual's contribution to the
-// randomness is weak, the overall entropy of the system remains high. Mix keeps
-// track of this "current mix" or the state of the shuffled deck as it
-// circulates among participants.
-const MixLength = 32
-
 // Mix is a fixed-size array that stores the current state of the entropy mix.
-type Mix [MixLength]byte
+type Mix primitives.Bytes32
 
 // MixinNewReveal takes a new reveal (signature) and combines it with the
 // current mix

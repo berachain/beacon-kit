@@ -27,6 +27,7 @@ package bls12381
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
@@ -37,7 +38,7 @@ type Signer struct {
 }
 
 // NewSigner creates a new Signer instance given a secret key.
-func NewSigner(keyBz [SecretKeyLength]byte) (*Signer, error) {
+func NewSigner(keyBz [constants.BLSSecretKeyLength]byte) (*Signer, error) {
 	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
 	if err != nil {
 		return nil, err
