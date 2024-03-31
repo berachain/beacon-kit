@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -147,11 +146,11 @@ type ReadWriteWithdrawals interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
+	ExpectedWithdrawals(uint64) ([]*primitives.Withdrawal, error)
 }
 
 // WriteOnlyWithdrawals only has write access to withdrawal methods.
 type WriteOnlyWithdrawals interface {
-	EnqueueWithdrawals([]*enginetypes.Withdrawal) error
-	DequeueWithdrawals(uint64) ([]*enginetypes.Withdrawal, error)
+	EnqueueWithdrawals([]*primitives.Withdrawal) error
+	DequeueWithdrawals(uint64) ([]*primitives.Withdrawal, error)
 }

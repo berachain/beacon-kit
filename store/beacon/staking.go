@@ -27,7 +27,7 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
@@ -64,7 +64,7 @@ func (s *Store) DequeueDeposits(
 // ExpectedWithdrawals returns the first numView withdrawals in the queue.
 func (s *Store) ExpectedWithdrawals(
 	numView uint64,
-) ([]*enginetypes.Withdrawal, error) {
+) ([]*primitives.Withdrawal, error) {
 	withdrawals, err := s.withdrawalQueue.PeekMulti(s.ctx, numView)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (s *Store) ExpectedWithdrawals(
 
 // EnqueueWithdrawals pushes the withdrawals to the queue.
 func (s *Store) EnqueueWithdrawals(
-	withdrawals []*enginetypes.Withdrawal,
+	withdrawals []*primitives.Withdrawal,
 ) error {
 	return s.withdrawalQueue.PushMulti(s.ctx, withdrawals)
 }
@@ -82,7 +82,7 @@ func (s *Store) EnqueueWithdrawals(
 // EnqueueWithdrawals pushes the withdrawals to the queue.
 func (s *Store) DequeueWithdrawals(
 	numDequeue uint64,
-) ([]*enginetypes.Withdrawal, error) {
+) ([]*primitives.Withdrawal, error) {
 	withdrawals, err := s.withdrawalQueue.PopMulti(s.ctx, numDequeue)
 	if err != nil {
 		return nil, err
@@ -92,10 +92,10 @@ func (s *Store) DequeueWithdrawals(
 
 // handleNilWithdrawals returns an empty slice if the input is nil.
 func (Store) handleNilWithdrawals(
-	withdrawals []*enginetypes.Withdrawal,
-) []*enginetypes.Withdrawal {
+	withdrawals []*primitives.Withdrawal,
+) []*primitives.Withdrawal {
 	if withdrawals == nil {
-		return make([]*enginetypes.Withdrawal, 0)
+		return make([]*primitives.Withdrawal, 0)
 	}
 	return withdrawals
 }

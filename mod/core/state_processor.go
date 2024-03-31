@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -298,7 +297,7 @@ func (sp *StateProcessor) processDeposit(
 // local state.
 func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
-	withdrawals []*enginetypes.Withdrawal,
+	withdrawals []*primitives.Withdrawal,
 ) error {
 	// Dequeue and verify the withdrawals.
 	localWithdrawals, err := st.DequeueWithdrawals(uint64(len(withdrawals)))

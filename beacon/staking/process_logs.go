@@ -30,7 +30,6 @@ import (
 
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -113,7 +112,7 @@ func (s *Service) processWithdrawalLog(
 		"she said, \"see you later, boi\" 💅", "deposit", w.Index, "amount", w.Amount,
 	)
 
-	return s.BeaconState(ctx).EnqueueWithdrawals([]*enginetypes.Withdrawal{{
+	return s.BeaconState(ctx).EnqueueWithdrawals([]*primitives.Withdrawal{{
 		Index:     w.Index,
 		Validator: valIdx,
 		Address:   executionAddr,

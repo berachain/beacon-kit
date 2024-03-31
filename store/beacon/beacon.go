@@ -31,7 +31,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/appmodule/v2"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/store/beacon/collections"
 	"github.com/berachain/beacon-kit/store/beacon/collections/encoding"
 	"github.com/berachain/beacon-kit/store/beacon/index"
@@ -79,7 +79,7 @@ type Store struct {
 	depositQueue *collections.Queue[*beacontypes.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
-	withdrawalQueue *collections.Queue[*enginetypes.Withdrawal]
+	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
 
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, [32]byte]
@@ -165,10 +165,10 @@ func NewStore(
 			depositQueuePrefix,
 			encoding.SSZValueCodec[*beacontypes.Deposit]{},
 		),
-		withdrawalQueue: collections.NewQueue[*enginetypes.Withdrawal](
+		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
 			schemaBuilder,
 			withdrawalQueuePrefix,
-			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
+			encoding.SSZValueCodec[*primitives.Withdrawal]{},
 		),
 		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
