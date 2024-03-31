@@ -18,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.22.1
+ARG GO_VERSION=1.22.0
 ARG RUNNER_IMAGE=alpine
 ARG BUILD_TAGS="netgo,ledger,muslc,blst,pebbledb"
 ARG NAME=beacond
@@ -47,15 +47,7 @@ RUN set -eux; \
 WORKDIR /workdir
 
 # Copy the go.mod and go.sum files for each module
-COPY ./go.mod ./
-COPY ./e2e/go.mod ./e2e/
-COPY ./mod/crypto/go.mod  ./mod/crypto/
-COPY ./mod/execution/go.mod ./mod/execution/
-COPY ./mod/primitives/go.mod ./mod/primitives/
-COPY ./mod/trie/go.mod ./mod/trie/
-COPY ./go.work ./
-
-
+COPY ./go.mod ./go.sum ./
 
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
