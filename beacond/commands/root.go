@@ -29,7 +29,7 @@ import (
 	"context"
 
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	validatorcli "github.com/berachain/beacon-kit/client/genutil"
+	genutilcommands "github.com/berachain/beacon-kit/beacond/commands/genutil"
 	beaconconfig "github.com/berachain/beacon-kit/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -77,8 +77,8 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		debug.Cmd(),
 		// `genesis`
 		GenesisCommands(
-			validatorcli.AddPubkeyCmd(),
-			validatorcli.CollectValidatorsCmd(),
+			genutilcommands.AddPubkeyCmd(),
+			genutilcommands.CollectValidatorsCmd(),
 		),
 		// `init`
 		genutilcli.InitCmd(mm),
