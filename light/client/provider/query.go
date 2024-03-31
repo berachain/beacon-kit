@@ -17,7 +17,7 @@ import (
 func (p *Provider) QueryWithProof(ctx context.Context, key string, height int64) (common.Hash, error) {
 	resp, _, err := p.RunGRPCQuery(
 		context.Background(),
-		fmt.Sprintf("store/%s/key", "beacon"),
+		beaconStoreKey,
 		[]byte(key),
 		height,
 		true,

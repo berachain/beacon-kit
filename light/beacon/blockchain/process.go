@@ -50,10 +50,10 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	blk beacontypes.ReadOnlyBeaconBlock,
-	blobs *beacontypes.BlobSidecars,
+	_ *beacontypes.BlobSidecars,
 ) error {
 	var (
-		avs         = s.AvailabilityStore(ctx)
+		_           = s.AvailabilityStore(ctx) // temporarily disable blob processing
 		fcs         = s.ForkchoiceStore(ctx)
 		g, groupCtx = errgroup.WithContext(ctx)
 		st          = s.BeaconState(groupCtx)
@@ -95,15 +95,14 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// We want to get a headstart on blob processing since it
-	// is a relatively expensive operation.
-	g.Go(func() error {
-		return s.sp.ProcessBlobs(
-			avs,
-			blk,
-			blobs,
-		)
-	})
+	// TODO: reenable the blob processing
+	// g.Go(func() error {
+	// 	return s.sp.ProcessBlobs(
+	// 		avs,
+	// 		blk,
+	// 		blobs,
+	// 	)
+	// })
 
 	g.Go(func() error {
 		return s.sp.ProcessBlock(
