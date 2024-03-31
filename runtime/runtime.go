@@ -37,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
-	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/mod/builder/cache"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
@@ -79,7 +78,7 @@ func NewBeaconKitRuntime(
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
-//nolint:funlen // This function is long because it sets up the services.
+
 func NewDefaultBeaconKitRuntime(
 	appOpts AppOptions,
 	signer crypto.Signer[primitives.BLSSignature],
@@ -186,16 +185,6 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(stakingService),
 		service.WithService(syncService),
 	)
-
-	// Build the health service.
-	healthService := service.New[health.Service](
-		health.WithBaseService(baseService.ShallowCopy("health")),
-		health.WithServiceRegistry(svcRegistry),
-	)
-
-	if err = svcRegistry.RegisterService(healthService); err != nil {
-		return nil, err
-	}
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return NewBeaconKitRuntime(
