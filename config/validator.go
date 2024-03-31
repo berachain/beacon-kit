@@ -37,9 +37,8 @@ var _ BeaconKitConfig[Validator] = &Validator{}
 // DefaultValidatorConfig returns the default validator configuration.
 func DefaultValidatorConfig() Validator {
 	return Validator{
-		SuggestedFeeRecipient:   primitives.ExecutionAddress{},
-		Graffiti:                "",
-		NumRandaoRevealsToTrack: 32, //nolint:gomnd // default.
+		SuggestedFeeRecipient: primitives.ExecutionAddress{},
+		Graffiti:              "",
 	}
 }
 
@@ -53,9 +52,6 @@ type Validator struct {
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.
 	Graffiti string
-
-	// Rando reveals to track
-	NumRandaoRevealsToTrack uint64
 }
 
 // Parse parses the configuration.

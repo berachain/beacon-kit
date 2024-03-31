@@ -61,10 +61,9 @@ const (
 	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
 
 	// Validator Config.
-	validator               = beaconKitRoot + "validator."
-	SuggestedFeeRecipient   = validator + "suggested-fee-recipient"
-	Graffiti                = validator + "graffiti"
-	NumRandaoRevealsToTrack = validator + "num-randao-reveals-to-track"
+	validator             = beaconKitRoot + "validator."
+	SuggestedFeeRecipient = validator + "suggested-fee-recipient"
+	Graffiti              = validator + "graffiti"
 
 	// FeatureFlags Config.
 	featureFlagsRoot = beaconKitRoot + "feature-flags."
