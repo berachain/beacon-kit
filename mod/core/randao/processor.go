@@ -180,6 +180,7 @@ func (p *Processor) MixinNewReveal(
 	return nil
 }
 
+// buildMix builds a new mix from a given mix and reveal.
 func (p *Processor) buildMix(
 	mix primitives.Bytes32,
 	reveal primitives.BLSSignature,
