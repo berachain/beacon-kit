@@ -3,6 +3,8 @@ include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
+ROOT_DIR := $(shell pwd)
+
 
 ###############################################################################
 ###                                  Build                                  ###
@@ -245,15 +247,11 @@ golines:
 
 license:
 	@echo "--> Running addlicense with -check"
-	@for module in $(MODULES); do \
-		(cd $$module && go run github.com/google/addlicense -check -v -f ./LICENSE.header ./.) || exit 1; \
-	done
+	@find . -name 'go.mod' -execdir go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header ./. \;
 
 license-fix:
 	@echo "--> Running addlicense"
-	@for module in $(MODULES); do \
-		(cd $$module && go run github.com/google/addlicense -v -f ./LICENSE.header ./.) || exit 1; \
-	done
+	@find . -name 'go.mod' -execdir go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header ./. \;
 
 
 #################

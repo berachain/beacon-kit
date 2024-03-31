@@ -23,10 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg
+package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	sha256 "github.com/minio/sha256-simd"
 )
@@ -39,12 +38,12 @@ import (
 // The restulting hash is intended for use in contexts where a versioned
 // identifier
 // for the commitment is required.
-func ConvertCommitmentToVersionedHash(
+func KzgCommitmentToVersionedHash(
 	commitment [48]byte,
-) primitives.ExecutionHash {
+) ExecutionHash {
 	hash := sha256.Sum256(commitment[:])
-	// Prefix the hash with the BlobCommitmentVersion to create a versioned
-	// hash.
+	// Prefix the hash with the BlobCommitmentVersion
+	// to create a versioned hash.
 	hash[0] = constants.BlobCommitmentVersion
 	return hash
 }
@@ -56,12 +55,12 @@ func ConvertCommitmentToVersionedHash(
 // The resulting hashes are intended for use in contexts where a versioned
 // identifier
 // for the commitments is required.
-func ConvertCommitmentsToVersionedHashes(
+func KzgCommitmentsToVersionedHashes(
 	commitments [][48]byte,
-) []primitives.ExecutionHash {
-	hashes := make([]primitives.ExecutionHash, len(commitments))
+) []ExecutionHash {
+	hashes := make([]ExecutionHash, len(commitments))
 	for i, bz := range commitments {
-		hashes[i] = ConvertCommitmentToVersionedHash(bz)
+		hashes[i] = KzgCommitmentToVersionedHash(bz)
 	}
 	return hashes
 }

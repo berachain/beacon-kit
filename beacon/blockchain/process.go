@@ -32,7 +32,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -84,7 +84,7 @@ func (s *Service) ProcessBeaconBlock(
 		ctx,
 		&execution.NewPayloadRequest{
 			ExecutionPayload: body.GetExecutionPayload(),
-			VersionedHashes: kzg.ConvertCommitmentsToVersionedHashes(
+			VersionedHashes: primitives.KzgCommitmentsToVersionedHashes(
 				body.GetBlobKzgCommitments(),
 			),
 			ParentBeaconBlockRoot: &parentBeaconBlockRoot,

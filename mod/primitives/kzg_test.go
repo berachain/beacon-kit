@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg_test
+package primitives_test
 
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
 func TestConvertCommitmentToVersionedHash(t *testing.T) {
@@ -38,7 +38,7 @@ func TestConvertCommitmentToVersionedHash(t *testing.T) {
 	// Assuming BlobCommitmentVersion is a byte value
 	expectedPrefix := constants.BlobCommitmentVersion
 
-	hash := kzg.ConvertCommitmentToVersionedHash(commitment)
+	hash := primitives.KzgCommitmentToVersionedHash(commitment)
 	if hash[0] != expectedPrefix {
 		t.Errorf(
 			"expected first byte of hash to be %v, got %v",
@@ -56,7 +56,7 @@ func TestConvertCommitmentsToVersionedHashes(t *testing.T) {
 	commitments := make([][48]byte, 2)
 	copy(commitments[0][:], "commitment 1")
 	copy(commitments[1][:], "commitment 2")
-	hashes := kzg.ConvertCommitmentsToVersionedHashes(commitments)
+	hashes := primitives.KzgCommitmentsToVersionedHashes(commitments)
 
 	if len(hashes) != len(commitments) {
 		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))
