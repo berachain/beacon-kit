@@ -29,7 +29,7 @@ import (
 	"encoding/json"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
+	cmttypes "github.com/cometbft/cometbft/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
@@ -67,9 +67,12 @@ func (app *BeaconApp) ExportAppStateAndValidators(
 		return servertypes.ExportedApp{}, err
 	}
 
+	// TODO: Pull these in from the BeaconKeeper, should be easy.
+	validators := []cmttypes.GenesisValidator(nil)
+
 	return servertypes.ExportedApp{
 		AppState:        appState,
-		Validators:      nil,
+		Validators:      validators,
 		Height:          height,
 		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
 	}, err

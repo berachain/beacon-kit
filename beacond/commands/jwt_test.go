@@ -30,7 +30,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	cmdlib "github.com/berachain/beacon-kit/lib/cmd"
+	cmdlib "github.com/berachain/beacon-kit/beacond/commands"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/require"
 )

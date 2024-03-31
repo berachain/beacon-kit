@@ -29,7 +29,7 @@ import (
 	"bytes"
 	"math/big"
 
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 )

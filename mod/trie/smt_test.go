@@ -29,7 +29,7 @@ import (
 	"strconv"
 	"testing"
 
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/stretchr/testify/require"
 )

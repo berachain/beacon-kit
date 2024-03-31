@@ -33,8 +33,8 @@ import (
 	"errors"
 	"fmt"
 
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
 	"github.com/berachain/beacon-kit/mod/crypto/sha256"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/protolambda/ztyp/tree"
 )
 

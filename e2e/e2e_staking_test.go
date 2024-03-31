@@ -30,7 +30,7 @@ import (
 
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/e2e/suite"
-	byteslib "github.com/berachain/beacon-kit/lib/bytes"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
