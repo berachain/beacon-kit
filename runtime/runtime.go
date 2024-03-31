@@ -45,8 +45,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/crypto"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
-	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime"
 	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -57,7 +57,7 @@ import (
 type BeaconKitRuntime struct {
 	cfg      *config.Config
 	logger   log.Logger
-	fscp     interfaces.BeaconStorageBackend
+	fscp     runtime.BeaconStorageBackend
 	services *service.Registry
 }
 
@@ -84,7 +84,7 @@ func NewDefaultBeaconKitRuntime(
 	appOpts AppOptions,
 	signer crypto.Signer[primitives.BLSSignature],
 	logger log.Logger,
-	bsb interfaces.BeaconStorageBackend,
+	bsb runtime.BeaconStorageBackend,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
