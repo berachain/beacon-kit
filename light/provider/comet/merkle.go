@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/cometbft/cometbft/crypto/merkle"
+	// "github.com/celestiaorg/celestia-core/crypto/merkle"
 	lrpc "github.com/cometbft/cometbft/light/rpc"
 )
 
@@ -13,7 +14,7 @@ import (
 // This merkle key paths are required when verifying /abci_query calls
 func DefaultMerkleKeyPathFn() lrpc.KeyPathFunc {
 	// regexp for extracting store name from /abci_query path
-	storeNameRegexp := regexp.MustCompile(`store\/(.+)\/key`)
+	storeNameRegexp := regexp.MustCompile(`/store\/(.+)\/key`)
 
 	return func(path string, key []byte) (merkle.KeyPath, error) {
 		matches := storeNameRegexp.FindStringSubmatch(path)

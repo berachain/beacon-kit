@@ -4,14 +4,17 @@ import (
 	"context"
 	"time"
 
-	"github.com/cometbft/cometbft/crypto/merkle"
 	lightprovider "github.com/cometbft/cometbft/light/provider"
 	httpprovider "github.com/cometbft/cometbft/light/provider/http"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cometbft/cometbft/types"
 
+	// "github.com/berachain/cometbft/crypto/merkle"
+	"github.com/cometbft/cometbft/crypto/merkle"
+
 	storetypes "cosmossdk.io/store/types"
+	// storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 // Provider is a struct which provides all full node data to the light client

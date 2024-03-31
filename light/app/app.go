@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/light/client"
+	"github.com/berachain/beacon-kit/light/provider"
 )
 
 func RunLightNode(ctx context.Context, config *Config) {
 	// builds the runtime and starts the node
-	lightClient := client.New(*config.Provider)
-	lightClient.Start(ctx)
+	client := provider.New(*config.Provider)
+	client.Start()
 
 	// subscribe to light block
-	ch, err := lightClient.SubscribeToLightBlock(ctx)
+	ch, err := client.SubscribeToLightBlock(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -23,6 +23,7 @@ func RunLightNode(ctx context.Context, config *Config) {
 		case block := <-ch:
 			// process the light block
 			fmt.Println(block)
+			fmt.Println("trustedEth1Hash", client.GetTrustedEth1Hash())
 		case <-ctx.Done():
 			// context cancelled, exit the loop
 			return

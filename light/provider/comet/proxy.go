@@ -10,7 +10,7 @@ import (
 	lproxy "github.com/cometbft/cometbft/light/proxy"
 	lrpc "github.com/cometbft/cometbft/light/rpc"
 
-	"github.com/berachain/beacon-kit/light/client/provider/comet/types"
+	"github.com/berachain/beacon-kit/light/provider/comet/types"
 )
 
 func StartProxy(c Config) error {
