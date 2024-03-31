@@ -340,7 +340,7 @@ sync:
 
 checkpoint: format 
 	@git add -A
-	@git commit -m "bet"
+	@git commit -m "yo bet"
 	@git push
 	@echo "checkpointed and pushed to remote"
 
