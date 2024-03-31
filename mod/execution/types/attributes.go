@@ -46,7 +46,7 @@ type PayloadAttributes struct {
 	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
-	Withdrawals []*Withdrawal `json:"withdrawals"`
+	Withdrawals []*primitives.Withdrawal `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
 	// to the block currently being processed. This field was added in EIP-4788.
@@ -58,7 +58,7 @@ func NewPayloadAttributes(
 	forkVersion uint32,
 	timestamp uint64, prevRandao [32]byte,
 	suggestedFeeReceipient primitives.ExecutionAddress,
-	withdrawals []*Withdrawal,
+	withdrawals []*primitives.Withdrawal,
 	parentBeaconBlockRoot [32]byte,
 ) (*PayloadAttributes, error) {
 	p := &PayloadAttributes{

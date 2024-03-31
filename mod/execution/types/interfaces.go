@@ -50,7 +50,7 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
+	GetWithdrawals() []*primitives.Withdrawal
 }
 
 // PayloadAttributer represents payload attributes of a block.
