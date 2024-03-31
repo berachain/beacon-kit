@@ -27,12 +27,17 @@ package domain
 
 import "github.com/berachain/beacon-kit/mod/primitives"
 
-// Domain constants for BLS domain types.
-// Spec:
+// Domain constants as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
 //
 //nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
 var (
-	TypeRandao  = primitives.DomainType{0x02, 0x00, 0x00, 0x00}
-	TypeDeposit = primitives.DomainType{0x03, 0x00, 0x00, 0x00}
+	TypeProposer          = primitives.DomainType{0x00, 0x00, 0x00, 0x00}
+	TypeAttester          = primitives.DomainType{0x01, 0x00, 0x00, 0x00}
+	TypeRandao            = primitives.DomainType{0x02, 0x00, 0x00, 0x00}
+	TypeDeposit           = primitives.DomainType{0x03, 0x00, 0x00, 0x00}
+	TypeVoluntaryExit     = primitives.DomainType{0x04, 0x00, 0x00, 0x00}
+	TypeSelectionProof    = primitives.DomainType{0x05, 0x00, 0x00, 0x00}
+	TypeAggregateAndProof = primitives.DomainType{0x06, 0x00, 0x00, 0x00}
+	TypeApplicationMask   = primitives.DomainType{0x00, 0x00, 0x00, 0x01}
 )

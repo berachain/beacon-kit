@@ -28,6 +28,7 @@ package signature
 import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/forks"
+	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
@@ -41,13 +42,14 @@ func ComputeDomain(
 	forkVersion primitives.Version,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Domain, error) {
-	forkDataRoot, err := forks.ComputeForkDataRoot(
-		forkVersion,
-		genesisValidatorsRoot,
-	)
+	forkDataRoot, err := (&forks.ForkData{
+		CurrentVersion:        forkVersion,
+		GenesisValidatorsRoot: genesisValidatorsRoot,
+	}).HashTreeRoot()
 	if err != nil {
 		return primitives.Domain{}, err
 	}
+
 	return primitives.Domain(
 		append(
 			domainType[:],
@@ -64,7 +66,7 @@ func GetDomain(
 ) (primitives.Domain, error) {
 	return ComputeDomain(
 		domainType,
-		forks.VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
+		version.FromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
 		genesisValidatorsRoot,
 	)
 }

@@ -28,9 +28,9 @@ package client
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/config/version"
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 )

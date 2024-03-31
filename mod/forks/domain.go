@@ -27,7 +27,6 @@ package forks
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
@@ -39,13 +38,31 @@ func ComputeDomain(
 	forkVersion primitives.Version,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Domain, error) {
-	forkDataRoot, err := ComputeForkDataRoot(forkVersion, genesisValidatorsRoot)
+	forkDataRoot, err := (&ForkData{
+		CurrentVersion:        forkVersion,
+		GenesisValidatorsRoot: genesisValidatorsRoot,
+	}).HashTreeRoot()
 	if err != nil {
 		return primitives.Domain{}, err
 	}
+
 	return primitives.Domain(
 		append(
 			domainType[:],
-			forkDataRoot[:(primitives.RootLength-constants.DomainTypeLength)]...),
+			forkDataRoot[:28]...),
 	), nil
 }
+
+// // GetDomain returns the domain for the DomainType and epoch.
+// func GetDomain(
+// 	cfg *config.Config,
+// 	genesisValidatorsRoot primitives.Root,
+// 	domainType primitives.DomainType,
+// 	epoch primitives.Epoch,
+// ) (primitives.Domain, error) {
+// 	return ComputeDomain(
+// 		domainType,
+// 		version.FromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
+// 		genesisValidatorsRoot,
+// 	)
+//

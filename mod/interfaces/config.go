@@ -23,13 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package version
+package interfaces
 
-const (
-	Phase0 uint32 = iota
-	Altair
-	Bellatrix
-	Capella
-	Deneb
-	Electra
-)
+type BeaconChainConfig interface{}

@@ -23,17 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signature
+package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import "encoding/binary"
 
 // SigningData as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 //
 //nolint:lll
 type SigningData struct {
-	ObjectRoot primitives.Root   `ssz-size:"32"`
-	Domain     primitives.Domain `ssz-size:"32"`
+	ObjectRoot Root   `ssz-size:"32"`
+	Domain     Domain `ssz-size:"32"`
 }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
@@ -41,16 +41,28 @@ type SigningData struct {
 //
 //nolint:lll
 func ComputeSigningRoot(
-	sszObject SSZObject,
-	domain primitives.Domain,
-) (primitives.Root, error) {
+	sszObject interface{ HashTreeRoot() (Root, error) },
+	domain Domain,
+) (Root, error) {
 	objectRoot, err := sszObject.HashTreeRoot()
 	if err != nil {
-		return primitives.Root{}, err
+		return Root{}, err
 	}
-	data := SigningData{
+	return (&SigningData{
 		ObjectRoot: objectRoot,
 		Domain:     domain,
-	}
-	return data.HashTreeRoot()
+	}).HashTreeRoot()
+}
+
+// ComputeSigningRootUInt64 computes the signing root of a uint64 value.
+func ComputeSigningRootUInt64(
+	value uint64,
+	domain Domain,
+) (Root, error) {
+	bz := make([]byte, RootLength)
+	binary.LittleEndian.PutUint64(bz, value)
+	return (&SigningData{
+		ObjectRoot: Root(bz),
+		Domain:     domain,
+	}).HashTreeRoot()
 }

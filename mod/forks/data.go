@@ -26,8 +26,6 @@
 package forks
 
 import (
-	"encoding/binary"
-
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -42,43 +40,12 @@ type ForkData struct {
 	GenesisValidatorsRoot primitives.Root `ssz-size:"32"`
 }
 
-// VersionFromUint returns a Version from a uint32.
-func VersionFromUint32(version uint32) primitives.Version {
-	versionBz := primitives.Version{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
-}
-
-// ComputeForkDataRoot as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_fork_data_root
-//
-//nolint:lll
-func ComputeForkDataRoot(
-	currentVersion primitives.Version,
-	genesisValidatorsRoot primitives.Root,
-) (primitives.Root, error) {
-	forkData := ForkData{
+// NewForkData creates a new ForkData struct.
+func NewForkData(
+	currentVersion primitives.Version, genesisValidatorsRoot primitives.Root,
+) *ForkData {
+	return &ForkData{
 		CurrentVersion:        currentVersion,
 		GenesisValidatorsRoot: genesisValidatorsRoot,
 	}
-
-	return forkData.HashTreeRoot()
-}
-
-// ComputeForkDigest as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_fork_digest
-//
-//nolint:lll
-func ComputeForkDigest(
-	currentVersion primitives.Version,
-	genesisValidatorsRoot primitives.Root,
-) (primitives.ForkDigest, error) {
-	forkDataRoot, err := ComputeForkDataRoot(
-		currentVersion,
-		genesisValidatorsRoot,
-	)
-	if err != nil {
-		return primitives.ForkDigest{}, err
-	}
-	return primitives.ForkDigest(forkDataRoot[:4]), nil
 }

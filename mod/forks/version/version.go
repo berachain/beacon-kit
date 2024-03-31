@@ -23,11 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package signature
+package version
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"encoding/binary"
 
-// SSZObject is the interface for the SSZ object.
-type SSZObject interface {
-	HashTreeRoot() (primitives.Root, error)
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
+
+const (
+	Phase0 uint32 = iota
+	Altair
+	Bellatrix
+	Capella
+	Deneb
+	Electra
+)
+
+// FromUint32 returns a Version from a uint32.
+func FromUint32(version uint32) primitives.Version {
+	versionBz := primitives.Version{}
+	binary.LittleEndian.PutUint32(versionBz[:], version)
+	return versionBz
 }
