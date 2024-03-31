@@ -49,3 +49,22 @@ func NewForkData(
 		GenesisValidatorsRoot: genesisValidatorsRoot,
 	}
 }
+
+// ComputeDomain as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
+//
+//nolint:lll
+func (fv ForkData) ComputeDomain(
+	domainType primitives.DomainType,
+) (primitives.Domain, error) {
+	forkDataRoot, err := fv.HashTreeRoot()
+	if err != nil {
+		return primitives.Domain{}, err
+	}
+
+	return primitives.Domain(
+		append(
+			domainType[:],
+			forkDataRoot[:28]...),
+	), nil
+}

@@ -30,10 +30,11 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/mod/core/signature"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	crypto "github.com/berachain/beacon-kit/mod/crypto"
 	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/forks"
+	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/domain"
 )
@@ -183,17 +184,16 @@ func (p *Processor) computeSigningRoot(
 	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 ) (primitives.Root, error) {
-	signingDomain, err := signature.GetDomain(
-		p.cfg,
-		genesisValidatorsRoot,
-		domain.TypeRandao,
-		epoch,
-	)
+	fd := forks.ForkData{
+		CurrentVersion: version.FromUint32(
+			p.cfg.Beacon.ActiveForkVersionByEpoch(epoch),
+		),
+		GenesisValidatorsRoot: genesisValidatorsRoot,
+	}
+
+	signingDomain, err := fd.ComputeDomain(domain.TypeRandao)
 	if err != nil {
-		return primitives.Root{}, fmt.Errorf(
-			"failed to get domain: %w",
-			err,
-		)
+		return primitives.Root{}, err
 	}
 
 	signingRoot, err := primitives.ComputeSigningRootUInt64(

@@ -42,3 +42,8 @@ func (m Mix) MixinNewReveal(reveal primitives.BLSSignature) Mix {
 	}
 	return m
 }
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (m Mix) MarshalText() ([]byte, error) {
+	return primitives.Bytes32(m).MarshalText()
+}
