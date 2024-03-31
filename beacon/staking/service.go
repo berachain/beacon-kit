@@ -28,7 +28,6 @@ package staking
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -44,7 +43,7 @@ type Service struct {
 
 	// abi represents the configured deposit contract's
 	// abi.
-	abi *abi.WrappedABI
+	abi *WrappedABI
 }
 
 // ProcessLogsInETH1Block gets logs in the Eth1 block

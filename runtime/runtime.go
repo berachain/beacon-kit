@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/health"
-	"github.com/berachain/beacon-kit/lib/abi"
 	"github.com/berachain/beacon-kit/mod/builder/cache"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
@@ -122,7 +121,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the staking service.
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
-		staking.WithDepositABI(abi.NewWrappedABI(depositABI)),
+		staking.WithDepositABI(depositABI),
 		staking.WithExecutionEngine(executionEngine),
 	)
 
