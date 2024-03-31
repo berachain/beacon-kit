@@ -23,27 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package randao
 
-import (
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives"
 
-// Mix is a fixed-size array that stores the current state of the entropy mix.
-type Mix primitives.Bytes32
-
-// MixinNewReveal takes a new reveal (signature) and combines it with the
-// current mix
-// using a XOR operation, then returns the updated mix.
-func (m Mix) MixinNewReveal(reveal primitives.BLSSignature) Mix {
-	for idx, b := range sha256.Hash(reveal[:]) {
-		m[idx] ^= b
+// xor returns the XOR of two byte arrays.
+func xor(a, b [32]byte) primitives.Bytes32 {
+	dst := make([]byte, len(a))
+	for i := range a {
+		dst[i] = a[i] ^ b[i]
 	}
-	return m
-}
 
-// MarshalText implements the encoding.TextMarshaler interface.
-func (m Mix) MarshalText() ([]byte, error) {
-	return primitives.Bytes32(m).MarshalText()
+	return primitives.Bytes32(dst)
 }

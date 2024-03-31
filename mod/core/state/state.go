@@ -28,7 +28,6 @@ package state
 import (
 	"context"
 
-	randaotypes "github.com/berachain/beacon-kit/mod/core/randao/types"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -90,13 +89,13 @@ type ReadOnlyStateRoots interface {
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, randaotypes.Mix) error
+	UpdateRandaoMixAtIndex(uint64, primitives.Bytes32) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	RandaoMixAtIndex(uint64) (randaotypes.Mix, error)
+	RandaoMixAtIndex(uint64) (primitives.Bytes32, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.

@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	crypto "github.com/berachain/beacon-kit/mod/crypto"
 	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -166,10 +167,8 @@ func (p *Processor) MixinNewReveal(
 		return fmt.Errorf("failed to get randao mix: %w", err)
 	}
 
-	// Mix in the reveal with the previous slotsmix.
-	newMix := mix.MixinNewReveal(reveal)
-
-	// Set this slots mix to the new mix.
+	// Mix in the reveal and update in the state.
+	newMix := xor(mix, sha256.Hash(reveal[:]))
 	if err = st.UpdateRandaoMixAtIndex(
 		uint64(slot)%p.cfg.Beacon.EpochsPerHistoricalVector,
 		newMix,

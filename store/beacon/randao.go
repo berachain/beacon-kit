@@ -26,15 +26,18 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/randao/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *Store) UpdateRandaoMixAtIndex(index uint64, mix types.Mix) error {
+func (s *Store) UpdateRandaoMixAtIndex(
+	index uint64,
+	mix primitives.Bytes32,
+) error {
 	return s.randaoMix.Set(s.ctx, index, mix)
 }
 
 // RandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *Store) RandaoMixAtIndex(index uint64) (types.Mix, error) {
+func (s *Store) RandaoMixAtIndex(index uint64) (primitives.Bytes32, error) {
 	return s.randaoMix.Get(s.ctx, index)
 }

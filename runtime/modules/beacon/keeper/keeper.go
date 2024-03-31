@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	randaotypes "github.com/berachain/beacon-kit/mod/core/randao/types"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
@@ -131,7 +130,7 @@ func (k *Keeper) InitGenesis(
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
 	if err := st.UpdateRandaoMixAtIndex(
-		0, randaotypes.Mix(data.RandaoMixes[0]),
+		0, data.RandaoMixes[0],
 	); err != nil {
 		return nil, err
 	}
