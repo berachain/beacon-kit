@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/domain"
+	"github.com/go-faster/xor"
 )
 
 // Processor is the randao processor.
@@ -168,7 +169,7 @@ func (p *Processor) MixinNewReveal(
 	}
 
 	// Mix in the reveal and update in the state.
-	newMix := xor(mix, sha256.Hash(reveal[:]))
+	newMix := p.buildMix(mix, reveal)
 	if err = st.UpdateRandaoMixAtIndex(
 		uint64(slot)%p.cfg.Beacon.EpochsPerHistoricalVector,
 		newMix,
@@ -177,6 +178,17 @@ func (p *Processor) MixinNewReveal(
 	}
 	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
 	return nil
+}
+
+func (p *Processor) buildMix(
+	mix primitives.Bytes32,
+	reveal primitives.BLSSignature,
+) primitives.Bytes32 {
+	newMix := make([]byte, primitives.RootLength)
+	revealHash := sha256.Hash(reveal[:])
+	// Apparently this library giga fast? Good project? lmeow.
+	_ = xor.Bytes(newMix, mix[:], revealHash[:])
+	return primitives.Bytes32(newMix)
 }
 
 // computeSigningRoot computes the signing root for the epoch.
