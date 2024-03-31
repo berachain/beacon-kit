@@ -30,7 +30,7 @@ import (
 	sha256 "github.com/minio/sha256-simd"
 )
 
-// ConvertCommitmentToVersionedHash computes a SHA-256 hash of the given
+// KzgCommitmentToVersionedHash computes a SHA-256 hash of the given
 // commitment and prefixes it with the BlobCommitmentVersion. This function is
 // used to generate
 // a versioned hash for KZG commitments.

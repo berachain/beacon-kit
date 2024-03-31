@@ -34,7 +34,7 @@ const (
 	// As per the standard, it is set to 48 bytes.
 	BLSPubkeyLength = 48
 
-	// SecretKeyLength defines the byte length of a BLS12-381 secret key.
+	// BLSSecretKeyLength defines the byte length of a BLS12-381 secret key.
 	// It is defined to be 32 bytes in length.
 	BLSSecretKeyLength = 32
 )

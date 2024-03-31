@@ -36,7 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/domain"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/go-faster/xor"
 	sha256 "github.com/minio/sha256-simd"
 )
@@ -185,7 +185,7 @@ func (p *Processor) buildMix(
 	mix primitives.Bytes32,
 	reveal primitives.BLSSignature,
 ) primitives.Bytes32 {
-	newMix := make([]byte, primitives.RootLength)
+	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Sum256(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
 	_ = xor.Bytes(newMix, mix[:], revealHash[:])
@@ -203,7 +203,7 @@ func (p *Processor) computeSigningRoot(
 		), genesisValidatorsRoot,
 	)
 
-	signingDomain, err := fd.ComputeDomain(domain.TypeRandao)
+	signingDomain, err := fd.ComputeDomain(primitives.DomainTypeRandao)
 	if err != nil {
 		return primitives.Root{}, err
 	}

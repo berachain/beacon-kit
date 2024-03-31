@@ -25,10 +25,6 @@
 
 package primitives
 
-const (
-	RootLength = 32
-)
-
 //nolint:lll
 type (
 	// Slot as per the Ethereum 2.0 Specification:
@@ -55,10 +51,6 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	Hash32 = Bytes32
 
-	// DomainType as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	DomainType = Bytes4
-
 	// Version as per the Ethereum 2.0 specification.
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	Version = Bytes4
@@ -66,10 +58,6 @@ type (
 	// ForkDigest as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	ForkDigest = Bytes4
-
-	// Domain as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Domain = Bytes32
 
 	// ValidatorIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types

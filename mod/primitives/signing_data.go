@@ -25,7 +25,11 @@
 
 package primitives
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
+)
 
 // SigningData as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
@@ -59,7 +63,7 @@ func ComputeSigningRootUInt64(
 	value uint64,
 	domain Domain,
 ) (Root, error) {
-	bz := make([]byte, RootLength)
+	bz := make([]byte, constants.RootLength)
 	binary.LittleEndian.PutUint64(bz, value)
 	return (&SigningData{
 		ObjectRoot: Root(bz),

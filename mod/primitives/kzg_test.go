@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
-func TestConvertCommitmentToVersionedHash(t *testing.T) {
+func TestKzgCommitmentToVersionedHash(t *testing.T) {
 	commitment := [48]byte{}
 	copy(commitment[:], []byte("test commitment"))
 	// Assuming BlobCommitmentVersion is a byte value
@@ -52,7 +52,7 @@ func TestConvertCommitmentToVersionedHash(t *testing.T) {
 	}
 }
 
-func TestConvertCommitmentsToVersionedHashes(t *testing.T) {
+func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
 	commitments := make([][48]byte, 2)
 	copy(commitments[0][:], "commitment 1")
 	copy(commitments[1][:], "commitment 2")

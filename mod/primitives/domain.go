@@ -23,21 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package domain
+package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+type (
+	// Domain as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Domain = Bytes32
+
+	// DomainType as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	DomainType = Bytes4
+)
 
 // Domain constants as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
 //
 //nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
 var (
-	TypeProposer          = primitives.DomainType{0x00, 0x00, 0x00, 0x00}
-	TypeAttester          = primitives.DomainType{0x01, 0x00, 0x00, 0x00}
-	TypeRandao            = primitives.DomainType{0x02, 0x00, 0x00, 0x00}
-	TypeDeposit           = primitives.DomainType{0x03, 0x00, 0x00, 0x00}
-	TypeVoluntaryExit     = primitives.DomainType{0x04, 0x00, 0x00, 0x00}
-	TypeSelectionProof    = primitives.DomainType{0x05, 0x00, 0x00, 0x00}
-	TypeAggregateAndProof = primitives.DomainType{0x06, 0x00, 0x00, 0x00}
-	TypeApplicationMask   = primitives.DomainType{0x00, 0x00, 0x00, 0x01}
+	DomainTypeProposer          = DomainType{0x00, 0x00, 0x00, 0x00}
+	DomainTypeAttester          = DomainType{0x01, 0x00, 0x00, 0x00}
+	DomainTypeRandao            = DomainType{0x02, 0x00, 0x00, 0x00}
+	DomainTypeDeposit           = DomainType{0x03, 0x00, 0x00, 0x00}
+	DomainTypeVoluntaryExit     = DomainType{0x04, 0x00, 0x00, 0x00}
+	DomainTypeSelectionProof    = DomainType{0x05, 0x00, 0x00, 0x00}
+	DomainTypeAggregateAndProof = DomainType{0x06, 0x00, 0x00, 0x00}
+	DomainTypeApplicationMask   = DomainType{0x00, 0x00, 0x00, 0x01}
 )
