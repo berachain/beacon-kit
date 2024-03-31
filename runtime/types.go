@@ -25,21 +25,8 @@
 
 package runtime
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/core/state"
-)
-
 // AppOptions is an interface that provides the ability to
 // retrieve options from the application.
 type AppOptions interface {
 	Get(string) interface{}
-}
-
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
-type BeaconStorageBackend interface {
-	AvailabilityStore(ctx context.Context) state.AvailabilityStore
-	BeaconState(ctx context.Context) state.BeaconState
 }

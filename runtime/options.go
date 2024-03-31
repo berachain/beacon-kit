@@ -28,6 +28,7 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 
@@ -60,7 +61,7 @@ func WithLogger(logger log.Logger) Option {
 
 // WithBeaconStorageBackend sets the BeaconStorageBackend
 // of the BeaconKitRuntime.
-func WithBeaconStorageBackend(fscp BeaconStorageBackend) Option {
+func WithBeaconStorageBackend(fscp interfaces.BeaconStorageBackend) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp
 		return nil

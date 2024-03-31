@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package interfaces
 
 import (
 	"context"
@@ -31,7 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 )
 
-// BeaconStorageBackend is the interface for the beacon storage backend.
+// BeaconStorageBackend is an interface that provides the
+// beacon state to the runtime.
 type BeaconStorageBackend interface {
 	AvailabilityStore(ctx context.Context) state.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState

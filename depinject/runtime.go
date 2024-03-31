@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/runtime"
 )
@@ -42,7 +43,7 @@ type RuntimeInjectInput struct {
 	AppOpts runtime.AppOptions
 	Logger  log.Logger
 	Signer  crypto.Signer[primitives.BLSSignature]
-	Bsp     runtime.BeaconStorageBackend
+	Bsp     interfaces.BeaconStorageBackend
 }
 
 // RuntimeInjectOutput is the output for the dep inject framework.

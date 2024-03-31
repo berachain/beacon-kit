@@ -34,13 +34,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all
 // services.
 type BaseService struct {
-	bsb    BeaconStorageBackend
+	bsb    interfaces.BeaconStorageBackend
 	name   string
 	cfg    *config.Config
 	logger log.Logger
@@ -55,7 +56,7 @@ type BaseService struct {
 // NewBaseService creates a new BaseService and applies the provided options.
 func NewBaseService(
 	cfg *config.Config,
-	bsp BeaconStorageBackend,
+	bsp interfaces.BeaconStorageBackend,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
