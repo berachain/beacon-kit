@@ -30,10 +30,10 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/lib/store/collections"
-	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/store/beacon/collections"
+	"github.com/berachain/beacon-kit/store/beacon/collections/encoding"
 	"github.com/berachain/beacon-kit/store/beacon/index"
 )
 

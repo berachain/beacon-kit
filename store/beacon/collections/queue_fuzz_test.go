@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	sdk "cosmossdk.io/collections"
-	"github.com/berachain/beacon-kit/lib/store/collections"
+	"github.com/berachain/beacon-kit/store/beacon/collections"
 	"github.com/stretchr/testify/require"
 )
 
