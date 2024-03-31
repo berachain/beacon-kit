@@ -35,8 +35,8 @@ import (
 	"github.com/berachain/beacon-kit/runtime"
 )
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
+// RuntimeInjectInput is the input for the dep inject framework.
+type RuntimeInjectInput struct {
 	depinject.In
 
 	AppOpts runtime.AppOptions
@@ -45,15 +45,15 @@ type DepInjectInput struct {
 	Bsp     runtime.BeaconStorageBackend
 }
 
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
+// RuntimeInjectOutput is the output for the dep inject framework.
+type RuntimeInjectOutput struct {
 	depinject.Out
 
 	Runtime *runtime.BeaconKitRuntime
 }
 
 // ProvideRuntime is a function that provides the module to the application.
-func ProvideRuntime(in DepInjectInput) DepInjectOutput {
+func ProvideRuntime(in RuntimeInjectInput) RuntimeInjectOutput {
 	r, err := runtime.NewDefaultBeaconKitRuntime(
 		in.AppOpts,
 		in.Signer,
@@ -66,7 +66,7 @@ func ProvideRuntime(in DepInjectInput) DepInjectOutput {
 		os.Exit(1)
 	}
 
-	return DepInjectOutput{
+	return RuntimeInjectOutput{
 		Runtime: r,
 	}
 }
