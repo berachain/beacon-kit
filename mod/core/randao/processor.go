@@ -180,16 +180,16 @@ func (p *Processor) MixinNewReveal(
 	return nil
 }
 
+// computeSigningRoot computes the signing root for the epoch.
 func (p *Processor) computeSigningRoot(
 	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 ) (primitives.Root, error) {
-	fd := forks.ForkData{
-		CurrentVersion: version.FromUint32(
+	fd := forks.NewForkData(
+		version.FromUint32(
 			p.cfg.Beacon.ActiveForkVersionByEpoch(epoch),
-		),
-		GenesisValidatorsRoot: genesisValidatorsRoot,
-	}
+		), genesisValidatorsRoot,
+	)
 
 	signingDomain, err := fd.ComputeDomain(domain.TypeRandao)
 	if err != nil {
