@@ -333,6 +333,17 @@ tidy:
 	@echo "Running go mod tidy in all modules"
 	@find . -name 'go.mod' -execdir go mod tidy \;
 
+sync:
+	@echo "Running go mod download && go work sync"
+	@go mod download
+	@go work sync
+
+checkpoint: format 
+	@git add -A
+	@git commit -m "bet"
+	@git push
+	@echo "checkpointed and pushed to remote"
+
 repo-rinse: |
 	git clean -xfd
 	git submodule foreach --recursive git clean -xfd
