@@ -23,52 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256_test
+package merkleize
 
-import (
-	"testing"
+import "github.com/cockroachdb/errors"
 
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
-	"github.com/protolambda/ztyp/tree"
-	"github.com/stretchr/testify/require"
+var (
+	// ErrOddLengthTreeRoots is returned when the input list length must be
+	// even.
+	ErrOddLengthTreeRoots = errors.New("input list length must be even")
+
+	// ErrMaxRootsExceeded is returned when the number of roots exceeds the
+	// maximum allowed.
+	ErrMaxRootsExceeded = errors.New(
+		"number of roots exceeds the maximum allowed",
+	)
 )
-
-func Test_SafeMerkleizeVector(t *testing.T) {
-	tests := []struct {
-		name            string
-		roots           [][32]byte
-		maxRootsAllowed uint64
-		expected        [32]byte
-		wantErr         bool
-	}{
-		{
-			name:            "empty roots list",
-			roots:           make([][32]byte, 0),
-			maxRootsAllowed: 16,
-			expected:        tree.ZeroHashes[0],
-			wantErr:         false,
-		},
-		{
-			name:            "maxRootsAllowed is less than the number of roots",
-			roots:           [][32]byte{{0x01}, {0x01}, {0x01}, {0x01}},
-			maxRootsAllowed: 3,
-			expected:        [32]byte{0x00},
-			wantErr:         true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			root, err := sha256.SafeMerkleizeVector(
-				tt.roots,
-				tt.maxRootsAllowed,
-			)
-			if !tt.wantErr {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-			}
-			require.Equal(t, tt.expected, root)
-		})
-	}
-}

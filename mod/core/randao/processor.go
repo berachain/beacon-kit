@@ -33,12 +33,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	crypto "github.com/berachain/beacon-kit/mod/crypto"
 	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/domain"
 	"github.com/go-faster/xor"
+	sha256 "github.com/minio/sha256-simd"
 )
 
 // Processor is the randao processor.
@@ -186,7 +186,7 @@ func (p *Processor) buildMix(
 	reveal primitives.BLSSignature,
 ) primitives.Bytes32 {
 	newMix := make([]byte, primitives.RootLength)
-	revealHash := sha256.Hash(reveal[:])
+	revealHash := sha256.Sum256(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
 	_ = xor.Bytes(newMix, mix[:], revealHash[:])
 	return primitives.Bytes32(newMix)

@@ -26,10 +26,10 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/lib/encoding/ssz"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/trie"
+	merkleize "github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/cockroachdb/errors"
 )
 
@@ -114,7 +114,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	}
 
 	randao := b.GetRandaoReveal()
-	root, err := ssz.MerkleizeByteSliceSSZ(randao[:])
+	root, err := merkleize.ByteSliceSSZ(randao[:])
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	dep := b.GetDeposits()
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
-	root, err = ssz.MerkleizeListSSZ(dep, maxDepositsPerBlock)
+	root, err = merkleize.ListSSZ(dep, maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}

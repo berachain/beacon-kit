@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256
+package merkleize
 
 // Hashable is an interface representing objects that implement HashTreeRoot().
 type Hashable interface {

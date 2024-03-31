@@ -31,9 +31,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/lib/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -80,7 +80,7 @@ func CollectValidatorsCmd() *cobra.Command {
 			}
 
 			beaconState.Validators = validators
-			beaconState.GenesisValidatorsRoot, err = ssz.MerkleizeVectorSSZ(
+			beaconState.GenesisValidatorsRoot, err = merkleize.VectorSSZ(
 				beaconState.Validators, uint64(len(beaconState.Validators)),
 			)
 

@@ -26,8 +26,8 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/lib/encoding/uint256"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 

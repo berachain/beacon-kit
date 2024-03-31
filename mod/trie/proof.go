@@ -30,8 +30,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	sha256 "github.com/minio/sha256-simd"
 	"github.com/protolambda/ztyp/tree"
 )
 
@@ -67,9 +67,9 @@ func VerifyMerkleProofWithDepth(
 	node := byteslib.ToBytes32(item)
 	for i := uint64(0); i <= depth; i++ {
 		if (merkleIndex & 1) == 1 {
-			node = sha256.Hash(append(proof[i], node[:]...))
+			node = sha256.Sum256(append(proof[i], node[:]...))
 		} else {
-			node = sha256.Hash(append(node[:], proof[i]...))
+			node = sha256.Sum256(append(node[:], proof[i]...))
 		}
 		merkleIndex /= 2
 	}

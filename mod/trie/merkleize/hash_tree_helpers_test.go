@@ -23,14 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256_test
+package merkleize_test
 
 import (
 	"fmt"
 	"sync"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
@@ -51,7 +51,7 @@ func requireGoHashTreeEquivalence(
 	go func() {
 		defer wg.Done()
 		var err error
-		output, err = sha256.BuildParentTreeRootsWithNRoutines(
+		output, err = merkleize.BuildParentTreeRootsWithNRoutines(
 			inputList,
 			numRoutines,
 		)

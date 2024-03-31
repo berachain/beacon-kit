@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256_test
+package merkleize_test
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,18 +43,21 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
 		t.Run(
-			fmt.Sprintf("Size%d", size*sha256.MinParallelizationSize),
+			fmt.Sprintf("Size%d", size*merkleize.MinParallelizationSize),
 			func(t *testing.T) {
 				largeSlice := make(
 					[][32]byte,
-					size*sha256.MinParallelizationSize,
+					size*merkleize.MinParallelizationSize,
 				)
 				secondLargeSlice := make(
 					[][32]byte,
-					size*sha256.MinParallelizationSize,
+					size*merkleize.MinParallelizationSize,
 				)
 				// Assuming hash reduces size by half
-				hash1 := make([][32]byte, size*sha256.MinParallelizationSize/2)
+				hash1 := make(
+					[][32]byte,
+					size*merkleize.MinParallelizationSize/2,
+				)
 				var hash2 [][32]byte
 				var err error
 
@@ -63,13 +66,13 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 				go func() {
 					defer wg.Done()
 					var tempHash [][32]byte
-					tempHash, err = sha256.BuildParentTreeRoots(largeSlice)
+					tempHash, err = merkleize.BuildParentTreeRoots(largeSlice)
 					copy(hash1, tempHash)
 				}()
 				wg.Wait()
 				require.NoError(t, err)
 
-				hash2, err = sha256.BuildParentTreeRoots(secondLargeSlice)
+				hash2, err = merkleize.BuildParentTreeRoots(secondLargeSlice)
 				require.NoError(t, err)
 
 				require.Equal(
@@ -101,13 +104,13 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	}{
 		{
 			"BelowMinParallelizationSize",
-			sha256.MinParallelizationSize / 2,
+			merkleize.MinParallelizationSize / 2,
 			false,
 		},
-		{"AtMinParallelizationSize", sha256.MinParallelizationSize, false},
+		{"AtMinParallelizationSize", merkleize.MinParallelizationSize, false},
 		{
 			"AboveMinParallelizationSize",
-			sha256.MinParallelizationSize * 2,
+			merkleize.MinParallelizationSize * 2,
 			false,
 		},
 		{"SmallSize", 16, false},
@@ -115,15 +118,15 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 		{"LargeSize", 128, false},
 		{
 			"TestRemainderStartIndexSmall",
-			sha256.MinParallelizationSize + 6,
+			merkleize.MinParallelizationSize + 6,
 			false,
 		},
 		{
 			"TestRemainderStartIndexBig",
-			sha256.MinParallelizationSize - 2,
+			merkleize.MinParallelizationSize - 2,
 			false,
 		},
-		{"TestOddLength", sha256.MinParallelizationSize + 1, true},
+		{"TestOddLength", merkleize.MinParallelizationSize + 1, true},
 	}
 
 	for _, tc := range testCases {
@@ -151,7 +154,7 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	_, err := sha256.BuildParentTreeRootsWithNRoutines(inputList, 0)
+	_, err := merkleize.BuildParentTreeRootsWithNRoutines(inputList, 0)
 	require.NoError(
 		t,
 		err,

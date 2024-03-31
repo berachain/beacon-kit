@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sha256_test
+package merkleize_test
 
 import (
 	"runtime"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 )
 
 func FuzzHashTreeRoot(f *testing.F) {
@@ -48,14 +48,14 @@ func FuzzHashTreeRoot(f *testing.F) {
 	// Larger input
 	f.Add(make([]byte, 1024), 3)
 	// Just below MinParallelizationSize
-	f.Add(make([]byte, sha256.MinParallelizationSize-2), 300)
+	f.Add(make([]byte, merkleize.MinParallelizationSize-2), 300)
 	// Exactly MinParallelizationSize
-	f.Add(make([]byte, sha256.MinParallelizationSize), 1)
+	f.Add(make([]byte, merkleize.MinParallelizationSize), 1)
 	// Just above MinParallelizationSize
-	f.Add(make([]byte, sha256.MinParallelizationSize+2), 64)
+	f.Add(make([]byte, merkleize.MinParallelizationSize+2), 64)
 	// Double MinParallelizationSize
 	f.Add(
-		make([]byte, 2*sha256.MinParallelizationSize),
+		make([]byte, 2*merkleize.MinParallelizationSize),
 		runtime.GOMAXPROCS(0)-1,
 	)
 

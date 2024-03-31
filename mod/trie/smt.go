@@ -33,8 +33,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/crypto/sha256"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	sha256 "github.com/minio/sha256-simd"
 	"github.com/protolambda/ztyp/tree"
 )
 
@@ -87,7 +87,7 @@ func NewFromItems(
 		}
 		updatedValues := make([][]byte, 0)
 		for j := 0; j < len(layers[i]); j += 2 {
-			concat := sha256.Hash(append(layers[i][j], layers[i][j+1]...))
+			concat := sha256.Sum256(append(layers[i][j], layers[i][j+1]...))
 			updatedValues = append(updatedValues, concat[:])
 		}
 		layers[i+1] = updatedValues
@@ -115,7 +115,7 @@ func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
-	return sha256.Hash(
+	return sha256.Sum256(
 		append(m.branches[len(m.branches)-1][0], enc[:]...),
 	), nil
 }
@@ -148,10 +148,10 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 			neighbor = m.branches[i][neighborIdx]
 		}
 		if isLeft {
-			parentHash := sha256.Hash(append(root[:], neighbor...))
+			parentHash := sha256.Sum256(append(root[:], neighbor...))
 			root = parentHash
 		} else {
-			parentHash := sha256.Hash(append(neighbor, root[:]...))
+			parentHash := sha256.Sum256(append(neighbor, root[:]...))
 			root = parentHash
 		}
 		parentIdx := currentIndex / two
