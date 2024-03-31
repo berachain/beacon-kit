@@ -28,10 +28,12 @@ package primitives
 type (
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	//nolint:lll
 	Domain = Bytes32
 
 	// DomainType as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	//nolint:lll
 	DomainType = Bytes4
 )
 

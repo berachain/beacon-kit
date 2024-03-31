@@ -25,4 +25,4 @@
 
 package primitives
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData -output signing_data.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData -output generate.ssz.go
