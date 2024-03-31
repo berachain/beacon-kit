@@ -34,7 +34,8 @@ func (s *Store) UpdateRandaoMixAtIndex(index uint64, mix types.Mix) error {
 	return s.randaoMix.Set(s.ctx, index, mix)
 }
 
-// RandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *Store) RandaoMixAtIndex(index uint64) (types.Mix, error) {
+// GetRandaoMixAtIndex retrieves the RANDAO mix at the given index from the
+// store.
+func (s *Store) GetRandaoMixAtIndex(index uint64) (types.Mix, error) {
 	return s.randaoMix.Get(s.ctx, index)
 }

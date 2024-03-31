@@ -52,12 +52,13 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyWithdrawals
 
 	GetSlot() (primitives.Slot, error)
-	GetEpoch(uint64) (primitives.Epoch, error)
+	GetCurrentEpoch(uint64) (primitives.Epoch, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
+	GetTotalSlashing() (primitives.Gwei, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -71,6 +72,7 @@ type WriteOnlyBeaconState interface {
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
+	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
@@ -94,7 +96,7 @@ type WriteOnlyRandaoMixes interface {
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	RandaoMixAtIndex(uint64) (randaotypes.Mix, error)
+	GetRandaoMixAtIndex(uint64) (randaotypes.Mix, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.

@@ -54,4 +54,7 @@ type RandaoProcessor interface {
 		proposerPubkey primitives.BLSPubkey,
 		reveal primitives.BLSSignature,
 	) error
+	MixesReset(
+		st state.BeaconState,
+	) error
 }

@@ -81,6 +81,12 @@ type Store struct {
 
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, [types.MixLength]byte]
+
+	// slashings stores the slashings for the current epoch.
+	slashings sdkcollections.Map[uint64, uint64]
+
+	// totalSlashing stores the total slashing in the vector range.
+	totalSlashing sdkcollections.Item[uint64]
 }
 
 // Store creates a new instance of Store.
@@ -154,13 +160,25 @@ func NewStore(
 			withdrawalQueuePrefix,
 			encoding.SSZValueCodec[*enginetypes.Withdrawal]{},
 		),
-
 		randaoMix: sdkcollections.NewMap[uint64, [types.MixLength]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(randaoMixPrefix),
 			randaoMixPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
+		),
+		slashings: sdkcollections.NewMap[uint64, uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(slashingsPrefix),
+			slashingsPrefix,
+			sdkcollections.Uint64Key,
+			sdkcollections.Uint64Value,
+		),
+		totalSlashing: sdkcollections.NewItem[uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(totalSlashingPrefix),
+			totalSlashingPrefix,
+			sdkcollections.Uint64Value,
 		),
 		//nolint:lll
 		latestBeaconBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](

@@ -173,7 +173,14 @@ func (sp *StateProcessor) ProcessBlock(
 }
 
 // processEpoch processes the epoch and ensures it matches the local state.
-func (sp *StateProcessor) processEpoch(_ state.BeaconState) error {
+func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
+	var err error
+	if err = sp.processSlashingsReset(st); err != nil {
+		return err
+	}
+	if err = sp.processRandaoMixesReset(st); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -352,6 +359,32 @@ func (sp *StateProcessor) processRandaoReveal(
 	return sp.rp.MixinNewReveal(st, reveal)
 }
 
+// processRandaoMixesReset as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
+//
+//nolint:lll
+func (sp *StateProcessor) processRandaoMixesReset(
+	st state.BeaconState,
+) error {
+	return sp.rp.MixesReset(st)
+}
+
+// processSlashingsReset as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
+//
+//nolint:lll
+func (sp *StateProcessor) processSlashingsReset(
+	st state.BeaconState,
+) error {
+	epoch, err := st.GetCurrentEpoch(sp.cfg.SlotsPerEpoch)
+	if err != nil {
+		return err
+	}
+
+	index := (uint64(epoch) + 1) % sp.cfg.EpochsPerSlashingsVector
+	return st.UpdateSlashingAtIndex(index, 0)
+}
+
 // processProposerSlashing as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#proposer-slashings
 //
@@ -390,14 +423,14 @@ func (sp *StateProcessor) processSlashings(
 		return err
 	}
 
-	// TODO: FILL THIS IN A LATER PR
-	totalSlashings := uint64(0)
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#rewards-and-penalties
-	// Set to 1 initially.
-	// TODO: Move to a config
-	proportionalSlashingMultiplier := uint64(1)
+	totalSlashings, err := st.GetTotalSlashing()
+	if err != nil {
+		return err
+	}
+	proportionalSlashingMultiplier := sp.cfg.ProportionalSlashingMultiplier
 	adjustedTotalSlashingBalance := min(
-		totalSlashings*proportionalSlashingMultiplier, uint64(totalBalance),
+		uint64(totalSlashings)*proportionalSlashingMultiplier,
+		uint64(totalBalance),
 	)
 	vals, err := st.GetValidators()
 	if err != nil {
@@ -405,7 +438,7 @@ func (sp *StateProcessor) processSlashings(
 	}
 
 	// Get the current epoch
-	epoch, err := st.GetEpoch(slotsPerEpoch)
+	epoch, err := st.GetCurrentEpoch(slotsPerEpoch)
 	if err != nil {
 		return err
 	}

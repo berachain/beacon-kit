@@ -87,16 +87,36 @@ func (p *Processor) BuildReveal(
 	)
 }
 
-// buildReveal creates a reveal for the proposer.
-func (p *Processor) buildReveal(
-	genesisValidatorsRoot primitives.Root,
-	epoch primitives.Epoch,
-) (primitives.BLSSignature, error) {
-	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
+// MixinNewReveal mixes in a new reveal.
+func (p *Processor) MixinNewReveal(
+	st state.BeaconState,
+	reveal primitives.BLSSignature,
+) error {
+	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return err
 	}
-	return p.signer.Sign(signingRoot[:]), nil
+
+	// Get last slots randao mix.
+	mix, err := st.GetRandaoMixAtIndex(
+		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to get randao mix: %w", err)
+	}
+
+	// Mix in the reveal with the previous slots mix.
+	newMix := mix.MixinNewReveal(reveal)
+
+	// Set this slots mix to the new mix.
+	if err = st.UpdateRandaoMixAtIndex(
+		uint64(epoch)%p.cfg.Beacon.EpochsPerHistoricalVector,
+		newMix,
+	); err != nil {
+		return fmt.Errorf("failed to set new randao mix: %w", err)
+	}
+	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
+	return nil
 }
 
 // VerifyReveal verifies the reveal of the proposer.
@@ -122,14 +142,33 @@ func (p *Processor) VerifyReveal(
 	)
 }
 
-// VerifyReveal verifies the reveal of the proposer.
+// MixesReset resets the randao mixes.
+// process_randao_mixes_reset in the Ethereum 2.0 specification.
+func (p *Processor) MixesReset(st state.BeaconState) error {
+	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
+	if err != nil {
+		return err
+	}
+	mix, err := st.GetRandaoMixAtIndex(
+		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
+	)
+	if err != nil {
+		return err
+	}
+	return st.UpdateRandaoMixAtIndex(
+		uint64(epoch+1)%p.cfg.Beacon.EpochsPerHistoricalVector,
+		mix,
+	)
+}
+
+// verifyReveal verifies the reveal of the proposer.
 func (p *Processor) verifyReveal(
 	proposerPubkey primitives.BLSPubkey,
 	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
 	reveal primitives.BLSSignature,
 ) error {
-	signingRoot, err := p.computeSigningRoot(genesisValidatorsRoot, epoch)
+	signingRoot, err := p.computeSigningRoot(epoch, genesisValidatorsRoot)
 	if err != nil {
 		return err
 	}
@@ -147,41 +186,21 @@ func (p *Processor) verifyReveal(
 	return nil
 }
 
-// MixinNewReveal mixes in a new reveal.
-func (p *Processor) MixinNewReveal(
-	st state.BeaconState,
-	reveal primitives.BLSSignature,
-) error {
-	slot, err := st.GetSlot()
+// buildReveal creates a reveal for the proposer.
+func (p *Processor) buildReveal(
+	genesisValidatorsRoot primitives.Root,
+	epoch primitives.Epoch,
+) (primitives.BLSSignature, error) {
+	signingRoot, err := p.computeSigningRoot(epoch, genesisValidatorsRoot)
 	if err != nil {
-		return err
+		return primitives.BLSSignature{}, err
 	}
-
-	// Get last slots randao mix.
-	mix, err := st.RandaoMixAtIndex(
-		uint64(slot) % p.cfg.Beacon.EpochsPerHistoricalVector,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get randao mix: %w", err)
-	}
-
-	// Mix in the reveal with the previous slotsmix.
-	newMix := mix.MixinNewReveal(reveal)
-
-	// Set this slots mix to the new mix.
-	if err = st.UpdateRandaoMixAtIndex(
-		uint64(slot)%p.cfg.Beacon.EpochsPerHistoricalVector,
-		newMix,
-	); err != nil {
-		return fmt.Errorf("failed to set new randao mix: %w", err)
-	}
-	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
-	return nil
+	return p.signer.Sign(signingRoot[:]), nil
 }
 
 func (p *Processor) computeSigningRoot(
-	genesisValidatorsRoot primitives.Root,
 	epoch primitives.Epoch,
+	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
 	signingDomain, err := signature.GetDomain(
 		p.cfg,

@@ -57,7 +57,7 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	randaoMix, err := s.RandaoMixAtIndex(0)
+	randaoMix, err := s.GetRandaoMixAtIndex(0)
 	if err != nil {
 		return [32]byte{}, err
 	}

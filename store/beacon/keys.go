@@ -30,6 +30,8 @@ const (
 	depositQueuePrefix                     = "deposit_queue"
 	withdrawalQueuePrefix                  = "withdrawal_queue"
 	randaoMixPrefix                        = "randao_mix"
+	slashingsPrefix                        = "slashings"
+	totalSlashingPrefix                    = "total_slashing"
 	validatorIndexPrefix                   = "val_idx"
 	blockRootsPrefix                       = "block_roots"
 	stateRootsPrefix                       = "state_roots"
