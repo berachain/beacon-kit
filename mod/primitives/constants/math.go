@@ -23,22 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package constants
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
-)
-
-// This file contains various constants as defined:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
-//
-//nolint:lll
 const (
-	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot = primitives.Slot(0)
-	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch = primitives.Epoch(0)
-	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = primitives.Epoch(constants.Uint64Max)
+	// Uint64Max represents the maximum value for a uint64.
+	Uint64Max = uint64(18446744073709551615)
+	// Uint64MaxSqrt represents the square root of the maximum value for a
+	// uint64.
+	Uint64MaxSqrt = uint64(4294967295)
 )

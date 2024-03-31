@@ -46,7 +46,6 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *execution.NewForkchoiceUpdateRequest,
 	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
-
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution
 	VerifyAndNotifyNewPayload(
