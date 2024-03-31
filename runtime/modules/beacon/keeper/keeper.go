@@ -33,13 +33,12 @@ import (
 	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	"github.com/berachain/beacon-kit/store/blob"
-	forkchoicestore "github.com/berachain/beacon-kit/store/forkchoice"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -47,7 +46,6 @@ import (
 type Keeper struct {
 	availabilityStore *blob.Store
 	beaconStore       *beaconstore.Store
-	forkchoiceStore   *forkchoicestore.Store
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
@@ -58,7 +56,6 @@ func NewKeeper(
 	return &Keeper{
 		availabilityStore: blob.NewStore(fdb),
 		beaconStore:       beaconstore.NewStore(env),
-		forkchoiceStore:   forkchoicestore.NewStore(env.KVStoreService),
 	}
 }
 
@@ -124,15 +121,6 @@ func (k *Keeper) BeaconState(
 	return k.beaconStore.WithContext(ctx)
 }
 
-// context and the store key.
-//
-// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-func (k *Keeper) ForkchoiceStore(
-	ctx context.Context,
-) ssf.SingleSlotFinalityStore {
-	return k.forkchoiceStore.WithContext(ctx)
-}
-
 // InitGenesis initializes the genesis state of the module.
 //
 // TODO: This whole thing needs to be abstracted into beacon/core/state
@@ -157,11 +145,10 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	// Set the genesis block data.
-	fcs := k.ForkchoiceStore(ctx)
-	fcs.SetGenesisEth1Hash(data.Eth1GenesisHash)
-	fcs.SetSafeEth1BlockHash(data.Eth1GenesisHash)
-	fcs.SetFinalizedEth1BlockHash(data.Eth1GenesisHash)
+	// Set the genesis block header.
+	if err := st.UpdateEth1BlockHash(data.Eth1BlockHash); err != nil {
+		return nil, err
+	}
 
 	emptyHeader := &beacontypes.BeaconBlockHeader{
 		Slot:          0,
@@ -231,6 +218,6 @@ func (k *Keeper) InitGenesis(
 // ExportGenesis exports the current state of the module as genesis state.
 func (k *Keeper) ExportGenesis(ctx context.Context) *state.BeaconStateDeneb {
 	return &state.BeaconStateDeneb{
-		Eth1GenesisHash: k.ForkchoiceStore(ctx).GenesisEth1Hash(),
+		Eth1BlockHash: common.Hash{},
 	}
 }

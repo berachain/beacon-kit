@@ -22,7 +22,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.Bytes32     `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32     `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		Eth1GenesisHash              common.Hash              `json:"eth1GenesisHash"  ssz-size:"32"`
+		Eth1BlockHash                common.Hash              `json:"eth1BlockHash"    ssz-size:"32"`
 		Eth1DepositIndex             uint64                   `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                 `json:"balances"   ssz-max:"1099511627776"`
@@ -46,7 +46,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 			enc.StateRoots[k] = v
 		}
 	}
-	enc.Eth1GenesisHash = b.Eth1GenesisHash
+	enc.Eth1BlockHash = b.Eth1BlockHash
 	enc.Eth1DepositIndex = b.Eth1DepositIndex
 	enc.Validators = b.Validators
 	enc.Balances = b.Balances
@@ -69,7 +69,7 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		LatestBlockHeader            *types.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.Bytes32     `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32     `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		Eth1GenesisHash              *common.Hash             `json:"eth1GenesisHash"  ssz-size:"32"`
+		Eth1BlockHash                *common.Hash             `json:"eth1BlockHash"    ssz-size:"32"`
 		Eth1DepositIndex             *uint64                  `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator       `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                 `json:"balances"   ssz-max:"1099511627776"`
@@ -105,8 +105,8 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 			b.StateRoots[k] = v
 		}
 	}
-	if dec.Eth1GenesisHash != nil {
-		b.Eth1GenesisHash = *dec.Eth1GenesisHash
+	if dec.Eth1BlockHash != nil {
+		b.Eth1BlockHash = *dec.Eth1BlockHash
 	}
 	if dec.Eth1DepositIndex != nil {
 		b.Eth1DepositIndex = *dec.Eth1DepositIndex

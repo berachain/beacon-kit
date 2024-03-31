@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/beacon/forkchoice"
 	"github.com/berachain/beacon-kit/mod/config/params"
 )
 
@@ -49,7 +48,6 @@ func NewPayloadValidator(cfg *params.BeaconChainConfig) *PayloadValidator {
 // ValidatePayload validates the incoming payload.
 func (pv *PayloadValidator) ValidatePayload(
 	st state.BeaconState,
-	fc forkchoice.ForkChoicer,
 	blk types.BeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
@@ -78,7 +76,11 @@ func (pv *PayloadValidator) ValidatePayload(
 	// In BeaconKit, since we are currently operating on SingleSlot Finality
 	// we purposefully reject any block that is not a child of the last
 	// finalized block.
-	safeHash := fc.JustifiedPayloadBlockHash()
+	safeHash, err := st.GetEth1BlockHash()
+	if err != nil {
+		return err
+	}
+
 	if safeHash != payload.GetParentHash() {
 		return fmt.Errorf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",

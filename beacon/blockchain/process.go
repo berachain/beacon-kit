@@ -54,7 +54,6 @@ func (s *Service) ProcessBeaconBlock(
 ) error {
 	var (
 		avs         = s.AvailabilityStore(ctx)
-		fcs         = s.ForkchoiceStore(ctx)
 		g, groupCtx = errgroup.WithContext(ctx)
 		st          = s.BeaconState(groupCtx)
 		err         error
@@ -62,7 +61,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Validate payload in Parallel.
 	g.Go(func() error {
-		return s.pv.ValidatePayload(st, fcs, blk)
+		return s.pv.ValidatePayload(st, blk)
 	})
 
 	// Validate block in Parallel.
@@ -144,6 +143,7 @@ func (s *Service) PostBlockProcess(
 ) error {
 	var (
 		payload enginetypes.ExecutionPayload
+		st      = s.BeaconState(ctx)
 	)
 
 	// No matter what happens we always want to forkchoice at the end of post
@@ -168,17 +168,22 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
+	prevEth1Block, err := st.GetEth1BlockHash()
+	if err != nil {
+		return err
+	}
+
 	// Process the logs in the block.
 	if err := s.sks.ProcessLogsInETH1Block(
 		ctx,
-		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
+		prevEth1Block,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
 
 	payloadBlockHash := payload.GetBlockHash()
-	if err := s.ForkchoiceStore(ctx).InsertNode(payloadBlockHash); err != nil {
+	if err := st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
 		return err
 	}
 

@@ -8,12 +8,12 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the ExecutableDataDeneb object
+// MarshalSSZ ssz marshals the ExecutableDataDeneb object.
 func (e *ExecutableDataDeneb) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(e)
 }
 
-// MarshalSSZTo ssz marshals the ExecutableDataDeneb object to a target array
+// MarshalSSZTo ssz marshals the ExecutableDataDeneb object to a target array.
 func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(528)
@@ -123,7 +123,7 @@ func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the ExecutableDataDeneb object
+// UnmarshalSSZ ssz unmarshals the ExecutableDataDeneb object.
 func (e *ExecutableDataDeneb) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -256,7 +256,7 @@ func (e *ExecutableDataDeneb) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ExecutableDataDeneb object
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutableDataDeneb object.
 func (e *ExecutableDataDeneb) SizeSSZ() (size int) {
 	size = 528
 
@@ -275,12 +275,12 @@ func (e *ExecutableDataDeneb) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the ExecutableDataDeneb object
+// HashTreeRoot ssz hashes the ExecutableDataDeneb object.
 func (e *ExecutableDataDeneb) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(e)
 }
 
-// HashTreeRootWith ssz hashes the ExecutableDataDeneb object with a hasher
+// HashTreeRootWith ssz hashes the ExecutableDataDeneb object with a hasher.
 func (e *ExecutableDataDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -389,17 +389,17 @@ func (e *ExecutableDataDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the ExecutableDataDeneb object
+// GetTree ssz hashes the ExecutableDataDeneb object.
 func (e *ExecutableDataDeneb) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(e)
 }
 
-// MarshalSSZ ssz marshals the Withdrawal object
+// MarshalSSZ ssz marshals the Withdrawal object.
 func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(w)
 }
 
-// MarshalSSZTo ssz marshals the Withdrawal object to a target array
+// MarshalSSZTo ssz marshals the Withdrawal object to a target array.
 func (w *Withdrawal) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -418,7 +418,7 @@ func (w *Withdrawal) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the Withdrawal object
+// UnmarshalSSZ ssz unmarshals the Withdrawal object.
 func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -441,18 +441,18 @@ func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Withdrawal object
+// SizeSSZ returns the ssz encoded size in bytes for the Withdrawal object.
 func (w *Withdrawal) SizeSSZ() (size int) {
 	size = 44
 	return
 }
 
-// HashTreeRoot ssz hashes the Withdrawal object
+// HashTreeRoot ssz hashes the Withdrawal object.
 func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(w)
 }
 
-// HashTreeRootWith ssz hashes the Withdrawal object with a hasher
+// HashTreeRootWith ssz hashes the Withdrawal object with a hasher.
 func (w *Withdrawal) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -472,7 +472,7 @@ func (w *Withdrawal) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the Withdrawal object
+// GetTree ssz hashes the Withdrawal object.
 func (w *Withdrawal) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(w)
 }

@@ -76,7 +76,7 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		LatestBlockHeader:     latestBlockHeader,
 		BlockRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
 		StateRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		Eth1GenesisHash:       [32]byte{},
+		Eth1BlockHash:         [32]byte{},
 		Eth1DepositIndex:      0,
 		Validators:            []*beacontypes.Validator{},
 		RandaoMixes:           randaoMixes,

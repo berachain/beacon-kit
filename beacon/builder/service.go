@@ -120,12 +120,17 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
+	parentEth1BlockHash, err := st.GetEth1BlockHash()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
 		ctx,
 		slot,
 		parentBlockRoot,
-		s.ForkchoiceStore(ctx).JustifiedPayloadBlockHash(),
+		parentEth1BlockHash,
 	)
 	if err != nil {
 		return blk, nil, err

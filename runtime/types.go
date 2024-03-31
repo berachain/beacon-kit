@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 )
 
 // AppOptions is an interface that provides the ability to
@@ -43,6 +42,4 @@ type AppOptions interface {
 type BeaconStorageBackend interface {
 	AvailabilityStore(ctx context.Context) state.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
 }

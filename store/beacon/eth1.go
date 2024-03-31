@@ -23,34 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package forkchoice
+package beacon
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// ForkChoicer represents the full fork choice interface composed of all the
-// sub-interfaces.
-type ForkChoicer interface {
-	Reader
-	Writer
-
-	SetContext(ctx context.Context)
+// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
+func (s *Store) UpdateEth1BlockHash(
+	hash primitives.ExecutionHash,
+) error {
+	return s.eth1BlockHash.Set(s.ctx, hash)
 }
 
-type Reader interface {
-	JustifiedPayloadBlockHash() primitives.ExecutionHash
-	FinalizedPayloadBlockHash() primitives.ExecutionHash
-}
-
-type Writer interface {
-	BlockProcessor
-}
-
-// BlockProcessor processes the block that's used for accounting fork choice.
-type BlockProcessor interface {
-	// InsertNode inserts a new node into the forkchoice.
-	InsertNode(primitives.ExecutionHash) error
+// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
+func (s *Store) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+	return s.eth1BlockHash.Get(s.ctx)
 }

@@ -58,6 +58,9 @@ type Store struct {
 	// stateRoots stores the state roots for the current epoch.
 	stateRoots sdkcollections.Map[uint64, [32]byte]
 
+	// eth1BlockHash stores the block hash of the latest eth1 block.
+	eth1BlockHash sdkcollections.Item[[32]byte]
+
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
@@ -114,6 +117,12 @@ func NewStore(
 			sdkcollections.NewPrefix(stateRootsPrefix),
 			stateRootsPrefix,
 			sdkcollections.Uint64Key,
+			encoding.Bytes32ValueCodec{},
+		),
+		eth1BlockHash: sdkcollections.NewItem[[32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(eth1BlockHashPrefix),
+			eth1BlockHashPrefix,
 			encoding.Bytes32ValueCodec{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](

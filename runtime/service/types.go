@@ -29,12 +29,10 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	ssf "github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 )
 
 // BeaconStorageBackend is the interface for the beacon storage backend.
 type BeaconStorageBackend interface {
 	AvailabilityStore(ctx context.Context) state.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState
-	ForkchoiceStore(ctx context.Context) ssf.SingleSlotFinalityStore
 }

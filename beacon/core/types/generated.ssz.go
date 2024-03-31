@@ -9,12 +9,12 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the BlobSidecars object
+// MarshalSSZ ssz marshals the BlobSidecars object.
 func (b *BlobSidecars) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BlobSidecars object to a target array
+// MarshalSSZTo ssz marshals the BlobSidecars object to a target array.
 func (b *BlobSidecars) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(4)
@@ -36,7 +36,7 @@ func (b *BlobSidecars) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BlobSidecars object
+// UnmarshalSSZ ssz unmarshals the BlobSidecars object.
 func (b *BlobSidecars) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -76,7 +76,7 @@ func (b *BlobSidecars) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BlobSidecars object
+// SizeSSZ returns the ssz encoded size in bytes for the BlobSidecars object.
 func (b *BlobSidecars) SizeSSZ() (size int) {
 	size = 4
 
@@ -86,12 +86,12 @@ func (b *BlobSidecars) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the BlobSidecars object
+// HashTreeRoot ssz hashes the BlobSidecars object.
 func (b *BlobSidecars) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BlobSidecars object with a hasher
+// HashTreeRootWith ssz hashes the BlobSidecars object with a hasher.
 func (b *BlobSidecars) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -115,17 +115,17 @@ func (b *BlobSidecars) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BlobSidecars object
+// GetTree ssz hashes the BlobSidecars object.
 func (b *BlobSidecars) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }
 
-// MarshalSSZ ssz marshals the BlobSidecar object
+// MarshalSSZ ssz marshals the BlobSidecar object.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BlobSidecar object to a target array
+// MarshalSSZTo ssz marshals the BlobSidecar object to a target array.
 func (b *BlobSidecar) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -169,7 +169,7 @@ func (b *BlobSidecar) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BlobSidecar object
+// UnmarshalSSZ ssz unmarshals the BlobSidecar object.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -210,18 +210,18 @@ func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BlobSidecar object
+// SizeSSZ returns the ssz encoded size in bytes for the BlobSidecar object.
 func (b *BlobSidecar) SizeSSZ() (size int) {
 	size = 131432
 	return
 }
 
-// HashTreeRoot ssz hashes the BlobSidecar object
+// HashTreeRoot ssz hashes the BlobSidecar object.
 func (b *BlobSidecar) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BlobSidecar object with a hasher
+// HashTreeRootWith ssz hashes the BlobSidecar object with a hasher.
 func (b *BlobSidecar) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -270,17 +270,17 @@ func (b *BlobSidecar) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BlobSidecar object
+// GetTree ssz hashes the BlobSidecar object.
 func (b *BlobSidecar) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }
 
-// MarshalSSZ ssz marshals the BeaconBlockDeneb object
+// MarshalSSZ ssz marshals the BeaconBlockDeneb object.
 func (b *BeaconBlockDeneb) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconBlockDeneb object to a target array
+// MarshalSSZTo ssz marshals the BeaconBlockDeneb object to a target array.
 func (b *BeaconBlockDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(84)
@@ -308,7 +308,7 @@ func (b *BeaconBlockDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconBlockDeneb object
+// UnmarshalSSZ ssz unmarshals the BeaconBlockDeneb object.
 func (b *BeaconBlockDeneb) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -353,7 +353,7 @@ func (b *BeaconBlockDeneb) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockDeneb object
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockDeneb object.
 func (b *BeaconBlockDeneb) SizeSSZ() (size int) {
 	size = 84
 
@@ -366,12 +366,12 @@ func (b *BeaconBlockDeneb) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconBlockDeneb object
+// HashTreeRoot ssz hashes the BeaconBlockDeneb object.
 func (b *BeaconBlockDeneb) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockDeneb object with a hasher
+// HashTreeRootWith ssz hashes the BeaconBlockDeneb object with a hasher.
 func (b *BeaconBlockDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -396,17 +396,17 @@ func (b *BeaconBlockDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BeaconBlockDeneb object
+// GetTree ssz hashes the BeaconBlockDeneb object.
 func (b *BeaconBlockDeneb) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }
 
-// MarshalSSZ ssz marshals the BeaconBlockBodyDeneb object
+// MarshalSSZ ssz marshals the BeaconBlockBodyDeneb object.
 func (b *BeaconBlockBodyDeneb) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconBlockBodyDeneb object to a target array
+// MarshalSSZTo ssz marshals the BeaconBlockBodyDeneb object to a target array.
 func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(140)
@@ -469,7 +469,7 @@ func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconBlockBodyDeneb object
+// UnmarshalSSZ ssz unmarshals the BeaconBlockBodyDeneb object.
 func (b *BeaconBlockBodyDeneb) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -553,7 +553,7 @@ func (b *BeaconBlockBodyDeneb) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyDeneb object
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyDeneb object.
 func (b *BeaconBlockBodyDeneb) SizeSSZ() (size int) {
 	size = 140
 
@@ -575,12 +575,12 @@ func (b *BeaconBlockBodyDeneb) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconBlockBodyDeneb object
+// HashTreeRoot ssz hashes the BeaconBlockBodyDeneb object.
 func (b *BeaconBlockBodyDeneb) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockBodyDeneb object with a hasher
+// HashTreeRootWith ssz hashes the BeaconBlockBodyDeneb object with a hasher.
 func (b *BeaconBlockBodyDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -629,17 +629,17 @@ func (b *BeaconBlockBodyDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BeaconBlockBodyDeneb object
+// GetTree ssz hashes the BeaconBlockBodyDeneb object.
 func (b *BeaconBlockBodyDeneb) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }
 
-// MarshalSSZ ssz marshals the Deposit object
+// MarshalSSZ ssz marshals the Deposit object.
 func (d *Deposit) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(d)
 }
 
-// MarshalSSZTo ssz marshals the Deposit object to a target array
+// MarshalSSZTo ssz marshals the Deposit object to a target array.
 func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(56)
@@ -669,7 +669,7 @@ func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the Deposit object
+// UnmarshalSSZ ssz unmarshals the Deposit object.
 func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -717,7 +717,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Deposit object
+// SizeSSZ returns the ssz encoded size in bytes for the Deposit object.
 func (d *Deposit) SizeSSZ() (size int) {
 	size = 56
 
@@ -730,12 +730,12 @@ func (d *Deposit) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the Deposit object
+// HashTreeRoot ssz hashes the Deposit object.
 func (d *Deposit) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(d)
 }
 
-// HashTreeRootWith ssz hashes the Deposit object with a hasher
+// HashTreeRootWith ssz hashes the Deposit object with a hasher.
 func (d *Deposit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -776,17 +776,17 @@ func (d *Deposit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the Deposit object
+// GetTree ssz hashes the Deposit object.
 func (d *Deposit) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(d)
 }
 
-// MarshalSSZ ssz marshals the BeaconBlockHeader object
+// MarshalSSZ ssz marshals the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconBlockHeader object to a target array
+// MarshalSSZTo ssz marshals the BeaconBlockHeader object to a target array.
 func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -808,7 +808,7 @@ func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconBlockHeader object
+// UnmarshalSSZ ssz unmarshals the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -834,18 +834,18 @@ func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockHeader object
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) SizeSSZ() (size int) {
 	size = 112
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconBlockHeader object
+// HashTreeRoot ssz hashes the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher
+// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher.
 func (b *BeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -868,17 +868,17 @@ func (b *BeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BeaconBlockHeader object
+// GetTree ssz hashes the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }
 
-// MarshalSSZ ssz marshals the Validator object
+// MarshalSSZ ssz marshals the Validator object.
 func (v *Validator) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(v)
 }
 
-// MarshalSSZTo ssz marshals the Validator object to a target array
+// MarshalSSZTo ssz marshals the Validator object to a target array.
 func (v *Validator) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -909,7 +909,7 @@ func (v *Validator) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the Validator object
+// UnmarshalSSZ ssz unmarshals the Validator object.
 func (v *Validator) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -944,18 +944,18 @@ func (v *Validator) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the Validator object
+// SizeSSZ returns the ssz encoded size in bytes for the Validator object.
 func (v *Validator) SizeSSZ() (size int) {
 	size = 121
 	return
 }
 
-// HashTreeRoot ssz hashes the Validator object
+// HashTreeRoot ssz hashes the Validator object.
 func (v *Validator) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(v)
 }
 
-// HashTreeRootWith ssz hashes the Validator object with a hasher
+// HashTreeRootWith ssz hashes the Validator object with a hasher.
 func (v *Validator) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -987,7 +987,7 @@ func (v *Validator) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the Validator object
+// GetTree ssz hashes the Validator object.
 func (v *Validator) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(v)
 }

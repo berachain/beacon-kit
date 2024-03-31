@@ -204,7 +204,7 @@ func (_BeaconDepositContract *BeaconDepositContractTransactorRaw) Transact(opts 
 
 // NATIVEASSET is a free data retrieval call binding the contract method 0xbf53253b.
 //
-// Solidity: function NATIVE_ASSET() view returns(address)
+// Solidity: function NATIVE_ASSET() view returns(address).
 func (_BeaconDepositContract *BeaconDepositContractCaller) NATIVEASSET(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _BeaconDepositContract.contract.Call(opts, &out, "NATIVE_ASSET")
@@ -216,82 +216,81 @@ func (_BeaconDepositContract *BeaconDepositContractCaller) NATIVEASSET(opts *bin
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // NATIVEASSET is a free data retrieval call binding the contract method 0xbf53253b.
 //
-// Solidity: function NATIVE_ASSET() view returns(address)
+// Solidity: function NATIVE_ASSET() view returns(address).
 func (_BeaconDepositContract *BeaconDepositContractSession) NATIVEASSET() (common.Address, error) {
 	return _BeaconDepositContract.Contract.NATIVEASSET(&_BeaconDepositContract.CallOpts)
 }
 
 // NATIVEASSET is a free data retrieval call binding the contract method 0xbf53253b.
 //
-// Solidity: function NATIVE_ASSET() view returns(address)
+// Solidity: function NATIVE_ASSET() view returns(address).
 func (_BeaconDepositContract *BeaconDepositContractCallerSession) NATIVEASSET() (common.Address, error) {
 	return _BeaconDepositContract.Contract.NATIVEASSET(&_BeaconDepositContract.CallOpts)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
 	return _BeaconDepositContract.contract.Transact(opts, "deposit", pubkey, credentials, amount, signature)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns().
 func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
 }
 
 // Redirect is a paid mutator transaction binding the contract method 0xbf9b6a55.
 //
-// Solidity: function redirect(bytes fromPubkey, bytes toPubkey, uint64 amount) returns()
+// Solidity: function redirect(bytes fromPubkey, bytes toPubkey, uint64 amount) returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactor) Redirect(opts *bind.TransactOpts, fromPubkey []byte, toPubkey []byte, amount uint64) (*types.Transaction, error) {
 	return _BeaconDepositContract.contract.Transact(opts, "redirect", fromPubkey, toPubkey, amount)
 }
 
 // Redirect is a paid mutator transaction binding the contract method 0xbf9b6a55.
 //
-// Solidity: function redirect(bytes fromPubkey, bytes toPubkey, uint64 amount) returns()
+// Solidity: function redirect(bytes fromPubkey, bytes toPubkey, uint64 amount) returns().
 func (_BeaconDepositContract *BeaconDepositContractSession) Redirect(fromPubkey []byte, toPubkey []byte, amount uint64) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Redirect(&_BeaconDepositContract.TransactOpts, fromPubkey, toPubkey, amount)
 }
 
 // Redirect is a paid mutator transaction binding the contract method 0xbf9b6a55.
 //
-// Solidity: function redirect(bytes fromPubkey, bytes toPubkey, uint64 amount) returns()
+// Solidity: function redirect(bytes fromPubkey, bytes toPubkey, uint64 amount) returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Redirect(fromPubkey []byte, toPubkey []byte, amount uint64) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Redirect(&_BeaconDepositContract.TransactOpts, fromPubkey, toPubkey, amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
 //
-// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns()
+// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactor) Withdraw(opts *bind.TransactOpts, pubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
 	return _BeaconDepositContract.contract.Transact(opts, "withdraw", pubkey, withdrawalCredentials, amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
 //
-// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns()
+// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns().
 func (_BeaconDepositContract *BeaconDepositContractSession) Withdraw(pubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Withdraw(&_BeaconDepositContract.TransactOpts, pubkey, withdrawalCredentials, amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x04a3267f.
 //
-// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns()
+// Solidity: function withdraw(bytes pubkey, bytes withdrawalCredentials, uint64 amount) returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Withdraw(pubkey []byte, withdrawalCredentials []byte, amount uint64) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Withdraw(&_BeaconDepositContract.TransactOpts, pubkey, withdrawalCredentials, amount)
 }
@@ -375,9 +374,8 @@ type BeaconDepositContractDeposit struct {
 
 // FilterDeposit is a free log retrieval operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterDeposit(opts *bind.FilterOpts) (*BeaconDepositContractDepositIterator, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "Deposit")
 	if err != nil {
 		return nil, err
@@ -387,9 +385,8 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterDeposit(opts 
 
 // WatchDeposit is a free log subscription operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractDeposit) (event.Subscription, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "Deposit")
 	if err != nil {
 		return nil, err
@@ -424,7 +421,7 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchDeposit(opts *
 
 // ParseDeposit is a log parse operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseDeposit(log types.Log) (*BeaconDepositContractDeposit, error) {
 	event := new(BeaconDepositContractDeposit)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Deposit", log); err != nil {
@@ -513,9 +510,8 @@ type BeaconDepositContractRedirect struct {
 
 // FilterRedirect is a free log retrieval operation binding the contract event 0x488862f49032f13a357c663883290b0e784d0f814979e39f33f5d40ce70493f9.
 //
-// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index)
+// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterRedirect(opts *bind.FilterOpts) (*BeaconDepositContractRedirectIterator, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "Redirect")
 	if err != nil {
 		return nil, err
@@ -525,9 +521,8 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterRedirect(opts
 
 // WatchRedirect is a free log subscription operation binding the contract event 0x488862f49032f13a357c663883290b0e784d0f814979e39f33f5d40ce70493f9.
 //
-// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index)
+// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchRedirect(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractRedirect) (event.Subscription, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "Redirect")
 	if err != nil {
 		return nil, err
@@ -562,7 +557,7 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchRedirect(opts 
 
 // ParseRedirect is a log parse operation binding the contract event 0x488862f49032f13a357c663883290b0e784d0f814979e39f33f5d40ce70493f9.
 //
-// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index)
+// Solidity: event Redirect(bytes fromPubkey, bytes toPubkey, bytes credentials, uint64 amount, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseRedirect(log types.Log) (*BeaconDepositContractRedirect, error) {
 	event := new(BeaconDepositContractRedirect)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Redirect", log); err != nil {
@@ -651,9 +646,8 @@ type BeaconDepositContractWithdrawal struct {
 
 // FilterWithdrawal is a free log retrieval operation binding the contract event 0xe8d1abf8fc2a88152f5f2e1e5e3634f882fc7db420a88ca0b64eb78400f5851a.
 //
-// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index)
+// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterWithdrawal(opts *bind.FilterOpts) (*BeaconDepositContractWithdrawalIterator, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "Withdrawal")
 	if err != nil {
 		return nil, err
@@ -663,9 +657,8 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterWithdrawal(op
 
 // WatchWithdrawal is a free log subscription operation binding the contract event 0xe8d1abf8fc2a88152f5f2e1e5e3634f882fc7db420a88ca0b64eb78400f5851a.
 //
-// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index)
+// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractWithdrawal) (event.Subscription, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "Withdrawal")
 	if err != nil {
 		return nil, err
@@ -700,7 +693,7 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchWithdrawal(opt
 
 // ParseWithdrawal is a log parse operation binding the contract event 0xe8d1abf8fc2a88152f5f2e1e5e3634f882fc7db420a88ca0b64eb78400f5851a.
 //
-// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index)
+// Solidity: event Withdrawal(bytes fromPubkey, bytes credentials, bytes withdrawalCredentials, uint64 amount, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseWithdrawal(log types.Log) (*BeaconDepositContractWithdrawal, error) {
 	event := new(BeaconDepositContractWithdrawal)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Withdrawal", log); err != nil {

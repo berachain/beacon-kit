@@ -31,8 +31,6 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/beacon/forkchoice"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
@@ -46,7 +44,6 @@ type BaseService struct {
 	name   string
 	cfg    *config.Config
 	logger log.Logger
-	fcr    forkchoice.ForkChoicer
 
 	// statusErrMu protects statusErr.
 	statusErrMu *sync.RWMutex
@@ -65,7 +62,6 @@ func NewBaseService(
 		bsb:    bsp,
 		logger: logger,
 		cfg:    cfg,
-		fcr:    ssf.New(bsp.ForkchoiceStore(context.Background())),
 	}
 }
 
@@ -90,16 +86,6 @@ func (s *BaseService) AvailabilityStore(
 // BeaconState returns the beacon state from the BaseService.
 func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 	return s.bsb.BeaconState(ctx)
-}
-
-// ForkchoiceStore returns the forkchoice store from the BaseService.
-func (s *BaseService) ForkchoiceStore(
-	ctx context.Context,
-) forkchoice.ForkChoicer {
-	// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-	// TODO: SetContext isn't consistent with the rest of the methods.
-	s.fcr.SetContext(ctx)
-	return s.fcr
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from

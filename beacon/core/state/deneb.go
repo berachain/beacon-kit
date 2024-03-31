@@ -51,7 +51,7 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		},
 		BlockRoots: make([][32]byte, 0),
 		StateRoots: make([][32]byte, 0),
-		Eth1GenesisHash: common.HexToHash(
+		Eth1BlockHash: common.HexToHash(
 			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
 		),
 		Eth1DepositIndex: 0,
@@ -78,7 +78,7 @@ type BeaconStateDeneb struct {
 	StateRoots        [][32]byte               `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1GenesisHash  primitives.ExecutionHash `json:"eth1GenesisHash"  ssz-size:"32"`
+	Eth1BlockHash    primitives.ExecutionHash `json:"eth1BlockHash"    ssz-size:"32"`
 	Eth1DepositIndex uint64                   `json:"eth1DepositIndex"`
 
 	// Registry
