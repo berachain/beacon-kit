@@ -2,6 +2,7 @@ go 1.22.1
 
 use (
 	.
+	./e2e
 	./mod/crypto
 	./mod/execution
 	./mod/primitives
