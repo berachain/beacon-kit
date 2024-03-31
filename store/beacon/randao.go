@@ -26,7 +26,7 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+	"github.com/berachain/beacon-kit/mod/core/randao/types"
 )
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.

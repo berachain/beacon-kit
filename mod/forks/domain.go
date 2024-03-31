@@ -23,21 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package forks
 
 import (
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	ss  SyncService
-	sks StakingService
-	bv  *core.BlockValidator
-	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
+// ComputeDomain as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
+//
+//nolint:lll
+func ComputeDomain(
+	domainType primitives.DomainType,
+	forkVersion primitives.Version,
+	genesisValidatorsRoot primitives.Root,
+) (primitives.Domain, error) {
+	forkDataRoot, err := ComputeForkDataRoot(forkVersion, genesisValidatorsRoot)
+	if err != nil {
+		return primitives.Domain{}, err
+	}
+	return primitives.Domain(
+		append(
+			domainType[:],
+			forkDataRoot[:(primitives.RootLength-constants.DomainTypeLength)]...),
+	), nil
 }

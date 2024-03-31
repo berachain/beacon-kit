@@ -26,7 +26,7 @@
 package beacon
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 )
 

@@ -23,21 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package constants
 
-import (
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/runtime/service"
+const (
+	// RootLength the length of a HashTreeRoot in bytes.
+	RootLength = 32
 )
-
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	ss  SyncService
-	sks StakingService
-	bv  *core.BlockValidator
-	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
-}

@@ -23,21 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package forks
 
-import (
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/runtime/service"
-)
+import "github.com/berachain/beacon-kit/mod/primitives"
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	ss  SyncService
-	sks StakingService
-	bv  *core.BlockValidator
-	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
+// Fork as defined in the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
+//
+//nolint:lll
+type Fork struct {
+	// PreviousVersion is the last version before the fork.
+	PreviousVersion primitives.Version `ssz-size:"32"`
+	// CurrentVersion is the first version after the fork.
+	CurrentVersion primitives.Version `ssz-size:"32"`
+	// Epoch is the epoch at which the fork occurred.
+	Epoch primitives.Epoch
 }

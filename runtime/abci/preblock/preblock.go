@@ -30,9 +30,9 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"

@@ -29,7 +29,7 @@ import (
 	"context"
 	"errors"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	db "github.com/berachain/beacon-kit/mod/storage"

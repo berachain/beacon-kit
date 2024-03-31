@@ -28,7 +28,7 @@ package service
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state"
 )
 
 // BeaconStorageBackend is the interface for the beacon storage backend.

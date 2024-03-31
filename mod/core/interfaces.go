@@ -23,21 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	ss  SyncService
-	sks StakingService
-	bv  *core.BlockValidator
-	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
+// BlobsProcessor is the interface for the blobs processor.
+type BlobsProcessor interface {
+	ProcessBlobs(
+		avs state.AvailabilityStore,
+		blk types.BeaconBlock,
+		sidecars *datypes.BlobSidecars,
+	) error
+}
+
+// RandaoProcessor is the interface for the randao processor.
+type RandaoProcessor interface {
+	BuildReveal(
+		st state.BeaconState,
+	) (primitives.BLSSignature, error)
+	MixinNewReveal(
+		st state.BeaconState,
+		reveal primitives.BLSSignature,
+	) error
+	VerifyReveal(
+		st state.BeaconState,
+		proposerPubkey primitives.BLSPubkey,
+		reveal primitives.BLSSignature,
+	) error
 }

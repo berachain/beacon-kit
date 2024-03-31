@@ -28,7 +28,7 @@ package blockchain
 import (
 	"context"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"

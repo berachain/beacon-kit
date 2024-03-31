@@ -23,22 +23,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package signature
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	bls "github.com/itsdevbear/comet-bls12-381/bls"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
-// RandaoProcessor defines the interface for processing RANDAO reveals.
-type RandaoProcessor interface {
-	// BuildReveal generates a RANDAO reveal based on the given beacon state.
-	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st state.BeaconState) (primitives.BLSSignature, error)
+// ComputeDomain as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
+//
+//nolint:lll
+func ComputeDomain(
+	domainType primitives.DomainType,
+	forkVersion primitives.Version,
+	genesisValidatorsRoot primitives.Root,
+) (primitives.Domain, error) {
+	forkDataRoot, err := forks.ComputeForkDataRoot(
+		forkVersion,
+		genesisValidatorsRoot,
+	)
+	if err != nil {
+		return primitives.Domain{}, err
+	}
+	return primitives.Domain(
+		append(
+			domainType[:],
+			forkDataRoot[:(primitives.RootLength-constants.DomainTypeLength)]...),
+	), nil
 }
 
-// Signer is an interface for objects that can sign messages.
-type Signer interface {
-	PublicKey() bls.PubKey
+// GetDomain returns the domain for the DomainType and epoch.
+func GetDomain(
+	cfg *config.Config,
+	genesisValidatorsRoot primitives.Root,
+	domainType primitives.DomainType,
+	epoch primitives.Epoch,
+) (primitives.Domain, error) {
+	return ComputeDomain(
+		domainType,
+		forks.VersionFromUint32(cfg.Beacon.ActiveForkVersionByEpoch(epoch)),
+		genesisValidatorsRoot,
+	)
 }

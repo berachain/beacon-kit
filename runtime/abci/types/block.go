@@ -28,7 +28,7 @@ package types
 import (
 	"time"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 )
 

@@ -30,9 +30,9 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	randaotypes "github.com/berachain/beacon-kit/beacon/core/randao/types"
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	randaotypes "github.com/berachain/beacon-kit/mod/core/randao/types"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
@@ -123,7 +123,7 @@ func (k *Keeper) BeaconState(
 
 // InitGenesis initializes the genesis state of the module.
 //
-// TODO: This whole thing needs to be abstracted into beacon/core/state
+// TODO: This whole thing needs to be abstracted into mod/core/state
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,

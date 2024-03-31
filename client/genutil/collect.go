@@ -31,9 +31,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/lib/encoding/ssz"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"

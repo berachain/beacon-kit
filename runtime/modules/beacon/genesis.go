@@ -30,7 +30,7 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm

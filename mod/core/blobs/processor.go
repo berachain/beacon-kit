@@ -23,21 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package blobs
 
 import (
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"errors"
+
+	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/sourcegraph/conc/iter"
 )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	ss  SyncService
-	sks StakingService
-	bv  *core.BlockValidator
-	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
+// Processor is the processor for blobs.
+type Processor struct{}
+
+// NewProcessor creates a new processor.
+func NewProcessor() *Processor {
+	return &Processor{}
+}
+
+// ProcessBlob processes a blob.
+func (sp *Processor) ProcessBlobs(
+	avs state.AvailabilityStore,
+	blk types.BeaconBlock,
+	sidecars *datypes.BlobSidecars,
+) error {
+	// Verify the KZG inclusion proofs.
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the blobs are available.
+	if err = errors.Join(iter.Map(
+		sidecars.Sidecars,
+		func(sidecar **datypes.BlobSidecar) error {
+			if *sidecar == nil {
+				return ErrAttemptedToVerifyNilSidecar
+			}
+			// Store the blobs under a single height.
+			return types.VerifyKZGInclusionProof(
+				bodyRoot[:], *sidecar, (*sidecar).Index,
+			)
+		},
+	)...); err != nil {
+		return err
+	}
+
+	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
 }

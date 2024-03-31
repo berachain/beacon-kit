@@ -26,8 +26,8 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 

@@ -30,7 +30,7 @@ import (
 	"os"
 	"path/filepath"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"

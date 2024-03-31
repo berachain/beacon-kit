@@ -23,21 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package domain
 
-import (
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/runtime/service"
+import "github.com/berachain/beacon-kit/mod/primitives"
+
+// Domain constants for BLS domain types.
+// Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#domain-types
+//
+//nolint:lll,gochecknoglobals // Spec url is long, global vars are needed.
+var (
+	TypeRandao  = primitives.DomainType{0x02, 0x00, 0x00, 0x00}
+	TypeDeposit = primitives.DomainType{0x03, 0x00, 0x00, 0x00}
 )
-
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	ss  SyncService
-	sks StakingService
-	bv  *core.BlockValidator
-	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
-}

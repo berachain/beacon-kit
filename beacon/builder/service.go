@@ -29,8 +29,8 @@ import (
 	"context"
 	"fmt"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
 	"github.com/berachain/beacon-kit/mod/builder"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"

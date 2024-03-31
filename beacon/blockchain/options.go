@@ -26,7 +26,7 @@
 package blockchain
 
 import (
-	"github.com/berachain/beacon-kit/beacon/core"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
 

@@ -28,7 +28,7 @@ package runtime
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state"
 )
 
 // AppOptions is an interface that provides the ability to

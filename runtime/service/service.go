@@ -30,10 +30,10 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/beacon/core/state"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 

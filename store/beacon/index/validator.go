@@ -28,7 +28,7 @@ package index
 import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 )
 
 // Collection prefixes.
