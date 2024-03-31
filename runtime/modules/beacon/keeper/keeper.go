@@ -216,7 +216,7 @@ func (k *Keeper) InitGenesis(
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(ctx context.Context) *state.BeaconStateDeneb {
+func (k *Keeper) ExportGenesis(_ context.Context) *state.BeaconStateDeneb {
 	return &state.BeaconStateDeneb{
 		Eth1BlockHash: common.Hash{},
 	}
