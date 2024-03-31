@@ -28,8 +28,6 @@ package runtime
 import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	builder "github.com/berachain/beacon-kit/beacon/builder"
-	"github.com/berachain/beacon-kit/beacon/sync"
-	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/runtime/abci/preblock"
 	"github.com/berachain/beacon-kit/runtime/abci/proposal"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -47,14 +45,8 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	var (
 		chainService   *blockchain.Service
 		builderService *builder.Service
-		healthService  *health.Service
-		syncService    *sync.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
-
-	if err := r.services.FetchService(&healthService); err != nil {
 		panic(err)
 	}
 
@@ -62,14 +54,9 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		panic(err)
 	}
 
-	if err := r.services.FetchService(&syncService); err != nil {
-		panic(err)
-	}
-
 	proposalHandler := proposal.NewHandler(
 		&r.cfg.ABCI,
 		builderService,
-		healthService,
 		chainService,
 		nextPrepare,
 		nextProcess,
@@ -79,7 +66,6 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		&r.cfg.ABCI,
 		r.logger,
 		chainService,
-		syncService,
 		nextPreblocker,
 	).PreBlocker()
 

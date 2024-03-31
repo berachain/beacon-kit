@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/health"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -46,7 +45,6 @@ type Handler struct {
 	cfg            *config.ABCI
 	builderService *builder.Service
 	chainService   *blockchain.Service
-	healthService  *health.Service
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
 }
@@ -55,7 +53,6 @@ type Handler struct {
 func NewHandler(
 	cfg *config.ABCI,
 	builderService *builder.Service,
-	healthService *health.Service,
 	chainService *blockchain.Service,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
@@ -63,7 +60,6 @@ func NewHandler(
 	return &Handler{
 		cfg:            cfg,
 		builderService: builderService,
-		healthService:  healthService,
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,

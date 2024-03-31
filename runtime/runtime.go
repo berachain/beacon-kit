@@ -47,7 +47,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime"
-	_ "github.com/berachain/beacon-kit/runtime/maxprocs"
+	_ "github.com/berachain/beacon-kit/mod/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
 )

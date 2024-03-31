@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -57,10 +56,6 @@ type BeaconPreBlockHandler struct {
 	// the beacon chain.
 	chainService *blockchain.Service
 
-	// syncService is the service that is responsible for syncing the beacon
-	// chain.
-	syncService *sync.Service
-
 	// nextHandler is the next pre-block handler in the chain. This is always
 	// nesting of the next pre-block handler into this handler.
 	nextHandler sdk.PreBlocker
@@ -72,14 +67,12 @@ func NewBeaconPreBlockHandler(
 	cfg *config.ABCI,
 	logger log.Logger,
 	chainService *blockchain.Service,
-	syncService *sync.Service,
 	nextHandler sdk.PreBlocker,
 ) *BeaconPreBlockHandler {
 	return &BeaconPreBlockHandler{
 		cfg:          cfg,
 		logger:       logger,
 		chainService: chainService,
-		syncService:  syncService,
 		nextHandler:  nextHandler,
 	}
 }
