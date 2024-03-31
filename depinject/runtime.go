@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package depinject
 
 import (
 	"os"
@@ -32,28 +32,29 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/runtime"
 )
 
 // DepInjectInput is the input for the dep inject framework.
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts AppOptions
+	AppOpts runtime.AppOptions
 	Logger  log.Logger
 	Signer  crypto.Signer[primitives.BLSSignature]
-	Bsp     BeaconStorageBackend
+	Bsp     runtime.BeaconStorageBackend
 }
 
 // DepInjectOutput is the output for the dep inject framework.
 type DepInjectOutput struct {
 	depinject.Out
 
-	Runtime *BeaconKitRuntime
+	Runtime *runtime.BeaconKitRuntime
 }
 
 // ProvideRuntime is a function that provides the module to the application.
 func ProvideRuntime(in DepInjectInput) DepInjectOutput {
-	r, err := NewDefaultBeaconKitRuntime(
+	r, err := runtime.NewDefaultBeaconKitRuntime(
 		in.AppOpts,
 		in.Signer,
 		in.Logger,

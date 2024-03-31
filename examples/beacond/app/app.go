@@ -84,7 +84,7 @@ func NewBeaconKitApp(
 		depinject.Configs(
 			AppConfig(),
 			depinject.Provide(
-				beaconkitruntime.ProvideRuntime,
+				bkdepinject.ProvideRuntime,
 				bkdepinject.ProvideBlsSigner,
 			),
 			depinject.Supply(
