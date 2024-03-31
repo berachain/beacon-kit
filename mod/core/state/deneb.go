@@ -91,6 +91,10 @@ type BeaconStateDeneb struct {
 	// Withdrawals
 	NextWithdrawalIndex          uint64 `json:"nextWithdrawalIndex"`
 	NextWithdrawalValidatorIndex uint64 `json:"nextWithdrawalValidatorIndex"`
+
+	// Slashing
+	Slashings     []uint64 `json:"slashings"     ssz-max:"1099511627776"`
+	TotalSlashing uint64   `json:"totalSlashing"`
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal

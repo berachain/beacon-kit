@@ -77,6 +77,12 @@ type BeaconChainConfig struct {
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
+
+	// Rewards and penalties constants.
+	//
+	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
+	// base penalty.
+	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
 }
 
 // Template returns the configuration template.
@@ -123,6 +129,10 @@ max-deposits-per-block = {{.BeaconKit.Beacon.MaxDepositsPerBlock}}
 
 # MaxWithdrawalsPerPayload indicates the maximum number of withdrawal operations allowed in a single payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.MaxWithdrawalsPerPayload}}
+
+########### Rewards and Penalties ###########
+# ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
+propotional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMultiplier}}
 `
 }
 
@@ -167,7 +177,7 @@ func (c BeaconChainConfig) Parse(
 		return nil, err
 	}
 
-	if c.ElectraForkEpoch, err = parser.GetEpoch(
+	if c.ElectraForkEpoch, err = parser.GetCurrentEpoch(
 		flags.ElectraForkEpoch,
 	); err != nil {
 		return nil, err
@@ -193,6 +203,12 @@ func (c BeaconChainConfig) Parse(
 
 	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(
 		flags.MaxWithdrawalsPerPayload,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.ProportionalSlashingMultiplier, err = parser.GetUint64(
+		flags.ProportionalSlashingMultiplier,
 	); err != nil {
 		return nil, err
 	}

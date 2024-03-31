@@ -67,7 +67,7 @@ func (s *Store) GetTotalActiveBalances(
 		return 0, err
 	}
 
-	epoch, err := s.GetEpoch(slotsPerEpoch)
+	epoch, err := s.GetCurrentEpoch(slotsPerEpoch)
 	if err != nil {
 		return 0, err
 	}

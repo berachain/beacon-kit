@@ -35,7 +35,7 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		MaxEffectiveBalance:       uint64(32e9),
 		EffectiveBalanceIncrement: uint64(1e9),
 		// Time parameters constants.
-		SlotsPerEpoch:          1,
+		SlotsPerEpoch:          8,
 		SlotsPerHistoricalRoot: 1,
 		// Eth1-related values.
 		DepositContractAddress: common.HexToAddress(
@@ -47,7 +47,8 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		EpochsPerHistoricalVector: 1,
 		EpochsPerSlashingsVector:  1,
 		// Max operations per block constants.
-		MaxDepositsPerBlock:      16,
-		MaxWithdrawalsPerPayload: 16,
+		MaxDepositsPerBlock:            16,
+		MaxWithdrawalsPerPayload:       16,
+		ProportionalSlashingMultiplier: 1,
 	}
 }

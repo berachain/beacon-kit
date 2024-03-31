@@ -29,6 +29,8 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		RandaoMixes                  []primitives.Bytes32     `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          uint64                   `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex uint64                   `json:"nextWithdrawalValidatorIndex"`
+		Slashings                    []uint64                 `json:"slashings"     ssz-max:"1099511627776"`
+		TotalSlashing                uint64                   `json:"totalSlashing"`
 	}
 	var enc BeaconStateDeneb
 	enc.GenesisValidatorsRoot = b.GenesisValidatorsRoot[:]
@@ -58,6 +60,8 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 	}
 	enc.NextWithdrawalIndex = b.NextWithdrawalIndex
 	enc.NextWithdrawalValidatorIndex = b.NextWithdrawalValidatorIndex
+	enc.Slashings = b.Slashings
+	enc.TotalSlashing = b.TotalSlashing
 	return json.Marshal(&enc)
 }
 
@@ -76,6 +80,8 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		RandaoMixes                  []primitives.Bytes32     `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          *uint64                  `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex *uint64                  `json:"nextWithdrawalValidatorIndex"`
+		Slashings                    []uint64                 `json:"slashings"     ssz-max:"1099511627776"`
+		TotalSlashing                *uint64                  `json:"totalSlashing"`
 	}
 	var dec BeaconStateDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -128,6 +134,12 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	}
 	if dec.NextWithdrawalValidatorIndex != nil {
 		b.NextWithdrawalValidatorIndex = *dec.NextWithdrawalValidatorIndex
+	}
+	if dec.Slashings != nil {
+		b.Slashings = dec.Slashings
+	}
+	if dec.TotalSlashing != nil {
+		b.TotalSlashing = *dec.TotalSlashing
 	}
 	return nil
 }
