@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:govet // from sdk.
+//nolint:govet,revive // from sdk.
 package nodebuilder
 
 import (
@@ -37,8 +37,6 @@ import (
 	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
-
-	// blank import for enabling max procs.
 	_ "github.com/berachain/beacon-kit/mod/node-builder/utils/maxprocs"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
