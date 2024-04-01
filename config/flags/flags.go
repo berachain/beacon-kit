@@ -30,16 +30,10 @@ const (
 	// Beacon Kit Root Flag.
 	beaconKitRoot = "beacon-kit."
 
-	// Execution Client.
-	engineRoot              = beaconKitRoot + "engine."
-	RPCDialURL              = engineRoot + "rpc-dial-url"
-	RPCRetries              = engineRoot + "rpc-retries"
-	RPCTimeout              = engineRoot + "rpc-timeout"
-	RPCStartupCheckInterval = engineRoot + "rpc-startup-check-interval"
-	RPCHealthCheckInteval   = engineRoot + "rpc-health-check-interval"
-	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
-	JWTSecretPath           = engineRoot + "jwt-secret-path"
-	RequiredChainID         = engineRoot + "required-chain-id"
+	// ABCI Config.
+	abciRoot                  = beaconKitRoot + "abci."
+	BeaconBlockPosition       = abciRoot + "beacon-block-proposal-position"
+	BlobSidecarsBlockPosition = abciRoot + "blob-sidecars-block-proposal-position"
 
 	// Beacon Config.
 	BeaconKitAcceptTos             = beaconKitRoot + "accept-tos"
@@ -65,12 +59,14 @@ const (
 	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
 	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
 
-	// FeatureFlags Config.
-	featureFlagsRoot = beaconKitRoot + "feature-flags."
-	_                = featureFlagsRoot
-
-	// ABCI Config.
-	abciRoot                  = beaconKitRoot + "abci."
-	BeaconBlockPosition       = abciRoot + "beacon-block-proposal-position"
-	BlobSidecarsBlockPosition = abciRoot + "blob-sidecars-block-proposal-position"
+	// Engine Config.
+	engineRoot              = beaconKitRoot + "engine."
+	RPCDialURL              = engineRoot + "rpc-dial-url"
+	RPCRetries              = engineRoot + "rpc-retries"
+	RPCTimeout              = engineRoot + "rpc-timeout"
+	RPCStartupCheckInterval = engineRoot + "rpc-startup-check-interval"
+	RPCHealthCheckInteval   = engineRoot + "rpc-health-check-interval"
+	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
+	JWTSecretPath           = engineRoot + "jwt-secret-path"
+	RequiredChainID         = engineRoot + "required-chain-id"
 )
