@@ -26,48 +26,14 @@
 package client
 
 import (
-	"os"
-
-	"cosmossdk.io/client/v2/autocli"
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/beacond/app"
-	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/client/cosmos"
-	"github.com/cosmos/cosmos-sdk/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for managing CometBFT
 // related commands.
 func Commands[T servertypes.Application]() *cobra.Command {
-	var (
-		autoCliOpts autocli.AppOptions
-		mm          *module.Manager
-		clientCtx   client.Context
-	)
-	if err := depinject.Inject(
-		depinject.Configs(
-			app.Config(),
-			depinject.Supply(
-				log.NewNopLogger(),
-				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-			),
-			depinject.Provide(
-				modclient.ProvideClientContext,
-				modclient.ProvideKeyring,
-			),
-		),
-		&autoCliOpts,
-		&mm,
-		&clientCtx,
-	); err != nil {
-		panic(err)
-	}
-
 	clientCmd := &cobra.Command{
 		Use:   "client",
 		Short: "client subcommands",
@@ -82,14 +48,4 @@ func Commands[T servertypes.Application]() *cobra.Command {
 	)
 
 	return clientCmd
-}
-
-var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
-	dir, err := os.MkdirTemp("", ".beacond")
-	if err != nil {
-		dir = modclient.DefaultNodeHome
-	}
-	defer os.RemoveAll(dir)
-
-	return dir
 }
