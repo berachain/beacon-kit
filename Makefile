@@ -190,8 +190,8 @@ test-unit-fuzz:
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./mod/trie/merkleize/... -fuzztime=${MEDIUM_FUZZ_TIME}
-	go test -fuzz=FuzzQueueSimple ./store/beacon/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzQueueMulti ./store/beacon/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzQueueSimple ./beacond/x/store/beacon/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzQueueMulti ./beacond/x/store/beacon/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
 #      e2e      #
