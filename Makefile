@@ -261,7 +261,7 @@ license-fix:
 nilaway:
 	@echo "--> Running nilaway"
 	@go run go.uber.org/nilaway/cmd/nilaway \
-		-exclude-errors-in-files runtime/modules/beacon/api,contracts/abi \
+		-exclude-errors-in-files beacond/x/api,contracts/abi \
 		-v ./...
 
 #################
