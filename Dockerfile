@@ -46,16 +46,8 @@ RUN set -eux; \
 # Set the working directory
 WORKDIR /workdir
 
-
-# Set private repo access
-ARG GIT_TOKEN
-RUN go env -w GOPRIVATE=*
-RUN echo "machine github.com login $GIT_TOKEN" > ~/.netrc
-
-
 # Copy the go.mod and go.sum files for each module
-COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
-COPY ./mod/go.mod ./mod/go.sum ./mod/
+COPY ./go.mod ./go.sum ./
 
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
@@ -63,12 +55,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go mod download
 
 # Copy the rest of the source code
-COPY beacond ./beacond
-COPY mod ./mod
+COPY . .
 
 # Build args
 ARG NAME
-
 ARG APP_NAME
 ARG DB_BACKEND
 ARG CMD_PATH
