@@ -118,7 +118,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	)
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
-		"../kurtosis",
+		"../../kurtosis",
 		starlark_run_config.NewRunStarlarkConfig(
 			starlark_run_config.WithSerializedParams(
 				string(s.cfg.MustMarshalJSON()),
