@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 //nolint:govet,lll // from sdk.
-package root
+package nodebuilder
 
 import (
 	"context"
