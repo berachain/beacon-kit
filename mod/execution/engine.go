@@ -38,7 +38,7 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// Engine is Beacon-Kit's implementation of the `Engine`
+// Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine struct {
 	ec     *client.EngineClient
