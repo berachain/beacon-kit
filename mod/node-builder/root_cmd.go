@@ -63,7 +63,6 @@ func NewRootCmd[T servertypes.Application](
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-				// validatorcli.DefaultMessageValidator,
 			),
 			depinject.Provide(
 				cmdconfig.ProvideClientContext,
