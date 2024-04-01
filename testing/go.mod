@@ -2,11 +2,9 @@ module github.com/berachain/beacon-kit/testing
 
 go 1.22.1
 
-replace github.com/berachain/beacon-kit => ../
-
 require (
 	cosmossdk.io/log v1.3.1
-	github.com/berachain/beacon-kit v0.1.0-experimental.2
+	github.com/berachain/beacon-kit v0.1.0-experimental.2.0.20240401222006-43cb742c433a
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240401211039-2328d25df5ce
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.6
