@@ -3,6 +3,8 @@ include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
+ROOT_DIR := $(shell pwd)
+
 
 ###############################################################################
 ###                                  Build                                  ###
@@ -74,7 +76,7 @@ ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
 
 # Start beacond
 start:
-	@JWT_SECRET_PATH=$(JWT_PATH) ./examples/beacond/entrypoint.sh
+	@JWT_SECRET_PATH=$(JWT_PATH) ./beacond/entrypoint.sh
 
 # Start reth node
 start-reth:
@@ -184,14 +186,12 @@ test-unit-cover:
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz:
 	@echo "Running fuzz tests with coverage..."
-	go test ./cache -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./cache -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./cache -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Marshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzSSZUint64Unmarshal ./primitives/... -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzHashTreeRoot ./crypto/sha256/... -fuzztime=${MEDIUM_FUZZ_TIME}
-	go test -fuzz=FuzzQueueSimple ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzQueueMulti ./lib/store/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzHashTreeRoot ./mod/trie/merkleize/... -fuzztime=${MEDIUM_FUZZ_TIME}
+	go test -fuzz=FuzzQueueSimple ./beacond/store/beacon/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzQueueMulti ./beacond/store/beacon/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 
 #################
 #      e2e      #
@@ -201,7 +201,7 @@ test-e2e:
 	@$(MAKE) docker-build VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -tags e2e ./e2e/. -v
+	go test -tags e2e ./testing/e2e/. -v
 
 #################
 #     forge     #
@@ -247,15 +247,11 @@ golines:
 
 license:
 	@echo "--> Running addlicense with -check"
-	@for module in $(MODULES); do \
-		(cd $$module && go run github.com/google/addlicense -check -v -f ./LICENSE.header ./.) || exit 1; \
-	done
+	@find . -name 'go.mod' -execdir go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header ./. \;
 
 license-fix:
 	@echo "--> Running addlicense"
-	@for module in $(MODULES); do \
-		(cd $$module && go run github.com/google/addlicense -v -f ./LICENSE.header ./.) || exit 1; \
-	done
+	@find . -name 'go.mod' -execdir go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header ./. \;
 
 
 #################
@@ -265,7 +261,7 @@ license-fix:
 nilaway:
 	@echo "--> Running nilaway"
 	@go run go.uber.org/nilaway/cmd/nilaway \
-		-exclude-errors-in-files runtime/modules/beacon/api,contracts/abi \
+		-exclude-errors-in-files beacond/x/beacon/api,contracts/abi \
 		-v ./...
 
 #################
@@ -296,7 +292,7 @@ slither:
 
 protoImageName    := "ghcr.io/cosmos/proto-builder"
 protoImageVersion := "0.14.0"
-modulesProtoDir := "proto"
+modulesProtoDir := "beacond/x/beacon/proto"
 
 proto:
 	@$(MAKE) buf-lint-fix buf-lint proto-build
@@ -333,8 +329,20 @@ sszgen-clean:
 ###                             Dependencies                                ###
 ###############################################################################
 
-tidy: |
-	go mod tidy
+tidy:
+	@echo "Running go mod tidy in all modules"
+	@find . -name 'go.mod' -execdir go mod tidy \;
+
+sync:
+	@echo "Running go mod download && go work sync"
+	@go mod download
+	@go work sync
+
+checkpoint: format 
+	@git add -A
+	@git commit -m "yo bet"
+	@git push
+	@echo "checkpointed and pushed to remote"
 
 repo-rinse: |
 	git clean -xfd

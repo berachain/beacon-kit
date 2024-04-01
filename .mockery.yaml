@@ -28,32 +28,22 @@ mockname: "{{.InterfaceNameCamel}}"
 filename: "{{.InterfaceNameSnake}}.go"
 outpkg: "mocks"
 packages:
-  github.com/berachain/beacon-kit/config:
-    config:
-      recursive: True
-      with-expecter: true
-      all: True
-  github.com/berachain/beacon-kit/engine/client/ethclient:
+  github.com/berachain/beacon-kit/mod/execution/client/ethclient:
     config:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
-  github.com/berachain/beacon-kit/beacon/forkchoice/ssf:
-    config:
-      recursive: True
-      with-expecter: true
-      include-regex: SingleSlotFinalityStore
-  github.com/berachain/beacon-kit/runtime/service:
+  github.com/berachain/beacon-kit/mod/node-builder/service:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/io/cli/prompt:
+  github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/io/cli/parser:
+  github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser:
     config:
       recursive: True
       with-expecter: true

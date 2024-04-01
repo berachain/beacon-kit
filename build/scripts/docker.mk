@@ -9,11 +9,11 @@ ARCH ?= $(shell uname -m)
 ifeq ($(ARCH),)
 	ARCH = arm64
 endif
-GO_VERSION ?= 1.22.0
+GO_VERSION ?= 1.22.1
 IMAGE_NAME ?= beacond
 
 # Docker Paths
-DOCKERFILE = ./examples/beacond/Dockerfile
+DOCKERFILE = ./Dockerfile
 
 # Image Build
 docker-build:
