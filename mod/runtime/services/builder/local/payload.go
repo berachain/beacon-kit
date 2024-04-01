@@ -75,7 +75,7 @@ func (s *Service) BuildLocalPayload(
 				FinalizedBlockHash: parentEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
-			ForkVersion:       s.ActiveForkVersionForSlot(slot),
+			ForkVersion:       s.BeaconCfg().ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
@@ -274,7 +274,7 @@ func (s *Service) getPayloadAttribute(
 	}
 
 	return enginetypes.NewPayloadAttributes(
-		s.BeaconCfg().ActiveForkVersionByEpoch(epoch),
+		s.BeaconCfg().ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
 		s.cfg.SuggestedFeeRecipient,
@@ -297,8 +297,10 @@ func (s *Service) getPayloadFromExecutionClient(
 	payload, blobsBundle, overrideBuilder, err := s.ee.GetPayload(
 		ctx,
 		&execution.GetPayloadRequest{
-			PayloadID:   *payloadID,
-			ForkVersion: s.BeaconCfg().ActiveForkVersion(slot),
+			PayloadID: *payloadID,
+			ForkVersion: s.BeaconCfg().ActiveForkVersionForEpoch(
+				primitives.Epoch(uint64(slot) / s.BeaconCfg().SlotsPerEpoch),
+			),
 		},
 	)
 	if err != nil {

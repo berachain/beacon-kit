@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all
@@ -118,11 +117,6 @@ func (s *BaseService) SetStatus(err error) {
 	s.statusErrMu.Lock()
 	defer s.statusErrMu.Unlock()
 	s.statusErr = err
-}
-
-// ActiveForkVersionForSlot returns the active fork version for the given slot.
-func (s *BaseService) ActiveForkVersionForSlot(slot primitives.Slot) uint32 {
-	return s.BeaconCfg().ActiveForkVersion(slot)
 }
 
 // // DispatchEvent sends a value to the feed associated with the provided key.

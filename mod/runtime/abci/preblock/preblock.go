@@ -90,7 +90,7 @@ func (h *BeaconPreBlockHandler) PreBlocker() sdk.PreBlocker {
 		blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 			req,
 			h.cfg.BeaconBlockPosition,
-			h.chainService.ActiveForkVersionForSlot(
+			h.chainService.BeaconCfg().ActiveForkVersionForSlot(
 				primitives.Slot(req.Height),
 			),
 		)

@@ -192,7 +192,7 @@ func (p *Processor) computeSigningRoot(
 ) (primitives.Root, error) {
 	fd := forks.NewForkData(
 		version.FromUint32(
-			p.cfg.Beacon.ActiveForkVersionByEpoch(epoch),
+			p.cfg.Beacon.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 

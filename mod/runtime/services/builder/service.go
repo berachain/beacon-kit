@@ -118,7 +118,7 @@ func (s *Service) RequestBestBlock(
 		proposerIndex,
 		parentBlockRoot,
 		stateRoot,
-		s.ActiveForkVersionForSlot(slot),
+		s.BeaconCfg().ActiveForkVersionForSlot(slot),
 		reveal,
 	)
 	if err != nil {

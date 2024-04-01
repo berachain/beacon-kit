@@ -31,12 +31,14 @@ import (
 )
 
 // ActiveForkVersion returns the active fork version for a given slot.
-func (c BeaconChainConfig) ActiveForkVersion(slot primitives.Slot) uint32 {
-	return c.ActiveForkVersionByEpoch(c.SlotToEpoch(slot))
+func (c BeaconChainConfig) ActiveForkVersionForSlot(
+	slot primitives.Slot,
+) uint32 {
+	return c.ActiveForkVersionForEpoch(c.SlotToEpoch(slot))
 }
 
 // ActiveForkVersionBySlot returns the active fork version for a given epoch.
-func (c BeaconChainConfig) ActiveForkVersionByEpoch(
+func (c BeaconChainConfig) ActiveForkVersionForEpoch(
 	epoch primitives.Epoch,
 ) uint32 {
 	if epoch >= c.ElectraForkEpoch {
