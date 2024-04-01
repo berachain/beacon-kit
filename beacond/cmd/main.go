@@ -26,37 +26,19 @@
 package main
 
 import (
-	"io"
 	"os"
 
 	"cosmossdk.io/log"
 	app "github.com/berachain/beacon-kit/beacond/app"
 	components "github.com/berachain/beacon-kit/beacond/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// newApp creates the application.
-func newApp(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) servertypes.Application {
-	baseappOptions := server.DefaultBaseappOptions(appOpts)
-
-	return app.NewBeaconKitApp(
-		logger, db, traceStore, true,
-		appOpts,
-		baseappOptions...,
-	)
-}
-
 func main() {
-	rootCmd := nodebuilder.NewRootCmd(newApp)
+	rootCmd := nodebuilder.NewRootCmd(
+		app.NewBeaconKitAppWithDefaultBaseAppOptions,
+	)
 	if err := svrcmd.Execute(rootCmd, "", components.DefaultNodeHome); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)

@@ -42,6 +42,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 )
@@ -67,6 +68,21 @@ type BeaconApp struct {
 	BeaconKeeper          *beaconkeeper.Keeper
 	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
 	ConsensusParamsKeeper consensuskeeper.Keeper
+}
+
+// NewBeaconKitAppWithDefaultBaseAppOptions returns a reference to an
+// initialized BeaconApp.
+func NewBeaconKitAppWithDefaultBaseAppOptions(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) servertypes.Application {
+	return NewBeaconKitApp(
+		logger, db, traceStore, true,
+		appOpts,
+		server.DefaultBaseappOptions(appOpts)...,
+	)
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
