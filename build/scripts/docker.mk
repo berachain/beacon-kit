@@ -13,7 +13,7 @@ GO_VERSION ?= 1.22.1
 IMAGE_NAME ?= beacond
 
 # Docker Paths
-DOCKERFILE = ./examples/beacond/Dockerfile
+DOCKERFILE = ./beacond/Dockerfile
 
 # Image Build
 docker-build:

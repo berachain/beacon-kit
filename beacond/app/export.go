@@ -38,7 +38,7 @@ import (
 // file.
 func (app *BeaconApp) ExportAppStateAndValidators(
 	forZeroHeight bool,
-	jailAllowedAddrs, modulesToExport []string,
+	_, modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContextLegacy(
@@ -50,7 +50,7 @@ func (app *BeaconApp) ExportAppStateAndValidators(
 	// CometBFT will start InitChain.
 	height := app.LastBlockHeight() + 1
 	if forZeroHeight {
-		height = 0
+		// height = 0
 		panic("not supported, just look at the genesis file u goofy")
 	}
 

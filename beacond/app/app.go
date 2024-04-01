@@ -32,8 +32,8 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	bkcomponents "github.com/berachain/beacon-kit/beacond/components"
 	"github.com/berachain/beacon-kit/config"
-	bkdepinject "github.com/berachain/beacon-kit/depinject"
 	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
 	beaconkeeper "github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
 	dbm "github.com/cosmos/cosmos-db"
@@ -85,10 +85,10 @@ func NewBeaconKitApp(
 
 	if err := depinject.Inject(
 		depinject.Configs(
-			AppConfig(),
+			Config(),
 			depinject.Provide(
-				bkdepinject.ProvideRuntime,
-				bkdepinject.ProvideBlsSigner,
+				bkcomponents.ProvideRuntime,
+				bkcomponents.ProvideBlsSigner,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -113,7 +113,7 @@ func NewBeaconKitApp(
 	// Build the app using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// Build all the ABCI Componenets.
+	// Build all the ABCI Components.
 	defaultProposalHandler := baseapp.NewDefaultProposalHandler(
 		app.Mempool(),
 		app,
@@ -125,7 +125,7 @@ func NewBeaconKitApp(
 		nil,
 	)
 
-	// Set all the newly built ABCI Componenets on the App.
+	// Set all the newly built ABCI Components on the App.
 	app.SetPrepareProposal(prepare)
 	app.SetProcessProposal(process)
 	app.SetPreBlocker(preBlocker)
@@ -133,7 +133,9 @@ func NewBeaconKitApp(
 	/**** End of BeaconKit Configuration ****/
 
 	// register streaming services
-	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
+	if err := app.RegisterStreamingServices(
+		appOpts, app.kvStoreKeys(),
+	); err != nil {
 		panic(err)
 	}
 

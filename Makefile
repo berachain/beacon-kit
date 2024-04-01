@@ -76,7 +76,7 @@ ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
 
 # Start beacond
 start:
-	@JWT_SECRET_PATH=$(JWT_PATH) ./examples/beacond/entrypoint.sh
+	@JWT_SECRET_PATH=$(JWT_PATH) ./beacond/entrypoint.sh
 
 # Start reth node
 start-reth:

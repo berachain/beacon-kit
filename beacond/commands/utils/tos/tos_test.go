@@ -32,11 +32,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/beacond/cmd/root"
 	"github.com/berachain/beacon-kit/beacond/commands/utils/prompt/mocks"
 	"github.com/berachain/beacon-kit/beacond/commands/utils/tos"
-	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
+	cmdconfig "github.com/berachain/beacon-kit/beacond/components"
 	beaconflags "github.com/berachain/beacon-kit/config/flags"
-	"github.com/berachain/beacon-kit/examples/beacond/cmd/root"
 	"github.com/berachain/beacon-kit/io/file"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"

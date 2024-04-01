@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:govet,gomnd,lll // from sdk.
+//nolint:govet,lll // from sdk.
 package root
 
 import (
@@ -31,25 +31,21 @@ import (
 	"io"
 	"os"
 
-	"github.com/cockroachdb/errors"
-
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/beacond/app"
 	cmdlib "github.com/berachain/beacon-kit/beacond/commands"
 	"github.com/berachain/beacon-kit/beacond/commands/utils/tos"
-	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
-	"github.com/berachain/beacon-kit/examples/beacond/app"
+	cmdconfig "github.com/berachain/beacon-kit/beacond/components"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -63,7 +59,7 @@ func NewRootCmd() *cobra.Command {
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
-			app.AppConfig(),
+			app.Config(),
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
@@ -135,7 +131,7 @@ func NewRootCmd() *cobra.Command {
 		newApp,
 		func(
 			_app servertypes.Application,
-			svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group,
+			_ *server.Context, clientCtx client.Context, ctx context.Context, _ *errgroup.Group,
 		) error {
 			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
 		},
@@ -164,59 +160,60 @@ func newApp(
 	)
 }
 
-// appExport creates a new BeaconApp (optionally at a given height) and exports
-// state.
-func appExport(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	height int64,
-	forZeroHeight bool,
-	jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions,
-	modulesToExport []string,
-) (servertypes.ExportedApp, error) {
-	// this check is necessary as we use the flag in x/upgrade.
-	// we can exit more gracefully by checking the flag here.
-	homePath, ok := appOpts.Get(flags.FlagHome).(string)
-	if !ok || homePath == "" {
-		return servertypes.ExportedApp{}, errors.New("application home not set")
-	}
+// // appExport creates a new BeaconApp (optionally at a given height) and
+// exports
+// // state.
+// func appExport(
+// 	logger log.Logger,
+// 	db dbm.DB,
+// 	traceStore io.Writer,
+// 	height int64,
+// 	forZeroHeight bool,
+// 	jailAllowedAddrs []string,
+// 	appOpts servertypes.AppOptions,
+// 	modulesToExport []string,
+// ) (servertypes.ExportedApp, error) {
+// 	// this check is necessary as we use the flag in x/upgrade.
+// 	// we can exit more gracefully by checking the flag here.
+// 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
+// 	if !ok || homePath == "" {
+// 		return servertypes.ExportedApp{}, errors.New("application home not set")
+// 	}
 
-	viperAppOpts, ok := appOpts.(*viper.Viper)
-	if !ok {
-		return servertypes.ExportedApp{}, errors.New(
-			"appOpts is not viper.Viper",
-		)
-	}
+// 	viperAppOpts, ok := appOpts.(*viper.Viper)
+// 	if !ok {
+// 		return servertypes.ExportedApp{}, errors.New(
+// 			"appOpts is not viper.Viper",
+// 		)
+// 	}
 
-	// overwrite the FlagInvCheckPeriod
-	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
-	appOpts = viperAppOpts
+// 	// overwrite the FlagInvCheckPeriod
+// 	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+// 	appOpts = viperAppOpts
 
-	var beaconApp *app.BeaconApp
-	if height != -1 {
-		beaconApp = app.NewBeaconKitApp(
-			logger,
-			db,
-			traceStore,
-			false,
-			appOpts,
-		)
+// 	var beaconApp *app.BeaconApp
+// 	if height != -1 {
+// 		beaconApp = app.NewBeaconKitApp(
+// 			logger,
+// 			db,
+// 			traceStore,
+// 			false,
+// 			appOpts,
+// 		)
 
-		if err := beaconApp.LoadHeight(height); err != nil {
-			return servertypes.ExportedApp{}, err
-		}
-	} else {
-		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, appOpts)
-	}
+// 		if err := beaconApp.LoadHeight(height); err != nil {
+// 			return servertypes.ExportedApp{}, err
+// 		}
+// 	} else {
+// 		beaconApp = app.NewBeaconKitApp(logger, db, traceStore, true, appOpts)
+// 	}
 
-	return beaconApp.ExportAppStateAndValidators(
-		forZeroHeight,
-		jailAllowedAddrs,
-		modulesToExport,
-	)
-}
+// 	return beaconApp.ExportAppStateAndValidators(
+// 		forZeroHeight,
+// 		jailAllowedAddrs,
+// 		modulesToExport,
+// 	)
+// }
 
 var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
 	dir, err := os.MkdirTemp("", "beacond")

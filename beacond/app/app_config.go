@@ -33,20 +33,19 @@ import (
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
 	"github.com/berachain/beacon-kit/runtime/modules/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-
-	_ "cosmossdk.io/x/auth/tx/config"            // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 )
 
 const AppName = "BeaconKitApp"
 
-// AppConfig returns the default app config.
-func AppConfig() depinject.Config {
+// Config returns the default app config.
+func Config() depinject.Config {
 	addrCdc := addresscodec.NewBech32Codec("bera")
 	return depinject.Configs(
 		appconfig.Compose(&appv1alpha1.Config{

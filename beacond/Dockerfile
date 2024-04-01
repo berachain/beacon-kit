@@ -24,7 +24,7 @@ ARG BUILD_TAGS="netgo,ledger,muslc,blst,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
-ARG CMD_PATH=./examples/beacond/cmd
+ARG CMD_PATH=./beacond/cmd
 
 
 #######################################################
@@ -95,11 +95,11 @@ ARG APP_NAME
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 
-COPY ./examples/beacond/init_first.sh /usr/bin/init_first.sh
-COPY ./examples/beacond/init_others.sh /usr/bin/init_others.sh
-COPY ./examples/beacond/init_full.sh /usr/bin/init_full.sh
-COPY ./examples/beacond/finalize.sh /usr/bin/finalize.sh
-COPY ./examples/beacond/start.sh /usr/bin/start.sh
+COPY ./beacond/init_first.sh /usr/bin/init_first.sh
+COPY ./beacond/init_others.sh /usr/bin/init_others.sh
+COPY ./beacond/init_full.sh /usr/bin/init_full.sh
+COPY ./beacond/finalize.sh /usr/bin/finalize.sh
+COPY ./beacond/start.sh /usr/bin/start.sh
 
 RUN chmod +x /usr/bin/init_first.sh
 RUN chmod +x /usr/bin/init_others.sh

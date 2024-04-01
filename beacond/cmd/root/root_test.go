@@ -30,13 +30,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/berachain/beacon-kit/beacond/cmd/root"
+	cmdconfig "github.com/berachain/beacon-kit/beacond/components"
+	beaconflags "github.com/berachain/beacon-kit/config/flags"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-
-	cmdconfig "github.com/berachain/beacon-kit/config/cmd"
-	beaconflags "github.com/berachain/beacon-kit/config/flags"
-	"github.com/berachain/beacon-kit/examples/beacond/cmd/root"
 )
 
 func TestInitCommand(t *testing.T) {
@@ -50,7 +49,7 @@ func TestInitCommand(t *testing.T) {
 			cli.FlagOverwrite,
 			"true",
 		), // Overwrite genesis.json
-		fmt.Sprintf("--%s", beaconflags.BeaconKitAcceptTos),
+		"--" + beaconflags.BeaconKitAcceptTos,
 	})
 
 	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)
@@ -68,9 +67,9 @@ func TestHomeFlagRegistration(t *testing.T) {
 	rootCmd := root.NewRootCmd()
 	rootCmd.SetArgs([]string{
 		"query",
-		fmt.Sprintf("--%s", flags.FlagHome),
+		"--" + flags.FlagHome,
 		homeDir,
-		fmt.Sprintf("--%s", beaconflags.BeaconKitAcceptTos),
+		"--" + beaconflags.BeaconKitAcceptTos,
 	})
 
 	err := svrcmd.Execute(rootCmd, "", cmdconfig.DefaultNodeHome)

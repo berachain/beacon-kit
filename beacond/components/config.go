@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 //nolint:gomnd // from sdk.
-package cmd
+package components
 
 import (
 	"time"
