@@ -377,24 +377,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	st state.BeaconState,
 	blk types.BeaconBlock,
 ) error {
-	// Ensure the proposer index is valid.
-	val, err := st.ValidatorByIndex(blk.GetProposerIndex())
-	if err != nil {
-		return err
-	}
-
-	// Verify the RANDAO Reveal.
-	reveal := blk.GetBody().GetRandaoReveal()
-	if err = sp.rp.VerifyReveal(
-		st,
-		val.Pubkey,
-		reveal,
-	); err != nil {
-		return err
-	}
-
-	// Mixin the reveal.
-	return sp.rp.MixinNewReveal(st, reveal)
+	return sp.rp.ProcessRandao(st, blk)
 }
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
@@ -404,7 +387,7 @@ func (sp *StateProcessor) processRandaoReveal(
 func (sp *StateProcessor) processRandaoMixesReset(
 	st state.BeaconState,
 ) error {
-	return sp.rp.MixesReset(st)
+	return sp.rp.ProcessRandaoMixesReset(st)
 }
 
 // processSlashingsReset as defined in the Ethereum 2.0 specification.

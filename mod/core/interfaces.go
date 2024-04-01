@@ -46,16 +46,11 @@ type RandaoProcessor interface {
 	BuildReveal(
 		st state.BeaconState,
 	) (primitives.BLSSignature, error)
-	MixinNewReveal(
+	ProcessRandao(
 		st state.BeaconState,
-		reveal primitives.BLSSignature,
+		blk types.BeaconBlock,
 	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
-	) error
-	MixesReset(
+	ProcessRandaoMixesReset(
 		st state.BeaconState,
 	) error
 }
