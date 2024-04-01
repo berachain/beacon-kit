@@ -201,7 +201,7 @@ test-e2e:
 	@$(MAKE) docker-build VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -tags e2e ./e2e/. -v
+	go test -tags e2e ./testing/e2e/. -v
 
 #################
 #     forge     #

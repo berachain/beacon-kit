@@ -28,7 +28,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/e2e/suite/types"
+	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
