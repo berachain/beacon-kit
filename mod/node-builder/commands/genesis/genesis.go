@@ -23,13 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package commands
+package genesis
 
-import "github.com/cockroachdb/errors"
-
-var (
-	// ErrNoClientCtx indicates that the client context was not found.
-	ErrNoClientCtx = errors.New("client context not found")
-	// ErrNoHomeDir indicates that the home directory was not found.
-	ErrNoHomeDir = errors.New("home directory not found")
+import (
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/spf13/cobra"
 )
+
+// Commands builds the genesis-related command. Users may
+// provide application specific commands as a parameter.
+func Commands(
+	cmds ...*cobra.Command,
+) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "genesis",
+		Short:                      "Application's genesis-related subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		RunE:                       client.ValidateCmd,
+	}
+
+	// Adding subcommands for genesis-related operations.
+	cmd.AddCommand(
+		AddPubkeyCmd(),
+		CollectValidatorsCmd(),
+	)
+
+	// Add additional commands
+	for _, subCmd := range cmds {
+		cmd.AddCommand(subCmd)
+	}
+
+	return cmd
+}

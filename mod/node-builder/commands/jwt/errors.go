@@ -23,13 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package commands
+package jwt
 
 import "github.com/cockroachdb/errors"
 
 var (
 	// ErrNoClientCtx indicates that the client context was not found.
 	ErrNoClientCtx = errors.New("client context not found")
-	// ErrNoHomeDir indicates that the home directory was not found.
-	ErrNoHomeDir = errors.New("home directory not found")
 )

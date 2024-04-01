@@ -25,11 +25,17 @@
 
 package commands
 
-import "github.com/cockroachdb/errors"
+import (
+	"context"
 
-var (
-	// ErrNoClientCtx indicates that the client context was not found.
-	ErrNoClientCtx = errors.New("client context not found")
-	// ErrNoHomeDir indicates that the home directory was not found.
-	ErrNoHomeDir = errors.New("home directory not found")
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"golang.org/x/sync/errgroup"
 )
+
+// PostSetupFn is a function that is called after the application is created
+// and the cosmos server is started.
+type PostSetupFn[T servertypes.Application] func(
+	app T, svrCtx *server.Context, clientCtx client.Context,
+	ctx context.Context, g *errgroup.Group) error

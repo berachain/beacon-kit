@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cmd
+package cometbft
 
 import (
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -32,9 +32,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CometBFTCommands creates a new command for managing CometBFT
+// Commands creates a new command for managing CometBFT
 // related commands.
-func CometBFTCommands[T servertypes.Application](
+func Commands[T servertypes.Application](
 	appCreator servertypes.AppCreator[T],
 ) *cobra.Command {
 	cometCmd := &cobra.Command{

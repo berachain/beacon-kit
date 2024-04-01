@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cmd
+package cosmos
 
 import (
 	authcmd "cosmossdk.io/x/auth/client/cli"
@@ -32,25 +32,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 )
-
-// GenesisCommands builds genesis-related `simd genesis` command. Users may
-// provide application specific commands as a parameter.
-func GenesisCommands(
-	cmds ...*cobra.Command,
-) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "genesis",
-		Short:                      "Application's genesis-related subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	for _, subCmd := range cmds {
-		cmd.AddCommand(subCmd)
-	}
-	return cmd
-}
 
 // QueryCommands constructs a new cobra.Command to interact with querying
 // subcommands.

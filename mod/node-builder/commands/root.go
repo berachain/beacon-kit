@@ -23,15 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cmd
+package commands
 
 import (
-	"context"
-
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	beaconconfig "github.com/berachain/beacon-kit/config"
-	genesiscommands "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis"
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/commands/cometbft"
+	"github.com/berachain/beacon-kit/mod/node-builder/commands/cosmos"
+	"github.com/berachain/beacon-kit/mod/node-builder/commands/genesis"
+	"github.com/berachain/beacon-kit/mod/node-builder/commands/jwt"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
@@ -42,14 +42,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
-
-// PostSetupFn is a function that is called after the application is created
-// and the cosmos server is started.
-type PostSetupFn[T servertypes.Application] func(
-	app T, svrCtx *server.Context, clientCtx client.Context,
-	ctx context.Context, g *errgroup.Group) error
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[T servertypes.Application](
@@ -70,26 +63,26 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	// Add all the commands to the root command.
 	rootCmd.AddCommand(
 		// `comet`
-		CometBFTCommands(newApp),
+		cometbft.Commands(newApp),
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `debug`
 		debug.Cmd(),
 		// `genesis`
-		GenesisCommands(
-			genesiscommands.AddPubkeyCmd(),
-			genesiscommands.CollectValidatorsCmd(),
+		genesis.Commands(
+			genesis.AddPubkeyCmd(),
+			genesis.CollectValidatorsCmd(),
 		),
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `jwt`
-		JWTCommands(),
+		jwt.Commands(),
 		// `keys`
 		keys.Commands(),
 		// `prune`
 		pruning.Cmd(newApp),
 		// `query`
-		QueryCommands(),
+		cosmos.QueryCommands(),
 		// `rollback`
 		server.NewRollbackCmd(newApp),
 		// `snapshots`
@@ -99,7 +92,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `status`
 		server.StatusCommand(),
 		// `tx`
-		TxCommands(),
+		cosmos.TxCommands(),
 		// `version`
 		version.NewVersionCommand(),
 	)
