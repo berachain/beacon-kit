@@ -71,6 +71,7 @@ type WriteOnlyBeaconState interface {
 	SetSlot(primitives.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
+	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	UpdateEth1BlockHash(primitives.ExecutionHash) error
 	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
@@ -103,10 +104,8 @@ type ReadOnlyRandaoMixes interface {
 // WriteOnlyValidators has write access to validator methods.
 type WriteOnlyValidators interface {
 	// Add methods here
-	UpdateValidatorAtIndex(
-		primitives.ValidatorIndex,
-		*types.Validator,
-	) error
+	UpdateValidatorAtIndex(primitives.ValidatorIndex, *types.Validator) error
+	AddValidator(*types.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
