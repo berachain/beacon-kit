@@ -67,7 +67,7 @@ func (s *Service) BuildLocalPayload(
 		return nil, err
 	}
 	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
-		ctx, &execution.NewForkchoiceUpdateRequest{
+		ctx, &execution.ForkchoiceUpdateRequest{
 			State: &enginetypes.ForkchoiceState{
 				HeadBlockHash:      parentEth1Hash,
 				SafeBlockHash:      parentEth1BlockHash,
@@ -293,7 +293,7 @@ func (s *Service) getPayloadFromExecutionClient(
 
 	payload, blobsBundle, overrideBuilder, err := s.ee.GetPayload(
 		ctx,
-		&execution.NewGetPayloadRequest{
+		&execution.GetPayloadRequest{
 			PayloadID:   *payloadID,
 			ForkVersion: s.BeaconCfg().ActiveForkVersion(slot),
 		},

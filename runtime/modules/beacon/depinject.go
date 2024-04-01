@@ -50,7 +50,6 @@ type DepInjectInput struct {
 	depinject.In
 
 	AppOpts     servertypes.AppOptions
-	Config      *modulev1alpha1.Module
 	Environment appmodule.Environment
 }
 

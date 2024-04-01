@@ -29,10 +29,10 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/beacon/builder"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
+	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -77,6 +77,8 @@ type BeaconChainConfig struct {
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
+	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
+	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
 
 	// Rewards and penalties constants.
 	//
@@ -129,6 +131,9 @@ max-deposits-per-block = {{.BeaconKit.Beacon.MaxDepositsPerBlock}}
 
 # MaxWithdrawalsPerPayload indicates the maximum number of withdrawal operations allowed in a single payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.MaxWithdrawalsPerPayload}}
+
+# MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
+max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
 
 ########### Rewards and Penalties ###########
 # ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
@@ -203,6 +208,12 @@ func (c BeaconChainConfig) Parse(
 
 	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(
 		flags.MaxWithdrawalsPerPayload,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.MaxBlobsPerBlock, err = parser.GetUint64(
+		flags.MaxBlobsPerBlock,
 	); err != nil {
 		return nil, err
 	}

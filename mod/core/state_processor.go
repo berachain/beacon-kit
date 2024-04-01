@@ -56,6 +56,37 @@ func NewStateProcessor(
 	}
 }
 
+// StateTransition is the main function for processing a state transition.
+func (sp *StateProcessor) Transition(
+	st state.BeaconState,
+	blk types.ReadOnlyBeaconBlock,
+	/*validateSignature bool, */
+	validateResult bool,
+) error {
+	// Process the slot.
+	if err := sp.ProcessSlot(st); err != nil {
+		return err
+	}
+
+	// Process the block.
+	if err := sp.ProcessBlock(st, blk); err != nil {
+		return err
+	}
+
+	if validateResult {
+		stateRoot, err := st.HashTreeRoot()
+		if err != nil {
+			return err
+		}
+
+		if stateRoot != blk.GetStateRoot() {
+			return ErrStateRootMismatch
+		}
+	}
+
+	return nil
+}
+
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor) ProcessSlot(
 	st state.BeaconState,

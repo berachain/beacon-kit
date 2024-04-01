@@ -62,7 +62,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Validate payload in Parallel.
 	g.Go(func() error {
-		return s.pv.ValidatePayload(st, blk)
+		return s.pv.ValidatePayload(st, blk.GetBody())
 	})
 
 	// Validate block in Parallel.
@@ -80,15 +80,15 @@ func (s *Service) ProcessBeaconBlock(
 	// Then we notify the engine of the new payload.
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	versionedHashes := primitives.KzgCommitmentsToVersionedHashes(
+		body.GetBlobKzgCommitments())
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
 		ctx,
-		&execution.NewPayloadRequest{
-			ExecutionPayload: body.GetExecutionPayload(),
-			VersionedHashes: primitives.KzgCommitmentsToVersionedHashes(
-				body.GetBlobKzgCommitments(),
-			),
-			ParentBeaconBlockRoot: &parentBeaconBlockRoot,
-		},
+		execution.BuildNewPayloadRequest(
+			body.GetExecutionPayload(),
+			versionedHashes,
+			&parentBeaconBlockRoot,
+		),
 	); err != nil {
 		s.Logger().
 			Error("failed to notify engine of new payload", "error", err)

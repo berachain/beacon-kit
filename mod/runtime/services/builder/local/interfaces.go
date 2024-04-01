@@ -23,33 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package localbuilder
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"context"
 
-func DefaultBeaconConfig() BeaconChainConfig {
-	//nolint:gomnd // default settings.
-	return BeaconChainConfig{
-		// Gwei value constants.
-		MinDepositAmount:          uint64(1e9),
-		MaxEffectiveBalance:       uint64(32e9),
-		EffectiveBalanceIncrement: uint64(1e9),
-		// Time parameters constants.
-		SlotsPerEpoch:          8,
-		SlotsPerHistoricalRoot: 1,
-		// Eth1-related values.
-		DepositContractAddress: common.HexToAddress(
-			"0x00000000219ab540356cbb839cbe05303d7705fa",
-		),
-		// Fork-related values.
-		ElectraForkEpoch: 9999999999999999,
-		// State list length constants.
-		EpochsPerHistoricalVector: 1,
-		EpochsPerSlashingsVector:  1,
-		// Max operations per block constants.
-		MaxDepositsPerBlock:            16,
-		MaxWithdrawalsPerPayload:       16,
-		MaxBlobsPerBlock:               6,
-		ProportionalSlashingMultiplier: 1,
-	}
+	"github.com/berachain/beacon-kit/mod/execution"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
+
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *execution.GetPayloadRequest,
+	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
+
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *execution.ForkchoiceUpdateRequest,
+	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
 }

@@ -30,11 +30,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/beacon/builder"
-	localbuilder "github.com/berachain/beacon-kit/beacon/builder/local"
-	"github.com/berachain/beacon-kit/beacon/staking"
-	"github.com/berachain/beacon-kit/beacon/sync"
 	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/mod/builder/cache"
@@ -47,6 +42,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	_ "github.com/berachain/beacon-kit/mod/runtime/maxprocs"
+	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
+	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
+	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
+	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
+	"github.com/berachain/beacon-kit/mod/runtime/services/sync"
 	"github.com/berachain/beacon-kit/runtime/service"
 	"github.com/cosmos/cosmos-sdk/client"
 )

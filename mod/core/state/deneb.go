@@ -49,14 +49,17 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 			StateRoot:     primitives.Root{},
 			BodyRoot:      primitives.Root{},
 		},
-		BlockRoots: make([][32]byte, 0),
-		StateRoots: make([][32]byte, 0),
+		BlockRoots: make([][32]byte, 1),
+		StateRoots: make([][32]byte, 1),
 		Eth1BlockHash: common.HexToHash(
 			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
 		),
 		Eth1DepositIndex: 0,
 		Validators:       make([]*types.Validator, 0),
+		Balances:         make([]uint64, 0),
 		RandaoMixes:      make([][32]byte, 1),
+		Slashings:        make([]uint64, 1),
+		TotalSlashing:    0,
 	}
 }
 

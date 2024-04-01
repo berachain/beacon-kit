@@ -55,6 +55,7 @@ const (
 	EpochsPerSlashingsVector       = beaconChainRoot + "epochs-per-slashings-vector"
 	MaxDepositsPerBlock            = beaconChainRoot + "max-deposits-per-block"
 	MaxWithdrawalsPerPayload       = beaconChainRoot + "max-withdrawals-per-payload"
+	MaxBlobsPerBlock               = beaconChainRoot + "max-blobs-per-block"
 	ProportionalSlashingMultiplier = beaconChainRoot + "proportional-slashing-multiplier"
 
 	// Builder Config.

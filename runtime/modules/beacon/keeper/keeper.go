@@ -190,8 +190,14 @@ func (k *Keeper) InitGenesis(
 
 	store := k.beaconStore.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range data.Validators {
+	for i, validator := range data.Validators {
 		if err = store.AddValidator(validator); err != nil {
+			return nil, err
+		}
+
+		if err = store.IncreaseBalance(
+			primitives.ValidatorIndex(i), validator.EffectiveBalance,
+		); err != nil {
 			return nil, err
 		}
 

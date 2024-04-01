@@ -77,7 +77,7 @@ func (ee *Engine) GetLogs(
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine) GetPayload(
 	ctx context.Context,
-	req *NewGetPayloadRequest,
+	req *GetPayloadRequest,
 ) (types.ExecutionPayload, *types.BlobsBundleV1, bool, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
@@ -88,7 +88,7 @@ func (ee *Engine) GetPayload(
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *NewForkchoiceUpdateRequest,
+	req *ForkchoiceUpdateRequest,
 ) (*types.PayloadID, *primitives.ExecutionHash, error) {
 	ee.logger.Info("notifying forkchoice update",
 		"head_eth1_hash", req.State.HeadBlockHash,

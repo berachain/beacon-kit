@@ -38,13 +38,13 @@ type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *execution.NewGetPayloadRequest,
+		req *execution.GetPayloadRequest,
 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *execution.NewForkchoiceUpdateRequest,
+		req *execution.ForkchoiceUpdateRequest,
 	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution

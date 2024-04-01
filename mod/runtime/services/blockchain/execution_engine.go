@@ -45,7 +45,7 @@ func (s *Service) sendFCU(
 	}
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		&execution.NewForkchoiceUpdateRequest{
+		&execution.ForkchoiceUpdateRequest{
 			State: &enginetypes.ForkchoiceState{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,

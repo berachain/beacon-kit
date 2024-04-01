@@ -43,8 +43,21 @@ type NewPayloadRequest struct {
 	ParentBeaconBlockRoot *primitives.Root
 }
 
-// NewForkchoiceUpdateRequest.
-type NewForkchoiceUpdateRequest struct {
+// BuildNewPayloadRequest builds a new payload request.
+func BuildNewPayloadRequest(
+	executionPayload types.ExecutionPayload,
+	versionedHashes []primitives.ExecutionHash,
+	parentBeaconBlockRoot *primitives.Root,
+) *NewPayloadRequest {
+	return &NewPayloadRequest{
+		ExecutionPayload:      executionPayload,
+		VersionedHashes:       versionedHashes,
+		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+	}
+}
+
+// ForkchoiceUpdateRequest.
+type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
 	State *types.ForkchoiceState
 	// PayloadAttributes is the payload attributer.
@@ -54,11 +67,35 @@ type NewForkchoiceUpdateRequest struct {
 	ForkVersion uint32
 }
 
-// NewGetPayloadRequest represents a request to get a payload.
-type NewGetPayloadRequest struct {
+// BuildForkchoiceUpdateRequest builds a forkchoice update request.
+func BuildForkchoiceUpdateRequest(
+	state *types.ForkchoiceState,
+	payloadAttributes types.PayloadAttributer,
+	forkVersion uint32,
+) *ForkchoiceUpdateRequest {
+	return &ForkchoiceUpdateRequest{
+		State:             state,
+		PayloadAttributes: payloadAttributes,
+		ForkVersion:       forkVersion,
+	}
+}
+
+// GetPayloadRequest represents a request to get a payload.
+type GetPayloadRequest struct {
 	// PayloadID is the payload ID.
 	PayloadID types.PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
 	ForkVersion uint32
+}
+
+// BuildGetPayloadRequest builds a get payload request.
+func BuildGetPayloadRequest(
+	payloadID types.PayloadID,
+	forkVersion uint32,
+) *GetPayloadRequest {
+	return &GetPayloadRequest{
+		PayloadID:   payloadID,
+		ForkVersion: forkVersion,
+	}
 }

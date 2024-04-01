@@ -33,7 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 )
 
-// PayloadValidator is responsible for validating incoming.
+// PayloadValidator is responsible for validating incoming execution
+// payloads to ensure they are valid.
 type PayloadValidator struct {
 	cfg *params.BeaconChainConfig
 }
@@ -48,34 +49,19 @@ func NewPayloadValidator(cfg *params.BeaconChainConfig) *PayloadValidator {
 // ValidatePayload validates the incoming payload.
 func (pv *PayloadValidator) ValidatePayload(
 	st state.BeaconState,
-	blk types.BeaconBlock,
+	body types.BeaconBlockBody,
 ) error {
-	if blk == nil || blk.IsNil() {
-		return types.ErrNilBlk
-	}
-
-	body := blk.GetBody()
 	if body == nil || body.IsNil() {
 		return types.ErrNilBlkBody
 	}
 
-	payload := blk.GetBody().GetExecutionPayload()
+	payload := body.GetExecutionPayload()
 	if payload == nil || payload.IsNil() {
 		return types.ErrNilPayload
 	}
 
-	if withdrawals := payload.GetWithdrawals(); uint64(
-		len(payload.GetWithdrawals()),
-	) > pv.cfg.MaxWithdrawalsPerPayload {
-		return fmt.Errorf(
-			"too many withdrawals, expected: %d, got: %d",
-			pv.cfg.MaxWithdrawalsPerPayload, len(withdrawals),
-		)
-	}
-
-	// In BeaconKit, since we are currently operating on SingleSlot Finality
-	// we purposefully reject any block that is not a child of the last
-	// finalized block.
+	// TODO: convert to:
+	// state.latest_execution_payload_header.block_hash
 	safeHash, err := st.GetEth1BlockHash()
 	if err != nil {
 		return err
@@ -89,8 +75,8 @@ func (pv *PayloadValidator) ValidatePayload(
 		)
 	}
 
-	// Get the current slot.
-	slot, err := st.GetSlot()
+	// Get the current epoch.
+	epoch, err := st.GetCurrentEpoch(pv.cfg.SlotsPerEpoch)
 	if err != nil {
 		return err
 	}
@@ -98,8 +84,7 @@ func (pv *PayloadValidator) ValidatePayload(
 	// When we are validating a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(slot) % pv.cfg.EpochsPerHistoricalVector,
-	)
+		uint64(epoch) % pv.cfg.EpochsPerHistoricalVector)
 	if err != nil {
 		return err
 	}
@@ -121,6 +106,24 @@ func (pv *PayloadValidator) ValidatePayload(
 	// payload time %d, but got %d",
 	// 		slot, genesisTime, expectedTime, payload.Timestamp)
 	// }
+
+	if uint64(len(body.GetBlobKzgCommitments())) > pv.cfg.MaxBlobsPerBlock {
+		return fmt.Errorf(
+			"too many blob kzg commitments, expected: %d, got: %d",
+			pv.cfg.MaxBlobsPerBlock,
+			len(body.GetBlobKzgCommitments()),
+		)
+	}
+
+	// Verify the number of withdrawals.
+	if withdrawals := payload.GetWithdrawals(); uint64(
+		len(payload.GetWithdrawals()),
+	) > pv.cfg.MaxWithdrawalsPerPayload {
+		return fmt.Errorf(
+			"too many withdrawals, expected: %d, got: %d",
+			pv.cfg.MaxWithdrawalsPerPayload, len(withdrawals),
+		)
+	}
 
 	return nil
 }

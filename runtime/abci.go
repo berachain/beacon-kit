@@ -26,8 +26,8 @@
 package runtime
 
 import (
-	"github.com/berachain/beacon-kit/beacon/blockchain"
-	builder "github.com/berachain/beacon-kit/beacon/builder"
+	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
+	builder "github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	"github.com/berachain/beacon-kit/runtime/abci/preblock"
 	"github.com/berachain/beacon-kit/runtime/abci/proposal"
 	sdk "github.com/cosmos/cosmos-sdk/types"

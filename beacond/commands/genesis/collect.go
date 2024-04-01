@@ -83,6 +83,12 @@ func CollectValidatorsCmd() *cobra.Command {
 			beaconState.GenesisValidatorsRoot, err = merkleize.VectorSSZ(
 				beaconState.Validators, uint64(len(beaconState.Validators)),
 			)
+			for _, val := range validators {
+				beaconState.Balances = append(
+					beaconState.Balances,
+					uint64(val.EffectiveBalance),
+				)
+			}
 
 			if err != nil {
 				return errors.Wrap(err, "failed to merkleize validators")

@@ -97,14 +97,20 @@ func (s *Service) RequestBestBlock(
 		uint64(slot) % s.BeaconCfg().SlotsPerHistoricalRoot,
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf(
+			"failed to get block root at index: %w",
+			err,
+		)
 	}
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
 		s.signer.PublicKey().Marshal(),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf(
+			"failed to get validator by pubkey: %w",
+			err,
+		)
 	}
 
 	// Create a new empty block from the current state.
@@ -134,7 +140,10 @@ func (s *Service) RequestBestBlock(
 		parentEth1BlockHash,
 	)
 	if err != nil {
-		return blk, nil, err
+		return blk, nil, fmt.Errorf(
+			"failed to get block root at index: %w",
+			err,
+		)
 	}
 
 	// TODO: allow external block builders to override the payload.
@@ -180,10 +189,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	s.Logger().Info("finished assembling beacon block 🛟",
-		"slot", slot,
-		"deposits", len(deposits),
-	)
+		"slot", slot, "deposits", len(deposits))
 
-	// Return the block.
 	return blk, blobSidecars, nil
 }

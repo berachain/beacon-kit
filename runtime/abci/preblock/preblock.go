@@ -26,21 +26,14 @@
 package preblock
 
 import (
-	"context"
-
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	abcitypes "github.com/berachain/beacon-kit/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-type BeaconKeeper interface {
-	BeaconState(ctx context.Context) state.BeaconState
-}
 
 // BeaconPreBlockHandler is responsible for aggregating oracle data from each
 // validator and writing the oracle data into the store before any transactions
