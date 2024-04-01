@@ -29,7 +29,7 @@ package client
 import (
 	"time"
 
-	beaconconfig "github.com/berachain/beacon-kit/config"
+	beaconconfig "github.com/berachain/beacon-kit/mod/node-builder/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

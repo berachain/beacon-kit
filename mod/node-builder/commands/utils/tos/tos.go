@@ -29,8 +29,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/config/flags"
 	beaconprompt "github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client"

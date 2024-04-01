@@ -27,7 +27,7 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 )
 

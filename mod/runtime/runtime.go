@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config"
 	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
@@ -37,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/crypto"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"

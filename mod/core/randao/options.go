@@ -27,8 +27,8 @@ package randao
 
 import (
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config"
 	crypto "github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 

@@ -26,10 +26,10 @@
 package config
 
 import (
-	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"

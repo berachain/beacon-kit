@@ -29,7 +29,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"

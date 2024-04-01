@@ -26,7 +26,7 @@
 package config
 
 import (
-	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 )
 

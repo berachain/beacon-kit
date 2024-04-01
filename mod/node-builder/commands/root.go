@@ -27,11 +27,11 @@ package commands
 
 import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	beaconconfig "github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/jwt"
+	beaconconfig "github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"

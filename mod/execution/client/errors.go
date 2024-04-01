@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/berachain/beacon-kit/config/flags"
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
