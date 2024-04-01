@@ -263,16 +263,18 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
+	epoch := s.BeaconCfg().SlotToEpoch(slot)
+
 	// Get the previous randao mix.
 	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(slot) % s.BeaconCfg().EpochsPerHistoricalVector,
+		uint64(epoch) % s.BeaconCfg().EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return enginetypes.NewPayloadAttributes(
-		s.ActiveForkVersionForSlot(slot),
+		s.BeaconCfg().ActiveForkVersionByEpoch(epoch),
 		timestamp,
 		prevRandao,
 		s.cfg.SuggestedFeeRecipient,

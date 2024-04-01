@@ -106,9 +106,7 @@ func (sp *StateProcessor) ProcessSlot(
 		return err
 	}
 
-	// We update our state roots and block roots. Note: we use
-	// st.GetSlot() even though technically this was the state root from
-	// end of the previous slot.
+	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
 		uint64(slot)%sp.cfg.SlotsPerHistoricalRoot,
 		prevStateRoot,

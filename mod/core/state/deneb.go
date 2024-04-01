@@ -38,6 +38,7 @@ import (
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
 func DefaultBeaconStateDeneb() *BeaconStateDeneb {
+	//nolint:gomnd // default allocs.
 	return &BeaconStateDeneb{
 		GenesisValidatorsRoot: primitives.Root{},
 
@@ -57,7 +58,7 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		Eth1DepositIndex: 0,
 		Validators:       make([]*types.Validator, 0),
 		Balances:         make([]uint64, 0),
-		RandaoMixes:      make([][32]byte, 1),
+		RandaoMixes:      make([][32]byte, 8),
 		Slashings:        make([]uint64, 1),
 		TotalSlashing:    0,
 	}

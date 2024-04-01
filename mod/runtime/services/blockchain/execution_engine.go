@@ -136,8 +136,13 @@ func (s *Service) sendPostBlockFCU(
 				Error("failed to get slot in postBlockProcess", "error", err)
 		}
 
+		stCopy := st.Copy()
+		if err = s.sp.ProcessSlot(stCopy); err != nil {
+			return
+		}
+		//nolint:contextcheck // temp.
 		if err = s.sendFCUWithAttributes(
-			ctx,
+			stCopy.Context(),
 			headHash,
 			slot+1,
 			root,

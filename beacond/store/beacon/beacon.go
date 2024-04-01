@@ -33,8 +33,10 @@ import (
 	"github.com/berachain/beacon-kit/beacond/store/beacon/collections"
 	"github.com/berachain/beacon-kit/beacond/store/beacon/collections/encoding"
 	"github.com/berachain/beacon-kit/beacond/store/beacon/index"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Store is a wrapper around an sdk.Context
@@ -198,6 +200,12 @@ func NewStore(
 			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
 		),
 	}
+}
+
+// Copy returns a copy of the Store.
+func (s *Store) Copy() state.BeaconState {
+	cctx, _ := sdk.UnwrapSDKContext(s.ctx).CacheContext()
+	return s.WithContext(cctx)
 }
 
 // Context returns the context of the Store.

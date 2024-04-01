@@ -129,10 +129,12 @@ func (k *Keeper) InitGenesis(
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Set the genesis RANDAO mix.
 	st := k.BeaconState(ctx)
-	if err := st.UpdateRandaoMixAtIndex(
-		0, data.RandaoMixes[0],
-	); err != nil {
-		return nil, err
+	for i, mix := range data.RandaoMixes {
+		if err := st.UpdateRandaoMixAtIndex(
+			uint64(i), mix,
+		); err != nil {
+			return nil, err
+		}
 	}
 
 	// Compare this snippet from beacon/keeper/keeper.go:

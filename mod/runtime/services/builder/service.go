@@ -65,6 +65,8 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 }
 
 // RequestBestBlock builds a new beacon block.
+//
+//nolint:funlen // todo:fix.
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	slot primitives.Slot,
@@ -101,11 +103,21 @@ func (s *Service) RequestBestBlock(
 		)
 	}
 
+	// Compute the state root for the block.
+	stateRoot, err := s.computeStateRoot(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf(
+			"failed to compute state root: %w",
+			err,
+		)
+	}
+
 	// Create a new empty block from the current state.
 	blk, err := beacontypes.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
+		stateRoot,
 		s.ActiveForkVersionForSlot(slot),
 		reveal,
 	)

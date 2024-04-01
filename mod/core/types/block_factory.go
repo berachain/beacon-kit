@@ -36,6 +36,7 @@ func NewBeaconBlock(
 	slot primitives.Slot,
 	proposerIndex primitives.ValidatorIndex,
 	parentBlockRoot primitives.Root,
+	stateRoot primitives.Root,
 	forkVersion uint32,
 	reveal primitives.BLSSignature,
 ) (BeaconBlock, error) {
@@ -46,8 +47,7 @@ func NewBeaconBlock(
 			Slot:            slot,
 			ProposerIndex:   proposerIndex,
 			ParentBlockRoot: parentBlockRoot,
-			// TODO: HANDLE STATE ROOT CALCULATION. IN PREPARE PROPOSAL?
-			StateRoot: [32]byte{},
+			StateRoot:       stateRoot,
 			Body: &BeaconBlockBodyDeneb{
 				RandaoReveal: reveal,
 				Graffiti:     [32]byte{},
@@ -65,6 +65,7 @@ func EmptyBeaconBlock(
 	slot primitives.Slot,
 	proposerIndex primitives.ValidatorIndex,
 	parentBlockRoot primitives.Root,
+	stateRoot primitives.Root,
 	version uint32,
 	reveal primitives.BLSSignature,
 ) (BeaconBlock, error) {
@@ -72,6 +73,7 @@ func EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
+		stateRoot,
 		version,
 		reveal,
 	)
