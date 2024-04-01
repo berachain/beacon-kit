@@ -332,7 +332,7 @@ func (sp *StateProcessor) processDeposit(
 
 	fd := forks.NewForkData(
 		version.FromUint32(
-			sp.cfg.ActiveForkVersionByEpoch(epoch),
+			sp.cfg.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
