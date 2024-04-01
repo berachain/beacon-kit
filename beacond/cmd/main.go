@@ -30,8 +30,8 @@ import (
 
 	"cosmossdk.io/log"
 	app "github.com/berachain/beacon-kit/beacond/app"
-	components "github.com/berachain/beacon-kit/beacond/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"github.com/berachain/beacon-kit/mod/node-builder/client"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 )
 
@@ -39,7 +39,7 @@ func main() {
 	rootCmd := nodebuilder.NewRootCmd(
 		app.NewBeaconKitAppWithDefaultBaseAppOptions,
 	)
-	if err := svrcmd.Execute(rootCmd, "", components.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(rootCmd, "", client.DefaultNodeHome); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
 		os.Exit(1)

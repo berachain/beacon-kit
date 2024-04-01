@@ -34,7 +34,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacond/app"
-	cmdconfig "github.com/berachain/beacon-kit/beacond/components"
+	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -65,8 +65,8 @@ func NewRootCmd[T servertypes.Application](
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 			),
 			depinject.Provide(
-				cmdconfig.ProvideClientContext,
-				cmdconfig.ProvideKeyring,
+				modclient.ProvideClientContext,
+				modclient.ProvideKeyring,
 			),
 		),
 		&autoCliOpts,
@@ -93,12 +93,12 @@ func NewRootCmd[T servertypes.Application](
 			}
 
 			if err = tos.VerifyTosAcceptedOrPrompt(
-				app.AppName, cmdconfig.TermsOfServiceURL, clientCtx, cmd,
+				app.AppName, modclient.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
 				return err
 			}
 
-			customClientTemplate, customClientConfig := cmdconfig.InitClientConfig()
+			customClientTemplate, customClientConfig := modclient.InitClientConfig()
 			clientCtx, err = config.CreateClientConfig(
 				clientCtx,
 				customClientTemplate,
@@ -112,8 +112,8 @@ func NewRootCmd[T servertypes.Application](
 				return err
 			}
 
-			customAppTemplate, customAppConfig := cmdconfig.InitAppConfig()
-			customCMTConfig := cmdconfig.InitCometBFTConfig()
+			customAppTemplate, customAppConfig := modclient.InitAppConfig()
+			customCMTConfig := modclient.InitCometBFTConfig()
 
 			return server.InterceptConfigsPreRunHandler(
 				cmd,
@@ -204,7 +204,7 @@ func NewRootCmd[T servertypes.Application](
 var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
 	dir, err := os.MkdirTemp("", "beacond")
 	if err != nil {
-		dir = cmdconfig.DefaultNodeHome
+		dir = modclient.DefaultNodeHome
 	}
 	defer os.RemoveAll(dir)
 
