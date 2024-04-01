@@ -29,7 +29,7 @@ import (
 	"testing"
 )
 
-func TestInitCommand(t *testing.T) {
+func TestInitCommand(_ *testing.T) {
 	// rootCmd := root.NewRootCmd()
 	// rootCmd.SetOut(os.NewFile(0, os.DevNull))
 	// rootCmd.SetArgs([]string{
@@ -49,7 +49,7 @@ func TestInitCommand(t *testing.T) {
 	// }
 }
 
-func TestHomeFlagRegistration(t *testing.T) {
+func TestHomeFlagRegistration(_ *testing.T) {
 	// stdout := os.Stdout
 	// defer func() { os.Stdout = stdout }()
 	// os.Stdout = os.NewFile(0, os.DevNull)
