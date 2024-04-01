@@ -27,7 +27,7 @@ package params
 
 import (
 	flags "github.com/berachain/beacon-kit/config/flags"
-	"github.com/berachain/beacon-kit/io/cli/parser"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 

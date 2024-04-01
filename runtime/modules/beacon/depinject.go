@@ -29,7 +29,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	"github.com/berachain/beacon-kit/io/file"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	modulev1alpha1 "github.com/berachain/beacon-kit/runtime/modules/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"

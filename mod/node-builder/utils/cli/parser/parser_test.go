@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/io/cli/parser"
-	"github.com/berachain/beacon-kit/io/cli/parser/mocks"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

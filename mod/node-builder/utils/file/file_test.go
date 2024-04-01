@@ -31,7 +31,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/berachain/beacon-kit/io/file"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
 	"github.com/cockroachdb/errors"
 )
 

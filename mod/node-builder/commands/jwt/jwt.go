@@ -28,8 +28,8 @@ package jwt
 import (
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/io/file"
-	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )

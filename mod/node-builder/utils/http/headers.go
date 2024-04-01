@@ -28,7 +28,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/berachain/beacon-kit/io/jwt"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/node"
 )
