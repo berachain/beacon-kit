@@ -42,7 +42,7 @@ func (s *BeaconKitE2ESuite) TestForgeScriptExecution() {
 	)
 
 	// Change directory to /contracts/ before executing the command
-	cmdStr := "cd ../contracts && " +
+	cmdStr := "cd ../../contracts && " +
 		"forge build && " +
 		"forge script ./script/DeployAndCallERC20.s.sol " +
 		"--broadcast --rpc-url=" + url + " " +
