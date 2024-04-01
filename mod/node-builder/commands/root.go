@@ -29,8 +29,8 @@ import (
 	"context"
 
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	genesiscommands "github.com/berachain/beacon-kit/beacond/commands/genesis"
 	beaconconfig "github.com/berachain/beacon-kit/config"
+	genesiscommands "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"

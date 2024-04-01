@@ -28,17 +28,15 @@ package root
 
 import (
 	"context"
-	"io"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacond/app"
-	cmdlib "github.com/berachain/beacon-kit/beacond/commands"
-	"github.com/berachain/beacon-kit/beacond/commands/utils/tos"
 	cmdconfig "github.com/berachain/beacon-kit/beacond/components"
-	dbm "github.com/cosmos/cosmos-db"
+	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
+	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -51,7 +49,9 @@ import (
 
 // NewRootCmd creates a new root command for simd. It is called once in the main
 // function.
-func NewRootCmd() *cobra.Command {
+func NewRootCmd[T servertypes.Application](
+	appCreator servertypes.AppCreator[T],
+) *cobra.Command {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
@@ -128,12 +128,15 @@ func NewRootCmd() *cobra.Command {
 	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
 		mm,
-		newApp,
+		appCreator,
 		func(
-			_app servertypes.Application,
+			_app T,
 			_ *server.Context, clientCtx client.Context, ctx context.Context, _ *errgroup.Group,
 		) error {
-			return _app.(*app.BeaconApp).PostStartup(ctx, clientCtx)
+			return interface{}(_app).(*app.BeaconApp).PostStartup(
+				ctx,
+				clientCtx,
+			)
 		},
 	)
 
@@ -142,22 +145,6 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	return rootCmd
-}
-
-// newApp creates the application.
-func newApp(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) servertypes.Application {
-	baseappOptions := server.DefaultBaseappOptions(appOpts)
-
-	return app.NewBeaconKitApp(
-		logger, db, traceStore, true,
-		appOpts,
-		baseappOptions...,
-	)
 }
 
 // // appExport creates a new BeaconApp (optionally at a given height) and

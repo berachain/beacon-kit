@@ -29,9 +29,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	beaconprompt "github.com/berachain/beacon-kit/beacond/commands/utils/prompt"
 	"github.com/berachain/beacon-kit/config/flags"
 	"github.com/berachain/beacon-kit/io/file"
+	beaconprompt "github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/logrusorgru/aurora"
