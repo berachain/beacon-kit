@@ -43,7 +43,7 @@ echo "Generating API module"
 (cd proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
 
 # cp -r api cosmos
-cp -r api/runtime/modules/beacon/* runtime/modules/beacon/api
+cp -r api/beacond/x/beacon/* beacond/x/beacon/api
 rm -rf api
 # rm -rf cosmos/api/ethereum
 # rm -rf cosmos/api/types
