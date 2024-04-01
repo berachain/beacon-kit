@@ -316,6 +316,8 @@ func (sp *StateProcessor) processDeposit(
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return
 		}
+		// Exiting early because we only check signature on creation
+		return
 	}
 	// If the validator does not exist, we add the validator.
 	var epoch primitives.Epoch
