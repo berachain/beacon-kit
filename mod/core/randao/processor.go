@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	crypto "github.com/berachain/beacon-kit/mod/crypto"
 	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/mod/forks"
@@ -61,6 +62,57 @@ func NewProcessor(
 	return p
 }
 
+// ProcessRandao processes the randao reveal.
+// process_randao in the Ethereum 2.0 specification.
+func (p *Processor) ProcessRandao(
+	st state.BeaconState,
+	blk beacontypes.BeaconBlock,
+) error {
+	// proposer := blk.
+	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the proposer index is valid.
+	proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
+	if err != nil {
+		return err
+	}
+
+	root, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return err
+	}
+
+	signingRoot, err := p.computeSigningRoot(epoch, root)
+	if err != nil {
+		return err
+	}
+
+	if !bls12381.VerifySignature(
+		proposer.Pubkey,
+		signingRoot[:],
+		blk.GetBody().GetRandaoReveal(),
+	) {
+		return ErrInvalidSignature
+	}
+
+	prevMix, err := st.GetRandaoMixAtIndex(
+		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
+	)
+	if err != nil {
+		return err
+	}
+
+	mix := p.buildMix(prevMix, blk.GetBody().GetRandaoReveal())
+	p.logger.Info("randao mix updated 🎲", "new_mix", mix)
+	return st.UpdateRandaoMixAtIndex(
+		uint64(epoch)%p.cfg.Beacon.EpochsPerHistoricalVector,
+		mix,
+	)
+}
+
 // BuildReveal creates a reveal for the proposer.
 // def get_epoch_signature(state: BeaconState, block: BeaconBlock, privkey: int)
 // -> BLSSignature:
@@ -79,72 +131,20 @@ func (p *Processor) BuildReveal(
 		return primitives.BLSSignature{}, err
 	}
 
-	slot, err := st.GetSlot()
+	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
 	if err != nil {
 		return primitives.BLSSignature{}, err
 	}
 
 	return p.buildReveal(
 		genesisValidatorsRoot,
-		p.cfg.Beacon.SlotToEpoch(slot),
+		epoch,
 	)
 }
 
-// MixinNewReveal mixes in a new reveal.
-func (p *Processor) MixinNewReveal(
-	st state.BeaconState,
-	reveal primitives.BLSSignature,
-) error {
-	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
-	if err != nil {
-		return err
-	}
-
-	// Get last slots randao mix.
-	mix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector)
-	if err != nil {
-		return fmt.Errorf("failed to get randao mix: %w", err)
-	}
-
-	// Mix in the reveal with the previous slots and update state.
-	newMix := p.buildMix(mix, reveal)
-	if err = st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%p.cfg.Beacon.EpochsPerHistoricalVector,
-		newMix,
-	); err != nil {
-		return fmt.Errorf("failed to set new randao mix: %w", err)
-	}
-	p.logger.Info("randao mix updated 🎲", "new_mix", newMix)
-	return nil
-}
-
-// VerifyReveal verifies the reveal of the proposer.
-func (p *Processor) VerifyReveal(
-	st state.BeaconState,
-	proposerPubkey primitives.BLSPubkey,
-	reveal primitives.BLSSignature,
-) error {
-	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
-	if err != nil {
-		return err
-	}
-
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-	return p.verifyReveal(
-		proposerPubkey,
-		genesisValidatorsRoot,
-		p.cfg.Beacon.SlotToEpoch(slot),
-		reveal,
-	)
-}
-
-// MixesReset resets the randao mixes.
+// ProcessRandaoMixesReset resets the randao mixes.
 // process_randao_mixes_reset in the Ethereum 2.0 specification.
-func (p *Processor) MixesReset(st state.BeaconState) error {
+func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
 	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
 	if err != nil {
 		return err
@@ -159,31 +159,6 @@ func (p *Processor) MixesReset(st state.BeaconState) error {
 		uint64(epoch+1)%p.cfg.Beacon.EpochsPerHistoricalVector,
 		mix,
 	)
-}
-
-// verifyReveal verifies the reveal of the proposer.
-func (p *Processor) verifyReveal(
-	proposerPubkey primitives.BLSPubkey,
-	genesisValidatorsRoot primitives.Root,
-	epoch primitives.Epoch,
-	reveal primitives.BLSSignature,
-) error {
-	signingRoot, err := p.computeSigningRoot(epoch, genesisValidatorsRoot)
-	if err != nil {
-		return err
-	}
-	if ok := bls12381.VerifySignature(
-		proposerPubkey,
-		signingRoot[:],
-		reveal,
-	); !ok {
-		return ErrInvalidSignature
-	}
-
-	p.logger.Info("randao reveal successfully verified 🐸",
-		"reveal", reveal,
-	)
-	return nil
 }
 
 // buildReveal creates a reveal for the proposer.
