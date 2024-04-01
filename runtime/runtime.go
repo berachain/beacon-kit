@@ -77,22 +77,14 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
-//
-
 func NewDefaultBeaconKitRuntime(
-	appOpts AppOptions,
+	cfg *config.Config,
 	signer crypto.Signer[primitives.BLSSignature],
 	logger log.Logger,
 	bsb runtime.BeaconStorageBackend,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
-
-	// Read the configuration from the application options.
-	cfg, err := config.ReadConfigFromAppOpts(appOpts)
-	if err != nil {
-		return nil, err
-	}
 
 	// Create the base service, we will the create shallow copies for each
 	// service.
@@ -172,6 +164,7 @@ func NewDefaultBeaconKitRuntime(
 				&cfg.Beacon,
 				blobsProcessor,
 				randaoProcessor,
+				logger,
 			)),
 		blockchain.WithSyncService(syncService),
 	)

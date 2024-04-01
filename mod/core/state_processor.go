@@ -28,6 +28,7 @@ package core
 import (
 	"fmt"
 
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
@@ -38,9 +39,10 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
-	cfg *params.BeaconChainConfig
-	bp  BlobsProcessor
-	rp  RandaoProcessor
+	cfg    *params.BeaconChainConfig
+	bp     BlobsProcessor
+	rp     RandaoProcessor
+	logger log.Logger
 }
 
 // NewStateProcessor creates a new state processor.
@@ -48,11 +50,13 @@ func NewStateProcessor(
 	cfg *params.BeaconChainConfig,
 	bp BlobsProcessor,
 	rp RandaoProcessor,
+	logger log.Logger,
 ) *StateProcessor {
 	return &StateProcessor{
-		cfg: cfg,
-		bp:  bp,
-		rp:  rp,
+		cfg:    cfg,
+		bp:     bp,
+		rp:     rp,
+		logger: logger.With("module", "state-processor"),
 	}
 }
 
@@ -146,6 +150,11 @@ func (sp *StateProcessor) ProcessSlot(
 		if err = sp.processEpoch(st); err != nil {
 			return err
 		}
+		sp.logger.Info(
+			"processed epoch transition ⏰ ",
+			"old", uint64(slot)/sp.cfg.SlotsPerEpoch,
+			"new", uint64(slot+1)/sp.cfg.SlotsPerEpoch,
+		)
 	}
 
 	return st.SetSlot(slot + 1)
