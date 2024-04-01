@@ -131,6 +131,7 @@ func (k *Keeper) InitGenesis(
 	st := k.BeaconState(ctx)
 	for i, mix := range data.RandaoMixes {
 		if err := st.UpdateRandaoMixAtIndex(
+			//#nosec:G701 // will not cause a problem.
 			uint64(i), mix,
 		); err != nil {
 			return nil, err
