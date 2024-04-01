@@ -30,9 +30,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/builder/cache"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/stretchr/testify/require"
 )
 
