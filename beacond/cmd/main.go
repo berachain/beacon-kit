@@ -36,11 +36,18 @@ import (
 )
 
 func main() {
+	// Build the root command.
+	// TODO: Fully implement NodeBuilder.
 	rootCmd := nodebuilder.NewRootCmd(
 		"beacond",
 		"beacond is a beacon node for any beacon-kit chain",
-		app.NewBeaconKitAppWithDefaultBaseAppOptions)
-	if err := svrcmd.Execute(rootCmd, "", client.DefaultNodeHome); err != nil {
+		app.NewBeaconKitAppWithDefaultBaseAppOptions,
+	)
+
+	// Start the root command.
+	if err := svrcmd.Execute(
+		rootCmd, "", client.DefaultNodeHome,
+	); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
 		os.Exit(1)
