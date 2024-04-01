@@ -41,6 +41,7 @@ func main() {
 	rootCmd := nodebuilder.NewRootCmd(
 		"beacond",
 		"beacond is a beacon node for any beacon-kit chain",
+		app.Config(),
 		app.NewBeaconKitAppWithDefaultBaseAppOptions,
 	)
 

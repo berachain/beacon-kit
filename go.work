@@ -2,6 +2,7 @@ go 1.22.1
 
 use (
 	.
+	./beacond
 	./mod/primitives
 	./mod/storage
 	./testing

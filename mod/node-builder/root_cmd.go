@@ -33,7 +33,6 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/beacond/app"
 	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
@@ -52,6 +51,7 @@ import (
 // function.
 func NewRootCmd[T servertypes.Application](
 	appName, appDescription string,
+	appConfig depinject.Config,
 	appCreator servertypes.AppCreator[T],
 ) *cobra.Command {
 	var (
@@ -61,7 +61,7 @@ func NewRootCmd[T servertypes.Application](
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
-			app.Config(),
+			appConfig,
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
@@ -95,7 +95,7 @@ func NewRootCmd[T servertypes.Application](
 			}
 
 			if err = tos.VerifyTosAcceptedOrPrompt(
-				app.AppName, modclient.TermsOfServiceURL, clientCtx, cmd,
+				appName, modclient.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
 				return err
 			}
@@ -139,7 +139,7 @@ func NewRootCmd[T servertypes.Application](
 			ctx context.Context,
 			_ *errgroup.Group,
 		) error {
-			return interface{}(_app).(*app.BeaconApp).PostStartup(
+			return interface{}(_app).(BeaconApp).PostStartup(
 				ctx,
 				clientCtx,
 			)
@@ -151,6 +151,13 @@ func NewRootCmd[T servertypes.Application](
 	}
 
 	return rootCmd
+}
+
+type BeaconApp interface {
+	PostStartup(
+		ctx context.Context,
+		clientCtx client.Context,
+	) error
 }
 
 // // appExport creates a new BeaconApp (optionally at a given height) and

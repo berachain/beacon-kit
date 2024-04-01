@@ -21,13 +21,10 @@ replace (
 )
 
 require (
-	cosmossdk.io/api v0.7.3
 	cosmossdk.io/client/v2 v2.0.0-20240221095859-541df89f2bb4
-	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20231114100755-569e3ff6a0d7
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
 	cosmossdk.io/log v1.3.1
-	cosmossdk.io/store v1.1.0
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/bazelbuild/buildtools v0.0.0-20240207142252-03bf520394af
@@ -36,8 +33,6 @@ require (
 	github.com/bufbuild/buf v1.30.0
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.6
-	github.com/cosmos/cosmos-db v1.0.2
-	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.5-0.20240401125356-8c5576b1ac89
@@ -61,14 +56,19 @@ require (
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f
 	golang.org/x/sync v0.6.0
-	google.golang.org/protobuf v1.33.0
 )
 
 require (
+	cosmossdk.io/api v0.7.3 // indirect
+	cosmossdk.io/collections v0.4.0 // indirect
+	cosmossdk.io/store v1.1.0 // indirect
 	github.com/cometbft/cometbft-db v0.11.0 // indirect
+	github.com/cosmos/cosmos-db v1.0.2 // indirect
+	github.com/cosmos/cosmos-proto v1.0.0-beta.4 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 )
 
 require (
