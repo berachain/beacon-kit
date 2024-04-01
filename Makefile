@@ -292,7 +292,7 @@ slither:
 
 protoImageName    := "ghcr.io/cosmos/proto-builder"
 protoImageVersion := "0.14.0"
-modulesProtoDir := "proto"
+modulesProtoDir := "beacond/x/beacon/proto"
 
 proto:
 	@$(MAKE) buf-lint-fix buf-lint proto-build

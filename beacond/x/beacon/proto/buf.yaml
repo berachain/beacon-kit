@@ -25,7 +25,7 @@
 
 # This module represents buf.build/berachain/beacon-kit
 version: v1
-name: buf.build/berachain/beacon-kit
+name: buf.build/berachain/beacon-kit-x-beacon
 deps:
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
@@ -48,8 +48,4 @@ lint:
     - PACKAGE_VERSION_SUFFIX
     - RPC_REQUEST_STANDARD_NAME
     - ENUM_NO_ALLOW_ALIAS
-  ignore:
-    - beacon/module/v1alpha1/module.proto
-    - types/engine/v1/execution_engine.proto
-    - ethereum
-  
+    - PACKAGE_DIRECTORY_MATCH
