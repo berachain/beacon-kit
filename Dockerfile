@@ -46,8 +46,18 @@ RUN set -eux; \
 # Set the working directory
 WORKDIR /workdir
 
+
+# Set private repo access
+ARG GIT_TOKEN
+RUN go env -w GOPRIVATE=*
+RUN echo "machine github.com login $GIT_TOKEN" > ~/.netrc
+
+
 # Copy the go.mod and go.sum files for each module
 COPY ./go.mod ./go.sum ./
+COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
+RUN go work init
+RUN go work use ./mod/primitives
 
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \

@@ -34,6 +34,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  GIT_TOKEN: ${{ secrets.DEV_PAT }}
 
 jobs:
   build-and-push:
