@@ -15,6 +15,7 @@ replace (
 
 	// temp
 	github.com/berachain/beacon-kit/mod/primitives => ./mod/primitives
+	github.com/berachain/beacon-kit/mod/storage => ./mod/storage
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240325184954-fae9fbd80a0a
 )
@@ -31,6 +32,7 @@ require (
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/bazelbuild/buildtools v0.0.0-20240207142252-03bf520394af
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240401211000-b38ed3aad496
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
 	github.com/bufbuild/buf v1.30.0
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.6
@@ -38,7 +40,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.13.5-0.20240328163540-a3829178af6c
+	github.com/ethereum/go-ethereum v1.13.5-0.20240401125356-8c5576b1ac89
 	github.com/ferranbt/fastssz v0.1.4-0.20240325182853-3fad96355b01
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.57.2
@@ -52,7 +54,6 @@ require (
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/segmentio/golines v0.12.2
 	github.com/sourcegraph/conc v0.3.0
-	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
@@ -65,6 +66,7 @@ require (
 
 require (
 	github.com/cometbft/cometbft-db v0.11.0 // indirect
+	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 )

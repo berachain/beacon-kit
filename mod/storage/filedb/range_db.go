@@ -27,12 +27,12 @@ package file
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strconv"
 
 	db "github.com/berachain/beacon-kit/mod/storage"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // two is a constant for the number 2.
@@ -97,7 +97,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 
 // prefix prefixes the given key with the index and a slash.
 func (db *RangeDB) prefix(index uint64, key []byte) []byte {
-	return []byte(fmt.Sprintf("%d/%s", index, hexutil.Encode(key)))
+	return []byte(fmt.Sprintf("%d/%s", index, Encode(key)))
 }
 
 // ExtractIndex extracts the index from a prefixed key.
@@ -115,4 +115,12 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 
 	//#nosec:g
 	return index, nil
+}
+
+// Encode encodes b as a hex string with 0x prefix.
+func Encode(b []byte) string {
+	enc := make([]byte, len(b)*2+2)
+	copy(enc, "0x")
+	hex.Encode(enc[2:], b)
+	return string(enc)
 }

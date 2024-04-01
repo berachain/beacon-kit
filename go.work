@@ -3,5 +3,6 @@ go 1.22.1
 use (
 	.
 	./mod/primitives
+	./mod/storage
 	./testing
 )

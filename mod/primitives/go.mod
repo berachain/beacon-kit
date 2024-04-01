@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit/mod/primitives
 go 1.22.1
 
 require (
-	github.com/ethereum/go-ethereum v1.13.5-0.20240328163540-a3829178af6c
+	github.com/ethereum/go-ethereum v1.13.5-0.20240401125356-8c5576b1ac89
 	github.com/ferranbt/fastssz v0.1.4-0.20240325182853-3fad96355b01
 	github.com/holiman/uint256 v1.2.4
 	github.com/minio/sha256-simd v1.0.1
