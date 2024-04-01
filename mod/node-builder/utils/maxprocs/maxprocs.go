@@ -37,8 +37,7 @@ import (
 //
 //nolint:gochecknoinits // better than setting elsewhere tbh.
 func init() {
-	_, err := maxprocs.Set()
-	if err != nil {
+	if _, err := maxprocs.Set(); err != nil {
 		panic(err)
 	}
 }

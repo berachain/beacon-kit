@@ -23,7 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:revive // blank import to register uber maxprocs.
 package runtime
 
 import (
@@ -40,7 +39,6 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	_ "github.com/berachain/beacon-kit/mod/runtime/maxprocs"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
