@@ -32,21 +32,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/builder"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/runtime/service"
 )
-
-// PayloadBuilder represents a service that is responsible for
-// building eth1 blocks.
-type PayloadBuilder interface {
-	GetBestPayload(
-		ctx context.Context,
-		slot primitives.Slot,
-		parentBlockRoot primitives.Root,
-		parentEth1Hash primitives.ExecutionHash,
-	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
-}
 
 // Service is responsible for building beacon blocks.
 type Service struct {

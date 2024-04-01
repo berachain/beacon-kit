@@ -28,8 +28,8 @@ package cache
 import (
 	"sync"
 
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 )
 
 // historicalPayloadIDCacheSize defines the maximum number of slots to retain
@@ -45,8 +45,8 @@ type PayloadIDCache struct {
 	mu sync.RWMutex
 
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
-	//nolint:lll
-	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]enginetypes.PayloadID
+
+	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]engine.PayloadID
 }
 
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
@@ -55,7 +55,7 @@ func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
 		slotToStateRootToPayloadID: make(
-			map[primitives.Slot]map[[32]byte]enginetypes.PayloadID,
+			map[primitives.Slot]map[[32]byte]engine.PayloadID,
 		),
 	}
 }
@@ -64,16 +64,16 @@ func NewPayloadIDCache() *PayloadIDCache {
 // It returns the found payload ID and a boolean indicating whether the lookup
 // was successful.
 func (p *PayloadIDCache) Get(slot primitives.Slot, stateRoot [32]byte,
-) (enginetypes.PayloadID, bool) {
+) (engine.PayloadID, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	innerMap, ok := p.slotToStateRootToPayloadID[slot]
 	if !ok {
-		return enginetypes.PayloadID{}, false
+		return engine.PayloadID{}, false
 	}
 	pid, ok := innerMap[stateRoot]
 	if !ok {
-		return enginetypes.PayloadID{}, false
+		return engine.PayloadID{}, false
 	}
 	return pid, true
 }
@@ -82,7 +82,7 @@ func (p *PayloadIDCache) Get(slot primitives.Slot, stateRoot [32]byte,
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
-	slot primitives.Slot, stateRoot [32]byte, pid enginetypes.PayloadID,
+	slot primitives.Slot, stateRoot [32]byte, pid engine.PayloadID,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -95,7 +95,7 @@ func (p *PayloadIDCache) Set(
 	// Update the cache with the new payload ID.
 	innerMap, exists := p.slotToStateRootToPayloadID[slot]
 	if !exists {
-		innerMap = make(map[[32]byte]enginetypes.PayloadID)
+		innerMap = make(map[[32]byte]engine.PayloadID)
 		p.slotToStateRootToPayloadID[slot] = innerMap
 	}
 	innerMap[stateRoot] = pid

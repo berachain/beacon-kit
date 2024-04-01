@@ -28,6 +28,7 @@ package execution
 import (
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -59,7 +60,7 @@ func BuildNewPayloadRequest(
 // ForkchoiceUpdateRequest.
 type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
-	State *types.ForkchoiceState
+	State *engine.ForkchoiceState
 	// PayloadAttributes is the payload attributer.
 	PayloadAttributes types.PayloadAttributer
 	// ForkVersion is the fork version that we
@@ -69,7 +70,7 @@ type ForkchoiceUpdateRequest struct {
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
 func BuildForkchoiceUpdateRequest(
-	state *types.ForkchoiceState,
+	state *engine.ForkchoiceState,
 	payloadAttributes types.PayloadAttributer,
 	forkVersion uint32,
 ) *ForkchoiceUpdateRequest {
@@ -83,7 +84,7 @@ func BuildForkchoiceUpdateRequest(
 // GetPayloadRequest represents a request to get a payload.
 type GetPayloadRequest struct {
 	// PayloadID is the payload ID.
-	PayloadID types.PayloadID
+	PayloadID engine.PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
 	ForkVersion uint32
@@ -91,7 +92,7 @@ type GetPayloadRequest struct {
 
 // BuildGetPayloadRequest builds a get payload request.
 func BuildGetPayloadRequest(
-	payloadID types.PayloadID,
+	payloadID engine.PayloadID,
 	forkVersion uint32,
 ) *GetPayloadRequest {
 	return &GetPayloadRequest{

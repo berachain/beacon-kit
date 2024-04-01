@@ -32,6 +32,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 	"github.com/cockroachdb/errors"
 )
 
@@ -73,7 +74,7 @@ func (s *EngineClient) NewPayload(
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context, payload enginetypes.ExecutionPayload,
 	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
-) (*enginetypes.PayloadStatus, error) {
+) (*engine.PayloadStatus, error) {
 	switch payloadPb := payload.(type) {
 	case *enginetypes.ExecutableDataDeneb:
 		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
@@ -85,10 +86,10 @@ func (s *EngineClient) callNewPayloadRPC(
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
-	state *enginetypes.ForkchoiceState,
+	state *engine.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion uint32,
-) (*enginetypes.PayloadID, *primitives.ExecutionHash, error) {
+) (*engine.PayloadID, *primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -110,10 +111,10 @@ func (s *EngineClient) ForkchoiceUpdated(
 // JSON-RPC.
 func (s *EngineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context,
-	state *enginetypes.ForkchoiceState,
+	state *engine.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
 	forkVersion uint32,
-) (*enginetypes.ForkchoiceResponse, error) {
+) (*engine.ForkchoiceResponse, error) {
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
@@ -125,13 +126,13 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
-	ctx context.Context, payloadID enginetypes.PayloadID, forkVersion uint32,
-) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error) {
+	ctx context.Context, payloadID engine.PayloadID, forkVersion uint32,
+) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	var fn func(
-		context.Context, enginetypes.PayloadID,
+		context.Context, engine.PayloadID,
 	) (enginetypes.ExecutionPayloadEnvelope, error)
 	switch forkVersion {
 	case version.Deneb:

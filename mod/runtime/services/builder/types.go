@@ -26,8 +26,12 @@
 package builder
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/core/state"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 )
 
@@ -36,6 +40,17 @@ type RandaoProcessor interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
 	BuildReveal(st state.BeaconState) (primitives.BLSSignature, error)
+}
+
+// PayloadBuilder represents a service that is responsible for
+// building eth1 blocks.
+type PayloadBuilder interface {
+	GetBestPayload(
+		ctx context.Context,
+		slot primitives.Slot,
+		parentBlockRoot primitives.Root,
+		parentEth1Hash primitives.ExecutionHash,
+	) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error)
 }
 
 // Signer is an interface for objects that can sign messages.

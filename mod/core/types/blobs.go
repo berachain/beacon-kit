@@ -27,7 +27,7 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -35,7 +35,7 @@ import (
 // beacon block.
 func BuildBlobSidecar(
 	blk BeaconBlock,
-	blobs *enginetypes.BlobsBundleV1,
+	blobs *engine.BlobsBundleV1,
 ) (*datypes.BlobSidecars, error) {
 	numBlobs := uint64(len(blobs.Blobs))
 	sidecars := make([]*datypes.BlobSidecar, numBlobs)

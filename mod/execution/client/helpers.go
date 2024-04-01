@@ -26,21 +26,21 @@
 package client
 
 import (
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 )
 
 // processPayloadStatusResult processes the payload status result and
 // returns the latest valid hash or an error.
 func processPayloadStatusResult(
-	result *enginetypes.PayloadStatus,
+	result *engine.PayloadStatus,
 ) (*primitives.ExecutionHash, error) {
 	switch result.Status {
-	case enginetypes.PayloadStatusAccepted, enginetypes.PayloadStatusSyncing:
+	case engine.PayloadStatusAccepted, engine.PayloadStatusSyncing:
 		return nil, ErrAcceptedSyncingPayloadStatus
-	case enginetypes.PayloadStatusInvalid:
+	case engine.PayloadStatusInvalid:
 		return result.LatestValidHash, ErrInvalidPayloadStatus
-	case enginetypes.PayloadStatusValid:
+	case engine.PayloadStatusValid:
 		return result.LatestValidHash, nil
 	default:
 		return nil, ErrUnknownPayloadStatus

@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 )
@@ -39,17 +40,17 @@ import (
 type ExecutionPayloadEnvelope interface {
 	GetExecutionPayload() ExecutionPayload
 	GetValue() primitives.Wei
-	GetBlobsBundle() *BlobsBundleV1
+	GetBlobsBundle() *engine.BlobsBundleV1
 	ShouldOverrideBuilder() bool
 }
 
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -field-override executionPayloadEnvelopeMarshaling -out payload_env.json.go
 //nolint:lll
 type ExecutionPayloadEnvelopeDeneb struct {
-	ExecutionPayload *ExecutableDataDeneb `json:"executionPayload"      gencodec:"required"`
-	BlockValue       *big.Int             `json:"blockValue"            gencodec:"required"`
-	BlobsBundle      *BlobsBundleV1       `json:"blobsBundle"`
-	Override         bool                 `json:"shouldOverrideBuilder"`
+	ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
+	BlockValue       *big.Int              `json:"blockValue"            gencodec:"required"`
+	BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
+	Override         bool                  `json:"shouldOverrideBuilder"`
 }
 
 func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
@@ -64,7 +65,7 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
 	return primitives.Wei{Int: val}
 }
 
-func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *BlobsBundleV1 {
+func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *engine.BlobsBundleV1 {
 	return e.BlobsBundle
 }
 

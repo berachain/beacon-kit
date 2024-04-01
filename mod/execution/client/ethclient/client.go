@@ -30,6 +30,7 @@ import (
 
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -54,8 +55,8 @@ func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
 func (s *Eth1Client) NewPayloadV3(
 	ctx context.Context, payload *enginetypes.ExecutableDataDeneb,
 	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
-) (*enginetypes.PayloadStatus, error) {
-	result := &enginetypes.PayloadStatus{}
+) (*engine.PayloadStatus, error) {
+	result := &engine.PayloadStatus{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
 		(*primitives.ExecutionHash)(parentBlockRoot),
@@ -68,9 +69,9 @@ func (s *Eth1Client) NewPayloadV3(
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
-	state *enginetypes.ForkchoiceState,
+	state *engine.ForkchoiceState,
 	attrs enginetypes.PayloadAttributer,
-) (*enginetypes.ForkchoiceResponse, error) {
+) (*engine.ForkchoiceResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
@@ -79,10 +80,10 @@ func (s *Eth1Client) ForkchoiceUpdatedV3(
 func (s *Eth1Client) forkchoiceUpdateCall(
 	ctx context.Context,
 	method string,
-	state *enginetypes.ForkchoiceState,
+	state *engine.ForkchoiceState,
 	attrs any,
-) (*enginetypes.ForkchoiceResponse, error) {
-	result := &enginetypes.ForkchoiceResponse{}
+) (*engine.ForkchoiceResponse, error) {
+	result := &engine.ForkchoiceResponse{}
 
 	if err := s.Client.Client().CallContext(
 		ctx, result, method, state, attrs,
@@ -90,7 +91,7 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 		return nil, err
 	}
 
-	if (result.PayloadStatus == enginetypes.PayloadStatus{}) {
+	if (result.PayloadStatus == engine.PayloadStatus{}) {
 		return nil, ErrNilResponse
 	}
 
@@ -99,7 +100,7 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV3(
-	ctx context.Context, payloadID enginetypes.PayloadID,
+	ctx context.Context, payloadID engine.PayloadID,
 ) (enginetypes.ExecutionPayloadEnvelope, error) {
 	result := &enginetypes.ExecutionPayloadEnvelopeDeneb{}
 	if err := s.Client.Client().CallContext(

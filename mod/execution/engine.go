@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/ethereum/go-ethereum/beacon/engine"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -78,7 +79,7 @@ func (ee *Engine) GetLogs(
 func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *GetPayloadRequest,
-) (types.ExecutionPayload, *types.BlobsBundleV1, bool, error) {
+) (types.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -89,7 +90,7 @@ func (ee *Engine) GetPayload(
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ForkchoiceUpdateRequest,
-) (*types.PayloadID, *primitives.ExecutionHash, error) {
+) (*engine.PayloadID, *primitives.ExecutionHash, error) {
 	ee.logger.Info("notifying forkchoice update",
 		"head_eth1_hash", req.State.HeadBlockHash,
 		"safe_eth1_hash", req.State.SafeBlockHash,

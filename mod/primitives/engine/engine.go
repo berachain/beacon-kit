@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 //nolint:gochecknoglobals // alias.
-package types
+package engine
 
 import (
 	"github.com/ethereum/go-ethereum/beacon/engine"
