@@ -27,8 +27,8 @@ package localbuilder
 
 import (
 	"github.com/berachain/beacon-kit/mod/builder"
+	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
-	"github.com/berachain/beacon-kit/runtime/service"
 )
 
 // WithBaseService returns an Option that sets the BaseService for the Service.

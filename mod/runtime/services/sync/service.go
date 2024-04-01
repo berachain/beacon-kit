@@ -31,7 +31,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/execution/client"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/cockroachdb/errors"
 	cosmosclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/sourcegraph/conc"

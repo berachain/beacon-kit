@@ -33,8 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	modruntime "github.com/berachain/beacon-kit/mod/runtime"
-	"github.com/berachain/beacon-kit/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime"
 )
 
 // RuntimeInjectInput is the input for the dep inject framework.
@@ -44,7 +43,7 @@ type RuntimeInjectInput struct {
 	BeaconCfg *config.Config
 	Logger    log.Logger
 	Signer    crypto.Signer[primitives.BLSSignature]
-	Bsp       modruntime.BeaconStorageBackend
+	Bsp       runtime.BeaconStorageBackend
 }
 
 // RuntimeInjectOutput is the output for the dep inject framework.

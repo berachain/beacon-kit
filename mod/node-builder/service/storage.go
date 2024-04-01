@@ -23,49 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package service
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/core/state"
 )
 
-// Service represents the staking service.
-type Service struct {
-	// BaseService is the base service.
-	service.BaseService
-
-	// ee represents the execution engine.
-	ee *execution.Engine
-
-	// abi represents the configured deposit contract's
-	// abi.
-	abi *WrappedABI
-}
-
-// ProcessLogsInETH1Block gets logs in the Eth1 block
-// received from the execution client and processes them to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service) ProcessLogsInETH1Block(
-	ctx context.Context,
-	blockHash primitives.ExecutionHash,
-) error {
-	// Gather all the logs corresponding to
-	// the addresses of interest from this block.
-	logsInBlock, err := s.ee.GetLogs(
-		ctx,
-		blockHash,
-		[]primitives.ExecutionAddress{
-			s.BeaconCfg().DepositContractAddress,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	return s.ProcessBlockEvents(ctx, logsInBlock)
+// BeaconStorageBackend is an interface that provides the
+// beacon state to the runtime.
+type BeaconStorageBackend interface {
+	AvailabilityStore(ctx context.Context) state.AvailabilityStore
+	BeaconState(ctx context.Context) state.BeaconState
 }

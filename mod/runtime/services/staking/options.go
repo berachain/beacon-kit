@@ -27,7 +27,7 @@ package staking
 
 import (
 	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 

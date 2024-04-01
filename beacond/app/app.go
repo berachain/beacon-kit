@@ -35,7 +35,7 @@ import (
 	beaconkeeper "github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/config"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
-	beaconkitruntime "github.com/berachain/beacon-kit/runtime"
+	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"

@@ -27,7 +27,7 @@ package builder
 
 import (
 	"github.com/berachain/beacon-kit/mod/builder"
-	"github.com/berachain/beacon-kit/runtime/service"
+	"github.com/berachain/beacon-kit/mod/node-builder/service"
 )
 
 // WithBaseService sets the base service.
