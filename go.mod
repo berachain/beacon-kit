@@ -53,7 +53,6 @@ require (
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
 	github.com/vektra/mockery/v2 v2.42.1
 	go.uber.org/automaxprocs v1.5.3
@@ -62,7 +61,10 @@ require (
 	google.golang.org/protobuf v1.33.0
 )
 
-require github.com/cometbft/cometbft-db v0.11.0 // indirect
+require (
+	github.com/cometbft/cometbft-db v0.11.0 // indirect
+	github.com/spf13/viper v1.18.2 // indirect
+)
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
