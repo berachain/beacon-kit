@@ -34,7 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	"github.com/berachain/beacon-kit/mod/primitives/engine"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
