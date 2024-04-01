@@ -30,7 +30,7 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/runtime/modules/beacon/keeper"
+	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 

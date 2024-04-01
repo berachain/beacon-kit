@@ -30,11 +30,11 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/beacond/store/beacon/collections"
+	"github.com/berachain/beacon-kit/beacond/store/beacon/collections/encoding"
+	"github.com/berachain/beacon-kit/beacond/store/beacon/index"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/store/beacon/collections"
-	"github.com/berachain/beacon-kit/store/beacon/collections/encoding"
-	"github.com/berachain/beacon-kit/store/beacon/index"
 )
 
 // Store is a wrapper around an sdk.Context

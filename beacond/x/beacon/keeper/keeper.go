@@ -30,12 +30,12 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
-	beaconstore "github.com/berachain/beacon-kit/store/beacon"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	"github.com/ethereum/go-ethereum/common"
 )
