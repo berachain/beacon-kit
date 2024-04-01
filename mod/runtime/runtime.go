@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
+	stakingabi "github.com/berachain/beacon-kit/mod/abi"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"

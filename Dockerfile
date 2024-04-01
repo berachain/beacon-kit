@@ -54,10 +54,9 @@ RUN echo "machine github.com login $GIT_TOKEN" > ~/.netrc
 
 
 # Copy the go.mod and go.sum files for each module
-COPY ./go.mod ./go.sum ./
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
-COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
-COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
+COPY ./mod/go.mod ./mod/go.sum ./mod/
+
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \

@@ -28,7 +28,7 @@ package staking
 import (
 	"context"
 
-	stakingabi "github.com/berachain/beacon-kit/contracts/abi"
+	stakingabi "github.com/berachain/beacon-kit/mod/abi"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
