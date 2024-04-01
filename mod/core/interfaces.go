@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BlobsProcessor is the interface for the blobs processor.
@@ -43,9 +42,6 @@ type BlobsProcessor interface {
 
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (primitives.BLSSignature, error)
 	ProcessRandao(
 		st state.BeaconState,
 		blk types.BeaconBlock,
