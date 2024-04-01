@@ -45,11 +45,10 @@ type BeaconKitConfig[T any] interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:      DefaultABCIConfig(),
-		Beacon:    params.DefaultBeaconConfig(),
-		Builder:   builder.DefaultBuilderConfig(),
-		Engine:    engineclient.DefaultConfig(),
-		Validator: DefaultValidatorConfig(),
+		ABCI:    DefaultABCIConfig(),
+		Beacon:  params.DefaultBeaconConfig(),
+		Builder: builder.DefaultBuilderConfig(),
+		Engine:  engineclient.DefaultConfig(),
 	}
 }
 
@@ -66,9 +65,6 @@ type Config struct {
 
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config
-
-	// Validator is the configuration for the validator.
-	Validator Validator
 }
 
 // Template returns the configuration template.
@@ -78,8 +74,7 @@ func (c Config) Template() string {
 ###                                BeaconKit                                ###
 ###############################################################################
 ` + c.ABCI.Template() + c.Beacon.Template() +
-		c.Builder.Template() + c.Engine.Template() +
-		c.Validator.Template()
+		c.Builder.Template() + c.Engine.Template()
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
@@ -165,7 +160,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
-		defaultCfg.Validator.SuggestedFeeRecipient.Hex(),
+		defaultCfg.Builder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
 	)
 }

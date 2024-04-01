@@ -131,7 +131,6 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithBuilderConfig(&cfg.Builder),
 		localbuilder.WithExecutionEngine(executionEngine),
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
-		localbuilder.WithValidatorConfig(&cfg.Validator),
 	)
 
 	// Build the Blobs Processor.

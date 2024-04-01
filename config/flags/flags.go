@@ -60,13 +60,10 @@ const (
 
 	// Builder Config.
 	builderRoot              = beaconKitRoot + "builder."
+	SuggestedFeeRecipient    = builderRoot + "suggested-fee-recipient"
+	Graffiti                 = builderRoot + "graffiti"
 	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
 	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
-
-	// Validator Config.
-	validator             = beaconKitRoot + "validator."
-	SuggestedFeeRecipient = validator + "suggested-fee-recipient"
-	Graffiti              = validator + "graffiti"
 
 	// FeatureFlags Config.
 	featureFlagsRoot = beaconKitRoot + "feature-flags."

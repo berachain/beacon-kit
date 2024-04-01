@@ -26,7 +26,6 @@
 package localbuilder
 
 import (
-	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/runtime/service"
@@ -60,14 +59,6 @@ func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
 func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
 	return func(s *Service) error {
 		s.pc = pc
-		return nil
-	}
-}
-
-// WithValidatorConfig sets the validator config.
-func WithValidatorConfig(vcfg *config.Validator) service.Option[Service] {
-	return func(s *Service) error {
-		s.vcfg = vcfg
 		return nil
 	}
 }

@@ -274,7 +274,7 @@ func (s *Service) getPayloadAttribute(
 		s.ActiveForkVersionForSlot(slot),
 		timestamp,
 		prevRandao,
-		s.vcfg.SuggestedFeeRecipient,
+		s.cfg.SuggestedFeeRecipient,
 		withdrawals,
 		prevHeadRoot,
 	)
