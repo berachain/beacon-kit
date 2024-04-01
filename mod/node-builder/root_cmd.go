@@ -50,6 +50,7 @@ import (
 // NewRootCmd creates a new root command for simd. It is called once in the main
 // function.
 func NewRootCmd[T servertypes.Application](
+	appName, appDescription string,
 	appCreator servertypes.AppCreator[T],
 ) *cobra.Command {
 	var (
@@ -77,8 +78,8 @@ func NewRootCmd[T servertypes.Application](
 	}
 
 	rootCmd := &cobra.Command{
-		Use:   "beacond",
-		Short: "beacon-kit sample app",
+		Use:   appName,
+		Short: appDescription,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
@@ -108,7 +109,9 @@ func NewRootCmd[T servertypes.Application](
 				return err
 			}
 
-			if err = client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
+			if err = client.SetCmdClientContextHandler(
+				clientCtx, cmd,
+			); err != nil {
 				return err
 			}
 
@@ -130,7 +133,10 @@ func NewRootCmd[T servertypes.Application](
 		appCreator,
 		func(
 			_app T,
-			_ *server.Context, clientCtx client.Context, ctx context.Context, _ *errgroup.Group,
+			_ *server.Context,
+			clientCtx client.Context,
+			ctx context.Context,
+			_ *errgroup.Group,
 		) error {
 			return interface{}(_app).(*app.BeaconApp).PostStartup(
 				ctx,

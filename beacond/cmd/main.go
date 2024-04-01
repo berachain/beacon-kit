@@ -37,8 +37,9 @@ import (
 
 func main() {
 	rootCmd := nodebuilder.NewRootCmd(
-		app.NewBeaconKitAppWithDefaultBaseAppOptions,
-	)
+		"beacond",
+		"beacond is a beacon node for any beacon-kit chain",
+		app.NewBeaconKitAppWithDefaultBaseAppOptions)
 	if err := svrcmd.Execute(rootCmd, "", client.DefaultNodeHome); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
