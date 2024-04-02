@@ -38,7 +38,6 @@ import (
 // BeaconKitConfig is the interface for a sub-config of the global BeaconKit
 // configuration.
 type BeaconKitConfig[T any] interface {
-	Template() string
 	Parse(parser parser.AppOptionsParser) (*T, error)
 }
 
@@ -69,12 +68,7 @@ type Config struct {
 
 // Template returns the configuration template.
 func (c Config) Template() string {
-	return `
-###############################################################################
-###                                BeaconKit                                ###
-###############################################################################
-` + c.ABCI.Template() + c.Beacon.Template() +
-		c.Builder.Template() + c.Engine.Template()
+	return configTemplate
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given

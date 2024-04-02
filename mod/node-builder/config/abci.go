@@ -39,9 +39,6 @@ const (
 	defaultBlobSidecarsBlockPosition = 1
 )
 
-// ABCI conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[ABCI] = ABCI{}
-
 // DefaultABCIConfig returns the default configuration for the proposal service.
 func DefaultABCIConfig() ABCI {
 	return ABCI{
@@ -77,17 +74,4 @@ func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
 	}
 
 	return &c, nil
-}
-
-// Template returns the configuration template for the abci config.
-func (c ABCI) Template() string {
-	//nolint:lll
-	return `
-[beacon-kit.abci]
-# Position of the beacon block in the proposal
-beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
-
-# Position of the blob sidecars in the proposal
-blob-sidecars-block-proposal-position = {{.BeaconKit.ABCI.BlobSidecarsBlockPosition}}
-`
 }
