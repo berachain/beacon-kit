@@ -358,7 +358,9 @@ func (sp *StateProcessor) processDeposit(
 	}
 
 	// Add the validator to the registry.
-	_ = sp.addValidatorToRegistry(st, dep)
+	if err = sp.addValidatorToRegistry(st, dep); err != nil {
+		sp.logger.Error("failed to add validator to registry", "error", err)
+	}
 }
 
 // addValidatorToRegistry adds a validator to the registry.
