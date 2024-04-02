@@ -140,14 +140,21 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	// Set the genesis execution payload.
-	if err := st.UpdateLatestExecutionPayload(
-		data.LatestExecutionPayload,
-	); err != nil {
+	if err := st.SetSlot(0); err != nil {
 		return nil, err
 	}
 
-	emptyHeader := &primitives.BeaconBlockHeader{
+	// Set the genesis block header.
+	if err := st.UpdateEth1BlockHash(data.Eth1BlockHash); err != nil {
+		return nil, err
+	}
+
+	// Set the genesis execution payload.
+	if err := st.UpdateLatestExecutionPayload(data.LatestExecutionPayload); err != nil {
+		return nil, err
+	}
+
+	emptyHeader := &beacontypes.BeaconBlockHeader{
 		Slot:          0,
 		ProposerIndex: 0,
 		ParentRoot:    [32]byte{},
@@ -162,27 +169,17 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	// Set the genesis block roots.
-	for i, root := range data.BlockRoots {
-		if err := st.UpdateBlockRootAtIndex(
-			//#nosec:G701 // will not cause a problem.
-			uint64(i), root,
-		); err != nil {
-			return nil, err
-		}
-	}
-
 	headerHtr, err := emptyHeader.HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	// We set the block root at index 0 to the hash tree root of the genesis
+	// Set the genesis block root.
 	if err = st.UpdateBlockRootAtIndex(0, headerHtr); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetEth1DepositIndex(data.Eth1DepositIndex); err != nil {
+	if err = st.SetEth1DepositIndex(0); err != nil {
 		return nil, err
 	}
 
@@ -190,7 +187,7 @@ func (k *Keeper) InitGenesis(
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
 
-	store := k.statedb.WithContext(ctx)
+	store := k.beaconStore.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	blsType := (&bls12381.PubKey{}).Type()
 	for _, validator := range data.Validators {
