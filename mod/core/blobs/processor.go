@@ -28,7 +28,7 @@ package blobs
 import (
 	"errors"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/sourcegraph/conc/iter"
@@ -44,7 +44,7 @@ func NewProcessor() *Processor {
 
 // ProcessBlob processes a blob.
 func (sp *Processor) ProcessBlobs(
-	avs state.AvailabilityStore,
+	avs core.AvailabilityStore,
 	blk types.BeaconBlock,
 	sidecars *datypes.BlobSidecars,
 ) error {
