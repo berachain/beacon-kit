@@ -171,12 +171,11 @@ func NewBeaconKitApp(
 // PostStartup is called after the app has started up and CometBFT is connected.
 func (app BeaconApp) PostStartup(
 	ctx context.Context,
-	clientCtx client.Context,
+	_ client.Context,
 ) error {
 	// Initial check for execution client sync.
 	app.BeaconKitRuntime.StartServices(
 		ctx,
-		clientCtx,
 	)
 	return nil
 }
