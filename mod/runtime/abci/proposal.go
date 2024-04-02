@@ -41,12 +41,19 @@ import (
 )
 
 type BuilderService interface {
-	RequestBestBlock(context.Context, primitives.Slot) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
+	RequestBestBlock(
+		context.Context,
+		primitives.Slot,
+	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
 }
 
 type BlockchainService interface {
 	ProcessSlot(context.Context) error
-	ProcessBeaconBlock(context.Context, beacontypes.ReadOnlyBeaconBlock, *datypes.BlobSidecars) error
+	ProcessBeaconBlock(
+		context.Context,
+		beacontypes.ReadOnlyBeaconBlock,
+		*datypes.BlobSidecars,
+	) error
 	PostBlockProcess(context.Context, beacontypes.ReadOnlyBeaconBlock) error
 	BeaconCfg() *params.BeaconChainConfig
 }
