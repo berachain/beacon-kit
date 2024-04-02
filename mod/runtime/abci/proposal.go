@@ -23,39 +23,60 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proposal
+package abci
 
 import (
+	"context"
 	"runtime/debug"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/config/params"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
-	abci "github.com/cometbft/cometbft/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
 )
 
+type BuilderService interface {
+	RequestBestBlock(
+		context.Context,
+		primitives.Slot,
+	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
+}
+
+type BlockchainService interface {
+	ProcessSlot(context.Context) error
+	ProcessBeaconBlock(
+		context.Context,
+		beacontypes.ReadOnlyBeaconBlock,
+		*datypes.BlobSidecars,
+	) error
+	PostBlockProcess(context.Context, beacontypes.ReadOnlyBeaconBlock) error
+	BeaconCfg() *params.BeaconChainConfig
+}
+
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg            *config.ABCI
-	builderService *builder.Service
-	chainService   *blockchain.Service
+	cfg            *Config
+	builderService BuilderService
+	chainService   BlockchainService
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
+	nextPreblock   sdk.PreBlocker
 }
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
-	cfg *config.ABCI,
-	builderService *builder.Service,
-	chainService *blockchain.Service,
+	cfg *Config,
+	builderService BuilderService,
+	chainService BlockchainService,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
+	nextPreblock sdk.PreBlocker,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -63,20 +84,21 @@ func NewHandler(
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
+		nextPreblock:   nextPreblock,
 	}
 }
 
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *Handler) PrepareProposalHandler(
-	ctx sdk.Context, req *abci.RequestPrepareProposal,
-) (*abci.ResponsePrepareProposal, error) {
+	ctx sdk.Context, req *cmtabci.RequestPrepareProposal,
+) (*cmtabci.ResponsePrepareProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 
 	var (
 		beaconBz       []byte
 		blobSidecarsBz []byte
-		resp           *abci.ResponsePrepareProposal
+		resp           *cmtabci.ResponsePrepareProposal
 		g, groupCtx    = errgroup.WithContext(ctx)
 		logger         = ctx.Logger().With("module", "prepare-proposal")
 	)
@@ -89,7 +111,7 @@ func (h *Handler) PrepareProposalHandler(
 
 	// Process the Slot to set the state root for the block.
 	if err := h.chainService.ProcessSlot(ctx); err != nil {
-		return &abci.ResponsePrepareProposal{}, err
+		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
 	// We start by requesting the validator service to build us a block. This
@@ -102,7 +124,7 @@ func (h *Handler) PrepareProposalHandler(
 	)
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
-		return &abci.ResponsePrepareProposal{}, err
+		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
 	// Fire off the next prepare proposal handler, marshal the block and
@@ -139,7 +161,7 @@ func (h *Handler) PrepareProposalHandler(
 
 	// Wait for the errgroup to finish, the error will be non-nil if any
 	if err = g.Wait(); err != nil {
-		return &abci.ResponsePrepareProposal{}, err
+		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
 	// Blob position is always the second in an array
@@ -149,7 +171,7 @@ func (h *Handler) PrepareProposalHandler(
 	// If the response is nil, the implementations of
 	// `nextPrepare` is bad.
 	if resp == nil {
-		return &abci.ResponsePrepareProposal{}, ErrNextPrepareNilResp
+		return &cmtabci.ResponsePrepareProposal{}, ErrNextPrepareNilResp
 	}
 	resp.Txs = append([][]byte{beaconBz, blobSidecarsBz}, resp.Txs...)
 	return resp, nil
@@ -158,8 +180,8 @@ func (h *Handler) PrepareProposalHandler(
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *Handler) ProcessProposalHandler(
-	_ sdk.Context, req *abci.RequestProcessProposal,
-) (*abci.ResponseProcessProposal, error) {
+	_ sdk.Context, req *cmtabci.RequestProcessProposal,
+) (*cmtabci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 
 	defer func() {
@@ -176,8 +198,8 @@ func (h *Handler) ProcessProposalHandler(
 	// works.
 
 	if req == nil || req.Txs == nil || len(req.Txs) < 2 {
-		return &abci.ResponseProcessProposal{
-			Status: abci.ResponseProcessProposal_REJECT,
+		return &cmtabci.ResponseProcessProposal{
+			Status: cmtabci.ResponseProcessProposal_REJECT,
 		}, nil
 	}
 	pos := h.cfg.BeaconBlockPosition
@@ -192,7 +214,7 @@ func (h *Handler) ProcessProposalHandler(
 	)
 
 	// return h.nextProcess(ctx, req)
-	return &abci.ResponseProcessProposal{
-		Status: abci.ResponseProcessProposal_ACCEPT,
+	return &cmtabci.ResponseProcessProposal{
+		Status: cmtabci.ResponseProcessProposal_ACCEPT,
 	}, nil
 }

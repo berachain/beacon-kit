@@ -35,7 +35,6 @@ type Service struct {
 	service.BaseService
 	ee  ExecutionEngine
 	lb  LocalBuilder
-	ss  SyncService
 	sks StakingService
 	bv  *core.BlockValidator
 	sp  *core.StateProcessor

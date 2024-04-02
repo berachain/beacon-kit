@@ -26,31 +26,19 @@
 package main
 
 import (
-	"os"
-
-	"cosmossdk.io/log"
 	app "github.com/berachain/beacon-kit/beacond/app"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
-	"github.com/berachain/beacon-kit/mod/node-builder/client"
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 )
 
 func main() {
-	// Build the root command.
-	// TODO: Fully implement NodeBuilder.
-	rootCmd := nodebuilder.NewRootCmd(
-		"beacond",
-		"beacond is a beacon node for any beacon-kit chain",
-		app.Config(),
-		app.NewBeaconKitAppWithDefaultBaseAppOptions,
-	)
-
-	// Start the root command.
-	if err := svrcmd.Execute(
-		rootCmd, "", client.DefaultNodeHome,
-	); err != nil {
-		log.NewLogger(rootCmd.OutOrStderr()).
-			Error("failure when running app", "error", err)
-		os.Exit(1)
-	}
+	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
+		WithAppInfo(
+			&nodebuilder.AppInfo[app.BeaconApp]{
+				Name:        "beacond",
+				Description: "beacond is a beacon node for any beacon-kit chain",
+				Creator:     app.NewBeaconKitAppWithDefaultBaseAppOptions,
+				Config:      app.Config(),
+			},
+		)
+	nb.RunNode()
 }

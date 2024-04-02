@@ -23,11 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proposal
+package nodebuilder
 
-const (
-	// MetricKeyPrepareProposalTime is the metric key for prepare proposal time.
-	MetricKeyPrepareProposalTime = "beaconkit.prepare_proposal_time"
-	// MetricKeyProcessProposalTime is the metric key for process proposal time.
-	MetricKeyProcessProposalTime = "beaconkit.process_proposal_time"
+import (
+	"os"
+
+	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 )
+
+// WithAppInfo sets the application information.
+func (nb *NodeBuilder[T]) WithAppInfo(appInfo *AppInfo[T]) *NodeBuilder[T] {
+	nb.appInfo = appInfo
+	return nb
+}
+
+var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
+	dir, err := os.MkdirTemp("", "beacond")
+	if err != nil {
+		dir = modclient.DefaultNodeHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
+}
