@@ -163,13 +163,7 @@ func (k *Keeper) InitGenesis(
 
 	// Set the genesis block header.
 	if err := st.SetLatestBlockHeader(
-		&beacontypes.BeaconBlockHeader{
-			Slot:          0,
-			ProposerIndex: 0,
-			ParentRoot:    [32]byte{},
-			StateRoot:     [32]byte{},
-			BodyRoot:      [32]byte{},
-		},
+		emptyHeader,
 	); err != nil {
 		return nil, err
 	}

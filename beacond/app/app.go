@@ -138,7 +138,6 @@ func NewBeaconKitApp(
 		defaultProposalHandler.
 			PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
-		nil,
 	)
 
 	// Set all the newly built ABCI Components on the App.

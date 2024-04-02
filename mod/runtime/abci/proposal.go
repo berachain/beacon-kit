@@ -66,7 +66,6 @@ type Handler struct {
 	chainService   BlockchainService
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
-	nextPreblock   sdk.PreBlocker
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -76,7 +75,6 @@ func NewHandler(
 	chainService BlockchainService,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
-	nextPreblock sdk.PreBlocker,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -84,7 +82,6 @@ func NewHandler(
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
-		nextPreblock:   nextPreblock,
 	}
 }
 

@@ -87,26 +87,5 @@ func (h *Handler) PreBlocker(
 	}
 
 	// Process the finalization of the beacon block.
-	if err = h.chainService.PostBlockProcess(
-		ctx, blk,
-	); err != nil {
-		return err
-	}
-
-	// Call the nested child handler.
-	return h.callNextPreblockHandler(ctx, req)
-}
-
-// callNextHandler calls the next pre-block handler in the chain.
-func (h *Handler) callNextPreblockHandler(
-	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
-) error {
-	// If there is no child handler, we are done, this preblocker
-	// does not modify any consensus params so we return an empty
-	// response.
-	if h.nextPreblock == nil {
-		return nil
-	}
-
-	return h.nextPreblock(ctx, req)
+	return h.chainService.PostBlockProcess(ctx, blk)
 }

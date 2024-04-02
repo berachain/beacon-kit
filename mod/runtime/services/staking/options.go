@@ -28,8 +28,8 @@ package staking
 import (
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	stakingabi "github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 // WithBaseService sets the BaseService for the Service.

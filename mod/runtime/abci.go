@@ -36,7 +36,6 @@ import (
 func (r *BeaconKitRuntime) BuildABCIComponents(
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
-	nextPreblocker sdk.PreBlocker,
 ) (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
@@ -59,7 +58,6 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		chainService,
 		nextPrepare,
 		nextProcess,
-		nextPreblocker,
 	)
 
 	return handler.PrepareProposalHandler,
