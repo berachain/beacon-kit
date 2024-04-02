@@ -190,5 +190,9 @@ func (s *Service) PostBlockProcess(
 		return err
 	}
 
+	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
+		return err
+	}
+
 	return nil
 }
