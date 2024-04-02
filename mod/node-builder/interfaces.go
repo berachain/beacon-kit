@@ -23,27 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proposal
+package nodebuilder
 
-import "github.com/cockroachdb/errors"
+import (
+	"context"
 
-var (
-	// ErrValidatorClientNotSynced is an error for when a
-	// validator tries to propose a block with an out of sync
-	// execution client.
-	ErrValidatorClientNotSynced = errors.New(
-		`your validator tried to propose a 
-block with an out of sync execution client, 
-did you forget to reset your execution client?`,
-	)
-
-	// ErrClientNotSynced is an error for when a node tries to process
-	// a block with an out of sync execution client.
-	ErrClientNotSynced = errors.New(
-		`your node tried to process a block with an 
-out of sync execution client, did you forget to 
-reset your execution client?`)
-
-	// ErrNextPrepareNilResp is an error for when the `nextPrepare` function.
-	ErrNextPrepareNilResp = errors.New("nil response from `nextPrepare`")
+	"github.com/cosmos/cosmos-sdk/client"
 )
+
+// BeaconApp is an interface that defines the PostStartup method.
+type BeaconApp interface {
+	PostStartup(
+		ctx context.Context,
+		clientCtx client.Context,
+	) error
+}

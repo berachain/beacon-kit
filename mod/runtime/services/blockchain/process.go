@@ -60,6 +60,11 @@ func (s *Service) ProcessBeaconBlock(
 		err         error
 	)
 
+	// If the block is nil, exit early.
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
+	}
+
 	// Validate payload in Parallel.
 	g.Go(func() error {
 		return s.pv.ValidatePayload(st, blk.GetBody())
@@ -154,7 +159,7 @@ func (s *Service) PostBlockProcess(
 	}(&payload)
 
 	// If the block is nil, exit early.
-	if blk.IsNil() {
+	if blk == nil || blk.IsNil() {
 		return nil
 	}
 

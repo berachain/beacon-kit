@@ -26,8 +26,7 @@
 package runtime
 
 import (
-	"github.com/berachain/beacon-kit/mod/runtime/abci/preblock"
-	"github.com/berachain/beacon-kit/mod/runtime/abci/proposal"
+	"github.com/berachain/beacon-kit/mod/runtime/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	builder "github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,7 +36,6 @@ import (
 func (r *BeaconKitRuntime) BuildABCIComponents(
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
-	nextPreblocker sdk.PreBlocker,
 ) (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
@@ -54,7 +52,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		panic(err)
 	}
 
-	proposalHandler := proposal.NewHandler(
+	handler := abci.NewHandler(
 		&r.cfg.ABCI,
 		builderService,
 		chainService,
@@ -62,14 +60,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		nextProcess,
 	)
 
-	preBlocker := preblock.NewBeaconPreBlockHandler(
-		&r.cfg.ABCI,
-		r.logger,
-		chainService,
-		nextPreblocker,
-	).PreBlocker()
-
-	return proposalHandler.PrepareProposalHandler,
-		proposalHandler.ProcessProposalHandler,
-		preBlocker
+	return handler.PrepareProposalHandler,
+		handler.ProcessProposalHandler,
+		handler.PreBlocker
 }

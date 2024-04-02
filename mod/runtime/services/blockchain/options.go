@@ -89,12 +89,3 @@ func WithStateProcessor(sp *core.StateProcessor) service.Option[Service] {
 		return nil
 	}
 }
-
-// WithSyncService is a function that returns an Option.
-// It sets the SyncService of the Service to the provided Service.
-func WithSyncService(ss SyncService) service.Option[Service] {
-	return func(s *Service) error {
-		s.ss = ss
-		return nil
-	}
-}

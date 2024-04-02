@@ -28,9 +28,9 @@ package staking
 import (
 	"context"
 
-	stakingabi "github.com/berachain/beacon-kit/mod/abi"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -68,7 +68,7 @@ func (s *Service) processDepositLog(
 	ctx context.Context,
 	log coretypes.Log,
 ) error {
-	d := &stakingabi.BeaconDepositContractDeposit{}
+	d := &abi.BeaconDepositContractDeposit{}
 	if err := s.abi.UnpackLogs(d, DepositEventName, log); err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (s *Service) processWithdrawalLog(
 	ctx context.Context,
 	log coretypes.Log,
 ) error {
-	w := &stakingabi.BeaconDepositContractWithdrawal{}
+	w := &abi.BeaconDepositContractWithdrawal{}
 	if err := s.abi.UnpackLogs(w, WithdrawalEventName, log); err != nil {
 		return err
 	}

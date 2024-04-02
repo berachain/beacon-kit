@@ -28,12 +28,13 @@ package runtime
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 )
 
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend interface {
-	AvailabilityStore(ctx context.Context) state.AvailabilityStore
+	AvailabilityStore(ctx context.Context) core.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState
 }

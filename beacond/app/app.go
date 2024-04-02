@@ -77,8 +77,8 @@ func NewBeaconKitAppWithDefaultBaseAppOptions(
 	db dbm.DB,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
-) servertypes.Application {
-	return NewBeaconKitApp(
+) BeaconApp {
+	return *NewBeaconKitApp(
 		logger, db, traceStore, true,
 		appOpts,
 		server.DefaultBaseappOptions(appOpts)...,
@@ -138,7 +138,6 @@ func NewBeaconKitApp(
 		defaultProposalHandler.
 			PrepareProposalHandler(),
 		defaultProposalHandler.ProcessProposalHandler(),
-		nil,
 	)
 
 	// Set all the newly built ABCI Components on the App.
@@ -169,14 +168,13 @@ func NewBeaconKitApp(
 }
 
 // PostStartup is called after the app has started up and CometBFT is connected.
-func (app *BeaconApp) PostStartup(
+func (app BeaconApp) PostStartup(
 	ctx context.Context,
-	clientCtx client.Context,
+	_ client.Context,
 ) error {
 	// Initial check for execution client sync.
 	app.BeaconKitRuntime.StartServices(
 		ctx,
-		clientCtx,
 	)
 	return nil
 }

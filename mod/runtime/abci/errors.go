@@ -23,37 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package sync
+package abci
 
 import "github.com/cockroachdb/errors"
 
 var (
-	// ErrConsensusClientIsSyncing indicates that the consensus client
-	// is still in the process of syncing.
-	ErrConsensusClientIsSyncing = errors.New(
-		"consensus client is still syncing",
+	// ErrValidatorClientNotSynced is an error for when a
+	// validator tries to propose a block with an out of sync
+	// execution client.
+	ErrValidatorClientNotSynced = errors.New(
+		`your validator tried to propose a 
+block with an out of sync execution client, 
+did you forget to reset your execution client?`,
 	)
 
-	// ErrExecutionClientIsSyncing indicates that the execution client
-	// is still in the process of syncing.
-	ErrExecutionClientIsSyncing = errors.New(
-		"execution client is still syncing",
-	)
+	// ErrClientNotSynced is an error for when a node tries to process
+	// a block with an out of sync execution client.
+	ErrClientNotSynced = errors.New(
+		`your node tried to process a block with an 
+out of sync execution client, did you forget to 
+reset your execution client?`)
 
-	// ErrNotRunning indicates that the service is not currently running.
-	ErrNotRunning = errors.New(
-		"service is not running",
-	)
-
-	// ErrInsufficientCLPeers indicates that the execution client does not have
-	// enough peers to be considered healthy.
-	ErrInsufficientCLPeers = errors.New(
-		"number of consensus client peers below configured threshold",
-	)
-
-	// ErrInsufficientExPeers indicates that the execution client does not have
-	// enough peers to be considered healthy.
-	ErrInsufficientELPeers = errors.New(
-		"number of execution client peers below configured threshold",
-	)
+	// ErrNextPrepareNilResp is an error for when the `nextPrepare` function.
+	ErrNextPrepareNilResp = errors.New("nil response from `nextPrepare`")
 )
