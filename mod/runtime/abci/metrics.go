@@ -23,4 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package preblock
+package abci
+
+const (
+	// MetricKeyPrepareProposalTime is the metric key for prepare proposal time.
+	MetricKeyPrepareProposalTime = "beaconkit.prepare_proposal_time"
+	// MetricKeyProcessProposalTime is the metric key for process proposal time.
+	MetricKeyProcessProposalTime = "beaconkit.process_proposal_time"
+)

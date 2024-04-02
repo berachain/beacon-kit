@@ -51,8 +51,8 @@ import (
 type BeaconKitRuntime struct {
 	cfg      *config.Config
 	logger   log.Logger
-	fscp     BeaconStorageBackend
 	services *service.Registry
+	fscp     BeaconStorageBackend
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime

@@ -23,11 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proposal
+package abci
 
-const (
-	// MetricKeyPrepareProposalTime is the metric key for prepare proposal time.
-	MetricKeyPrepareProposalTime = "beaconkit.prepare_proposal_time"
-	// MetricKeyProcessProposalTime is the metric key for process proposal time.
-	MetricKeyProcessProposalTime = "beaconkit.process_proposal_time"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrValidatorClientNotSynced is an error for when a
+	// validator tries to propose a block with an out of sync
+	// execution client.
+	ErrValidatorClientNotSynced = errors.New(
+		`your validator tried to propose a 
+block with an out of sync execution client, 
+did you forget to reset your execution client?`,
+	)
+
+	// ErrClientNotSynced is an error for when a node tries to process
+	// a block with an out of sync execution client.
+	ErrClientNotSynced = errors.New(
+		`your node tried to process a block with an 
+out of sync execution client, did you forget to 
+reset your execution client?`)
+
+	// ErrNextPrepareNilResp is an error for when the `nextPrepare` function.
+	ErrNextPrepareNilResp = errors.New("nil response from `nextPrepare`")
 )
