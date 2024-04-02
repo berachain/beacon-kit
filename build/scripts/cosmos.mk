@@ -10,7 +10,7 @@ export COMMIT := $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
 OUT_DIR ?= $(CURDIR)/build/bin
 BINDIR ?= $(GOPATH)/build/bin
-TESTAPP_DIR = examples/beacond
+TESTAPP_DIR = beacond
 TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
@@ -89,7 +89,7 @@ ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
 build_tags += $(BUILD_TAGS)
-build_tags := $(strip $(build_tags))
+# build_tags := $(strip $(build_tags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option

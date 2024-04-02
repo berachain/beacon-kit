@@ -40,10 +40,10 @@ mkdir -p cosmos/api
 (cd cosmos/api; find ./ -type f \( -iname \*.pulsar.go -o -iname \*.pb.go -o -iname \*.cosmos_orm.go -o -iname \*.pb.gw.go \) -delete; find . -empty -type d -delete; cd ../../..)
 
 echo "Generating API module"
-(cd proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
+(cd beacond/x/beacon/proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
 
-# cp -r api cosmos
-cp -r api/runtime/modules/beacon/* runtime/modules/beacon/api
-rm -rf api
-# rm -rf cosmos/api/ethereum
-# rm -rf cosmos/api/types
+# # cp -r api cosmos
+# cp -r api/beacond/x/beacon/* beacond/x/beacon/api
+# rm -rf api
+# # rm -rf cosmos/api/ethereum
+# # rm -rf cosmos/api/types

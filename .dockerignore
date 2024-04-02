@@ -8,6 +8,4 @@ tools/
 .github/
 .git/
 .vscode/
-go.work
-go.work.sum
 *.md
