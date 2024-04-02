@@ -163,7 +163,7 @@ func (sp *StateProcessor) ProcessSlot(
 
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *StateProcessor) ProcessBlobs(
-	avs state.AvailabilityStore,
+	avs AvailabilityStore,
 	blk types.BeaconBlock,
 	sidecars *datypes.BlobSidecars,
 ) error {
