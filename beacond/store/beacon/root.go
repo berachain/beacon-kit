@@ -70,15 +70,21 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
+	latestExecutionPayload, err := s.GetLatestExecutionPayload()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	return (&state.BeaconStateDeneb{
-		GenesisValidatorsRoot: primitives.Root{},
-		Slot:                  slot,
-		LatestBlockHeader:     latestBlockHeader,
-		BlockRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		StateRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		Eth1BlockHash:         [32]byte{},
-		Eth1DepositIndex:      0,
-		Validators:            []*beacontypes.Validator{},
-		RandaoMixes:           randaoMixes,
+		GenesisValidatorsRoot:  primitives.Root{},
+		Slot:                   slot,
+		LatestBlockHeader:      latestBlockHeader,
+		BlockRoots:             make([][32]byte, 32), //nolint:gomnd // temp.
+		StateRoots:             make([][32]byte, 32), //nolint:gomnd // temp.
+		LatestExecutionPayload: latestExecutionPayload,
+		Eth1BlockHash:          [32]byte{},
+		Eth1DepositIndex:       0,
+		Validators:             []*beacontypes.Validator{},
+		RandaoMixes:            randaoMixes,
 	}).HashTreeRoot()
 }

@@ -153,6 +153,11 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
+	// Set the genesis execution payload.
+	if err := st.UpdateLatestExecutionPayload(data.LatestExecutionPayload); err != nil {
+		return nil, err
+	}
+
 	emptyHeader := &beacontypes.BeaconBlockHeader{
 		Slot:          0,
 		ProposerIndex: 0,
