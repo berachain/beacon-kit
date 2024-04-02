@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	stakingabi "github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 )
 
 // WithBaseService sets the BaseService for the Service.
@@ -44,10 +45,10 @@ func WithBaseService(
 // WithDepositABI returns an Option that sets the deposit
 // contract's ABI for the Service.
 func WithDepositABI(
-	abi *abi.ABI,
+	depositABI *abi.ABI,
 ) service.Option[Service] {
 	return func(s *Service) error {
-		s.abi = NewWrappedABI(abi)
+		s.abi = stakingabi.NewWrappedABI(depositABI)
 		return nil
 	}
 }
