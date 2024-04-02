@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-//
 // Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
+//
 // obtaining a copy of this software and associated documentation
 // files (the "Software"), to deal in the Software without
 // restriction, including without limitation the rights to use,
@@ -31,6 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // PayloadValidator is responsible for validating incoming execution
@@ -60,11 +62,26 @@ func (pv *PayloadValidator) ValidatePayload(
 		return types.ErrNilPayload
 	}
 
-	// TODO: convert to:
-	// state.latest_execution_payload_header.block_hash
-	safeHash, err := st.GetEth1BlockHash()
+	// TODO: Once deneb genesis data contains execution payload, remove this.
+	var safeHash common.Hash
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
+	}
+
+	// Handle genesis case.
+	if slot <= 1 {
+		safeHash, err = st.GetEth1BlockHash()
+		if err != nil {
+			return err
+		}
+	} else {
+		var executionPayload enginetypes.ExecutionPayload
+		executionPayload, err = st.GetLatestExecutionPayload()
+		if err != nil {
+			return err
+		}
+		safeHash = executionPayload.GetBlockHash()
 	}
 
 	if safeHash != payload.GetParentHash() {

@@ -26,8 +26,21 @@
 package beacon
 
 import (
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+func (s *Store) UpdateLatestExecutionPayload(
+	payload enginetypes.ExecutionPayload,
+) error {
+	return s.latestExecutionPayload.Set(s.ctx, payload)
+}
+
+func (s *Store) GetLatestExecutionPayload() (
+	enginetypes.ExecutionPayload, error,
+) {
+	return s.latestExecutionPayload.Get(s.ctx)
+}
 
 // UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
 func (s *Store) UpdateEth1BlockHash(

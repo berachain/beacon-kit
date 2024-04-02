@@ -82,3 +82,47 @@ func (SSZValueCodec[T]) Stringify(value T) string {
 func (SSZValueCodec[T]) ValueType() string {
 	return "SSZMarshallable"
 }
+
+// SSZValueCodec provides methods to encode and decode SSZ values.
+type SSZInterfaceValueCodec[T SSZMarshallable] struct {
+	Factory func() T
+}
+
+// Assert that SSZInterfaceValueCodec implements codec.ValueCodec.
+//
+//nolint:lll // interface assertion.
+var _ codec.ValueCodec[SSZMarshallable] = SSZInterfaceValueCodec[SSZMarshallable]{}
+
+// Encode marshals the provided value into its SSZ encoding.
+func (SSZInterfaceValueCodec[T]) Encode(value T) ([]byte, error) {
+	return value.MarshalSSZ()
+}
+
+// Decode unmarshals the provided bytes into a value of type T.
+func (cdc SSZInterfaceValueCodec[T]) Decode(b []byte) (T, error) {
+	v := cdc.Factory()
+	if err := v.UnmarshalSSZ(b); err != nil {
+		return v, err
+	}
+	return v, nil
+}
+
+// EncodeJSON is not implemented and will panic if called.
+func (SSZInterfaceValueCodec[T]) EncodeJSON(_ T) ([]byte, error) {
+	panic("not implemented")
+}
+
+// DecodeJSON is not implemented and will panic if called.
+func (SSZInterfaceValueCodec[T]) DecodeJSON(_ []byte) (T, error) {
+	panic("not implemented")
+}
+
+// Stringify returns the string representation of the provided value.
+func (SSZInterfaceValueCodec[T]) Stringify(value T) string {
+	return value.String()
+}
+
+// ValueType returns the name of the interface that this codec is intended for.
+func (SSZInterfaceValueCodec[T]) ValueType() string {
+	return "SSZMarshallable"
+}

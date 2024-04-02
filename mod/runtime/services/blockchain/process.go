@@ -183,8 +183,13 @@ func (s *Service) PostBlockProcess(
 		return err
 	}
 
+	// TODO: Once deneb genesis data provides execution payload, remove this.
 	payloadBlockHash := payload.GetBlockHash()
 	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
+		return err
+	}
+
+	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
 		return err
 	}
 

@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/beacond/store/beacon/index"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -58,6 +59,9 @@ type Store struct {
 
 	// stateRoots stores the state roots for the current epoch.
 	stateRoots sdkcollections.Map[uint64, [32]byte]
+
+	// latestExecutionPayload stores the latest execution payload.
+	latestExecutionPayload sdkcollections.Item[enginetypes.ExecutionPayload]
 
 	// eth1BlockHash stores the block hash of the latest eth1 block.
 	eth1BlockHash sdkcollections.Item[[32]byte]
@@ -127,6 +131,16 @@ func NewStore(
 			stateRootsPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
+		),
+		latestExecutionPayload: sdkcollections.NewItem[enginetypes.ExecutionPayload](
+			schemaBuilder,
+			sdkcollections.NewPrefix(latestExecutionPayloadPrefix),
+			latestExecutionPayloadPrefix,
+			encoding.SSZInterfaceValueCodec[enginetypes.ExecutionPayload]{
+				Factory: func() enginetypes.ExecutionPayload {
+					return &enginetypes.ExecutableDataDeneb{}
+				},
+			},
 		),
 		eth1BlockHash: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
