@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package abci
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
@@ -40,15 +40,15 @@ const (
 )
 
 // DefaultABCIConfig returns the default configuration for the proposal service.
-func DefaultABCIConfig() ABCI {
-	return ABCI{
+func DefaultABCIConfig() Config {
+	return Config{
 		BeaconBlockPosition:       defaultBeaconBlockPosition,
 		BlobSidecarsBlockPosition: defaultBlobSidecarsBlockPosition,
 	}
 }
 
 // ABCI is a configuration struct for the cosmos proposal handler.
-type ABCI struct {
+type Config struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
 	BeaconBlockPosition uint
@@ -59,7 +59,7 @@ type ABCI struct {
 }
 
 // Parse parses the configuration.
-func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
+func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
 	var err error
 	if c.BeaconBlockPosition, err = parser.GetUint(
 		flags.BeaconBlockPosition,

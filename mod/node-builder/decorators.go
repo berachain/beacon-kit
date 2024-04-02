@@ -23,22 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package nodebuilder
 
 import (
-	app "github.com/berachain/beacon-kit/beacond/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"os"
+
+	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 )
 
-func main() {
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppInfo(
-			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:        "beacond",
-				Description: "beacond is a beacon node for any beacon-kit chain",
-				Creator:     app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				Config:      app.Config(),
-			},
-		)
-	nb.RunNode()
+// WithAppInfo sets the application information.
+func (nb *NodeBuilder[T]) WithAppInfo(appInfo *AppInfo[T]) *NodeBuilder[T] {
+	nb.appInfo = appInfo
+	return nb
+}
+
+var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
+	dir, err := os.MkdirTemp("", "beacond")
+	if err != nil {
+		dir = modclient.DefaultNodeHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }

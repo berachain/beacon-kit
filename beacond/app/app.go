@@ -77,8 +77,8 @@ func NewBeaconKitAppWithDefaultBaseAppOptions(
 	db dbm.DB,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
-) servertypes.Application {
-	return NewBeaconKitApp(
+) BeaconApp {
+	return *NewBeaconKitApp(
 		logger, db, traceStore, true,
 		appOpts,
 		server.DefaultBaseappOptions(appOpts)...,
@@ -169,7 +169,7 @@ func NewBeaconKitApp(
 }
 
 // PostStartup is called after the app has started up and CometBFT is connected.
-func (app *BeaconApp) PostStartup(
+func (app BeaconApp) PostStartup(
 	ctx context.Context,
 	clientCtx client.Context,
 ) error {

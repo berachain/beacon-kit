@@ -27,8 +27,8 @@ package preblock
 
 import (
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/abci"
 	abcitypes "github.com/berachain/beacon-kit/mod/runtime/abci/types"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	cometabci "github.com/cometbft/cometbft/abci/types"
@@ -40,7 +40,7 @@ import (
 // are executed/finalized for a given block.
 type BeaconPreBlockHandler struct {
 	// cfg is the configuration for block proposals and finalization.
-	cfg *config.ABCI
+	cfg *abci.Config
 
 	// logger is the logger used by the handler.
 	logger log.Logger
@@ -57,7 +57,7 @@ type BeaconPreBlockHandler struct {
 // NewBeaconPreBlockHandler returns a new BeaconPreBlockHandler. The handler
 // is responsible for writing oracle data included in vote extensions to state.
 func NewBeaconPreBlockHandler(
-	cfg *config.ABCI,
+	cfg *abci.Config,
 	logger log.Logger,
 	chainService *blockchain.Service,
 	nextHandler sdk.PreBlocker,

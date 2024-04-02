@@ -23,22 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package nodebuilder
 
 import (
-	app "github.com/berachain/beacon-kit/beacond/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"context"
+
+	"github.com/cosmos/cosmos-sdk/client"
 )
 
-func main() {
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppInfo(
-			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:        "beacond",
-				Description: "beacond is a beacon node for any beacon-kit chain",
-				Creator:     app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				Config:      app.Config(),
-			},
-		)
-	nb.RunNode()
+// BeaconApp is an interface that defines the PostStartup method.
+type BeaconApp interface {
+	PostStartup(
+		ctx context.Context,
+		clientCtx client.Context,
+	) error
 }

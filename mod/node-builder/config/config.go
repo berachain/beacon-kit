@@ -31,6 +31,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
+	"github.com/berachain/beacon-kit/mod/runtime/abci"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
@@ -44,7 +45,7 @@ type BeaconKitConfig[T any] interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:    DefaultABCIConfig(),
+		ABCI:    abci.DefaultABCIConfig(),
 		Beacon:  params.DefaultBeaconConfig(),
 		Builder: builder.DefaultBuilderConfig(),
 		Engine:  engineclient.DefaultConfig(),
@@ -54,7 +55,7 @@ func DefaultConfig() *Config {
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
 	// ABCI is the configuration for ABCI related settings.
-	ABCI ABCI
+	ABCI abci.Config
 
 	// Beacon is the configuration for the fork epochs.
 	Beacon params.BeaconChainConfig
@@ -98,11 +99,11 @@ func readConfigFromAppOptsParser(
 		conf      = &Config{}
 		engineCfg *engineclient.Config
 		beaconCfg *params.BeaconChainConfig
-		abciCfg   *ABCI
+		abciCfg   *abci.Config
 	)
 
 	// Read ABCI Config
-	abciCfg, err = ABCI{}.Parse(parser)
+	abciCfg, err = abci.Config{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
