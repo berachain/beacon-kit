@@ -2,10 +2,17 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"github.com/berachain/beacon-kit/mod/api/beaconnode"
+	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"strconv"
 )
 
 type Server struct {
+	ContextGetter func(height int64, prove bool) (sdk.Context, error)
+	Service       service.BeaconStorageBackend
 }
 
 func (s Server) Eventstream(ctx context.Context, params beaconnode.EventstreamParams) (beaconnode.EventstreamRes, error) {
@@ -213,9 +220,36 @@ func (s Server) GetStateFork(ctx context.Context, params beaconnode.GetStateFork
 	panic("implement me")
 }
 
-func (s Server) GetStateRandao(ctx context.Context, params beaconnode.GetStateRandaoParams) (beaconnode.GetStateRandaoRes, error) {
-	//TODO implement me
-	panic("implement me")
+func (s Server) GetStateRandao(_ context.Context, params beaconnode.GetStateRandaoParams) (beaconnode.GetStateRandaoRes, error) {
+	stateId := params.StateID
+	if stateId == "" {
+		return nil, fmt.Errorf("state_id is required in URL params")
+	}
+
+	stateIdAsInt, err := strconv.ParseUint(stateId, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("state_id must be a number")
+	}
+
+	ctx, err := s.ContextGetter(int64(stateIdAsInt), false)
+	if err != nil {
+		return nil, err
+	}
+
+	randao, err := s.Service.BeaconState(ctx).GetRandaoMixAtIndex(stateIdAsInt)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &beaconnode.GetStateRandaoOK{
+		ExecutionOptimistic: false,
+		Finalized:           true,
+		Data: beaconnode.GetStateRandaoOKData{
+			Randao: hexutil.Encode(randao[:]),
+		},
+	}
+
+	return resp, nil
 }
 
 func (s Server) GetStateRoot(ctx context.Context, params beaconnode.GetStateRootParams) (beaconnode.GetStateRootRes, error) {
