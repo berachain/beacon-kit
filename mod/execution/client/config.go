@@ -116,29 +116,3 @@ func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
 	}
 	return &c, nil
 }
-
-func (c Config) Template() string {
-	return `
-[beacon-kit.engine]
-# HTTP url of the execution client JSON-RPC endpoint.
-rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"
-
-# Number of retries before shutting down consensus client.
-rpc-retries = "{{.BeaconKit.Engine.RPCRetries}}"
-
-# RPC timeout for execution client requests.
-rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"
-
-# Interval for the startup check.
-rpc-startup-check-interval = "{{ .BeaconKit.Engine.RPCStartupCheckInterval }}"
-
-# Interval for the JWT refresh.
-rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"
-
-# Path to the execution client JWT-secret
-jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
-
-# Required chain id for the execution client.
-required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
-`
-}
