@@ -51,10 +51,6 @@ func (bv *BlockValidator) ValidateBlock(
 	st state.BeaconState,
 	blk types.ReadOnlyBeaconBlock,
 ) error {
-	if blk == nil || blk.IsNil() {
-		return types.ErrNilBlk
-	}
-
 	// Get the block body.
 	body := blk.GetBody()
 	if body == nil || body.IsNil() {

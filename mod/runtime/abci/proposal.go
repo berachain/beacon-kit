@@ -23,39 +23,60 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proposal
+package abci
 
 import (
+	"context"
 	"runtime/debug"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/config/params"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
 )
 
+type BuilderService interface {
+	RequestBestBlock(
+		context.Context,
+		primitives.Slot,
+	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
+}
+
+type BlockchainService interface {
+	ProcessSlot(context.Context) error
+	ProcessBeaconBlock(
+		context.Context,
+		beacontypes.ReadOnlyBeaconBlock,
+		*datypes.BlobSidecars,
+	) error
+	PostBlockProcess(context.Context, beacontypes.ReadOnlyBeaconBlock) error
+	BeaconCfg() *params.BeaconChainConfig
+}
+
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg            *abci.Config
-	builderService *builder.Service
-	chainService   *blockchain.Service
+	cfg            *Config
+	builderService BuilderService
+	chainService   BlockchainService
 	nextPrepare    sdk.PrepareProposalHandler
 	nextProcess    sdk.ProcessProposalHandler
+	nextPreblock   sdk.PreBlocker
 }
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
-	cfg *abci.Config,
-	builderService *builder.Service,
-	chainService *blockchain.Service,
+	cfg *Config,
+	builderService BuilderService,
+	chainService BlockchainService,
 	nextPrepare sdk.PrepareProposalHandler,
 	nextProcess sdk.ProcessProposalHandler,
+	nextPreblock sdk.PreBlocker,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
@@ -63,6 +84,7 @@ func NewHandler(
 		chainService:   chainService,
 		nextPrepare:    nextPrepare,
 		nextProcess:    nextProcess,
+		nextPreblock:   nextPreblock,
 	}
 }
 
