@@ -256,18 +256,20 @@ func (s *Service) getPayloadAttribute(
 	)
 
 	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals(
-		s.BeaconCfg().MaxWithdrawalsPerPayload,
-	)
-	if err != nil {
-		s.Logger().Error(
-			"Could not get expected withdrawals to get payload attribute", "error", err)
-		return nil, err
-	}
-
+	// withdrawals, err := st.ExpectedWithdrawals(
+	// 	s.BeaconCfg().MaxWithdrawalsPerPayload,
+	// )
+	// if err != nil {
+	// 	s.Logger().Error(
+	// 		"Could not get expected withdrawals to get payload attribute", "error",
+	// err)
+	// 	return nil, err
+	// }
+	withdrawals := make([]*primitives.Withdrawal, 0)
 	epoch := s.BeaconCfg().SlotToEpoch(slot)
 
 	// Get the previous randao mix.
+	var err error
 	prevRandao, err = st.GetRandaoMixAtIndex(
 		uint64(epoch) % s.BeaconCfg().EpochsPerHistoricalVector,
 	)

@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 )
 
@@ -84,8 +83,8 @@ func (s *BaseService) AvailabilityStore(
 }
 
 // BeaconState returns the beacon state from the BaseService.
-func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
-	return s.bsb.BeaconState(ctx)
+func (s *BaseService) BeaconStore() core.BeaconStore {
+	return s.bsb.BeaconStore()
 }
 
 // BeaconCfg returns the configuration settings of the beacon node from

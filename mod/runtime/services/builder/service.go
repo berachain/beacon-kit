@@ -168,15 +168,16 @@ func (s *Service) RequestBestBlock(
 	}
 	body.SetBlobKzgCommitments(commitments)
 
-	// Dequeue deposits from the state.
-	deposits, err := st.ExpectedDeposits(
-		s.BeaconCfg().MaxDepositsPerBlock,
-	)
-	if err != nil {
-		return nil, nil, err
-	}
+	// // Dequeue deposits from the state.
+	// deposits, err := st.ExpectedDeposits(
+	// 	s.BeaconCfg().MaxDepositsPerBlock,
+	// )
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
 
 	// Set the deposits on the block body.
+	deposits := make([]*beacontypes.Deposit, 0)
 	body.SetDeposits(deposits)
 
 	// if err = b

@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -68,7 +67,7 @@ func (s *Service) ProcessBlockEvents(
 // processDepositLog adds a deposit to the queue.
 func (s *Service) processDepositLog(
 	_ context.Context,
-	st state.BeaconState,
+	_ state.BeaconState,
 	log coretypes.Log,
 ) error {
 	d := &abi.BeaconDepositContractDeposit{}
@@ -79,14 +78,14 @@ func (s *Service) processDepositLog(
 	s.Logger().Info(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
-
-	return st.EnqueueDeposits([]*beacontypes.Deposit{{
-		Index:       d.Index,
-		Pubkey:      primitives.BLSPubkey(d.Pubkey),
-		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
-		Amount:      primitives.Gwei(d.Amount),
-		Signature:   primitives.BLSSignature(d.Signature),
-	}})
+	return nil
+	// return st.EnqueueDeposits([]*beacontypes.Deposit{{
+	// 	Index:       d.Index,
+	// 	Pubkey:      primitives.BLSPubkey(d.Pubkey),
+	// 	Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
+	// 	Amount:      primitives.Gwei(d.Amount),
+	// 	Signature:   primitives.BLSSignature(d.Signature),
+	// }})
 }
 
 // processWithdrawalLog adds a withdrawal to the queue.
@@ -101,12 +100,12 @@ func (s *Service) processWithdrawalLog(
 	}
 
 	// Get the validator index from the pubkey.
-	valIdx, err := st.ValidatorIndexByPubkey(w.FromPubkey)
+	_, err := st.ValidatorIndexByPubkey(w.FromPubkey)
 	if err != nil {
 		return err
 	}
 
-	executionAddr, err := beacontypes.
+	_, err = beacontypes.
 		WithdrawalCredentials(w.Credentials).ToExecutionAddress()
 	if err != nil {
 		return err
@@ -115,11 +114,11 @@ func (s *Service) processWithdrawalLog(
 	s.Logger().Info(
 		"she said, \"see you later, boi\" 💅", "deposit", w.Index, "amount", w.Amount,
 	)
-
-	return st.EnqueueWithdrawals([]*primitives.Withdrawal{{
-		Index:     w.Index,
-		Validator: valIdx,
-		Address:   executionAddr,
-		Amount:    primitives.Gwei(w.Amount),
-	}})
+	return nil
+	// return st.EnqueueWithdrawals([]*primitives.Withdrawal{{
+	// 	Index:     w.Index,
+	// 	Validator: valIdx,
+	// 	Address:   executionAddr,
+	// 	Amount:    primitives.Gwei(w.Amount),
+	// }})
 }

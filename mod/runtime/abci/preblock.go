@@ -39,10 +39,15 @@ func (h *Handler) PreBlocker(
 	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 ) error {
 	logger := ctx.Logger().With("module", "pre-block")
-	st := h.chainService.BeaconState(ctx)
+	store := h.chainService.BeaconStore()
+	st, err := store.GetBeaconState(ctx)
+	if err != nil {
+		logger.Error("failed to get beacon state", "error", err)
+		return err
+	}
 
 	// Process the Slot.
-	if err := h.chainService.ProcessSlot(st); err != nil {
+	if err = h.chainService.ProcessSlot(st); err != nil {
 		logger.Error("failed to process slot", "error", err)
 		return err
 	}
@@ -82,13 +87,17 @@ func (h *Handler) PreBlocker(
 			"error",
 			err,
 		)
-		// TODO: Emit Evidence so that the validator can be slashed.
+		// Process the finalization of the beacon block.
+		return h.chainService.PostBlockProcess(ctx, st, blk)
 	} else {
 		// We only want to persist state changes if we successfully
 		// processed the block.
 		stCopy.Save()
+		st = stCopy
 	}
 
 	// Process the finalization of the beacon block.
-	return h.chainService.PostBlockProcess(ctx, st, blk)
+	err = h.chainService.PostBlockProcess(ctx, st, blk)
+	store.SetBeaconState(ctx, st)
+	return err
 }

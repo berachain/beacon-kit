@@ -68,9 +68,13 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.beaconStore.WithContext(ctx)
+	store := k.beaconStore
+	st, err := store.GetBeaconState(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
+	val, err := st.GetValidatorsByEffectiveBalance()
 	if err != nil {
 		panic(err)
 	}
@@ -79,19 +83,19 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	for _, validator := range val {
 		// TODO: Config
 		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
-			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey[:])
-			if err != nil {
-				return nil, err
-			}
-			if err = store.WithContext(ctx).
-				RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
+		// // TODO: this is kinda hood.
+		// if validator.EffectiveBalance == 0 {
+		// 	// var idx primitives.ValidatorIndex
+		// 	// idx, err = store.WithContext(ctx).
+		// 	// 	ValidatorIndexByPubkey(validator.Pubkey[:])
+		// 	// if err != nil {
+		// 	// 	return nil, err
+		// 	// }
+		// 	// if err = store.WithContext(ctx).
+		// 	// 	RemoveValidatorAtIndex(idx); err != nil {
+		// 	// 	return nil, err
+		// 	// }
+		// }
 
 		// TODO: this works, but there is a bug where if we send a validator to
 		// 0 voting power, it can somehow still propose the next block? This
@@ -104,8 +108,6 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		})
 	}
 
-	// Save the store.
-	store.Save()
 	return validatorUpdates, nil
 }
 
@@ -116,12 +118,9 @@ func (k *Keeper) AvailabilityStore(
 	return k.availabilityStore
 }
 
-// BeaconState returns the beacon state struct initialized with a given
-// context and the store key.
-func (k *Keeper) BeaconState(
-	ctx context.Context,
-) state.BeaconState {
-	return k.beaconStore.WithContext(ctx)
+// BeaconStore returns the beacon store struct initialized with a given.
+func (k *Keeper) BeaconStore() core.BeaconStore {
+	return k.beaconStore
 }
 
 // InitGenesis initializes the genesis state of the module.
@@ -132,7 +131,8 @@ func (k *Keeper) InitGenesis(
 	data state.BeaconStateDeneb,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Set the genesis RANDAO mix.
-	st := k.BeaconState(ctx)
+	// st, _ := k.beaconStore.GetBeaconState(ctx)
+	st := state.DefaultBeaconStateDeneb()
 	for i, mix := range data.RandaoMixes {
 		if err := st.UpdateRandaoMixAtIndex(
 			//#nosec:G701 // will not cause a problem.
@@ -181,22 +181,22 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	if err = st.SetEth1DepositIndex(0); err != nil {
-		return nil, err
-	}
+	// if err = st.SetEth1DepositIndex(0); err != nil {
+	// 	return nil, err
+	// }
 
 	// TODO: don't need to set any validators here if we are setting in
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
 
-	store := k.beaconStore.WithContext(ctx)
+	// store := k.beaconStore.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for i, validator := range data.Validators {
-		if err = store.AddValidator(validator); err != nil {
+		if err = st.AddValidator(validator); err != nil {
 			return nil, err
 		}
 
-		if err = store.IncreaseBalance(
+		if err = st.IncreaseBalance(
 			primitives.ValidatorIndex(i), validator.EffectiveBalance,
 		); err != nil {
 			return nil, err
@@ -216,16 +216,17 @@ func (k *Keeper) InitGenesis(
 	// Set the genesis slashing data.
 	for i := range data.Slashings {
 		//#nosec:G701 // will not realistically cause a problem.
-		if err = store.UpdateSlashingAtIndex(uint64(i), 0); err != nil {
+		if err = st.UpdateSlashingAtIndex(uint64(i), 0); err != nil {
 			return nil, err
 		}
 	}
 
-	if err = store.SetGenesisValidatorsRoot(
+	if err = st.SetGenesisValidatorsRoot(
 		data.GenesisValidatorsRoot,
 	); err != nil {
 		return nil, err
 	}
+	k.beaconStore.SetBeaconState(ctx, st)
 	return validatorUpdates, nil
 }
 

@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -51,7 +52,7 @@ type BuilderService interface {
 
 type BlockchainService interface {
 	ProcessSlot(state.BeaconState) error
-	BeaconState(context.Context) state.BeaconState
+	BeaconStore() core.BeaconStore
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
@@ -114,10 +115,15 @@ func (h *Handler) PrepareProposalHandler(
 		}
 	}()
 
-	st := h.chainService.BeaconState(groupCtx)
+	store := h.chainService.BeaconStore()
+	st, err := store.GetBeaconState(ctx)
+	if err != nil {
+		logger.Error("failed to get beacon state", "error", err)
+		return &cmtabci.ResponsePrepareProposal{}, err
+	}
 
 	// Process the Slot to set the state root for the block.
-	if err := h.chainService.ProcessSlot(st); err != nil {
+	if err = h.chainService.ProcessSlot(st); err != nil {
 		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 

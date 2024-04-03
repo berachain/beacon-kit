@@ -48,6 +48,12 @@ type AvailabilityStore interface {
 	Persist(slot primitives.Slot, sc ...*datypes.BlobSidecar) error
 }
 
+// BeaconStore is the interface for the beacon store.
+type BeaconStore interface {
+	GetBeaconState(context.Context) (state.BeaconState, error)
+	SetBeaconState(context.Context, state.BeaconState) error
+}
+
 // BlobsProcessor is the interface for the blobs processor.
 type BlobsProcessor interface {
 	ProcessBlobs(

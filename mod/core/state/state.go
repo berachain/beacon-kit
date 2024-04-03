@@ -26,8 +26,6 @@
 package state
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -37,7 +35,6 @@ import (
 type BeaconState interface {
 	Copy() BeaconState
 	Save()
-	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
 	ReadOnlyBeaconState
 	WriteOnlyBeaconState
@@ -45,15 +42,16 @@ type BeaconState interface {
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	ReadOnlyDeposits
+	// ReadOnlyDeposits
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
-	ReadOnlyWithdrawals
+	// ReadOnlyWithdrawals
 
 	GetSlot() (primitives.Slot, error)
 	GetCurrentEpoch(uint64) (primitives.Epoch, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
+	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
@@ -64,11 +62,11 @@ type ReadOnlyBeaconState interface {
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
-	WriteOnlyDeposits
+	// WriteOnlyDeposits
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
-	WriteOnlyWithdrawals
+	// WriteOnlyWithdrawals
 	SetSlot(primitives.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error

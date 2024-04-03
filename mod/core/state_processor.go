@@ -26,8 +26,6 @@
 package core
 
 import (
-	"fmt"
-
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
@@ -254,43 +252,43 @@ func (sp *StateProcessor) processOperations(
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor) processDeposits(
-	st state.BeaconState,
-	deposits []*types.Deposit,
+	_ state.BeaconState,
+	_ []*types.Deposit,
 ) error {
-	// Dequeue and verify the logs.
-	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
-	if err != nil {
-		return err
-	}
+	// // Dequeue and verify the logs.
+	// localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
+	// if err != nil {
+	// 	return err
+	// }
 
-	// Ensure the deposits match the local state.
-	for i, dep := range deposits {
-		if dep.Index != localDeposits[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				localDeposits[i].Index, dep.Index)
-		}
+	// // Ensure the deposits match the local state.
+	// for i, dep := range deposits {
+	// 	if dep.Index != localDeposits[i].Index {
+	// 		return fmt.Errorf(
+	// 			"deposit index does not match, expected: %d, got: %d",
+	// 			localDeposits[i].Index, dep.Index)
+	// 	}
 
-		var depIdx uint64
-		depIdx, err = st.GetEth1DepositIndex()
-		if err != nil {
-			return err
-		}
+	// 	var depIdx uint64
+	// 	depIdx, err = st.GetEth1DepositIndex()
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		// TODO: this is bad but safe.
-		if dep.Index != depIdx {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				depIdx, dep.Index)
-		}
+	// 	// TODO: this is bad but safe.
+	// 	if dep.Index != depIdx {
+	// 		return fmt.Errorf(
+	// 			"deposit index does not match, expected: %d, got: %d",
+	// 			depIdx, dep.Index)
+	// 	}
 
-		// TODO: this is a shitty spot for this.
-		// TODO: deprecate using this.
-		if err = st.SetEth1DepositIndex(depIdx + 1); err != nil {
-			return err
-		}
-		sp.processDeposit(st, dep)
-	}
+	// 	// TODO: this is a shitty spot for this.
+	// 	// TODO: deprecate using this.
+	// 	if err = st.SetEth1DepositIndex(depIdx + 1); err != nil {
+	// 		return err
+	// 	}
+	// 	sp.processDeposit(st, dep)
+	// }
 	return nil
 }
 
@@ -334,40 +332,40 @@ func (sp *StateProcessor) processDeposit(
 // processWithdrawals processes the withdrawals and ensures they match the
 // local state.
 func (sp *StateProcessor) processWithdrawals(
-	st state.BeaconState,
-	withdrawals []*primitives.Withdrawal,
+	_ state.BeaconState,
+	_ []*primitives.Withdrawal,
 ) error {
-	// Dequeue and verify the withdrawals.
-	localWithdrawals, err := st.DequeueWithdrawals(uint64(len(withdrawals)))
-	if err != nil {
-		return err
-	}
+	// // Dequeue and verify the withdrawals.
+	// localWithdrawals, err := st.DequeueWithdrawals(uint64(len(withdrawals)))
+	// if err != nil {
+	// 	return err
+	// }
 
-	// Ensure the deposits match the local state.
-	for i, wd := range withdrawals {
-		if wd == nil {
-			return types.ErrNilWithdrawal
-		}
-		if wd.Index != localWithdrawals[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				localWithdrawals[i].Index, wd.Index)
-		}
+	// // Ensure the deposits match the local state.
+	// for i, wd := range withdrawals {
+	// 	if wd == nil {
+	// 		return types.ErrNilWithdrawal
+	// 	}
+	// 	if wd.Index != localWithdrawals[i].Index {
+	// 		return fmt.Errorf(
+	// 			"deposit index does not match, expected: %d, got: %d",
+	// 			localWithdrawals[i].Index, wd.Index)
+	// 	}
 
-		var val *types.Validator
-		val, err = st.ValidatorByIndex(wd.Validator)
-		if err != nil {
-			continue
-		}
+	// 	var val *types.Validator
+	// 	val, err = st.ValidatorByIndex(wd.Validator)
+	// 	if err != nil {
+	// 		continue
+	// 	}
 
-		// TODO: Modify balance here and then effective balance once per epoch.
-		val.EffectiveBalance -= min(
-			val.EffectiveBalance, wd.Amount,
-		)
-		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
-			return err
-		}
-	}
+	// 	// TODO: Modify balance here and then effective balance once per epoch.
+	// 	val.EffectiveBalance -= min(
+	// 		val.EffectiveBalance, wd.Amount,
+	// 	)
+	// 	if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
+	// 		return err
+	// 	}
+	// }
 	return nil
 }
 

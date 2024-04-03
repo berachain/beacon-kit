@@ -26,6 +26,9 @@
 package state
 
 import (
+	"errors"
+	"sort"
+
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common"
@@ -101,9 +104,248 @@ type BeaconStateDeneb struct {
 	TotalSlashing uint64   `json:"totalSlashing"`
 }
 
+// Copy returns a deep copy of BeaconStateDeneb.
+func (s *BeaconStateDeneb) Copy() BeaconState {
+	return &BeaconStateDeneb{
+		GenesisValidatorsRoot: s.GenesisValidatorsRoot,
+		Slot:                  s.Slot,
+		LatestBlockHeader:     s.LatestBlockHeader.Copy(),
+		BlockRoots:            append([][32]byte{}, s.BlockRoots...),
+		StateRoots:            append([][32]byte{}, s.StateRoots...),
+		Eth1BlockHash:         s.Eth1BlockHash,
+		Eth1DepositIndex:      s.Eth1DepositIndex,
+		Validators:            append([]*types.Validator{}, s.Validators...),
+		Balances:              append([]uint64{}, s.Balances...),
+		RandaoMixes:           append([][32]byte{}, s.RandaoMixes...),
+		Slashings:             append([]uint64{}, s.Slashings...),
+		TotalSlashing:         s.TotalSlashing,
+	}
+}
+
+func (s *BeaconStateDeneb) Save() {
+}
+
 // String returns a string representation of BeaconStateDeneb.
-func (b *BeaconStateDeneb) String() string {
+func (s *BeaconStateDeneb) String() string {
 	return "TODO: BeaconStateDeneb"
+}
+
+// IncreaseBalance increases the balance of a validator.
+func (s *BeaconStateDeneb) IncreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	s.Balances[idx] += uint64(delta)
+	return nil
+}
+
+// DecreaseBalance decreases the balance of a validator.
+func (s *BeaconStateDeneb) DecreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	s.Balances[idx] -= uint64(delta)
+	return nil
+}
+
+func (s *BeaconStateDeneb) GetTotalActiveBalances(
+	slotsPerEpoch uint64,
+) (primitives.Gwei, error) {
+	epoch, err := s.GetCurrentEpoch(slotsPerEpoch)
+	if err != nil {
+		return 0, err
+	}
+
+	totalActiveBalances := primitives.Gwei(0)
+	for _, v := range s.Validators {
+		if v.IsActive(epoch) {
+			totalActiveBalances += v.EffectiveBalance
+		}
+	}
+	return totalActiveBalances, nil
+}
+
+func (s *BeaconStateDeneb) GetCurrentEpoch(
+	slotsPerEpoch uint64,
+) (primitives.Epoch, error) {
+	return primitives.Epoch(uint64(s.Slot) / slotsPerEpoch), nil
+}
+
+// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
+func (s *BeaconStateDeneb) UpdateBlockRootAtIndex(
+	index uint64,
+	root primitives.Root,
+) error {
+	s.BlockRoots[index] = root
+	return nil
+}
+
+// GetBlockRoot retrieves the block root from the BeaconStore.
+func (s *BeaconStateDeneb) GetBlockRootAtIndex(
+	index uint64,
+) (primitives.Root, error) {
+	return s.BlockRoots[index], nil
+}
+
+// SetLatestBlockHeader sets the latest block header in the BeaconStore.
+func (s *BeaconStateDeneb) SetLatestBlockHeader(
+	header *types.BeaconBlockHeader,
+) error {
+	s.LatestBlockHeader = header
+	return nil
+}
+
+// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
+func (s *BeaconStateDeneb) GetLatestBlockHeader() (*types.BeaconBlockHeader, error) {
+	return s.LatestBlockHeader, nil
+}
+
+// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
+func (s *BeaconStateDeneb) UpdateEth1BlockHash(
+	hash primitives.ExecutionHash,
+) error {
+	s.Eth1BlockHash = hash
+	return nil
+}
+
+// GetEth1BlockHash retrieves the Eth1 hash from the BeaconStore.
+func (s *BeaconStateDeneb) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+	return s.Eth1BlockHash, nil
+}
+
+func (s *BeaconStateDeneb) UpdateRandaoMixAtIndex(
+	index uint64,
+	mix primitives.Bytes32,
+) error {
+	s.RandaoMixes[index] = mix
+	return nil
+}
+
+func (s *BeaconStateDeneb) GetRandaoMixAtIndex(
+	index uint64,
+) (primitives.Bytes32, error) {
+	return s.RandaoMixes[index], nil
+}
+
+// UpdateStateRootAtIndex sets the state root at the given slot.
+func (s *BeaconStateDeneb) UpdateStateRootAtIndex(
+	idx uint64,
+	stateRoot primitives.Root,
+) error {
+	s.StateRoots[idx] = stateRoot
+	return nil
+}
+
+// StateRootAtIndex returns the state root at the given slot.
+func (s *BeaconStateDeneb) StateRootAtIndex(
+	idx uint64,
+) (primitives.Root, error) {
+	return s.StateRoots[idx], nil
+}
+
+func (s *BeaconStateDeneb) UpdateSlashingAtIndex(
+	index uint64,
+	amount primitives.Gwei,
+) error {
+	total := s.TotalSlashing
+	oldValue := s.Slashings[index]
+	s.Slashings[index] += total - (oldValue) + uint64(amount)
+	return nil
+}
+
+func (s *BeaconStateDeneb) GetSlashingAtIndex(
+	index uint64,
+) (primitives.Gwei, error) {
+	return primitives.Gwei(s.Slashings[index]), nil
+}
+
+func (s *BeaconStateDeneb) GetTotalSlashing() (primitives.Gwei, error) {
+	return primitives.Gwei(s.TotalSlashing), nil
+}
+
+func (s *BeaconStateDeneb) SetTotalSlashing(amount primitives.Gwei) error {
+	s.TotalSlashing = uint64(amount)
+	return nil
+}
+
+func (s *BeaconStateDeneb) GetSlot() (primitives.Slot, error) {
+	return s.Slot, nil
+}
+
+func (s *BeaconStateDeneb) SetSlot(slot primitives.Slot) error {
+	s.Slot = slot
+	return nil
+}
+
+func (s *BeaconStateDeneb) SetGenesisValidatorsRoot(
+	root primitives.Root,
+) error {
+	s.GenesisValidatorsRoot = root
+	return nil
+}
+
+func (s *BeaconStateDeneb) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	return s.GenesisValidatorsRoot, nil
+}
+
+func (s *BeaconStateDeneb) AddValidator(val *types.Validator) error {
+	// Ensure the validator does not already exist
+	for _, v := range s.Validators {
+		if v.Pubkey == val.Pubkey {
+			return errors.New("validator already exists")
+		}
+	}
+
+	// Append the new validator to the list of validators
+	s.Validators = append(s.Validators, val)
+
+	// Update the total balance with the validator's balance
+	s.Balances = append(s.Balances, uint64(val.EffectiveBalance))
+	return nil
+}
+
+func (s *BeaconStateDeneb) ValidatorByIndex(
+	index primitives.ValidatorIndex,
+) (*types.Validator, error) {
+	return s.Validators[index], nil
+}
+
+func (s *BeaconStateDeneb) UpdateValidatorAtIndex(
+	index primitives.ValidatorIndex,
+	val *types.Validator,
+) error {
+	s.Validators[index] = val
+	return nil
+}
+
+func (s *BeaconStateDeneb) RemoveValidatorAtIndex(
+	idx primitives.ValidatorIndex,
+) error {
+	return nil
+}
+
+func (s *BeaconStateDeneb) ValidatorIndexByPubkey(
+	pubkey []byte,
+) (primitives.ValidatorIndex, error) {
+	for i, v := range s.Validators {
+		if v.Pubkey == [48]byte(pubkey) {
+			return primitives.ValidatorIndex(i), nil
+		}
+	}
+	return 0, errors.New("validator not found")
+}
+
+func (s *BeaconStateDeneb) GetValidators() ([]*types.Validator, error) {
+	return s.Validators, nil
+}
+
+func (s *BeaconStateDeneb) GetValidatorsByEffectiveBalance() ([]*types.Validator, error) {
+	validatorsCopy := make([]*types.Validator, len(s.Validators))
+	copy(validatorsCopy, s.Validators)
+	sort.Slice(validatorsCopy, func(i, j int) bool {
+		return validatorsCopy[i].EffectiveBalance > validatorsCopy[j].EffectiveBalance
+	})
+	return validatorsCopy, nil
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal

@@ -37,4 +37,5 @@ import (
 type BeaconStorageBackend interface {
 	AvailabilityStore(ctx context.Context) core.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState
+	BeaconStore() core.BeaconStore
 }

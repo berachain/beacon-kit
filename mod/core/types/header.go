@@ -42,6 +42,16 @@ type BeaconBlockHeader struct {
 	BodyRoot      primitives.Root           `json:"bodyRoot"      ssz-size:"32"`
 }
 
+func (h *BeaconBlockHeader) Copy() *BeaconBlockHeader {
+	return &BeaconBlockHeader{
+		Slot:          h.Slot,
+		ProposerIndex: h.ProposerIndex,
+		ParentRoot:    h.ParentRoot,
+		StateRoot:     h.StateRoot,
+		BodyRoot:      h.BodyRoot,
+	}
+}
+
 // String returns a string representation of the beacon block header.
 func (h *BeaconBlockHeader) String() string {
 	//#nosec:G703 // ignore potential marshalling failure.
