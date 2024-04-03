@@ -300,7 +300,7 @@ func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
 	dep *types.Deposit,
 ) {
-	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey[:])
+	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
 	if err == nil {
 		var val *types.Validator
@@ -386,7 +386,7 @@ func (sp *StateProcessor) addValidatorToRegistry(
 		return err
 	}
 
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey[:])
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
 	if err != nil {
 		return err
 	}
@@ -562,7 +562,7 @@ func (sp *StateProcessor) processSlash(
 	penalty := penaltyNumerator / totalBalance * increment
 
 	// Get the val index and decrease the balance of the validator.
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey[:])
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
 	if err != nil {
 		return err
 	}

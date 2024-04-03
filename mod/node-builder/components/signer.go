@@ -29,7 +29,7 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	bls12_381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -48,7 +48,7 @@ type BlsSignerInput struct {
 type BlsSignerOutput struct {
 	depinject.Out
 
-	BlsSigner *bls12_381.Signer
+	BlsSigner *signer.BLSSigner
 }
 
 func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
@@ -72,12 +72,12 @@ func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
 // TODO: In order to make RANDAO signing compatible with the BLS12-381
 // we need to extend the PrivVal interface to allow signing arbitrary things.
 // @tac0turtle.
-func NewSignerFromFile(filePath string) (*bls12_381.Signer, error) {
+func NewSignerFromFile(filePath string) (*signer.BLSSigner, error) {
 	key, err := p2p.LoadNodeKey(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	return bls12_381.NewSigner(
+	return signer.NewBLSSigner(
 		[constants.BLSSecretKeyLength]byte(key.PrivKey.Bytes()))
 }

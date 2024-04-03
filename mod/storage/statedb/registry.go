@@ -67,11 +67,11 @@ func (s *StateDB) RemoveValidatorAtIndex(
 
 // ValidatorPubKeyByIndex returns the validator address by index.
 func (s *StateDB) ValidatorIndexByPubkey(
-	pubkey []byte,
+	pubkey primitives.BLSPubkey,
 ) (primitives.ValidatorIndex, error) {
 	idx, err := s.validators.Indexes.Pubkey.MatchExact(
 		s.ctx,
-		pubkey,
+		pubkey[:],
 	)
 	if err != nil {
 		return 0, err

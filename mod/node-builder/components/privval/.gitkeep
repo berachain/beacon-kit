@@ -1,3 +1,0 @@
-# This folder will contain a signer that uses privval
-once https://github.com/cometbft/cometbft/pull/2692
-is merged.

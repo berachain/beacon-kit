@@ -23,30 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package crypto
+package signer
 
 import (
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/itsdevbear/comet-bls12-381/bls"
+	bls "github.com/itsdevbear/comet-bls12-381/bls"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// Signer defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type Signer[Signature any] interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() bls.PubKey
-
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign(msg []byte) Signature
+// BLSSigner holds the secret key used for signing operations.
+type BLSSigner struct {
+	bls.SecretKey
 }
 
-// NewBLS12381Signer creates a new BLS12-381 signer instance given a secret key.
-func NewBLS12381Signer(
-	secretKey [constants.BLSSecretKeyLength]byte,
-) (Signer[primitives.BLSSignature], error) {
-	return bls12381.NewSigner(secretKey)
+// NewBLSSigner creates a new Signer instance given a secret key.
+func NewBLSSigner(
+	keyBz [constants.BLSSecretKeyLength]byte,
+) (*BLSSigner, error) {
+	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
+	if err != nil {
+		return nil, err
+	}
+	return &BLSSigner{
+		SecretKey: secretKey,
+	}, nil
+}
+
+// PublicKey returns the public key of the signer.
+func (b *BLSSigner) PublicKey() primitives.BLSPubkey {
+	return primitives.BLSPubkey(b.SecretKey.PublicKey().Marshal())
+}
+
+// Sign generates a signature for a given message using the signer's secret key.
+// It returns the signature and any error encountered during the signing
+// process.
+func (b *BLSSigner) Sign(msg []byte) (primitives.BLSSignature, error) {
+	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }
