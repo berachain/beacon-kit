@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/bytes"
@@ -50,7 +51,7 @@ func TestDeposits(t *testing.T) {
 	kvs := sdkruntime.NewKVStoreService(storeKey)
 	env := sdkruntime.NewEnvironment(kvs, logger)
 
-	beaconStore := beaconstore.NewStore(env)
+	beaconStore := beaconstore.NewStore(env, &params.BeaconChainConfig{})
 	beaconStore = beaconStore.WithContext(ctx)
 	t.Run("should work with deposit", func(t *testing.T) {
 		cred := []byte("12345678901234567890123456789012")

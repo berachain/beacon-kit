@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
@@ -52,10 +53,11 @@ type Keeper struct {
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
+	cfg *params.BeaconChainConfig,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(fdb),
-		beaconStore:       beaconstore.NewStore(env),
+		beaconStore:       beaconstore.NewStore(env, cfg),
 	}
 }
 

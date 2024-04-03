@@ -23,36 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package keys
 
-import (
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+// Collection prefixes.
+const (
+	DepositQueuePrefix                     = "deposit_queue"
+	WithdrawalQueuePrefix                  = "withdrawal_queue"
+	RandaoMixPrefix                        = "randao_mix"
+	SlashingsPrefix                        = "slashings"
+	TotalSlashingPrefix                    = "total_slashing"
+	ValidatorIndexPrefix                   = "val_idx"
+	BlockRootsPrefix                       = "block_roots"
+	StateRootsPrefix                       = "state_roots"
+	ValidatorByIndexPrefix                 = "val_idx_to_pk"
+	ValidatorPubkeyToIndexPrefix           = "val_pk_to_idx"
+	ValidatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
+	ValidatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
+	LatestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
+	SlotPrefix                             = "slot"
+	BalancesPrefix                         = "balances"
+	Eth1BlockHashPrefix                    = "eth1_block_hash"
+	Eth1DepositIndexPrefix                 = "eth1_deposit_index"
+	GenesisValidatorsRootPrefix            = "genesis_validators_root"
 )
-
-// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (s *Store) UpdateBlockRootAtIndex(
-	index uint64,
-	root primitives.Root,
-) error {
-	return s.blockRoots.Set(s.ctx, index, root)
-}
-
-// GetBlockRoot retrieves the block root from the BeaconStore.
-func (s *Store) GetBlockRootAtIndex(
-	index uint64,
-) (primitives.Root, error) {
-	return s.blockRoots.Get(s.ctx, index)
-}
-
-// SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (s *Store) SetLatestBlockHeader(
-	header *beacontypes.BeaconBlockHeader,
-) error {
-	return s.latestBeaconBlockHeader.Set(s.ctx, header)
-}
-
-// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
-	return s.latestBeaconBlockHeader.Get(s.ctx)
-}

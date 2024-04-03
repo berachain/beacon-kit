@@ -113,6 +113,7 @@ func NewBeaconKitApp(
 				logger,
 				// supply the beaconConfig
 				beaconCfg,
+				&(beaconCfg.Beacon),
 			),
 		),
 		&appBuilder,

@@ -33,6 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/beacond/store/beacon/collections"
 	"github.com/berachain/beacon-kit/beacond/store/beacon/collections/encoding"
 	"github.com/berachain/beacon-kit/beacond/store/beacon/index"
+	"github.com/berachain/beacon-kit/beacond/store/beacon/keys"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -44,6 +46,7 @@ import (
 type Store struct {
 	ctx   context.Context
 	write func()
+	cfg   *params.BeaconChainConfig
 
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
@@ -99,105 +102,107 @@ type Store struct {
 //nolint:funlen // its not overly complex.
 func NewStore(
 	env appmodule.Environment,
+	cfg *params.BeaconChainConfig,
 ) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
 	return &Store{
 		ctx: nil,
+		cfg: cfg,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(genesisValidatorsRootPrefix),
-			genesisValidatorsRootPrefix,
+			sdkcollections.NewPrefix(keys.GenesisValidatorsRootPrefix),
+			keys.GenesisValidatorsRootPrefix,
 			encoding.Bytes32ValueCodec{},
 		),
 		slot: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(slotPrefix),
-			slotPrefix,
+			sdkcollections.NewPrefix(keys.SlotPrefix),
+			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(blockRootsPrefix),
-			blockRootsPrefix,
+			sdkcollections.NewPrefix(keys.BlockRootsPrefix),
+			keys.BlockRootsPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
 		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(stateRootsPrefix),
-			stateRootsPrefix,
+			sdkcollections.NewPrefix(keys.StateRootsPrefix),
+			keys.StateRootsPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
 		eth1BlockHash: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(eth1BlockHashPrefix),
-			eth1BlockHashPrefix,
+			sdkcollections.NewPrefix(keys.Eth1BlockHashPrefix),
+			keys.Eth1BlockHashPrefix,
 			encoding.Bytes32ValueCodec{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(eth1DepositIndexPrefix),
-			eth1DepositIndexPrefix,
+			sdkcollections.NewPrefix(keys.Eth1DepositIndexPrefix),
+			keys.Eth1DepositIndexPrefix,
 			sdkcollections.Uint64Value,
 		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,
-			sdkcollections.NewPrefix(validatorIndexPrefix),
-			validatorIndexPrefix,
+			sdkcollections.NewPrefix(keys.ValidatorIndexPrefix),
+			keys.ValidatorIndexPrefix,
 		),
 		validators: sdkcollections.NewIndexedMap[
 			uint64, *beacontypes.Validator,
 		](
 			schemaBuilder,
-			sdkcollections.NewPrefix(validatorByIndexPrefix),
-			validatorByIndexPrefix,
+			sdkcollections.NewPrefix(keys.ValidatorByIndexPrefix),
+			keys.ValidatorByIndexPrefix,
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[*beacontypes.Validator]{},
 			index.NewValidatorsIndex(schemaBuilder),
 		),
 		balances: sdkcollections.NewMap[uint64, uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(balancesPrefix),
-			balancesPrefix,
+			sdkcollections.NewPrefix(keys.BalancesPrefix),
+			keys.BalancesPrefix,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
 		depositQueue: collections.NewQueue[*beacontypes.Deposit](
 			schemaBuilder,
-			depositQueuePrefix,
+			keys.DepositQueuePrefix,
 			encoding.SSZValueCodec[*beacontypes.Deposit]{},
 		),
 		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
 			schemaBuilder,
-			withdrawalQueuePrefix,
+			keys.WithdrawalQueuePrefix,
 			encoding.SSZValueCodec[*primitives.Withdrawal]{},
 		),
 		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(randaoMixPrefix),
-			randaoMixPrefix,
+			sdkcollections.NewPrefix(keys.RandaoMixPrefix),
+			keys.RandaoMixPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
 		slashings: sdkcollections.NewMap[uint64, uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(slashingsPrefix),
-			slashingsPrefix,
+			sdkcollections.NewPrefix(keys.SlashingsPrefix),
+			keys.SlashingsPrefix,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
 		totalSlashing: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(totalSlashingPrefix),
-			totalSlashingPrefix,
+			sdkcollections.NewPrefix(keys.TotalSlashingPrefix),
+			keys.TotalSlashingPrefix,
 			sdkcollections.Uint64Value,
 		),
 		//nolint:lll
 		latestBeaconBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
 			schemaBuilder,
-			sdkcollections.NewPrefix(latestBeaconBlockHeaderPrefix),
-			latestBeaconBlockHeaderPrefix,
+			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
+			keys.LatestBeaconBlockHeaderPrefix,
 			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
 		),
 	}

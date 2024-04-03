@@ -69,7 +69,7 @@ func (p *Processor) ProcessRandao(
 	blk beacontypes.BeaconBlock,
 ) error {
 	// proposer := blk.
-	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
+	epoch, err := st.GetCurrentEpoch()
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (p *Processor) BuildReveal(
 		return primitives.BLSSignature{}, err
 	}
 
-	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
+	epoch, err := st.GetCurrentEpoch()
 	if err != nil {
 		return primitives.BLSSignature{}, err
 	}
@@ -145,7 +145,7 @@ func (p *Processor) BuildReveal(
 // ProcessRandaoMixesReset resets the randao mixes.
 // process_randao_mixes_reset in the Ethereum 2.0 specification.
 func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
-	epoch, err := st.GetCurrentEpoch(p.cfg.Beacon.SlotsPerEpoch)
+	epoch, err := st.GetCurrentEpoch()
 	if err != nil {
 		return err
 	}

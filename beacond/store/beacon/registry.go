@@ -26,23 +26,10 @@
 package beacon
 
 import (
+	"cosmossdk.io/collections/indexes"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
-
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (s *Store) SetGenesisValidatorsRoot(
-	root primitives.Root,
-) error {
-	return s.genesisValidatorsRoot.Set(s.ctx, root)
-}
-
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	return s.genesisValidatorsRoot.Get(s.ctx)
-}
 
 // AddValidator registers a new validator in the beacon state.
 func (s *Store) AddValidator(
@@ -160,4 +147,75 @@ func (s *Store) GetValidatorsByEffectiveBalance() (
 		vals = append(vals, v)
 	}
 	return vals, nil
+}
+
+// IncreaseBalance increases the balance of a validator.
+func (s *Store) IncreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	if err != nil {
+		return err
+	}
+	balance += uint64(delta)
+	return s.balances.Set(s.ctx, uint64(idx), balance)
+}
+
+// DecreaseBalance decreases the balance of a validator.
+func (s *Store) DecreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	if err != nil {
+		return err
+	}
+	balance -= min(balance, uint64(delta))
+	return s.balances.Set(s.ctx, uint64(idx), balance)
+}
+
+// GetBalances returns the balancse of all validator.
+func (s *Store) GetBalances() ([]uint64, error) {
+	var balances []uint64
+	iter, err := s.balances.Iterate(s.ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var balance uint64
+	for iter.Valid() {
+		balance, err = iter.Value()
+		if err != nil {
+			return nil, err
+		}
+		balances = append(balances, balance)
+		iter.Next()
+	}
+	return balances, nil
+}
+
+// GetTotalActiveBalances returns the total active balances of all validators.
+// TODO: unhood this and probably store this as just a value changed on writes.
+func (s *Store) GetTotalActiveBalances() (primitives.Gwei, error) {
+	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(s.ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	epoch, err := s.GetCurrentEpoch()
+	if err != nil {
+		return 0, err
+	}
+
+	totalActiveBalances := primitives.Gwei(0)
+	return totalActiveBalances, indexes.ScanValues(
+		s.ctx, s.validators, iter, func(v *beacontypes.Validator,
+		) bool {
+			if v.IsActive(epoch) {
+				totalActiveBalances += v.EffectiveBalance
+			}
+			return false
+		},
+	)
 }
