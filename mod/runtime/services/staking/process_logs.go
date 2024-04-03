@@ -101,7 +101,7 @@ func (s *Service) processWithdrawalLog(
 	}
 
 	// Get the validator index from the pubkey.
-	valIdx, err := st.ValidatorIndexByPubkey(w.FromPubkey)
+	valIdx, err := st.ValidatorIndexByPubkey(primitives.BLSPubkey(w.FromPubkey))
 	if err != nil {
 		return err
 	}

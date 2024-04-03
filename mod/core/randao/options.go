@@ -27,16 +27,15 @@ package randao
 
 import (
 	"cosmossdk.io/log"
-	crypto "github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 type Option func(*Processor) error
 
 // WithSigner sets the signer.
 func WithSigner(
-	signer crypto.Signer[primitives.BLSSignature],
+	signer core.BLSSigner,
 ) Option {
 	return func(p *Processor) error {
 		p.signer = signer

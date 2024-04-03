@@ -30,9 +30,8 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime"
 )
 
@@ -42,7 +41,7 @@ type RuntimeInjectInput struct {
 
 	BeaconCfg *config.Config
 	Logger    log.Logger
-	Signer    crypto.Signer[primitives.BLSSignature]
+	Signer    core.BLSSigner
 	Bsp       runtime.BeaconStorageBackend
 }
 

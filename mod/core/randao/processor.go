@@ -29,9 +29,9 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	crypto "github.com/berachain/beacon-kit/mod/crypto"
 	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
@@ -45,7 +45,7 @@ import (
 // Processor is the randao processor.
 type Processor struct {
 	cfg    *config.Config
-	signer crypto.Signer[primitives.BLSSignature]
+	signer core.BLSSigner
 	logger log.Logger
 }
 
