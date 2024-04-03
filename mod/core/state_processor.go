@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
@@ -320,47 +319,53 @@ func (sp *StateProcessor) processDeposit(
 		return
 	}
 	// If the validator does not exist, we add the validator.
-	var epoch primitives.Epoch
-	epoch, err = st.GetCurrentEpoch(sp.cfg.SlotsPerEpoch)
-	if err != nil {
-		return
+	// Add the validator to the registry.
+	if err = sp.createValidator(st, dep); err != nil {
+		sp.logger.Error("failed to create validator", "error", err)
 	}
+}
 
-	var genesisValidatorsRoot primitives.Root
+// createValidator creates a validator if the deposit is valid.
+func (sp *StateProcessor) createValidator(
+	st state.BeaconState,
+	dep *types.Deposit,
+) error {
+	var (
+		genesisValidatorsRoot primitives.Root
+		epoch                 primitives.Epoch
+		err                   error
+	)
+
+	// Get the genesis validators root to be used to find fork data later.
 	genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
 	if err != nil {
-		return
+		return err
 	}
 
+	// Get the current epoch.
+	epoch, err = st.GetCurrentEpoch(sp.cfg.SlotsPerEpoch)
+	if err != nil {
+		return err
+	}
+
+	// Get the fork data for the current epoch.
 	fd := forks.NewForkData(
 		version.FromUint32(
 			sp.cfg.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
-	var domain primitives.Domain
-	domain, err = fd.ComputeDomain(primitives.DomainTypeDeposit)
-	if err != nil {
-		return
+	depositMessage := types.DepositMessage{
+		Pubkey:      dep.Pubkey,
+		Credentials: dep.Credentials,
+		Amount:      dep.Amount,
 	}
-
-	var signingRoot primitives.Root
-	signingRoot, err = primitives.ComputeSigningRoot(dep, domain)
-	if err != nil {
-		return
-	}
-	if !bls12381.VerifySignature(
-		dep.Pubkey,
-		signingRoot[:],
-		dep.Signature,
-	) {
-		return
+	if err = depositMessage.VerifyCreateValidator(fd, dep.Signature); err != nil {
+		return err
 	}
 
 	// Add the validator to the registry.
-	if err = sp.addValidatorToRegistry(st, dep); err != nil {
-		sp.logger.Error("failed to add validator to registry", "error", err)
-	}
+	return sp.addValidatorToRegistry(st, dep)
 }
 
 // addValidatorToRegistry adds a validator to the registry.

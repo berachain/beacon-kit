@@ -28,6 +28,8 @@ package types
 import (
 	"encoding/json"
 
+	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 )
@@ -61,4 +63,42 @@ func (d *Deposit) String() string {
 	//#nosec:G703 // ignore potential marshalling failure.
 	output, _ := json.Marshal(d)
 	return string(output)
+}
+
+// DepositMessage as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
+//
+//nolint:lll
+type DepositMessage struct {
+	// Public key of the validator specified in the deposit.
+	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
+
+	// A staking credentials with
+	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+
+	// Deposit amount in gwei.
+	Amount primitives.Gwei `json:"amount"`
+}
+
+// VerifyDeposit verifies the deposit data when attempting to create a
+// new validator from a given deposit.
+func (d *DepositMessage) VerifyCreateValidator(
+	forkData *forks.ForkData,
+	signature primitives.BLSSignature,
+) error {
+	domain, err := forkData.ComputeDomain(primitives.DomainTypeDeposit)
+	if err != nil {
+		return err
+	}
+
+	signingRoot, err := primitives.ComputeSigningRoot(d, domain)
+	if err != nil {
+		return err
+	}
+
+	if !bls12381.VerifySignature(d.Pubkey, signingRoot[:], signature) {
+		return errors.New("deposit signature is invalid")
+	}
+	return nil
 }
