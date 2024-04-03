@@ -32,6 +32,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 )
@@ -78,7 +79,7 @@ func (s *BaseService) Logger() log.Logger {
 // AvailabilityStore returns the availability store from the BaseService.
 func (s *BaseService) AvailabilityStore(
 	ctx context.Context,
-) state.AvailabilityStore {
+) core.AvailabilityStore {
 	return s.bsb.AvailabilityStore(ctx)
 }
 

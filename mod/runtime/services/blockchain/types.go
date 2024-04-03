@@ -90,8 +90,3 @@ type StakingService interface {
 		blockHash primitives.ExecutionHash,
 	) error
 }
-
-type SyncService interface {
-	IsInitSync() bool
-	Status() error
-}

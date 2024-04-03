@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package config
+package abci
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
@@ -39,19 +39,16 @@ const (
 	defaultBlobSidecarsBlockPosition = 1
 )
 
-// ABCI conforms to the BeaconKitConfig interface.
-var _ BeaconKitConfig[ABCI] = ABCI{}
-
 // DefaultABCIConfig returns the default configuration for the proposal service.
-func DefaultABCIConfig() ABCI {
-	return ABCI{
+func DefaultABCIConfig() Config {
+	return Config{
 		BeaconBlockPosition:       defaultBeaconBlockPosition,
 		BlobSidecarsBlockPosition: defaultBlobSidecarsBlockPosition,
 	}
 }
 
 // ABCI is a configuration struct for the cosmos proposal handler.
-type ABCI struct {
+type Config struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
 	BeaconBlockPosition uint
@@ -62,7 +59,7 @@ type ABCI struct {
 }
 
 // Parse parses the configuration.
-func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
+func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
 	var err error
 	if c.BeaconBlockPosition, err = parser.GetUint(
 		flags.BeaconBlockPosition,
@@ -77,17 +74,4 @@ func (c ABCI) Parse(parser parser.AppOptionsParser) (*ABCI, error) {
 	}
 
 	return &c, nil
-}
-
-// Template returns the configuration template for the abci config.
-func (c ABCI) Template() string {
-	//nolint:lll
-	return `
-[beacon-kit.abci]
-# Position of the beacon block in the proposal
-beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
-
-# Position of the blob sidecars in the proposal
-blob-sidecars-block-proposal-position = {{.BeaconKit.ABCI.BlobSidecarsBlockPosition}}
-`
 }

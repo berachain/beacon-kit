@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
@@ -108,7 +109,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k *Keeper) AvailabilityStore(
 	_ context.Context,
-) state.AvailabilityStore {
+) core.AvailabilityStore {
 	return k.availabilityStore
 }
 
@@ -162,13 +163,7 @@ func (k *Keeper) InitGenesis(
 
 	// Set the genesis block header.
 	if err := st.SetLatestBlockHeader(
-		&beacontypes.BeaconBlockHeader{
-			Slot:          0,
-			ProposerIndex: 0,
-			ParentRoot:    [32]byte{},
-			StateRoot:     [32]byte{},
-			BodyRoot:      [32]byte{},
-		},
+		emptyHeader,
 	); err != nil {
 		return nil, err
 	}

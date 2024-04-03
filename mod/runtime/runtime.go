@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	stakingabi "github.com/berachain/beacon-kit/mod/abi"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
@@ -44,8 +43,7 @@ import (
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
-	"github.com/berachain/beacon-kit/mod/runtime/services/sync"
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -53,8 +51,8 @@ import (
 type BeaconKitRuntime struct {
 	cfg      *config.Config
 	logger   log.Logger
-	fscp     BeaconStorageBackend
 	services *service.Registry
+	fscp     BeaconStorageBackend
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -99,7 +97,7 @@ func NewDefaultBeaconKitRuntime(
 	engineClient.Start(context.Background())
 
 	// Extrac the staking ABI.
-	depositABI, err := stakingabi.BeaconDepositContractMetaData.GetAbi()
+	depositABI, err := abi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -141,13 +139,6 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithSigner(signer),
 	)
 
-	// Build the sync service.
-	syncService := service.New[sync.Service](
-		sync.WithBaseService(baseService.ShallowCopy("sync")),
-		sync.WithEngineClient(engineClient),
-		sync.WithConfig(sync.DefaultConfig()),
-	)
-
 	// Build the blockchain service.
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
@@ -163,7 +154,6 @@ func NewDefaultBeaconKitRuntime(
 				randaoProcessor,
 				logger,
 			)),
-		blockchain.WithSyncService(syncService),
 	)
 
 	// Build the service registry.
@@ -172,7 +162,6 @@ func NewDefaultBeaconKitRuntime(
 		service.WithService(builderService),
 		service.WithService(chainService),
 		service.WithService(stakingService),
-		service.WithService(syncService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
@@ -187,12 +176,6 @@ func NewDefaultBeaconKitRuntime(
 // StartServices starts the services.
 func (r *BeaconKitRuntime) StartServices(
 	ctx context.Context,
-	clientCtx client.Context,
 ) {
-	var syncService *sync.Service
-	if err := r.services.FetchService(&syncService); err != nil {
-		panic(err)
-	}
-	syncService.SetClientContext(clientCtx)
 	r.services.StartAll(ctx)
 }
