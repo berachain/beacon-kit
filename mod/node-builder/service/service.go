@@ -30,11 +30,11 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
 // BaseService is a base service that provides common functionality for all
@@ -96,7 +96,7 @@ func (s *BaseService) BeaconCfg() *params.BeaconChainConfig {
 
 // BuilderCfg returns the configuration settings of the builder from
 // the BaseService.
-func (s *BaseService) BuilderCfg() *builder.Config {
+func (s *BaseService) BuilderCfg() *builderconfig.Config {
 	return &s.cfg.Builder
 }
 

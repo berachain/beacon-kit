@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
 import (
 	"cosmossdk.io/collections/indexes"
@@ -32,7 +32,7 @@ import (
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (s *Store) AddValidator(
+func (s *StateDB) AddValidator(
 	val *beacontypes.Validator,
 ) error {
 	// Get the ne
@@ -51,7 +51,7 @@ func (s *Store) AddValidator(
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
-func (s *Store) UpdateValidatorAtIndex(
+func (s *StateDB) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
 	val *beacontypes.Validator,
 ) error {
@@ -59,14 +59,14 @@ func (s *Store) UpdateValidatorAtIndex(
 }
 
 // RemoveValidatorAtIndex removes a validator at a specified index.
-func (s *Store) RemoveValidatorAtIndex(
+func (s *StateDB) RemoveValidatorAtIndex(
 	idx primitives.ValidatorIndex,
 ) error {
 	return s.validators.Remove(s.ctx, uint64(idx))
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
-func (s *Store) ValidatorIndexByPubkey(
+func (s *StateDB) ValidatorIndexByPubkey(
 	pubkey []byte,
 ) (primitives.ValidatorIndex, error) {
 	idx, err := s.validators.Indexes.Pubkey.MatchExact(
@@ -80,7 +80,7 @@ func (s *Store) ValidatorIndexByPubkey(
 }
 
 // ValidatorByIndex returns the validator address by index.
-func (s *Store) ValidatorByIndex(
+func (s *StateDB) ValidatorByIndex(
 	index primitives.ValidatorIndex,
 ) (*beacontypes.Validator, error) {
 	val, err := s.validators.Get(s.ctx, uint64(index))
@@ -91,7 +91,7 @@ func (s *Store) ValidatorByIndex(
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (s *Store) GetValidators() (
+func (s *StateDB) GetValidators() (
 	[]*beacontypes.Validator, error,
 ) {
 	var (
@@ -118,7 +118,7 @@ func (s *Store) GetValidators() (
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (s *Store) GetValidatorsByEffectiveBalance() (
+func (s *StateDB) GetValidatorsByEffectiveBalance() (
 	[]*beacontypes.Validator, error,
 ) {
 	var (
@@ -150,7 +150,7 @@ func (s *Store) GetValidatorsByEffectiveBalance() (
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *Store) IncreaseBalance(
+func (s *StateDB) IncreaseBalance(
 	idx primitives.ValidatorIndex,
 	delta primitives.Gwei,
 ) error {
@@ -163,7 +163,7 @@ func (s *Store) IncreaseBalance(
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *Store) DecreaseBalance(
+func (s *StateDB) DecreaseBalance(
 	idx primitives.ValidatorIndex,
 	delta primitives.Gwei,
 ) error {
@@ -176,7 +176,7 @@ func (s *Store) DecreaseBalance(
 }
 
 // GetBalances returns the balancse of all validator.
-func (s *Store) GetBalances() ([]uint64, error) {
+func (s *StateDB) GetBalances() ([]uint64, error) {
 	var balances []uint64
 	iter, err := s.balances.Iterate(s.ctx, nil)
 	if err != nil {
@@ -197,18 +197,21 @@ func (s *Store) GetBalances() ([]uint64, error) {
 
 // GetTotalActiveBalances returns the total active balances of all validators.
 // TODO: unhood this and probably store this as just a value changed on writes.
-func (s *Store) GetTotalActiveBalances() (primitives.Gwei, error) {
+func (s *StateDB) GetTotalActiveBalances(
+	slotsPerEpoch uint64,
+) (primitives.Gwei, error) {
 	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(s.ctx, nil)
 	if err != nil {
 		return 0, err
 	}
 
-	epoch, err := s.GetCurrentEpoch()
+	slot, err := s.slot.Get(s.ctx)
 	if err != nil {
 		return 0, err
 	}
 
 	totalActiveBalances := primitives.Gwei(0)
+	epoch := primitives.Epoch(slot / slotsPerEpoch)
 	return totalActiveBalances, indexes.ScanValues(
 		s.ctx, s.validators, iter, func(v *beacontypes.Validator,
 		) bool {

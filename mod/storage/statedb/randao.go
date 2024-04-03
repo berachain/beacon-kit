@@ -23,30 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
-func (s *Store) UpdateEth1BlockHash(
-	hash primitives.ExecutionHash,
+// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
+func (s *StateDB) UpdateRandaoMixAtIndex(
+	index uint64,
+	mix primitives.Bytes32,
 ) error {
-	return s.eth1BlockHash.Set(s.ctx, hash)
+	return s.randaoMix.Set(s.ctx, index, mix)
 }
 
-// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
-func (s *Store) GetEth1BlockHash() (primitives.ExecutionHash, error) {
-	return s.eth1BlockHash.Get(s.ctx)
-}
-
-// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (s *Store) GetEth1DepositIndex() (uint64, error) {
-	return s.eth1DepositIndex.Get(s.ctx)
-}
-
-// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (s *Store) SetEth1DepositIndex(index uint64) error {
-	return s.eth1DepositIndex.Set(s.ctx, index)
+// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
+func (s *StateDB) GetRandaoMixAtIndex(
+	index uint64,
+) (primitives.Bytes32, error) {
+	return s.randaoMix.Get(s.ctx, index)
 }

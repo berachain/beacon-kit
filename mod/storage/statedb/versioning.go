@@ -23,21 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives"
 
-// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *Store) UpdateRandaoMixAtIndex(
-	index uint64,
-	mix primitives.Bytes32,
+// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// state.
+func (s *StateDB) SetGenesisValidatorsRoot(
+	root primitives.Root,
 ) error {
-	return s.randaoMix.Set(s.ctx, index, mix)
+	return s.genesisValidatorsRoot.Set(s.ctx, root)
 }
 
-// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *Store) GetRandaoMixAtIndex(index uint64) (primitives.Bytes32, error) {
-	return s.randaoMix.Get(s.ctx, index)
+// GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// beacon state.
+func (s *StateDB) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	return s.genesisValidatorsRoot.Get(s.ctx)
+}
+
+// GetSlot returns the current slot.
+func (s *StateDB) GetSlot() (primitives.Slot, error) {
+	slot, err := s.slot.Get(s.ctx)
+	return primitives.Slot(slot), err
+}
+
+// SetSlot sets the current slot.
+func (s *StateDB) SetSlot(slot primitives.Slot) error {
+	return s.slot.Set(s.ctx, uint64(slot))
 }

@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
 import (
 	"errors"
@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-func (s *Store) GetSlashings() ([]uint64, error) {
+func (s *StateDB) GetSlashings() ([]uint64, error) {
 	var slashings []uint64
 	iter, err := s.slashings.Iterate(s.ctx, nil)
 	if err != nil {
@@ -51,7 +51,7 @@ func (s *Store) GetSlashings() ([]uint64, error) {
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *Store) UpdateSlashingAtIndex(
+func (s *StateDB) UpdateSlashingAtIndex(
 	index uint64,
 	amount primitives.Gwei,
 ) error {
@@ -81,7 +81,7 @@ func (s *Store) UpdateSlashingAtIndex(
 }
 
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
-func (s *Store) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
+func (s *StateDB) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
 	amount, err := s.slashings.Get(s.ctx, index)
 	if err != nil {
 		return 0, err
@@ -90,7 +90,7 @@ func (s *Store) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
 }
 
 // TotalSlashing retrieves the total slashing amount from the store.
-func (s *Store) GetTotalSlashing() (primitives.Gwei, error) {
+func (s *StateDB) GetTotalSlashing() (primitives.Gwei, error) {
 	total, err := s.totalSlashing.Get(s.ctx)
 	if err != nil {
 		return 0, err
@@ -99,6 +99,6 @@ func (s *Store) GetTotalSlashing() (primitives.Gwei, error) {
 }
 
 // SetTotalSlashing sets the total slashing amount in the store.
-func (s *Store) SetTotalSlashing(amount primitives.Gwei) error {
+func (s *StateDB) SetTotalSlashing(amount primitives.Gwei) error {
 	return s.totalSlashing.Set(s.ctx, uint64(amount))
 }

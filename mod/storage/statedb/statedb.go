@@ -23,30 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
 import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/beacond/store/beacon/collections"
-	"github.com/berachain/beacon-kit/beacond/store/beacon/collections/encoding"
-	"github.com/berachain/beacon-kit/beacond/store/beacon/index"
-	"github.com/berachain/beacon-kit/beacond/store/beacon/keys"
-	"github.com/berachain/beacon-kit/mod/config/params"
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/collections"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/collections/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/index"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type Store struct {
+type StateDB struct {
 	ctx   context.Context
 	write func()
-	cfg   *params.BeaconChainConfig
 
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
@@ -54,8 +51,8 @@ type Store struct {
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 
-	// latestBeaconBlockHeader stores the latest beacon block header.
-	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
+	// latestBlockHeader stores the latest beacon block header.
+	latestBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
 
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
@@ -100,14 +97,12 @@ type Store struct {
 // Store creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
-func NewStore(
-	env appmodule.Environment,
-	cfg *params.BeaconChainConfig,
-) *Store {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
-	return &Store{
+func New(
+	kss store.KVStoreService,
+) *StateDB {
+	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
+	return &StateDB{
 		ctx: nil,
-		cfg: cfg,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.GenesisValidatorsRootPrefix),
@@ -198,8 +193,8 @@ func NewStore(
 			keys.TotalSlashingPrefix,
 			sdkcollections.Uint64Value,
 		),
-		//nolint:lll
-		latestBeaconBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
+
+		latestBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
 			keys.LatestBeaconBlockHeaderPrefix,
@@ -209,7 +204,7 @@ func NewStore(
 }
 
 // Copy returns a copy of the Store.
-func (s *Store) Copy() state.BeaconState {
+func (s *StateDB) Copy() *StateDB {
 	cctx, write := sdk.UnwrapSDKContext(s.ctx).CacheContext()
 	ss := s.WithContext(cctx)
 	ss.write = write
@@ -217,19 +212,19 @@ func (s *Store) Copy() state.BeaconState {
 }
 
 // Context returns the context of the Store.
-func (s *Store) Context() context.Context {
+func (s *StateDB) Context() context.Context {
 	return s.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (s *Store) WithContext(ctx context.Context) *Store {
+func (s *StateDB) WithContext(ctx context.Context) *StateDB {
 	cpy := *s
 	cpy.ctx = ctx
 	return &cpy
 }
 
 // Save saves the Store.
-func (s *Store) Save() {
+func (s *StateDB) Save() {
 	if s.write != nil {
 		s.write()
 	}

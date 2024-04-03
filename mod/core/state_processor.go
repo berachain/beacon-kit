@@ -397,12 +397,13 @@ func (sp *StateProcessor) processRandaoMixesReset(
 func (sp *StateProcessor) processSlashingsReset(
 	st state.BeaconState,
 ) error {
-	epoch, err := st.GetCurrentEpoch()
+	// Get the current epoch.
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
 
-	index := (uint64(epoch) + 1) % sp.cfg.EpochsPerSlashingsVector
+	index := (uint64(sp.cfg.SlotToEpoch(slot)) + 1) % sp.cfg.EpochsPerSlashingsVector
 	return st.UpdateSlashingAtIndex(index, 0)
 }
 
@@ -438,7 +439,7 @@ func (sp *StateProcessor) processAttesterSlashing(
 func (sp *StateProcessor) processSlashings(
 	st state.BeaconState,
 ) error {
-	totalBalance, err := st.GetTotalActiveBalances()
+	totalBalance, err := st.GetTotalActiveBalances(sp.cfg.SlotsPerEpoch)
 	if err != nil {
 		return err
 	}
@@ -457,8 +458,8 @@ func (sp *StateProcessor) processSlashings(
 		return err
 	}
 
-	// Get the current epoch
-	epoch, err := st.GetCurrentEpoch()
+	// Get the current slot.
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
@@ -467,7 +468,7 @@ func (sp *StateProcessor) processSlashings(
 	for _, val := range vals {
 		// Checks if the validator is slashable.
 		//nolint:gomnd // this is in the spec
-		slashableEpoch := (uint64(epoch) + sp.cfg.EpochsPerSlashingsVector) / 2
+		slashableEpoch := (uint64(sp.cfg.SlotToEpoch(slot)) + sp.cfg.EpochsPerSlashingsVector) / 2
 		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
 			if err = sp.processSlash(
