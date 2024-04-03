@@ -54,6 +54,8 @@ func Commands() *cobra.Command {
 }
 
 // NewValidateDeposit creates a new command for validating a deposit message.
+//
+//nolint:gomnd // lots of magic numbers
 func NewValidateDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
@@ -70,8 +72,9 @@ func NewValidateDeposit() *cobra.Command {
 	return cmd
 }
 
-// validateDepositMessage validates a deposit message for creating a new validator.
-func validateDepositMessage(cmd *cobra.Command, args []string) error {
+// validateDepositMessage validates a deposit message for creating a new
+// validator.
+func validateDepositMessage(_ *cobra.Command, args []string) error {
 	pubkey, err := ConvertPubkey(args[0])
 	if err != nil {
 		return err
@@ -117,6 +120,8 @@ func validateDepositMessage(cmd *cobra.Command, args []string) error {
 }
 
 // ConvertPubkey converts a string to a public key.
+//
+//nolint:gomnd // lots of magic numbers
 func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 	// Convert the public key to a BLSPubkey.
 	pubkeyBytes, err := hex.DecodeString(pubkey)
@@ -127,10 +132,12 @@ func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 		return primitives.BLSPubkey{}, ErrInvalidPubKeyLength
 	}
 
-	return primitives.BLSPubkey(pubkeyBytes[:]), nil
+	return primitives.BLSPubkey(pubkeyBytes), nil
 }
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
+//
+//nolint:gomnd // lots of magic numbers
 func ConvertWithdrawalCredentials(credentials string) (
 	types.WithdrawalCredentials,
 	error,
@@ -143,12 +150,12 @@ func ConvertWithdrawalCredentials(credentials string) (
 	if len(credentialsBytes) != 32 {
 		return types.WithdrawalCredentials{}, ErrInvalidWithdrawalCredentialsLength
 	}
-	var withdrawalCredentials types.WithdrawalCredentials
-	copy(withdrawalCredentials[:], credentialsBytes)
-	return withdrawalCredentials, nil
+	return types.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // ConvertAmount converts a string to a deposit amount.
+//
+//nolint:gomnd // lots of magic numbers
 func ConvertAmount(amount string) (primitives.Gwei, error) {
 	// Convert the amount to a Gwei.
 	amountBigInt, ok := new(big.Int).SetString(amount, 10)
@@ -159,6 +166,8 @@ func ConvertAmount(amount string) (primitives.Gwei, error) {
 }
 
 // ConvertSignature converts a string to a signature.
+//
+//nolint:gomnd // lots of magic numbers
 func ConvertSignature(signature string) (primitives.BLSSignature, error) {
 	// Convert the signature to a BLSSignature.
 	signatureBytes, err := hex.DecodeString(signature)
@@ -168,12 +177,12 @@ func ConvertSignature(signature string) (primitives.BLSSignature, error) {
 	if len(signatureBytes) != 96 {
 		return primitives.BLSSignature{}, ErrInvalidSignatureLength
 	}
-	var blsSignature primitives.BLSSignature
-	copy(blsSignature[:], signatureBytes)
-	return blsSignature, nil
+	return primitives.BLSSignature(signatureBytes), nil
 }
 
 // ConvertVersion converts a string to a version.
+//
+//nolint:gomnd // lots of magic numbers
 func ConvertVersion(version string) (primitives.Version, error) {
 	versionBytes, err := hex.DecodeString(version)
 	if err != nil {
@@ -182,12 +191,12 @@ func ConvertVersion(version string) (primitives.Version, error) {
 	if len(versionBytes) != 4 {
 		return primitives.Version{}, ErrInvalidVersionLength
 	}
-	var primitive primitives.Version
-	copy(primitive[:], versionBytes)
-	return primitive, nil
+	return primitives.Version(versionBytes), nil
 }
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
+//
+//nolint:gomnd // lots of magic numbers
 func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
 	rootBytes, err := hex.DecodeString(root)
 	if err != nil {
@@ -196,7 +205,5 @@ func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
 	if len(rootBytes) != 32 {
 		return primitives.Root{}, ErrInvalidRootLength
 	}
-	var primitive primitives.Root
-	copy(primitive[:], rootBytes)
-	return primitive, nil
+	return primitives.Root(rootBytes), nil
 }

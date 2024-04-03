@@ -343,7 +343,7 @@ func (sp *StateProcessor) createValidator(
 	}
 
 	// Get the current epoch.
-	epoch, err = st.GetCurrentEpoch(sp.cfg.SlotsPerEpoch)
+	epoch, err = st.GetCurrentEpoch()
 	if err != nil {
 		return err
 	}
