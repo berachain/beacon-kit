@@ -4,17 +4,17 @@ go 1.22.1
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240325184954-fae9fbd80a0a
-	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240325170708-c46688729fd9
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240325170708-c46688729fd9
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240325170708-c46688729fd9
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240325170708-c46688729fd9
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240325170708-c46688729fd9
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240325170708-c46688729fd9
-	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240325170708-c46688729fd9
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240325170708-c46688729fd9
+	cosmossdk.io/api => github.com/berachain/cosmos-sdk/api v0.4.2-0.20240403001043-d332d9f259c5
+	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240402142445-319e6e4f5e68
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240402142445-319e6e4f5e68
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240402142445-319e6e4f5e68
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240402142445-319e6e4f5e68
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240402142445-319e6e4f5e68
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240402142445-319e6e4f5e68
+	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240402142445-319e6e4f5e68
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240402142445-319e6e4f5e68
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240325184954-fae9fbd80a0a
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240403001043-d332d9f259c5
 
 )
 
@@ -43,7 +43,7 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.2.4
-	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240226135442-10e4707bd0ca
+	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f
 	github.com/kurtosis-tech/kurtosis/api/golang v0.88.12
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
@@ -355,7 +355,7 @@ require (
 	github.com/polyfloyd/go-errorlint v1.4.8 // indirect
 	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.6.0 // indirect
-	github.com/prometheus/common v0.50.0 // indirect
+	github.com/prometheus/common v0.51.1 // indirect
 	github.com/prometheus/procfs v0.13.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.2 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect

@@ -23,33 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
 import (
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-func (s *Store) UpdateLatestExecutionPayload(
-	payload enginetypes.ExecutionPayload,
+// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
+func (s *StateDB) UpdateBlockRootAtIndex(
+	index uint64,
+	root primitives.Root,
 ) error {
-	return s.latestExecutionPayload.Set(s.ctx, payload)
+	return s.blockRoots.Set(s.ctx, index, root)
 }
 
-func (s *Store) GetLatestExecutionPayload() (
-	enginetypes.ExecutionPayload, error,
+// GetBlockRoot retrieves the block root from the BeaconStore.
+func (s *StateDB) GetBlockRootAtIndex(
+	index uint64,
+) (primitives.Root, error) {
+	return s.blockRoots.Get(s.ctx, index)
+}
+
+// SetLatestBlockHeader sets the latest block header in the BeaconStore.
+func (s *StateDB) SetLatestBlockHeader(
+	header *beacontypes.BeaconBlockHeader,
+) error {
+	return s.latestBlockHeader.Set(s.ctx, header)
+}
+
+// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
+func (s *StateDB) GetLatestBlockHeader() (
+	*beacontypes.BeaconBlockHeader, error,
 ) {
-	return s.latestExecutionPayload.Get(s.ctx)
+	return s.latestBlockHeader.Get(s.ctx)
 }
 
-// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
-func (s *Store) UpdateEth1BlockHash(
-	hash primitives.ExecutionHash,
+// UpdateStateRootAtIndex updates the state root at the given slot.
+func (s *StateDB) UpdateStateRootAtIndex(
+	idx uint64,
+	stateRoot primitives.Root,
 ) error {
-	return s.eth1BlockHash.Set(s.ctx, hash)
+	return s.stateRoots.Set(s.ctx, idx, stateRoot)
 }
 
-// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
-func (s *Store) GetEth1BlockHash() (primitives.ExecutionHash, error) {
-	return s.eth1BlockHash.Get(s.ctx)
+// StateRootAtIndex returns the state root at the given slot.
+func (s *StateDB) StateRootAtIndex(idx uint64) (primitives.Root, error) {
+	return s.stateRoots.Get(s.ctx, idx)
 }

@@ -23,30 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bls12381
+package statedb
 
 import (
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// VerifySignature checks if a given signature is valid for a message and public
-// key.
-// It returns true if the signature is valid, otherwise it panics if an error
-// occurs during the verification process.
-func VerifySignature(
-	pubKey primitives.BLSPubkey,
-	msg []byte,
-	signature primitives.BLSSignature,
-) bool {
-	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
-	if err != nil {
-		return false
-	}
-	sig, err := blst.SignatureFromBytes(signature[:])
-	if err != nil {
-		return false
-	}
+func (s *Store) UpdateLatestExecutionPayload(
+	payload enginetypes.ExecutionPayload,
+) error {
+	return s.latestExecutionPayload.Set(s.ctx, payload)
+}
 
-	return sig.Verify(pubkey, msg)
+func (s *Store) GetLatestExecutionPayload() (
+	enginetypes.ExecutionPayload, error,
+) {
+	return s.latestExecutionPayload.Get(s.ctx)
+}
+
+// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
+func (s *StateDB) UpdateEth1BlockHash(
+	hash primitives.ExecutionHash,
+) error {
+	return s.eth1BlockHash.Set(s.ctx, hash)
+}
+
+// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
+func (s *StateDB) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+	return s.eth1BlockHash.Get(s.ctx)
+}
+
+// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+func (s *StateDB) GetEth1DepositIndex() (uint64, error) {
+	return s.eth1DepositIndex.Get(s.ctx)
+}
+
+// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
+func (s *StateDB) SetEth1DepositIndex(index uint64) error {
+	return s.eth1DepositIndex.Set(s.ctx, index)
 }

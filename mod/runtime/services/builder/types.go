@@ -32,7 +32,6 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
-	bls "github.com/itsdevbear/comet-bls12-381/bls"
 )
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
@@ -47,13 +46,9 @@ type RandaoProcessor interface {
 type PayloadBuilder interface {
 	GetBestPayload(
 		ctx context.Context,
+		st state.BeaconState,
 		slot primitives.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,
 	) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error)
-}
-
-// Signer is an interface for objects that can sign messages.
-type Signer interface {
-	PublicKey() bls.PubKey
 }

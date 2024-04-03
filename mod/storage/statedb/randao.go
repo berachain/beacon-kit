@@ -23,28 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
 
-// GetSlot returns the current slot.
-func (s *Store) GetSlot() (primitives.Slot, error) {
-	slot, err := s.slot.Get(s.ctx)
-	return primitives.Slot(slot), err
+// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
+func (s *StateDB) UpdateRandaoMixAtIndex(
+	index uint64,
+	mix primitives.Bytes32,
+) error {
+	return s.randaoMix.Set(s.ctx, index, mix)
 }
 
-// SetSlot sets the current slot.
-func (s *Store) SetSlot(slot primitives.Slot) error {
-	return s.slot.Set(s.ctx, uint64(slot))
-}
-
-// GetCurrentEpoch returns the current epoch.
-func (s *Store) GetCurrentEpoch(
-	slotsPerEpoch uint64,
-) (primitives.Epoch, error) {
-	slots, err := s.slot.Get(s.ctx)
-	if err != nil {
-		return 0, err
-	}
-	return primitives.Epoch(slots / slotsPerEpoch), nil
+// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
+func (s *StateDB) GetRandaoMixAtIndex(
+	index uint64,
+) (primitives.Bytes32, error) {
+	return s.randaoMix.Get(s.ctx, index)
 }

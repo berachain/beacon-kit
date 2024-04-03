@@ -93,7 +93,7 @@ func (pv *PayloadValidator) ValidatePayload(
 	}
 
 	// Get the current epoch.
-	epoch, err := st.GetCurrentEpoch(pv.cfg.SlotsPerEpoch)
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (pv *PayloadValidator) ValidatePayload(
 	// When we are validating a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % pv.cfg.EpochsPerHistoricalVector)
+		uint64(pv.cfg.SlotToEpoch(slot)) % pv.cfg.EpochsPerHistoricalVector)
 	if err != nil {
 		return err
 	}

@@ -27,6 +27,7 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
 	"github.com/prysmaticlabs/gohashtree"
@@ -62,21 +63,17 @@ const (
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
 func VerifyKZGInclusionProof(
-	root []byte,
+	root primitives.Root,
 	blob *datypes.BlobSidecar,
-	index uint64,
 ) error { // TODO: add wrapped type with inclusion proofs
-	if len(root) != RootLength {
-		return errInvalidBodyRoot
-	}
 	chunks := make([][32]byte, Two)
 	copy(chunks[0][:], blob.KzgCommitment)
 	copy(chunks[1][:], blob.KzgCommitment[RootLength:])
 	gohashtree.HashChunks(chunks, chunks)
 	verified := trie.VerifyMerkleProof(
-		root,
+		root[:],
 		chunks[0][:],
-		index+KZGOffset,
+		blob.Index+KZGOffset,
 		blob.InclusionProof,
 	)
 	if !verified {

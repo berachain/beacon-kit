@@ -23,21 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package signer
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	bls "github.com/itsdevbear/comet-bls12-381/bls"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *Store) UpdateRandaoMixAtIndex(
-	index uint64,
-	mix primitives.Bytes32,
-) error {
-	return s.randaoMix.Set(s.ctx, index, mix)
+// BLSSigner holds the secret key used for signing operations.
+type BLSSigner struct {
+	bls.SecretKey
 }
 
-// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *Store) GetRandaoMixAtIndex(index uint64) (primitives.Bytes32, error) {
-	return s.randaoMix.Get(s.ctx, index)
+// NewBLSSigner creates a new Signer instance given a secret key.
+func NewBLSSigner(
+	keyBz [constants.BLSSecretKeyLength]byte,
+) (*BLSSigner, error) {
+	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
+	if err != nil {
+		return nil, err
+	}
+	return &BLSSigner{
+		SecretKey: secretKey,
+	}, nil
+}
+
+// PublicKey returns the public key of the signer.
+func (b *BLSSigner) PublicKey() primitives.BLSPubkey {
+	return primitives.BLSPubkey(b.SecretKey.PublicKey().Marshal())
+}
+
+// Sign generates a signature for a given message using the signer's secret key.
+// It returns the signature and any error encountered during the signing
+// process.
+func (b *BLSSigner) Sign(msg []byte) (primitives.BLSSignature, error) {
+	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }

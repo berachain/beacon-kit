@@ -23,36 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package randao
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (s *Store) UpdateBlockRootAtIndex(
-	index uint64,
-	root primitives.Root,
-) error {
-	return s.blockRoots.Set(s.ctx, index, root)
-}
+// VerifySignature checks if a given signature is valid for a message and public
+// key.
+// It returns true if the signature is valid, otherwise it panics if an error
+// occurs during the verification process.
+func VerifySignature(
+	pubKey primitives.BLSPubkey,
+	msg []byte,
+	signature primitives.BLSSignature,
+) bool {
+	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
+	if err != nil {
+		return false
+	}
+	sig, err := blst.SignatureFromBytes(signature[:])
+	if err != nil {
+		return false
+	}
 
-// GetBlockRoot retrieves the block root from the BeaconStore.
-func (s *Store) GetBlockRootAtIndex(
-	index uint64,
-) (primitives.Root, error) {
-	return s.blockRoots.Get(s.ctx, index)
-}
-
-// SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (s *Store) SetLatestBlockHeader(
-	header *beacontypes.BeaconBlockHeader,
-) error {
-	return s.latestBeaconBlockHeader.Set(s.ctx, header)
-}
-
-// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
-	return s.latestBeaconBlockHeader.Get(s.ctx)
+	return sig.Verify(pubkey, msg)
 }

@@ -23,27 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
 import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/beacond/store/beacon/collections"
-	"github.com/berachain/beacon-kit/beacond/store/beacon/collections/encoding"
-	"github.com/berachain/beacon-kit/beacond/store/beacon/index"
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/collections"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/collections/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/index"
+	"github.com/berachain/beacon-kit/mod/storage/statedb/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type Store struct {
-	ctx context.Context
+type StateDB struct {
+	ctx   context.Context
+	write func()
 
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
@@ -51,8 +52,8 @@ type Store struct {
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 
-	// latestBeaconBlockHeader stores the latest beacon block header.
-	latestBeaconBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
+	// latestBlockHeader stores the latest beacon block header.
+	latestBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
 
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
@@ -100,35 +101,35 @@ type Store struct {
 // Store creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
-func NewStore(
-	env appmodule.Environment,
-) *Store {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(env.KVStoreService)
-	return &Store{
+func New(
+	kss store.KVStoreService,
+) *StateDB {
+	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
+	return &StateDB{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(genesisValidatorsRootPrefix),
-			genesisValidatorsRootPrefix,
+			sdkcollections.NewPrefix(keys.GenesisValidatorsRootPrefix),
+			keys.GenesisValidatorsRootPrefix,
 			encoding.Bytes32ValueCodec{},
 		),
 		slot: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(slotPrefix),
-			slotPrefix,
+			sdkcollections.NewPrefix(keys.SlotPrefix),
+			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(blockRootsPrefix),
-			blockRootsPrefix,
+			sdkcollections.NewPrefix(keys.BlockRootsPrefix),
+			keys.BlockRootsPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
 		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(stateRootsPrefix),
-			stateRootsPrefix,
+			sdkcollections.NewPrefix(keys.StateRootsPrefix),
+			keys.StateRootsPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
@@ -144,92 +145,101 @@ func NewStore(
 		),
 		eth1BlockHash: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(eth1BlockHashPrefix),
-			eth1BlockHashPrefix,
+			sdkcollections.NewPrefix(keys.Eth1BlockHashPrefix),
+			keys.Eth1BlockHashPrefix,
 			encoding.Bytes32ValueCodec{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(eth1DepositIndexPrefix),
-			eth1DepositIndexPrefix,
+			sdkcollections.NewPrefix(keys.Eth1DepositIndexPrefix),
+			keys.Eth1DepositIndexPrefix,
 			sdkcollections.Uint64Value,
 		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,
-			sdkcollections.NewPrefix(validatorIndexPrefix),
-			validatorIndexPrefix,
+			sdkcollections.NewPrefix(keys.ValidatorIndexPrefix),
+			keys.ValidatorIndexPrefix,
 		),
 		validators: sdkcollections.NewIndexedMap[
 			uint64, *beacontypes.Validator,
 		](
 			schemaBuilder,
-			sdkcollections.NewPrefix(validatorByIndexPrefix),
-			validatorByIndexPrefix,
+			sdkcollections.NewPrefix(keys.ValidatorByIndexPrefix),
+			keys.ValidatorByIndexPrefix,
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[*beacontypes.Validator]{},
 			index.NewValidatorsIndex(schemaBuilder),
 		),
 		balances: sdkcollections.NewMap[uint64, uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(balancesPrefix),
-			balancesPrefix,
+			sdkcollections.NewPrefix(keys.BalancesPrefix),
+			keys.BalancesPrefix,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
 		depositQueue: collections.NewQueue[*beacontypes.Deposit](
 			schemaBuilder,
-			depositQueuePrefix,
+			keys.DepositQueuePrefix,
 			encoding.SSZValueCodec[*beacontypes.Deposit]{},
 		),
 		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
 			schemaBuilder,
-			withdrawalQueuePrefix,
+			keys.WithdrawalQueuePrefix,
 			encoding.SSZValueCodec[*primitives.Withdrawal]{},
 		),
 		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
-			sdkcollections.NewPrefix(randaoMixPrefix),
-			randaoMixPrefix,
+			sdkcollections.NewPrefix(keys.RandaoMixPrefix),
+			keys.RandaoMixPrefix,
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
 		slashings: sdkcollections.NewMap[uint64, uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(slashingsPrefix),
-			slashingsPrefix,
+			sdkcollections.NewPrefix(keys.SlashingsPrefix),
+			keys.SlashingsPrefix,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
 		totalSlashing: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix(totalSlashingPrefix),
-			totalSlashingPrefix,
+			sdkcollections.NewPrefix(keys.TotalSlashingPrefix),
+			keys.TotalSlashingPrefix,
 			sdkcollections.Uint64Value,
 		),
-		//nolint:lll
-		latestBeaconBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
+
+		latestBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
 			schemaBuilder,
-			sdkcollections.NewPrefix(latestBeaconBlockHeaderPrefix),
-			latestBeaconBlockHeaderPrefix,
+			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
+			keys.LatestBeaconBlockHeaderPrefix,
 			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
 		),
 	}
 }
 
 // Copy returns a copy of the Store.
-func (s *Store) Copy() state.BeaconState {
-	cctx, _ := sdk.UnwrapSDKContext(s.ctx).CacheContext()
-	return s.WithContext(cctx)
+func (s *StateDB) Copy() *StateDB {
+	cctx, write := sdk.UnwrapSDKContext(s.ctx).CacheContext()
+	ss := s.WithContext(cctx)
+	ss.write = write
+	return ss
 }
 
 // Context returns the context of the Store.
-func (s *Store) Context() context.Context {
+func (s *StateDB) Context() context.Context {
 	return s.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (s *Store) WithContext(ctx context.Context) *Store {
+func (s *StateDB) WithContext(ctx context.Context) *StateDB {
 	cpy := *s
 	cpy.ctx = ctx
 	return &cpy
+}
+
+// Save saves the Store.
+func (s *StateDB) Save() {
+	if s.write != nil {
+		s.write()
+	}
 }

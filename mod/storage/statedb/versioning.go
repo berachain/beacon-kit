@@ -23,6 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// state defines the BeaconState interfaces and provides the
-// functions for creating, modifying, and querying the state.
-package state
+package statedb
+
+import "github.com/berachain/beacon-kit/mod/primitives"
+
+// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// state.
+func (s *StateDB) SetGenesisValidatorsRoot(
+	root primitives.Root,
+) error {
+	return s.genesisValidatorsRoot.Set(s.ctx, root)
+}
+
+// GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// beacon state.
+func (s *StateDB) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	return s.genesisValidatorsRoot.Get(s.ctx)
+}
+
+// GetSlot returns the current slot.
+func (s *StateDB) GetSlot() (primitives.Slot, error) {
+	slot, err := s.slot.Get(s.ctx)
+	return primitives.Slot(slot), err
+}
+
+// SetSlot sets the current slot.
+func (s *StateDB) SetSlot(slot primitives.Slot) error {
+	return s.slot.Set(s.ctx, uint64(slot))
+}

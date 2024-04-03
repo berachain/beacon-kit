@@ -29,12 +29,7 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/cockroachdb/errors"
 )
-
-var ErrInvalidWithdrawalCredentials = errors.New("")
-
-const EthSecp256k1CredentialPrefix = iota + 1
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
