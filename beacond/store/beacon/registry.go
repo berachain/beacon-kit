@@ -182,8 +182,10 @@ func (s *Store) GetBalances() ([]uint64, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	var balance uint64
 	for iter.Valid() {
-		balance, err := iter.Value()
+		balance, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
@@ -195,9 +197,7 @@ func (s *Store) GetBalances() ([]uint64, error) {
 
 // GetTotalActiveBalances returns the total active balances of all validators.
 // TODO: unhood this and probably store this as just a value changed on writes.
-func (s *Store) GetTotalActiveBalances(
-	slotsPerEpoch uint64,
-) (primitives.Gwei, error) {
+func (s *Store) GetTotalActiveBalances() (primitives.Gwei, error) {
 	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(s.ctx, nil)
 	if err != nil {
 		return 0, err

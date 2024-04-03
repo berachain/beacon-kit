@@ -56,7 +56,7 @@ type ReadOnlyBeaconState interface {
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
-	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
+	GetTotalActiveBalances() (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
 	GetEth1BlockHash() (primitives.ExecutionHash, error)
 	GetTotalSlashing() (primitives.Gwei, error)

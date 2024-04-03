@@ -27,21 +27,7 @@ package beacon
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
-
-// UpdateStateRootAtIndex updates the state root at the given slot.
-func (s *Store) UpdateStateRootAtIndex(
-	idx uint64,
-	stateRoot primitives.Root,
-) error {
-	return s.stateRoots.Set(s.ctx, idx, stateRoot)
-}
-
-// StateRootAtIndex returns the state root at the given slot.
-func (s *Store) StateRootAtIndex(idx uint64) (primitives.Root, error) {
-	return s.stateRoots.Get(s.ctx, idx)
-}
 
 // Store is the interface for the beacon store.
 func (s *Store) HashTreeRoot() ([32]byte, error) {
@@ -60,18 +46,20 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
+	var blockRoot [32]byte
 	blockRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
 	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
-		blockRoot, err := s.GetBlockRootAtIndex(i)
+		blockRoot, err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
 		blockRoots[i] = blockRoot
 	}
 
+	var stateRoot [32]byte
 	stateRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
 	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
-		stateRoot, err := s.StateRootAtIndex(i)
+		stateRoot, err = s.StateRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
@@ -98,9 +86,10 @@ func (s *Store) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
+	var randaoMix [32]byte
 	randaoMixes := make([][32]byte, s.cfg.EpochsPerHistoricalVector)
 	for i := uint64(0); i < s.cfg.EpochsPerHistoricalVector; i++ {
-		randaoMix, err := s.GetRandaoMixAtIndex(i)
+		randaoMix, err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}

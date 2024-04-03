@@ -39,7 +39,8 @@ func (s *Store) GetSlashings() ([]uint64, error) {
 		return nil, err
 	}
 	for iter.Valid() {
-		slashing, err := iter.Value()
+		var slashing uint64
+		slashing, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +48,6 @@ func (s *Store) GetSlashings() ([]uint64, error) {
 		iter.Next()
 	}
 	return slashings, nil
-
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.

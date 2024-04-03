@@ -56,3 +56,16 @@ func (s *Store) SetLatestBlockHeader(
 func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
 	return s.latestBeaconBlockHeader.Get(s.ctx)
 }
+
+// UpdateStateRootAtIndex updates the state root at the given slot.
+func (s *Store) UpdateStateRootAtIndex(
+	idx uint64,
+	stateRoot primitives.Root,
+) error {
+	return s.stateRoots.Set(s.ctx, idx, stateRoot)
+}
+
+// StateRootAtIndex returns the state root at the given slot.
+func (s *Store) StateRootAtIndex(idx uint64) (primitives.Root, error) {
+	return s.stateRoots.Get(s.ctx, idx)
+}

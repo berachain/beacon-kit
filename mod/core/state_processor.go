@@ -438,8 +438,7 @@ func (sp *StateProcessor) processAttesterSlashing(
 func (sp *StateProcessor) processSlashings(
 	st state.BeaconState,
 ) error {
-	slotsPerEpoch := sp.cfg.SlotsPerEpoch
-	totalBalance, err := st.GetTotalActiveBalances(slotsPerEpoch)
+	totalBalance, err := st.GetTotalActiveBalances()
 	if err != nil {
 		return err
 	}
