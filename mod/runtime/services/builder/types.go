@@ -47,6 +47,7 @@ type RandaoProcessor interface {
 type PayloadBuilder interface {
 	GetBestPayload(
 		ctx context.Context,
+		st state.BeaconState,
 		slot primitives.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,

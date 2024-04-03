@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	stakingabi "github.com/berachain/beacon-kit/mod/abi"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
@@ -44,6 +43,7 @@ import (
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
+	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -97,7 +97,7 @@ func NewDefaultBeaconKitRuntime(
 	engineClient.Start(context.Background())
 
 	// Extrac the staking ABI.
-	depositABI, err := stakingabi.BeaconDepositContractMetaData.GetAbi()
+	depositABI, err := abi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}

@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
@@ -52,10 +53,11 @@ type Keeper struct {
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
+	cfg *params.BeaconChainConfig,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(fdb),
-		beaconStore:       beaconstore.NewStore(env),
+		beaconStore:       beaconstore.NewStore(env, cfg),
 	}
 }
 
@@ -103,6 +105,9 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 			Power: int64(validator.EffectiveBalance),
 		})
 	}
+
+	// Save the store.
+	store.Save()
 	return validatorUpdates, nil
 }
 
@@ -163,13 +168,7 @@ func (k *Keeper) InitGenesis(
 
 	// Set the genesis block header.
 	if err := st.SetLatestBlockHeader(
-		&beacontypes.BeaconBlockHeader{
-			Slot:          0,
-			ProposerIndex: 0,
-			ParentRoot:    [32]byte{},
-			StateRoot:     [32]byte{},
-			BodyRoot:      [32]byte{},
-		},
+		emptyHeader,
 	); err != nil {
 		return nil, err
 	}

@@ -39,8 +39,10 @@ func (h *Handler) PreBlocker(
 	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 ) error {
 	logger := ctx.Logger().With("module", "pre-block")
+	st := h.chainService.BeaconState(ctx)
+
 	// Process the Slot.
-	if err := h.chainService.ProcessSlot(ctx); err != nil {
+	if err := h.chainService.ProcessSlot(st); err != nil {
 		logger.Error("failed to process slot", "error", err)
 		return err
 	}
@@ -68,9 +70,10 @@ func (h *Handler) PreBlocker(
 	}
 
 	// Processing the incoming beacon block and blobs.
-	cacheCtx, write := ctx.CacheContext()
+	stCopy := st.Copy()
 	if err = h.chainService.ProcessBeaconBlock(
-		cacheCtx,
+		ctx,
+		stCopy,
 		blk,
 		blobSideCars,
 	); err != nil {
@@ -83,30 +86,9 @@ func (h *Handler) PreBlocker(
 	} else {
 		// We only want to persist state changes if we successfully
 		// processed the block.
-		write()
+		stCopy.Save()
 	}
 
 	// Process the finalization of the beacon block.
-	if err = h.chainService.PostBlockProcess(
-		ctx, blk,
-	); err != nil {
-		return err
-	}
-
-	// Call the nested child handler.
-	return h.callNextPreblockHandler(ctx, req)
-}
-
-// callNextHandler calls the next pre-block handler in the chain.
-func (h *Handler) callNextPreblockHandler(
-	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
-) error {
-	// If there is no child handler, we are done, this preblocker
-	// does not modify any consensus params so we return an empty
-	// response.
-	if h.nextPreblock == nil {
-		return nil
-	}
-
-	return h.nextPreblock(ctx, req)
+	return h.chainService.PostBlockProcess(ctx, st, blk)
 }

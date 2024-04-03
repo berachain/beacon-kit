@@ -32,6 +32,24 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
+func (s *Store) GetSlashings() ([]uint64, error) {
+	var slashings []uint64
+	iter, err := s.slashings.Iterate(s.ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	for iter.Valid() {
+		var slashing uint64
+		slashing, err = iter.Value()
+		if err != nil {
+			return nil, err
+		}
+		slashings = append(slashings, slashing)
+		iter.Next()
+	}
+	return slashings, nil
+}
+
 // UpdateSlashingAtIndex sets the slashing amount in the store.
 func (s *Store) UpdateSlashingAtIndex(
 	index uint64,

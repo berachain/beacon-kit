@@ -26,10 +26,36 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
+func (s *Store) UpdateBlockRootAtIndex(
+	index uint64,
+	root primitives.Root,
+) error {
+	return s.blockRoots.Set(s.ctx, index, root)
+}
+
+// GetBlockRoot retrieves the block root from the BeaconStore.
+func (s *Store) GetBlockRootAtIndex(
+	index uint64,
+) (primitives.Root, error) {
+	return s.blockRoots.Get(s.ctx, index)
+}
+
+// SetLatestBlockHeader sets the latest block header in the BeaconStore.
+func (s *Store) SetLatestBlockHeader(
+	header *beacontypes.BeaconBlockHeader,
+) error {
+	return s.latestBeaconBlockHeader.Set(s.ctx, header)
+}
+
+// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
+func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
+	return s.latestBeaconBlockHeader.Get(s.ctx)
+}
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (s *Store) UpdateStateRootAtIndex(
@@ -42,43 +68,4 @@ func (s *Store) UpdateStateRootAtIndex(
 // StateRootAtIndex returns the state root at the given slot.
 func (s *Store) StateRootAtIndex(idx uint64) (primitives.Root, error) {
 	return s.stateRoots.Get(s.ctx, idx)
-}
-
-// Store is the interface for the beacon store.
-func (s *Store) HashTreeRoot() ([32]byte, error) {
-	// TODO: Implement getting the HashTreeRoot (StateRoot)
-	// We currently return at least *SOMETHING* so that we
-	// can simulate having to keep track of the StateRoot of the
-	// BeaconState, since this value with change every slot.
-	// TODO: Actually implementation.
-
-	slot, err := s.GetSlot()
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	randaoMix, err := s.GetRandaoMixAtIndex(0)
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
-	randaoMixes[0] = randaoMix
-
-	latestBlockHeader, err := s.GetLatestBlockHeader()
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	return (&state.BeaconStateDeneb{
-		GenesisValidatorsRoot: primitives.Root{},
-		Slot:                  slot,
-		LatestBlockHeader:     latestBlockHeader,
-		BlockRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		StateRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		Eth1BlockHash:         [32]byte{},
-		Eth1DepositIndex:      0,
-		Validators:            []*beacontypes.Validator{},
-		RandaoMixes:           randaoMixes,
-	}).HashTreeRoot()
 }
