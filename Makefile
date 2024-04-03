@@ -20,6 +20,9 @@ build-linux-amd64:
 build-linux-arm64:
 	GOOS=linux GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
 
+build-darwin-arm64:
+	GOOS=darwin GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
+
 $(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
 	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
