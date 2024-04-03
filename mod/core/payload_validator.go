@@ -76,7 +76,7 @@ func (pv *PayloadValidator) ValidatePayload(
 	}
 
 	// Get the current epoch.
-	epoch, err := st.GetCurrentEpoch()
+	epoch, err := st.GetCurrentEpoch(pv.cfg.SlotsPerEpoch)
 	if err != nil {
 		return err
 	}

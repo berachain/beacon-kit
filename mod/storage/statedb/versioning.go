@@ -53,10 +53,12 @@ func (s *StateDB) SetSlot(slot primitives.Slot) error {
 }
 
 // GetCurrentEpoch returns the current epoch.
-func (s *StateDB) GetCurrentEpoch() (primitives.Epoch, error) {
+func (s *StateDB) GetCurrentEpoch(
+	slotsPerEpoch uint64,
+) (primitives.Epoch, error) {
 	slots, err := s.slot.Get(s.ctx)
 	if err != nil {
 		return 0, err
 	}
-	return primitives.Epoch(slots / s.cfg.SlotsPerEpoch), nil
+	return primitives.Epoch(slots / slotsPerEpoch), nil
 }

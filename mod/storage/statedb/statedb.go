@@ -30,7 +30,6 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/statedb/collections"
@@ -45,7 +44,6 @@ import (
 type StateDB struct {
 	ctx   context.Context
 	write func()
-	cfg   *params.BeaconChainConfig
 
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
@@ -101,12 +99,10 @@ type StateDB struct {
 //nolint:funlen // its not overly complex.
 func New(
 	kss store.KVStoreService,
-	cfg *params.BeaconChainConfig,
 ) *StateDB {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &StateDB{
 		ctx: nil,
-		cfg: cfg,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.GenesisValidatorsRootPrefix),

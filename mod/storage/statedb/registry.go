@@ -197,13 +197,15 @@ func (s *StateDB) GetBalances() ([]uint64, error) {
 
 // GetTotalActiveBalances returns the total active balances of all validators.
 // TODO: unhood this and probably store this as just a value changed on writes.
-func (s *StateDB) GetTotalActiveBalances() (primitives.Gwei, error) {
+func (s *StateDB) GetTotalActiveBalances(
+	slotsPerEpoch uint64,
+) (primitives.Gwei, error) {
 	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(s.ctx, nil)
 	if err != nil {
 		return 0, err
 	}
 
-	epoch, err := s.GetCurrentEpoch()
+	epoch, err := s.GetCurrentEpoch(slotsPerEpoch)
 	if err != nil {
 		return 0, err
 	}

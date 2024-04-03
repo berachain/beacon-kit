@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/bytes"
@@ -51,7 +50,6 @@ func TestDeposits(t *testing.T) {
 
 	sdb := statedb.New(
 		sdkruntime.NewKVStoreService(storeKey),
-		&params.BeaconChainConfig{},
 	)
 	sdb = sdb.WithContext(ctx)
 	t.Run("should work with deposit", func(t *testing.T) {

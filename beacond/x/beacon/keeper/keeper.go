@@ -58,7 +58,7 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(fdb),
-		statedb:           statedb.New(env.KVStoreService, cfg),
+		statedb:           statedb.New(env.KVStoreService),
 		cfg:               cfg,
 	}
 }
