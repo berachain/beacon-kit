@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -41,15 +42,14 @@ import (
 // returns the payload ID.
 func (s *Service) BuildLocalPayload(
 	ctx context.Context,
+	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
 ) (*engine.PayloadID, error) {
 	// Assemble the payload attributes.
-	attrs, err := s.getPayloadAttribute(
-		ctx, slot, timestamp, parentBlockRoot,
-	)
+	attrs, err := s.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
 		return nil, fmt.Errorf("%w error when getting payload attributes", err)
 	}
@@ -63,7 +63,7 @@ func (s *Service) BuildLocalPayload(
 		"parent_block_root", parentBlockRoot,
 	)
 
-	parentEth1BlockHash, err := s.BeaconState(ctx).GetEth1BlockHash()
+	parentEth1BlockHash, err := st.GetEth1BlockHash()
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +112,7 @@ func (s *Service) BuildLocalPayload(
 // execution client to return the payload.
 func (s *Service) GetBestPayload(
 	ctx context.Context,
+	st state.BeaconState,
 	slot primitives.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
@@ -145,6 +146,7 @@ func (s *Service) GetBestPayload(
 		//#nosec:G701 // won't overflow, time cannot be negative.
 		payload, blobsBundle, overrideBuilder, err = s.buildAndWaitForLocalPayload(
 			ctx,
+			st,
 			parentEth1Hash,
 			slot,
 			uint64(time.Now().Unix()),
@@ -190,6 +192,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 // payload from the execution client.
 func (s *Service) buildAndWaitForLocalPayload(
 	ctx context.Context,
+	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
 	slot primitives.Slot,
 	timestamp uint64,
@@ -198,7 +201,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
-		ctx, parentEth1Hash, slot, timestamp, parentBlockRoot,
+		ctx, st, parentEth1Hash, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
 		return nil, nil, false, err
@@ -243,14 +246,13 @@ func (s *Service) buildAndWaitForLocalPayload(
 // slot. The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(
-	ctx context.Context,
+	st state.BeaconState,
 	slot primitives.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,
 ) (enginetypes.PayloadAttributer, error) {
 	var (
 		prevRandao [32]byte
-		st         = s.BeaconState(ctx)
 	)
 
 	// Get the expected withdrawals to include in this payload.

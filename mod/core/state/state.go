@@ -36,6 +36,7 @@ import (
 // is a combination of the read-only and write-only beacon state consensus.
 type BeaconState interface {
 	Copy() BeaconState
+	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
 	ReadOnlyBeaconState

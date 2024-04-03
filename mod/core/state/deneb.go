@@ -101,6 +101,11 @@ type BeaconStateDeneb struct {
 	TotalSlashing uint64   `json:"totalSlashing"`
 }
 
+// String returns a string representation of BeaconStateDeneb.
+func (b *BeaconStateDeneb) String() string {
+	return "TODO: BeaconStateDeneb"
+}
+
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
 // BeaconStateDeneb.
 type beaconStateDenebJSONMarshaling struct {

@@ -59,6 +59,7 @@ type ExecutionEngine interface {
 type LocalBuilder interface {
 	BuildLocalPayload(
 		ctx context.Context,
+		st state.BeaconState,
 		parentEth1Hash primitives.ExecutionHash,
 		slot primitives.Slot,
 		timestamp uint64,

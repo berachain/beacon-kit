@@ -103,6 +103,9 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 			Power: int64(validator.EffectiveBalance),
 		})
 	}
+
+	// Save the store.
+	store.Save()
 	return validatorUpdates, nil
 }
 

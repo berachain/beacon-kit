@@ -46,7 +46,7 @@ type Store struct {
 
 // Store creates a new instance of Store.
 //
-//nolint:funlen // its not overly complex.
+
 func NewStore(
 	env appmodule.Environment,
 ) *Store {

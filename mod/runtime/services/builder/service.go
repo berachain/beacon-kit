@@ -30,6 +30,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/builder"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
@@ -69,6 +70,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 //nolint:funlen // todo:fix.
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
+	st state.BeaconState,
 	slot primitives.Slot,
 ) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
@@ -77,7 +79,6 @@ func (s *Service) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
-	st := s.BeaconState(ctx)
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to build reveal: %w", err)
@@ -135,6 +136,7 @@ func (s *Service) RequestBestBlock(
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
 		ctx,
+		st,
 		slot,
 		parentBlockRoot,
 		parentEth1BlockHash,
@@ -167,7 +169,7 @@ func (s *Service) RequestBestBlock(
 	body.SetBlobKzgCommitments(commitments)
 
 	// Dequeue deposits from the state.
-	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
+	deposits, err := st.ExpectedDeposits(
 		s.BeaconCfg().MaxDepositsPerBlock,
 	)
 	if err != nil {
