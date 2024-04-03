@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
@@ -120,15 +121,13 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 }
 
 // ConvertPubkey converts a string to a public key.
-//
-//nolint:gomnd // lots of magic numbers
 func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 	// Convert the public key to a BLSPubkey.
 	pubkeyBytes, err := hex.DecodeString(pubkey)
 	if err != nil {
 		return primitives.BLSPubkey{}, err
 	}
-	if len(pubkeyBytes) != 48 {
+	if len(pubkeyBytes) != constants.BLSPubkeyLength {
 		return primitives.BLSPubkey{}, ErrInvalidPubKeyLength
 	}
 
@@ -136,8 +135,6 @@ func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 }
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
-//
-//nolint:gomnd // lots of magic numbers
 func ConvertWithdrawalCredentials(credentials string) (
 	types.WithdrawalCredentials,
 	error,
@@ -147,7 +144,7 @@ func ConvertWithdrawalCredentials(credentials string) (
 	if err != nil {
 		return types.WithdrawalCredentials{}, err
 	}
-	if len(credentialsBytes) != 32 {
+	if len(credentialsBytes) != constants.RootLength {
 		return types.WithdrawalCredentials{}, ErrInvalidWithdrawalCredentialsLength
 	}
 	return types.WithdrawalCredentials(credentialsBytes), nil
@@ -166,15 +163,13 @@ func ConvertAmount(amount string) (primitives.Gwei, error) {
 }
 
 // ConvertSignature converts a string to a signature.
-//
-//nolint:gomnd // lots of magic numbers
 func ConvertSignature(signature string) (primitives.BLSSignature, error) {
 	// Convert the signature to a BLSSignature.
 	signatureBytes, err := hex.DecodeString(signature)
 	if err != nil {
 		return primitives.BLSSignature{}, err
 	}
-	if len(signatureBytes) != 96 {
+	if len(signatureBytes) != constants.BLSSignatureLength {
 		return primitives.BLSSignature{}, ErrInvalidSignatureLength
 	}
 	return primitives.BLSSignature(signatureBytes), nil
@@ -182,13 +177,13 @@ func ConvertSignature(signature string) (primitives.BLSSignature, error) {
 
 // ConvertVersion converts a string to a version.
 //
-//nolint:gomnd // lots of magic numbers
+
 func ConvertVersion(version string) (primitives.Version, error) {
 	versionBytes, err := hex.DecodeString(version)
 	if err != nil {
 		return primitives.Version{}, err
 	}
-	if len(versionBytes) != 4 {
+	if len(versionBytes) != constants.DomainTypeLength {
 		return primitives.Version{}, ErrInvalidVersionLength
 	}
 	return primitives.Version(versionBytes), nil
@@ -196,13 +191,13 @@ func ConvertVersion(version string) (primitives.Version, error) {
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
 //
-//nolint:gomnd // lots of magic numbers
+
 func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
 	rootBytes, err := hex.DecodeString(root)
 	if err != nil {
 		return primitives.Root{}, err
 	}
-	if len(rootBytes) != 32 {
+	if len(rootBytes) != constants.RootLength {
 		return primitives.Root{}, ErrInvalidRootLength
 	}
 	return primitives.Root(rootBytes), nil
