@@ -44,10 +44,10 @@ import (
 // Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type Store struct {
-	ctx           context.Context
-	write         func()
-	cfg           *params.BeaconChainConfig
-	slotsPerEpoch uint64
+	ctx   context.Context
+	write func()
+	cfg   *params.BeaconChainConfig
+
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
 
@@ -205,7 +205,6 @@ func NewStore(
 			keys.LatestBeaconBlockHeaderPrefix,
 			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
 		),
-		slotsPerEpoch: 8,
 	}
 }
 
