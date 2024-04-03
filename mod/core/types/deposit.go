@@ -28,7 +28,7 @@ package types
 import (
 	"encoding/json"
 
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
@@ -97,7 +97,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	if !bls12381.VerifySignature(d.Pubkey, signingRoot[:], signature) {
+	if !randao.VerifySignature(d.Pubkey, signingRoot[:], signature) {
 		return errors.New("deposit signature is invalid")
 	}
 	return nil
