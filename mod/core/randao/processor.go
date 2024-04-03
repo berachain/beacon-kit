@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/go-faster/xor"
+	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	sha256 "github.com/minio/sha256-simd"
 )
 
@@ -90,10 +91,11 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
-	if !VerifySignature(
-		proposer.Pubkey,
+	reveal := blk.GetBody().GetRandaoReveal()
+	if !blst.VerifySignaturePubkeyBytes(
+		proposer.Pubkey[:],
 		signingRoot[:],
-		blk.GetBody().GetRandaoReveal(),
+		reveal[:],
 	) {
 		return ErrInvalidSignature
 	}
