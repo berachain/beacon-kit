@@ -205,12 +205,13 @@ func (s *StateDB) GetTotalActiveBalances(
 		return 0, err
 	}
 
-	epoch, err := s.GetCurrentEpoch(slotsPerEpoch)
+	slot, err := s.slot.Get(s.ctx)
 	if err != nil {
 		return 0, err
 	}
 
 	totalActiveBalances := primitives.Gwei(0)
+	epoch := primitives.Epoch(slot / slotsPerEpoch)
 	return totalActiveBalances, indexes.ScanValues(
 		s.ctx, s.validators, iter, func(v *beacontypes.Validator,
 		) bool {
