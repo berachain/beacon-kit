@@ -26,15 +26,32 @@
 package core
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+// The AvailabilityStore interface is responsible for validating and storing
+// sidecars for specific blocks, as well as verifying sidecars that have already
+// been stored.
+type AvailabilityStore interface {
+	// IsDataAvailable ensures that all blobs referenced in the block are
+	// securely stored before it returns without an error.
+	IsDataAvailable(
+		ctx context.Context, slot primitives.Slot, b types.ReadOnlyBeaconBlock,
+	) bool
+	// Persist makes sure that the sidecar remains accessible for data
+	// availability checks throughout the beacon node's operation.
+	Persist(slot primitives.Slot, sc ...*datypes.BlobSidecar) error
+}
 
 // BlobsProcessor is the interface for the blobs processor.
 type BlobsProcessor interface {
 	ProcessBlobs(
-		avs state.AvailabilityStore,
+		avs AvailabilityStore,
 		blk types.BeaconBlock,
 		sidecars *datypes.BlobSidecars,
 	) error

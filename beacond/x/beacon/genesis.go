@@ -33,8 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 )
 
-// DefaultGenesis returns default genesis state as raw bytes for the evm
-// module.
+// DefaultGenesis returns default genesis state as raw bytes
+// for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
 	bz, err := json.Marshal(state.DefaultBeaconStateDeneb())
 	if err != nil {

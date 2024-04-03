@@ -5,6 +5,7 @@ package mocks
 import (
 	context "context"
 
+	core "github.com/berachain/beacon-kit/mod/core"
 	mock "github.com/stretchr/testify/mock"
 
 	state "github.com/berachain/beacon-kit/mod/core/state"
@@ -24,19 +25,19 @@ func (_m *BeaconStorageBackend) EXPECT() *BeaconStorageBackend_Expecter {
 }
 
 // AvailabilityStore provides a mock function with given fields: ctx
-func (_m *BeaconStorageBackend) AvailabilityStore(ctx context.Context) state.AvailabilityStore {
+func (_m *BeaconStorageBackend) AvailabilityStore(ctx context.Context) core.AvailabilityStore {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AvailabilityStore")
 	}
 
-	var r0 state.AvailabilityStore
-	if rf, ok := ret.Get(0).(func(context.Context) state.AvailabilityStore); ok {
+	var r0 core.AvailabilityStore
+	if rf, ok := ret.Get(0).(func(context.Context) core.AvailabilityStore); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(state.AvailabilityStore)
+			r0 = ret.Get(0).(core.AvailabilityStore)
 		}
 	}
 
@@ -61,12 +62,12 @@ func (_c *BeaconStorageBackend_AvailabilityStore_Call) Run(run func(ctx context.
 	return _c
 }
 
-func (_c *BeaconStorageBackend_AvailabilityStore_Call) Return(_a0 state.AvailabilityStore) *BeaconStorageBackend_AvailabilityStore_Call {
+func (_c *BeaconStorageBackend_AvailabilityStore_Call) Return(_a0 core.AvailabilityStore) *BeaconStorageBackend_AvailabilityStore_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BeaconStorageBackend_AvailabilityStore_Call) RunAndReturn(run func(context.Context) state.AvailabilityStore) *BeaconStorageBackend_AvailabilityStore_Call {
+func (_c *BeaconStorageBackend_AvailabilityStore_Call) RunAndReturn(run func(context.Context) core.AvailabilityStore) *BeaconStorageBackend_AvailabilityStore_Call {
 	_c.Call.Return(run)
 	return _c
 }

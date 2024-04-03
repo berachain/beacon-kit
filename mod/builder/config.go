@@ -100,25 +100,3 @@ func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
 
 	return &c, nil
 }
-
-// Template returns the configuration template.
-func (c Config) Template() string {
-	//nolint:lll
-	return `
-[beacon-kit.builder]
-# Post bellatrix, this address will receive the transaction fees produced by any blocks 
-# from this node.
-suggested-fee-recipient = "{{.BeaconKit.Builder.SuggestedFeeRecipient}}"
-
-# Graffiti string that will be included in the graffiti field of the beacon block.
-graffiti = "{{.BeaconKit.Builder.Graffiti}}"
-
-# LocalBuilderEnabled determines if the local payload builder is enabled.
-local-builder-enabled = {{ .BeaconKit.Builder.LocalBuilderEnabled }}
-
-# The timeout for local build payload. This should match, or be slightly less
-# than the configured timeout on your execution client. It also must be less than
-# timeout_proposal in the CometBFT configuration.
-local-build-payload-timeout = "{{ .BeaconKit.Builder.LocalBuildPayloadTimeout }}"
-`
-}
