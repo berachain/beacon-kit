@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -20,7 +19,6 @@ func (p *Provider) QueryWithProof(ctx context.Context, key string, height int64)
 		beaconStoreKey,
 		[]byte(key),
 		height,
-		true,
 	)
 
 	if err != nil {
@@ -29,7 +27,7 @@ func (p *Provider) QueryWithProof(ctx context.Context, key string, height int64)
 	return common.BytesToHash(resp.Value), nil
 }
 
-func (p *Provider) RunGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64, prove bool) (abci.ResponseQuery, metadata.MD, error) {
+func (p *Provider) RunGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64) (abci.ResponseQuery, metadata.MD, error) {
 	// // parse height header
 	// if heights := md.Get(grpctypes.GRPCBlockHeightHeader); len(heights) > 0 {
 	// 	height, err := strconv.ParseInt(heights[0], 10, 64)
@@ -58,12 +56,10 @@ func (p *Provider) RunGRPCQuery(ctx context.Context, method string, reqBz []byte
 		Path:   method,
 		Data:   reqBz,
 		Height: height,
-		Prove:  prove,
 	}
 
 	abciRes, err := p.QueryABCI(ctx, abciReq)
 	if err != nil {
-		fmt.Println("ERROR", err)
 		return abci.ResponseQuery{}, nil, err
 	}
 
@@ -81,40 +77,15 @@ func (p *Provider) RunGRPCQuery(ctx context.Context, method string, reqBz []byte
 func (p *Provider) QueryABCI(ctx context.Context, req abci.RequestQuery) (abci.ResponseQuery, error) {
 	opts := rpcclient.ABCIQueryOptions{
 		Height: req.Height,
-		Prove:  req.Prove,
 	}
 
+	// Note: ABCIQueryWithOptions verifies proofs by default. Thus we do not have to
+	// check the proof validity ourselves.
 	result, err := p.client.ABCIQueryWithOptions(ctx, req.Path, req.Data, opts)
 	if err != nil {
 		return abci.ResponseQuery{}, err
-	}
-
-	if !result.Response.IsOK() {
+	} else if !result.Response.IsOK() {
 		return abci.ResponseQuery{}, sdkErrorToGRPCError(result.Response)
-	}
-
-	// data from trusted node or subspace query doesn't need verification
-	// if !opts.Prove || !isQueryStoreWithProof(req.Path) {
-	// 	return result.Response, nil
-	// }
-	if !opts.Prove {
-		return result.Response, nil
-	}
-
-	// verify the proof
-	block, err := p.cometProvider.LightBlock(ctx, req.Height)
-	if err != nil {
-		return abci.ResponseQuery{}, err
-	}
-	fmt.Println(result.Response)
-	err = p.prt.VerifyValue(
-		result.Response.GetProofOps(),
-		block.AppHash,
-		req.Path,
-		result.Response.Value,
-	)
-	if err != nil {
-		return abci.ResponseQuery{}, err
 	}
 
 	return result.Response, nil
