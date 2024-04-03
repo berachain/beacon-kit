@@ -30,6 +30,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/cockroachdb/errors"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
