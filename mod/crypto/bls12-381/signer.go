@@ -56,6 +56,6 @@ func (b *Signer) PublicKey() primitives.BLSPubkey {
 // Sign generates a signature for a given message using the signer's secret key.
 // It returns the signature and any error encountered during the signing
 // process.
-func (b *Signer) Sign(msg []byte) primitives.BLSSignature {
-	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal())
+func (b *Signer) Sign(msg []byte) (primitives.BLSSignature, error) {
+	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }

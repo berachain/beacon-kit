@@ -57,7 +57,7 @@ type BLSSigner interface {
 
 	// Sign takes a message as a slice of bytes and returns a signature as a
 	// slice of bytes and an error.
-	Sign(msg []byte) primitives.BLSSignature
+	Sign(msg []byte) (primitives.BLSSignature, error)
 }
 
 // BlobsProcessor is the interface for the blobs processor.

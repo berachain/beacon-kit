@@ -174,7 +174,7 @@ func (p *Processor) buildReveal(
 	if err != nil {
 		return primitives.BLSSignature{}, err
 	}
-	return p.signer.Sign(signingRoot[:]), nil
+	return p.signer.Sign(signingRoot[:])
 }
 
 // buildMix builds a new mix from a given mix and reveal.

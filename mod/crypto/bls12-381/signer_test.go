@@ -45,7 +45,8 @@ func TestSigner_SignAndVerify(t *testing.T) {
 	message := []byte("test message")
 
 	// Sign the message
-	signature := signer.Sign(message)
+	signature, err := signer.Sign(message)
+	require.NoError(t, err, "Failed to sign message")
 
 	// Extract the public key from the signer
 	pubKeyBytes := signer.SecretKey.PublicKey().Marshal()
@@ -78,7 +79,8 @@ func TestSigner_FailOnInvalidSignature(t *testing.T) {
 	message := []byte("test message")
 
 	// Incorrect signature
-	signedByWrongKey := otherSigner.Sign(message)
+	signedByWrongKey, err := otherSigner.Sign(message)
+	require.NoError(t, err, "Failed to sign message")
 
 	pubKeyBytes := signer.SecretKey.PublicKey().Marshal()
 
