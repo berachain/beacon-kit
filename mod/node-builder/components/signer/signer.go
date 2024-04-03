@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bls12381
+package signer
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -32,30 +32,32 @@ import (
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// Signer holds the secret key used for signing operations.
-type Signer struct {
+// BLSSigner holds the secret key used for signing operations.
+type BLSSigner struct {
 	bls.SecretKey
 }
 
-// NewSigner creates a new Signer instance given a secret key.
-func NewSigner(keyBz [constants.BLSSecretKeyLength]byte) (*Signer, error) {
+// NewBLSSigner creates a new Signer instance given a secret key.
+func NewBLSSigner(
+	keyBz [constants.BLSSecretKeyLength]byte,
+) (*BLSSigner, error) {
 	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
 	if err != nil {
 		return nil, err
 	}
-	return &Signer{
+	return &BLSSigner{
 		SecretKey: secretKey,
 	}, nil
 }
 
 // PublicKey returns the public key of the signer.
-func (b *Signer) PublicKey() primitives.BLSPubkey {
+func (b *BLSSigner) PublicKey() primitives.BLSPubkey {
 	return primitives.BLSPubkey(b.SecretKey.PublicKey().Marshal())
 }
 
 // Sign generates a signature for a given message using the signer's secret key.
 // It returns the signature and any error encountered during the signing
 // process.
-func (b *Signer) Sign(msg []byte) (primitives.BLSSignature, error) {
+func (b *BLSSigner) Sign(msg []byte) (primitives.BLSSignature, error) {
 	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }

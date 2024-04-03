@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -91,7 +90,7 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
-	if !bls12381.VerifySignature(
+	if !VerifySignature(
 		proposer.Pubkey,
 		signingRoot[:],
 		blk.GetBody().GetRandaoReveal(),
