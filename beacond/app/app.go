@@ -27,6 +27,10 @@ package app
 
 import (
 	"context"
+	rpc "github.com/berachain/beacon-kit/mod/api"
+	"github.com/berachain/beacon-kit/mod/api/beaconnode"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	config2 "github.com/cosmos/cosmos-sdk/server/config"
 	"io"
 
 	"cosmossdk.io/depinject"
@@ -191,4 +195,24 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
+}
+
+// RegisterAPIRoutes registers all application module routes with the provided
+// API server.
+func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.APIConfig) {
+	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
+
+	handler := rpc.Server{
+		ContextGetter: app.BaseApp.CreateQueryContext,
+		Service:       app.BeaconKeeper,
+	}
+
+	newServer, err := beaconnode.NewServer(handler)
+	if err != nil {
+		panic(err)
+	}
+
+	apiSvr.Router.PathPrefix("/").Handler(newServer)
+
+	newServer.RegisterRoutes(apiSvr.Router)
 }
