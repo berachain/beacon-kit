@@ -135,8 +135,8 @@ func New(
 		),
 		latestExecutionPayload: sdkcollections.NewItem[enginetypes.ExecutionPayload](
 			schemaBuilder,
-			sdkcollections.NewPrefix(latestExecutionPayloadPrefix),
-			latestExecutionPayloadPrefix,
+			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
+			keys.LatestExecutionPayloadPrefix,
 			encoding.SSZInterfaceValueCodec[enginetypes.ExecutionPayload]{
 				Factory: func() enginetypes.ExecutionPayload {
 					return &enginetypes.ExecutableDataDeneb{}

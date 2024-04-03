@@ -64,6 +64,8 @@ func (pv *PayloadValidator) ValidatePayload(
 
 	// TODO: Once deneb genesis data contains execution payload, remove this.
 	var safeHash common.Hash
+
+	// Get the current epoch.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -90,12 +92,6 @@ func (pv *PayloadValidator) ValidatePayload(
 			payload.GetParentHash(),
 			safeHash,
 		)
-	}
-
-	// Get the current epoch.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
 	}
 
 	// When we are validating a payload we expect that it was produced by

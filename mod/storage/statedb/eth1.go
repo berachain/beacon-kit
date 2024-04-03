@@ -30,13 +30,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-func (s *Store) UpdateLatestExecutionPayload(
+func (s *StateDB) UpdateLatestExecutionPayload(
 	payload enginetypes.ExecutionPayload,
 ) error {
 	return s.latestExecutionPayload.Set(s.ctx, payload)
 }
 
-func (s *Store) GetLatestExecutionPayload() (
+func (s *StateDB) GetLatestExecutionPayload() (
 	enginetypes.ExecutionPayload, error,
 ) {
 	return s.latestExecutionPayload.Get(s.ctx)
