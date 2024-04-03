@@ -23,40 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
 
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (s *Store) SetGenesisValidatorsRoot(
-	root primitives.Root,
+// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
+func (s *StateDB) UpdateEth1BlockHash(
+	hash primitives.ExecutionHash,
 ) error {
-	return s.genesisValidatorsRoot.Set(s.ctx, root)
+	return s.eth1BlockHash.Set(s.ctx, hash)
 }
 
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	return s.genesisValidatorsRoot.Get(s.ctx)
+// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
+func (s *StateDB) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+	return s.eth1BlockHash.Get(s.ctx)
 }
 
-// GetSlot returns the current slot.
-func (s *Store) GetSlot() (primitives.Slot, error) {
-	slot, err := s.slot.Get(s.ctx)
-	return primitives.Slot(slot), err
+// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+func (s *StateDB) GetEth1DepositIndex() (uint64, error) {
+	return s.eth1DepositIndex.Get(s.ctx)
 }
 
-// SetSlot sets the current slot.
-func (s *Store) SetSlot(slot primitives.Slot) error {
-	return s.slot.Set(s.ctx, uint64(slot))
-}
-
-// GetCurrentEpoch returns the current epoch.
-func (s *Store) GetCurrentEpoch() (primitives.Epoch, error) {
-	slots, err := s.slot.Get(s.ctx)
-	if err != nil {
-		return 0, err
-	}
-	return primitives.Epoch(slots / s.cfg.SlotsPerEpoch), nil
+// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
+func (s *StateDB) SetEth1DepositIndex(index uint64) error {
+	return s.eth1DepositIndex.Set(s.ctx, index)
 }

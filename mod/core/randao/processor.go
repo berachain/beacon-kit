@@ -69,7 +69,7 @@ func (p *Processor) ProcessRandao(
 	blk beacontypes.BeaconBlock,
 ) error {
 	// proposer := blk.
-	epoch, err := st.GetCurrentEpoch()
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
@@ -85,6 +85,7 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
+	epoch := p.cfg.Beacon.SlotToEpoch(slot)
 	signingRoot, err := p.computeSigningRoot(epoch, root)
 	if err != nil {
 		return err
@@ -131,24 +132,27 @@ func (p *Processor) BuildReveal(
 		return primitives.BLSSignature{}, err
 	}
 
-	epoch, err := st.GetCurrentEpoch()
+	// Get the current epoch.
+	slot, err := st.GetSlot()
 	if err != nil {
 		return primitives.BLSSignature{}, err
 	}
 
 	return p.buildReveal(
 		genesisValidatorsRoot,
-		epoch,
+		p.cfg.Beacon.SlotToEpoch(slot),
 	)
 }
 
 // ProcessRandaoMixesReset resets the randao mixes.
 // process_randao_mixes_reset in the Ethereum 2.0 specification.
 func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
-	epoch, err := st.GetCurrentEpoch()
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
+
+	epoch := p.cfg.Beacon.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
 		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
 	)

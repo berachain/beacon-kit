@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
@@ -38,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/statedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -46,7 +46,8 @@ import (
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	beaconStore       *beaconstore.Store
+	statedb           *statedb.StateDB
+	cfg               *params.BeaconChainConfig
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
@@ -57,7 +58,8 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(fdb),
-		beaconStore:       beaconstore.NewStore(env, cfg),
+		statedb:           statedb.New(env.KVStoreService),
+		cfg:               cfg,
 	}
 }
 
@@ -70,7 +72,7 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.beaconStore.WithContext(ctx)
+	store := k.statedb.WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
@@ -123,7 +125,7 @@ func (k *Keeper) AvailabilityStore(
 func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	return k.beaconStore.WithContext(ctx)
+	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), k.cfg)
 }
 
 // InitGenesis initializes the genesis state of the module.
@@ -191,7 +193,7 @@ func (k *Keeper) InitGenesis(
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
 
-	store := k.beaconStore.WithContext(ctx)
+	store := k.statedb.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for i, validator := range data.Validators {
 		if err = store.AddValidator(validator); err != nil {

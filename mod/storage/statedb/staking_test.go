@@ -23,18 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon_test
+package statedb_test
 
 import (
 	"testing"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/bytes"
+	statedb "github.com/berachain/beacon-kit/mod/storage/statedb"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,11 +47,11 @@ func TestDeposits(t *testing.T) {
 	cms := integration.CreateMultiStore(keys, logger)
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
-	kvs := sdkruntime.NewKVStoreService(storeKey)
-	env := sdkruntime.NewEnvironment(kvs, logger)
 
-	beaconStore := beaconstore.NewStore(env, &params.BeaconChainConfig{})
-	beaconStore = beaconStore.WithContext(ctx)
+	sdb := statedb.New(
+		sdkruntime.NewKVStoreService(storeKey),
+	)
+	sdb = sdb.WithContext(ctx)
 	t.Run("should work with deposit", func(t *testing.T) {
 		cred := []byte("12345678901234567890123456789012")
 		deposit := &beacontypes.Deposit{
@@ -65,9 +64,9 @@ func TestDeposits(t *testing.T) {
 				bytes.ToBytes96([]byte("signature")),
 			),
 		}
-		err := beaconStore.EnqueueDeposits([]*beacontypes.Deposit{deposit})
+		err := sdb.EnqueueDeposits([]*beacontypes.Deposit{deposit})
 		require.NoError(t, err)
-		deposits, err := beaconStore.DequeueDeposits(1)
+		deposits, err := sdb.DequeueDeposits(1)
 		require.NoError(t, err)
 		require.Equal(t, deposit, deposits[0])
 	})
