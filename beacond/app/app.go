@@ -197,9 +197,7 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.APIConfig) {
-	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
-
+func (app BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.APIConfig) {
 	handler := rpc.Server{
 		ContextGetter: app.BaseApp.CreateQueryContext,
 		Service:       app.BeaconKeeper,
@@ -211,4 +209,6 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.AP
 	}
 
 	apiSvr.Router.PathPrefix("/").Handler(newServer)
+
+	app.App.RegisterAPIRoutes(apiSvr, apiConfig)
 }
