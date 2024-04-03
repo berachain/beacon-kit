@@ -25,7 +25,12 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
+
+// EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
+const EthSecp256k1CredentialPrefix = iota + 1
 
 // WithdrawalCredentials is a staking credential that is used to identify a
 // validator.

@@ -31,7 +31,6 @@ import (
 
 var (
 	// errInvalidIndex          = errors.New("index out of bounds").
-	errInvalidBodyRoot       = errors.New("invalid Beacon Block Body root")
 	errInvalidInclusionProof = errors.New(
 		"invalid KZG commitment inclusion proof",
 	)
@@ -68,4 +67,9 @@ var (
 
 	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
 	ErrNilBlobsBundle = errors.New("nil blobs bundle")
+
+	// ErrInvalidWithdrawalCredentials is an error for when the.
+	ErrInvalidWithdrawalCredentials = errors.New(
+		"invalid withdrawal credentials",
+	)
 )

@@ -30,13 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/cockroachdb/errors"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
-
-var ErrInvalidWithdrawalCredentials = errors.New("")
-
-const EthSecp256k1CredentialPrefix = iota + 1
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
