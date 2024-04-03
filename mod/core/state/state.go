@@ -28,9 +28,122 @@ package state
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/statedb"
 )
+
+type beaconState struct {
+	*statedb.StateDB
+	cfg params.BeaconChainConfig
+}
+
+func NewBeaconStateFromStore(sdb *statedb.StateDB, cfg params.BeaconChainConfig) BeaconState {
+	return &beaconState{
+		StateDB: sdb,
+		cfg:     cfg,
+	}
+}
+
+func (s *beaconState) Copy() BeaconState {
+	return NewBeaconStateFromStore(s.StateDB.Copy(), s.cfg)
+}
+
+// Store is the interface for the beacon store.
+func (s *beaconState) HashTreeRoot() ([32]byte, error) {
+	slot, err := s.StateDB.GetSlot()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	genesisValidatorsRoot, err := s.StateDB.GetGenesisValidatorsRoot()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	latestBlockHeader, err := s.StateDB.GetLatestBlockHeader()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	var blockRoot [32]byte
+	blockRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+		blockRoot, err = s.StateDB.GetBlockRootAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		blockRoots[i] = blockRoot
+	}
+
+	var stateRoot [32]byte
+	stateRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+		stateRoot, err = s.StateDB.StateRootAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		stateRoots[i] = stateRoot
+	}
+
+	eth1BlockHash, err := s.StateDB.GetEth1BlockHash()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	eth1DepositIndex, err := s.StateDB.GetEth1DepositIndex()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	validators, err := s.StateDB.GetValidators()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	balances, err := s.StateDB.GetBalances()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	var randaoMix [32]byte
+	randaoMixes := make([][32]byte, s.cfg.EpochsPerHistoricalVector)
+	for i := uint64(0); i < s.cfg.EpochsPerHistoricalVector; i++ {
+		randaoMix, err = s.StateDB.GetRandaoMixAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		randaoMixes[i] = randaoMix
+	}
+
+	slashings, err := s.StateDB.GetSlashings()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	totalSlashings, err := s.StateDB.GetTotalSlashing()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	return (&BeaconStateDeneb{
+		Slot:                         slot,
+		GenesisValidatorsRoot:        genesisValidatorsRoot,
+		LatestBlockHeader:            latestBlockHeader,
+		BlockRoots:                   blockRoots,
+		StateRoots:                   stateRoots,
+		Eth1BlockHash:                eth1BlockHash,
+		Eth1DepositIndex:             eth1DepositIndex,
+		Validators:                   validators,
+		Balances:                     balances,
+		RandaoMixes:                  randaoMixes,
+		NextWithdrawalIndex:          0, // TODO
+		NextWithdrawalValidatorIndex: 0, // TODO
+		Slashings:                    slashings,
+		TotalSlashing:                totalSlashings,
+	}).HashTreeRoot()
+}
 
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state consensus.
