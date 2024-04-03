@@ -121,13 +121,7 @@ type ReadOnlyValidators interface {
 	) (*types.Validator, error)
 }
 
-// ReadWriteValidators has read and write access to validator methods.
-type ReadWriteDeposits interface {
-	ReadOnlyDeposits
-	WriteOnlyDeposits
-}
-
-// ReadWriteDepositQueue has read and write access to deposit queue.
+// WriteOnlyDeposits has write access to deposit queue.
 type WriteOnlyDeposits interface {
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits([]*types.Deposit) error
@@ -138,12 +132,6 @@ type WriteOnlyDeposits interface {
 type ReadOnlyDeposits interface {
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) ([]*types.Deposit, error)
-}
-
-// ReadWriteWithdrawals has read and write access to withdrawal methods.
-type ReadWriteWithdrawals interface {
-	ReadOnlyWithdrawals
-	WriteOnlyWithdrawals
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
