@@ -29,6 +29,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -43,7 +44,7 @@ type Service struct {
 	cfg *config.Config
 
 	// signer is used to retrieve the public key of this node.
-	signer Signer
+	signer core.BLSSigner
 
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -95,7 +96,7 @@ func (s *Service) RequestBestBlock(
 	}
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
-		s.signer.PublicKey().Marshal(),
+		s.signer.PublicKey(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf(

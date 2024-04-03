@@ -48,6 +48,18 @@ type AvailabilityStore interface {
 	Persist(slot primitives.Slot, sc ...*datypes.BlobSidecar) error
 }
 
+// BLSSigner defines an interface for cryptographic signing operations.
+// It uses generic type parameters Signature and Pubkey, both of which are
+// slices of bytes.
+type BLSSigner interface {
+	// PublicKey returns the public key of the signer.
+	PublicKey() primitives.BLSPubkey
+
+	// Sign takes a message as a slice of bytes and returns a signature as a
+	// slice of bytes and an error.
+	Sign(msg []byte) (primitives.BLSSignature, error)
+}
+
 // BlobsProcessor is the interface for the blobs processor.
 type BlobsProcessor interface {
 	ProcessBlobs(

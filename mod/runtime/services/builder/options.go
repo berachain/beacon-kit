@@ -26,6 +26,7 @@
 package builder
 
 import (
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
@@ -71,7 +72,7 @@ func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
 }
 
 // WithSigner sets the signer.
-func WithSigner(signer Signer) service.Option[Service] {
+func WithSigner(signer core.BLSSigner) service.Option[Service] {
 	return func(s *Service) error {
 		s.signer = signer
 		return nil

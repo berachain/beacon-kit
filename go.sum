@@ -813,8 +813,8 @@ github.com/influxdata/influxdb1-client v0.0.0-20220302092344-a9ab5670611c h1:qSH
 github.com/influxdata/influxdb1-client v0.0.0-20220302092344-a9ab5670611c/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 h1:W9WBk7wlPfJLvMCdtV4zPulc4uCPrlywQOmbFOhgQNU=
 github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839/go.mod h1:xaLFMmpvUxqXtVkUJfg9QmT88cDaCJ3ZKgdZ78oO8Qo=
-github.com/itsdevbear/comet-bls12-381 v0.0.0-20240226135442-10e4707bd0ca h1:6cUJXcTBfrTOQxxTGR5IUlmL3H77acebAaZ6Jj/cHqU=
-github.com/itsdevbear/comet-bls12-381 v0.0.0-20240226135442-10e4707bd0ca/go.mod h1:g9qJMyY3EUD/g2xoPHOrxaCPTyTAMGKnvVOGaLSOuUg=
+github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f h1:1sGhjYa2G4Ck9y8QkhD1u+lcC+abgh2U/9Br1tbahD8=
+github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f/go.mod h1:g9qJMyY3EUD/g2xoPHOrxaCPTyTAMGKnvVOGaLSOuUg=
 github.com/jackpal/go-nat-pmp v1.0.2 h1:KzKSgb7qkJvOUTqYl9/Hg/me3pWgBmERKrTGD7BdWus=
 github.com/jackpal/go-nat-pmp v1.0.2/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jdx/go-netrc v1.0.0 h1:QbLMLyCZGj0NA8glAhxUpf1zDg6cxnWgMBbjq40W0gQ=

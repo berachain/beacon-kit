@@ -25,4 +25,4 @@
 
 package types
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit,Validator -include ../../../mod/crypto/bls12-381,../../../mod/primitives,../../../mod/execution/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit,Validator -include ../../../mod/primitives,../../../mod/execution/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go

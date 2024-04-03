@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bls12381_test
+package signer_test
 
 import (
 	"testing"
 
-	bls12_381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
+	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/stretchr/testify/require"
@@ -38,32 +38,32 @@ func TestSigner_SignAndVerify(t *testing.T) {
 	// Generate a random secret key for testing
 	key, err := blst.RandKey()
 	require.NoError(t, err, "Failed to generate random key")
-	signer, err := bls12_381.NewSigner([32]byte(key.Marshal()))
+	signer, err := signer.NewBLSSigner([32]byte(key.Marshal()))
 	require.NoError(t, err, "Failed to create signer")
 
 	// Test message
 	message := []byte("test message")
 
 	// Sign the message
-	signature := signer.Sign(message)
+	signature, err := signer.Sign(message)
+	require.NoError(t, err, "Failed to sign message")
 
 	// Extract the public key from the signer
 	pubKeyBytes := signer.SecretKey.PublicKey().Marshal()
+	pubkey, err := blst.PublicKeyFromBytes(pubKeyBytes)
+	require.NoError(t, err, "Failed to create public key")
+	sig, err := blst.SignatureFromBytes(signature[:])
+	require.NoError(t, err, "Failed to create signature")
 
 	// Verify the signature
-	valid := bls12_381.VerifySignature(
-		[48]byte(pubKeyBytes),
-		message,
-		signature,
-	)
-	require.True(t, valid, "Signature should be valid")
+	require.True(t, sig.Verify(pubkey, message), "Signature should be valid")
 }
 
 func TestSigner_FailOnInvalidSignature(t *testing.T) {
 	// Generate a random secret key for testing
 	key1, err := blst.RandKey()
 	require.NoError(t, err, "Failed to generate random key")
-	signer, err := bls12_381.NewSigner(
+	_signer, err := signer.NewBLSSigner(
 		[constants.BLSSecretKeyLength]byte(key1.Marshal()),
 	)
 	require.NoError(t, err, "Failed to create signer")
@@ -71,22 +71,22 @@ func TestSigner_FailOnInvalidSignature(t *testing.T) {
 	// Generate a second random key.
 	key2, err := blst.RandKey()
 	require.NoError(t, err, "Failed to generate random key")
-	otherSigner, err := bls12_381.NewSigner([32]byte(key2.Marshal()))
+	otherSigner, err := signer.NewBLSSigner([32]byte(key2.Marshal()))
 	require.NoError(t, err, "Failed to create signer")
 
 	// Test message
 	message := []byte("test message")
 
 	// Incorrect signature
-	signedByWrongKey := otherSigner.Sign(message)
+	signedByWrongKey, err := otherSigner.Sign(message)
+	require.NoError(t, err, "Failed to sign message")
 
-	pubKeyBytes := signer.SecretKey.PublicKey().Marshal()
+	pubKeyBytes := _signer.SecretKey.PublicKey().Marshal()
 
 	// Attempt to verify the incorrect signature
-	valid := bls12_381.VerifySignature(
-		[constants.BLSPubkeyLength]byte(pubKeyBytes),
-		message,
-		signedByWrongKey,
-	)
-	require.False(t, valid, "Signature should be invalid")
+	pubkey, err := blst.PublicKeyFromBytes(pubKeyBytes)
+	require.NoError(t, err, "Failed to create public key")
+	sig, err := blst.SignatureFromBytes(signedByWrongKey[:])
+	require.NoError(t, err, "Failed to create signature")
+	require.False(t, sig.Verify(pubkey, message), "Signature should be invalid")
 }

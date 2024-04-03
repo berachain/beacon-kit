@@ -32,12 +32,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
-	"github.com/berachain/beacon-kit/mod/crypto"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
@@ -74,7 +72,7 @@ func NewBeaconKitRuntime(
 // services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
-	signer crypto.Signer[primitives.BLSSignature],
+	signer core.BLSSigner,
 	logger log.Logger,
 	bsb BeaconStorageBackend,
 ) (*BeaconKitRuntime, error) {
