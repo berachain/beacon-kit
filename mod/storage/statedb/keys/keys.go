@@ -23,21 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package keys
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+// Collection prefixes.
+const (
+	DepositQueuePrefix                     = "deposit_queue"
+	WithdrawalQueuePrefix                  = "withdrawal_queue"
+	RandaoMixPrefix                        = "randao_mix"
+	SlashingsPrefix                        = "slashings"
+	TotalSlashingPrefix                    = "total_slashing"
+	ValidatorIndexPrefix                   = "val_idx"
+	BlockRootsPrefix                       = "block_roots"
+	StateRootsPrefix                       = "state_roots"
+	ValidatorByIndexPrefix                 = "val_idx_to_pk"
+	ValidatorPubkeyToIndexPrefix           = "val_pk_to_idx"
+	ValidatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
+	ValidatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
+	LatestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
+	SlotPrefix                             = "slot"
+	BalancesPrefix                         = "balances"
+	Eth1BlockHashPrefix                    = "eth1_block_hash"
+	Eth1DepositIndexPrefix                 = "eth1_deposit_index"
+	GenesisValidatorsRootPrefix            = "genesis_validators_root"
 )
-
-// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *Store) UpdateRandaoMixAtIndex(
-	index uint64,
-	mix primitives.Bytes32,
-) error {
-	return s.randaoMix.Set(s.ctx, index, mix)
-}
-
-// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *Store) GetRandaoMixAtIndex(index uint64) (primitives.Bytes32, error) {
-	return s.randaoMix.Get(s.ctx, index)
-}

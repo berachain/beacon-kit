@@ -30,7 +30,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		NextWithdrawalIndex          uint64                   `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex uint64                   `json:"nextWithdrawalValidatorIndex"`
 		Slashings                    []uint64                 `json:"slashings"     ssz-max:"1099511627776"`
-		TotalSlashing                uint64                   `json:"totalSlashing"`
+		TotalSlashing                primitives.Gwei          `json:"totalSlashing"`
 	}
 	var enc BeaconStateDeneb
 	enc.GenesisValidatorsRoot = b.GenesisValidatorsRoot[:]
@@ -81,7 +81,7 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		NextWithdrawalIndex          *uint64                  `json:"nextWithdrawalIndex"`
 		NextWithdrawalValidatorIndex *uint64                  `json:"nextWithdrawalValidatorIndex"`
 		Slashings                    []uint64                 `json:"slashings"     ssz-max:"1099511627776"`
-		TotalSlashing                *uint64                  `json:"totalSlashing"`
+		TotalSlashing                *primitives.Gwei         `json:"totalSlashing"`
 	}
 	var dec BeaconStateDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {

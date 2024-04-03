@@ -59,6 +59,7 @@ type ExecutionEngine interface {
 type LocalBuilder interface {
 	BuildLocalPayload(
 		ctx context.Context,
+		st state.BeaconState,
 		parentEth1Hash primitives.ExecutionHash,
 		slot primitives.Slot,
 		timestamp uint64,
@@ -87,6 +88,7 @@ type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
+		st state.BeaconState,
 		blockHash primitives.ExecutionHash,
 	) error
 }

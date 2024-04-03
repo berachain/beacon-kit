@@ -23,36 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (s *Store) UpdateBlockRootAtIndex(
+// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
+func (s *StateDB) UpdateRandaoMixAtIndex(
 	index uint64,
-	root primitives.Root,
+	mix primitives.Bytes32,
 ) error {
-	return s.blockRoots.Set(s.ctx, index, root)
+	return s.randaoMix.Set(s.ctx, index, mix)
 }
 
-// GetBlockRoot retrieves the block root from the BeaconStore.
-func (s *Store) GetBlockRootAtIndex(
+// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
+func (s *StateDB) GetRandaoMixAtIndex(
 	index uint64,
-) (primitives.Root, error) {
-	return s.blockRoots.Get(s.ctx, index)
-}
-
-// SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (s *Store) SetLatestBlockHeader(
-	header *beacontypes.BeaconBlockHeader,
-) error {
-	return s.latestBeaconBlockHeader.Set(s.ctx, header)
-}
-
-// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
-	return s.latestBeaconBlockHeader.Get(s.ctx)
+) (primitives.Bytes32, error) {
+	return s.randaoMix.Get(s.ctx, index)
 }
