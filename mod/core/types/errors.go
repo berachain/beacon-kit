@@ -67,4 +67,9 @@ var (
 
 	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
 	ErrNilBlobsBundle = errors.New("nil blobs bundle")
+
+	// ErrInvalidWithdrawalCredentials is an error for when the.
+	ErrInvalidWithdrawalCredentials = errors.New(
+		"invalid withdrawal credentials",
+	)
 )
