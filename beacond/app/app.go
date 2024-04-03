@@ -213,6 +213,4 @@ func (app *BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.AP
 	}
 
 	apiSvr.Router.PathPrefix("/").Handler(newServer)
-
-	newServer.RegisterRoutes(apiSvr.Router)
 }
