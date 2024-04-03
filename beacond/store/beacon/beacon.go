@@ -42,7 +42,8 @@ import (
 // Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type Store struct {
-	ctx context.Context
+	ctx   context.Context
+	write func()
 
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
@@ -204,8 +205,10 @@ func NewStore(
 
 // Copy returns a copy of the Store.
 func (s *Store) Copy() state.BeaconState {
-	cctx, _ := sdk.UnwrapSDKContext(s.ctx).CacheContext()
-	return s.WithContext(cctx)
+	cctx, write := sdk.UnwrapSDKContext(s.ctx).CacheContext()
+	ss := s.WithContext(cctx)
+	ss.write = write
+	return ss
 }
 
 // Context returns the context of the Store.
@@ -218,4 +221,11 @@ func (s *Store) WithContext(ctx context.Context) *Store {
 	cpy := *s
 	cpy.ctx = ctx
 	return &cpy
+}
+
+// Save saves the Store.
+func (s *Store) Save() {
+	if s.write != nil {
+		s.write()
+	}
 }

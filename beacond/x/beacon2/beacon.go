@@ -23,52 +23,54 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package beacon2
 
 import (
 	"context"
 
+	sdkcollections "cosmossdk.io/collections"
+	"cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/beacond/store/beacon/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 )
 
-// Service represents the staking service.
-type Service struct {
-	// BaseService is the base service.
-	service.BaseService
+// beaconStateKeyPrefix is the key prefix for the beacon state.
+const beaconStateKeyPrefix = "beacon_state"
 
-	// ee represents the execution engine.
-	ee *execution.Engine
-
-	// abi represents the configured deposit contract's
-	// abi.
-	abi *abi.WrappedABI
+// Store is a wrapper around an sdk.Context
+// that provides access to all beacon related data.
+type Store struct {
+	// beaconState is the store for the beacon state.
+	beaconState sdkcollections.Item[*state.BeaconStateDeneb]
 }
 
-// ProcessLogsInETH1Block gets logs in the Eth1 block
-// received from the execution client and processes them to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service) ProcessLogsInETH1Block(
-	ctx context.Context,
-	st state.BeaconState,
-	blockHash primitives.ExecutionHash,
-) error {
-	// Gather all the logs corresponding to
-	// the addresses of interest from this block.
-	logsInBlock, err := s.ee.GetLogs(
-		ctx,
-		blockHash,
-		[]primitives.ExecutionAddress{
-			s.BeaconCfg().DepositContractAddress,
-		},
-	)
-	if err != nil {
-		return err
-	}
+// Store creates a new instance of Store.
+//
 
-	return s.ProcessBlockEvents(ctx, st, logsInBlock)
+func NewStore(
+	env appmodule.Environment,
+) *Store {
+	return &Store{
+		beaconState: sdkcollections.NewItem[*state.BeaconStateDeneb](
+			sdkcollections.NewSchemaBuilder(env.KVStoreService),
+			sdkcollections.NewPrefix(beaconStateKeyPrefix),
+			beaconStateKeyPrefix,
+			encoding.SSZValueCodec[*state.BeaconStateDeneb]{},
+		),
+	}
+}
+
+// GetBeaconState returns the beacon state.
+func (s *Store) GetBeaconState(
+	ctx context.Context,
+) (*state.BeaconStateDeneb, error) {
+	return s.beaconState.Get(ctx)
+}
+
+// SetBeaconState sets the beacon state.
+func (s *Store) SetBeaconState(
+	ctx context.Context,
+	st *state.BeaconStateDeneb,
+) error {
+	return s.beaconState.Set(ctx, st)
 }

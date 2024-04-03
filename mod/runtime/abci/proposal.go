@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -43,18 +44,25 @@ import (
 type BuilderService interface {
 	RequestBestBlock(
 		context.Context,
+		state.BeaconState,
 		primitives.Slot,
 	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
 }
 
 type BlockchainService interface {
-	ProcessSlot(context.Context) error
+	ProcessSlot(state.BeaconState) error
+	BeaconState(context.Context) state.BeaconState
 	ProcessBeaconBlock(
 		context.Context,
+		state.BeaconState,
 		beacontypes.ReadOnlyBeaconBlock,
 		*datypes.BlobSidecars,
 	) error
-	PostBlockProcess(context.Context, beacontypes.ReadOnlyBeaconBlock) error
+	PostBlockProcess(
+		context.Context,
+		state.BeaconState,
+		beacontypes.ReadOnlyBeaconBlock,
+	) error
 	BeaconCfg() *params.BeaconChainConfig
 }
 
@@ -106,8 +114,10 @@ func (h *Handler) PrepareProposalHandler(
 		}
 	}()
 
+	st := h.chainService.BeaconState(groupCtx)
+
 	// Process the Slot to set the state root for the block.
-	if err := h.chainService.ProcessSlot(ctx); err != nil {
+	if err := h.chainService.ProcessSlot(st); err != nil {
 		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
@@ -117,6 +127,7 @@ func (h *Handler) PrepareProposalHandler(
 	// timing.
 	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx,
+		st,
 		primitives.Slot(req.Height),
 	)
 	if err != nil || blk == nil || blk.IsNil() {
