@@ -29,7 +29,16 @@ import "github.com/berachain/beacon-kit/primitives"
 
 // GetSlot returns the current slot.
 func (s *Store) GetSlot() (primitives.Slot, error) {
-	panic("not implemented")
+	res, err := s.provider.Query(s.ctx, []byte(slotPrefix), 0)
+	if err != nil {
+		return 0, err
+	}
+
+	decoded, err := s.slotCodec.Value.Decode(res)
+	if err != nil {
+		return 0, err
+	}
+	return primitives.Slot(decoded), nil
 }
 
 // SetSlot sets the current slot.

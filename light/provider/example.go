@@ -48,6 +48,10 @@ func (p *Provider) GetBlockRootAtIndex(index uint64) primitives.Root {
 	if err != nil {
 		panic(err)
 	}
+	if res == nil {
+		return primitives.Root{}
+	}
+
 	blockRoot, err := blockRootsCodec.Value.Decode(res)
 	if err != nil {
 		panic(err)
