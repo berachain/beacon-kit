@@ -27,7 +27,6 @@ package beacon
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -46,39 +45,92 @@ func (s *Store) StateRootAtIndex(idx uint64) (primitives.Root, error) {
 
 // Store is the interface for the beacon store.
 func (s *Store) HashTreeRoot() ([32]byte, error) {
-	// TODO: Implement getting the HashTreeRoot (StateRoot)
-	// We currently return at least *SOMETHING* so that we
-	// can simulate having to keep track of the StateRoot of the
-	// BeaconState, since this value with change every slot.
-	// TODO: Actually implementation.
-
 	slot, err := s.GetSlot()
 	if err != nil {
 		return [32]byte{}, err
 	}
 
-	randaoMix, err := s.GetRandaoMixAtIndex(0)
+	genesisValidatorsRoot, err := s.GetGenesisValidatorsRoot()
 	if err != nil {
 		return [32]byte{}, err
 	}
-
-	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
-	randaoMixes[0] = randaoMix
 
 	latestBlockHeader, err := s.GetLatestBlockHeader()
 	if err != nil {
 		return [32]byte{}, err
 	}
 
+	blockRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+		blockRoot, err := s.GetBlockRootAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		blockRoots[i] = blockRoot
+	}
+
+	stateRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+		stateRoot, err := s.StateRootAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		stateRoots[i] = stateRoot
+	}
+
+	eth1BlockHash, err := s.GetEth1BlockHash()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	eth1DepositIndex, err := s.GetEth1DepositIndex()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	validators, err := s.GetValidators()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	balances, err := s.GetBalances()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	randaoMixes := make([][32]byte, s.cfg.EpochsPerHistoricalVector)
+	for i := uint64(0); i < s.cfg.EpochsPerHistoricalVector; i++ {
+		randaoMix, err := s.GetRandaoMixAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		randaoMixes[i] = randaoMix
+	}
+
+	slashings, err := s.GetSlashings()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	totalSlashings, err := s.GetTotalSlashing()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	return (&state.BeaconStateDeneb{
-		GenesisValidatorsRoot: primitives.Root{},
-		Slot:                  slot,
-		LatestBlockHeader:     latestBlockHeader,
-		BlockRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		StateRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		Eth1BlockHash:         [32]byte{},
-		Eth1DepositIndex:      0,
-		Validators:            []*beacontypes.Validator{},
-		RandaoMixes:           randaoMixes,
+		Slot:                         slot,
+		GenesisValidatorsRoot:        genesisValidatorsRoot,
+		LatestBlockHeader:            latestBlockHeader,
+		BlockRoots:                   blockRoots,
+		StateRoots:                   stateRoots,
+		Eth1BlockHash:                eth1BlockHash,
+		Eth1DepositIndex:             eth1DepositIndex,
+		Validators:                   validators,
+		Balances:                     balances,
+		RandaoMixes:                  randaoMixes,
+		NextWithdrawalIndex:          0, // TODO
+		NextWithdrawalValidatorIndex: 0, // TODO
+		Slashings:                    slashings,
+		TotalSlashing:                totalSlashings,
 	}).HashTreeRoot()
 }

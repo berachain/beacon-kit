@@ -23,26 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package keys
 
 // Collection prefixes.
 const (
-	depositQueuePrefix                     = "deposit_queue"
-	withdrawalQueuePrefix                  = "withdrawal_queue"
-	randaoMixPrefix                        = "randao_mix"
-	slashingsPrefix                        = "slashings"
-	totalSlashingPrefix                    = "total_slashing"
-	validatorIndexPrefix                   = "val_idx"
-	blockRootsPrefix                       = "block_roots"
-	stateRootsPrefix                       = "state_roots"
-	validatorByIndexPrefix                 = "val_idx_to_pk"
-	validatorPubkeyToIndexPrefix           = "val_pk_to_idx"
-	validatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
-	validatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
-	latestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
-	slotPrefix                             = "slot"
-	balancesPrefix                         = "balances"
-	eth1BlockHashPrefix                    = "eth1_block_hash"
-	eth1DepositIndexPrefix                 = "eth1_deposit_index"
-	genesisValidatorsRootPrefix            = "genesis_validators_root"
+	DepositQueuePrefix                     = "deposit_queue"
+	WithdrawalQueuePrefix                  = "withdrawal_queue"
+	RandaoMixPrefix                        = "randao_mix"
+	SlashingsPrefix                        = "slashings"
+	TotalSlashingPrefix                    = "total_slashing"
+	ValidatorIndexPrefix                   = "val_idx"
+	BlockRootsPrefix                       = "block_roots"
+	StateRootsPrefix                       = "state_roots"
+	ValidatorByIndexPrefix                 = "val_idx_to_pk"
+	ValidatorPubkeyToIndexPrefix           = "val_pk_to_idx"
+	ValidatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
+	ValidatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
+	LatestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
+	SlotPrefix                             = "slot"
+	BalancesPrefix                         = "balances"
+	Eth1BlockHashPrefix                    = "eth1_block_hash"
+	Eth1DepositIndexPrefix                 = "eth1_deposit_index"
+	GenesisValidatorsRootPrefix            = "genesis_validators_root"
 )

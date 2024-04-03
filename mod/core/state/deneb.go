@@ -97,8 +97,8 @@ type BeaconStateDeneb struct {
 	NextWithdrawalValidatorIndex uint64 `json:"nextWithdrawalValidatorIndex"`
 
 	// Slashing
-	Slashings     []uint64 `json:"slashings"     ssz-max:"1099511627776"`
-	TotalSlashing uint64   `json:"totalSlashing"`
+	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
+	TotalSlashing primitives.Gwei `json:"totalSlashing"`
 }
 
 // String returns a string representation of BeaconStateDeneb.

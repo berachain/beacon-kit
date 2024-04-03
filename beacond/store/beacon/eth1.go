@@ -40,3 +40,13 @@ func (s *Store) UpdateEth1BlockHash(
 func (s *Store) GetEth1BlockHash() (primitives.ExecutionHash, error) {
 	return s.eth1BlockHash.Get(s.ctx)
 }
+
+// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+func (s *Store) GetEth1DepositIndex() (uint64, error) {
+	return s.eth1DepositIndex.Get(s.ctx)
+}
+
+// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
+func (s *Store) SetEth1DepositIndex(index uint64) error {
+	return s.eth1DepositIndex.Set(s.ctx, index)
+}

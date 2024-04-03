@@ -27,6 +27,20 @@ package beacon
 
 import "github.com/berachain/beacon-kit/mod/primitives"
 
+// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// state.
+func (s *Store) SetGenesisValidatorsRoot(
+	root primitives.Root,
+) error {
+	return s.genesisValidatorsRoot.Set(s.ctx, root)
+}
+
+// GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// beacon state.
+func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	return s.genesisValidatorsRoot.Get(s.ctx)
+}
+
 // GetSlot returns the current slot.
 func (s *Store) GetSlot() (primitives.Slot, error) {
 	slot, err := s.slot.Get(s.ctx)
@@ -39,12 +53,10 @@ func (s *Store) SetSlot(slot primitives.Slot) error {
 }
 
 // GetCurrentEpoch returns the current epoch.
-func (s *Store) GetCurrentEpoch(
-	slotsPerEpoch uint64,
-) (primitives.Epoch, error) {
+func (s *Store) GetCurrentEpoch() (primitives.Epoch, error) {
 	slots, err := s.slot.Get(s.ctx)
 	if err != nil {
 		return 0, err
 	}
-	return primitives.Epoch(slots / slotsPerEpoch), nil
+	return primitives.Epoch(slots / s.cfg.SlotsPerEpoch), nil
 }
