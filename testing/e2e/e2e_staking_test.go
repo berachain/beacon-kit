@@ -157,3 +157,56 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(postWithdrawPower, suite.OneGwei)
 }
+
+func (s *BeaconKitE2ESuite) TestCreateNewValidator() {
+	pubkey := [48]byte{}
+
+	// Generate the credentials.
+	credentials := byteslib.PrependExtendToSize(
+		s.GenesisAccount().Address().Bytes(),
+		32,
+	)
+	credentials[0] = 0x01
+
+	// Bind the deposit contract.
+	dc, err := stakingabi.NewBeaconDepositContract(
+		common.HexToAddress(DepositContractAddress),
+		s.JSONRPCBalancer(),
+	)
+	s.Require().NoError(err)
+
+	// Generate the signature.
+	signature := [96]byte{}
+	s.Require().Len(signature[:], 96)
+
+	// Get the chain ID.
+	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get the block num
+	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Create a deposit transaction.
+	val, _ := big.NewFloat(32e18).Int(nil)
+	tx, err := dc.Deposit(&bind.TransactOpts{
+		From:   s.GenesisAccount().Address(),
+		Value:  val,
+		Signer: s.GenesisAccount().SignerFunc(chainID),
+	}, pubkey[:], credentials, 32*suite.OneGwei, signature[:])
+	s.Require().NoError(err)
+
+	// Wait for the transaction to be mined.
+	var receipt *coretypes.Receipt
+	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(1), receipt.Status)
+	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
+
+	// Wait for the log to be processed.
+	targetBlkNum := blkNum + 5
+	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	s.Require().NoError(err)
+
+	// TODO: Check the power of the newly created validator when RPC exists.
+}
