@@ -63,7 +63,7 @@ func (sp *Processor) ProcessBlobs(
 			}
 			// Store the blobs under a single height.
 			return types.VerifyKZGInclusionProof(
-				bodyRoot[:], *sidecar, (*sidecar).Index,
+				bodyRoot, *sidecar,
 			)
 		},
 	)...); err != nil {
