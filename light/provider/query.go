@@ -9,25 +9,33 @@ import (
 
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 
-	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/grpc/metadata"
 )
 
-func (p *Provider) QueryWithProof(ctx context.Context, key string, height int64) (common.Hash, error) {
-	resp, _, err := p.RunGRPCQuery(
+func (p *Provider) Query(ctx context.Context, key []byte, height int64) ([]byte, error) {
+	if height == 0 {
+		res, err := p.client.ABCIInfo(ctx)
+		if err != nil {
+			return nil, err
+		}
+		height = res.Response.LastBlockHeight - 1
+	}
+
+	resp, _, err := p.runGRPCQuery(
 		context.Background(),
 		beaconStoreKey,
-		[]byte(key),
+		key,
 		height,
 	)
 
 	if err != nil {
-		return common.Hash{}, err
+		return nil, err
 	}
-	return common.BytesToHash(resp.Value), nil
+
+	return resp.Value, nil
 }
 
-func (p *Provider) RunGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64) (abci.ResponseQuery, metadata.MD, error) {
+func (p *Provider) runGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64) (abci.ResponseQuery, metadata.MD, error) {
 	// // parse height header
 	// if heights := md.Get(grpctypes.GRPCBlockHeightHeader); len(heights) > 0 {
 	// 	height, err := strconv.ParseInt(heights[0], 10, 64)

@@ -42,12 +42,12 @@ func (s *Store) UpdateBlockRootAtIndex(
 func (s *Store) GetBlockRootAtIndex(
 	index uint64,
 ) (primitives.Root, error) {
-	hash, err := s.provider.QueryWithProof(s.ctx, blockRootsPrefix, int64(index))
+	res, err := s.provider.Query(s.ctx, []byte(blockRootsPrefix), int64(index))
 	if err != nil {
 		return primitives.Root{}, err
 	}
 
-	return primitives.Root(hash), nil
+	return primitives.Root(res), nil
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
@@ -59,5 +59,10 @@ func (s *Store) SetLatestBlockHeader(
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (s *Store) GetLatestBlockHeader() (*beacontypes.BeaconBlockHeader, error) {
-	panic("not implemented")
+	res, err := s.provider.Query(s.ctx, []byte(latestBeaconBlockHeaderPrefix), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.latestBeaconBlockHeaderCodec.Value.Decode(res)
 }

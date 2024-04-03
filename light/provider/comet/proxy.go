@@ -34,7 +34,7 @@ func StartProxy(c Config) error {
 	serverCfg := initServerConfig(c.MaxOpenConnections)
 
 	opts := []lrpc.Option{
-		lrpc.KeyPathFn(DefaultMerkleKeyPathFn()),
+		lrpc.KeyPathFn(lrpc.DefaultMerkleKeyPathFn()),
 		func(c *lrpc.Client) {
 			c.RegisterOpDecoder(
 				storetypes.ProofOpIAVLCommitment, storetypes.CommitmentOpDecoder,
