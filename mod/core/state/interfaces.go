@@ -112,7 +112,7 @@ type WriteOnlyValidators interface {
 // ReadOnlyValidators has read access to validator methods.
 type ReadOnlyValidators interface {
 	ValidatorIndexByPubkey(
-		[]byte,
+		primitives.BLSPubkey,
 	) (primitives.ValidatorIndex, error)
 
 	ValidatorByIndex(

@@ -299,7 +299,7 @@ func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
 	dep *types.Deposit,
 ) {
-	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey[:])
+	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	if err != nil {
 		_ = 0
 		// # Verify the deposit signature (proof of possession) which is not
@@ -500,7 +500,7 @@ func (sp *StateProcessor) processSlash(
 	penalty := penaltyNumerator / totalBalance * increment
 
 	// Get the val index and decrease the balance of the validator.
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey[:])
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
 	if err != nil {
 		return err
 	}
