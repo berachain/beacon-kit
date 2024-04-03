@@ -87,7 +87,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		if validator.EffectiveBalance == 0 {
 			var idx primitives.ValidatorIndex
 			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey[:])
+				ValidatorIndexByPubkey(validator.Pubkey)
 			if err != nil {
 				return nil, err
 			}

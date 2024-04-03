@@ -29,23 +29,23 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	crypto "github.com/berachain/beacon-kit/mod/crypto"
-	bls12381 "github.com/berachain/beacon-kit/mod/crypto/bls12-381"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/go-faster/xor"
+	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	sha256 "github.com/minio/sha256-simd"
 )
 
 // Processor is the randao processor.
 type Processor struct {
 	cfg    *config.Config
-	signer crypto.Signer[primitives.BLSSignature]
+	signer core.BLSSigner
 	logger log.Logger
 }
 
@@ -91,10 +91,11 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
-	if !bls12381.VerifySignature(
-		proposer.Pubkey,
+	reveal := blk.GetBody().GetRandaoReveal()
+	if !blst.VerifySignaturePubkeyBytes(
+		proposer.Pubkey[:],
 		signingRoot[:],
-		blk.GetBody().GetRandaoReveal(),
+		reveal[:],
 	) {
 		return ErrInvalidSignature
 	}
@@ -174,7 +175,7 @@ func (p *Processor) buildReveal(
 	if err != nil {
 		return primitives.BLSSignature{}, err
 	}
-	return p.signer.Sign(signingRoot[:]), nil
+	return p.signer.Sign(signingRoot[:])
 }
 
 // buildMix builds a new mix from a given mix and reveal.
