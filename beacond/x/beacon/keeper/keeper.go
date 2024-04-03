@@ -125,7 +125,7 @@ func (k *Keeper) AvailabilityStore(
 func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), *k.cfg)
+	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), k.cfg)
 }
 
 // InitGenesis initializes the genesis state of the module.

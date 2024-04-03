@@ -34,13 +34,13 @@ import (
 // interface.
 type beaconState struct {
 	*statedb.StateDB
-	cfg params.BeaconChainConfig
+	cfg *params.BeaconChainConfig
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
 	sdb *statedb.StateDB,
-	cfg params.BeaconChainConfig,
+	cfg *params.BeaconChainConfig,
 ) BeaconState {
 	return &beaconState{
 		StateDB: sdb,
