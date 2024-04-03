@@ -28,10 +28,10 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
 var ErrInvalidWithdrawalCredentials = errors.New("")
@@ -97,7 +97,16 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	if !randao.VerifySignature(d.Pubkey, signingRoot[:], signature) {
+	pubkey, err := blst.PublicKeyFromBytes(d.Pubkey[:])
+	if err != nil {
+		return err
+	}
+	sig, err := blst.SignatureFromBytes(signature[:])
+	if err != nil {
+		return err
+	}
+
+	if !sig.Verify(pubkey, signingRoot[:]) {
 		return errors.New("deposit signature is invalid")
 	}
 	return nil
