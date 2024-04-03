@@ -28,6 +28,7 @@ package staking
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
@@ -37,6 +38,7 @@ import (
 // ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
 	ctx context.Context,
+	st state.BeaconState,
 	logs []coretypes.Log,
 ) error {
 	for _, log := range logs {
@@ -49,9 +51,9 @@ func (s *Service) ProcessBlockEvents(
 		var err error
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
-			err = s.processDepositLog(ctx, log)
+			err = s.processDepositLog(ctx, st, log)
 		case logSig == WithdrawalEventSig:
-			err = s.processWithdrawalLog(ctx, log)
+			err = s.processWithdrawalLog(ctx, st, log)
 		default:
 			continue
 		}
@@ -65,7 +67,8 @@ func (s *Service) ProcessBlockEvents(
 
 // processDepositLog adds a deposit to the queue.
 func (s *Service) processDepositLog(
-	ctx context.Context,
+	_ context.Context,
+	st state.BeaconState,
 	log coretypes.Log,
 ) error {
 	d := &abi.BeaconDepositContractDeposit{}
@@ -77,7 +80,7 @@ func (s *Service) processDepositLog(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
 
-	return s.BeaconState(ctx).EnqueueDeposits([]*beacontypes.Deposit{{
+	return st.EnqueueDeposits([]*beacontypes.Deposit{{
 		Index:       d.Index,
 		Pubkey:      primitives.BLSPubkey(d.Pubkey),
 		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
@@ -88,7 +91,8 @@ func (s *Service) processDepositLog(
 
 // processWithdrawalLog adds a withdrawal to the queue.
 func (s *Service) processWithdrawalLog(
-	ctx context.Context,
+	_ context.Context,
+	st state.BeaconState,
 	log coretypes.Log,
 ) error {
 	w := &abi.BeaconDepositContractWithdrawal{}
@@ -97,7 +101,7 @@ func (s *Service) processWithdrawalLog(
 	}
 
 	// Get the validator index from the pubkey.
-	valIdx, err := s.BeaconState(ctx).ValidatorIndexByPubkey(w.FromPubkey)
+	valIdx, err := st.ValidatorIndexByPubkey(w.FromPubkey)
 	if err != nil {
 		return err
 	}
@@ -112,7 +116,7 @@ func (s *Service) processWithdrawalLog(
 		"she said, \"see you later, boi\" 💅", "deposit", w.Index, "amount", w.Amount,
 	)
 
-	return s.BeaconState(ctx).EnqueueWithdrawals([]*primitives.Withdrawal{{
+	return st.EnqueueWithdrawals([]*primitives.Withdrawal{{
 		Index:     w.Index,
 		Validator: valIdx,
 		Address:   executionAddr,

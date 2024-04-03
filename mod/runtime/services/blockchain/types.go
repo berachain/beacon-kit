@@ -88,6 +88,7 @@ type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
+		st state.BeaconState,
 		blockHash primitives.ExecutionHash,
 	) error
 }
