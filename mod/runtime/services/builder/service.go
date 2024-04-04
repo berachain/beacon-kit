@@ -165,11 +165,7 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
 
-	commitments := make(kzg.Commitments, len(blobsBundle.Commitments))
-	for i, c := range blobsBundle.Commitments {
-		commitments[i] = [48]byte(c)
-	}
-	body.SetBlobKzgCommitments(commitments)
+	body.SetBlobKzgCommitments(kzg.CommitmentsFromBz(blobsBundle.Commitments))
 
 	// Dequeue deposits from the state.
 	deposits, err := st.ExpectedDeposits(

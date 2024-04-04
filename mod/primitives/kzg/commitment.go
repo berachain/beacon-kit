@@ -38,6 +38,15 @@ import (
 // TODO: Fix this with upstream PR to fastssz.
 type Commitments [][48]byte
 
+// CommitmentsFromBz converts byte slices to commitments.
+func CommitmentsFromBz[T ~[]byte](slices []T) Commitments {
+	commitments := make([][48]byte, len(slices))
+	for i, slice := range slices {
+		copy(commitments[i][:], slice)
+	}
+	return commitments
+}
+
 // ToVersionedHashes converts the commitments to a set of
 // versioned hashes. It is simplify a convenience method
 // for converting a slice of commitments to a slice of
