@@ -226,6 +226,9 @@ func (sp *StateProcessor) processHeader(
 ) error {
 	// TODO: this function is really confusing.
 	header := blk.GetHeader()
+	if header == nil {
+		return types.ErrNilBlockHeader
+	}
 
 	// Store as the new latest block
 	headerRaw := &primitives.BlockHeader{
