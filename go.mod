@@ -63,6 +63,7 @@ require (
 
 require (
 	github.com/cometbft/cometbft-db v0.11.0 // indirect
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.13 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 )
 
