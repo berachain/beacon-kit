@@ -43,7 +43,6 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.2.4
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.13
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
@@ -55,7 +54,7 @@ require (
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
-	github.com/vektra/mockery/v2 v2.42.1
+	github.com/vektra/mockery/v2 v2.42.2
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f
 	golang.org/x/sync v0.6.0
