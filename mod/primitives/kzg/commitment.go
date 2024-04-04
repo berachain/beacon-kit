@@ -52,7 +52,7 @@ func CommitmentsFromBz[T ~[]byte](slices []T) Commitments {
 func (c Commitments) ToVersionedHashes() []primitives.ExecutionHash {
 	hashes := make([]primitives.ExecutionHash, len(c))
 	for i, bz := range c {
-		hashes[i] = Commitment(bz).ToVersionedHash()
+		hashes[i] = bz.ToVersionedHash()
 	}
 	return hashes
 }
