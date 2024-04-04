@@ -80,6 +80,7 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
+	// Get the genesis validators root.
 	root, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return err

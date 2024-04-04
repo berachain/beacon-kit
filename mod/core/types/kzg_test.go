@@ -141,7 +141,7 @@ func Test_BodyProof(t *testing.T) {
 		)
 		require.True(t, valid, "Merkle proof should be valid")
 
-		proof, err = types.BodyProof(commitments, index)
+		proof, err = commitments.MerkleProof(index)
 		require.NoError(t, err, "Failed to generate Merkle proof")
 		require.NotNil(t, proof, "Merkle proof should not be nil")
 		require.Len(t, proof, int(depth)+1)

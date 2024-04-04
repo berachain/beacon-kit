@@ -33,7 +33,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -84,8 +84,9 @@ func (s *Service) ProcessBeaconBlock(
 	// Then we notify the engine of the new payload.
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	versionedHashes := primitives.KzgCommitmentsToVersionedHashes(
-		body.GetBlobKzgCommitments())
+	versionedHashes := kzg.CommitmentsToVersionedHashes(
+		body.GetBlobKzgCommitments(),
+	)
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		execution.BuildNewPayloadRequest(

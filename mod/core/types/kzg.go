@@ -28,8 +28,8 @@ package types
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
-	"github.com/cockroachdb/errors"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -97,9 +97,7 @@ func MerkleProofKZGCommitment(
 	blk BeaconBlock,
 	index uint64,
 ) ([][]byte, error) {
-	commitments := blk.GetBody().GetBlobKzgCommitments()
-
-	proof, err := BodyProof(commitments, index)
+	proof, err := blk.GetBody().GetBlobKzgCommitments().MerkleProof(index)
 	if err != nil {
 		return nil, err
 	}
@@ -124,34 +122,12 @@ func MerkleProofKZGCommitment(
 	return proof, nil
 }
 
-// BodyProof returns the Merkle proof of the subtree up to the root of the KZG
-// commitment list.
-func BodyProof(commitments [][48]byte, index uint64) ([][]byte, error) {
-	if index >= uint64(len(commitments)) {
-		return nil, errors.New("index out of range")
-	}
-	leaves := LeavesFromCommitments(commitments)
-	sparse, err := trie.NewFromItems(leaves, LogMaxBlobCommitments)
-	if err != nil {
-		return nil, err
-	}
-
-	proof, err := sparse.MerkleProof(index)
-	if err != nil {
-		return nil, err
-	}
-	return proof, err
-}
-
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments [][48]byte) [][]byte {
+func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
 	leaves := make([][]byte, len(commitments))
-	for i, kzg := range commitments {
-		chunk := make([][32]byte, Two)
-		copy(chunk[0][:], kzg[:])
-		copy(chunk[1][:], kzg[RootLength:])
-		gohashtree.HashChunks(chunk, chunk)
-		leaves[i] = chunk[0][:]
+	for i, c := range commitments {
+		root, _ := kzg.Commitment(c).HashTreeRoot()
+		leaves[i] = root[:]
 	}
 	return leaves
 }
