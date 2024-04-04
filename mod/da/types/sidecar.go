@@ -38,7 +38,7 @@ type BlobSidecar struct {
 	Blob           []byte `ssz-size:"131072"`
 	KzgCommitment  []byte `ssz-size:"48"`
 	KzgProof       []byte `ssz-size:"48"`
-	BlockHeadher   *primitives.BlockHeader
+	BlockHeader    *primitives.BlockHeader
 	InclusionProof [][]byte `ssz-size:"8,32"`
 }
 

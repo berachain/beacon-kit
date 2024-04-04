@@ -56,7 +56,7 @@ func BuildBlobSidecar(
 				Blob:           blobs.Blobs[i],
 				KzgCommitment:  blobs.Commitments[i],
 				KzgProof:       blobs.Proofs[i],
-				BlockHeadher:   blkHeader,
+				BlockHeader:    blkHeader,
 				InclusionProof: inclusionProof,
 			}
 			return nil
