@@ -27,7 +27,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/config/params"
-	"github.com/berachain/beacon-kit/mod/execution/types"
+	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/storage/statedb"
 )
 
@@ -143,7 +143,7 @@ func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 		LatestBlockHeader:            latestBlockHeader,
 		BlockRoots:                   blockRoots,
 		StateRoots:                   stateRoots,
-		LatestExecutionPayload:       latestExecutionPayload.(*types.ExecutableDataDeneb),
+		LatestExecutionPayload:       latestExecutionPayload.(*types0.ExecutableDataDeneb),
 		Eth1BlockHash:                eth1BlockHash,
 		Eth1DepositIndex:             eth1DepositIndex,
 		Validators:                   validators,
