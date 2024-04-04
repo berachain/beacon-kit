@@ -54,7 +54,7 @@ type ReadOnlyBeaconState interface {
 	GetSlot() (primitives.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
 	GetEth1BlockHash() (primitives.ExecutionHash, error)
@@ -70,7 +70,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyWithdrawals
 	SetSlot(primitives.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*types.BeaconBlockHeader) error
+	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
 	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	UpdateEth1BlockHash(primitives.ExecutionHash) error

@@ -34,7 +34,8 @@ import (
 	"github.com/holiman/uint256"
 )
 
-const thirtyTwo = 32
+// UInt256ByteLength is the length of a uint256 in bytes.
+const UInt256ByteLength = 32
 
 // LittleEndian represents a uint256 number. It
 // is designed to marshal and unmarshal JSON in little-endian
@@ -71,7 +72,7 @@ func (s *LittleEndian) UnmarshalJSON(input []byte) error {
 	}
 	*s = LittleEndian(byteslib.ExtendToSize(
 		byteslib.CopyAndReverseEndianess(baseFee.Bytes()),
-		thirtyTwo,
+		UInt256ByteLength,
 	))
 	return nil
 }

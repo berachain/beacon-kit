@@ -25,4 +25,4 @@
 
 package primitives
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs SigningData,Withdrawal -include $GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generate.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconBlockHeader,SigningData,Withdrawal -include $GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generate.ssz.go

@@ -23,44 +23,54 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package kzg_test
 
 import (
+	"testing"
+
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	sha256 "github.com/minio/sha256-simd"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// KzgCommitmentToVersionedHash computes a SHA-256 hash of the given
-// commitment and prefixes it with the BlobCommitmentVersion. This function is
-// used to generate
-// a versioned hash for KZG commitments.
-//
-// The restulting hash is intended for use in contexts where a versioned
-// identifier
-// for the commitment is required.
-func KzgCommitmentToVersionedHash(
-	commitment [48]byte,
-) ExecutionHash {
-	hash := sha256.Sum256(commitment[:])
-	// Prefix the hash with the BlobCommitmentVersion
-	// to create a versioned hash.
-	hash[0] = constants.BlobCommitmentVersion
-	return hash
+func TestKzgCommitmentToVersionedHash(t *testing.T) {
+	commitment := kzg.Commitment{}
+	copy(commitment[:], []byte("test commitment"))
+	// Assuming BlobCommitmentVersion is a byte value
+	expectedPrefix := constants.BlobCommitmentVersion
+
+	hash := commitment.ToVersionedHash()
+	if hash[0] != expectedPrefix {
+		t.Errorf(
+			"expected first byte of hash to be %v, got %v",
+			expectedPrefix,
+			hash[0],
+		)
+	}
+
+	if len(hash) != 32 {
+		t.Errorf("expected hash length to be 32, got %d", len(hash))
+	}
 }
 
-// ConvertCommitmentsToVersionedHashes converts a slice of commitments to a
-// slice of versioned hashes. This function is used to generate versioned hashes
-// for KZG commitments.
-//
-// The resulting hashes are intended for use in contexts where a versioned
-// identifier
-// for the commitments is required.
-func KzgCommitmentsToVersionedHashes(
-	commitments [][48]byte,
-) []ExecutionHash {
-	hashes := make([]ExecutionHash, len(commitments))
-	for i, bz := range commitments {
-		hashes[i] = KzgCommitmentToVersionedHash(bz)
+func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
+	commitments := make([][48]byte, 2)
+	copy(commitments[0][:], "commitment 1")
+	copy(commitments[1][:], "commitment 2")
+
+	hashes := kzg.Commitments(commitments).ToVersionedHashes()
+
+	if len(hashes) != len(commitments) {
+		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))
 	}
-	return hashes
+
+	for i, hash := range hashes {
+		if hash[0] != constants.BlobCommitmentVersion {
+			t.Errorf(
+				"expected first byte of hash %d to be %v, got %v",
+				i,
+				constants.BlobCommitmentVersion,
+				hash[0],
+			)
+		}
+	}
 }
