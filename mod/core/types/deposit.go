@@ -93,17 +93,13 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	pubkey, err := blst.PublicKeyFromBytes(d.Pubkey[:])
-	if err != nil {
-		return err
-	}
-	sig, err := blst.SignatureFromBytes(signature[:])
-	if err != nil {
-		return err
-	}
-
-	if !sig.Verify(pubkey, signingRoot[:]) {
+	if !blst.VerifySignaturePubkeyBytes(
+		d.Pubkey[:],
+		signingRoot[:],
+		signature[:],
+	) {
 		return errors.New("deposit signature is invalid")
 	}
+
 	return nil
 }
