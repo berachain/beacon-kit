@@ -25,4 +25,24 @@
 
 package primitives
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BlockHeader,SigningData,Withdrawal -include $GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generate.ssz.go
+import (
+	"encoding/json"
+)
+
+// BlockHeader is the header of a beacon block.
+//
+//go:generate go run github.com/fjl/gencodec -type BlockHeader -out header.json.go
+type BlockHeader struct {
+	Slot          Slot           `json:"slot"`
+	ProposerIndex ValidatorIndex `json:"proposerIndex"`
+	ParentRoot    Root           `json:"parentRoot"    ssz-size:"32"`
+	StateRoot     Root           `json:"stateRoot"     ssz-size:"32"`
+	BodyRoot      Root           `json:"bodyRoot"      ssz-size:"32"`
+}
+
+// String returns a string representation of the beacon block header.
+func (h *BlockHeader) String() string {
+	//#nosec:G703 // ignore potential marshalling failure.
+	output, _ := json.Marshal(h)
+	return string(output)
+}

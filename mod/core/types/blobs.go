@@ -40,6 +40,8 @@ func BuildBlobSidecar(
 	numBlobs := uint64(len(blobs.Blobs))
 	sidecars := make([]*datypes.BlobSidecar, numBlobs)
 	g := errgroup.Group{}
+
+	blkHeader := blk.GetHeader()
 	for i := uint64(0); i < numBlobs; i++ {
 		i := i // capture range variable
 		g.Go(func() error {
@@ -54,6 +56,7 @@ func BuildBlobSidecar(
 				Blob:           blobs.Blobs[i],
 				KzgCommitment:  blobs.Commitments[i],
 				KzgProof:       blobs.Proofs[i],
+				BlockHeadher:   blkHeader,
 				InclusionProof: inclusionProof,
 			}
 			return nil

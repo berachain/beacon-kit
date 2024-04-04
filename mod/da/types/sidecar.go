@@ -25,6 +25,8 @@
 
 package types
 
+import primitives "github.com/berachain/beacon-kit/mod/primitives"
+
 // SideCars is a slice of blob side cars to be included in the block.
 type BlobSidecars struct {
 	Sidecars []*BlobSidecar `ssz-max:"6"`
@@ -33,9 +35,10 @@ type BlobSidecars struct {
 // BlobSidecar is a struct that contains blobs and their associated information.
 type BlobSidecar struct {
 	Index          uint64
-	Blob           []byte   `ssz-size:"131072"`
-	KzgCommitment  []byte   `ssz-size:"48"`
-	KzgProof       []byte   `ssz-size:"48"`
+	Blob           []byte `ssz-size:"131072"`
+	KzgCommitment  []byte `ssz-size:"48"`
+	KzgProof       []byte `ssz-size:"48"`
+	BlockHeadher   *primitives.BlockHeader
 	InclusionProof [][]byte `ssz-size:"8,32"`
 }
 
