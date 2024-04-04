@@ -88,10 +88,15 @@ func GetBlobSideCars(
 	}
 
 	// Extract the beacon block from the ABCI request.
-	blkBz := txs[bzIndex]
-	if blkBz == nil {
+	sidecarBz := txs[bzIndex]
+	if sidecarBz == nil {
 		return nil, ErrNilBeaconBlockInRequest
 	}
 
-	return datypes.BlobSideCarsFromSSZ(blkBz)
+	var sidecars datypes.BlobSidecars
+	if err := sidecars.UnmarshalSSZ(sidecarBz); err != nil {
+		return nil, err
+	}
+
+	return &sidecars, nil
 }

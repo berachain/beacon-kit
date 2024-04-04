@@ -32,7 +32,10 @@ type BlobSidecars struct {
 	Sidecars []*BlobSidecar `ssz-max:"6"`
 }
 
-// BlobSidecar is a struct that contains blobs and their associated information.
+// BlobSidecar as per the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
+//
+//nolint:lll
 type BlobSidecar struct {
 	Index          uint64
 	Blob           []byte `ssz-size:"131072"`
