@@ -30,8 +30,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/cometbft/cometbft/p2p"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
@@ -51,10 +49,11 @@ type BlsSignerOutput struct {
 	BlsSigner *signer.BLSSigner
 }
 
+// ProvideBlsSigner is a function that provides the module to the application.
 func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
 	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
 
-	key, err := NewSignerFromFile(
+	key, err := signer.NewFromCometBFTNodeKey(
 		homeDir + "/config/priv_validator_key.json",
 	)
 	if err != nil {
@@ -64,20 +63,4 @@ func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
 	return BlsSignerOutput{
 		BlsSigner: key,
 	}
-}
-
-// NewSignerFromFile creates a new Signer instance given a
-// file path to a CometBFT node key.
-//
-// TODO: In order to make RANDAO signing compatible with the BLS12-381
-// we need to extend the PrivVal interface to allow signing arbitrary things.
-// @tac0turtle.
-func NewSignerFromFile(filePath string) (*signer.BLSSigner, error) {
-	key, err := p2p.LoadNodeKey(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	return signer.NewBLSSigner(
-		[constants.BLSSecretKeyLength]byte(key.PrivKey.Bytes()))
 }

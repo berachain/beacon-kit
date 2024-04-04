@@ -123,4 +123,12 @@ jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 
 # Required chain id for the execution client.
 required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
+
+[beacon-kit.kzg]
+# Path to the trusted setup file.
+trusted-setup-file = "{{.BeaconKit.KZG.TrustedSetupFile}}"
+
+# KZG implementation to use.
+# Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
+kzg-implementation = "{{.BeaconKit.KZG.KZGImplementation}}"
 `
