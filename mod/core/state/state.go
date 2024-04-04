@@ -27,6 +27,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/storage/statedb"
 )
 
@@ -90,6 +91,11 @@ func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 		stateRoots[i] = stateRoot
 	}
 
+	latestExecutionPayload, err := s.StateDB.GetLatestExecutionPayload()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	eth1BlockHash, err := s.StateDB.GetEth1BlockHash()
 	if err != nil {
 		return [32]byte{}, err
@@ -137,6 +143,7 @@ func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 		LatestBlockHeader:            latestBlockHeader,
 		BlockRoots:                   blockRoots,
 		StateRoots:                   stateRoots,
+		LatestExecutionPayload:       latestExecutionPayload.(*types.ExecutableDataDeneb),
 		Eth1BlockHash:                eth1BlockHash,
 		Eth1DepositIndex:             eth1DepositIndex,
 		Validators:                   validators,
