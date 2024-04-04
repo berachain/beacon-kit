@@ -85,11 +85,6 @@ func (cc ConsensusClient) GetConsensusPower(
 	return uint64(res.ValidatorInfo.VotingPower), nil
 }
 
-// GetPrivKey returns the private key of the validator running on this node.
-func (cc ConsensusClient) GetPrivKey(ctx context.Context) ([]byte, error) {
-	return nil, nil
-}
-
 // IsActive returns true if the node is an active validator.
 func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 	res, err := cc.Client.Status(ctx)

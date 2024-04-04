@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/cockroachdb/errors"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
@@ -98,7 +97,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		signingRoot[:],
 		signature[:],
 	) {
-		return errors.New("deposit signature is invalid")
+		return ErrDepositMessage
 	}
 
 	return nil
