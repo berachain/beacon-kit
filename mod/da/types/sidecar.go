@@ -25,7 +25,10 @@
 
 package types
 
-import primitives "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	primitives "github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+)
 
 // SideCars is a slice of blob side cars to be included in the block.
 type BlobSidecars struct {
@@ -43,7 +46,7 @@ type BlobSidecar struct {
 	// Blob represents the blob data.
 	Blob []byte `ssz-size:"131072"`
 	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment []byte `ssz-size:"48"`
+	KzgCommitment kzg.Commitment `ssz-size:"48"`
 	// Kzg proof allows folr the verification of the KZG commitment.
 	KzgProof []byte `ssz-size:"48"`
 	// BlockHeader represents the beacon block header for which this blob

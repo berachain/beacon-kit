@@ -28,6 +28,7 @@ package types
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -54,7 +55,7 @@ func BuildBlobSidecar(
 			sidecars[i] = &datypes.BlobSidecar{
 				Index:          i,
 				Blob:           blobs.Blobs[i],
-				KzgCommitment:  blobs.Commitments[i],
+				KzgCommitment:  kzg.Commitment(blobs.Commitments[i]),
 				KzgProof:       blobs.Proofs[i],
 				BlockHeader:    blkHeader,
 				InclusionProof: inclusionProof,

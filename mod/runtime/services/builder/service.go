@@ -35,6 +35,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
@@ -163,7 +164,7 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
 
-	commitments := make([][48]byte, len(blobsBundle.Commitments))
+	commitments := make(kzg.Commitments, len(blobsBundle.Commitments))
 	for i, c := range blobsBundle.Commitments {
 		commitments[i] = [48]byte(c)
 	}

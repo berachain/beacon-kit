@@ -28,6 +28,7 @@ package types
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
 	"github.com/prysmaticlabs/gohashtree"
@@ -66,13 +67,9 @@ func VerifyKZGInclusionProof(
 	root primitives.Root,
 	blob *datypes.BlobSidecar,
 ) error { // TODO: add wrapped type with inclusion proofs
-	chunks := make([][32]byte, Two)
-	copy(chunks[0][:], blob.KzgCommitment)
-	copy(chunks[1][:], blob.KzgCommitment[RootLength:])
-	gohashtree.HashChunks(chunks, chunks)
 	verified := trie.VerifyMerkleProof(
 		root[:],
-		chunks[0][:],
+		blob.KzgCommitment.ToHashChunks()[0][:],
 		blob.Index+KZGOffset,
 		blob.InclusionProof,
 	)
@@ -126,7 +123,7 @@ func MerkleProofKZGCommitment(
 
 // BodyProof returns the Merkle proof of the subtree up to the root of the KZG
 // commitment list.
-func BodyProof(commitments [][48]byte, index uint64) ([][]byte, error) {
+func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 	if index >= uint64(len(commitments)) {
 		return nil, errors.New("index out of range")
 	}
@@ -144,7 +141,7 @@ func BodyProof(commitments [][48]byte, index uint64) ([][]byte, error) {
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments [][48]byte) [][]byte {
+func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
 	leaves := make([][]byte, len(commitments))
 	for i, kzg := range commitments {
 		chunk := make([][32]byte, Two)
