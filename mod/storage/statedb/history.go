@@ -26,7 +26,6 @@
 package statedb
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -47,14 +46,14 @@ func (s *StateDB) GetBlockRootAtIndex(
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (s *StateDB) SetLatestBlockHeader(
-	header *beacontypes.BeaconBlockHeader,
+	header *primitives.BeaconBlockHeader,
 ) error {
 	return s.latestBlockHeader.Set(s.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (s *StateDB) GetLatestBlockHeader() (
-	*beacontypes.BeaconBlockHeader, error,
+	*primitives.BeaconBlockHeader, error,
 ) {
 	return s.latestBlockHeader.Get(s.ctx)
 }

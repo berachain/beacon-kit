@@ -29,6 +29,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	merkleize "github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/cockroachdb/errors"
@@ -50,7 +51,7 @@ type BeaconBlockBodyDeneb struct {
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
 
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments kzg.Commitments `ssz-size:"?,48" ssz-max:"16"`
 }
 
 // IsNil checks if the BeaconBlockBodyDeneb is nil.
@@ -59,7 +60,7 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 }
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][48]byte {
+func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() kzg.Commitments {
 	return b.BlobKzgCommitments
 }
 
@@ -104,7 +105,9 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
+func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
+	commitments kzg.Commitments,
+) {
 	b.BlobKzgCommitments = commitments
 }
 

@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
@@ -160,7 +159,7 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	emptyHeader := &beacontypes.BeaconBlockHeader{
+	emptyHeader := &primitives.BeaconBlockHeader{
 		Slot:          0,
 		ProposerIndex: 0,
 		ParentRoot:    [32]byte{},
