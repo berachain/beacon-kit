@@ -84,3 +84,13 @@ func (cc ConsensusClient) GetConsensusPower(
 	//#nosec:G701 // VotingPower won't ever be negative.
 	return uint64(res.ValidatorInfo.VotingPower), nil
 }
+
+// IsActive returns true if the node is an active validator.
+func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
+	res, err := cc.Client.Status(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return res.ValidatorInfo.VotingPower > 0, nil
+}

@@ -45,7 +45,7 @@ type SigningData struct {
 //
 //nolint:lll
 func ComputeSigningRoot(
-	sszObject interface{ HashTreeRoot() (Root, error) },
+	sszObject interface{ HashTreeRoot() ([32]byte, error) },
 	domain Domain,
 ) (Root, error) {
 	objectRoot, err := sszObject.HashTreeRoot()

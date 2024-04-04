@@ -72,4 +72,8 @@ var (
 	ErrInvalidWithdrawalCredentials = errors.New(
 		"invalid withdrawal credentials",
 	)
+
+	// ErrDepositMessage is an error for when the deposit signature doesn't
+	// match.
+	ErrDepositMessage = errors.New("invalid deposit message")
 )

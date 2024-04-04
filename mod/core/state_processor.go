@@ -33,6 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/forks"
+	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -247,7 +249,6 @@ func (sp *StateProcessor) processOperations(
 	st state.BeaconState,
 	body types.BeaconBlockBody,
 ) error {
-	// if len(body.GetDeposits()) == min(0, len(body.GetDeposits())) {
 	return sp.processDeposits(st, body.GetDeposits())
 }
 
@@ -300,22 +301,8 @@ func (sp *StateProcessor) processDeposit(
 	dep *types.Deposit,
 ) {
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
-	if err != nil {
-		_ = 0
-		// # Verify the deposit signature (proof of possession) which is not
-		// checked by the deposit contract
-		// deposit_message = DepositMessage(
-		//     pubkey=pubkey,
-		//     withdrawal_credentials=withdrawal_credentials,
-		//     amount=amount,
-		// )
-		// domain = compute_domain(DOMAIN_DEPOSIT)  # Fork-agnostic domain since
-		// deposits are valid across forks
-		// signing_root = compute_signing_root(deposit_message, domain)
-		// if bls.Verify(pubkey, signing_root, signature):
-		// add_validator_to_registry(state, pubkey, withdrawal_credentials,
-		// amount)
-	} else {
+	// If the validator already exists, we update the balance.
+	if err == nil {
 		var val *types.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
@@ -328,7 +315,82 @@ func (sp *StateProcessor) processDeposit(
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return
 		}
+		// Exiting early because we only check signature on creation
+		return
 	}
+	// If the validator does not exist, we add the validator.
+	// Add the validator to the registry.
+	if err = sp.createValidator(st, dep); err != nil {
+		sp.logger.Error("failed to create validator", "error", err)
+	}
+}
+
+// createValidator creates a validator if the deposit is valid.
+func (sp *StateProcessor) createValidator(
+	st state.BeaconState,
+	dep *types.Deposit,
+) error {
+	var (
+		genesisValidatorsRoot primitives.Root
+		epoch                 primitives.Epoch
+		err                   error
+	)
+
+	// Get the genesis validators root to be used to find fork data later.
+	genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return err
+	}
+
+	// Get the current epoch.
+	// Get the current slot.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	epoch = sp.cfg.SlotToEpoch(slot)
+
+	// Get the fork data for the current epoch.
+	fd := forks.NewForkData(
+		version.FromUint32(
+			sp.cfg.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	)
+
+	depositMessage := types.DepositMessage{
+		Pubkey:      dep.Pubkey,
+		Credentials: dep.Credentials,
+		Amount:      dep.Amount,
+	}
+	if err = depositMessage.VerifyCreateValidator(fd, dep.Signature); err != nil {
+		return err
+	}
+
+	// Add the validator to the registry.
+	return sp.addValidatorToRegistry(st, dep)
+}
+
+// addValidatorToRegistry adds a validator to the registry.
+func (sp *StateProcessor) addValidatorToRegistry(
+	st state.BeaconState,
+	dep *types.Deposit,
+) error {
+	val := types.NewValidatorFromDeposit(
+		dep.Pubkey,
+		dep.Credentials,
+		dep.Amount,
+		primitives.Gwei(sp.cfg.EffectiveBalanceIncrement),
+		primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+	)
+	if err := st.AddValidator(val); err != nil {
+		return err
+	}
+
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
+	if err != nil {
+		return err
+	}
+	return st.IncreaseBalance(idx, dep.Amount)
 }
 
 // processWithdrawals processes the withdrawals and ensures they match the
