@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // PayloadValidator is responsible for validating incoming execution
