@@ -33,11 +33,17 @@ import (
 //
 //go:generate go run github.com/fjl/gencodec -type BlockHeader -out header.json.go
 type BlockHeader struct {
-	Slot          Slot           `json:"slot"`
+	// Slot is the slot number of the block.
+	Slot Slot `json:"slot"`
+	// ProposerIndex is the index of the proposer of the block.
 	ProposerIndex ValidatorIndex `json:"proposerIndex"`
-	ParentRoot    Root           `json:"parentRoot"    ssz-size:"32"`
-	StateRoot     Root           `json:"stateRoot"     ssz-size:"32"`
-	BodyRoot      Root           `json:"bodyRoot"      ssz-size:"32"`
+	// ParentRoot is the root of the parent block.
+	ParentRoot Root `json:"parentRoot"    ssz-size:"32"`
+	// StateRoot is the root of the beacon state after executing
+	// the block. Will be 0x00...00 prior to execution.
+	StateRoot Root `json:"stateRoot"     ssz-size:"32"`
+	// 	// BodyRoot is the root of the block body.
+	BodyRoot Root `json:"bodyRoot"      ssz-size:"32"`
 }
 
 // String returns a string representation of the beacon block header.

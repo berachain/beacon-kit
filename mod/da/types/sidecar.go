@@ -29,6 +29,7 @@ import primitives "github.com/berachain/beacon-kit/mod/primitives"
 
 // SideCars is a slice of blob side cars to be included in the block.
 type BlobSidecars struct {
+	// Sidecars is a slice of blob side cars to be included in the block.
 	Sidecars []*BlobSidecar `ssz-max:"6"`
 }
 
@@ -37,10 +38,17 @@ type BlobSidecars struct {
 //
 //nolint:lll
 type BlobSidecar struct {
-	Index          uint64
-	Blob           []byte `ssz-size:"131072"`
-	KzgCommitment  []byte `ssz-size:"48"`
-	KzgProof       []byte `ssz-size:"48"`
-	BlockHeader    *primitives.BlockHeader
+	// Index represents the index of the blob in the block.
+	Index uint64
+	// Blob represents the blob data.
+	Blob []byte `ssz-size:"131072"`
+	// KzgCommitment is the KZG commitment of the blob.
+	KzgCommitment []byte `ssz-size:"48"`
+	// Kzg proof allows folr the verification of the KZG commitment.
+	KzgProof []byte `ssz-size:"48"`
+	// BlockHeader represents the beacon block header for which this blob
+	// is being included.
+	BlockHeader *primitives.BlockHeader
+	// InclusionProof is the inclusion proof of the blob in the beacon block.
 	InclusionProof [][]byte `ssz-size:"8,32"`
 }
