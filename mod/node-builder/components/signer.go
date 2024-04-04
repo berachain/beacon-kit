@@ -26,8 +26,6 @@
 package components
 
 import (
-	"os"
-
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -38,26 +36,23 @@ import (
 // BlsSignerInput is the input for the dep inject framework.
 type BlsSignerInput struct {
 	depinject.In
-
 	AppOpts servertypes.AppOptions
 }
 
 // BlsSignerOutput is the output for the dep inject framework.
 type BlsSignerOutput struct {
 	depinject.Out
-
 	BlsSigner *signer.BLSSigner
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.
 func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
-	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
-
 	key, err := signer.NewFromCometBFTNodeKey(
-		homeDir + "/config/priv_validator_key.json",
+		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
+			"/config/priv_validator_key.json",
 	)
 	if err != nil {
-		os.Exit(1)
+		panic(err)
 	}
 
 	return BlsSignerOutput{

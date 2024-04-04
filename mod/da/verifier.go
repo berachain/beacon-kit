@@ -23,52 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package components
+package da
 
-import (
-	"os"
+import gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/runtime"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-)
-
-// RuntimeInjectInput is the input for the dep inject framework.
-type RuntimeInjectInput struct {
-	depinject.In
-
-	BeaconCfg       *config.Config
-	Logger          log.Logger
-	Signer          core.BLSSigner
-	KZGTrustedSetup gokzg4844.JSONTrustedSetup
-	Bsp             runtime.BeaconStorageBackend
+// BlobVerifier is a verifier for blobs.
+type BlobVerifier struct {
+	ts gokzg4844.JSONTrustedSetup
 }
 
-// RuntimeInjectOutput is the output for the dep inject framework.
-type RuntimeInjectOutput struct {
-	depinject.Out
-	Runtime *runtime.BeaconKitRuntime
-}
-
-// ProvideRuntime is a function that provides the module to the application.
-func ProvideRuntime(in RuntimeInjectInput) RuntimeInjectOutput {
-	r, err := runtime.NewDefaultBeaconKitRuntime(
-		in.BeaconCfg,
-		in.Signer,
-		in.Logger,
-		in.KZGTrustedSetup,
-		in.Bsp,
-	)
-	if err != nil {
-		in.Logger.Error(
-			"failed to create beacon-kit runtime, exiting...", "error", err)
-		os.Exit(1)
+// NewBlobVerifier creates a new BlobVerifier.
+func NewBlobVerifier(
+	ts gokzg4844.JSONTrustedSetup,
+) (*BlobVerifier, error) {
+	if err := gokzg4844.CheckTrustedSetupIsWellFormed(&ts); err != nil {
+		return nil, err
 	}
-
-	return RuntimeInjectOutput{
-		Runtime: r,
-	}
+	return &BlobVerifier{
+		ts: ts,
+	}, nil
 }

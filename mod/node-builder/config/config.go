@@ -50,6 +50,7 @@ func DefaultConfig() *Config {
 		Beacon:  params.DefaultBeaconConfig(),
 		Builder: builderconfig.DefaultBuilderConfig(),
 		Engine:  engineclient.DefaultConfig(),
+		KZG:     kzg.DefaultConfig(),
 	}
 }
 

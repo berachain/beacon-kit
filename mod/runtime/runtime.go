@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
+	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -42,6 +43,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -74,6 +76,7 @@ func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	signer core.BLSSigner,
 	logger log.Logger,
+	kzgTrustedSetup gokzg4844.JSONTrustedSetup,
 	bsb BeaconStorageBackend,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
@@ -118,8 +121,14 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
+	// Build the Blob Verifier.
+	blobVerifier, err := da.NewBlobVerifier(kzgTrustedSetup)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the Blobs Processor.
-	blobsProcessor := blobs.NewProcessor()
+	blobsProcessor := blobs.NewProcessor(blobVerifier)
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(

@@ -34,12 +34,18 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
+type BlobVerifier interface{}
+
 // Processor is the processor for blobs.
-type Processor struct{}
+type Processor struct {
+	bv BlobVerifier
+}
 
 // NewProcessor creates a new processor.
-func NewProcessor() *Processor {
-	return &Processor{}
+func NewProcessor(bv BlobVerifier) *Processor {
+	return &Processor{
+		bv: bv,
+	}
 }
 
 // ProcessBlob processes a blob.

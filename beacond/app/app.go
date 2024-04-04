@@ -105,6 +105,7 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				bkcomponents.ProvideRuntime,
 				bkcomponents.ProvideBlsSigner,
+				bkcomponents.ProvideTrustedSetup,
 			),
 			depinject.Supply(
 				// supply the application options
