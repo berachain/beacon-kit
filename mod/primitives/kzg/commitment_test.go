@@ -53,7 +53,7 @@ func TestKzgCommitmentToVersionedHash(t *testing.T) {
 }
 
 func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
-	commitments := make([][48]byte, 2)
+	commitments := make([]kzg.Commitment, 2)
 	copy(commitments[0][:], "commitment 1")
 	copy(commitments[1][:], "commitment 2")
 
