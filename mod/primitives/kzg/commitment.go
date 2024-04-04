@@ -27,6 +27,7 @@ package kzg
 
 import (
 	"crypto/sha256"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
@@ -41,16 +42,9 @@ import (
 type Commitments [][48]byte
 
 // HashTreeRoot returns the hash tree root of the commitments.
-func (c Commitments) HashTreeRoot() (primitives.Root, error) {
-	var err error
-	hashes := make([][32]byte, len(c))
-	for i, commitment := range c {
-		hashes[i], err = Commitment(commitment).HashTreeRoot()
-		if err != nil {
-			return [32]byte{}, err
-		}
-	}
-	return merkleize.Vector(hashes, uint64(len(hashes))), nil
+func (c Commitments) HashTreeRoot() ([32]byte, error) {
+	return merkleize.VectorSSZ(
+		*(*[]Commitment)(unsafe.Pointer(&c)), uint64(len(c)))
 }
 
 // MerkleProof returns the merkle proof for the commitment at the given index.
@@ -79,7 +73,7 @@ func (c Commitments) MerkleProof(index uint64) ([][]byte, error) {
 type Commitment [48]byte
 
 // HashTreeRoot returns the hash tree root of the commitment.
-func (c Commitment) HashTreeRoot() (primitives.Root, error) {
+func (c Commitment) HashTreeRoot() ([32]byte, error) {
 	//nolint:gomnd // two is okay.
 	chunk := make([][32]byte, 2)
 	copy(chunk[0][:], c[:])
