@@ -26,52 +26,35 @@
 package components
 
 import (
-	"os"
-
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
-	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/cast"
 )
 
-// RuntimeInjectInput is the input for the dep inject framework.
-type RuntimeInjectInput struct {
+// TrustedSetupInput is the input for the dep inject framework.
+type TrustedSetupInput struct {
 	depinject.In
-
-	BeaconCfg       *config.Config
-	Logger          log.Logger
-	JWTSecret       *jwt.Secret
-	Signer          core.BLSSigner
-	KZGTrustedSetup *gokzg4844.JSONTrustedSetup
-	Bsp             runtime.BeaconStorageBackend
+	AppOpts servertypes.AppOptions
 }
 
-// RuntimeInjectOutput is the output for the dep inject framework.
-type RuntimeInjectOutput struct {
+// TrustedSetupOutput is the output for the dep inject framework.
+type TrustedSetupOutput struct {
 	depinject.Out
-	Runtime *runtime.BeaconKitRuntime
+	TrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
-// ProvideRuntime is a function that provides the module to the application.
-func ProvideRuntime(in RuntimeInjectInput) RuntimeInjectOutput {
-	r, err := runtime.NewDefaultBeaconKitRuntime(
-		in.BeaconCfg,
-		in.Signer,
-		in.JWTSecret,
-		in.KZGTrustedSetup,
-		in.Bsp,
-		in.Logger,
-	)
+// ProvideBlsSigner is a function that provides the module to the application.
+func ProvideTrustedSetup(in BlsSignerInput) TrustedSetupOutput {
+	trustedSetup, err := kzg.ReadTrustedSetup(
+		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
 	if err != nil {
-		in.Logger.Error(
-			"failed to create beacon-kit runtime, exiting...", "error", err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	return RuntimeInjectOutput{
-		Runtime: r,
+	return TrustedSetupOutput{
+		TrustedSetup: trustedSetup,
 	}
 }

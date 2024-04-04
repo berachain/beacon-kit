@@ -23,58 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blobs
+package da
 
-import (
-	"errors"
+import gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/sourcegraph/conc/iter"
-)
-
-type BlobVerifier interface{}
-
-// Processor is the processor for blobs.
-type Processor struct {
-	bv BlobVerifier
+// BlobVerifier is a verifier for blobs.
+type BlobVerifier struct {
+	ts *gokzg4844.JSONTrustedSetup
 }
 
-// NewProcessor creates a new processor.
-func NewProcessor(bv BlobVerifier) *Processor {
-	return &Processor{
-		bv: bv,
+// NewBlobVerifier creates a new BlobVerifier.
+func NewBlobVerifier(
+	ts *gokzg4844.JSONTrustedSetup,
+) (*BlobVerifier, error) {
+	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
+		return nil, err
 	}
-}
-
-// ProcessBlob processes a blob.
-func (sp *Processor) ProcessBlobs(
-	avs core.AvailabilityStore,
-	blk types.BeaconBlock,
-	sidecars *datypes.BlobSidecars,
-) error {
-	// Verify the KZG inclusion proofs.
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
-	// Ensure the blobs are available.
-	if err = errors.Join(iter.Map(
-		sidecars.Sidecars,
-		func(sidecar **datypes.BlobSidecar) error {
-			if *sidecar == nil {
-				return ErrAttemptedToVerifyNilSidecar
-			}
-			// Store the blobs under a single height.
-			return types.VerifyKZGInclusionProof(
-				bodyRoot, *sidecar,
-			)
-		},
-	)...); err != nil {
-		return err
-	}
-
-	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
+	return &BlobVerifier{
+		ts: ts,
+	}, nil
 }

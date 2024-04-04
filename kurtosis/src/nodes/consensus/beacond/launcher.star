@@ -25,16 +25,20 @@ USED_PORTS = {
     PROMETHEUS_PORT_ID: shared_utils.new_port_spec(PROMETHEUS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
 }
 
-def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None):
+def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
     exposed_ports = {}
     if expose_ports:
         exposed_ports = USED_PORTS
 
+    files = {}
+    if jwt_file:
+        files["/root/jwt"] = jwt_file
+    if kzg_trusted_setup_file:
+        files["/root/kzg"] = kzg_trusted_setup_file
+
     config = ServiceConfig(
         image = image,
-        files = {
-            "/root/app": jwt_file,
-        } if jwt_file else {},
+        files = files,
         entrypoint = entrypoint,
         cmd = cmd,
         env_vars = {
@@ -167,7 +171,7 @@ def get_persistent_peers(plan, peers):
         persistent_peers[i] = persistent_peers[i] + "@" + peer_service.ip_address + ":26656"
     return ",".join(persistent_peers)
 
-def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, index = 0):
+def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None, index = 0):
     cl_service_name = "cl-validator-beaconkit-{}".format(index)
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
@@ -182,6 +186,7 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, i
         cmd = ["-c", "/usr/bin/start.sh"],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
+        kzg_trusted_setup_file = kzg_trusted_setup_file,
     )
 
     # Add back in the node's config data and overwrite genesis.json with final genesis file
@@ -197,7 +202,7 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, i
         config = beacond_config,
     )
 
-def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_file = None, index = 0):
+def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None, index = 0):
     cl_service_name = "cl-full-beaconkit-{}".format(index)
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
@@ -211,6 +216,7 @@ def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_fi
         cmd = ["/usr/bin/init_full.sh && /usr/bin/start.sh"],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
+        kzg_trusted_setup_file = kzg_trusted_setup_file,
     )
 
     beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])

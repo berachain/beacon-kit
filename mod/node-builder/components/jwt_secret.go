@@ -26,52 +26,34 @@
 package components
 
 import (
-	"os"
-
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
-	"github.com/berachain/beacon-kit/mod/runtime"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
 )
 
-// RuntimeInjectInput is the input for the dep inject framework.
-type RuntimeInjectInput struct {
+// TrustedSetupInput is the input for the dep inject framework.
+type JWTSecretInput struct {
 	depinject.In
-
-	BeaconCfg       *config.Config
-	Logger          log.Logger
-	JWTSecret       *jwt.Secret
-	Signer          core.BLSSigner
-	KZGTrustedSetup *gokzg4844.JSONTrustedSetup
-	Bsp             runtime.BeaconStorageBackend
+	AppOpts servertypes.AppOptions
 }
 
-// RuntimeInjectOutput is the output for the dep inject framework.
-type RuntimeInjectOutput struct {
+// TrustedSetupOutput is the output for the dep inject framework.
+type JWTSecretOutput struct {
 	depinject.Out
-	Runtime *runtime.BeaconKitRuntime
+	JWTSecret *jwt.Secret
 }
 
-// ProvideRuntime is a function that provides the module to the application.
-func ProvideRuntime(in RuntimeInjectInput) RuntimeInjectOutput {
-	r, err := runtime.NewDefaultBeaconKitRuntime(
-		in.BeaconCfg,
-		in.Signer,
-		in.JWTSecret,
-		in.KZGTrustedSetup,
-		in.Bsp,
-		in.Logger,
-	)
+// ProvideJWTSecret is a function that provides the module to the application.
+func ProvideJWTSecret(in JWTSecretInput) JWTSecretOutput {
+	jwtSecret, err := jwt.LoadFromFile(
+		cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
 	if err != nil {
-		in.Logger.Error(
-			"failed to create beacon-kit runtime, exiting...", "error", err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	return RuntimeInjectOutput{
-		Runtime: r,
+	return JWTSecretOutput{
+		JWTSecret: jwtSecret,
 	}
 }
