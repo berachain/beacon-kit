@@ -37,6 +37,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
@@ -75,9 +76,10 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	signer core.BLSSigner,
-	logger log.Logger,
-	kzgTrustedSetup gokzg4844.JSONTrustedSetup,
+	jwtSecret *jwt.Secret,
+	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	bsb BeaconStorageBackend,
+	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -91,6 +93,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
+		engineclient.WithJWTSecret(jwtSecret),
 		engineclient.WithLogger(logger),
 	)
 

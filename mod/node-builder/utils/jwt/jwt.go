@@ -48,8 +48,8 @@ const EthereumJWTLength = 32
 // Secret represents a JSON Web Token as a fixed-size byte array.
 type Secret [EthereumJWTLength]byte
 
-// NewFromFile reads the JWT secret from a file and returns it.
-func NewFromFile(filepath string) (*Secret, error) {
+// LoadFromFile reads the JWT secret from a file and returns it.
+func LoadFromFile(filepath string) (*Secret, error) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		// Return an error if the file cannot be read.

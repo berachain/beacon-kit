@@ -78,17 +78,17 @@ func (c Config) Parse(
 }
 
 // ReadTrustedSetup reads the trusted setup from the file system.
-func ReadTrustedSetup(filePath string) (gokzg4844.JSONTrustedSetup, error) {
+func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
 	config, err := os.ReadFile(filePath)
 	if err != nil {
-		return gokzg4844.JSONTrustedSetup{}, err
+		return nil, err
 	}
 	params := new(gokzg4844.JSONTrustedSetup)
 	if err = json.Unmarshal(config, params); err != nil {
-		return gokzg4844.JSONTrustedSetup{}, err
+		return nil, err
 	}
 	if err = gokzg4844.CheckTrustedSetupIsWellFormed(params); err != nil {
-		return gokzg4844.JSONTrustedSetup{}, err
+		return nil, err
 	}
-	return *params, nil
+	return params, nil
 }

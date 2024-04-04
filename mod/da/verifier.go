@@ -29,14 +29,14 @@ import gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 
 // BlobVerifier is a verifier for blobs.
 type BlobVerifier struct {
-	ts gokzg4844.JSONTrustedSetup
+	ts *gokzg4844.JSONTrustedSetup
 }
 
 // NewBlobVerifier creates a new BlobVerifier.
 func NewBlobVerifier(
-	ts gokzg4844.JSONTrustedSetup,
+	ts *gokzg4844.JSONTrustedSetup,
 ) (*BlobVerifier, error) {
-	if err := gokzg4844.CheckTrustedSetupIsWellFormed(&ts); err != nil {
+	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
 		return nil, err
 	}
 	return &BlobVerifier{

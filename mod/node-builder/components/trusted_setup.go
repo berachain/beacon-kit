@@ -43,7 +43,7 @@ type TrustedSetupInput struct {
 // TrustedSetupOutput is the output for the dep inject framework.
 type TrustedSetupOutput struct {
 	depinject.Out
-	TrustedSetup gokzg4844.JSONTrustedSetup
+	TrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.
