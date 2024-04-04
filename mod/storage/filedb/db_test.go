@@ -150,15 +150,14 @@ func TestDB(t *testing.T) {
 	}
 
 	t.Run("NewDBWithInvalidOption", func(t *testing.T) {
-		invalidOption := func(db *file.DB) error {
+		invalidOption := func(_ *file.DB) error {
 			return errors.New("invalid option")
 		}
 		require.Panics(t, func() { file.NewDB(invalidOption) })
-
 	})
 }
 
-// Test with `etc` as root directory to cause creation failure due to permission denied
+// Test with `etc` as root directory to cause creation failure due to permission denied.
 func TestDB_SetExistingKey_CreateError(t *testing.T) {
 	test := struct {
 		name          string
@@ -170,7 +169,7 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 		testFunc: func(t *testing.T, db *file.DB) {
 			err := db.Set([]byte("key"), []byte("value"))
 			require.Error(t, err)
-			require.Contains(t, err.Error(), "failed to create file")
+			require.ErrorContains(t, err, "failed to create file")
 		},
 		expectedError: true,
 	}
@@ -187,11 +186,7 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 
 		if test.setupFunc != nil {
 			if err := test.setupFunc(db); (err != nil) != test.expectedError {
-				t.Fatalf(
-					"setupFunc() error = %v, expectedError %v",
-					err,
-					test.expectedError,
-				)
+				require.Error(t, err, "setupFunc() error = %v", err)
 			}
 		}
 
@@ -201,7 +196,7 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 	})
 }
 
-// Test with root directory as a file
+// Test with root directory as a file.
 func TestDB_SetHas_NotDirError(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -215,8 +210,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 				value, err := db.Has([]byte("key"))
 				require.Error(t, err)
 				require.False(t, value)
-				require.Contains(t, err.Error(), "not a directory")
-
+				require.ErrorContains(t, err, "not a directory")
 			},
 			expectedError: true,
 		},
@@ -225,7 +219,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 			testFunc: func(t *testing.T, db *file.DB) {
 				err := db.Set([]byte("key"), []byte("value"))
 				require.Error(t, err)
-				require.Contains(t, err.Error(), "not a directory")
+				require.ErrorContains(t, err, "not a directory")
 			},
 			expectedError: true,
 		},
@@ -243,13 +237,8 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 			)
 
 			if tt.setupFunc != nil {
-
 				if err := tt.setupFunc(db); (err != nil) != tt.expectedError {
-					t.Fatalf(
-						"setupFunc() error = %v, expectedError %v",
-						err,
-						tt.expectedError,
-					)
+					require.Error(t, err, "setupFunc() error = %v", err)
 				}
 			}
 
@@ -260,7 +249,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 	}
 }
 
-// Test with root directory to be created in `etc` which will result in permission denied
+// Test with root directory to be created in `etc` which will result in permission denied.
 func TestDB_Set_MkDirError(t *testing.T) {
 	test := struct {
 		name          string
@@ -289,11 +278,7 @@ func TestDB_Set_MkDirError(t *testing.T) {
 		if test.setupFunc != nil {
 
 			if err := test.setupFunc(db); (err != nil) != test.expectedError {
-				t.Fatalf(
-					"setupFunc() error = %v, expectedError %v",
-					err,
-					test.expectedError,
-				)
+				require.Error(t, err, "setupFunc() error = %v", err)
 			}
 		}
 

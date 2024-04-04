@@ -26,13 +26,14 @@
 package file_test
 
 import (
-	"errors"
-	"testing"
-
 	"cosmossdk.io/log"
+	"errors"
 	file "github.com/berachain/beacon-kit/mod/storage/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/mocks"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestRangeDB(t *testing.T) {
@@ -194,39 +195,22 @@ func TestExtractIndex(t *testing.T) {
 	}
 }
 
-// MockDB is a mock implementation of the DB interface.
-// It returns zero values for all methods.
-type MockDB struct{}
-
-func (m *MockDB) Get(key []byte) ([]byte, error) {
-	return nil, nil
-}
-
-func (m *MockDB) Has(key []byte) (bool, error) {
-	return false, nil
-}
-
-func (m *MockDB) Set(key []byte, value []byte) error {
-	return nil
-}
-
-func (m *MockDB) Delete(key []byte) error {
-	return nil
-}
-
 func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
+
 	tests := []struct {
 		name string
-		db   *MockDB
+		db   *mocks.DB
 	}{
 		{
 			name: "DeleteRangeNotSupported",
-			db:   new(MockDB),
+			db:   new(mocks.DB),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.db.On("DeleteRange", mock.Anything, mock.Anything).Return(errors.New("rangedb: delete range not supported for this db"))
+
 			rdb := file.NewRangeDB(tt.db)
 
 			err := rdb.DeleteRange(1, 4)
