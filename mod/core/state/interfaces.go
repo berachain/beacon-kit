@@ -73,6 +73,7 @@ type WriteOnlyBeaconState interface {
 	SetSlot(primitives.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
+	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
 	UpdateEth1BlockHash(primitives.ExecutionHash) error
@@ -110,6 +111,8 @@ type WriteOnlyValidators interface {
 		primitives.ValidatorIndex,
 		*types.Validator,
 	) error
+
+	AddValidator(*types.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.

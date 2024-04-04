@@ -43,8 +43,8 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.2.4
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.13
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.12
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/protolambda/ztyp v0.2.2

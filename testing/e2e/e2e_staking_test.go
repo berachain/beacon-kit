@@ -157,3 +157,90 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(postWithdrawPower, suite.OneGwei)
 }
+
+// TODO: once RPC ready
+// func (s *BeaconKitE2ESuite) TestCreateNewValidator() {
+// 	var nut *types.ConsensusClient
+// 	for _, cl := range s.ConsensusClients() {
+// 		if yes, err := cl.IsActive(s.Ctx()); err != nil && !yes {
+// 			nut = cl
+// 			break
+// 		}
+// 	}
+
+// 	// Generate the credentials.
+// 	credentials := byteslib.PrependExtendToSize(
+// 		s.GenesisAccount().Address().Bytes(),
+// 		32,
+// 	)
+// 	credentials[0] = 0x01
+
+// 	// Bind the deposit contract.
+// 	dc, err := stakingabi.NewBeaconDepositContract(
+// 		common.HexToAddress(DepositContractAddress),
+// 		s.JSONRPCBalancer(),
+// 	)
+// 	s.Require().NoError(err)
+
+// 	// Get the chain ID.
+// 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+// 	s.Require().NoError(err)
+
+// 	// Get the block num
+// 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+// 	s.Require().NoError(err)
+
+// 	nodePubkey, err := nut.GetPubKey(s.Ctx())
+// 	if err != nil {
+// 		s.Require().NoError(err)
+// 	}
+
+// 	// TODO: get private key from the node
+// 	privateKey := [32]byte{}
+// 	signer, err := blst.SecretKeyFromBytes(privateKey[:])
+// 	s.Require().NoError(err)
+
+// 	msg := beacontypes.DepositMessage{
+// 		Pubkey:      primitives.BLSPubkey(nodePubkey),
+// 		Credentials: beacontypes.WithdrawalCredentials(credentials),
+// 		Amount:      primitives.Gwei(32 * suite.OneGwei),
+// 	}
+
+// 	// forkData := forks.NewForkData(
+
+// 	// )
+
+// 	domain, err := forkData.ComputeDomain(primitives.DomainTypeDeposit)
+// 	s.Require().NoError(err)
+
+// 	signingRoot, err := primitives.ComputeSigningRoot(&msg, domain)
+// 	s.Require().NoError(err)
+
+// 	// Sign the message.
+// 	sig := signer.Sign(signingRoot[:]).Marshal()
+
+// 	// Create a deposit transaction.
+// 	val, _ := big.NewFloat(32e18).Int(nil)
+// 	tx, err := dc.Deposit(&bind.TransactOpts{
+// 		From:   s.GenesisAccount().Address(),
+// 		Value:  val,
+// 		Signer: s.GenesisAccount().SignerFunc(chainID),
+// 	}, nodePubkey[:], credentials, 32*suite.OneGwei, sig)
+// 	s.Require().NoError(err)
+
+// 	// Wait for the transaction to be mined.
+// 	var receipt *coretypes.Receipt
+// 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+// 	s.Require().NoError(err)
+// 	s.Require().Equal(uint64(1), receipt.Status)
+// 	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
+
+// 	// Wait for the log to be processed.
+// 	targetBlkNum := blkNum + 5
+// 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+// 	s.Require().NoError(err)
+
+// 	active, err := nut.IsActive(s.Ctx())
+// 	s.Require().NoError(err)
+// 	s.Require().True(active)
+// }

@@ -23,6 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package deposit
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconBlockHeader,BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit,DepositMessage,Validator -include ../../../mod/primitives,../../../mod/execution/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+import "errors"
+
+var (
+	// ErrInvalidPubKeyLength is returned when the public key is invalid.
+	ErrInvalidPubKeyLength = errors.New(
+		"invalid public key length",
+	)
+
+	// ErrInvalidWithdrawalCredentialsLength is returned when the withdrawal
+	// credentials are invalid.
+	ErrInvalidWithdrawalCredentialsLength = errors.New(
+		"invalid withdrawal credentials length",
+	)
+
+	// ErrInvalidAmount is returned when the deposit amount is invalid.
+	ErrInvalidAmount = errors.New(
+		"invalid amount",
+	)
+
+	// ErrInvalidSignatureLength is returned when the signature is invalid.
+	ErrInvalidSignatureLength = errors.New(
+		"invalid signature length",
+	)
+
+	// ErrInvalidVersionLength is returned when the deposit version is invalid.
+	ErrInvalidVersionLength = errors.New(
+		"invalid version",
+	)
+
+	// ErrInvalidRootLength is returned when the deposit root is invalid.
+	ErrInvalidRootLength = errors.New(
+		"invalid root length",
+	)
+)
