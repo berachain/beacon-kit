@@ -32,16 +32,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
+	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -73,8 +76,10 @@ func NewBeaconKitRuntime(
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	signer core.BLSSigner,
-	logger log.Logger,
+	jwtSecret *jwt.Secret,
+	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	bsb BeaconStorageBackend,
+	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -88,6 +93,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
+		engineclient.WithJWTSecret(jwtSecret),
 		engineclient.WithLogger(logger),
 	)
 
@@ -118,8 +124,14 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
+	// Build the Blob Verifier.
+	blobVerifier, err := da.NewBlobVerifier(kzgTrustedSetup)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the Blobs Processor.
-	blobsProcessor := blobs.NewProcessor()
+	blobsProcessor := blobs.NewProcessor(blobVerifier)
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(

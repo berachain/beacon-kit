@@ -44,7 +44,7 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		GenesisValidatorsRoot: primitives.Root{},
 
 		Slot: 0,
-		LatestBlockHeader: &types.BeaconBlockHeader{
+		LatestBlockHeader: &primitives.BeaconBlockHeader{
 			Slot:          0,
 			ProposerIndex: 0,
 			ParentRoot:    primitives.Root{},
@@ -100,9 +100,9 @@ type BeaconStateDeneb struct {
 	Slot                  primitives.Slot `json:"slot"`
 
 	// History
-	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        [][32]byte               `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        [][32]byte               `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
+	BlockRoots        [][32]byte                    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        [][32]byte                    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
 	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`

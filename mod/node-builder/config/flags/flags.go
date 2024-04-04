@@ -69,4 +69,9 @@ const (
 	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
 	JWTSecretPath           = engineRoot + "jwt-secret-path"
 	RequiredChainID         = engineRoot + "required-chain-id"
+
+	// KZG Config.
+	kzgRoot             = beaconKitRoot + "kzg."
+	KZGTrustedSetupPath = kzgRoot + "trusted-setup-path"
+	KZGImplementation   = kzgRoot + "kzg-implementation"
 )

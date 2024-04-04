@@ -23,35 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package components
 
 import (
-	primitives "github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/cast"
 )
 
-// SideCars is a slice of blob side cars to be included in the block.
-type BlobSidecars struct {
-	// Sidecars is a slice of blob side cars to be included in the block.
-	Sidecars []*BlobSidecar `ssz-max:"6"`
+// TrustedSetupInput is the input for the dep inject framework.
+type TrustedSetupInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// BlobSidecar as per the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
-//
-//nolint:lll
-type BlobSidecar struct {
-	// Index represents the index of the blob in the block.
-	Index uint64
-	// Blob represents the blob data.
-	Blob []byte `ssz-size:"131072"`
-	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment kzg.Commitment `ssz-size:"48"`
-	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof []byte `ssz-size:"48"`
-	// BeaconBlockHeader represents the beacon block header for which this blob
-	// is being included.
-	BeaconBlockHeader *primitives.BeaconBlockHeader
-	// InclusionProof is the inclusion proof of the blob in the beacon block.
-	InclusionProof [][]byte `ssz-size:"8,32"`
+// TrustedSetupOutput is the output for the dep inject framework.
+type TrustedSetupOutput struct {
+	depinject.Out
+	TrustedSetup *gokzg4844.JSONTrustedSetup
+}
+
+// ProvideBlsSigner is a function that provides the module to the application.
+func ProvideTrustedSetup(in BlsSignerInput) TrustedSetupOutput {
+	trustedSetup, err := kzg.ReadTrustedSetup(
+		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
+	if err != nil {
+		panic(err)
+	}
+
+	return TrustedSetupOutput{
+		TrustedSetup: trustedSetup,
+	}
 }

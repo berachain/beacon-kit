@@ -107,7 +107,8 @@ RUN chmod +x /usr/bin/init_full.sh
 RUN chmod +x /usr/bin/finalize.sh
 RUN chmod +x /usr/bin/start.sh
 
-RUN mkdir -p /root/app
+RUN mkdir -p /root/jwt
+RUN mkdir -p /root/kzg 
 
 RUN apk add bash jq sed curl
 

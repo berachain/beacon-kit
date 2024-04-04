@@ -35,6 +35,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
@@ -106,6 +107,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Compute the state root for the block.
+	// TODO: IMPLEMENT RN THIS DOES NOTHING.
 	stateRoot, err := s.computeStateRoot(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -163,11 +165,7 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
 
-	commitments := make([][48]byte, len(blobsBundle.Commitments))
-	for i, c := range blobsBundle.Commitments {
-		commitments[i] = [48]byte(c)
-	}
-	body.SetBlobKzgCommitments(commitments)
+	body.SetBlobKzgCommitments(kzg.CommitmentsFromBz(blobsBundle.Commitments))
 
 	// Dequeue deposits from the state.
 	deposits, err := st.ExpectedDeposits(

@@ -28,6 +28,7 @@ package signer
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/cometbft/cometbft/p2p"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
@@ -48,6 +49,22 @@ func NewBLSSigner(
 	return &BLSSigner{
 		SecretKey: secretKey,
 	}, nil
+}
+
+// NewSignerFromFile creates a new Signer instance given a
+// file path to a CometBFT node key.
+//
+// TODO: In order to make RANDAO signing compatible with the BLS12-381
+// we need to extend the PrivVal interface to allow signing arbitrary things.
+// @tac0turtle.
+func NewFromCometBFTNodeKey(filePath string) (*BLSSigner, error) {
+	key, err := p2p.LoadNodeKey(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewBLSSigner(
+		[constants.BLSSecretKeyLength]byte(key.PrivKey.Bytes()))
 }
 
 // PublicKey returns the public key of the signer.

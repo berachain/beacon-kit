@@ -53,7 +53,7 @@ type StateDB struct {
 	slot sdkcollections.Item[uint64]
 
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader sdkcollections.Item[*beacontypes.BeaconBlockHeader]
+	latestBlockHeader sdkcollections.Item[*primitives.BeaconBlockHeader]
 
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
@@ -208,11 +208,11 @@ func New(
 			sdkcollections.Uint64Value,
 		),
 
-		latestBlockHeader: sdkcollections.NewItem[*beacontypes.BeaconBlockHeader](
+		latestBlockHeader: sdkcollections.NewItem[*primitives.BeaconBlockHeader](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
 			keys.LatestBeaconBlockHeaderPrefix,
-			encoding.SSZValueCodec[*beacontypes.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[*primitives.BeaconBlockHeader]{},
 		),
 	}
 }

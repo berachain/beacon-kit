@@ -23,35 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package da
 
-import (
-	primitives "github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-)
+import gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 
-// SideCars is a slice of blob side cars to be included in the block.
-type BlobSidecars struct {
-	// Sidecars is a slice of blob side cars to be included in the block.
-	Sidecars []*BlobSidecar `ssz-max:"6"`
+// BlobVerifier is a verifier for blobs.
+type BlobVerifier struct {
+	ts *gokzg4844.JSONTrustedSetup
 }
 
-// BlobSidecar as per the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
-//
-//nolint:lll
-type BlobSidecar struct {
-	// Index represents the index of the blob in the block.
-	Index uint64
-	// Blob represents the blob data.
-	Blob []byte `ssz-size:"131072"`
-	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment kzg.Commitment `ssz-size:"48"`
-	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof []byte `ssz-size:"48"`
-	// BeaconBlockHeader represents the beacon block header for which this blob
-	// is being included.
-	BeaconBlockHeader *primitives.BeaconBlockHeader
-	// InclusionProof is the inclusion proof of the blob in the beacon block.
-	InclusionProof [][]byte `ssz-size:"8,32"`
+// NewBlobVerifier creates a new BlobVerifier.
+func NewBlobVerifier(
+	ts *gokzg4844.JSONTrustedSetup,
+) (*BlobVerifier, error) {
+	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
+		return nil, err
+	}
+	return &BlobVerifier{
+		ts: ts,
+	}, nil
 }

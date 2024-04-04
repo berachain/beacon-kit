@@ -32,23 +32,26 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // RuntimeInjectInput is the input for the dep inject framework.
 type RuntimeInjectInput struct {
 	depinject.In
 
-	BeaconCfg *config.Config
-	Logger    log.Logger
-	Signer    core.BLSSigner
-	Bsp       runtime.BeaconStorageBackend
+	BeaconCfg       *config.Config
+	Logger          log.Logger
+	JWTSecret       *jwt.Secret
+	Signer          core.BLSSigner
+	KZGTrustedSetup *gokzg4844.JSONTrustedSetup
+	Bsp             runtime.BeaconStorageBackend
 }
 
 // RuntimeInjectOutput is the output for the dep inject framework.
 type RuntimeInjectOutput struct {
 	depinject.Out
-
 	Runtime *runtime.BeaconKitRuntime
 }
 
@@ -57,8 +60,10 @@ func ProvideRuntime(in RuntimeInjectInput) RuntimeInjectOutput {
 	r, err := runtime.NewDefaultBeaconKitRuntime(
 		in.BeaconCfg,
 		in.Signer,
-		in.Logger,
+		in.JWTSecret,
+		in.KZGTrustedSetup,
 		in.Bsp,
+		in.Logger,
 	)
 	if err != nil {
 		in.Logger.Error(

@@ -56,6 +56,9 @@ var (
 	// ErrNilBlkBody is an error for when the block body is nil.
 	ErrNilBlkBody = errors.New("nil block body")
 
+	// ErrNilBlockHeader is returned when a block header from a block is nil.
+	ErrNilBlockHeader = errors.New("nil block header")
+
 	// ErrNilDeposits is an error for when the deposits are nil.
 	ErrNilDeposits = errors.New("nil deposits")
 

@@ -174,19 +174,14 @@ func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
 	blk types.BeaconBlock,
 ) error {
-	header, err := types.NewBeaconBlockHeader(blk)
-	if err != nil {
-		return err
-	}
-
 	// process the freshly created header.
-	if err = sp.processHeader(st, header); err != nil {
+	if err := sp.processHeader(st, blk); err != nil {
 		return err
 	}
 
 	// process the withdrawals.
 	body := blk.GetBody()
-	if err = sp.processWithdrawals(
+	if err := sp.processWithdrawals(
 		st, body.GetExecutionPayload().GetWithdrawals(),
 	); err != nil {
 		return err
@@ -196,14 +191,14 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err = sp.processRandaoReveal(st, blk); err != nil {
+	if err := sp.processRandaoReveal(st, blk); err != nil {
 		return err
 	}
 
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	if err = sp.processOperations(st, body); err != nil {
+	if err := sp.processOperations(st, body); err != nil {
 		return err
 	}
 
@@ -227,10 +222,17 @@ func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
 // processHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor) processHeader(
 	st state.BeaconState,
-	header *types.BeaconBlockHeader,
+	blk types.BeaconBlock,
 ) error {
+	// TODO: this function is really confusing, can probably just
+	// be removed and the logic put in the ProcessBlock function.
+	header := blk.GetHeader()
+	if header == nil {
+		return types.ErrNilBlockHeader
+	}
+
 	// Store as the new latest block
-	headerRaw := &types.BeaconBlockHeader{
+	headerRaw := &primitives.BeaconBlockHeader{
 		Slot:          header.Slot,
 		ProposerIndex: header.ProposerIndex,
 		ParentRoot:    header.ParentRoot,
