@@ -69,6 +69,16 @@ func (c Commitments) MerkleProof(index uint64) ([][]byte, error) {
 	return sparse.MerkleProof(index)
 }
 
+// ToVersionedHashes converts the commitments to a set of
+// versioned hashes.
+func (c Commitments) ToVersionedHashes() []primitives.ExecutionHash {
+	hashes := make([]primitives.ExecutionHash, len(c))
+	for i, bz := range c {
+		hashes[i] = Commitment(bz).ToVersionedHash()
+	}
+	return hashes
+}
+
 // Commitment is a KZG commitment.
 type Commitment [48]byte
 
@@ -89,21 +99,4 @@ func (c Commitment) ToVersionedHash() primitives.ExecutionHash {
 	// to create a versioned hash.
 	hash[0] = constants.BlobCommitmentVersion
 	return hash
-}
-
-// CommitmentsToVersionedHashes converts a slice of commitments to a
-// slice of versioned hashes. This function is used to generate versioned hashes
-// for KZG commitments.
-//
-// The resulting hashes are intended for use in contexts where a versioned
-// identifier
-// for the commitments is required.
-func CommitmentsToVersionedHashes(
-	commitments Commitments,
-) []primitives.ExecutionHash {
-	hashes := make([]primitives.ExecutionHash, len(commitments))
-	for i, bz := range commitments {
-		hashes[i] = Commitment(bz).ToVersionedHash()
-	}
-	return hashes
 }

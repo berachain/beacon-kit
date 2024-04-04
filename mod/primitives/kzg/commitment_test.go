@@ -56,7 +56,8 @@ func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
 	commitments := make([][48]byte, 2)
 	copy(commitments[0][:], "commitment 1")
 	copy(commitments[1][:], "commitment 2")
-	hashes := kzg.CommitmentsToVersionedHashes(commitments)
+
+	hashes := kzg.Commitments(commitments).ToVersionedHashes()
 
 	if len(hashes) != len(commitments) {
 		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))
