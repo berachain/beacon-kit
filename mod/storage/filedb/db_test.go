@@ -26,12 +26,11 @@
 package file_test
 
 import (
-	file "github.com/berachain/beacon-kit/mod/storage/filedb"
-	"github.com/cockroachdb/errors"
 	"testing"
 
 	"cosmossdk.io/log"
-
+	file "github.com/berachain/beacon-kit/mod/storage/filedb"
+	"github.com/cockroachdb/errors"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
@@ -157,7 +156,8 @@ func TestDB(t *testing.T) {
 	})
 }
 
-// Test with `etc` as root directory to cause creation failure due to permission denied.
+// Test with `etc` as root directory to cause creation failure
+// due to permission denied.
 func TestDB_SetExistingKey_CreateError(t *testing.T) {
 	test := struct {
 		name          string
@@ -249,7 +249,8 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 	}
 }
 
-// Test with root directory to be created in `etc` which will result in permission denied.
+// Test with root directory to be created in `etc`
+// which will result in permission denied.
 func TestDB_Set_MkDirError(t *testing.T) {
 	test := struct {
 		name          string
@@ -276,7 +277,6 @@ func TestDB_Set_MkDirError(t *testing.T) {
 		)
 
 		if test.setupFunc != nil {
-
 			if err := test.setupFunc(db); (err != nil) != test.expectedError {
 				require.Error(t, err, "setupFunc() error = %v", err)
 			}

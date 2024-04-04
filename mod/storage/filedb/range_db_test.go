@@ -26,14 +26,15 @@
 package file_test
 
 import (
-	"cosmossdk.io/log"
 	"errors"
+	"testing"
+
+	"cosmossdk.io/log"
 	file "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/mocks"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestRangeDB(t *testing.T) {
@@ -196,7 +197,6 @@ func TestExtractIndex(t *testing.T) {
 }
 
 func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
-
 	tests := []struct {
 		name string
 		db   *mocks.DB
@@ -209,13 +209,16 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.db.On("DeleteRange", mock.Anything, mock.Anything).Return(errors.New("rangedb: delete range not supported for this db"))
+			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
+				Return(errors.New("rangedb: delete range not supported for this db"))
 
 			rdb := file.NewRangeDB(tt.db)
 
 			err := rdb.DeleteRange(1, 4)
 			require.Error(t, err)
-			require.Equal(t, "rangedb: delete range not supported for this db", err.Error())
+			require.Equal(t,
+				"rangedb: delete range not supported for this db",
+				err.Error())
 		})
 	}
 }
