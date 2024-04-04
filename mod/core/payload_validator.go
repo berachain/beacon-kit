@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // PayloadValidator is responsible for validating incoming execution
@@ -62,9 +61,6 @@ func (pv *PayloadValidator) ValidatePayload(
 		return types.ErrNilPayload
 	}
 
-	// TODO: Once deneb genesis data contains execution payload, remove this.
-	var safeHash common.Hash
-
 	// Get the current epoch.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -72,19 +68,12 @@ func (pv *PayloadValidator) ValidatePayload(
 	}
 
 	// Handle genesis case.
-	if slot <= 1 {
-		safeHash, err = st.GetEth1BlockHash()
-		if err != nil {
-			return err
-		}
-	} else {
-		var executionPayload enginetypes.ExecutionPayload
-		executionPayload, err = st.GetLatestExecutionPayload()
-		if err != nil {
-			return err
-		}
-		safeHash = executionPayload.GetBlockHash()
+	var executionPayload enginetypes.ExecutionPayload
+	executionPayload, err = st.GetLatestExecutionPayload()
+	if err != nil {
+		return err
 	}
+	safeHash := executionPayload.GetBlockHash()
 
 	if safeHash != payload.GetParentHash() {
 		return fmt.Errorf(

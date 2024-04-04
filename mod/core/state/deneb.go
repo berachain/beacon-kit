@@ -27,7 +27,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -51,26 +51,9 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 			StateRoot:     primitives.Root{},
 			BodyRoot:      primitives.Root{},
 		},
-		BlockRoots: make([][32]byte, 1),
-		StateRoots: make([][32]byte, 1),
-		LatestExecutionPayload: &enginetypes.ExecutableDataDeneb{
-			ParentHash:    primitives.ExecutionHash{},
-			FeeRecipient:  primitives.ExecutionAddress{},
-			StateRoot:     primitives.ExecutionHash{},
-			ReceiptsRoot:  primitives.ExecutionHash{},
-			LogsBloom:     []byte{},
-			Random:        primitives.ExecutionHash{},
-			Number:        0,
-			GasLimit:      0,
-			GasUsed:       0,
-			Timestamp:     0,
-			ExtraData:     []byte{},
-			BaseFeePerGas: []byte{},
-			Transactions:  [][]byte{},
-			Withdrawals:   []*primitives.Withdrawal{},
-			BlobGasUsed:   0,
-			ExcessBlobGas: 0,
-		},
+		BlockRoots:             make([][32]byte, 1),
+		StateRoots:             make([][32]byte, 1),
+		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
 		Eth1BlockHash: common.HexToHash(
 			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
 		),
@@ -80,6 +63,27 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		RandaoMixes:      make([][32]byte, 8),
 		Slashings:        make([]uint64, 1),
 		TotalSlashing:    0,
+	}
+}
+
+func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
+	return &types0.ExecutableDataDeneb{
+		ParentHash:    primitives.ExecutionHash{},
+		FeeRecipient:  primitives.ExecutionAddress{},
+		StateRoot:     primitives.ExecutionHash{},
+		ReceiptsRoot:  primitives.ExecutionHash{},
+		LogsBloom:     make([]byte, 256),
+		Random:        primitives.ExecutionHash{},
+		Number:        0,
+		GasLimit:      0,
+		GasUsed:       0,
+		Timestamp:     0,
+		ExtraData:     make([]byte, 32),
+		BaseFeePerGas: make([]byte, 32),
+		Transactions:  [][]byte{},
+		Withdrawals:   []*primitives.Withdrawal{},
+		BlobGasUsed:   0,
+		ExcessBlobGas: 0,
 	}
 }
 
@@ -101,9 +105,9 @@ type BeaconStateDeneb struct {
 	StateRoots        [][32]byte               `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	LatestExecutionPayload enginetypes.ExecutionPayload `json:"latestExecutionPayload"`
-	Eth1BlockHash          primitives.ExecutionHash     `json:"eth1BlockHash"    ssz-size:"32"`
-	Eth1DepositIndex       uint64                       `json:"eth1DepositIndex"`
+	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`
+	Eth1BlockHash          primitives.ExecutionHash    `json:"eth1BlockHash"    ssz-size:"32"`
+	Eth1DepositIndex       uint64                      `json:"eth1DepositIndex"`
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
@@ -129,8 +133,9 @@ func (b *BeaconStateDeneb) String() string {
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
 // BeaconStateDeneb.
 type beaconStateDenebJSONMarshaling struct {
-	GenesisValidatorsRoot hexutil.Bytes
-	BlockRoots            []primitives.Root
-	StateRoots            []primitives.Root
-	RandaoMixes           []primitives.Root
+	GenesisValidatorsRoot  hexutil.Bytes
+	LatestExecutionPayload *types0.ExecutableDataDeneb
+	BlockRoots             []primitives.Root
+	StateRoots             []primitives.Root
+	RandaoMixes            []primitives.Root
 }

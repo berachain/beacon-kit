@@ -79,6 +79,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 
 	./build/bin/beacond genesis add-validator --home "$HOMEDIR"
 	./build/bin/beacond genesis collect-validators --home "$HOMEDIR" 
+	./build/bin/beacond genesis execution-payload ./beacond/eth-genesis.json --home "$HOMEDIR"
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m

@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -58,7 +58,7 @@ type ReadOnlyBeaconState interface {
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
-	GetLatestExecutionPayload() (enginetypes.ExecutionPayload, error)
+	GetLatestExecutionPayload() (types0.ExecutionPayload, error)
 	GetEth1BlockHash() (primitives.ExecutionHash, error)
 	GetTotalSlashing() (primitives.Gwei, error)
 }
@@ -75,7 +75,7 @@ type WriteOnlyBeaconState interface {
 	SetLatestBlockHeader(*types.BeaconBlockHeader) error
 	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
+	UpdateLatestExecutionPayload(types0.ExecutionPayload) error
 	UpdateEth1BlockHash(primitives.ExecutionHash) error
 	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
 }

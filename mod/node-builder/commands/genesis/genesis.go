@@ -46,6 +46,7 @@ func Commands(
 	// Adding subcommands for genesis-related operations.
 	cmd.AddCommand(
 		AddPubkeyCmd(),
+		AddExecutionPayloadCmd(),
 		CollectValidatorsCmd(),
 	)
 
