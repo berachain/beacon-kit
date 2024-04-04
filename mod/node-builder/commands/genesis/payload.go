@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package genesis
 
 import (
@@ -37,7 +62,11 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			genesisBlock := ethGenesis.ToBlock()
 
 			// Create the execution payload.
-			payload := ethenginetypes.BlockToExecutableData(genesisBlock, nil, nil).ExecutionPayload
+			payload := ethenginetypes.BlockToExecutableData(
+				genesisBlock,
+				nil,
+				nil,
+			).ExecutionPayload
 
 			// ethGenesis.ToBlock().
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -62,7 +91,9 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			beaconState.LatestExecutionPayload = executableDataToExecutionPayload(payload)
+			beaconState.LatestExecutionPayload = executableDataToExecutionPayload(
+				payload,
+			)
 
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
 			if err != nil {
@@ -82,13 +113,17 @@ func AddExecutionPayloadCmd() *cobra.Command {
 	return cmd
 }
 
-// Converts the eth executable data type to the beacon execution payload interface.
-func executableDataToExecutionPayload(data *ethenginetypes.ExecutableData) *enginetypes.ExecutableDataDeneb {
+// Converts the eth executable data type to the beacon execution payload
+// interface.
+func executableDataToExecutionPayload(
+	data *ethenginetypes.ExecutableData,
+) *enginetypes.ExecutableDataDeneb {
 	withdrawals := make([]*primitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		withdrawals[i] = withdrawalFromEthWithdrawal(withdrawal)
 	}
 
+	//nolint:gomnd // max extra data slice size.
 	if len(data.ExtraData) > 32 {
 		data.ExtraData = data.ExtraData[:32]
 	}
@@ -115,7 +150,9 @@ func executableDataToExecutionPayload(data *ethenginetypes.ExecutableData) *engi
 }
 
 // Converts the eth withdrawal type to the beacon withdrawal type.
-func withdrawalFromEthWithdrawal(withdrawal *ethtypes.Withdrawal) *primitives.Withdrawal {
+func withdrawalFromEthWithdrawal(
+	withdrawal *ethtypes.Withdrawal,
+) *primitives.Withdrawal {
 	return &primitives.Withdrawal{
 		Index:     withdrawal.Index,
 		Validator: primitives.ValidatorIndex(withdrawal.Validator),

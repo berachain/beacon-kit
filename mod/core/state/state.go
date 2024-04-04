@@ -26,6 +26,8 @@
 package state
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/mod/config/params"
 	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/storage/statedb"
@@ -55,6 +57,8 @@ func (s *beaconState) Copy() BeaconState {
 }
 
 // Store is the interface for the beacon store.
+//
+//nolint:funlen
 func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.StateDB.GetSlot()
 	if err != nil {
@@ -94,6 +98,12 @@ func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 	latestExecutionPayload, err := s.StateDB.GetLatestExecutionPayload()
 	if err != nil {
 		return [32]byte{}, err
+	}
+	payload, ok := latestExecutionPayload.(*types0.ExecutableDataDeneb)
+	if !ok {
+		return [32]byte{}, errors.New(
+			"latest execution payload is not of type ExecutableDataDeneb",
+		)
 	}
 
 	eth1BlockHash, err := s.StateDB.GetEth1BlockHash()
@@ -143,7 +153,7 @@ func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 		LatestBlockHeader:            latestBlockHeader,
 		BlockRoots:                   blockRoots,
 		StateRoots:                   stateRoots,
-		LatestExecutionPayload:       latestExecutionPayload.(*types0.ExecutableDataDeneb),
+		LatestExecutionPayload:       payload,
 		Eth1BlockHash:                eth1BlockHash,
 		Eth1DepositIndex:             eth1DepositIndex,
 		Validators:                   validators,

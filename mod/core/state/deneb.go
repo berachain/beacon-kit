@@ -72,14 +72,14 @@ func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
 		FeeRecipient:  primitives.ExecutionAddress{},
 		StateRoot:     primitives.ExecutionHash{},
 		ReceiptsRoot:  primitives.ExecutionHash{},
-		LogsBloom:     make([]byte, 256),
+		LogsBloom:     make([]byte, 256), //nolint:gomnd // default allocs.
 		Random:        primitives.ExecutionHash{},
 		Number:        0,
 		GasLimit:      0,
 		GasUsed:       0,
 		Timestamp:     0,
-		ExtraData:     make([]byte, 32),
-		BaseFeePerGas: make([]byte, 32),
+		ExtraData:     make([]byte, 32), //nolint:gomnd // default allocs.
+		BaseFeePerGas: make([]byte, 32), //nolint:gomnd // default allocs.
 		Transactions:  [][]byte{},
 		Withdrawals:   []*primitives.Withdrawal{},
 		BlobGasUsed:   0,
@@ -106,7 +106,7 @@ type BeaconStateDeneb struct {
 
 	// Eth1
 	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1BlockHash          primitives.ExecutionHash    `json:"eth1BlockHash"    ssz-size:"32"`
+	Eth1BlockHash          primitives.ExecutionHash    `json:"eth1BlockHash"          ssz-size:"32"`
 	Eth1DepositIndex       uint64                      `json:"eth1DepositIndex"`
 
 	// Registry
