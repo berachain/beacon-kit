@@ -71,7 +71,7 @@ const (
 	RequiredChainID         = engineRoot + "required-chain-id"
 
 	// KZG Config.
-	kzgRoot           = beaconKitRoot + "kzg."
-	TrustedSetupPath  = kzgRoot + "trusted-setup-path"
-	KZGImplementation = kzgRoot + "kzg-implementation"
+	kzgRoot             = beaconKitRoot + "kzg."
+	KZGTrustedSetupPath = kzgRoot + "trusted-setup-path"
+	KZGImplementation   = kzgRoot + "kzg-implementation"
 )

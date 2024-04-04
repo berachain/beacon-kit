@@ -170,6 +170,10 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		defaultCfg.Builder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
 	)
+	startCmd.Flags().String(flags.KZGTrustedSetupPath,
+		defaultCfg.KZG.TrustedSetupPath,
+		"kzg trusted setup path",
+	)
 }
 
 // AddToSFlag adds the terms of service flag to the given command.

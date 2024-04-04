@@ -65,7 +65,7 @@ func (c Config) Parse(
 ) (*Config, error) {
 	var err error
 	if c.TrustedSetupPath, err = parser.GetString(
-		flags.TrustedSetupPath,
+		flags.KZGTrustedSetupPath,
 	); err != nil {
 		return nil, err
 	}
