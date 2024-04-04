@@ -44,19 +44,19 @@ const (
 	two = 2
 )
 
-// BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
+// HashChunks calls HashChunksNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
-func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
-	return BuildParentTreeRootsWithNRoutines(
+func HashChunks(inputList [][32]byte) ([][32]byte, error) {
+	return HashChunksWithNRoutines(
 		inputList, runtime.GOMAXPROCS(0)-1,
 	)
 }
 
-// BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
+// HashChunks optimizes hashing of a list of roots
 // using CPU-specific vector instructions and parallel processing. This
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
-func BuildParentTreeRootsWithNRoutines(
+func HashChunksWithNRoutines(
 	inputList [][32]byte, n int,
 ) ([][32]byte, error) {
 	// Validate input list length.

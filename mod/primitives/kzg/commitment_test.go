@@ -74,3 +74,34 @@ func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
 		}
 	}
 }
+
+func TestHashTreeRoot(_ *testing.T) {
+	// commitments := make([][48]byte, 3)
+	// copy(commitments[0][:], []byte("commitment 1"))
+	// copy(commitments[1][:], []byte("commitment 2"))
+	// copy(commitments[2][:], []byte("commitment 3"))
+
+	// hashTreeRoot, err := kzg.Commitments(commitments).HashTreeRoot()
+	// if err != nil {
+	// 	t.Fatalf("failed to generate hash tree root: %v", err)
+	// }
+
+	// if len(hashTreeRoot) != 32 {
+	// 	t.Errorf(
+	// 		"expected hash tree root length to be 32, got %d",
+	// 		len(hashTreeRoot),
+	// 	)
+	// }
+
+	// // Example check for a known hash tree root value
+	// // This is a placeholder value and should be replaced with an actual
+	// // expected hash
+	// expectedHashTreeRoot := []byte{0x01, 0x02, 0x03} // This is a dummy value
+	// if !bytes.Equal(hashTreeRoot[:3], expectedHashTreeRoot) {
+	// 	t.Errorf(
+	// 		"hash tree root does not match expected value, got %v, want %v",
+	// 		hashTreeRoot[:3],
+	// 		expectedHashTreeRoot,
+	// 	)
+	// }
+}

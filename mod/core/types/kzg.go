@@ -30,8 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
+	merkleize "github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/cockroachdb/errors"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -69,7 +69,7 @@ func VerifyKZGInclusionProof(
 ) error { // TODO: add wrapped type with inclusion proofs
 	verified := trie.VerifyMerkleProof(
 		root[:],
-		blob.KzgCommitment.ToHashChunks()[0][:],
+		blob.KzgCommitment.Chunkify()[0][:],
 		blob.Index+KZGOffset,
 		blob.InclusionProof,
 	)
@@ -127,8 +127,12 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 	if index >= uint64(len(commitments)) {
 		return nil, errors.New("index out of range")
 	}
-	leaves := LeavesFromCommitments(commitments)
-	sparse, err := trie.NewFromItems(leaves, LogMaxBlobCommitments)
+	leaves, err := LeavesFromCommitments(commitments)
+	if err != nil {
+		return nil, err
+	}
+	var sparse *trie.SparseMerkleTrie
+	sparse, err = trie.NewFromItems(leaves, LogMaxBlobCommitments)
 	if err != nil {
 		return nil, err
 	}
@@ -141,14 +145,14 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
+func LeavesFromCommitments(commitments kzg.Commitments) ([][]byte, error) {
 	leaves := make([][]byte, len(commitments))
-	for i, kzg := range commitments {
-		chunk := make([][32]byte, Two)
-		copy(chunk[0][:], kzg[:])
-		copy(chunk[1][:], kzg[RootLength:])
-		gohashtree.HashChunks(chunk, chunk)
+	for i, c := range commitments {
+		chunk, err := merkleize.HashChunks(kzg.Commitment(c).Chunkify())
+		if err != nil {
+			return nil, err
+		}
 		leaves[i] = chunk[0][:]
 	}
-	return leaves
+	return leaves, nil
 }

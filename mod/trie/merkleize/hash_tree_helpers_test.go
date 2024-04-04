@@ -51,7 +51,7 @@ func requireGoHashTreeEquivalence(
 	go func() {
 		defer wg.Done()
 		var err error
-		output, err = merkleize.BuildParentTreeRootsWithNRoutines(
+		output, err = merkleize.HashChunksWithNRoutines(
 			inputList,
 			numRoutines,
 		)

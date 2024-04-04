@@ -30,7 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/prysmaticlabs/gohashtree"
+	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 )
 
 // Commitments represents a slice of KZG commitments.
@@ -59,6 +59,14 @@ func (c Commitments) ToVersionedHashes() []primitives.ExecutionHash {
 	return hashes
 }
 
+func (c Commitments) HashTreeRoot() ([32]byte, error) {
+	x := make([]Commitment, len(c))
+	for i, bz := range c {
+		x[i] = Commitment(bz)
+	}
+	return merkleize.VectorSSZ(x, uint64(len(x)))
+}
+
 // Commitment is a KZG commitment.
 type Commitment [48]byte
 
@@ -75,11 +83,15 @@ func (c Commitment) ToVersionedHash() primitives.ExecutionHash {
 	return hash
 }
 
-// ToHashChunks converts this KZG commitment into a set of hash chunks.
-func (c Commitment) ToHashChunks() [][32]byte {
+// Chunkify converts this KZG commitment into a set of hash chunks.
+func (c Commitment) Chunkify() [][32]byte {
 	chunks := make([][32]byte, 2) //nolint:gomnd // 2 chunks.
 	copy(chunks[0][:], c[:])
 	copy(chunks[1][:], c[constants.RootLength:])
-	gohashtree.HashChunks(chunks, chunks)
 	return chunks
+}
+
+// HashTreeRoot returns the hash tree root of this KZG commitment.
+func (c Commitment) HashTreeRoot() ([32]byte, error) {
+	return merkleize.Vector(c.Chunkify(), uint64(len(c))), nil
 }

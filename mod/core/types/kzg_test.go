@@ -110,7 +110,8 @@ func Test_BodyProof(t *testing.T) {
 	commitments := body.GetBlobKzgCommitments()
 
 	// Generate leaves from commitments
-	leaves := types.LeavesFromCommitments(commitments)
+	leaves, err := types.LeavesFromCommitments(commitments)
+	require.NoError(t, err, "Failed to generate leaves from commitments")
 
 	// Calculate the depth the given trie will have.
 	// depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))

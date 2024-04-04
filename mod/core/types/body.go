@@ -118,7 +118,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	}
 
 	randao := b.GetRandaoReveal()
-	root, err := merkleize.ByteSliceSSZ(randao[:])
+	root, err := merkleize.ByteSliceVectorSSZ(randao[:])
 	if err != nil {
 		return nil, err
 	}
@@ -150,8 +150,12 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 }
 
 func GetBlobKzgCommitmentsRoot(commitments [][48]byte) ([32]byte, error) {
-	commitmentsLeaves := LeavesFromCommitments(commitments)
-	commitmentsSparse, err := trie.NewFromItems(
+	commitmentsLeaves, err := LeavesFromCommitments(commitments)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	var commitmentsSparse *trie.SparseMerkleTrie
+	commitmentsSparse, err = trie.NewFromItems(
 		commitmentsLeaves,
 		LogMaxBlobCommitments,
 	)
