@@ -193,3 +193,45 @@ func TestExtractIndex(t *testing.T) {
 		})
 	}
 }
+
+// MockDB is a mock implementation of the DB interface.
+// It returns zero values for all methods.
+type MockDB struct{}
+
+func (m *MockDB) Get(key []byte) ([]byte, error) {
+	return nil, nil
+}
+
+func (m *MockDB) Has(key []byte) (bool, error) {
+	return false, nil
+}
+
+func (m *MockDB) Set(key []byte, value []byte) error {
+	return nil
+}
+
+func (m *MockDB) Delete(key []byte) error {
+	return nil
+}
+
+func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
+	tests := []struct {
+		name string
+		db   *MockDB
+	}{
+		{
+			name: "DeleteRangeNotSupported",
+			db:   new(MockDB),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rdb := file.NewRangeDB(tt.db)
+
+			err := rdb.DeleteRange(1, 4)
+			require.Error(t, err)
+			require.Equal(t, "rangedb: delete range not supported for this db", err.Error())
+		})
+	}
+}
