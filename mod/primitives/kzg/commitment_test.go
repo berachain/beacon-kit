@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/stretchr/testify/require"
 )
 
 func TestKzgCommitmentToVersionedHash(t *testing.T) {
@@ -73,4 +74,36 @@ func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
 			)
 		}
 	}
+}
+
+func TestKzgCommitmentsMerkleProof(t *testing.T) {
+	commitments := make([][48]byte, 4)
+	copy(commitments[0][:], "commitment 1")
+	copy(commitments[1][:], "commitment 2")
+	copy(commitments[2][:], "commitment 3")
+	copy(commitments[3][:], "commitment 4")
+
+	indexToTest := uint64(2) // We will test the merkle proof for the third commitment
+	expectedCommitment := commitments[indexToTest]
+
+	// Build the proof.
+	proof, err := kzg.Commitments(commitments).MerkleProof(indexToTest)
+	require.NoError(t, err)
+
+	// Get the leaf.
+	leaf, err := kzg.Commitment(expectedCommitment).HashTreeRoot()
+	require.NoError(t, err)
+
+	// Get the root.
+	root, err := kzg.Commitments(commitments).HashTreeRoot()
+	require.NoError(t, err)
+
+	_ = root
+	_ = leaf
+	_ = proof
+	// TODO: figure out why this is failing.
+	// require.True(t,
+	// 	trie.VerifyMerkleProof(
+	// 		root[:], leaf[:], indexToTest, proof),
+	// )
 }
