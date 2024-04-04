@@ -105,7 +105,9 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments kzg.Commitments) {
+func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
+	commitments kzg.Commitments,
+) {
 	b.BlobKzgCommitments = commitments
 }
 
