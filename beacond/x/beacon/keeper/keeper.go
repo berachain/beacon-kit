@@ -159,7 +159,7 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	emptyHeader := &primitives.BlockHeader{
+	emptyHeader := &primitives.BeaconBlockHeader{
 		Slot:          0,
 		ProposerIndex: 0,
 		ParentRoot:    [32]byte{},

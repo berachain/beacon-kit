@@ -7,15 +7,15 @@ import (
 )
 
 // MarshalJSON marshals as JSON.
-func (b BlockHeader) MarshalJSON() ([]byte, error) {
-	type BlockHeader struct {
+func (b BeaconBlockHeader) MarshalJSON() ([]byte, error) {
+	type BeaconBlockHeader struct {
 		Slot          Slot           `json:"slot"`
 		ProposerIndex ValidatorIndex `json:"proposerIndex"`
 		ParentRoot    Bytes32        `json:"parentRoot"    ssz-size:"32"`
 		StateRoot     Bytes32        `json:"stateRoot"     ssz-size:"32"`
 		BodyRoot      Bytes32        `json:"bodyRoot"      ssz-size:"32"`
 	}
-	var enc BlockHeader
+	var enc BeaconBlockHeader
 	enc.Slot = b.Slot
 	enc.ProposerIndex = b.ProposerIndex
 	enc.ParentRoot = b.ParentRoot
@@ -25,15 +25,15 @@ func (b BlockHeader) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals from JSON.
-func (b *BlockHeader) UnmarshalJSON(input []byte) error {
-	type BlockHeader struct {
+func (b *BeaconBlockHeader) UnmarshalJSON(input []byte) error {
+	type BeaconBlockHeader struct {
 		Slot          *Slot           `json:"slot"`
 		ProposerIndex *ValidatorIndex `json:"proposerIndex"`
 		ParentRoot    *Bytes32        `json:"parentRoot"    ssz-size:"32"`
 		StateRoot     *Bytes32        `json:"stateRoot"     ssz-size:"32"`
 		BodyRoot      *Bytes32        `json:"bodyRoot"      ssz-size:"32"`
 	}
-	var dec BlockHeader
+	var dec BeaconBlockHeader
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}

@@ -107,6 +107,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Compute the state root for the block.
+	// TODO: IMPLEMENT RN THIS DOES NOTHING.
 	stateRoot, err := s.computeStateRoot(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf(

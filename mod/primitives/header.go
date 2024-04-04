@@ -29,10 +29,10 @@ import (
 	"encoding/json"
 )
 
-// BlockHeader is the header of a beacon block.
+// BeaconBlockHeader is the header of a beacon block.
 //
-//go:generate go run github.com/fjl/gencodec -type BlockHeader -out header.json.go
-type BlockHeader struct {
+//go:generate go run github.com/fjl/gencodec -type BeaconBlockHeader -out header.json.go
+type BeaconBlockHeader struct {
 	// Slot is the slot number of the block.
 	Slot Slot `json:"slot"`
 	// ProposerIndex is the index of the proposer of the block.
@@ -47,7 +47,7 @@ type BlockHeader struct {
 }
 
 // String returns a string representation of the beacon block header.
-func (h *BlockHeader) String() string {
+func (h *BeaconBlockHeader) String() string {
 	//#nosec:G703 // ignore potential marshalling failure.
 	output, _ := json.Marshal(h)
 	return string(output)

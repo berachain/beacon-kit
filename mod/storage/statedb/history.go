@@ -46,14 +46,14 @@ func (s *StateDB) GetBlockRootAtIndex(
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (s *StateDB) SetLatestBlockHeader(
-	header *primitives.BlockHeader,
+	header *primitives.BeaconBlockHeader,
 ) error {
 	return s.latestBlockHeader.Set(s.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (s *StateDB) GetLatestBlockHeader() (
-	*primitives.BlockHeader, error,
+	*primitives.BeaconBlockHeader, error,
 ) {
 	return s.latestBlockHeader.Get(s.ctx)
 }

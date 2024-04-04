@@ -54,7 +54,7 @@ type ReadOnlyBeaconBlock interface {
 	GetParentBlockRoot() primitives.Root
 	GetStateRoot() primitives.Root
 	GetBody() BeaconBlockBody
-	GetHeader() *primitives.BlockHeader
+	GetHeader() *primitives.BeaconBlockHeader
 }
 
 // BeaconBlockBody is the interface for a beacon block body.

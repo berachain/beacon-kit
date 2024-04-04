@@ -49,9 +49,9 @@ type BlobSidecar struct {
 	KzgCommitment kzg.Commitment `ssz-size:"48"`
 	// Kzg proof allows folr the verification of the KZG commitment.
 	KzgProof []byte `ssz-size:"48"`
-	// BlockHeader represents the beacon block header for which this blob
+	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BlockHeader *primitives.BlockHeader
+	BeaconBlockHeader *primitives.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block.
 	InclusionProof [][]byte `ssz-size:"8,32"`
 }

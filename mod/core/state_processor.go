@@ -224,14 +224,15 @@ func (sp *StateProcessor) processHeader(
 	st state.BeaconState,
 	blk types.BeaconBlock,
 ) error {
-	// TODO: this function is really confusing.
+	// TODO: this function is really confusing, can probably just
+	// be removed and the logic put in the ProcessBlock function.
 	header := blk.GetHeader()
 	if header == nil {
 		return types.ErrNilBlockHeader
 	}
 
 	// Store as the new latest block
-	headerRaw := &primitives.BlockHeader{
+	headerRaw := &primitives.BeaconBlockHeader{
 		Slot:          header.Slot,
 		ProposerIndex: header.ProposerIndex,
 		ParentRoot:    header.ParentRoot,

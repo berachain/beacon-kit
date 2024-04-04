@@ -53,12 +53,12 @@ func BuildBlobSidecar(
 			}
 
 			sidecars[i] = &datypes.BlobSidecar{
-				Index:          i,
-				Blob:           blobs.Blobs[i],
-				KzgCommitment:  kzg.Commitment(blobs.Commitments[i]),
-				KzgProof:       blobs.Proofs[i],
-				BlockHeader:    blkHeader,
-				InclusionProof: inclusionProof,
+				Index:             i,
+				Blob:              blobs.Blobs[i],
+				KzgCommitment:     kzg.Commitment(blobs.Commitments[i]),
+				KzgProof:          blobs.Proofs[i],
+				BeaconBlockHeader: blkHeader,
+				InclusionProof:    inclusionProof,
 			}
 			return nil
 		})
