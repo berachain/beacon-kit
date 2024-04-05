@@ -94,8 +94,10 @@ func runLightClient(cmd *cobra.Command, args []string) error {
 	// Set log level.
 	var option log.Option
 	if logLvl == logLevelInfo {
+		//#nosec:G703 // logLevelInfo is a known, valid constant
 		option, _ = log.AllowLevel(logLevelInfo)
 	} else {
+		//#nosec:G703 // logLevelDebug is a known, valid constant
 		option, _ = log.AllowLevel(logLevelDebug)
 	}
 	logger = log.NewFilter(logger, option)
