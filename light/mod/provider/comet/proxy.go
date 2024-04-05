@@ -74,7 +74,7 @@ func StartProxy(cfg *Config) error {
 
 	// Stop upon receiving SIGTERM or CTRL-C.
 	cometOs.TrapSignal(cfg.Logger, func() {
-		if err := proxy.Listener.Close(); err != nil {
+		if err = proxy.Listener.Close(); err != nil {
 			cfg.Logger.Error("Failed to close listener", err)
 		}
 	})
