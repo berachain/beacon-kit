@@ -37,7 +37,8 @@ const (
 	// block.
 	MaxBlobsPerBlock uint = 6
 
-	// MaxBlobCommitmentsPerBlock is the maximum number of blob commitments that
+	// MaxBlobCommitmentsPerBlock is the theoretical maximum number of blob
+	// commitments that
 	// can be included in a block.
 	MaxBlobCommitmentsPerBlock = 16
 
