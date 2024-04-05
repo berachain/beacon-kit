@@ -54,11 +54,7 @@ func RunLightNode(ctx context.Context, config *Config) {
 			log.Println(block)
 			log.Println("trustedEth1Hash", client.GetEth1BlockHash(ctx))
 			log.Println("latestBlockHeader", client.GetLatestBlockHeader(ctx))
-
-			// if block.Height > 4 {
-			// 	fmt.Println("blockRootAtIndex", client.GetBlockRootAtIndex(ctx,
-			// 2))
-			// }
+			log.Println("blockRootAtIndex", client.GetBlockRootAtIndex(ctx, 0))
 		case <-ctx.Done():
 			// context cancelled, exit the loop
 			return

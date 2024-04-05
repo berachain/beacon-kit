@@ -1,0 +1,17 @@
+diff --git a/light/app/app.go b/light/app/app.go
+index bf964704..6151b41f 100644
+--- a/light/app/app.go
++++ b/light/app/app.go
+@@ -54,11 +54,7 @@ func RunLightNode(ctx context.Context, config *Config) {
+ 			log.Println(block)
+ 			log.Println("trustedEth1Hash", client.GetEth1BlockHash(ctx))
+ 			log.Println("latestBlockHeader", client.GetLatestBlockHeader(ctx))
+-
+-			// if block.Height > 4 {
+-			// 	fmt.Println("blockRootAtIndex", client.GetBlockRootAtIndex(ctx,
+-			// 2))
+-			// }
++			log.Println("blockRootAtIndex", client.GetBlockRootAtIndex(ctx, 0))
+ 		case <-ctx.Done():
+ 			// context cancelled, exit the loop
+ 			return
