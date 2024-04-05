@@ -54,7 +54,7 @@ func BuildBlobSidecar(
 
 			sidecars[i] = &datypes.BlobSidecar{
 				Index:             i,
-				Blob:              kzg.Blob(blobs.Blobs[i]),
+				Blob:              ((*kzg.Blob)(blobs.Blobs[i])),
 				KzgCommitment:     kzg.Commitment(blobs.Commitments[i]),
 				KzgProof:          kzg.Proof(blobs.Proofs[i]),
 				BeaconBlockHeader: blkHeader,
