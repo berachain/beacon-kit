@@ -29,6 +29,7 @@ import (
 	"context"
 	rpc "github.com/berachain/beacon-kit/mod/api"
 	"github.com/berachain/beacon-kit/mod/api/beaconnode"
+	"github.com/berachain/beacon-kit/mod/api/cosmos"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	config2 "github.com/cosmos/cosmos-sdk/server/config"
 	"io"
@@ -204,7 +205,10 @@ func (app BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.API
 	handler := rpc.Server{
 		ContextGetter: app.BaseApp.CreateQueryContext,
 		Service:       app.BeaconKeeper,
-		ABCI:          app.BaseApp,
+		ChainQuerier: cosmos.ChainQuerier{
+			ContextGetter: app.BaseApp.CreateQueryContext,
+			ABCI:          app,
+		},
 	}
 
 	newServer, err := beaconnode.NewServer(handler)

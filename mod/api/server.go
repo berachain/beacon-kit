@@ -2,22 +2,23 @@ package rpc
 
 import (
 	"context"
-	tendermintv1beta1 "cosmossdk.io/api/cosmos/base/tendermint/v1beta1"
 	"fmt"
 	"github.com/berachain/beacon-kit/mod/api/beaconnode"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	cometabci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"google.golang.org/protobuf/proto"
 	"strconv"
 )
+
+type ChainQuerier interface {
+	GetSyncingStatus() beaconnode.GetSyncingStatusRes
+}
 
 type Server struct {
 	ContextGetter func(height int64, prove bool) (sdk.Context, error)
 	Service       service.BeaconStorageBackend
-	ABCI          types.ABCI
+
+	ChainQuerier ChainQuerier
 }
 
 func (s Server) Eventstream(ctx context.Context, params beaconnode.EventstreamParams) (beaconnode.EventstreamRes, error) {
@@ -293,34 +294,7 @@ func (s Server) GetSyncCommitteeRewards(ctx context.Context, req []string, param
 }
 
 func (s Server) GetSyncingStatus(ctx context.Context) (beaconnode.GetSyncingStatusRes, error) {
-	ctx, err := s.ContextGetter(0, false)
-	if err != nil {
-		return nil, err
-	}
-
-	req := cometabci.RequestQuery{
-		Path: tendermintv1beta1.Service_GetSyncing_FullMethodName,
-	}
-	query, err := s.ABCI.Query(ctx, &req)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := tendermintv1beta1.GetSyncingResponse{}
-	err = proto.Unmarshal(query.Value, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &beaconnode.GetSyncingStatusOK{
-		Data: beaconnode.GetSyncingStatusOKData{
-			HeadSlot:     "",
-			SyncDistance: "",
-			IsSyncing:    resp.Syncing,
-			IsOptimistic: false,
-			ElOffline:    false,
-		},
-	}, nil
+	return s.ChainQuerier.GetSyncingStatus(), nil
 }
 
 func (s Server) PostStateValidatorBalances(ctx context.Context, req []string, params beaconnode.PostStateValidatorBalancesParams) (beaconnode.PostStateValidatorBalancesRes, error) {
