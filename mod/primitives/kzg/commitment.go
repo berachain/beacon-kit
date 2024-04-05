@@ -34,13 +34,11 @@ import (
 )
 
 // Commitments represents a slice of KZG commitments.
-// TODO: Must be [48]byte for fastssz to work, annoying.
-// TODO: Fix this with upstream PR to fastssz.
-type Commitments [][48]byte
+type Commitments []Commitment
 
 // CommitmentsFromBz converts byte slices to commitments.
 func CommitmentsFromBz[T ~[]byte](slices []T) Commitments {
-	commitments := make([][48]byte, len(slices))
+	commitments := make([]Commitment, len(slices))
 	for i, slice := range slices {
 		copy(commitments[i][:], slice)
 	}
@@ -54,7 +52,7 @@ func CommitmentsFromBz[T ~[]byte](slices []T) Commitments {
 func (c Commitments) ToVersionedHashes() []primitives.ExecutionHash {
 	hashes := make([]primitives.ExecutionHash, len(c))
 	for i, bz := range c {
-		hashes[i] = Commitment(bz).ToVersionedHash()
+		hashes[i] = bz.ToVersionedHash()
 	}
 	return hashes
 }

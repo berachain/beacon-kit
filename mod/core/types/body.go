@@ -51,7 +51,7 @@ type BeaconBlockBodyDeneb struct {
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
 
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments kzg.Commitments `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments []kzg.Commitment `ssz-size:"?,48" ssz-max:"16"`
 }
 
 // IsNil checks if the BeaconBlockBodyDeneb is nil.
@@ -149,7 +149,9 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	return layer, nil
 }
 
-func GetBlobKzgCommitmentsRoot(commitments [][48]byte) ([32]byte, error) {
+func GetBlobKzgCommitmentsRoot(
+	commitments []kzg.Commitment,
+) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
 	commitmentsSparse, err := trie.NewFromItems(
 		commitmentsLeaves,
