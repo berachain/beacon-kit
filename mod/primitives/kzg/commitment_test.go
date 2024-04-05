@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/stretchr/testify/require"
 )
 
 func TestKzgCommitmentToVersionedHash(t *testing.T) {
@@ -47,13 +48,11 @@ func TestKzgCommitmentToVersionedHash(t *testing.T) {
 		)
 	}
 
-	if len(hash) != 32 {
-		t.Errorf("expected hash length to be 32, got %d", len(hash))
-	}
+	require.Len(t, hash, 32)
 }
 
 func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
-	commitments := make([][48]byte, 2)
+	commitments := make([]kzg.Commitment, 2)
 	copy(commitments[0][:], "commitment 1")
 	copy(commitments[1][:], "commitment 2")
 
