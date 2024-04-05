@@ -23,47 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package kzg
 
-import (
-	"errors"
-
-	verifier "github.com/berachain/beacon-kit/mod/da/verifier"
-	kzg "github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-)
-
-// BlobVerifier is a verifier for blobs.
-type BlobVerifier interface {
-	// VerifyProof verifies the KZG proof that the polynomial represented by the
-	// blob
-	// evaluated at the given point is the claimed value.
-	VerifyKZGProof(
-		commitment kzg.Commitment,
-		point kzg.Point,
-		claim kzg.Claim,
-		proof kzg.Proof,
-	) error
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *kzg.Blob,
-		commitment kzg.Commitment,
-		proof kzg.Proof,
-	) error
-}
-
-// NewBlobVerifier creates a new BlobVerifier.
-func NewBlobVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (BlobVerifier, error) {
-	switch impl {
-	case "crate-crypto/go-kzg-4844":
-		return verifier.NewGoKZGVerifier(ts)
-	case "ethereum/c-kzg-4844":
-		return nil, errors.New("ethereum/c-kzg-4844 is not yet supported")
-	default:
-		return nil, errors.New("unsupported KZG implementation")
-	}
-}
+// Point is a BLS field element.
+type Point [32]byte

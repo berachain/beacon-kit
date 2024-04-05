@@ -23,47 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package kzg
 
 import (
-	"errors"
+	"reflect"
 
-	verifier "github.com/berachain/beacon-kit/mod/da/verifier"
-	kzg "github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// BlobVerifier is a verifier for blobs.
-type BlobVerifier interface {
-	// VerifyProof verifies the KZG proof that the polynomial represented by the
-	// blob
-	// evaluated at the given point is the claimed value.
-	VerifyKZGProof(
-		commitment kzg.Commitment,
-		point kzg.Point,
-		claim kzg.Claim,
-		proof kzg.Proof,
-	) error
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *kzg.Blob,
-		commitment kzg.Commitment,
-		proof kzg.Proof,
-	) error
+// Blob represents an EIP-4844 data blob.
+type Blob [131072]byte
+
+// UnmarshalJSON parses a blob in hex syntax.
+func (b *Blob) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
 }
 
-// NewBlobVerifier creates a new BlobVerifier.
-func NewBlobVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (BlobVerifier, error) {
-	switch impl {
-	case "crate-crypto/go-kzg-4844":
-		return verifier.NewGoKZGVerifier(ts)
-	case "ethereum/c-kzg-4844":
-		return nil, errors.New("ethereum/c-kzg-4844 is not yet supported")
-	default:
-		return nil, errors.New("unsupported KZG implementation")
-	}
+// MarshalText returns the hex representation of b.
+func (b Blob) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(b[:]).MarshalText()
 }

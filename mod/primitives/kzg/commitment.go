@@ -27,9 +27,11 @@ package kzg
 
 import (
 	"crypto/sha256"
+	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -80,4 +82,14 @@ func (c Commitment) ToHashChunks() [][32]byte {
 	copy(chunks[1][:], c[constants.RootLength:])
 	gohashtree.HashChunks(chunks, chunks)
 	return chunks
+}
+
+// UnmarshalJSON parses a commitment in hex syntax.
+func (c *Commitment) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Commitment{}), input, c[:])
+}
+
+// MarshalText returns the hex representation of c.
+func (c Commitment) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(c[:]).MarshalText()
 }

@@ -37,8 +37,14 @@ const (
 	// block.
 	MaxBlobsPerBlock uint = 6
 
+	// MaxBlobCommitmentsPerBlock is the theoretical maximum number of blob
+	// commitments that
+	// can be included in a block.
 	MaxBlobCommitmentsPerBlock = 16
 
 	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
 	LogMaxBlobCommitments uint64 = 4
+
+	// MaxBlobDataSize is the maximum size of a blob data.
+	MaxBlobDataSize uint64 = 131072
 )
