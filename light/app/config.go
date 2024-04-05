@@ -1,14 +1,12 @@
 package app
 
-// import (
-// 	"github.com/berachain/beacon-kit/light/provider"
-// 	"github.com/berachain/beacon-kit/light/provider/comet"
-// )
+// "github.com/berachain/beacon-kit/light/mod/provider"
+// "github.com/berachain/beacon-kit/light/mod/provider/comet"
 
-// type Config struct {
-// 	Comet    *comet.Config
-// 	Provider *provider.Config
-// }
+type Config struct {
+	// Comet    *comet.Config
+	// Provider *provider.Config
+}
 
 // func NewConfig(comet *comet.Config, provider *provider.Config) *Config {
 // 	return &Config{

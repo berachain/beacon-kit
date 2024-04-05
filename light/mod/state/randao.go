@@ -23,18 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
-// import (
-// 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
-// )
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
 
-// // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-// func (s *Store) UpdateRandaoMixAtIndex(index uint64, mix types.Mix) error {
-// 	return nil
-// }
+// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
+func (s *StateDB) UpdateRandaoMixAtIndex(
+	index uint64,
+	mix primitives.Bytes32,
+) error {
+	panic("light mode does not support writes")
+}
 
-// // RandaoMixAtIndex retrieves the current RANDAO mix from the store.
-// func (s *Store) RandaoMixAtIndex(index uint64) (types.Mix, error) {
-// 	panic("not implemented")
-// }
+// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
+func (s *StateDB) GetRandaoMixAtIndex(
+	index uint64,
+) (primitives.Bytes32, error) {
+	panic("not implemented")
+}

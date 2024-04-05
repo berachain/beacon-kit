@@ -23,18 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package forkchoice
+package statedb
 
-// // Genesis Related Prefix.
-// const (
-// 	// eth1GenesisHashPrefix is the prefix of the eth1 genesis hash store.
-// 	eth1GenesisHashPrefix = "eth1_genesis_hash"
-// )
+import "github.com/berachain/beacon-kit/mod/primitives"
 
-// // Collection prefixes.
-// const (
-// 	parentBlockRootPrefix          = "parent_block_root"
-// 	depositQueuePrefix             = "deposit_queue"
-// 	fcSafeEth1BlockHashPrefix      = "fc_safe"
-// 	fcFinalizedEth1BlockHashPrefix = "fc_finalized"
-// )
+// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// state.
+func (s *StateDB) SetGenesisValidatorsRoot(
+	root primitives.Root,
+) error {
+	panic("light mode does not support writes")
+}
+
+// GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// beacon state.
+func (s *StateDB) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	panic("not implemented")
+}
+
+// GetSlot returns the current slot.
+func (s *StateDB) GetSlot() (primitives.Slot, error) {
+	panic("not implemented")
+}
+
+// SetSlot sets the current slot.
+func (s *StateDB) SetSlot(slot primitives.Slot) error {
+	panic("light mode does not support writes")
+}

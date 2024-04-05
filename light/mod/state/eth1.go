@@ -23,10 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blob
+package statedb
 
-// import "errors"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
 
-// // ErrAttemptedToStoreNilSidecar is returned when an attempt is made to store a
-// // nil sidecar.
-// var ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
+// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
+func (s *StateDB) UpdateEth1BlockHash(
+	hash primitives.ExecutionHash,
+) error {
+	panic("light mode does not support writes")
+}
+
+// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
+func (s *StateDB) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+	panic("not implemented")
+}
+
+// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+func (s *StateDB) GetEth1DepositIndex() (uint64, error) {
+	panic("not implemented")
+}
+
+// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
+func (s *StateDB) SetEth1DepositIndex(index uint64) error {
+	panic("light mode does not support writes")
+}

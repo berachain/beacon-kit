@@ -1,11 +1,33 @@
 package app
 
-// import (
-// 	"context"
-// 	"fmt"
+import (
+	"context"
 
-// 	"github.com/berachain/beacon-kit/light/provider"
-// )
+	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/cosmos/cosmos-sdk/client"
+	// "github.com/berachain/beacon-kit/light/provider"
+)
+
+var _ nodebuilder.BeaconApp = (*LightApp)(nil)
+
+type LightApp struct {
+	runtime *beaconkitruntime.BeaconKitRuntime
+}
+
+func NewLightApp(ctx context.Context, config *Config) *LightApp {
+	return &LightApp{
+		// runtime: runtime,
+	}
+}
+
+func (app *LightApp) PostStartup(ctx context.Context, _ client.Context) error {
+	// Initial check for execution client sync.
+	app.runtime.StartServices(
+		ctx,
+	)
+	return nil
+}
 
 // func RunLightNode(ctx context.Context, config *Config) {
 // 	// builds the runtime and starts the node

@@ -23,32 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package keys
 
-// import (
-// 	"github.com/berachain/beacon-kit/primitives"
-// )
-
-// // IncreaseBalance increases the balance of a validator.
-// func (s *Store) IncreaseBalance(
-// 	idx primitives.ValidatorIndex,
-// 	delta primitives.Gwei,
-// ) error {
-// 	return nil
-// }
-
-// // DecreaseBalance decreases the balance of a validator.
-// func (s *Store) DecreaseBalance(
-// 	idx primitives.ValidatorIndex,
-// 	delta primitives.Gwei,
-// ) error {
-// 	return nil
-// }
-
-// // GetTotalActiveBalances returns the total active balances of all validators.
-// // TODO: unhood this and probably store this as just a value changed on writes.
-// func (s *Store) GetTotalActiveBalances(
-// 	slotsPerEpoch uint64,
-// ) (primitives.Gwei, error) {
-// 	panic("not implemented")
-// }
+// Collection prefixes.
+const (
+	DepositQueuePrefix                     = "deposit_queue"
+	WithdrawalQueuePrefix                  = "withdrawal_queue"
+	RandaoMixPrefix                        = "randao_mix"
+	SlashingsPrefix                        = "slashings"
+	TotalSlashingPrefix                    = "total_slashing"
+	ValidatorIndexPrefix                   = "val_idx"
+	BlockRootsPrefix                       = "block_roots"
+	StateRootsPrefix                       = "state_roots"
+	ValidatorByIndexPrefix                 = "val_idx_to_pk"
+	ValidatorPubkeyToIndexPrefix           = "val_pk_to_idx"
+	ValidatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
+	ValidatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
+	LatestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
+	SlotPrefix                             = "slot"
+	BalancesPrefix                         = "balances"
+	Eth1BlockHashPrefix                    = "eth1_block_hash"
+	Eth1DepositIndexPrefix                 = "eth1_deposit_index"
+	GenesisValidatorsRootPrefix            = "genesis_validators_root"
+)

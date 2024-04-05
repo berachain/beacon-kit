@@ -23,23 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package statedb
 
-// // Collection prefixes.
-// const (
-// 	depositQueuePrefix                     = "deposit_queue"
-// 	withdrawalQueuePrefix                  = "withdrawal_queue"
-// 	randaoMixPrefix                        = "randao_mix"
-// 	validatorIndexPrefix                   = "val_idx"
-// 	blockRootsPrefix                       = "block_roots"
-// 	stateRootsPrefix                       = "state_roots"
-// 	validatorByIndexPrefix                 = "val_idx_to_pk"
-// 	validatorPubkeyToIndexPrefix           = "val_pk_to_idx"
-// 	validatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
-// 	validatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
-// 	latestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
-// 	slotPrefix                             = "slot"
-// 	balancesPrefix                         = "balances"
-// 	eth1DepositIndexPrefix                 = "eth1_deposit_index"
-// 	genesisValidatorsRootPrefix            = "genesis_validators_root"
-// )
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
+
+func (s *StateDB) GetSlashings() ([]uint64, error) {
+	panic("not implemented")
+}
+
+// UpdateSlashingAtIndex sets the slashing amount in the store.
+func (s *StateDB) UpdateSlashingAtIndex(
+	index uint64,
+	amount primitives.Gwei,
+) error {
+	panic("light mode does not support writes")
+}
+
+// GetSlashingAtIndex retrieves the slashing amount by index from the store.
+func (s *StateDB) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
+	panic("not implemented")
+}
+
+// TotalSlashing retrieves the total slashing amount from the store.
+func (s *StateDB) GetTotalSlashing() (primitives.Gwei, error) {
+	panic("not implemented")
+}
+
+// SetTotalSlashing sets the total slashing amount in the store.
+func (s *StateDB) SetTotalSlashing(amount primitives.Gwei) error {
+	panic("light mode does not support writes")
+}
