@@ -24,7 +24,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
-		Eth1BlockHash                common.Hash                   `json:"eth1BlockHash"    ssz-size:"32"`
+		Eth1BlockHash                common.Hash                   `json:"eth1BlockHash"          ssz-size:"32"`
 		Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
@@ -77,7 +77,7 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
-		Eth1BlockHash                *common.Hash                  `json:"eth1BlockHash"    ssz-size:"32"`
+		Eth1BlockHash                *common.Hash                  `json:"eth1BlockHash"          ssz-size:"32"`
 		Eth1DepositIndex             *uint64                       `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`

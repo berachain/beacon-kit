@@ -27,6 +27,7 @@ package genesis
 
 import (
 	"encoding/json"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
@@ -38,7 +39,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	ethenginetypes "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/core"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
 )
 
@@ -120,7 +120,7 @@ func executableDataToExecutionPayload(
 ) *enginetypes.ExecutableDataDeneb {
 	withdrawals := make([]*primitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
-		withdrawals[i] = withdrawalFromEthWithdrawal(withdrawal)
+		withdrawals[i] = (*primitives.Withdrawal)(unsafe.Pointer(withdrawal))
 	}
 
 	//nolint:gomnd // max extra data slice size.
@@ -146,17 +146,5 @@ func executableDataToExecutionPayload(
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   *data.BlobGasUsed,
 		ExcessBlobGas: *data.ExcessBlobGas,
-	}
-}
-
-// Converts the eth withdrawal type to the beacon withdrawal type.
-func withdrawalFromEthWithdrawal(
-	withdrawal *ethtypes.Withdrawal,
-) *primitives.Withdrawal {
-	return &primitives.Withdrawal{
-		Index:     withdrawal.Index,
-		Validator: primitives.ValidatorIndex(withdrawal.Validator),
-		Address:   withdrawal.Address,
-		Amount:    primitives.Gwei(withdrawal.Amount),
 	}
 }
