@@ -23,46 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package kzg
 
 import (
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"golang.org/x/sync/errgroup"
+	"reflect"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// BuildBlobSidecar creates a blob sidecar from the given blobs and
-// beacon block.
-func BuildBlobSidecar(
-	blk BeaconBlock,
-	blobs *engine.BlobsBundleV1,
-) (*datypes.BlobSidecars, error) {
-	numBlobs := uint64(len(blobs.Blobs))
-	sidecars := make([]*datypes.BlobSidecar, numBlobs)
-	g := errgroup.Group{}
+// Blob represents an EIP-4844 data blob.
+type Blob [131072]byte
 
-	blkHeader := blk.GetHeader()
-	for i := uint64(0); i < numBlobs; i++ {
-		i := i // capture range variable
-		g.Go(func() error {
-			// Create Inclusion Proof
-			inclusionProof, err := MerkleProofKZGCommitment(blk, i)
-			if err != nil {
-				return err
-			}
+// UnmarshalJSON parses a blob in hex syntax.
+func (b *Blob) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+}
 
-			sidecars[i] = &datypes.BlobSidecar{
-				Index:             i,
-				Blob:              kzg.Blob(blobs.Blobs[i]),
-				KzgCommitment:     kzg.Commitment(blobs.Commitments[i]),
-				KzgProof:          kzg.Proof(blobs.Proofs[i]),
-				BeaconBlockHeader: blkHeader,
-				InclusionProof:    inclusionProof,
-			}
-			return nil
-		})
-	}
-
-	return &datypes.BlobSidecars{Sidecars: sidecars}, g.Wait()
+// MarshalText returns the hex representation of b.
+func (b Blob) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(b[:]).MarshalText()
 }
