@@ -27,6 +27,7 @@ package commands
 
 import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
+	light "github.com/berachain/beacon-kit/light/cmd"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/genesis"
@@ -93,5 +94,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		server.StatusCommand(),
 		// `version`
 		version.NewVersionCommand(),
+		// `light client`
+		light.LightClientCmd(),
 	)
 }
