@@ -12,7 +12,7 @@ func (c ChainQuerier) GetSyncingStatus() beaconnode.GetSyncingStatusRes {
 	if err != nil {
 		return &beaconnode.GetSyncingStatusInternalServerError{
 			Code:        1,
-			Message:     "Internal Server Error",
+			Message:     err.Error(),
 			Stacktraces: nil,
 		}
 	}
@@ -23,8 +23,8 @@ func (c ChainQuerier) GetSyncingStatus() beaconnode.GetSyncingStatusRes {
 	query, err := c.ABCI.Query(ctx, &req)
 	if err != nil {
 		return &beaconnode.GetSyncingStatusInternalServerError{
-			Code:        1,
-			Message:     "Internal Server Error",
+			Code:        2,
+			Message:     err.Error(),
 			Stacktraces: nil,
 		}
 	}
@@ -33,8 +33,8 @@ func (c ChainQuerier) GetSyncingStatus() beaconnode.GetSyncingStatusRes {
 	err = proto.Unmarshal(query.Value, &resp)
 	if err != nil {
 		return &beaconnode.GetSyncingStatusInternalServerError{
-			Code:        1,
-			Message:     "Internal Server Error",
+			Code:        3,
+			Message:     err.Error(),
 			Stacktraces: nil,
 		}
 	}

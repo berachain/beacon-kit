@@ -3,8 +3,6 @@ package rpc
 import (
 	"context"
 	"github.com/berachain/beacon-kit/mod/api/beaconnode"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type ChainQuerier interface {
@@ -13,9 +11,6 @@ type ChainQuerier interface {
 }
 
 type Server struct {
-	ContextGetter func(height int64, prove bool) (sdk.Context, error)
-	Service       service.BeaconStorageBackend
-
 	ChainQuerier ChainQuerier
 }
 

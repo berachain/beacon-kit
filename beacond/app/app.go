@@ -203,10 +203,9 @@ func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 // API server.
 func (app BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.APIConfig) {
 	handler := rpc.Server{
-		ContextGetter: app.BaseApp.CreateQueryContext,
-		Service:       app.BeaconKeeper,
 		ChainQuerier: cosmos.ChainQuerier{
 			ContextGetter: app.BaseApp.CreateQueryContext,
+			Service:       app.BeaconKeeper,
 			ABCI:          app,
 		},
 	}
