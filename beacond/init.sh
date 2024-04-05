@@ -26,19 +26,32 @@
 
 set -x
 
-GENESIS=$BEACOND_HOME/config/genesis.json
-TMP_GENESIS=$BEACOND_HOME/config/tmp_genesis.json
+# Initialize first validator flag
+flag_first_validator=false
 
-mv $GENESIS $TMP_GENESIS
+# Process flags
+while getopts 'f' flag; do
+  case "${flag}" in
+    f) flag_first_validator=true ;;
+    *) error "Unexpected option ${flag}" ;;
+  esac
+done
 
-# # Init the chain
+# Init the chain
 /usr/bin/beacond init --chain-id "$BEACOND_CHAIN_ID" "$BEACOND_MONIKER" --home "$BEACOND_HOME" --beacon-kit.accept-tos
 
-mv $TMP_GENESIS $GENESIS
 
-# Set client config
-/usr/bin/beacond config set client keyring-backend $BEACOND_KEYRING_BACKEND --home "$BEACOND_HOME"
-/usr/bin/beacond config set client chain-id "$BEACOND_CHAIN_ID" --home "$BEACOND_HOME"
+# Create beacond config directory
+if [ "$flag_first_validator" = true ]; then
+    GENESIS=$BEACOND_HOME/config/genesis.json
+    TMP_GENESIS=$BEACOND_HOME/config/tmp_genesis.json
 
-# Add pubkey to the genesis file.
+	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+fi
+
+
 /usr/bin/beacond genesis add-validator --home "$BEACOND_HOME"
+/usr/bin/beacond genesis collect-validators --home "$BEACOND_HOME"
+
+
+
