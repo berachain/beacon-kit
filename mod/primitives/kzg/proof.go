@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package state
+package kzg
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconStateDeneb -include ../types,../../../mod/primitives,../../../mod/execution/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+// Proof is a KZG proof.
+type Proof [48]byte

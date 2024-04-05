@@ -23,6 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package kzg
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconBlockDeneb,BeaconBlockBodyDeneb,Deposit,DepositMessage,Validator -include ../../../mod/primitives/kzg,../../../mod/primitives,../../../mod/execution/types,$GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generated.ssz.go
+import (
+	"reflect"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
+
+// Blob represents an EIP-4844 data blob.
+type Blob [131072]byte
+
+// UnmarshalJSON parses a blob in hex syntax.
+func (b *Blob) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+}
+
+// MarshalText returns the hex representation of b.
+func (b Blob) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(b[:]).MarshalText()
+}

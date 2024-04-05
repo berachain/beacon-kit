@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package forks
+package kzg
 
-// Generate the SSZ serialization code for the signing package.
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs Fork,ForkData -include ../primitives -output generated.ssz.go
+// Claim is a claimed evaluation value in a specific point.
+type Claim [32]byte

@@ -35,6 +35,7 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 //
 //nolint:lll
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include bytes.go,domain.go,primitives.go -output signing_data.ssz.go
 type SigningData struct {
 	ObjectRoot Root   `ssz-size:"32"`
 	Domain     Domain `ssz-size:"32"`

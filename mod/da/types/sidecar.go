@@ -31,6 +31,8 @@ import (
 )
 
 // SideCars is a slice of blob side cars to be included in the block.
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BlobSidecar,BlobSidecars -include ../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
 type BlobSidecars struct {
 	// Sidecars is a slice of blob side cars to be included in the block.
 	Sidecars []*BlobSidecar `ssz-max:"6"`
@@ -44,11 +46,11 @@ type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	Blob []byte `ssz-size:"131072"`
+	Blob *kzg.Blob
 	// KzgCommitment is the KZG commitment of the blob.
 	KzgCommitment kzg.Commitment `ssz-size:"48"`
 	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof []byte `ssz-size:"48"`
+	KzgProof kzg.Proof `ssz-size:"48"`
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
 	BeaconBlockHeader *primitives.BeaconBlockHeader

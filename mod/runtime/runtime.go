@@ -125,7 +125,8 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the Blob Verifier.
-	blobVerifier, err := da.NewBlobVerifier(kzgTrustedSetup)
+	blobVerifier, err := da.NewBlobVerifier(
+		cfg.KZG.KZGImplementation, kzgTrustedSetup)
 	if err != nil {
 		return nil, err
 	}

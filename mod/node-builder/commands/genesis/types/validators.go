@@ -23,6 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package types
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BeaconBlockHeader,SigningData,Withdrawal -include $GOPATH/pkg/mod/github.com/ethereum/go-ethereum@$GETH_GO_GENERATE_VERSION/common -output generate.ssz.go
+import "github.com/berachain/beacon-kit/mod/core/types"
+
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives,../../../../core/types -output validators.ssz.go
+type ValidatorsMarshaling struct {
+	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+}
