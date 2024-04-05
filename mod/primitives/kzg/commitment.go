@@ -57,6 +57,16 @@ func (c Commitments) ToVersionedHashes() []primitives.ExecutionHash {
 	return hashes
 }
 
+// Point is a BLS field element.
+type Point [32]byte
+
+// Claim is a claimed evaluation value in a specific point.
+type Claim [32]byte
+
+type Proof [48]byte
+
+type Blob [131072]byte
+
 // Commitment is a KZG commitment.
 type Commitment [48]byte
 
