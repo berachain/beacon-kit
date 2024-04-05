@@ -28,12 +28,11 @@ package kzg
 import (
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // Blob represents an EIP-4844 data blob.
-type Blob [constants.MaxBlobDataSize]byte
+type Blob [131072]byte
 
 // UnmarshalJSON parses a blob in hex syntax.
 func (b *Blob) UnmarshalJSON(input []byte) error {
