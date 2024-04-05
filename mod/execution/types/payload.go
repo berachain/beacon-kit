@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	bkuint256 "github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
@@ -93,6 +94,8 @@ type executionPayloadEnvelopeMarshaling struct {
 }
 
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../primitives,$GETH_PKG_INCLUDE/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+
 //nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
@@ -112,6 +115,21 @@ type ExecutableDataDeneb struct {
 	Withdrawals   []*primitives.Withdrawal    `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   uint64                      `json:"blobGasUsed"`
 	ExcessBlobGas uint64                      `json:"excessBlobGas"`
+}
+
+// JSON type overrides for ExecutableDataDeneb.
+type executableDataDenebMarshaling struct {
+	Number        hexutil.Uint64
+	GasLimit      hexutil.Uint64
+	GasUsed       hexutil.Uint64
+	Timestamp     hexutil.Uint64
+	BaseFeePerGas bkuint256.LittleEndian
+	Random        primitives.ExecutionHash
+	ExtraData     hexutil.Bytes
+	LogsBloom     hexutil.Bytes
+	Transactions  []hexutil.Bytes
+	BlobGasUsed   hexutil.Uint64
+	ExcessBlobGas hexutil.Uint64
 }
 
 // Version returns the version of the ExecutableDataDeneb.

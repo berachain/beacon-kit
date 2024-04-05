@@ -101,6 +101,7 @@ func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
 // rooting correctly?
 //
 //go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconStateDeneb -include ../types,../../../mod/primitives,../../../mod/execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconStateDeneb struct {
 	// Versioning

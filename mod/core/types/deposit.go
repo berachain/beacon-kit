@@ -35,6 +35,8 @@ import (
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path deposit.go -objs Deposit,DepositMessage -include withdrawal_credentials.go,../../primitives,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`

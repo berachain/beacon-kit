@@ -32,6 +32,8 @@ import (
 // BeaconBlockHeader is the header of a beacon block.
 //
 //go:generate go run github.com/fjl/gencodec -type BeaconBlockHeader -out header.json.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include bytes.go,primitives.go,$GETH_PKG_INCLUDE/common -output header.ssz.go
+
 type BeaconBlockHeader struct {
 	// Slot is the slot number of the block.
 	Slot Slot `json:"slot"`
