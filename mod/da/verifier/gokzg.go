@@ -61,8 +61,7 @@ func (v GoKZGVerifier) VerifyKZGProof(
 }
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
-// blob
-// evaluated at the given point is the claimed value.
+// blob evaluated at the given point is the claimed value.
 func (v GoKZGVerifier) VerifyBlobProof(
 	blob *kzg.Blob,
 	commitment kzg.Commitment,
