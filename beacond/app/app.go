@@ -204,6 +204,7 @@ func (app BeaconApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config2.API
 	handler := rpc.Server{
 		ContextGetter: app.BaseApp.CreateQueryContext,
 		Service:       app.BeaconKeeper,
+		ABCI:          app.BaseApp,
 	}
 
 	newServer, err := beaconnode.NewServer(handler)
