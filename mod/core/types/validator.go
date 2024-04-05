@@ -36,6 +36,7 @@ import (
 //
 //nolint:lll
 //go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives,withdrawal_credentials.go -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey primitives.BLSPubkey `json:"pubkey"                     ssz-size:"48"`

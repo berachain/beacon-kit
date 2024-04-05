@@ -30,7 +30,7 @@ $(OUT_DIR)/:
 clean:
 	@rm -rf .tmp/ 
 	@rm -rf $(OUT_DIR)
-	@$(MAKE) sszgen-clean proto-clean forge-clean
+	@$(MAKE) proto-clean forge-clean
 
 
 ###############################################################################
@@ -38,12 +38,14 @@ clean:
 ###############################################################################
 
 GETH_GO_GENERATE_VERSION := $(shell grep github.com/ethereum/go-ethereum go.mod | awk '{print $$2}')
+GOPATH = $(shell go env GOPATH)
+GETH_PKG_INCLUDE := $(GOPATH)/pkg/mod/github.com/ethereum/go-ethereum@$(GETH_GO_GENERATE_VERSION)
 generate:
-	@$(MAKE) sszgen-clean mockery 
+	@$(MAKE) mockery 
 	@for module in $(MODULES); do \
 		echo "Running go generate in $$module"; \
 		(cd $$module && \
-			GETH_GO_GENERATE_VERSION=$(GETH_GO_GENERATE_VERSION) go generate ./...) || exit 1; \
+			GETH_PKG_INCLUDE=$(GETH_PKG_INCLUDE) go generate ./...) || exit 1; \
 	done
 
 mockery:
@@ -318,13 +320,6 @@ buf-lint:
 	@echo "--> Running buf lint"
 	@buf lint --error-format=json $(modulesProtoDir)
 
-#################
-#    sszgen    #
-#################
-
-sszgen-clean:
-	@find . -name '*.ssz.go' -delete
-
 ##############################################################################
 ###                             Dependencies                                ###
 ###############################################################################
@@ -352,8 +347,7 @@ repo-rinse: |
 
 
 .PHONY: clean format lint \
-	buf-install buf-lint-fix buf-lint \
-	sszgen-clean sszgen proto-clean \
+	buf-install buf-lint-fix buf-lint proto-clean \
 	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
