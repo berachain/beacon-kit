@@ -29,6 +29,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -38,9 +39,10 @@ import (
 // sendFCU sends a forkchoice update to the execution client.
 func (s *Service) sendFCU(
 	ctx context.Context,
+	st state.BeaconState,
 	headEth1Hash primitives.ExecutionHash,
 ) error {
-	eth1BlockHash, err := s.BeaconState(ctx).GetEth1BlockHash()
+	eth1BlockHash, err := st.GetEth1BlockHash()
 	if err != nil {
 		return err
 	}
@@ -62,12 +64,14 @@ func (s *Service) sendFCU(
 // so via the local builder service.
 func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
+	st state.BeaconState,
 	headEth1Hash primitives.ExecutionHash,
 	forSlot primitives.Slot,
 	parentBlockRoot primitives.Root,
 ) error {
 	_, err := s.lb.BuildLocalPayload(
 		ctx,
+		st,
 		headEth1Hash,
 		forSlot,
 		//#nosec:G701 // won't realistically overflow.
@@ -80,11 +84,11 @@ func (s *Service) sendFCUWithAttributes(
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
+	st state.BeaconState,
 	payload enginetypes.ExecutionPayload,
 ) {
 	var (
 		headHash primitives.ExecutionHash
-		st       = s.BeaconState(ctx)
 	)
 
 	// If we have a payload we want to set our head to it's block hash.
@@ -140,9 +144,10 @@ func (s *Service) sendPostBlockFCU(
 		if err = s.sp.ProcessSlot(stCopy); err != nil {
 			return
 		}
-		//nolint:contextcheck // temp.
+
 		if err = s.sendFCUWithAttributes(
-			stCopy.Context(),
+			ctx,
+			stCopy,
 			headHash,
 			slot+1,
 			root,
@@ -158,7 +163,7 @@ func (s *Service) sendPostBlockFCU(
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(ctx, headHash); err != nil {
+	if err := s.sendFCU(ctx, st, headHash); err != nil {
 		s.Logger().
 			Error("failed to send forkchoice update in postBlockProcess", "error", err)
 	}

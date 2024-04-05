@@ -30,13 +30,13 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/statedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -45,17 +45,20 @@ import (
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	beaconStore       *beaconstore.Store
+	statedb           *statedb.StateDB
+	cfg               *params.BeaconChainConfig
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
+	cfg *params.BeaconChainConfig,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(fdb),
-		beaconStore:       beaconstore.NewStore(env),
+		statedb:           statedb.New(env.KVStoreService),
+		cfg:               cfg,
 	}
 }
 
@@ -68,7 +71,7 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.beaconStore.WithContext(ctx)
+	store := k.statedb.WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
@@ -83,7 +86,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		if validator.EffectiveBalance == 0 {
 			var idx primitives.ValidatorIndex
 			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey[:])
+				ValidatorIndexByPubkey(validator.Pubkey)
 			if err != nil {
 				return nil, err
 			}
@@ -103,6 +106,9 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 			Power: int64(validator.EffectiveBalance),
 		})
 	}
+
+	// Save the store.
+	store.Save()
 	return validatorUpdates, nil
 }
 
@@ -118,7 +124,7 @@ func (k *Keeper) AvailabilityStore(
 func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	return k.beaconStore.WithContext(ctx)
+	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), k.cfg)
 }
 
 // InitGenesis initializes the genesis state of the module.
@@ -153,7 +159,7 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	emptyHeader := &beacontypes.BeaconBlockHeader{
+	emptyHeader := &primitives.BeaconBlockHeader{
 		Slot:          0,
 		ProposerIndex: 0,
 		ParentRoot:    [32]byte{},
@@ -186,7 +192,7 @@ func (k *Keeper) InitGenesis(
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
 
-	store := k.beaconStore.WithContext(ctx)
+	store := k.statedb.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for i, validator := range data.Validators {
 		if err = store.AddValidator(validator); err != nil {

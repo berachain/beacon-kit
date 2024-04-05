@@ -8,5 +8,7 @@ GLOBAL_LOG_LEVEL = struct(
     trace = "trace",
 )
 
-JWT_MOUNT_PATH_ON_CONTAINER = "/jwt/jwtsecret"
-JWT_FILEPATH = "/kurtosis/src/nodes/jwtsecret"
+JWT_MOUNT_PATH_ON_CONTAINER = "/jwt/jwt-secret.hex"
+JWT_FILEPATH = "/kurtosis/src/nodes/jwt-secret.hex"
+KZG_TRUSTED_SETUP_MOUNT_PATH_ON_CONTAINER = "/kzg/kzg-trusted-setup.json"
+KZG_TRUSTED_SETUP_FILEPATH = "/kurtosis/src/nodes/kzg-trusted-setup.json"

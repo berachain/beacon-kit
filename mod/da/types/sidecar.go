@@ -25,27 +25,33 @@
 
 package types
 
+import (
+	primitives "github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+)
+
 // SideCars is a slice of blob side cars to be included in the block.
 type BlobSidecars struct {
+	// Sidecars is a slice of blob side cars to be included in the block.
 	Sidecars []*BlobSidecar `ssz-max:"6"`
 }
 
-// BlobSidecar is a struct that contains blobs and their associated information.
+// BlobSidecar as per the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
+//
+//nolint:lll
 type BlobSidecar struct {
-	Index          uint64
-	Blob           []byte   `ssz-size:"131072"`
-	KzgCommitment  []byte   `ssz-size:"48"`
-	KzgProof       []byte   `ssz-size:"48"`
+	// Index represents the index of the blob in the block.
+	Index uint64
+	// Blob represents the blob data.
+	Blob []byte `ssz-size:"131072"`
+	// KzgCommitment is the KZG commitment of the blob.
+	KzgCommitment kzg.Commitment `ssz-size:"48"`
+	// Kzg proof allows folr the verification of the KZG commitment.
+	KzgProof []byte `ssz-size:"48"`
+	// BeaconBlockHeader represents the beacon block header for which this blob
+	// is being included.
+	BeaconBlockHeader *primitives.BeaconBlockHeader
+	// InclusionProof is the inclusion proof of the blob in the beacon block.
 	InclusionProof [][]byte `ssz-size:"8,32"`
-}
-
-// BlobSideCarsFromSSZ decodes a byte slice into a BlobSidecars struct.
-// It returns a pointer to the decoded BlobSidecars struct and an error, if any.
-func BlobSideCarsFromSSZ(bz []byte) (*BlobSidecars, error) {
-	var sideCars BlobSidecars
-	if err := sideCars.UnmarshalSSZ(bz); err != nil {
-		return nil, err
-	}
-
-	return &sideCars, nil
 }

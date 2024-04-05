@@ -28,6 +28,7 @@ package staking
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -53,6 +54,7 @@ type Service struct {
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
+	st state.BeaconState,
 	blockHash primitives.ExecutionHash,
 ) error {
 	// Gather all the logs corresponding to
@@ -68,5 +70,5 @@ func (s *Service) ProcessLogsInETH1Block(
 		return err
 	}
 
-	return s.ProcessBlockEvents(ctx, logsInBlock)
+	return s.ProcessBlockEvents(ctx, st, logsInBlock)
 }

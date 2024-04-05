@@ -27,4 +27,8 @@ package core
 
 import "errors"
 
-var ErrStateRootMismatch = errors.New("state root mismatch")
+var (
+	// ErrStateRootMismatch is returned when the state root in a block header
+	// does.
+	ErrStateRootMismatch = errors.New("state root mismatch")
+)

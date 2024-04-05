@@ -1,0 +1,94 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+package kzg
+
+import (
+	"encoding/json"
+	"os"
+
+	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+)
+
+const (
+	// defaultTrustedSetupPath is the default path to the trusted setup.
+	defaultTrustedSetupPath = "./beacond/kzg-trusted-setup.json"
+
+	// defaultKZGImplementation is the default KZG implementation to use.
+	// Options are `crate-crypto/go-kzg-4844` or `ethereum/c-kzg-4844`.
+	defaultKZGImplementation = "crate-crypto/go-kzg-4844"
+)
+
+type Config struct {
+	// TrustedSetupPath is the path to the trusted setup.
+	TrustedSetupPath string `json:"trustedSetupPath"`
+
+	// KZGImplementation is the KZG implementation to use.
+	KZGImplementation string `json:"kzgImplementation"`
+}
+
+// DefaultConfig returns the default configuration.
+func DefaultConfig() Config {
+	return Config{
+		TrustedSetupPath:  defaultTrustedSetupPath,
+		KZGImplementation: defaultKZGImplementation,
+	}
+}
+
+// Parse parses the configuration from the provided parser.
+func (c Config) Parse(
+	parser parser.AppOptionsParser,
+) (*Config, error) {
+	var err error
+	if c.TrustedSetupPath, err = parser.GetString(
+		flags.KZGTrustedSetupPath,
+	); err != nil {
+		return nil, err
+	}
+	if c.KZGImplementation, err = parser.GetString(
+		flags.KZGImplementation,
+	); err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+// ReadTrustedSetup reads the trusted setup from the file system.
+func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
+	config, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	params := new(gokzg4844.JSONTrustedSetup)
+	if err = json.Unmarshal(config, params); err != nil {
+		return nil, err
+	}
+	if err = gokzg4844.CheckTrustedSetupIsWellFormed(params); err != nil {
+		return nil, err
+	}
+	return params, nil
+}

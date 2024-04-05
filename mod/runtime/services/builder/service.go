@@ -29,20 +29,23 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/builder"
+	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
-	cfg *builder.Config
+	cfg *config.Config
 
 	// signer is used to retrieve the public key of this node.
-	signer Signer
+	signer core.BLSSigner
 
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -69,6 +72,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 //nolint:funlen // todo:fix.
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
+	st state.BeaconState,
 	slot primitives.Slot,
 ) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
@@ -77,7 +81,6 @@ func (s *Service) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
-	st := s.BeaconState(ctx)
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to build reveal: %w", err)
@@ -94,7 +97,7 @@ func (s *Service) RequestBestBlock(
 	}
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
-		s.signer.PublicKey().Marshal(),
+		s.signer.PublicKey(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -104,6 +107,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Compute the state root for the block.
+	// TODO: IMPLEMENT RN THIS DOES NOTHING.
 	stateRoot, err := s.computeStateRoot(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -135,6 +139,7 @@ func (s *Service) RequestBestBlock(
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
 		ctx,
+		st,
 		slot,
 		parentBlockRoot,
 		parentEth1BlockHash,
@@ -160,14 +165,10 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
 
-	commitments := make([][48]byte, len(blobsBundle.Commitments))
-	for i, c := range blobsBundle.Commitments {
-		commitments[i] = [48]byte(c)
-	}
-	body.SetBlobKzgCommitments(commitments)
+	body.SetBlobKzgCommitments(kzg.CommitmentsFromBz(blobsBundle.Commitments))
 
 	// Dequeue deposits from the state.
-	deposits, err := s.BeaconState(ctx).ExpectedDeposits(
+	deposits, err := st.ExpectedDeposits(
 		s.BeaconCfg().MaxDepositsPerBlock,
 	)
 	if err != nil {

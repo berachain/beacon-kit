@@ -26,12 +26,13 @@
 package config
 
 import (
-	"github.com/berachain/beacon-kit/mod/builder"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
+	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
@@ -47,8 +48,9 @@ func DefaultConfig() *Config {
 	return &Config{
 		ABCI:    abci.DefaultABCIConfig(),
 		Beacon:  params.DefaultBeaconConfig(),
-		Builder: builder.DefaultBuilderConfig(),
+		Builder: builderconfig.DefaultBuilderConfig(),
 		Engine:  engineclient.DefaultConfig(),
+		KZG:     kzg.DefaultConfig(),
 	}
 }
 
@@ -61,10 +63,13 @@ type Config struct {
 	Beacon params.BeaconChainConfig
 
 	// Builder is the configuration for the local build payload timeout.
-	Builder builder.Config
+	Builder builderconfig.Config
 
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config
+
+	// KZG is the configuration for the KZG trusted setup.
+	KZG kzg.Config
 }
 
 // Template returns the configuration template.
@@ -117,7 +122,7 @@ func readConfigFromAppOptsParser(
 	conf.Beacon = *beaconCfg
 
 	// Read Bilder Config
-	builderCfg, err := builder.Config{}.Parse(parser)
+	builderCfg, err := builderconfig.Config{}.Parse(parser)
 	if err != nil {
 		return nil, err
 	}
@@ -129,6 +134,13 @@ func readConfigFromAppOptsParser(
 		return nil, err
 	}
 	conf.Engine = *engineCfg
+
+	// Read KZG Config
+	kzgCfg, err := kzg.Config{}.Parse(parser)
+	if err != nil {
+		return nil, err
+	}
+	conf.KZG = *kzgCfg
 	return conf, nil
 }
 
@@ -157,6 +169,10 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
 		defaultCfg.Builder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
+	)
+	startCmd.Flags().String(flags.KZGTrustedSetupPath,
+		defaultCfg.KZG.TrustedSetupPath,
+		"kzg trusted setup path",
 	)
 }
 

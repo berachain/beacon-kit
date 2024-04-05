@@ -168,7 +168,7 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 }
 
 func validateJWTSecret(cmd *cobra.Command, filePath string) error {
-	_, err := jwt.NewFromFile(filePath)
+	_, err := jwt.LoadFromFile(filePath)
 	if err != nil {
 		return err
 	}

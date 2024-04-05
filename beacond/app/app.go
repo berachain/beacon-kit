@@ -109,6 +109,8 @@ func NewBeaconKitApp(
 			depinject.Provide(
 				bkcomponents.ProvideRuntime,
 				bkcomponents.ProvideBlsSigner,
+				bkcomponents.ProvideTrustedSetup,
+				bkcomponents.ProvideJWTSecret,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -117,6 +119,7 @@ func NewBeaconKitApp(
 				logger,
 				// supply the beaconConfig
 				beaconCfg,
+				&(beaconCfg.Beacon),
 			),
 		),
 		&appBuilder,

@@ -84,3 +84,19 @@ func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.Root {
 func (b *BeaconBlockDeneb) GetStateRoot() primitives.Root {
 	return b.StateRoot
 }
+
+// GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.
+func (b BeaconBlockDeneb) GetHeader() *primitives.BeaconBlockHeader {
+	bodyRoot, err := b.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil
+	}
+
+	return &primitives.BeaconBlockHeader{
+		Slot:          b.Slot,
+		ProposerIndex: b.ProposerIndex,
+		ParentRoot:    b.ParentBlockRoot,
+		StateRoot:     b.StateRoot,
+		BodyRoot:      bodyRoot,
+	}
+}

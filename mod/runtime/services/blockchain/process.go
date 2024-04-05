@@ -28,36 +28,34 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"golang.org/x/sync/errgroup"
 )
 
 // ProcessSlot processes the incoming beacon slot.
 func (s *Service) ProcessSlot(
-	ctx context.Context,
+	st state.BeaconState,
 ) error {
 	// Process the slot.
-	return s.sp.ProcessSlot(
-		s.BeaconState(ctx),
-	)
+	return s.sp.ProcessSlot(st)
 }
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
+	st state.BeaconState,
 	blk beacontypes.ReadOnlyBeaconBlock,
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
-		avs         = s.AvailabilityStore(ctx)
-		g, groupCtx = errgroup.WithContext(ctx)
-		st          = s.BeaconState(groupCtx)
-		err         error
+		avs  = s.AvailabilityStore(ctx)
+		g, _ = errgroup.WithContext(ctx)
+		err  error
 	)
 
 	// If the block is nil, exit early.
@@ -85,13 +83,11 @@ func (s *Service) ProcessBeaconBlock(
 	// Then we notify the engine of the new payload.
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	versionedHashes := primitives.KzgCommitmentsToVersionedHashes(
-		body.GetBlobKzgCommitments())
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		execution.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
-			versionedHashes,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 		),
 	); err != nil {
@@ -112,7 +108,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	g.Go(func() error {
 		return s.sp.ProcessBlock(
-			s.BeaconState(ctx),
+			st,
 			blk,
 		)
 	})
@@ -145,17 +141,17 @@ func (s *Service) ProcessBeaconBlock(
 // It is responsible for processing logs and other post block tasks.
 func (s *Service) PostBlockProcess(
 	ctx context.Context,
+	st state.BeaconState,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	var (
 		payload enginetypes.ExecutionPayload
-		st      = s.BeaconState(ctx)
 	)
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
 	defer func(payloadPtr *enginetypes.ExecutionPayload) {
-		s.sendPostBlockFCU(ctx, *payloadPtr)
+		s.sendPostBlockFCU(ctx, st, *payloadPtr)
 	}(&payload)
 
 	// If the block is nil, exit early.
@@ -182,6 +178,7 @@ func (s *Service) PostBlockProcess(
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,
+		st,
 		prevEth1Block,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)

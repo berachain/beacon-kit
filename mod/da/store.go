@@ -79,7 +79,7 @@ func (s *Store) Persist(
 			if err != nil {
 				return err
 			}
-			return s.Set(uint64(slot), sc.KzgCommitment, bz)
+			return s.Set(uint64(slot), sc.KzgCommitment[:], bz)
 		},
 	)...)
 }

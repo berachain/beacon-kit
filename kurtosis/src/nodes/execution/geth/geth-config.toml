@@ -67,7 +67,7 @@ GraphQLVirtualHosts = ["localhost"]
 BatchRequestLimit = 1000
 BatchResponseMaxSize = 25000000
 InsecureUnlockAllowed = true
-JWTSecret = "/jwt/jwtsecret"
+JWTSecret = "/jwt/jwt-secret.hex"
 AllowUnprotectedTxs = true
 
 [Node.P2P]
