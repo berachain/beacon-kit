@@ -170,10 +170,11 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
-	prevEth1Block, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
+	prevEth1Block := latestExecutionPayload.GetBlockHash()
 
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
@@ -182,12 +183,6 @@ func (s *Service) PostBlockProcess(
 		prevEth1Block,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
-		return err
-	}
-
-	// TODO: Once deneb genesis data provides execution payload, remove this.
-	payloadBlockHash := payload.GetBlockHash()
-	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
 		return err
 	}
 

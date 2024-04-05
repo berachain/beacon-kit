@@ -59,7 +59,7 @@ type ReadOnlyBeaconState interface {
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
 	GetLatestExecutionPayload() (types0.ExecutionPayload, error)
-	GetEth1BlockHash() (primitives.ExecutionHash, error)
+	// GetEth1BlockHash() (primitives.ExecutionHash, error)
 	GetTotalSlashing() (primitives.Gwei, error)
 }
 
@@ -76,7 +76,7 @@ type WriteOnlyBeaconState interface {
 	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	UpdateLatestExecutionPayload(types0.ExecutionPayload) error
-	UpdateEth1BlockHash(primitives.ExecutionHash) error
+	// UpdateEth1BlockHash(primitives.ExecutionHash) error
 	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
 }
 

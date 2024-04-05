@@ -68,12 +68,12 @@ func (pv *PayloadValidator) ValidatePayload(
 	}
 
 	// Handle genesis case.
-	var executionPayload enginetypes.ExecutionPayload
-	executionPayload, err = st.GetLatestExecutionPayload()
+	var latestExecutionPayload enginetypes.ExecutionPayload
+	latestExecutionPayload, err = st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
-	safeHash := executionPayload.GetBlockHash()
+	safeHash := latestExecutionPayload.GetBlockHash()
 
 	if safeHash != payload.GetParentHash() {
 		return fmt.Errorf(

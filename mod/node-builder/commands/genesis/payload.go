@@ -33,6 +33,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -120,12 +121,28 @@ func executableDataToExecutionPayload(
 ) *enginetypes.ExecutableDataDeneb {
 	withdrawals := make([]*primitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
+		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
+		// types.
 		withdrawals[i] = (*primitives.Withdrawal)(unsafe.Pointer(withdrawal))
 	}
 
-	//nolint:gomnd // max extra data slice size.
-	if len(data.ExtraData) > 32 {
-		data.ExtraData = data.ExtraData[:32]
+	if len(data.ExtraData) > constants.ExtraDataLength {
+		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
+	}
+
+	var baseFeePerGas []byte
+	if data.BaseFeePerGas != nil {
+		baseFeePerGas = data.BaseFeePerGas.Bytes()
+	}
+
+	var blobGasUsed uint64
+	if data.BlobGasUsed != nil {
+		blobGasUsed = *data.BlobGasUsed
+	}
+
+	var excessBlobGas uint64
+	if data.ExcessBlobGas != nil {
+		excessBlobGas = *data.ExcessBlobGas
 	}
 
 	return &enginetypes.ExecutableDataDeneb{
@@ -140,11 +157,11 @@ func executableDataToExecutionPayload(
 		GasUsed:       data.GasUsed,
 		Timestamp:     data.Timestamp,
 		ExtraData:     data.ExtraData,
-		BaseFeePerGas: data.BaseFeePerGas.Bytes(),
+		BaseFeePerGas: baseFeePerGas,
 		BlockHash:     data.BlockHash,
 		Transactions:  data.Transactions,
 		Withdrawals:   withdrawals,
-		BlobGasUsed:   *data.BlobGasUsed,
-		ExcessBlobGas: *data.ExcessBlobGas,
+		BlobGasUsed:   blobGasUsed,
+		ExcessBlobGas: excessBlobGas,
 	}
 }

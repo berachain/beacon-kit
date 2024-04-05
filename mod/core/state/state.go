@@ -106,11 +106,6 @@ func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 		)
 	}
 
-	eth1BlockHash, err := s.StateDB.GetEth1BlockHash()
-	if err != nil {
-		return [32]byte{}, err
-	}
-
 	eth1DepositIndex, err := s.StateDB.GetEth1DepositIndex()
 	if err != nil {
 		return [32]byte{}, err
@@ -154,7 +149,6 @@ func (s *beaconState) HashTreeRoot() ([32]byte, error) {
 		BlockRoots:                   blockRoots,
 		StateRoots:                   stateRoots,
 		LatestExecutionPayload:       payload,
-		Eth1BlockHash:                eth1BlockHash,
 		Eth1DepositIndex:             eth1DepositIndex,
 		Validators:                   validators,
 		Balances:                     balances,

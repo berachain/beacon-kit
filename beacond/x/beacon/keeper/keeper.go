@@ -34,11 +34,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/da"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/statedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -131,7 +131,7 @@ func (k *Keeper) BeaconState(
 //
 // TODO: This whole thing needs to be abstracted into mod/core/state
 //
-//nolint:gocognit
+
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,
@@ -153,18 +153,6 @@ func (k *Keeper) InitGenesis(
 	}
 
 	if err := st.SetSlot(0); err != nil {
-		return nil, err
-	}
-
-	// Set the genesis block header.
-	if err := st.UpdateEth1BlockHash(data.Eth1BlockHash); err != nil {
-		return nil, err
-	}
-
-	// Set the genesis execution payload.
-	if err := st.UpdateLatestExecutionPayload(
-		data.LatestExecutionPayload,
-	); err != nil {
 		return nil, err
 	}
 
@@ -251,6 +239,6 @@ func (k *Keeper) InitGenesis(
 // ExportGenesis exports the current state of the module as genesis state.
 func (k *Keeper) ExportGenesis(_ context.Context) *state.BeaconStateDeneb {
 	return &state.BeaconStateDeneb{
-		Eth1BlockHash: common.Hash{},
+		LatestExecutionPayload: &enginetypes.ExecutableDataDeneb{},
 	}
 }

@@ -27,32 +27,35 @@ package statedb
 
 import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
+// UpdateLatestExecutionPayload updates the latest execution payload in the
+// BeaconStore.
 func (s *StateDB) UpdateLatestExecutionPayload(
 	payload enginetypes.ExecutionPayload,
 ) error {
 	return s.latestExecutionPayload.Set(s.ctx, payload)
 }
 
+// GetLatestExecutionPayload retrieves the latest execution payload from the
+// BeaconStore.
 func (s *StateDB) GetLatestExecutionPayload() (
 	enginetypes.ExecutionPayload, error,
 ) {
 	return s.latestExecutionPayload.Get(s.ctx)
 }
 
-// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
-func (s *StateDB) UpdateEth1BlockHash(
-	hash primitives.ExecutionHash,
-) error {
-	return s.eth1BlockHash.Set(s.ctx, hash)
-}
+// // UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
+// func (s *StateDB) UpdateEth1BlockHash(
+// 	hash primitives.ExecutionHash,
+// ) error {
+// 	return s.eth1BlockHash.Set(s.ctx, hash)
+// }
 
-// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
-func (s *StateDB) GetEth1BlockHash() (primitives.ExecutionHash, error) {
-	return s.eth1BlockHash.Get(s.ctx)
-}
+// // GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
+// func (s *StateDB) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+// 	return s.eth1BlockHash.Get(s.ctx)
+// }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
 func (s *StateDB) GetEth1DepositIndex() (uint64, error) {

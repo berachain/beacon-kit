@@ -9,7 +9,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -24,7 +23,6 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
-		Eth1BlockHash                common.Hash                   `json:"eth1BlockHash"          ssz-size:"32"`
 		Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
@@ -51,7 +49,6 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		}
 	}
 	enc.LatestExecutionPayload = b.LatestExecutionPayload
-	enc.Eth1BlockHash = b.Eth1BlockHash
 	enc.Eth1DepositIndex = b.Eth1DepositIndex
 	enc.Validators = b.Validators
 	enc.Balances = b.Balances
@@ -77,7 +74,6 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
-		Eth1BlockHash                *common.Hash                  `json:"eth1BlockHash"          ssz-size:"32"`
 		Eth1DepositIndex             *uint64                       `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
@@ -117,9 +113,6 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 	}
 	if dec.LatestExecutionPayload != nil {
 		b.LatestExecutionPayload = dec.LatestExecutionPayload
-	}
-	if dec.Eth1BlockHash != nil {
-		b.Eth1BlockHash = *dec.Eth1BlockHash
 	}
 	if dec.Eth1DepositIndex != nil {
 		b.Eth1DepositIndex = *dec.Eth1DepositIndex
