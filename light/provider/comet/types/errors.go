@@ -25,19 +25,19 @@
 
 package types
 
-import "fmt"
+// import "fmt"
 
-const (
-	FailedCheckForExistingProviders = "failed to retrieve primary or witness from db: %w"
-	NoPrimaryAddress                = `no primary address was provided nor found.
-		Please provide a primary (using -p).
-		Run the command: tendermint light --help for more information`
+// const (
+// 	FailedCheckForExistingProviders = "failed to retrieve primary or witness from db: %w"
+// 	NoPrimaryAddress                = `no primary address was provided nor found.
+// 		Please provide a primary (using -p).
+// 		Run the command: tendermint light --help for more information`
 
-	FailedSaveProviders  = "Unable to save primary and or witness addresses"
-	FailedToCreateClient = "failed to create a light client: %w"
-	ListenAndServeError  = "failed to listen and serve: %w"
-)
+// 	FailedSaveProviders  = "Unable to save primary and or witness addresses"
+// 	FailedToCreateClient = "failed to create a light client: %w"
+// 	ListenAndServeError  = "failed to listen and serve: %w"
+// )
 
-func NewError(msg string, err error) error {
-	return fmt.Errorf(msg, err)
-}
+// func NewError(msg string, err error) error {
+// 	return fmt.Errorf(msg, err)
+// }

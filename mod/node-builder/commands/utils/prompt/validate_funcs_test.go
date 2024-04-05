@@ -29,7 +29,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/berachain/beacon-kit/io/cli/prompt"
+	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
 )
 
 func TestValidateYesOrNo(t *testing.T) {

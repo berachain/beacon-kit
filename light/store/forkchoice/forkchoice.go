@@ -25,89 +25,89 @@
 
 package forkchoice
 
-import (
-	"context"
+// import (
+// 	"context"
 
-	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
-	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
-	"github.com/berachain/beacon-kit/primitives"
-)
+// 	sdkcollections "cosmossdk.io/collections"
+// 	"cosmossdk.io/core/store"
+// 	"github.com/berachain/beacon-kit/beacon/forkchoice/ssf"
+// 	"github.com/berachain/beacon-kit/lib/store/collections/encoding"
+// 	"github.com/berachain/beacon-kit/primitives"
+// )
 
-// TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
-var _ ssf.SingleSlotFinalityStore = &Store{}
+// // TODO: Decouple from the Specific SingleSlotFinalityStore Impl.
+// var _ ssf.SingleSlotFinalityStore = &Store{}
 
-type Store struct {
-	ctx context.Context
+// type Store struct {
+// 	ctx context.Context
 
-	// fcSafeEth1BlockHash is the safe block hash.
-	fcSafeEth1BlockHash sdkcollections.Item[[32]byte]
+// 	// fcSafeEth1BlockHash is the safe block hash.
+// 	fcSafeEth1BlockHash sdkcollections.Item[[32]byte]
 
-	// fcFinalizedEth1BlockHash is the finalized block hash.
-	fcFinalizedEth1BlockHash sdkcollections.Item[[32]byte]
+// 	// fcFinalizedEth1BlockHash is the finalized block hash.
+// 	fcFinalizedEth1BlockHash sdkcollections.Item[[32]byte]
 
-	// eth1GenesisHash is the Eth1 genesis hash.
-	eth1GenesisHash sdkcollections.Item[[32]byte]
-}
+// 	// eth1GenesisHash is the Eth1 genesis hash.
+// 	eth1GenesisHash sdkcollections.Item[[32]byte]
+// }
 
-func NewStore(
-	kvs store.KVStoreService,
-) *Store {
-	kvSchemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
+// func NewStore(
+// 	kvs store.KVStoreService,
+// ) *Store {
+// 	kvSchemaBuilder := sdkcollections.NewSchemaBuilder(kvs)
 
-	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
-		kvSchemaBuilder,
-		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
-		fcSafeEth1BlockHashPrefix,
-		encoding.Bytes32ValueCodec{},
-	)
-	fcFinalizedEth1BlockHash := sdkcollections.NewItem[[32]byte](
-		kvSchemaBuilder,
-		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
-		fcFinalizedEth1BlockHashPrefix,
-		encoding.Bytes32ValueCodec{},
-	)
-	eth1GenesisHash := sdkcollections.NewItem[[32]byte](
-		kvSchemaBuilder,
-		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
-		eth1GenesisHashPrefix,
-		encoding.Bytes32ValueCodec{},
-	)
+// 	fcSafeEth1BlockHash := sdkcollections.NewItem[[32]byte](
+// 		kvSchemaBuilder,
+// 		sdkcollections.NewPrefix(fcSafeEth1BlockHashPrefix),
+// 		fcSafeEth1BlockHashPrefix,
+// 		encoding.Bytes32ValueCodec{},
+// 	)
+// 	fcFinalizedEth1BlockHash := sdkcollections.NewItem[[32]byte](
+// 		kvSchemaBuilder,
+// 		sdkcollections.NewPrefix(fcFinalizedEth1BlockHashPrefix),
+// 		fcFinalizedEth1BlockHashPrefix,
+// 		encoding.Bytes32ValueCodec{},
+// 	)
+// 	eth1GenesisHash := sdkcollections.NewItem[[32]byte](
+// 		kvSchemaBuilder,
+// 		sdkcollections.NewPrefix(eth1GenesisHashPrefix),
+// 		eth1GenesisHashPrefix,
+// 		encoding.Bytes32ValueCodec{},
+// 	)
 
-	return &Store{
-		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
-		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
-		eth1GenesisHash:          eth1GenesisHash,
-	}
-}
+// 	return &Store{
+// 		fcSafeEth1BlockHash:      fcSafeEth1BlockHash,
+// 		fcFinalizedEth1BlockHash: fcFinalizedEth1BlockHash,
+// 		eth1GenesisHash:          eth1GenesisHash,
+// 	}
+// }
 
-// SetSafeEth1BlockHash sets the safe block hash in the store.
-func (s *Store) SetSafeEth1BlockHash(blockHash primitives.ExecutionHash) {}
+// // SetSafeEth1BlockHash sets the safe block hash in the store.
+// func (s *Store) SetSafeEth1BlockHash(blockHash primitives.ExecutionHash) {}
 
-// GetSafeEth1BlockHash retrieves the sprimitives.ExecutionHashash from the
-// store.
-func (s *Store) GetSafeEth1BlockHash() primitives.ExecutionHash {
-	panic("not implemented")
-}
+// // GetSafeEth1BlockHash retrieves the sprimitives.ExecutionHashash from the
+// // store.
+// func (s *Store) GetSafeEth1BlockHash() primitives.ExecutionHash {
+// 	panic("not implemented")
+// }
 
-// SetFinalizedEth1BlockHash sets the finalized block hash in the store.
-func (s *Store) SetFinalizedEth1BlockHash(blockHash primitives.ExecutionHash) {}
+// // SetFinalizedEth1BlockHash sets the finalized block hash in the store.
+// func (s *Store) SetFinalizedEth1BlockHash(blockHash primitives.ExecutionHash) {}
 
-// GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
-func (s *Store) GetFinalizedEth1BlockHash() primitives.ExecutionHash {
-	panic("not implemented")
-}
+// // GetFinalizedEth1BlockHash retrieves the finalized block hash from the store.
+// func (s *Store) GetFinalizedEth1BlockHash() primitives.ExecutionHash {
+// 	panic("not implemented")
+// }
 
-// SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
-func (s *Store) SetGenesisEth1Hash(eth1GenesisHash primitives.ExecutionHash) {}
+// // SetGenesisEth1Hash sets the Ethereum 1 genesis hash in the BeaconStore.
+// func (s *Store) SetGenesisEth1Hash(eth1GenesisHash primitives.ExecutionHash) {}
 
-// GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
-func (s *Store) GenesisEth1Hash() primitives.ExecutionHash {
-	panic("not implemented")
-}
+// // GenesisEth1Hash retrieves the Ethereum 1 genesis hash from the BeaconStore.
+// func (s *Store) GenesisEth1Hash() primitives.ExecutionHash {
+// 	panic("not implemented")
+// }
 
-// WithContext returns the Store with the given context.
-func (s *Store) WithContext(ctx context.Context) ssf.SingleSlotFinalityStore {
-	panic("not implemented")
-}
+// // WithContext returns the Store with the given context.
+// func (s *Store) WithContext(ctx context.Context) ssf.SingleSlotFinalityStore {
+// 	panic("not implemented")
+// }

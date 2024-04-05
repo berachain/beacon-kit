@@ -25,28 +25,28 @@
 
 package beacon
 
-import "github.com/berachain/beacon-kit/primitives"
+// import "github.com/berachain/beacon-kit/primitives"
 
-// GetSlot returns the current slot.
-func (s *Store) GetSlot() (primitives.Slot, error) {
-	res, err := s.provider.Query(s.ctx, []byte(slotPrefix), 0)
-	if err != nil {
-		return 0, err
-	}
+// // GetSlot returns the current slot.
+// func (s *Store) GetSlot() (primitives.Slot, error) {
+// 	res, err := s.provider.Query(s.ctx, []byte(slotPrefix), 0)
+// 	if err != nil {
+// 		return 0, err
+// 	}
 
-	decoded, err := s.slotCodec.Value.Decode(res)
-	if err != nil {
-		return 0, err
-	}
-	return primitives.Slot(decoded), nil
-}
+// 	decoded, err := s.slotCodec.Value.Decode(res)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return primitives.Slot(decoded), nil
+// }
 
-// SetSlot sets the current slot.
-func (s *Store) SetSlot(slot primitives.Slot) error {
-	return nil
-}
+// // SetSlot sets the current slot.
+// func (s *Store) SetSlot(slot primitives.Slot) error {
+// 	return nil
+// }
 
-// GetEpoch returns the current epoch.
-func (s *Store) GetEpoch(slotsPerEpoch uint64) (primitives.Epoch, error) {
-	panic("not implemented")
-}
+// // GetEpoch returns the current epoch.
+// func (s *Store) GetEpoch(slotsPerEpoch uint64) (primitives.Epoch, error) {
+// 	panic("not implemented")
+// }

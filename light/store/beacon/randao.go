@@ -25,16 +25,16 @@
 
 package beacon
 
-import (
-	"github.com/berachain/beacon-kit/beacon/core/randao/types"
-)
+// import (
+// 	"github.com/berachain/beacon-kit/beacon/core/randao/types"
+// )
 
-// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *Store) UpdateRandaoMixAtIndex(index uint64, mix types.Mix) error {
-	return nil
-}
+// // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
+// func (s *Store) UpdateRandaoMixAtIndex(index uint64, mix types.Mix) error {
+// 	return nil
+// }
 
-// RandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *Store) RandaoMixAtIndex(index uint64) (types.Mix, error) {
-	panic("not implemented")
-}
+// // RandaoMixAtIndex retrieves the current RANDAO mix from the store.
+// func (s *Store) RandaoMixAtIndex(index uint64) (types.Mix, error) {
+// 	panic("not implemented")
+// }

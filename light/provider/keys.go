@@ -1,5 +1,5 @@
 package provider
 
-const (
-	beaconStoreKey = "/store/beacon/key"
-)
+// const (
+// 	beaconStoreKey = "/store/beacon/key"
+// )

@@ -25,59 +25,59 @@
 
 package beacon
 
-import (
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-)
+// import (
+// 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+// 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+// )
 
-// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (s *Store) GetEth1DepositIndex() (uint64, error) {
-	panic("not implemented")
-}
+// // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+// func (s *Store) GetEth1DepositIndex() (uint64, error) {
+// 	panic("not implemented")
+// }
 
-// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (s *Store) SetEth1DepositIndex(index uint64) error {
-	return nil
-}
+// // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
+// func (s *Store) SetEth1DepositIndex(index uint64) error {
+// 	return nil
+// }
 
-// ExpectedDeposits returns the first numPeek deposits in the queue.
-func (s *Store) ExpectedDeposits(
-	numView uint64,
-) ([]*beacontypes.Deposit, error) {
-	panic("not implemented")
-}
+// // ExpectedDeposits returns the first numPeek deposits in the queue.
+// func (s *Store) ExpectedDeposits(
+// 	numView uint64,
+// ) ([]*beacontypes.Deposit, error) {
+// 	panic("not implemented")
+// }
 
-// EnqueueDeposits pushes the deposits to the queue.
-func (s *Store) EnqueueDeposits(
-	deposits []*beacontypes.Deposit,
-) error {
-	return nil
-}
+// // EnqueueDeposits pushes the deposits to the queue.
+// func (s *Store) EnqueueDeposits(
+// 	deposits []*beacontypes.Deposit,
+// ) error {
+// 	return nil
+// }
 
-// DequeueDeposits returns the first numDequeue deposits in the queue.
-func (s *Store) DequeueDeposits(
-	numDequeue uint64,
-) ([]*beacontypes.Deposit, error) {
-	return nil, nil
-}
+// // DequeueDeposits returns the first numDequeue deposits in the queue.
+// func (s *Store) DequeueDeposits(
+// 	numDequeue uint64,
+// ) ([]*beacontypes.Deposit, error) {
+// 	return nil, nil
+// }
 
-// ExpectedWithdrawals returns the first numView withdrawals in the queue.
-func (s *Store) ExpectedWithdrawals(
-	numView uint64,
-) ([]*enginetypes.Withdrawal, error) {
-	panic("not implemented")
-}
+// // ExpectedWithdrawals returns the first numView withdrawals in the queue.
+// func (s *Store) ExpectedWithdrawals(
+// 	numView uint64,
+// ) ([]*enginetypes.Withdrawal, error) {
+// 	panic("not implemented")
+// }
 
-// EnqueueWithdrawals pushes the withdrawals to the queue.
-func (s *Store) EnqueueWithdrawals(
-	withdrawals []*enginetypes.Withdrawal,
-) error {
-	return nil
-}
+// // EnqueueWithdrawals pushes the withdrawals to the queue.
+// func (s *Store) EnqueueWithdrawals(
+// 	withdrawals []*enginetypes.Withdrawal,
+// ) error {
+// 	return nil
+// }
 
-// EnqueueWithdrawals pushes the withdrawals to the queue.
-func (s *Store) DequeueWithdrawals(
-	numDequeue uint64,
-) ([]*enginetypes.Withdrawal, error) {
-	return nil, nil
-}
+// // EnqueueWithdrawals pushes the withdrawals to the queue.
+// func (s *Store) DequeueWithdrawals(
+// 	numDequeue uint64,
+// ) ([]*enginetypes.Withdrawal, error) {
+// 	return nil, nil
+// }

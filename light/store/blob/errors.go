@@ -25,8 +25,8 @@
 
 package blob
 
-import "errors"
+// import "errors"
 
-// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to store a
-// nil sidecar.
-var ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
+// // ErrAttemptedToStoreNilSidecar is returned when an attempt is made to store a
+// // nil sidecar.
+// var ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")

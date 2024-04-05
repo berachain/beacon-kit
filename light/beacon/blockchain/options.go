@@ -25,76 +25,76 @@
 
 package blockchain
 
-import (
-	"github.com/berachain/beacon-kit/beacon/core"
-	"github.com/berachain/beacon-kit/runtime/service"
-)
+// import (
+// 	"github.com/berachain/beacon-kit/beacon/core"
+// 	"github.com/berachain/beacon-kit/runtime/service"
+// )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
+// // WithBaseService returns an Option that sets the BaseService for the Service.
+// func WithBaseService(base service.BaseService) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.BaseService = base
+// 		return nil
+// 	}
+// }
 
-// WithBlockValidator is a function that returns an Option.
-// It sets the BlockValidator of the Service to the provided Service.
-func WithBlockValidator(bv *core.BlockValidator) service.Option[Service] {
-	return func(s *Service) error {
-		s.bv = bv
-		return nil
-	}
-}
+// // WithBlockValidator is a function that returns an Option.
+// // It sets the BlockValidator of the Service to the provided Service.
+// func WithBlockValidator(bv *core.BlockValidator) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.bv = bv
+// 		return nil
+// 	}
+// }
 
-// WithExecutionService is a function that returns an Option.
-// It sets the ExecutionService of the Service to the provided Service.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
+// // WithExecutionService is a function that returns an Option.
+// // It sets the ExecutionService of the Service to the provided Service.
+// func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.ee = ee
+// 		return nil
+// 	}
+// }
 
-// WithLocalBuilder is a function that returns an Option.
-// It sets the BuilderService of the Service to the provided Service.
-func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
-	return func(s *Service) error {
-		s.lb = lb
-		return nil
-	}
-}
+// // WithLocalBuilder is a function that returns an Option.
+// // It sets the BuilderService of the Service to the provided Service.
+// func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.lb = lb
+// 		return nil
+// 	}
+// }
 
-// WithPayloadValidator is a function that returns an Option.
-func WithPayloadValidator(pv *core.PayloadValidator) service.Option[Service] {
-	return func(s *Service) error {
-		s.pv = pv
-		return nil
-	}
-}
+// // WithPayloadValidator is a function that returns an Option.
+// func WithPayloadValidator(pv *core.PayloadValidator) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.pv = pv
+// 		return nil
+// 	}
+// }
 
-// WithExecutionService is a function that returns an Option.
-// It sets the ExecutionService of the Service to the provided Service.
-func WithStakingService(sks StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.sks = sks
-		return nil
-	}
-}
+// // WithExecutionService is a function that returns an Option.
+// // It sets the ExecutionService of the Service to the provided Service.
+// func WithStakingService(sks StakingService) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.sks = sks
+// 		return nil
+// 	}
+// }
 
-// WithStateProcessor is a function that returns an Option.
-func WithStateProcessor(sp *core.StateProcessor) service.Option[Service] {
-	return func(s *Service) error {
-		s.sp = sp
-		return nil
-	}
-}
+// // WithStateProcessor is a function that returns an Option.
+// func WithStateProcessor(sp *core.StateProcessor) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.sp = sp
+// 		return nil
+// 	}
+// }
 
-// WithSyncService is a function that returns an Option.
-// It sets the SyncService of the Service to the provided Service.
-func WithSyncService(ss SyncService) service.Option[Service] {
-	return func(s *Service) error {
-		s.ss = ss
-		return nil
-	}
-}
+// // WithSyncService is a function that returns an Option.
+// // It sets the SyncService of the Service to the provided Service.
+// func WithSyncService(ss SyncService) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.ss = ss
+// 		return nil
+// 	}
+// }

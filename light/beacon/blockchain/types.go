@@ -25,73 +25,73 @@
 
 package blockchain
 
-import (
-	"context"
+// import (
+// 	"context"
 
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	"github.com/berachain/beacon-kit/engine"
-	enginetypes "github.com/berachain/beacon-kit/engine/types"
-	"github.com/berachain/beacon-kit/primitives"
-)
+// 	"github.com/berachain/beacon-kit/beacon/core/state"
+// 	"github.com/berachain/beacon-kit/engine"
+// 	enginetypes "github.com/berachain/beacon-kit/engine/types"
+// 	"github.com/berachain/beacon-kit/primitives"
+// )
 
-type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *engine.NewGetPayloadRequest,
-	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *engine.NewForkchoiceUpdateRequest,
-	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
+// type ExecutionEngine interface {
+// 	// GetPayload returns the payload and blobs bundle for the given slot.
+// 	GetPayload(
+// 		ctx context.Context,
+// 		req *engine.NewGetPayloadRequest,
+// 	) (enginetypes.ExecutionPayload, *enginetypes.BlobsBundleV1, bool, error)
+// 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+// 	// update.
+// 	NotifyForkchoiceUpdate(
+// 		ctx context.Context,
+// 		req *engine.NewForkchoiceUpdateRequest,
+// 	) (*enginetypes.PayloadID, *primitives.ExecutionHash, error)
 
-	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-	// execution
-	VerifyAndNotifyNewPayload(
-		ctx context.Context,
-		req *engine.NewPayloadRequest,
-	) (bool, error)
-}
+// 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
+// 	// execution
+// 	VerifyAndNotifyNewPayload(
+// 		ctx context.Context,
+// 		req *engine.NewPayloadRequest,
+// 	) (bool, error)
+// }
 
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
-	BuildLocalPayload(
-		ctx context.Context,
-		parentEth1Hash primitives.ExecutionHash,
-		slot primitives.Slot,
-		timestamp uint64,
-		parentBlockRoot primitives.Root,
-	) (*enginetypes.PayloadID, error)
-}
+// // LocalBuilder is the interface for the builder service.
+// type LocalBuilder interface {
+// 	BuildLocalPayload(
+// 		ctx context.Context,
+// 		parentEth1Hash primitives.ExecutionHash,
+// 		slot primitives.Slot,
+// 		timestamp uint64,
+// 		parentBlockRoot primitives.Root,
+// 	) (*enginetypes.PayloadID, error)
+// }
 
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (primitives.BLSSignature, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal primitives.BLSSignature,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
-	) error
-}
+// // RandaoProcessor is the interface for the randao processor.
+// type RandaoProcessor interface {
+// 	BuildReveal(
+// 		st state.BeaconState,
+// 	) (primitives.BLSSignature, error)
+// 	MixinNewReveal(
+// 		st state.BeaconState,
+// 		reveal primitives.BLSSignature,
+// 	) error
+// 	VerifyReveal(
+// 		st state.BeaconState,
+// 		proposerPubkey primitives.BLSPubkey,
+// 		reveal primitives.BLSSignature,
+// 	) error
+// }
 
-// StakingService is the interface for the staking service.
-type StakingService interface {
-	// ProcessLogsInETH1Block processes logs in an eth1 block.
-	ProcessLogsInETH1Block(
-		ctx context.Context,
-		blockHash primitives.ExecutionHash,
-	) error
-}
+// // StakingService is the interface for the staking service.
+// type StakingService interface {
+// 	// ProcessLogsInETH1Block processes logs in an eth1 block.
+// 	ProcessLogsInETH1Block(
+// 		ctx context.Context,
+// 		blockHash primitives.ExecutionHash,
+// 	) error
+// }
 
-type SyncService interface {
-	IsInitSync() bool
-	Status() error
-}
+// type SyncService interface {
+// 	IsInitSync() bool
+// 	Status() error
+// }

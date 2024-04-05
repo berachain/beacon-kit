@@ -25,60 +25,60 @@
 
 package beacon
 
-import (
-	"github.com/berachain/beacon-kit/beacon/core/state"
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
-)
+// import (
+// 	"github.com/berachain/beacon-kit/beacon/core/state"
+// 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+// 	"github.com/berachain/beacon-kit/primitives"
+// )
 
-// UpdateStateRootAtIndex updates the state root at the given slot.
-func (s *Store) UpdateStateRootAtIndex(
-	idx uint64,
-	stateRoot primitives.Root,
-) error {
-	return nil
-}
+// // UpdateStateRootAtIndex updates the state root at the given slot.
+// func (s *Store) UpdateStateRootAtIndex(
+// 	idx uint64,
+// 	stateRoot primitives.Root,
+// ) error {
+// 	return nil
+// }
 
-// StateRootAtIndex returns the state root at the given slot.
-func (s *Store) StateRootAtIndex(idx uint64) (primitives.Root, error) {
-	panic("not implemented")
-}
+// // StateRootAtIndex returns the state root at the given slot.
+// func (s *Store) StateRootAtIndex(idx uint64) (primitives.Root, error) {
+// 	panic("not implemented")
+// }
 
-// Store is the interface for the beacon store.
-func (s *Store) HashTreeRoot() ([32]byte, error) {
-	// TODO: Implement getting the HashTreeRoot (StateRoot)
-	// We currently return at least *SOMETHING* so that we
-	// can simulate having to keep track of the StateRoot of the
-	// BeaconState, since this value with change every slot.
-	// TODO: Actually implementation.
+// // Store is the interface for the beacon store.
+// func (s *Store) HashTreeRoot() ([32]byte, error) {
+// 	// TODO: Implement getting the HashTreeRoot (StateRoot)
+// 	// We currently return at least *SOMETHING* so that we
+// 	// can simulate having to keep track of the StateRoot of the
+// 	// BeaconState, since this value with change every slot.
+// 	// TODO: Actually implementation.
 
-	slot, err := s.GetSlot()
-	if err != nil {
-		return [32]byte{}, err
-	}
+// 	slot, err := s.GetSlot()
+// 	if err != nil {
+// 		return [32]byte{}, err
+// 	}
 
-	randaoMix, err := s.RandaoMixAtIndex(0)
-	if err != nil {
-		return [32]byte{}, err
-	}
+// 	randaoMix, err := s.RandaoMixAtIndex(0)
+// 	if err != nil {
+// 		return [32]byte{}, err
+// 	}
 
-	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
-	randaoMixes[0] = randaoMix
+// 	randaoMixes := make([][32]byte, 32) //nolint:gomnd // temp.
+// 	randaoMixes[0] = randaoMix
 
-	latestBlockHeader, err := s.GetLatestBlockHeader()
-	if err != nil {
-		return [32]byte{}, err
-	}
+// 	latestBlockHeader, err := s.GetLatestBlockHeader()
+// 	if err != nil {
+// 		return [32]byte{}, err
+// 	}
 
-	return (&state.BeaconStateDeneb{
-		GenesisValidatorsRoot: primitives.Root{},
-		Slot:                  slot,
-		LatestBlockHeader:     latestBlockHeader,
-		BlockRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		StateRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
-		Eth1GenesisHash:       [32]byte{},
-		Eth1DepositIndex:      0,
-		Validators:            []*beacontypes.Validator{},
-		RandaoMixes:           randaoMixes,
-	}).HashTreeRoot()
-}
+// 	return (&state.BeaconStateDeneb{
+// 		GenesisValidatorsRoot: primitives.Root{},
+// 		Slot:                  slot,
+// 		LatestBlockHeader:     latestBlockHeader,
+// 		BlockRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
+// 		StateRoots:            make([][32]byte, 32), //nolint:gomnd // temp.
+// 		Eth1GenesisHash:       [32]byte{},
+// 		Eth1DepositIndex:      0,
+// 		Validators:            []*beacontypes.Validator{},
+// 		RandaoMixes:           randaoMixes,
+// 	}).HashTreeRoot()
+// }

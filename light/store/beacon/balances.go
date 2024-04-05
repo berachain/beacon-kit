@@ -25,30 +25,30 @@
 
 package beacon
 
-import (
-	"github.com/berachain/beacon-kit/primitives"
-)
+// import (
+// 	"github.com/berachain/beacon-kit/primitives"
+// )
 
-// IncreaseBalance increases the balance of a validator.
-func (s *Store) IncreaseBalance(
-	idx primitives.ValidatorIndex,
-	delta primitives.Gwei,
-) error {
-	return nil
-}
+// // IncreaseBalance increases the balance of a validator.
+// func (s *Store) IncreaseBalance(
+// 	idx primitives.ValidatorIndex,
+// 	delta primitives.Gwei,
+// ) error {
+// 	return nil
+// }
 
-// DecreaseBalance decreases the balance of a validator.
-func (s *Store) DecreaseBalance(
-	idx primitives.ValidatorIndex,
-	delta primitives.Gwei,
-) error {
-	return nil
-}
+// // DecreaseBalance decreases the balance of a validator.
+// func (s *Store) DecreaseBalance(
+// 	idx primitives.ValidatorIndex,
+// 	delta primitives.Gwei,
+// ) error {
+// 	return nil
+// }
 
-// GetTotalActiveBalances returns the total active balances of all validators.
-// TODO: unhood this and probably store this as just a value changed on writes.
-func (s *Store) GetTotalActiveBalances(
-	slotsPerEpoch uint64,
-) (primitives.Gwei, error) {
-	panic("not implemented")
-}
+// // GetTotalActiveBalances returns the total active balances of all validators.
+// // TODO: unhood this and probably store this as just a value changed on writes.
+// func (s *Store) GetTotalActiveBalances(
+// 	slotsPerEpoch uint64,
+// ) (primitives.Gwei, error) {
+// 	panic("not implemented")
+// }

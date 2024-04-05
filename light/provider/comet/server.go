@@ -25,23 +25,23 @@
 
 package comet
 
-import (
-	"time"
+// import (
+// 	"time"
 
-	cometCfg "github.com/cometbft/cometbft/config"
-	rpcserver "github.com/cometbft/cometbft/rpc/jsonrpc/server"
-)
+// 	cometCfg "github.com/cometbft/cometbft/config"
+// 	rpcserver "github.com/cometbft/cometbft/rpc/jsonrpc/server"
+// )
 
-func initServerConfig(maxOpenConnections int) *rpcserver.Config {
-	config := cometCfg.DefaultConfig()
+// func initServerConfig(maxOpenConnections int) *rpcserver.Config {
+// 	config := cometCfg.DefaultConfig()
 
-	cfg := rpcserver.DefaultConfig()
-	cfg.MaxBodyBytes = config.RPC.MaxBodyBytes
-	cfg.MaxHeaderBytes = config.RPC.MaxHeaderBytes
-	cfg.MaxOpenConnections = maxOpenConnections
-	if cfg.WriteTimeout <= config.RPC.TimeoutBroadcastTxCommit {
-		cfg.WriteTimeout = config.RPC.TimeoutBroadcastTxCommit + 1*time.Second
-	}
+// 	cfg := rpcserver.DefaultConfig()
+// 	cfg.MaxBodyBytes = config.RPC.MaxBodyBytes
+// 	cfg.MaxHeaderBytes = config.RPC.MaxHeaderBytes
+// 	cfg.MaxOpenConnections = maxOpenConnections
+// 	if cfg.WriteTimeout <= config.RPC.TimeoutBroadcastTxCommit {
+// 		cfg.WriteTimeout = config.RPC.TimeoutBroadcastTxCommit + 1*time.Second
+// 	}
 
-	return cfg
-}
+// 	return cfg
+// }

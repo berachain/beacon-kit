@@ -25,72 +25,72 @@
 
 package beacon
 
-import (
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/primitives"
-)
+// import (
+// 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+// 	"github.com/berachain/beacon-kit/primitives"
+// )
 
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (s *Store) SetGenesisValidatorsRoot(
-	_ primitives.Root,
-) error {
-	return nil
-}
+// // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// // state.
+// func (s *Store) SetGenesisValidatorsRoot(
+// 	_ primitives.Root,
+// ) error {
+// 	return nil
+// }
 
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	panic("not implemented")
-}
+// // GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// // beacon state.
+// func (s *Store) GetGenesisValidatorsRoot() (primitives.Root, error) {
+// 	panic("not implemented")
+// }
 
-// AddValidator registers a new validator in the beacon state.
-func (s *Store) AddValidator(
-	_ *beacontypes.Validator,
-) error {
-	return nil
-}
+// // AddValidator registers a new validator in the beacon state.
+// func (s *Store) AddValidator(
+// 	_ *beacontypes.Validator,
+// ) error {
+// 	return nil
+// }
 
-// UpdateValidatorAtIndex updates a validator at a specific index.
-func (s *Store) UpdateValidatorAtIndex(
-	_ primitives.ValidatorIndex,
-	_ *beacontypes.Validator,
-) error {
-	return nil
-}
+// // UpdateValidatorAtIndex updates a validator at a specific index.
+// func (s *Store) UpdateValidatorAtIndex(
+// 	_ primitives.ValidatorIndex,
+// 	_ *beacontypes.Validator,
+// ) error {
+// 	return nil
+// }
 
-// RemoveValidatorAtIndex removes a validator at a specified index.
-func (s *Store) RemoveValidatorAtIndex(
-	_ primitives.ValidatorIndex,
-) error {
-	return nil
-}
+// // RemoveValidatorAtIndex removes a validator at a specified index.
+// func (s *Store) RemoveValidatorAtIndex(
+// 	_ primitives.ValidatorIndex,
+// ) error {
+// 	return nil
+// }
 
-// ValidatorPubKeyByIndex returns the validator address by index.
-func (s *Store) ValidatorIndexByPubkey(
-	_ []byte,
-) (primitives.ValidatorIndex, error) {
-	panic("not implemented")
-}
+// // ValidatorPubKeyByIndex returns the validator address by index.
+// func (s *Store) ValidatorIndexByPubkey(
+// 	_ []byte,
+// ) (primitives.ValidatorIndex, error) {
+// 	panic("not implemented")
+// }
 
-// ValidatorByIndex returns the validator address by index.
-func (s *Store) ValidatorByIndex(
-	_ primitives.ValidatorIndex,
-) (*beacontypes.Validator, error) {
-	panic("not implemented")
-}
+// // ValidatorByIndex returns the validator address by index.
+// func (s *Store) ValidatorByIndex(
+// 	_ primitives.ValidatorIndex,
+// ) (*beacontypes.Validator, error) {
+// 	panic("not implemented")
+// }
 
-// GetValidators retrieves all validators from the beacon state.
-func (s *Store) GetValidators() (
-	[]*beacontypes.Validator, error,
-) {
-	panic("not implemented")
-}
+// // GetValidators retrieves all validators from the beacon state.
+// func (s *Store) GetValidators() (
+// 	[]*beacontypes.Validator, error,
+// ) {
+// 	panic("not implemented")
+// }
 
-// GetValidatorsByEffectiveBalance retrieves all validators sorted by
-// effective balance from the beacon state.
-func (s *Store) GetValidatorsByEffectiveBalance() (
-	[]*beacontypes.Validator, error,
-) {
-	panic("not implemented")
-}
+// // GetValidatorsByEffectiveBalance retrieves all validators sorted by
+// // effective balance from the beacon state.
+// func (s *Store) GetValidatorsByEffectiveBalance() (
+// 	[]*beacontypes.Validator, error,
+// ) {
+// 	panic("not implemented")
+// }

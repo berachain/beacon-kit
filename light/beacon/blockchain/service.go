@@ -25,19 +25,19 @@
 
 package blockchain
 
-import (
-	"github.com/berachain/beacon-kit/beacon/core"
-	"github.com/berachain/beacon-kit/runtime/service"
-)
+// import (
+// 	"github.com/berachain/beacon-kit/beacon/core"
+// 	"github.com/berachain/beacon-kit/runtime/service"
+// )
 
-// Service is the blockchain service.
-type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	ss  SyncService
-	sks StakingService
-	bv  *core.BlockValidator
-	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
-}
+// // Service is the blockchain service.
+// type Service struct {
+// 	service.BaseService
+// 	ee  ExecutionEngine
+// 	lb  LocalBuilder
+// 	ss  SyncService
+// 	sks StakingService
+// 	bv  *core.BlockValidator
+// 	sp  *core.StateProcessor
+// 	pv  *core.PayloadValidator
+// }

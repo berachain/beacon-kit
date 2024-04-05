@@ -1,100 +1,100 @@
 package provider
 
-import (
-	"context"
-	"strconv"
+// import (
+// 	"context"
+// 	"strconv"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
+// 	abci "github.com/cometbft/cometbft/abci/types"
+// 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
+// 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 
-	"google.golang.org/grpc/metadata"
-)
+// 	"google.golang.org/grpc/metadata"
+// )
 
-func (p *Provider) Query(ctx context.Context, key []byte, height int64) ([]byte, error) {
-	if height == 0 {
-		res, err := p.client.ABCIInfo(ctx)
-		if err != nil {
-			return nil, err
-		}
-		height = res.Response.LastBlockHeight - 1
-	}
+// func (p *Provider) Query(ctx context.Context, key []byte, height int64) ([]byte, error) {
+// 	if height == 0 {
+// 		res, err := p.client.ABCIInfo(ctx)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		height = res.Response.LastBlockHeight - 1
+// 	}
 
-	resp, _, err := p.runGRPCQuery(
-		context.Background(),
-		beaconStoreKey,
-		key,
-		height,
-	)
+// 	resp, _, err := p.runGRPCQuery(
+// 		context.Background(),
+// 		beaconStoreKey,
+// 		key,
+// 		height,
+// 	)
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return resp.Value, nil
-}
+// 	return resp.Value, nil
+// }
 
-func (p *Provider) runGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64) (abci.ResponseQuery, metadata.MD, error) {
-	// // parse height header
-	// if heights := md.Get(grpctypes.GRPCBlockHeightHeader); len(heights) > 0 {
-	// 	height, err := strconv.ParseInt(heights[0], 10, 64)
-	// 	if err != nil {
-	// 		return abci.ResponseQuery{}, nil, err
-	// 	}
-	// 	if height < 0 {
-	// 		return abci.ResponseQuery{}, nil, sdkerrors.Wrapf(
-	// 			legacyerrors.ErrInvalidRequest,
-	// 			"client.Context.Invoke: height (%d) from %q must be >= 0", height, grpctypes.GRPCBlockHeightHeader)
-	// 	}
+// func (p *Provider) runGRPCQuery(ctx context.Context, method string, reqBz []byte, height int64) (abci.ResponseQuery, metadata.MD, error) {
+// 	// // parse height header
+// 	// if heights := md.Get(grpctypes.GRPCBlockHeightHeader); len(heights) > 0 {
+// 	// 	height, err := strconv.ParseInt(heights[0], 10, 64)
+// 	// 	if err != nil {
+// 	// 		return abci.ResponseQuery{}, nil, err
+// 	// 	}
+// 	// 	if height < 0 {
+// 	// 		return abci.ResponseQuery{}, nil, sdkerrors.Wrapf(
+// 	// 			legacyerrors.ErrInvalidRequest,
+// 	// 			"client.Context.Invoke: height (%d) from %q must be >= 0", height, grpctypes.GRPCBlockHeightHeader)
+// 	// 	}
 
-	// }
+// 	// }
 
-	// height, err := GetHeightFromMetadata(md)
-	// if err != nil {
-	// 	return abci.ResponseQuery{}, nil, err
-	// }
+// 	// height, err := GetHeightFromMetadata(md)
+// 	// if err != nil {
+// 	// 	return abci.ResponseQuery{}, nil, err
+// 	// }
 
-	// prove, err := GetProveFromMetadata(md)
-	// if err != nil {
-	// 	return abci.ResponseQuery{}, nil, err
-	// }
+// 	// prove, err := GetProveFromMetadata(md)
+// 	// if err != nil {
+// 	// 	return abci.ResponseQuery{}, nil, err
+// 	// }
 
-	abciReq := abci.RequestQuery{
-		Path:   method,
-		Data:   reqBz,
-		Height: height,
-	}
+// 	abciReq := abci.RequestQuery{
+// 		Path:   method,
+// 		Data:   reqBz,
+// 		Height: height,
+// 	}
 
-	abciRes, err := p.QueryABCI(ctx, abciReq)
-	if err != nil {
-		return abci.ResponseQuery{}, nil, err
-	}
+// 	abciRes, err := p.QueryABCI(ctx, abciReq)
+// 	if err != nil {
+// 		return abci.ResponseQuery{}, nil, err
+// 	}
 
-	// Create header metadata. For now the headers contain:
-	// - block height
-	// We then parse all the call options, if the call option is a
-	// HeaderCallOption, then we manually set the value of that header to the
-	// metadata.
-	md := metadata.Pairs(grpctypes.GRPCBlockHeightHeader, strconv.FormatInt(abciRes.Height, 10))
+// 	// Create header metadata. For now the headers contain:
+// 	// - block height
+// 	// We then parse all the call options, if the call option is a
+// 	// HeaderCallOption, then we manually set the value of that header to the
+// 	// metadata.
+// 	md := metadata.Pairs(grpctypes.GRPCBlockHeightHeader, strconv.FormatInt(abciRes.Height, 10))
 
-	return abciRes, md, nil
-}
+// 	return abciRes, md, nil
+// }
 
-// QueryABCI performs an ABCI query and returns the appropriate response and error sdk error code.
-func (p *Provider) QueryABCI(ctx context.Context, req abci.RequestQuery) (abci.ResponseQuery, error) {
-	opts := rpcclient.ABCIQueryOptions{
-		Height: req.Height,
-	}
+// // QueryABCI performs an ABCI query and returns the appropriate response and error sdk error code.
+// func (p *Provider) QueryABCI(ctx context.Context, req abci.RequestQuery) (abci.ResponseQuery, error) {
+// 	opts := rpcclient.ABCIQueryOptions{
+// 		Height: req.Height,
+// 	}
 
-	// Note: ABCIQueryWithOptions verifies proofs by default. Thus we do not have to
-	// check the proof validity ourselves.
-	result, err := p.client.ABCIQueryWithOptions(ctx, req.Path, req.Data, opts)
-	if err != nil {
-		return abci.ResponseQuery{}, err
-	} else if !result.Response.IsOK() {
-		return abci.ResponseQuery{}, sdkErrorToGRPCError(result.Response)
-	}
+// 	// Note: ABCIQueryWithOptions verifies proofs by default. Thus we do not have to
+// 	// check the proof validity ourselves.
+// 	result, err := p.client.ABCIQueryWithOptions(ctx, req.Path, req.Data, opts)
+// 	if err != nil {
+// 		return abci.ResponseQuery{}, err
+// 	} else if !result.Response.IsOK() {
+// 		return abci.ResponseQuery{}, sdkErrorToGRPCError(result.Response)
+// 	}
 
-	return result.Response, nil
-}
+// 	return result.Response, nil
+// }

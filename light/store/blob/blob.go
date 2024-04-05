@@ -25,60 +25,60 @@
 
 package blob
 
-import (
-	"context"
-	"errors"
+// import (
+// 	"context"
+// 	"errors"
 
-	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
-	"github.com/berachain/beacon-kit/db"
-	filedb "github.com/berachain/beacon-kit/db/file"
-	"github.com/berachain/beacon-kit/primitives"
-	"github.com/sourcegraph/conc/iter"
-)
+// 	beacontypes "github.com/berachain/beacon-kit/beacon/core/types"
+// 	"github.com/berachain/beacon-kit/db"
+// 	filedb "github.com/berachain/beacon-kit/db/file"
+// 	"github.com/berachain/beacon-kit/primitives"
+// 	"github.com/sourcegraph/conc/iter"
+// )
 
-// Store is the default implementation of the AvailabilityStore.
-type Store struct {
-	*filedb.RangeDB
-}
+// // Store is the default implementation of the AvailabilityStore.
+// type Store struct {
+// 	*filedb.RangeDB
+// }
 
-// NewStore creates a new instance of the AvailabilityStore.
-func NewStore(db db.DB) *Store {
-	return &Store{
-		RangeDB: filedb.NewRangeDB(db),
-	}
-}
+// // NewStore creates a new instance of the AvailabilityStore.
+// func NewStore(db db.DB) *Store {
+// 	return &Store{
+// 		RangeDB: filedb.NewRangeDB(db),
+// 	}
+// }
 
-// IsDataAvailable ensures that all blobs referenced in the block are
-// stored before it returns without an error.
-func (s *Store) IsDataAvailable(
-	ctx context.Context,
-	slot primitives.Slot,
-	b beacontypes.ReadOnlyBeaconBlock,
-) bool {
-	_ = ctx
-	_ = slot
-	_ = b
-	return true
-}
+// // IsDataAvailable ensures that all blobs referenced in the block are
+// // stored before it returns without an error.
+// func (s *Store) IsDataAvailable(
+// 	ctx context.Context,
+// 	slot primitives.Slot,
+// 	b beacontypes.ReadOnlyBeaconBlock,
+// ) bool {
+// 	_ = ctx
+// 	_ = slot
+// 	_ = b
+// 	return true
+// }
 
-// Persist ensures the sidecar data remains accessible, utilizing parallel
-// processing for efficiency.
-func (s *Store) Persist(
-	slot primitives.Slot,
-	sidecars ...*beacontypes.BlobSidecar,
-) error {
-	return errors.Join(iter.Map(
-		sidecars,
-		func(sidecar **beacontypes.BlobSidecar) error {
-			if *sidecar == nil {
-				return ErrAttemptedToStoreNilSidecar
-			}
-			sc := *sidecar
-			bz, err := sc.MarshalSSZ()
-			if err != nil {
-				return err
-			}
-			return s.Set(uint64(slot), sc.KzgCommitment, bz)
-		},
-	)...)
-}
+// // Persist ensures the sidecar data remains accessible, utilizing parallel
+// // processing for efficiency.
+// func (s *Store) Persist(
+// 	slot primitives.Slot,
+// 	sidecars ...*beacontypes.BlobSidecar,
+// ) error {
+// 	return errors.Join(iter.Map(
+// 		sidecars,
+// 		func(sidecar **beacontypes.BlobSidecar) error {
+// 			if *sidecar == nil {
+// 				return ErrAttemptedToStoreNilSidecar
+// 			}
+// 			sc := *sidecar
+// 			bz, err := sc.MarshalSSZ()
+// 			if err != nil {
+// 				return err
+// 			}
+// 			return s.Set(uint64(slot), sc.KzgCommitment, bz)
+// 		},
+// 	)...)
+// }
