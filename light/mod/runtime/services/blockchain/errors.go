@@ -25,19 +25,13 @@
 
 package blockchain
 
-// import (
-// 	"github.com/berachain/beacon-kit/beacon/core"
-// 	"github.com/berachain/beacon-kit/runtime/service"
-// )
+import "github.com/cockroachdb/errors"
 
-// // Service is the blockchain service.
-// type Service struct {
-// 	service.BaseService
-// 	ee  ExecutionEngine
-// 	lb  LocalBuilder
-// 	ss  SyncService
-// 	sks StakingService
-// 	bv  *core.BlockValidator
-// 	sp  *core.StateProcessor
-// 	pv  *core.PayloadValidator
-// }
+var (
+	// ErrInvalidPayload indicates that the payload of a beacon block is
+	// invalid.
+	ErrInvalidPayload = errors.New("invalid payload")
+	// ErrNoPayloadInBeaconBlock indicates that a beacon block was expected to
+	// have a payload, but none was found.
+	ErrNoPayloadInBeaconBlock = errors.New("no payload in beacon block")
+)
