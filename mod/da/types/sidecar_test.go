@@ -62,6 +62,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	// Marshal the sidecar
 	marshalled, err := sidecar.MarshalSSZ()
 	require.NoError(t, err, "Marshalling should not produce an error")
+	require.NotNil(t, marshalled, "Marshalling should produce a result")
 
 	// Unmarshal the sidecar
 	unmarshalled := types.BlobSidecar{}
