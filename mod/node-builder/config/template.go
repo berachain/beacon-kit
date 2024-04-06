@@ -86,6 +86,10 @@ max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
 # ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
 propotional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMultiplier}}
 
+########### Deneb Values ###########
+# MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node will keep the blobs for.
+min-epochs-for-blobs-sidecars-request = {{.BeaconKit.Beacon.MinEpochsForBlobsSidecarsRequest}}
+
 [beacon-kit.builder]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
 # from this node.

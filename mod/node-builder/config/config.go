@@ -68,7 +68,7 @@ type Config struct {
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config
 
-	// KZG is the configuration for the KZG trusted setup.
+	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config
 }
 
