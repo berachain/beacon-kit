@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -143,12 +142,8 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
 func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
 	leaves := make([][]byte, len(commitments))
-	for i, kzg := range commitments {
-		chunk := make([][32]byte, Two)
-		copy(chunk[0][:], kzg[:])
-		copy(chunk[1][:], kzg[RootLength:])
-		gohashtree.HashChunks(chunk, chunk)
-		leaves[i] = chunk[0][:]
+	for i, commitment := range commitments {
+		leaves[i] = commitment.ToHashChunks()[0][:]
 	}
 	return leaves
 }
