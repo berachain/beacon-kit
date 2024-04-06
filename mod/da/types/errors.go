@@ -23,42 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/forks/version"
-	"github.com/berachain/beacon-kit/mod/primitives"
+import "errors"
+
+// ErrSidecarContainsDifferingBlockRoots is returned when a sidecar contains
+// blobs with differing block roots.
+var ErrSidecarContainsDifferingBlockRoots = errors.New(
+	"sidecar contains blobs with differing block roots",
 )
-
-// ActiveForkVersion returns the active fork version for a given slot.
-func (c BeaconChainConfig) ActiveForkVersionForSlot(
-	slot primitives.Slot,
-) uint32 {
-	return c.ActiveForkVersionForEpoch(c.SlotToEpoch(slot))
-}
-
-// ActiveForkVersionBySlot returns the active fork version for a given epoch.
-func (c BeaconChainConfig) ActiveForkVersionForEpoch(
-	epoch primitives.Epoch,
-) uint32 {
-	if epoch >= c.ElectraForkEpoch {
-		return version.Electra
-	}
-
-	// In BeaconKit we assume the Deneb fork is always active.
-	return version.Deneb
-}
-
-// SlotToEpoch converts a slot to an epoch.
-func (c BeaconChainConfig) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
-	return primitives.Epoch(uint64(slot) / c.SlotsPerEpoch)
-}
-
-// WithinDAPeriod checks if the block epoch is within
-// MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
-// of the given current epoch.
-func (c BeaconChainConfig) WithinDAPeriod(
-	block, current primitives.Epoch,
-) bool {
-	return block+primitives.Epoch(c.MinEpochsForBlobsSidecarsRequest) >= current
-}
