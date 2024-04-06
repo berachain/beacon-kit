@@ -62,6 +62,10 @@ func (sp *Processor) ProcessBlobs(
 			if *sidecar == nil {
 				return ErrAttemptedToVerifyNilSidecar
 			}
+
+			// TODO: actually run the proper KZG verification.
+			// For now, we just verify the inclusion proof.
+
 			// Store the blobs under a single height.
 			return types.VerifyKZGInclusionProof(
 				*sidecar,
@@ -71,5 +75,5 @@ func (sp *Processor) ProcessBlobs(
 		return err
 	}
 
-	return avs.Persist(slot, sidecars.Sidecars...)
+	return avs.Persist(slot, sidecars)
 }

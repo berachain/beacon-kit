@@ -38,6 +38,31 @@ type BlobSidecars struct {
 	Sidecars []*BlobSidecar `ssz-max:"6"`
 }
 
+// ValidateBlockRoots checks to make sure that
+// all blobs in the sidecar are from the same block.
+func (bs *BlobSidecars) ValidateBlockRoots() error {
+	// We only need to check if there is more than
+	// a single blob in the sidecar.
+	if sc := bs.Sidecars; len(sc) > 1 {
+		firstHtr, err := sc[0].BeaconBlockHeader.HashTreeRoot()
+		if err != nil {
+			return err
+		}
+
+		var nextHtr [32]byte
+		for i := 1; i < len(sc); i++ {
+			nextHtr, err = sc[i].HashTreeRoot()
+			if err != nil {
+				return err
+			}
+			if firstHtr != nextHtr {
+				return ErrSidecarContainsDifferingBlockRoots
+			}
+		}
+	}
+	return nil
+}
+
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //

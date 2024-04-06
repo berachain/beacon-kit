@@ -56,7 +56,7 @@ func NewKeeper(
 	cfg *params.BeaconChainConfig,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: da.NewStore(fdb),
+		availabilityStore: da.NewStore(cfg, fdb),
 		statedb:           statedb.New(env.KVStoreService),
 		cfg:               cfg,
 	}
