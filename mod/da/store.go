@@ -75,8 +75,10 @@ func (s *Store) Persist(
 	sidecars *types.BlobSidecars,
 ) error {
 	// Exit early if there are no sidecars to store.
-	scs := sidecars.Sidecars
-	if len(scs) == 0 {
+	if sidecars == nil {
+		return nil
+	} else if sidecars.Sidecars == nil ||
+		len(sidecars.Sidecars) == 0 {
 		return nil
 	}
 
@@ -98,7 +100,7 @@ func (s *Store) Persist(
 
 	// Store each sidecar in parallel.
 	return errors.Join(iter.Map(
-		scs,
+		sidecars.Sidecars,
 		func(sidecar **types.BlobSidecar) error {
 			if *sidecar == nil {
 				return ErrAttemptedToStoreNilSidecar
