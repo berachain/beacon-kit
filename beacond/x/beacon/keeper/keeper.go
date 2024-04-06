@@ -130,8 +130,6 @@ func (k *Keeper) BeaconState(
 // InitGenesis initializes the genesis state of the module.
 //
 // TODO: This whole thing needs to be abstracted into mod/core/state
-//
-
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,
