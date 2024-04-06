@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-include build/scripts/cosmos.mk build/scripts/constants.mk build/scripts/docker.mk contracts/Makefile kurtosis/Makefile
+include build/scripts/build.mk build/scripts/constants.mk build/scripts/docker.mk contracts/Makefile kurtosis/Makefile
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
