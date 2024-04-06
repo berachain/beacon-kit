@@ -134,7 +134,7 @@ func NewDefaultBeaconKitRuntime(
 	logger.Info(
 		"successfully loaded blob verifier",
 		"impl",
-		cfg.KZG.KZGImplementation,
+		cfg.KZG.Implementation,
 	)
 
 	logger.Info(
