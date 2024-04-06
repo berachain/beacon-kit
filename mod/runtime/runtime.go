@@ -73,6 +73,8 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
+//
+//nolint:funlen // todo fix.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	signer core.BLSSigner,
