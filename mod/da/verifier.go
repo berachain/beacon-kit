@@ -45,6 +45,7 @@ type BlobVerifier interface {
 		claim kzg.Claim,
 		proof kzg.Proof,
 	) error
+
 	// VerifyBlobProof verifies that the blob data corresponds to the provided
 	// commitment.
 	VerifyBlobProof(
@@ -54,7 +55,7 @@ type BlobVerifier interface {
 	) error
 }
 
-// NewBlobVerifier creates a new BlobVerifier.
+// NewBlobVerifier creates a new BlobVerifier with the given implementation.
 func NewBlobVerifier(
 	impl string,
 	ts *gokzg4844.JSONTrustedSetup,

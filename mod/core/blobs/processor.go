@@ -30,20 +30,20 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/da"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/sourcegraph/conc/iter"
 )
 
-type BlobVerifier interface{}
-
 // Processor is the processor for blobs.
 type Processor struct {
-	bv BlobVerifier
+	bv da.BlobVerifier
 }
 
 // NewProcessor creates a new processor.
-func NewProcessor(bv BlobVerifier) *Processor {
+func NewProcessor(bv da.BlobVerifier) *Processor {
 	return &Processor{
 		bv: bv,
 	}
@@ -59,16 +59,22 @@ func (sp *Processor) ProcessBlobs(
 	if err := errors.Join(iter.Map(
 		sidecars.Sidecars,
 		func(sidecar **datypes.BlobSidecar) error {
-			if *sidecar == nil {
+			sc := *sidecar
+			if sc == nil {
 				return ErrAttemptedToVerifyNilSidecar
 			}
 
-			// TODO: actually run the proper KZG verification.
-			// For now, we just verify the inclusion proof.
+			// Verify the KZG inclusion proof.
+			if err := types.VerifyKZGInclusionProof(sc); err != nil {
+				return err
+			}
 
-			// Store the blobs under a single height.
-			return types.VerifyKZGInclusionProof(
-				*sidecar,
+			// Verify the KZG proof.
+			blob := kzg.Blob(sc.Blob)
+			return sp.bv.VerifyBlobProof(
+				&blob,
+				sc.KzgCommitment,
+				sc.KzgProof,
 			)
 		},
 	)...); err != nil {
