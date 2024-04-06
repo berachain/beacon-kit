@@ -6,7 +6,7 @@
 
 # Starts a Kurtosis enclave containing a local devnet.
 start-devnet:
-	$(MAKE) docker-build VERSION=kurtosis-local start-devnet-no-build
+	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-no-build
 
 # Starts a Kurtosis enclave containing a local devnet without building the image
 start-devnet-no-build:

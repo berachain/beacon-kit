@@ -23,48 +23,53 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package gokzg
 
 import (
-	"errors"
-
-	"github.com/berachain/beacon-kit/mod/da/verifier/ckzg"
-	"github.com/berachain/beacon-kit/mod/da/verifier/gokzg"
-	kzg "github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
-// BlobVerifier is a verifier for blobs.
-type BlobVerifier interface {
-	// VerifyProof verifies the KZG proof that the polynomial represented by the
-	// blob
-	// evaluated at the given point is the claimed value.
-	VerifyKZGProof(
-		commitment kzg.Commitment,
-		point kzg.Point,
-		claim kzg.Claim,
-		proof kzg.Proof,
-	) error
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *kzg.Blob,
-		commitment kzg.Commitment,
-		proof kzg.Proof,
-	) error
+// Verifier is a KZG verifier that uses the Go implementation of KZG.
+type Verifier struct {
+	*gokzg4844.Context
 }
 
-// NewBlobVerifier creates a new BlobVerifier.
-func NewBlobVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (BlobVerifier, error) {
-	switch impl {
-	case "crate-crypto/go-kzg-4844":
-		return gokzg.NewVerifier(ts)
-	case "ethereum/c-kzg-4844":
-		return ckzg.NewVerifier(ts)
-	default:
-		return nil, errors.New("unsupported KZG implementation")
+// NewVerifier creates a new GoKZGVerifier.
+func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
+	ctx, err := gokzg4844.NewContext4096(ts)
+	if err != nil {
+		return nil, err
 	}
+	return &Verifier{ctx}, nil
+}
+
+// VerifyProof verifies the KZG proof that the polynomial represented by the
+// blob evaluated at the given point is the claimed value.
+func (v Verifier) VerifyKZGProof(
+	commitment kzg.Commitment,
+	point kzg.Point,
+	claim kzg.Claim,
+	proof kzg.Proof,
+) error {
+	return v.Context.
+		VerifyKZGProof((gokzg4844.KZGCommitment)(commitment),
+			(gokzg4844.Scalar)(point),
+			(gokzg4844.Scalar)(claim),
+			(gokzg4844.KZGProof)(proof),
+		)
+}
+
+// VerifyProof verifies the KZG proof that the polynomial represented by the
+// blob evaluated at the given point is the claimed value.
+func (v Verifier) VerifyBlobProof(
+	blob *kzg.Blob,
+	commitment kzg.Commitment,
+	proof kzg.Proof,
+) error {
+	return v.Context.
+		VerifyBlobKZGProof(
+			(*gokzg4844.Blob)(blob),
+			(gokzg4844.KZGCommitment)(commitment),
+			(gokzg4844.KZGProof)(proof))
 }
