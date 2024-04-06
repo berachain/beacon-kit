@@ -58,7 +58,13 @@ func (c BeaconChainConfig) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
 // MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
 func (c BeaconChainConfig) WithinDAPeriod(
-	block, current primitives.Epoch,
+	block, current primitives.Slot,
 ) bool {
-	return block+primitives.Epoch(c.MinEpochsForBlobsSidecarsRequest) >= current
+	return c.SlotToEpoch(
+		block,
+	)+primitives.Epoch(
+		c.MinEpochsForBlobsSidecarsRequest,
+	) >= c.SlotToEpoch(
+		current,
+	)
 }
