@@ -40,8 +40,11 @@ type BlobProofVerifier interface {
 		commitment kzg.Commitment,
 	) error
 
-	// VerifyBlobProofBatch verifies that the blob data corresponds to the
-	// provided
+	// VerifyBlobProofBatch verifies the KZG proof that the polynomial
+	// represented
+	// by the blob evaluated at the given point is the claimed value.
+	// For most implementations it is more efficient than VerifyBlobProof when
+	// verifying multiple proofs.
 	VerifyBlobProofBatch(
 		*BlobProofArgs,
 	) error

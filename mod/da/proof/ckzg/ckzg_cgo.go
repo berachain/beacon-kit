@@ -55,8 +55,7 @@ func (v Verifier) VerifyBlobProof(
 }
 
 // VerifyBlobProofBatch verifies the KZG proof that the polynomial represented
-// by the
-// blob evaluated at the given point is the claimed value.
+// by the blob evaluated at the given point is the claimed value.
 // It is more efficient than VerifyBlobProof when verifying multiple proofs.
 func (v Verifier) VerifyBlobProofBatch(
 	args *proof.BlobProofArgs,
