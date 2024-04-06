@@ -26,6 +26,7 @@
 package blobs
 
 import (
+	"context"
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/core"
@@ -34,6 +35,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/sourcegraph/conc/iter"
+	"golang.org/x/sync/errgroup"
 )
 
 // Processor is the processor for blobs.
@@ -54,24 +56,35 @@ func (p *Processor) ProcessBlobs(
 	avs core.AvailabilityStore,
 	sidecars *datypes.BlobSidecars,
 ) error {
-	// Verify that the blob have valid inclusion proofs.
-	if err := errors.Join(iter.Map(
-		sidecars.Sidecars,
-		func(sidecar **datypes.BlobSidecar) error {
-			sc := *sidecar
-			if sc == nil {
-				return ErrAttemptedToVerifyNilSidecar
-			}
+	g, _ := errgroup.WithContext(context.Background())
 
-			// Verify the KZG inclusion proof.
-			return types.VerifyKZGInclusionProof(sc)
-		},
-	)...); err != nil {
-		return err
-	}
+	// Verify the inclusion proofs on the blobs.
+	g.Go(func() error {
+		if err := errors.Join(iter.Map(
+			sidecars.Sidecars,
+			func(sidecar **datypes.BlobSidecar) error {
+				sc := *sidecar
+				if sc == nil {
+					return ErrAttemptedToVerifyNilSidecar
+				}
 
-	// Verify the blobs.
-	if err := p.bv.VerifyBlobs(sidecars); err != nil {
+				// Verify the KZG inclusion proof.
+				return types.VerifyKZGInclusionProof(sc)
+			},
+		)...); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	// Verify the KZG proofs on the blobs.
+	g.Go(func() error {
+		// Verify the blobs.
+		return p.bv.VerifyBlobs(sidecars)
+	})
+
+	// Wait for the goroutines to finish.
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
