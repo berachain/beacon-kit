@@ -71,9 +71,11 @@ func (v Verifier) VerifyBlobProofBatch(
 	for i := range args.Blobs {
 		blobs[i] = *(*gokzg4844.Blob)(args.Blobs[i])
 	}
+
+	//#nosec:G103 // "use of unsafe calls should be audited" lmeow.
 	commitments := (*[]gokzg4844.KZGCommitment)(
-		unsafe.Pointer(&args.Commitments),
-	)
+		unsafe.Pointer(&args.Commitments))
+	//#nosec:G103 // "use of unsafe calls should be audited" lmeow.
 	proofs := (*[]gokzg4844.KZGProof)(unsafe.Pointer(&args.Proofs))
 	return v.Context.
 		VerifyBlobKZGProofBatch(
