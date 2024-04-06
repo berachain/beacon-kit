@@ -23,48 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+//go:build !ckzg
+
+package ckzg
 
 import (
-	"errors"
-
-	"github.com/berachain/beacon-kit/mod/da/verifier/ckzg"
-	"github.com/berachain/beacon-kit/mod/da/verifier/gokzg"
-	kzg "github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// BlobVerifier is a verifier for blobs.
-type BlobVerifier interface {
-	// VerifyProof verifies the KZG proof that the polynomial represented by the
-	// blob
-	// evaluated at the given point is the claimed value.
-	VerifyKZGProof(
-		commitment kzg.Commitment,
-		point kzg.Point,
-		claim kzg.Claim,
-		proof kzg.Proof,
-	) error
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *kzg.Blob,
-		commitment kzg.Commitment,
-		proof kzg.Proof,
-	) error
+// VerifyProof verifies the KZG proof that the polynomial represented by the
+// blob evaluated at the given point is the claimed value.
+func (v Verifier) VerifyKZGProof(
+	kzg.Commitment,
+	kzg.Point,
+	kzg.Claim,
+	kzg.Proof,
+) error {
+	return ErrCGONotEnabled
 }
 
-// NewBlobVerifier creates a new BlobVerifier.
-func NewBlobVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (BlobVerifier, error) {
-	switch impl {
-	case "crate-crypto/go-kzg-4844":
-		return gokzg.NewVerifier(ts)
-	case "ethereum/c-kzg-4844":
-		return ckzg.NewVerifier(ts)
-	default:
-		return nil, errors.New("unsupported KZG implementation")
-	}
+// VerifyProof verifies the KZG proof that the polynomial represented by the
+// blob evaluated at the given point is the claimed value.
+func (v Verifier) VerifyBlobProof(
+	*kzg.Blob,
+	kzg.Commitment,
+	kzg.Proof,
+) error {
+	return ErrCGONotEnabled
 }

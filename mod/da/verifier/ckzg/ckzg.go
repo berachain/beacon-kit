@@ -23,48 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package ckzg
 
 import (
-	"errors"
-
-	"github.com/berachain/beacon-kit/mod/da/verifier/ckzg"
-	"github.com/berachain/beacon-kit/mod/da/verifier/gokzg"
-	kzg "github.com/berachain/beacon-kit/mod/primitives/kzg"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// BlobVerifier is a verifier for blobs.
-type BlobVerifier interface {
-	// VerifyProof verifies the KZG proof that the polynomial represented by the
-	// blob
-	// evaluated at the given point is the claimed value.
-	VerifyKZGProof(
-		commitment kzg.Commitment,
-		point kzg.Point,
-		claim kzg.Claim,
-		proof kzg.Proof,
-	) error
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *kzg.Blob,
-		commitment kzg.Commitment,
-		proof kzg.Proof,
-	) error
-}
+// Verifier is a verifier that utilizies the CKZG library.
+type Verifier struct{}
 
-// NewBlobVerifier creates a new BlobVerifier.
-func NewBlobVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (BlobVerifier, error) {
-	switch impl {
-	case "crate-crypto/go-kzg-4844":
-		return gokzg.NewVerifier(ts)
-	case "ethereum/c-kzg-4844":
-		return ckzg.NewVerifier(ts)
-	default:
-		return nil, errors.New("unsupported KZG implementation")
+// NewVerifier creates a new CKZG verifier.
+//
+//nolint:gomnd // lots of random numbers because cryptography.
+func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
+	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
+		return nil, err
 	}
+	g1s := make(
+		[]byte,
+		len(ts.SetupG1Lagrange)*(len(ts.SetupG1Lagrange[0])-2)/2,
+	)
+	for i, g1 := range ts.SetupG1Lagrange {
+		copy(g1s[i*(len(g1)-2)/2:], hexutil.MustDecode(g1))
+	}
+	g2s := make([]byte, len(ts.SetupG2)*(len(ts.SetupG2[0])-2)/2)
+	for i, g2 := range ts.SetupG2 {
+		copy(g2s[i*(len(g2)-2)/2:], hexutil.MustDecode(g2))
+	}
+	if err := ckzg4844.LoadTrustedSetup(g1s, g2s); err != nil {
+		return nil, err
+	}
+	return &Verifier{}, nil
 }
