@@ -26,46 +26,49 @@
 package da
 
 import (
-	"errors"
-
-	"github.com/berachain/beacon-kit/mod/da/verifier/ckzg"
-	"github.com/berachain/beacon-kit/mod/da/verifier/gokzg"
-	kzg "github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/berachain/beacon-kit/mod/da/proof"
+	"github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// BlobVerifier is a verifier for blobs.
-type BlobVerifier interface {
-	// VerifyProof verifies the KZG proof that the polynomial represented by the
-	// blob
-	// evaluated at the given point is the claimed value.
-	VerifyKZGProof(
-		commitment kzg.Commitment,
-		point kzg.Point,
-		claim kzg.Claim,
-		proof kzg.Proof,
-	) error
-
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *kzg.Blob,
-		commitment kzg.Commitment,
-		proof kzg.Proof,
-	) error
+// BlobProofVerifier is a verifier for blobs.
+type BlobVerifier struct {
+	proofVerifier proof.BlobProofVerifier
 }
 
-// NewBlobVerifier creates a new BlobVerifier with the given implementation.
+// NewBlobVerifier creates a new BlobVerifier with the given proof verifier.
 func NewBlobVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (BlobVerifier, error) {
-	switch impl {
-	case "crate-crypto/go-kzg-4844":
-		return gokzg.NewVerifier(ts)
-	case "ethereum/c-kzg-4844":
-		return ckzg.NewVerifier(ts)
+	proofVerifier proof.BlobProofVerifier,
+) *BlobVerifier {
+	return &BlobVerifier{
+		proofVerifier: proofVerifier,
+	}
+}
+
+// VerifyBlobs verifies the sidecars.
+func (bv *BlobVerifier) VerifyBlobs(
+	scs *types.BlobSidecars,
+) error {
+	switch len(scs.Sidecars) {
+	case 0:
+		return nil
+	case 1:
+		blob := kzg.Blob(scs.Sidecars[0].Blob)
+		return bv.proofVerifier.VerifyBlobProof(
+			&blob,
+			scs.Sidecars[0].KzgProof,
+			scs.Sidecars[0].KzgCommitment,
+		)
 	default:
-		return nil, errors.New("unsupported KZG implementation")
+		proofArgs := make([]proof.BlobProofArgs, len(scs.Sidecars))
+		for i, sc := range scs.Sidecars {
+			blob := kzg.Blob(scs.Sidecars[i].Blob)
+			proofArgs[i] = proof.BlobProofArgs{
+				Blob:       &blob,
+				Proof:      sc.KzgProof,
+				Commitment: sc.KzgCommitment,
+			}
+		}
+		return bv.proofVerifier.VerifyBlobProofBatch(proofArgs...)
 	}
 }

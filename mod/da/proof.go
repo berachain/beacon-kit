@@ -25,18 +25,27 @@
 
 package da
 
-import "errors"
+import (
+	"errors"
 
-var (
-	// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to
-	// store a
-	// nil sidecar.
-	ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
-
-	// ErrAttemptedToVerifyNilSidecars is returned when an attempt is made to
-	// verify
-	// nil sidecars.
-	ErrAttemptedToVerifyNilSidecars = errors.New(
-		"attempted to verify nil sidecars",
-	)
+	"github.com/berachain/beacon-kit/mod/da/proof"
+	"github.com/berachain/beacon-kit/mod/da/proof/ckzg"
+	"github.com/berachain/beacon-kit/mod/da/proof/gokzg"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
+
+// NewBlobProofVerifier creates a new BlobVerifier with the given
+// implementation.
+func NewBlobProofVerifier(
+	impl string,
+	ts *gokzg4844.JSONTrustedSetup,
+) (proof.BlobProofVerifier, error) {
+	switch impl {
+	case "crate-crypto/go-kzg-4844":
+		return gokzg.NewVerifier(ts)
+	case "ethereum/c-kzg-4844":
+		return ckzg.NewVerifier(ts)
+	default:
+		return nil, errors.New("unsupported KZG implementation")
+	}
+}

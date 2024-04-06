@@ -23,53 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package gokzg
+package proof
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
-// Verifier is a KZG verifier that uses the Go implementation of KZG.
-type Verifier struct {
-	*gokzg4844.Context
+// BlobProofVerifier is a verifier for blobs.
+type BlobProofVerifier interface {
+	// VerifyBlobProof verifies that the blob data corresponds to the provided
+	// commitment.
+	VerifyBlobProof(
+		blob *kzg.Blob,
+		proof kzg.Proof,
+		commitment kzg.Commitment,
+	) error
+
+	// VerifyBlobProofBatch verifies that the blob data corresponds to the
+	// provided
+	VerifyBlobProofBatch(
+		...BlobProofArgs,
+	) error
 }
 
-// NewVerifier creates a new GoKZGVerifier.
-func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
-	ctx, err := gokzg4844.NewContext4096(ts)
-	if err != nil {
-		return nil, err
-	}
-	return &Verifier{ctx}, nil
-}
-
-// VerifyProof verifies the KZG proof that the polynomial represented by the
-// blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyKZGProof(
-	commitment kzg.Commitment,
-	point kzg.Point,
-	claim kzg.Claim,
-	proof kzg.Proof,
-) error {
-	return v.Context.
-		VerifyKZGProof((gokzg4844.KZGCommitment)(commitment),
-			(gokzg4844.Scalar)(point),
-			(gokzg4844.Scalar)(claim),
-			(gokzg4844.KZGProof)(proof),
-		)
-}
-
-// VerifyProof verifies the KZG proof that the polynomial represented by the
-// blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyBlobProof(
-	blob *kzg.Blob,
-	commitment kzg.Commitment,
-	proof kzg.Proof,
-) error {
-	return v.Context.
-		VerifyBlobKZGProof(
-			(*gokzg4844.Blob)(blob),
-			(gokzg4844.KZGCommitment)(commitment),
-			(gokzg4844.KZGProof)(proof))
+// BlobProofArgs represents the arguments for a blob proof.
+type BlobProofArgs struct {
+	// Blob is the blob.
+	Blob *kzg.Blob
+	// Proof is the KZG proof.
+	Proof kzg.Proof
+	// Commitment is the KZG commitment.
+	Commitment kzg.Commitment
 }

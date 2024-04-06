@@ -21,6 +21,9 @@ ROOT_DIR := $(shell pwd)
 ###############################################################################
 
 
+anyeong:
+	@echo "I LOVE ANYEONG"
+
 
 .PHONY: clean format lint \
 	buf-install buf-lint-fix buf-lint proto-clean \

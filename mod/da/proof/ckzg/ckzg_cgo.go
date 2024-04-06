@@ -23,31 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build !ckzg
+//go:build ckzg
 
 package ckzg
 
 import (
+	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyKZGProof(
-	kzg.Commitment,
-	kzg.Point,
-	kzg.Claim,
-	kzg.Proof,
+func (v Verifier) VerifyBlobProof(
+	blob *kzg.Blob,
+	proof kzg.Proof,
+	commitment kzg.Commitment,
 ) error {
-	return ErrCGONotEnabled
+	valid, err := ckzg4844.VerifyBlobKZGProof(
+		(*ckzg4844.Blob)(blob),
+		(ckzg4844.Bytes48)(commitment),
+		(ckzg4844.Bytes48)(proof),
+	)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return ErrInvalidProof
+	}
+	return nil
 }
 
-// VerifyProof verifies the KZG proof that the polynomial represented by the
+// VerifyBlobProofBatch verifies the KZG proof that the polynomial represented
+// by the
 // blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyBlobProof(
-	*kzg.Blob,
-	kzg.Commitment,
-	kzg.Proof,
+// It is more efficient than VerifyBlobProof when verifying multiple proofs.
+func (v Verifier) VerifyBlobProofBatch(
+	args ...proof.BlobProofArgs,
 ) error {
-	return ErrCGONotEnabled
+	return nil
 }

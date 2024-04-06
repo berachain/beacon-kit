@@ -33,29 +33,28 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/sourcegraph/conc/iter"
 )
 
 // Processor is the processor for blobs.
 type Processor struct {
-	bv da.BlobVerifier
+	bv *da.BlobVerifier
 }
 
 // NewProcessor creates a new processor.
-func NewProcessor(bv da.BlobVerifier) *Processor {
+func NewProcessor(bv *da.BlobVerifier) *Processor {
 	return &Processor{
 		bv: bv,
 	}
 }
 
 // ProcessBlob processes a blob.
-func (sp *Processor) ProcessBlobs(
+func (p *Processor) ProcessBlobs(
 	slot primitives.Slot,
 	avs core.AvailabilityStore,
 	sidecars *datypes.BlobSidecars,
 ) error {
-	// Ensure the blobs are available.
+	// Verify that the blob have valid inclusion proofs.
 	if err := errors.Join(iter.Map(
 		sidecars.Sidecars,
 		func(sidecar **datypes.BlobSidecar) error {
@@ -65,21 +64,17 @@ func (sp *Processor) ProcessBlobs(
 			}
 
 			// Verify the KZG inclusion proof.
-			if err := types.VerifyKZGInclusionProof(sc); err != nil {
-				return err
-			}
-
-			// Verify the KZG proof.
-			blob := kzg.Blob(sc.Blob)
-			return sp.bv.VerifyBlobProof(
-				&blob,
-				sc.KzgCommitment,
-				sc.KzgProof,
-			)
+			return types.VerifyKZGInclusionProof(sc)
 		},
 	)...); err != nil {
 		return err
 	}
 
+	// Verify the blobs.
+	if err := p.bv.VerifyBlobs(sidecars); err != nil {
+		return err
+	}
+
+	// Persist the blobs to the availability store.
 	return avs.Persist(slot, sidecars)
 }
