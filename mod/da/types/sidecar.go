@@ -51,7 +51,7 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 
 		var nextHtr [32]byte
 		for i := 1; i < len(sc); i++ {
-			nextHtr, err = sc[i].HashTreeRoot()
+			nextHtr, err = sc[i].BeaconBlockHeader.HashTreeRoot()
 			if err != nil {
 				return err
 			}
@@ -71,7 +71,8 @@ type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	Blob kzg.Blob
+	// TODO: Wrangle fastssz to allow us to use kzg.Blob primitive here.
+	Blob []byte `ssz-size:"131072"`
 	// KzgCommitment is the KZG commitment of the blob.
 	KzgCommitment kzg.Commitment `ssz-size:"48"`
 	// Kzg proof allows folr the verification of the KZG commitment.
