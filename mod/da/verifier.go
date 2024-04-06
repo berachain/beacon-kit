@@ -45,8 +45,8 @@ func NewBlobVerifier(
 	}
 }
 
-// VerifyBlobs verifies the sidecars.
-func (bv *BlobVerifier) VerifyBlobs(
+// VerifyKZGProofs verifies the sidecars.
+func (bv *BlobVerifier) VerifyKZGProofs(
 	scs *types.BlobSidecars,
 ) error {
 	switch len(scs.Sidecars) {

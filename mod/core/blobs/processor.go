@@ -79,8 +79,7 @@ func (p *Processor) ProcessBlobs(
 
 	// Verify the KZG proofs on the blobs.
 	g.Go(func() error {
-		// Verify the blobs.
-		return p.bv.VerifyBlobs(sidecars)
+		return p.bv.VerifyKZGProofs(sidecars)
 	})
 
 	// Wait for the goroutines to finish.
