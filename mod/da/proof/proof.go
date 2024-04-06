@@ -26,6 +26,7 @@
 package proof
 
 import (
+	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
@@ -42,16 +43,33 @@ type BlobProofVerifier interface {
 	// VerifyBlobProofBatch verifies that the blob data corresponds to the
 	// provided
 	VerifyBlobProofBatch(
-		...BlobProofArgs,
+		*BlobProofArgs,
 	) error
 }
 
 // BlobProofArgs represents the arguments for a blob proof.
 type BlobProofArgs struct {
 	// Blob is the blob.
-	Blob *kzg.Blob
+	Blobs []*kzg.Blob
 	// Proof is the KZG proof.
-	Proof kzg.Proof
+	Proofs []kzg.Proof
 	// Commitment is the KZG commitment.
-	Commitment kzg.Commitment
+	Commitments []kzg.Commitment
+}
+
+// ArgsFromSidecars converts a BlobSidecars to a slice of BlobProofArgs.
+func ArgsFromSidecars(
+	scs *types.BlobSidecars,
+) *BlobProofArgs {
+	proofArgs := &BlobProofArgs{
+		Blobs:       make([]*kzg.Blob, len(scs.Sidecars)),
+		Proofs:      make([]kzg.Proof, len(scs.Sidecars)),
+		Commitments: make([]kzg.Commitment, len(scs.Sidecars)),
+	}
+	for i, sidecar := range scs.Sidecars {
+		proofArgs.Blobs[i] = (*kzg.Blob)(sidecar.Blob)
+		proofArgs.Proofs[i] = sidecar.KzgProof
+		proofArgs.Commitments[i] = sidecar.KzgCommitment
+	}
+	return proofArgs
 }

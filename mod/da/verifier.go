@@ -53,6 +53,7 @@ func (bv *BlobVerifier) VerifyBlobs(
 	case 0:
 		return nil
 	case 1:
+		// This method is fastest for a single blob.
 		blob := kzg.Blob(scs.Sidecars[0].Blob)
 		return bv.proofVerifier.VerifyBlobProof(
 			&blob,
@@ -60,15 +61,9 @@ func (bv *BlobVerifier) VerifyBlobs(
 			scs.Sidecars[0].KzgCommitment,
 		)
 	default:
-		proofArgs := make([]proof.BlobProofArgs, len(scs.Sidecars))
-		for i, sc := range scs.Sidecars {
-			blob := kzg.Blob(scs.Sidecars[i].Blob)
-			proofArgs[i] = proof.BlobProofArgs{
-				Blob:       &blob,
-				Proof:      sc.KzgProof,
-				Commitment: sc.KzgCommitment,
-			}
-		}
-		return bv.proofVerifier.VerifyBlobProofBatch(proofArgs...)
+		// For multiple blobs batch verification is more performant
+		// than verifying each blob individually (even when done in parallel).
+		return bv.proofVerifier.VerifyBlobProofBatch(
+			proof.ArgsFromSidecars(scs))
 	}
 }

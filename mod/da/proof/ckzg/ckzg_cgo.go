@@ -28,6 +28,8 @@
 package ckzg
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
@@ -40,15 +42,13 @@ func (v Verifier) VerifyBlobProof(
 	proof kzg.Proof,
 	commitment kzg.Commitment,
 ) error {
-	valid, err := ckzg4844.VerifyBlobKZGProof(
+	if valid, err := ckzg4844.VerifyBlobKZGProof(
 		(*ckzg4844.Blob)(blob),
 		(ckzg4844.Bytes48)(commitment),
 		(ckzg4844.Bytes48)(proof),
-	)
-	if err != nil {
+	); err != nil {
 		return err
-	}
-	if !valid {
+	} else if !valid {
 		return ErrInvalidProof
 	}
 	return nil
@@ -59,7 +59,21 @@ func (v Verifier) VerifyBlobProof(
 // blob evaluated at the given point is the claimed value.
 // It is more efficient than VerifyBlobProof when verifying multiple proofs.
 func (v Verifier) VerifyBlobProofBatch(
-	args ...proof.BlobProofArgs,
+	args *proof.BlobProofArgs,
 ) error {
+	blobs := make([]ckzg4844.Blob, len(args.Blobs))
+	for i := range args.Blobs {
+		blobs[i] = *(*ckzg4844.Blob)(args.Blobs[i])
+	}
+	commitments := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Commitments))
+	proofs := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Proofs))
+
+	ok, err := ckzg4844.VerifyBlobKZGProofBatch(blobs, *commitments, *proofs)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrInvalidProof
+	}
 	return nil
 }

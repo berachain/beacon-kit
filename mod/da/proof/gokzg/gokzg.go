@@ -26,6 +26,8 @@
 package gokzg
 
 import (
+	"unsafe"
+
 	proof "github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -63,19 +65,20 @@ func (v Verifier) VerifyBlobProof(
 // by the blob evaluated at the given point is the claimed value.
 // It is more efficient than VerifyBlobProof when verifying multiple proofs.
 func (v Verifier) VerifyBlobProofBatch(
-	args ...proof.BlobProofArgs,
+	args *proof.BlobProofArgs,
 ) error {
-	blobs := make([]gokzg4844.Blob, len(args))
-	commitments := make([]gokzg4844.KZGCommitment, len(args))
-	proofs := make([]gokzg4844.KZGProof, len(args))
-
-	// Convert the arguments to the GoKZG types.
-	for i, arg := range args {
-		blobs[i] = (gokzg4844.Blob)((*arg.Blob))
-		commitments[i] = (gokzg4844.KZGCommitment)(arg.Commitment)
-		proofs[i] = (gokzg4844.KZGProof)(arg.Proof)
+	blobs := make([]gokzg4844.Blob, len(args.Blobs))
+	for i := range args.Blobs {
+		blobs[i] = *(*gokzg4844.Blob)(args.Blobs[i])
 	}
-
+	commitments := (*[]gokzg4844.KZGCommitment)(
+		unsafe.Pointer(&args.Commitments),
+	)
+	proofs := (*[]gokzg4844.KZGProof)(unsafe.Pointer(&args.Proofs))
 	return v.Context.
-		VerifyBlobKZGProofBatch(blobs, commitments, proofs)
+		VerifyBlobKZGProofBatch(
+			blobs,
+			*commitments,
+			*proofs,
+		)
 }

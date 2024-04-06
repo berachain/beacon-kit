@@ -43,7 +43,7 @@ func (v Verifier) VerifyBlobProof(
 
 // VerifyBlobProofBatch will error since cgo is not enabled.
 func (v Verifier) VerifyBlobProofBatch(
-	...proof.BlobProofArgs,
+	*proof.BlobProofArgs,
 ) error {
 	return ErrCGONotEnabled
 }
