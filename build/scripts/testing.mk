@@ -15,12 +15,13 @@
 JWT_PATH = ${TESTAPP_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
 
-# Start beacond
-start:
+
+## Testing:
+start: ## start an ephemeral `beacond` node
 	@JWT_SECRET_PATH=$(JWT_PATH) ./beacond/entrypoint.sh
 
-# Start reth node
-start-reth:
+
+start-reth: ## start an ephemeral `reth` node
 	@rm -rf .tmp/eth-home
 	@docker run \
 	-p 30303:30303 \
@@ -35,8 +36,7 @@ start-reth:
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	
-# Init and start geth node
-start-geth:
+start-geth: ## start an ephemeral `geth` node
 	rm -rf .tmp/geth
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
@@ -60,8 +60,7 @@ start-geth:
 	--authrpc.vhosts "*" \
 	--datadir .tmp/geth
 
-# Start nethermind node
-start-nethermind:
+start-nethermind: ## start an ephemeral `nethermind` node
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -77,8 +76,7 @@ start-nethermind:
 	--Sync.PivotNumber 0 \
 	--Init.ChainSpecPath ../$(TESTAPP_DIR)/eth-nether-genesis.json
 
-# Start besu node
-start-besu:
+start-besu: ## start an ephemeral `besu` node
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -97,15 +95,6 @@ start-besu:
 	--engine-jwt-secret=../../${JWT_PATH}
 
 
-###############################################################################
-###                                Testing                                  ###
-###############################################################################
-
-
-#################
-#      unit     #
-#################
-
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
@@ -113,19 +102,19 @@ LONG_FUZZ_TIME=3m
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 	
-test-unit:
+test-unit: ## run golang unit tests
 	@$(MAKE)
 	@echo "Running unit tests..."
 	go test ./...
 
-test-unit-cover:
+test-unit-cover: ## run golang unit tests with coverage
 	@$(MAKE)
 	@echo "Running unit tests with coverage..."
 	go test -race -coverprofile=test-unit-cover.txt -covermode=atomic ./...
 
 # On MacOS, if there is a linking issue on the fuzz tests, 
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
-test-unit-fuzz:
+test-unit-fuzz: ## run fuzz tests
 	@echo "Running fuzz tests with coverage..."
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
@@ -133,10 +122,6 @@ test-unit-fuzz:
 	go test -fuzz=FuzzHashTreeRoot ./mod/trie/merkleize/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./mod/storage/statedb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./mod/storage/statedb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-
-#################
-#      e2e      #
-#################
 
 test-e2e:
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
