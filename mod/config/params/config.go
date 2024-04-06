@@ -85,6 +85,12 @@ type BeaconChainConfig struct {
 	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
 	// base penalty.
 	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
+
+	// Deneb Values
+	//
+	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
+	// will keep the blobs for.
+	MinEpochsForBlobsSidecarsRequest primitives.Epoch `mapstructure:"min-epochs-for-blobs-sidecars-request"`
 }
 
 func (c BeaconChainConfig) Parse(
@@ -166,6 +172,12 @@ func (c BeaconChainConfig) Parse(
 
 	if c.ProportionalSlashingMultiplier, err = parser.GetUint64(
 		flags.ProportionalSlashingMultiplier,
+	); err != nil {
+		return nil, err
+	}
+
+	if c.MinEpochsForBlobsSidecarsRequest, err = parser.GetCurrentEpoch(
+		flags.MinEpochsForBlobsSidecarsRequest,
 	); err != nil {
 		return nil, err
 	}

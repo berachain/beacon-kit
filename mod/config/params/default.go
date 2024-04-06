@@ -51,5 +51,7 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		MaxWithdrawalsPerPayload:       16,
 		MaxBlobsPerBlock:               6,
 		ProportionalSlashingMultiplier: 1,
+		// Deneb values.
+		MinEpochsForBlobsSidecarsRequest: 4096,
 	}
 }
