@@ -133,7 +133,7 @@ func (c *AppOptionsParser) GetUint(key string) (uint, error) {
 	return handleError(c, cast.ToUintE, key)
 }
 
-// GetCurrentEpoch retrieves a primitives.Epoch value from a configuration key.
+// GetEpoch retrieves a primitives.Epoch value from a configuration key.
 func (c *AppOptionsParser) GetEpoch(
 	key string,
 ) (primitives.Epoch, error) {
