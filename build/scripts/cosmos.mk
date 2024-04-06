@@ -70,6 +70,10 @@ build_tags += pebbledb
 # always include blst
 build_tags += blst
 
+# always include ckzg
+build_tags += ckzg
+build_tags += cgo
+
 whitespace :=
 whitespace += $(whitespace)
 comma := ,

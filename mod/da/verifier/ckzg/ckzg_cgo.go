@@ -23,53 +23,55 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package verifier
+//go:build ckzg
+
+package ckzg
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
-
-// GoKZGVerifier is a KZG verifier that uses the Go implementation of KZG.
-type GoKZGVerifier struct {
-	*gokzg4844.Context
-}
-
-// NewGoKZGVerifier creates a new GoKZGVerifier.
-func NewGoKZGVerifier(ts *gokzg4844.JSONTrustedSetup) (*GoKZGVerifier, error) {
-	ctx, err := gokzg4844.NewContext4096(ts)
-	if err != nil {
-		return nil, err
-	}
-	return &GoKZGVerifier{ctx}, nil
-}
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
-func (v GoKZGVerifier) VerifyKZGProof(
+func (v Verifier) VerifyKZGProof(
 	commitment kzg.Commitment,
 	point kzg.Point,
 	claim kzg.Claim,
 	proof kzg.Proof,
 ) error {
-	return v.Context.
-		VerifyKZGProof((gokzg4844.KZGCommitment)(commitment),
-			(gokzg4844.Scalar)(point),
-			(gokzg4844.Scalar)(claim),
-			(gokzg4844.KZGProof)(proof),
-		)
+	valid, err := ckzg4844.VerifyKZGProof(
+		(ckzg4844.Bytes48)(commitment),
+		(ckzg4844.Bytes32)(point),
+		(ckzg4844.Bytes32)(claim),
+		(ckzg4844.Bytes48)(proof),
+	)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return ErrInvalidProof
+	}
+	return nil
 }
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
-func (v GoKZGVerifier) VerifyBlobProof(
+func (v Verifier) VerifyBlobProof(
 	blob *kzg.Blob,
 	commitment kzg.Commitment,
 	proof kzg.Proof,
 ) error {
-	return v.Context.
-		VerifyBlobKZGProof(
-			(*gokzg4844.Blob)(blob),
-			(gokzg4844.KZGCommitment)(commitment),
-			(gokzg4844.KZGProof)(proof))
+	valid, err := ckzg4844.VerifyBlobKZGProof(
+		(*ckzg4844.Blob)(blob),
+		(ckzg4844.Bytes48)(commitment),
+		(ckzg4844.Bytes48)(proof),
+	)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return ErrInvalidProof
+	}
+	return nil
 }
