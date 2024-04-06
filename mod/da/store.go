@@ -91,6 +91,7 @@ func (s *Store) Persist(
 	// this sidecar is from outside the required DA period, we can skip it.
 	if !s.beaconCfg.WithinDAPeriod(
 		// slot in which the sidecar was included.
+		// (Safe to assume all sidecars are in same slot at this point).
 		sidecars.Sidecars[0].BeaconBlockHeader.Slot,
 		// current slot
 		slot,

@@ -64,7 +64,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	require.NoError(t, err, "Marshalling should not produce an error")
 
 	// Unmarshal the sidecar
-	var unmarshalled types.BlobSidecar
+	unmarshalled := types.BlobSidecar{}
 	err = unmarshalled.UnmarshalSSZ(marshalled)
 	require.NoError(t, err, "Unmarshalling should not produce an error")
 
