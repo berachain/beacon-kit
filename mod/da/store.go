@@ -75,10 +75,7 @@ func (s *Store) Persist(
 	sidecars *types.BlobSidecars,
 ) error {
 	// Exit early if there are no sidecars to store.
-	if sidecars == nil {
-		return nil
-	} else if sidecars.Sidecars == nil ||
-		len(sidecars.Sidecars) == 0 {
+	if len(sidecars.Sidecars) == 0 {
 		return nil
 	}
 
