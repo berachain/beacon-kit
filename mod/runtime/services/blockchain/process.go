@@ -100,8 +100,8 @@ func (s *Service) ProcessBeaconBlock(
 	// is a relatively expensive operation.
 	g.Go(func() error {
 		return s.sp.ProcessBlobs(
+			st,
 			avs,
-			blk,
 			blobs,
 		)
 	})

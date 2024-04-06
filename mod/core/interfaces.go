@@ -63,8 +63,8 @@ type BLSSigner interface {
 // BlobsProcessor is the interface for the blobs processor.
 type BlobsProcessor interface {
 	ProcessBlobs(
+		slot primitives.Slot,
 		avs AvailabilityStore,
-		blk types.BeaconBlock,
 		sidecars *datypes.BlobSidecars,
 	) error
 }
