@@ -71,6 +71,7 @@ type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
+	// TODO: Wrangle fastssz to allow us to use kzg.Blob primitive here.
 	Blob []byte `ssz-size:"131072"`
 	// KzgCommitment is the KZG commitment of the blob.
 	KzgCommitment kzg.Commitment `ssz-size:"48"`
