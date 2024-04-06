@@ -90,7 +90,7 @@ type BeaconChainConfig struct {
 	//
 	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
 	// will keep the blobs for.
-	MinEpochsForBlobsSidecarsRequest primitives.Epoch `mapstructure:"min-epochs-for-blobs-sidecars-request"`
+	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request"`
 }
 
 func (c BeaconChainConfig) Parse(
@@ -134,7 +134,7 @@ func (c BeaconChainConfig) Parse(
 		return nil, err
 	}
 
-	if c.ElectraForkEpoch, err = parser.GetCurrentEpoch(
+	if c.ElectraForkEpoch, err = parser.GetEpoch(
 		flags.ElectraForkEpoch,
 	); err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (c BeaconChainConfig) Parse(
 		return nil, err
 	}
 
-	if c.MinEpochsForBlobsSidecarsRequest, err = parser.GetCurrentEpoch(
+	if c.MinEpochsForBlobsSidecarsRequest, err = parser.GetUint64(
 		flags.MinEpochsForBlobsSidecarsRequest,
 	); err != nil {
 		return nil, err
