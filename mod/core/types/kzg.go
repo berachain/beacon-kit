@@ -27,7 +27,6 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
@@ -63,11 +62,10 @@ const (
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
 func VerifyKZGInclusionProof(
-	root primitives.Root,
 	blob *datypes.BlobSidecar,
 ) error { // TODO: add wrapped type with inclusion proofs
 	verified := trie.VerifyMerkleProof(
-		root[:],
+		blob.BeaconBlockHeader.BodyRoot[:],
 		blob.KzgCommitment.ToHashChunks()[0][:],
 		blob.Index+KZGOffset,
 		blob.InclusionProof,

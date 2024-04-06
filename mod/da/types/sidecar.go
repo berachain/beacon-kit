@@ -46,7 +46,7 @@ type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	Blob *kzg.Blob
+	Blob kzg.Blob
 	// KzgCommitment is the KZG commitment of the blob.
 	KzgCommitment kzg.Commitment `ssz-size:"48"`
 	// Kzg proof allows folr the verification of the KZG commitment.

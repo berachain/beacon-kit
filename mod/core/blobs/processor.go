@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -50,18 +51,12 @@ func NewProcessor(bv BlobVerifier) *Processor {
 
 // ProcessBlob processes a blob.
 func (sp *Processor) ProcessBlobs(
+	slot primitives.Slot,
 	avs core.AvailabilityStore,
-	blk types.BeaconBlock,
 	sidecars *datypes.BlobSidecars,
 ) error {
-	// Verify the KZG inclusion proofs.
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
 	// Ensure the blobs are available.
-	if err = errors.Join(iter.Map(
+	if err := errors.Join(iter.Map(
 		sidecars.Sidecars,
 		func(sidecar **datypes.BlobSidecar) error {
 			if *sidecar == nil {
@@ -69,12 +64,12 @@ func (sp *Processor) ProcessBlobs(
 			}
 			// Store the blobs under a single height.
 			return types.VerifyKZGInclusionProof(
-				bodyRoot, *sidecar,
+				*sidecar,
 			)
 		},
 	)...); err != nil {
 		return err
 	}
 
-	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
+	return avs.Persist(slot, sidecars.Sidecars...)
 }
