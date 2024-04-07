@@ -23,47 +23,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+//go:build ckzg
+
+package ckzg
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/da/proof"
-	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
-// BlobProofVerifier is a verifier for blobs.
-type BlobVerifier struct {
-	proofVerifier proof.BlobProofVerifier
-}
-
-// NewBlobVerifier creates a new BlobVerifier with the given proof verifier.
-func NewBlobVerifier(
-	proofVerifier proof.BlobProofVerifier,
-) *BlobVerifier {
-	return &BlobVerifier{
-		proofVerifier: proofVerifier,
-	}
-}
-
-// VerifyKZGProofs verifies the sidecars.
-func (bv *BlobVerifier) VerifyKZGProofs(
-	scs *types.BlobSidecars,
+// VerifyProof verifies the KZG proof that the polynomial represented by the
+// blob evaluated at the given point is the claimed value.
+func (v Verifier) VerifyBlobProof(
+	blob *kzg.Blob,
+	proof kzg.Proof,
+	commitment kzg.Commitment,
 ) error {
-	switch len(scs.Sidecars) {
-	case 0:
-		return nil
-	case 1:
-		// This method is fastest for a single blob.
-		blob := kzg.Blob(scs.Sidecars[0].Blob)
-		return bv.proofVerifier.VerifyBlobProof(
-			&blob,
-			scs.Sidecars[0].KzgProof,
-			scs.Sidecars[0].KzgCommitment,
-		)
-	default:
-		// For multiple blobs batch verification is more performant
-		// than verifying each blob individually (even when done in parallel).
-		return bv.proofVerifier.VerifyBlobProofBatch(
-			proof.ArgsFromSidecars(scs))
+	if valid, err := ckzg4844.VerifyBlobKZGProof(
+		(*ckzg4844.Blob)(blob),
+		(ckzg4844.Bytes48)(commitment),
+		(ckzg4844.Bytes48)(proof),
+	); err != nil {
+		return err
+	} else if !valid {
+		return ErrInvalidProof
 	}
+	return nil
+}
+
+// VerifyBlobProofBatch verifies the KZG proof that the polynomial represented
+// by the blob evaluated at the given point is the claimed value.
+// It is more efficient than VerifyBlobProof when verifying multiple proofs.
+func (v Verifier) VerifyBlobProofBatch(
+	args *proof.BlobProofArgs,
+) error {
+	blobs := make([]ckzg4844.Blob, len(args.Blobs))
+	for i := range args.Blobs {
+		blobs[i] = *(*ckzg4844.Blob)(args.Blobs[i])
+	}
+	commitments := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Commitments))
+	proofs := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Proofs))
+
+	ok, err := ckzg4844.VerifyBlobKZGProofBatch(blobs, *commitments, *proofs)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrInvalidProof
+	}
+	return nil
 }

@@ -23,35 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package ckzg
 
-import "github.com/ethereum/go-ethereum/common"
+import "errors"
 
-func DefaultBeaconConfig() BeaconChainConfig {
-	//nolint:gomnd // default settings.
-	return BeaconChainConfig{
-		// Gwei value constants.
-		MinDepositAmount:          uint64(1e9),
-		MaxEffectiveBalance:       uint64(32e9),
-		EffectiveBalanceIncrement: uint64(1e9),
-		// Time parameters constants.
-		SlotsPerEpoch:          8,
-		SlotsPerHistoricalRoot: 1,
-		// Eth1-related values.
-		DepositContractAddress: common.HexToAddress(
-			"0x00000000219ab540356cbb839cbe05303d7705fa",
-		),
-		// Fork-related values.
-		ElectraForkEpoch: 9999999999999999,
-		// State list length constants.
-		EpochsPerHistoricalVector: 8,
-		EpochsPerSlashingsVector:  1,
-		// Max operations per block constants.
-		MaxDepositsPerBlock:            16,
-		MaxWithdrawalsPerPayload:       16,
-		MaxBlobsPerBlock:               6,
-		ProportionalSlashingMultiplier: 1,
-		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: 4096,
-	}
-}
+var (
+	// ErrInvalidProof is returned when a proof is invalid.
+	ErrInvalidProof = errors.New("invalid proof")
+
+	// ErrCGONotEnabled is returned when cgo is not enabled.
+	ErrCGONotEnabled = errors.New("cgo is not enabled")
+)

@@ -23,30 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+//go:build !ckzg
+
+package ckzg
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
+	"github.com/berachain/beacon-kit/mod/da/proof"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// VerifySignature checks if a given signature is valid for a message and public
-// key.
-// It returns true if the signature is valid, otherwise it panics if an error
-// occurs during the verification process.
-func VerifySignature(
-	pubKey primitives.BLSPubkey,
-	msg []byte,
-	signature primitives.BLSSignature,
-) bool {
-	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
-	if err != nil {
-		return false
-	}
-	sig, err := blst.SignatureFromBytes(signature[:])
-	if err != nil {
-		return false
-	}
+// VerifyBlobProof will error since cgo is not enabled.
+func (v Verifier) VerifyBlobProof(
+	*kzg.Blob,
+	kzg.Proof,
+	kzg.Commitment,
+) error {
+	return ErrCGONotEnabled
+}
 
-	return sig.Verify(pubkey, msg)
+// VerifyBlobProofBatch will error since cgo is not enabled.
+func (v Verifier) VerifyBlobProofBatch(
+	*proof.BlobProofArgs,
+) error {
+	return ErrCGONotEnabled
 }

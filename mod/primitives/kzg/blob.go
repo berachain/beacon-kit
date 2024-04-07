@@ -23,35 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package kzg
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"reflect"
 
-func DefaultBeaconConfig() BeaconChainConfig {
-	//nolint:gomnd // default settings.
-	return BeaconChainConfig{
-		// Gwei value constants.
-		MinDepositAmount:          uint64(1e9),
-		MaxEffectiveBalance:       uint64(32e9),
-		EffectiveBalanceIncrement: uint64(1e9),
-		// Time parameters constants.
-		SlotsPerEpoch:          8,
-		SlotsPerHistoricalRoot: 1,
-		// Eth1-related values.
-		DepositContractAddress: common.HexToAddress(
-			"0x00000000219ab540356cbb839cbe05303d7705fa",
-		),
-		// Fork-related values.
-		ElectraForkEpoch: 9999999999999999,
-		// State list length constants.
-		EpochsPerHistoricalVector: 8,
-		EpochsPerSlashingsVector:  1,
-		// Max operations per block constants.
-		MaxDepositsPerBlock:            16,
-		MaxWithdrawalsPerPayload:       16,
-		MaxBlobsPerBlock:               6,
-		ProportionalSlashingMultiplier: 1,
-		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: 4096,
-	}
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
+
+// Blob represents an EIP-4844 data blob.
+type Blob [131072]byte
+
+// UnmarshalJSON parses a blob in hex syntax.
+func (b *Blob) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+}
+
+// MarshalText returns the hex representation of b.
+func (b Blob) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(b[:]).MarshalText()
 }

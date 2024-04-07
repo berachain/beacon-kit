@@ -27,11 +27,9 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -64,11 +62,10 @@ const (
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
 func VerifyKZGInclusionProof(
-	root primitives.Root,
 	blob *datypes.BlobSidecar,
 ) error { // TODO: add wrapped type with inclusion proofs
 	verified := trie.VerifyMerkleProof(
-		root[:],
+		blob.BeaconBlockHeader.BodyRoot[:],
 		blob.KzgCommitment.ToHashChunks()[0][:],
 		blob.Index+KZGOffset,
 		blob.InclusionProof,
@@ -143,12 +140,8 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
 func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
 	leaves := make([][]byte, len(commitments))
-	for i, kzg := range commitments {
-		chunk := make([][32]byte, Two)
-		copy(chunk[0][:], kzg[:])
-		copy(chunk[1][:], kzg[RootLength:])
-		gohashtree.HashChunks(chunk, chunk)
-		leaves[i] = chunk[0][:]
+	for i, commitment := range commitments {
+		leaves[i] = commitment.ToHashChunks()[0][:]
 	}
 	return leaves
 }

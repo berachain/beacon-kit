@@ -23,47 +23,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package proof
 
 import (
-	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
 // BlobProofVerifier is a verifier for blobs.
-type BlobVerifier struct {
-	proofVerifier proof.BlobProofVerifier
+type BlobProofVerifier interface {
+	// VerifyBlobProof verifies that the blob data corresponds to the provided
+	// commitment.
+	VerifyBlobProof(
+		blob *kzg.Blob,
+		proof kzg.Proof,
+		commitment kzg.Commitment,
+	) error
+
+	// VerifyBlobProofBatch verifies the KZG proof that the polynomial
+	// represented
+	// by the blob evaluated at the given point is the claimed value.
+	// For most implementations it is more efficient than VerifyBlobProof when
+	// verifying multiple proofs.
+	VerifyBlobProofBatch(
+		*BlobProofArgs,
+	) error
 }
 
-// NewBlobVerifier creates a new BlobVerifier with the given proof verifier.
-func NewBlobVerifier(
-	proofVerifier proof.BlobProofVerifier,
-) *BlobVerifier {
-	return &BlobVerifier{
-		proofVerifier: proofVerifier,
-	}
+// BlobProofArgs represents the arguments for a blob proof.
+type BlobProofArgs struct {
+	// Blob is the blob.
+	Blobs []*kzg.Blob
+	// Proof is the KZG proof.
+	Proofs []kzg.Proof
+	// Commitment is the KZG commitment.
+	Commitments []kzg.Commitment
 }
 
-// VerifyKZGProofs verifies the sidecars.
-func (bv *BlobVerifier) VerifyKZGProofs(
+// ArgsFromSidecars converts a BlobSidecars to a slice of BlobProofArgs.
+func ArgsFromSidecars(
 	scs *types.BlobSidecars,
-) error {
-	switch len(scs.Sidecars) {
-	case 0:
-		return nil
-	case 1:
-		// This method is fastest for a single blob.
-		blob := kzg.Blob(scs.Sidecars[0].Blob)
-		return bv.proofVerifier.VerifyBlobProof(
-			&blob,
-			scs.Sidecars[0].KzgProof,
-			scs.Sidecars[0].KzgCommitment,
-		)
-	default:
-		// For multiple blobs batch verification is more performant
-		// than verifying each blob individually (even when done in parallel).
-		return bv.proofVerifier.VerifyBlobProofBatch(
-			proof.ArgsFromSidecars(scs))
+) *BlobProofArgs {
+	proofArgs := &BlobProofArgs{
+		Blobs:       make([]*kzg.Blob, len(scs.Sidecars)),
+		Proofs:      make([]kzg.Proof, len(scs.Sidecars)),
+		Commitments: make([]kzg.Commitment, len(scs.Sidecars)),
 	}
+	for i, sidecar := range scs.Sidecars {
+		proofArgs.Blobs[i] = (*kzg.Blob)(sidecar.Blob)
+		proofArgs.Proofs[i] = sidecar.KzgProof
+		proofArgs.Commitments[i] = sidecar.KzgCommitment
+	}
+	return proofArgs
 }

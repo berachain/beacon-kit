@@ -1,10 +1,5 @@
 #!/usr/bin/make -f
 
-# cosmos.mk contains the build configuration for this project as
-# forked from the cosmos-sdk https://github.com/cosmos/cosmos-sdk/tree/main/Makefile
-# It is moved here to reduce clutter in the main Makefile and to make it easier to
-# update.
-
 export VERSION := $(shell echo $(shell git describe --tags --always --match "v*") | sed 's/^v//')
 export COMMIT := $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
@@ -16,32 +11,6 @@ PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags
 build_tags = netgo
-ifeq ($(LEDGER_ENABLED),true)
-	ifeq ($(OS),Windows_NT)
-	GCCEXE = $(shell where gcc.exe 2> NUL)
-	ifeq ($(GCCEXE),)
-		$(error gcc.exe not installed for ledger support, please install or set LEDGER_ENABLED=false)
-	else
-		build_tags += ledger
-	endif
-	else
-	UNAME_S = $(shell uname -s)
-	ifeq ($(UNAME_S),OpenBSD)
-		$(warning OpenBSD detected, disabling ledger support (https://github.com/cosmos/cosmos-sdk/issues/1988))
-	else
-		GCC = $(shell command -v gcc 2> /dev/null)
-		ifeq ($(GCC),)
-			$(error gcc not installed for ledger support, please install or set LEDGER_ENABLED=false)
-		else
-			build_tags += ledger
-		endif
-	endif
-	endif
-endif
-
-ifeq (secp,$(findstring secp,$(COSMOS_BUILD_OPTIONS)))
-  build_tags += libsecp256k1_sdk
-endif
 
 ifeq (legacy,$(findstring legacy,$(COSMOS_BUILD_OPTIONS)))
   build_tags += app_v1
@@ -69,6 +38,10 @@ build_tags += pebbledb
 
 # always include blst
 build_tags += blst
+
+# always include ckzg
+build_tags += ckzg
+build_tags += cgo
 
 whitespace :=
 whitespace += $(whitespace)
@@ -101,3 +74,41 @@ endif
 ifeq (debug,$(findstring debug,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -gcflags "all=-N -l"
 endif
+
+# This allows us to reuse the build target steps for both go build and go install
+BUILD_TARGETS := build install
+
+## Build: 
+build: BUILD_ARGS=-o $(OUT_DIR)/beacond ## build `beacond`
+
+$(BUILD_TARGETS): $(OUT_DIR)/
+	@echo "Building ${TESTAPP_CMD_DIR}"
+	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
+
+$(OUT_DIR)/:
+	mkdir -p $(OUT_DIR)/
+
+	# Variables
+ARCH ?= $(shell uname -m)
+ifeq ($(ARCH),)
+	ARCH = arm64
+endif
+GO_VERSION ?= 1.22.1
+IMAGE_NAME ?= beacond
+
+# Docker Paths
+DOCKERFILE = ./Dockerfile
+
+build-docker: ## build a docker image containing `beacond`
+	@echo "Build a release docker image for the Cosmos SDK chain..."
+	docker build \
+	--build-arg GO_VERSION=$(GO_VERSION) \
+	--platform linux/$(ARCH) \
+	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
+	--build-arg GIT_VERSION=$(shell git describe --tags --always --dirty) \
+	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
+	--build-arg GOOS=linux \
+	--build-arg GOARCH=$(ARCH) \
+	-f ${DOCKERFILE} \
+	-t $(IMAGE_NAME):$(VERSION) \
+	.

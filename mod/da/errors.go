@@ -27,6 +27,16 @@ package da
 
 import "errors"
 
-// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to store a
-// nil sidecar.
-var ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
+var (
+	// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to
+	// store a
+	// nil sidecar.
+	ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
+
+	// ErrAttemptedToVerifyNilSidecars is returned when an attempt is made to
+	// verify
+	// nil sidecars.
+	ErrAttemptedToVerifyNilSidecars = errors.New(
+		"attempted to verify nil sidecars",
+	)
+)

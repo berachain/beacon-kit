@@ -23,35 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package ckzg
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
-func DefaultBeaconConfig() BeaconChainConfig {
-	//nolint:gomnd // default settings.
-	return BeaconChainConfig{
-		// Gwei value constants.
-		MinDepositAmount:          uint64(1e9),
-		MaxEffectiveBalance:       uint64(32e9),
-		EffectiveBalanceIncrement: uint64(1e9),
-		// Time parameters constants.
-		SlotsPerEpoch:          8,
-		SlotsPerHistoricalRoot: 1,
-		// Eth1-related values.
-		DepositContractAddress: common.HexToAddress(
-			"0x00000000219ab540356cbb839cbe05303d7705fa",
-		),
-		// Fork-related values.
-		ElectraForkEpoch: 9999999999999999,
-		// State list length constants.
-		EpochsPerHistoricalVector: 8,
-		EpochsPerSlashingsVector:  1,
-		// Max operations per block constants.
-		MaxDepositsPerBlock:            16,
-		MaxWithdrawalsPerPayload:       16,
-		MaxBlobsPerBlock:               6,
-		ProportionalSlashingMultiplier: 1,
-		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: 4096,
+// Verifier is a verifier that utilizies the CKZG library.
+type Verifier struct{}
+
+// NewVerifier creates a new CKZG verifier.
+//
+//nolint:gomnd // lots of random numbers because cryptography.
+func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
+	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
+		return nil, err
 	}
+	g1s := make(
+		[]byte,
+		len(ts.SetupG1Lagrange)*(len(ts.SetupG1Lagrange[0])-2)/2,
+	)
+	for i, g1 := range ts.SetupG1Lagrange {
+		copy(g1s[i*(len(g1)-2)/2:], hexutil.MustDecode(g1))
+	}
+	g2s := make([]byte, len(ts.SetupG2)*(len(ts.SetupG2[0])-2)/2)
+	for i, g2 := range ts.SetupG2 {
+		copy(g2s[i*(len(g2)-2)/2:], hexutil.MustDecode(g2))
+	}
+	if err := ckzg4844.LoadTrustedSetup(g1s, g2s); err != nil {
+		return nil, err
+	}
+	return &Verifier{}, nil
 }

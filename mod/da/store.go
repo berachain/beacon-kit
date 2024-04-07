@@ -29,6 +29,7 @@ import (
 	"context"
 	"errors"
 
+	params "github.com/berachain/beacon-kit/mod/config/params"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -39,13 +40,18 @@ import (
 
 // Store is the default implementation of the AvailabilityStore.
 type Store struct {
+	beaconCfg *params.BeaconChainConfig
 	*filedb.RangeDB
 }
 
 // NewStore creates a new instance of the AvailabilityStore.
-func NewStore(db db.DB) *Store {
+func NewStore(
+	beaconCfg *params.BeaconChainConfig,
+	db db.DB,
+) *Store {
 	return &Store{
-		RangeDB: filedb.NewRangeDB(db),
+		beaconCfg: beaconCfg,
+		RangeDB:   filedb.NewRangeDB(db),
 	}
 }
 
@@ -66,10 +72,33 @@ func (s *Store) IsDataAvailable(
 // processing for efficiency.
 func (s *Store) Persist(
 	slot primitives.Slot,
-	sidecars ...*types.BlobSidecar,
+	sidecars *types.BlobSidecars,
 ) error {
+	// Exit early if there are no sidecars to store.
+	if len(sidecars.Sidecars) == 0 {
+		return nil
+	}
+
+	// Ensure that all sidecars have the same block root.
+	if err := sidecars.ValidateBlockRoots(); err != nil {
+		return err
+	}
+
+	// Check to see if we are required to store the sidecar anymore, if
+	// this sidecar is from outside the required DA period, we can skip it.
+	if !s.beaconCfg.WithinDAPeriod(
+		// slot in which the sidecar was included.
+		// (Safe to assume all sidecars are in same slot at this point).
+		sidecars.Sidecars[0].BeaconBlockHeader.Slot,
+		// current slot
+		slot,
+	) {
+		return nil
+	}
+
+	// Store each sidecar in parallel.
 	return errors.Join(iter.Map(
-		sidecars,
+		sidecars.Sidecars,
 		func(sidecar **types.BlobSidecar) error {
 			if *sidecar == nil {
 				return ErrAttemptedToStoreNilSidecar
