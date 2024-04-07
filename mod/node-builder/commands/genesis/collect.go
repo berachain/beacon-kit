@@ -38,6 +38,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -145,7 +146,10 @@ func CollectValidatorJSONFiles(
 		}
 
 		var bz []byte
-		bz, err = os.ReadFile(filepath.Join(genTxsDir, fo.Name()))
+		bz, err = afero.ReadFile(
+			afero.NewOsFs(),
+			filepath.Join(genTxsDir, fo.Name()),
+		)
 		if err != nil {
 			return nil, err
 		}

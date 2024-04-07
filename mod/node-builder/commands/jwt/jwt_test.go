@@ -32,6 +32,7 @@ import (
 
 	jwt "github.com/berachain/beacon-kit/mod/node-builder/commands/jwt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -110,11 +111,12 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 }
 
 func checkAuthFileIntegrity(t testing.TB, fPath string) {
-	fileInfo, err := os.Stat(fPath)
+	fs := afero.NewOsFs()
+	fileInfo, err := fs.Stat(fPath)
 	require.NoError(t, err)
 	require.NotNil(t, fileInfo)
 
-	enc, err := os.ReadFile(fPath) // Updated to use os.ReadFile directly
+	enc, err := afero.ReadFile(fs, fPath)
 	require.NoError(t, err)
 	decoded, err := hexutil.Decode(string(enc))
 	require.NoError(t, err)
