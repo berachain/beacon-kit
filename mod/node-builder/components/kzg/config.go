@@ -27,11 +27,11 @@ package kzg
 
 import (
 	"encoding/json"
-	"os"
 
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/afero"
 )
 
 const (
@@ -79,7 +79,7 @@ func (c Config) Parse(
 
 // ReadTrustedSetup reads the trusted setup from the file system.
 func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
-	config, err := os.ReadFile(filePath)
+	config, err := afero.ReadFile(afero.NewOsFs(), filePath)
 	if err != nil {
 		return nil, err
 	}
