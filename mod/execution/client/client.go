@@ -282,7 +282,7 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 	)
 
 	// Build the JWT headers for the execution client.
-	headers, err := s.buildJWTHeaders()
+	headers, err := s.buildJWTHeader()
 	if err != nil {
 		return err
 	}
@@ -311,18 +311,19 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 	return nil
 }
 
-// buildJWTHeaders builds the JWT headers for the execution client.
-func (s *EngineClient) buildJWTHeaders() (http.Header, error) {
-	headers := make(http.Header)
+// buildJWTHeader builds an http.Header that has the JWT token
+// attached for authorization.
+func (s *EngineClient) buildJWTHeader() (http.Header, error) {
+	header := make(http.Header)
 
 	// Build the JWT token.
 	token, err := s.jwtSecret.BuildSignedJWT()
 	if err != nil {
 		s.logger.Error("failed to build JWT token", "err", err)
-		return headers, err
+		return header, err
 	}
 
 	// Add the JWT token to the headers.
-	headers.Set("Authorization", "Bearer "+token)
-	return headers, nil
+	header.Set("Authorization", "Bearer "+token)
+	return header, nil
 }
