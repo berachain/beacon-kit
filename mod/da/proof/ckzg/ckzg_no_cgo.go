@@ -23,55 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build ckzg
+//go:build !ckzg
 
 package ckzg
 
 import (
+	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
-// VerifyProof verifies the KZG proof that the polynomial represented by the
-// blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyKZGProof(
-	commitment kzg.Commitment,
-	point kzg.Point,
-	claim kzg.Claim,
-	proof kzg.Proof,
+// VerifyBlobProof will error since cgo is not enabled.
+func (v Verifier) VerifyBlobProof(
+	*kzg.Blob,
+	kzg.Proof,
+	kzg.Commitment,
 ) error {
-	valid, err := ckzg4844.VerifyKZGProof(
-		(ckzg4844.Bytes48)(commitment),
-		(ckzg4844.Bytes32)(point),
-		(ckzg4844.Bytes32)(claim),
-		(ckzg4844.Bytes48)(proof),
-	)
-	if err != nil {
-		return err
-	}
-	if !valid {
-		return ErrInvalidProof
-	}
-	return nil
+	return ErrCGONotEnabled
 }
 
-// VerifyProof verifies the KZG proof that the polynomial represented by the
-// blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyBlobProof(
-	blob *kzg.Blob,
-	commitment kzg.Commitment,
-	proof kzg.Proof,
+// VerifyBlobProofBatch will error since cgo is not enabled.
+func (v Verifier) VerifyBlobProofBatch(
+	*proof.BlobProofArgs,
 ) error {
-	valid, err := ckzg4844.VerifyBlobKZGProof(
-		(*ckzg4844.Blob)(blob),
-		(ckzg4844.Bytes48)(commitment),
-		(ckzg4844.Bytes48)(proof),
-	)
-	if err != nil {
-		return err
-	}
-	if !valid {
-		return ErrInvalidProof
-	}
-	return nil
+	return ErrCGONotEnabled
 }

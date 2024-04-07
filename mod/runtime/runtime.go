@@ -124,20 +124,23 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
-	// Build the Blob Verifier.
-	blobVerifier, err := da.NewBlobVerifier(
-		cfg.KZG.KZGImplementation, kzgTrustedSetup)
+	// Build the Blobs Vierifer
+	blobProofVerifier, err := da.NewBlobProofVerifier(
+		cfg.KZG.Implementation, kzgTrustedSetup,
+	)
 	if err != nil {
 		return nil, err
 	}
+
 	logger.Info(
 		"successfully loaded blob verifier",
 		"impl",
-		cfg.KZG.KZGImplementation,
+		cfg.KZG.Implementation,
 	)
 
 	// Build the Blobs Processor.
-	blobsProcessor := blobs.NewProcessor(blobVerifier)
+	blobsProcessor := blobs.NewProcessor(
+		da.NewBlobVerifier(blobProofVerifier))
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(
