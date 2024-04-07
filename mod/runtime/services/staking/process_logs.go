@@ -80,7 +80,7 @@ func (s *Service) processDepositLog(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
 
-	return st.EnqueueDeposits([]*beacontypes.Deposit{{
+	return st.EnqueueDeposits(beacontypes.Deposits{{
 		Index:       d.Index,
 		Pubkey:      primitives.BLSPubkey(d.Pubkey),
 		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
