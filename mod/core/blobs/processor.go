@@ -62,6 +62,17 @@ func (p *Processor) ProcessBlobs(
 	avs core.AvailabilityStore,
 	sidecars *datypes.BlobSidecars,
 ) error {
+	// If there are no blobs to verify, return early.
+	numBlobs := len(sidecars.Sidecars)
+	if numBlobs == 0 {
+		p.logger.Info(
+			"no blobs to verify, skipping verifier 🙆‍♀️",
+			"slot",
+			slot,
+		)
+		return nil
+	}
+
 	g, _ := errgroup.WithContext(context.Background())
 
 	// Verify the inclusion proofs on the blobs.
@@ -96,7 +107,9 @@ func (p *Processor) ProcessBlobs(
 	p.logger.Info(
 		"successfully verified all blob sidecars 💦",
 		"num_blobs",
-		len(sidecars.Sidecars),
+		numBlobs,
+		"slot",
+		slot,
 	)
 
 	// Persist the blobs to the availability store.
