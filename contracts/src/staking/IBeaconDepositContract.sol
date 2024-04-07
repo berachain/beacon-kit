@@ -49,22 +49,6 @@ interface IBeaconDepositContract {
         uint64 index
     );
 
-    /**
-     * @dev Emitted when a withdrawal is made from a validator.
-     * @param fromPubkey The public key of the validator that is being withdrawn from.
-     * @param credentials The public key of the account that is withdrawing the stake.
-     * @param withdrawalCredentials The public key of the account that will receive the withdrawal.
-     * @param amount The amount to be withdrawn from the validator, in Gwei.
-     * @param index The index of the withdrawal.
-     */
-    event Withdrawal(
-        bytes fromPubkey,
-        bytes credentials,
-        bytes withdrawalCredentials,
-        uint64 amount,
-        uint64 index
-    );
-
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        ERRORS                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -87,9 +71,6 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();
 
-    /// @dev Error thrown when the withdrawal amount is too small, to prevent dust withdrawals.
-    error InsufficientWithdrawalAmount();
-
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        WRITES                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -111,19 +92,4 @@ interface IBeaconDepositContract {
     )
         external
         payable;
-
-    /**
-     * @notice Submit a withdrawal message to the Beaconchain.
-     * @notice This function is callable by the account with the stake.
-     * @param pubkey is the public key of the validator we are withdrawing from.
-     * @param withdrawalCredentials is the public key of the account that will receive the withdrawal.
-     * @param amount is the amount of stake to be withdrawn, in Gwei. The amount needs to be calculated offchain since
-     * validator tokens are not fungible, and their shares -> stake amount can differ if there is a slashing event.
-     */
-    function withdraw(
-        bytes calldata pubkey,
-        bytes calldata withdrawalCredentials,
-        uint64 amount
-    )
-        external;
 }

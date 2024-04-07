@@ -150,78 +150,6 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_WithdrawWrongPubKey(bytes calldata pubKey) public {
-        vm.assume(pubKey.length != 48);
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.withdraw(pubKey, WITHDRAWAL_CREDENTIALS, 32e9);
-    }
-
-    function test_WithdrawWrongPubKey() public {
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.withdraw(
-            bytes("wrong_pub_key"), WITHDRAWAL_CREDENTIALS, 32e9
-        );
-    }
-
-    function testFuzz_WithdrawWrongWithdrawalCredentials(
-        bytes calldata withdrawalCredentials
-    )
-        public
-    {
-        vm.assume(withdrawalCredentials.length != 32);
-        vm.expectRevert(
-            IBeaconDepositContract.InvalidCredentialsLength.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, withdrawalCredentials, 32e9
-        );
-    }
-
-    function test_WithdrawWrongWithdrawCredentials() public {
-        vm.expectRevert(
-            IBeaconDepositContract.InvalidCredentialsLength.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9
-        );
-    }
-
-    function testFuzz_WithdrawWrongAmount(uint256 amount) public {
-        amount = _bound(amount, 1, 32e9 / 10 - 1);
-
-        vm.expectRevert(
-            IBeaconDepositContract.InsufficientWithdrawalAmount.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, uint64(amount)
-        );
-    }
-
-    function test_WithdrawWrongAmount() public {
-        vm.expectRevert(
-            IBeaconDepositContract.InsufficientWithdrawalAmount.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9 / 10 - 1
-        );
-    }
-
-    function testWithdraw() public {
-        vm.expectEmit(true, true, true, true);
-
-        vm.prank(depositor);
-        emit IBeaconDepositContract.Withdrawal(
-            VALIDATOR_PUBKEY,
-            _credential(depositor),
-            WITHDRAWAL_CREDENTIALS,
-            32e9,
-            0
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
-        );
-    }
-
     function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther)
         public
     {
@@ -310,27 +238,6 @@ contract DepositContractTest is SoladyTest {
             ++depositCount;
         }
         assertEq(depositContract.depositCount(), depositCount);
-    }
-
-    function testFuzz_WithdrawCount(uint256 count) public {
-        count = _bound(count, 1, 100);
-        testFuzz_DepositCount(count);
-        uint64 withdrawalCount;
-        for (uint256 i; i < count; ++i) {
-            vm.expectEmit(true, true, true, true);
-            emit IBeaconDepositContract.Withdrawal(
-                VALIDATOR_PUBKEY,
-                _credential(depositor),
-                WITHDRAWAL_CREDENTIALS,
-                32 gwei,
-                withdrawalCount
-            );
-            depositContract.withdraw(
-                VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
-            );
-            ++withdrawalCount;
-        }
-        assertEq(depositContract.withdrawalCount(), withdrawalCount);
     }
 
     function _credential(address addr) internal pure returns (bytes memory) {

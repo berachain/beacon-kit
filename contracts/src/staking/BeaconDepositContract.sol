@@ -30,7 +30,7 @@ import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
 /**
  * @title BeaconDepositContract
  * @author Berachain Team
- * @notice A contract that handles deposits and withdrawals of stake.
+ * @notice A contract that handles deposits of stake.
  * @dev Its events are used by the beacon chain to manage the staking process.
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
@@ -42,11 +42,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @dev The minimum amount of stake that can be deposited to prevent dust.
     /// @dev This is 32 ether in Gwei since our deposit contract denominates in Gwei. 32e9 * 1e9 = 32e18.
     uint64 private constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 32e9;
-
-    /// @dev The minimum amount of stake that can be withdrawn to prevent dust.
-    /// leaving the buffer for their deposit to be slashed.
-    uint256 private constant MIN_WITHDRAWAL_AMOUNT_IN_GWEI =
-        MIN_DEPOSIT_AMOUNT_IN_GWEI / 10;
 
     /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
     uint8 private constant PUBLIC_KEY_LENGTH = 48;
@@ -64,9 +59,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @dev depositCount represents the number of deposits that
     /// have been made to the contract.
     uint64 public depositCount;
-    /// @dev withdrawalCount represents the number of withdrawals that
-    /// have been requested.
-    uint64 public withdrawalCount;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
@@ -104,36 +96,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
             emit Deposit(
                 pubkey, credentials, amountInGwei, signature, depositCount++
-            );
-        }
-    }
-
-    /// @inheritdoc IBeaconDepositContract
-    function withdraw(
-        bytes calldata pubkey,
-        bytes calldata withdrawalCredentials,
-        uint64 amount
-    )
-        external
-    {
-        if (pubkey.length != PUBLIC_KEY_LENGTH) {
-            revert InvalidPubKeyLength();
-        }
-
-        if (withdrawalCredentials.length != CREDENTIALS_LENGTH) {
-            revert InvalidCredentialsLength();
-        }
-
-        if (amount < MIN_WITHDRAWAL_AMOUNT_IN_GWEI) {
-            revert InsufficientWithdrawalAmount();
-        }
-        unchecked {
-            emit Withdrawal(
-                pubkey,
-                _toCredentials(msg.sender),
-                withdrawalCredentials,
-                amount,
-                withdrawalCount++
             );
         }
     }
