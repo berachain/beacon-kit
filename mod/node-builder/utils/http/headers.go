@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/cockroachdb/errors"
-	"github.com/ethereum/go-ethereum/node"
 )
 
 // NewHeaderWithJWT creates a new HTTP header with a JWT token.
@@ -50,5 +49,11 @@ func AddJWTHeader(header http.Header, secret *jwt.Secret) error {
 	} else if header == nil {
 		return errors.New("http.Header is nil")
 	}
-	return node.NewJWTAuth(*secret)(header)
+
+	signedJWT, err := secret.BuildSignedJWT()
+	if err != nil {
+		return errors.Wrap(err, "failed to build signed JWT")
+	}
+	header.Set("Authorization", "Bearer "+signedJWT)
+	return nil
 }

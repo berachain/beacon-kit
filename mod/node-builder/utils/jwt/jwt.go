@@ -27,11 +27,14 @@ package jwt
 
 import (
 	"crypto/rand"
+	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/afero"
 )
 
@@ -84,6 +87,18 @@ func NewRandom() (*Secret, error) {
 		return nil, err
 	}
 	return NewFromHex(hexutil.Encode(secret))
+}
+
+// BuildSignedJWT builds a signed JWT from the provided JWT secret.
+func (s *Secret) BuildSignedJWT() (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"iat": &jwt.NumericDate{Time: time.Now()},
+	})
+	str, err := token.SignedString(s[:])
+	if err != nil {
+		return "", fmt.Errorf("failed to create JWT token: %w", err)
+	}
+	return str, nil
 }
 
 // String returns the JWT secret as a string with the first 8 characters
