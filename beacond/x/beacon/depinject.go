@@ -32,7 +32,6 @@ import (
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/config/params"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -70,7 +69,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 			filedb.WithRootDirectory(
 				cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),
 			filedb.WithFileExtension("ssz"),
-			filedb.WithDirectoryPermissions(file.RWRPerms),
+			filedb.WithDirectoryPermissions(0700),
 			filedb.WithLogger(in.Environment.Logger),
 		),
 		in.Environment,
