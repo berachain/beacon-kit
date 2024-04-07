@@ -100,25 +100,6 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
     }
 
-    /**
-     * Transform an address into bytes for the credentials appending the 0x01 prefix.
-     * @param addr The address to transform.
-     * @return credentials The credentials.
-     */
-    function _toCredentials(address addr)
-        private
-        pure
-        returns (bytes memory credentials)
-    {
-        // 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-        assembly ("memory-safe") {
-            credentials := mload(0x40)
-            mstore(credentials, 0x20)
-            mstore(add(credentials, 0x20), or(addr, shl(248, 1)))
-            mstore(0x40, add(credentials, 0x40))
-        }
-    }
-
     /// @dev Validates the deposit amount and sends the native asset to the zero address.
     function _deposit(uint64) internal virtual returns (uint64) {
         if (msg.value % 1 gwei != 0) {
