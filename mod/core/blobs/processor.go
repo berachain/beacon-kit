@@ -93,7 +93,11 @@ func (p *Processor) ProcessBlobs(
 		return err
 	}
 
-	p.logger.Info("successfully verified all blob sidecars 💦", "num_blobs", len(sidecars.Sidecars))
+	p.logger.Info(
+		"successfully verified all blob sidecars 💦",
+		"num_blobs",
+		len(sidecars.Sidecars),
+	)
 
 	// Persist the blobs to the availability store.
 	return avs.Persist(slot, sidecars)
