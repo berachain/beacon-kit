@@ -46,7 +46,7 @@ contract DepositContractTest is SoladyTest {
     address internal constant DEPOSIT_CONTRACT_ADDRESS =
         0x00000000219ab540356cBB839Cbe05303d7705Fa;
 
-    bytes32 internal constant STAKING_ASSET_SLOT = bytes32(uint256(1));
+    bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
     /// @dev the deposit contract.
     BeaconDepositContract internal depositContract;
@@ -62,7 +62,8 @@ contract DepositContractTest is SoladyTest {
         // Deploy the STAKE token.
         stakeToken = new ERC20Test();
         // Set the STAKE_ASSET to the STAKE token.
-        bytes32 stakeAssetValue = bytes32(uint256(uint160(address(stakeToken))));
+        bytes32 stakeAssetValue =
+            bytes32(uint256(uint160(address(stakeToken))) << 64);
         vm.store(
             address(erc20DepositContract), STAKING_ASSET_SLOT, stakeAssetValue
         );
