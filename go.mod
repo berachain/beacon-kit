@@ -35,9 +35,10 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.13.5-0.20240328163540-a3829178af6c
+	github.com/ethereum/go-ethereum v1.13.5-0.20240406102255-7aafad2233b6
 	github.com/ferranbt/fastssz v0.1.4-0.20240405201804-b8fd7b434440
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golangci/golangci-lint v1.57.2
 	github.com/google/addlicense v1.1.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
@@ -63,6 +64,7 @@ require (
 
 require (
 	github.com/cometbft/cometbft-db v0.11.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 )
@@ -222,7 +224,6 @@ require (
 	github.com/gofrs/uuid/v5 v5.0.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
