@@ -435,6 +435,8 @@ github.com/felixge/fgprof v0.9.4 h1:ocDNwMFlnA0NU0zSB3I52xkO4sFXk80VK9lXjLClu88=
 github.com/felixge/fgprof v0.9.4/go.mod h1:yKl+ERSa++RYOs32d8K6WEXCB4uXdLls4ZaZPpayhMM=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
+github.com/ferranbt/fastssz v0.1.4-0.20240405201804-b8fd7b434440 h1:qWq6H9Uv1i04aj2y7VNUQTcL52IMzk9ZOvHAqbghuVY=
+github.com/ferranbt/fastssz v0.1.4-0.20240405201804-b8fd7b434440/go.mod h1:EGSbefgAPd3M0hlBwOCw4Mkj+0YAaSnXw1QeLasY6XQ=
 github.com/firefart/nonamedreturns v1.0.4 h1:abzI1p7mAEPYuR4A+VLKn4eNDOycjYo2phmY9sfv40Y=
 github.com/firefart/nonamedreturns v1.0.4/go.mod h1:TDhe/tjI1BXo48CmYbUduTV7BdIga8MAO/xbKdcVsGI=
 github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e h1:bBLctRc7kr01YGvaDfgLbTwjFNW5jdp5y5rj8XXBHfY=
@@ -815,8 +817,6 @@ github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 h1:W9WBk7
 github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839/go.mod h1:xaLFMmpvUxqXtVkUJfg9QmT88cDaCJ3ZKgdZ78oO8Qo=
 github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f h1:1sGhjYa2G4Ck9y8QkhD1u+lcC+abgh2U/9Br1tbahD8=
 github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f/go.mod h1:g9qJMyY3EUD/g2xoPHOrxaCPTyTAMGKnvVOGaLSOuUg=
-github.com/itsdevbear/fastssz v0.0.0-20240404232817-dec4a8be5e21 h1:nFESwniGMX65dbWKRRFzjiMVZFBAqdqB1hfcQtoJ/0Q=
-github.com/itsdevbear/fastssz v0.0.0-20240404232817-dec4a8be5e21/go.mod h1:EGSbefgAPd3M0hlBwOCw4Mkj+0YAaSnXw1QeLasY6XQ=
 github.com/jackpal/go-nat-pmp v1.0.2 h1:KzKSgb7qkJvOUTqYl9/Hg/me3pWgBmERKrTGD7BdWus=
 github.com/jackpal/go-nat-pmp v1.0.2/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jdx/go-netrc v1.0.0 h1:QbLMLyCZGj0NA8glAhxUpf1zDg6cxnWgMBbjq40W0gQ=
