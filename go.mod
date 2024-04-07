@@ -35,7 +35,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.13.5-0.20240328163540-a3829178af6c
+	github.com/ethereum/go-ethereum v1.13.5-0.20240406102255-7aafad2233b6
 	github.com/ferranbt/fastssz v0.1.4-0.20240405201804-b8fd7b434440
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golang-jwt/jwt/v5 v5.2.1
