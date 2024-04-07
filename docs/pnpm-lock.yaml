@@ -6,23 +6,23 @@ settings:
 
 dependencies:
   '@types/react':
-    specifier: latest
+    specifier: ^18.2.74
     version: 18.2.74
   react:
-    specifier: latest
+    specifier: ^18.2.0
     version: 18.2.0
   react-dom:
-    specifier: latest
+    specifier: ^18.2.0
     version: 18.2.0(react@18.2.0)
   swagger-ui-react:
     specifier: ^5.13.0
     version: 5.13.0(@types/react@18.2.74)(react-dom@18.2.0)(react@18.2.0)
   typescript:
-    specifier: latest
+    specifier: ^5.4.4
     version: 5.4.4
   vocs:
-    specifier: 1.0.0-alpha.42
-    version: 1.0.0-alpha.42(@types/react@18.2.74)(react-dom@18.2.0)(react@18.2.0)(rollup@4.14.1)(typescript@5.4.4)
+    specifier: 1.0.0-alpha.45
+    version: 1.0.0-alpha.45(@types/react@18.2.74)(react-dom@18.2.0)(react@18.2.0)(rollup@4.14.1)(typescript@5.4.4)
 
 packages:
 
@@ -6453,8 +6453,8 @@ packages:
       fsevents: 2.3.3
     dev: false
 
-  /vocs@1.0.0-alpha.42(@types/react@18.2.74)(react-dom@18.2.0)(react@18.2.0)(rollup@4.14.1)(typescript@5.4.4):
-    resolution: {integrity: sha512-6ZAbN6dE9wb6N5Jw8Lt/p4Sn1YPN6RBuM5LHCdPQvfsMB+eA5Lh45mU3cc5Ho56W1jS94aJwvUfvHjRZyVB5FQ==}
+  /vocs@1.0.0-alpha.45(@types/react@18.2.74)(react-dom@18.2.0)(react@18.2.0)(rollup@4.14.1)(typescript@5.4.4):
+    resolution: {integrity: sha512-FUDuN6V0FwAlG8QAg7VHBm0LAGsvtVwxU2FGIW+eTiFQFuuzsV9Ojh4vg3aAYR3VcICL9w7ipsyt+7D0b3dJNw==}
     hasBin: true
     peerDependencies:
       react: ^18.2.0
