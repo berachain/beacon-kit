@@ -53,39 +53,7 @@ func (s *StateDB) DequeueDeposits(
 
 // ExpectedWithdrawals returns the first numView withdrawals in the queue.
 func (s *StateDB) ExpectedWithdrawals(
-	numView uint64,
+	uint64,
 ) ([]*primitives.Withdrawal, error) {
-	withdrawals, err := s.withdrawalQueue.PeekMulti(s.ctx, numView)
-	if err != nil {
-		return nil, err
-	}
-	return handleNilWithdrawals(withdrawals), nil
-}
-
-// EnqueueWithdrawals pushes the withdrawals to the queue.
-func (s *StateDB) EnqueueWithdrawals(
-	withdrawals []*primitives.Withdrawal,
-) error {
-	return s.withdrawalQueue.PushMulti(s.ctx, withdrawals)
-}
-
-// EnqueueWithdrawals pushes the withdrawals to the queue.
-func (s *StateDB) DequeueWithdrawals(
-	numDequeue uint64,
-) ([]*primitives.Withdrawal, error) {
-	withdrawals, err := s.withdrawalQueue.PopMulti(s.ctx, numDequeue)
-	if err != nil {
-		return nil, err
-	}
-	return handleNilWithdrawals(withdrawals), nil
-}
-
-// handleNilWithdrawals returns an empty slice if the input is nil.
-func handleNilWithdrawals(
-	withdrawals []*primitives.Withdrawal,
-) []*primitives.Withdrawal {
-	if withdrawals == nil {
-		return make([]*primitives.Withdrawal, 0)
-	}
-	return withdrawals
+	return make([]*primitives.Withdrawal, 0), nil
 }

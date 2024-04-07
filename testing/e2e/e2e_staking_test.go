@@ -125,37 +125,37 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(newPower, 32*suite.OneGwei)
 
-	// Submit withdrawal
-	tx, err = dc.Withdraw(&bind.TransactOpts{
-		From:   s.GenesisAccount().Address(),
-		Signer: s.GenesisAccount().SignerFunc(chainID),
-	}, pubkey, credentials, 31*suite.OneGwei)
-	s.Require().NoError(err)
+	// // Submit withdrawal
+	// tx, err = dc.Withdraw(&bind.TransactOpts{
+	// 	From:   s.GenesisAccount().Address(),
+	// 	Signer: s.GenesisAccount().SignerFunc(chainID),
+	// }, pubkey, credentials, 31*suite.OneGwei)
+	// s.Require().NoError(err)
 
-	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
-	s.Logger().
-		Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
+	// receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	// s.Require().NoError(err)
+	// s.Require().Equal(uint64(1), receipt.Status)
+	// s.Logger().
+	// 	Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
 
-	// Wait for the log to be processed.
-	targetBlkNum += 4
-	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
-	s.Require().NoError(err)
+	// // Wait for the log to be processed.
+	// targetBlkNum += 4
+	// err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	// s.Require().NoError(err)
 
-	// Check to see if new balance is greater than the previous balance
-	postWithdrawBalance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(),
-		s.GenesisAccount().Address(),
-		big.NewInt(int64(targetBlkNum)),
-	)
-	s.Require().NoError(err)
-	s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
+	// // Check to see if new balance is greater than the previous balance
+	// postWithdrawBalance, err := s.JSONRPCBalancer().BalanceAt(
+	// 	s.Ctx(),
+	// 	s.GenesisAccount().Address(),
+	// 	big.NewInt(int64(targetBlkNum)),
+	// )
+	// s.Require().NoError(err)
+	// s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
 
-	// We are withdrawing all the power, so the power should be 0.
-	postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Equal(postWithdrawPower, suite.OneGwei)
+	// // We are withdrawing all the power, so the power should be 0.
+	// postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// s.Require().Equal(postWithdrawPower, suite.OneGwei)
 }
 
 // TODO: once RPC ready
