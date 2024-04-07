@@ -40,12 +40,13 @@ const (
 
 	// defaultImplementation is the default KZG implementation to use.
 	// Options are `crate-crypto/go-kzg-4844` or `ethereum/c-kzg-4844`.
-	defaultImplementation = "ethereum/c-kzg-4844"
+	defaultImplementation = "crate-crypto/go-kzg-4844"
 )
 
 type Config struct {
 	// TrustedSetupPath is the path to the trusted setup.
 	TrustedSetupPath string `json:"trustedSetupPath"`
+
 	// Implementation is the KZG implementation to use.
 	Implementation string `json:"implementation"`
 }
