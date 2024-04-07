@@ -43,7 +43,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	}
 	sidecar := types.BlobSidecar{
 		Index:             1,
-		Blob:              blob[:],
+		Blob:              blob,
 		KzgCommitment:     [48]byte{},
 		KzgProof:          [48]byte{},
 		BeaconBlockHeader: &primitives.BeaconBlockHeader{},

@@ -29,6 +29,7 @@ import (
 	"context"
 	"errors"
 
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
@@ -40,13 +41,18 @@ import (
 
 // Processor is the processor for blobs.
 type Processor struct {
-	bv *da.BlobVerifier
+	bv     *da.BlobVerifier
+	logger log.Logger
 }
 
 // NewProcessor creates a new processor.
-func NewProcessor(bv *da.BlobVerifier) *Processor {
+func NewProcessor(
+	bv *da.BlobVerifier,
+	logger log.Logger,
+) *Processor {
 	return &Processor{
-		bv: bv,
+		bv:     bv,
+		logger: logger,
 	}
 }
 
@@ -86,6 +92,8 @@ func (p *Processor) ProcessBlobs(
 	if err := g.Wait(); err != nil {
 		return err
 	}
+
+	p.logger.Info("successfully verified all blob sidecars 💦", "num_blobs", len(sidecars.Sidecars))
 
 	// Persist the blobs to the availability store.
 	return avs.Persist(slot, sidecars)
