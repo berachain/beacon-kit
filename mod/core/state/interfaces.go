@@ -126,14 +126,14 @@ type ReadOnlyValidators interface {
 // WriteOnlyDeposits has write access to deposit queue.
 type WriteOnlyDeposits interface {
 	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
-	DequeueDeposits(uint64) ([]*types.Deposit, error)
+	EnqueueDeposits(types.Deposits) error
+	DequeueDeposits(uint64) (types.Deposits, error)
 }
 
 // ReadOnlyDeposits has read access to deposit queue.
 type ReadOnlyDeposits interface {
 	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) ([]*types.Deposit, error)
+	ExpectedDeposits(uint64) (types.Deposits, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

@@ -33,6 +33,9 @@ import (
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
+// Deposits is a typealias for a slice of Deposit.
+type Deposits []*Deposit
+
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //

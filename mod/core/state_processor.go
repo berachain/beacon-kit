@@ -258,7 +258,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits []*types.Deposit,
+	deposits types.Deposits,
 ) error {
 	// Dequeue and verify the logs.
 	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
