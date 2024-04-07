@@ -23,53 +23,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package gokzg
+//go:build ckzg
+
+package ckzg
 
 import (
+	"unsafe"
+
+	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
-
-// Verifier is a KZG verifier that uses the Go implementation of KZG.
-type Verifier struct {
-	*gokzg4844.Context
-}
-
-// NewVerifier creates a new GoKZGVerifier.
-func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
-	ctx, err := gokzg4844.NewContext4096(ts)
-	if err != nil {
-		return nil, err
-	}
-	return &Verifier{ctx}, nil
-}
-
-// VerifyProof verifies the KZG proof that the polynomial represented by the
-// blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyKZGProof(
-	commitment kzg.Commitment,
-	point kzg.Point,
-	claim kzg.Claim,
-	proof kzg.Proof,
-) error {
-	return v.Context.
-		VerifyKZGProof((gokzg4844.KZGCommitment)(commitment),
-			(gokzg4844.Scalar)(point),
-			(gokzg4844.Scalar)(claim),
-			(gokzg4844.KZGProof)(proof),
-		)
-}
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
 func (v Verifier) VerifyBlobProof(
 	blob *kzg.Blob,
-	commitment kzg.Commitment,
 	proof kzg.Proof,
+	commitment kzg.Commitment,
 ) error {
-	return v.Context.
-		VerifyBlobKZGProof(
-			(*gokzg4844.Blob)(blob),
-			(gokzg4844.KZGCommitment)(commitment),
-			(gokzg4844.KZGProof)(proof))
+	if valid, err := ckzg4844.VerifyBlobKZGProof(
+		(*ckzg4844.Blob)(blob),
+		(ckzg4844.Bytes48)(commitment),
+		(ckzg4844.Bytes48)(proof),
+	); err != nil {
+		return err
+	} else if !valid {
+		return ErrInvalidProof
+	}
+	return nil
+}
+
+// VerifyBlobProofBatch verifies the KZG proof that the polynomial represented
+// by the blob evaluated at the given point is the claimed value.
+// It is more efficient than VerifyBlobProof when verifying multiple proofs.
+func (v Verifier) VerifyBlobProofBatch(
+	args *proof.BlobProofArgs,
+) error {
+	blobs := make([]ckzg4844.Blob, len(args.Blobs))
+	for i := range args.Blobs {
+		blobs[i] = *(*ckzg4844.Blob)(args.Blobs[i])
+	}
+	commitments := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Commitments))
+	proofs := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Proofs))
+
+	ok, err := ckzg4844.VerifyBlobKZGProofBatch(blobs, *commitments, *proofs)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrInvalidProof
+	}
+	return nil
 }

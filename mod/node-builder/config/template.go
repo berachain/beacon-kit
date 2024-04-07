@@ -134,5 +134,5 @@ trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"
 
 # KZG implementation to use.
 # Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
-kzg-implementation = "{{.BeaconKit.KZG.KZGImplementation}}"
+kzg-implementation = "{{.BeaconKit.KZG.Implementation}}"
 `

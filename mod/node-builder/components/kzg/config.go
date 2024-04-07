@@ -38,24 +38,24 @@ const (
 	// defaultTrustedSetupPath is the default path to the trusted setup.
 	defaultTrustedSetupPath = "./beacond/kzg-trusted-setup.json"
 
-	// defaultKZGImplementation is the default KZG implementation to use.
+	// defaultImplementation is the default KZG implementation to use.
 	// Options are `crate-crypto/go-kzg-4844` or `ethereum/c-kzg-4844`.
-	defaultKZGImplementation = "crate-crypto/go-kzg-4844"
+	defaultImplementation = "crate-crypto/go-kzg-4844"
 )
 
 type Config struct {
 	// TrustedSetupPath is the path to the trusted setup.
 	TrustedSetupPath string `json:"trustedSetupPath"`
 
-	// KZGImplementation is the KZG implementation to use.
-	KZGImplementation string `json:"kzgImplementation"`
+	// Implementation is the KZG implementation to use.
+	Implementation string `json:"implementation"`
 }
 
 // DefaultConfig returns the default configuration.
 func DefaultConfig() Config {
 	return Config{
-		TrustedSetupPath:  defaultTrustedSetupPath,
-		KZGImplementation: defaultKZGImplementation,
+		TrustedSetupPath: defaultTrustedSetupPath,
+		Implementation:   defaultImplementation,
 	}
 }
 
@@ -69,7 +69,7 @@ func (c Config) Parse(
 	); err != nil {
 		return nil, err
 	}
-	if c.KZGImplementation, err = parser.GetString(
+	if c.Implementation, err = parser.GetString(
 		flags.KZGImplementation,
 	); err != nil {
 		return nil, err
