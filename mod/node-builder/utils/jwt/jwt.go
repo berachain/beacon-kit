@@ -27,12 +27,15 @@ package jwt
 
 import (
 	"crypto/rand"
-	"os"
+	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/spf13/afero"
 )
 
 // HexRegexp is a regular expression to match hexadecimal characters.
@@ -50,7 +53,7 @@ type Secret [EthereumJWTLength]byte
 
 // LoadFromFile reads the JWT secret from a file and returns it.
 func LoadFromFile(filepath string) (*Secret, error) {
-	data, err := os.ReadFile(filepath)
+	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
 	if err != nil {
 		// Return an error if the file cannot be read.
 		return nil, err
@@ -84,6 +87,18 @@ func NewRandom() (*Secret, error) {
 		return nil, err
 	}
 	return NewFromHex(hexutil.Encode(secret))
+}
+
+// BuildSignedJWT builds a signed JWT from the provided JWT secret.
+func (s *Secret) BuildSignedJWT() (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"iat": &jwt.NumericDate{Time: time.Now()},
+	})
+	str, err := token.SignedString(s[:])
+	if err != nil {
+		return "", fmt.Errorf("failed to create JWT token: %w", err)
+	}
+	return str, nil
 }
 
 // String returns the JWT secret as a string with the first 8 characters
