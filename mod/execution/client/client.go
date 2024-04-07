@@ -281,8 +281,8 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 		err    error
 	)
 
-	// Build the JWT headers for the execution client.
-	headers, err := s.buildJWTHeader()
+	// Build an http.Header with the JWT token attached.
+	header, err := s.buildJWTHeader()
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 	switch s.cfg.RPCDialURL.Scheme {
 	case "http", "https":
 		client, err = rpc.DialOptions(
-			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(headers),
+			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
 		)
 	case "", "ipc":
 		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
