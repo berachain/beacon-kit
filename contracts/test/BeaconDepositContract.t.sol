@@ -92,7 +92,7 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_DepositWrongcredentials(bytes calldata credentials)
+    function testFuzz_DepositWrongCredentials(bytes calldata credentials)
         public
     {
         vm.assume(credentials.length != 32);
@@ -105,7 +105,7 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function test_DepositWrongcredentials() public {
+    function test_DepositWrongCredentials() public {
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
