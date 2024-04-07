@@ -28,7 +28,6 @@ package da
 import (
 	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
 // BlobProofVerifier is a verifier for blobs.
@@ -54,9 +53,8 @@ func (bv *BlobVerifier) VerifyKZGProofs(
 		return nil
 	case 1:
 		// This method is fastest for a single blob.
-		blob := kzg.Blob(scs.Sidecars[0].Blob)
 		return bv.proofVerifier.VerifyBlobProof(
-			&blob,
+			&scs.Sidecars[0].Blob,
 			scs.Sidecars[0].KzgProof,
 			scs.Sidecars[0].KzgCommitment,
 		)
