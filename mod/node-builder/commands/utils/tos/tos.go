@@ -130,18 +130,22 @@ func VerifyTosAcceptedOrPrompt(
 
 // saveTosAccepted creates a file when Tos accepted.
 func saveTosAccepted(dataDir string, cmd *cobra.Command) {
-	dataDirExists, err := afero.DirExists(afero.NewOsFs(), dataDir)
+	fs := afero.NewOsFs()
+	dataDirExists, err := afero.DirExists(fs, dataDir)
 	if err != nil {
 		cmd.PrintErrf("error checking directory: %s\n", dataDir)
 	}
 
 	if !dataDirExists {
-		if err = afero.NewOsFs().MkdirAll(dataDir, os.ModePerm); err != nil {
+		if err = fs.MkdirAll(dataDir, os.ModePerm); err != nil {
 			cmd.PrintErrf("error creating directory: %s\n", dataDir)
 		}
 	}
 
-	if err = afero.WriteFile(afero.NewOsFs(), filepath.Join(dataDir, acceptTosFilename), []byte(""), os.ModePerm); err != nil {
+	if err = afero.WriteFile(
+		fs, filepath.Join(dataDir, acceptTosFilename),
+		[]byte(""), os.ModePerm,
+	); err != nil {
 		cmd.PrintErrf(
 			"error writing %s to file: %s\n",
 			flags.BeaconKitAcceptTos,

@@ -158,7 +158,9 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 		return err
 	}
 
-	if err = afero.WriteFile(fs, fileName, []byte(secret.Hex()), os.ModePerm); err != nil {
+	if err = afero.WriteFile(
+		fs, fileName, []byte(secret.Hex()), os.ModePerm,
+	); err != nil {
 		return err
 	}
 

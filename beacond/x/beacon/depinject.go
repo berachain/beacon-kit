@@ -26,6 +26,8 @@
 package beacon
 
 import (
+	"os"
+
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
@@ -69,7 +71,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 			filedb.WithRootDirectory(
 				cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),
 			filedb.WithFileExtension("ssz"),
-			filedb.WithDirectoryPermissions(0700),
+			filedb.WithDirectoryPermissions(os.ModePerm),
 			filedb.WithLogger(in.Environment.Logger),
 		),
 		in.Environment,

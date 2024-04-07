@@ -44,9 +44,9 @@ func WithAferoFS(fs afero.Fs) Option {
 }
 
 // WithDirectoryPermissions sets the permissions for the directory.
-func WithDirectoryPermissions(permissions int) Option {
+func WithDirectoryPermissions(permissions os.FileMode) Option {
 	return func(db *DB) error {
-		db.dirPerms = os.FileMode(permissions)
+		db.dirPerms = permissions
 		return nil
 	}
 }
