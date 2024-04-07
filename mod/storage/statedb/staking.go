@@ -33,13 +33,13 @@ import (
 // ExpectedDeposits returns the first numPeek deposits in the queue.
 func (s *StateDB) ExpectedDeposits(
 	numView uint64,
-) ([]*beacontypes.Deposit, error) {
+) (beacontypes.Deposits, error) {
 	return s.depositQueue.PeekMulti(s.ctx, numView)
 }
 
 // EnqueueDeposits pushes the deposits to the queue.
 func (s *StateDB) EnqueueDeposits(
-	deposits []*beacontypes.Deposit,
+	deposits beacontypes.Deposits,
 ) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
 }
@@ -47,7 +47,7 @@ func (s *StateDB) EnqueueDeposits(
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (s *StateDB) DequeueDeposits(
 	numDequeue uint64,
-) ([]*beacontypes.Deposit, error) {
+) (beacontypes.Deposits, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
 }
 

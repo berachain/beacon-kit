@@ -84,12 +84,12 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayloa
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
+func (b *BeaconBlockBodyDeneb) GetDeposits() Deposits {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
+func (b *BeaconBlockBodyDeneb) SetDeposits(deposits Deposits) {
 	b.Deposits = deposits
 }
 
@@ -134,6 +134,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	dep := b.GetDeposits()
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
+	// root, err = dep.HashTreeRoot()
 	root, err = merkleize.ListSSZ(dep, maxDepositsPerBlock)
 	if err != nil {
 		return nil, err

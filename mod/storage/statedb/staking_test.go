@@ -64,7 +64,7 @@ func TestDeposits(t *testing.T) {
 				bytes.ToBytes96([]byte("signature")),
 			),
 		}
-		err := sdb.EnqueueDeposits([]*beacontypes.Deposit{deposit})
+		err := sdb.EnqueueDeposits(beacontypes.Deposits{deposit})
 		require.NoError(t, err)
 		deposits, err := sdb.DequeueDeposits(1)
 		require.NoError(t, err)
