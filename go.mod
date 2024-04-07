@@ -15,7 +15,6 @@ replace (
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240402142445-319e6e4f5e68
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240312055307-dff5fd68a3b0
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240403001043-d332d9f259c5
-	github.com/ferranbt/fastssz => github.com/itsdevbear/fastssz v0.0.0-20240404232817-dec4a8be5e21
 )
 
 require (
@@ -37,7 +36,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.5-0.20240328163540-a3829178af6c
-	github.com/ferranbt/fastssz v0.1.4-0.20240325182853-3fad96355b01
+	github.com/ferranbt/fastssz v0.1.4-0.20240405201804-b8fd7b434440
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.57.2
 	github.com/google/addlicense v1.1.1
