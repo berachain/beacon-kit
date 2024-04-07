@@ -11,7 +11,7 @@
     "@types/react": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "swagger-ui-react": "^5.11.7",
+    "swagger-ui-react": "^5.13.0",
     "typescript": "latest",
     "vocs": "1.0.0-alpha.42"
   }
