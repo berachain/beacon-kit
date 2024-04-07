@@ -66,7 +66,7 @@ func (p *Processor) ProcessBlobs(
 	numBlobs := len(sidecars.Sidecars)
 	if numBlobs == 0 {
 		p.logger.Info(
-			"no blobs to verify, skipping verifier 🙆‍♀️",
+			"no blobs to verify, skipping verifier 🧢",
 			"slot",
 			slot,
 		)
