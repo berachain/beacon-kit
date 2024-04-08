@@ -54,6 +54,7 @@ require (
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
+	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
 	github.com/vektra/mockery/v2 v2.42.2
 	go.uber.org/automaxprocs v1.5.3
@@ -66,7 +67,6 @@ require (
 	github.com/cometbft/cometbft-db v0.11.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/spf13/viper v1.18.2 // indirect
 )
 
 require (
@@ -325,7 +325,7 @@ require (
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mitchellh/pointerstructure v1.2.0 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/moby/term v0.5.0 // indirect

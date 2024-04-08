@@ -25,11 +25,6 @@
 
 package abci
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
-)
-
 const (
 	// defaultBeaconBlockPosition is the default position of the beacon block in
 	// the proposal.
@@ -51,27 +46,9 @@ func DefaultABCIConfig() Config {
 type Config struct {
 	// BeaconBlockPosition is the position of the beacon block
 	// in the cometbft proposal.
-	BeaconBlockPosition uint
+	BeaconBlockPosition uint `mapstructure:"beacon-block-proposal-position"`
 
 	// BlobSidecarsBlockPosition is the position of the blob sidecars
 	// in the cometbft proposal.
-	BlobSidecarsBlockPosition uint
-}
-
-// Parse parses the configuration.
-func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
-	var err error
-	if c.BeaconBlockPosition, err = parser.GetUint(
-		flags.BeaconBlockPosition,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.BlobSidecarsBlockPosition, err = parser.GetUint(
-		flags.BlobSidecarsBlockPosition,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	BlobSidecarsBlockPosition uint `mapstructure:"blob-sidecars-block-proposal-position"`
 }
