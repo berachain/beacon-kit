@@ -86,6 +86,7 @@ func (p *Processor) ProcessBlobs(
 				}
 
 				// Verify the KZG inclusion proof.
+
 				return types.VerifyKZGInclusionProof(sc)
 			},
 		)...); err != nil {
