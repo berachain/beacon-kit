@@ -46,7 +46,7 @@ contract DepositContractTest is SoladyTest {
     address internal constant DEPOSIT_CONTRACT_ADDRESS =
         0x00000000219ab540356cBB839Cbe05303d7705Fa;
 
-    bytes32 internal constant STAKING_ASSET_SLOT = bytes32(uint256(1));
+    bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
     /// @dev the deposit contract.
     BeaconDepositContract internal depositContract;
@@ -62,7 +62,8 @@ contract DepositContractTest is SoladyTest {
         // Deploy the STAKE token.
         stakeToken = new ERC20Test();
         // Set the STAKE_ASSET to the STAKE token.
-        bytes32 stakeAssetValue = bytes32(uint256(uint160(address(stakeToken))));
+        bytes32 stakeAssetValue =
+            bytes32(uint256(uint160(address(stakeToken))) << 64);
         vm.store(
             address(erc20DepositContract), STAKING_ASSET_SLOT, stakeAssetValue
         );
@@ -92,7 +93,7 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_DepositWrongcredentials(bytes calldata credentials)
+    function testFuzz_DepositWrongCredentials(bytes calldata credentials)
         public
     {
         vm.assume(credentials.length != 32);
@@ -105,7 +106,7 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function test_DepositWrongcredentials() public {
+    function test_DepositWrongCredentials() public {
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
@@ -147,78 +148,6 @@ contract DepositContractTest is SoladyTest {
         );
         erc20DepositContract.deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
-        );
-    }
-
-    function testFuzz_WithdrawWrongPubKey(bytes calldata pubKey) public {
-        vm.assume(pubKey.length != 48);
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.withdraw(pubKey, WITHDRAWAL_CREDENTIALS, 32e9);
-    }
-
-    function test_WithdrawWrongPubKey() public {
-        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
-        erc20DepositContract.withdraw(
-            bytes("wrong_pub_key"), WITHDRAWAL_CREDENTIALS, 32e9
-        );
-    }
-
-    function testFuzz_WithdrawWrongWithdrawalCredentials(
-        bytes calldata withdrawalCredentials
-    )
-        public
-    {
-        vm.assume(withdrawalCredentials.length != 32);
-        vm.expectRevert(
-            IBeaconDepositContract.InvalidCredentialsLength.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, withdrawalCredentials, 32e9
-        );
-    }
-
-    function test_WithdrawWrongWithdrawCredentials() public {
-        vm.expectRevert(
-            IBeaconDepositContract.InvalidCredentialsLength.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9
-        );
-    }
-
-    function testFuzz_WithdrawWrongAmount(uint256 amount) public {
-        amount = _bound(amount, 1, 32e9 / 10 - 1);
-
-        vm.expectRevert(
-            IBeaconDepositContract.InsufficientWithdrawalAmount.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, uint64(amount)
-        );
-    }
-
-    function test_WithdrawWrongAmount() public {
-        vm.expectRevert(
-            IBeaconDepositContract.InsufficientWithdrawalAmount.selector
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9 / 10 - 1
-        );
-    }
-
-    function testWithdraw() public {
-        vm.expectEmit(true, true, true, true);
-
-        vm.prank(depositor);
-        emit IBeaconDepositContract.Withdrawal(
-            VALIDATOR_PUBKEY,
-            _credential(depositor),
-            WITHDRAWAL_CREDENTIALS,
-            32e9,
-            0
-        );
-        erc20DepositContract.withdraw(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
         );
     }
 
@@ -310,27 +239,6 @@ contract DepositContractTest is SoladyTest {
             ++depositCount;
         }
         assertEq(depositContract.depositCount(), depositCount);
-    }
-
-    function testFuzz_WithdrawCount(uint256 count) public {
-        count = _bound(count, 1, 100);
-        testFuzz_DepositCount(count);
-        uint64 withdrawalCount;
-        for (uint256 i; i < count; ++i) {
-            vm.expectEmit(true, true, true, true);
-            emit IBeaconDepositContract.Withdrawal(
-                VALIDATOR_PUBKEY,
-                _credential(depositor),
-                WITHDRAWAL_CREDENTIALS,
-                32 gwei,
-                withdrawalCount
-            );
-            depositContract.withdraw(
-                VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9
-            );
-            ++withdrawalCount;
-        }
-        assertEq(depositContract.withdrawalCount(), withdrawalCount);
     }
 
     function _credential(address addr) internal pure returns (bytes memory) {

@@ -23,37 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package abi
 
-import (
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
-// ExpectedDeposits returns the first numPeek deposits in the queue.
-func (s *StateDB) ExpectedDeposits(
-	numView uint64,
-) (beacontypes.Deposits, error) {
-	return s.depositQueue.PeekMulti(s.ctx, numView)
-}
-
-// EnqueueDeposits pushes the deposits to the queue.
-func (s *StateDB) EnqueueDeposits(
-	deposits beacontypes.Deposits,
-) error {
-	return s.depositQueue.PushMulti(s.ctx, deposits)
-}
-
-// DequeueDeposits returns the first numDequeue deposits in the queue.
-func (s *StateDB) DequeueDeposits(
-	numDequeue uint64,
-) (beacontypes.Deposits, error) {
-	return s.depositQueue.PopMulti(s.ctx, numDequeue)
-}
-
-// ExpectedWithdrawals returns the first numView withdrawals in the queue.
-func (s *StateDB) ExpectedWithdrawals(
-	uint64,
-) ([]*primitives.Withdrawal, error) {
-	return make([]*primitives.Withdrawal, 0), nil
-}
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=abi --type=BeaconDepositContract --out=bdc.go
