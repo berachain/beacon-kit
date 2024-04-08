@@ -26,22 +26,20 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/config/params"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
+	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
 	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
-
-// BeaconKitConfig is the interface for a sub-config of the global BeaconKit
-// configuration.
-type BeaconKitConfig[T any] interface {
-	Parse(parser parser.AppOptionsParser) (*T, error)
-}
 
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
@@ -57,19 +55,19 @@ func DefaultConfig() *Config {
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
 	// ABCI is the configuration for ABCI related settings.
-	ABCI abci.Config
+	ABCI abci.Config `mapstructure:"abci"`
 
 	// Beacon is the configuration for the fork epochs.
-	Beacon params.BeaconChainConfig
+	Beacon params.BeaconChainConfig `mapstructure:"beacon-chain"`
 
 	// Builder is the configuration for the local build payload timeout.
-	Builder builderconfig.Config
+	Builder builderconfig.Config `mapstructure:"builder"`
 
 	// Engine is the configuration for the execution client.
-	Engine engineclient.Config
+	Engine engineclient.Config `mapstructure:"engine"`
 
 	// KZG is the configuration for the KZG blob verifier.
-	KZG kzg.Config
+	KZG kzg.Config `mapstructure:"kzg"`
 }
 
 // Template returns the configuration template.
@@ -78,7 +76,7 @@ func (c Config) Template() string {
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
-// application options. Panics if the configuration cannot be read.
+// application options.
 func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 	cfg, err := ReadConfigFromAppOpts(opts)
 	if err != nil {
@@ -90,58 +88,28 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
-	return readConfigFromAppOptsParser(
-		parser.AppOptionsParser{AppOptions: opts},
-	)
-}
-
-// readConfigFromAppOptsParser reads the configuration options from the given.
-func readConfigFromAppOptsParser(
-	parser parser.AppOptionsParser,
-) (*Config, error) {
-	var (
-		err       error
-		conf      = &Config{}
-		engineCfg *engineclient.Config
-		beaconCfg *params.BeaconChainConfig
-		abciCfg   *abci.Config
-	)
-
-	// Read ABCI Config
-	abciCfg, err = abci.Config{}.Parse(parser)
-	if err != nil {
-		return nil, err
+	v, ok := opts.(*viper.Viper)
+	if !ok {
+		return nil, fmt.Errorf("invalid application options type: %T", opts)
 	}
-	conf.ABCI = *abciCfg
-
-	// Read Beacon Config
-	beaconCfg, err = params.BeaconChainConfig{}.Parse(parser)
-	if err != nil {
-		return nil, err
+	type cfgUnmarshaller struct {
+		BeaconKit Config `mapstructure:"beacon-kit"`
 	}
-	conf.Beacon = *beaconCfg
-
-	// Read Bilder Config
-	builderCfg, err := builderconfig.Config{}.Parse(parser)
-	if err != nil {
-		return nil, err
+	cfg := cfgUnmarshaller{}
+	if err := v.Unmarshal(&cfg,
+		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+			viperlib.StringToExecutionAddressFunc(),
+			viperlib.StringToDialURLFunc(),
+		))); err != nil {
+		return nil, fmt.Errorf(
+			"failed to read beacon-kit configuration: %w",
+			err,
+		)
 	}
-	conf.Builder = *builderCfg
 
-	// Read Engine Client Config
-	engineCfg, err = engineclient.Config{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.Engine = *engineCfg
-
-	// Read KZG Config
-	kzgCfg, err := kzg.Config{}.Parse(parser)
-	if err != nil {
-		return nil, err
-	}
-	conf.KZG = *kzgCfg
-	return conf, nil
+	return &cfg.BeaconKit, nil
 }
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.

@@ -91,6 +91,8 @@ func New(opts ...Option) *EngineClient {
 // Start starts the engine client.
 func (s *EngineClient) Start(ctx context.Context) {
 	for {
+		s.logger.Info("waiting for execution client to start 🍺🕔",
+			"dial-url", s.cfg.RPCDialURL)
 		if err := s.setupExecutionClientConnection(ctx); err != nil {
 			s.statusErrMu.Lock()
 			s.statusErr = err

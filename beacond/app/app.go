@@ -96,9 +96,7 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
-
 	beaconCfg := config.MustReadConfigFromAppOpts(appOpts)
-
 	if err := depinject.Inject(
 		depinject.Configs(
 			Config(),
