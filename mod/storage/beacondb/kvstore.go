@@ -51,6 +51,9 @@ type KVStore struct {
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 
+	// fork is the current fork
+	fork sdkcollections.Item[*primitives.Fork]
+
 	// latestBlockHeader stores the latest beacon block header.
 	latestBlockHeader sdkcollections.Item[*primitives.BeaconBlockHeader]
 
@@ -121,6 +124,12 @@ func New(
 			sdkcollections.NewPrefix(keys.SlotPrefix),
 			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
+		),
+		fork: sdkcollections.NewItem[*primitives.Fork](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.ForkPrefix),
+			keys.ForkPrefix,
+			encoding.SSZValueCodec[*primitives.Fork]{},
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,

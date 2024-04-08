@@ -28,6 +28,7 @@ package state
 import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -76,6 +77,7 @@ type BeaconStateDeneb struct {
 	//nolint:lll
 	GenesisValidatorsRoot primitives.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
 	Slot                  primitives.Slot `json:"slot"`
+	Fork                  primitives.Fork `json:"fork"`
 
 	// History
 	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
@@ -104,7 +106,7 @@ type BeaconStateDeneb struct {
 
 // String returns a string representation of BeaconStateDeneb.
 func (b *BeaconStateDeneb) String() string {
-	return "TODO: BeaconStateDeneb"
+	return spew.Sdump(b)
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
