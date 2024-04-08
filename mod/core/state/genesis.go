@@ -25,7 +25,9 @@
 
 package state
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
 
 // WriteGenesisStateDeneb writes the genesis state to the state db.
 // TODO: Implement the "from eth1 version" and move genesis.json
