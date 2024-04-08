@@ -50,7 +50,7 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		MaxDepositsPerBlock:              16,
 		MaxWithdrawalsPerPayload:         16,
 		MaxBlobsPerBlock:                 6,
-		MaxValidatorsPerWithdrawalsSweep: 2 ^ 14,
+		MaxValidatorsPerWithdrawalsSweep: 1 << 14,
 		// Slashing
 		ProportionalSlashingMultiplier: 1,
 		// Deneb values.
