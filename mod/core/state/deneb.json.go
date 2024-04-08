@@ -28,7 +28,7 @@ func (b BeaconStateDeneb) MarshalJSON() ([]byte, error) {
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
 		RandaoMixes                  []primitives.Bytes32          `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          uint64                        `json:"nextWithdrawalIndex"`
-		NextWithdrawalValidatorIndex uint64                        `json:"nextWithdrawalValidatorIndex"`
+		NextWithdrawalValidatorIndex primitives.ValidatorIndex     `json:"nextWithdrawalValidatorIndex"`
 		Slashings                    []uint64                      `json:"slashings"     ssz-max:"1099511627776"`
 		TotalSlashing                primitives.Gwei               `json:"totalSlashing"`
 	}
@@ -79,7 +79,7 @@ func (b *BeaconStateDeneb) UnmarshalJSON(input []byte) error {
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
 		RandaoMixes                  []primitives.Bytes32          `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 		NextWithdrawalIndex          *uint64                       `json:"nextWithdrawalIndex"`
-		NextWithdrawalValidatorIndex *uint64                       `json:"nextWithdrawalValidatorIndex"`
+		NextWithdrawalValidatorIndex *primitives.ValidatorIndex    `json:"nextWithdrawalValidatorIndex"`
 		Slashings                    []uint64                      `json:"slashings"     ssz-max:"1099511627776"`
 		TotalSlashing                *primitives.Gwei              `json:"totalSlashing"`
 	}

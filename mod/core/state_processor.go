@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -187,7 +188,7 @@ func (sp *StateProcessor) ProcessBlock(
 	// process the withdrawals.
 	body := blk.GetBody()
 	if err := sp.processWithdrawals(
-		st, body.GetExecutionPayload().GetWithdrawals(),
+		st, body.GetExecutionPayload(),
 	); err != nil {
 		return err
 	}
@@ -400,44 +401,83 @@ func (sp *StateProcessor) addValidatorToRegistry(
 	return st.IncreaseBalance(idx, dep.Amount)
 }
 
-// processWithdrawals processes the withdrawals and ensures they match the
-// local state.
+// processWithdrawals as per the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
+//
+//nolint:lll
 func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
-	withdrawals []*primitives.Withdrawal,
+	payload enginetypes.ExecutionPayload,
 ) error {
 	// Dequeue and verify the logs.
-	expectedWithdrawals, err := st.ExpectedWithdrawals(uint64(len(withdrawals)))
+	var nextValidatorIndex primitives.ValidatorIndex
+	payloadWithdrawals := payload.GetWithdrawals()
+	expectedWithdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		return err
 	}
 
-	// Ensure the deposits match the local state.
-	for i, wd := range withdrawals {
-		if wd == nil {
-			return types.ErrNilWithdrawal
-		}
-		if wd.Index != expectedWithdrawals[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				expectedWithdrawals[i].Index, wd.Index)
-		}
-
-		var val *types.Validator
-		val, err = st.ValidatorByIndex(wd.Validator)
-		if err != nil {
-			continue
-		}
-
-		// TODO: Modify balance here and then effective balance once per epoch.
-		val.EffectiveBalance -= min(
-			val.EffectiveBalance, wd.Amount,
+	// Ensure the withdrawals have the same length
+	if len(expectedWithdrawals) != len(payloadWithdrawals) {
+		return fmt.Errorf(
+			"withdrawals do not match expected length %d, got %d",
+			len(expectedWithdrawals), len(payloadWithdrawals),
 		)
-		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
+	}
+
+	// Compare and process each withdrawal.
+	for i, wd := range expectedWithdrawals {
+		// Ensure the withdrawals match the local state.
+		if !wd.Equals(payloadWithdrawals[i]) {
+			return fmt.Errorf(
+				"withdrawals do not match expected %s, got %s",
+				wd, payloadWithdrawals[i],
+			)
+		}
+
+		// Then we process the withdrawal.
+		if err = st.DecreaseBalance(wd.Validator, wd.Amount); err != nil {
 			return err
 		}
 	}
-	return nil
+
+	// Update the next withdrawal index if this block contained withdrawals
+	numWithdrawals := len(expectedWithdrawals)
+	if numWithdrawals != 0 {
+		// Next sweep starts after the latest withdrawal's validator index
+		if err = st.SetNextWithdrawalIndex(
+			expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1,
+		); err != nil {
+			return err
+		}
+	}
+
+	totalValidators, err := st.GetTotalValidators()
+	if err != nil {
+		return err
+	}
+
+	// Update the next validator index to start the next withdrawal sweep
+	//#nosec:G701 // won't overflow in practice.
+	if numWithdrawals == int(sp.cfg.MaxWithdrawalsPerPayload) {
+		// Next sweep starts after the latest withdrawal's validator index
+		nextValidatorIndex = primitives.ValidatorIndex(
+			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
+				totalValidators,
+		)
+	} else {
+		// Advance sweep by the max length of the sweep if there was not
+		// a full set of withdrawals
+		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
+		if err != nil {
+			return err
+		}
+		nextValidatorIndex += primitives.ValidatorIndex(
+			sp.cfg.MaxValidatorsPerWithdrawalsSweep)
+		nextValidatorIndex %= primitives.ValidatorIndex(totalValidators)
+	}
+
+	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 }
 
 // processRandaoReveal processes the randao reveal and
