@@ -42,10 +42,10 @@ type BeaconBlockDeneb struct {
 	ProposerIndex primitives.ValidatorIndex
 
 	// ParentBlockRoot is the hash of the parent block.
-	ParentBlockRoot primitives.Root `ssz-size:"32"`
+	ParentBlockRoot primitives.Root
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot primitives.Root `ssz-size:"32"`
+	StateRoot primitives.Root
 
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
