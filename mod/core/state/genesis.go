@@ -35,7 +35,6 @@ import (
 //
 //nolint:gocognit // splitting into more functions would be confusing.
 func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
-	// Set the fork.
 	if err := s.SetGenesisValidatorsRoot(st.GenesisValidatorsRoot); err != nil {
 		return err
 	}
@@ -53,12 +52,14 @@ func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
 	}
 
 	for i, root := range st.BlockRoots {
+		//#nosec:G701 // won't overflow in practice.
 		if err := s.UpdateBlockRootAtIndex(uint64(i), root); err != nil {
 			return err
 		}
 	}
 
 	for i, root := range st.StateRoots {
+		//#nosec:G701 // won't overflow in practice.
 		if err := s.UpdateStateRootAtIndex(uint64(i), root); err != nil {
 			return err
 		}
@@ -79,6 +80,7 @@ func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
 	}
 
 	for i, mix := range st.RandaoMixes {
+		//#nosec:G701 // won't overflow in practice.
 		if err := s.UpdateRandaoMixAtIndex(uint64(i), mix); err != nil {
 			return err
 		}
@@ -97,6 +99,7 @@ func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
 	totalSlashing := primitives.Gwei(0)
 	for i, slashing := range st.Slashings {
 		totalSlashing += primitives.Gwei(slashing)
+		//#nosec:G701 // won't overflow in practice.
 		if err := s.UpdateSlashingAtIndex(
 			uint64(i), primitives.Gwei(slashing),
 		); err != nil {
