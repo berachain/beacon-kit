@@ -23,22 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package components
 
 import (
-	app "github.com/berachain/beacon-kit/beacond/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
+	"cosmossdk.io/core/address"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
-func main() {
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppInfo(
-			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:            "beacond",
-				Description:     "beacond is a beacon node for any beacon-kit chain",
-				Creator:         app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				DepInjectConfig: app.Config(),
-			},
-		)
-	nb.RunNode()
+// ProvideKeyring provides a keyring for the client.
+func ProvideKeyring(
+	clientCtx client.Context,
+	_ address.Codec,
+) (clientv2keyring.Keyring, error) {
+	kb, err := client.NewKeyringFromBackend(
+		clientCtx,
+		clientCtx.Keyring.Backend(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return keyring.NewAutoCLIKeyring(kb)
 }
