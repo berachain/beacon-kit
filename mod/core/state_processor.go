@@ -406,8 +406,8 @@ func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
 	withdrawals []*primitives.Withdrawal,
 ) error {
-	// Dequeue and verify the withdrawals.
-	localWithdrawals, err := st.DequeueWithdrawals(uint64(len(withdrawals)))
+	// Dequeue and verify the logs.
+	expectedWithdrawals, err := st.ExpectedWithdrawals(uint64(len(withdrawals)))
 	if err != nil {
 		return err
 	}
@@ -417,10 +417,10 @@ func (sp *StateProcessor) processWithdrawals(
 		if wd == nil {
 			return types.ErrNilWithdrawal
 		}
-		if wd.Index != localWithdrawals[i].Index {
+		if wd.Index != expectedWithdrawals[i].Index {
 			return fmt.Errorf(
 				"deposit index does not match, expected: %d, got: %d",
-				localWithdrawals[i].Index, wd.Index)
+				expectedWithdrawals[i].Index, wd.Index)
 		}
 
 		var val *types.Validator
