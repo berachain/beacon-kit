@@ -52,8 +52,6 @@ func (s *Service) ProcessBlockEvents(
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
 			err = s.processDepositLog(ctx, st, log)
-		case logSig == WithdrawalEventSig:
-			err = s.processWithdrawalLog(ctx, st, log)
 		default:
 			continue
 		}
@@ -86,40 +84,5 @@ func (s *Service) processDepositLog(
 		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
 		Amount:      primitives.Gwei(d.Amount),
 		Signature:   primitives.BLSSignature(d.Signature),
-	}})
-}
-
-// processWithdrawalLog adds a withdrawal to the queue.
-func (s *Service) processWithdrawalLog(
-	_ context.Context,
-	st state.BeaconState,
-	log coretypes.Log,
-) error {
-	w := &abi.BeaconDepositContractWithdrawal{}
-	if err := s.abi.UnpackLogs(w, WithdrawalEventName, log); err != nil {
-		return err
-	}
-
-	// Get the validator index from the pubkey.
-	valIdx, err := st.ValidatorIndexByPubkey(primitives.BLSPubkey(w.FromPubkey))
-	if err != nil {
-		return err
-	}
-
-	executionAddr, err := beacontypes.
-		WithdrawalCredentials(w.Credentials).ToExecutionAddress()
-	if err != nil {
-		return err
-	}
-
-	s.Logger().Info(
-		"she said, \"see you later, boi\" 💅", "deposit", w.Index, "amount", w.Amount,
-	)
-
-	return st.EnqueueWithdrawals([]*primitives.Withdrawal{{
-		Index:     w.Index,
-		Validator: valIdx,
-		Address:   executionAddr,
-		Amount:    primitives.Gwei(w.Amount),
 	}})
 }
