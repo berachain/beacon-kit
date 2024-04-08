@@ -28,7 +28,7 @@ package nodebuilder
 import (
 	"os"
 
-	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/components"
 )
 
 // WithAppInfo sets the application information.
@@ -40,7 +40,7 @@ func (nb *NodeBuilder[T]) WithAppInfo(appInfo *AppInfo[T]) *NodeBuilder[T] {
 var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
 	dir, err := os.MkdirTemp("", "beacond")
 	if err != nil {
-		dir = modclient.DefaultNodeHome
+		dir = components.DefaultNodeHome
 	}
 	defer os.RemoveAll(dir)
 

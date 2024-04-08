@@ -72,7 +72,7 @@ type Config struct {
 
 // Template returns the configuration template.
 func (c Config) Template() string {
-	return configTemplate
+	return Template
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
