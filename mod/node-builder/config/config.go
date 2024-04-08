@@ -88,7 +88,10 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
-	v := opts.(*viper.Viper)
+	v, ok := opts.(*viper.Viper)
+	if !ok {
+		return nil, fmt.Errorf("invalid application options type: %T", opts)
+	}
 	type cfgUnmarshaller struct {
 		BeaconKit Config `mapstructure:"beacon-kit"`
 	}

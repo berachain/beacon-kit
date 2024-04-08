@@ -27,9 +27,7 @@ package nodebuilder
 
 import (
 	"context"
-	"fmt"
 	"os"
-	"strings"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
@@ -46,8 +44,6 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -187,46 +183,5 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 		panic(err)
 	}
 
-	bindFlags(rootCmd, viper.GetViper())
 	return rootCmd
-}
-
-// bindFlags binds each cobra flag to its associated viper configuration (config
-// file and environment variable).
-func bindFlags(cmd *cobra.Command, v *viper.Viper) error {
-	var lastErr error
-
-	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		// Cobra provided flags take priority
-		if f.Changed {
-			return
-		}
-
-		// Define all the viper flag names to check
-		viperNames := []string{
-			f.Name,
-			strings.Replace(
-				f.Name,
-				"-",
-				".",
-				1,
-			), // Support 1 tier of TOML groups using first term before "-".
-		}
-
-		for _, name := range viperNames {
-			if !v.IsSet(name) {
-				continue
-			}
-
-			val := v.Get(name)
-			err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
-			if err != nil {
-				lastErr = err
-			}
-
-			break
-		}
-	})
-
-	return lastErr
 }

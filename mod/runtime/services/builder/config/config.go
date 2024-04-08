@@ -40,6 +40,8 @@ const (
 )
 
 // Builder is the configuration for the payload builder.
+//
+//nolint:lll // struct tags.
 type Config struct {
 	// Suggested FeeRecipient is the address that will receive the transaction
 	// fees
