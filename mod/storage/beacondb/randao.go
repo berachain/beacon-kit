@@ -23,14 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *StateDB) UpdateRandaoMixAtIndex(
+func (s *KVStore) UpdateRandaoMixAtIndex(
 	index uint64,
 	mix primitives.Bytes32,
 ) error {
@@ -38,7 +38,7 @@ func (s *StateDB) UpdateRandaoMixAtIndex(
 }
 
 // GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *StateDB) GetRandaoMixAtIndex(
+func (s *KVStore) GetRandaoMixAtIndex(
 	index uint64,
 ) (primitives.Bytes32, error) {
 	return s.randaoMix.Get(s.ctx, index)

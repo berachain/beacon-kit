@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
@@ -31,19 +31,19 @@ import (
 )
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
-func (s *StateDB) GetNextWithdrawalIndex() (uint64, error) {
+func (s *KVStore) GetNextWithdrawalIndex() (uint64, error) {
 	return s.nextWithdrawalIndex.Get(s.ctx)
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
-func (s *StateDB) SetNextWithdrawalIndex(
+func (s *KVStore) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
 	return s.nextWithdrawalIndex.Set(s.ctx, index)
 }
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
-func (s *StateDB) GetNextWithdrawalValidatorIndex() (
+func (s *KVStore) GetNextWithdrawalValidatorIndex() (
 	primitives.ValidatorIndex, error,
 ) {
 	idx, err := s.nextWithdrawalValidatorIndex.Get(s.ctx)
@@ -51,28 +51,28 @@ func (s *StateDB) GetNextWithdrawalValidatorIndex() (
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
-func (s *StateDB) SetNextWithdrawalValidatorIndex(
+func (s *KVStore) SetNextWithdrawalValidatorIndex(
 	index primitives.ValidatorIndex,
 ) error {
 	return s.nextWithdrawalValidatorIndex.Set(s.ctx, uint64(index))
 }
 
 // ExpectedDeposits returns the first numPeek deposits in the queue.
-func (s *StateDB) ExpectedDeposits(
+func (s *KVStore) ExpectedDeposits(
 	numView uint64,
 ) (beacontypes.Deposits, error) {
 	return s.depositQueue.PeekMulti(s.ctx, numView)
 }
 
 // EnqueueDeposits pushes the deposits to the queue.
-func (s *StateDB) EnqueueDeposits(
+func (s *KVStore) EnqueueDeposits(
 	deposits beacontypes.Deposits,
 ) error {
 	return s.depositQueue.PushMulti(s.ctx, deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
-func (s *StateDB) DequeueDeposits(
+func (s *KVStore) DequeueDeposits(
 	numDequeue uint64,
 ) (beacontypes.Deposits, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)

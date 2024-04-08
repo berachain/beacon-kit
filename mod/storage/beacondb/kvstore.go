@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"context"
@@ -32,16 +32,16 @@ import (
 	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/collections"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/collections/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/index"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Store is a wrapper around an sdk.Context
+// KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type StateDB struct {
+type KVStore struct {
 	ctx   context.Context
 	write func()
 
@@ -106,9 +106,9 @@ type StateDB struct {
 //nolint:funlen // its not overly complex.
 func New(
 	kss store.KVStoreService,
-) *StateDB {
+) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &StateDB{
+	return &KVStore{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
@@ -224,7 +224,7 @@ func New(
 }
 
 // Copy returns a copy of the Store.
-func (s *StateDB) Copy() *StateDB {
+func (s *KVStore) Copy() *KVStore {
 	cctx, write := sdk.UnwrapSDKContext(s.ctx).CacheContext()
 	ss := s.WithContext(cctx)
 	ss.write = write
@@ -232,19 +232,19 @@ func (s *StateDB) Copy() *StateDB {
 }
 
 // Context returns the context of the Store.
-func (s *StateDB) Context() context.Context {
+func (s *KVStore) Context() context.Context {
 	return s.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (s *StateDB) WithContext(ctx context.Context) *StateDB {
+func (s *KVStore) WithContext(ctx context.Context) *KVStore {
 	cpy := *s
 	cpy.ctx = ctx
 	return &cpy
 }
 
 // Save saves the Store.
-func (s *StateDB) Save() {
+func (s *KVStore) Save() {
 	if s.write != nil {
 		s.write()
 	}

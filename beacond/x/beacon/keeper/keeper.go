@@ -35,8 +35,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/statedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -45,7 +45,7 @@ import (
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	statedb           *statedb.StateDB
+	beaconStore       *beacondb.KVStore
 	cfg               *params.BeaconChainConfig
 }
 
@@ -57,7 +57,7 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
-		statedb:           statedb.New(env.KVStoreService),
+		beaconStore:       beacondb.New(env.KVStoreService),
 		cfg:               cfg,
 	}
 }
@@ -71,7 +71,7 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.statedb.WithContext(ctx)
+	store := k.beaconStore.WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
@@ -124,7 +124,7 @@ func (k *Keeper) AvailabilityStore(
 func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), k.cfg)
+	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cfg)
 }
 
 // InitGenesis initializes the genesis state of the module.
@@ -207,8 +207,7 @@ func (k *Keeper) InitGenesis(
 	// TODO: don't need to set any validators here if we are setting in
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
-
-	store := k.statedb.WithContext(ctx)
+	store := k.beaconStore.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for i, validator := range data.Validators {
 		if err = store.AddValidator(validator); err != nil {

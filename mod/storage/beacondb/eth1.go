@@ -23,50 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (s *StateDB) UpdateBlockRootAtIndex(
-	index uint64,
-	root primitives.Root,
+// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
+func (s *KVStore) UpdateEth1BlockHash(
+	hash primitives.ExecutionHash,
 ) error {
-	return s.blockRoots.Set(s.ctx, index, root)
+	return s.eth1BlockHash.Set(s.ctx, hash)
 }
 
-// GetBlockRoot retrieves the block root from the BeaconStore.
-func (s *StateDB) GetBlockRootAtIndex(
-	index uint64,
-) (primitives.Root, error) {
-	return s.blockRoots.Get(s.ctx, index)
+// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
+func (s *KVStore) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+	return s.eth1BlockHash.Get(s.ctx)
 }
 
-// SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (s *StateDB) SetLatestBlockHeader(
-	header *primitives.BeaconBlockHeader,
-) error {
-	return s.latestBlockHeader.Set(s.ctx, header)
+// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+func (s *KVStore) GetEth1DepositIndex() (uint64, error) {
+	return s.eth1DepositIndex.Get(s.ctx)
 }
 
-// GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (s *StateDB) GetLatestBlockHeader() (
-	*primitives.BeaconBlockHeader, error,
-) {
-	return s.latestBlockHeader.Get(s.ctx)
-}
-
-// UpdateStateRootAtIndex updates the state root at the given slot.
-func (s *StateDB) UpdateStateRootAtIndex(
-	idx uint64,
-	stateRoot primitives.Root,
-) error {
-	return s.stateRoots.Set(s.ctx, idx, stateRoot)
-}
-
-// StateRootAtIndex returns the state root at the given slot.
-func (s *StateDB) StateRootAtIndex(idx uint64) (primitives.Root, error) {
-	return s.stateRoots.Get(s.ctx, idx)
+// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
+func (s *KVStore) SetEth1DepositIndex(index uint64) error {
+	return s.eth1DepositIndex.Set(s.ctx, index)
 }

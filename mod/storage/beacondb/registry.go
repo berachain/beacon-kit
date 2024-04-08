@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"cosmossdk.io/collections/indexes"
@@ -32,7 +32,7 @@ import (
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (s *StateDB) AddValidator(
+func (s *KVStore) AddValidator(
 	val *beacontypes.Validator,
 ) error {
 	// Get the ne
@@ -51,7 +51,7 @@ func (s *StateDB) AddValidator(
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
-func (s *StateDB) UpdateValidatorAtIndex(
+func (s *KVStore) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
 	val *beacontypes.Validator,
 ) error {
@@ -59,14 +59,14 @@ func (s *StateDB) UpdateValidatorAtIndex(
 }
 
 // RemoveValidatorAtIndex removes a validator at a specified index.
-func (s *StateDB) RemoveValidatorAtIndex(
+func (s *KVStore) RemoveValidatorAtIndex(
 	idx primitives.ValidatorIndex,
 ) error {
 	return s.validators.Remove(s.ctx, uint64(idx))
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
-func (s *StateDB) ValidatorIndexByPubkey(
+func (s *KVStore) ValidatorIndexByPubkey(
 	pubkey primitives.BLSPubkey,
 ) (primitives.ValidatorIndex, error) {
 	idx, err := s.validators.Indexes.Pubkey.MatchExact(
@@ -80,7 +80,7 @@ func (s *StateDB) ValidatorIndexByPubkey(
 }
 
 // ValidatorByIndex returns the validator address by index.
-func (s *StateDB) ValidatorByIndex(
+func (s *KVStore) ValidatorByIndex(
 	index primitives.ValidatorIndex,
 ) (*beacontypes.Validator, error) {
 	val, err := s.validators.Get(s.ctx, uint64(index))
@@ -91,7 +91,7 @@ func (s *StateDB) ValidatorByIndex(
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (s *StateDB) GetValidators() (
+func (s *KVStore) GetValidators() (
 	[]*beacontypes.Validator, error,
 ) {
 	var (
@@ -117,7 +117,7 @@ func (s *StateDB) GetValidators() (
 }
 
 // GetTotalValidators returns the total number of validators.
-func (s *StateDB) GetTotalValidators() (uint64, error) {
+func (s *KVStore) GetTotalValidators() (uint64, error) {
 	validators, err := s.GetValidators()
 	if err != nil {
 		return 0, err
@@ -127,7 +127,7 @@ func (s *StateDB) GetTotalValidators() (uint64, error) {
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (s *StateDB) GetValidatorsByEffectiveBalance() (
+func (s *KVStore) GetValidatorsByEffectiveBalance() (
 	[]*beacontypes.Validator, error,
 ) {
 	var (
@@ -159,7 +159,7 @@ func (s *StateDB) GetValidatorsByEffectiveBalance() (
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *StateDB) IncreaseBalance(
+func (s *KVStore) IncreaseBalance(
 	idx primitives.ValidatorIndex,
 	delta primitives.Gwei,
 ) error {
@@ -172,7 +172,7 @@ func (s *StateDB) IncreaseBalance(
 }
 
 // GetBalance returns the balance of a validator.
-func (s *StateDB) GetBalance(
+func (s *KVStore) GetBalance(
 	idx primitives.ValidatorIndex,
 ) (primitives.Gwei, error) {
 	balance, err := s.balances.Get(s.ctx, uint64(idx))
@@ -180,7 +180,7 @@ func (s *StateDB) GetBalance(
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *StateDB) DecreaseBalance(
+func (s *KVStore) DecreaseBalance(
 	idx primitives.ValidatorIndex,
 	delta primitives.Gwei,
 ) error {
@@ -193,7 +193,7 @@ func (s *StateDB) DecreaseBalance(
 }
 
 // GetBalances returns the balancse of all validator.
-func (s *StateDB) GetBalances() ([]uint64, error) {
+func (s *KVStore) GetBalances() ([]uint64, error) {
 	var balances []uint64
 	iter, err := s.balances.Iterate(s.ctx, nil)
 	if err != nil {
@@ -214,7 +214,7 @@ func (s *StateDB) GetBalances() ([]uint64, error) {
 
 // GetTotalActiveBalances returns the total active balances of all validators.
 // TODO: unhood this and probably store this as just a value changed on writes.
-func (s *StateDB) GetTotalActiveBalances(
+func (s *KVStore) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (primitives.Gwei, error) {
 	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(s.ctx, nil)

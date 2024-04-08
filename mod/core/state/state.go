@@ -29,37 +29,37 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/statedb"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
 // beaconState is a wrapper around the state db that implements the BeaconState
 // interface.
-type beaconState struct {
-	*statedb.StateDB
+type StateDB struct {
+	*beacondb.KVStore
 	cfg *params.BeaconChainConfig
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
-	sdb *statedb.StateDB,
+	bdb *beacondb.KVStore,
 	cfg *params.BeaconChainConfig,
 ) BeaconState {
-	return &beaconState{
-		StateDB: sdb,
+	return &StateDB{
+		KVStore: bdb,
 		cfg:     cfg,
 	}
 }
 
 // Copy returns a copy of the beacon state.
-func (s *beaconState) Copy() BeaconState {
-	return NewBeaconStateFromDB(s.StateDB.Copy(), s.cfg)
+func (s *StateDB) Copy() BeaconState {
+	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cfg)
 }
 
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *beaconState) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	var (
 		validator         *types.Validator
 		balance           primitives.Gwei
@@ -146,7 +146,7 @@ func (s *beaconState) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 // Store is the interface for the beacon store.
 //
 //nolint:funlen // todo fix somehow
-func (s *beaconState) HashTreeRoot() ([32]byte, error) {
+func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
 		return [32]byte{}, err
