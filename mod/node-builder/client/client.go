@@ -122,3 +122,11 @@ func ProvideKeyring(
 
 	return keyring.NewAutoCLIKeyring(kb)
 }
+
+// InitClientConfig sets up the default client configuration, allowing for
+// overrides.
+func InitClientConfig() (string, interface{}) {
+	clientCfg := config.DefaultConfig()
+	clientCfg.KeyringBackend = keyring.BackendTest
+	return config.DefaultClientConfigTemplate, clientCfg
+}

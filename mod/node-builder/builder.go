@@ -55,8 +55,8 @@ type AppInfo[T servertypes.Application] struct {
 	Description string
 	// Creator is a function that creates the application.
 	Creator servertypes.AppCreator[T]
-	// Config is the configuration for the application.
-	Config depinject.Config
+	// DepInjectConfig is the configuration for the application.
+	DepInjectConfig depinject.Config
 }
 
 // NodeBuilder is a struct that holds the application information.
@@ -92,7 +92,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
-			nb.appInfo.Config,
+			nb.appInfo.DepInjectConfig,
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
@@ -149,14 +149,11 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := modclient.InitAppConfig()
-			customCMTConfig := modclient.InitCometBFTConfig()
-
 			return server.InterceptConfigsPreRunHandler(
 				cmd,
-				customAppTemplate,
-				customAppConfig,
-				customCMTConfig,
+				nb.DefaultAppConfigTemplate(),
+				nb.DefaultAppConfig(),
+				nb.DefaultCometConfig(),
 			)
 		},
 	}
