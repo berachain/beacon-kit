@@ -5,7 +5,7 @@ export default function Overview() {
   return (
     <>
       <div className="voc_Div">
-        <div className="flex max-w-3xl mx-auto flex-row">
+        <div className="flex flex-col max-w-3xl mx-auto md:flex-row">
           <div className="border-dotted border-border border p-5">
             <header className="vocs_Header border-none">
               <h1 className="vocs_H1 vocs_Heading">What is BeaconKit</h1>
