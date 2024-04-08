@@ -43,6 +43,8 @@ const (
 	SlotPrefix                             = "slot"
 	BalancesPrefix                         = "balances"
 	Eth1BlockHashPrefix                    = "eth1_block_hash"
-	Eth1DepositIndexPrefix                 = "eth1_deposit_index"
+	Eth1DepositIndexPrefix                 = "eth1_deposit_idx"
 	GenesisValidatorsRootPrefix            = "genesis_validators_root"
+	NextWithdrawalIndexPrefix              = "next_withdrawal_index"
+	NextWithdrawalValidatorIndexPrefix     = "next_withdrawal_val_idx"
 )

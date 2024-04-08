@@ -87,6 +87,13 @@ type StateDB struct {
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, [32]byte]
 
+	// nextWithdrawalIndex stores the next global withdrawal index.
+	nextWithdrawalIndex sdkcollections.Item[uint64]
+
+	// nextWithdrawalValidatorIndex stores the next withdrawal validator index
+	// for each validator.
+	nextWithdrawalValidatorIndex sdkcollections.Item[uint64]
+
 	// slashings stores the slashings for the current epoch.
 	slashings sdkcollections.Map[uint64, uint64]
 
@@ -187,6 +194,19 @@ func New(
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
+		nextWithdrawalIndex: sdkcollections.NewItem[uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.NextWithdrawalIndexPrefix),
+			keys.NextWithdrawalIndexPrefix,
+			sdkcollections.Uint64Value,
+		),
+		nextWithdrawalValidatorIndex: sdkcollections.NewItem[uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.NextWithdrawalValidatorIndexPrefix),
+			keys.NextWithdrawalValidatorIndexPrefix,
+			sdkcollections.Uint64Value,
+		),
+
 		totalSlashing: sdkcollections.NewItem[uint64](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.TotalSlashingPrefix),
