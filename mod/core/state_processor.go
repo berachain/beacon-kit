@@ -465,7 +465,7 @@ func (sp *StateProcessor) processWithdrawals(
 			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
 				totalValidators,
 		)
-	} else if false {
+	} else {
 		// Advance sweep by the max length of the sweep if there was not
 		// a full set of withdrawals
 		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
