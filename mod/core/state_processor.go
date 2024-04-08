@@ -401,9 +401,10 @@ func (sp *StateProcessor) addValidatorToRegistry(
 	return st.IncreaseBalance(idx, dep.Amount)
 }
 
-// processWithdrawals processes the withdrawals and ensures they match the
-// local state.
-// TODO: Update in later PR.
+// processWithdrawals as per the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
+//
+//nolint:lll
 func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
 	payload enginetypes.ExecutionPayload,
