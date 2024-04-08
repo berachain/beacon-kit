@@ -27,10 +27,7 @@ func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 	// Offset (2) 'Deposits'
 	dst = ssz.WriteOffset(dst, offset)
-	for ii := 0; ii < len(b.Deposits); ii++ {
-		offset += 4
-		offset += b.Deposits[ii].SizeSSZ()
-	}
+	offset += len(b.Deposits) * 192
 
 	// Offset (3) 'ExecutionPayload'
 	dst = ssz.WriteOffset(dst, offset)
@@ -46,13 +43,6 @@ func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	if size := len(b.Deposits); size > 16 {
 		err = ssz.ErrListTooBigFn("BeaconBlockBodyDeneb.Deposits", size, 16)
 		return
-	}
-	{
-		offset = 4 * len(b.Deposits)
-		for ii := 0; ii < len(b.Deposits); ii++ {
-			dst = ssz.WriteOffset(dst, offset)
-			offset += b.Deposits[ii].SizeSSZ()
-		}
 	}
 	for ii := 0; ii < len(b.Deposits); ii++ {
 		if dst, err = b.Deposits[ii].MarshalSSZTo(dst); err != nil {
@@ -116,22 +106,18 @@ func (b *BeaconBlockBodyDeneb) UnmarshalSSZ(buf []byte) error {
 	// Field (2) 'Deposits'
 	{
 		buf = tail[o2:o3]
-		num, err := ssz.DecodeDynamicLength(buf, 16)
+		num, err := ssz.DivideInt2(len(buf), 192, 16)
 		if err != nil {
 			return err
 		}
 		b.Deposits = make([]*Deposit, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if b.Deposits[indx] == nil {
-				b.Deposits[indx] = new(Deposit)
+		for ii := 0; ii < num; ii++ {
+			if b.Deposits[ii] == nil {
+				b.Deposits[ii] = new(Deposit)
 			}
-			if err = b.Deposits[indx].UnmarshalSSZ(buf); err != nil {
+			if err = b.Deposits[ii].UnmarshalSSZ(buf[ii*192 : (ii+1)*192]); err != nil {
 				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 	}
 
@@ -166,10 +152,7 @@ func (b *BeaconBlockBodyDeneb) SizeSSZ() (size int) {
 	size = 140
 
 	// Field (2) 'Deposits'
-	for ii := 0; ii < len(b.Deposits); ii++ {
-		size += 4
-		size += b.Deposits[ii].SizeSSZ()
-	}
+	size += len(b.Deposits) * 192
 
 	// Field (3) 'ExecutionPayload'
 	if b.ExecutionPayload == nil {
