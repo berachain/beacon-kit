@@ -55,7 +55,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go mod download
 
 # Copy the rest of the source code
-COPY . .
+COPY ./mod ./mod
+COPY ./beacond ./beacond
 
 # Build args
 ARG NAME

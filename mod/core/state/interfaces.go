@@ -69,7 +69,6 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
-	WriteOnlyWithdrawals
 	SetSlot(primitives.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
@@ -142,10 +141,4 @@ type ReadOnlyDeposits interface {
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
 	ExpectedWithdrawals(uint64) ([]*primitives.Withdrawal, error)
-}
-
-// WriteOnlyWithdrawals only has write access to withdrawal methods.
-type WriteOnlyWithdrawals interface {
-	EnqueueWithdrawals([]*primitives.Withdrawal) error
-	DequeueWithdrawals(uint64) ([]*primitives.Withdrawal, error)
 }
