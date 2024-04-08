@@ -35,7 +35,7 @@ import (
 )
 
 // StringToSliceHookFunc returns a DecodeHookFunc that converts
-// string to []string by splitting on the given sep.
+// string to a `primitives.ExecutionAddresses` by parsing the string.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
 		func(s string) (primitives.ExecutionAddress, error) {
