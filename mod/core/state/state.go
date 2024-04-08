@@ -26,14 +26,17 @@
 package state
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
-// beaconState is a wrapper around the state db that implements the BeaconState
-// interface.
+// StateDB is the underlying struct behind the BeaconState interface.
+//
+//nolint:revive // todo fix somehow
 type StateDB struct {
 	*beacondb.KVStore
 	cfg *params.BeaconChainConfig
@@ -53,6 +56,59 @@ func NewBeaconStateFromDB(
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy() BeaconState {
 	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cfg)
+}
+
+// IncreaseBalance increases the balance of a validator.
+func (s *StateDB) IncreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.GetBalance(idx)
+	if err != nil {
+		return err
+	}
+	return s.SetBalance(idx, balance+delta)
+}
+
+// DecreaseBalance decreases the balance of a validator.
+func (s *StateDB) DecreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.GetBalance(idx)
+	if err != nil {
+		return err
+	}
+	balance -= min(balance, delta)
+	return s.SetBalance(idx, balance)
+}
+
+// UpdateSlashingAtIndex sets the slashing amount in the store.
+func (s *StateDB) UpdateSlashingAtIndex(
+	index uint64,
+	amount primitives.Gwei,
+) error {
+	// Update the total slashing amount before overwriting the old amount.
+	total, err := s.GetTotalSlashing()
+	if err != nil {
+		return err
+	}
+
+	oldValue, err := s.GetSlashingAtIndex(index)
+	if err != nil {
+		return err
+	}
+	// Defensive check but total - oldValue should never underflow.
+	if oldValue > total {
+		return errors.New("count of total slashing is not up to date")
+	}
+	if err = s.SetTotalSlashing(
+		total - oldValue + amount,
+	); err != nil {
+		return err
+	}
+
+	return s.SetSlashingAtIndex(index, amount)
 }
 
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:

@@ -224,28 +224,28 @@ func New(
 }
 
 // Copy returns a copy of the Store.
-func (s *KVStore) Copy() *KVStore {
-	cctx, write := sdk.UnwrapSDKContext(s.ctx).CacheContext()
-	ss := s.WithContext(cctx)
+func (kv *KVStore) Copy() *KVStore {
+	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
+	ss := kv.WithContext(cctx)
 	ss.write = write
 	return ss
 }
 
 // Context returns the context of the Store.
-func (s *KVStore) Context() context.Context {
-	return s.ctx
+func (kv *KVStore) Context() context.Context {
+	return kv.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (s *KVStore) WithContext(ctx context.Context) *KVStore {
-	cpy := *s
+func (kv *KVStore) WithContext(ctx context.Context) *KVStore {
+	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
 }
 
 // Save saves the Store.
-func (s *KVStore) Save() {
-	if s.write != nil {
-		s.write()
+func (kv *KVStore) Save() {
+	if kv.write != nil {
+		kv.write()
 	}
 }

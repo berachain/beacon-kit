@@ -30,23 +30,23 @@ import (
 )
 
 // UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
-func (s *KVStore) UpdateEth1BlockHash(
+func (kv *KVStore) UpdateEth1BlockHash(
 	hash primitives.ExecutionHash,
 ) error {
-	return s.eth1BlockHash.Set(s.ctx, hash)
+	return kv.eth1BlockHash.Set(kv.ctx, hash)
 }
 
 // GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
-func (s *KVStore) GetEth1BlockHash() (primitives.ExecutionHash, error) {
-	return s.eth1BlockHash.Get(s.ctx)
+func (kv *KVStore) GetEth1BlockHash() (primitives.ExecutionHash, error) {
+	return kv.eth1BlockHash.Get(kv.ctx)
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (s *KVStore) GetEth1DepositIndex() (uint64, error) {
-	return s.eth1DepositIndex.Get(s.ctx)
+func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
+	return kv.eth1DepositIndex.Get(kv.ctx)
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (s *KVStore) SetEth1DepositIndex(index uint64) error {
-	return s.eth1DepositIndex.Set(s.ctx, index)
+func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
+	return kv.eth1DepositIndex.Set(kv.ctx, index)
 }

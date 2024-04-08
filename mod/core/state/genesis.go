@@ -23,31 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacondb
+package state
 
-import "github.com/berachain/beacon-kit/mod/primitives"
-
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (kv *KVStore) SetGenesisValidatorsRoot(
-	root primitives.Root,
-) error {
-	return kv.genesisValidatorsRoot.Set(kv.ctx, root)
-}
-
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (kv *KVStore) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	return kv.genesisValidatorsRoot.Get(kv.ctx)
-}
-
-// GetSlot returns the current slot.
-func (kv *KVStore) GetSlot() (primitives.Slot, error) {
-	slot, err := kv.slot.Get(kv.ctx)
-	return primitives.Slot(slot), err
-}
-
-// SetSlot sets the current slot.
-func (kv *KVStore) SetSlot(slot primitives.Slot) error {
-	return kv.slot.Set(kv.ctx, uint64(slot))
+func (s *StateDB) LoadGenesisState() error {
+	return nil
 }

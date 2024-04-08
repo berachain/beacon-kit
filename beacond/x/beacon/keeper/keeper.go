@@ -208,13 +208,15 @@ func (k *Keeper) InitGenesis(
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
 	store := k.beaconStore.WithContext(ctx)
+	sdb := state.NewBeaconStateFromDB(store, k.cfg)
+
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for i, validator := range data.Validators {
 		if err = store.AddValidator(validator); err != nil {
 			return nil, err
 		}
 
-		if err = store.IncreaseBalance(
+		if err = sdb.IncreaseBalance(
 			primitives.ValidatorIndex(i), validator.EffectiveBalance,
 		); err != nil {
 			return nil, err
@@ -243,7 +245,7 @@ func (k *Keeper) InitGenesis(
 	// Set the genesis slashing data.
 	for i, v := range data.Slashings {
 		//#nosec:G701 // will not realistically cause a problem.
-		if err = store.UpdateSlashingAtIndex(
+		if err = sdb.UpdateSlashingAtIndex(
 			uint64(i), primitives.Gwei(v),
 		); err != nil {
 			return nil, err

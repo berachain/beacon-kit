@@ -30,16 +30,16 @@ import (
 )
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *KVStore) UpdateRandaoMixAtIndex(
+func (kv *KVStore) UpdateRandaoMixAtIndex(
 	index uint64,
 	mix primitives.Bytes32,
 ) error {
-	return s.randaoMix.Set(s.ctx, index, mix)
+	return kv.randaoMix.Set(kv.ctx, index, mix)
 }
 
 // GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *KVStore) GetRandaoMixAtIndex(
+func (kv *KVStore) GetRandaoMixAtIndex(
 	index uint64,
 ) (primitives.Bytes32, error) {
-	return s.randaoMix.Get(s.ctx, index)
+	return kv.randaoMix.Get(kv.ctx, index)
 }
