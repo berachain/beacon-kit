@@ -79,8 +79,8 @@ max-deposits-per-block = {{.BeaconKit.Beacon.MaxDepositsPerBlock}}
 # MaxWithdrawalsPerPayload indicates the maximum number of withdrawal operations allowed in a single payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.MaxWithdrawalsPerPayload}}
 
-# MaxValidatorWithdrawalsPerSweep specifies the maximum number of validator withdrawals allowed per sweep.
-max-validator-withdrawals-per-sweep = {{.BeaconKit.Beacon.MaxValidatorWithdrawalsPerSweep}}
+# MaxValidatorsPerWithdrawalsSweep specifies the maximum number of validator withdrawals allowed per sweep.
+max-validators-per-withdrawals-sweep = {{.BeaconKit.Beacon.MaxValidatorsPerWithdrawalsSweep}}
 
 # MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
 max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}

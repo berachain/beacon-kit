@@ -59,9 +59,7 @@ func (s *beaconState) Copy() BeaconState {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *beaconState) ExpectedWithdrawals(
-	uint64,
-) ([]*primitives.Withdrawal, error) {
+func (s *beaconState) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	var (
 		validator         *types.Validator
 		balance           primitives.Gwei
@@ -93,7 +91,7 @@ func (s *beaconState) ExpectedWithdrawals(
 
 	// Iterate through indicies to find the next validators to withdraw.
 	for i := uint64(0); i < min(
-		s.cfg.MaxValidatorWithdrawalsPerSweep, totalValidators,
+		s.cfg.MaxValidatorsPerWithdrawalsSweep, totalValidators,
 	); i++ {
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
@@ -142,12 +140,6 @@ func (s *beaconState) ExpectedWithdrawals(
 		)
 	}
 
-	// Update the indices in the state.
-	if err = s.SetNextWithdrawalIndex(withdrawalIndex); err != nil {
-		return nil, err
-	} else if err = s.SetNextWithdrawalValidatorIndex(validatorIndex); err != nil {
-		return nil, err
-	}
 	return withdrawals, nil
 }
 
