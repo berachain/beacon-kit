@@ -34,7 +34,7 @@ import "github.com/berachain/beacon-kit/mod/primitives"
 //nolint:gocognit // splitting into more functions would be confusing.
 func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
 	// Set the fork.
-	if err := s.SetFork(st.Fork); err != nil {
+	if err := s.SetGenesisValidatorsRoot(st.GenesisValidatorsRoot); err != nil {
 		return err
 	}
 
@@ -42,7 +42,7 @@ func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
 		return err
 	}
 
-	if err := s.SetGenesisValidatorsRoot(st.GenesisValidatorsRoot); err != nil {
+	if err := s.SetFork(st.Fork); err != nil {
 		return err
 	}
 
