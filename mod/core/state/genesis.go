@@ -25,6 +25,82 @@
 
 package state
 
-func (s *StateDB) LoadGenesisState() error {
-	return nil
+import "github.com/berachain/beacon-kit/mod/primitives"
+
+// WriteGenesisStateDeneb writes the genesis state to the state db.
+// TODO: Implement the "from eth1 version" and move genesis.json
+// to a custom type, not the full state.
+//
+//nolint:gocognit // splitting into more functions would be confusing.
+func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
+	// Set the fork.
+	if err := s.SetFork(st.Fork); err != nil {
+		return err
+	}
+
+	if err := s.SetSlot(st.Slot); err != nil {
+		return err
+	}
+
+	if err := s.SetGenesisValidatorsRoot(st.GenesisValidatorsRoot); err != nil {
+		return err
+	}
+
+	if err := s.SetLatestBlockHeader(st.LatestBlockHeader); err != nil {
+		return err
+	}
+
+	for i, root := range st.BlockRoots {
+		if err := s.UpdateBlockRootAtIndex(uint64(i), root); err != nil {
+			return err
+		}
+	}
+
+	for i, root := range st.StateRoots {
+		if err := s.UpdateStateRootAtIndex(uint64(i), root); err != nil {
+			return err
+		}
+	}
+
+	if err := s.UpdateEth1BlockHash(st.Eth1BlockHash); err != nil {
+		return err
+	}
+
+	if err := s.SetEth1DepositIndex(st.Eth1DepositIndex); err != nil {
+		return err
+	}
+
+	for _, validator := range st.Validators {
+		if err := s.AddValidator(validator); err != nil {
+			return err
+		}
+	}
+
+	for i, mix := range st.RandaoMixes {
+		if err := s.UpdateRandaoMixAtIndex(uint64(i), mix); err != nil {
+			return err
+		}
+	}
+
+	if err := s.SetNextWithdrawalIndex(st.NextWithdrawalIndex); err != nil {
+		return err
+	}
+
+	if err := s.SetNextWithdrawalValidatorIndex(
+		st.NextWithdrawalValidatorIndex,
+	); err != nil {
+		return err
+	}
+
+	totalSlashing := primitives.Gwei(0)
+	for i, slashing := range st.Slashings {
+		totalSlashing += primitives.Gwei(slashing)
+		if err := s.UpdateSlashingAtIndex(
+			uint64(i), primitives.Gwei(slashing),
+		); err != nil {
+			return err
+		}
+	}
+
+	return s.SetTotalSlashing(totalSlashing)
 }

@@ -23,50 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package beacondb
 
 import (
-	"context"
-	"encoding/json"
-
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// DefaultGenesis returns default genesis state as raw bytes
-// for the beacon module.
-func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(state.DefaultBeaconStateDeneb())
-	if err != nil {
-		panic(err)
-	}
-	return bz
+// SetFork sets the fork version for the given epoch.
+func (kv *KVStore) SetFork(fork *primitives.Fork) error {
+	return kv.fork.Set(kv.ctx, fork)
 }
 
-// ValidateGenesis performs genesis state validation for the evm module.
-func (AppModule) ValidateGenesis(
-	_ json.RawMessage,
-) error {
-	// TODO: implement.
-	return nil
-}
-
-// InitGenesis performs genesis initialization for the beacon module.
-func (am AppModule) InitGenesis(
-	ctx context.Context,
-	bz json.RawMessage,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	var gs state.BeaconStateDeneb
-	if err := json.Unmarshal(bz, &gs); err != nil {
-		return nil, err
-	}
-	return am.keeper.InitGenesis(ctx, &gs)
-}
-
-// ExportGenesis returns the exported genesis state as raw bytes for the evm
-// module.
-func (am AppModule) ExportGenesis(
-	ctx context.Context,
-) (json.RawMessage, error) {
-	return json.Marshal(am.keeper.ExportGenesis(ctx))
+// GetFork gets the fork version for the given epoch.
+func (kv *KVStore) GetFork() (*primitives.Fork, error) {
+	return kv.fork.Get(kv.ctx)
 }

@@ -46,7 +46,7 @@ type StateDB struct {
 func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore,
 	cfg *params.BeaconChainConfig,
-) BeaconState {
+) *StateDB {
 	return &StateDB{
 		KVStore: bdb,
 		cfg:     cfg,

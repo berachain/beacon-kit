@@ -75,9 +75,9 @@ type BeaconStateDeneb struct {
 	// Versioning
 	//
 	//nolint:lll
-	GenesisValidatorsRoot primitives.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  primitives.Slot `json:"slot"`
-	Fork                  primitives.Fork `json:"fork"`
+	GenesisValidatorsRoot primitives.Root  `json:"genesisValidatorsRoot" ssz-size:"32"`
+	Slot                  primitives.Slot  `json:"slot"`
+	Fork                  *primitives.Fork `json:"fork"`
 
 	// History
 	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
