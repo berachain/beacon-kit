@@ -79,8 +79,7 @@ func (s *StateDB) DecreaseBalance(
 	if err != nil {
 		return err
 	}
-	balance -= min(balance, delta)
-	return s.SetBalance(idx, balance)
+	return s.SetBalance(idx, balance0-min(balance, delta))
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
