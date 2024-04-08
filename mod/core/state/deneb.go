@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -109,6 +110,20 @@ type BeaconStateDeneb struct {
 	// Slashing
 	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
 	TotalSlashing primitives.Gwei `json:"totalSlashing"`
+}
+
+// Validate validates the BeaconStateDeneb.
+func (b *BeaconStateDeneb) Validate() error {
+	root, err := merkleize.VectorSSZ(b.Validators, uint64(len(b.Validators)))
+	if err != nil {
+		return err
+	}
+
+	if b.GenesisValidatorsRoot != root {
+		return nil
+	}
+
+	return nil
 }
 
 // String returns a string representation of BeaconStateDeneb.

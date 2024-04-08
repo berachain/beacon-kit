@@ -98,11 +98,11 @@ func (s *StateDB) UpdateSlashingAtIndex(
 	if err != nil {
 		return err
 	}
+
 	// Defensive check but total - oldValue should never underflow.
 	if oldValue > total {
 		return errors.New("count of total slashing is not up to date")
-	}
-	if err = s.SetTotalSlashing(
+	} else if err = s.SetTotalSlashing(
 		total - oldValue + amount,
 	); err != nil {
 		return err
