@@ -73,11 +73,11 @@ type BlobSidecar struct {
 	// Blob represents the blob data.
 	// TODO: Wrangle fastssz to allow us to use a pointer here to avoid
 	// copying the blob around all the time. Benchmark this as well.
-	Blob kzg.Blob `ssz-size:"131072"`
+	Blob kzg.Blob
 	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment kzg.Commitment `ssz-size:"48"`
+	KzgCommitment kzg.Commitment
 	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof kzg.Proof `ssz-size:"48"`
+	KzgProof kzg.Proof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
 	BeaconBlockHeader *primitives.BeaconBlockHeader

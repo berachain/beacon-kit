@@ -138,6 +138,13 @@ func (s *beaconState) ExpectedWithdrawals(
 			totalValidators,
 		)
 	}
+
+	// Update the indices in the state.
+	if err = s.SetNextWithdrawalIndex(withdrawalIndex); err != nil {
+		return nil, err
+	} else if err = s.SetNextWithdrawalValidatorIndex(validatorIndex); err != nil {
+		return nil, err
+	}
 	return withdrawals, nil
 }
 
