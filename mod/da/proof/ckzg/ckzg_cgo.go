@@ -64,10 +64,10 @@ func (v Verifier) VerifyBlobProofBatch(
 	for i := range args.Blobs {
 		blobs[i] = *(*ckzg4844.Blob)(args.Blobs[i])
 	}
-	commitments := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Commitments))
-	proofs := (*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Proofs))
 
-	ok, err := ckzg4844.VerifyBlobKZGProofBatch(blobs, *commitments, *proofs)
+	ok, err := ckzg4844.VerifyBlobKZGProofBatch(blobs,
+		*(*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Commitments)),
+		*(*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Proofs)))
 	if err != nil {
 		return err
 	}

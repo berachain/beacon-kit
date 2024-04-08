@@ -23,32 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package http
+package components
 
 import (
-	"net/http"
-
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
-	"github.com/cockroachdb/errors"
-	"github.com/ethereum/go-ethereum/node"
+	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
+	"cosmossdk.io/core/address"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
-// NewHeaderWithJWT creates a new HTTP header with a JWT token.
-func NewHeaderWithJWT(secret *jwt.Secret) http.Header {
-	header := http.Header{}
-	if err := AddJWTHeader(header, secret); err != nil {
-		panic(err)
+// ProvideKeyring provides a keyring for the client.
+func ProvideKeyring(
+	clientCtx client.Context,
+	_ address.Codec,
+) (clientv2keyring.Keyring, error) {
+	kb, err := client.NewKeyringFromBackend(
+		clientCtx,
+		clientCtx.Keyring.Backend(),
+	)
+	if err != nil {
+		return nil, err
 	}
-	return header
-}
 
-// AddJWTHeader adds a JWT header to the provided HTTP header.
-func AddJWTHeader(header http.Header, secret *jwt.Secret) error {
-	// Authenticate the execution node JSON-RPC endpoint.
-	if secret == nil {
-		return errors.New("jwt.Secret is nil")
-	} else if header == nil {
-		return errors.New("http.Header is nil")
-	}
-	return node.NewJWTAuth(*secret)(header)
+	return keyring.NewAutoCLIKeyring(kb)
 }

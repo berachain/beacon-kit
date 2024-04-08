@@ -43,11 +43,6 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser:
-    config:
-      recursive: True
-      with-expecter: true
-      all: True
   github.com/berachain/beacon-kit/mod/storage:
     config:
       recursive: False

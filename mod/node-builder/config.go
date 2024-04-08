@@ -23,52 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:gomnd // from sdk.
-package client
+package nodebuilder
 
 import (
 	"time"
 
-	beaconconfig "github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 )
 
-// InitCometBFTConfig customizes CometBFT Config values, falling back to
-// defaults if no customization is needed.
-func InitCometBFTConfig() *cmtcfg.Config {
-	cfg := cmtcfg.DefaultConfig()
-	consensus := cfg.Consensus
-	consensus.TimeoutPropose = 3000 * time.Millisecond
-	consensus.TimeoutPrevote = 2000 * time.Millisecond
-	consensus.TimeoutPrecommit = 2000 * time.Millisecond
-	consensus.TimeoutCommit = 6000 * time.Millisecond
-
-	// BeaconKit forces PebbleDB as the database backend.
-	cfg.DBBackend = "pebbledb"
-
-	// Indexer is disabled to enhance performance.
-	cfg.TxIndex.Indexer = "null"
-	return cfg
-}
-
-// InitClientConfig sets up the default client configuration, allowing for
-// overrides.
-func InitClientConfig() (string, interface{}) {
-	clientCfg := clientconfig.DefaultConfig()
-	clientCfg.KeyringBackend = keyring.BackendTest
-	return clientconfig.DefaultClientConfigTemplate, clientCfg
-}
-
-// InitAppConfig customizes the app configuration for BeaconKit, incorporating
-// any necessary overrides.
-func InitAppConfig() (string, interface{}) {
+// DefaultAppConfig returns the default configuration for the application.
+func (nb *NodeBuilder[T]) DefaultAppConfig() any {
 	// Define a struct for the custom app configuration.
 	type CustomAppConfig struct {
 		serverconfig.Config
-		BeaconKit beaconconfig.Config `mapstructure:"beacon-kit"`
+		BeaconKit config.Config `mapstructure:"beacon-kit"`
 	}
 
 	// Start with the default server configuration.
@@ -82,12 +52,35 @@ func InitAppConfig() (string, interface{}) {
 	// Create the custom app configuration.
 	customAppConfig := CustomAppConfig{
 		Config:    *cfg,
-		BeaconKit: *beaconconfig.DefaultConfig(),
+		BeaconKit: *config.DefaultConfig(),
 	}
 
-	// Combine the default template with the custom BeaconKit configuration.
-	customAppTemplate := serverconfig.DefaultConfigTemplate +
-		"\n" + customAppConfig.BeaconKit.Template()
+	return customAppConfig
+}
 
-	return customAppTemplate, customAppConfig
+// DefaultAppConfigTemplate returns the default configuration template for the
+// application.
+func (nb *NodeBuilder[T]) DefaultAppConfigTemplate() string {
+	return serverconfig.DefaultConfigTemplate +
+		"\n" + config.Template
+}
+
+// DefaultCometConfig returns the default configuration for the CometBFT
+// consensus engine.
+//
+//nolint:gomnd // magic numbers are fine here.
+func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
+	cfg := cmtcfg.DefaultConfig()
+	consensus := cfg.Consensus
+	consensus.TimeoutPropose = 3000 * time.Millisecond
+	consensus.TimeoutPrevote = 2000 * time.Millisecond
+	consensus.TimeoutPrecommit = 2000 * time.Millisecond
+	consensus.TimeoutCommit = 6000 * time.Millisecond
+
+	// BeaconKit forces PebbleDB as the database backend.
+	cfg.DBBackend = "pebbledb"
+
+	// Indexer is disabled to enhance performance.
+	cfg.TxIndex.Indexer = "null"
+	return cfg
 }

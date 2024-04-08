@@ -70,7 +70,7 @@ func ArgsFromSidecars(
 		Commitments: make([]kzg.Commitment, len(scs.Sidecars)),
 	}
 	for i, sidecar := range scs.Sidecars {
-		proofArgs.Blobs[i] = (*kzg.Blob)(sidecar.Blob)
+		proofArgs.Blobs[i] = &sidecar.Blob
 		proofArgs.Proofs[i] = sidecar.KzgProof
 		proofArgs.Commitments[i] = sidecar.KzgCommitment
 	}
