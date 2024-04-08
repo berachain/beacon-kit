@@ -58,7 +58,8 @@ func StringToDialURLFunc() mapstructure.DecodeHookFunc {
 	)
 }
 
-// string to *jwt.Secret by reading the file at the given path.
+// StringTo is a helper function for creating DecodeHookFuncs that convert
+// string to a specific type by parsing the string.
 func StringTo[T any](
 	constructor func(string) (T, error),
 ) mapstructure.DecodeHookFunc {

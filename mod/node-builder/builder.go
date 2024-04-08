@@ -33,9 +33,9 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config/params"
-	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
+	"github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -55,8 +55,8 @@ type AppInfo[T servertypes.Application] struct {
 	Description string
 	// Creator is a function that creates the application.
 	Creator servertypes.AppCreator[T]
-	// Config is the configuration for the application.
-	Config depinject.Config
+	// DepInjectConfig is the configuration for the application.
+	DepInjectConfig depinject.Config
 }
 
 // NodeBuilder is a struct that holds the application information.
@@ -75,7 +75,7 @@ func (nb *NodeBuilder[T]) RunNode() {
 	rootCmd := nb.BuildRootCmd()
 	// Run the root command.
 	if err := svrcmd.Execute(
-		rootCmd, "", modclient.DefaultNodeHome,
+		rootCmd, "", components.DefaultNodeHome,
 	); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
@@ -92,15 +92,15 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
-			nb.appInfo.Config,
+			nb.appInfo.DepInjectConfig,
 			depinject.Supply(
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 				&params.BeaconChainConfig{},
 			),
 			depinject.Provide(
-				modclient.ProvideClientContext,
-				modclient.ProvideKeyring,
+				components.ProvideClientContext,
+				components.ProvideKeyring,
 			),
 		),
 		&autoCliOpts,
@@ -128,12 +128,12 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 			}
 
 			if err = tos.VerifyTosAcceptedOrPrompt(
-				nb.appInfo.Name, modclient.TermsOfServiceURL, clientCtx, cmd,
+				nb.appInfo.Name, components.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
 				return err
 			}
 
-			customClientTemplate, customClientConfig := modclient.InitClientConfig()
+			customClientTemplate, customClientConfig := components.InitClientConfig()
 			clientCtx, err = config.CreateClientConfig(
 				clientCtx,
 				customClientTemplate,
@@ -149,14 +149,11 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := modclient.InitAppConfig()
-			customCMTConfig := modclient.InitCometBFTConfig()
-
 			return server.InterceptConfigsPreRunHandler(
 				cmd,
-				customAppTemplate,
-				customAppConfig,
-				customCMTConfig,
+				nb.DefaultAppConfigTemplate(),
+				nb.DefaultAppConfig(),
+				nb.DefaultCometConfig(),
 			)
 		},
 	}
