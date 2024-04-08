@@ -131,6 +131,7 @@ func (s *beaconState) ExpectedWithdrawals(
 		withdrawalIndex++
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
+		//#nosec:G701 // won't overflow in practice.
 		if len(withdrawals) == int(s.cfg.MaxWithdrawalsPerPayload) {
 			break
 		}
