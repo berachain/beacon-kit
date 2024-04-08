@@ -401,9 +401,10 @@ func (sp *StateProcessor) addValidatorToRegistry(
 	return st.IncreaseBalance(idx, dep.Amount)
 }
 
-// processWithdrawals processes the withdrawals and ensures they match the
-// local state.
-// TODO: Update in later PR.
+// processWithdrawals as per the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
+//
+//nolint:lll
 func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
 	payload enginetypes.ExecutionPayload,
@@ -459,11 +460,14 @@ func (sp *StateProcessor) processWithdrawals(
 	// Update the next validator index to start the next withdrawal sweep
 	//#nosec:G701 // won't overflow in practice.
 	if numWithdrawals == int(sp.cfg.MaxWithdrawalsPerPayload) {
+		// Next sweep starts after the latest withdrawal's validator index
 		nextValidatorIndex = primitives.ValidatorIndex(
 			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
 				totalValidators,
 		)
-	} else if false {
+	} else {
+		// Advance sweep by the max length of the sweep if there was not
+		// a full set of withdrawals
 		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
 		if err != nil {
 			return err
