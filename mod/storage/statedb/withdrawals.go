@@ -30,6 +30,33 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
+// GetNextWithdrawalIndex returns the next withdrawal index.
+func (s *StateDB) GetNextWithdrawalIndex() (uint64, error) {
+	return s.nextWithdrawalIndex.Get(s.ctx)
+}
+
+// SetNextWithdrawalIndex sets the next withdrawal index.
+func (s *StateDB) SetNextWithdrawalIndex(
+	index uint64,
+) error {
+	return s.nextWithdrawalIndex.Set(s.ctx, index)
+}
+
+// GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
+func (s *StateDB) GetNextWithdrawalValidatorIndex() (
+	primitives.ValidatorIndex, error,
+) {
+	idx, err := s.nextWithdrawalValidatorIndex.Get(s.ctx)
+	return primitives.ValidatorIndex(idx), err
+}
+
+// SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
+func (s *StateDB) SetNextWithdrawalValidatorIndex(
+	index primitives.ValidatorIndex,
+) error {
+	return s.nextWithdrawalValidatorIndex.Set(s.ctx, uint64(index))
+}
+
 // ExpectedDeposits returns the first numPeek deposits in the queue.
 func (s *StateDB) ExpectedDeposits(
 	numView uint64,
@@ -49,11 +76,4 @@ func (s *StateDB) DequeueDeposits(
 	numDequeue uint64,
 ) (beacontypes.Deposits, error) {
 	return s.depositQueue.PopMulti(s.ctx, numDequeue)
-}
-
-// ExpectedWithdrawals returns the first numView withdrawals in the queue.
-func (s *StateDB) ExpectedWithdrawals(
-	uint64,
-) ([]*primitives.Withdrawal, error) {
-	return make([]*primitives.Withdrawal, 0), nil
 }

@@ -94,8 +94,8 @@ type BeaconStateDeneb struct {
 	RandaoMixes [][32]byte `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 
 	// Withdrawals
-	NextWithdrawalIndex          uint64 `json:"nextWithdrawalIndex"`
-	NextWithdrawalValidatorIndex uint64 `json:"nextWithdrawalValidatorIndex"`
+	NextWithdrawalIndex          uint64                    `json:"nextWithdrawalIndex"`
+	NextWithdrawalValidatorIndex primitives.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
 
 	// Slashing
 	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`

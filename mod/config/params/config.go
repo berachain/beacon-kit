@@ -75,6 +75,11 @@ type BeaconChainConfig struct {
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
+	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of
+	// validator
+	// withdrawals allowed per sweep.
+	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
+
 	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
 	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
 

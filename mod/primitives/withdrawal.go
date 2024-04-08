@@ -42,6 +42,14 @@ type Withdrawal struct {
 	Amount    Gwei             `json:"amount"         ssz-size:"8"`
 }
 
+// Equals returns true if the Withdrawal is equal to the other.
+func (w *Withdrawal) Equals(other *Withdrawal) bool {
+	return w.Index == other.Index &&
+		w.Validator == other.Validator &&
+		w.Address == other.Address &&
+		w.Amount == other.Amount
+}
+
 // String returns a string representation of the Withdrawal.
 func (w *Withdrawal) String() string {
 	//#nosec:G703 // ignore potential marshalling failure.
