@@ -130,6 +130,46 @@ func (v Validator) IsSlashable(epoch primitives.Epoch) bool {
 		epoch < v.WithdrawableEpoch
 }
 
+// IsFullyWithdrawable as defined in the Ethereum 2.0 specfication:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_fully_withdrawable_validator
+//
+//nolint:lll
+func (v Validator) IsFullyWithdrawable(
+	balance primitives.Gwei,
+	epoch primitives.Epoch,
+) bool {
+	return v.HasEth1WithdrawalCredentials() && v.WithdrawableEpoch <= epoch &&
+		balance > 0
+}
+
+// IsPartiallyWithdrawable as defined in the Ethereum 2.0 specfication:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_partially_withdrawable_validator
+//
+//nolint:lll
+func (v Validator) IsPartiallyWithdrawable(
+	balance, maxEffectiveBalance primitives.Gwei,
+) bool {
+	hasExcessBalance := balance > maxEffectiveBalance
+	return v.HasEth1WithdrawalCredentials() &&
+		v.HasMaxEffectiveBalance(maxEffectiveBalance) && hasExcessBalance
+}
+
+// IsWithdrawable as defined in the Ethereum 2.0 specfication:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
+//
+//nolint:lll
+func (v Validator) HasEth1WithdrawalCredentials() bool {
+	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
+}
+
+// HasMaxEffectiveBalance determines if the validator has the maximum effective
+// balance.
+func (v Validator) HasMaxEffectiveBalance(
+	maxEffectiveBalance primitives.Gwei,
+) bool {
+	return v.EffectiveBalance == maxEffectiveBalance
+}
+
 // String returns a string representation of the Validator.
 func (v Validator) String() string {
 	return string(v.Pubkey[:])
