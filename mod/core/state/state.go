@@ -108,8 +108,7 @@ func (s *beaconState) ExpectedWithdrawals(
 			return nil, err
 		}
 
-		// For both partially and fully withdrawals, these three fields
-		// are the same.
+		// These fields are the same for both partial and full withdrawals.
 		withdrawal := &primitives.Withdrawal{
 			Index:     withdrawalIndex,
 			Validator: validatorIndex,
