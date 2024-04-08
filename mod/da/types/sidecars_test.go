@@ -71,3 +71,53 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 		"The original and unmarshalled empty sidecars should be equal",
 	)
 }
+func TestValidateBlockRoots(t *testing.T) {
+	// Create a sample BlobSidecar with valid roots
+	validSidecar := types.BlobSidecar{
+		Index: 0,
+		Blob:  kzg.Blob{},
+		BeaconBlockHeader: &primitives.BeaconBlockHeader{
+			StateRoot: [32]byte{1},
+			BodyRoot:  [32]byte{2},
+		},
+		InclusionProof: [][]byte{
+			[]byte("00000000000000000000000000000001"),
+			[]byte("00000000000000000000000000000002"),
+			[]byte("00000000000000000000000000000003"),
+			[]byte("00000000000000000000000000000004"),
+			[]byte("00000000000000000000000000000005"),
+			[]byte("00000000000000000000000000000006"),
+			[]byte("00000000000000000000000000000007"),
+			[]byte("00000000000000000000000000000008"),
+		},
+	}
+
+	// Validate the sidecar with valid roots
+	sidecars := types.BlobSidecars{Sidecars: []*types.BlobSidecar{&validSidecar}}
+	err := sidecars.ValidateBlockRoots()
+	require.NoError(t, err, "Validating sidecar with valid roots should not produce an error")
+
+	// Create a sample BlobSidecar with invalid roots
+	differentBlockRootSidecar := types.BlobSidecar{
+		Index: 0,
+		Blob:  kzg.Blob{},
+		BeaconBlockHeader: &primitives.BeaconBlockHeader{
+			StateRoot: [32]byte{},
+			BodyRoot:  [32]byte{},
+		},
+		InclusionProof: [][]byte{
+			[]byte("00000000000000000000000000000001"),
+			[]byte("00000000000000000000000000000002"),
+			[]byte("00000000000000000000000000000003"),
+			[]byte("00000000000000000000000000000004"),
+			[]byte("00000000000000000000000000000005"),
+			[]byte("00000000000000000000000000000006"),
+			[]byte("00000000000000000000000000000007"),
+			[]byte("00000000000000000000000000000008"),
+		},
+	}
+	// Validate the sidecar with invalid roots
+	sidecarsInvalid := types.BlobSidecars{Sidecars: []*types.BlobSidecar{&validSidecar, &differentBlockRootSidecar}}
+	err = sidecarsInvalid.ValidateBlockRoots()
+	require.Error(t, err, "Validating sidecar with invalid roots should produce an error")
+}
