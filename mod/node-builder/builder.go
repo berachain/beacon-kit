@@ -33,9 +33,9 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config/params"
-	modclient "github.com/berachain/beacon-kit/mod/node-builder/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
+	"github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -75,7 +75,7 @@ func (nb *NodeBuilder[T]) RunNode() {
 	rootCmd := nb.BuildRootCmd()
 	// Run the root command.
 	if err := svrcmd.Execute(
-		rootCmd, "", modclient.DefaultNodeHome,
+		rootCmd, "", components.DefaultNodeHome,
 	); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
@@ -99,8 +99,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 				&params.BeaconChainConfig{},
 			),
 			depinject.Provide(
-				modclient.ProvideClientContext,
-				modclient.ProvideKeyring,
+				components.ProvideClientContext,
+				components.ProvideKeyring,
 			),
 		),
 		&autoCliOpts,
@@ -128,12 +128,12 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 			}
 
 			if err = tos.VerifyTosAcceptedOrPrompt(
-				nb.appInfo.Name, modclient.TermsOfServiceURL, clientCtx, cmd,
+				nb.appInfo.Name, components.TermsOfServiceURL, clientCtx, cmd,
 			); err != nil {
 				return err
 			}
 
-			customClientTemplate, customClientConfig := modclient.InitClientConfig()
+			customClientTemplate, customClientConfig := components.InitClientConfig()
 			clientCtx, err = config.CreateClientConfig(
 				clientCtx,
 				customClientTemplate,

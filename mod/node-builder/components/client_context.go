@@ -23,13 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package components
 
 import (
 	"os"
 	"path/filepath"
 
-	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/x/auth/tx"
 	authtxconfig "cosmossdk.io/x/auth/tx/config"
@@ -106,21 +105,6 @@ func ProvideClientContext(
 	clientCtx = clientCtx.WithTxConfig(txConfig)
 
 	return clientCtx
-}
-
-func ProvideKeyring(
-	clientCtx client.Context,
-	_ address.Codec,
-) (clientv2keyring.Keyring, error) {
-	kb, err := client.NewKeyringFromBackend(
-		clientCtx,
-		clientCtx.Keyring.Backend(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return keyring.NewAutoCLIKeyring(kb)
 }
 
 // InitClientConfig sets up the default client configuration, allowing for

@@ -23,26 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package nodebuilder
+package components
 
 import (
-	"os"
-
-	"github.com/berachain/beacon-kit/mod/node-builder/components"
+	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
+	"cosmossdk.io/core/address"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
-// WithAppInfo sets the application information.
-func (nb *NodeBuilder[T]) WithAppInfo(appInfo *AppInfo[T]) *NodeBuilder[T] {
-	nb.appInfo = appInfo
-	return nb
-}
-
-var tempDir = func() string { //nolint:gochecknoglobals // from sdk.
-	dir, err := os.MkdirTemp("", "beacond")
+// ProvideKeyring provides a keyring for the client.
+func ProvideKeyring(
+	clientCtx client.Context,
+	_ address.Codec,
+) (clientv2keyring.Keyring, error) {
+	kb, err := client.NewKeyringFromBackend(
+		clientCtx,
+		clientCtx.Keyring.Backend(),
+	)
 	if err != nil {
-		dir = components.DefaultNodeHome
+		return nil, err
 	}
-	defer os.RemoveAll(dir)
 
-	return dir
+	return keyring.NewAutoCLIKeyring(kb)
 }
