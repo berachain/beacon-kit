@@ -91,7 +91,10 @@ func (s *beaconState) ExpectedWithdrawals(
 		return nil, err
 	}
 
-	for i := uint64(0); i < min(s.cfg.MaxValidatorWithdrawalsPerSweep, totalValidators); i++ {
+	// Iterate through indicies to find the next validators to withdraw.
+	for i := uint64(0); i < min(
+		s.cfg.MaxValidatorWithdrawalsPerSweep, totalValidators,
+	); i++ {
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
