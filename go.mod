@@ -44,7 +44,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.2.4
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.14
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.16
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
@@ -164,7 +164,7 @@ require (
 	github.com/daixiang0/gci v0.12.3 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/dave/dst v0.27.3 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/deckarep/golang-set/v2 v2.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/deepmap/oapi-codegen v1.6.0 // indirect
