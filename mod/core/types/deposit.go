@@ -26,10 +26,9 @@
 package types
 
 import (
-	"encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
@@ -60,9 +59,7 @@ type Deposit struct {
 
 // String returns a string representation of the Deposit.
 func (d *Deposit) String() string {
-	//#nosec:G703 // ignore potential marshalling failure.
-	output, _ := json.Marshal(d)
-	return string(output)
+	return spew.Sdump(d)
 }
 
 // DepositMessage as defined in the Ethereum 2.0 specification.

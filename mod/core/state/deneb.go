@@ -27,7 +27,9 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -41,8 +43,12 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 	//nolint:gomnd // default allocs.
 	return &BeaconStateDeneb{
 		GenesisValidatorsRoot: primitives.Root{},
-
-		Slot: 0,
+		Slot:                  0,
+		Fork: &primitives.Fork{
+			PreviousVersion: version.FromUint32(version.Deneb),
+			CurrentVersion:  version.FromUint32(version.Deneb),
+			Epoch:           0,
+		},
 		LatestBlockHeader: &primitives.BeaconBlockHeader{
 			Slot:          0,
 			ProposerIndex: 0,
@@ -50,17 +56,19 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 			StateRoot:     primitives.Root{},
 			BodyRoot:      primitives.Root{},
 		},
-		BlockRoots: make([][32]byte, 1),
-		StateRoots: make([][32]byte, 1),
+		BlockRoots: make([][32]byte, 8),
+		StateRoots: make([][32]byte, 8),
 		Eth1BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
-		Eth1DepositIndex: 0,
-		Validators:       make([]*types.Validator, 0),
-		Balances:         make([]uint64, 0),
-		RandaoMixes:      make([][32]byte, 8),
-		Slashings:        make([]uint64, 1),
-		TotalSlashing:    0,
+		Eth1DepositIndex:             0,
+		Validators:                   make([]*types.Validator, 0),
+		Balances:                     make([]uint64, 0),
+		NextWithdrawalIndex:          0,
+		NextWithdrawalValidatorIndex: 0,
+		RandaoMixes:                  make([][32]byte, 8),
+		Slashings:                    make([]uint64, 0),
+		TotalSlashing:                0,
 	}
 }
 
@@ -74,8 +82,9 @@ type BeaconStateDeneb struct {
 	// Versioning
 	//
 	//nolint:lll
-	GenesisValidatorsRoot primitives.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  primitives.Slot `json:"slot"`
+	GenesisValidatorsRoot primitives.Root  `json:"genesisValidatorsRoot" ssz-size:"32"`
+	Slot                  primitives.Slot  `json:"slot"`
+	Fork                  *primitives.Fork `json:"fork"`
 
 	// History
 	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
@@ -104,7 +113,7 @@ type BeaconStateDeneb struct {
 
 // String returns a string representation of BeaconStateDeneb.
 func (b *BeaconStateDeneb) String() string {
-	return "TODO: BeaconStateDeneb"
+	return spew.Sdump(b)
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal

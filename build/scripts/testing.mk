@@ -120,8 +120,8 @@ test-unit-fuzz: ## run fuzz tests
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzHashTreeRoot ./mod/trie/merkleize/... -fuzztime=${MEDIUM_FUZZ_TIME}
-	go test -fuzz=FuzzQueueSimple ./mod/storage/statedb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzQueueMulti ./mod/storage/statedb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzQueueSimple ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzQueueMulti ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 
 test-e2e:
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build

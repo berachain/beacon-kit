@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"context"
@@ -32,16 +32,16 @@ import (
 	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/collections"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/collections/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/index"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Store is a wrapper around an sdk.Context
+// KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type StateDB struct {
+type KVStore struct {
 	ctx   context.Context
 	write func()
 
@@ -50,6 +50,9 @@ type StateDB struct {
 
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
+
+	// fork is the current fork
+	fork sdkcollections.Item[*primitives.Fork]
 
 	// latestBlockHeader stores the latest beacon block header.
 	latestBlockHeader sdkcollections.Item[*primitives.BeaconBlockHeader]
@@ -106,9 +109,9 @@ type StateDB struct {
 //nolint:funlen // its not overly complex.
 func New(
 	kss store.KVStoreService,
-) *StateDB {
+) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &StateDB{
+	return &KVStore{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
@@ -121,6 +124,12 @@ func New(
 			sdkcollections.NewPrefix(keys.SlotPrefix),
 			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
+		),
+		fork: sdkcollections.NewItem[*primitives.Fork](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.ForkPrefix),
+			keys.ForkPrefix,
+			encoding.SSZValueCodec[*primitives.Fork]{},
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
@@ -224,28 +233,28 @@ func New(
 }
 
 // Copy returns a copy of the Store.
-func (s *StateDB) Copy() *StateDB {
-	cctx, write := sdk.UnwrapSDKContext(s.ctx).CacheContext()
-	ss := s.WithContext(cctx)
+func (kv *KVStore) Copy() *KVStore {
+	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
+	ss := kv.WithContext(cctx)
 	ss.write = write
 	return ss
 }
 
 // Context returns the context of the Store.
-func (s *StateDB) Context() context.Context {
-	return s.ctx
+func (kv *KVStore) Context() context.Context {
+	return kv.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (s *StateDB) WithContext(ctx context.Context) *StateDB {
-	cpy := *s
+func (kv *KVStore) WithContext(ctx context.Context) *KVStore {
+	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
 }
 
 // Save saves the Store.
-func (s *StateDB) Save() {
-	if s.write != nil {
-		s.write()
+func (kv *KVStore) Save() {
+	if kv.write != nil {
+		kv.write()
 	}
 }
