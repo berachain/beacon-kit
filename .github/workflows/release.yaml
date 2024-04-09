@@ -112,8 +112,8 @@ jobs:
         with:
           draft: true
           files: |
-            build/beacond-linux-arm64/beacond
-            build/beacond-linux-amd64/beacond
-            build/beacond-darwin-arm64/beacond
+            build/bin/beacond-linux-arm64
+            build/bin/beacond-linux-amd64
+            build/bin/beacond-darwin-arm64
         env:
           GIT_TOKEN: ${{ secrets.DEV_PAT }}
