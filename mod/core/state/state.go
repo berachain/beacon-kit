@@ -200,7 +200,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 
 // Store is the interface for the beacon store.
 //
-//nolint:funlen // todo fix somehow
+//nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
@@ -238,6 +238,11 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	}
 
 	eth1BlockHash, err := s.GetEth1BlockHash()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	eth1Data, err := s.GetEth1Data()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -295,6 +300,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		BlockRoots:                   blockRoots,
 		StateRoots:                   stateRoots,
 		Eth1BlockHash:                eth1BlockHash,
+		Eth1Data:                     eth1Data,
 		Eth1DepositIndex:             eth1DepositIndex,
 		Validators:                   validators,
 		Balances:                     balances,

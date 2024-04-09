@@ -44,6 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	deposit "github.com/berachain/beacon-kit/mod/storage/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -79,24 +80,22 @@ func NewDefaultBeaconKitRuntime(
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	bsb BeaconStorageBackend,
+	depositStore *deposit.KVStore,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
-
 	// Create the base service, we will the create shallow copies for each
 	// service.
 	baseService := service.NewBaseService(
 		cfg, bsb, logger,
 	)
-
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
 		engineclient.WithJWTSecret(jwtSecret),
 		engineclient.WithLogger(logger),
 	)
-
 	// TODO: move.
 	engineClient.Start(context.Background())
 
@@ -154,6 +153,7 @@ func NewDefaultBeaconKitRuntime(
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithLocalBuilder(localBuilder),
+		builder.WithDepositStore(depositStore),
 		builder.WithRandaoProcessor(randaoProcessor),
 		builder.WithSigner(signer),
 	)

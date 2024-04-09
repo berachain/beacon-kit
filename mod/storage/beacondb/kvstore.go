@@ -66,6 +66,9 @@ type KVStore struct {
 	// eth1BlockHash stores the block hash of the latest eth1 block.
 	eth1BlockHash sdkcollections.Item[[32]byte]
 
+	// eth1Data is the latest eth1 data object.
+	eth1Data sdkcollections.Item[*primitives.Eth1Data]
+
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
@@ -80,9 +83,6 @@ type KVStore struct {
 
 	// balances stores the list of balances.
 	balances sdkcollections.Map[uint64, uint64]
-
-	// depositQueue is a list of deposits that are queued to be processed.
-	depositQueue *collections.Queue[*beacontypes.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
@@ -151,6 +151,12 @@ func New(
 			keys.Eth1BlockHashPrefix,
 			encoding.Bytes32ValueCodec{},
 		),
+		eth1Data: sdkcollections.NewItem[*primitives.Eth1Data](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
+			keys.Eth1DataPrefix,
+			encoding.SSZValueCodec[*primitives.Eth1Data]{},
+		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.Eth1DepositIndexPrefix),
@@ -178,11 +184,6 @@ func New(
 			keys.BalancesPrefix,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
-		),
-		depositQueue: collections.NewQueue[*beacontypes.Deposit](
-			schemaBuilder,
-			keys.DepositQueuePrefix,
-			encoding.SSZValueCodec[*beacontypes.Deposit]{},
 		),
 		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
 			schemaBuilder,

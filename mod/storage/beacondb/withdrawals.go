@@ -26,7 +26,6 @@
 package beacondb
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -55,25 +54,4 @@ func (kv *KVStore) SetNextWithdrawalValidatorIndex(
 	index primitives.ValidatorIndex,
 ) error {
 	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, uint64(index))
-}
-
-// ExpectedDeposits returns the first numPeek deposits in the queue.
-func (kv *KVStore) ExpectedDeposits(
-	numView uint64,
-) (beacontypes.Deposits, error) {
-	return kv.depositQueue.PeekMulti(kv.ctx, numView)
-}
-
-// EnqueueDeposits pushes the deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(
-	deposits beacontypes.Deposits,
-) error {
-	return kv.depositQueue.PushMulti(kv.ctx, deposits)
-}
-
-// DequeueDeposits returns the first numDequeue deposits in the queue.
-func (kv *KVStore) DequeueDeposits(
-	numDequeue uint64,
-) (beacontypes.Deposits, error) {
-	return kv.depositQueue.PopMulti(kv.ctx, numDequeue)
 }

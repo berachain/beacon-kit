@@ -44,7 +44,7 @@ type BeaconBlockHeader struct {
 	// StateRoot is the root of the beacon state after executing
 	// the block. Will be 0x00...00 prior to execution.
 	StateRoot Root `json:"stateRoot"     ssz-size:"32"`
-	// 	// BodyRoot is the root of the block body.
+	// BodyRoot is the root of the block body.
 	BodyRoot Root `json:"bodyRoot"      ssz-size:"32"`
 }
 

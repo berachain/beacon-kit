@@ -28,7 +28,6 @@ package staking
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
@@ -38,7 +37,6 @@ import (
 // ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
 	ctx context.Context,
-	st state.BeaconState,
 	logs []coretypes.Log,
 ) error {
 	for _, log := range logs {
@@ -51,7 +49,7 @@ func (s *Service) ProcessBlockEvents(
 		var err error
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
-			err = s.processDepositLog(ctx, st, log)
+			err = s.processDepositLog(ctx, log)
 		default:
 			continue
 		}
@@ -66,7 +64,6 @@ func (s *Service) ProcessBlockEvents(
 // processDepositLog adds a deposit to the queue.
 func (s *Service) processDepositLog(
 	_ context.Context,
-	st state.BeaconState,
 	log coretypes.Log,
 ) error {
 	d := &abi.BeaconDepositContractDeposit{}
@@ -78,7 +75,8 @@ func (s *Service) processDepositLog(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
 
-	return st.EnqueueDeposits(beacontypes.Deposits{{
+	//nolint:contextcheck // its a todo to fix
+	return s.ds.EnqueueDeposits(beacontypes.Deposits{{
 		Index:       d.Index,
 		Pubkey:      primitives.BLSPubkey(d.Pubkey),
 		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),

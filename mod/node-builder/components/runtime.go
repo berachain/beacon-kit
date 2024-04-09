@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -46,6 +47,7 @@ type RuntimeInjectInput struct {
 	JWTSecret       *jwt.Secret
 	Signer          core.BLSSigner
 	KZGTrustedSetup *gokzg4844.JSONTrustedSetup
+	DepositStore    *deposit.KVStore
 	Bsp             runtime.BeaconStorageBackend
 }
 
@@ -63,6 +65,7 @@ func ProvideRuntime(in RuntimeInjectInput) RuntimeInjectOutput {
 		in.JWTSecret,
 		in.KZGTrustedSetup,
 		in.Bsp,
+		in.DepositStore,
 		in.Logger,
 	)
 	if err != nil {

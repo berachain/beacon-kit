@@ -26,6 +26,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/log"
@@ -37,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	sha256 "github.com/minio/sha256-simd"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -63,7 +65,7 @@ func NewStateProcessor(
 	}
 }
 
-// StateTransition is the main function for processing a state transition.
+// Transition is the main function for processing a state transition.
 func (sp *StateProcessor) Transition(
 	st state.BeaconState,
 	blk types.ReadOnlyBeaconBlock,
@@ -203,6 +205,8 @@ func (sp *StateProcessor) ProcessBlock(
 
 	// phase0.ProcessEth1Vote ? forkchoice?
 
+	// TODO: LOOK HERE
+	//
 	// process the deposits and ensure they match the local state.
 	if err := sp.processOperations(st, body); err != nil {
 		return err
@@ -257,7 +261,24 @@ func (sp *StateProcessor) processOperations(
 	st state.BeaconState,
 	body types.BeaconBlockBody,
 ) error {
-	return sp.processDeposits(st, body.GetDeposits())
+	// Verify that outstanding deposits are processed up to the maximum number
+	// of deposits.
+	deposits := body.GetDeposits()
+	index, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+	eth1Data, err := st.GetEth1Data()
+	if err != nil {
+		return err
+	}
+	if len(deposits) != min(
+		int(sp.cfg.MaxDepositsPerBlock),
+		int(eth1Data.DepositCount-index),
+	) {
+		return errors.New("deposit count mismatch")
+	}
+	return sp.processDeposits(st, deposits)
 }
 
 // ProcessDeposits processes the deposits and ensures they match the
@@ -266,39 +287,11 @@ func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
 	deposits types.Deposits,
 ) error {
-	// Dequeue and verify the logs.
-	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
-	if err != nil {
-		return err
-	}
-
 	// Ensure the deposits match the local state.
-	for i, dep := range deposits {
-		if dep.Index != localDeposits[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				localDeposits[i].Index, dep.Index)
-		}
-
-		var depIdx uint64
-		depIdx, err = st.GetEth1DepositIndex()
-		if err != nil {
+	for _, dep := range deposits {
+		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
-
-		// TODO: this is bad but safe.
-		if dep.Index != depIdx {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				depIdx, dep.Index)
-		}
-
-		// TODO: this is a shitty spot for this.
-		// TODO: deprecate using this.
-		if err = st.SetEth1DepositIndex(depIdx + 1); err != nil {
-			return err
-		}
-		sp.processDeposit(st, dep)
 	}
 	return nil
 }
@@ -307,30 +300,57 @@ func (sp *StateProcessor) processDeposits(
 func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
 	dep *types.Deposit,
-) {
+) error {
+	// TODO: fill this in properly
+	// if !sp.isValidMerkleBranch(
+	// 	leaf,
+	// 	dep.Credentials,
+	// 	32 + 1,
+	// 	dep.Index,
+	// 	st.root,
+	// ) {
+	// 	return errors.New("invalid merkle branch")
+	// }
+
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
 	if err == nil {
 		var val *types.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
-			return
+			return err
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
 			primitives.Gwei(sp.cfg.MaxEffectiveBalance))
-		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-			return
-		}
-		// Exiting early because we only check signature on creation
-		return
+		return st.UpdateValidatorAtIndex(idx, val)
 	}
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
-	if err = sp.createValidator(st, dep); err != nil {
-		sp.logger.Error("failed to create validator", "error", err)
+	return sp.createValidator(st, dep)
+}
+
+// isValidMerkleBranch as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_valid_merkle_branch
+//
+//nolint:lll,unused // will be used later
+func (sp *StateProcessor) isValidMerkleBranch(
+	leaf primitives.Bytes32,
+	branch []primitives.Bytes32,
+	depth uint64,
+	index uint64,
+	root primitives.Root,
+) bool {
+	value := leaf
+	for i := range depth {
+		if (index>>uint(i))%2 == 1 {
+			value = sha256.Sum256(append(branch[i][:], value[:]...))
+		} else {
+			value = sha256.Sum256(append(value[:], branch[i][:]...))
+		}
 	}
+	return value == root
 }
 
 // createValidator creates a validator if the deposit is valid.

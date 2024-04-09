@@ -23,51 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package primitives
 
-import (
-	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	stakingabi "github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
-	"github.com/berachain/beacon-kit/mod/storage/deposit"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-)
+import "encoding/json"
 
-// WithBaseService sets the BaseService for the Service.
-func WithBaseService(
-	base service.BaseService,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include execution.go,primitives.go,bytes.go,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
+type Eth1Data struct {
+	DepositRoot  Root          `json:"depositRoot"`
+	DepositCount uint64        `json:"depositCount"`
+	BlockHash    ExecutionHash `json:"blockHash"`
 }
 
-// WithDepositABI returns an Option that sets the deposit
-// contract's ABI for the Service.
-func WithDepositABI(
-	depositABI *abi.ABI,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.abi = stakingabi.NewWrappedABI(depositABI)
-		return nil
-	}
-}
-
-func WithExecutionEngine(
-	ee *execution.Engine,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-func WithDepositStore(
-	ds *deposit.KVStore,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ds = ds
-		return nil
-	}
+// String returns a string representation of the Eth1Data.
+func (e *Eth1Data) String() string {
+	//#nosec:G703 // ignore potential marshalling failure.
+	output, _ := json.Marshal(e)
+	return string(output)
 }

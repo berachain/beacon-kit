@@ -23,51 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	stakingabi "github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
 )
 
-// WithBaseService sets the BaseService for the Service.
-func WithBaseService(
-	base service.BaseService,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+// TrustedSetupInput is the input for the dep inject framework.
+type DepositStoreInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// WithDepositABI returns an Option that sets the deposit
-// contract's ABI for the Service.
-func WithDepositABI(
-	depositABI *abi.ABI,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.abi = stakingabi.NewWrappedABI(depositABI)
-		return nil
-	}
+// TrustedSetupOutput is the output for the dep inject framework.
+type DepositStoreOutput struct {
+	depinject.Out
+
+	DepositStore *deposit.KVStore
 }
 
-func WithExecutionEngine(
-	ee *execution.Engine,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
+// ProvideDepositStore is a function that provides the module to the
+// application.
+func ProvideDepositStore(in DepositStoreInput) DepositStoreOutput {
+	name := "deposits"
+	storeType := "pebble"
+	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
+	kvp, err := deposit.NewKVStoreProvider(name, storeType, dir)
+	if err != nil {
+		panic(err)
 	}
-}
 
-func WithDepositStore(
-	ds *deposit.KVStore,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ds = ds
-		return nil
+	depositStore := deposit.NewStore(kvp)
+
+	return DepositStoreOutput{
+		DepositStore: depositStore,
 	}
 }

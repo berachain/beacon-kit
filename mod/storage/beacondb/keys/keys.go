@@ -27,7 +27,6 @@ package keys
 
 // Collection prefixes.
 const (
-	DepositQueuePrefix                     = "deposit_queue"
 	WithdrawalQueuePrefix                  = "withdrawal_queue"
 	RandaoMixPrefix                        = "randao_mix"
 	SlashingsPrefix                        = "slashings"
@@ -43,6 +42,7 @@ const (
 	SlotPrefix                             = "slot"
 	BalancesPrefix                         = "balances"
 	Eth1BlockHashPrefix                    = "eth1_block_hash"
+	Eth1DataPrefix                         = "eth1_data"
 	Eth1DepositIndexPrefix                 = "eth1_deposit_idx"
 	GenesisValidatorsRootPrefix            = "genesis_validators_root"
 	NextWithdrawalIndexPrefix              = "next_withdrawal_index"
