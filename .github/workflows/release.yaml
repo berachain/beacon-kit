@@ -26,12 +26,11 @@
 name: release
 
 on:
-  pull_request:
-    branches:
-      - 'v*'
   push:
     tags:
       - 'v*'
+    branches:
+      - 'release/*'
 
 jobs:
   build-linux:
@@ -60,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: build/bin/beacond
+          path: build/bin/beacond-${{ matrix.targetos }}-${{ matrix.arch }}
 
   build-mac:
     runs-on: macos-latest
@@ -90,7 +89,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: build/bin/beacond
+          path: build/bin/beacond-${{ matrix.targetos }}-${{ matrix.arch }}
 
   draft-release:
     runs-on: ubuntu-latest
