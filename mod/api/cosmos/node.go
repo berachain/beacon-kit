@@ -4,7 +4,6 @@ import (
 	"context"
 
 	tendermintv1beta1 "cosmossdk.io/api/cosmos/base/tendermint/v1beta1"
-	cometabci "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/berachain/beacon-kit/mod/api/beaconnode"
@@ -20,10 +19,7 @@ func (c ChainQuerier) GetSyncingStatus() beaconnode.GetSyncingStatusRes {
 		}
 	}
 
-	req := cometabci.RequestQuery{
-		Path: tendermintv1beta1.Service_GetSyncing_FullMethodName,
-	}
-	query, err := c.ABCI.Query(ctx, &req)
+	responseQuery, err := c.callABCIQuery(ctx, tendermintv1beta1.Service_GetSyncing_FullMethodName)
 	if err != nil {
 		return &beaconnode.GetSyncingStatusInternalServerError{
 			Code:        2,
@@ -33,7 +29,7 @@ func (c ChainQuerier) GetSyncingStatus() beaconnode.GetSyncingStatusRes {
 	}
 
 	resp := tendermintv1beta1.GetSyncingResponse{}
-	err = proto.Unmarshal(query.Value, &resp)
+	err = proto.Unmarshal(responseQuery.Value, &resp)
 	if err != nil {
 		return &beaconnode.GetSyncingStatusInternalServerError{
 			Code:        3,
@@ -63,10 +59,7 @@ func (c ChainQuerier) GetNodeVersion(_ context.Context) beaconnode.GetNodeVersio
 		}
 	}
 
-	req := cometabci.RequestQuery{
-		Path: tendermintv1beta1.Service_GetNodeInfo_FullMethodName,
-	}
-	query, err := c.ABCI.Query(ctx, &req)
+	responseQuery, err := c.callABCIQuery(ctx, tendermintv1beta1.Service_GetNodeInfo_FullMethodName)
 	if err != nil {
 		return &beaconnode.GetNodeVersionInternalServerError{
 			Code:        2,
@@ -76,7 +69,7 @@ func (c ChainQuerier) GetNodeVersion(_ context.Context) beaconnode.GetNodeVersio
 	}
 
 	resp := tendermintv1beta1.GetNodeInfoResponse{}
-	err = proto.Unmarshal(query.Value, &resp)
+	err = proto.Unmarshal(responseQuery.Value, &resp)
 	if err != nil {
 		return &beaconnode.GetNodeVersionInternalServerError{
 			Code:        3,
