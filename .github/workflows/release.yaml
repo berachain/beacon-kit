@@ -104,9 +104,6 @@ jobs:
         with:
           path: .
 
-      - name: List files in build
-        run: ls -R .
-
       - name: Draft Release
         uses: softprops/action-gh-release@v2
         with:
