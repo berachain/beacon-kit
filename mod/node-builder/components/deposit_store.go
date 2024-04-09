@@ -57,9 +57,7 @@ func ProvideDepositStore(in DepositStoreInput) DepositStoreOutput {
 		panic(err)
 	}
 
-	depositStore := deposit.NewStore(kvp)
-
 	return DepositStoreOutput{
-		DepositStore: depositStore,
+		DepositStore: deposit.NewStore(kvp),
 	}
 }

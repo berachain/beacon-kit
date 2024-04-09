@@ -113,6 +113,7 @@ func NewDefaultBeaconKitRuntime(
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithDepositABI(depositABI),
 		staking.WithExecutionEngine(executionEngine),
+		staking.WithDepositStore(depositStore),
 	)
 
 	// Build the local builder service.

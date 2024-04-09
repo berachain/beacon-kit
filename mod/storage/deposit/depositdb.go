@@ -111,3 +111,24 @@ func (kv *KVStore) DequeueDeposits(
 ) (beacontypes.Deposits, error) {
 	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
 }
+
+// PruneToIndex removes all deposits up to the given index.
+func (kv *KVStore) PruneToIndex(
+	index uint64,
+) error {
+	length, err := kv.depositQueue.Len(context.TODO())
+	if err != nil {
+		return err
+	} else if length == 0 {
+		return nil
+	}
+
+	head, err := kv.depositQueue.Peek(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	numPop := min(index-head.Index, length)
+	_, err = kv.depositQueue.PopMulti(context.TODO(), numPop)
+	return err
+}

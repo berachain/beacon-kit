@@ -134,6 +134,12 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
+	// Prune deposits
+	if err = s.sks.PruneDepositEvents(st); err != nil {
+		s.Logger().Error("failed to prune deposit events", "error", err)
+		return err
+	}
+
 	return nil
 }
 

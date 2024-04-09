@@ -76,3 +76,11 @@ func (s *Service) ProcessLogsInETH1Block(
 
 	return s.ProcessBlockEvents(ctx, logsInBlock)
 }
+
+func (s *Service) PruneDepositEvents(st state.BeaconState) error {
+	idx, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+	return s.ds.PruneToIndex(idx)
+}

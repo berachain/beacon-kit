@@ -69,6 +69,15 @@ func NewQueue[V any](
 	}
 }
 
+func (q *Queue[V]) Init(ctx context.Context) error {
+	if err := q.headSeq.Set(ctx, 0); err != nil {
+		return err
+	}
+
+	// The tail sequence should be set to the head sequence.
+	return q.tailSeq.Set(ctx, 0)
+}
+
 // Peek wraps the peek method with a read lock.
 func (q *Queue[V]) Peek(ctx context.Context) (V, error) {
 	q.mu.RLock()
@@ -148,6 +157,9 @@ func (q *Queue[V]) PeekMulti(ctx context.Context, n uint64) ([]V, error) {
 // PopMulti returns the top n elements of the queue and removes them from the
 // queue.
 func (q *Queue[V]) PopMulti(ctx context.Context, n uint64) ([]V, error) {
+	if n == 0 {
+		return nil, nil
+	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
