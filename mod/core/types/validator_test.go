@@ -38,7 +38,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 	tests := []struct {
 		name                      string
 		pubkey                    primitives.BLSPubkey
-		withdrawalCredentials     types.WithdrawalCredentials
+		withdrawalCredentials     primitives.WithdrawalCredentials
 		amount                    primitives.Gwei
 		effectiveBalanceIncrement primitives.Gwei
 		maxEffectiveBalance       primitives.Gwei
@@ -47,7 +47,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		{
 			name:   "normal case",
 			pubkey: [48]byte{0x01},
-			withdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+			withdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 				primitives.ExecutionAddress{0x01},
 			),
 			amount:                    32e9,
@@ -55,7 +55,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			maxEffectiveBalance:       32e9,
 			want: &types.Validator{
 				Pubkey: [48]byte{0x01},
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 				EffectiveBalance:           32e9,
@@ -69,7 +69,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		{
 			name:   "effective balance capped at max",
 			pubkey: [48]byte{0x02},
-			withdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+			withdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 				primitives.ExecutionAddress{0x02},
 			),
 			amount:                    40e9,
@@ -77,7 +77,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			maxEffectiveBalance:       32e9,
 			want: &types.Validator{
 				Pubkey: [48]byte{0x02},
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x02},
 				),
 				EffectiveBalance:           32e9,
@@ -91,7 +91,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		{
 			name:   "effective balance rounded down",
 			pubkey: [48]byte{0x03},
-			withdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+			withdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 				primitives.ExecutionAddress{0x03},
 			),
 			amount:                    32.5e9,
@@ -99,7 +99,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			maxEffectiveBalance:       32e9,
 			want: &types.Validator{
 				Pubkey: [48]byte{0x03},
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x03},
 				),
 				EffectiveBalance:           32e9,
@@ -324,7 +324,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			balance: 32e9,
 			epoch:   10,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 				WithdrawableEpoch: 5,
@@ -336,7 +336,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			balance: 32e9,
 			epoch:   10,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.WithdrawalCredentials{0x00},
+				WithdrawalCredentials: primitives.WithdrawalCredentials{0x00},
 				WithdrawableEpoch:     5,
 			},
 			want: false,
@@ -346,7 +346,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			balance: 32e9,
 			epoch:   4,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 				WithdrawableEpoch: 5,
@@ -358,7 +358,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			balance: 0,
 			epoch:   10,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 				WithdrawableEpoch: 5,
@@ -389,7 +389,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			name:    "partially withdrawable",
 			balance: 33e9,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 				EffectiveBalance: maxEffectiveBalance,
@@ -400,7 +400,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			name:    "not partially withdrawable, non-eth1 credentials",
 			balance: 33e9,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.WithdrawalCredentials{0x00},
+				WithdrawalCredentials: primitives.WithdrawalCredentials{0x00},
 				EffectiveBalance:      maxEffectiveBalance,
 			},
 			want: false,
@@ -409,7 +409,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			name:    "not partially withdrawable, not at max effective balance",
 			balance: 33e9,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 				EffectiveBalance: maxEffectiveBalance - 1,
@@ -420,7 +420,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			name:    "not partially withdrawable, no excess balance",
 			balance: 32e9,
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 				EffectiveBalance: maxEffectiveBalance,
@@ -451,7 +451,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 		{
 			name: "has eth1 credentials",
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+				WithdrawalCredentials: primitives.NewCredentialsFromExecutionAddress(
 					primitives.ExecutionAddress{0x01},
 				),
 			},
@@ -460,7 +460,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 		{
 			name: "does not have eth1 credentials",
 			validator: &types.Validator{
-				WithdrawalCredentials: types.WithdrawalCredentials{0x00},
+				WithdrawalCredentials: primitives.WithdrawalCredentials{0x00},
 			},
 			want: false,
 		},

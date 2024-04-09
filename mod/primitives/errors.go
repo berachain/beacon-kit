@@ -27,5 +27,16 @@ package primitives
 
 import "errors"
 
-// ErrInvalidBufferSize indicates that the provided buffer size is invalid.
-var ErrInvalidBufferSize = errors.New("invalid buffer size")
+var (
+	// ErrInvalidBufferSize indicates that the provided buffer size is invalid.
+	ErrInvalidBufferSize = errors.New("invalid buffer size")
+
+	// ErrDepositMessage is an error for when the deposit signature doesn't
+	// match.
+	ErrDepositMessage = errors.New("invalid deposit message")
+
+	// ErrInvalidWithdrawalCredentials is an error for when the.
+	ErrInvalidWithdrawalCredentials = errors.New(
+		"invalid withdrawal credentials",
+	)
+)
