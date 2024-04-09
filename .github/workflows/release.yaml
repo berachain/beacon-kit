@@ -23,21 +23,22 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-name: "Release"
+name: release
 
 on:
-  push:
-    tags:
-      - v*
+  pull_request:
+    branches:
+      - 'v*'
+
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         arch: [amd64, arm64]
         targetos: [linux]
 
-    name: beacond ${{ matrix.arch }} for ${{ matrix.targetos }}
+    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -48,7 +49,7 @@ jobs:
           GOARCH: ${{ matrix.arch }}
 
       # Build and capture an artifact
-      - name: Compile becond
+      - name: Build beacond
         run: |
           make build
 
@@ -58,23 +59,59 @@ jobs:
           name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
           path: build/bin/beacond
 
+  build-mac:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [arm64]
+        targetos: [darwin]
+
+    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "^1.22"
+        env:
+          GOOS: ${{ matrix.targetos }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_CFLAGS: "-O -D__BLST_PORTABLE__"
+          CGO_CFLAGS_ALLOW: "-O -D__BLST_PORTABLE__"
+
+      # Build and capture an artifact
+      - name: Build beacond
+        run: |
+          make build-darwin-arm64
+
+      # Uploads binaries
+      - uses: actions/upload-artifact@v3
+        with:
+          name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+          path: build/bin/beacond
+
   draft-release:
     runs-on: ubuntu-latest
+    needs: [build-linux, build-mac]
     permissions: write-all
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: build/
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: List files in build
+        run: ls -R build/
 
       - name: Draft Release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           files: |
-            beacond-linux-arm64
-            beacond-linux-amd64
+            build/beacond-linux-arm64/beacond
+            build/beacond-linux-amd64/beacond
+            build/beacond-darwin-arm64/beacond
+        env:
+          GIT_TOKEN: ${{ secrets.DEV_PAT }}

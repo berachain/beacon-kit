@@ -81,6 +81,16 @@ BUILD_TARGETS := build install
 ## Build: 
 build: BUILD_ARGS=-o $(OUT_DIR)/beacond ## build `beacond`
 
+build-linux-amd64:
+	GOOS=linux GOARCH=amd64 LEDGER_ENABLED=false $(MAKE) build
+
+build-linux-arm64:
+	GOOS=linux GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
+
+build-darwin-arm64:
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 LEDGER_ENABLED=false $(MAKE) build
+
+
 $(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
 	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
