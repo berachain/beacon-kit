@@ -26,12 +26,18 @@
 package da
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/da/proof/ckzg"
 	"github.com/berachain/beacon-kit/mod/da/proof/gokzg"
+	"github.com/cockroachdb/errors"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+)
+
+const (
+	// crateCryptoGoKzg4844 is the crate-crypto/go-kzg-4844 implementation.
+	crateCryptoGoKzg4844 = "crate-crypto/go-kzg-4844"
+	// ethereumCKzg4844 is the ethereum/c-kzg-4844 implementation.
+	ethereumCKzg4844 = "ethereum/c-kzg-4844"
 )
 
 // NewBlobProofVerifier creates a new BlobVerifier with the given
@@ -41,11 +47,15 @@ func NewBlobProofVerifier(
 	ts *gokzg4844.JSONTrustedSetup,
 ) (proof.BlobProofVerifier, error) {
 	switch impl {
-	case "crate-crypto/go-kzg-4844":
+	case crateCryptoGoKzg4844:
 		return gokzg.NewVerifier(ts)
-	case "ethereum/c-kzg-4844":
+	case ethereumCKzg4844:
 		return ckzg.NewVerifier(ts)
 	default:
-		return nil, errors.New("unsupported KZG implementation")
+		return nil, errors.Wrapf(
+			ErrUnsupportedKzgImplementation,
+			"supplied: %s, supported: %s, %s",
+			impl, crateCryptoGoKzg4844, ethereumCKzg4844,
+		)
 	}
 }

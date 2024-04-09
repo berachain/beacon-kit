@@ -6,6 +6,7 @@ include build/scripts/constants.mk
 include build/scripts/devtools.mk 
 include build/scripts/linting.mk
 include build/scripts/protobuf.mk
+include build/scripts/release.mk
 include build/scripts/testing.mk
 include contracts/Makefile 
 include kurtosis/Makefile
@@ -19,7 +20,6 @@ ROOT_DIR := $(shell pwd)
 ##############################################################################
 ###                             Dependencies                                ###
 ###############################################################################
-
 
 .PHONY: clean format lint \
 	buf-install buf-lint-fix buf-lint proto-clean \

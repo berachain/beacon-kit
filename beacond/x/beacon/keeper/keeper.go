@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
@@ -130,7 +131,7 @@ func (k *Keeper) BeaconState(
 // InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
-	data *state.BeaconStateDeneb,
+	data *deneb.BeaconState,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Load the store.
 	store := k.beaconStore.WithContext(ctx)
@@ -154,8 +155,8 @@ func (k *Keeper) InitGenesis(
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(_ context.Context) *state.BeaconStateDeneb {
-	return &state.BeaconStateDeneb{
+func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
+	return &deneb.BeaconState{
 		Eth1BlockHash: common.Hash{},
 	}
 }

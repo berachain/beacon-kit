@@ -29,9 +29,9 @@ import "encoding/json"
 
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include execution.go,primitives.go,bytes.go,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
 type Eth1Data struct {
-	DepositRoot  Root          `json:"depositRoot"`
+	DepositRoot  Root          `json:"depositRoot" ssz-size:"32"`
 	DepositCount uint64        `json:"depositCount"`
-	BlockHash    ExecutionHash `json:"blockHash"`
+	BlockHash    ExecutionHash `json:"blockHash" ssz-size:"32"`
 }
 
 // String returns a string representation of the Eth1Data.

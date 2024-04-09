@@ -36,7 +36,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.13.5-0.20240406102255-7aafad2233b6
-	github.com/ferranbt/fastssz v0.1.4-0.20240408093223-309fc3629cb3
+	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golangci/golangci-lint v1.57.2
@@ -44,7 +44,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.2.4
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240403223652-ab327c0c3f9f
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.14
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.16
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0

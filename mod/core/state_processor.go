@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	sha256 "github.com/minio/sha256-simd"
@@ -285,7 +284,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits types.Deposits,
+	deposits primitives.Deposits,
 ) error {
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
@@ -299,7 +298,7 @@ func (sp *StateProcessor) processDeposits(
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
-	dep *types.Deposit,
+	dep *primitives.Deposit,
 ) error {
 	// TODO: fill this in properly
 	// if !sp.isValidMerkleBranch(
@@ -356,7 +355,7 @@ func (sp *StateProcessor) isValidMerkleBranch(
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor) createValidator(
 	st state.BeaconState,
-	dep *types.Deposit,
+	dep *primitives.Deposit,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -379,13 +378,13 @@ func (sp *StateProcessor) createValidator(
 	epoch = sp.cfg.SlotToEpoch(slot)
 
 	// Get the fork data for the current epoch.
-	fd := forks.NewForkData(
+	fd := primitives.NewForkData(
 		version.FromUint32(
 			sp.cfg.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
-	depositMessage := types.DepositMessage{
+	depositMessage := primitives.DepositMessage{
 		Pubkey:      dep.Pubkey,
 		Credentials: dep.Credentials,
 		Amount:      dep.Amount,
@@ -401,7 +400,7 @@ func (sp *StateProcessor) createValidator(
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor) addValidatorToRegistry(
 	st state.BeaconState,
-	dep *types.Deposit,
+	dep *primitives.Deposit,
 ) error {
 	val := types.NewValidatorFromDeposit(
 		dep.Pubkey,

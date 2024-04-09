@@ -65,7 +65,7 @@ type BeaconBlockBody interface {
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
-	SetDeposits(Deposits)
+	SetDeposits(primitives.Deposits)
 	SetExecutionData(enginetypes.ExecutionPayload) error
 	SetBlobKzgCommitments(kzg.Commitments)
 }
@@ -79,8 +79,8 @@ type ReadOnlyBeaconBlockBody interface {
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
-	GetDeposits() Deposits
-	GetGraffiti() [32]byte
+	GetDeposits() primitives.Deposits
+	GetGraffiti() primitives.Bytes32
 	GetRandaoReveal() primitives.BLSSignature
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() kzg.Commitments
