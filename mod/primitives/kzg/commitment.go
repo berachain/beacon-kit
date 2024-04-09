@@ -84,6 +84,12 @@ func (c Commitment) ToHashChunks() [][32]byte {
 	return chunks
 }
 
+// HashTreeRoot returns the hash tree root of the commitment.
+func (c Commitment) HashTreeRoot() ([32]byte, error) {
+	chunks := c.ToHashChunks()
+	return chunks[0], nil
+}
+
 // UnmarshalJSON parses a commitment in hex syntax.
 func (c *Commitment) UnmarshalJSON(input []byte) error {
 	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Commitment{}), input, c[:])
