@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
@@ -54,17 +53,17 @@ func TestDeposits(t *testing.T) {
 	sdb = sdb.WithContext(ctx)
 	t.Run("should work with deposit", func(t *testing.T) {
 		cred := []byte("12345678901234567890123456789012")
-		deposit := &beacontypes.Deposit{
+		deposit := &primitives.Deposit{
 			Pubkey: primitives.BLSPubkey(
 				bytes.ToBytes48([]byte("pubkey")),
 			),
-			Credentials: beacontypes.WithdrawalCredentials(cred),
+			Credentials: primitives.WithdrawalCredentials(cred),
 			Amount:      100,
 			Signature: primitives.BLSSignature(
 				bytes.ToBytes96([]byte("signature")),
 			),
 		}
-		err := sdb.EnqueueDeposits(beacontypes.Deposits{deposit})
+		err := sdb.EnqueueDeposits(primitives.Deposits{deposit})
 		require.NoError(t, err)
 		deposits, err := sdb.DequeueDeposits(1)
 		require.NoError(t, err)

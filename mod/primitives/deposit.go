@@ -23,11 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/forks"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
@@ -38,23 +36,40 @@ type Deposits []*Deposit
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path deposit.go -objs Deposit,DepositMessage -include withdrawal_credentials.go,../../primitives,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit,DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
 	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount primitives.Gwei `json:"amount"`
+	Amount Gwei `json:"amount"`
 
 	// Signature of the deposit data.
-	Signature primitives.BLSSignature `json:"signature" ssz-max:"96"`
+	Signature BLSSignature `json:"signature" ssz-max:"96"`
 
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
+}
+
+// NewDeposit creates a new Deposit instance.
+func NewDeposit(
+	pubkey BLSPubkey,
+	credentials WithdrawalCredentials,
+	amount Gwei,
+	signature BLSSignature,
+	index uint64,
+) *Deposit {
+	return &Deposit{
+		Pubkey:      pubkey,
+		Credentials: credentials,
+		Amount:      amount,
+		Signature:   signature,
+		Index:       index,
+	}
 }
 
 // String returns a string representation of the Deposit.
@@ -68,28 +83,28 @@ func (d *Deposit) String() string {
 //nolint:lll
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
 	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount primitives.Gwei `json:"amount"`
+	Amount Gwei `json:"amount"`
 }
 
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
-	forkData *forks.ForkData,
-	signature primitives.BLSSignature,
+	forkData *ForkData,
+	signature BLSSignature,
 ) error {
-	domain, err := forkData.ComputeDomain(primitives.DomainTypeDeposit)
+	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
 	if err != nil {
 		return err
 	}
 
-	signingRoot, err := primitives.ComputeSigningRoot(d, domain)
+	signingRoot, err := ComputeSigningRoot(d, domain)
 	if err != nil {
 		return err
 	}
