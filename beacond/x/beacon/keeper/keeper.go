@@ -242,6 +242,11 @@ func (k *Keeper) InitGenesis(
 	); err != nil {
 		return nil, err
 	}
+
+	if err = store.SetTotalSlashing(data.TotalSlashing); err != nil {
+		return nil, err
+	}
+
 	// Set the genesis slashing data.
 	for i, v := range data.Slashings {
 		//#nosec:G701 // will not realistically cause a problem.
@@ -250,6 +255,10 @@ func (k *Keeper) InitGenesis(
 		); err != nil {
 			return nil, err
 		}
+	}
+
+	if err = store.SetFork(data.Fork); err != nil {
+		return nil, err
 	}
 
 	if err = store.SetGenesisValidatorsRoot(
