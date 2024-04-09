@@ -31,7 +31,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 	beaconkeeper "github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -148,13 +147,6 @@ func NewBeaconKitApp(
 
 	/**** End of BeaconKit Configuration ****/
 
-	// register streaming services
-	if err := app.RegisterStreamingServices(
-		appOpts, app.kvStoreKeys(),
-	); err != nil {
-		panic(err)
-	}
-
 	// Check for goleveldb cause bad project.
 	if appOpts.Get("app-db-backend") == "goleveldb" {
 		panic("goleveldb is not supported")
@@ -178,16 +170,4 @@ func (app BeaconApp) PostStartup(
 		ctx,
 	)
 	return nil
-}
-
-// kvStoreKeys returns the KVStoreKeys for the app.
-func (app *BeaconApp) kvStoreKeys() map[string]*storetypes.KVStoreKey {
-	keys := make(map[string]*storetypes.KVStoreKey)
-	for _, k := range app.GetStoreKeys() {
-		if kv, ok := k.(*storetypes.KVStoreKey); ok {
-			keys[kv.Name()] = kv
-		}
-	}
-
-	return keys
 }
