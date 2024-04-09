@@ -36,8 +36,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/statedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
 
@@ -45,7 +45,7 @@ import (
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	statedb           *statedb.StateDB
+	beaconStore       *beacondb.KVStore
 	cfg               *params.BeaconChainConfig
 }
 
@@ -57,7 +57,7 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
-		statedb:           statedb.New(env.KVStoreService),
+		beaconStore:       beacondb.New(env.KVStoreService),
 		cfg:               cfg,
 	}
 }
@@ -71,7 +71,7 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.statedb.WithContext(ctx)
+	store := k.beaconStore.WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
@@ -124,39 +124,18 @@ func (k *Keeper) AvailabilityStore(
 func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), k.cfg)
+	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cfg)
 }
 
 // InitGenesis initializes the genesis state of the module.
-//
-// TODO: This whole thing needs to be abstracted into mod/core/state
-//
-//nolint:gocognit,funlen // todo fix.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
-	data state.BeaconStateDeneb,
+	data *state.BeaconStateDeneb,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Set the genesis RANDAO mix.
-	st := k.BeaconState(ctx)
-	for i, mix := range data.RandaoMixes {
-		if err := st.UpdateRandaoMixAtIndex(
-			//#nosec:G701 // will not cause a problem.
-			uint64(i), mix,
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	for i, root := range data.StateRoots {
-		if err := st.UpdateStateRootAtIndex(
-			//#nosec:G701 // will not cause a problem.
-			uint64(i), root,
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := st.SetSlot(data.Slot); err != nil {
+	// Load the store.
+	store := k.beaconStore.WithContext(ctx)
+	sdb := state.NewBeaconStateFromDB(store, k.cfg)
+	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
 		return nil, err
 	}
 
@@ -212,51 +191,14 @@ func (k *Keeper) InitGenesis(
 
 	store := k.statedb.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for i, validator := range data.Validators {
-		if err = store.AddValidator(validator); err != nil {
-			return nil, err
-		}
-
-		if err = store.IncreaseBalance(
-			primitives.ValidatorIndex(i), validator.EffectiveBalance,
-		); err != nil {
-			return nil, err
-		}
-
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
+	blsType := (&bls12381.PubKey{}).Type()
+	for _, validator := range data.Validators {
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
-			PubKeyType: (&bls12381.PubKey{}).Type(),
+			PubKeyType: blsType,
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
-	}
-
-	if err = store.SetNextWithdrawalIndex(data.NextWithdrawalIndex); err != nil {
-		return nil, err
-	}
-
-	if err = store.SetNextWithdrawalValidatorIndex(
-		data.NextWithdrawalValidatorIndex,
-	); err != nil {
-		return nil, err
-	}
-	// Set the genesis slashing data.
-	for i, v := range data.Slashings {
-		//#nosec:G701 // will not realistically cause a problem.
-		if err = store.UpdateSlashingAtIndex(
-			uint64(i), primitives.Gwei(v),
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	if err = store.SetGenesisValidatorsRoot(
-		data.GenesisValidatorsRoot,
-	); err != nil {
-		return nil, err
 	}
 	return validatorUpdates, nil
 }

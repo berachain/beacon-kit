@@ -23,23 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives"
 
-// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *StateDB) UpdateRandaoMixAtIndex(
-	index uint64,
-	mix primitives.Bytes32,
+// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// state.
+func (kv *KVStore) SetGenesisValidatorsRoot(
+	root primitives.Root,
 ) error {
-	return s.randaoMix.Set(s.ctx, index, mix)
+	return kv.genesisValidatorsRoot.Set(kv.ctx, root)
 }
 
-// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *StateDB) GetRandaoMixAtIndex(
-	index uint64,
-) (primitives.Bytes32, error) {
-	return s.randaoMix.Get(s.ctx, index)
+// GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// beacon state.
+func (kv *KVStore) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	return kv.genesisValidatorsRoot.Get(kv.ctx)
+}
+
+// GetSlot returns the current slot.
+func (kv *KVStore) GetSlot() (primitives.Slot, error) {
+	slot, err := kv.slot.Get(kv.ctx)
+	return primitives.Slot(slot), err
+}
+
+// SetSlot sets the current slot.
+func (kv *KVStore) SetSlot(slot primitives.Slot) error {
+	return kv.slot.Set(kv.ctx, uint64(slot))
 }

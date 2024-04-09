@@ -23,31 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/davecgh/go-spew/spew"
+)
 
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (s *StateDB) SetGenesisValidatorsRoot(
-	root primitives.Root,
-) error {
-	return s.genesisValidatorsRoot.Set(s.ctx, root)
+// Fork as defined in the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ./primitives.go,./bytes.go -output fork.ssz.go
+//nolint:lll
+type Fork struct {
+	// PreviousVersion is the last version before the fork.
+	PreviousVersion Version
+	// CurrentVersion is the first version after the fork.
+	CurrentVersion Version
+	// Epoch is the epoch at which the fork occurred.
+	Epoch Epoch
 }
 
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (s *StateDB) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	return s.genesisValidatorsRoot.Get(s.ctx)
-}
-
-// GetSlot returns the current slot.
-func (s *StateDB) GetSlot() (primitives.Slot, error) {
-	slot, err := s.slot.Get(s.ctx)
-	return primitives.Slot(slot), err
-}
-
-// SetSlot sets the current slot.
-func (s *StateDB) SetSlot(slot primitives.Slot) error {
-	return s.slot.Set(s.ctx, uint64(slot))
+// String returns a string representation of the fork.
+func (f *Fork) String() string {
+	return spew.Sdump(f)
 }
