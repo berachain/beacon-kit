@@ -53,7 +53,7 @@ jobs:
       # Build and capture an artifact
       - name: Build beacond
         run: |
-          make build
+          make build-${{ matrix.targetos }}-${{ matrix.arch }}
 
       # Uploads binaries
       - uses: actions/upload-artifact@v3
@@ -83,7 +83,7 @@ jobs:
       # Build and capture an artifact
       - name: Build beacond
         run: |
-          make build-darwin-arm64
+          make build-${{ matrix.targetos }}-${{ matrix.arch }}
 
       # Uploads binaries
       - uses: actions/upload-artifact@v3
