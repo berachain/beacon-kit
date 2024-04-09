@@ -53,13 +53,13 @@ jobs:
       # Build and capture an artifact
       - name: Build beacond
         run: |
-          make build
+          make build-${{ matrix.targetos }}-${{ matrix.arch }}
 
       # Uploads binaries
       - uses: actions/upload-artifact@v3
         with:
           name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: build/bin/beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+          path: build/bin
 
   build-mac:
     runs-on: macos-latest
@@ -83,13 +83,13 @@ jobs:
       # Build and capture an artifact
       - name: Build beacond
         run: |
-          make build-darwin-arm64
+          make build-${{ matrix.targetos }}-${{ matrix.arch }}
 
       # Uploads binaries
       - uses: actions/upload-artifact@v3
         with:
           name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: build/bin/beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+          path: build/bin
 
   draft-release:
     runs-on: ubuntu-latest
@@ -102,18 +102,18 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
-          path: build/
+          path: .
 
       - name: List files in build
-        run: ls -R build/
+        run: ls -R .
 
       - name: Draft Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           draft: true
           files: |
-            build/bin/beacond-linux-arm64
-            build/bin/beacond-linux-amd64
-            build/bin/beacond-darwin-arm64
+            ./beacond-linux-arm64/beacond-linux-arm64
+            ./beacond-linux-amd64/beacond-linux-amd64
+            ./beacond-darwin-arm64/beacond-darwin-arm64
         env:
           GIT_TOKEN: ${{ secrets.DEV_PAT }}
