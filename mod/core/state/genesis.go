@@ -100,7 +100,7 @@ func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
 	for i, slashing := range st.Slashings {
 		totalSlashing += primitives.Gwei(slashing)
 		//#nosec:G701 // won't overflow in practice.
-		if err := s.UpdateSlashingAtIndex(
+		if err := s.SetSlashingAtIndex(
 			uint64(i), primitives.Gwei(slashing),
 		); err != nil {
 			return err
