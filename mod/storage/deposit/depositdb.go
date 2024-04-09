@@ -27,6 +27,7 @@ package deposit
 
 import (
 	"context"
+	"errors"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
@@ -47,26 +48,30 @@ const (
 var _ store.KVStoreService = (*KVStoreProvider)(nil)
 
 type KVStoreProvider struct {
-	name    string
-	dir     string
-	backend string
+	*PebbleDB
 }
 
 func NewKVStoreProvider(name, backend, dir string) (*KVStoreProvider, error) {
+	var db *PebbleDB
+	var err error
+	switch backend {
+	case "pebble":
+		db, err = NewPebbleDB(name, dir)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("unsupported backend")
+	}
+
 	return &KVStoreProvider{
-		name:    name,
-		dir:     dir,
-		backend: backend,
+		db,
 	}, nil
 }
 
+// OpenKVStore opens a new KV store.
 func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
-	db, err := NewPebbleDB(p.name, p.dir)
-	if err != nil {
-		panic(err)
-	}
-
-	return db
+	return p.PebbleDB
 }
 
 // KVStore is a wrapper around an sdk.Context.
