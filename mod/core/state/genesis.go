@@ -26,6 +26,7 @@
 package state
 
 import (
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -34,7 +35,7 @@ import (
 // to a custom type, not the full state.
 //
 //nolint:gocognit // splitting into more functions would be confusing.
-func (s *StateDB) WriteGenesisStateDeneb(st *BeaconStateDeneb) error {
+func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 	if err := s.SetGenesisValidatorsRoot(st.GenesisValidatorsRoot); err != nil {
 		return err
 	}

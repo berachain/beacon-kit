@@ -31,7 +31,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	gentypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
 	"github.com/cockroachdb/errors"
@@ -73,7 +73,7 @@ func CollectValidatorsCmd() *cobra.Command {
 				)
 			}
 
-			beaconState := &state.BeaconStateDeneb{}
+			beaconState := &deneb.BeaconState{}
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], beaconState,
 			); err != nil {
