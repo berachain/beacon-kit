@@ -36,10 +36,17 @@ def upload_global_files(plan, node_modules):
         src = "../../networks/kurtosis-devnet/network-configs/genesis.json",
         name = "genesis_file",
     )
+
     jwt_file = plan.upload_files(
         src = constants.JWT_FILEPATH,
         name = "jwt_file",
     )
+
+    kzg_trusted_setup_file = plan.upload_files(
+        src = constants.KZG_TRUSTED_SETUP_FILEPATH,
+        name = "kzg_trusted_setup",
+    )
+
     for node_module in node_modules.values():
         for global_file in node_module.GLOBAL_FILES:
             plan.upload_files(
@@ -47,7 +54,7 @@ def upload_global_files(plan, node_modules):
                 name = global_file[1],
             )
 
-    return jwt_file
+    return jwt_file, kzg_trusted_setup_file
 
 def get_enode_addr(plan, el_service, el_service_name, el_type):
     extract_statement = {"enode": """.result.enode | split("?") | .[0]"""}
