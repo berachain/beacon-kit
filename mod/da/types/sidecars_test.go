@@ -55,13 +55,25 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 
 	// Marshal the empty sidecar
 	marshalled, err := sidecar.MarshalSSZ()
-	require.NoError(t, err, "Marshalling empty sidecar should not produce an error")
-	require.NotNil(t, marshalled, "Marshalling empty sidecar should produce a result")
+	require.NoError(
+		t,
+		err,
+		"Marshalling empty sidecar should not produce an error",
+	)
+	require.NotNil(
+		t,
+		marshalled,
+		"Marshalling empty sidecar should produce a result",
+	)
 
 	// Unmarshal the empty sidecar
 	unmarshalled := types.BlobSidecar{}
 	err = unmarshalled.UnmarshalSSZ(marshalled)
-	require.NoError(t, err, "Unmarshalling empty sidecar should not produce an error")
+	require.NoError(
+		t,
+		err,
+		"Unmarshalling empty sidecar should not produce an error",
+	)
 
 	// Compare the original and unmarshalled empty sidecars
 	assert.Equal(
@@ -93,9 +105,15 @@ func TestValidateBlockRoots(t *testing.T) {
 	}
 
 	// Validate the sidecar with valid roots
-	sidecars := types.BlobSidecars{Sidecars: []*types.BlobSidecar{&validSidecar}}
+	sidecars := types.BlobSidecars{
+		Sidecars: []*types.BlobSidecar{&validSidecar},
+	}
 	err := sidecars.ValidateBlockRoots()
-	require.NoError(t, err, "Validating sidecar with valid roots should not produce an error")
+	require.NoError(
+		t,
+		err,
+		"Validating sidecar with valid roots should not produce an error",
+	)
 
 	// Create a sample BlobSidecar with invalid roots
 	differentBlockRootSidecar := types.BlobSidecar{
@@ -117,7 +135,16 @@ func TestValidateBlockRoots(t *testing.T) {
 		},
 	}
 	// Validate the sidecar with invalid roots
-	sidecarsInvalid := types.BlobSidecars{Sidecars: []*types.BlobSidecar{&validSidecar, &differentBlockRootSidecar}}
+	sidecarsInvalid := types.BlobSidecars{
+		Sidecars: []*types.BlobSidecar{
+			&validSidecar,
+			&differentBlockRootSidecar,
+		},
+	}
 	err = sidecarsInvalid.ValidateBlockRoots()
-	require.Error(t, err, "Validating sidecar with invalid roots should produce an error")
+	require.Error(
+		t,
+		err,
+		"Validating sidecar with invalid roots should produce an error",
+	)
 }
