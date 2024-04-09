@@ -22,4 +22,3 @@ PRE_FUNDED_ACCOUNTS = [
         "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
     ),
 ]
-
